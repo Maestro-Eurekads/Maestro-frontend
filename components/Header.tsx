@@ -1,6 +1,4 @@
 'use client'
-import { useState } from 'react';
-import Link from 'next/link';
 import Image from 'next/image'
 import nike from '../public/nike.svg';
 import plus from '../public/plus.svg';
@@ -10,12 +8,6 @@ import down from '../public/ri-arrow-down-s-line.svg';
 
 
 const Header = () => {
-  const [show, setShow] = useState(false)
-  const [drawer, setDrawer] = useState(false)
-
-  const [input, setInput] = useState({
-    username: "",
-  })
 
 
 
