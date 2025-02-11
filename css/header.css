@@ -1,0 +1,134 @@
+#header {
+  grid-area: header;
+  background: var(--accent-white);
+  display: flex;
+  justify-content: space-between;
+  align-items: center; 
+  padding: 2.8rem 3rem; 
+}
+
+.setting_header_two{
+    display: flex !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+}
+
+  
+.header_sub{
+  display: flex;
+  justify-content: space-between;
+  gap: 50px;
+}
+
+ 
+
+.profiledropdown_container_main{
+  position: relative; 
+  display: flex;
+  gap: 20px;
+}
+
+.profile_container{  
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 12px;
+gap: 8px; 
+width: 40px;
+height: 40px; 
+background: #E8F6FF;
+border-radius: 50px;  
+
+
+ 
+ 
+font-style: normal;
+font-weight: 600;
+font-size: 14px;
+line-height: 16px;
+text-align: center; 
+color: #3175FF; 
+
+}
+
+ 
+.profiledropdown_container{
+  display: flex;
+  align-items: center;
+  gap: 20px; 
+  cursor: pointer;
+}
+
+  
+
+/* Media query for small screens */
+@media screen and (max-width: 1080px) {
+   #header {
+  grid-area: header;
+  background: var(--background);
+  display: flex;
+  justify-content: space-between;
+  align-items: center; 
+   padding:  0px 1rem !important; 
+}
+}
+@media screen and (max-width: 768px) {
+ 
+  .setting_header_one{
+  display: block !important;
+}
+
+
+  .setting_header_two{
+display: none !important;
+  }
+
+  #header {
+  grid-area: header;
+  background: var(--background);
+  display: flex;
+  justify-content: space-between;
+  align-items: center; 
+   padding: 25px  1rem 0px 1rem !important; 
+}
+ 
+ 
+
+  .dropdown_container{ 
+    width: 0px; 
+   }  
+   .profiledropdown_container{
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width:none;
+}
+ 
+
+.dropdown_container{ 
+box-sizing: border-box; 
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 10px; 
+position: absolute;
+width: 228px; 
+top: 55px;
+right: 0px;
+padding: 12px;
+background: var(--accent-white);
+border: 1px solid var(--accent-green);
+border-radius: 8px;
+
+}
+.profiledropdown_container{
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 50px;
+}
+ 
+ 
+}

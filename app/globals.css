@@ -1,21 +1,194 @@
+/* @import url(../css/header.css);
+@import url(../css/login.css);
+@import url(../css/footer.css);
+@import url(../css/input.css);
+@import url(../css/sidenav.css);
+@import url(../css/btn.css);
+@import url(../css/School.css);
+@import url(../css/Settings.css);
+@import url(../css/GeneralInformationSection.css); */
+@import url(../css/header.css);
+@import url(../css/button.css);
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+*,
+::before,
+::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --accent-white: #fff;
+  --background: #f6f8fa;
+  --photo-background: #f4f4f4;
+  --accent-black: #000;
+  --accent-black-two: #05162e;
+  --accent-blue: #1f679d;
+  --accent-background-blue: #eaf6ff;
+  --second-text-color: #737373;
+  --text-color: #05162e;
+  --underline-text: #393646;
+  --text-input: #393e46;
+  --accent-profile: #f8c993;
+  --border-color: #e5e4e9;
+  --border: #34495d;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+ul ol {
+  list-style: outside !important;
+  display: block !important;
+  list-style-type: disc !important;
+}
+
+input {
+  font-size: 16px;
+}
+
+/* input,  */
+button,
+textarea,
+select,
+table {
+  font: inherit;
+  box-sizing: border-box;
+  font-size: 12px;
+}
+@media (max-width: 1200px) {
+  /* input,  */
+  button,
+  textarea,
+  select,
+  table {
+    font: small;
   }
 }
+a {
+  text-decoration: none !important;
+  color: inherit;
+  cursor: pointer;
+}
 
+button:active {
+  border: none;
+  transform: scale(0.98) !important;
+}
+
+button {
+  border: none;
+  transition: background-color 0.3s ease, transform 0.2s ease !important;
+}
+
+/* Scrollbar container */
+::-webkit-scrollbar {
+  width: 6px; /* Width of the scrollbar */
+  height: 12px; /* Height for horizontal scrollbars */
+}
+
+/* Scrollbar track (background) */
+::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Light grey background */
+  border-radius: 6px; /* Rounded corners */
+}
+
+/* Scrollbar handle (the draggable part) */
+::-webkit-scrollbar-thumb {
+  background: #8888886f; /* Darker grey handle */
+  border-radius: 6px; /* Rounded corners */
+}
+
+/* Hover effect on the handle */
+::-webkit-scrollbar-thumb:hover {
+  background: #5555559f; /* Even darker grey */
+}
+
+main {
+  grid-area: main;
+  overflow-y: auto;
+  background: var(--accent-background-blue);
+  width: 100%;
+  padding: 27px 24px;
+}
+
+#page-wrapper {
+  display: grid;
+  position: relative;
+  height: 100dvh;
+  grid-template-columns: max-content 1fr;
+  grid-template-rows: 80px 1fr;
+  grid-template-areas:
+    'sidenav header'
+    'sidenav main'
+    'footer footer';
+}
+
+#page-wrapper-login {
+  display: grid;
+  position: relative;
+  height: 100dvh;
+  grid-template-columns: max-content 1fr;
+  grid-template-rows: 0px 1fr;
+  grid-template-areas:
+    'header header'
+    'sidenav mains'
+    'footer footer';
+}
+
+/* Media query for small screens */
+@media screen and (max-width: 1080px) {
+  #side-nav {
+    display: block;
+  }
+}
 body {
-  color: var(--foreground);
-  background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+ 
+ main {
+    grid-area: main;
+    overflow-y: auto;
+    width: 100%;
+    padding: 20px;
+  }
+@media (max-width: 1366px) and (min-width: 769px) {
+  #side-nav {
+    display: block;
+  }
+  main {
+    padding: 20px 40px;
+  }
+}
+@media screen and (max-width: 768px) {
+  #side-nav {
+    display: none;
+  }
+ 
+}
+
+.hide-vertical-scrollbar {
+  /* overflow-y: scroll; */
+  scrollbar-width: none; /* Firefox */
+}
+ 
+.hide-vertical-scrollbar::-webkit-scrollbar {
+  display: none; /* WebKit */
+}
+
+ 
