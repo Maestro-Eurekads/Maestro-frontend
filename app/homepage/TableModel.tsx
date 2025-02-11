@@ -84,7 +84,7 @@ const TableModel = () => {
 							<EditInputs />
 						</div>
 						<div className="w-[50%]">
-							<Dropdowns one={true} two={false} labelone={"Select fee type"} />
+							<Dropdowns one={true} two={false} labelone={"Select fee type"} labeltwo={undefined} />
 						</div>
 						<div className="model_buttom_btn_containers flex items-center justify-end mt-1 pt-4">
 							<div className="flex items-center gap-5">
