@@ -1,0 +1,66 @@
+.media_text{ 
+font-style: normal;
+font-weight: 600;
+font-size: 28px;
+line-height: 38px; 
+color: var( --text-color);  
+}
+
+.madel_profile{ 
+box-sizing: border-box; 
+width: 40px;
+height: 40px; 
+background: var(--accent-white);
+border: 1px solid rgba(0, 0, 0, 0.1);
+box-shadow: 0px 0px 8px 1px rgba(0, 0, 0, 0.1);
+border-radius: 8px; 
+display: flex;
+justify-content: center;
+align-items: center;
+}
+
+.madel_profile_text_container h3{  
+font-style: normal;
+font-weight: 600;
+font-size: 18px;
+line-height: 28px;  
+color: #061237;   
+}
+.madel_profile_text_container p{   
+font-style: normal;
+font-weight: 500;
+font-size: 14px;
+line-height: 20px;  
+color: rgba(6, 18, 55, 0.8);  
+}
+
+.border-structure{ 
+border-bottom:2px solid #EBEBEB; 
+padding-bottom: 10px;
+}
+
+.model_button_black{ 
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 12px 24px;
+gap: 10px; 
+width: 76px;
+height: 44px; 
+background: #061237;
+border-radius: 8px;   
+font-style: normal;
+font-weight: 600;
+font-size: 14px;
+line-height: 19px;
+color: var(--accent-white); 
+
+}
+
+.model_buttom_btn_containers{ 
+ 
+border-top:2px solid #EBEBEB; 
+padding: 10px;
+width: 100%; 
+}

@@ -11,11 +11,6 @@ const Header = () => {
 
 
 
-
-
-
-
-
   return (
     <div id="header">
       <div className='hand_bugger flex items-center'  >
@@ -30,9 +25,6 @@ const Header = () => {
 
         <button className='client_btn_text'>  <Image src={plus} alt='plus' />New client</button>
       </div>
-
-
-
 
       <div className='profiledropdown_container_main'>
 

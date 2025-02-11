@@ -52,3 +52,42 @@ font-size: 16px;
 line-height: 22px; 
 color: #3175FF;  
 }
+
+.btn_model_active{ 
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 12px 24px;
+gap: 10px; 
+width: 116px;
+height: 44px; 
+background: #3175FF;
+border-radius: 8px;  
+font-style: normal;
+font-weight: 600;
+font-size: 14px;
+line-height: 19px; 
+color: var(--accent-white);  
+}
+.btn_model_outline{  
+box-sizing: border-box; 
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 12px 24px;
+gap: 10px; 
+width: 95px;
+height: 44px; 
+background: var(--accent-white);
+border: 1px solid rgba(0, 0, 0, 0.1);
+border-radius: 8px;    
+  
+font-style: normal;
+font-weight: 600;
+font-size: 14px;
+line-height: 19px; 
+color: #061237; 
+
+}
