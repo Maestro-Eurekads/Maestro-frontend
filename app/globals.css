@@ -1,14 +1,9 @@
-/* @import url(../css/header.css);
-@import url(../css/login.css);
-@import url(../css/footer.css);
-@import url(../css/input.css);
-@import url(../css/sidenav.css);
-@import url(../css/btn.css);
-@import url(../css/School.css);
-@import url(../css/Settings.css);
-@import url(../css/GeneralInformationSection.css); */
+ 
+@import url(../css/homepage.css);
 @import url(../css/header.css);
 @import url(../css/button.css);
+@import url(../css/table.css);
+/* @import url(../css/input.css); */
 
 
 @tailwind base;
@@ -32,7 +27,7 @@
   --accent-blue: #1f679d;
   --accent-background-blue: #eaf6ff;
   --second-text-color: #737373;
-  --text-color: #05162e;
+  --text-color: #292929;
   --underline-text: #393646;
   --text-input: #393e46;
   --accent-profile: #f8c993;
@@ -120,10 +115,9 @@ button {
 
 main {
   grid-area: main;
-  overflow-y: auto;
-  background: var(--accent-background-blue);
+  overflow-y: auto; 
   width: 100%;
-  padding: 27px 24px;
+  padding: 32px 72px;
 }
 
 #page-wrapper {
@@ -161,24 +155,20 @@ body {
 }
 
  
- main {
+ /* main {
     grid-area: main;
     overflow-y: auto;
     width: 100%;
     padding: 20px;
-  }
+  } */
 @media (max-width: 1366px) and (min-width: 769px) {
-  #side-nav {
-    display: block;
-  }
-  main {
+  
+  /* main {
     padding: 20px 40px;
-  }
+  } */
 }
 @media screen and (max-width: 768px) {
-  #side-nav {
-    display: none;
-  }
+ 
  
 }
 

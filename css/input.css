@@ -1,0 +1,289 @@
+input[type="text"],
+input[type="email"],
+input[type="password"],
+.multi-form-input {
+    width: 100%;
+    padding: 12px; 
+    gap: 8px;  
+    height: 48px; 
+    background: var(--accent-white);
+    border: 1px solid #393E46;  
+    border-radius: 4px;  
+    box-sizing: border-box;  
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;  
+}
+
+/* Hover state */
+input[type="text"]:hover,
+input[type="email"]:hover,
+input[type="password"]:hover {
+    border-color: var(--accent-green);  
+    box-shadow: 0 0 5px rgba(0, 128, 0, 0.2);  
+}
+
+/* Focus (active) state */
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 8px rgba(0, 128, 0, 0.4);  
+    outline: none;  
+}
+
+ input[type="text"].input-error,
+input[type="email"].input-error,
+input[type="password"].input-error {
+  border-color: red;
+  box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+}
+
+.help_us_hnow_continer{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.help_us_hnow_continer_main{
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.growth_mindset_container{ 
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 20px 24px;
+gap: 10px;
+isolation: isolate; 
+width: 100%;
+/* height: 167px;  */
+background: var(--accent-white);
+box-shadow: 7px 8px 56.3px rgba(0, 0, 0, 0.05);
+border-radius: 17px; 
+z-index: 999px;
+position: relative;
+}
+
+.help_us_Know_card{  
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 24px;
+gap: 10px; 
+width: 50%;
+/* height: 228px;  */
+background: var(--accent-white);
+box-shadow: 7px 8px 56.3px rgba(0, 0, 0, 0.05);
+border-radius: 17px;  
+}
+
+ 
+
+ 
+.react-select-5-input{
+     height: 30px !important; 
+}
+
+.css-jc0r9t{
+    border: none !important;
+}
+
+.css-13cymwt-control {
+  height: 48px; 
+}
+
+.css-hlgwow {
+      height: 48px; 
+}
+  .css-19bb58m{
+      height: 35px; 
+}
+
+.css-1iq9at8{
+    height: 40px; 
+    overflow-y: none !important;
+}
+ 
+.react-select__control {
+  width: 100%;
+  padding: 4px;
+  height: 48px;
+  background: var(--accent-white);
+  border: 1px solid #393E46;
+  border-radius: 4px;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+ 
+.react-select__control:hover {
+  border-color: var(--accent-green);
+  box-shadow: 0 0 5px rgba(0, 128, 0, 0.2);
+}
+
+ 
+.react-select__control--is-focused {
+  border-color: var(--accent-green);
+  box-shadow: 0 0 8px rgba(0, 128, 0, 0.4);
+  outline: none;
+}
+
+ 
+.react-select__multi-value {
+  background-color: var(--accent-green);
+  color: var(--accent-white);
+}
+
+ 
+.react-select__control--is-invalid {
+  border-color: red;
+  box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+}
+
+textarea {
+    width: 100%;
+    padding: 12px !important;
+    gap: 8px;
+    min-height: 80px;
+    background: var(--accent-white);
+    border: 1px solid #393E46;
+    border-radius: 4px;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    font-size: 16px;
+    resize: vertical;
+    margin-top: 7px !important;
+}
+
+/* Hover state */
+textarea:hover {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 5px rgba(0, 128, 0, 0.2);
+}
+
+/* Focus (active) state */
+textarea:focus {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 8px rgba(0, 128, 0, 0.4);
+    outline: none;
+}
+
+/* Error state */
+textarea.input-error {
+    border-color: red;
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+}
+
+
+.label_container_select {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    /* margin-bottom: 2rem; */
+}
+
+/* label {
+    font-weight: 600;
+    font-size: 14px;
+    color: #393e46;
+    margin-bottom: 8px;
+} */
+/* Styling for select dropdown */
+select {
+    width: 100%;
+    padding: 12px;
+    gap: 8px;
+    height: 48px;
+    background: var(--accent-white);
+    border: 1px solid #393E46;
+    border-radius: 4px;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover state */
+select:hover {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 5px rgba(0, 128, 0, 0.2);
+}
+
+/* Focus (active) state */
+select:focus {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 8px rgba(0, 128, 0, 0.4);
+    outline: none;
+}
+
+/* Error state */
+select.select-error {
+    border-color: red;
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+}
+
+
+.error-text {
+  color: red;
+  font-size: 0.875rem;
+  margin-top: 4px;
+}
+
+
+.label_container{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.verify_email{ 
+font-style: normal;
+font-weight: 400;
+font-size: 11px;
+line-height: 12px;  
+color: #DF1C2F; 
+cursor: pointer;
+}
+
+.login_botton{ 
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 12px 24px;
+gap: 8px; 
+width: 100%;
+height: 48px; 
+background: var(--accent-green);
+border: 1px solid var(--accent-green);
+border-radius: 4px;  
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 150%; 
+color: var(--accent-white);  
+ cursor: pointer;
+ transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+ 
+/* Hover effect */
+.login_button:hover{
+    background: darken(var(--accent-green), 10%);
+    box-shadow: 0px 4px 6px rgba(0, 128, 0, 0.2);  
+}
+
+/* Active (click) effect */
+.login_button:active{
+    transform: scale(0.95);  
+    box-shadow: 0px 2px 4px rgba(0, 128, 0, 0.2);  
+}
+@media screen and (max-width: 1440px) {
+.new-input-bottom{
+margin-top: 1.5rem;
+} 
+}
+@media screen and (max-width: 1080px) {
+.new-input-bottom{
+margin-top: 2.5rem;
+} 
+}
