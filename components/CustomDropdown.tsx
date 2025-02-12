@@ -4,7 +4,7 @@ import down from "../public/down.svg";
 import Image from 'next/image'
 
 
-const CustomDropdown = ({ label, options }: { label: string; options: string[] }) => {
+const CustomDropdown = ({ label, options, right, islabelone, islabeltwo }: { label: string; options: string[]; right: string; islabelone: string, islabeltwo: string }) => {
 	const [selectedOption, setSelectedOption] = useState<string | null>(null);
 	const [isOpen, setIsOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
@@ -30,11 +30,12 @@ const CustomDropdown = ({ label, options }: { label: string; options: string[] }
 	return (
 		<div className="relative w-full" ref={dropdownRef} >
 			{/* Dropdown Button */}
+			<label className="font-medium text-[15px] leading-5 text-gray-600 ">{islabelone || islabeltwo}</label>
 			<div
-				className="flex items-center px-4 py-2 w-full h-[40px] border border-[#EFEFEF] rounded-[10px] cursor-pointer"
+				className="flex items-center px-4 py-2 w-full h-[40px] border border-[#EFEFEF] rounded-[10px] cursor-pointer mt-[8px]"
 				onClick={toggleDropdown}
 			>
-				<div className='view_content_table mr-2'>JB</div>
+				{right && <div className='view_content_table mr-2'>JB</div>}
 				<span className="text-gray-600">{selectedOption || label}</span>
 				<span className="ml-auto text-gray-500">
 					<Image src={down} alt='nike' />
@@ -59,11 +60,12 @@ const CustomDropdown = ({ label, options }: { label: string; options: string[] }
 	);
 };
 
-const Dropdowns = ({ one, two, labelone, labeltwo }) => {
+const Dropdowns = ({ one, two, labelone, labeltwo, right, islabelone, islabeltwo }) => {
 	return (
 		<div className="flex  items-center gap-4 mt-[20px] w-full">
-			{one && <CustomDropdown label={labelone} options={["2022", "2023", "2024", "2025"]} />}
-			{two && <CustomDropdown label={labeltwo} options={["Q1", "Q2", "Q3", "Q4"]} />}
+
+			{one && <CustomDropdown label={labelone} options={["2022", "2023", "2024", "2025"]} right={right} islabelone={islabelone} islabeltwo={""} />}
+			{two && <CustomDropdown label={labeltwo} options={["Q1", "Q2", "Q3", "Q4"]} right={right} islabelone={""} islabeltwo={islabeltwo} />}
 
 		</div>
 	);
