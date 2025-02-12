@@ -1,15 +1,14 @@
 "use client"
 import { useState } from "react";
 import Image from "next/image";
-import blueBtn from "../../public/blueBtn.svg";
 import closefill from "../../public/close-fill.svg";
 import blueprofile from "../../public/blueprofile.svg";
 import Input from "../../components/Input";
 import Dropdowns from "../../components/CustomDropdown";
 import EditInputs from "../../components/EditInput";
 
-const TableModel = () => {
-	const [isOpen, setIsOpen] = useState(false);
+const TableModel = ({ isOpen, setIsOpen }) => {
+
 
 	const [inputs, setInputs] = useState({
 		firstName: "",
@@ -32,12 +31,9 @@ const TableModel = () => {
 
 	return (
 		<div className="z-50">
-			<button onClick={() => setIsOpen(true)}>
-				<Image src={blueBtn} alt="menu" />
-			</button>
 			{isOpen && (
 				<div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-					<div className="flex flex-col items-start p-6 gap-6 w-[700px] h-[532px] bg-white rounded-[32px]">
+					<div className="flex flex-col items-start p-6 gap-6 w-[700px]  bg-white rounded-[32px]">
 						<div className="border-structure flex justify-between w-full border-">
 							<div className="flex items-center gap-5">
 								<div className="madel_profile">
@@ -78,13 +74,13 @@ const TableModel = () => {
 							<button className="model_button_black">Add</button>
 						</div>
 						<div className="w-full">
-							<Dropdowns one={true} two={true} labelone={"Julien Dahmoun "} labeltwo={"Select fee type"} />
+							<Dropdowns one={true} two={true} labelone={"Julien Dahmoun "} labeltwo={"Select fee type"} right={true} islabelone={"Responsible"} islabeltwo={"Approver"} />
 						</div>
 						<div className="w-full">
-							<EditInputs />
+							<EditInputs islabelone={"Business level 1"} islabeltwo={"Business level 2"} islabelthree={"Business level 3"} />
 						</div>
 						<div className="w-[50%]">
-							<Dropdowns one={true} two={false} labelone={"Select fee type"} labeltwo={undefined} />
+							<Dropdowns one={true} two={false} labelone={"Select fee type"} labeltwo={undefined} right={false} islabelone={"Fee"} islabeltwo={undefined} />
 						</div>
 						<div className="model_buttom_btn_containers flex items-center justify-end mt-1 pt-4">
 							<div className="flex items-center gap-5">

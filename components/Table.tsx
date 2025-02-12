@@ -8,9 +8,8 @@ import ProgressBar from './ProgressBar';
 const Table = () => {
 
 	return (
-		<div className='table-container mt-[20px] rounded-[8px]  '>
-
-			<table>
+		<div className='table-container mt-[20px] rounded-[8px] overflow-x-auto'>
+			<table >
 				<thead>
 					<tr>
 						<th>Name</th>
