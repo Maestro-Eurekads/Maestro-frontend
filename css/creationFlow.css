@@ -1,0 +1,391 @@
+.SideBar__JobSideBar{
+display: flex; 
+}
+
+.SideBar_state_text{ 
+font-style: normal;
+font-weight: 500;
+font-size: 15px;
+line-height: 20px; 
+color: #7C7C7C;  
+}
+
+.SideBar_state_text_active{ 
+font-style: normal;
+font-weight: 600;
+font-size: 15px;
+line-height: 20px; 
+color: #3175FF;  
+}
+
+.SideBar__JobMenu{ 
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+	justify-content: center;
+align-items: center;
+padding: 8px;
+gap: 8px; 
+width: 32px;
+height: 32px; 
+background: #3175FF;
+border-radius: 50px; 
+
+}
+
+.SideBar__JobMenu_state{
+	margin-left: 1rem;
+}
+
+#SideBar__container{
+	width: 327px !important;
+}
+
+
+.SideBar_state_circle{
+width: 10px;
+height: 10px; 
+background-color: #D9D9D9;
+border: 3px solid #939FAE;
+border-radius: 50%;
+margin-right: 7px;
+}
+
+.SideBar_state_circle_container{
+	display: flex;
+	align-items: center;
+	margin-top: 20px;
+	margin-bottom: 10px;
+}
+
+ 
+.vl {
+  border-left: 5px solid #D9D9D9;
+  height: 50px;  
+background: #DCDCDC; 
+ 
+
+}
+
+.SideBar__state__container{
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.SideBar_state_circle_text{
+	color: #F0284A;
+	font-size: 14px; 
+	font-weight: bold;
+}
+.SideBar_state_circle_text_active{
+	color: #2BBBA7;
+	font-size: 14px; 
+	font-weight: bold;
+}
+.SideBar_state_circle_text_active_move{
+	color: #1A77F2;
+	font-size: 14px; 
+	font-weight: bold;
+}
+
+.coloricon{
+		color: #7FC15E;
+}
+
+.vl_two{
+	 border-left: 6px solid #D9D9D9;
+  height: 150px;
+		margin-top: 10px;
+		margin-bottom: 10px;
+}
+
+.SideBar__container{
+	margin-left: 20px;
+}
+
+
+.AddJob_main_container{
+	width: 100%;
+	height: 90%;
+	background-color: #fff;  
+	overflow: auto !important;
+	box-shadow: rgb(0 0 0 / 15%) 0px 0px 0px 1px, rgb(0 0 0 / 20%) 0px 0px 0px;
+}
+
+
+.AddJob_main_container_header{
+	display: flex;  
+	align-items: center;
+	padding: 1rem;
+	border-bottom: 2px solid #F4F4F4;
+	position: relative;
+} 
+
+.AddJob_container_main{
+	padding: 1rem 3rem; 
+	width: 100%;
+	/* height: 50%; */
+}
+.AddJob_TextField{
+	border-radius: 20px !important;
+}
+
+.AddJob_main_header_icon{
+	margin-right: 1rem;
+}
+
+ .AddJob_main_text{
+		margin-bottom: 0 !important;
+		font-size: 20px;
+	}
+ 
+.AddJob_main_container_input{
+	display: flex;
+	width: 100% !important;
+	margin-top: 1rem;
+}
+
+@media screen and (min-width: 300px) and (max-width: 920px){ 
+	.AddJob_container_main {
+    padding: 1rem 1rem;
+    width: 100%; 
+}
+
+	.AddJob_main_container_input_two {
+    display: block !important; 
+     width: 100% !important; 
+    margin-top: 1rem;
+}
+	.AddJob_main_container_header {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    border-bottom: 2px solid #F4F4F4;
+    position: relative;
+}
+
+.AddJob_main_text {
+    margin-bottom: 0 !important;
+    font-size: 13px;
+}
+
+ .AddJob_main_container_input{
+	display: grid;
+	grid-template-columns: 1fr;
+	margin-top: 3rem;
+}
+ 
+}
+
+.AddJob_main_container_input_two{
+	display: flex;
+	width: 100% !important;
+	margin-top: 1rem;
+}
+
+.AddJob_main_container_input_Checkbox{
+		display: flex;
+		align-items: center !important;
+	width: 100% !important;
+	margin-top: 1rem;
+}
+
+
+.AddJob_main_container_bottom{
+	display: flex;
+	justify-content: space-between;
+ margin-top: 1rem;
+}
+.AddJob_main_container_bottom_two{
+	display: flex;
+	justify-content: space-between;
+}
+
+
+.active-container{
+	width: 100%;
+	height: 60vh;
+	overflow-y:auto; 
+}
+ 
+.summary-container{
+	width: 100%; 
+	background-color: #fff;
+	border-radius: 12px;
+		box-shadow: rgb(0 0 0 / 15%) 0px 0px 0px 1px, rgb(0 0 0 / 20%) 0px 0px 0px;
+		margin-bottom: 2rem;
+}
+
+.Summary-contaner-header{
+	background-color: #fff;
+	border-radius: 12px;
+	margin-bottom: 1rem;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+		box-shadow: rgb(0 0 0 / 15%) 0px 0px 0px 1px, rgb(0 0 0 / 20%) 0px 0px 0px;
+}
+
+.JobForwardandBackward-container{
+	width: 40%;
+	margin-right: 1rem;
+	
+}
+
+.summary-container-title{
+		display: flex;
+	justify-content: flex-start;
+	align-items: center;
+	width: 100%;
+	height: 40px;
+	padding: 1rem;
+	font-weight: bold;
+}
+.summary-container-title-sub{ 
+	padding: 1rem;
+	width: 100%;
+	height: 40px;
+  background:   var(--clr-blue) !important; 
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+	font-weight:light;
+	font-size: 12px;
+	color: #fff; 
+}
+
+.summary-container-title-sub-children{
+	display: grid; 
+	grid-template-columns: 1fr 1fr 1fr;
+	padding-bottom: 2rem;
+}
+
+.summary-main{
+	padding: 1rem;
+}
+
+.summary-main-flag-option1{
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border: 1px solid #D2D6DA;
+	border-radius: 12px;
+	width: 100%;
+	padding: 1rem ;
+	margin-bottom: 1rem;
+}
+.summary-main-flag-option{
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border: 1px solid #D2D6DA;
+	border-radius: 12px;
+	width: 100%;
+	padding: 1rem ;
+		margin-bottom: 1rem;
+}
+
+.Education-Details-title{
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	margin-bottom: 2rem;
+}
+.Education-Details-title p{
+	 color: #18181875;
+}
+
+ 
+
+ .summary-bottom-btn-container{
+ display: flex;
+	justify-content: flex-end;
+	margin-bottom: 10rem;
+	}
+
+	.summary-bottom-btn{
+background: var(--clr-blue) !important; 
+ border-radius: 4px !important;  
+	color: #fff !important;
+	}
+
+	.check-contianer{
+		display: flex;
+		align-items: center;
+		position: relative;
+		top: 1rem;
+	}
+
+	.no-suggestions {
+  color: #999;
+  padding: 0.5rem;
+}
+.suggestions {
+  border: 1px solid #999;
+  border-top-width: 0;
+  list-style: none;
+  margin-top: 0;
+  max-height: 143px;
+  overflow-y: auto;
+			
+  padding-left: 0;
+		background-color: #fff;
+  /* width: calc(300px + 1rem); */
+}
+.suggestions li {
+  padding: 0.5rem; 
+		
+}
+.suggestion-active,
+.suggestions li:hover {
+  background-color: whitesmoke;
+  color: #000;
+  cursor: pointer;
+  font-weight: 700; 
+}
+.suggestions li:not(:last-of-type) {
+  border-bottom: 1px solid #999; 
+}
+ 
+.comment-input{
+  width: 100% !important;
+}
+
+.css-1fdsijx-ValueContainer {
+	min-width: 100%;
+	border: 1px solid #D2D6DA;
+	font: inherit;
+    letter-spacing: inherit;   
+    background: none;
+    height: 3.5em; 
+    padding: 16.5px  ;
+				/* border-radius: 12px !important; */
+}
+
+/* .css-13cymwt-control{
+	min-width: 100%;
+	border: 1px solid #D2D6DA;
+	font: inherit;
+    letter-spacing: inherit;   
+    background: none;
+    height: 3.5em; 
+    padding: 16.5px  ;
+				border-radius: 12px !important;
+} */
+
+
+ 
+
+ 
+
+ 
+
+
+
+
+ 
+
+
+
+

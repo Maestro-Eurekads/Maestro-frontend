@@ -1,0 +1,20 @@
+#side-nav {
+  width: 360px; 
+  position: relative;
+  grid-area: sidenav  ;
+  background: var(--white); 
+  border-right: 1px solid rgba(28, 28, 28, 0.1); 
+  display: block;
+  padding: 20px;
+    height: 100%;  
+  overflow: hidden; 
+}
+
+/* Media query for small screens */
+@media screen and (max-width: 768px) {
+  
+  #side-nav {
+    display: none !important;
+  }
+
+	}
