@@ -1,10 +1,8 @@
 import Image from "next/image";
 import left_arrow from "../public/blue_back_arrow.svg";
 import CreationFlow from "./CreationFlow";
-import { useState } from "react";
 
 const SideNav: React.FC = () => {
-  const [active, setActive] = useState<number>(1);
 
   return (
     <div id="side-nav" className="!flex !flex-col !h-full justify-between">
@@ -21,7 +19,7 @@ const SideNav: React.FC = () => {
             <h6>Nike</h6>
           </div>
         </div >
-        <CreationFlow active={active} setActive={setActive} />
+        <CreationFlow />
       </div>
 
       <p className="font-general-sans italic font-medium text-[12px] leading-[21px] text-[rgba(6,18,55,0.8)]">
