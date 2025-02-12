@@ -4,7 +4,7 @@ import nike from '../public/nike.svg';
 import plus from '../public/plus.svg';
 import white from '../public/white-plus.svg';
 import down from '../public/ri-arrow-down-s-line.svg';
-
+import Link from 'next/link';
 
 
 const Header = ({ setIsOpen }) => {
@@ -29,10 +29,12 @@ const Header = ({ setIsOpen }) => {
       <div className='profiledropdown_container_main'>
 
         <div className='profiledropdown_container'  >
-          <button className='new_plan_btn'>
-            <Image src={white} alt='white' />
-            <p className='new_plan_btn_text'>New media plan</p>
-          </button>
+          <Link href={`/creation`}>
+            <button className='new_plan_btn'>
+              <Image src={white} alt='white' />
+              <p className='new_plan_btn_text'>New media plan</p>
+            </button>
+          </Link>
           <div className='profile_container'>
             MD
           </div>
