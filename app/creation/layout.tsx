@@ -4,7 +4,6 @@ import React from "react";
 import SideNav from "../../components/SideNav";
 import Bottom from "../../components/Bottom";
 import CreationFlowHeader from "../../components/CreationFlowHeader";
-// import Header from "../../components/Header";
 
 
 function Layout({ children }: never) {

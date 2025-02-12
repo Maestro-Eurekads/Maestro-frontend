@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
+import { ActiveProvider } from "./utils/ActiveContext";
 
 
 // Load Roboto font
@@ -32,7 +33,9 @@ export default function RootLayout({
       <body
         className={`${roboto.variable} antialiased`}
       >
-        {children}
+        <ActiveProvider>
+          {children}
+        </ActiveProvider>
       </body>
     </html>
   );
