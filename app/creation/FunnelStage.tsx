@@ -3,6 +3,17 @@ import Image from "next/image";
 import speaker from '../../public/mdi_megaphone.svg';
 import down from '../../public/arrow-down.svg';
 import facebook from '../../public/facebook.svg';
+import ig from '../../public/ig.svg';
+import tictok from '../../public/tictok.svg';
+import youtube from '../../public/youtube.svg';
+import x from '../../public/x.svg';
+import linkedin from '../../public/linkedin.svg';
+import TheTradeDesk from '../../public/TheTradeDesk.svg';
+import Quantcast from '../../public/Quantcast.svg';
+import Display from '../../public/Display.svg';
+import Google from '../../public/Google.svg';
+import yahoo from '../../public/yahoo.svg';
+import bing from '../../public/bing.svg';
 
 const FunnelStage = () => {
 	return (
@@ -24,7 +35,7 @@ const FunnelStage = () => {
 					<p className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF]"
 					>In progress</p>
 					<div>
-						<Image src={down} alt="speaker" />
+						<Image src={down} alt="down" />
 					</div>
 				</div>
 				<div className=" card_bucket_container_main_sub flex flex-col  pb-6   w-[968px] h-[780px]]">
@@ -47,7 +58,7 @@ const FunnelStage = () => {
 							<div className="flex flex-row justify-between items-center p-5 gap-4 w-[230px] h-[62px] bg-white border border-[rgba(0,0,0,0.1)] rounded-[10px]"
 							>
 								<div className='flex items-center gap-2'>
-									<Image src={facebook} alt="facebook" />
+									<Image src={ig} alt="ig" />
 									<p className=" h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]"
 									> Instagram
 									</p>
@@ -58,7 +69,7 @@ const FunnelStage = () => {
 							<div className="flex flex-row justify-between items-center p-5 gap-4 w-[230px] h-[62px] bg-white border border-[rgba(0,0,0,0.1)] rounded-[10px]"
 							>
 								<div className='flex items-center gap-2'>
-									<Image src={facebook} alt="facebook" />
+									<Image src={tictok} alt="tictok" />
 									<p className=" h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]"
 									>TikTok</p>
 								</div>
@@ -68,7 +79,7 @@ const FunnelStage = () => {
 							<div className="flex flex-row justify-between items-center p-5 gap-4 w-[230px] h-[62px] bg-white border border-[rgba(0,0,0,0.1)] rounded-[10px]"
 							>
 								<div className='flex items-center gap-2'>
-									<Image src={facebook} alt="facebook" />
+									<Image src={youtube} alt="youtube" />
 									<p className=" h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]"
 									>Youtube</p>
 								</div>
@@ -78,7 +89,7 @@ const FunnelStage = () => {
 							<div className="flex flex-row justify-between items-center p-5 gap-4 w-[230px] h-[62px] bg-white border border-[rgba(0,0,0,0.1)] rounded-[10px]"
 							>
 								<div className='flex items-center gap-2'>
-									<Image src={facebook} alt="facebook" />
+									<Image src={x} alt="x" />
 									<p className=" h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]"
 									>Twitter/X</p>
 								</div>
@@ -88,7 +99,7 @@ const FunnelStage = () => {
 							<div className="flex flex-row justify-between items-center p-5 gap-4 w-[230px] h-[62px] bg-white border border-[rgba(0,0,0,0.1)] rounded-[10px]"
 							>
 								<div className='flex items-center gap-2'>
-									<Image src={facebook} alt="facebook" />
+									<Image src={linkedin} alt="linkedin" />
 									<p className=" h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]"
 									>LinkedIn</p>
 								</div>
@@ -105,7 +116,7 @@ const FunnelStage = () => {
 							<div className="flex flex-row justify-between items-center p-5 gap-4 w-[230px] h-[62px] bg-white border border-[rgba(0,0,0,0.1)] rounded-[10px]"
 							>
 								<div className='flex items-center gap-2'>
-									<Image src={facebook} alt="facebook" />
+									<Image src={TheTradeDesk} alt="TheTradeDesk" />
 									<p className=" h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]"
 									>TheTradeDesk</p>
 								</div>
@@ -115,7 +126,7 @@ const FunnelStage = () => {
 							<div className="flex flex-row justify-between items-center p-5 gap-4 w-[230px] h-[62px] bg-white border border-[rgba(0,0,0,0.1)] rounded-[10px]"
 							>
 								<div className='flex items-center gap-2'>
-									<Image src={facebook} alt="facebook" />
+									<Image src={Quantcast} alt="Quantcast" />
 									<p className=" h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]"
 									>Quantcast</p>
 								</div>
@@ -125,7 +136,7 @@ const FunnelStage = () => {
 							<div className="flex flex-row justify-between items-center p-5 gap-4 w-[230px] h-[62px] bg-white border border-[rgba(0,0,0,0.1)] rounded-[10px]"
 							>
 								<div className='flex items-center gap-2'>
-									<Image src={facebook} alt="facebook" />
+									<Image src={Display} alt="Display" />
 									<p className="  h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]"
 									>Display & Vidéo</p>
 								</div>
@@ -142,7 +153,7 @@ const FunnelStage = () => {
 							<div className="flex flex-row justify-between items-center p-5 gap-4 w-[230px] h-[62px] bg-white border border-[rgba(0,0,0,0.1)] rounded-[10px]"
 							>
 								<div className='flex items-center gap-2'>
-									<Image src={facebook} alt="facebook" />
+									<Image src={Google} alt="Google" />
 									<p className=" h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]"
 									>Google</p>
 								</div>
@@ -152,17 +163,17 @@ const FunnelStage = () => {
 							<div className="flex flex-row justify-between items-center p-5 gap-4 w-[230px] h-[62px] bg-white border border-[rgba(0,0,0,0.1)] rounded-[10px]"
 							>
 								<div className='flex items-center gap-2'>
-									<Image src={facebook} alt="facebook" />
-									<p className=" h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]"
+									<Image src={yahoo} alt="yahoo" />
+									<p className="h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]"
 									>Yahoo</p>
 								</div>
-								<div className=" w-[20px] h-[20px] border-[0.769px] border-[rgba(0,0,0,0.2)] rounded-full"
+								<div className="w-[20px] h-[20px] border-[0.769px] border-[rgba(0,0,0,0.2)] rounded-full"
 								/>
 							</div>
 							<div className="flex flex-row justify-between items-center p-5 gap-4 w-[230px] h-[62px] bg-white border border-[rgba(0,0,0,0.1)] rounded-[10px]"
 							>
 								<div className='flex items-center gap-2'>
-									<Image src={facebook} alt="facebook" />
+									<Image src={bing} alt="bing" />
 									<p className=" h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]"
 									>Bing</p>
 								</div>
