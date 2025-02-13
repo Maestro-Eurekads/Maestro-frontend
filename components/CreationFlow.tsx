@@ -1,135 +1,49 @@
-// import Image from "next/image";
-// import symbol from "../public/material-symbols_campaign-rounded.svg";
-// import { useActive } from "../app/utils/ActiveContext";
-
-
-// interface CreationFlowProps {
-// 	active: number;
-// 	setActive: React.Dispatch<React.SetStateAction<number>>;
-// }
-
-// const CreationFlow: React.FC<CreationFlowProps> = () => {
-// 	const { active } = useActive();
-
-// 	return (
-// 		<div id='Sidenavbar'>
-// 			<div id='SideBar__container'  >
-// 				<div className='SideBar__JobSideBar'>
-// 					<div className='SideBar__state__container'>
-// 						<div className={active === 1 ? "SideBar_Menu_active" : 'SideBar_Menu_none'}>
-// 							<Image src={symbol} alt="menu" />
-// 						</div>
-// 						<div className='vl'></div>
-// 					</div>
-// 					<div className='SideBar_Menu_state'>
-// 						<div className={active === 1 ? "SideBar_state_text_active" : "SideBar_state_text"}>Define campaign objective</div>
-// 						{/* <div className='SideBar_state_circle_container'>
-// 							{active >= 2 ? <CheckIcon className='coloricon' /> : <div className='SideBar_state_circle'></div>} */}
-// 						{/* <span className={active >= 2 ? 'SideBar_state_circle_text_active' : active === 1 ? 'SideBar_state_circle_text_active_move' : 'SideBar_state_circle_text'}>
-// 								Job Profile</span> */}
-// 						{/* </div> */}
-// 					</div>
-// 				</div>
-// 				<div className='SideBar__JobSideBar'>
-// 					<div className='SideBar__state__container'>
-// 						<div className={active === 1 ? "SideBar_Menu_active" : 'SideBar_Menu_none'}>
-// 							<Image src={symbol} alt="menu" />
-// 						</div>
-// 						<div className='vl'></div>
-// 					</div>
-// 					<div className='SideBar_Menu_state'>
-// 						<div className='SideBar_state_text'>Map funnel stages</div>
-// 					</div>
-// 				</div>
-// 				<div className='SideBar__JobSideBar'>
-// 					<div className='SideBar__state__container'>
-// 						<div className='SideBar_Menu_none'>
-// 							<Image src={symbol} alt="menu" />
-// 						</div>
-// 						<div className='vl'></div>
-// 					</div>
-// 					<div className='SideBar_Menu_state'>
-// 						<div className='SideBar_state_text'> Select channel mix</div>
-// 					</div>
-// 				</div>
-// 				<div className='SideBar__JobSideBar'>
-// 					<div className='SideBar__state__container'>
-// 						<div className='SideBar_Menu_none'>
-// 							<Image src={symbol} alt="menu" />
-// 						</div>
-// 						<div className='vl'></div>
-// 					</div>
-// 					<div className='SideBar_Menu_state'>
-// 						<div className='SideBar_state_text'>Formats selection</div>
-// 					</div>
-// 				</div>
-// 				<div className='SideBar__JobSideBar'>
-// 					<div className='SideBar__state__container'>
-// 						<div className='SideBar_Menu_none'>
-// 							<Image src={symbol} alt="menu" />
-// 						</div>
-// 						<div className='vl' />
-// 					</div>
-// 					<div className='SideBar_Menu_state'>
-// 						<div className='SideBar_state_text'>Set buy objectives and types</div>
-
-// 					</div>
-// 				</div>
-// 				<div className='SideBar__JobSideBar'>
-// 					<div className='SideBar__state__container'>
-// 						<div className='SideBar_Menu_none'>
-// 							<Image src={symbol} alt="menu" />
-// 						</div>
-// 						<div className='vl'></div>
-// 					</div>
-// 					<div className='SideBar_Menu_state'>
-// 						<div className='SideBar_state_text'>Plan campaign schedule</div>
-
-// 					</div>
-// 				</div>
-// 				<div className='SideBar__JobSideBar'>
-// 					<div className='SideBar__state__container'>
-// 						<div className='SideBar_Menu_none'>
-// 							<Image src={symbol} alt="menu" />
-// 						</div>
-// 						<div className='vl'></div>
-// 					</div>
-// 					<div className='SideBar_Menu_state'>
-// 						<div className='SideBar_state_text'>Configure ad sets and budget</div>
-
-// 					</div>
-// 				</div>
-// 				<div className='SideBar__JobSideBar'>
-// 					<div className='SideBar__state__container'>
-// 						<div className='SideBar_Menu_none'>
-// 							<Image src={symbol} alt="menu" />
-// 						</div>
-// 					</div>
-// 					<div className='SideBar_Menu_state'>
-// 						<div className='SideBar_state_text'>Establish goals</div>
-// 					</div>
-// 				</div>
-// 			</div>
-
-// 		</div >
-// 	)
-// }
-
-// export default CreationFlow
-
 import Image from "next/image";
 import symbol from "../public/material-symbols_campaign-rounded.svg";
+import funnel from "../public/ant-design_funnel-plot-filled.svg";
+import channel from "../public/icon-park-solid_web-page.svg";
+import devicefill from "../public/device-fill.svg";
+import basket from "../public/bxs_basket.svg";
+import click from "../public/fluent_cursor-click-24-filled.svg";
+import workbench from "../public/icon-park-solid_workbench.svg";
+import checkfill from "../public/mingcute_check-fill.svg";
 import { useActive } from "../app/utils/ActiveContext";
 
 const steps = [
-	"Define campaign objective",
-	"Map funnel stages",
-	"Select channel mix",
-	"Formats selection",
-	"Set buy objectives and types",
-	"Plan campaign schedule",
-	"Configure ad sets and budget",
-	"Establish goals",
+	{
+		title: "Define campaign objective",
+		objective: "Main objective: Purchase",
+		img: <Image src={symbol} alt="symbol" />
+	},
+	{
+		title: "Map funnel stages",
+		objective: "Awareness · Consideration · Conversion",
+		img: <Image src={funnel} alt="funnel" />
+	},
+	{
+		title: "Select channel mix",
+		img: <Image src={channel} alt="channel" />
+	},
+	{
+		title: "Formats selection",
+		img: <Image src={devicefill} alt="devicefill" />
+	},
+	{
+		title: "Set buy objectives and types",
+		img: <Image src={basket} alt="basket" />
+	},
+	{
+		title: "Plan campaign schedule",
+		img: <Image src={click} alt="click" />
+	},
+	{
+		title: "Configure ad sets and budget",
+		img: <Image src={workbench} alt="workbench" />
+	},
+	{
+		title: "Establish goals",
+		img: <Image src={checkfill} alt="checkfill" />
+	},
 ];
 
 const CreationFlow = () => {
@@ -147,26 +61,36 @@ const CreationFlow = () => {
 						: isCompleted
 							? "bg-green-500 text-white" // Completed step (green)
 							: "bg-gray-300 text-gray-700"; // Inactive step (gray)
+					const stepColors = isActive
+						? "SideBar_state_text_active" // Active step (blue)
+						: isCompleted
+							? "SideBar_state_text_done" // Completed step (green)
+							: "SideBar_state_text"; // Inactive step (gray)
 
 					return (
-						<div className="SideBar__JobSideBar" key={stepNumber}>
+						<div className="SideBar__SideBar" key={stepNumber}>
 							<div className="SideBar__state__container">
 								{/* Step Icon */}
 								<div className={`SideBar_Menu_active ${stepColor}`}>
-									<Image src={symbol} alt="menu" />
+									{step.img}
 								</div>
 
 								{/* Line Connector (Not for last item) */}
 								{stepNumber !== steps.length && (
-									<div className={`vl ${isCompleted ? "bg-green-500" : "bg-gray-300"}`} />
+									<div className={`vl ${active > stepNumber + 1 ? "vl_done" : active === stepNumber + 1 ? "vl_active" : ""}`} />
 								)}
 							</div>
 
 							{/* Step Text */}
 							<div className="SideBar_Menu_state">
-								<div className={isActive ? "SideBar_state_text_active" : "SideBar_state_text"}>
-									{step}
-								</div>
+								<span className={`SideBar_state_text ${stepColors}`}>
+									{step.title}
+								</span>
+
+								{/* Show objective ONLY when the step is completed */}
+								{isCompleted && step.objective && (
+									<div className="objective_step_text">{step.objective}</div>
+								)}
 							</div>
 						</div>
 					);
@@ -177,3 +101,5 @@ const CreationFlow = () => {
 };
 
 export default CreationFlow;
+
+
