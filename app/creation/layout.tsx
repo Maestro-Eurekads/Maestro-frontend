@@ -10,7 +10,7 @@ function Layout({ children }: never) {
 
 
   return (
-    <div id="page-wrapper">
+    <div id="page-wrapper-flow">
       <CreationFlowHeader />
       <SideNav />
       <Bottom />
