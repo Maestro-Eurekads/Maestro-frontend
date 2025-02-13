@@ -6,6 +6,8 @@ import YourObjective from './components/YourObjective'
 import FunnelStage from './components/FunnelStage'
 import { useActive } from '../utils/ActiveContext'
 import FormatsSelection from './components/FormatsSelection'
+import SetBuyObjectivesAndTypes from './components/ SetBuyObjectivesAndTypes'
+import PlanCampaignSchedule from './components/PlanCampaignSchedule'
 
 const Creation = () => {
 	const { active } = useActive();
@@ -16,6 +18,8 @@ const Creation = () => {
 			{active === 2 && <YourObjective />}
 			{active === 3 && <FunnelStage />}
 			{active === 4 && <FormatsSelection />}
+			{active === 5 && <SetBuyObjectivesAndTypes />}
+			{active === 6 && <PlanCampaignSchedule />}
 
 		</div>
 	)
