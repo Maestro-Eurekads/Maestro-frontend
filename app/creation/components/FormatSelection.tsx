@@ -6,6 +6,12 @@ import facebook from "../../../public/facebook.svg";
 import ig from "../../../public/ig.svg";
 import youtube from "../../../public/youtube.svg";
 
+import carousel from "../../../public/carousel.svg";
+import video_format from "../../../public/video_format.svg";
+import image_format from "../../../public/Image_format.svg";
+import collection_format from "../../../public/collection_format.svg";
+import slideshow_format from "../../../public/slideshow_format.svg";
+
 type IPlatform = {
   name: string;
   icon: string;
@@ -91,7 +97,7 @@ export const Platforms = () => {
 
                 {item === platform.name && (
                   <div className="py-6 px-4">
-                    <h1>{platform.name}</h1>
+                    <MediaSelection />
                   </div>
                 )}
               </div>
@@ -142,3 +148,23 @@ export const FormatSelection = () => {
     </div>
   );
 };
+
+export default function MediaSelection() {
+  const mediaOptions = [
+    { name: "Carousel", icon: carousel, selected: false },
+    { name: "Image", icon: image_format, selected: true },
+    { name: "Video", icon: video_format, selected: false },
+    { name: "Slideshow", icon: slideshow_format, selected: false },
+    { name: "Collection", icon: collection_format, selected: false },
+  ];
+  return (
+    <div className="flex gap-4 p-4">
+      {mediaOptions.map((option, index) => (
+        <div key={index} className="relative text-center">
+          <Image src={option.icon} width={168} height={132} alt={option.name} />
+          <p className="text-sm font-medium text-gray-700">{option.name}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
