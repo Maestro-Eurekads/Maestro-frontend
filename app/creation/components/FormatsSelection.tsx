@@ -1,3 +1,6 @@
+
+
+
 "use client"
 import React, { useState } from 'react'
 import Image from "next/image";
@@ -5,17 +8,17 @@ import speaker from '../../../public/mdi_megaphone.svg';
 import up from '../../../public/arrow-down.svg';
 import down2 from '../../../public/arrow-down-2.svg';
 import facebook from '../../../public/facebook.svg';
-import ig from '../../../public/ig.svg';
-import tictok from '../../../public/tictok.svg';
-import youtube from '../../../public/youtube.svg';
-import x from '../../../public/x.svg';
-import linkedin from '../../../public/linkedin.svg';
-import TheTradeDesk from '../../../public/TheTradeDesk.svg';
-import Quantcast from '../../../public/Quantcast.svg';
-import Display from '../../../public/Display.svg';
-import Google from '../../../public/Google.svg';
-import yahoo from '../../../public/yahoo.svg';
-import bing from '../../../public/bing.svg';
+// import ig from '../../../public/ig.svg';
+// import tictok from '../../../public/tictok.svg';
+// import youtube from '../../../public/youtube.svg';
+// import x from '../../../public/x.svg';
+// import linkedin from '../../../public/linkedin.svg';
+// import TheTradeDesk from '../../../public/TheTradeDesk.svg';
+// import Quantcast from '../../../public/Quantcast.svg';
+// import Display from '../../../public/Display.svg';
+// import Google from '../../../public/Google.svg';
+// import yahoo from '../../../public/yahoo.svg';
+// import bing from '../../../public/bing.svg';
 import orangecredit from '../../../public/orangecredit-card.svg';
 import tablerzoomfilled from '../../../public/tabler_zoom-filled.svg';
 
@@ -30,22 +33,22 @@ const funnelStages = [
 		platforms: {
 			"Social media": [
 				{ name: "Facebook", icon: facebook },
-				{ name: "Instagram", icon: ig },
-				{ name: "TikTok", icon: tictok },
-				{ name: "YouTube", icon: youtube },
-				{ name: "Twitter/X", icon: x },
-				{ name: "LinkedIn", icon: linkedin },
+				// { name: "Instagram", icon: ig },
+				// { name: "TikTok", icon: tictok },
+				// { name: "YouTube", icon: youtube },
+				// { name: "Twitter/X", icon: x },
+				// { name: "LinkedIn", icon: linkedin },
 			],
-			"Display networks": [
-				{ name: "TheTradeDesk", icon: TheTradeDesk },
-				{ name: "Quantcast", icon: Quantcast },
-				{ name: "Display & Video", icon: Display },
-			],
-			"Search engines": [
-				{ name: "Google", icon: Google },
-				{ name: "Yahoo", icon: yahoo },
-				{ name: "Bing", icon: bing },
-			],
+			// "Display networks": [
+			// 	{ name: "TheTradeDesk", icon: TheTradeDesk },
+			// 	{ name: "Quantcast", icon: Quantcast },
+			// 	{ name: "Display & Video", icon: Display },
+			// ],
+			// "Search engines": [
+			// 	{ name: "Google", icon: Google },
+			// 	{ name: "Yahoo", icon: yahoo },
+			// 	{ name: "Bing", icon: bing },
+			// ],
 		},
 	},
 	{
@@ -54,24 +57,24 @@ const funnelStages = [
 		status: "Not started",
 		statusIsActive: false,
 		platforms: {
-			"Social media": [
-				{ name: "Facebook", icon: facebook },
-				{ name: "Instagram", icon: ig },
-				{ name: "TikTok", icon: tictok },
-				{ name: "YouTube", icon: youtube },
-				{ name: "Twitter/X", icon: x },
-				{ name: "LinkedIn", icon: linkedin },
-			],
-			"Display networks": [
-				{ name: "TheTradeDesk", icon: TheTradeDesk },
-				{ name: "Quantcast", icon: Quantcast },
-				{ name: "Display & Video", icon: Display },
-			],
-			"Search engines": [
-				{ name: "Google", icon: Google },
-				{ name: "Yahoo", icon: yahoo },
-				{ name: "Bing", icon: bing },
-			],
+			// "Social media": [
+			// 	// { name: "Facebook", icon: facebook },
+			// 	// { name: "Instagram", icon: ig },
+			// 	// { name: "TikTok", icon: tictok },
+			// 	// { name: "YouTube", icon: youtube },
+			// 	// { name: "Twitter/X", icon: x },
+			// 	// { name: "LinkedIn", icon: linkedin },
+			// ],
+			// "Display networks": [
+			// 	// { name: "TheTradeDesk", icon: TheTradeDesk },
+			// 	// { name: "Quantcast", icon: Quantcast },
+			// 	// { name: "Display & Video", icon: Display },
+			// ],
+			// "Search engines": [
+			// 	// { name: "Google", icon: Google },
+			// 	// { name: "Yahoo", icon: yahoo },
+			// 	// { name: "Bing", icon: bing },
+			// ],
 		},
 	},
 	{
@@ -80,29 +83,29 @@ const funnelStages = [
 		status: "Not started",
 		statusIsActive: false,
 		platforms: {
-			"Social media": [
-				{ name: "Facebook", icon: facebook },
-				{ name: "Instagram", icon: ig },
-				{ name: "TikTok", icon: tictok },
-				{ name: "YouTube", icon: youtube },
-				{ name: "Twitter/X", icon: x },
-				{ name: "LinkedIn", icon: linkedin },
-			],
-			"Display networks": [
-				{ name: "TheTradeDesk", icon: TheTradeDesk },
-				{ name: "Quantcast", icon: Quantcast },
-				{ name: "Display & Video", icon: Display },
-			],
-			"Search engines": [
-				{ name: "Google", icon: Google },
-				{ name: "Yahoo", icon: yahoo },
-				{ name: "Bing", icon: bing },
-			],
+			// "Social media": [
+			// 	// { name: "Facebook", icon: facebook },
+			// 	// { name: "Instagram", icon: ig },
+			// 	// { name: "TikTok", icon: tictok },
+			// 	// { name: "YouTube", icon: youtube },
+			// 	// { name: "Twitter/X", icon: x },
+			// 	// { name: "LinkedIn", icon: linkedin },
+			// ],
+			// "Display networks": [
+			// 	// { name: "TheTradeDesk", icon: TheTradeDesk },
+			// 	// { name: "Quantcast", icon: Quantcast },
+			// 	// { name: "Display & Video", icon: Display },
+			// ],
+			// "Search engines": [
+			// 	// { name: "Google", icon: Google },
+			// 	// { name: "Yahoo", icon: yahoo },
+			// 	// { name: "Bing", icon: bing },
+			// ],
 		},
 	},
 ];
 
-const FunnelStage = () => {
+const FormatsSelection = () => {
 	const [openItems, setOpenItems] = useState({ Awareness: true });
 
 	const toggleItem = (stage: string) => {
@@ -159,7 +162,7 @@ const FunnelStage = () => {
 															{platform.name}
 														</p>
 													</div>
-													<div className="w-[20px] h-[20px] border-[0.769px] border-[rgba(0,0,0,0.2)] rounded-full" />
+													{/* <div className="w-[20px] h-[20px] border-[0.769px] border-[rgba(0,0,0,0.2)] rounded-full" /> */}
 												</div>
 											))}
 
@@ -167,9 +170,9 @@ const FunnelStage = () => {
 
 									</div>
 								))}
-								<div className='flex justify-end pr-[24px]'>
+								{/* <div className='flex justify-end pr-[24px]'>
 									<button className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] bg-[#3175FF] opacity-50 rounded-lg text-white font-semibold text-[16px] leading-[22px] ">Validate</button>
-								</div>
+								</div> */}
 							</div>
 
 						)}
@@ -180,4 +183,4 @@ const FunnelStage = () => {
 	);
 };
 
-export default FunnelStage;
+export default FormatsSelection;
