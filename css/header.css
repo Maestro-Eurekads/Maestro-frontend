@@ -6,6 +6,14 @@
   align-items: center; 
   padding: 2.8rem 72px; 
 }
+#header-flow {
+  grid-area: header-flow;
+  background: var(--background);
+  display: flex;
+  justify-content: space-between;
+  align-items: center; 
+  padding: 2.8rem 72px; 
+}
 
 .setting_header_two{
     display: flex !important;

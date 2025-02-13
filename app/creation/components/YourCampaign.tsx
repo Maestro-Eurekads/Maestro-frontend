@@ -1,6 +1,6 @@
 import React from 'react'
 import Image from "next/image";
-import speaker from '../../public/mdi_megaphone.svg';
+import speaker from '../../../public/mdi_megaphone.svg';
 
 
 const YourCampaign = () => {

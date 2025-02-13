@@ -1,6 +1,7 @@
 import Image from "next/image";
 import left_arrow from "../public/blue_back_arrow.svg";
 import CreationFlow from "./CreationFlow";
+import nike from "../public/nike.svg";
 
 const SideNav: React.FC = () => {
 
@@ -15,8 +16,12 @@ const SideNav: React.FC = () => {
           <span className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
             Spring Collection Launch 2025
           </span>
-          <div>
-            <h6>Nike</h6>
+          <div className="flex items-center gap-[8px]">
+            <Image src={nike} alt="nike" />
+            <p className="w-[35px] h-[22px] font-[General Sans] font-semibold text-[16px] leading-[22px] text-[#061237]">
+              Nike
+            </p>
+
           </div>
         </div >
         <CreationFlow />

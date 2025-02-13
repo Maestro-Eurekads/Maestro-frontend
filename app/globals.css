@@ -23,7 +23,7 @@
 
 :root {
   --accent-white: #fff;
-  --background: #f6f8fa;
+  --background: #F9FAFB;
   --photo-background: #f4f4f4;
   --accent-black: #000;
   --accent-black-two: #05162e;
@@ -131,6 +131,17 @@ main {
   grid-template-rows: 80px 1fr;
   grid-template-areas:
     'sidenav header'
+    'sidenav main'
+    'sidenav footer';
+}
+#page-wrapper-flow {
+  display: grid;
+  position: relative;
+  height: 100dvh;
+  grid-template-columns: max-content 1fr;
+  grid-template-rows: 40px 1fr;
+  grid-template-areas:
+    'sidenav header-flow'
     'sidenav main'
     'sidenav footer';
 }
