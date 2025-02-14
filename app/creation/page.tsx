@@ -6,6 +6,7 @@ import YourObjective from "./components/YourObjective";
 import FunnelStage from "./components/FunnelStage";
 import { useActive } from "../utils/ActiveContext";
 import { FormatSelection } from "./components/FormatSelection";
+import { SetupScreen } from "./components/SetupScreen";
 
 const Creation = () => {
   const { active } = useActive();
@@ -16,6 +17,7 @@ const Creation = () => {
       {active === 3 && <FunnelStage />}
 
       {active === 4 && <FormatSelection />}
+      {active === 5 && <SetupScreen />}
     </div>
   );
 };
