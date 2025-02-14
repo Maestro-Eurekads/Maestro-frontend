@@ -62,7 +62,7 @@ const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [dragging]);
+  }, [dragging, handleMouseMove]);
   return (
     <div ref={containerRef} className="relative w-full h-14">
       {/* Resizable Bar */}

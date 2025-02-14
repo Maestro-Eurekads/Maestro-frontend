@@ -1,6 +1,5 @@
 import React from "react";
 import MultiDatePicker from "../../../components/MultiDatePicker";
-// import MainSection from "./organisms/main-section/main-section";
 
 const PlanCampaignSchedule: React.FC = () => {
 
@@ -21,7 +20,6 @@ const PlanCampaignSchedule: React.FC = () => {
 				</p>
 			</div>
 			<MultiDatePicker />
-			{/* {state ? <MainSection /> : <MultiDatePicker   />} */}
 		</div>
 	);
 };

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Image from "next/image";
 import React, { useState } from "react";
 import speaker from "../../../public/mdi_megaphone.svg";
@@ -16,6 +17,7 @@ type IPlatform = {
   name: string;
   icon: string;
   style?: string;
+  mediaOptions?: unknown[];
 };
 
 type IChannel = {
@@ -26,14 +28,22 @@ type IChannel = {
 
 export const Platforms = () => {
   const [item, setItem] = useState("");
+  const [isSelected, setIsSelected] = useState(false);
+  const [mediaOptions, setMediaOptions] = useState([
+    { name: "Carousel", icon: carousel, selected: false },
+    { name: "Image", icon: image_format, selected: false },
+    { name: "Video", icon: video_format, selected: false },
+    { name: "Slideshow", icon: slideshow_format, selected: false },
+    { name: "Collection", icon: collection_format, selected: false },
+  ]);
 
   const channels: IChannel[] = [
     {
       title: "Social media",
       platforms: [
-        { name: "Facebook", icon: facebook },
-        { name: "Instagram", icon: ig },
-        { name: "Youtube", icon: youtube },
+        { name: "Facebook", icon: facebook, mediaOptions },
+        { name: "Instagram", icon: ig, mediaOptions },
+        { name: "Youtube", icon: youtube, mediaOptions },
       ],
       style: "max-w-[150px] w-full h-[52px]",
     },
@@ -41,12 +51,23 @@ export const Platforms = () => {
     {
       title: "Display Network",
       platforms: [
-        { name: "TheTradeDesk", icon: facebook },
-        { name: "Quantcast", icon: ig },
+        { name: "TheTradeDesk", icon: facebook, mediaOptions },
+        { name: "Quantcast", icon: ig, mediaOptions },
       ],
       style: "max-w-[180px] w-full",
     },
   ];
+
+  const handleFormatSelection = (index: number) => {
+    setMediaOptions((prevOptions) =>
+      prevOptions.map((option, i) => ({
+        ...option,
+        selected: index === i, // Set selected to true only for the clicked option
+      }))
+    );
+    setIsSelected(!isSelected);
+  };
+
   return (
     <div className="text-[16px] my-6">
       {channels.map((channel, index) => (
@@ -96,8 +117,14 @@ export const Platforms = () => {
                 </div>
 
                 {item === platform.name && (
-                  <div className="py-6 px-4">
-                    <MediaSelection />
+                  <div className="py-6">
+                    <MediaSelection
+                      handleFormatSelection={handleFormatSelection}
+                      isSelected={isSelected}
+                      mediaOptions={platform.mediaOptions}
+                      setIsSelected={setIsSelected}
+                      setMediaOptions={setMediaOptions}
+                    />
                   </div>
                 )}
               </div>
@@ -149,22 +176,89 @@ export const FormatSelection = () => {
   );
 };
 
-export default function MediaSelection() {
-  const mediaOptions = [
-    { name: "Carousel", icon: carousel, selected: false },
-    { name: "Image", icon: image_format, selected: true },
-    { name: "Video", icon: video_format, selected: false },
-    { name: "Slideshow", icon: slideshow_format, selected: false },
-    { name: "Collection", icon: collection_format, selected: false },
-  ];
+type MediaSelectionProps = {
+  mediaOptions: any[];
+  setIsSelected: (isSelected: boolean) => void;
+  isSelected: boolean;
+  handleFormatSelection: (index: number) => void;
+  setMediaOptions: (mediaOptions: any[]) => void;
+};
+export default function MediaSelection({
+  handleFormatSelection,
+  isSelected,
+  mediaOptions,
+}: MediaSelectionProps) {
   return (
-    <div className="flex gap-4 p-4">
-      {mediaOptions.map((option, index) => (
-        <div key={index} className="relative text-center">
-          <Image src={option.icon} width={168} height={132} alt={option.name} />
-          <p className="text-sm font-medium text-gray-700">{option.name}</p>
-        </div>
-      ))}
+    <div className="flex gap-4">
+      {!isSelected && (
+        <>
+          {mediaOptions.map((option, index) => (
+            <div
+              key={index}
+              onClick={() => handleFormatSelection(index)}
+              className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
+                option.selected
+                  ? "border-blue-500 shadow-lg"
+                  : "border-gray-300"
+              }`}
+            >
+              <Image
+                src={option.icon}
+                width={168}
+                height={132}
+                alt={option.name}
+              />
+              <p className="text-sm font-medium text-gray-700 mt-2">
+                {option.name}
+              </p>
+              {option.selected && (
+                <span>
+                  <div className="absolute top-2 left-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                    ✔
+                  </div>
+                </span>
+              )}
+            </div>
+          ))}
+        </>
+      )}
+
+      {isSelected && (
+        <>
+          {mediaOptions
+            .filter((options) => options.selected)
+            .map((option, index) => {
+              return (
+                <div
+                  key={index}
+                  onClick={() => handleFormatSelection(index)}
+                  className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
+                    option.selected
+                      ? "border-blue-500 shadow-lg"
+                      : "border-gray-300"
+                  }`}
+                >
+                  <Image
+                    src={option.icon}
+                    width={168}
+                    height={132}
+                    alt={option.name}
+                  />
+                  <p className="text-sm font-medium text-gray-700 mt-2">
+                    {option.name}
+                  </p>
+                  {option.selected && (
+                    <span>
+                      <div className="absolute top-2 left-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                        ✔
+                      </div>
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+        </>
+      )}
     </div>
   );
 }
