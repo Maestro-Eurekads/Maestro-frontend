@@ -3,6 +3,9 @@
 @import url(../css/header.css);
 @import url(../css/button.css);
 @import url(../css/table.css);
+@import url(../css/SideNav.css);
+@import url(../css/footer.css);
+@import url(../css/creationFlow.css);
 /* @import url(../css/input.css); */
 
 
@@ -20,11 +23,12 @@
 
 :root {
   --accent-white: #fff;
-  --background: #f6f8fa;
+  --background: #F9FAFB;
   --photo-background: #f4f4f4;
   --accent-black: #000;
   --accent-black-two: #05162e;
-  --accent-blue: #1f679d;
+  --accent-blue: #0866FF;
+  --accent-green: #0ABF7E;
   --accent-background-blue: #eaf6ff;
   --second-text-color: #737373;
   --text-color: #292929;
@@ -129,43 +133,33 @@ main {
   grid-template-areas:
     'sidenav header'
     'sidenav main'
-    'footer footer';
+    'sidenav footer';
 }
-
-#page-wrapper-login {
+#page-wrapper-flow {
   display: grid;
   position: relative;
   height: 100dvh;
   grid-template-columns: max-content 1fr;
-  grid-template-rows: 0px 1fr;
+  grid-template-rows: 40px 1fr;
   grid-template-areas:
-    'header header'
-    'sidenav mains'
-    'footer footer';
-}
-
-/* Media query for small screens */
-@media screen and (max-width: 1080px) {
-  #side-nav {
-    display: block;
-  }
-}
-body {
-  font-family: Arial, Helvetica, sans-serif;
+    'sidenav header-flow'
+    'sidenav main'
+    'sidenav footer';
 }
 
  
- /* main {
-    grid-area: main;
-    overflow-y: auto;
-    width: 100%;
-    padding: 20px;
-  } */
+ 
+body {
+  /* font-family: Arial, Helvetica, sans-serif; */
+}
+
+ 
+ 
 @media (max-width: 1366px) and (min-width: 769px) {
   
-  /* main {
-    padding: 20px 40px;
-  } */
+  main {
+    padding: 20px;
+  }
 }
 @media screen and (max-width: 768px) {
  
