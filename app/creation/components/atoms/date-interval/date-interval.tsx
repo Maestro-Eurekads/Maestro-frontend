@@ -15,7 +15,7 @@ const DateInterval = () => {
     if (containerRef.current) {
       setDateRangeWidth(containerRef.current.offsetWidth);
     }
-  }, []);
+  }, [setDateRangeWidth]);
   return (
     <div
       className="overflow-x-auto whitespace-nowrap flex justify-between border-y py-5 px-6"

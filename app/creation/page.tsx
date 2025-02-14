@@ -1,6 +1,6 @@
 "use client";
 import React from 'react'
-import PlanCampaignSchedule from './components/PlanCampaignSchedule'
+import PlanCampaignSchedule from "./components/PlanCampaignSchedule";
 import YourCampaign from "./components/YourCampaign";
 import YourObjective from "./components/YourObjective";
 import FunnelStage from "./components/FunnelStage";
@@ -8,6 +8,7 @@ import { useActive } from "../utils/ActiveContext";
 import { FormatSelection } from "./components/FormatSelection";
 import PlanCampaignScheduleSubStepComponent from './components/PlanCampaignScheduleSubStepComponent';
 import SetBuyObjectivesAndTypes from './components/SetBuyObjectivesAndTypes';
+import { SetupScreen } from './components/SetupScreen';
 
 const Creation = () => {
 	const { active, subStep } = useActive();
@@ -23,9 +24,10 @@ const Creation = () => {
 			{active === 6 && (
 				subStep === 0 ? <PlanCampaignSchedule /> : <PlanCampaignScheduleSubStepComponent />
 			)}
+			{active === 7 && <SetupScreen />}
 		</div>
 	);
-};
 
+}
 
 export default Creation;
