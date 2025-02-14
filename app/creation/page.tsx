@@ -15,6 +15,7 @@ const Creation = () => {
 	console.log('active-subStep', subStep)
 	return (
 		<div className="creation_continer">
+			{active === 0 && <SetupScreen />}
 			{active === 1 && <YourCampaign />}
 			{active === 2 && <YourObjective />}
 			{active === 3 && <FunnelStage />}
@@ -24,7 +25,6 @@ const Creation = () => {
 			{active === 6 && (
 				subStep === 0 ? <PlanCampaignSchedule /> : <PlanCampaignScheduleSubStepComponent />
 			)}
-			{active === 7 && <SetupScreen />}
 		</div>
 	);
 

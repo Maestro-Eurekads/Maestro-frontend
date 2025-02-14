@@ -12,7 +12,7 @@ interface ActiveContextType {
 const ActiveContext = createContext<ActiveContextType | undefined>(undefined);
 
 export const ActiveProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-	const [active, setActive] = useState<number>(1);
+	const [active, setActive] = useState<number>(0);
 	const [subStep, setSubStep] = useState<number>(0); // Track sub-step
 
 	return (
