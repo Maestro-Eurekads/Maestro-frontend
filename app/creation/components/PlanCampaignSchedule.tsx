@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import MultiDatePicker from "../../../components/MultiDatePicker";
-import MainSection from "./organisms/main-section/main-section";
+// import MainSection from "./organisms/main-section/main-section";
 
 const PlanCampaignSchedule: React.FC = () => {
-	const [state, setState] = useState<boolean>(false);
 
 	return (
 		<div>
@@ -21,7 +20,8 @@ const PlanCampaignSchedule: React.FC = () => {
 					Choose your start and end date for the campaign
 				</p>
 			</div>
-			{state ? <MainSection /> : <MultiDatePicker setState={setState} state={state} />}
+			<MultiDatePicker />
+			{/* {state ? <MainSection /> : <MultiDatePicker   />} */}
 		</div>
 	);
 };
