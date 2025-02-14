@@ -12,7 +12,6 @@ import { SetupScreen } from './components/SetupScreen';
 
 const Creation = () => {
 	const { active, subStep } = useActive();
-	console.log('active-subStep', subStep)
 	return (
 		<div className="creation_continer">
 			{active === 0 && <SetupScreen />}

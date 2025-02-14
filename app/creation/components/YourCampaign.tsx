@@ -1,17 +1,17 @@
 import React from 'react'
 import Image from "next/image";
 import speaker from '../../../public/mdi_megaphone.svg';
+import PageHeaderWrapper from '../../../components/PageHeaderWapper';
 
 
 const YourCampaign = () => {
 	return (
 		<div>
-			<div >
-				<h1 className="font-general-sans font-semibold text-[24px] leading-[32px] text-[#292929]"
-				>What is the main objective of your campaign ?</h1>
-				<h1 className="font-general-sans font-medium text-[16px] leading-[22px] text-[rgba(0,0,0,0.9)]"
-				>Please select only one objective.</h1>
-			</div>
+			<PageHeaderWrapper
+				t1={'What is the main objective of your campaign ?'}
+				t2={'Please select only one objective.'}
+			/>
+
 
 			<div className='flex flex-wrap gap-[80px] mt-[50px]'>
 				<div className='creation_card'>

@@ -286,6 +286,12 @@ background: var(--accent-green);
 		margin-bottom: 10px;
 }
 
+@media screen and (max-width: 768px) {
+.creation_continer{
+	padding: 0px 20px;
+}
+}
+
  
 
  

@@ -13,9 +13,37 @@ border: 1px solid #EFEFEF;
 border-radius: 10px;  
 }
 
-.selection_reset{
-	
+.open_channel_btn_container{ 
+width: 100%;
+/* min-height: 384px;   */
+margin-top: 10px;
+display: flex;
+flex-direction: column;
+gap: 20px;
 }
+
+.channel-btn{ 
+box-sizing: border-box;  
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 8px 12px 8px 8px;
+gap: 4px;
+/* width: 143px; */
+height: 34px;
+left: 549px;
+top: calc(50% - 34px/2);
+background: var(--accent-white);
+border: 1px solid var(--accent-white);
+border-radius: 50px;  
+font-style: normal;
+font-weight: 500;
+font-size: 13px;
+line-height: 18px; 
+color: var(--accent-blue); 
+white-space: nowrap;
+
+} 
 
 .reset_dates_move{ 
 	white-space: nowrap;
@@ -83,7 +111,7 @@ padding: 12px 20px;
 gap: 4px; 
 width: 185px;
 height: 46px; 
-background: #3175FF;
+background: var(--accent-blue);
 border-radius: 10px; 
 
 }
@@ -100,7 +128,7 @@ font-style: normal;
 font-weight: 600;
 font-size: 16px;
 line-height: 22px; 
-color: #3175FF;  
+color: var(--accent-blue);  
 }
 
 .btn_model_active{ 
@@ -112,7 +140,7 @@ padding: 12px 24px;
 gap: 10px; 
 width: 116px;
 height: 44px; 
-background: #3175FF;
+background: var(--accent-blue);
 border-radius: 8px;  
 font-style: normal;
 font-weight: 600;
@@ -149,14 +177,13 @@ align-items: center;
 padding: 14px 40px;
 gap: 10px;  
 width: 185px;
-height: 52px; 
-background: #3175FF;
+/* height: 52px;  */
+background: var(--accent-blue);
 border-radius: 10px;  
 font-style: normal;
 font-weight: 600;
 font-size: 16px;
 line-height: 22px; 
-
 color: var(--accent-white) 
 
 }
@@ -169,7 +196,7 @@ align-items: center;
 padding: 14px 40px;
 gap: 10px;  
 width: 152px;
-height: 52px; 
+/* height: 52px;  */
 background: #061237;
 border-radius: 10px;  
 font-style: normal;
@@ -177,7 +204,19 @@ font-weight: 600;
 font-size: 16px;
 line-height: 22px; 
 color: var(--accent-white); 
+}
 
+@media screen and (max-width: 768px) {
+.bottom_black_back_btn{
+	width: 40% !important;
+		height: 40px;  
+		padding: 10px;
+}
+.bottom_black_next_btn{
+	width: 40% !important;
+	height: 40px; 
+	padding:  10px;
+}
 }
 
  

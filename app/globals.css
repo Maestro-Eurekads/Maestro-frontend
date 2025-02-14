@@ -158,12 +158,14 @@ body {
 @media (max-width: 1366px) and (min-width: 769px) {
   
   main {
-    padding: 20px;
+    padding: 0px 20px !important;
   }
 }
 @media screen and (max-width: 768px) {
  
- 
+   main {
+    padding: 0px 20px !important;
+  }
 }
 
 .hide-vertical-scrollbar {
