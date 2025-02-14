@@ -7,6 +7,7 @@ import basket from "../public/bxs_basket.svg";
 import click from "../public/fluent_cursor-click-24-filled.svg";
 import workbench from "../public/icon-park-solid_workbench.svg";
 import checkfill from "../public/mingcute_check-fill.svg";
+import Calender from "../public/Calender.svg";
 import { useActive } from "../app/utils/ActiveContext";
 
 const steps = [
@@ -34,14 +35,18 @@ const steps = [
 	},
 	{
 		title: "Plan campaign schedule",
-		img: <Image src={click} alt="click" />
+		img: <Image src={Calender} alt="click" />
 	},
 	{
 		title: "Configure ad sets and budget",
-		img: <Image src={workbench} alt="workbench" />
+		img: <Image src={click} alt="click" />
 	},
 	{
 		title: "Establish goals",
+		img: <Image src={workbench} alt="workbench" />
+	},
+	{
+		title: "Overview of your campaign",
 		img: <Image src={checkfill} alt="checkfill" />
 	},
 ];

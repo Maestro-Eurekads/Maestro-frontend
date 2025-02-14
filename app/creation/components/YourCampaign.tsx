@@ -25,7 +25,7 @@ const YourCampaign = () => {
 				</div>
 				<div className='creation_card'>
 					<div className='flex items-center gap-1'>
-						<Image src={speaker} alt="menu" />
+						<Image src={speaker} alt="speaker" />
 						<h6 className="w-[150px] h-[24px] font-general-sans font-semibold text-[18px] leading-[24px] text-[#061237]"
 						>Brand Awareness</h6>
 					</div>

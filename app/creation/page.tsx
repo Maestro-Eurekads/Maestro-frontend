@@ -1,6 +1,7 @@
 "use client";
-
 import React from "react";
+import SetBuyObjectivesAndTypes from "./components/ SetBuyObjectivesAndTypes";
+import PlanCampaignSchedule from "./components/PlanCampaignSchedule";
 import YourCampaign from "./components/YourCampaign";
 import YourObjective from "./components/YourObjective";
 import FunnelStage from "./components/FunnelStage";
@@ -15,9 +16,10 @@ const Creation = () => {
       {active === 1 && <YourCampaign />}
       {active === 2 && <YourObjective />}
       {active === 3 && <FunnelStage />}
-
       {active === 4 && <FormatSelection />}
-      {active === 5 && <SetupScreen />}
+      {active === 5 && <SetBuyObjectivesAndTypes />}
+      {active === 6 && <PlanCampaignSchedule />}
+      {active === 7 && <SetupScreen />}
     </div>
   );
 };

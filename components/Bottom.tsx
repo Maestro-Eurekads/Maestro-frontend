@@ -13,7 +13,7 @@ const Bottom = () => {
 
 	// Handle Continue button click (increase but not above 8)
 	const handleContinue = () => {
-		setActive((prev) => Math.min(8, prev + 1));
+		setActive((prev) => Math.min(9, prev + 1));
 	};
 
 	return (
@@ -33,9 +33,9 @@ const Bottom = () => {
 				{/* Continue Button */}
 				<button
 					className={`bottom_black_next_btn   
-          ${active === 8 ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-200"}`}
+          ${active === 9 ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-200"}`}
 					onClick={handleContinue}
-					disabled={active === 8}
+					disabled={active === 9}
 				>
 					<p>Continue</p>
 					<Image src={Continue} alt="menu" />
