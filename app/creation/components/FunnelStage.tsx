@@ -18,6 +18,7 @@ import yahoo from '../../../public/yahoo.svg';
 import bing from '../../../public/bing.svg';
 import orangecredit from '../../../public/orangecredit-card.svg';
 import tablerzoomfilled from '../../../public/tabler_zoom-filled.svg';
+import PageHeaderWrapper from '../../../components/PageHeaderWapper';
 
 
 
@@ -114,12 +115,11 @@ const FunnelStage = () => {
 
 	return (
 		<div>
-			<h1 className="font-general-sans font-semibold text-[24px] leading-[32px] text-[#292929]">
-				Which platforms would you like to activate for each funnel stage?
-			</h1>
-			<h2 className="font-general-sans font-medium text-[16px] leading-[22px] text-[rgba(0,0,0,0.9)] mt-2">
-				Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time.
-			</h2>
+			<PageHeaderWrapper
+				t1={'Which platforms would you like to activate for each funnel stage?'}
+				t2={'Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time.'}
+				span={1}
+			/>
 
 			<div className="mt-[32px] flex flex-col gap-[24px]">
 				{funnelStages.map((stage, index) => (
