@@ -13,7 +13,12 @@ border: 1px solid #EFEFEF;
 border-radius: 10px;  
 }
 
+.selection_reset{
+	
+}
+
 .reset_dates_move{ 
+	white-space: nowrap;
 box-sizing: border-box; 
 display: flex;
 flex-direction: row;
@@ -21,7 +26,7 @@ justify-content: center;
 align-items: center;
 padding: 10.8108px 16.2162px;
 gap: 21.62px; 
-width: 127.03px;
+min-width: 127.03px;
 height: 41.62px; 
 border: 1.35135px solid rgba(23, 22, 25, 0.1);
 border-radius: 10.8108px;  
