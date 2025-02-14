@@ -25,6 +25,7 @@ const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
 
   // const [selectedChannel, setSelectedChannel] = useState(null);
 
+  console.log('isHovered', isHovered)
 
 
   // const handleChannelClick = (channel) => {
@@ -101,7 +102,7 @@ const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
           onMouseLeave={() => setIsHovered(false)}
         >
           <div />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3" onClick={() => setOpenChannel(!openChannel)}>
             <Icon className="text-lg text-white" />
             <span className="font-medium">{description}</span>
             <MdOutlineKeyboardArrowDown />
@@ -110,7 +111,7 @@ const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
           {/* Show button only on hover */}
           {/* <div>
             {isHovered && ( */}
-          <button className="channel-btn" onClick={() => setOpenChannel(!openChannel)}>
+          <button className="channel-btn" >
             <Image src={icroundadd} alt="icroundadd" />
             <p>Add new channel</p>
           </button>
