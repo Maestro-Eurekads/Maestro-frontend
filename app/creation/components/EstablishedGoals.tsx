@@ -281,7 +281,8 @@ export const EstablishedGoals = () => {
               </p>
             </div>
             <button
-              className="!bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] border-2 border-[#3175FF] py-[14px] px-6 self-start"
+              className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
+              style={{ border: "1px solid #3175FF" }}
               onClick={handleOpenModal}
             >
               See budget overview
