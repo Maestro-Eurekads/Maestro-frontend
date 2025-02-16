@@ -1,19 +1,33 @@
 import React from 'react'
-import MainSection from './organisms/main-section/main-section'
 import PageHeaderWrapper from '../../../components/PageHeaderWapper'
+import ObjectiveCard from './common/ObjectiveCard'
+import BuyingObjective from './common/BuyingObjective'
 
 const SetBuyObjectivesAndTypesSubStep = () => {
+
+	
   return (
       <div>
-        😂😂
 			<PageHeaderWrapper
-				t1={'Setup the timeline of your campaign?'}
-				t2={'Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time.'}
-				t4={'Phases default to the campaign duration, but you can adjust each phase and channel by dragging them'}
-				span={2}
+				t1={'Nice ! Here’s a recap of the buying objectives and types you have set for each platform.'}
+				t2={'If it’s all good for you, click on Continue. If not, feel free to click on Edit for each funnel phase to adapt your choices as needed.'}
+				
 			/>
-			<MainSection />
-    </div>
+
+     <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
+
+	  <ObjectiveCard title='The main objective of your campaign' span={1}
+	   subtitle='Purchase' description='You have chosen this objective' 
+	  />
+
+	  <BuyingObjective />
+     
+
+		</div>
+
+		</div>
+			
+
   )
 }
 

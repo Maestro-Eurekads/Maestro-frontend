@@ -9,7 +9,6 @@ import { FormatSelection } from "./components/FormatSelection";
 import PlanCampaignScheduleSubStepComponent from './components/PlanCampaignScheduleSubStepComponent';
 import { SetupScreen } from './components/SetupScreen';
 import SetBuyObjectivesAndTypesSubStep from './components/SetBuyObjectivesAndTypesSubStep';
-import SetBuyObjectivesAndTypes from './components/SetBuyObjectivesAndTypes';
 
 const Creation = () => {
 	const { active, subStep } = useActive();
@@ -20,13 +19,7 @@ const Creation = () => {
 			{active === 2 && <YourObjective />}
 			{active === 3 && <FunnelStage />}
 			{active === 4 && <FormatSelection />}
-			{active === 5 && (
-				subStep === 0 ? (
-					<SetBuyObjectivesAndTypes />
-				) : (
-					<SetBuyObjectivesAndTypesSubStep />
-				)
-			)}
+			{active === 5 && <SetBuyObjectivesAndTypesSubStep />}
 			
 			{/* Step 6: Main step and Sub-step logic */}
 			{active === 6 && (
