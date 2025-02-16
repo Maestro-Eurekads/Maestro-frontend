@@ -85,7 +85,7 @@ const ObjectiveSelection = () => {
   };
 
   return (
-    <div className="mt-12 flex flex-col gap-12 w-full max-w-[950px] mx-auto">
+    <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
       <Toaster position="top-right" reverseOrder={false} />
       {funnelStages.map((stage, index) => (
         <div key={index} className="w-full">
@@ -123,18 +123,18 @@ const ObjectiveSelection = () => {
 
           {/* Expanded Content */}
           {openItems[stage.name] && (
-            <div className="flex flex-col gap-8 p-8 bg-white border border-gray-300 rounded-b-lg">
+            <div className="flex item-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
               {Object.entries(stage.platforms).map(([category, platforms]) => (
-                <div key={category} className="flex flex-col w-full gap-6">
+                <div key={category} className="flex flex-col items-start gap-6">
                   <h3 className="text-xl font-semibold text-[#061237]">{category}</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
                     {platforms.map((platform, pIndex) => (
                       <div
                         key={pIndex}
-                        className="flex items-center justify-between px-5 py-4 bg-white border border-gray-300 rounded-lg"
+                        className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg"
                       >
                         <div className="flex items-center gap-3">
-                          {platform.icon && <Image src={platform.icon} alt={platform.name} />}
+                          {platform.icon && <Image className="flex flex-shrink-0" src={platform.icon} alt={platform.name} />}
                           <p className="text-base font-medium text-[#061237]">{platform.name}</p>
                         </div>
                         {platform.hasDropdown && <Image src={down2} alt="dropdown" />}
