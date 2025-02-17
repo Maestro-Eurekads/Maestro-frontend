@@ -7,6 +7,8 @@ import Conversion from './Conversion';
 
 
 const BuyingObjective = () => {
+const [edit ,setEdit]=useState(false)
+	
   return (
       <div className='p-6 bg-white flex flex-col rounded-lg shadow-md w-full'>
 			{/* main objective */}
@@ -20,12 +22,14 @@ const BuyingObjective = () => {
 				<h1 className='text-blue-500 font-semibold text-base'>Your buying objectives and types</h1>
 			</div>
 
-            <Button text='Edit' variant='primary' onClick={() => console.log('edit')} />
+		    {edit ? "add button" : <Button text='Edit' variant='primary' onClick={() => setEdit(true)} />}
+           
             
             </div>
 
             <div className=''>
-            <Awareness />
+		    {edit? "Edit Awareness" <Awareness />}
+            <Awareness  edit={edit}/>
             </div>
 
             <div className=''>
