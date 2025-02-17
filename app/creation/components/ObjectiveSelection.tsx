@@ -63,7 +63,9 @@ const ObjectiveSelection = () => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
   const [statuses, setStatuses] = useState(funnelStages.map((stage) => stage.status));
   const [dropdownOpen, setDropdownOpen] = useState<{ [key: string]: boolean }>({});
+  const [selectedOptions, setSelectedOptions] = useState<{ [key: string]: string }>({});
 
+  // Toggle expand/collapse for a stage
   const toggleItem = (stage: string) => {
     setOpenItems((prev) => ({
       ...prev,
@@ -71,13 +73,27 @@ const ObjectiveSelection = () => {
     }));
   };
 
-  const toggleDropdown = (platform: string) => {
+  // Toggle the dropdown for a given platform field
+  const toggleDropdown = (platformKey: string) => {
     setDropdownOpen((prev) => ({
       ...prev,
-      [platform]: !prev[platform],
+      [platformKey]: !prev[platformKey],
     }));
   };
 
+  // Handle selecting an option from the dropdown
+  const handleSelectOption = (platformKey: string, option: string) => {
+    setSelectedOptions((prev) => ({
+      ...prev,
+      [platformKey]: option,
+    }));
+    setDropdownOpen((prev) => ({
+      ...prev,
+      [platformKey]: false,
+    }));
+  };
+
+  // Mark the stage as validated/completed
   const handleValidate = (index: number) => {
     const updatedStatuses = [...statuses];
     updatedStatuses[index] = "Completed";
@@ -89,6 +105,25 @@ const ObjectiveSelection = () => {
       navigator.vibrate(300);
     }
   };
+
+  // Compute required keys for the Awareness stage.
+  // We assume that any field without an icon (e.g. "Buy type" or "Buy objective") is required.
+  const requiredFieldKeys: string[] = [];
+  const awarenessStage = funnelStages.find((stage) => stage.name === "Awareness");
+  if (awarenessStage) {
+    Object.entries(awarenessStage.platforms).forEach(([category, platforms]) => {
+      platforms.forEach((platform, pIndex) => {
+        if (!platform.icon) {
+          requiredFieldKeys.push(`Awareness-${category}-${pIndex}`);
+        }
+      });
+    });
+  }
+
+  // Check if all required fields have a selected option
+  const allRequiredSelected = requiredFieldKeys.every(
+    (key) => !!selectedOptions[key]
+  );
 
   return (
     <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
@@ -125,7 +160,7 @@ const ObjectiveSelection = () => {
 
           {/* Expanded Content */}
           {openItems[stage.name] && (
-            <div className="flex item-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
+            <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
               {Object.entries(stage.platforms).map(([category, platforms]) => (
                 <div key={category} className="flex flex-col items-start gap-6">
                   <h3 className="text-xl font-semibold text-[#061237]">{category}</h3>
@@ -139,8 +174,12 @@ const ObjectiveSelection = () => {
                             onClick={() => toggleDropdown(platformKey)}
                           >
                             <div className="flex items-center gap-3">
-                              {platform.icon && <Image className="flex flex-shrink-0" src={platform.icon} alt={platform.name} />}
-                              <p className="text-base font-medium text-[#061237]">{platform.name}</p>
+                              {platform.icon && (
+                                <Image className="flex flex-shrink-0" src={platform.icon} alt={platform.name} />
+                              )}
+                              <p className="text-base font-medium text-[#061237]">
+                                {selectedOptions[platformKey] || platform.name}
+                              </p>
                             </div>
                             <Image src={down2} alt="dropdown" />
                           </div>
@@ -149,9 +188,24 @@ const ObjectiveSelection = () => {
                           {dropdownOpen[platformKey] && (
                             <div className="absolute left-0 mt-2 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10">
                               <ul className="py-2">
-                                <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Option 1</li>
-                                <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Option 2</li>
-                                <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Option 3</li>
+                                <li
+                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => handleSelectOption(platformKey, "Option 1")}
+                                >
+                                  Option 1
+                                </li>
+                                <li
+                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => handleSelectOption(platformKey, "Option 2")}
+                                >
+                                  Option 2
+                                </li>
+                                <li
+                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => handleSelectOption(platformKey, "Option 3")}
+                                >
+                                  Option 3
+                                </li>
                               </ul>
                             </div>
                           )}
@@ -164,8 +218,13 @@ const ObjectiveSelection = () => {
 
               {/* Validate Button (Only for Awareness stage) */}
               {stage.name === "Awareness" && (
-                <div className="flex justify-end mt-6">
-                  <Button text="Validate" variant="primary" onClick={() => handleValidate(index)} />
+                <div className="flex justify-end mt-6 w-full">
+                  <Button
+                    text="Validate"
+                    variant="primary"
+                    onClick={() => handleValidate(index)}
+                    disabled={!allRequiredSelected} // Button enabled only after all required fields are selected
+                  />
                 </div>
               )}
             </div>

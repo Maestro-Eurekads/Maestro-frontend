@@ -40,7 +40,7 @@ const searchMedia = [
 
 const Consideration = () => {
   return (
-    <div className="mt-6 bg-gray-100 p-6 rounded-lg">
+    <div className="overflow-x-scroll md:mt-6 bg-gray-100 p-6 rounded-lg">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Image src={table} alt="Awareness icon" className="w-6 h-6" />
