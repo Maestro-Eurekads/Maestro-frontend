@@ -2,8 +2,8 @@ import React from "react";
 import Image from "next/image";
 import facebook from "../../../../public/facebook.svg";
 import instagram from "../../../../public/ig.svg";
-import quantcast from "../../../../public/Quantcast.svg"; 
-import trade from "../../../../public/TheTradeDesk.svg"; 
+import quantcast from "../../../../public/Quantcast.svg";
+import trade from "../../../../public/TheTradeDesk.svg";
 import table from "../../../../public/tabler_zoom-filled.svg";
 import google from "../../../../public/Google.svg"
 
@@ -14,27 +14,27 @@ const socialMedia = [
   { id: 4, name: "CPM" },
   { id: 5, name: "Traffic" },
   { id: 6, name: "Traffic" },
-  
+
 ];
 
 
 const displayMedia = [
-    { id: 1, name: "The TradeDesk", icon: trade },
-    { id: 2, name: "QuantCast", icon: quantcast },
-    { id: 3, name: "CPV" },
-    { id: 4, name: "CPV" },
-    { id: 5, name: "View view" },
-    { id: 6, name: "Traffic" },
-   
-  ];
+  { id: 1, name: "The TradeDesk", icon: trade },
+  { id: 2, name: "QuantCast", icon: quantcast },
+  { id: 3, name: "CPV" },
+  { id: 4, name: "CPV" },
+  { id: 5, name: "View view" },
+  { id: 6, name: "Traffic" },
+
+];
 
 const searchMedia = [
-    { id: 1, name: "Google", icon: google },
-    { id: 2, name: "CPM" },
-    { id: 3, name: "CPM" },
-  
-   
-  ];
+  { id: 1, name: "Google", icon: google },
+  { id: 2, name: "CPM" },
+  { id: 3, name: "CPM" },
+
+
+];
 
 
 
@@ -82,7 +82,7 @@ const Consideration = () => {
           </div>
         </div>
 
-            {/* search engine */}
+        {/* search engine */}
         <div className="w-full md:w-1/5">
           <h2 className="text-black font-bold text-md mb-4">Search Engines</h2>
           <div className="grid grid-cols-1 grid-rows-3 gap-4">

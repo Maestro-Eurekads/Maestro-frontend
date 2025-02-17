@@ -1,15 +1,19 @@
 "use client";
-import React from 'react'
+import React from "react";
 import PlanCampaignSchedule from "./components/PlanCampaignSchedule";
 import YourCampaign from "./components/YourCampaign";
 import YourObjective from "./components/YourObjective";
 import FunnelStage from "./components/FunnelStage";
 import { useActive } from "../utils/ActiveContext";
 import { FormatSelection } from "./components/FormatSelection";
-import PlanCampaignScheduleSubStepComponent from './components/PlanCampaignScheduleSubStepComponent';
-import { SetupScreen } from './components/SetupScreen';
+import PlanCampaignScheduleSubStepComponent from "./components/PlanCampaignScheduleSubStepComponent";
+import SetBuyObjectivesAndTypes from "./components/SetBuyObjectivesAndTypes";
+import { SetupScreen } from "./components/SetupScreen";
+import { EstablishedGoals } from "./components/EstablishedGoals";
 import SetBuyObjectivesAndTypesSubStep from './components/SetBuyObjectivesAndTypesSubStep';
-import SetBuyObjectivesAndTypes from './components/SetBuyObjectivesAndTypes';
+
+
+
 
 const Creation = () => {
 	const { active, subStep } = useActive();
@@ -22,17 +26,14 @@ const Creation = () => {
 			{active === 4 && <FormatSelection />}
 			{active === 5 && (
 				subStep === 0 ? <SetBuyObjectivesAndTypes /> : <SetBuyObjectivesAndTypesSubStep />
-				
 			)}
-
-			
 			{/* Step 6: Main step and Sub-step logic */}
 			{active === 6 && (
 				subStep === 0 ? <PlanCampaignSchedule /> : <PlanCampaignScheduleSubStepComponent />
 			)}
+			{active === 8 && <EstablishedGoals />}
 		</div>
 	);
-
-}
+};
 
 export default Creation;

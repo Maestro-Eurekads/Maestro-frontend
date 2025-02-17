@@ -4,8 +4,8 @@ import speaker from "../../../../public/mdi_megaphone.svg";
 import facebook from "../../../../public/facebook.svg";
 import youtube from "../../../../public/youtube.svg";
 import instagram from "../../../../public/ig.svg";
-import quantcast from "../../../../public/Quantcast.svg"; 
-import trade from "../../../../public/TheTradeDesk.svg"; 
+import quantcast from "../../../../public/Quantcast.svg";
+import trade from "../../../../public/TheTradeDesk.svg";
 
 const socialMedia = [
   { id: 1, name: "Facebook", icon: facebook, link: "https://www.facebook.com" },
@@ -21,14 +21,14 @@ const socialMedia = [
 
 
 const displayMedia = [
-    { id: 1, name: "The TradeDesk", icon: trade },
-    { id: 2, name: "QuantCast", icon: quantcast },
-    { id: 3, name: "CPV" },
-    { id: 4, name: "CPV" },
-    { id: 5, name: "View view" },
-    { id: 6, name: "Video view" },
-   
-  ];
+  { id: 1, name: "The TradeDesk", icon: trade },
+  { id: 2, name: "QuantCast", icon: quantcast },
+  { id: 3, name: "CPV" },
+  { id: 4, name: "CPV" },
+  { id: 5, name: "View view" },
+  { id: 6, name: "Video view" },
+
+];
 
 
 
