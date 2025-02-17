@@ -9,7 +9,7 @@ const Bottom = () => {
 
   const handleBack = () => {
     // For steps 5 and 6, allow moving back within sub-steps if possible
-    if ((active === 5 || active === 6) && subStep > 0) {
+    if ((active === 5 || active === 7) && subStep > 0) {
       setSubStep((prev) => prev - 1);
     } else {
       // Otherwise, reset subStep and go back to previous main step
@@ -19,13 +19,13 @@ const Bottom = () => {
   };
 
   const handleContinue = () => {
-    // For steps 5 and 6, 
-    if ((active === 5 || active === 6) && subStep < 1) {
+    // For steps 5 and 6, allow moving forward within sub-steps if not already at the last sub-step
+    if ((active === 5 || active === 7) && subStep < 1) {
       setSubStep((prev) => prev + 1);
     } else {
       // Otherwise, reset subStep and go to the next main step
       setSubStep(0);
-      setActive((prev) => Math.min(9, prev + 1));
+      setActive((prev) => Math.min(10, prev + 1));
     }
   };
 
@@ -50,11 +50,11 @@ const Bottom = () => {
         <button
           className={clsx(
             "bottom_black_next_btn",
-            active === 9 && "opacity-50 cursor-not-allowed",
-            active < 9 && "hover:bg-blue-200"
+            active === 10 && "opacity-50 cursor-not-allowed",
+            active < 10 && "hover:bg-blue-200"
           )}
           onClick={handleContinue}
-          disabled={active === 9}
+          disabled={active === 10}
         >
           <p>Continue</p>
           <Image src={Continue} alt="Continue" />

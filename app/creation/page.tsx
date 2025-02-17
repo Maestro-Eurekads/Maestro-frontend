@@ -28,10 +28,10 @@ const Creation = () => {
 				subStep === 0 ? <SetBuyObjectivesAndTypes /> : <SetBuyObjectivesAndTypesSubStep />
 			)}
 			{/* Step 6: Main step and Sub-step logic */}
-			{active === 6 && (
+			{active === 7 && (
 				subStep === 0 ? <PlanCampaignSchedule /> : <PlanCampaignScheduleSubStepComponent />
 			)}
-			{active === 8 && <EstablishedGoals />}
+			{active === 9 && <EstablishedGoals />}
 		</div>
 	);
 };
