@@ -32,7 +32,7 @@ const displayMedia = [
 
 
 
-const Awareness = () => {
+const Awareness = ({edit}) => {
   return (
     <div className="mt-6 bg-gray-100 p-6 rounded-lg">
       {/* Header */}
@@ -41,8 +41,7 @@ const Awareness = () => {
         <p className="text-black font-bold text-md">Awareness</p>
       </div>
 
-      {/* Content Layout */}
-      <div className="mt-6 flex flex-col md:flex-row gap-8">
+      {edit ?"edit here " : <div className="mt-6 flex flex-col md:flex-row gap-8">
         {/* Social Media Section (Left) */}
         <div className="w-full md:w-1/2">
           <h2 className="text-black font-bold text-md mb-4">Social Media</h2>
@@ -75,7 +74,9 @@ const Awareness = () => {
             ))}
           </div>
         </div>
-      </div>
+      </div>}
+      {/* Content Layout */}
+      
     </div>
   );
 };
