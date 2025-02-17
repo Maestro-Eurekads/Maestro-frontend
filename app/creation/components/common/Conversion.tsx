@@ -6,6 +6,7 @@ import quantcast from "../../../../public/quantcast.svg";
 import trade from "../../../../public/TheTradeDesk.svg";
 import card from "../../../../public/mdi_credit-card.svg";
 import google from "../../../../public/Google.svg"
+import ConversionEdit from "./ConversionEdit";
 
 const socialMedia = [
   { id: 1, name: "Facebook", icon: facebook, link: "https://www.facebook.com" },
@@ -38,17 +39,20 @@ const searchMedia = [
 
 
 
-const Conversion = () => {
+const Conversion = ( { edit }) => {
   return (
     <div className="mt-6 bg-gray-100 p-6 rounded-lg">
       {/* Header */}
+      {!edit && (
       <div className="flex items-center gap-4">
         <Image src={card} alt="Awareness icon" className="w-6 h-6" />
         <p className="text-black font-bold text-md">Conversion</p>
       </div>
+    )}
+
 
       {/* Content Layout */}
-      <div className="mt-6 flex flex-col md:flex-row gap-4">
+      {edit ? <ConversionEdit /> : <div className="mt-6 flex flex-col md:flex-row gap-8">
         {/* Social Media Section (Left) */}
         <div className="w-full md:w-1/3">
           <h2 className="text-black font-bold text-md mb-4">Social Media</h2>
@@ -98,7 +102,7 @@ const Conversion = () => {
             ))}
           </div>
         </div>
-      </div>
+      </div>}
     </div>
   );
 };

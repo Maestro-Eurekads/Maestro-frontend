@@ -31,13 +31,13 @@ const Button: React.FC<ButtonProps> = ({
     "flex items-center justify-center gap-2 hover:cursor-pointer rounded-md text-white px-6 py-3 font-bold text-sm";
   const variantStyles = {
     primary:
-      "bg-[#3175FF] px-8 py-3 text-white text-lg font-medium rounded-lg hover:opacity-90",
+      "bg-[#3175FF] px-8 py-3 text-white text-lg font-medium !rounded-full hover:opacity-90",
     secondary:
       "bg-black font-bold hover:bg-gray-700 border border-black hover:text-white transition ease-out duration-200",
     tertiary: 
       "bg-white font-bold !text-black hover:bg-gray-700 border border-black hover:text-white transition ease-out duration-200",
     danger:
-      "bg-[#FF5955] text-white leading-wider border border-[#A7A7A7] font-bold hover:bg-orange-700 hover:text-white transition ease-out duration-200",
+      "bg-[#FF5955] text-white !rounded-full leading-wider border border-[#A7A7A7] font-bold hover:bg-orange-700 hover:text-white transition ease-out duration-200",
   };
 
   return (
@@ -46,7 +46,7 @@ const Button: React.FC<ButtonProps> = ({
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
     >
-      {iconPosition === "start" && Icon && <Icon className={`size-5 ${iconColor}`} />}
+      {iconPosition === "start" && Icon && <Icon className={`size-4 ${iconColor}`} />}
       {image && (
         <Image
           src={image}
@@ -57,7 +57,7 @@ const Button: React.FC<ButtonProps> = ({
         />
       )}
       {text}
-      {iconPosition === "end" && Icon && <Icon className={`size-5 ${iconColor}`} />}
+      {iconPosition === "end" && Icon && <Icon className={`size-4 ${iconColor}`} />}
     </button>
   );
 };

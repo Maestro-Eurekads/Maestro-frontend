@@ -1,16 +1,20 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Button from './button';
 import Awareness from './Awareness';
 import Consideration from './Consideration';
 import Conversion from './Conversion';
+import { Plus } from 'lucide-react';
+
 
 
 
 const BuyingObjective = () => {
+const [edit, setEdit]=useState(false)
+	
   return (
       <div className='p-6 bg-white flex flex-col rounded-lg shadow-md w-full'>
 			{/* main objective */}
-        <div className='flex justify-between items-center mb-4'>
+            <div className='flex justify-between items-center mb-4'>
 
 
 			<div className='flex items-center justify-between gap-2'>
@@ -20,20 +24,29 @@ const BuyingObjective = () => {
 				<h1 className='text-blue-500 font-semibold text-base'>Your buying objectives and types</h1>
 			</div>
 
-            <Button text='Edit' variant='primary' onClick={() => console.log('edit')} />
+		    {edit ? <Button text='Confirm changes' variant='secondary' onClick={() => setEdit(false)} /> : <Button text='Edit' variant='primary' onClick={() => setEdit(true)} />}
+           
             
             </div>
 
-            <div className=''>
-            <Awareness />
+        <div className=''>
+		    {edit ? <Button 
+        text='Add stages' 
+        icon={Plus}
+        className='rounded-full px-4 py-2 text-sm'
+        variant='primary'
+        onClick={() => setEdit(false)} /> : <Awareness edit={edit} />}
+
+            <Awareness  edit={edit} />
+
             </div>
 
             <div className=''>
-            <Consideration />
+            <Consideration edit={edit} />
             </div>
 
             <div className=''>
-            <Conversion />
+            <Conversion edit={edit} />
             </div>
                 
 		
