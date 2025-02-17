@@ -6,7 +6,7 @@ import facebook from "../../../public/facebook.svg";
 import instagram from "../../../public/instagram.svg";
 import youtube from "../../../public/youtube.svg";
 import tradedesk from "../../../public/tradedesk.svg";
-import quantcast from "../../../public/quantcast.svg";
+import quantcast from "../../../public/Quantcast.svg";
 
 import Image from "next/image";
 
