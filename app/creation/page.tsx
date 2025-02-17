@@ -10,25 +10,30 @@ import PlanCampaignScheduleSubStepComponent from "./components/PlanCampaignSched
 import SetBuyObjectivesAndTypes from "./components/SetBuyObjectivesAndTypes";
 import { SetupScreen } from "./components/SetupScreen";
 import { EstablishedGoals } from "./components/EstablishedGoals";
+import PlanCampaignScheduleSubStepComponent from './components/PlanCampaignScheduleSubStepComponent';
+import SetBuyObjectivesAndTypesSubStep from './components/SetBuyObjectivesAndTypesSubStep';
+import SetBuyObjectivesAndTypes from './components/SetBuyObjectivesAndTypes';
+
+ 
 
 const Creation = () => {
-  const { active, subStep } = useActive();
-  console.log("active-subStep", subStep);
-  return (
-    <div className="creation_continer">
-      {active === 0 && <SetupScreen />}
-      {active === 1 && <YourCampaign />}
-      {active === 2 && <YourObjective />}
-      {active === 3 && <FunnelStage />}
-      {active === 4 && <FormatSelection />}
-      {active === 5 && <SetBuyObjectivesAndTypes />}
-      {/* Step 6: Main step and Sub-step logic */}
-      {active === 6 &&
-        (subStep === 0 ? (
-          <PlanCampaignSchedule />
-        ) : (
-          <PlanCampaignScheduleSubStepComponent />
-        ))}
+	const { active, subStep } = useActive();
+	return (
+		<div className="creation_continer">
+			{active === 0 && <SetupScreen />}
+			{active === 1 && <YourCampaign />}
+			{active === 2 && <YourObjective />}
+			{active === 3 && <FunnelStage />}
+			{active === 4 && <FormatSelection />}
+			{active === 5 && (
+				subStep === 0 ? <SetBuyObjectivesAndTypes /> : <SetBuyObjectivesAndTypesSubStep />	
+			)}
+			{/* Step 6: Main step and Sub-step logic */}
+			{active === 6 && (
+				subStep === 0 ? <PlanCampaignSchedule /> : <PlanCampaignScheduleSubStepComponent />
+			)}
+		</div>
+	);
 
       {active === 8 && <EstablishedGoals />}
     </div>
