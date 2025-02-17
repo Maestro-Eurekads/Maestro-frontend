@@ -121,7 +121,7 @@ const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
 
         {/* Left Handle */}
         <div
-          className="absolute   top-0 w-5 h-full bg-opacity-50 bg-black cursor-ew-resize rounded-l-lg text-white flex items-center justify-center"
+          className="absolute top-0 w-5 h-full bg-opacity-50 bg-black cursor-ew-resize rounded-l-lg text-white flex items-center justify-center"
           style={{ left: `${left}px` }}
           onMouseDown={() => handleMouseDown("left")}
         >
