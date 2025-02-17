@@ -10,7 +10,7 @@ import facebook from "../../../public/facebook.svg";
 import ig from "../../../public/ig.svg";
 import youtube from "../../../public/youtube.svg";
 import TheTradeDesk from "../../../public/TheTradeDesk.svg";
-import Quantcast from "../../../public/Quantcast.svg";
+import Quantcast from "../../../public/quantcast.svg";
 import orangecredit from "../../../public/orangecredit-card.svg";
 import tablerzoomfilled from "../../../public/tabler_zoom-filled.svg";
 import Button from "./common/button";

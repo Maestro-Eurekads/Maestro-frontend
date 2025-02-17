@@ -2,7 +2,7 @@ import React from "react";
 import Image from "next/image";
 import facebook from "../../../../public/facebook.svg";
 import instagram from "../../../../public/ig.svg";
-import quantcast from "../../../../public/Quantcast.svg";
+import quantcast from "../../../../public/quantcast.svg";
 import trade from "../../../../public/TheTradeDesk.svg";
 import card from "../../../../public/mdi_credit-card.svg";
 import google from "../../../../public/Google.svg"
@@ -59,7 +59,7 @@ const Conversion = () => {
                 onClick={() => window.open(item.link, '_blank')}
                 className="flex bg-white px-4 py-3 rounded-md border border-gray-200 items-center gap-2"
               >
-                {item.icon && <Image src={item.icon} alt={item.name} className="size-5" />}
+                {item.icon && <Image src={item.icon} alt={item.name} className="size-4" />}
                 <p className="text-black text-center text-md">{item.name}</p>
               </a>
             ))}
@@ -75,7 +75,7 @@ const Conversion = () => {
                 key={item.id}
                 className="flex bg-white px-4 py-3 rounded-md border border-gray-200 justify-center items-center gap-2"
               >
-                {item.icon && <Image src={item.icon} alt={item.name} className="size-5" />}
+                {item.icon && <Image src={item.icon} alt={item.name} className="size-4" />}
                 <p className="text-black text-md text-center">{item.name}</p>
               </a>
             ))}
@@ -92,7 +92,7 @@ const Conversion = () => {
                 key={item.id}
                 className="flex bg-white px-4 py-3 rounded-md border border-gray-200 justify-center items-center gap-2"
               >
-                {item.icon && <Image src={item.icon} alt={item.name} className="size-5" />}
+                {item.icon && <Image src={item.icon} alt={item.name} className="size-4" />}
                 <p className="text-black text-md text-center">{item.name}</p>
               </a>
             ))}

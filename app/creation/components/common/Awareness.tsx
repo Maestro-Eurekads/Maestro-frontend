@@ -4,7 +4,7 @@ import speaker from "../../../../public/mdi_megaphone.svg";
 import facebook from "../../../../public/facebook.svg";
 import youtube from "../../../../public/youtube.svg";
 import instagram from "../../../../public/ig.svg";
-import quantcast from "../../../../public/Quantcast.svg";
+import quantcast from "../../../../public/quantcast.svg";
 import trade from "../../../../public/TheTradeDesk.svg";
 
 const socialMedia = [
@@ -53,7 +53,7 @@ const Awareness = () => {
                 onClick={() => window.open(item.link, '_blank')}
                 className="flex bg-white px-4 py-3 rounded-md border border-gray-200 items-center gap-2"
               >
-                {item.icon && <Image src={item.icon} alt={item.name} className="size-5" />}
+                {item.icon && <Image src={item.icon} alt={item.name} className="size-4" />}
                 <p className="text-black text-center text-md">{item.name}</p>
               </a>
             ))}
@@ -69,7 +69,7 @@ const Awareness = () => {
                 key={item.id}
                 className="flex bg-white px-4 py-3 rounded-md border border-gray-200 justify-center items-center gap-2"
               >
-                {item.icon && <Image src={item.icon} alt={item.name} className="size-5" />}
+                {item.icon && <Image src={item.icon} alt={item.name} className="size-4" />}
                 <p className="text-black text-md text-center">{item.name}</p>
               </a>
             ))}
