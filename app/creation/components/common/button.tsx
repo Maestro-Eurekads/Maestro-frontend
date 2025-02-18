@@ -28,7 +28,7 @@ const Button: React.FC<ButtonProps> = ({
   disabled = false, // Default disabled state
 }) => {
   const baseStyles =
-    "flex items-center justify-center gap-2 hover:cursor-pointer rounded-md text-white px-6 py-3 font-bold text-sm";
+    "flex items-center justify-center gap-2 hover:cursor-pointer rounded-md h-[52px] text-white px-6 py-3 font-bold text-sm";
   const variantStyles = {
     primary:
       "bg-[#3175FF] px-8 py-3 text-white text-lg font-medium !rounded-full hover:opacity-90",

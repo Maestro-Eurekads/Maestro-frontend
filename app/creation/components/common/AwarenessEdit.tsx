@@ -15,13 +15,12 @@ const AwarenessEdit = () => {
     { id: 1, name: 'Facebook', icon: facebook },
     { id: 2, name: 'Instagram', icon: instagram },
     { id: 3, name: 'Youtube', icon: youtube },
-    { id: 4, name: 'Add new channel' },
-    { id: 5, name: 'Awareness', icon: arrowdown },
+    { id: 4, name: 'Awareness', icon: arrowdown },
+    { id: 5, name: 'Video Views', icon: arrowdown },
     { id: 6, name: 'Video Views', icon: arrowdown },
     { id: 7, name: 'Video Views', icon: arrowdown },
-    { id: 8, name: 'Video Views', icon: arrowdown },
+    { id: 8, name: 'CPV', icon: arrowdown },
     { id: 9, name: 'CPV', icon: arrowdown },
-    { id: 10, name: 'CPV', icon: arrowdown },
   ]);
 
   const removeSocialMedia = (id) => {
@@ -32,10 +31,9 @@ const AwarenessEdit = () => {
     { id: 1, name: 'The TradeDesk', icon: trade },
     { id: 2, name: 'QuantCast', icon: quantcast },
     { id: 3, name: 'Add new channel' },
-    { id: 4, name: 'Add new channel' },
+    { id: 4, name: 'Video Views', icon: arrowdown },
     { id: 5, name: 'Video Views', icon: arrowdown },
-    { id: 6, name: 'Video Views', icon: arrowdown },
-    { id: 7, name: 'CPV', icon: arrowdown },
+    { id: 6, name: 'CPV', icon: arrowdown },
     { id: 7, name: 'CPV', icon: arrowdown },
   ];
 
@@ -60,9 +58,9 @@ const AwarenessEdit = () => {
       </div>
 
       {/* Social Media Section */}
-      <div className="overflow-x-auto md:w-full gap-8">
         <h2 className="text-black font-bold text-md mb-4">Social Media</h2>
-        <div className="grid grid-cols-4 gap-4">
+        <div className='flex flex-col items-start mt-8 md:flex-row justify-center gap-4'>
+      <div className="grid grid-cols-2 md:grid-cols-3 grid-rows-3 gap-6">
           {socialMedia.map((item) => {
             const isArrowDown = item.icon === arrowdown;
             return (
@@ -81,8 +79,8 @@ const AwarenessEdit = () => {
                         item.name === 'Add new channel'
                           ? 'text-white'
                           : 'text-black'
-                      }`}
-                    >
+                          }`}
+                          >
                       {item.name}
                     </p>
                     <Image
@@ -92,7 +90,7 @@ const AwarenessEdit = () => {
                     />
                   </>
                 ) : (
-                  <>
+                    <>
                     {item.icon && (
                       <Image
                         src={item.icon}
@@ -105,16 +103,16 @@ const AwarenessEdit = () => {
                         item.name === 'Add new channel'
                           ? 'text-white'
                           : 'text-black'
-                      }`}
+                          }`}
                     >
                       {item.name}
                     </p>
                     {(item.id === 1 || item.id === 2 || item.id === 3) && (
                       <button
                         onClick={() => {
-                          removeSocialMedia(item.id);
-                        }}
-                        className="text-white bg-black rounded-full w-3 h-3 flex items-center justify-center"
+                            removeSocialMedia(item.id);
+                          }}
+                          className="text-white bg-black rounded-full w-3 h-3 flex items-center justify-center"
                       >
                         x
                       </button>
@@ -124,21 +122,30 @@ const AwarenessEdit = () => {
               </div>
             );
           })}
-        </div>
+
       </div>
 
+
+      <Button
+       text="Add a new channel"
+       variant="primary"
+       onClick={() => alert('Add a new channel')}
+       className='text-white !rounded-md !px-4 !py-3 !m-0 !h-[52px]'
+       />
+
+        </div>
+
       {/* Display Network & Search Engines Section */}
-      <div className="flex items-start justify-start gap-8 mt-8">
-        {/* Display Network */}
+      <div className="flex flex-col items-start gap-8 md:flex-row justify-center space-x-8 mt-8">
         <div>
           <h2 className="text-black font-bold text-md mb-4">Display Network</h2>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {displayNetwork.slice(0, 7).map((item) => {
               const isArrowDown = item.icon === arrowdown;
               return (
                 <a
                   key={item.id}
-                  className={`flex items-center ${
+                  className={`flex items-center h-[52px] ${
                     isArrowDown ? 'justify-between' : 'gap-2'
                   } px-4 py-3 rounded-md border border-gray-200 ${
                     item.name === 'Add new channel' ? 'bg-blue-500' : 'bg-white'
@@ -190,11 +197,10 @@ const AwarenessEdit = () => {
         {/* Search Engines */}
         <div>
           <h2 className="text-black font-bold text-md mb-4">Search Engines</h2>
-          <div className="">
             {searchEngines.map((item) => (
               <a
                 key={item.id}
-                className={`flex px-4 py-3 rounded-md border border-gray-200 justify-center items-center gap-2 ${
+                className={`flex px-4 py-3 h-[52px] rounded-md border border-gray-200 justify-center items-center gap-2 ${
                   item.name === 'Add new channel' ? 'bg-blue-500' : 'bg-white'
                 }`}
               >
@@ -207,7 +213,7 @@ const AwarenessEdit = () => {
                 </p>
               </a>
             ))}
-          </div>
+         
         </div>
       </div>
     </div>

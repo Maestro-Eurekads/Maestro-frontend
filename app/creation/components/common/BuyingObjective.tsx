@@ -36,8 +36,8 @@ const [edit, setEdit]=useState(false)
         className='rounded-full px-4 py-2 text-sm'
         variant='primary'
         onClick={() => setEdit(false)} /> : <Awareness edit={edit} />}
-
-            <Awareness  edit={edit} />
+        
+            <Awareness edit={edit} />
 
             </div>
 

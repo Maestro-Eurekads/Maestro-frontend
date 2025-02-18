@@ -41,8 +41,7 @@ const Awareness = ({edit}) => {
       <div className="flex items-center gap-4">
         <Image src={speaker} alt="Awareness icon" className="w-6 h-6" />
         <p className="text-black font-bold text-md">Awareness</p>
-      </div>
-    )}
+      </div>)}
 
       {edit ? <AwarenessEdit /> : <div className="mt-6 flex flex-col md:flex-row gap-8">
         {/* Social Media Section (Left) */}
