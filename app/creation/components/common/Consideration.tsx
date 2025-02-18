@@ -39,7 +39,7 @@ const Consideration = ({ edit }) => {
       
       {!edit && (
         <div className="flex items-center gap-4">
-        <Image src={table} alt="Consideration icon" className="w-5 h-5" />
+        <Image src={table} alt="Consideration icon" className="size-4" />
         <p className="text-black font-bold text-md">Consideration</p>
       </div>
 

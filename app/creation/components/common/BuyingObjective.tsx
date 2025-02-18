@@ -24,7 +24,7 @@ const [edit, setEdit]=useState(false)
 				<h1 className='text-blue-500 font-semibold text-base'>Your buying objectives and types</h1>
 			</div>
 
-		    {edit ? <Button text='Confirm changes' variant='secondary' onClick={() => setEdit(false)} /> : <Button text='Edit' variant='primary' onClick={() => setEdit(true)} />}
+		    {edit ? <Button text='Confirm changes' variant='secondary' onClick={() => setEdit(false)} /> : <Button text='Edit' variant='primary' className='!rounded-md h-[52px] whitespace-nowrap px-4 py-2 text-sm' onClick={() => setEdit(true)} />}
            
             
             </div>

@@ -70,7 +70,7 @@ const ConsiderationEdit = () => {
                 key={item.id}
                 className={`flex items-center ${
                   isArrowDown ? 'justify-between' : 'gap-2'
-                } px-4 py-3 rounded-md border border-gray-200 ${
+                } px-4 py-3 rounded-md border whitespace-nowrap border-gray-200 ${
                   item.name === 'Add new channel' ? 'bg-blue-500' : 'bg-white'
                 }`}
               >
@@ -114,7 +114,7 @@ const ConsiderationEdit = () => {
                         onClick={() => {
                           removeSocialMedia(item.id);
                         }}
-                        className="text-white bg-black rounded-full w-3 h-3 flex items-center justify-center"
+                        className="text-white bg-black whitespace-nowrap rounded-full w-3 h-3 flex items-center justify-center"
                       >
                         x
                       </button>
@@ -131,7 +131,7 @@ const ConsiderationEdit = () => {
           text='Add new channel'
           variant="primary"
           onClick={() => alert('Add a new channel')}  
-          className='!rounded-md h-[52px] px-4 py-2 text-sm'
+          className='!rounded-md whitespace-nowrap h-[52px] px-4 py-2 text-sm'
         
         />
 
@@ -150,8 +150,8 @@ const ConsiderationEdit = () => {
               return (
                 <a
                   key={item.id}
-                  className={`flex items-center h-[52px] ${
-                    isArrowDown ? 'justify-between' : 'gap-2'
+                  className={`flex items-center whitespace-nowrap h-[52px] ${
+                    isArrowDown ? 'justify-between' : 'gap-2 whitespace-nowrap'
                   } px-4 py-3 rounded-md border border-gray-200 ${
                     item.name === 'Add new channel' ? 'bg-blue-500' : 'bg-white'
                   }`}
@@ -210,7 +210,7 @@ const ConsiderationEdit = () => {
             {searchEngines.map((item) => (
               <a
                 key={item.id}
-                className={`flex px-4 py-3 h-[52px] rounded-md border border-gray-200 justify-center items-center gap-2 ${
+                className={`flex px-4 py-3 whitespace-nowrap h-[52px] rounded-md border border-gray-200 justify-center items-center gap-2 ${
                   item.name === 'Add new channel' ? 'bg-blue-500' : 'bg-white'
                 }`}
               >

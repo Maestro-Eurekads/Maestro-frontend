@@ -52,9 +52,9 @@ const Awareness = ({edit}) => {
               <a
                 key={item.id}
                 onClick={() => window.open(item.link, '_blank')}
-                className="flex bg-white px-4 py-3 rounded-md border border-gray-200 items-center gap-2"
+                className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2"
               >
-                {item.icon && <Image src={item.icon} alt={item.name} className="size-5" />}
+                {item.icon && <Image src={item.icon} alt={item.name} className="size-4" />}
                 <p className="text-black text-center text-md">{item.name}</p>
               </a>
             ))}
@@ -68,9 +68,9 @@ const Awareness = ({edit}) => {
             {displayMedia.slice(0, 6).map((item) => (
               <a
                 key={item.id}
-                className="flex bg-white px-4 py-3 rounded-md border border-gray-200 justify-center items-center gap-2"
+                className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 justify-center items-center gap-2"
               >
-                {item.icon && <Image src={item.icon} alt={item.name} className="size-5" />}
+                {item.icon && <Image src={item.icon} alt={item.name} className="size-4" />}
                 <p className="text-black text-md text-center">{item.name}</p>
               </a>
             ))}
