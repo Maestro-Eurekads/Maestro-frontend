@@ -4,8 +4,9 @@ import speaker from "../../../../public/mdi_megaphone.svg";
 import facebook from "../../../../public/facebook.svg";
 import youtube from "../../../../public/youtube.svg";
 import instagram from "../../../../public/ig.svg";
-import quantcast from "../../../../public/Quantcast.svg";
-import trade from "../../../../public/TheTradeDesk.svg";
+import quantcast from "../../../../public/quantcast.svg"; 
+import trade from "../../../../public/TheTradeDesk.svg"; 
+import AwarenessEdit from "./AwarenessEdit";
 
 const socialMedia = [
   { id: 1, name: "Facebook", icon: facebook, link: "https://www.facebook.com" },
@@ -21,28 +22,28 @@ const socialMedia = [
 
 
 const displayMedia = [
-  { id: 1, name: "The TradeDesk", icon: trade },
-  { id: 2, name: "QuantCast", icon: quantcast },
-  { id: 3, name: "CPV" },
-  { id: 4, name: "CPV" },
-  { id: 5, name: "View view" },
-  { id: 6, name: "Video view" },
+    { id: 1, name: "The TradeDesk", icon: trade },
+    { id: 2, name: "QuantCast", icon: quantcast },
+    { id: 3, name: "CPV" },
+    { id: 4, name: "CPV" },
+    { id: 5, name: "View view" },
+    { id: 6, name: "Video view" },
+   
+  ];
 
-];
 
 
-
-const Awareness = () => {
+const Awareness = ({edit}) => {
   return (
-    <div className="mt-6 bg-gray-100 p-6 rounded-lg">
+    <div className="mt-6 bg-gray-100 p-6 gap-8 rounded-lg">
       {/* Header */}
+      {!edit && (
       <div className="flex items-center gap-4">
         <Image src={speaker} alt="Awareness icon" className="w-6 h-6" />
         <p className="text-black font-bold text-md">Awareness</p>
-      </div>
+      </div>)}
 
-      {/* Content Layout */}
-      <div className="mt-6 flex flex-col md:flex-row gap-8">
+      {edit ? <AwarenessEdit /> : <div className="mt-6 flex flex-col md:flex-row gap-8">
         {/* Social Media Section (Left) */}
         <div className="w-full md:w-1/2">
           <h2 className="text-black font-bold text-md mb-4">Social Media</h2>
@@ -75,7 +76,9 @@ const Awareness = () => {
             ))}
           </div>
         </div>
-      </div>
+      </div>}
+      {/* Content Layout */}
+      
     </div>
   );
 };

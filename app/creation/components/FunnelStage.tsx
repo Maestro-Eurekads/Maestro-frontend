@@ -11,7 +11,7 @@ import youtube from '../../../public/youtube.svg';
 import x from '../../../public/x.svg';
 import linkedin from '../../../public/linkedin.svg';
 import TheTradeDesk from '../../../public/TheTradeDesk.svg';
-import Quantcast from '../../../public/Quantcast.svg';
+import Quantcast from '../../../public/quantcast.svg';
 import Display from '../../../public/Display.svg';
 import Google from '../../../public/Google.svg';
 import yahoo from '../../../public/yahoo.svg';
