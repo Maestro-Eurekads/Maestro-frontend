@@ -14,6 +14,7 @@ import SetBuyObjectivesAndTypesSubStep from "./components/SetBuyObjectivesAndTyp
 
 const Creation = () => {
   const { active, subStep } = useActive();
+
   return (
     <div>
       <div className="creation_continer">
@@ -28,15 +29,15 @@ const Creation = () => {
           ) : (
             <SetBuyObjectivesAndTypesSubStep />
           ))}
-        {/* Step 6: Main step and Sub-step logic */}
-        {active === 6 &&
+        {/* Step 7: Main step and Sub-step logic */}
+        {active === 7 &&
           (subStep === 0 ? (
             <PlanCampaignSchedule />
           ) : (
             <PlanCampaignScheduleSubStepComponent />
           ))}
       </div>
-      {active === 8 && <EstablishedGoals />}
+      {active === 9 && <EstablishedGoals />}
     </div>
   );
 };
