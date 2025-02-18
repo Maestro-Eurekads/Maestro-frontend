@@ -8,7 +8,6 @@ const DateComponent = () => {
     <div className="flex flex-col gap-4">
       <div className="flex gap-4 items-center w-full justify-end">
         <Range />
-
         <DateRangeSelector />
       </div>
 

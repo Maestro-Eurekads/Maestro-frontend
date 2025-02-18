@@ -2,6 +2,12 @@
 display: flex; 
 }
 
+.delete-resizeableBar{
+	position: absolute;
+	right: -40px;
+
+}
+
 .card_bucket_container_main_sub{
  background: var(--accent-white);
 border: 1px solid rgba(0, 0, 0, 0.1);
@@ -139,7 +145,7 @@ cursor: pointer;
 }
 
 .creation_continer{
-	padding: 0px 56px;
+	padding: 0px 32px;
 }
 
 .SideBar_state_text{ 

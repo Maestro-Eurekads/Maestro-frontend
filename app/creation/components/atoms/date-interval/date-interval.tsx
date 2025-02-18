@@ -16,9 +16,10 @@ const DateInterval = () => {
       setDateRangeWidth(containerRef.current.offsetWidth);
     }
   }, [setDateRangeWidth]);
+
   return (
     <div
-      className="overflow-x-auto whitespace-nowrap flex justify-between border-y py-5 px-6"
+      className="overflow-x-auto whitespace-nowrap flex justify-between border-y py-5  "
       ref={containerRef}
     >
       {dateList.map((date, index) => {
@@ -27,8 +28,8 @@ const DateInterval = () => {
         return (
           <div
             key={index}
-            className={`min-w-[60px] text-center text-sm font-medium px-2 py-1 rounded-md
-              ${isEdge ? "bg-[#f05406]" : ""}
+            className={`relative min-w-[60px] text-center text-sm font-medium px-2 py-1 rounded-md
+              ${isEdge ? "bg-[#f05406] text-white" : "#fff"}
             `}
           >
             <span className={`${isEdge ? "text-white" : "text-black"}`}>
@@ -37,6 +38,13 @@ const DateInterval = () => {
             <span className={`${isEdge ? "text-white" : "text-blue-500"}`}>
               {format(date, "d")}
             </span>
+
+            {/* Triangle for Edge Dates */}
+            {isEdge && (
+              <div className="absolute left-1/2 -bottom-[4.2] transform -translate-x-1/2">
+                <div className="w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-[#f05406]"></div>
+              </div>
+            )}
           </div>
         );
       })}
