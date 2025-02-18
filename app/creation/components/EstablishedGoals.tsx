@@ -362,22 +362,20 @@ export const EstablishedGoals = () => {
             >
               <button
                 role="tab"
-                className={`tab ${
-                  view === "Timeline"
-                    ? "tab-active !bg-white !text-[#061237] !font-[600]"
-                    : ""
-                }`}
+                className={`tab ${view === "Timeline"
+                  ? "tab-active !bg-white !text-[#061237] !font-[600]"
+                  : ""
+                  }`}
                 onClick={() => setView("Timeline")}
               >
                 Timeline view
               </button>
               <button
                 role="tab"
-                className={`tab ${
-                  view === "Table"
-                    ? "tab-active !bg-white !text-[#061237] !font-[600]"
-                    : ""
-                }`}
+                className={`tab ${view === "Table"
+                  ? "tab-active !bg-white !text-[#061237] !font-[600]"
+                  : ""
+                  }`}
                 onClick={() => setView("Table")}
               >
                 Table view
@@ -387,7 +385,7 @@ export const EstablishedGoals = () => {
         </header>
 
         {view === "Table" && (
-          <div className="max-w-[1080px] my-5 mx-[40px]">
+          <div className="  my-5 mx-[40px]">
             <section className="">
               <h1 className="text-[#061237] text-[18px] font-[600] mb-5 flex gap-2">
                 <svg

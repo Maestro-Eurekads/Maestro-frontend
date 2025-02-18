@@ -11,6 +11,7 @@ import SetBuyObjectivesAndTypes from "./components/SetBuyObjectivesAndTypes";
 import { SetupScreen } from "./components/SetupScreen";
 import { EstablishedGoals } from "./components/EstablishedGoals";
 import SetBuyObjectivesAndTypesSubStep from "./components/SetBuyObjectivesAndTypesSubStep";
+import ConfigureadSetsAndbudget from "./components/ ConfigureadSetsAndbudget";
 
 const Creation = () => {
   const { active, subStep } = useActive();
@@ -33,6 +34,7 @@ const Creation = () => {
           ) : (
             <PlanCampaignScheduleSubStepComponent />
           ))}
+        {active === 8 && <ConfigureadSetsAndbudget />}
       </div>
       {active === 9 && <EstablishedGoals />}
     </div>

@@ -5,7 +5,8 @@ import ResizeableBar from "../../atoms/drag-timeline/drag-timeline";
 
 const ResizeableElements = () => {
   return (
-    <div className="flex flex-col gap-y-6 select-none">
+    <div className="flex flex-col gap-y-6 select-none mt-3 ">
+
       <ResizeableBar
         bg="#3175FF"
         description="Awareness"

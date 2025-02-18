@@ -11,6 +11,8 @@ import thetradedesk from '../../../../../public/social/thetradedesk.svg';
 import quantcast from '../../../../../public/social/quantcast.svg';
 import google from '../../../../../public/social/google.svg';
 import ig from '../../../../../public/social/ig.svg';
+import whiteplus from '../../../../../public/white-plus.svg';
+import reddelete from '../../../../../public/red-delete.svg';
 
 interface ResizeableProps {
   bg: string;
@@ -22,11 +24,13 @@ interface ResizeableProps {
 const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState<{ index: number; side: "left" | "right" } | null>(null);
-  // const [isHovered, setIsHovered] = useState(false);
+  const [show, setShow] = useState(false);
   const [openChannel, setOpenChannel] = useState(false);
   const { dateRangeWidth } = useDateRange();
   const minWidth = 150;
   const maxWidth = dateRangeWidth;
+
+  console.log('dateRangeWidth-dateRangeWidth', dateRangeWidth)
 
   const channels = [
     { icon: facebook, name: "Facebook", color: "#0866FF", bg: "#F0F6FF" },
@@ -102,21 +106,21 @@ const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [dragging]);
+  }, [dragging, channelState[0]?.width]);
+
+  console.log('channelState[0]?.width ', channelState[0]?.width)
 
   return (
     <div>
       {/* Main Resizable Bar */}
       <div ref={containerRef} className="relative w-full h-14">
         <div
-          className="absolute top-0 h-full flex justify-between items-center text-white px-4 gap-2 border shadow-md min-w-[150px]"
+          className="absolute top-0 h-full flex justify-between items-center text-white px-4 gap-2 border shadow-md min-w-[150px] !rounded-md"
           style={{
             left: `${channelState[0]?.left || 0}px`,
             width: `${channelState[0]?.width || dateRangeWidth}px`,
             backgroundColor: bg,
           }}
-        // onMouseEnter={() => setIsHovered(true)}
-        // onMouseLeave={() => setIsHovered(false)}
         >
           <div />
           <div className="flex items-center gap-3" onClick={() => setOpenChannel(!openChannel)}>
@@ -124,16 +128,22 @@ const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
             <span className="font-medium">{description}</span>
             <MdOutlineKeyboardArrowDown />
           </div>
-
-          <button className="channel-btn">
+          {/* The button is still here, but will only render if the width is >= 150px */}
+          {/* {(channelState[0]?.width > 250) && ( */}
+          <button className="channel-btn" onClick={() => {
+            setShow(prev => !prev);
+            setOpenChannel(true);
+          }}>
             <Image src={icroundadd} alt="icroundadd" />
             <p>Add new channel</p>
           </button>
+          {/* )} */}
+
         </div>
 
         {/* Left Handle for Main Bar */}
         <div
-          className="absolute top-0 w-5 h-full bg-opacity-50 bg-black cursor-ew-resize rounded-l-lg text-white flex items-center justify-center"
+          className="absolute top-0 w-5 h-full bg-opacity-80 bg-black cursor-ew-resize rounded-l-lg text-white flex items-center justify-center"
           style={{ left: `${channelState[0]?.left || 0}px` }}
           onMouseDown={() => handleMouseDown(0, "left")}
         >
@@ -142,7 +152,7 @@ const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
 
         {/* Right Handle for Main Bar */}
         <div
-          className="absolute top-0 w-5 h-full bg-opacity-50 bg-black cursor-ew-resize rounded-r-lg text-white flex items-center justify-center"
+          className="absolute top-0 right-[-5] w-5 h-full bg-opacity-80 bg-black cursor-ew-resize rounded-r-lg text-white flex items-center justify-center"
           style={{
             left: `${(channelState[0]?.left || 0) + (channelState[0]?.width || dateRangeWidth) - 5}px`,
           }}
@@ -150,59 +160,73 @@ const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
         >
           <MdDragHandle className="rotate-90" />
         </div>
+
       </div>
 
       {/* Mapped Draggable Dropdowns */}
-      {openChannel && (
-        <div className="open_channel_btn_container">
-          {channels.map((channel, index) => (
-            <div key={channel.name} className="relative w-full h-12">
-              {/* Draggable Dropdown Item */}
-              <div
-                className="absolute top-0 h-full flex justify-center items-center text-white px-4 gap-2 border shadow-md min-w-[150px]"
-                style={{
-                  borderColor: channel.color,
-                  left: `${channelState[index]?.left || 0}px`,
-                  width: `${channelState[index]?.width || 150}px`,
-                  backgroundColor: channel.bg,
-                  color: channel.color,
-                  borderRadius: "5px",
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <Image src={channel.icon} alt={channel.icon} />
-                  <span className="font-medium">{channel.name}</span>
+      {
+        openChannel && (
+          <div>
+            {show &&
+              <button className="channel-btn-blue mt-[12px] mb-[12px]">
+                <Image src={whiteplus} alt="whiteplus" />
+                <p>Add new channel</p>
+              </button>}
+
+            <div className="open_channel_btn_container">
+              {channels.map((channel, index) => (
+                <div key={channel.name} className="relative w-full h-12">
+                  {/* Draggable Dropdown Item */}
+                  <div
+                    className="absolute top-0 h-full flex justify-center items-center text-white px-4 gap-2 border shadow-md min-w-[150px]"
+                    style={{
+                      borderColor: channel.color,
+                      left: `${channelState[index]?.left || 0}px`,
+                      width: `${channelState[index]?.width || 150}px`,
+                      backgroundColor: channel.bg,
+                      color: channel.color,
+                      borderRadius: "10px",
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Image src={channel.icon} alt={channel.icon} />
+                      <span className="font-medium">{channel.name}</span>
+                    </div>
+                  </div>
+
+                  {/* Left Handle for Dropdown Item */}
+                  <div
+                    className="absolute top-0 w-5 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center"
+                    style={{
+                      left: `${channelState[index]?.left || 0}px`,
+                      backgroundColor: channel.color,
+                    }}
+                    onMouseDown={() => handleMouseDown(index, "left")}
+                  >
+                    <MdDragHandle className="rotate-90" />
+                  </div>
+
+                  {/* Right Handle for Dropdown Item */}
+                  <div
+                    className="absolute top-0 w-5 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center"
+                    style={{
+                      left: `${(channelState[index]?.left || 0) + (channelState[index]?.width || 150) - 5}px`,
+                      backgroundColor: channel.color,
+                    }}
+                    onMouseDown={() => handleMouseDown(index, "right")}
+                  >
+                    <MdDragHandle className="rotate-90" />
+                    <button className="delete-resizeableBar">
+                      <Image src={reddelete} alt="reddelete" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-
-              {/* Left Handle for Dropdown Item */}
-              <div
-                className="absolute top-0 w-5 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center"
-                style={{
-                  left: `${channelState[index]?.left || 0}px`,
-                  backgroundColor: channel.color,
-                }}
-                onMouseDown={() => handleMouseDown(index, "left")}
-              >
-                <MdDragHandle className="rotate-90" />
-              </div>
-
-              {/* Right Handle for Dropdown Item */}
-              <div
-                className="absolute top-0 w-5 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center"
-                style={{
-                  left: `${(channelState[index]?.left || 0) + (channelState[index]?.width || 150) - 5}px`,
-                  backgroundColor: channel.color,
-                }}
-                onMouseDown={() => handleMouseDown(index, "right")}
-              >
-                <MdDragHandle className="rotate-90" />
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
-    </div>
+          </div>
+        )
+      }
+    </div >
   );
 };
 
