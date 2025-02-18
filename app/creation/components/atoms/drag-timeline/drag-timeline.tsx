@@ -5,6 +5,12 @@ import { MdDragHandle, MdOutlineKeyboardArrowDown } from "react-icons/md";
 import { useDateRange } from "../../../../../src/date-range-context";
 import icroundadd from '../../../../../public/ic_round-add.svg';
 import Image from "next/image";
+import facebook from '../../../../../public/social/facebook.svg';
+import youtube from '../../../../../public/social/youtube.svg';
+import thetradedesk from '../../../../../public/social/thetradedesk.svg';
+import quantcast from '../../../../../public/social/quantcast.svg';
+import google from '../../../../../public/social/google.svg';
+import ig from '../../../../../public/social/ig.svg';
 
 interface ResizeableProps {
   bg: string;
@@ -12,63 +18,73 @@ interface ResizeableProps {
   Icon: IconType;
 }
 
+
 const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [dragging, setDragging] = useState<"left" | "right" | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
+  const [dragging, setDragging] = useState<{ index: number; side: "left" | "right" } | null>(null);
+  // const [isHovered, setIsHovered] = useState(false);
   const [openChannel, setOpenChannel] = useState(false);
   const { dateRangeWidth } = useDateRange();
-  const [width, setWidth] = useState(dateRangeWidth);
   const minWidth = 150;
   const maxWidth = dateRangeWidth;
-  const [left, setLeft] = useState(0);
-
-  // const [selectedChannel, setSelectedChannel] = useState(null);
-
-  console.log('isHovered', isHovered)
-
-
-  // const handleChannelClick = (channel) => {
-  //   setSelectedChannel(channel); // Set the selected channel
-  //   setOpenChannel(false); // Close the dropdown
-  // };
 
   const channels = [
-    { name: "Facebook", color: "#1877F2", bg: "#F0F6FF" },
-    { name: "Instagram", color: "#C13584", bg: "#FEF1F8" },
-    { name: "YouTube", color: "#FF0000", bg: "#FFF0F0" },
-    { name: "TheTradeDesk", color: "#0059FF", bg: "#F0F9FF" },
-    { name: "Quantcast", color: "#000000", bg: "#F7F7F7" },
-    { name: "Google", color: "#4285F4", bg: "#F1F6FE" },
+    { icon: facebook, name: "Facebook", color: "#0866FF", bg: "#F0F6FF" },
+    { icon: ig, name: "Instagram", color: "#C13584", bg: "#FEF1F8" },
+    { icon: youtube, name: "YouTube", color: "#FF0000", bg: "#FFF0F0" },
+    { icon: thetradedesk, name: "TheTradeDesk", color: "#0099FA", bg: "#F0F9FF" },
+    { icon: quantcast, name: "Quantcast", color: "#000000", bg: "#F7F7F7" },
+    { icon: google, name: "Google", color: "#4285F4", bg: "#F1F6FE" },
   ];
 
-  useEffect(() => {
-    setWidth(dateRangeWidth);
-  }, [dateRangeWidth]);
 
-  const handleMouseDown = (side: "left" | "right") => {
-    setDragging(side);
+  // The state that tracks left and width for both the main bar and dropdown items
+  const [channelState, setChannelState] = useState([
+    { left: 0, width: dateRangeWidth }, // For the main resizable bar
+    ...channels.map(() => ({ left: 0, width: dateRangeWidth })) // For each dropdown item
+  ]);
+
+  const handleMouseDown = (index: number, side: "left" | "right") => {
+    setDragging({ index, side });
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleMouseMove = (e: MouseEvent) => {
     if (!dragging || !containerRef.current) return;
 
+    const { index, side } = dragging;
     const rect = containerRef.current.parentElement!.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
 
-    if (dragging === "left") {
-      const newLeft = Math.max(0, Math.min(left + width - minWidth, mouseX));
-      const newWidth = width + (left - newLeft);
-      setWidth(Math.min(maxWidth, Math.max(minWidth, newWidth)));
-      setLeft(newLeft);
-    } else if (dragging === "right") {
-      const newWidth = Math.min(
-        maxWidth - left,
-        Math.max(minWidth, mouseX - left)
-      );
-      setWidth(newWidth);
-    }
+    setChannelState((prevState) => {
+      const updated = [...prevState];
+
+      // Ensure index exists before modifying the state
+      if (!updated[index]) return updated;
+
+      if (side === "left") {
+        const newLeft = Math.max(0, Math.min(updated[index].left + updated[index].width - minWidth, mouseX));
+        const newWidth = updated[index].width + (updated[index].left - newLeft);
+        updated[index] = {
+          left: newLeft,
+          width: Math.min(maxWidth, Math.max(minWidth, newWidth)),
+        };
+      } else if (side === "right") {
+        const newWidth = Math.min(maxWidth - updated[index].left, Math.max(minWidth, mouseX - updated[index].left));
+        updated[index].width = newWidth;
+      }
+
+      // If dragging the main bar, update all dropdown items
+      if (index === 0) {
+        updated.slice(1).forEach((_, i) => {
+          updated[i + 1] = {
+            left: updated[0].left,
+            width: updated[0].width,
+          };
+        });
+      }
+
+      return updated;
+    });
   };
 
   const handleMouseUp = () => setDragging(null);
@@ -86,20 +102,21 @@ const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [dragging, handleMouseMove]);
+  }, [dragging]);
+
   return (
     <div>
+      {/* Main Resizable Bar */}
       <div ref={containerRef} className="relative w-full h-14">
-        {/* Resizable Bar */}
         <div
           className="absolute top-0 h-full flex justify-between items-center text-white px-4 gap-2 border shadow-md min-w-[150px]"
           style={{
-            left: `${left}px`,
-            width: `${width}px`,
+            left: `${channelState[0]?.left || 0}px`,
+            width: `${channelState[0]?.width || dateRangeWidth}px`,
             backgroundColor: bg,
           }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+        // onMouseEnter={() => setIsHovered(true)}
+        // onMouseLeave={() => setIsHovered(false)}
         >
           <div />
           <div className="flex items-center gap-3" onClick={() => setOpenChannel(!openChannel)}>
@@ -108,81 +125,76 @@ const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
             <MdOutlineKeyboardArrowDown />
           </div>
 
-          {/* Show button only on hover */}
-          {/* <div>
-            {isHovered && ( */}
-          <button className="channel-btn" >
+          <button className="channel-btn">
             <Image src={icroundadd} alt="icroundadd" />
             <p>Add new channel</p>
           </button>
-          {/* //   )}
-          // </div> */}
         </div>
 
-        {/* Left Handle */}
+        {/* Left Handle for Main Bar */}
         <div
-          className="absolute   top-0 w-5 h-full bg-opacity-50 bg-black cursor-ew-resize rounded-l-lg text-white flex items-center justify-center"
-          style={{ left: `${left}px` }}
-          onMouseDown={() => handleMouseDown("left")}
+          className="absolute top-0 w-5 h-full bg-opacity-50 bg-black cursor-ew-resize rounded-l-lg text-white flex items-center justify-center"
+          style={{ left: `${channelState[0]?.left || 0}px` }}
+          onMouseDown={() => handleMouseDown(0, "left")}
         >
           <MdDragHandle className="rotate-90" />
         </div>
 
-        {/* Right Handle */}
+        {/* Right Handle for Main Bar */}
         <div
           className="absolute top-0 w-5 h-full bg-opacity-50 bg-black cursor-ew-resize rounded-r-lg text-white flex items-center justify-center"
-          style={{ left: `${left + width - 5}px` }}
-          onMouseDown={() => handleMouseDown("right")}
+          style={{
+            left: `${(channelState[0]?.left || 0) + (channelState[0]?.width || dateRangeWidth) - 5}px`,
+          }}
+          onMouseDown={() => handleMouseDown(0, "right")}
         >
           <MdDragHandle className="rotate-90" />
         </div>
       </div>
 
-
-      {/* Channel Selection Dropdown */}
+      {/* Mapped Draggable Dropdowns */}
       {openChannel && (
         <div className="open_channel_btn_container">
-          {channels.map((channel) => (
-            <div ref={containerRef} className="relative w-full h-14" key={channel.name}>
-              {/* Resizable Bar */}
+          {channels.map((channel, index) => (
+            <div key={channel.name} className="relative w-full h-12">
+              {/* Draggable Dropdown Item */}
               <div
                 className="absolute top-0 h-full flex justify-center items-center text-white px-4 gap-2 border shadow-md min-w-[150px]"
                 style={{
-                  left: `${left}px`,
-                  width: `${width}px`,
+                  borderColor: channel.color,
+                  left: `${channelState[index]?.left || 0}px`,
+                  width: `${channelState[index]?.width || 150}px`,
                   backgroundColor: channel.bg,
                   color: channel.color,
+                  borderRadius: "5px",
                 }}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
               >
-
                 <div className="flex items-center gap-3">
-                  {/* <Icon className="text-lg text-white" /> */}
+                  <Image src={channel.icon} alt={channel.icon} />
                   <span className="font-medium">{channel.name}</span>
                 </div>
               </div>
 
-              {/* Left Handle */}
+              {/* Left Handle for Dropdown Item */}
               <div
                 className="absolute top-0 w-5 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center"
                 style={{
-                  left: `${left}px`,
-                  backgroundColor: channel.color, // Dynamic color from channel object
+                  left: `${channelState[index]?.left || 0}px`,
+                  backgroundColor: channel.color,
                 }}
-                onMouseDown={() => handleMouseDown("left")}
+                onMouseDown={() => handleMouseDown(index, "left")}
               >
                 <MdDragHandle className="rotate-90" />
               </div>
 
-              {/* Right Handle */}
+              {/* Right Handle for Dropdown Item */}
               <div
                 className="absolute top-0 w-5 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center"
                 style={{
-                  left: `${left + width - 5}px`,
-                  backgroundColor: channel.color, // Corrected dynamic color mapping
+                  left: `${(channelState[index]?.left || 0) + (channelState[index]?.width || 150) - 5}px`,
+                  backgroundColor: channel.color,
                 }}
-                onMouseDown={() => handleMouseDown("right")}
+                onMouseDown={() => handleMouseDown(index, "right")}
               >
                 <MdDragHandle className="rotate-90" />
               </div>
@@ -190,8 +202,6 @@ const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
           ))}
         </div>
       )}
-
-
     </div>
   );
 };
@@ -201,40 +211,3 @@ export default ResizeableBar;
 
 
 
-
-
-{/* <div ref={containerRef} className="w-full flex h-14">
-
- 
-  <button
-    className="w-[24px] h-full bg-opacity-50 bg-black cursor-ew-resize rounded-l-lg text-white flex items-center justify-center"
-    onMouseDown={() => handleMouseDown("left")}
-  >
-    <MdDragHandle className="rotate-90" />
-  </button>
-
- 
-  <div
-    className="h-full flex items-center justify-center text-white px-4 gap-2 border shadow-md min-w-[150px]"
-    style={{
-      left: `${left}px`,
-      width: `${width}px`,
-      backgroundColor: bg,
-    }}
-  >
-
-    <Icon className="text-lg text-white" />
-    <span className="font-medium">{description}</span>
-    <MdOutlineKeyboardArrowDown />
-
-    <button className="channel-btn">Add new channel</button>
-  </div>
-
- 
-  <button
-    className="w-[24px] h-full bg-opacity-50 bg-black cursor-ew-resize rounded-r-lg text-white flex items-center justify-center" 
-    onMouseDown={() => handleMouseDown("right")}
-  >
-    <MdDragHandle className="rotate-90" />
-  </button>
-</div> */}
