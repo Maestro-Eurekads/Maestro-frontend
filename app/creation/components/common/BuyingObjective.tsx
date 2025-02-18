@@ -5,20 +5,35 @@ import Consideration from "./Consideration";
 import Conversion from "./Conversion";
 import { Plus } from "lucide-react";
 
+const stageComponents = {
+  Awareness,
+  Consideration,
+  Conversion,
+};
+
 const BuyingObjective = () => {
   const [edit, setEdit] = useState(false);
-  // State to control whether the Awareness stage is shown
-  const [showAwareness, setShowAwareness] = useState(true);
-  // State to control whether the Consideration stage is shown
-  const [showConsideration, setShowConsideration] = useState(true);
-  // State to control whether the Conversion stage is shown
-  const [showConversion, setShowConversion] = useState(true);
+
+  // Default stages in order
+  const [stages, setStages] = useState(["Awareness", "Consideration", "Conversion"]);
+
+  // Function to add a new stage
+  const addStage = (stageName) => {
+    if (!stages.includes(stageName)) {
+      setStages([...stages, stageName]);
+    }
+  };
+
+  // Function to remove a stage
+  const removeStage = (stageName) => {
+    setStages(stages.filter((stage) => stage !== stageName));
+  };
 
   return (
     <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full">
       {/* Main objective header */}
       <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
           <div className="flex rounded-full bg-blue-500 justify-center items-center p-1">
             <span className="text-white font-bold">2</span>
           </div>
@@ -42,35 +57,34 @@ const BuyingObjective = () => {
         )}
       </div>
 
-      <div>
-        {edit ? (
-          <Button
-            text="Add stages"
-            icon={Plus}
-            className="rounded-full px-4 py-2 text-sm"
-            variant="primary"
-            onClick={() => setEdit(false)}
+      {/* Add Stages Buttons with "+" Icon */}
+      {edit && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          {["Awareness", "Consideration", "Conversion"].map((stage) => (
+            !stages.includes(stage) && (
+              <Button
+                key={stage}
+                text={`Add ${stage}`}
+                icon={Plus} // This adds the "+" icon
+                variant="primary"
+                onClick={() => addStage(stage)}
+              />
+            )
+          ))}
+        </div>
+      )}
+
+      {/* Render Stages Dynamically */}
+      {stages.map((stage) => {
+        const StageComponent = stageComponents[stage];
+        return (
+          <StageComponent
+            key={stage}
+            edit={edit}
+            onDelete={() => removeStage(stage)}
           />
-        ) : null}
-
-        {/* Conditionally render the Awareness stage */}
-        {showAwareness && (
-          <Awareness edit={edit} onDelete={() => setShowAwareness(false)} />
-        )}
-      </div>
-
-      <div>
-        {/* Conditionally render the Consideration stage */}
-        {showConsideration && (
-          <Consideration edit={edit} onDelete={() => setShowConsideration(false)} />
-        )}
-      </div>
-
-      <div>
-        {showConversion && (
-          <Conversion edit={edit} onDelete={() => setShowConversion(false)} />
-        )}
-      </div>
+        );
+      })}
     </div>
   );
 };
