@@ -98,7 +98,7 @@ const AwarenessEdit = ({ onDelete }) => {
       {/* Social Media Section */}
       <h2 className="text-black font-bold text-md mb-4">Social Media</h2>
 
-      <div className="flex flex-col md:flex justify-center gap-4"> 
+      <div className="flex flex-col md:flex-row justify-center gap-4"> 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
         {socialMedia.map((item) => (
           <div
@@ -126,7 +126,7 @@ const AwarenessEdit = ({ onDelete }) => {
       {/* Display Network Section */}
       <h2 className="text-black font-bold text-md mt-6 mb-4">Display Network</h2>
 
-      <div className="flex flex-col md:flex justify-center gap-4">
+      <div className="flex flex-col md:flex-row justify-center gap-4">
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
         {displayNetwork.map((item) => (
