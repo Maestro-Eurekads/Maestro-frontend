@@ -26,21 +26,53 @@ const AwarenessEdit = ({ onDelete }) => {
     { id: 9, name: "CPV", icon: arrowdown },
   ]);
 
-  const removeSocialMedia = (id) => {
-    setSocialMedia(socialMedia.filter((item) => item.id !== id));
-  };
-
-  const displayNetwork = [
+  const [displayNetwork, setDisplayNetwork] = useState([
     { id: 1, name: "The TradeDesk", icon: trade },
     { id: 2, name: "QuantCast", icon: quantcast },
-    { id: 3, name: "Add new channel" },
+    { id: 3, name: "Awareness", icon: arrowdown },
     { id: 4, name: "Video Views", icon: arrowdown },
     { id: 5, name: "Video Views", icon: arrowdown },
     { id: 6, name: "CPV", icon: arrowdown },
     { id: 7, name: "CPV", icon: arrowdown },
-  ];
+  ]);
 
-  const searchEngines = [{ id: 1, name: "Add new channel" }];
+  // Social Media: sequentially add Facebook, Instagram, then Youtube
+  const socialTypes = [
+    { name: "Facebook", icon: facebook },
+    { name: "Instagram", icon: instagram },
+    { name: "Youtube", icon: youtube },
+  ];
+  const [socialIndex, setSocialIndex] = useState(0);
+
+  const addNewSocialMediaChannel = () => {
+    const nextId = socialMedia.reduce((max, item) => Math.max(max, item.id), 0) + 1;
+    const channelToAdd = socialTypes[socialIndex % socialTypes.length];
+    setSocialMedia([...socialMedia, { id: nextId, ...channelToAdd }]);
+    setSocialIndex(socialIndex + 1);
+  };
+
+  // Display Network: sequentially add The TradeDesk then QuantCast
+  const displayTypes = [
+    { name: "The TradeDesk", icon: trade },
+    { name: "QuantCast", icon: quantcast },
+  ];
+  const [displayIndex, setDisplayIndex] = useState(0);
+
+  const addNewDisplayNetworkChannel = () => {
+    const nextId = displayNetwork.reduce((max, item) => Math.max(max, item.id), 0) + 1;
+    const channelToAdd = displayTypes[displayIndex % displayTypes.length];
+    setDisplayNetwork([...displayNetwork, { id: nextId, ...channelToAdd }]);
+    setDisplayIndex(displayIndex + 1);
+  };
+
+  // Remove functions
+  const removeSocialMediaChannel = (id) => {
+    setSocialMedia(socialMedia.filter(item => item.id !== id));
+  };
+
+  const removeDisplayNetworkChannel = (id) => {
+    setDisplayNetwork(displayNetwork.filter(item => item.id !== id));
+  };
 
   return (
     <div className="flex flex-col items-start p-6">
@@ -50,17 +82,13 @@ const AwarenessEdit = ({ onDelete }) => {
           <Image src={speaker} alt="Awareness icon" className="w-5 h-5" />
           <span className="text-black font-semibold">Awareness</span>
         </div>
-        
         <Button
           text="Delete this stage"
           variant="danger"
           icon={Trash}
           onClick={() => {
             toast.success("Stage Deleted successfully!");
-            // Delay deletion to allow the toast to show
-            setTimeout(() => {
-              onDelete();
-            }, 2000); // Adjust delay as needed
+            setTimeout(() => onDelete(), 2000);
           }}
           iconColor="text-white"
           className="rounded-full px-4 py-2 text-sm"
@@ -69,165 +97,62 @@ const AwarenessEdit = ({ onDelete }) => {
 
       {/* Social Media Section */}
       <h2 className="text-black font-bold text-md mb-4">Social Media</h2>
-      <div className="flex flex-col items-start mt-8 md:flex-row justify-center gap-4">
-        <div className="grid grid-cols-2 md:grid-cols-3 grid-rows-3 gap-6">
-          {socialMedia.map((item) => {
-            const isArrowDown = item.icon === arrowdown;
-            return (
-              <div
-                key={item.id}
-                className={`flex items-center ${
-                  isArrowDown ? "justify-between" : "gap-2"
-                } px-4 py-3 rounded-md border border-gray-200 ${
-                  item.name === "Add new channel" ? "bg-blue-500" : "bg-white"
-                }`}
-              >
-                {isArrowDown ? (
-                  <>
-                    <p
-                      className={`text-md ${
-                        item.name === "Add new channel"
-                          ? "text-white"
-                          : "text-black"
-                      }`}
-                    >
-                      {item.name}
-                    </p>
-                    <Image
-                      src={item.icon}
-                      alt={item.name}
-                      className="w-4 h-4"
-                    />
-                  </>
-                ) : (
-                  <>
-                    {item.icon && (
-                      <Image
-                        src={item.icon}
-                        alt={item.name}
-                        className="w-4 h-4"
-                      />
-                    )}
-                    <p
-                      className={`text-md ${
-                        item.name === "Add new channel"
-                          ? "text-white"
-                          : "text-black"
-                      }`}
-                    >
-                      {item.name}
-                    </p>
-                    {(item.id === 1 ||
-                      item.id === 2 ||
-                      item.id === 3) && (
-                      <button
-                        onClick={() => removeSocialMedia(item.id)}
-                        className="text-white bg-black rounded-full w-3 h-3 flex items-center justify-center"
-                      >
-                        x
-                      </button>
-                    )}
-                  </>
-                )}
-              </div>
-            );
-          })}
-        </div>
+
+      <div className="flex flex-col md:flex justify-center gap-4"> 
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+        {socialMedia.map((item) => (
+          <div
+            key={item.id}
+            className="flex justify-between items-center gap-2 p-3 whitespace-nowrap border rounded-md bg-white shadow-md"
+          >
+            <div className="flex items-center gap-2">
+              <Image src={item.icon} alt={item.name} className="w-4 h-4" />
+              <p className="text-md text-black">{item.name}</p>
+            </div>
+            <button onClick={() => removeSocialMediaChannel(item.id)} className="flex justify-center items-center rounded-full bg-black size-3 text-white text-sm">
+              x
+            </button>
+          </div>
+        ))}
+      </div>
+        <Button
+          text="Add new channel"
+          variant="primary"
+          onClick={addNewSocialMediaChannel}
+          className="rounded-md whitespace-nowrap px-4 py-2"
+          />
+          </div>
+
+      {/* Display Network Section */}
+      <h2 className="text-black font-bold text-md mt-6 mb-4">Display Network</h2>
+
+      <div className="flex flex-col md:flex justify-center gap-4">
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+        {displayNetwork.map((item) => (
+          <div
+            key={item.id}
+            className="flex justify-between items-center gap-2 p-3 border rounded-md bg-white shadow-md"
+          >
+            <div className="flex items-center gap-2">
+              <Image src={item.icon} alt={item.name} className="w-4 h-4" />
+              <p className="text-md text-black whitespace-nowrap">{item.name}</p>
+            </div>
+            <button onClick={() => removeDisplayNetworkChannel(item.id)} className="rounded-full flex justify-center items-center bg-black size-3 text-white text-sm">
+              x
+            </button>
+          </div>
+        ))}
+      </div>
 
         <Button
-          text="Add a new channel"
+          text="Add new channel"
           variant="primary"
-          onClick={() => alert("Add a new channel")}
-          className="text-white !rounded-md !px-4 !py-3 !m-0 !h-[52px]"
-        />
-      </div>
-
-      {/* Display Network & Search Engines Section */}
-      <div className="flex flex-col items-start gap-8 md:flex-row justify-center space-x-8 mt-8">
-        <div>
-          <h2 className="text-black font-bold text-md mb-4">Display Network</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {displayNetwork.slice(0, 7).map((item) => {
-              const isArrowDown = item.icon === arrowdown;
-              return (
-                <a
-                  key={item.id}
-                  className={`flex items-center h-[52px] ${
-                    isArrowDown ? "justify-between" : "gap-2"
-                  } px-4 py-3 rounded-md border border-gray-200 ${
-                    item.name === "Add new channel"
-                      ? "bg-blue-500"
-                      : "bg-white"
-                  }`}
-                >
-                  {isArrowDown ? (
-                    <>
-                      <p
-                        className={`text-md ${
-                          item.name === "Add new channel"
-                            ? "text-white"
-                            : "text-black"
-                        }`}
-                      >
-                        {item.name}
-                      </p>
-                      <Image
-                        src={item.icon}
-                        alt={item.name}
-                        className="w-4 h-4"
-                      />
-                    </>
-                  ) : (
-                    <>
-                      {item.icon && (
-                        <Image
-                          src={item.icon}
-                          alt={item.name}
-                          className="w-4 h-4"
-                        />
-                      )}
-                      <p
-                        className={`text-md ${
-                          item.name === "Add new channel"
-                            ? "text-white"
-                            : "text-black"
-                        }`}
-                      >
-                        {item.name}
-                      </p>
-                    </>
-                  )}
-                </a>
-              );
-            })}
+          onClick={addNewDisplayNetworkChannel}
+          className="rounded-md whitespace-nowrap px-4 py-2"
+          />
           </div>
-        </div>
 
-        {/* Search Engines Section */}
-        <div>
-          <h2 className="text-black font-bold text-md mb-4">
-            Search Engines
-          </h2>
-          {searchEngines.map((item) => (
-            <a
-              key={item.id}
-              className={`flex px-4 py-3 h-[52px] rounded-md border border-gray-200 justify-center items-center gap-2 ${
-                item.name === "Add new channel" ? "bg-blue-500" : "bg-white"
-              }`}
-            >
-              <p
-                className={`text-md text-center ${
-                  item.name === "Add new channel" ? "text-white" : "text-black"
-                }`}
-              >
-                {item.name}
-              </p>
-            </a>
-          ))}
-        </div>
-      </div>
-
-      {/* Toast Container */}
       <ToastContainer />
     </div>
   );
