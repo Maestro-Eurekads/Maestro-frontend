@@ -30,7 +30,7 @@ const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
   const minWidth = 150;
   const maxWidth = dateRangeWidth;
 
-  console.log('dateRangeWidth-dateRangeWidth', dateRangeWidth)
+
 
   const channels = [
     { icon: facebook, name: "Facebook", color: "#0866FF", bg: "#F0F6FF" },
@@ -106,9 +106,9 @@ const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [dragging, channelState[0]?.width]);
+  }, [dragging]);
 
-  console.log('channelState[0]?.width ', channelState[0]?.width)
+
 
   return (
     <div>
