@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Trash } from 'lucide-react';
 import Button from './button';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Image from 'next/image';
 import trade from '../../../../public/TheTradeDesk.svg';
 import card from "../../../../public/mdi_credit-card.svg";
@@ -10,7 +12,7 @@ import quantcast from '../../../../public/quantcast.svg';
 import arrowdown from '../../../../public/arrow-down-2.svg';
 import google from '../../../../public/Google.svg';
 
-const ConversionEdit = () => {
+const ConversionEdit = ({onDelete}) => {
   const [socialMedia, setSocialMedia] = useState([
     { id: 1, name: 'Facebook', icon: facebook },
     { id: 2, name: 'Instagram', icon: instagram },
@@ -53,7 +55,13 @@ const ConversionEdit = () => {
           text="Delete this stage"
           variant="danger"
           icon={Trash}
-          onClick={() => alert('Deleted')}
+          onClick={() => {
+            toast.success("Stage Deleted successfully!");
+            // Delay deletion to allow the toast to show
+            setTimeout(() => {
+              onDelete();
+            }, 2000); // Adjust delay as needed
+          }}
           iconColor="text-white"
           className="rounded-full px-4 py-2 text-sm"
         />
@@ -228,7 +236,9 @@ const ConversionEdit = () => {
          </div>
         </div>
       </div>
-    
+
+     {/* Toast Container */}
+     <ToastContainer />
     </div>
   );
 };

@@ -9,6 +9,10 @@ const BuyingObjective = () => {
   const [edit, setEdit] = useState(false);
   // State to control whether the Awareness stage is shown
   const [showAwareness, setShowAwareness] = useState(true);
+  // State to control whether the Consideration stage is shown
+  const [showConsideration, setShowConsideration] = useState(true);
+  // State to control whether the Conversion stage is shown
+  const [showConversion, setShowConversion] = useState(true);
 
   return (
     <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full">
@@ -56,11 +60,16 @@ const BuyingObjective = () => {
       </div>
 
       <div>
-        <Consideration edit={edit} />
+        {/* Conditionally render the Consideration stage */}
+        {showConsideration && (
+          <Consideration edit={edit} onDelete={() => setShowConsideration(false)} />
+        )}
       </div>
 
       <div>
-        <Conversion edit={edit} />
+        {showConversion && (
+          <Conversion edit={edit} onDelete={() => setShowConversion(false)} />
+        )}
       </div>
     </div>
   );
