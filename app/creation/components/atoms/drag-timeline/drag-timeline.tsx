@@ -22,7 +22,7 @@ interface ResizeableProps {
 const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState<{ index: number; side: "left" | "right" } | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
+  // const [isHovered, setIsHovered] = useState(false);
   const [openChannel, setOpenChannel] = useState(false);
   const { dateRangeWidth } = useDateRange();
   const minWidth = 150;
@@ -115,8 +115,8 @@ const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
             width: `${channelState[0]?.width || dateRangeWidth}px`,
             backgroundColor: bg,
           }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+        // onMouseEnter={() => setIsHovered(true)}
+        // onMouseLeave={() => setIsHovered(false)}
         >
           <div />
           <div className="flex items-center gap-3" onClick={() => setOpenChannel(!openChannel)}>
