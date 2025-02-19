@@ -6,6 +6,7 @@ import backdown from '../../../public/back-down.svg';
 import ecurrencyeur from '../../../public/e_currency-eur.svg';
 import Image from 'next/image'
 import PlatformSpending from '../../../components/PlatformSpending';
+import ConfiguredSetPage from './ConfiguredSetPage';
 
 
 
@@ -126,7 +127,7 @@ const ConfigureAdSetsAndBudget = () => {
 				</div>
 
 				{show &&
-					<div className="w-[100%]    items-start p-[24px] gap-[8px] bg-white border border-[rgba(6,18,55,0.1)] rounded-[8px] box-border  mt-[20px]">
+					<div className="w-[100%] items-start p-[24px] gap-[8px] bg-white border border-[rgba(6,18,55,0.1)] rounded-[8px] box-border  mt-[20px]">
 						<div className='allocate_budget_phase'>
 							<div className='allocate_budget_phase_one'>
 
@@ -145,51 +146,19 @@ const ConfigureAdSetsAndBudget = () => {
 									<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">6 channels</h3>
 								</div>
 
+
 								<PlatformSpending />
 
-								{/* <div className='flex flex-col gap-[10px]'>
-									<div className='flex justify-between items-center mt-[24px]'>
-										<div>
-											<p>Facebook</p>
-										</div>
-										<div className="w-[72px] h-[29px] flex flex-row justify-center items-center p-[5px] px-[12px] gap-[8px]   bg-[#E8F6FF] border border-[rgba(49,117,255,0.1)] rounded-[50px]">
-											<p className=" font-semibold text-[14px] leading-[19px] text-[#3175FF] order-0 flex-none">
-												4 200 €
-											</p>
-										</div>
-									</div>
-									<div>
-										<ThreeValuesProgress values={[50, 35, 25]} />
-									</div>
-									<div className='flex justify-between items-center mt-[10px]'>
-										<div className='flex items-center gap-2'>
-											<div className="w-[12px] h-[12px] bg-[#3175FF] rounded-[4px]"></div>
-											<p className="   font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-												Awareness (37%)
-											</p>
-
-										</div>
-										<div className='flex items-center gap-2'>
-											<div className="w-[12px] h-[12px] bg-[#00A36C] rounded-[4px]"></div>
-											<p className="   font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-												Consideration (23%)
-											</p>
-										</div>
-										<div className='flex items-center gap-2'>
-											<div className="w-[12px] h-[12px] bg-[#FF9037] rounded-[4px]"></div>
-											<p className="   font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-												Conversion (40%)
-											</p>
-										</div>
-									</div>
-								</div> */}
+							
 							</div>
 
 						</div>
-					</div>}
+					</div>
+					}
 
 
 			</div>
+    <ConfiguredSetPage	/>
 
 		</div>
 	);
