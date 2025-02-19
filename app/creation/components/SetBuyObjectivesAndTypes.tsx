@@ -13,8 +13,6 @@ const SetBuyObjectivesAndTypes = () => {
 			/>
 
 			<ObjectiveSelection />
-
-
 		</div>
 	)
 }
