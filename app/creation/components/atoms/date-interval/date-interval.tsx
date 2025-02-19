@@ -19,7 +19,7 @@ const DateInterval = () => {
 
   return (
     <div
-      className="overflow-x-auto whitespace-nowrap flex justify-between border-y py-5  "
+      className="overflow-x-auto whitespace-nowrap flex justify-between border-y py-5 px-[23px] "
       ref={containerRef}
     >
       {dateList.map((date, index) => {

@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useState, useEffect } from "react";
 import symbol from "../public/material-symbols_campaign-rounded.svg";
 import funnel from "../public/ant-design_funnel-plot-filled.svg";
 import channel from "../public/icon-park-solid_web-page.svg";
@@ -105,8 +108,19 @@ const steps = [
 	},
 ];
 
+
+
 const CreationFlow = () => {
 	const { active } = useActive();
+	const [hydrated, setHydrated] = useState(false);
+
+	// Ensure component is mounted before rendering
+	useEffect(() => {
+		setHydrated(true);
+	}, []);
+
+	// Prevent hydration errors by returning null until mounted
+	if (!hydrated) return null;
 
 	return (
 		<div id="Sidenavbar">
@@ -121,10 +135,10 @@ const CreationFlow = () => {
 							? "bg-green-500 text-white" // Completed step (green)
 							: "bg-gray-300 text-gray-700"; // Inactive step (gray)
 					const stepColors = isActive
-						? "SideBar_state_text_active" // Active step (blue)
+						? "SideBar_state_text_active"
 						: isCompleted
-							? "SideBar_state_text_done" // Completed step (green)
-							: "SideBar_state_text"; // Inactive step (gray)
+							? "SideBar_state_text_done"
+							: "SideBar_state_text";
 
 					return (
 						<div className="SideBar__SideBar" key={stepNumber}>
@@ -133,7 +147,6 @@ const CreationFlow = () => {
 								<div className={`${step.sidecircle} ${stepColor}`}>
 									{step.img}
 								</div>
-
 
 								{/* Line Connector (Not for last item) */}
 								{stepNumber !== steps.length && (

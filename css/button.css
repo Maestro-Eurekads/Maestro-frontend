@@ -13,6 +13,48 @@ border: 1px solid #EFEFEF;
 border-radius: 10px;  
 }
 
+.overview-budget-conponent{ 
+box-sizing: border-box; 
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 14px 24px;
+gap: 10px; 
+width: 207px;
+height: 50px; 
+background: #FAFDFF;
+border: 1px solid var(--accent-blue);
+border-radius: 10px;
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 22px;
+color: var(--accent-blue); 
+white-space: nowrap;
+}
+.overview-budget-conponent:hover{ 
+box-sizing: border-box; 
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 14px 24px;
+gap: 10px; 
+width: 207px;
+height: 50px; 
+background: var(--accent-blue);
+border: 1px solid var(--accent-blue);
+border-radius: 10px;
+font-style: normal;
+font-weight: 600;
+font-size: 16px;
+line-height: 22px;
+color: var(--accent-white); 
+white-space: nowrap;
+}
+
+
 .e_currency-eur{ 
 box-sizing: border-box; 
 display: flex;

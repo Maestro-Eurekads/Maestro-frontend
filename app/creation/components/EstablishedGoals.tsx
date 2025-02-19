@@ -520,7 +520,7 @@ export const EstablishedGoals = () => {
         {view === "Timeline" && (
           <DateRangeProvider>
             <div className="bg-white pt-2">
-              <DateComponent />
+              <DateComponent useDate={undefined} />
             </div>
 
             <div className="ml-[82px]">

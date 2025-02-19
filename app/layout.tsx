@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
 import { ActiveProvider } from "./utils/ActiveContext";
+import { DateRangeProvider } from "../src/date-range-context";
 
 // Load Roboto font
 const roboto = Roboto({
@@ -29,7 +30,11 @@ export default function RootLayout({
         />
       </head>
       <body className={`${roboto.variable} antialiased`}>
-        <ActiveProvider>{children}</ActiveProvider>
+        <ActiveProvider>
+          <DateRangeProvider>
+            {children}
+          </DateRangeProvider>
+        </ActiveProvider>
       </body>
     </html>
   );
