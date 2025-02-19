@@ -7,7 +7,7 @@ const MainSection = () => {
   return (
     <div className="mt-[32px]">
       <DateRangeProvider>
-        <DateComponent />
+        <DateComponent useDate={true} />
         <ResizeableElements />
       </DateRangeProvider>
     </div>

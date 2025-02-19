@@ -335,6 +335,22 @@ background: var(--accent-green);
 .allocate_budget_phase_two{
 	width: 50%;
 }
+.campaign_phases_container{
+	display: flex;
+	align-items: center;
+}
+.campaign_phases_container_one{
+	width: 50%;
+}
+.campaign_phases_container_two{
+	width: 50%;
+}
+
+
+.doughnutcontainer{
+width: 243.73px;
+}
+
 
 
 @media screen and (max-width: 768px) {
