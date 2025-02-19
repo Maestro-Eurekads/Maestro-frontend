@@ -38,7 +38,7 @@ const CustomDropdown = ({ label, options, right, islabelone, islabeltwo }: { lab
 				{right && <div className='view_content_table mr-2'>JB</div>}
 				<span className="text-gray-600">{selectedOption || label}</span>
 				<span className="ml-auto text-gray-500">
-					<Image src={down} alt='nike' />
+					<Image src={down} alt='down' />
 				</span>
 			</div>
 

@@ -2,14 +2,27 @@ import Image from "next/image";
 import left_arrow from "../public/blue_back_arrow.svg";
 import CreationFlow from "./CreationFlow";
 import nike from "../public/nike.svg";
+import { useRouter } from "next/navigation";
+import { useActive } from "../app/utils/ActiveContext";
 
 const SideNav: React.FC = () => {
+  const router = useRouter();
+  const { setActive, setSubStep } = useActive();
+
+  const handleBackClick = () => {
+    setActive(0); // Reset state
+    setSubStep(0);
+    router.push("/"); // Navigate to home
+  };
 
   return (
     <div id="side-nav" className="!flex !flex-col !h-full justify-between">
       <div>
         <div className="flex flex-col items-start mb-8">
-          <button className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF] flex items-center gap-2">
+          <button
+            onClick={handleBackClick}
+            className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF] flex items-center gap-2"
+          >
             <Image src={left_arrow} alt="menu" />
             <p>Back to Dashboard</p>
           </button>
