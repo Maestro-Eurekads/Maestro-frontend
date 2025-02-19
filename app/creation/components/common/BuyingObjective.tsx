@@ -18,10 +18,10 @@ const BuyingObjective = () => {
 
   // Function to add a stage
   const addStage = (stageName) => {
-    if (!stages.includes(stageName)) {
-      setStages([...stages, stageName]);
+    if(!stages.includes(stageName)) {
+      setStages((prevStages) => [...prevStages, stageName])
     }
-  };
+  }
 
   // Function to remove a stage
   const removeStage = (stageName) => {

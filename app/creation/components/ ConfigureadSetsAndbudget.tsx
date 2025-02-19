@@ -43,10 +43,10 @@ const ConfigureAdSetsAndBudget = () => {
 						}
 
 						<div>
-							<h3 className="font-semibold text-[16px] leading-[175%] flex items-center text-[#061237]">
+							<h3 className="font-semibold whitespace-nowrap text-[15px] leading-[175%] flex items-center text-[#061237]">
 								Top-down
 							</h3>
-							<p className="font-medium text-[14px] leading-[175%] flex items-center text-[rgba(6,18,55,0.8)]">
+							<p className="font-medium whitespace-nowrap text-[13px] leading-[175%] flex items-center text-[rgba(6,18,55,0.8)]">
 								Ideal if you have a fixed overall budget.
 							</p>
 						</div>
@@ -74,10 +74,10 @@ const ConfigureAdSetsAndBudget = () => {
 							: <Image src={backdown} alt="backdown" />}
 
 						<div>
-							<h3 className="font-semibold text-[16px] leading-[175%] flex items-center text-[#061237]">
+							<h3 className="font-semibold whitespace-nowrap text-[15px] leading-[175%] flex items-center text-[#061237]">
 								Bottom-up
 							</h3>
-							<p className="font-medium text-[14px] leading-[175%] flex items-center text-[rgba(6,18,55,0.8)]">
+							<p className="font-medium whitespace-nowrap text-[13px] leading-[175%] flex items-center text-[rgba(6,18,55,0.8)]">
 								Perfect for precise control over spending.
 							</p>
 						</div>
