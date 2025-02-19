@@ -325,6 +325,18 @@ background: var(--accent-green);
 		margin-bottom: 10px;
 }
 
+
+.allocate_budget_phase{
+	display: flex;
+}
+.allocate_budget_phase_one{
+	width: 50%;
+}
+.allocate_budget_phase_two{
+	width: 50%;
+}
+
+
 @media screen and (max-width: 768px) {
 .creation_continer{
 	padding: 0px 20px;
