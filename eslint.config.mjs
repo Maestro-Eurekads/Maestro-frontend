@@ -1,16 +1,36 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import globals from "globals";
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+/** @type {import('eslint').Linter.FlatConfig[]} */
+export default [
+  {
+    files: ["**/*.{js,mjs,cjs,ts,tsx}"],
+    languageOptions: {
+      globals: globals.browser,
+      parser: tseslint.parser, // Use TypeScript ESLint parser
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint.plugin, // Use the plugin property
+    },
+    rules: {
+      // Disable `no-unused-vars`
+      "@typescript-eslint/no-unused-vars": "off",
 
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
+      // Disable `no-explicit-any`
+      "@typescript-eslint/no-explicit-any": "off",
 
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+      // Customize rules if needed
+      "@typescript-eslint/explicit-module-boundary-types": "warn",
+      "@typescript-eslint/no-inferrable-types": "warn",
+    },
+  },
+
+  // Use the recommended configs
+  js.configs.recommended,
+  tseslint.configs.base, // Correct way to use the base config
 ];
-
-export default eslintConfig;

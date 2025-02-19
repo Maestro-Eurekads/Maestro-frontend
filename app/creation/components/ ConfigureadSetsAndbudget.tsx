@@ -5,7 +5,6 @@ import Selectstatus from '../../../public/Select-status.svg';
 import backdown from '../../../public/back-down.svg';
 import ecurrencyeur from '../../../public/e_currency-eur.svg';
 import Image from 'next/image'
-import ThreeValuesProgress from '../../../components/ThreeValuesProgress';
 import PlatformSpending from '../../../components/PlatformSpending';
 
 
