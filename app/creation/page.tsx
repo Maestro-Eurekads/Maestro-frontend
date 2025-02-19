@@ -24,12 +24,9 @@ const Creation = () => {
         {active === 2 && <YourObjective />}
         {active === 3 && <FunnelStage />}
         {active === 4 && <FormatSelection />}
-        {active === 5 &&
-          (subStep === 0 ? (
-            <SetBuyObjectivesAndTypes />
-          ) : (
-            <SetBuyObjectivesAndTypesSubStep />
-          ))}
+        {active === 5 &&  <SetBuyObjectivesAndTypes />}
+        {active === 6 &&  <SetBuyObjectivesAndTypesSubStep />}
+        
         {/* Step 7: Main step and Sub-step logic */}
         {active === 7 &&
           (subStep === 0 ? (

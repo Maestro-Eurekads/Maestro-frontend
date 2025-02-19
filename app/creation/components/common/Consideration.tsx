@@ -32,44 +32,43 @@ const searchMedia = [
   { id: 3, name: "CPM" },
 ];
 
-const Consideration = ({ edit }) => {
+const Consideration = ({ edit, onDelete }) => {
   return (
     <div className="mt-6 bg-gray-100 p-6 rounded-lg">
-      {/* Header */}
-      
+      {/* Header (only when NOT in edit mode) */}
       {!edit && (
         <div className="flex items-center gap-4">
-        <Image src={table} alt="Consideration icon" className="w-5 h-5" />
-        <p className="text-black font-bold text-md">Consideration</p>
-      </div>
-
+          <Image src={table} alt="Consideration icon" className="w-5 h-5" />
+          <p className="text-black font-bold text-md">Consideration</p>
+        </div>
       )}
-    
-      
 
       {/* Content Layout */}
       {edit ? (
-        <ConsiderationEdit />
+        // When in edit mode, render the ConsiderationEdit component with the onDelete prop.
+        <ConsiderationEdit onDelete={onDelete} />
       ) : (
         <div className="mt-6 flex flex-col md:flex-row gap-4">
-          {/* Social Media Section (Left) */}
+          {/* Social Media Section */}
           <div className="w-full md:w-1/3">
             <h2 className="text-black font-bold text-md mb-4">Social Media</h2>
             <div className="grid grid-cols-2 grid-rows-2 gap-4">
               {socialMedia.map((item) => (
                 <a
                   key={item.id}
-                  onClick={() => item.link && window.open(item.link, '_blank')}
+                  onClick={() => item.link && window.open(item.link, "_blank")}
                   className="flex bg-white px-4 py-3 rounded-md border border-gray-200 items-center gap-2"
                 >
-                  {item.icon && <Image src={item.icon} alt={item.name} className="size-4" />}
+                  {item.icon && (
+                    <Image src={item.icon} alt={item.name} className="w-5 h-5" />
+                  )}
                   <p className="text-black text-center text-md">{item.name}</p>
                 </a>
               ))}
             </div>
           </div>
 
-          {/* Display Network Section (Right) */}
+          {/* Display Network Section */}
           <div className="w-full md:w-1/2">
             <h2 className="text-black font-bold text-md mb-4">Display Network</h2>
             <div className="grid grid-cols-2 grid-rows-2 gap-4">
@@ -78,7 +77,9 @@ const Consideration = ({ edit }) => {
                   key={item.id}
                   className="flex bg-white px-4 py-3 rounded-md border border-gray-200 justify-center items-center gap-2"
                 >
-                  {item.icon && <Image src={item.icon} alt={item.name} className="size-4" />}
+                  {item.icon && (
+                    <Image src={item.icon} alt={item.name} className="w-5 h-5" />
+                  )}
                   <p className="text-black text-md text-center">{item.name}</p>
                 </a>
               ))}
@@ -94,7 +95,9 @@ const Consideration = ({ edit }) => {
                   key={item.id}
                   className="flex bg-white px-4 py-3 rounded-md border border-gray-200 justify-center items-center gap-2"
                 >
-                  {item.icon && <Image src={item.icon} alt={item.name} className="size-4" />}
+                  {item.icon && (
+                    <Image src={item.icon} alt={item.name} className="w-5 h-5" />
+                  )}
                   <p className="text-black text-md text-center">{item.name}</p>
                 </a>
               ))}
