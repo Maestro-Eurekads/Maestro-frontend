@@ -8,6 +8,7 @@ import PlatformSpending from '../../../components/PlatformSpending';
 import ConfiguredSetPage from './ConfiguredSetPage';
 import CampaignBudget from './CampaignBudget';
 import PageHeaderWrapper from '../../../components/PageHeaderWapper';
+import DoughnutChat from '../../../components/DoughnutChat';
 
 const ConfigureAdSetsAndBudget = () => {
 
@@ -59,27 +60,49 @@ const ConfigureAdSetsAndBudget = () => {
 								</div>
 
 								<div className="campaign_phases_container mt-[24px]">
-									<div className="campaign_phases_container_one">dddd</div>
-									<div className="campaign_phases_container_two">
-										<div className="flex items-center gap-2">
+									<div className="campaign_phases_container_one">
+										<DoughnutChat />
+									</div>
+									<div className='campaign_phases_container_two flex flex-col gap-[28px]'>
+										<div className='flex items-center gap-2'>
+											<div className="w-[12px] h-[12px] bg-[#3175FF] rounded-[4px]"></div>
+											<p className="   font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
+												Awareness (25%)
+											</p>
+										</div>
+										<div className='flex items-center gap-2'>
 											<div className="w-[12px] h-[12px] bg-[#00A36C] rounded-[4px]"></div>
-											<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
+											<p className="   font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
 												Consideration (23%)
 											</p>
 										</div>
-										<div className="flex items-center gap-2">
-											<div className="w-[12px] h-[12px] bg-[#00A36C] rounded-[4px]"></div>
-											<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-												Consideration (23%)
-											</p>
-										</div>
-										<div className="flex items-center gap-2">
-											<div className="w-[12px] h-[12px] bg-[#00A36C] rounded-[4px]"></div>
-											<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-												Consideration (23%)
+										<div className='flex items-center gap-2'>
+											<div className="w-[12px] h-[12px] bg-[#FF9037] rounded-[4px]"></div>
+											<p className="   font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
+												Conversion (25%)
 											</p>
 										</div>
 									</div>
+									{/* <div className="campaign_phases_container_two">
+										<div className="flex items-center gap-2">
+											<div className="w-[12px] h-[12px] bg-[#00A36C] rounded-[4px]"></div>
+											<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
+												Consideration (23%)
+											</p>
+										</div>
+										<div className="flex items-center gap-2">
+											<div className="w-[12px] h-[12px] bg-[#00A36C] rounded-[4px]"></div>
+											<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
+												Consideration (23%)
+											</p>
+										</div>
+										<div className="flex items-center gap-2">
+											<div className="w-[12px] h-[12px] bg-[#00A36C] rounded-[4px]"></div>
+											<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
+												Consideration (23%)
+											</p>
+										</div>
+									</div> */}
 								</div>
 							</div>
 							<div className="allocate_budget_phase_two">

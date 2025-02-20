@@ -71,7 +71,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 							{/* Phase distribution */}
 							<div className="mr-[62px] mt-8 ">
 								<button onClick={() => setOpen(!open)}
-									className="flex flex-row items-center p-0 gap-2  h-[24px] font-[600] text-[18px] leading-[24px] text-[#061237]"> <Image src={down} alt="down" /> Phase distribution</button>
+									className="flex flex-row items-center p-0 gap-2  h-[24px] font-[600] text-[18px] leading-[24px] text-[#061237]"> <Image src={down} alt="down" />Phase distribution</button>
 
 								{open &&
 									<PhasedistributionProgress />}

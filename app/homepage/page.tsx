@@ -7,6 +7,8 @@ import blueBtn from '../../public/blueBtn.svg';
 import Dropdowns from './Dropdowns';
 import Table from '../../components/Table';
 import TableModel from './TableModel';
+import Overview from './components/Overview'
+import Dashboard from './components/Dashboard'
 
 
 
@@ -21,19 +23,16 @@ const Homepage = () => {
 	return (
 		<div id="page-wrapper">
 			<Header setIsOpen={setIsOpen} />
-			<main  >
-				<ToggleSwitch active={active} setActive={setActive} />
-				<div className='flex items-center gap-2 mt-[36.5px]'>
-					<h1 className='media_text'>Media plans</h1>
-					<button>
-						<Image src={blueBtn} alt='menu' />
-					</button>
-				</div>
-				<Dropdowns />
-				{active === "Dashboard" ? "" : <Table />}
+			<main className="!px-0">
+				<TableModel isOpen={isOpen} setIsOpen={setIsOpen} />
 
+				<div >
+					<div className='px-[72px]'>
+						<ToggleSwitch active={active} setActive={setActive} />
+					</div>
+					{active === "Dashboard" ? <Dashboard /> : <Overview />}
+				</div>
 			</main>
-			<TableModel isOpen={isOpen} setIsOpen={setIsOpen} />
 		</div>
 	)
 }

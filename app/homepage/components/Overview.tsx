@@ -1,0 +1,24 @@
+import React from 'react'
+import ToggleSwitch from '../ToggleSwitch'
+import blueBtn from '../../../public/blueBtn.svg';
+import Image from 'next/image'
+import Table from '../../../components/Table';
+import Dropdowns from '../Dropdowns';
+
+const Overview = () => {
+	return (
+		<div className='px-[72px]'>
+
+			<div className='flex items-center gap-2 mt-[36.5px]'>
+				<h1 className='media_text'>Media plans</h1>
+				<button>
+					<Image src={blueBtn} alt='menu' />
+				</button>
+			</div>
+			<Dropdowns />
+			<Table />
+		</div>
+	)
+}
+
+export default Overview

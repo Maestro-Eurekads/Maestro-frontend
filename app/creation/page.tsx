@@ -12,7 +12,6 @@ import { SetupScreen } from "./components/SetupScreen";
 import { EstablishedGoals } from "./components/EstablishedGoals";
 import SetBuyObjectivesAndTypesSubStep from "./components/SetBuyObjectivesAndTypesSubStep";
 import OverviewofyourCampaign from "./components/OverviewofyourCampaign";
-// import ConfigureAdSetsAndBudget from "./components/ ConfigureadSetsAndbudget";
 import CampaignBudget from './components/CampaignBudget';
 import ConfigureAdSetsAndBudget from "./components/ ConfigureadSetsAndbudget";
 import DefineAdSet from "./components/DefineAdSet";
@@ -28,20 +27,27 @@ const Creation = () => {
         {active === 2 && <YourObjective />}
         {active === 3 && <FunnelStage />}
         {active === 4 && <FormatSelection />}
-        {active === 5 &&  <SetBuyObjectivesAndTypes />}
-        {active === 6 &&  <SetBuyObjectivesAndTypesSubStep />}
-        
-        {/* Step 7: Main step and Sub-step logic */}
+        {active === 5 && <SetBuyObjectivesAndTypes />}
+        {active === 6 && <SetBuyObjectivesAndTypesSubStep />}
+
+        {/* Step 7 (Tracks 1 subStep) */}
         {active === 7 &&
           (subStep === 0 ? (
             <PlanCampaignSchedule />
           ) : (
-            <PlanCampaignScheduleSubStepComponent />
+            subStep === 1 && <PlanCampaignScheduleSubStepComponent />
           ))}
 
-        {active === 8 && (subStep === 0 ? <DefineAdSet /> : subStep === 1 ? <CampaignBudget /> : <ConfigureAdSetsAndBudget />)}
-        
-        
+        {/* Step 8 (Tracks 2 subSteps) */}
+        {active === 8 &&
+          (subStep === 0 ? (
+            <DefineAdSet />
+          ) : subStep === 1 ? (
+            <CampaignBudget />
+          ) : (
+            subStep === 2 && <ConfigureAdSetsAndBudget />
+          ))}
+
       </div>
       {active === 9 && <EstablishedGoals />}
       {active === 10 && <OverviewofyourCampaign />}
@@ -50,3 +56,6 @@ const Creation = () => {
 };
 
 export default Creation;
+
+
+

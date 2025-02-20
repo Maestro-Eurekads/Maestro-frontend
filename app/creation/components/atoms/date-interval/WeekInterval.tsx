@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from "react";
 import { format, eachDayOfInterval } from "date-fns";
 import { useDateRange } from "../../../../../src/date-range-context";
 
-const DateInterval = () => {
+const WeekInterval = () => {
   const { range, setDateRangeWidth } = useDateRange();
   const containerRef = useRef<HTMLDivElement>(null);
   const dateList = eachDayOfInterval({
@@ -28,9 +28,7 @@ const DateInterval = () => {
         return (
           <div
             key={index}
-            className={`relative min-w-[60px] text-center text-sm font-medium px-2 py-1 rounded-md
-              ${isEdge ? "bg-[#f05406] text-white" : "#fff"}
-            `}
+            className={`relative min-w-[60px] text-center text-sm font-medium px-2 py-1 rounded-md`}
           >
             <span className={`${isEdge ? "text-white" : "text-black"}`}>
               {format(date, "E")},{" "}
@@ -39,12 +37,8 @@ const DateInterval = () => {
               {format(date, "d")}
             </span>
 
-            {/* Triangle for Edge Dates */}
-            {isEdge && (
-              <div className="absolute left-1/2 -bottom-[4.2] transform -translate-x-1/2">
-                <div className="w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-[#f05406]"></div>
-              </div>
-            )}
+
+
           </div>
         );
       })}
@@ -52,4 +46,4 @@ const DateInterval = () => {
   );
 };
 
-export default DateInterval;
+export default WeekInterval;
