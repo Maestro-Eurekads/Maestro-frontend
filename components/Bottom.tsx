@@ -3,6 +3,7 @@ import clsx from "clsx";
 import Continue from "../public/arrow-back-outline.svg";
 import Back from "../public/eva_arrow-back-outline.svg";
 import { useActive } from "../app/utils/ActiveContext";
+import ConfigureAdSetsAndBudget from "../app/creation/components/ ConfigureadSetsAndbudget";
 
 const Bottom = () => {
   const { active, setActive, subStep, setSubStep } = useActive();
@@ -20,8 +21,9 @@ const Bottom = () => {
 
   const handleContinue = () => {
     // For steps 5 and 6, allow moving forward within sub-steps if not already at the last sub-step
-    if ((active === 5 || active === 7) && subStep < 1) {
+    if ((active === 5 || active === 7 || active === 8) && subStep < 1) {
       setSubStep((prev) => prev + 1);
+      
     } else {
       // Otherwise, reset subStep and go to the next main step
       setSubStep(0);
@@ -54,7 +56,7 @@ const Bottom = () => {
             active < 10 && "hover:bg-blue-200"
           )}
           onClick={handleContinue}
-          disabled={active === 10}
+          disabled={active === 10 }
         >
           <p>Continue</p>
           <Image src={Continue} alt="Continue" />

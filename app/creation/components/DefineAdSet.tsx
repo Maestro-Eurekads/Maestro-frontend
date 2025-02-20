@@ -14,7 +14,7 @@ const DefineAdSet = () => {
 
 
 
-      <DefineAdSetPage  />
+      {/* <DefineAdSetPage  /> */}
     </div>
   )
 }
