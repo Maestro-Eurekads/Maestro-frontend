@@ -13,14 +13,16 @@ import TableModel from './TableModel';
 
 const Homepage = () => {
 	const [isOpen, setIsOpen] = useState(false);
+	const [active, setActive] = useState("Overview");
 
+	console.log('active-active', active)
 
 
 	return (
 		<div id="page-wrapper">
 			<Header setIsOpen={setIsOpen} />
 			<main  >
-				<ToggleSwitch />
+				<ToggleSwitch active={active} setActive={setActive} />
 				<div className='flex items-center gap-2 mt-[36.5px]'>
 					<h1 className='media_text'>Media plans</h1>
 					<button>
@@ -28,7 +30,8 @@ const Homepage = () => {
 					</button>
 				</div>
 				<Dropdowns />
-				<Table />
+				{active === "Dashboard" ? "" : <Table />}
+
 			</main>
 			<TableModel isOpen={isOpen} setIsOpen={setIsOpen} />
 		</div>
