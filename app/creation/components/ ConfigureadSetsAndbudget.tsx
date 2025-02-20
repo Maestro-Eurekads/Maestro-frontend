@@ -11,8 +11,27 @@ import PageHeaderWrapper from '../../../components/PageHeaderWapper';
 import DoughnutChat from '../../../components/DoughnutChat';
 
 const ConfigureAdSetsAndBudget = () => {
-
-	const [show, setShow] = useState(false); // Start with budget shown
+ 
+  const [show, setShow] = useState(false); // Start with budget shown 
+  return (
+    <div>
+      <CampaignBudget />
+      <div>
+        <div className="flex justify-between items-baseline">
+          <PageHeaderWrapper
+            t1=''
+            t2=''
+            t3=''
+            t4="Allocate your budget across channels and ad sets of each phase"
+            span={2}
+          />
+          
+          <button onClick={() => setShow(!show)}>
+            <p className="font-semibold text-[16px] leading-[22px] flex items-center underline text-[#061237]">
+              {show ? "Hide your budget overview" : "Show your budget overview"}
+            </p>
+          </button>
+        </div> 
 
 	return (
 		<div>

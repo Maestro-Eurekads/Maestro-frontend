@@ -11,6 +11,7 @@ import ig from "../../../public/ig.svg";
 import youtube from "../../../public/youtube.svg";
 import TheTradeDesk from "../../../public/TheTradeDesk.svg";
 import Quantcast from "../../../public/quantcast.svg";
+import AdSetsFlow from "./common/AdSetsFlow";
 
 const funnelStages = [
   {
@@ -83,26 +84,36 @@ const DefineAdSetPage = () => {
           </div>
 
           {/* Expanded Content */}
-          {openItems[stage.name] && (
+          {openItems[stage.name] && stage.name === "Awareness" && (
             <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
               {/* No platforms to display */}
               {/* Removed all platform-related content and validate button */}
               
 
-              <div className="flex items-center justify-between gap-8">
-                <div className="flex flex-col gap-4">
-                {}
+              {/* <div className="flex items-center justify-between gap-8">
+                <div className="flex flex-col gap-4 p-6">
+               hello
                 </div>
 
 
                 <div className="flex gap-4">
-
+               
                 </div>
 
-              </div>
+              </div> */}
+
+
+
+              <AdSetsFlow />
               
             </div>
           )}
+
+
+            {openItems[stage.name] &&
+            (stage.name === "Consideration" || stage.name === "Conversion") && (
+              <div className="flex items-center justify-between p-8 w-full bg-[#FCFCFC] border border-gray-300 rounded-lg cursor-pointer"></div>
+            )}
         </div>
       ))}
     </div>

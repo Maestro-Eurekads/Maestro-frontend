@@ -5,9 +5,7 @@ import Selectstatus from '../../../public/Select-status.svg';
 import backdown from '../../../public/back-down.svg';
 import ecurrencyeur from '../../../public/e_currency-eur.svg';
 import Image from 'next/image';
-import PlatformSpending from '../../../components/PlatformSpending';
-import Router from 'next/router';
-import ConfigureAdSetsAndBudget from './ ConfigureadSetsAndbudget';
+
 
 const CampaignBudget = () => {
   const [active, setActive] = useState(null);
@@ -38,7 +36,7 @@ const CampaignBudget = () => {
       />
 
 
-<div className="mt-[24px] flex gap-5">
+     <div className="mt-[24px] flex gap-5">
         {/* Top‑down Option */}
         <div
           className={
