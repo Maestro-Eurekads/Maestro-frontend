@@ -21,7 +21,7 @@ const Bottom = () => {
 
   const handleContinue = () => {
     // For steps 5 and 6, allow moving forward within sub-steps if not already at the last sub-step
-    if ((active === 5 || active === 7 || active === 8) && subStep < 1) {
+    if ((active === 5 || active === 7 || active === 8) && subStep < 2) {
       setSubStep((prev) => prev + 1);
       
     } else {

@@ -13,8 +13,9 @@ import { EstablishedGoals } from "./components/EstablishedGoals";
 import SetBuyObjectivesAndTypesSubStep from "./components/SetBuyObjectivesAndTypesSubStep";
 import OverviewofyourCampaign from "./components/OverviewofyourCampaign";
 // import ConfigureAdSetsAndBudget from "./components/ ConfigureadSetsAndbudget";
-import CampaignBudget from "./components/CampaignBudget";
+import CampaignBudget from './components/CampaignBudget';
 import ConfigureAdSetsAndBudget from "./components/ ConfigureadSetsAndbudget";
+import DefineAdSet from "./components/DefineAdSet";
 
 const Creation = () => {
   const { active, subStep } = useActive();
@@ -38,7 +39,7 @@ const Creation = () => {
             <PlanCampaignScheduleSubStepComponent />
           ))}
 
-        {active === 8 && (subStep === 0 ? <CampaignBudget /> : <ConfigureAdSetsAndBudget />)}
+        {active === 8 && (subStep === 0 ? <DefineAdSet /> : subStep === 1 ? <CampaignBudget /> : <ConfigureAdSetsAndBudget />)}
         
         
       </div>
