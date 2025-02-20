@@ -19,6 +19,9 @@ const ConfigureAdSetsAndBudget = () => {
       <div>
         <div className="flex justify-between items-baseline">
           <PageHeaderWrapper
+            t1=''
+            t2=''
+            t3=''
             t4="Allocate your budget across channels and ad sets of each phase"
             span={2}
           />
