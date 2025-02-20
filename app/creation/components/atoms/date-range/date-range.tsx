@@ -11,7 +11,7 @@ const Range = () => {
 
         {/* Moving Slider Indicator */}
         <div
-          className="absolute     w-[64px] h-[38px] bg-white border border-black/10 rounded-lg transition-transform duration-300"
+          className="absolute w-[64px] h-[38px] bg-white border border-black/10 rounded-lg transition-transform duration-300"
           style={{
             transform: `translateX(${options.indexOf(selected) * 71.5}px)`, // Dynamic movement
           }}
