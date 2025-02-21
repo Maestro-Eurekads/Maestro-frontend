@@ -4,28 +4,37 @@ import Continue from "../public/arrow-back-outline.svg";
 import Back from "../public/eva_arrow-back-outline.svg";
 import { useActive } from "../app/utils/ActiveContext";
 
-const Bottom = () => {
+const Bottom = ({ setIsOpen }) => {
   const { active, setActive, subStep, setSubStep } = useActive();
 
   const handleBack = () => {
-    // For steps 5 and 6, allow moving back within sub-steps if possible
-    if ((active === 5 || active === 6) && subStep > 0) {
+    if (subStep > 0) {
+      // If there's a previous sub-step, go back within the same step
       setSubStep((prev) => prev - 1);
     } else {
-      // Otherwise, reset subStep and go back to previous main step
-      setSubStep(0);
+      // Otherwise, move to the previous main step and reset subStep
+      if (active === 8) {
+        setSubStep(1); // Since active === 8 has two sub-steps, reset it to the last sub-step
+      } else if (active === 7) {
+        setSubStep(0); // Since active === 7 has only one sub-step, reset it
+      } else {
+        setSubStep(0); // Reset for steps that don’t use sub-steps
+      }
       setActive((prev) => Math.max(0, prev - 1));
     }
   };
 
   const handleContinue = () => {
-    // For steps 5 and 6, allow moving forward within sub-steps if not already at the last sub-step
-    if ((active === 5 || active === 6) && subStep < 1) {
+    if (active === 8 && subStep < 2) {
+      // Only active === 8 has two sub-steps
       setSubStep((prev) => prev + 1);
+    } else if (active === 7 && subStep === 0) {
+      // Only active === 7 has one sub-step
+      setSubStep(1);
     } else {
-      // Otherwise, reset subStep and go to the next main step
+      // Reset subStep when moving to the next main step
       setSubStep(0);
-      setActive((prev) => Math.min(9, prev + 1));
+      setActive((prev) => Math.min(10, prev + 1));
     }
   };
 
@@ -47,18 +56,30 @@ const Bottom = () => {
         </button>
 
         {/* Continue Button */}
-        <button
-          className={clsx(
-            "bottom_black_next_btn",
-            active === 9 && "opacity-50 cursor-not-allowed",
-            active < 9 && "hover:bg-blue-200"
-          )}
-          onClick={handleContinue}
-          disabled={active === 9}
-        >
-          <p>Continue</p>
-          <Image src={Continue} alt="Continue" />
-        </button>
+
+        {active === 10 ?
+          <button
+            className={clsx(
+              "bottom_black_next_btn hover:bg-blue-500",
+            )}
+            onClick={() => setIsOpen(true)}
+          // disabled={active === 10}
+          >
+            <p>Comfirm</p>
+            <Image src={Continue} alt="Continue" />
+          </button> : <button
+            className={clsx(
+              "bottom_black_next_btn",
+              active === 10 && "opacity-50 cursor-not-allowed",
+              active < 10 && "hover:bg-blue-500"
+            )}
+            onClick={handleContinue}
+            disabled={active === 10}
+          >
+            <p>Continue</p>
+            <Image src={Continue} alt="Continue" />
+          </button>}
+
       </div>
     </footer>
   );

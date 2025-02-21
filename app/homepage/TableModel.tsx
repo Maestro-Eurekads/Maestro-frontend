@@ -30,7 +30,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 	};
 
 	return (
-		<div className="z-50">
+		<div className="z-500">
 			{isOpen && (
 				<div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
 					<div className="flex flex-col items-start p-6 gap-6 w-[700px]  bg-white rounded-[32px]">

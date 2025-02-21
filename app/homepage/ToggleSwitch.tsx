@@ -1,8 +1,8 @@
 "use client"
 import { useState } from "react";
 
-export default function ToggleSwitch() {
-	const [active, setActive] = useState("Overview");
+export default function ToggleSwitch({ active, setActive }) {
+	// const [active, setActive] = useState("Overview");
 
 	return (
 		<div className="relative flex items-center p-[3px] gap-[2px] w-[286px] h-[52px] bg-gray-200 rounded-[11px] overflow-hidden">

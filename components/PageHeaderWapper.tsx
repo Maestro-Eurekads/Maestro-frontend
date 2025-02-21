@@ -15,7 +15,7 @@ const PageHeaderWrapper: React.FC<PageHeaderWrapperProps> = ({ t1, t2, t3, t4, s
 				{t1}
 			</h1>
 			{t2 && (
-				<p className="font-general-sans font-medium text-[16px] leading-[22px] text-[rgba(0,0,0,0.9)] mt-2">
+				<p className="font-general-sans font-medium text-[16px] py-2 leading-[22px] text-[rgba(0,0,0,0.9)] mt-2">
 					{t2}
 				</p>
 			)}

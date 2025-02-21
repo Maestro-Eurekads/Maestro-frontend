@@ -1,0 +1,161 @@
+import React, { useState } from "react";
+import { Trash } from "lucide-react";
+import Button from "./button";
+import Image from "next/image";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+import trade from "../../../../public/TheTradeDesk.svg";
+import speaker from "../../../../public/mdi_megaphone.svg";
+import facebook from "../../../../public/facebook.svg";
+import youtube from "../../../../public/youtube.svg";
+import instagram from "../../../../public/ig.svg";
+import quantcast from "../../../../public/quantcast.svg";
+import arrowdown from "../../../../public/arrow-down-2.svg";
+
+const AwarenessEdit = ({ onDelete }) => {
+  const [socialMedia, setSocialMedia] = useState([
+    { id: 1, name: "Facebook", icon: facebook },
+    { id: 2, name: "Instagram", icon: instagram },
+    { id: 3, name: "Youtube", icon: youtube },
+    { id: 4, name: "Awareness", icon: arrowdown },
+    { id: 5, name: "Video Views", icon: arrowdown },
+    { id: 6, name: "Video Views", icon: arrowdown },
+    { id: 7, name: "Video Views", icon: arrowdown },
+    { id: 8, name: "CPV", icon: arrowdown },
+    { id: 9, name: "CPV", icon: arrowdown },
+  ]);
+
+  const [displayNetwork, setDisplayNetwork] = useState([
+    { id: 1, name: "The TradeDesk", icon: trade },
+    { id: 2, name: "QuantCast", icon: quantcast },
+    { id: 3, name: "Awareness", icon: arrowdown },
+    { id: 4, name: "Video Views", icon: arrowdown },
+    { id: 5, name: "Video Views", icon: arrowdown },
+    { id: 6, name: "CPV", icon: arrowdown },
+    { id: 7, name: "CPV", icon: arrowdown },
+  ]);
+
+  // Social Media: sequentially add Facebook, Instagram, then Youtube
+  const socialTypes = [
+    { name: "Facebook", icon: facebook },
+    { name: "Instagram", icon: instagram },
+    { name: "Youtube", icon: youtube },
+  ];
+  const [socialIndex, setSocialIndex] = useState(0);
+
+  const addNewSocialMediaChannel = () => {
+    const nextId = socialMedia.reduce((max, item) => Math.max(max, item.id), 0) + 1;
+    const channelToAdd = socialTypes[socialIndex % socialTypes.length];
+    setSocialMedia([...socialMedia, { id: nextId, ...channelToAdd }]);
+    setSocialIndex(socialIndex + 1);
+  };
+
+  // Display Network: sequentially add The TradeDesk then QuantCast
+  const displayTypes = [
+    { name: "The TradeDesk", icon: trade },
+    { name: "QuantCast", icon: quantcast },
+  ];
+  const [displayIndex, setDisplayIndex] = useState(0);
+
+  const addNewDisplayNetworkChannel = () => {
+    const nextId = displayNetwork.reduce((max, item) => Math.max(max, item.id), 0) + 1;
+    const channelToAdd = displayTypes[displayIndex % displayTypes.length];
+    setDisplayNetwork([...displayNetwork, { id: nextId, ...channelToAdd }]);
+    setDisplayIndex(displayIndex + 1);
+  };
+
+  // Remove functions
+  const removeSocialMediaChannel = (id) => {
+    setSocialMedia(socialMedia.filter(item => item.id !== id));
+  };
+
+  const removeDisplayNetworkChannel = (id) => {
+    setDisplayNetwork(displayNetwork.filter(item => item.id !== id));
+  };
+
+  return (
+    <div className="flex flex-col items-start p-6">
+      {/* Header */}
+      <div className="flex justify-between w-full items-center mb-4">
+        <div className="flex items-center gap-4">
+          <Image src={speaker} alt="Awareness icon" className="w-5 h-5" />
+          <span className="text-black font-semibold">Awareness</span>
+        </div>
+        <Button
+          text="Delete this stage"
+          variant="danger"
+          icon={Trash}
+          onClick={() => {
+            toast.success("Stage Deleted successfully!");
+            setTimeout(() => onDelete(), 2000);
+          }}
+          iconColor="text-white"
+          className="rounded-full px-4 py-2 text-sm"
+        />
+      </div>
+
+      {/* Social Media Section */}
+      <h2 className="text-black font-bold text-md mb-4">Social Media</h2>
+
+      <div className="flex flex-col md:flex-row justify-center gap-4"> 
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+        {socialMedia.map((item) => (
+          <div
+            key={item.id}
+            className="flex justify-between items-center gap-2 p-3 whitespace-nowrap border rounded-md bg-white shadow-md"
+          >
+            <div className="flex items-center gap-2">
+              <Image src={item.icon} alt={item.name} className="w-4 h-4" />
+              <p className="text-md text-black">{item.name}</p>
+            </div>
+            <button onClick={() => removeSocialMediaChannel(item.id)} className="flex justify-center items-center rounded-full bg-black size-3 text-white text-sm">
+              x
+            </button>
+          </div>
+        ))}
+      </div>
+        <Button
+          text="Add new channel"
+          variant="primary"
+          onClick={addNewSocialMediaChannel}
+          className="rounded-md whitespace-nowrap px-4 py-2"
+          />
+          </div>
+
+      {/* Display Network Section */}
+      <h2 className="text-black font-bold text-md mt-6 mb-4">Display Network</h2>
+
+      <div className="flex flex-col md:flex-row justify-center gap-4">
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+        {displayNetwork.map((item) => (
+          <div
+            key={item.id}
+            className="flex justify-between items-center gap-2 p-3 border rounded-md bg-white shadow-md"
+          >
+            <div className="flex items-center gap-2">
+              <Image src={item.icon} alt={item.name} className="w-4 h-4" />
+              <p className="text-md text-black whitespace-nowrap">{item.name}</p>
+            </div>
+            <button onClick={() => removeDisplayNetworkChannel(item.id)} className="rounded-full flex justify-center items-center bg-black size-3 text-white text-sm">
+              x
+            </button>
+          </div>
+        ))}
+      </div>
+
+        <Button
+          text="Add new channel"
+          variant="primary"
+          onClick={addNewDisplayNetworkChannel}
+          className="rounded-md whitespace-nowrap px-4 py-2"
+          />
+          </div>
+
+      <ToastContainer />
+    </div>
+  );
+};
+
+export default AwarenessEdit;
