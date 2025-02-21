@@ -24,7 +24,6 @@ const Homepage = () => {
 		<div id="page-wrapper">
 			<Header setIsOpen={setIsOpen} />
 			<main className="!px-0">
-				<TableModel isOpen={isOpen} setIsOpen={setIsOpen} />
 
 				<div >
 					<div className='px-[72px]'>
@@ -33,6 +32,7 @@ const Homepage = () => {
 					{active === "Dashboard" ? <Dashboard /> : <Overview />}
 				</div>
 			</main>
+			<TableModel isOpen={isOpen} setIsOpen={setIsOpen} />
 		</div>
 	)
 }
