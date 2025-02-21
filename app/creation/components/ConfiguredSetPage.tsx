@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Button from "./common/button";
-
 import speaker from "../../../public/mdi_megaphone.svg";
 import up from "../../../public/arrow-down.svg";
 import down2 from "../../../public/arrow-down-2.svg";
@@ -47,7 +46,7 @@ const PlatformBudget = ({ platform, currencyIcon, budget, percentage }) => (
     <div className="flex flex-col">
       <p className="font-bold py-3">Percentage</p>
       <div className="flex items-center">
-      <input type="text" defaultValue="0 %" className="e_currency-eur w-full text-center !max-w-[62px]" />
+        <input type="text" defaultValue="0 %" className="e_currency-eur w-full text-center !max-w-[62px]" />
 
         <p className="text-[15px] whitespace-nowrap pl-4 text-center leading-[20px]">
           of Awareness budget

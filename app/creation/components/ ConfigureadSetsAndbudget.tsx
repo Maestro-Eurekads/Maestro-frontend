@@ -1,9 +1,4 @@
 import React, { useState } from 'react';
-import Topdown from '../../../public/Top-down.svg';
-import Selectstatus from '../../../public/Select-status.svg';
-import backdown from '../../../public/back-down.svg';
-import ecurrencyeur from '../../../public/e_currency-eur.svg';
-import Image from 'next/image';
 import PlatformSpending from '../../../components/PlatformSpending';
 import ConfiguredSetPage from './ConfiguredSetPage';
 import CampaignBudget from './CampaignBudget';
@@ -11,27 +6,10 @@ import PageHeaderWrapper from '../../../components/PageHeaderWapper';
 import DoughnutChat from '../../../components/DoughnutChat';
 
 const ConfigureAdSetsAndBudget = () => {
- 
-  const [show, setShow] = useState(false); // Start with budget shown 
-  return (
-    <div>
-      <CampaignBudget />
-      <div>
-        <div className="flex justify-between items-baseline">
-          <PageHeaderWrapper
-            t1=''
-            t2=''
-            t3=''
-            t4="Allocate your budget across channels and ad sets of each phase"
-            span={2}
-          />
-          
-          <button onClick={() => setShow(!show)}>
-            <p className="font-semibold text-[16px] leading-[22px] flex items-center underline text-[#061237]">
-              {show ? "Hide your budget overview" : "Show your budget overview"}
-            </p>
-          </button>
-        </div> 
+
+	const [show, setShow] = useState(false); // Start with budget shown 
+
+
 
 	return (
 		<div>
@@ -102,26 +80,6 @@ const ConfigureAdSetsAndBudget = () => {
 											</p>
 										</div>
 									</div>
-									{/* <div className="campaign_phases_container_two">
-										<div className="flex items-center gap-2">
-											<div className="w-[12px] h-[12px] bg-[#00A36C] rounded-[4px]"></div>
-											<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-												Consideration (23%)
-											</p>
-										</div>
-										<div className="flex items-center gap-2">
-											<div className="w-[12px] h-[12px] bg-[#00A36C] rounded-[4px]"></div>
-											<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-												Consideration (23%)
-											</p>
-										</div>
-										<div className="flex items-center gap-2">
-											<div className="w-[12px] h-[12px] bg-[#00A36C] rounded-[4px]"></div>
-											<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-												Consideration (23%)
-											</p>
-										</div>
-									</div> */}
 								</div>
 							</div>
 							<div className="allocate_budget_phase_two">
