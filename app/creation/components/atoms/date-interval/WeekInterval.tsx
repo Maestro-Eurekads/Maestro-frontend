@@ -1,47 +1,30 @@
 "use client";
-import React, { useEffect, useRef } from "react";
-import { format, eachDayOfInterval } from "date-fns";
-import { useDateRange } from "../../../../../src/date-range-context";
+import React from "react";
 
-const WeekInterval = () => {
-  const { range, setDateRangeWidth } = useDateRange();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const dateList = eachDayOfInterval({
-    start: range.startDate,
-    end: range.endDate,
-  });
-
-  useEffect(() => {
-    if (containerRef.current) {
-      setDateRangeWidth(containerRef.current.offsetWidth);
-    }
-  }, [setDateRangeWidth]);
-
+const WeekInterval = ({ weeksCount }) => {
   return (
-    <div
-      className=" w-full overflow-x-auto whitespace-nowrap flex justify-between border-y py-5 px-[23px] "
-      ref={containerRef}
-    >
-      {dateList.map((date, index) => {
-        const isEdge = index === 0 || index === dateList.length - 1;
-
-        return (
+    <div className="w-full overflow-x-auto border-y py-5">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: `repeat(${weeksCount}, 1fr)`,
+        }}
+      >
+        {Array.from({ length: weeksCount }, (_, i) => (
           <div
-            key={index}
-            className={`relative min-w-[60px] text-center text-sm font-medium px-2 py-1 rounded-md`}
+            key={i}
+            className="flex flex-col items-center relative"
           >
-            <span className={`${isEdge ? "text-white" : "text-black"}`}>
-              {format(date, "E")},{" "}
-            </span>
-            <span className={`${isEdge ? "text-white" : "text-blue-500"}`}>
-              {format(date, "d")}
-            </span>
-
-
-
+            {/* Week Label */}
+            <div className="flex flex-row gap-2 items-center">
+              <span className="font-[500] text-[13px] text-[rgba(0,0,0,0.5)]">
+                Week
+              </span>
+              <p className="font-[500] text-[13px] text-blue-500">{i + 1}</p>
+            </div>
           </div>
-        );
-      })}
+        ))}
+      </div>
     </div>
   );
 };
