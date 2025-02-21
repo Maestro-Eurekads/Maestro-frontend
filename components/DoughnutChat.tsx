@@ -54,6 +54,7 @@ const DoughnutChart = () => {
       ctx.save();
     },
   };
+
   const doughnutData = {
     datasets: [
       {
