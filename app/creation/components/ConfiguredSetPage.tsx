@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Button from "./common/button";
-
 import speaker from "../../../public/mdi_megaphone.svg";
 import up from "../../../public/arrow-down.svg";
 import down2 from "../../../public/arrow-down-2.svg";
@@ -38,7 +37,8 @@ const PlatformBudget = ({ platform, currencyIcon, budget, percentage }) => (
       <div className="e_currency-eur">
         <div className='flex'>
           <Image src={ecurrencyeur} alt="e_currency-eur" />
-          <h3>{budget}</h3>
+          <input type="text" defaultValue="0 €" className="w-full focus:outline-none text-center px-4 py-2" />
+          {/* <h3>{budget}</h3> */}
         </div>
         <div>EUR</div>
       </div>
@@ -46,9 +46,8 @@ const PlatformBudget = ({ platform, currencyIcon, budget, percentage }) => (
     <div className="flex flex-col">
       <p className="font-bold py-3">Percentage</p>
       <div className="flex items-center">
-        <div className="e_currency-eur !w-[62px]">
-          <h3>{percentage} %</h3>
-        </div>
+        <input type="text" defaultValue="0 %" className="e_currency-eur w-full text-center !max-w-[62px]" />
+
         <p className="text-[15px] whitespace-nowrap pl-4 text-center leading-[20px]">
           of Awareness budget
         </p>
@@ -100,9 +99,9 @@ const ConfiguredSetPage = () => {
                 <div className="flex flex-col p-2">
                   <p className="font-bold py-3 whitespace-nowrap">What is your budget for this phase?</p>
                   <div className="e_currency-eur">
-                    <div className='flex'>
+                    <div className='flex items-center'>
                       <Image src={ecurrencyeur} alt="e_currency-eur" />
-                      <h3>0</h3>
+                      <input type="text" defaultValue="0 €" className="w-full focus:outline-none text-center px-4 py-2" />
                     </div>
                     <div>EUR</div>
                   </div>
@@ -110,9 +109,7 @@ const ConfiguredSetPage = () => {
                 <div className="flex flex-col">
                   <p className="font-bold py-3">Percentage</p>
                   <div className="flex items-center">
-                    <div className="e_currency-eur !w-[62px]">
-                      <h3>0 %</h3>
-                    </div>
+                    <input type="text" defaultValue="0 %" className="e_currency-eur text-center w-[62px]" />
                     <p className="text-[15px] pl-4 text-center whitespace-nowrap text-[#061237CC] leading-[20px]">
                       of budget
                     </p>
