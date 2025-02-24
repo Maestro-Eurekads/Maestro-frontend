@@ -7,12 +7,12 @@ const DateComponent = ({ useDate }) => {
   return (
     <div className="flex flex-col gap-4 ">
 
-      {useDate && <div className="flex gap-4 items-center w-full justify-end">
+      {useDate && <div className="creation_continer flex gap-4 items-center w-full justify-end">
         <Range />
         <DateRangeSelector />
       </div>}
 
-      <div className="bg-white mt-[32px]">
+      <div className="bg-white  ">
         <DateInterval />
       </div>
 

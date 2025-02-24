@@ -41,14 +41,14 @@ const Creation = () => {
             subStep === 2 && <ConfigureAdSetsAndBudget />
           ))}
 
-        {/* Step 7 (Tracks 1 subStep) */}
-        {active === 7 &&
-          (subStep === 0 ? (
-            <PlanCampaignSchedule />
-          ) : (
-            subStep === 1 && <PlanCampaignScheduleSubStepComponent />
-          ))}
       </div>
+      {/* Step 7 (Tracks 1 subStep) */}
+      {active === 7 &&
+        (subStep === 0 ? (
+          <PlanCampaignSchedule />
+        ) : (
+          subStep === 1 && <PlanCampaignScheduleSubStepComponent />
+        ))}
       {active === 9 && <EstablishedGoals />}
       {active === 10 && <OverviewofyourCampaign />}
     </div>
