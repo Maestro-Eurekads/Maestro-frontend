@@ -55,7 +55,7 @@ const Table = () => {
 						</td>
 					</tr>
 					<tr >
-						<td className='whitespace-nowrap'>Campaign 1 - Running</td>
+						<td className='whitespace-nowrap'>Campaign 2 - Running</td>
 						<td >V9</td>
 						<td >
 							<ProgressBar progress={25} />

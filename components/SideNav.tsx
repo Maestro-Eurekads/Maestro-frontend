@@ -2,10 +2,15 @@ import Image from "next/image";
 import left_arrow from "../public/blue_back_arrow.svg";
 import CreationFlow from "./CreationFlow";
 import nike from "../public/nike.svg";
+import closeicon from "../public/layout-left-line.svg";
 import { useRouter } from "next/navigation";
 import { useActive } from "../app/utils/ActiveContext";
+import { useState } from "react";
+import CreationFlowActive from "./CreationFlowActive";
+
 
 const SideNav: React.FC = () => {
+  const [close, setClose] = useState(false);
   const router = useRouter();
   const { setActive, setSubStep } = useActive();
 
@@ -16,9 +21,15 @@ const SideNav: React.FC = () => {
   };
 
   return (
-    <div id="side-nav" className="!flex !flex-col !h-full justify-between">
+    <div id={close ? "side-nav-active" : "side-nav"} className="!flex !flex-col !h-full justify-between">
+
       <div>
-        <div className="flex flex-col items-start mb-8">
+        <div className={`flex ${close ? 'justify-center mb-[30px]' : 'justify-end'} w-full`}>
+          <button onClick={() => setClose(!close)}>
+            <Image src={closeicon} alt={"closeicon"} />
+          </button>
+        </div>
+        {close === false && <div className="flex flex-col items-start mb-8">
           <button
             onClick={handleBackClick}
             className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF] flex items-center gap-2"
@@ -36,16 +47,18 @@ const SideNav: React.FC = () => {
             </p>
 
           </div>
-        </div >
-        <CreationFlow />
+        </div >}
+        {close ? <CreationFlowActive /> : <CreationFlow />}
       </div>
-
-      <p className="font-general-sans italic font-medium text-[12px] leading-[21px] text-[rgba(6,18,55,0.8)]">
-        This screen, all the other ones, as well as the system they build together are protected by
-        copyright © - all use, display, and any other rights are exclusively reserved to Eurekads
-        Pte. Ltd.
-      </p>
-    </div>
+      {
+        close ? <div /> :
+          <p className="font-general-sans italic font-medium text-[12px] leading-[21px] text-[rgba(6,18,55,0.8)]">
+            This screen, all the other ones, as well as the system they build together are protected by
+            copyright © - all use, display, and any other rights are exclusively reserved to Eurekads
+            Pte. Ltd.
+          </p>
+      }
+    </div >
   );
 };
 

@@ -6,11 +6,6 @@ import { useState } from "react";
 const ComfirmModel = ({ isOpen, setIsOpen }) => {
 
 
-
-
-
-
-
 	return (
 		<div className="z-50">
 			{isOpen && (
