@@ -65,7 +65,6 @@ const ObjectiveSelection = () => {
   const [dropdownOpen, setDropdownOpen] = useState<{ [key: string]: boolean }>({});
   const [selectedOptions, setSelectedOptions] = useState<{ [key: string]: string }>({});
 
-  // Toggle expand/collapse for a stage
   const toggleItem = (stage: string) => {
     setOpenItems((prev) => ({
       ...prev,
@@ -73,7 +72,6 @@ const ObjectiveSelection = () => {
     }));
   };
 
-  // Toggle the dropdown for dropdown items (only active when not completed)
   const toggleDropdown = (platformKey: string) => {
     setDropdownOpen((prev) => ({
       ...prev,
@@ -81,7 +79,6 @@ const ObjectiveSelection = () => {
     }));
   };
 
-  // Handle selecting an option from the dropdown
   const handleSelectOption = (platformKey: string, option: string) => {
     setSelectedOptions((prev) => ({
       ...prev,
@@ -93,7 +90,6 @@ const ObjectiveSelection = () => {
     }));
   };
 
-  // Mark the stage as validated/completed
   const handleValidate = (index: number) => {
     const updatedStatuses = [...statuses];
     updatedStatuses[index] = "Completed";
@@ -106,7 +102,6 @@ const ObjectiveSelection = () => {
     }
   };
 
-  // For the dropdown items, generate required keys only for "Buy type" and "Buy objective"
   const requiredFieldKeys: string[] = [];
   const awarenessStage = funnelStages.find((stage) => stage.name === "Awareness");
   if (awarenessStage) {
@@ -120,7 +115,6 @@ const ObjectiveSelection = () => {
   }
   const allRequiredSelected = requiredFieldKeys.every((key) => !!selectedOptions[key]);
 
-  // Return dropdown options based on field name
   const getDropdownOptions = (platform: { name: string }) => {
     if (platform.name === "Buy type") {
       return ["CPM", "CPV"];
@@ -136,7 +130,6 @@ const ObjectiveSelection = () => {
       <Toaster position="top-right" reverseOrder={false} />
       {funnelStages.map((stage, stageIndex) => (
         <div key={stageIndex} className="w-full">
-          {/* Stage Header */}
           <div
             className="flex items-center justify-between px-6 py-4 w-full bg-[#FCFCFC] border border-gray-300 rounded-lg cursor-pointer"
             onClick={() => toggleItem(stage.name)}
@@ -170,71 +163,63 @@ const ObjectiveSelection = () => {
             </div>
           </div>
 
-          {/* Expanded Content */}
           {openItems[stage.name] && (
-            <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
+            <div className="flex flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
               {Object.entries(stage.platforms).map(([category, platforms]) => {
                 if (stage.name === "Awareness" && statuses[stageIndex] === "Completed") {
-                  // Separate the static and dropdown items.
                   const staticPlatforms = platforms.filter((p) => p.icon);
                   const dropdownPlatforms = platforms
                     .map((p, idx) => ({ ...p, originalIndex: idx }))
-                    .filter(
-                      (p) =>
-                        !p.icon &&
-                        (p.name === "Buy type" || p.name === "Buy objective")
-                    );
+                    .filter((p) => !p.icon && (p.name === "Buy type" || p.name === "Buy objective"));
+                    
                   return (
-                    <div key={category} className="flex flex-col items-start gap-6">
+                    <div key={category} className="flex flex-col gap-4">
                       <h3 className="text-xl font-semibold text-[#061237]">{category}</h3>
-                      {/* Top row: static items */}
-                      <div className="flex flex-row gap-8">
-                        {staticPlatforms.map((platform, idx) => (
-                          <div
-                            key={`static-${idx}`}
-                            className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg"
-                          >
-                            {platform.icon && (
-                              <Image src={platform.icon} alt={platform.name} />
-                            )}
-                            <p className="text-base font-medium text-[#061237]">
-                              {platform.name}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                      {/* Bottom row: dropdown items with their selected values */}
-                      {dropdownPlatforms.length > 0 && (
-                        <div className="flex flex-row gap-8 mt-4">
+                      <div className="flex flex-col gap-4">
+                        <div className="grid grid-cols-3 gap-4">
+                          {staticPlatforms.map((platform, idx) => (
+                            <div
+                              key={`static-${idx}`}
+                              className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg"
+                            >
+                              {platform.icon && (
+                                <Image src={platform.icon} alt={platform.name} />
+                              )}
+                              <p className="text-base font-medium text-[#061237]">
+                                {platform.name}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
                           {dropdownPlatforms.map((platform) => {
                             const platformKey = `${stage.name}-${category}-${platform.originalIndex}`;
                             return (
                               <div
                                 key={platformKey}
-                                className="relative w-full flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg"
+                                className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg"
                               >
                                 <p className="text-base font-medium text-[#061237]">
                                   {selectedOptions[platformKey] || platform.name}
                                 </p>
-                                <Image src={down2} alt="dropdown" />
+                                <Image src={down2} alt="dropdown" className="opacity-50" />
                               </div>
                             );
                           })}
                         </div>
-                      )}
+                      </div>
                     </div>
                   );
                 } else {
-                  // Render the default grid layout (when not completed)
                   return (
-                    <div key={category} className="flex flex-col items-start gap-6">
+                    <div key={category} className="flex flex-col gap-4">
                       <h3 className="text-xl font-semibold text-[#061237]">{category}</h3>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+                      <div className="grid grid-cols-3 gap-4">
                         {platforms.map((platform, pIndex) => {
                           const platformKey = `${stage.name}-${category}-${pIndex}`;
                           if (platform.name === "Buy type" || platform.name === "Buy objective") {
                             return (
-                              <div key={pIndex} className="relative w-full">
+                              <div key={pIndex} className="relative">
                                 <div
                                   className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
                                   onClick={() => toggleDropdown(platformKey)}
@@ -245,15 +230,13 @@ const ObjectiveSelection = () => {
                                   <Image src={down2} alt="dropdown" />
                                 </div>
                                 {dropdownOpen[platformKey] && (
-                                  <div className="absolute left-0 mt-2 w-full bg-white border border-gray-300 rounded-md shadow-lg transition-transform transform hover:scale-105 z-10">
+                                  <div className="absolute left-0 mt-2 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10">
                                     <ul className="py-2">
                                       {getDropdownOptions(platform).map((option, i) => (
                                         <li
                                           key={i}
-                                          className="px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-200 cursor-pointer mb-1"
-                                          onClick={() =>
-                                            handleSelectOption(platformKey, option)
-                                          }
+                                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                          onClick={() => handleSelectOption(platformKey, option)}
                                         >
                                           {option}
                                         </li>
@@ -264,7 +247,6 @@ const ObjectiveSelection = () => {
                               </div>
                             );
                           } else {
-                            // Render static items in the normal grid
                             return (
                               <div
                                 key={pIndex}
@@ -285,9 +267,8 @@ const ObjectiveSelection = () => {
                   );
                 }
               })}
-              {/* Validate Button (Only for Awareness stage when not completed) */}
               {stage.name === "Awareness" && statuses[stageIndex] !== "Completed" && (
-                <div className="flex justify-end mt-6 w-full">
+                <div className="flex justify-end mt-4">
                   <Button
                     text="Validate"
                     variant="primary"

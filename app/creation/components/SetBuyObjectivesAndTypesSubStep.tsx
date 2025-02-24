@@ -1,7 +1,7 @@
 import React from 'react'
 import PageHeaderWrapper from '../../../components/PageHeaderWapper'
 import ObjectiveCard from './common/ObjectiveCard'
-import BuyingObjective from './common/BuyingObjective'
+import ObjectiveSelection from './ObjectiveSelection'
 
 const SetBuyObjectivesAndTypesSubStep = () => {
 
@@ -14,13 +14,13 @@ const SetBuyObjectivesAndTypesSubStep = () => {
 
 			/>
 
-			<div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
+			<div className="mt-12 flex items-start flex-col gap-12">
 
 				<ObjectiveCard title='The main objective of your campaign' span={1}
 					subtitle='Purchase' description='You have chosen this objective'
 				/>
 
-				<BuyingObjective />
+				<ObjectiveSelection />
 			</div>
 
 		</div>
