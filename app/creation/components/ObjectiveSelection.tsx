@@ -19,7 +19,7 @@ const funnelStages = [
   {
     name: "Awareness",
     icon: speaker,
-    status: "In progress", 
+    status: "In progress",
     statusIsActive: true,
     platforms: {
       "Social media": [
@@ -51,7 +51,7 @@ const funnelStages = [
     platforms: {},
   },
   {
-    name: "Conversion", 
+    name: "Conversion",
     icon: orangecredit,
     status: "Not started",
     statusIsActive: false,
@@ -62,50 +62,96 @@ const funnelStages = [
 const ObjectiveSelection = () => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
   const [statuses, setStatuses] = useState(funnelStages.map((stage) => stage.status));
-  const [dropdownOpen, setDropdownOpen] = useState({});
-  const [selectedOptions, setSelectedOptions] = useState({});
+  const [dropdownOpen, setDropdownOpen] = useState<{ [key: string]: boolean }>({});
+  const [selectedOptions, setSelectedOptions] = useState<{ [key: string]: string }>({});
 
-  const toggleItem = (stage) => {
-    setOpenItems(prev => ({...prev, [stage]: !prev[stage]}));
+  // Toggle expand/collapse for a stage
+  const toggleItem = (stage: string) => {
+    setOpenItems((prev) => ({
+      ...prev,
+      [stage]: !prev[stage],
+    }));
   };
 
-  const toggleDropdown = (key) => {
-    setDropdownOpen(prev => ({...prev, [key]: !prev[key]}));
+  // Toggle the dropdown for dropdown items (only active when not completed)
+  const toggleDropdown = (platformKey: string) => {
+    setDropdownOpen((prev) => ({
+      ...prev,
+      [platformKey]: !prev[platformKey],
+    }));
   };
 
-  const handleSelectOption = (key, option) => {
-    setSelectedOptions(prev => ({...prev, [key]: option}));
-    setDropdownOpen(prev => ({...prev, [key]: false}));
+  // Handle selecting an option from the dropdown
+  const handleSelectOption = (platformKey: string, option: string) => {
+    setSelectedOptions((prev) => ({
+      ...prev,
+      [platformKey]: option,
+    }));
+    setDropdownOpen((prev) => ({
+      ...prev,
+      [platformKey]: false,
+    }));
   };
 
-  const handleValidate = (index) => {
-    setStatuses(prev => {
-      const next = [...prev];
-      next[index] = "Completed";
-      return next;
-    });
+  // Mark the stage as validated/completed
+  const handleValidate = (index: number) => {
+    const updatedStatuses = [...statuses];
+    updatedStatuses[index] = "Completed";
+    setStatuses(updatedStatuses);
+
     toast.success("Stage completed successfully! 🎉");
-    navigator.vibrate?.(300);
+
+    if (navigator.vibrate) {
+      navigator.vibrate(300);
+    }
   };
 
-  const requiredFieldKeys = [];
-  const awarenessStage = funnelStages.find(s => s.name === "Awareness");
+  // For the dropdown items, generate required keys only for "Buy type" and "Buy objective"
+  const requiredFieldKeys: string[] = [];
+  const awarenessStage = funnelStages.find((stage) => stage.name === "Awareness");
   if (awarenessStage) {
     Object.entries(awarenessStage.platforms).forEach(([category, platforms]) => {
-      platforms.forEach((p, i) => {
-        if (p.name === "Buy type" || p.name === "Buy objective") {
-          requiredFieldKeys.push(`Awareness-${category}-${i}`);
+      platforms.forEach((platform, pIndex) => {
+        if (platform.name === "Buy type" || platform.name === "Buy objective") {
+          requiredFieldKeys.push(`Awareness-${category}-${pIndex}`);
         }
       });
     });
   }
+  const allRequiredSelected = requiredFieldKeys.every((key) => !!selectedOptions[key]);
 
-  const allRequiredSelected = requiredFieldKeys.every(k => selectedOptions[k]);
-
-  const getDropdownOptions = ({name}) => {
-    if (name === "Buy type") return ["CPM", "CPV"];
-    if (name === "Buy objective") return ["Awareness", "Video views", "Traffic"];
+  // Return dropdown options based on field name
+  const getDropdownOptions = (platform: { name: string }) => {
+    if (platform.name === "Buy type") {
+      return ["CPM", "CPV"];
+    }
+    if (platform.name === "Buy objective") {
+      return ["Awareness", "Video views", "Traffic"];
+    }
     return [];
+  };
+
+  const renderCompletedPlatform = (platform: any, idx: number, category: string) => {
+    const baseIndex = idx * 3;
+    const buyTypeKey = `Awareness-${category}-${baseIndex + 1}`;
+    const buyObjectiveKey = `Awareness-${category}-${baseIndex + 2}`;
+
+    return (
+      <div key={idx} className="flex flex-col gap-4">
+        <div className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg">
+          <Image src={platform.icon} alt={platform.name} />
+          <p className="text-base font-medium text-[#061237]">{platform.name}</p>
+        </div>
+        <div className="flex flex-col gap-2">
+          <div className="px-4 py-2 bg-white border border-gray-300 rounded-lg">
+            {selectedOptions[buyTypeKey] || "Buy type"}
+          </div>
+          <div className="px-4 py-2 bg-white border border-gray-300 rounded-lg">
+            {selectedOptions[buyObjectiveKey] || "Buy objective"}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -113,6 +159,7 @@ const ObjectiveSelection = () => {
       <Toaster position="top-right" reverseOrder={false} />
       {funnelStages.map((stage, stageIndex) => (
         <div key={stageIndex} className="w-full">
+          {/* Stage Header */}
           <div
             className="flex items-center justify-between px-6 py-4 w-full bg-[#FCFCFC] border border-gray-300 rounded-lg cursor-pointer"
             onClick={() => toggleItem(stage.name)}
@@ -146,23 +193,72 @@ const ObjectiveSelection = () => {
             </div>
           </div>
 
+          {/* Expanded Content */}
           {openItems[stage.name] && (
-            <div className="flex flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
-              {Object.entries(stage.platforms).map(([category, platforms]) => {
-                if (stage.name === "Awareness" && statuses[stageIndex] === "Completed") {
-                  const staticPlatforms = platforms.filter((p) => p.icon);
-                  const dropdownPlatforms = platforms
-                    .map((p, idx) => ({ ...p, originalIndex: idx }))
-                    .filter((p) => !p.icon && (p.name === "Buy type" || p.name === "Buy objective"));
-                    
-                  return (
-                    <div key={category} className="flex flex-col gap-4">
-                      <h3 className="text-xl font-semibold text-[#061237]">{category}</h3>
-                      <div className="flex flex-col gap-4">
-                        <div className="grid grid-cols-3 gap-4">
-                          {staticPlatforms.map((platform, idx) => (
+            <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
+              {stage.name === "Awareness" && statuses[stageIndex] === "Completed" ? (
+                <div className="flex w-full gap-12">
+                  {/* Left side - Social Media */}
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-[#061237] mb-6">Social media</h3>
+                    <div className="flex flex-row gap-8">
+                      {stage.platforms["Social media"]
+                        .filter(p => p.icon)
+                        .map((platform, idx) => renderCompletedPlatform(platform, idx, "Social media"))}
+                    </div>
+                  </div>
+                  
+                  {/* Right side - Display Networks */}
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-[#061237] mb-6">Display networks</h3>
+                    <div className="flex flex-row gap-8">
+                      {stage.platforms["Display networks"]
+                        .filter(p => p.icon)
+                        .map((platform, idx) => renderCompletedPlatform(platform, idx, "Display networks"))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                // Original grid layout for non-completed state
+                Object.entries(stage.platforms).map(([category, platforms]) => (
+                  <div key={category} className="flex flex-col items-start gap-6 w-full">
+                    <h3 className="text-xl font-semibold text-[#061237]">{category}</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-8 w-full">
+                      {platforms.map((platform, pIndex) => {
+                        const platformKey = `${stage.name}-${category}-${pIndex}`;
+                        if (platform.name === "Buy type" || platform.name === "Buy objective") {
+                          return (
+                            <div key={pIndex} className="relative w-full">
+                              <div
+                                className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
+                                onClick={() => toggleDropdown(platformKey)}
+                              >
+                                <p className="text-base font-medium text-[#061237]">
+                                  {selectedOptions[platformKey] || platform.name}
+                                </p>
+                                <Image src={down2} alt="dropdown" />
+                              </div>
+                              {dropdownOpen[platformKey] && (
+                                <div className="absolute left-0 mt-2 w-full bg-white border border-gray-300 rounded-md shadow-lg transition-transform transform hover:scale-105 z-10">
+                                  <ul className="py-2">
+                                    {getDropdownOptions(platform).map((option, i) => (
+                                      <li
+                                        key={i}
+                                        className="px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-200 cursor-pointer mb-1"
+                                        onClick={() => handleSelectOption(platformKey, option)}
+                                      >
+                                        {option}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        } else {
+                          return (
                             <div
-                              key={`static-${idx}`}
+                              key={pIndex}
                               className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg"
                             >
                               {platform.icon && (
@@ -172,92 +268,23 @@ const ObjectiveSelection = () => {
                                 {platform.name}
                               </p>
                             </div>
-                          ))}
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
-                          {dropdownPlatforms.map((platform) => {
-                            const platformKey = `${stage.name}-${category}-${platform.originalIndex}`;
-                            return (
-                              <div
-                                key={platformKey}
-                                className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg"
-                              >
-                                <p className="text-base font-medium text-[#061237]">
-                                  {selectedOptions[platformKey] || platform.name}
-                                </p>
-                                <Image src={down2} alt="dropdown" className="opacity-50" />
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
+                          );
+                        }
+                      })}
                     </div>
-                  );
-                } else {
-                  return (
-                    <div key={category} className="flex flex-col gap-4">
-                      <h3 className="text-xl font-semibold text-[#061237]">{category}</h3>
-                      <div className="grid grid-cols-3 gap-4">
-                        {platforms.map((platform, pIndex) => {
-                          const platformKey = `${stage.name}-${category}-${pIndex}`;
-                          if (platform.name === "Buy type" || platform.name === "Buy objective") {
-                            return (
-                              <div key={pIndex} className="relative">
-                                <div
-                                  className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
-                                  onClick={() => toggleDropdown(platformKey)}
-                                >
-                                  <p className="text-base font-medium text-[#061237]">
-                                    {selectedOptions[platformKey] || platform.name}
-                                  </p>
-                                  <Image src={down2} alt="dropdown" />
-                                </div>
-                                {dropdownOpen[platformKey] && (
-                                  <div className="absolute left-0 mt-2 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10">
-                                    <ul className="py-2">
-                                      {getDropdownOptions(platform).map((option, i) => (
-                                        <li
-                                          key={i}
-                                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                          onClick={() => handleSelectOption(platformKey, option)}
-                                        >
-                                          {option}
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          } else {
-                            return (
-                              <div
-                                key={pIndex}
-                                className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg"
-                              >
-                                {platform.icon && (
-                                  <Image src={platform.icon} alt={platform.name} />
-                                )}
-                                <p className="text-base font-medium text-[#061237]">
-                                  {platform.name}
-                                </p>
-                              </div>
-                            );
-                          }
-                        })}
-                      </div>
-                    </div>
-                  );
-                }
-              })}
+                  </div>
+                ))
+              )}
+              {/* Validate Button (Only for Awareness stage when not completed) */}
               {stage.name === "Awareness" && statuses[stageIndex] !== "Completed" && (
-                <Button
-                  text="Validate"
-                  variant="primary"
-                  onClick={() => handleValidate(stageIndex)}
-                  disabled={!allRequiredSelected}
-                  className="self-end mt-4"
-                />
+                <div className="flex justify-end mt-6 w-full">
+                  <Button
+                    text="Validate"
+                    variant="primary"
+                    onClick={() => handleValidate(stageIndex)}
+                    disabled={!allRequiredSelected}
+                  />
+                </div>
               )}
             </div>
           )}
