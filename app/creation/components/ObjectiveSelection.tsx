@@ -19,7 +19,7 @@ const funnelStages = [
   {
     name: "Awareness",
     icon: speaker,
-    status: "In progress",
+    status: "In progress", 
     statusIsActive: true,
     platforms: {
       "Social media": [
@@ -51,7 +51,7 @@ const funnelStages = [
     platforms: {},
   },
   {
-    name: "Conversion",
+    name: "Conversion", 
     icon: orangecredit,
     status: "Not started",
     statusIsActive: false,
@@ -62,66 +62,49 @@ const funnelStages = [
 const ObjectiveSelection = () => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
   const [statuses, setStatuses] = useState(funnelStages.map((stage) => stage.status));
-  const [dropdownOpen, setDropdownOpen] = useState<{ [key: string]: boolean }>({});
-  const [selectedOptions, setSelectedOptions] = useState<{ [key: string]: string }>({});
+  const [dropdownOpen, setDropdownOpen] = useState({});
+  const [selectedOptions, setSelectedOptions] = useState({});
 
-  const toggleItem = (stage: string) => {
-    setOpenItems((prev) => ({
-      ...prev,
-      [stage]: !prev[stage],
-    }));
+  const toggleItem = (stage) => {
+    setOpenItems(prev => ({...prev, [stage]: !prev[stage]}));
   };
 
-  const toggleDropdown = (platformKey: string) => {
-    setDropdownOpen((prev) => ({
-      ...prev,
-      [platformKey]: !prev[platformKey],
-    }));
+  const toggleDropdown = (key) => {
+    setDropdownOpen(prev => ({...prev, [key]: !prev[key]}));
   };
 
-  const handleSelectOption = (platformKey: string, option: string) => {
-    setSelectedOptions((prev) => ({
-      ...prev,
-      [platformKey]: option,
-    }));
-    setDropdownOpen((prev) => ({
-      ...prev,
-      [platformKey]: false,
-    }));
+  const handleSelectOption = (key, option) => {
+    setSelectedOptions(prev => ({...prev, [key]: option}));
+    setDropdownOpen(prev => ({...prev, [key]: false}));
   };
 
-  const handleValidate = (index: number) => {
-    const updatedStatuses = [...statuses];
-    updatedStatuses[index] = "Completed";
-    setStatuses(updatedStatuses);
-
+  const handleValidate = (index) => {
+    setStatuses(prev => {
+      const next = [...prev];
+      next[index] = "Completed";
+      return next;
+    });
     toast.success("Stage completed successfully! 🎉");
-
-    if (navigator.vibrate) {
-      navigator.vibrate(300);
-    }
+    navigator.vibrate?.(300);
   };
 
-  const requiredFieldKeys: string[] = [];
-  const awarenessStage = funnelStages.find((stage) => stage.name === "Awareness");
+  const requiredFieldKeys = [];
+  const awarenessStage = funnelStages.find(s => s.name === "Awareness");
   if (awarenessStage) {
     Object.entries(awarenessStage.platforms).forEach(([category, platforms]) => {
-      platforms.forEach((platform, pIndex) => {
-        if (platform.name === "Buy type" || platform.name === "Buy objective") {
-          requiredFieldKeys.push(`Awareness-${category}-${pIndex}`);
+      platforms.forEach((p, i) => {
+        if (p.name === "Buy type" || p.name === "Buy objective") {
+          requiredFieldKeys.push(`Awareness-${category}-${i}`);
         }
       });
     });
   }
-  const allRequiredSelected = requiredFieldKeys.every((key) => !!selectedOptions[key]);
 
-  const getDropdownOptions = (platform: { name: string }) => {
-    if (platform.name === "Buy type") {
-      return ["CPM", "CPV"];
-    }
-    if (platform.name === "Buy objective") {
-      return ["Awareness", "Video views", "Traffic"];
-    }
+  const allRequiredSelected = requiredFieldKeys.every(k => selectedOptions[k]);
+
+  const getDropdownOptions = ({name}) => {
+    if (name === "Buy type") return ["CPM", "CPV"];
+    if (name === "Buy objective") return ["Awareness", "Video views", "Traffic"];
     return [];
   };
 
@@ -268,14 +251,13 @@ const ObjectiveSelection = () => {
                 }
               })}
               {stage.name === "Awareness" && statuses[stageIndex] !== "Completed" && (
-                <div className="flex justify-end mt-4">
-                  <Button
-                    text="Validate"
-                    variant="primary"
-                    onClick={() => handleValidate(stageIndex)}
-                    disabled={!allRequiredSelected}
-                  />
-                </div>
+                <Button
+                  text="Validate"
+                  variant="primary"
+                  onClick={() => handleValidate(stageIndex)}
+                  disabled={!allRequiredSelected}
+                  className="self-end mt-4"
+                />
               )}
             </div>
           )}
