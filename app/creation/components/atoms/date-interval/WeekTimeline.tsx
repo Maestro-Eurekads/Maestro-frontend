@@ -377,7 +377,7 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
 													: "bg-[#ff9037]"
 												} text-white`}
 											style={{
-												gridColumnStart: 2,
+												gridColumnStart: 1,
 												gridColumnEnd: ((endWeek + 1) - startWeek) + 1
 											}}
 
@@ -420,7 +420,7 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
 														<div className={`py-1 ${bg} text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between`}
 															style={{
 																gridColumnStart: 1,
-																gridColumnEnd: (((((endWeek + 1) - startWeek) + 1) - 2) + 1) - 1
+																gridColumnEnd: (((((endWeek + 1) - startWeek) + 1) - 1) + 1) - 1
 															}}
 														>
 															<div />

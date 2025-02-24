@@ -18,9 +18,9 @@ const Dashboard = () => {
 	const [show, setShow] = useState(false);
 	const [open, setOpen] = useState(false);
 	const funnelsData = [
-		{ startWeek: 2, endWeek: 9, label: "Funnel A" },
-		{ startWeek: 4, endWeek: 8, label: "Funnel B" },
-		{ startWeek: 7, endWeek: 10, label: "Funnel C" },
+		{ startWeek: 3, endWeek: 10, label: "Campaign 1" },
+		{ startWeek: 4, endWeek: 7, label: "Campaign 2" },
+		// { startWeek: 4, endWeek: 7, label: "Campaign 2" },
 	];
 
 	return (

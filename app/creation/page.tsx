@@ -30,13 +30,6 @@ const Creation = () => {
         {active === 5 && <SetBuyObjectivesAndTypes />}
         {active === 6 && <SetBuyObjectivesAndTypesSubStep />}
 
-        {/* Step 7 (Tracks 1 subStep) */}
-        {active === 7 &&
-          (subStep === 0 ? (
-            <PlanCampaignSchedule />
-          ) : (
-            subStep === 1 && <PlanCampaignScheduleSubStepComponent />
-          ))}
 
         {/* Step 8 (Tracks 2 subSteps) */}
         {active === 8 &&
@@ -48,6 +41,13 @@ const Creation = () => {
             subStep === 2 && <ConfigureAdSetsAndBudget />
           ))}
 
+        {/* Step 7 (Tracks 1 subStep) */}
+        {active === 7 &&
+          (subStep === 0 ? (
+            <PlanCampaignSchedule />
+          ) : (
+            subStep === 1 && <PlanCampaignScheduleSubStepComponent />
+          ))}
       </div>
       {active === 9 && <EstablishedGoals />}
       {active === 10 && <OverviewofyourCampaign />}
