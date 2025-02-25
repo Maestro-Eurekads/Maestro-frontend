@@ -43,7 +43,7 @@ const OverviewofyourCampaign = () => {
 			</div>
 			<div>
 
-				<div>
+				<div className='mt-[30px]'>
 					<DateComponent useDate={false} />
 				</div>
 				<div className="w-[100%] min-h-[494px] bg-[none] bg-[linear-gradient(to_right,_rgba(0,0,0,0.1)_1px,_transparent_0.2px)] bg-[size:60px_100%]">
