@@ -268,14 +268,27 @@ const FunnelStage = () => {
 																		{platform.name}
 																	</p>
 																</div>
-																<div className="w-[20px] h-[20px] border-[0.769px] border-[rgba(0,0,0,0.2)] rounded-full" />
+																<div className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${
+																	isSelected 
+																		? 'bg-[#3175FF]' 
+																		: 'border-[0.769px] border-[rgba(0,0,0,0.2)]'
+																}`}>
+																	{isSelected && (
+																		<Image 
+																			src={checkmark} 
+																			alt="selected" 
+																			className="w-3 h-3"
+																		/>
+																	)}
+																</div>
 															</div>
 														);
 													})}
 												</div>
 											</div>
 										))}
-
+                                
+								
 										<div className="flex justify-end pr-[24px] mt-4">
 											<button
 												disabled={!isStageValid(stage.name)}
