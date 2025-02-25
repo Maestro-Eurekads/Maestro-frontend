@@ -3,6 +3,7 @@ import { Roboto } from "next/font/google";
 import "./globals.css";
 import { ActiveProvider } from "./utils/ActiveContext";
 import { DateRangeProvider } from "../src/date-range-context";
+import { FunnelProvider } from "./utils/FunnelContextType";
 
 // Load Roboto font
 const roboto = Roboto({
@@ -31,9 +32,11 @@ export default function RootLayout({
       </head>
       <body className={`${roboto.variable} antialiased`}>
         <ActiveProvider>
-          <DateRangeProvider>
-            {children}
-          </DateRangeProvider>
+          <FunnelProvider>
+            <DateRangeProvider>
+              {children}
+            </DateRangeProvider>
+          </FunnelProvider>
         </ActiveProvider>
       </body>
     </html>

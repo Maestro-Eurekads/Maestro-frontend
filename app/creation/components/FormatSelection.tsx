@@ -12,6 +12,7 @@ import video_format from "../../../public/video_format.svg";
 import image_format from "../../../public/Image_format.svg";
 import collection_format from "../../../public/collection_format.svg";
 import slideshow_format from "../../../public/slideshow_format.svg";
+import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 
 type IPlatform = {
   name: string;
@@ -78,9 +79,8 @@ export const Platforms = () => {
               <div key={index}>
                 <div className="flex items-center gap-6">
                   <div
-                    className={`flex items-center gap-[12px] font-[500] border p-5 rounded-[10px] ${
-                      channel.style ?? platform.style
-                    }`}
+                    className={`flex items-center gap-[12px] font-[500] border p-5 rounded-[10px] ${channel.style ?? platform.style
+                      }`}
                   >
                     <Image src={platform.icon} alt={platform.name} />
                     <p>{platform.name}</p>
@@ -133,10 +133,13 @@ export const Platforms = () => {
         </React.Fragment>
       ))}
 
-      <div className="flex justify-end items-center">
-        <div className="btn btn-primary py-[15px] px-[40px] rounded-[10px]">
+
+      <div className="w-full flex items-center justify-end mt-9">
+
+        <button
+          className={`px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] bg-[#3175FF] opacity-50 `} >
           Validate
-        </div>
+        </button>
       </div>
     </div>
   );
@@ -144,17 +147,11 @@ export const Platforms = () => {
 
 export const FormatSelection = () => {
   return (
-    <div className="card_bucket_container_main">
-      <header className="max-w-[818px]">
-        <h1 className="font-general-sans font-semibold text-[24px] leading-[32px] text-[#292929]">
-          Select formats for each channel{" "}
-        </h1>
-        <h1 className="font-general-sans font-medium text-[16px] leading-[22px] text-[rgba(0,0,0,0.9)] mt-2">
-          Select the creative formats you want to use for your campaign. Specify
-          the number of visuals for each format. Multiple formats can be
-          selected per channel.
-        </h1>
-      </header>
+    <div className="">
+      <PageHeaderWrapper
+        t1={'Select formats for each channel'}
+        t2={'Select the creative formats you want to use for your campaign. Specify the number of visuals for each format. Multiple formats can be selected per channel.'}
+      />
       <div className="card mt-[32px] bg-[#FFFFFF] max-w-[968px]">
         <div className="flex justify-between items-center p-6 gap-3 w-[968px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] rounded-t-[10px]">
           <div className="flex items-center gap-2">
@@ -196,11 +193,10 @@ export default function MediaSelection({
             <div
               key={index}
               onClick={() => handleFormatSelection(index)}
-              className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
-                option.selected
-                  ? "border-blue-500 shadow-lg"
-                  : "border-gray-300"
-              }`}
+              className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${option.selected
+                ? "border-blue-500 shadow-lg"
+                : "border-gray-300"
+                }`}
             >
               <Image
                 src={option.icon}
@@ -232,11 +228,10 @@ export default function MediaSelection({
                 <div
                   key={index}
                   onClick={() => handleFormatSelection(index)}
-                  className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
-                    option.selected
-                      ? "border-blue-500 shadow-lg"
-                      : "border-gray-300"
-                  }`}
+                  className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${option.selected
+                    ? "border-blue-500 shadow-lg"
+                    : "border-gray-300"
+                    }`}
                 >
                   <Image
                     src={option.icon}
