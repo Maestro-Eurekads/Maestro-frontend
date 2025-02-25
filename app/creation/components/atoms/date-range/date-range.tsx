@@ -38,11 +38,11 @@ const Range = () => {
   };
 
   return (
-    <div className="w-fit">
+    <div className="w-fit z-0">
       <div className="relative flex items-center justify-between w-[210px] h-[42px] bg-[#F7F7F7] border border-black/10 rounded-lg p-[0.5]">
         {/* Moving Slider Indicator */}
         <div
-          className="absolute w-[64px] h-[38px] bg-white border border-black/10 rounded-lg transition-transform duration-300"
+          className="absolute w-[64px] h-[38px] bg-white border border-black/10 rounded-lg transition-transform duration-300 z-0"
           style={{
             transform: `translateX(${selected ? options.indexOf(selected) * 71.5 : 0}px)`,
           }}

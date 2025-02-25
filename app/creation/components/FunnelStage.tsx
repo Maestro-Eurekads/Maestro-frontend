@@ -1,106 +1,13 @@
 "use client"
 import React, { useState } from 'react'
 import Image from "next/image";
-import speaker from '../../../public/mdi_megaphone.svg';
 import up from '../../../public/arrow-down.svg';
 import down2 from '../../../public/arrow-down-2.svg';
-import facebook from '../../../public/facebook.svg';
-import ig from '../../../public/ig.svg';
-import tictok from '../../../public/tictok.svg';
-import youtube from '../../../public/youtube.svg';
 import checkmark from "../../../public/mingcute_check-fill.svg";
-import x from '../../../public/x.svg';
-import linkedin from '../../../public/linkedin.svg';
-import TheTradeDesk from '../../../public/TheTradeDesk.svg';
-import Quantcast from '../../../public/quantcast.svg';
-import Display from '../../../public/Display.svg';
-import Google from '../../../public/Google.svg';
-import yahoo from '../../../public/yahoo.svg';
-import bing from '../../../public/bing.svg';
-import orangecredit from '../../../public/orangecredit-card.svg';
-import tablerzoomfilled from '../../../public/tabler_zoom-filled.svg';
 import PageHeaderWrapper from '../../../components/PageHeaderWapper';
+import { funnelStages } from '../../../components/data';
 
-const funnelStages = [
-	{
-		name: "Awareness",
-		icon: speaker,
-		status: "In progress",
-		statusIsActive: true,
-		platforms: {
-			"Social media": [
-				{ name: "Facebook", icon: facebook },
-				{ name: "Instagram", icon: ig },
-				{ name: "TikTok", icon: tictok },
-				{ name: "YouTube", icon: youtube },
-				{ name: "Twitter/X", icon: x },
-				{ name: "LinkedIn", icon: linkedin },
-			],
-			"Display networks": [
-				{ name: "TheTradeDesk", icon: TheTradeDesk },
-				{ name: "Quantcast", icon: Quantcast },
-				{ name: "Display & Video", icon: Display },
-			],
-			"Search engines": [
-				{ name: "Google", icon: Google },
-				{ name: "Yahoo", icon: yahoo },
-				{ name: "Bing", icon: bing },
-			],
-		},
-	},
-	{
-		name: "Consideration",
-		icon: tablerzoomfilled,
-		status: "Not started",
-		statusIsActive: false,
-		platforms: {
-			"Social media": [
-				{ name: "Facebook", icon: facebook },
-				{ name: "Instagram", icon: ig },
-				{ name: "TikTok", icon: tictok },
-				{ name: "YouTube", icon: youtube },
-				{ name: "Twitter/X", icon: x },
-				{ name: "LinkedIn", icon: linkedin },
-			],
-			"Display networks": [
-				{ name: "TheTradeDesk", icon: TheTradeDesk },
-				{ name: "Quantcast", icon: Quantcast },
-				{ name: "Display & Video", icon: Display },
-			],
-			"Search engines": [
-				{ name: "Google", icon: Google },
-				{ name: "Yahoo", icon: yahoo },
-				{ name: "Bing", icon: bing },
-			],
-		},
-	},
-	{
-		name: "Conversion",
-		icon: orangecredit,
-		status: "Not started",
-		statusIsActive: false,
-		platforms: {
-			"Social media": [
-				{ name: "Facebook", icon: facebook },
-				{ name: "Instagram", icon: ig },
-				{ name: "TikTok", icon: tictok },
-				{ name: "YouTube", icon: youtube },
-				{ name: "Twitter/X", icon: x },
-				{ name: "LinkedIn", icon: linkedin },
-			],
-			"Display networks": [
-				{ name: "TheTradeDesk", icon: TheTradeDesk },
-				{ name: "Quantcast", icon: Quantcast },
-				{ name: "Display & Video", icon: Display },
-			],
-			"Search engines": [
-				{ name: "Google", icon: Google },
-				{ name: "Yahoo", icon: yahoo },
-				{ name: "Bing", icon: bing },
-			],
-		},
-	},
-];
+
 
 const FunnelStage = () => {
 	// Controls expanded/collapsed state for each stage
@@ -253,11 +160,10 @@ const FunnelStage = () => {
 														return (
 															<div
 																key={pIndex}
-																className={`flex flex-row justify-between items-center p-5 gap-4 w-[230px] h-[62px] bg-white border rounded-[10px] cursor-pointer ${
-																	isSelected
-																		? 'border-[#3175FF]'
-																		: 'border-[rgba(0,0,0,0.1)]'
-																}`}
+																className={`flex flex-row justify-between items-center p-5 gap-4 w-[230px] h-[62px] bg-white border rounded-[10px] cursor-pointer ${isSelected
+																	? 'border-[#3175FF]'
+																	: 'border-[rgba(0,0,0,0.1)]'
+																	}`}
 																onClick={() =>
 																	togglePlatform(stage.name, category, platform.name)
 																}
@@ -268,15 +174,14 @@ const FunnelStage = () => {
 																		{platform.name}
 																	</p>
 																</div>
-																<div className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${
-																	isSelected 
-																		? 'bg-[#3175FF]' 
-																		: 'border-[0.769px] border-[rgba(0,0,0,0.2)]'
-																}`}>
+																<div className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${isSelected
+																	? 'bg-[#3175FF]'
+																	: 'border-[0.769px] border-[rgba(0,0,0,0.2)]'
+																	}`}>
 																	{isSelected && (
-																		<Image 
-																			src={checkmark} 
-																			alt="selected" 
+																		<Image
+																			src={checkmark}
+																			alt="selected"
 																			className="w-3 h-3"
 																		/>
 																	)}
@@ -287,17 +192,16 @@ const FunnelStage = () => {
 												</div>
 											</div>
 										))}
-                                
-								
+
+
 										<div className="flex justify-end pr-[24px] mt-4">
 											<button
 												disabled={!isStageValid(stage.name)}
 												onClick={() => handleValidate(stage.name)}
-												className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-													isStageValid(stage.name)
-														? 'bg-[#3175FF]'
-														: 'bg-[#3175FF] opacity-50'
-												}`}
+												className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isStageValid(stage.name)
+													? 'bg-[#3175FF]'
+													: 'bg-[#3175FF] opacity-50'
+													}`}
 											>
 												Validate
 											</button>

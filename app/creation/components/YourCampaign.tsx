@@ -1,13 +1,8 @@
 import React, { useState } from 'react'
 import Image from "next/image";
-import speaker from '../../../public/mdi_megaphone.svg';
-import cursor from '../../../public/blue_fluent_cursor-click.svg';
-import State12 from '../../../public/State12.svg';
-import roundget from '../../../public/ic_round-get-app.svg';
-import mingcute_basket from '../../../public/mingcute_basket-fill.svg';
-import mdi_leads from '../../../public/mdi_leads.svg';
 import Mark from '../../../public/Mark.svg';
 import PageHeaderWrapper from '../../../components/PageHeaderWapper';
+import { campaignObjectives } from '../../../components/data';
 
 
 const YourCampaign = () => {
@@ -19,44 +14,6 @@ const YourCampaign = () => {
 			prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
 		);
 	};
-	const campaignObjectives = [
-		{
-			id: 1,
-			icon: speaker,
-			title: "Brand Awareness",
-			description: "Reach as many people as possible and generate brand recall. Get people to watch your video."
-		},
-		{
-			id: 2,
-			icon: cursor,
-			title: "Traffic",
-			description: "Increase website visits to maximize audience reach and engagement."
-		},
-		{
-			id: 3,
-			icon: mingcute_basket,
-			title: "Purchase",
-			description: "Get as many people as possible to buy your product/service."
-		},
-		{
-			id: 4,
-			icon: mdi_leads,
-			title: "Lead Generation",
-			description: "Get as many people as possible to provide their contact information."
-		},
-		{
-			id: 5,
-			icon: roundget,
-			title: "App Install",
-			description: "Encourage users to download and install your mobile app."
-		},
-		{
-			id: 6,
-			icon: State12,
-			title: "Video Views",
-			description: "Boost the number of views on your video content to increase engagement."
-		}
-	];
 
 
 	return (

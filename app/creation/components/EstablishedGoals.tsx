@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Modal from "../../utils/components/Modal";
+import Modal from "../../../components/Modals/Modal";
 import adset from "../../../public/adset_level.svg";
 import channel from "../../../public/channel_level.svg";
 import facebook from "../../../public/facebook.svg";
