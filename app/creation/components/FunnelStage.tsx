@@ -287,7 +287,8 @@ const FunnelStage = () => {
 												</div>
 											</div>
 										))}
-
+                                
+								
 										<div className="flex justify-end pr-[24px] mt-4">
 											<button
 												disabled={!isStageValid(stage.name)}
