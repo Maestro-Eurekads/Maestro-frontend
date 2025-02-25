@@ -1,66 +1,26 @@
 "use client";
-import { BsFillMegaphoneFill } from "react-icons/bs";
-import { TbZoomFilled, TbCreditCardFilled } from "react-icons/tb";
-import ResizeableBar from "../../atoms/drag-timeline/drag-timeline";
+// import ResizeableBar from "../../atoms/drag-timeline/drag-timeline";
 import Image from 'next/image';
-import facebook from '../../../../../public/social/facebook.svg';
-import youtube from '../../../../../public/social/youtube.svg';
-import thetradedesk from '../../../../../public/social/thetradedesk.svg';
-import quantcast from '../../../../../public/social/quantcast.svg';
-import google from '../../../../../public/social/google.svg';
-import ig from '../../../../../public/social/ig.svg';
-import { useRef, useState } from "react";
-import { useDateRange } from "../../../../../src/date-range-context";
+import { useState } from "react";
 import DraggableChannel from "../../../../../components/DraggableChannel";
 import whiteplus from '../../../../../public/white-plus.svg';
-import reddelete from '../../../../../public/red-delete.svg';
 import ResizableChannels from "./ResizableChannels";
+import { useFunnelContext } from "../../../../utils/FunnelContextType";
+import { channels, funnels } from "../../../../../components/data";
+import AddNewChennelsModel from '../../../../../components/Modals/AddNewChennelsModel';
 
 
 const ResizeableElements = ({ dateList }) => {
+  const { funnelWidths } = useFunnelContext(); // Get width for all channels
+  const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({}); // Track open state per channel
+  const [isOpen, setIsOpen] = useState(false);
 
-
-  const [openChannel, setOpenChannel] = useState(false);
-  const [show, setShow] = useState(false);
-
-
-  const channels = [
-    { icon: facebook, name: "Facebook", color: "#0866FF", bg: "#F0F6FF" },
-    { icon: ig, name: "Instagram", color: "#C13584", bg: "#FEF1F8" },
-    { icon: youtube, name: "YouTube", color: "#FF0000", bg: "#FFF0F0" },
-    { icon: thetradedesk, name: "TheTradeDesk", color: "#0099FA", bg: "#F0F9FF" },
-    { icon: quantcast, name: "Quantcast", color: "#000000", bg: "#F7F7F7" },
-    { icon: google, name: "Google", color: "#4285F4", bg: "#F1F6FE" },
-  ];
-
-
-  const funnels = [
-    {
-      startWeek: 3,
-      endWeek: 10,
-      label: "Campaign 1",
-      bg: "#3175FF",
-      description: "Awareness",
-      Icon: < BsFillMegaphoneFill />
-    },
-    {
-      startWeek: 4,
-      endWeek: 13,
-      label: "Campaign 2",
-      bg: "#0ABF7E",
-      description: "Consideration",
-      Icon: < TbZoomFilled />
-    },
-    {
-      startWeek: 2,
-      endWeek: 9,
-      label: "Campaign 2",
-      bg: "#ff9037",
-      description: "Conversion",
-      Icon: <TbCreditCardFilled />
-    },
-  ];
-
+  const toggleChannel = (id: string) => {
+    setOpenChannels((prev) => ({
+      ...prev,
+      [id]: !prev[id], // Toggle only the clicked channel
+    }));
+  };
 
   return (
     <div
@@ -70,8 +30,11 @@ const ResizeableElements = ({ dateList }) => {
         backgroundSize: `calc(100% / ${dateList.length}) 100%`,
       }}
     >
-      {
-        funnels.map(({ startWeek, endWeek, bg, description, Icon }, index) => (
+      {funnels.map(({ startWeek, endWeek, bg, description, Icon }, index) => {
+        const channelWidth = funnelWidths[description] || 400;
+        const isOpen = openChannels[description] || false; // Get open state by ID
+
+        return (
           <div
             key={index}
             style={{
@@ -79,47 +42,49 @@ const ResizeableElements = ({ dateList }) => {
               gridTemplateColumns: `repeat(${dateList.length}, 1fr)`,
             }}
           >
-            {/* shadow-sm */}
-            {/* border-[rgba(0,0,0,0.1)]  */}
             <div
-              className="flex flex-col mt-6  rounded-[10px] p-4 justify-between"
+              className="flex flex-col mt-6 rounded-[10px] p-4 justify-between"
               style={{
                 gridColumnStart: startWeek,
                 gridColumnEnd: endWeek + 1,
               }}
             >
               <DraggableChannel
-                openChannel={openChannel}
+                id={description} // Use description as ID
+                openChannel={isOpen} // Pass specific open state
                 bg={bg}
                 description={description}
-                setShow={setShow}
-                setOpenChannel={setOpenChannel}
-                Icon={Icon} dateList={dateList} />
+                setIsOpen={setIsOpen}
+                setOpenChannel={() => toggleChannel(description)} // Toggle only this channel
+                Icon={Icon}
+                dateList={dateList}
+              />
 
-              {/* Mapped Draggable Dropdowns */}
-              {
-                openChannel && (
-                  <div>
-                    {show &&
-                      <button className="channel-btn-blue mt-[12px] mb-[12px]">
-                        <Image src={whiteplus} alt="whiteplus" />
-                        <p>Add new channel</p>
-                      </button>}
-                    <ResizableChannels channels={channels} />
-                  </div>
-                )
-              }
-
+              {isOpen && ( // Only show this if the specific channel is open
+                <div>
+                  {channelWidth < 350 && (
+                    <button className="channel-btn-blue mt-[12px] mb-[12px]"
+                      onClick={() => {
+                        setIsOpen(true);
+                      }}>
+                      <Image src={whiteplus} alt="whiteplus" />
+                      <p>Add new channel</p>
+                    </button>
+                  )}
+                  <ResizableChannels channels={channels} parentId={description} />
+                </div>
+              )}
             </div>
           </div>
-        ))
-      }
+        );
+      })}
+      <AddNewChennelsModel isOpen={isOpen} setIsOpen={setIsOpen} />
     </div>
-
   );
 };
 
 export default ResizeableElements;
+
 
 
 

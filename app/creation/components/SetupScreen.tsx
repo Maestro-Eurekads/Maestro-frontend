@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Select } from "../../utils/components/Select";
-import { Title } from "../../utils/components/Title";
+import { Select } from "../../../components/Select";
+import { Title } from "../../../components/Title";
+import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 
 export const SetupScreen = () => {
   const options = [
@@ -20,14 +21,10 @@ export const SetupScreen = () => {
 
   return (
     <div>
-      <header className="pb-12">
-        <h2 className="text-2xl font-bold">Set up your new campaign</h2>
-        <p className="max-w-[992px] my-4">
-          Fill in the following information to define the foundation of your
-          media plan. This information helps structure your campaign strategy
-          and align with business goals.
-        </p>
-      </header>
+      <PageHeaderWrapper
+        t1={'Set up your new campaign'}
+        t2={"Fill in the following information to define the foundation of your media plan. This information helps structure your campaign strategy and align with business goals."}
+      />
       <form>
         <Title>Client selection</Title>
         <div>

@@ -49,8 +49,6 @@ const OverviewofyourCampaign = () => {
 				<div className="w-[100%] min-h-[494px] bg-[none] bg-[linear-gradient(to_right,_rgba(0,0,0,0.1)_1px,_transparent_0.2px)] bg-[size:60px_100%]">
 					<div className="ml-[82px]">
 
-
-
 						<button onClick={() => setOpen(!open)} className="mt-5 max-w-[732px] w-full flex items-center rounded-[10px] text-[17px] font-[500] bg-[#3175FF] text-white p-3 text-center">
 							<div className="flex items-center justify-center gap-3 flex-1">
 								<span>
@@ -91,6 +89,7 @@ const OverviewofyourCampaign = () => {
 								6,000 €
 							</button>
 						</button>
+
 						{open && <div className="ml-[56px]">
 							<div className="">
 								<div className="py-3 bg-[#0866FF33] text-[#0866FF] text-[15px] font-[500] border border-[#0866FF33] my-5 max-w-[284px] w-full rounded-[10px] flex items-center justify-between">
@@ -124,8 +123,6 @@ const OverviewofyourCampaign = () => {
 										</svg>
 									</span>
 								</button>
-
-
 							</div>
 
 							{/* Instagram */}

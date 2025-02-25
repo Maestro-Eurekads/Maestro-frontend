@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import SideNav from "../../components/SideNav";
 import Bottom from "../../components/Bottom";
 import CreationFlowHeader from "../../components/CreationFlowHeader";
-import ComfirmModel from "../homepage/components/ComfirmModel";
+import ComfirmModel from "../../components/Modals/ComfirmModel";
 
 
 function Layout({ children }: never) {
