@@ -82,7 +82,7 @@ const ResizeableElements = ({ dateList }) => {
             {/* shadow-sm */}
             {/* border-[rgba(0,0,0,0.1)]  */}
             <div
-              className="flex flex-col   mt-6  rounded-[10px] p-4 justify-between"
+              className="flex flex-col mt-6  rounded-[10px] p-4 justify-between"
               style={{
                 gridColumnStart: startWeek,
                 gridColumnEnd: endWeek + 1,
