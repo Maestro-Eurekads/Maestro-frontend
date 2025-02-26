@@ -3,44 +3,162 @@ import Button from "./button";
 import Awareness from "./Awareness";
 import Consideration from "./Consideration";
 import Conversion from "./Conversion";
-import { Plus, Trash, UserRoundSearch } from "lucide-react";
+import { Plus, Trash, UserRoundSearch, X } from "lucide-react";
+import YoutubeIcon from "../../../../public/youtube.svg"
+import LinkedinIcon from "../../../../public/linkedin.svg"
+import TiktokIcon from "../../../../public/tictok.svg"
+import TwitterIcon from "../../../../public/x.svg"
+import Select, { components } from "react-select";
+import Image from "next/image";
 
-// This component handles the channel selector behavior
+const buyObjectiveOptions = [
+  { value: "awareness", label: "Awareness" },
+  { value: "traffic", label: "Traffic" },
+  { value: "purchase", label: "Purchase" }
+];
+
+const buyTypeOptions = [
+  { value: "cpm", label: "CPM" },
+  { value: "cpv", label: "CPV" }
+];
+
+// Updated ChannelSelector with react‑select and icons
+const options = [
+  { 
+    value: "TikTok", 
+    label: "TikTok", 
+    icon: <Image src={TiktokIcon} alt="TikTok" width={16} height={16} className="cursor-pointer font-bold size-5" />
+  },
+  { 
+    value: "Youtube", 
+    label: "Youtube", 
+    icon: <Image src={YoutubeIcon} alt="Youtube" width={16} height={16} className="font-bold size-5" />
+  },
+  { 
+    value: "Twitter/X", 
+    label: "Twitter/X", 
+    icon: <Image src={TwitterIcon} alt="Twitter" width={16} height={16} className="cursor-pointer font-bold size-5" />
+  }, 
+  { 
+    value: "Linkedin", 
+    label: "Linkedin", 
+    icon: <Image src={LinkedinIcon} alt="LinkedIn" width={16} height={16} className="cursor-pointer font-bold size-5" />
+  },
+];
+
+const IconOption = (props) => (
+  <components.Option {...props}>
+    <div style={{ display: "flex", alignItems: "center" }}>
+      {props.data.icon && <span style={{ marginRight: 8 }}>{props.data.icon}</span>}
+      <span>{props.data.label}</span>
+    </div>
+  </components.Option>
+);
+
+const SingleValue = ({ children, ...props }) => (
+  <components.SingleValue {...props}>
+    <div style={{ display: "flex", alignItems: "center" }}>
+      {props.data.icon && <span style={{ marginRight: 8 }}>{props.data.icon}</span>}
+      <span>{props.data.label}</span>
+    </div>
+  </components.SingleValue>
+);
+
 const ChannelSelector = ({ channelName }) => {
-  const [selectMode, setSelectMode] = useState(false);
-  const [selectedOption, setSelectedOption] = useState("");
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [showSelect, setShowSelect] = useState(false);
+  const [selectedBuyObjective, setSelectedBuyObjective] = useState(null);
+  const [selectedBuyType, setSelectedBuyType] = useState(null);
 
-  // Options for the dropdown with their respective images
-  const options = [
-    { name: "TikTok" },
-    { name: "Youtube" },
-    { name: "Twitter/X" },
-    { name: "Linkedin" },
-  ];
+  const handleClearSelection = () => {
+    if (["TikTok", "Youtube", "Twitter/X", "Linkedin"].includes(selectedOption.value)) {
+      setSelectedOption(null);
+    }
+  };
 
   return (
-    <div>
-      {selectMode ? (
-        <select
-          value={selectedOption}
-          onChange={(e) => setSelectedOption(e.target.value)}
-          className="text-black bg-white border-2 border-gray-300 px-4 py-2 rounded-lg shadow-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="" disabled>
-            Select channel
-          </option>
-          {options.map((option) => (
-            <option key={option.name} value={option.name}>
-              {option.name}
-            </option>
-          ))}
-        </select>
-      ) : (
+    <div className="flex flex-col gap-4">
+      {!showSelect ? (
         <Button
-          text="Add select channel"
+          text="Add Channel"
           variant="primary"
-          onClick={() => setSelectMode(true)}
+          className="bg-blue-500 text-white"
+          onClick={() => setShowSelect(true)}
         />
+      ) : (
+        <>
+          <div className="relative">
+            <Select
+              options={options}
+              components={{ 
+                Option: IconOption,
+                SingleValue
+              }}
+              value={selectedOption}
+              onChange={(option) => {
+                setSelectedOption(option);
+              }}
+              placeholder="Select channel"
+              styles={{
+                control: (provided) => ({
+                  ...provided,
+                  backgroundColor: "white",
+                  padding: "8px 8px",
+                  border: "2px solid #D1D5DB",
+                  borderRadius: "0.8rem",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  cursor: "pointer",
+                }),
+              }}
+            />
+            {selectedOption && (
+              <button
+                onClick={handleClearSelection}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1  hover:bg-gray-100 rounded-full"
+              >
+                <X size={16} className="text-white bg-black" />
+              </button>
+            )}
+          </div>
+          
+          {selectedOption && (
+            <>
+              <Select
+                options={buyObjectiveOptions}
+                value={selectedBuyObjective}
+                onChange={setSelectedBuyObjective}
+                placeholder="Buy Objective"
+                styles={{
+                  control: (provided) => ({
+                    ...provided,
+                    backgroundColor: "white",
+                    padding: "4px",
+                    border: "2px solid #D1D5DB",
+                    borderRadius: "0.8rem",
+                    cursor: "pointer",
+                  }),
+                }}
+              />
+
+              <Select
+                options={buyTypeOptions}
+                value={selectedBuyType}
+                onChange={setSelectedBuyType}
+                placeholder="Buy Type"
+                styles={{
+                  control: (provided) => ({
+                    ...provided,
+                    backgroundColor: "white",
+                    padding: "4px",
+                    border: "2px solid #D1D5DB",
+                    borderRadius: "0.8rem",
+                    cursor: "pointer",
+                  }),
+                }}
+              />
+            </>
+          )}
+        </>
       )}
     </div>
   );
@@ -61,42 +179,39 @@ const BuyingObjective = () => {
   ]);
   const [savedStages, setSavedStages] = useState([...stages]);
 
-  // State to handle the two-step Loyalty flow
+  // State for the two-step Loyalty flow
   const [isLoyalty, setIsLoyalty] = useState(false);
   const [showLoyaltyField, setShowLoyaltyField] = useState(false);
 
-  // Function to add a stage
+  // Add a new stage
   const addStage = (stageName) => {
     if (!stages.includes(stageName)) {
       setStages((prevStages) => [...prevStages, stageName]);
     }
   };
 
-  // Function to remove a stage
+  // Remove an existing stage
   const removeStage = (stageName) => {
     setStages(stages.filter((stage) => stage !== stageName));
   };
 
-  // Function to confirm changes
+  // Confirm changes to stages
   const confirmChanges = () => {
     setSavedStages([...stages]);
     setEdit(false);
   };
 
-  // Handler for the Loyalty/Stage button click
+  // Loyalty button handler
   const handleLoyaltyButtonClick = () => {
     if (!isLoyalty) {
-      // First click: change button text to "Loyalty" and render container with gray background
       setIsLoyalty(true);
     } else {
-      // Second click: reveal the loyalty channels field within the gray container
       setShowLoyaltyField(true);
     }
   };
 
-  // Handler to delete the loyalty stage
+  // Delete the loyalty stage
   const handleDeleteLoyaltyStage = () => {
-    // Reset the loyalty state
     setIsLoyalty(false);
     setShowLoyaltyField(false);
   };
@@ -135,7 +250,7 @@ const BuyingObjective = () => {
         </div>
       )}
 
-      {/* Loyalty Container with Gray Background (visible only in edit mode when loyalty is active) */}
+      {/* Loyalty Container with Gray Background (visible in edit mode when loyalty is active) */}
       {edit && isLoyalty && (
         <div className="bg-gray-200 p-4 rounded-lg mt-4">
           <div className="flex justify-between items-center mb-4">
@@ -147,7 +262,7 @@ const BuyingObjective = () => {
               variant="danger"
               onClick={handleLoyaltyButtonClick}
             />
-            {/* Delete this stage Button */}
+            {/* Delete Loyalty Stage Button */}
             <Button
               text="Delete this stage"
               icon={Trash}
@@ -161,7 +276,7 @@ const BuyingObjective = () => {
                 (channel) => (
                   <div key={channel} className="flex flex-col items-center">
                     <span className="mb-2 font-medium">{channel}</span>
-                    {/* Use the ChannelSelector component */}
+                    {/* Use the updated ChannelSelector */}
                     <ChannelSelector channelName={channel} />
                   </div>
                 )
