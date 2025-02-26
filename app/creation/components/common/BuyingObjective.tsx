@@ -5,7 +5,6 @@ import Consideration from "./Consideration";
 import Conversion from "./Conversion";
 import { Plus, Trash, UserRoundSearch } from "lucide-react";
 
-
 // This component handles the channel selector behavior
 const ChannelSelector = ({ channelName }) => {
   const [selectMode, setSelectMode] = useState(false);
@@ -13,9 +12,9 @@ const ChannelSelector = ({ channelName }) => {
 
   // Options for the dropdown with their respective images
   const options = [
-    { name: "TikTok"},
-    { name: "Youtube"},
-    { name: "Twitter/X"},
+    { name: "TikTok" },
+    { name: "Youtube" },
+    { name: "Twitter/X" },
     { name: "Linkedin" },
   ];
 
@@ -37,8 +36,6 @@ const ChannelSelector = ({ channelName }) => {
           ))}
         </select>
       ) : (
-        
-        
         <Button
           text="Add select channel"
           variant="primary"
