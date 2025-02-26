@@ -29,11 +29,10 @@ const AwarenessEdit = ({ onDelete }) => {
   const [displayNetwork, setDisplayNetwork] = useState([
     { id: 1, name: "The TradeDesk", icon: trade },
     { id: 2, name: "QuantCast", icon: quantcast },
-    { id: 3, name: "Awareness", icon: arrowdown },
+    { id: 3, name: "Video Views", icon: arrowdown },
     { id: 4, name: "Video Views", icon: arrowdown },
-    { id: 5, name: "Video Views", icon: arrowdown },
+    { id: 5, name: "CPV", icon: arrowdown },
     { id: 6, name: "CPV", icon: arrowdown },
-    { id: 7, name: "CPV", icon: arrowdown },
   ]);
 
   // Social Media: sequentially add Facebook, Instagram, then Youtube
@@ -77,6 +76,8 @@ const AwarenessEdit = ({ onDelete }) => {
   return (
     <div className="flex flex-col items-start p-6">
       {/* Header */}
+      
+
       <div className="flex justify-between w-full items-center mb-4">
         <div className="flex items-center gap-4">
           <Image src={speaker} alt="Awareness icon" className="w-5 h-5" />
@@ -124,11 +125,11 @@ const AwarenessEdit = ({ onDelete }) => {
           </div>
 
       {/* Display Network Section */}
+       
       <h2 className="text-black font-bold text-md mt-6 mb-4">Display Network</h2>
-
-      <div className="flex flex-col md:flex-row justify-center gap-4">
-
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+      <div className="flex flex-col md:flex-row justify-between gap-4">
+      
+      <div className="grid grid-cols-2 md:grid-cols-2 gap-4 mb-4">
         {displayNetwork.map((item) => (
           <div
             key={item.id}
@@ -145,15 +146,22 @@ const AwarenessEdit = ({ onDelete }) => {
         ))}
       </div>
 
+
+        
         <Button
           text="Add new channel"
           variant="primary"
           onClick={addNewDisplayNetworkChannel}
           className="rounded-md whitespace-nowrap px-4 py-2"
           />
-          </div>
+
+
+      </div>
+        
+       
 
       <ToastContainer />
+
     </div>
   );
 };
