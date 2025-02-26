@@ -17,7 +17,7 @@ const Homepage = () => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [active, setActive] = useState("Overview");
 
-	console.log('active-active', active)
+
 
 
 	return (
