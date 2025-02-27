@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Roboto } from "next/font/google";
+import { Roboto, Inter } from "next/font/google"; // Import Inter font
 import "./globals.css";
 import { ActiveProvider } from "./utils/ActiveContext";
 import { DateRangeProvider } from "../src/date-range-context";
@@ -11,6 +11,13 @@ const roboto = Roboto({
   variable: "--font-roboto",
   subsets: ["latin"],
   weight: "400",
+});
+
+// Load Inter font
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"], // Adjust weights as needed
 });
 
 export const metadata: Metadata = {
@@ -31,7 +38,7 @@ export default function RootLayout({
           content="width=device-width, maximum-scale=1.0, user-scalable=no, initial-scale=1, shrink-to-fit=no"
         />
       </head>
-      <body className={`${roboto.variable} antialiased`}>
+      <body className={`${roboto.variable} ${inter.variable} antialiased`}>
         <ActiveProvider>
           <ObjectivesProvider>
             <FunnelProvider>
