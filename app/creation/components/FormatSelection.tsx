@@ -3,10 +3,13 @@ import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { FaCheck } from "react-icons/fa"; // Importing the checkmark icon from react-icons
 import speaker from "../../../public/mdi_megaphone.svg";
-import down from "../../../public/arrow-down.svg";
+import down from "../../../public/arrow-down-2.svg";
+import up from "../../../public/arrow-down.svg"; // Importing the up arrow
 import facebook from "../../../public/facebook.svg";
 import ig from "../../../public/ig.svg";
 import youtube from "../../../public/youtube.svg";
+import TheTradeDesk from '../../../public/TheTradeDesk.svg';
+import Quantcast from '../../../public/quantcast.svg';
 
 import carousel from "../../../public/carousel.svg";
 import video_format from "../../../public/video_format.svg";
@@ -59,8 +62,8 @@ export const Platforms = () => {
     {
       title: "Display Network",
       platforms: [
-        { name: "TheTradeDesk", icon: facebook, mediaOptions },
-        { name: "Quantcast", icon: ig, mediaOptions },
+        { name: "TheTradeDesk", icon: TheTradeDesk, mediaOptions },
+        { name: "Quantcast", icon: Quantcast, mediaOptions },
       ],
       style: "max-w-[180px] w-full",
     },
@@ -154,15 +157,17 @@ export const Platforms = () => {
 };
 
 export const FormatSelection = () => {
+  const [isOpen, setIsOpen] = useState(true); // State to manage collapse/expand
+
   return (
     <div>
       <PageHeaderWrapper
         t1="Select formats for each channel"
         t2="Select the creative formats you want to use for your campaign. Specify the number of visuals for each format. Multiple formats can be selected per channel."
       />
-      <div className="card mt-[32px] bg-[#FFFFFF] max-w-[968px]">
-        <div className="flex justify-between items-center p-6 gap-3 w-[968px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] rounded-t-[10px]">
-          <div className="flex items-center gap-2">
+      <div className="card cursor-pointer mt-[32px] bg-[#FFFFFF] max-w-[968px]">
+        <div className="flex justify-between items-center p-6 gap-3 w-[968px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] rounded-t-[10px]" onClick={() => setIsOpen(!isOpen)}>
+          <div className="flex items-center gap-2 cursor-pointer"> {/* Added cursor pointer */}
             <Image src={speaker} alt="speaker" />
             <p>Awareness</p>
           </div>
@@ -170,12 +175,14 @@ export const FormatSelection = () => {
             In progress
           </p>
           <div>
-            <Image src={down} alt="down" />
+            <Image src={isOpen ? up : down} alt={isOpen ? "up" : "down"} />
           </div>
         </div>
-        <div className="card-body">
-          <Platforms />
-        </div>
+        {isOpen && (
+          <div className="card-body">
+            <Platforms />
+          </div>
+        )}
       </div>
     </div>
   );
