@@ -4,10 +4,10 @@ import Awareness from "./Awareness";
 import Consideration from "./Consideration";
 import Conversion from "./Conversion";
 import { Plus, Trash, UserRoundSearch, X } from "lucide-react";
-import YoutubeIcon from "../../../../public/youtube.svg"
-import LinkedinIcon from "../../../../public/linkedin.svg"
-import TiktokIcon from "../../../../public/tictok.svg"
-import TwitterIcon from "../../../../public/x.svg"
+import YoutubeIcon from "../../../../public/youtube.svg";
+import LinkedinIcon from "../../../../public/linkedin.svg";
+import TiktokIcon from "../../../../public/tictok.svg";
+import TwitterIcon from "../../../../public/x.svg";
 import Select, { components } from "react-select";
 import Image from "next/image";
 
@@ -55,7 +55,7 @@ const IconOption = (props) => (
   </components.Option>
 );
 
-const SingleValue = ({ children, ...props }) => (
+const SingleValue = (props) => (
   <components.SingleValue {...props}>
     <div style={{ display: "flex", alignItems: "center" }}>
       {props.data.icon && <span style={{ marginRight: 8 }}>{props.data.icon}</span>}
@@ -84,6 +84,7 @@ const ChannelSelector = ({ channelName }) => {
           variant="primary"
           className="bg-blue-500 text-white"
           onClick={() => setShowSelect(true)}
+          
         />
       ) : (
         <>
@@ -92,7 +93,7 @@ const ChannelSelector = ({ channelName }) => {
               options={options}
               components={{
                 Option: IconOption,
-                SingleValue
+                SingleValue: SingleValue // Ensure SingleValue is correctly referenced
               }}
               value={selectedOption}
               onChange={(option) => {
@@ -245,6 +246,8 @@ const BuyingObjective = () => {
           <Button
             text="Add new Stage"
             variant="primary"
+            icon={Plus}
+            className="!rounded-full"
             onClick={handleLoyaltyButtonClick}
           />
         </div>

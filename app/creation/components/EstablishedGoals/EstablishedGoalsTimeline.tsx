@@ -8,15 +8,20 @@ import facebook from "../../../../public/facebook.svg";
 import TheTradeDesk from "../../../../public/TheTradeDesk.svg";
 import instagram from "../../../../public/ig.svg";
 import { TbZoomFilled, TbCreditCardFilled } from "react-icons/tb";
+import { CgInfo } from "react-icons/cg";
 
 const EstablishedGoalsTimeline = ({ dateList, funnels }) => {
-	// Manage state separately for each funnel
+	// Manage state separately for each funnel, section, and platform
 	const [expanded, setExpanded] = useState({});
 	const [openSections, setOpenSections] = useState({});
 
 	// Function to toggle campaign dropdown
-	const toggleShow = (index) => {
-		setExpanded((prev) => ({ ...prev, [index]: !prev[index] }));
+	const toggleShow = (index, section, platform) => {
+		const key = `${index}-${section}-${platform}`;
+		setExpanded((prev) => ({
+			...prev,
+			[key]: !prev[key],
+		}));
 	};
 
 	// Function to toggle Awareness/Consideration/Conversion dropdowns
@@ -26,8 +31,6 @@ const EstablishedGoalsTimeline = ({ dateList, funnels }) => {
 			[`${index}-${section}`]: !prev[`${index}-${section}`],
 		}));
 	};
-
-
 
 	return (
 		<div
@@ -47,16 +50,13 @@ const EstablishedGoalsTimeline = ({ dateList, funnels }) => {
 					}}
 				>
 					<div
-						className=" mt-6  "
+						className="mt-6"
 						style={{
 							gridColumnStart: startWeek,
 							gridColumnEnd: endWeek + 1,
 						}}
 					>
-
-
 						{/* Expanded section */}
-
 						<div>
 							{["Awareness", "Consideration", "Conversion"].map((section) => (
 								<div key={section}
@@ -76,7 +76,6 @@ const EstablishedGoalsTimeline = ({ dateList, funnels }) => {
 											gridColumnStart: 1,
 											gridColumnEnd: ((endWeek + 1) - startWeek) + 1
 										}}
-
 									>
 										<div className="flex items-center justify-center gap-3 flex-1">
 											<span>
@@ -85,11 +84,10 @@ const EstablishedGoalsTimeline = ({ dateList, funnels }) => {
 													: section === "Consideration"
 														? <TbZoomFilled />
 														: <TbCreditCardFilled />}
-
 											</span>
 											<span>{section}</span>
 											<span>
-												<FiChevronDown size={15} />
+												{openSections[`${index}-${section}`] ? <FiChevronUp size={15} /> : <FiChevronDown size={15} />}
 											</span>
 										</div>
 										<button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
@@ -102,34 +100,83 @@ const EstablishedGoalsTimeline = ({ dateList, funnels }) => {
 									</button>
 
 									{openSections[`${index}-${section}`] && (
-										<div style={{ gridColumnStart: 2, gridColumnEnd: ((endWeek + 1) - startWeek) + 1, }}>
+										<div style={{ gridColumnStart: 2, gridColumnEnd: ((endWeek + 1) - startWeek) + 1 }}>
 											{[
-												{ platform: "Facebook", image: facebook, amount: "1,800 €", bg: "bg-[#0866FF33]" },
-												{ platform: "Instagram", image: instagram, amount: "1,800 €", bg: "bg-[#FEF1F8]" },
-												{ platform: "Youtube", image: youtube, amount: "1,200 €", bg: "bg-[#FFF0F0]" },
-												{ platform: "TheTradeDesk", image: TheTradeDesk, amount: "900 €", bg: "bg-[#F0F9FF]" },
-											].map(({ platform, image, amount, bg }) => (
-												<div key={platform} style={{
-													display: 'grid',
-													gridTemplateColumns: `repeat(${(((endWeek + 1) - startWeek) + 1) - 2}, 1fr)`
-												}}>
-													<div className={`py-1 ${bg} text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between`}
-														style={{
-															gridColumnStart: 1,
-															gridColumnEnd: (((((endWeek + 1) - startWeek) + 1) - 1) + 1) - 1
-														}}
-													>
-														<div />
-														<span className="flex items-center gap-3 pl-3 ml-14">
-															<Image src={image} alt={platform} width={20} />
-															<span>{platform}</span>
-														</span>
-														<button className="bg-[#0866FF33]/5 py-2 px-[10px] rounded-[5px] mr-3">
-															{amount}
-														</button>
+												{ platform: "Facebook", image: facebook, amount: "1,800 €", bg: "bg-[#0866FF33]", color: "#3175FF", acolor: "#E4EDFF" },
+												{ platform: "Instagram", image: instagram, amount: "1,800 €", bg: "bg-[#FEF1F8]", color: "#E01389", acolor: "#FCE6F2" },
+												{ platform: "Youtube", image: youtube, amount: "1,200 €", bg: "bg-[#FFF0F0]", color: "#FF0302", acolor: "#FFE4E4" },
+												{ platform: "TheTradeDesk", image: TheTradeDesk, amount: "900 €", bg: "bg-[#F0F9FF]", color: "#0099FA", acolor: "#E4F4FE" },
+											].map(({ platform, image, amount, bg, color, acolor }) => {
+												const key = `${index}-${section}-${platform}`;
+												return (
+													<div key={platform} style={{
+														display: 'grid',
+														gridTemplateColumns: `repeat(${(((endWeek + 1) - startWeek) + 1) - 2}, 1fr)`
+													}}>
+														<div className={`p-1 ${bg} text-[15px] font-[500] my-5 w-full rounded-[10px] flex items-center justify-between`}
+															style={{
+																gridColumnStart: 1,
+																gridColumnEnd: (((((endWeek + 1) - startWeek) + 1) - 1) + 1) - 1,
+																border: `0.5px solid ${color}`
+															}}
+														>
+															<div />
+															<span className="flex items-center gap-3">
+																<Image src={image} alt={platform} width={20} />
+																<span style={{ color: color }}>{platform}</span>
+																<button onClick={() => toggleShow(index, section, platform)}>
+																	{expanded[key] ? <FiChevronUp /> : <FiChevronDown />}
+																</button>
+															</span>
+															<button
+																className={`py-2 px-[10px] rounded-[5px]`}
+																style={{ backgroundColor: acolor }}>
+																{amount}
+															</button>
+														</div>
+														{/* Child content */}
+														{expanded[key] && (
+															<div className="budgetImpressions" style={{
+																gridColumnStart: 1,
+																gridColumnEnd: (((endWeek + 1) - startWeek) + 1)
+															}}>
+																<div className="flex flex-col gap-2">
+																	<h6 className="reach-btn-text">Budget</h6>
+																	<p className="budget_number ">1,800 €</p>
+																</div>
+																<div className="flex flex-col gap-2">
+																	<h6 className="reach-btn-text">CPM</h6>
+																	<p className="budget_number_btn">CPM</p>
+																</div>
+																<div className="flex flex-col gap-2">
+																	<div className="flex items-center gap-1">
+																		<h6 className="reach-btn-text">Impressions</h6>
+																		<CgInfo size={10} className="mt-[0.5]" />
+																	</div>
+
+																	<p className=" ">280,000</p>
+																</div>
+																<div className="flex flex-col gap-2">
+																	<h6 className="reach-btn-text">Frequency</h6>
+																	<p className="budget_number_btn">Frequency</p>
+																</div>
+																<div className="flex flex-col gap-2">
+																	<div className="flex items-center gap-1">
+																		<h6 className="reach-btn-text">Reach</h6>
+																		<CgInfo size={10} className="mt-[0.5]" />
+																	</div>
+																	<p className=" ">320 000</p>
+																</div>
+																<div className="flex flex-col gap-2">
+																	<button className="reach-btn">+</button>
+																	<p className=" "></p>
+																</div>
+
+															</div>
+														)}
 													</div>
-												</div>
-											))}
+												);
+											})}
 										</div>
 									)}
 								</div>

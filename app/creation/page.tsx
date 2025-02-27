@@ -1,9 +1,9 @@
 "use client";
 import React from "react";
 import PlanCampaignSchedule from "./components/PlanCampaignSchedule";
-import YourCampaign from "./components/YourCampaign";
-import YourObjective from "./components/YourObjective";
-import FunnelStage from "./components/FunnelStage";
+import DefineCampaignObjective from "./components/DefineCampaignObjective";
+import MapFunnelStages from "./components/MapFunnelStages";
+import SelectChannelMix from "./components/SelectChannelMix";
 import { useActive } from "../utils/ActiveContext";
 import { FormatSelection } from "./components/FormatSelection";
 import PlanCampaignScheduleSubStepComponent from "./components/PlanCampaignScheduleSubStepComponent";
@@ -23,9 +23,9 @@ const Creation = () => {
     <div>
       <div className="creation_continer">
         {active === 0 && <SetupScreen />}
-        {active === 1 && <YourCampaign />}
-        {active === 2 && <YourObjective />}
-        {active === 3 && <FunnelStage />}
+        {active === 1 && <DefineCampaignObjective />}
+        {active === 2 && <MapFunnelStages />}
+        {active === 3 && <SelectChannelMix />}
         {active === 4 && <FormatSelection />}
         {active === 5 && <SetBuyObjectivesAndTypes />}
         {active === 6 && <SetBuyObjectivesAndTypesSubStep />}

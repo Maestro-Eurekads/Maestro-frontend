@@ -9,7 +9,7 @@ import { funnelStages } from '../../../components/data';
 
 
 
-const FunnelStage = () => {
+const SelectChannelMix = () => {
 	// Controls expanded/collapsed state for each stage
 	const [openItems, setOpenItems] = useState({ Awareness: true });
 	// Tracks selected platforms per stage (per category)
@@ -217,4 +217,4 @@ const FunnelStage = () => {
 	);
 };
 
-export default FunnelStage;
+export default SelectChannelMix;
