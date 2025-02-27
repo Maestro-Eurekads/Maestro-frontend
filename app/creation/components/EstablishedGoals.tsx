@@ -19,7 +19,7 @@ const channels = [
     startDate: "01/02/2024",
     endDate: "01/03/2024",
     audienceSize: 50000,
-    budgetSize: 10000,
+    budgetSize: "1,800 €",
     impressions: 2000000,
     reach: 2000000,
     hasChildren: true,

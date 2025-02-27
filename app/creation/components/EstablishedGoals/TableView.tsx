@@ -1,10 +1,18 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Image from "next/image";
 import zoom from '../../../../public/tabler_zoom-filled.svg';
 import credit from '../../../../public/mdi_credit-card.svg';
 
 
 const TableView = ({ channels }) => {
+	const [expandedRows, setExpandedRows] = useState({});
+
+	const toggleRow = (index) => {
+		setExpandedRows((prev) => ({
+			...prev,
+			[index]: !prev[index],
+		}));
+	};
 	return (
 		<div className="  my-5 mx-[40px]">
 			<section className="">
@@ -25,51 +33,31 @@ const TableView = ({ channels }) => {
 				</h1>
 				<div className=" rounded-xl border border-[#E5E5E5]">
 					<div className="rounded-xl overflow-x-auto">
-						<table className="table">
-							{/* Table Head */}
-							<thead>
-								<tr className="">
-									<th className="text-[#667085] py-3 px-6 text-[14px] font-[600]">
-										Channel
-									</th>
-									<th className="text-[#667085] py-3 px-6 text-[14px] font-[600]">
-										Audience
-									</th>
-									<th className="text-[#667085] py-3 px-6 text-[14px] font-[600]">
-										Start Date
-									</th>
-									<th className="text-[#667085] py-3 px-6 text-[14px] font-[600]">
-										End Date
-									</th>
-									<th className="text-[#667085] py-3 px-6 text-[14px] font-[600]">
-										Audience Size
-									</th>
-									<th className="text-[#667085] py-3 px-6 text-[14px] font-[600]">
-										Budget Size (€)
-									</th>
-									<th className="text-[#667085] py-3 px-6 text-[14px] font-[600]">
-										CPM (€)
-									</th>
-									<th className="text-[#667085] py-3 px-6 text-[14px] font-[600]">
-										Impressions
-									</th>
-									<th className="text-[#667085] py-3 px-6 text-[14px] font-[600]">
-										Frequency
-									</th>
-									<th className="text-[#667085] py-3 px-6 text-[14px] font-[600]">
-										Reach
-									</th>
+						<table className="w-full border-collapse">
+							<thead className="whitespace-nowrap">
+								<tr className="bg-gray-200">
+									<th className="py-4 px-6">Channel</th>
+									<th className="py-4 px-6">Audience</th>
+									<th className="py-4 px-6">Start Date</th>
+									<th className="py-4 px-6">End Date</th>
+									<th className="py-4 px-6">Audience Size</th>
+									<th className="py-4 px-6">Budget Size</th>
+									<th className="py-4 px-6">CPM</th>
+									<th className="py-4 px-6">Audience</th>
+									<th className="py-4 px-6">Frequency</th>
+									<th className="py-4 px-6">Reach</th>
 								</tr>
 							</thead>
-
-							{/* Table Body */}
 							<tbody className="whitespace-nowrap">
-								{/* Row 1 */}
-								{channels.map((channel, index) => {
-									return (
-										<tr key={index} className="py-6">
+								{channels.map((channel, index) => (
+									<React.Fragment key={index}>
+										{/* Parent Row */}
+										<tr key={index} className="border-t bg-white hover:bg-gray-100">
 											<td className="py-6 px-6 text-[15px]">
-												<span className="flex items-center gap-2 text-[#0866FF]">
+												<span
+													className="flex items-center gap-2 text-[#0866FF] cursor-pointer"
+													onClick={() => toggleRow(index)}
+												>
 													{channel.hasChildren && (
 														<span>
 															<svg
@@ -86,16 +74,13 @@ const TableView = ({ channels }) => {
 																	strokeWidth="1.33333"
 																	strokeLinecap="round"
 																	strokeLinejoin="round"
+																	transform={expandedRows[index] ? "rotate(180 8.5 8)" : ""}
 																/>
 															</svg>
 														</span>
 													)}
 													<span className="relative w-[16px] h-[16px]">
-														<Image
-															src={channel.icon}
-															fill
-															alt="Facebook Icon"
-														/>
+														<Image src={channel.icon} fill alt="Facebook Icon" />
 													</span>
 													<span>{channel.name}</span>
 												</span>
@@ -103,33 +88,44 @@ const TableView = ({ channels }) => {
 											<td className="py-6 px-6">{channel.audience}</td>
 											<td className="py-6 px-6">{channel.startDate}</td>
 											<td className="py-6 px-6">{channel.endDate}</td>
-											<td className="py-6 px-6">
-												{channel.audienceSize}
-											</td>
+											<td className="py-6 px-6">{channel.audienceSize}</td>
 											<td className="py-6 px-6">{channel.budgetSize}</td>
 											<td className="py-6 px-6">
-												<input
-													type="text"
-													name=""
-													id=""
-													placeholder="Enter CPM"
-													className="bg-transparent border-none outline-none w-full"
-												/>
+												<div className="cpm_bg">CPM</div>
 											</td>
 											<td className="py-6 px-6">{channel.audience}</td>
 											<td className="py-6 px-6">
 												<input
 													type="text"
-													name=""
-													id=""
 													placeholder="Enter Frequency"
 													className="bg-transparent border-none outline-none w-full"
 												/>
 											</td>
 											<td className="py-6 px-6">{channel.reach}</td>
 										</tr>
-									);
-								})}
+
+										{/* Sub-table (Expanded Rows) */}
+										{expandedRows[index] && (
+											<>
+												{[1, 2, 3, 4, 5].map((subIndex) => (
+													<tr key={subIndex} className="bg-white">
+														<td className="py-6 px-6 border-none">Sub-Item {subIndex}</td>
+														<td className="py-6 px-6 border-none">Value {subIndex}</td>
+														<td className="py-6 px-6 border-none">Data {subIndex}</td>
+														<td className="py-6 px-6 border-none">Info {subIndex}</td>
+														<td className="py-6 px-6 border-none">Extra {subIndex}</td>
+														<td className="py-6 px-6 border-none">Extra {subIndex}</td>
+														<td className="py-6 px-6 border-none">Extra {subIndex}</td>
+														<td className="py-6 px-6 border-none">Extra {subIndex}</td>
+														<td className="py-6 px-6 border-none">Extra {subIndex}</td>
+														<td className="py-6 px-6 border-none">Extra {subIndex}</td>
+													</tr>
+												))}
+
+											</>
+										)}
+									</React.Fragment>
+								))}
 							</tbody>
 						</table>
 					</div>
@@ -307,7 +303,8 @@ const TableView = ({ channels }) => {
 							<tbody className="whitespace-nowrap">
 								{/* Row 1 */}
 								{channels.map((channel, index) => {
-									return (
+									<React.Fragment key={index}>
+										return (
 										<tr key={index} className="py-6">
 											<td className="py-6 px-6 text-[15px]">
 												<span className="flex items-center gap-2 text-[#0866FF]">
@@ -369,7 +366,8 @@ const TableView = ({ channels }) => {
 											</td>
 											<td className="py-6 px-6">{channel.reach}</td>
 										</tr>
-									);
+										);
+									</React.Fragment>
 								})}
 							</tbody>
 						</table>
@@ -381,3 +379,128 @@ const TableView = ({ channels }) => {
 }
 
 export default TableView
+
+
+// import React, { useState } from "react";
+// import Image from "next/image";
+
+// const ChannelTable = ({ channels }) => {
+// 	const [expandedRows, setExpandedRows] = useState({});
+
+// 	// Toggle row expansion
+// 	const toggleRow = (index) => {
+// 		setExpandedRows((prev) => ({
+// 			...prev,
+// 			[index]: !prev[index],
+// 		}));
+// 	};
+
+// 	return (
+// 		<table className="w-full border-collapse">
+// 			<thead>
+// 				<tr className="bg-gray-200">
+// 					<th className="py-4 px-6">Channel</th>
+// 					<th className="py-4 px-6">Audience</th>
+// 					<th className="py-4 px-6">Start Date</th>
+// 					<th className="py-4 px-6">End Date</th>
+// 					<th className="py-4 px-6">Audience Size</th>
+// 					<th className="py-4 px-6">Budget Size</th>
+// 					<th className="py-4 px-6">CPM</th>
+// 					<th className="py-4 px-6">Audience</th>
+// 					<th className="py-4 px-6">Frequency</th>
+// 					<th className="py-4 px-6">Reach</th>
+// 				</tr>
+// 			</thead>
+// 			<tbody>
+// 				{channels.map((channel, index) => (
+// 					<React.Fragment key={index}>
+// 						{/* Parent Row */}
+// 						<tr key={index} className="border-t bg-white hover:bg-gray-100">
+// 							<td className="py-6 px-6 text-[15px]">
+// 								<span
+// 									className="flex items-center gap-2 text-[#0866FF] cursor-pointer"
+// 									onClick={() => toggleRow(index)}
+// 								>
+// 									{channel.hasChildren && (
+// 										<span>
+// 											<svg
+// 												width="17"
+// 												height="16"
+// 												viewBox="0 0 17 16"
+// 												fill="none"
+// 												xmlns="http://www.w3.org/2000/svg"
+// 											>
+// 												<path
+// 													d="M5.38021 6.66667L8.71354 10L12.0469 6.66667"
+// 													stroke="#061237"
+// 													strokeOpacity="0.8"
+// 													strokeWidth="1.33333"
+// 													strokeLinecap="round"
+// 													strokeLinejoin="round"
+// 													transform={expandedRows[index] ? "rotate(180 8.5 8)" : ""}
+// 												/>
+// 											</svg>
+// 										</span>
+// 									)}
+// 									<span className="relative w-[16px] h-[16px]">
+// 										<Image src={channel.icon} fill alt="Facebook Icon" />
+// 									</span>
+// 									<span>{channel.name}</span>
+// 								</span>
+// 							</td>
+// 							<td className="py-6 px-6">{channel.audience}</td>
+// 							<td className="py-6 px-6">{channel.startDate}</td>
+// 							<td className="py-6 px-6">{channel.endDate}</td>
+// 							<td className="py-6 px-6">{channel.audienceSize}</td>
+// 							<td className="py-6 px-6">{channel.budgetSize}</td>
+// 							<td className="py-6 px-6">
+// 								<div className="cpm_bg">CPM</div>
+// 							</td>
+// 							<td className="py-6 px-6">{channel.audience}</td>
+// 							<td className="py-6 px-6">
+// 								<input
+// 									type="text"
+// 									placeholder="Enter Frequency"
+// 									className="bg-transparent border-none outline-none w-full"
+// 								/>
+// 							</td>
+// 							<td className="py-6 px-6">{channel.reach}</td>
+// 						</tr>
+
+// 						{/* Sub-table (Expanded Rows) */}
+// 						{expandedRows[index] && (
+// 							<tr>
+// 								<td colSpan={10} className="p-4 bg-gray-50">
+// 									<table className="w-full border-collapse bg-white rounded-md">
+// 										<thead>
+// 											<tr className="bg-gray-100">
+// 												<th className="py-3 px-4">Sub-Channel</th>
+// 												<th className="py-3 px-4">Detail 1</th>
+// 												<th className="py-3 px-4">Detail 2</th>
+// 												<th className="py-3 px-4">Detail 3</th>
+// 												<th className="py-3 px-4">Detail 4</th>
+// 											</tr>
+// 										</thead>
+// 										<tbody>
+// 											{[1, 2, 3, 4, 5].map((subIndex) => (
+// 												<tr key={subIndex} className="border-t">
+// 													<td className="py-2 px-4">Sub-Item {subIndex}</td>
+// 													<td className="py-2 px-4">Value {subIndex}</td>
+// 													<td className="py-2 px-4">Data {subIndex}</td>
+// 													<td className="py-2 px-4">Info {subIndex}</td>
+// 													<td className="py-2 px-4">Extra {subIndex}</td>
+// 												</tr>
+// 											))}
+// 										</tbody>
+// 									</table>
+// 								</td>
+// 							</tr>
+// 						)}
+// 					</React.Fragment>
+// 				))}
+// 			</tbody>
+// 		</table>
+// 	);
+// };
+
+// export default ChannelTable;

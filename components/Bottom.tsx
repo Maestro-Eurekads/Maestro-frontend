@@ -1,4 +1,5 @@
-// Bottom.tsx
+// components/Bottom.tsx
+"use client";
 import Image from 'next/image';
 import clsx from 'clsx';
 import Continue from '../public/arrow-back-outline.svg';
@@ -14,8 +15,9 @@ interface BottomProps {
 
 const Bottom = ({ setIsOpen }: BottomProps) => {
   const { active, setActive, subStep, setSubStep } = useActive();
-  const { selectedObjectives } = useObjectives();
-  const [triggerError, setTriggerError] = useState(false);
+  const { selectedObjectives, selectedFunnels } = useObjectives();
+  const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
+  const [triggerFunnelError, setTriggerFunnelError] = useState(false);
 
   const handleBack = () => {
     if (subStep > 0) {
@@ -33,13 +35,21 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   };
 
   const handleContinue = () => {
-    // Check if at least one objective is selected when on the campaign objective step (assuming active === 0 or adjust as needed)
+    // Check for objectives on step 1
     if (active === 1 && selectedObjectives.length === 0) {
-      setTriggerError(true);
+      setTriggerObjectiveError(true);
       return; // Prevent navigation
     }
 
-    setTriggerError(false); // Clear error if proceeding
+    // Check for funnels on step 2
+    if (active === 2 && selectedFunnels.length === 0) {
+      setTriggerFunnelError(true);
+      return; // Prevent navigation
+    }
+
+    // Clear errors if proceeding
+    setTriggerObjectiveError(false);
+    setTriggerFunnelError(false);
 
     if (active === 8 && subStep < 2) {
       setSubStep((prev) => prev + 1);
@@ -53,11 +63,20 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   return (
     <footer id="footer" className="w-full">
-      {triggerError && (
+      {triggerObjectiveError && (
         <AlertMain
           alert={{
             variant: 'error',
-            message: 'Please select exactly one campaign objective!',
+            message: 'Please select at least one campaign objective!',
+            position: 'bottom-right',
+          }}
+        />
+      )}
+      {triggerFunnelError && (
+        <AlertMain
+          alert={{
+            variant: 'error',
+            message: 'Please select at least one funnel stage!',
             position: 'bottom-right',
           }}
         />

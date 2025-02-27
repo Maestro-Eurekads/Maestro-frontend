@@ -25,9 +25,9 @@ const Dashboard = () => {
 
 	return (
 		<div className='mt-[24px] '>
-			<div className='flex items-center gap-3 px-[72px]'>
+			<div className='flex items-center gap-3 px-[72px] flex-wrap '>
 				<FiltersDropdowns />
-				<div className="w-[24px] h-0 border border-[rgba(0,0,0,0.1)] rotate-90 self-center mt-6" />
+				<div className="w-[24px] h-0 border border-[rgba(0,0,0,0.1)] rotate-90 self-center " />
 				<HighlightViewDropdowns />
 			</div>
 

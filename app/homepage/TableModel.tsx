@@ -6,6 +6,7 @@ import blueprofile from "../../public/blueprofile.svg";
 import Input from "../../components/Input";
 import Dropdowns from "../../components/CustomDropdown";
 import EditInputs from "../../components/EditInput";
+import ResponsibleApproverDropdowns from "../../components/ResponsibleApproverDropdowns";
 
 const TableModel = ({ isOpen, setIsOpen }) => {
 
@@ -30,7 +31,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 	};
 
 	return (
-		<div className="z-500">
+		<div className="z-99999999">
 			{isOpen && (
 				<div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
 					<div className="flex flex-col items-start p-6 gap-6 w-[700px]  bg-white rounded-[32px]">
@@ -60,7 +61,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 									value={inputs.email || ''}
 									handleOnChange={(e) => handleOnChange("email", e.target.value)}
 									label={'Client name'}
-									disabled={true} placeholder={'Client name'} />
+									placeholder={'Client name'} />
 							</div>
 
 							<div className="w-full">
@@ -68,16 +69,16 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 									type="email"
 									value={inputs.email || ''}
 									handleOnChange={(e) => handleOnChange("email", e.target.value)}
-									label={'Client name'}
-									disabled={true} placeholder={'Client name'} />
+									label={'Client emails (add up to 5 emails)'}
+									placeholder={'Enter email adress'} />
 							</div>
 							<button className="model_button_black">Add</button>
 						</div>
 						<div className="w-full">
-							<Dropdowns one={true} two={true} labelone={"Julien Dahmoun "} labeltwo={"Select fee type"} right={true} islabelone={"Responsible"} islabeltwo={"Approver"} />
+							<ResponsibleApproverDropdowns right={true} />
 						</div>
 						<div className="w-full">
-							<EditInputs islabelone={"Business level 1"} islabeltwo={"Business level 2"} islabelthree={"Business level 3"} />
+							<EditInputs />
 						</div>
 						<div className="w-[50%]">
 							<Dropdowns one={true} two={false} labelone={"Select fee type"} labeltwo={undefined} right={false} islabelone={"Fee"} islabeltwo={undefined} />

@@ -7,7 +7,7 @@ import { campaignObjectives } from '../../../components/data';
 import AlertMain from '../../../components/Alert/AlertMain';
 import { useObjectives } from '../../utils/useObjectives';
 
-const YourCampaign = () => {
+const DefineCampaignObjective = () => {
 	const { selectedObjectives, setSelectedObjectives } = useObjectives();
 
 	// Toggle selection and enforce single selection
@@ -59,4 +59,4 @@ const YourCampaign = () => {
 	);
 };
 
-export default YourCampaign;
+export default DefineCampaignObjective;

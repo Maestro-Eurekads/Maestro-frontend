@@ -1,11 +1,12 @@
-import React, { useState } from 'react'
+// components/MapFunnelStages.tsx
+import React from 'react';
 import Image from "next/image";
 import speaker from '../../../public/mdi_megaphone.svg';
 import zoom from '../../../public/tabler_zoom-filled.svg';
 import credit from '../../../public/mdi_credit-card.svg';
 import addPlus from '../../../public/addPlus.svg';
 import PageHeaderWrapper from '../../../components/PageHeaderWapper';
-
+import { useObjectives } from '../../utils/useObjectives';
 
 
 const awarenessStages = [
@@ -15,16 +16,16 @@ const awarenessStages = [
 	{ id: 4, icon: addPlus, label: "Loyalty", bgColor: "bg-red-500" },
 ];
 
-const YourObjective = () => {
-
-	const [selectedIds, setSelectedIds] = useState<number[]>([]);
+const MapFunnelStages = () => {
+	const { selectedFunnels, setSelectedFunnels } = useObjectives();
 
 	// Toggle selection logic
 	const handleSelect = (id: number) => {
-		setSelectedIds((prev) =>
+		setSelectedFunnels((prev) =>
 			prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
 		);
 	};
+
 	return (
 		<div>
 			<PageHeaderWrapper
@@ -36,7 +37,7 @@ const YourObjective = () => {
 			<div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
 				{/* Awareness */}
 				<button
-					className={`cursor-pointer awareness_card_one ${selectedIds.includes(1) ? "awareness_card_one_active" : ""
+					className={`cursor-pointer awareness_card_one ${selectedFunnels.includes(1) ? "awareness_card_one_active" : ""
 						}`}
 					onClick={() => handleSelect(1)}
 				>
@@ -46,7 +47,7 @@ const YourObjective = () => {
 
 				{/* Consideration */}
 				<button
-					className={`cursor-pointer awareness_card_two ${selectedIds.includes(2) ? "awareness_card_two_active" : ""
+					className={`cursor-pointer awareness_card_two ${selectedFunnels.includes(2) ? "awareness_card_two_active" : ""
 						}`}
 					onClick={() => handleSelect(2)}
 				>
@@ -56,7 +57,7 @@ const YourObjective = () => {
 
 				{/* Conversion */}
 				<button
-					className={`cursor-pointer awareness_card_three ${selectedIds.includes(3) ? "awareness_card_three_active" : ""
+					className={`cursor-pointer awareness_card_three ${selectedFunnels.includes(3) ? "awareness_card_three_active" : ""
 						}`}
 					onClick={() => handleSelect(3)}
 				>
@@ -66,7 +67,7 @@ const YourObjective = () => {
 
 				{/* Loyalty */}
 				<button
-					className={`cursor-pointer awareness_card_four ${selectedIds.includes(4) ? "awareness_card_four_active" : ""
+					className={`cursor-pointer awareness_card_four ${selectedFunnels.includes(4) ? "awareness_card_four_active" : ""
 						}`}
 					onClick={() => handleSelect(4)}
 				>
@@ -75,7 +76,7 @@ const YourObjective = () => {
 				</button>
 			</div>
 		</div>
-	)
-}
+	);
+};
 
-export default YourObjective
+export default MapFunnelStages;

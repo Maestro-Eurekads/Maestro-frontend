@@ -24,24 +24,24 @@ const buyTypeOptions = [
 
 // Updated ChannelSelector with react‑select and icons
 const options = [
-  { 
-    value: "TikTok", 
-    label: "TikTok", 
+  {
+    value: "TikTok",
+    label: "TikTok",
     icon: <Image src={TiktokIcon} alt="TikTok" width={16} height={16} className="cursor-pointer font-bold size-5" />
   },
-  { 
-    value: "Youtube", 
-    label: "Youtube", 
+  {
+    value: "Youtube",
+    label: "Youtube",
     icon: <Image src={YoutubeIcon} alt="Youtube" width={16} height={16} className="font-bold size-5" />
   },
-  { 
-    value: "Twitter/X", 
-    label: "Twitter/X", 
+  {
+    value: "Twitter/X",
+    label: "Twitter/X",
     icon: <Image src={TwitterIcon} alt="Twitter" width={16} height={16} className="cursor-pointer font-bold size-5" />
-  }, 
-  { 
-    value: "Linkedin", 
-    label: "Linkedin", 
+  },
+  {
+    value: "Linkedin",
+    label: "Linkedin",
     icon: <Image src={LinkedinIcon} alt="LinkedIn" width={16} height={16} className="cursor-pointer font-bold size-5" />
   },
 ];
@@ -91,7 +91,7 @@ const ChannelSelector = ({ channelName }) => {
           <div className="relative">
             <Select
               options={options}
-              components={{ 
+              components={{
                 Option: IconOption,
                 SingleValue: SingleValue // Ensure SingleValue is correctly referenced
               }}
@@ -121,7 +121,7 @@ const ChannelSelector = ({ channelName }) => {
               </button>
             )}
           </div>
-          
+
           {selectedOption && (
             <>
               <Select

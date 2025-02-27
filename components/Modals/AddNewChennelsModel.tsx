@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react";
-import FunnelStage from "../../app/creation/components/FunnelStage";
+import FunnelStage from "../../app/creation/components/SelectChannelMix";
 import { funnelStages } from "../data";
 import Image from "next/image";
 import up from '../../public/arrow-down.svg';
