@@ -1,19 +1,25 @@
-"use client"
+"use client";
+
 import React, { useState, useRef, useEffect } from "react";
 import down from "../public/down.svg";
 import Image from 'next/image'
 
-
-const CustomDropdown = ({ label, options, right, islabelone, islabeltwo }: { label: string; options: string[]; right: string; islabelone: string, islabeltwo: string }) => {
+const CustomDropdown = ({ label, options, right, islabelone, islabeltwo, disabled }: { label: string; options: string[]; right: string; islabelone: string, islabeltwo: string, disabled?: boolean }) => {
 	const [selectedOption, setSelectedOption] = useState<string | null>(null);
 	const [isOpen, setIsOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
-	const toggleDropdown = () => setIsOpen(!isOpen);
+	const toggleDropdown = () => {
+		if (!disabled) {
+			setIsOpen(!isOpen);
+		}
+	};
 
 	const handleSelect = (option: string) => {
-		setSelectedOption(option);
-		setIsOpen(false);
+		if (!disabled) {
+			setSelectedOption(option);
+			setIsOpen(false);
+		}
 	};
 
 	const handleClickOutside = (event: MouseEvent) => {
@@ -28,11 +34,11 @@ const CustomDropdown = ({ label, options, right, islabelone, islabeltwo }: { lab
 	}, []);
 
 	return (
-		<div className="relative w-full" ref={dropdownRef} >
+		<div className="relative w-full" ref={dropdownRef}>
 			{/* Dropdown Button */}
 			<label className="font-medium text-[15px] leading-5 text-gray-600 ">{islabelone || islabeltwo}</label>
 			<div
-				className="flex items-center px-4 py-2 w-full h-[40px] border border-[#EFEFEF] rounded-[10px] cursor-pointer mt-[8px]"
+				className={`flex items-center px-4 py-2 w-full h-[40px] border border-[#EFEFEF] rounded-[10px] mt-[8px] ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
 				onClick={toggleDropdown}
 			>
 				{right && <div className='view_content_table mr-2'>JB</div>}
@@ -43,7 +49,7 @@ const CustomDropdown = ({ label, options, right, islabelone, islabeltwo }: { lab
 			</div>
 
 			{/* Dropdown List */}
-			{isOpen && (
+			{isOpen && !disabled && (
 				<div className="absolute w-[127px] bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-2 z-10">
 					{options.map((option) => (
 						<div
@@ -60,13 +66,11 @@ const CustomDropdown = ({ label, options, right, islabelone, islabeltwo }: { lab
 	);
 };
 
-const Dropdowns = ({ one, two, labelone, labeltwo, right, islabelone, islabeltwo }) => {
+const Dropdowns = ({ one, two, labelone, labeltwo, right, islabelone, islabeltwo, disabled }: { one: boolean; two: boolean; labelone: string; labeltwo: string; right: string; islabelone: string; islabeltwo: string; disabled?: boolean }) => {
 	return (
-		<div className="flex  items-center gap-4 mt-[20px] w-full">
-
-			{one && <CustomDropdown label={labelone} options={["2022", "2023", "2024", "2025"]} right={right} islabelone={islabelone} islabeltwo={""} />}
-			{two && <CustomDropdown label={labeltwo} options={["Q1", "Q2", "Q3", "Q4"]} right={right} islabelone={""} islabeltwo={islabeltwo} />}
-
+		<div className="flex items-center gap-4 mt-[20px] w-full">
+			{one && <CustomDropdown label={labelone} options={["2022", "2023", "2024", "2025"]} right={right} islabelone={islabelone} islabeltwo={""} disabled={disabled} />}
+			{two && <CustomDropdown label={labeltwo} options={["Q1", "Q2", "Q3", "Q4"]} right={right} islabelone={""} islabeltwo={islabeltwo} disabled={disabled} />}
 		</div>
 	);
 };

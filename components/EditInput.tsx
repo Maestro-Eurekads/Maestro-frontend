@@ -7,6 +7,7 @@ import Image from 'next/image';
 
 const EditInput = ({ placeholder }: { placeholder: string }) => {
 	const [value, setValue] = useState('');
+	const [isEditable, setIsEditable] = useState(false);
 
 	return (
 		<div className="relative w-full">
@@ -18,8 +19,9 @@ const EditInput = ({ placeholder }: { placeholder: string }) => {
 					placeholder={placeholder}
 					value={value}
 					onChange={(e) => setValue(e.target.value)}
+					disabled={!isEditable}
 				/>
-				<span className="ml-auto text-gray-500">
+				<span className="ml-auto text-gray-500 cursor-pointer" onClick={() => setIsEditable(true)}>
 					<Image src={mdEdit} alt='edit' />
 				</span>
 			</div>
