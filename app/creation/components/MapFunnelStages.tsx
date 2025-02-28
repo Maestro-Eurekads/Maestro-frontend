@@ -9,12 +9,12 @@ import PageHeaderWrapper from '../../../components/PageHeaderWapper';
 import { useObjectives } from '../../utils/useObjectives';
 
 
-const awarenessStages = [
-	{ id: 1, icon: speaker, label: "Awareness", bgColor: "bg-blue-500" },
-	{ id: 2, icon: zoom, label: "Consideration", bgColor: "bg-green-500" },
-	{ id: 3, icon: credit, label: "Conversion", bgColor: "bg-yellow-500" },
-	{ id: 4, icon: addPlus, label: "Loyalty", bgColor: "bg-red-500" },
-];
+// const awarenessStages = [
+// 	{ id: 1, icon: speaker, label: "Awareness", bgColor: "bg-blue-500" },
+// 	{ id: 2, icon: zoom, label: "Consideration", bgColor: "bg-green-500" },
+// 	{ id: 3, icon: credit, label: "Conversion", bgColor: "bg-yellow-500" },
+// 	{ id: 4, icon: addPlus, label: "Loyalty", bgColor: "bg-red-500" },
+// ];
 
 const MapFunnelStages = () => {
 	const { selectedFunnels, setSelectedFunnels } = useObjectives();
@@ -73,6 +73,15 @@ const MapFunnelStages = () => {
 				>
 					<Image src={addPlus} alt="addPlus" />
 					<p>Loyalty</p>
+				</button>
+			</div>
+			<div className="flex justify-end pr-6 mt-[50px]">
+				<button
+					disabled={selectedFunnels.length === 0}
+					// onClick={() => handleValidate(stage.name)} // Uncomment and fix stage reference when ready
+					className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg bg-[#3175FF] text-white font-semibold text-base leading-6 disabled:opacity-50 hover:bg-[#2557D6] transition-colors"
+				>
+					Validate
 				</button>
 			</div>
 		</div>

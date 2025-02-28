@@ -7,6 +7,15 @@ import { useRouter } from "next/navigation";
 import { useActive } from "../app/utils/ActiveContext";
 import { useState } from "react";
 import CreationFlowActive from "./CreationFlowActive";
+import symbol from "../public/material-symbols_campaign-rounded.svg";
+import funnel from "../public/ant-design_funnel-plot-filled.svg";
+import channel from "../public/icon-park-solid_web-page.svg";
+import devicefill from "../public/device-fill.svg";
+import basket from "../public/bxs_basket.svg";
+import click from "../public/fluent_cursor-click-24-filled.svg";
+import workbench from "../public/icon-park-solid_workbench.svg";
+import checkfill from "../public/mingcute_check-fill.svg";
+import Calender from "../public/Calender.svg";
 
 
 const SideNav: React.FC = () => {
@@ -19,6 +28,101 @@ const SideNav: React.FC = () => {
     setSubStep(0);
     router.push("/"); // Navigate to home
   };
+
+  const steps = [
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Define campaign objective",
+      objective: "Main objective: Purchase",
+      img: <Image src={symbol} alt="symbol" />
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Map funnel stages",
+      objective: "Awareness · Consideration · Conversion",
+      img: <Image src={funnel} alt="funnel" />
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Select channel mix",
+      img: <Image src={channel} alt="channel" />
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Formats selection",
+      img: <Image src={devicefill} alt="devicefill" />
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Set buy objectives and types",
+      img: <Image src={basket} alt="basket" />
+    },
+    {
+      vl: "vls",
+      vl_done: "vl_dones",
+      vl_active: "vl_actives",
+      state_text: "SideBar_Menu_state_sub",
+      sidecircle: "SideBar_Menu_active_sub",
+      title: "Mid-recap",
+      // img: <Image src={basket} alt="basket" />
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Plan campaign schedule",
+      img: <Image src={Calender} alt="click" />
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Configure ad sets and budget",
+      img: <Image src={click} alt="click" />
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Establish goals",
+      img: <Image src={workbench} alt="workbench" />
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Overview of your campaign",
+      img: <Image src={checkfill} alt="checkfill" />
+    },
+  ];
 
   return (
     <div id={close ? "side-nav-active" : "side-nav"} className="!flex !flex-col !h-full justify-between">
@@ -48,7 +152,7 @@ const SideNav: React.FC = () => {
 
           </div>
         </div >}
-        {close ? <CreationFlowActive /> : <CreationFlow />}
+        {close ? <CreationFlowActive steps={steps} /> : <CreationFlow steps={steps} />}
       </div>
       {
         close ? <div /> :

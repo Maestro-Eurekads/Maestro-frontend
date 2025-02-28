@@ -1,125 +1,15 @@
 "use client";
-
-import Image from "next/image";
 import { useState, useEffect } from "react";
-import symbol from "../public/material-symbols_campaign-rounded.svg";
-import funnel from "../public/ant-design_funnel-plot-filled.svg";
-import channel from "../public/icon-park-solid_web-page.svg";
-import devicefill from "../public/device-fill.svg";
-import basket from "../public/bxs_basket.svg";
-import click from "../public/fluent_cursor-click-24-filled.svg";
-import workbench from "../public/icon-park-solid_workbench.svg";
-import checkfill from "../public/mingcute_check-fill.svg";
-import Calender from "../public/Calender.svg";
 import { useActive } from "../app/utils/ActiveContext";
 
-const steps = [
-	{
-		vl: "vl",
-		vl_done: "vl_done",
-		vl_active: "vl_active",
-		state_text: "SideBar_Menu_state",
-		sidecircle: "SideBar_Menu_active",
-		title: "Define campaign objective",
-		objective: "Main objective: Purchase",
-		img: <Image src={symbol} alt="symbol" />
-	},
-	{
-		vl: "vl",
-		vl_done: "vl_done",
-		vl_active: "vl_active",
-		state_text: "SideBar_Menu_state",
-		sidecircle: "SideBar_Menu_active",
-		title: "Map funnel stages",
-		objective: "Awareness · Consideration · Conversion",
-		img: <Image src={funnel} alt="funnel" />
-	},
-	{
-		vl: "vl",
-		vl_done: "vl_done",
-		vl_active: "vl_active",
-		state_text: "SideBar_Menu_state",
-		sidecircle: "SideBar_Menu_active",
-		title: "Select channel mix",
-		img: <Image src={channel} alt="channel" />
-	},
-	{
-		vl: "vl",
-		vl_done: "vl_done",
-		vl_active: "vl_active",
-		state_text: "SideBar_Menu_state",
-		sidecircle: "SideBar_Menu_active",
-		title: "Formats selection",
-		img: <Image src={devicefill} alt="devicefill" />
-	},
-	{
-		vl: "vl",
-		vl_done: "vl_done",
-		vl_active: "vl_active",
-		state_text: "SideBar_Menu_state",
-		sidecircle: "SideBar_Menu_active",
-		title: "Set buy objectives and types",
-		img: <Image src={basket} alt="basket" />
-	},
-	{
-		vl: "vls",
-		vl_done: "vl_dones",
-		vl_active: "vl_actives",
-		state_text: "SideBar_Menu_state_sub",
-		sidecircle: "SideBar_Menu_active_sub",
-		title: "Mid-recap",
-		// img: <Image src={basket} alt="basket" />
-	},
-	{
-		vl: "vl",
-		vl_done: "vl_done",
-		vl_active: "vl_active",
-		state_text: "SideBar_Menu_state",
-		sidecircle: "SideBar_Menu_active",
-		title: "Plan campaign schedule",
-		img: <Image src={Calender} alt="click" />
-	},
-	{
-		vl: "vl",
-		vl_done: "vl_done",
-		vl_active: "vl_active",
-		state_text: "SideBar_Menu_state",
-		sidecircle: "SideBar_Menu_active",
-		title: "Configure ad sets and budget",
-		img: <Image src={click} alt="click" />
-	},
-	{
-		vl: "vl",
-		vl_done: "vl_done",
-		vl_active: "vl_active",
-		state_text: "SideBar_Menu_state",
-		sidecircle: "SideBar_Menu_active",
-		title: "Establish goals",
-		img: <Image src={workbench} alt="workbench" />
-	},
-	{
-		vl: "vl",
-		vl_done: "vl_done",
-		vl_active: "vl_active",
-		state_text: "SideBar_Menu_state",
-		sidecircle: "SideBar_Menu_active",
-		title: "Overview of your campaign",
-		img: <Image src={checkfill} alt="checkfill" />
-	},
-];
-
-
-
-const CreationFlow = () => {
-	const { active } = useActive();
+const CreationFlow = ({ steps }) => {
+	const { active, setActive } = useActive();
 	const [hydrated, setHydrated] = useState(false);
 
-	// Ensure component is mounted before rendering
 	useEffect(() => {
 		setHydrated(true);
 	}, []);
 
-	// Prevent hydration errors by returning null until mounted
 	if (!hydrated) return null;
 
 	return (
@@ -130,10 +20,10 @@ const CreationFlow = () => {
 					const isActive = active === stepNumber;
 					const isCompleted = active > stepNumber;
 					const stepColor = isActive
-						? "bg-blue-500 text-white" // Active step (blue)
+						? "bg-blue-500 text-white"
 						: isCompleted
-							? "bg-green-500 text-white" // Completed step (green)
-							: "bg-gray-300 text-gray-700"; // Inactive step (gray)
+							? "bg-green-500 text-white"
+							: "bg-gray-300 text-gray-700";
 					const stepColors = isActive
 						? "SideBar_state_text_active"
 						: isCompleted
@@ -141,26 +31,28 @@ const CreationFlow = () => {
 							: "SideBar_state_text";
 
 					return (
-						<div className="SideBar__SideBar" key={stepNumber}>
+						<div
+							className="SideBar__SideBar cursor-pointer"
+							key={stepNumber}
+							onClick={() => setActive(stepNumber)}
+						>
 							<div className="SideBar__state__container">
-								{/* Step Icon */}
-								<div className={`${step.sidecircle} ${stepColor}`}>
-									{step.img}
-								</div>
-
-								{/* Line Connector (Not for last item) */}
+								<div className={`${step.sidecircle} ${stepColor}`}>{step.img}</div>
 								{stepNumber !== steps.length && (
-									<div className={`${step.vl} ${active > stepNumber + 1 ? `${step.vl_done}` : active === stepNumber + 1 ? `${step.vl_active}` : ""}`} />
+									<div
+										className={`${step.vl} ${active > stepNumber + 1
+											? `${step.vl_done}`
+											: active === stepNumber + 1
+												? `${step.vl_active}`
+												: ""
+											}`}
+									/>
 								)}
 							</div>
-
-							{/* Step Text */}
 							<div className={`${step.state_text}`}>
 								<span className={`mb-2 SideBar_state_text ${stepColors}`}>
 									{step.title}
 								</span>
-
-								{/* Show objective ONLY when the step is completed */}
 								{isCompleted && step.objective && (
 									<div className="objective_step_text">{step.objective}</div>
 								)}
@@ -174,4 +66,5 @@ const CreationFlow = () => {
 };
 
 export default CreationFlow;
+
 

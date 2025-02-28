@@ -55,6 +55,15 @@ const DefineCampaignObjective = () => {
 					);
 				})}
 			</div>
+			<div className="flex justify-end pr-6 mt-[20px]">
+				<button
+					disabled={selectedObjectives.length === 0}
+					// onClick={() => handleValidate(stage.name)} // Uncomment and fix stage reference when ready
+					className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg bg-[#3175FF] text-white font-semibold text-base leading-6 disabled:opacity-50 hover:bg-[#2557D6] transition-colors"
+				>
+					Validate
+				</button>
+			</div>
 		</div>
 	);
 };
