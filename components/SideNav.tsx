@@ -125,7 +125,7 @@ const SideNav: React.FC = () => {
   ];
 
   return (
-    <div id={close ? "side-nav-active" : "side-nav"} className="!flex !flex-col !h-full justify-between">
+    <div id={close ? "side-nav-active" : "side-nav"} className="!flex !flex-col !h-full !overflow-y-scroll justify-between">
 
       <div>
         <div className={`flex ${close ? 'justify-center mb-[30px]' : 'justify-end'} w-full`}>
