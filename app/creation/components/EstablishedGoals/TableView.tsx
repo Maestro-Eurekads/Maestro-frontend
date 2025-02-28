@@ -7,6 +7,287 @@ import credit from '../../../../public/mdi_credit-card.svg';
 const TableView = ({ channels }) => {
 	const [expandedRows, setExpandedRows] = useState({});
 
+	const campaignData = {
+		phases: {
+			awareness: {
+				channels: [
+					{
+						channel: "Broad",
+						audience: "Men 25+ Int. Sport",
+						startDate: "11/01/2025",
+						endDate: "15/01/2025",
+						audienceSize: 2500000,
+						budget: 1800, // €1,800
+						cpm: "CPM", // To be calculated or entered
+						impressions: "-", // To be calculated
+						frequency: "-", // "Enter frequency"
+						reach: 500000,
+						penetrationRate: 20.0 // 20.0%
+					},
+					{
+						channel: "Lookalike",
+						audience: "Broad",
+						campaignName: "Spring sale Awareness",
+						startDate: "-",
+						endDate: "-",
+						audienceSize: 50000,
+						budget: 700, // €700
+						cpm: "CPM", // "CPM" placeholder
+						impressions: "-",
+						frequency: 2,
+						reach: "-",
+						penetrationRate: "-"
+					},
+					{
+						channel: "Facebook",
+						audience: "Lookalike",
+						campaignName: "Facebook Awareness",
+						startDate: "-",
+						endDate: "-",
+						audienceSize: 235000,
+						budget: 1100, // €1,100
+						cpm: "CPM", // "CPM" placeholder
+						impressions: 2000000,
+						frequency: "-", // "Enter frequency"
+						reach: 200000,
+						penetrationRate: 16.7 // 16.7%
+					},
+					{
+						channel: "Facebook",
+						audience: "Lookalike Website Visitors 90D",
+						startDate: "-",
+						endDate: "-",
+						audienceSize: 200000,
+						budget: 900, // €900
+						cpm: "CPM", // "CPM" placeholder
+						impressions: "-",
+						frequency: "-", // "Enter frequency"
+						reach: 750000,
+						penetrationRate: 25.4 // 25.4%
+					},
+					{
+						channel: "Retargeting",
+						audience: "Retargeting Active Buyers 30D",
+						startDate: "-",
+						endDate: "-",
+						audienceSize: 300000,
+						budget: 1200, // €1,200
+						cpm: "CPM",
+						impressions: "-",
+						frequency: 5,
+						reach: "-",
+						penetrationRate: "-"
+					},
+					{
+						channel: "Facebook",
+						audience: "Lookalike Abandoned Carts 7D",
+						startDate: "-",
+						endDate: "-",
+						audienceSize: 150000,
+						budget: 500, // €500
+						cpm: "CPM", // "CPM" placeholder
+						impressions: 900000,
+						frequency: "-", // "Enter frequency"
+						reach: 369000,
+						penetrationRate: 33.3 // 33.3%
+					},
+					{
+						channel: "Instagram",
+						audience: "Lookalike Buyers 90D",
+						startDate: "08/01/2025",
+						endDate: "10/01/2025",
+						audienceSize: 1200000,
+						budget: 1500, // €1,500
+						cpm: "CPM",
+						impressions: 1250000,
+						frequency: "-", // "Enter frequency"
+						reach: 980000,
+						penetrationRate: 50.3 // 50.3%
+					},
+					{
+						channel: "Youtube",
+						audience: "Men 25+ Int. Sport",
+						startDate: "08/01/2025",
+						endDate: "10/01/2025",
+						audienceSize: 3000000,
+						budget: 1200, // €1,200
+						cpm: "CPM",
+						impressions: 875000,
+						frequency: "-",
+						reach: "-",
+						penetrationRate: "-"
+					},
+					{
+						channel: "TheTradeDesk",
+						audience: "Lookalike Buyers 90D",
+						startDate: "08/01/2025",
+						endDate: "10/01/2025",
+						audienceSize: 1500000,
+						budget: 900, // €900
+						cpm: "CPM",
+						impressions: 1250000,
+						frequency: "-",
+						reach: "-",
+						penetrationRate: "-"
+					},
+					{
+						channel: "Quantcast",
+						audience: "Men 25+ Int. Sport",
+						startDate: "08/01/2025",
+						endDate: "10/01/2025",
+						audienceSize: 2000000,
+						budget: 600, // €600
+						cpm: "CPM",
+						impressions: "-",
+						frequency: "-",
+						reach: "-",
+						penetrationRate: "-"
+					}
+				]
+			},
+			consideration: {
+				channels: [
+					{
+						channel: "Facebook",
+						audience: "Men 25+ Int. Sport",
+						startDate: "11/01/2025",
+						endDate: "15/01/2025",
+						audienceSize: 2500000,
+						budget: 2100, // €2,100
+						cpm: "CPM", // "Enter CPM"
+						impressions: 2000000,
+						frequency: "-", // "Enter frequency"
+						reach: 500000,
+						penetrationRate: 20.0 // 20.0%
+					},
+					{
+						channel: "Instagram",
+						audience: "Lookalike Buyers 90D",
+						startDate: "08/01/2025",
+						endDate: "10/01/2025",
+						audienceSize: 1200000,
+						budget: "1,800 €", // "Enter budget"
+						cpm: "CPM", // "Enter CPM"
+						impressions: 900000,
+						frequency: "-", // "Enter frequency"
+						reach: 200000,
+						penetrationRate: 16.7 // 16.7%
+					},
+					{
+						channel: "Youtube",
+						audience: "Men 25+ Int. Sport",
+						startDate: "08/01/2025",
+						endDate: "10/01/2025",
+						audienceSize: 3000000,
+						budget: "1,800 €", // "Enter budget"
+						cpm: "CPM", // "Enter CPM"
+						impressions: 1250000,
+						frequency: "-", // "Enter frequency"
+						reach: 750000,
+						penetrationRate: 25.4 // 25.4%
+					},
+					{
+						channel: "TheTradeDesk",
+						audience: "Lookalike Buyers 90D",
+						startDate: "08/01/2025",
+						endDate: "10/01/2025",
+						audienceSize: 1500000,
+						budget: "1,800 €", // "Enter budget"
+						cpm: "CPM", // "Enter CPM"
+						impressions: 875000,
+						frequency: "-", // "Enter frequency"
+						reach: 369000,
+						penetrationRate: 33.3 // 33.3%
+					},
+					{
+						channel: "Quantcast",
+						audience: "Men 25+ Int. Sport",
+						startDate: "08/01/2025",
+						endDate: "10/01/2025",
+						audienceSize: 2000000,
+						budget: "1,800 €", // "Enter budget"
+						cpm: "CPM", // "Enter CPM"
+						impressions: 1250000,
+						frequency: "-", // "Enter frequency"
+						reach: 980000,
+						penetrationRate: 50.3 // 50.3%
+					}
+				]
+			},
+			conversion: {
+				channels: [
+					{
+						channel: "Facebook",
+						audience: "Men 25+ Int. Sport",
+						startDate: "11/01/2025",
+						endDate: "15/01/2025",
+						audienceSize: 2500000,
+						budget: "1,800 €", // "Enter budget"
+						cpm: "CPM", // "Enter CPM"
+						impressions: 2000000,
+						frequency: "-", // "Enter frequency"
+						reach: 500000,
+						penetrationRate: 20.0 // 20.0%
+					},
+					{
+						channel: "Instagram",
+						audience: "Lookalike Buyers 90D",
+						startDate: "08/01/2025",
+						endDate: "10/01/2025",
+						audienceSize: 1200000,
+						budget: "1,800 €", // "Enter budget"
+						cpm: "CPM", // "Enter CPM"
+						impressions: 900000,
+						frequency: "-", // "Enter frequency"
+						reach: 200000,
+						penetrationRate: 16.7 // 16.7%
+					},
+					{
+						channel: "Youtube",
+						audience: "Men 25+ Int. Sport",
+						startDate: "08/01/2025",
+						endDate: "10/01/2025",
+						audienceSize: 3000000,
+						budget: "1,800 €", // "Enter budget"
+						cpm: "CPM", // "Enter CPM"
+						impressions: 1250000,
+						frequency: "-", // "Enter frequency"
+						reach: 750000,
+						penetrationRate: 25.4 // 25.4%
+					},
+					{
+						channel: "TheTradeDesk",
+						audience: "Lookalike Buyers 90D",
+						startDate: "08/01/2025",
+						endDate: "10/01/2025",
+						audienceSize: 1500000,
+						budget: "1,800 €", // "Enter budget"
+						cpm: "CPM", // "Enter CPM"
+						impressions: 875000,
+						frequency: "-", // "Enter frequency"
+						reach: 369000,
+						penetrationRate: 33.3 // 33.3%
+					},
+					{
+						channel: "Quantcast",
+						audience: "Men 25+ Int. Sport",
+						startDate: "08/01/2025",
+						endDate: "10/01/2025",
+						audienceSize: 2000000,
+						budget: "1,800 €", // "Enter budget"
+						cpm: "CPM", // "Enter CPM"
+						impressions: 1250000,
+						frequency: "-", // "Enter frequency"
+						reach: 980000,
+						penetrationRate: 50.3 // 50.3%
+					}
+				]
+			}
+		}
+	};
+
+
+
 	const toggleRow = (index) => {
 		setExpandedRows((prev) => ({
 			...prev,
@@ -35,7 +316,7 @@ const TableView = ({ channels }) => {
 					<div className="rounded-xl overflow-x-auto">
 						<table className="w-full border-collapse">
 							<thead className="whitespace-nowrap">
-								<tr className="bg-gray-200">
+								<tr className="bg-[#F5F5F5]">
 									<th className="py-4 px-6">Channel</th>
 									<th className="py-4 px-6">Audience</th>
 									<th className="py-4 px-6">Start Date</th>
@@ -107,18 +388,24 @@ const TableView = ({ channels }) => {
 										{/* Sub-table (Expanded Rows) */}
 										{expandedRows[index] && (
 											<>
-												{[1, 2, 3, 4, 5].map((subIndex) => (
-													<tr key={subIndex} className="bg-white">
-														<td className="py-6 px-6 border-none">Sub-Item {subIndex}</td>
-														<td className="py-6 px-6 border-none">Value {subIndex}</td>
-														<td className="py-6 px-6 border-none">Data {subIndex}</td>
-														<td className="py-6 px-6 border-none">Info {subIndex}</td>
-														<td className="py-6 px-6 border-none">Extra {subIndex}</td>
-														<td className="py-6 px-6 border-none">Extra {subIndex}</td>
-														<td className="py-6 px-6 border-none">Extra {subIndex}</td>
-														<td className="py-6 px-6 border-none">Extra {subIndex}</td>
-														<td className="py-6 px-6 border-none">Extra {subIndex}</td>
-														<td className="py-6 px-6 border-none">Extra {subIndex}</td>
+												{campaignData.phases.awareness.channels.map((awareness, index) => (
+													<tr key={index} className="bg-white">
+														<td className="py-6 px-6 border-none">
+															<div className='flex gap-2'>
+																<span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
+																	{index + 1}.</span>
+																<span>{awareness.channel}</span>
+															</div>
+														</td>
+														<td className="py-6 px-6 border-none">{awareness.audience} </td>
+														<td className="py-6 px-6 border-none">{awareness.startDate} </td>
+														<td className="py-6 px-6 border-none">{awareness.endDate}  </td>
+														<td className="py-6 px-6 border-none">{awareness.audienceSize}  </td>
+														<td className="py-6 px-6 border-none">{awareness.budget}  </td>
+														<td className="py-6 px-6 border-none"><div className="cpm_bg"> {awareness.cpm}</div>  </td>
+														<td className="py-6 px-6 border-none">{awareness.audience} </td>
+														<td className="py-6 px-6 border-none">{awareness.frequency}  </td>
+														<td className="py-6 px-6 border-none">{awareness.reach}</td>
 													</tr>
 												))}
 
