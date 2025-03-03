@@ -92,7 +92,7 @@ export const SetupScreen = () => {
         </button>
       </div>
 
-      <div >
+      <div className="mt-[42px]">
         <Title>Client selection</Title>
         <div>
           <ClientSelection options={clients} label={"Select a client"} />

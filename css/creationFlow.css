@@ -324,13 +324,15 @@ border-radius: 50px;
 #Sidenavbar {
   height: 66vh; /* Full viewport height */
   overflow-y: auto; /* Enables vertical scrolling */
-		margin-bottom: 1rem;
+		overflow-x: hidden !important;
+		margin-bottom: 2rem;
 }
 
 #SideBar__container{
 	width: 327px !important;
-	max-height: 100%; /* Prevents shrinking */
-  overflow-y: auto; /* Enables scrolling when needed */
+	max-height: 100%;  
+  overflow-y: auto; 
+				overflow-x: hidden !important;
 }
 
 

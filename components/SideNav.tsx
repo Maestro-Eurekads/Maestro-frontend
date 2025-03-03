@@ -155,9 +155,8 @@ const SideNav: React.FC = () => {
       </div>
 
       {/* Scrollable Bottom Section */}
-      <div className="flex-1 overflow-y-auto">
-        {close ? <CreationFlowActive steps={steps} /> : <CreationFlow steps={steps} />}
-      </div>
+      {close ? <CreationFlowActive steps={steps} /> : <CreationFlow steps={steps} />}
+
 
       {/* Footer */}
       {!close && (
