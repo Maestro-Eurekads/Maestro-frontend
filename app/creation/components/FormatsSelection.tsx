@@ -25,83 +25,20 @@ import tablerzoomfilled from '../../../public/tabler_zoom-filled.svg';
 
 
 const funnelStages = [
-	{
-		name: "Awareness",
-		icon: speaker,
-		status: "In progress",
-		statusIsActive: true,
-		platforms: {
-			"Social media": [
-			{ name: "Facebook", icon: facebook },
-			{ name: "Instagram", icon: ig },
-			{ name: "TikTok", icon: tictok },
-			{ name: "YouTube", icon: youtube },
-			{ name: "Twitter/X", icon: x },
-			{ name: "LinkedIn", icon: linkedin },
-			],
-		"Display networks": [
-			{ name: "TheTradeDesk", icon: TheTradeDesk },
-			{ name: "Quantcast", icon: Quantcast },
-			{ name: "Display & Video", icon: Display },
-		],
-		"Search engines": [
-			{ name: "Google", icon: Google },
-			{ name: "Yahoo", icon: yahoo },
-			{ name: "Bing", icon: bing },
-		],
-		},
-	},
+
 	{
 		name: "Consideration",
 		icon: tablerzoomfilled,
 		status: "Not started",
 		statusIsActive: false,
-		platforms: {
-			"Social media": [
-				{ name: "Facebook", icon: facebook },
-				{ name: "Instagram", icon: ig },
-				{ name: "TikTok", icon: tictok },
-				{ name: "YouTube", icon: youtube },
-				{ name: "Twitter/X", icon: x },
-				{ name: "LinkedIn", icon: linkedin },
-			],
-			"Display networks": [
-				{ name: "TheTradeDesk", icon: TheTradeDesk },
-				{ name: "Quantcast", icon: Quantcast },
-				{ name: "Display & Video", icon: Display },
-			],
-			"Search engines": [
-				{ name: "Google", icon: Google },
-				{ name: "Yahoo", icon: yahoo },
-				{ name: "Bing", icon: bing },
-			],
-		},
+		platforms: {},
 	},
 	{
 		name: "Conversion",
 		icon: orangecredit,
 		status: "Not started",
 		statusIsActive: false,
-		platforms: {
-			"Social media": [
-				{ name: "Facebook", icon: facebook },
-				{ name: "Instagram", icon: ig },
-				{ name: "TikTok", icon: tictok },
-				{ name: "YouTube", icon: youtube },
-				{ name: "Twitter/X", icon: x },
-				{ name: "LinkedIn", icon: linkedin },
-			],
-			"Display networks": [
-			    { name: "TheTradeDesk", icon: TheTradeDesk },
-			    { name: "Quantcast", icon: Quantcast },
-			     { name: "Display & Video", icon: Display },
-			],
-			"Search engines": [
-				{ name: "Google", icon: Google },
-				{ name: "Yahoo", icon: yahoo },
-				{ name: "Bing", icon: bing },
-			],
-		},
+		platforms: {},
 	},
 ];
 
@@ -117,18 +54,13 @@ const FormatsSelection = () => {
 
 	return (
 		<div>
-			<h1 className="font-general-sans font-semibold text-[24px] leading-[32px] text-[#292929]">
-				Which platforms would you like to activate for each funnel stage?
-			</h1>
-			<h2 className="font-general-sans font-medium text-[16px] leading-[22px] text-[rgba(0,0,0,0.9)] mt-2">
-				Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time.
-			</h2>
+			
 
 			<div className="mt-[32px] flex flex-col gap-[24px]">
 				{funnelStages.map((stage, index) => (
 					<div key={index}>
 						<div
-							className="flex justify-between items-center p-6 gap-3 w-[968px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] rounded-t-[10px]"
+							className="flex justify-between items-center p-6 gap-3 w-[968px] cursor-pointer h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] rounded-t-[10px]"
 							onClick={() => toggleItem(stage.name)}
 						>
 							<div className="flex items-center gap-2">
@@ -146,12 +78,12 @@ const FormatsSelection = () => {
 						</div>
 
 						{openItems[stage.name] && (
-							<div className="card_bucket_container_main_sub flex flex-col pb-6 w-[968px] min-h-[300px]">
+							<div className="card_bucket_container_main_sub flex flex-col pb-6 w-[968px] min-h-[80px] cursor-pointer">
 								{Object.entries(stage.platforms).map(([category, platforms]) => (
 									<div key={category} className="card_bucket_container_main">
 										<h3>{category}</h3>
 										<div className="card_bucket_container">
-											{platforms.map((platform, pIndex) => (
+											{Array.isArray(platforms) && platforms.map((platform, pIndex) => (
 												<div
 													key={pIndex}
 													className="flex flex-row justify-between items-center p-5 gap-4 w-[230px] h-[62px] bg-white border border-[rgba(0,0,0,0.1)] rounded-[10px]"

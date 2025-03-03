@@ -7,8 +7,6 @@ import checkmark from "../../../public/mingcute_check-fill.svg";
 import PageHeaderWrapper from '../../../components/PageHeaderWapper';
 import { funnelStages } from '../../../components/data';
 
-
-
 const SelectChannelMix = () => {
 	// Controls expanded/collapsed state for each stage
 	const [openItems, setOpenItems] = useState({ Awareness: true });
@@ -66,6 +64,13 @@ const SelectChannelMix = () => {
 				[stageName]: true,
 			}));
 		}
+	};
+
+	const handleEdit = (stageName) => {
+		setValidatedStages((prev) => ({
+			...prev,
+			[stageName]: false,
+		}));
 	};
 
 	return (
@@ -146,6 +151,14 @@ const SelectChannelMix = () => {
 												</div>
 											</div>
 										))}
+										<div className="flex justify-end pr-[24px] mt-4">
+											<button
+												onClick={() => handleEdit(stage.name)}
+												className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] bg-blue-500"
+											>
+												Edit
+											</button>
+										</div>
 									</div>
 								) : (
 									// Selection UI with clickable cards

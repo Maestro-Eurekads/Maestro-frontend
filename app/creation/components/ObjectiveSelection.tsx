@@ -64,6 +64,7 @@ const ObjectiveSelection = () => {
  const [statuses, setStatuses] = useState(funnelStages.map((stage) => stage.status));
  const [dropdownOpen, setDropdownOpen] = useState<{ [key: string]: boolean }>({});
  const [selectedOptions, setSelectedOptions] = useState<{ [key: string]: string }>({});
+ const [isEditable, setIsEditable] = useState<{ [key: string]: boolean }>({});
 
  // Toggle expand/collapse for a stage
  const toggleItem = (stage: string) => {
@@ -77,7 +78,6 @@ const ObjectiveSelection = () => {
  const toggleDropdown = (platformKey: string) => {
   setDropdownOpen({ [platformKey]: !dropdownOpen[platformKey] });
  };
-
 
  // Handle selecting an option from the dropdown
  const handleSelectOption = (platformKey: string, option: string) => {
@@ -96,6 +96,7 @@ const ObjectiveSelection = () => {
   const updatedStatuses = [...statuses];
   updatedStatuses[index] = "Completed";
   setStatuses(updatedStatuses);
+  setIsEditable((prev) => ({ ...prev, [funnelStages[index].name]: true }));
 
   toast.success("Stage completed successfully! 🎉");
 
@@ -238,11 +239,11 @@ const ObjectiveSelection = () => {
                </div>
                {dropdownOpen[platformKey] && (
                 <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg transition-transform transform hover:scale-105 z-10">
-                 <ul  >
+                 <ul>
                   {getDropdownOptions(platform).map((option, i) => (
                    <li
                     key={i}
-                    className="px-4 py-2    hover:bg-gray-200 cursor-pointer  "
+                    className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
                     onClick={() => handleSelectOption(platformKey, option)}
                    >
                     {option}
@@ -281,6 +282,29 @@ const ObjectiveSelection = () => {
           variant="primary"
           onClick={() => handleValidate(stageIndex)}
           disabled={!allRequiredSelected}
+         />
+        </div>
+       )}
+       {/* Edit Button (Only for Awareness stage when completed) */}
+       {stage.name === "Awareness" && statuses[stageIndex] === "Completed" && (
+        <div className="flex justify-end mt-2 w-full">
+         <Button
+          text="Edit"
+          variant="primary"
+          className="bg-blue-500"
+          onClick={() => {
+           setIsEditable((prev) => ({ ...prev, [stage.name]: false }));
+           const previousSelectedOptions = { ...selectedOptions };
+           requiredFieldKeys.forEach((key) => {
+            previousSelectedOptions[key] = ""; // Reset the selected options
+           });
+           setSelectedOptions(previousSelectedOptions);
+           setStatuses((prev) => {
+            const updated = [...prev];
+            updated[stageIndex] = "In progress"; // Set status back to "In progress"
+            return updated;
+           });
+          }}
          />
         </div>
        )}

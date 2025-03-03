@@ -17,6 +17,7 @@ import image_format from "../../../public/Image_format.svg";
 import collection_format from "../../../public/collection_format.svg";
 import slideshow_format from "../../../public/slideshow_format.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
+import FormatsSelection from "./FormatsSelection";
 
 type IPlatform = {
   name: string;
@@ -184,6 +185,11 @@ export const FormatSelection = () => {
           </div>
         )}
       </div>
+
+
+     <FormatsSelection />
+
+
     </div>
   );
 };

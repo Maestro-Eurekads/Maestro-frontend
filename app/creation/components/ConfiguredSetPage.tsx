@@ -111,11 +111,13 @@ const ConfiguredSetPage = () => {
                   <div className="flex items-center">
                     <input type="text" defaultValue="0 %" className="e_currency-eur text-center w-[62px]" />
                     <p className="text-[15px] pl-4 text-center whitespace-nowrap text-[#061237CC] leading-[20px]">
-                      of budget
+                      of total budget
                     </p>
                   </div>
                 </div>
               </div>
+
+              {/* New Auto-split budget toggle */}
 
               {/* Render platform budgets with the "2 ad sets" badge on top of Facebook */}
               {["Facebook", "Instagram", "Youtube", "The TradeDesk", "Quantcast"].map((platform, idx) => {
@@ -127,6 +129,10 @@ const ConfiguredSetPage = () => {
                   Quantcast: quantcast,
                 };
 
+              <div className="flex items-center mt-4">
+                <input type="checkbox" id="auto-split" className="mr-2" />
+                <label htmlFor="auto-split" className="text-sm">Auto-split budget across ad sets</label>
+              </div>
                 // For Facebook, wrap it in a relative container and add the badge
                 if (platform === "Facebook") {
                   return (
