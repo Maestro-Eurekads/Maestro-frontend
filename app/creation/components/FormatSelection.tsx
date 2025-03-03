@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
-import { FaCheck } from "react-icons/fa"; // Importing the checkmark icon from react-icons
+import { FaCheck } from "react-icons/fa";
 import speaker from "../../../public/mdi_megaphone.svg";
 import down from "../../../public/arrow-down-2.svg";
-import up from "../../../public/arrow-down.svg"; // Importing the up arrow
+import up from "../../../public/arrow-down.svg";
 import facebook from "../../../public/facebook.svg";
 import ig from "../../../public/ig.svg";
 import youtube from "../../../public/youtube.svg";
-import TheTradeDesk from '../../../public/TheTradeDesk.svg';
-import Quantcast from '../../../public/quantcast.svg';
+import TheTradeDesk from "../../../public/TheTradeDesk.svg";
+import Quantcast from "../../../public/quantcast.svg";
 
 import carousel from "../../../public/carousel.svg";
 import video_format from "../../../public/video_format.svg";
@@ -21,7 +21,7 @@ import FormatsSelection from "./FormatsSelection";
 
 type IPlatform = {
   name: string;
-  icon: string;
+  icon: any;
   style?: string;
   mediaOptions?: any[];
 };
@@ -44,7 +44,9 @@ export const Platforms = () => {
   ]);
   const [isValidateEnabled, setIsValidateEnabled] = useState(false);
   const [validatedMediaOptions, setValidatedMediaOptions] = useState<any[]>([]);
+  const [isValidated, setIsValidated] = useState(false);
 
+  // Enable the validate button if any media option is selected.
   useEffect(() => {
     const anySelected = mediaOptions.some(option => option.selected);
     setIsValidateEnabled(anySelected);
@@ -70,37 +72,44 @@ export const Platforms = () => {
     },
   ];
 
+  // Toggle the selection of a media format.
   const handleFormatSelection = (index: number, platformName: string) => {
     setMediaOptions((prevOptions) =>
-      prevOptions.map((option, i) => ({
-        ...option,
-        selected: index === i ? !option.selected : option.selected, // Toggle selection
-      }))
+      prevOptions.map((option, i) =>
+        i === index ? { ...option, selected: !option.selected } : option
+      )
     );
-
     setSelectedOptions((prev) => ({
       ...prev,
-      [platformName]: true, // Mark the platform as having a selected format
+      [platformName]: true,
     }));
   };
 
-  const handleValidate = () => {
-    // Only validate for Facebook
-    const facebookPlatform = channels[0].platforms[0]; // Facebook platform
-    if (facebookPlatform) {
+  // Handle Validate / Edit button click.
+  const handleValidateOrEdit = () => {
+    if (!isValidated) {
+      // Validate: store selected options and switch to validated view.
       const selectedFormats = mediaOptions.filter(option => option.selected);
       setValidatedMediaOptions(selectedFormats);
+      setIsValidated(true);
+    } else {
+      // Edit: revert to editing mode and reapply validated selections.
+      setMediaOptions(mediaOptions.map(option => ({
+        ...option,
+        selected: validatedMediaOptions.some(valid => valid.name === option.name)
+      })));
+      setIsValidated(false);
     }
   };
 
   return (
     <div className="text-[16px] my-6">
-      {channels.map((channel, index) => (
-        <React.Fragment key={index}>
+      {channels.map((channel, channelIndex) => (
+        <React.Fragment key={channelIndex}>
           <h3 className="font-[600] my-[24px]">{channel.title}</h3>
           <div className="flex flex-col gap-[24px]">
-            {channel.platforms.map((platform, index) => (
-              <div key={index}>
+            {channel.platforms.map((platform, platformIndex) => (
+              <div key={platformIndex}>
                 <div className="flex items-center gap-6">
                   <div className={`flex items-center gap-[12px] font-[500] border p-5 rounded-[10px] ${channel.style ?? platform.style}`}>
                     <Image src={platform.icon} alt={platform.name} />
@@ -115,26 +124,33 @@ export const Platforms = () => {
                       ? selectedOptions[platform.name]
                         ? "Choose the number of visuals for this format"
                         : "Select your format"
-                      : <>
+                      : (
+                        <>
                           <p className="font-bold text-[18px]">
                             <svg width="13" height="12" viewBox="0 0 13 12" fill="none">
                               <path d="M5.87891 5.16675V0.166748H7.54557V5.16675H12.5456V6.83342H7.54557V11.8334H5.87891V6.83342H0.878906V5.16675H5.87891Z" fill="#3175FF"/>
                             </svg>
                           </p>
-                          <h3>{"Add format"}</h3>
+                          <h3>Add format</h3>
                         </>
+                      )
                     }
                   </div>
                 </div>
 
-                {validatedMediaOptions.length > 0 && platform.name === "Facebook" ? (
+                {/* If in validated mode (for Facebook), show the validated selections.
+                    Otherwise, show the editable MediaSelection if this platform is active */}
+                {platform.name === "Facebook" && isValidated ? (
                   <div className="py-6">
                     <MediaSelection mediaOptions={validatedMediaOptions} handleFormatSelection={() => {}} />
                   </div>
                 ) : (
                   item === platform.name && (
                     <div className="py-6">
-                      <MediaSelection handleFormatSelection={(index) => handleFormatSelection(index, platform.name)} mediaOptions={mediaOptions} />
+                      <MediaSelection
+                        handleFormatSelection={(index) => handleFormatSelection(index, platform.name)}
+                        mediaOptions={mediaOptions}
+                      />
                     </div>
                   )
                 )}
@@ -148,9 +164,9 @@ export const Platforms = () => {
         <button 
           className={`px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isValidateEnabled ? 'bg-[#3175FF]' : 'bg-[#3175FF] opacity-50 cursor-not-allowed'}`} 
           disabled={!isValidateEnabled}
-          onClick={handleValidate}
+          onClick={handleValidateOrEdit}
         >
-          Validate
+          {isValidated ? "Edit" : "Validate"}
         </button>
       </div>
     </div>
@@ -158,7 +174,7 @@ export const Platforms = () => {
 };
 
 export const FormatSelection = () => {
-  const [isOpen, setIsOpen] = useState(true); // State to manage collapse/expand
+  const [isOpen, setIsOpen] = useState(true);
 
   return (
     <div>
@@ -168,7 +184,7 @@ export const FormatSelection = () => {
       />
       <div className="card cursor-pointer mt-[32px] bg-[#FFFFFF] max-w-[968px]">
         <div className="flex justify-between items-center p-6 gap-3 w-[968px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] rounded-t-[10px]" onClick={() => setIsOpen(!isOpen)}>
-          <div className="flex items-center gap-2 cursor-pointer"> {/* Added cursor pointer */}
+          <div className="flex items-center gap-2 cursor-pointer">
             <Image src={speaker} alt="speaker" />
             <p>Awareness</p>
           </div>
@@ -186,31 +202,33 @@ export const FormatSelection = () => {
         )}
       </div>
 
-
-     <FormatsSelection />
-
-
+      <FormatsSelection />
     </div>
   );
 };
 
-export default function MediaSelection({ handleFormatSelection, mediaOptions }: { mediaOptions: any[], handleFormatSelection: (index: number) => void }) {
+export default function MediaSelection({
+  handleFormatSelection,
+  mediaOptions,
+}: {
+  mediaOptions: any[];
+  handleFormatSelection: (index: number) => void;
+}) {
   return (
     <div className="flex gap-4">
       {mediaOptions.map((option, index) => (
         <div
           key={index}
           onClick={() => handleFormatSelection(index)}
-          className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${option.selected
-            ? "border-blue-500 shadow-lg"
-            : "border-gray-300"
+          className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
+            option.selected ? "border-blue-500 shadow-lg" : "border-gray-300"
           }`}
         >
           <Image src={option.icon} width={168} height={132} alt={option.name} />
           <p className="text-sm font-medium text-gray-700 mt-2">{option.name}</p>
           {option.selected && (
             <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-              <FaCheck /> 
+              <FaCheck />
             </div>
           )}
         </div>

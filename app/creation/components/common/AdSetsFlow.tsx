@@ -162,7 +162,7 @@ function AdsetSettings({
             ></span>
             <div className="flex gap-2 items-center">
               <div className="relative">
-                <p className="relative z-20 text-[#3175FF] text-sm font-bold flex gap-4 items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
+                <p className="relative z-50 text-[#3175FF] text-sm font-bold flex gap-4 items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
                   {`Ad set n°${adset.addsetNumber}`}
                 </p>
                 <hr className="border border-[#0000001A] w-[50px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" />

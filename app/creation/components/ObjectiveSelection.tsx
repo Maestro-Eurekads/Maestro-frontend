@@ -267,7 +267,7 @@ const ObjectiveSelection = () => {
                {platform.icon && (
                 <Image src={platform.icon} alt={platform.name} />
                )}
-               <p className="text-base font-medium text-[#061237]">
+               <p className="text-base font-medium whitespace-nowrap text-[#061237]">
                 {platform.name}
                </p>
               </div>
