@@ -6,7 +6,7 @@
   border-right: 1px solid rgba(28, 28, 28, 0.1); 
   display: block;
   padding: 20px;
-    height: 100%;  
+  height: 100%;  
   overflow: hidden; 
 }
 #side-nav-active {
