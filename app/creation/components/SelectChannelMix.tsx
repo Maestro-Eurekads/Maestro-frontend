@@ -90,7 +90,7 @@ const SelectChannelMix = () => {
 						>
 							<div className="flex items-center gap-2">
 								<Image src={stage.icon} alt={stage.name} />
-								<p className="w-[119px] h-[24px] font-[General Sans] font-bold text-[18px] leading-[24px] text-[#061237]">
+								<p className="w-[119px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
 									{stage.name}
 								</p>
 							</div>

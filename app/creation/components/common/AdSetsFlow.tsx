@@ -43,7 +43,7 @@ function AudienceDropdown() {
         </svg>
       </button>
       {open && (
-        <ul className="absolute whitespace-nowrap left-0 right-0 px-4 py-2 mt-1 z-10 bg-white border-2 border-[#0000001A] rounded-[10px] transition-all duration-200">
+        <ul className="absolute whitespace-nowrap left-0 right-0 text-center px-4 py-2 mt-1 z-10 bg-white border-2 border-[#0000001A] rounded-[10px] transition-all duration-200">
           {options.map((option, index) => (
             <li
               key={index}
@@ -51,7 +51,7 @@ function AudienceDropdown() {
                 setSelected(option);
                 setOpen(false);
               }}
-              className="px-6 py-4 whitespace-nowrap hover:bg-gray-100 cursor-pointer text-[#656565] text-sm font-bold"
+              className="px-6 py-4 whitespace-nowrap cursor-pointer text-[#656565] text-sm font-bold hover:bg-gray-100 w-full"
             >
               {option}
             </li>
@@ -171,12 +171,12 @@ function AdsetSettings({
               <input
                 type="text"
                 placeholder="Enter ad set name"
-                className="text-[#3175FF] text-sm font-bold flex gap-4 items-center border border-[#0000001A] py-4 px-2 rounded-[10px]"
+                className="text-black text-sm font-semibold flex gap-4 items-center border border-[#0000001A] py-4 px-2 rounded-[10px]"
               />
               <input
                 type="text"
                 placeholder="Enter size"
-                className="text-[#3175FF] text-sm font-bold flex gap-4 items-center border border-[#0000001A] py-4 px-2 rounded-[10px]"
+                className="text-black text-sm font-semibold flex gap-4 items-center border border-[#0000001A] py-4 px-2 rounded-[10px]"
               />
               <button
                 onClick={() => deleteAdSet(adset.id)}

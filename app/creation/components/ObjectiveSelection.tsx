@@ -65,6 +65,7 @@ const ObjectiveSelection = () => {
  const [dropdownOpen, setDropdownOpen] = useState<{ [key: string]: boolean }>({});
  const [selectedOptions, setSelectedOptions] = useState<{ [key: string]: string }>({});
  const [isEditable, setIsEditable] = useState<{ [key: string]: boolean }>({});
+ const [previousSelectedOptions, setPreviousSelectedOptions] = useState<{ [key: string]: string }>({}); // New state to store previous selections
 
  // Toggle expand/collapse for a stage
  const toggleItem = (stage: string) => {
@@ -97,6 +98,9 @@ const ObjectiveSelection = () => {
   updatedStatuses[index] = "Completed";
   setStatuses(updatedStatuses);
   setIsEditable((prev) => ({ ...prev, [funnelStages[index].name]: true }));
+
+  // Store the current selected options before validation
+  setPreviousSelectedOptions(selectedOptions);
 
   toast.success("Stage completed successfully! 🎉");
 
@@ -142,10 +146,10 @@ const ObjectiveSelection = () => {
      <p className="text-base font-medium text-[#061237]">{platform.name}</p>
     </div>
     <div className="flex flex-col gap-2">
-     <div className="px-4 py-2 bg-white border border-gray-300 rounded-lg">
+     <div className="px-4 py-2 bg-white border text-center border-gray-300 rounded-lg">
       {selectedOptions[buyTypeKey] || "Buy type"}
      </div>
-     <div className="px-4 py-2 bg-white border border-gray-300 rounded-lg">
+     <div className="px-4 py-2 bg-white border text-center border-gray-300 rounded-lg">
       {selectedOptions[buyObjectiveKey] || "Buy objective"}
      </div>
     </div>
@@ -196,7 +200,7 @@ const ObjectiveSelection = () => {
      {openItems[stage.name] && (
       <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
        {stage.name === "Awareness" && statuses[stageIndex] === "Completed" ? (
-        <div className="flex w-full gap-12">
+        <div className="flex flex-col md:flex-row w-full gap-12">
          {/* Left side - Social Media */}
          <div className="flex-1">
           <h3 className="text-xl font-semibold text-[#061237] mb-6">Social media</h3>
@@ -220,7 +224,7 @@ const ObjectiveSelection = () => {
        ) : (
         // Original grid layout for non-completed state
         Object.entries(stage.platforms).map(([category, platforms]) => (
-         <div key={category} className="flex flex-col items-start gap-6 w-full">
+         <div key={category} className="w-full md:flex flex-col items-start gap-6 md:w-3/5">
           <h3 className="text-xl font-semibold text-[#061237]">{category}</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-8 w-full">
            {platforms.map((platform, pIndex) => {
@@ -232,7 +236,7 @@ const ObjectiveSelection = () => {
                 className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
                 onClick={() => toggleDropdown(platformKey)}
                >
-                <p className="text-base font-medium text-[#061237]">
+                <p className="text-base font-medium whitespace-nowrap text-[#061237]">
                  {selectedOptions[platformKey] || platform.name}
                 </p>
                 <Image src={down2} alt="dropdown" />
@@ -294,11 +298,7 @@ const ObjectiveSelection = () => {
           className="bg-blue-500"
           onClick={() => {
            setIsEditable((prev) => ({ ...prev, [stage.name]: false }));
-           const previousSelectedOptions = { ...selectedOptions };
-           requiredFieldKeys.forEach((key) => {
-            previousSelectedOptions[key] = ""; // Reset the selected options
-           });
-           setSelectedOptions(previousSelectedOptions);
+           setSelectedOptions(previousSelectedOptions); // Restore previous selections
            setStatuses((prev) => {
             const updated = [...prev];
             updated[stageIndex] = "In progress"; // Set status back to "In progress"
