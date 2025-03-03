@@ -16,7 +16,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 		email: "",
 	});
 
-	const [isEditing, setIsEditing] = useState(false);
+
 
 	const handleOnChange = (input: string, value: string) => {
 		setInputs((prevState) => ({
@@ -42,12 +42,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 					{/* Modal container */}
 					<div className="flex flex-col w-[700px] bg-white rounded-[32px] max-h-[90vh]">
 						<div className="w-full flex justify-end px-5 pt-5">
-							<button
-								className="text-gray-500 hover:text-gray-800"
-								onClick={() => setIsOpen(false)}
-							>
-								<Image src={closefill} alt="menu" />
-							</button>
+
 						</div>
 
 						{/* Header (Fixed) */}
@@ -62,11 +57,17 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 								</div>
 							</div>
 							<button
+								className="text-gray-500 hover:text-gray-800"
+								onClick={() => setIsOpen(false)}
+							>
+								<Image src={closefill} alt="menu" />
+							</button>
+							{/* <button
 								className="model_button_blue"
 								onClick={() => setIsEditing(!isEditing)}
 							>
 								{isEditing ? "Disable Edit" : "Edit"}
-							</button>
+							</button> */}
 						</div>
 
 						{/* Scrollable Body */}
@@ -78,7 +79,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 									handleOnChange={(e) => handleOnChange("name", e.target.value)}
 									label="Client Name"
 									placeholder="Client Name"
-									disabled={!isEditing}
 								/>
 								<Input
 									type="email"
@@ -86,20 +86,18 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 									handleOnChange={(e) => handleOnChange("email", e.target.value)}
 									label="Email"
 									placeholder="Enter email address"
-									disabled={!isEditing}
 								/>
 
 							</div>
 
 							<div className="w-full">
-								<ResponsibleApproverDropdowns right={true} disabled={!isEditing} />
+								<ResponsibleApproverDropdowns right={true} />
 							</div>
 							<div className="w-full">
 								<EditInputs />
 							</div>
 							<div className="w-[50%]">
 								<Dropdowns
-									disabled={!isEditing}
 									one={true}
 									two={false}
 									labelone="Select fee type"

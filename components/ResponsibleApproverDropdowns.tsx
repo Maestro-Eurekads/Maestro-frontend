@@ -9,30 +9,25 @@ const CustomDropdown = ({
 	right,
 	islabelone,
 	islabeltwo,
-	disabled,
 }: {
 	label: string;
 	options: string[];
 	right: boolean;
 	islabelone: string;
 	islabeltwo: string;
-	disabled: boolean;
 }) => {
 	const [selectedOption, setSelectedOption] = useState<string | null>(null);
 	const [isOpen, setIsOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
 	const toggleDropdown = () => {
-		if (!disabled) {
-			setIsOpen(!isOpen);
-		}
+
+		setIsOpen(!isOpen);
 	};
 
 	const handleSelect = (option: string) => {
-		if (!disabled) {
-			setSelectedOption(option);
-			setIsOpen(false);
-		}
+		setSelectedOption(option);
+		setIsOpen(false);
 	};
 
 	const handleClickOutside = (event: MouseEvent) => {
@@ -55,8 +50,7 @@ const CustomDropdown = ({
 
 			{/* Dropdown Button */}
 			<div
-				className={`flex items-center px-4 py-2 w-full h-[40px] border border-[#EFEFEF] rounded-[10px] mt-[8px] ${disabled ? "cursor-not-allowed" : "cursor-pointer"
-					}`}
+				className={`flex items-center px-4 py-2 w-full h-[40px] border border-[#EFEFEF] rounded-[10px] mt-[8px] $  "cursor-pointer"`}
 				onClick={toggleDropdown}
 			>
 				{right && <div className="view_content_table mr-2">JB</div>}
@@ -67,7 +61,7 @@ const CustomDropdown = ({
 			</div>
 
 			{/* Dropdown List */}
-			{isOpen && !disabled && (
+			{isOpen && (
 				<div className="absolute bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-2 z-10">
 					{options.map((option) => (
 						<div
@@ -84,7 +78,7 @@ const CustomDropdown = ({
 	);
 };
 
-const ResponsibleApproverDropdowns = ({ right, disabled }: { right: boolean; disabled: boolean }) => {
+const ResponsibleApproverDropdowns = ({ right }: { right: boolean }) => {
 	return (
 		<div className="flex items-center gap-4 mt-[20px] w-full">
 			<CustomDropdown
@@ -93,7 +87,7 @@ const ResponsibleApproverDropdowns = ({ right, disabled }: { right: boolean; dis
 				right={right}
 				islabelone="Responsible"
 				islabeltwo=""
-				disabled={disabled}
+
 			/>
 			<CustomDropdown
 				label="Select Approver"
@@ -101,7 +95,7 @@ const ResponsibleApproverDropdowns = ({ right, disabled }: { right: boolean; dis
 				right={right}
 				islabelone=""
 				islabeltwo="Approver"
-				disabled={disabled}
+
 			/>
 		</div>
 	);
