@@ -1,4 +1,3 @@
-// components/Bottom.tsx
 "use client";
 import Image from 'next/image';
 import clsx from 'clsx';
@@ -6,7 +5,7 @@ import Continue from '../public/arrow-back-outline.svg';
 import Back from '../public/eva_arrow-back-outline.svg';
 import { useActive } from '../app/utils/ActiveContext';
 import AlertMain from '../components/Alert/AlertMain';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useObjectives } from '../app/utils/useObjectives';
 
 interface BottomProps {
@@ -18,6 +17,19 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const { selectedObjectives, selectedFunnels } = useObjectives();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Hide alerts after a few seconds
+  useEffect(() => {
+    if (triggerObjectiveError || triggerFunnelError) {
+      const timer = setTimeout(() => {
+        setTriggerObjectiveError(false);
+        setTriggerFunnelError(false);
+      }, 3000); // Hides alert after 3 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [triggerObjectiveError, triggerFunnelError]);
 
   const handleBack = () => {
     if (subStep > 0) {
@@ -25,8 +37,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     } else {
       if (active === 8) {
         setSubStep(1);
-      } else if (active === 7) {
-        setSubStep(0);
       } else {
         setSubStep(0);
       }
@@ -35,26 +45,27 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   };
 
   const handleContinue = () => {
-    // Check for objectives on step 1
+    let hasError = false;
+
+    // Show error only once when conditions are met
     if (active === 1 && selectedObjectives.length === 0) {
       setTriggerObjectiveError(true);
-      return; // Prevent navigation
+      hasError = true;
     }
 
-    // Check for funnels on step 2
     if (active === 2 && selectedFunnels.length === 0) {
       setTriggerFunnelError(true);
-      return; // Prevent navigation
+      hasError = true;
     }
 
-    // Clear errors if proceeding
+    if (hasError) return; // Stop further execution if there’s an error
+
+    // Clear errors and proceed
     setTriggerObjectiveError(false);
     setTriggerFunnelError(false);
 
     if (active === 8 && subStep < 2) {
       setSubStep((prev) => prev + 1);
-    } else if (active === 7 && subStep === 0) {
-      setSubStep(1);
     } else {
       setSubStep(0);
       setActive((prev) => Math.min(10, prev + 1));
@@ -63,6 +74,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   return (
     <footer id="footer" className="w-full">
+      {/* Show alert only when needed */}
       {triggerObjectiveError && (
         <AlertMain
           alert={{
@@ -83,23 +95,25 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       )}
       <div className="flex justify-between w-full">
         {/* Back Button */}
-        <button
-          className={clsx(
-            'bottom_black_back_btn',
-            active === 0 && subStep === 0 && 'opacity-50 cursor-not-allowed',
-            active > 0 && 'hover:bg-gray-200'
-          )}
-          onClick={handleBack}
-          disabled={active === 0 && subStep === 0}
-        >
-          <Image src={Back} alt="Back" />
-          <p>Back</p>
-        </button>
-
+        {active === 0 ?
+          <div /> :
+          <button
+            className={clsx(
+              'bottom_black_back_btn',
+              active === 0 && subStep === 0 && 'opacity-50 cursor-not-allowed',
+              active > 0 && 'hover:bg-gray-200'
+            )}
+            onClick={handleBack}
+            disabled={active === 0 && subStep === 0}
+          >
+            <Image src={Back} alt="Back" />
+            <p>Back</p>
+          </button>
+        }
         {/* Continue Button */}
         {active === 10 ? (
           <button
-            className={clsx('bottom_black_next_btn hover:bg-blue-500')}
+            className="bottom_black_next_btn hover:bg-blue-500"
             onClick={() => setIsOpen(true)}
           >
             <p>Confirm</p>
@@ -108,14 +122,22 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         ) : (
           <button
             className={clsx(
-              'bottom_black_next_btn',
-              active === 10 && 'opacity-50 cursor-not-allowed',
-              active < 10 && 'hover:bg-blue-500'
+              "bottom_black_next_btn whitespace-nowrap",
+              active === 10 && "opacity-50 cursor-not-allowed",
+              active < 10 && "hover:bg-blue-500"
             )}
             onClick={handleContinue}
             disabled={active === 10}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
           >
-            <p>Continue</p>
+            <p>
+              {active === 0
+                ? "Start Creating"
+                : isHovered
+                  ? "Next Step"
+                  : "Continue"}
+            </p>
             <Image src={Continue} alt="Continue" />
           </button>
         )}
