@@ -31,9 +31,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
   }, [triggerObjectiveError, triggerFunnelError]);
 
+
+
   const handleBack = () => {
     if (subStep > 0) {
       setSubStep((prev) => prev - 1);
+    } else if (active === 7 && subStep === 0) {
+      setActive((prev) => Math.max(0, prev - 1));
+      setSubStep(1); // Ensure it correctly navigates back to Step 7's sub-step
     } else {
       if (active === 8) {
         setSubStep(1);
@@ -43,6 +48,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       setActive((prev) => Math.max(0, prev - 1));
     }
   };
+
+
 
   const handleContinue = () => {
     let hasError = false;
@@ -58,13 +65,19 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       hasError = true;
     }
 
-    if (hasError) return; // Stop further execution if there’s an error
+    if (hasError) return; // Stop further execution if there's an error
 
     // Clear errors and proceed
     setTriggerObjectiveError(false);
     setTriggerFunnelError(false);
 
-    if (active === 8 && subStep < 2) {
+    // Step 7: Handle its sub-step
+    if (active === 7 && subStep < 1) {
+      setSubStep((prev) => prev + 1);
+    } else if (active === 7 && subStep === 1) {
+      setSubStep(0);
+      setActive((prev) => prev + 1);
+    } else if (active === 8 && subStep < 2) {
       setSubStep((prev) => prev + 1);
     } else {
       setSubStep(0);

@@ -1,20 +1,43 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, SetStateAction } from "react";
 import Image from "next/image";
 import closefill from "../../public/close-fill.svg";
 import blueprofile from "../../public/blueprofile.svg";
 import Input from "../../components/Input";
-import Dropdowns from "../../components/CustomDropdown";
 import EditInputs from "../../components/EditInput";
 import ResponsibleApproverDropdowns from "../../components/ResponsibleApproverDropdowns";
+import FeeDropdowns from "./FeeDropdowns";
+import CategoryDropdown from "./components/CategoryDropdown";
+import SportDropdown from "./components/SportDropdown";
+import BusinessUnit from "./components/BusinessUnit";
+import { useDispatch } from 'react-redux';
+import { createClient, reset } from "../../features/Client/clientSlice";
+import { useAppSelector } from "../../store/useStore";
+import { RootState } from "../../store/store";
+import { SVGLoader } from "../../components/SVGLoader";
+import AlertMain from "../../components/Alert/AlertMain";
 
 const TableModel = ({ isOpen, setIsOpen }) => {
+
+	const { isLoading, isSuccess, isError, message } = useAppSelector(
+		(state: RootState) => state.client
+	);
+	const dispatch = useDispatch();
 	const [inputs, setInputs] = useState({
 		name: "",
-		others: "",
-		username: "",
 		email: "",
+		responsiblePerson: "",
+		approver: "",
+		sports: [],
+		categories: [],
+		businessUnits: [],
+		feeType: "",
 	});
+
+
+
+
+	console.log('isSuccess, isError, message', isSuccess, isError, message)
 
 
 
@@ -35,8 +58,59 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 		return () => document.body.classList.remove("overflow-hidden");
 	}, [isOpen]);
 
+
+	useEffect(() => {
+		if (isError) {
+			setTimeout(() => {
+				dispatch(reset());
+			}, 3000);
+		} else if (isSuccess) {
+			setIsOpen(false)
+			setInputs({
+				name: "",
+				email: "",
+				responsiblePerson: "",
+				approver: "",
+				sports: [],
+				categories: [],
+				businessUnits: [],
+				feeType: "",
+			})
+			setTimeout(() => {
+				dispatch(reset());
+			}, 3000);
+		}
+
+	}, [isError, isSuccess])
+
+
+
+
+	const handleSubmit = async () => {
+		// @ts-ignore
+		dispatch(createClient(inputs));
+	}
 	return (
-		<div className="z-50">
+		<div className="z-50">{/* Show alert only when needed */}
+			{isSuccess && (
+				<AlertMain
+					alert={{
+						variant: 'success',
+						message: 'Client created successfully!',
+						position: 'bottom-right',
+					}}
+				/>
+			)}
+			{isError && (
+				<AlertMain
+					alert={{
+						variant: 'error',
+						message: message,
+						position: 'bottom-right',
+					}}
+				/>
+			)}
+
 			{isOpen && (
 				<div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
 					{/* Modal container */}
@@ -62,12 +136,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 							>
 								<Image src={closefill} alt="menu" />
 							</button>
-							{/* <button
-								className="model_button_blue"
-								onClick={() => setIsEditing(!isEditing)}
-							>
-								{isEditing ? "Disable Edit" : "Edit"}
-							</button> */}
 						</div>
 
 						{/* Scrollable Body */}
@@ -91,17 +159,18 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 							</div>
 
 							<div className="w-full">
-								<ResponsibleApproverDropdowns right={true} />
+								<ResponsibleApproverDropdowns right={true} setInputs={setInputs} />
 							</div>
-							<div className="w-full">
-								<EditInputs />
+							<div className="w-full flex items-center gap-3">
+								<SportDropdown setInputs={setInputs} />
+								<BusinessUnit setInputs={setInputs} />
+								<CategoryDropdown setInputs={setInputs} inputs={inputs} />
+								{/* <EditInputs inputs={inputs} setInputs={setInputs} /> */}
 							</div>
 							<div className="w-[50%]">
-								<Dropdowns
-									one={true}
-									two={false}
+								<FeeDropdowns
 									labelone="Select fee type"
-									islabelone="Fee" labeltwo={undefined} islabeltwo={undefined} right={""} />
+									islabelone="Fee" inputs={inputs} setInputs={setInputs} />
 							</div>
 						</div>
 
@@ -109,7 +178,10 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 						<div className="p-6 border-t bg-white sticky bottom-0 z-10 flex justify-end rounded-b-[32px]">
 							<div className="flex items-center gap-5">
 								<button className="btn_model_outline">Cancel</button>
-								<button className="btn_model_active whitespace-nowrap">Add Client</button>
+								<button
+									className="btn_model_active whitespace-nowrap"
+									onClick={handleSubmit}
+								>{isLoading ? <SVGLoader width={"30px"} height={"30px"} color={"#FFF"} /> : "Add Client"}</button>
 							</div>
 						</div>
 
