@@ -66,6 +66,16 @@ const SelectChannelMix = () => {
     }));
   };
 
+  const areAllPlatformsSelected = (stageName) => {
+    const stageSelections = selected[stageName] || {};
+    const requiredCategories = ["Social media", "Display networks", "Search engines"];
+
+    return requiredCategories.every(category => {
+      const platforms = stageSelections[category] || [];
+      return platforms.length > 0 && platforms.length === funnelStages.find(stage => stage.name === stageName).platforms[category].length;
+    });
+  };
+
   return (
     <div className="overflow-hidden">
       <PageHeaderWrapper
@@ -201,10 +211,10 @@ const SelectChannelMix = () => {
 
                     <div className="flex justify-end pr-[24px] mt-4">
                       <button
-                        disabled={!isStageValid(stage.name)}
+                        disabled={!isStageValid(stage.name) || !areAllPlatformsSelected(stage.name)}
                         onClick={() => handleValidate(stage.name)}
                         className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-                          isStageValid(stage.name)
+                          isStageValid(stage.name) && areAllPlatformsSelected(stage.name)
                             ? 'bg-[#3175FF] hover:bg-[#2563eb]'
                             : 'bg-[#3175FF] opacity-50 cursor-not-allowed'
                         }`}
