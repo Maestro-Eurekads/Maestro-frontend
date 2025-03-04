@@ -203,6 +203,7 @@ const SelectChannelMix = () => {
 														);
 													})}
 												</div>
+												{category !== "Search engines" && <hr className="text-[#0000001A] px-4 w-full " />}
 											</div>
 										))}
 
