@@ -7,9 +7,8 @@ const PlanCampaignSchedule: React.FC = () => {
 	return (
 		<div className="creation_continer">
 			<PageHeaderWrapper
-				t1={'Which platforms would you like to activate for each funnel stage?'}
-				t2={'Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time.'}
-				t4={'Choose your start and end date for the campaign'}
+				t1={'Setup the timeline of your campaign'}
+				t2={'Choose your campaign start and end dates, then arrange each funnel phase within the timeline.'}
 				span={1}
 			/>
 

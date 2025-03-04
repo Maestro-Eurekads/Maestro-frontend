@@ -322,19 +322,61 @@ border-radius: 50px;
 	margin-top: -4px;
 }
 #Sidenavbar {
-  height: 66vh; /* Full viewport height */
+  height: 90vh; /* Full viewport height */
   overflow-y: auto; /* Enables vertical scrolling */
 		overflow-x: hidden !important;
-		margin-bottom: 2rem;
+		margin-bottom: 1rem;
 }
 
-#SideBar__container{
-	width: 327px !important;
-	max-height: 100%;  
-  overflow-y: auto; 
-				overflow-x: hidden !important;
+.client_selection_flow{
+	display: flex;
+ align-items: center  ;
+	gap: 16px ;
 }
 
+.dropdown_button_width{
+	width: 327px;
+}
+
+ 
+/* For small screens, use a single-column layout */
+@media (max-width: 768px) {
+  .client_selection_flow {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    align-items: center;
+    place-items: center;
+  }
+}
+
+/* For medium screens, use a two-column layout */
+@media (max-width: 1080px) { 
+  .client_selection_flow {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .dropdown_button_width {
+    width: 280px;
+  }
+}
+
+/* For larger screens, maintain a two-column layout */
+@media (max-width: 1440px) {
+  .client_selection_flow {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .dropdown_button_width {
+    width: 280px;
+  }
+}
+ 
 
 .SideBar_state_circle{
 width: 10px;
@@ -459,6 +501,20 @@ background: var(--accent-green);
 	width: 50%;
 }
 
+.doughnut_chart_settings{
+	width:243.73px ; 
+	height:243.73px;
+}
+
+/* Large Devices (Laptops & Desktops) */
+@media (max-width: 1536px) { 
+.doughnut_chart_settings{
+	width:180px ; 
+	height:180px;
+}
+
+}
+
 
 .doughnutcontainer{
 width: 243.73px;
@@ -565,6 +621,30 @@ border-radius: 8px;
  
 
  
+/* Extra Small Devices (Phones) */
+@media (max-width: 480px) { 
+  /* Styles for phones */
+}
+
+/* Small Devices (Tablets) */
+@media (max-width: 768px) { 
+  /* Styles for tablets */
+}
+
+/* Medium Devices (Small Laptops) */
+@media (max-width: 1024px) { 
+  /* Styles for small laptops */
+}
+
+/* Large Devices (Laptops & Desktops) */
+@media (max-width: 1280px) { 
+  /* Styles for larger screens */
+}
+
+/* Extra Large Devices (Big Screens) */
+@media (max-width: 1536px) { 
+  /* Styles for extra-large screens */
+}
 
  
 

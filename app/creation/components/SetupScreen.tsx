@@ -84,12 +84,13 @@ export const SetupScreen = () => {
           t2={"Fill in the following information to define the foundation of your media plan."}
           t3={"This information helps structure your campaign strategy and align with business goals."}
         />
-        <button
+        {isEditing ? "" : <button
           className="model_button_blue"
           onClick={() => setIsEditing(!isEditing)}
         >
           {isEditing ? "Disable Edit" : "Edit"}
-        </button>
+        </button>}
+
       </div>
 
       <div className="mt-[42px]">
@@ -98,7 +99,7 @@ export const SetupScreen = () => {
           <ClientSelection options={clients} label={"Select a client"} />
 
         </div>
-        <div className="flex flex-wrap gap-4 pb-12">
+        <div className="client_selection_flow  pb-12">
           <ClientSelection options={businessLevel1} label={"businessLevel1"} />
           <ClientSelection options={businessLevel2} label={"businessLevel2"} />
           <ClientSelection options={businessLevel3} label={"businessLevel3"} />
@@ -132,13 +133,15 @@ export const SetupScreen = () => {
         </div>
       </div>
       <div className="flex justify-end pr-6 mt-[20px]">
-        <button
+
+        {isEditing ? <button
           disabled={businessLevel1.length === 0}
-          // onClick={() => handleValidate(stage.name)} // Uncomment and fix stage reference when ready
+          onClick={() => setIsEditing(false)}
           className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg bg-[#3175FF] text-white font-semibold text-base leading-6 disabled:opacity-50 hover:bg-[#2557D6] transition-colors"
         >
           Validate
-        </button>
+        </button> : ""}
+
       </div>
     </div>
   );

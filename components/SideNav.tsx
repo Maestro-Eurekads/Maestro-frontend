@@ -141,13 +141,18 @@ const SideNav: React.FC = () => {
               <Image src={left_arrow} alt="menu" />
               <p>Back to Dashboard</p>
             </button>
-            <span className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
-              Spring Collection Launch 2025
-            </span>
+            <div>
+              <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
+                Let’s create your
+              </h6>
+              <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
+                new campaign :
+              </h6>
+
+            </div>
             <div className="flex items-center gap-[8px]">
-              <Image src={nike} alt="nike" />
-              <p className="w-[35px] h-[22px] font-[General Sans] font-semibold text-[16px] leading-[22px] text-[#061237]">
-                Nike
+              <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic">
+                Follow the steps to set up an effective and successful campaign strategy.
               </p>
             </div>
           </div>
