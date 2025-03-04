@@ -90,7 +90,7 @@ const OverviewofyourCampaign = () => {
 										1,800 €
 									</button>
 								</div>
-								<button className="bg-[#EBFEF4]/50 py-[10px] px-3 border border-[#00A36C1A] text-[#00A36C]/60 flex gap-2">
+								<button className="bg-[#EBFEF4] py-[10px] px-3 rounded-[10px] border border-[#00A36C1A] text-[#00A36C] flex gap-2">
 									2 add sets
 									<span>
 										<svg
@@ -125,7 +125,7 @@ const OverviewofyourCampaign = () => {
 										1,800 €
 									</button>
 								</div>
-								<button className="bg-[#EBFEF4]/50 py-[10px] px-3 border border-[#00A36C1A]/10 text-[#00A36C]/60 flex gap-2">
+								<button className="bg-[#EBFEF4] py-[10px] px-3 rounded-[10px] border border-[#00A36C1A] text-[#00A36C] flex gap-2">
 									2 add sets
 									<span>
 										<svg
@@ -160,7 +160,7 @@ const OverviewofyourCampaign = () => {
 										1,200 €
 									</button>
 								</div>
-								<button className="bg-[#EBFEF4]/50 py-[10px] px-3 border border-[#00A36C1A]/10 text-[#00A36C]/60 flex gap-2">
+								<button className="bg-[#EBFEF4] py-[10px] px-3 rounded-[10px] border border-[#00A36C1A] text-[#00A36C] flex gap-2">
 									1 add sets
 									<span>
 										<svg
@@ -191,12 +191,12 @@ const OverviewofyourCampaign = () => {
 										</span>
 										<span>TheTradeDesk</span>
 									</span>
-									<button className="bg-[#0866FF33]/5 py-2 px-[10px] text-base  rounded-[5px] mr-3">
+									<button className="bg-[#0866FF33]/5 py-2 px-[10px] text-base rounded-[5px] mr-3">
 										900 €
 									</button>
 								</div>
-								<button className="bg-[#EBFEF4]/50 py-2 px-3 border border-[#00A36C1A]/10 text-[#00A36C]/60 flex gap-2">
-									1 add sets
+								<button className="bg-[#EBFEF4] py-2 px-3 rounded-[10px] border border-[#00A36C1A] text-[#00A36C] flex gap-2">
+									1 add sets 
 									<span>
 										<svg
 											width="17"
