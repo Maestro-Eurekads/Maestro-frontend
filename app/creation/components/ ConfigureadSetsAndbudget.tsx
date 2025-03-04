@@ -43,7 +43,7 @@ const ConfigureAdSetsAndBudget = () => {
 											Total budget
 										</p>
 										<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-											12 000 €
+											12,000 €
 										</h3>
 									</div>
 									<div>

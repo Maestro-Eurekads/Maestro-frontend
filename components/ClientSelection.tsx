@@ -31,7 +31,7 @@ const Dropdown = ({ label, options }: { label: string; options: { value: string;
 		<div className="relative" ref={dropdownRef}>
 			{/* Dropdown Button */}
 			<div
-				className="flex items-center px-4 py-2 w-[327px] h-[45px] cursor-pointer bg-white max-w-xs border-2 border-[#EFEFEF] rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 disabled:opacity-50"
+				className="dropdown_button_width flex items-center px-4 py-2  h-[45px] cursor-pointer bg-white max-w-xs border-2 border-[#EFEFEF] rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 disabled:opacity-50"
 				onClick={toggleDropdown}
 			>
 				<span className="text-gray-600">{selectedOption || label}</span>

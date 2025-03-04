@@ -100,7 +100,7 @@ const Dashboard = () => {
 						<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">6</h3>
 					</div>
 
-					<PlatformSpending />
+					{/* <PlatformSpending /> */}
 				</div>
 
 			</div>

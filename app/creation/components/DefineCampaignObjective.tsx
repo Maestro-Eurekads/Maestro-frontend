@@ -1,5 +1,5 @@
 // YourCampaign.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Mark from '../../../public/Mark.svg';
 import PageHeaderWrapper from '../../../components/PageHeaderWapper';
@@ -9,6 +9,8 @@ import { useObjectives } from '../../utils/useObjectives';
 
 const DefineCampaignObjective = () => {
 	const { selectedObjectives, setSelectedObjectives } = useObjectives();
+	const [isEditing, setIsEditing] = useState(false);
+
 
 	// Toggle selection and enforce single selection
 	const handleSelect = (id: number) => {
@@ -23,12 +25,25 @@ const DefineCampaignObjective = () => {
 
 	return (
 		<div>
-			<PageHeaderWrapper
-				t1={'What is the main objective of your campaign ?'}
-				t2={'Please select only one objective.'}
-			/>
 
-			<div className="flex flex-wrap gap-[80px] mt-[50px]">
+			<div className='flex items-center justify-between'>
+
+				<PageHeaderWrapper
+					t1={'What is the main objective of your campaign ?'}
+					t2={'Please select only one objective.'}
+				/>
+
+				{isEditing ? "" : <button
+					className="model_button_blue"
+					onClick={() => setIsEditing(!isEditing)}
+				>
+					Edit
+				</button>}
+			</div>
+
+			<div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-[80px] mt-[50px] place-items-center">
+
+
 				{campaignObjectives.map((item) => {
 					const isSelected = selectedObjectives.includes(item.id);
 
@@ -55,14 +70,15 @@ const DefineCampaignObjective = () => {
 					);
 				})}
 			</div>
-			<div className="flex justify-end pr-6 mt-[20px]">
-				<button
+			<div className="flex justify-end  mt-[30px]">
+				{isEditing ? <button
 					disabled={selectedObjectives.length === 0}
-					// onClick={() => handleValidate(stage.name)} // Uncomment and fix stage reference when ready
-					className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg bg-[#3175FF] text-white font-semibold text-base leading-6 disabled:opacity-50 hover:bg-[#2557D6] transition-colors"
+					onClick={() => setIsEditing(false)} // Uncomment and fix stage reference when ready
+					className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4  rounded-lg bg-[#3175FF] text-white font-semibold text-base leading-6 disabled:opacity-50 hover:bg-[#2557D6] transition-colors"
 				>
 					Validate
-				</button>
+				</button> : ""}
+
 			</div>
 		</div>
 	);

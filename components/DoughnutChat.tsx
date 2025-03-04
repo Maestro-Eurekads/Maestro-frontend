@@ -80,7 +80,7 @@ const DoughnutChart = () => {
   };
 
   return (
-    <div className="w-[243.73px] h-[243.73px]">
+    <div className="doughnut_chart_settings">
       <Doughnut ref={chartRef} data={doughnutData} options={chartOptions} plugins={[centerTextPlugin]} />
     </div>
   );

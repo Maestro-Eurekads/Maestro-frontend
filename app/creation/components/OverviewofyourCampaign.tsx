@@ -7,8 +7,11 @@ import TheTradeDesk from "../../../public/TheTradeDesk.svg";
 import instagram from "../../../public/ig.svg";
 import Image from "next/image";
 import ConfigureBudgetComponet from './ConfigureAdSetsAndBudget/ConfigureBudgetComponet';
+import { BsFillMegaphoneFill } from 'react-icons/bs';
+import { FiChevronUp, FiChevronDown } from 'react-icons/fi';
 
 const OverviewofyourCampaign = () => {
+	const [expanded, setExpanded] = useState(false);
 	// const { range, setRange } = useDateRange();
 	const [show, setShow] = useState(false);
 	const [open, setOpen] = useState(false);
@@ -23,7 +26,7 @@ const OverviewofyourCampaign = () => {
 
 				<div >
 					<button className="overview-budget-conponent mt-8"
-						onClick={() => setShow(!show)}>See budget overview</button>
+						onClick={() => setShow(!show)}>{!show ? "See" : "Hide"} budget overview</button>
 
 					<ConfigureBudgetComponet show={show} t1={"Your budget by campaign phase"} t2={undefined} />
 				</div>
@@ -64,32 +67,16 @@ const OverviewofyourCampaign = () => {
 											fill="#FFFFFF"
 										/>
 									</svg>
-								</span>{" "}
-								<span>Awareness</span>{" "}
-								<span>
-									<svg
-										width="17"
-										height="16"
-										viewBox="0 0 17 16"
-										fill="none"
-										xmlns="http://www.w3.org/2000/svg"
-									>
-										<path
-											d="M5.38021 6.66667L8.71354 10L12.0469 6.66667"
-											stroke="#FFFFFF"
-											strokeOpacity="0.8"
-											strokeWidth="1.33333"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-										/>
-									</svg>
 								</span>
+								<span>Awareness</span>
+								{open ? <FiChevronUp /> : <FiChevronDown />}
+
 							</div>
 							<button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
 								6,000 €
 							</button>
-						</button>
 
+						</button>
 						{open && <div className="ml-[56px]">
 							<div className="">
 								<div className="py-3 bg-[#0866FF33] text-[#0866FF] text-[15px] font-[500] border border-[#0866FF33] my-5 max-w-[284px] w-full rounded-[10px] flex items-center justify-between">
