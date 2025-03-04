@@ -4,22 +4,19 @@ import React, { useState, useRef, useEffect } from "react";
 import down from "../public/down.svg";
 import Image from 'next/image'
 
-const CustomDropdown = ({ label, options, right, islabelone, islabeltwo, disabled }: { label: string; options: string[]; right: string; islabelone: string, islabeltwo: string, disabled?: boolean }) => {
+const CustomDropdown = ({ label, options, right, islabelone, islabeltwo, }: { label: string; options: string[]; right: string; islabelone: string, islabeltwo: string, }) => {
 	const [selectedOption, setSelectedOption] = useState<string | null>(null);
 	const [isOpen, setIsOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
 	const toggleDropdown = () => {
-		if (!disabled) {
-			setIsOpen(!isOpen);
-		}
+		setIsOpen(!isOpen);
 	};
 
 	const handleSelect = (option: string) => {
-		if (!disabled) {
-			setSelectedOption(option);
-			setIsOpen(false);
-		}
+
+		setSelectedOption(option);
+		setIsOpen(false);
 	};
 
 	const handleClickOutside = (event: MouseEvent) => {
@@ -38,7 +35,7 @@ const CustomDropdown = ({ label, options, right, islabelone, islabeltwo, disable
 			{/* Dropdown Button */}
 			<label className="font-medium text-[15px] leading-5 text-gray-600 ">{islabelone || islabeltwo}</label>
 			<div
-				className={`flex items-center px-4 py-2 w-full h-[40px] border border-[#EFEFEF] rounded-[10px] mt-[8px] ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+				className={`flex items-center px-4 py-2 w-full h-[40px] border border-[#EFEFEF] rounded-[10px] mt-[8px]  'cursor-pointer'`}
 				onClick={toggleDropdown}
 			>
 				{right && <div className='view_content_table mr-2'>JB</div>}
@@ -49,7 +46,7 @@ const CustomDropdown = ({ label, options, right, islabelone, islabeltwo, disable
 			</div>
 
 			{/* Dropdown List */}
-			{isOpen && !disabled && (
+			{isOpen && (
 				<div className="absolute w-[127px] bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-2 z-10">
 					{options.map((option) => (
 						<div
@@ -66,11 +63,11 @@ const CustomDropdown = ({ label, options, right, islabelone, islabeltwo, disable
 	);
 };
 
-const Dropdowns = ({ one, two, labelone, labeltwo, right, islabelone, islabeltwo, disabled }: { one: boolean; two: boolean; labelone: string; labeltwo: string; right: string; islabelone: string; islabeltwo: string; disabled?: boolean }) => {
+const Dropdowns = ({ one, two, labelone, labeltwo, right, islabelone, islabeltwo, }: { one: boolean; two: boolean; labelone: string; labeltwo: string; right: string; islabelone: string; islabeltwo: string; }) => {
 	return (
 		<div className="flex items-center gap-4 mt-[20px] w-full">
-			{one && <CustomDropdown label={labelone} options={["2022", "2023", "2024", "2025"]} right={right} islabelone={islabelone} islabeltwo={""} disabled={disabled} />}
-			{two && <CustomDropdown label={labeltwo} options={["Q1", "Q2", "Q3", "Q4"]} right={right} islabelone={""} islabeltwo={islabeltwo} disabled={disabled} />}
+			{one && <CustomDropdown label={labelone} options={["2022", "2023", "2024", "2025"]} right={right} islabelone={islabelone} islabeltwo={""} />}
+			{two && <CustomDropdown label={labeltwo} options={["Q1", "Q2", "Q3", "Q4"]} right={right} islabelone={""} islabeltwo={islabeltwo} />}
 		</div>
 	);
 };

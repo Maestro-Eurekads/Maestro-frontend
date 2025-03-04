@@ -52,7 +52,7 @@ const AlertMain = ({ alert }: AlertMainProps) => {
 			// Automatically close alert after 3 seconds
 			const timer = setTimeout(() => {
 				setAlerts([]);
-			}, 3000);
+			}, 5000);
 
 			return () => clearTimeout(timer);
 		}
