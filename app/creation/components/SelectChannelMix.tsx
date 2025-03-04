@@ -74,7 +74,7 @@ const SelectChannelMix = () => {
 	};
 
 	return (
-		<div>
+		<div className="overflow-hidden"> {/* Added overflow-hidden to prevent horizontal scrollbar */}
 			<PageHeaderWrapper
 				t1={'Which platforms would you like to activate for each funnel stage?'}
 				t2={'Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time.'}
@@ -85,7 +85,7 @@ const SelectChannelMix = () => {
 				{funnelStages.map((stage, index) => (
 					<div key={index}>
 						<div
-							className="flex justify-between items-center p-6 gap-3 w-[968px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] rounded-t-[10px]"
+							className="flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] rounded-t-[10px]" // Changed w-[968px] to w-full
 							onClick={() => toggleItem(stage.name)}
 						>
 							<div className="flex items-center gap-2">
@@ -122,7 +122,7 @@ const SelectChannelMix = () => {
 						</div>
 
 						{openItems[stage.name] && (
-							<div className="card_bucket_container_main_sub flex flex-col pb-6 w-[968px] min-h-[300px]">
+							<div className="card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px]"> {/* Changed w-[968px] to w-full */}
 								{validatedStages[stage.name] ? (
 									// Read-only summary view with full card UI for each selected field, using default border styling
 									<div className="mt-8 px-6">
