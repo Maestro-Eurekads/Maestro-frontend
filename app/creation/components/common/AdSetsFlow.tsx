@@ -7,8 +7,7 @@ import youtubeIcon from "../../../../public/youtube.svg";
 import theTradeDeskIcon from "../../../../public/TheTradeDesk.svg";
 import quantcastIcon from "../../../../public/quantcast.svg";
 import { FaAngleRight } from "react-icons/fa";
-import { MdDelete } from "react-icons/md";
-import { MdAdd } from "react-icons/md";
+import { MdDelete, MdAdd } from "react-icons/md";
 import { useState } from "react";
 
 // AudienceDropdown component with animated dropdown
@@ -20,7 +19,7 @@ function AudienceDropdown() {
     "Lookalike audience",
     "Retargeting audience",
     "Broad audience",
-    "Behavioral audience"
+    "Behavioral audience",
   ];
 
   return (
@@ -31,15 +30,20 @@ function AudienceDropdown() {
       >
         {selected || "Your audience type"}
         <svg
-          className={`ml-auto h-4 w-4 transform transition-transform duration-200 ${open ? "rotate-180" : "rotate-0"
-            }`}
+          className={`ml-auto h-4 w-4 transform transition-transform duration-200 ${
+            open ? "rotate-180" : "rotate-0"
+          }`}
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
-
           stroke="currentColor"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
       {open && (
@@ -67,11 +71,9 @@ function AdsetSettings({
 }: {
   outlet: { id: number; outlet: string; icon: StaticImageData };
 }) {
-  // Only show full ad set settings for Facebook.
   const isFacebook = outlet.outlet === "Facebook";
 
   if (!isFacebook) {
-    // For non-Facebook outlets, display only the outlet button.
     return (
       <div className="flex items-center gap-8">
         <div className="relative border border-[#0000001A] rounded-[10px]">
@@ -85,7 +87,6 @@ function AdsetSettings({
     );
   }
 
-  // For Facebook, include the full ad set settings UI.
   const [adsets, setAdSets] = useState([
     {
       id: Date.now(),
@@ -117,22 +118,24 @@ function AdsetSettings({
         </button>
         <hr className="border border-[#0000001A] w-[100px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" />
       </div>
-      <div className="relative w-full h-[194px]">
+      <div className="relative w-full min-h-[194px]">
         <div
-          className={`absolute ${adsetAmount === 1
+          className={`absolute ${
+            adsetAmount === 1
               ? "top-0"
               : adsetAmount === 2
-                ? "bottom-0"
-                : "hidden"
-            }`}
+              ? "bottom-0"
+              : "hidden"
+          }`}
         >
           <span
-            className={`border-l-2 border-[#0000001A] h-[78px] w-8 absolute -left-4 ${adsetAmount === 1
+            className={`border-l-2 border-[#0000001A] h-[78px] w-8 absolute -left-4 ${
+              adsetAmount === 1
                 ? "top-1/2 rounded-tl-[10px] border-t-2"
                 : adsetAmount === 2
-                  ? "bottom-1/2 rounded-bl-[10px] border-b-2"
-                  : ""
-              }`}
+                ? "bottom-1/2 rounded-bl-[10px] border-b-2"
+                : ""
+            }`}
           ></span>
           <button
             onClick={addNewAddset}
@@ -145,20 +148,22 @@ function AdsetSettings({
         {adsets.map((adset, index) => (
           <div
             key={adset.id}
-            className={`absolute ${index === 0
+            className={`absolute ${
+              index === 0
                 ? "top-1/2 -translate-y-1/2"
                 : index === 1
-                  ? "top-0"
-                  : "bottom-0"
-              }`}
+                ? "top-0"
+                : "bottom-0"
+            }`}
           >
             <span
-              className={`border-l-2 border-[#0000001A] h-[70px] w-8 absolute -left-4 ${index === 0
+              className={`border-l-2 border-[#0000001A] h-[70px] w-8 absolute -left-4 ${
+                index === 0
                   ? "hidden"
                   : index === 1
-                    ? "top-1/2 rounded-tl-[10px] border-t-2"
-                    : "bottom-1/2 rounded-bl-[10px] border-b-2"
-                }`}
+                  ? "top-1/2 rounded-tl-[10px] border-t-2"
+                  : "bottom-1/2 rounded-bl-[10px] border-b-2"
+              }`}
             ></span>
             <div className="flex gap-2 items-center">
               <div className="relative">
@@ -188,10 +193,7 @@ function AdsetSettings({
           </div>
         ))}
       </div>
-
     </div>
-
-
   );
 }
 
@@ -223,22 +225,17 @@ export default function AdSetFlow() {
       icon: quantcastIcon,
     },
   ];
+
   return (
-    <>
-      <div className="w-full space-y-4">
-        {outlets.map((outlet) => (
-          <AdsetSettings key={outlet.id} outlet={outlet} />
-        ))}
-
-      </div>
-
-
+    <div className="w-full space-y-4 p-4">
+      {outlets.map((outlet) => (
+        <AdsetSettings key={outlet.id} outlet={outlet} />
+      ))}
       <div className="flex justify-end gap-2 w-full">
         <button className="bg-[#3175FF] w-[142px] h-[52px] text-white px-6 py-3 rounded-md text-sm font-bold">
           <span>Validate</span>
         </button>
-
       </div>
-    </>
+    </div>
   );
 }
