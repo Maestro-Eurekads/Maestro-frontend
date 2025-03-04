@@ -2,10 +2,6 @@
 import React, { useState } from 'react'
 import ToggleSwitch from './ToggleSwitch'
 import Header from '../../components/Header'
-import Image from 'next/image'
-import blueBtn from '../../public/blueBtn.svg';
-import Dropdowns from './Dropdowns';
-import Table from '../../components/Table';
 import TableModel from './TableModel';
 import Overview from './components/Overview'
 import Dashboard from './components/Dashboard'
@@ -24,7 +20,6 @@ const Homepage = () => {
 		<div id="page-wrapper">
 			<Header setIsOpen={setIsOpen} />
 			<main className="!px-0">
-
 				<div >
 					<div className='px-[72px]'>
 						<ToggleSwitch active={active} setActive={setActive} />

@@ -30,7 +30,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 										Total budget
 									</p>
 
-									<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">12 000 €</h3>
+									<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">12,000 €</h3>
 								</div>
 								<div className='mt-[16px]'>
 									<p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
