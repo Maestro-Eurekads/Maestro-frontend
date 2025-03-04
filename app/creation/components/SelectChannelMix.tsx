@@ -166,14 +166,14 @@ const SelectChannelMix = () => {
 										{Object.entries(stage.platforms).map(([category, platforms]) => (
 											<div key={category} className="card_bucket_container_main">
 												<h2 className='font-bold'>{category}</h2>
-												<div className="card_bucket_container flex flex-wrap gap-6">
+												<div className="grid grid-cols-2 md:grid-cols-3 gap-6"> {/* Changed to 3 columns */}
 													{platforms.map((platform, pIndex) => {
 														const isSelected =
 															selected[stage.name]?.[category]?.includes(platform.name);
 														return (
 															<div
 																key={pIndex}
-																className={`flex flex-row justify-between items-center p-5 gap-4 w-[230px] h-[62px] bg-white border rounded-[10px] cursor-pointer ${isSelected
+																className={`flex flex-row justify-between items-center p-4 gap-2 w-[230px] h-[62px] bg-white border rounded-[10px] cursor-pointer ${isSelected
 																	? 'border-[#3175FF]'
 																	: 'border-[rgba(0,0,0,0.1)]'
 																	}`}
