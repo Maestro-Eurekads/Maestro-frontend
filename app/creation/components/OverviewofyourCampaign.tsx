@@ -72,7 +72,7 @@ const OverviewofyourCampaign = () => {
 								{open ? <FiChevronUp /> : <FiChevronDown />}
 
 							</div>
-							<button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
+							<button className="justify-self-end px-3 py-[10px] text-[16px] text-base font-[500] bg-white/25 rounded-[5px]">
 								6,000 €
 							</button>
 
@@ -86,7 +86,7 @@ const OverviewofyourCampaign = () => {
 										</span>
 										<span>Facebook</span>
 									</span>
-									<button className="bg-[#0866FF33]/5 py-2 px-[10px] rounded-[5px] mr-3">
+									<button className="bg-[#0866FF33]/5 py-2 px-[10px] text-base rounded-[5px] mr-3">
 										1,800 €
 									</button>
 								</div>
@@ -121,7 +121,7 @@ const OverviewofyourCampaign = () => {
 										</span>
 										<span>Instagram</span>
 									</span>
-									<button className="bg-[#0866FF33]/5 py-2 px-[10px] rounded-[5px] mr-3">
+									<button className="bg-[#0866FF33]/5 py-2 px-[10px] text-base rounded-[5px] mr-3">
 										1,800 €
 									</button>
 								</div>
@@ -156,7 +156,7 @@ const OverviewofyourCampaign = () => {
 										</span>
 										<span>Youtube</span>
 									</span>
-									<button className="bg-[#0866FF33]/5 py-2 px-[10px] rounded-[5px] mr-3">
+									<button className="bg-[#0866FF33]/5 py-2 px-[10px] text-base rounded-[5px] mr-3">
 										1,200 €
 									</button>
 								</div>
@@ -191,7 +191,7 @@ const OverviewofyourCampaign = () => {
 										</span>
 										<span>TheTradeDesk</span>
 									</span>
-									<button className="bg-[#0866FF33]/5 py-2 px-[10px] rounded-[5px] mr-3">
+									<button className="bg-[#0866FF33]/5 py-2 px-[10px] text-base  rounded-[5px] mr-3">
 										900 €
 									</button>
 								</div>
