@@ -17,8 +17,6 @@ const DateInterval = () => {
     }
   }, [setDateRangeWidth]);
 
-
-
   return (
     <div
       className=" w-full overflow-x-auto whitespace-nowrap flex justify-between border-y py-5 px-[23px] "
@@ -33,14 +31,13 @@ const DateInterval = () => {
             className={`relative min-w-[60px] text-center text-sm font-medium px-2 py-1 rounded-md
               ${isEdge ? "bg-[#f05406] text-white" : "#fff"}
             `}
-
             style={{
               display: "grid",
               gridTemplateColumns: `repeat(${dateList.length}, 1fr)`,
             }}
           >
             <span className={`${isEdge ? "text-white" : "text-black"}`}>
-              {format(date, "E")},{" "}
+              {format(date, "E")},&nbsp; {/* Added space here */}
             </span>
             <span className={`${isEdge ? "text-white" : "text-blue-500"}`}>
               {format(date, "d")}
