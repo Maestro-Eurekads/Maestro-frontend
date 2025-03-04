@@ -127,7 +127,7 @@ const SelectChannelMix = () => {
             {openItems[stage.name] && (
               <div className="card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px]">
                 {validatedStages[stage.name] ? (
-                  <div className="mt-8 px-6">
+                  <div className="mt-8 px-6 opacity-50 transition-opacity duration-300">
                     {Object.entries(selected[stage.name] || {}).map(([category, platformNames]) => (
                       <div key={category} className="mb-8">
                         <h2 className="mb-4 font-bold text-lg">{category}</h2>
