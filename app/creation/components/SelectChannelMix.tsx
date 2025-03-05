@@ -26,7 +26,6 @@ const SelectChannelMix = () => {
       const stageSelection = prev[stageName] || {};
       const categorySelection = stageSelection[category] || [];
       const isAlreadySelected = categorySelection.includes(platformName);
-
       const newCategorySelection = isAlreadySelected
         ? categorySelection.filter((p) => p !== platformName)
         : [...categorySelection, platformName];
@@ -44,9 +43,9 @@ const SelectChannelMix = () => {
   const isStageValid = (stageName) => {
     const stageSelections = selected[stageName] || {};
     const requiredCategories = ["Social media", "Display networks", "Search engines"];
-
-    return requiredCategories.every(
-      (category) => stageSelections[category] && stageSelections[category].length > 0
+    
+    return requiredCategories.every(category => 
+      stageSelections[category] && stageSelections[category].length > 0
     );
   };
 
@@ -64,16 +63,6 @@ const SelectChannelMix = () => {
       ...prev,
       [stageName]: false,
     }));
-  };
-
-  const areAllPlatformsSelected = (stageName) => {
-    const stageSelections = selected[stageName] || {};
-    const requiredCategories = ["Social media", "Display networks", "Search engines"];
-
-    return requiredCategories.every(category => {
-      const platforms = stageSelections[category] || [];
-      return platforms.length > 0 && platforms.length === funnelStages.find(stage => stage.name === stageName).platforms[category].length;
-    });
   };
 
   return (
@@ -127,7 +116,7 @@ const SelectChannelMix = () => {
             {openItems[stage.name] && (
               <div className="card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px]">
                 {validatedStages[stage.name] ? (
-                  <div className="mt-8 px-6 opacity-50 transition-opacity duration-300">
+                  <div className="mt-8 px-6">
                     {Object.entries(selected[stage.name] || {}).map(([category, platformNames]) => (
                       <div key={category} className="mb-8">
                         <h2 className="mb-4 font-bold text-lg">{category}</h2>
@@ -211,11 +200,11 @@ const SelectChannelMix = () => {
 
                     <div className="flex justify-end pr-[24px] mt-4">
                       <button
-                        disabled={!isStageValid(stage.name) || !areAllPlatformsSelected(stage.name)}
+                        disabled={!isStageValid(stage.name)}
                         onClick={() => handleValidate(stage.name)}
                         className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-                          isStageValid(stage.name) && areAllPlatformsSelected(stage.name)
-                            ? 'bg-[#3175FF] hover:bg-[#2563eb]'
+                          isStageValid(stage.name)
+                            ? 'bg-[#3175FF]'
                             : 'bg-[#3175FF] opacity-50 cursor-not-allowed'
                         }`}
                       >
