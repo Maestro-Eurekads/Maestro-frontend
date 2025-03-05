@@ -44,8 +44,8 @@ const Dropdown = ({
 				${isEditing ? "cursor-pointer" : "cursor-not-allowed"}`}
 				onClick={toggleDropdown}
 			>
-				<span className="text-gray-600">{selectedOption || label}</span>
-				<span className="ml-auto text-gray-500">
+				<span className="text-[#061237]">{selectedOption || label}</span>
+				<span className="ml-auto text-[#061237]]">
 					<Image src={down} alt="dropdown-icon" />
 				</span>
 			</div>

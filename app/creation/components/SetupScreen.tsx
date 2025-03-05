@@ -5,9 +5,45 @@ import { Select } from "../../../components/Select";
 import { Title } from "../../../components/Title";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import ClientSelection from "../../../components/ClientSelection";
+import { useCampaigns } from "../../utils/CampaignsContext";
+import ClientSelectionInput from "../../../components/ClientSelectionInput";
 
 export const SetupScreen = () => {
+  const { state, dispatch } = useCampaigns();
   const [isEditing, setIsEditing] = useState(false);
+
+
+
+  const handleObjectiveSelection = () => {
+    dispatch({
+      type: "UPDATE_CAMPAIGN",
+      payload: {
+        step: "defineCampaignObjective",
+        data: { selectedObjective: "Brand Awareness" },
+      },
+    });
+  };
+
+  // const campaigns = [
+
+  // {
+  //   campaigns: {
+  //     mediaplan: {
+  //       setupNewCampaign: {},
+  //       defineCampaignObjective: {},
+  //       mapFunnelStages: {},
+  //       selectChannelMix: {},
+  //       formatsSelection: {},
+  //       setBuyObjectivesandTypes: {},
+  //       midRecap: {},
+  //       planCampaignSchedule: {},
+  //       configureAdSetsandBudget: {},
+  //       establishGoals: {},
+  //       overviewOfYourCampaign: {},
+  //     }
+  //   }
+  // },
+  // ];
 
   const clients = [
     { value: "John Doe", label: "John Doe" },
@@ -16,25 +52,13 @@ export const SetupScreen = () => {
     { value: "Emily Davis", label: "Emily Davis" },
   ];
 
-  const businessLevel1 = [
-    { value: "startup", label: "Startup" },
-    { value: "small_business", label: "Small Business" },
-    { value: "enterprise", label: "Enterprise" },
+  const businessLevel = [
+    { value: "Marketing division", label: "Marketing division" },
+    { value: "Digital campaigns", label: "Digital campaigns" },
+    { value: "Product launch", label: "Product launch" },
   ];
 
-  const businessLevel2 = [
-    { value: "retail", label: "Retail" },
-    { value: "ecommerce", label: "E-commerce" },
-    { value: "saas", label: "SaaS" },
-    { value: "manufacturing", label: "Manufacturing" },
-  ];
 
-  const businessLevel3 = [
-    { value: "b2b", label: "B2B" },
-    { value: "b2c", label: "B2C" },
-    { value: "d2c", label: "D2C" },
-    { value: "government", label: "Government" },
-  ];
 
   const mediaPlan = [
     { value: "Social Media", label: "Social Media Advertising" },
@@ -98,46 +122,52 @@ export const SetupScreen = () => {
 
         </div>
         <div className="client_selection_flow  pb-12">
-          <ClientSelection options={businessLevel1} label={"businessLevel1"} isEditing={isEditing} />
-          <ClientSelection options={businessLevel2} label={"businessLevel2"} isEditing={isEditing} />
-          <ClientSelection options={businessLevel3} label={"businessLevel3"} isEditing={isEditing} />
+          <ClientSelection options={businessLevel} label={"Business level 1"} isEditing={isEditing} />
+          <ClientSelection options={businessLevel} label={"Business level 2"} isEditing={isEditing} />
+          <ClientSelection options={businessLevel} label={"Business level 3"} isEditing={isEditing} />
 
         </div>
-        <div className="pb-12">
+        <div className=" pb-12">
           <Title>Media Plan details</Title>
-          <div className="flex flex-wrap gap-4">
-            <ClientSelection options={mediaPlan} label={"Enter media plan name"} isEditing={isEditing} />
+          <div className="client_selection_flow flex flex-wrap gap-4 ">
+            <ClientSelectionInput label={"Spring Collection Launch 2025"} isEditing={isEditing} />
             <ClientSelection options={internalApprover} label={"Select internal approver"} isEditing={isEditing} />
-
           </div>
         </div>
-        <div className="pb-12">
-          <Title>Budget details</Title>
-          <div className="flex flex-wrap gap-4">
+        <div className="pb-1">
+          <Title className="mb-1">Budget details</Title>
+          <div className="flex items-center flex-wrap gap-4">
             <ClientSelection options={selectCurrency} label={"Select currency"} isEditing={isEditing} />
             <ClientSelection options={mediaBudgetPercentage} label={"% of media budget"} isEditing={isEditing} />
-            <div style={{ width: '100px' }}>
-              <ClientSelection options={currencyPercentage} label={"0 %"} isEditing={isEditing} />
+            <div className="flex gap-6 mt-[20px]">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="w-[18px] h-[18px] rounded-md border-[0.69px] border-gray-400 cursor-pointer appearance-none checked:bg-blue-500 checked:border-transparent relative 
+      before:content-['✔'] before:absolute before:text-white before:text-[12px] before:font-bold before:left-1/2 before:top-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:opacity-0 checked:before:opacity-100"
+                />
+                <p className="whitespace-nowrap">Fix amount</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="w-[18px] h-[18px] rounded-md border-[0.69px] border-gray-400 cursor-pointer appearance-none checked:bg-blue-500 checked:border-transparent relative 
+      before:content-['✔'] before:absolute before:text-white before:text-[12px] before:font-bold before:left-1/2 before:top-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:opacity-0 checked:before:opacity-100"
+                />
+                <p>Percentage</p>
+              </div>
             </div>
 
 
-            {/* <Select
-              disabled={isEditing}
-              name="budget1"
-              onChange={(e) => setBudget1(e.target.value)}
-              options={options}
-              value={budget1}
-              className="min-w-[320px]"
-              placeholder="Budget Level 1"
-            />
-             */}
+
           </div>
         </div>
+        <ClientSelectionInput label={"0 %"} isEditing={isEditing} />
       </div>
       <div className="flex justify-end pr-6 mt-[20px]">
 
         {isEditing ? <button
-          disabled={businessLevel1.length === 0}
+          disabled={businessLevel.length === 0}
           onClick={() => setIsEditing(false)}
           className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg bg-[#3175FF] text-white font-semibold text-base leading-6 disabled:opacity-50 hover:bg-[#2557D6] transition-colors"
         >

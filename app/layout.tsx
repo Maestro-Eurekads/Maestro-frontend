@@ -6,6 +6,7 @@ import { DateRangeProvider } from "../src/date-range-context";
 import { FunnelProvider } from "./utils/FunnelContextType";
 import { ObjectivesProvider } from "./utils/useObjectives";
 import ReduxProvider from "./provider";
+import { CampaignProvider } from "./utils/CampaignsContext";
 
 // Load Roboto font
 const roboto = Roboto({
@@ -41,15 +42,17 @@ export default function RootLayout({
       </head>
       <body className={`${roboto.variable} ${inter.variable} antialiased`}>
         <ReduxProvider>
-          <ActiveProvider>
-            <ObjectivesProvider>
-              <FunnelProvider>
-                <DateRangeProvider>
-                  {children}
-                </DateRangeProvider>
-              </FunnelProvider>
-            </ObjectivesProvider>
-          </ActiveProvider>
+          <CampaignProvider>
+            <ActiveProvider>
+              <ObjectivesProvider>
+                <FunnelProvider>
+                  <DateRangeProvider>
+                    {children}
+                  </DateRangeProvider>
+                </FunnelProvider>
+              </ObjectivesProvider>
+            </ActiveProvider>
+          </CampaignProvider>
         </ReduxProvider>
       </body>
     </html>
