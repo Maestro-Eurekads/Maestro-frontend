@@ -20,7 +20,6 @@ const funnelStages = [
   { name: "Conversion", icon: orangecredit, status: "Not started", statusIsActive: false },
 ];
 
-
 const ConfiguredSetPage = () => {
   const [openItems, setOpenItems] = useState({
     Awareness: false,
@@ -28,8 +27,21 @@ const ConfiguredSetPage = () => {
     Conversion: false,
   });
 
+  const [currency, setCurrency] = useState("EUR");
+  const [budget, setBudget] = useState("0");
+
   const toggleItem = (stage) => {
     setOpenItems((prev) => ({ ...prev, [stage]: !prev[stage] }));
+  };
+
+  const handleCurrencyChange = (event) => {
+    setCurrency(event.target.value);
+  };
+
+  const handleBudgetChange = (event) => {
+    const value = event.target.value;
+    // Remove leading zero if the input is not empty
+    setBudget(value.replace(/^0+/, '') || "0");
   };
 
   return (
@@ -71,15 +83,20 @@ const ConfiguredSetPage = () => {
            <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
             
              <div className="flex items-center gap-2">
-               <p className="font-bold">€</p>
-               <span>0</span>
+               <p className="font-bold">{currency === "EUR" ? "€" : currency}</p>
+               <span>{budget}</span>
              </div>
 
-             <input type="text" className="w-full px-4 focus:outline-none" />
+             <input 
+               type="text" 
+               className="w-full px-4 focus:outline-none" 
+               value={budget} 
+               onChange={handleBudgetChange} 
+             />
             
              <div className="flex items-center gap-2">
-             <select className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer">
-            <option value="EUR" selected>EUR</option>
+             <select className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer" onChange={handleCurrencyChange} value={currency}>
+            <option value="EUR">EUR</option>
             <option value="USD">USD</option>
             <option value="GBP">GBP</option>
             </select>
@@ -106,7 +123,7 @@ const ConfiguredSetPage = () => {
         
            </div>
 
-           <hr className="text-gray-200 w-full p-8"/>
+           <hr className="text-gray-200 w-full p-1"/>
 
           
           {/* Second row */}
@@ -143,15 +160,20 @@ const ConfiguredSetPage = () => {
            <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
             
              <div className="flex items-center gap-2">
-               <p className="font-bold">€</p>
-               <span>0</span>
+               <p className="font-bold">{currency === "EUR" ? "€" : currency}</p>
+               <span>{budget}</span>
              </div>
 
-             <input type="text" className="w-full px-4 focus:outline-none" />
+             <input 
+               type="text" 
+               className="w-full px-4 focus:outline-none" 
+               value={budget} 
+               onChange={handleBudgetChange} 
+             />
             
              <div className="flex items-center gap-2">
-             <select className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer">
-            <option value="EUR" selected>EUR</option>
+             <select className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer" onChange={handleCurrencyChange} value={currency}>
+            <option value="EUR">EUR</option>
             <option value="USD">USD</option>
             <option value="GBP">GBP</option>
             </select>
@@ -173,7 +195,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p>of total budget</p>
+          <p className="whitespace-nowrap">of total budget</p>
            
            {/* switch */}
            <div className="flex items-center gap-2">
@@ -198,7 +220,7 @@ const ConfiguredSetPage = () => {
 
          </div>
 
-         <hr className="text-gray-200 w-full p-8"/>
+         <hr className="text-gray-200 w-full p-1"/>
 
 
         {/* Third row */}
@@ -207,7 +229,6 @@ const ConfiguredSetPage = () => {
           {/* facebook */}
           
              
-
             <div className="flex mt-10 bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[190px] h-[50px] rounded-[10px] items-center gap-2">
               <div className="flex justify-between w-full px-4">
 
@@ -267,7 +288,7 @@ const ConfiguredSetPage = () => {
 
          </div>
 
-         <hr className="text-gray-200 w-full p-8"/>
+         <hr className="text-gray-200 w-full p-1"/>
 
 
          {/* Fourth row */}
@@ -334,7 +355,7 @@ const ConfiguredSetPage = () => {
 
          </div>
 
-         <hr className="text-gray-200 w-full p-8"/>
+         <hr className="text-gray-200 w-full p-1"/>
 
 
 
@@ -405,7 +426,7 @@ const ConfiguredSetPage = () => {
 
          </div>
 
-         <hr className="text-gray-200 w-full p-8"/>
+         <hr className="text-gray-200 w-full p-1"/>
 
 
          {/* Sixth row */}
@@ -472,7 +493,7 @@ const ConfiguredSetPage = () => {
 
          </div>
 
-         <hr className="text-gray-200 w-full p-8"/>
+         <hr className="text-gray-200 w-full p-1"/>
 
        </div>
         
@@ -503,59 +524,4 @@ const ConfiguredSetPage = () => {
 export default ConfiguredSetPage;
 
 
-
-// Main container component
-
-
-//    const ConfiguredSetPage = () => {
-//     return (
-//       <div className="flex mt-6 flex-col items-start  gap-12">
-
-//           <div className="flex justify-center gap-6">
-//         {/* top budget */}
-//         <div className="flex flex-col gap-4">
-            
-//         <h2 className="text-center font-bold">What is your budget for this phase ?</h2>
-//           <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
-            
-//             <div className="flex items-center gap-2">
-//               <p className="font-bold">€</p>
-//               <span>0</span>
-//             </div>
-
-//             <input type="text" className="w-full px-4 focus:outline-none" />
-            
-//             <div className="flex items-center gap-2">
-//             <select className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer">
-//            <option value="EUR" selected>EUR</option>
-//            <option value="USD">USD</option>
-//            <option value="GBP">GBP</option>
-//            </select>
-//             </div>
-
-//           </div>
-//         </div>
-
-//         <div className="flex items-start flex-col gap-4">
-//          <h2 className="text-center font-bold">Percentage</h2>
-//          <div className="flex items-center gap-4">
-
-//          <div className=" bg-[#FFFFFF] rounded-[10px] w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
-//           <input className="text-base w-full focus:outline-none" type="text" />
-//           <span>%</span>
-//          </div>
-         
-//          <p>of total budget</p>
-//         </div>
-//         </div>
-        
-//           </div>
-//           <hr className="border border-gray-100 w-full px-6"/>
-//       </div>
-//     )
-
-
-// };
-
-// export default ConfiguredSetPage;
 
