@@ -3,13 +3,22 @@ import React, { useState, useRef, useEffect } from "react";
 import down from "../public/down.svg";
 import Image from "next/image";
 
-
-const Dropdown = ({ label, options }: { label: string; options: { value: string; label: string }[] }) => {
+const Dropdown = ({
+	label,
+	options,
+	isEditing,
+}: {
+	label: string;
+	options: { value: string; label: string }[];
+	isEditing: boolean;
+}) => {
 	const [selectedOption, setSelectedOption] = useState<string | null>(null);
 	const [isOpen, setIsOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
-	const toggleDropdown = () => setIsOpen(!isOpen);
+	const toggleDropdown = () => {
+		if (isEditing) setIsOpen(!isOpen);
+	};
 
 	const handleSelect = (option: string) => {
 		setSelectedOption(option);
@@ -31,7 +40,8 @@ const Dropdown = ({ label, options }: { label: string; options: { value: string;
 		<div className="relative" ref={dropdownRef}>
 			{/* Dropdown Button */}
 			<div
-				className="dropdown_button_width flex items-center px-4 py-2  h-[45px] cursor-pointer bg-white max-w-xs border-2 border-[#EFEFEF] rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 disabled:opacity-50"
+				className={`dropdown_button_width flex items-center px-4 py-2 h-[45px] bg-white max-w-xs border-2 border-[#EFEFEF] rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 
+				${isEditing ? "cursor-pointer" : "cursor-not-allowed"}`}
 				onClick={toggleDropdown}
 			>
 				<span className="text-gray-600">{selectedOption || label}</span>
@@ -41,7 +51,7 @@ const Dropdown = ({ label, options }: { label: string; options: { value: string;
 			</div>
 
 			{/* Dropdown List */}
-			{isOpen && (
+			{isEditing && isOpen && (
 				<div className="absolute w-full bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-1 z-10">
 					{options.map((option) => (
 						<div
@@ -58,10 +68,10 @@ const Dropdown = ({ label, options }: { label: string; options: { value: string;
 	);
 };
 
-const ClientSelection = ({ options, label }) => {
+const ClientSelection = ({ options, label, isEditing }: { options: { value: string; label: string }[]; label: string; isEditing: boolean }) => {
 	return (
 		<div className="flex items-center gap-4 mt-[20px]">
-			<Dropdown label={label} options={options} />
+			<Dropdown label={label} options={options} isEditing={isEditing} />
 		</div>
 	);
 };

@@ -64,12 +64,12 @@ export const SetupScreen = () => {
   const mediaBudgetPercentage = [
     { value: "Fix Budget fee", label: "Fix Budget fee" },
     { value: "Fix Budget fee", label: "% of media budget" },
-    
+
   ];
 
   const currencyPercentage = [
-    {value: "0 %" , label: "0 %"},
-    {value: "0 €  " , label: "0 €"}
+    { value: "0 %", label: "0 %" },
+    { value: "0 €  ", label: "0 €" }
   ]
 
 
@@ -94,30 +94,30 @@ export const SetupScreen = () => {
       <div className="mt-[42px]">
         <Title>Client selection</Title>
         <div>
-          <ClientSelection options={clients} label={"Select a client"} />
+          <ClientSelection options={clients} label={"Select a client"} isEditing={isEditing} />
 
         </div>
         <div className="client_selection_flow  pb-12">
-          <ClientSelection options={businessLevel1} label={"businessLevel1"} />
-          <ClientSelection options={businessLevel2} label={"businessLevel2"} />
-          <ClientSelection options={businessLevel3} label={"businessLevel3"} />
+          <ClientSelection options={businessLevel1} label={"businessLevel1"} isEditing={isEditing} />
+          <ClientSelection options={businessLevel2} label={"businessLevel2"} isEditing={isEditing} />
+          <ClientSelection options={businessLevel3} label={"businessLevel3"} isEditing={isEditing} />
 
         </div>
         <div className="pb-12">
           <Title>Media Plan details</Title>
           <div className="flex flex-wrap gap-4">
-            <ClientSelection options={mediaPlan} label={"Enter media plan name"} />
-            <ClientSelection options={internalApprover} label={"Select internal approver"} />
+            <ClientSelection options={mediaPlan} label={"Enter media plan name"} isEditing={isEditing} />
+            <ClientSelection options={internalApprover} label={"Select internal approver"} isEditing={isEditing} />
 
           </div>
         </div>
         <div className="pb-12">
           <Title>Budget details</Title>
           <div className="flex flex-wrap gap-4">
-            <ClientSelection options={selectCurrency} label={"Select currency"} />
-            <ClientSelection options={mediaBudgetPercentage} label={"% of media budget"} />
+            <ClientSelection options={selectCurrency} label={"Select currency"} isEditing={isEditing} />
+            <ClientSelection options={mediaBudgetPercentage} label={"% of media budget"} isEditing={isEditing} />
             <div style={{ width: '100px' }}>
-              <ClientSelection options={currencyPercentage} label={"0 %"} />
+              <ClientSelection options={currencyPercentage} label={"0 %"} isEditing={isEditing} />
             </div>
 
 
