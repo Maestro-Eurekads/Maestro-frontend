@@ -613,10 +613,39 @@ border-radius: 8px;
 }
 }
 
- 
+
 
  
-  
+
+ /* Medium Devices (Small Laptops) */
+@media (max-width: 1280px) { 
+ .creation_card{
+		width: 300px;
+	}
+ .creation_card_active{
+		width: 300px;
+	}
+}
+
+  /* Medium Devices (Small Laptops) */
+@media (max-width: 1024px) { 
+  /* Styles for small laptops */
+		.creation_card{
+		width: 420px;
+	}
+		.creation_card_active{
+		width: 420px;
+	}
+}
+/* Small Devices (Tablets) */
+@media (max-width: 768px) { 
+	.creation_card{
+		width: 100%;
+	}
+	.creation_card_active{
+		width: 100%;
+	}
+}
  
  
 
