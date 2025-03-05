@@ -20,7 +20,6 @@ const funnelStages = [
   { name: "Conversion", icon: orangecredit, status: "Not started", statusIsActive: false },
 ];
 
-
 const ConfiguredSetPage = () => {
   const [openItems, setOpenItems] = useState({
     Awareness: false,
@@ -28,8 +27,21 @@ const ConfiguredSetPage = () => {
     Conversion: false,
   });
 
+  const [currency, setCurrency] = useState("EUR");
+  const [budget, setBudget] = useState("0");
+
   const toggleItem = (stage) => {
     setOpenItems((prev) => ({ ...prev, [stage]: !prev[stage] }));
+  };
+
+  const handleCurrencyChange = (event) => {
+    setCurrency(event.target.value);
+  };
+
+  const handleBudgetChange = (event) => {
+    const value = event.target.value;
+    // Remove leading zero if the input is not empty
+    setBudget(value.replace(/^0+/, '') || "0");
   };
 
   return (
@@ -71,15 +83,20 @@ const ConfiguredSetPage = () => {
            <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
             
              <div className="flex items-center gap-2">
-               <p className="font-bold">€</p>
-               <span>0</span>
+               <p className="font-bold">{currency === "EUR" ? "€" : currency}</p>
+               <span>{budget}</span>
              </div>
 
-             <input type="text" className="w-full px-4 focus:outline-none" />
+             <input 
+               type="text" 
+               className="w-full px-4 focus:outline-none" 
+               value={budget} 
+               onChange={handleBudgetChange} 
+             />
             
              <div className="flex items-center gap-2">
-             <select className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer">
-            <option value="EUR" selected>EUR</option>
+             <select className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer" onChange={handleCurrencyChange} value={currency}>
+            <option value="EUR">EUR</option>
             <option value="USD">USD</option>
             <option value="GBP">GBP</option>
             </select>
@@ -143,15 +160,20 @@ const ConfiguredSetPage = () => {
            <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
             
              <div className="flex items-center gap-2">
-               <p className="font-bold">€</p>
-               <span>0</span>
+               <p className="font-bold">{currency === "EUR" ? "€" : currency}</p>
+               <span>{budget}</span>
              </div>
 
-             <input type="text" className="w-full px-4 focus:outline-none" />
+             <input 
+               type="text" 
+               className="w-full px-4 focus:outline-none" 
+               value={budget} 
+               onChange={handleBudgetChange} 
+             />
             
              <div className="flex items-center gap-2">
-             <select className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer">
-            <option value="EUR" selected>EUR</option>
+             <select className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer" onChange={handleCurrencyChange} value={currency}>
+            <option value="EUR">EUR</option>
             <option value="USD">USD</option>
             <option value="GBP">GBP</option>
             </select>
