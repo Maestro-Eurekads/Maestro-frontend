@@ -16,12 +16,16 @@ import click from "../public/fluent_cursor-click-24-filled.svg";
 import workbench from "../public/icon-park-solid_workbench.svg";
 import checkfill from "../public/mingcute_check-fill.svg";
 import Calender from "../public/Calender.svg";
+import { useObjectives } from "../app/utils/useObjectives";
 
 
 const SideNav: React.FC = () => {
+  const { selectedObjectives, setSelectedObjectives } = useObjectives();
   const [close, setClose] = useState(false);
   const router = useRouter();
   const { setActive, setSubStep } = useActive();
+
+
 
   const handleBackClick = () => {
     setActive(0); // Reset state
@@ -37,7 +41,7 @@ const SideNav: React.FC = () => {
       state_text: "SideBar_Menu_state",
       sidecircle: "SideBar_Menu_active",
       title: "Define campaign objective",
-      objective: "Main objective: Purchase",
+      objective: !selectedObjectives[0]?.title ? "" : `Main objective: ${selectedObjectives[0]?.title}`,
       img: <Image src={symbol} alt="symbol" />
     },
     {
@@ -123,6 +127,7 @@ const SideNav: React.FC = () => {
       img: <Image src={checkfill} alt="checkfill" />
     },
   ];
+
   return (
     <div id={close ? "side-nav-active" : "side-nav"} className="!flex !flex-col !h-full">
       {/* Fixed Top Section */}

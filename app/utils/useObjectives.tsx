@@ -1,11 +1,15 @@
-// app/utils/ObjectivesContext.tsx
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
+interface Objective {
+	id: number;
+	title: string;
+}
+
 interface ObjectivesContextType {
-	selectedObjectives: number[];
-	setSelectedObjectives: React.Dispatch<React.SetStateAction<number[]>>;
+	selectedObjectives: Objective[];
+	setSelectedObjectives: React.Dispatch<React.SetStateAction<Objective[]>>;
 	selectedFunnels: number[];
 	setSelectedFunnels: React.Dispatch<React.SetStateAction<number[]>>;
 }
@@ -17,7 +21,7 @@ interface ObjectivesProviderProps {
 }
 
 export const ObjectivesProvider = ({ children }: ObjectivesProviderProps) => {
-	const [selectedObjectives, setSelectedObjectives] = useState<number[]>([]);
+	const [selectedObjectives, setSelectedObjectives] = useState<Objective[]>([]);
 	const [selectedFunnels, setSelectedFunnels] = useState<number[]>([]);
 
 	return (
@@ -37,7 +41,7 @@ export const ObjectivesProvider = ({ children }: ObjectivesProviderProps) => {
 export const useObjectives = () => {
 	const context = useContext(ObjectivesContext);
 	if (!context) {
-		throw new Error('useObjectives must be used within an ObjectivesProvider');
+		throw new Error("useObjectives must be used within an ObjectivesProvider");
 	}
 	return context;
 };

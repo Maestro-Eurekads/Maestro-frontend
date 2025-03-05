@@ -12,15 +12,17 @@ const DefineCampaignObjective = () => {
 	const [isEditing, setIsEditing] = useState(false);
 
 
-	// Toggle selection and enforce single selection
-	const handleSelect = (id: number) => {
+	const handleSelect = (id: number, title: string) => {
 		setSelectedObjectives((prev) => {
-			if (prev.includes(id)) {
+			const alreadySelected = prev.some(obj => obj.id === id);
+
+			if (alreadySelected) {
 				return []; // Deselect if already selected
 			}
-			return [id]; // Select only this id
+			return [{ id, title }]; // Store both ID & Title
 		});
 	};
+
 
 
 	return (
@@ -36,6 +38,7 @@ const DefineCampaignObjective = () => {
 				{isEditing ? "" : <button
 					className="model_button_blue"
 					onClick={() => setIsEditing(!isEditing)}
+
 				>
 					Edit
 				</button>}
@@ -45,14 +48,14 @@ const DefineCampaignObjective = () => {
 
 
 				{campaignObjectives.map((item) => {
-					const isSelected = selectedObjectives.includes(item.id);
+					const isSelected = selectedObjectives.some(obj => obj.id === item.id);
 
 					return (
 						<div
 							key={item.id}
 							className={`relative p-4 rounded-lg cursor-pointer transition-all duration-300 ${isSelected ? 'creation_card_active shadow-lg' : 'creation_card'
 								}`}
-							onClick={() => handleSelect(item.id)}
+							onClick={() => handleSelect(item.id, item.title)}
 						>
 							{isSelected && (
 								<div className="absolute right-4 top-4">
