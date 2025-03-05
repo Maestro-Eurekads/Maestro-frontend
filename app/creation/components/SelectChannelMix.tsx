@@ -70,7 +70,6 @@ const SelectChannelMix = () => {
   }));
  };
 
-
  const handleEdit = (stageName) => {
   setValidatedStages((prev) => ({
    ...prev,
@@ -84,7 +83,7 @@ const SelectChannelMix = () => {
 
   return requiredCategories.every(category => {
    const platforms = stageSelections[category] || [];
-   return platforms.length > 0 && platforms.length === funnelStages.find(stage => stage.name === stageName).platforms[category].length;
+   return platforms.length > 0; // Changed to only check if at least one platform is selected
   });
  };
 
