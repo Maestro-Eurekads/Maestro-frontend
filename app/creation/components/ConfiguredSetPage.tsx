@@ -207,7 +207,6 @@ const ConfiguredSetPage = () => {
           {/* facebook */}
           
              
-
             <div className="flex mt-10 bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[190px] h-[50px] rounded-[10px] items-center gap-2">
               <div className="flex justify-between w-full px-4">
 
