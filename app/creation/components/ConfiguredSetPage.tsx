@@ -173,7 +173,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p>of total budget</p>
+          <p className="whitespace-nowrap">of total budget</p>
            
            {/* switch */}
            <div className="flex items-center gap-2">
