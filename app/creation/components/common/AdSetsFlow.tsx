@@ -75,7 +75,7 @@ function AdsetSettings({
 
   if (!isFacebook) {
     return (
-      <div className="flex items-center gap-4 mb-4">
+      <div className="flex items-center gap-8">
         <div className="relative border border-[#0000001A] rounded-[10px]">
           <button className="relative w-[150px] z-20 flex gap-4 justify-between items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
             <Image src={outlet.icon} alt="" className="w-[22px] h-[22px]" />
@@ -109,7 +109,7 @@ function AdsetSettings({
   }
 
   return (
-    <div className="flex items-center gap-8">
+    <div className="flex items-center gap-8 max-w-full">
       <div className="relative">
         <button className="relative w-[150px] z-20 flex gap-4 justify-between items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
           <Image src={outlet.icon} alt="" className="w-[22px] h-[22px]" />
@@ -165,7 +165,7 @@ function AdsetSettings({
                   : "bottom-1/2 rounded-bl-[10px] border-b-2"
               }`}
             ></span>
-            <div className="flex gap-2 items-center flex-wrap">
+            <div className="flex gap-2 items-center max-w-fit">
               <div className="relative">
                 <p className="relative z-50 text-[#3175FF] text-sm whitespace-nowrap font-bold flex gap-4 items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
                   {`Ad set n°${adset.addsetNumber}`}
@@ -185,9 +185,9 @@ function AdsetSettings({
               />
               <button
                 onClick={() => deleteAdSet(adset.id)}
-                className="flex items-center justify-center gap-1 rounded-full px-3 py-2 bg-[#FF5955] text-white text-sm font-bold h-[52px] min-w-[100px]"
+                className="flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold"
               >
-                <MdDelete className="flex-shrink-0" /> <span className="whitespace-nowrap">Delete</span>
+                <MdDelete /> <span>Delete</span>
               </button>
             </div>
           </div>
@@ -227,7 +227,7 @@ export default function AdSetFlow() {
   ];
 
   return (
-    <div className="w-full space-y-2 p-4">
+    <div className="w-full space-y-4 p-4">
       {outlets.map((outlet) => (
         <AdsetSettings key={outlet.id} outlet={outlet} />
       ))}
