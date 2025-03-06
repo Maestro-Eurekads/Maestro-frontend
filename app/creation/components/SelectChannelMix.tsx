@@ -9,7 +9,6 @@ import { funnelStages } from '../../../components/data';
 
 const SelectChannelMix = () => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
-  const [isEditing, setIsEditing] = useState(false);
   const [selected, setSelected] = useState({});
   const [validatedStages, setValidatedStages] = useState({});
 
@@ -44,9 +43,10 @@ const SelectChannelMix = () => {
 
   const isStageValid = (stageName) => {
     const stageSelections = selected[stageName] || {};
-    return Object.values(stageSelections).some(
-      (categorySelections) => Array.isArray(categorySelections) && categorySelections.length > 0
+    const hasAtLeastOneSelection = Object.values(stageSelections).some(
+      (categorySelection) => Array.isArray(categorySelection) && categorySelection.length > 0
     );
+    return hasAtLeastOneSelection;
   };
 
   const handleValidate = (stageName) => {
@@ -65,34 +65,24 @@ const SelectChannelMix = () => {
     }));
   };
 
-  const hasAnyPlatformSelected = (stageName) => {
-    const stageSelections = selected[stageName] || {};
-    return Object.values(stageSelections).some(
-      (platforms) => Array.isArray(platforms) && platforms.length > 0
-    );
-  };
-
   return (
-    <div>
-      <div className='flex justify-between'>
-        <PageHeaderWrapper
-          t1={'Which platforms would you like to activate for each funnel stage?'}
-          t2={'Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time.'}
-          span={1}
-        />
-      </div>
+    <div className="overflow-hidden">
+      <PageHeaderWrapper
+        t1={'Which platforms would you like to activate for each funnel stage?'}
+        t2={'Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time.'}
+        span={1}
+      />
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
         {funnelStages.map((stage, index) => (
           <div key={index}>
             <div
-              className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-  ${openItems[stage.name] ? 'rounded-t-[10px]' : 'rounded-[10px]'}`}
+              className="flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] rounded-t-[10px]"
               onClick={() => toggleItem(stage.name)}
             >
               <div className="flex items-center gap-2">
                 <Image src={stage.icon} alt={stage.name} />
-                <p className="w-[119px] h-[24px]  font-semibold text-[18px] leading-[24px] text-[#061237]">
+                <p className="w-[119px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
                   {stage.name}
                 </p>
               </div>
@@ -110,7 +100,7 @@ const SelectChannelMix = () => {
                   {stage.status}
                 </p>
               ) : (
-                <p className="mx-auto w-[86px] h-[22px]  font-medium text-[16px] leading-[22px] text-[#061237] opacity-50">
+                <p className="mx-auto w-[86px] h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] opacity-50">
                   Not started
                 </p>
               )}
@@ -127,34 +117,37 @@ const SelectChannelMix = () => {
               <div className="card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px]">
                 {validatedStages[stage.name] ? (
                   <div className="mt-8 px-6">
-                    {Object.entries(selected[stage.name] || {}).map(([category, platformNames]) => (
-                      <div key={category} className="mb-8">
-                        <h2 className="mb-4 font-bold text-lg">{category}</h2>
-                        <div className="card_bucket_container flex flex-wrap gap-6">
-                          {Array.isArray(platformNames) && platformNames.map((platformName, idx) => {
-                            const platformData = stage.platforms[category].find(p => p.name === platformName);
-                            if (!platformData) return null;
-                            return (
-                              <div
-                                key={idx}
-                                className="flex flex-row justify-between items-center px-4 py-2 gap-4 w-[230px] h-[62px] bg-white border border-[rgba(0,0,0,0.1)] rounded-[10px]"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <Image src={platformData.icon} alt={platformData.name} />
-                                  <p className="h-[22px]  font-medium text-[16px] leading-[22px] text-[#061237]">
-                                    {platformData.name}
-                                  </p>
+                    {Object.entries(selected[stage.name] || {}).map(([category, platformNames]) => {
+                      if (!Array.isArray(platformNames) || platformNames.length === 0) return null; // Skip if no platforms selected
+                      return (
+                        <div key={category} className="mb-8">
+                          <h2 className="mb-4 font-bold text-lg">{category}</h2>
+                          <div className="card_bucket_container flex flex-wrap gap-6">
+                            {platformNames.map((platformName, idx) => {
+                              const platformData = stage.platforms[category].find(p => p.name === platformName);
+                              if (!platformData) return null;
+                              return (
+                                <div
+                                  key={idx}
+                                  className="flex flex-row justify-between items-center px-4 py-2 gap-4 w-[230px] h-[62px] bg-white border border-[rgba(0,0,0,0.1)] rounded-[10px]"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <Image src={platformData.icon} alt={platformData.name} />
+                                    <p className="h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]">
+                                      {platformData.name}
+                                    </p>
+                                  </div>
                                 </div>
-                              </div>
-                            );
-                          })}
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                     <div className="flex justify-end pr-[24px] mt-4">
                       <button
                         onClick={() => handleEdit(stage.name)}
-                        className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-bold text-[16px] leading-[22px] bg-blue-500 hover:bg-blue-600"
+                        className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] bg-blue-500"
                       >
                         Edit
                       </button>
@@ -164,34 +157,34 @@ const SelectChannelMix = () => {
                   <>
                     {Object.entries(stage.platforms).map(([category, platforms]) => (
                       <div key={category} className="card_bucket_container_main">
-                        <div className='flex items-center justify-between cursor-pointer w-[180px]'>
-                          <h2 className='font-bold'>{category}</h2>
-                        </div>
-                        <div className={`grid grid-cols-2 md:grid-cols-3 gap-6`}>
+                        <h2 className='font-bold'>{category}</h2>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                           {platforms.map((platform, pIndex) => {
                             const isSelected =
                               selected[stage.name]?.[category]?.includes(platform.name);
                             return (
                               <div
                                 key={pIndex}
-                                className={`flex flex-row justify-between items-center p-4 gap-2 w-[230px] min-h-[62px] bg-white border rounded-[10px] cursor-pointer ${isSelected
-                                  ? 'border-[#3175FF]'
-                                  : 'border-[rgba(0,0,0,0.1)]'
-                                  } ${isEditing ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                                className={`flex flex-row justify-between items-center p-4 gap-2 w-[230px] h-[62px] bg-white border rounded-[10px] cursor-pointer ${
+                                  isSelected
+                                    ? 'border-[#3175FF]'
+                                    : 'border-[rgba(0,0,0,0.1)]'
+                                }`}
                                 onClick={() =>
                                   togglePlatform(stage.name, category, platform.name)
                                 }
                               >
                                 <div className="flex items-center gap-2">
                                   <Image src={platform.icon} alt={platform.name} />
-                                  <p className="font-medium text-[16px] leading-[22px] text-[#061237]">
+                                  <p className="h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]">
                                     {platform.name}
                                   </p>
                                 </div>
-                                <div className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${isSelected
-                                  ? 'bg-[#3175FF]'
-                                  : 'border-[0.769px] border-[rgba(0,0,0,0.2)]'
-                                  }`}>
+                                <div className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${
+                                  isSelected
+                                    ? 'bg-[#3175FF]'
+                                    : 'border-[0.769px] border-[rgba(0,0,0,0.2)]'
+                                }`}>
                                   {isSelected && (
                                     <Image
                                       src={checkmark}
@@ -210,12 +203,13 @@ const SelectChannelMix = () => {
 
                     <div className="flex justify-end pr-[24px] mt-4">
                       <button
+                        disabled={!isStageValid(stage.name)}
                         onClick={() => handleValidate(stage.name)}
-                        disabled={!hasAnyPlatformSelected(stage.name)}
-                        className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-bold text-[16px] leading-[22px] ${hasAnyPlatformSelected(stage.name)
-                          ? 'bg-[#3175FF] hover:bg-[#2563eb]'
-                          : 'bg-[#3175FF] opacity-30 cursor-not-allowed'
-                          }`}
+                        className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
+                          isStageValid(stage.name)
+                            ? 'bg-[#3175FF] hover:bg-[#2563eb]'
+                            : 'bg-[#3175FF] opacity-50 cursor-not-allowed'
+                        }`}
                       >
                         Validate
                       </button>
