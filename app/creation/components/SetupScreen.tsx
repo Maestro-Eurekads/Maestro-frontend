@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { Select } from "../../../components/Select";
 import { Title } from "../../../components/Title";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import ClientSelection from "../../../components/ClientSelection";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import ClientSelectionInput from "../../../components/ClientSelectionInput";
+import Checkbox from "../../../components/Checkbox";
 
 export const SetupScreen = () => {
   const { state, dispatch } = useCampaigns();
@@ -24,26 +24,7 @@ export const SetupScreen = () => {
     });
   };
 
-  // const campaigns = [
 
-  // {
-  //   campaigns: {
-  //     mediaplan: {
-  //       setupNewCampaign: {},
-  //       defineCampaignObjective: {},
-  //       mapFunnelStages: {},
-  //       selectChannelMix: {},
-  //       formatsSelection: {},
-  //       setBuyObjectivesandTypes: {},
-  //       midRecap: {},
-  //       planCampaignSchedule: {},
-  //       configureAdSetsandBudget: {},
-  //       establishGoals: {},
-  //       overviewOfYourCampaign: {},
-  //     }
-  //   }
-  // },
-  // ];
 
   const clients = [
     { value: "John Doe", label: "John Doe" },
@@ -59,20 +40,8 @@ export const SetupScreen = () => {
   ];
 
 
-
-  const mediaPlan = [
-    { value: "Social Media", label: "Social Media Advertising" },
-    { value: "Search Engine", label: "Search Engine Marketing" },
-    { value: "Display Ads", label: "Display Advertising" },
-    { value: "Video Ads", label: "Video Advertising" },
-    { value: "Influencer Marketing", label: "Influencer Marketing" },
-  ];
-
   const internalApprover = [
-    { value: "Marketing Manager", label: "Marketing Manager" },
-    { value: "Finance Team", label: "Finance Team" },
-    { value: "Ceo", label: "CEO" },
-    { value: "Board of directors", label: "Board of Directors" },
+    { value: "Karl Roida", label: "Karl Roida" },
   ];
 
 
@@ -86,8 +55,7 @@ export const SetupScreen = () => {
   ];
 
   const mediaBudgetPercentage = [
-    { value: "Fix Budget fee", label: "Fix Budget fee" },
-    { value: "Fix Budget fee", label: "% of media budget" },
+    { value: "Tooling", label: "Tooling" },
 
   ];
 
@@ -131,7 +99,7 @@ export const SetupScreen = () => {
           <Title>Media Plan details</Title>
           <div className="client_selection_flow flex flex-wrap gap-4 ">
             <ClientSelectionInput label={"Spring Collection Launch 2025"} isEditing={isEditing} />
-            <ClientSelection options={internalApprover} label={"Select internal approver"} isEditing={isEditing} />
+            <ClientSelection options={internalApprover} label={"Select"} isEditing={isEditing} />
           </div>
         </div>
         <div className="pb-1">
@@ -139,30 +107,29 @@ export const SetupScreen = () => {
           <div className="flex items-center flex-wrap gap-4">
             <ClientSelection options={selectCurrency} label={"Select currency"} isEditing={isEditing} />
             <ClientSelection options={mediaBudgetPercentage} label={"% of media budget"} isEditing={isEditing} />
+
+            {/* Checkbox */}
             <div className="flex gap-6 mt-[20px]">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  className="w-[18px] h-[18px] rounded-md border-[0.69px] border-gray-400 cursor-pointer appearance-none checked:bg-blue-500 checked:border-transparent relative 
-      before:content-['✔'] before:absolute before:text-white before:text-[12px] before:font-bold before:left-1/2 before:top-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:opacity-0 checked:before:opacity-100"
-                />
-                <p className="whitespace-nowrap">Fix amount</p>
+              <div className="flex items-center gap-3">
+                <Checkbox id="fix-amount" isEditing={isEditing} />
+                <p className="whitespace-nowrap w-[86px] h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] mb-1">
+                  Fix amount
+                </p>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  className="w-[18px] h-[18px] rounded-md border-[0.69px] border-gray-400 cursor-pointer appearance-none checked:bg-blue-500 checked:border-transparent relative 
-      before:content-['✔'] before:absolute before:text-white before:text-[12px] before:font-bold before:left-1/2 before:top-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:opacity-0 checked:before:opacity-100"
-                />
-                <p>Percentage</p>
+              <div className="flex items-center gap-3">
+                <Checkbox id="percentage" isEditing={isEditing} />
+                <p className="w-[86px] h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] mb-1">
+                  Percentage
+                </p>
               </div>
             </div>
 
 
 
+
           </div>
         </div>
-        <ClientSelectionInput label={"0 %"} isEditing={isEditing} />
+        <ClientSelectionInput label={"15%"} isEditing={isEditing} />
       </div>
       <div className="flex justify-end pr-6 mt-[20px]">
 

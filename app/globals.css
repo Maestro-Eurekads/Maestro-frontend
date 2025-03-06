@@ -6,7 +6,7 @@
 @import url(../css/SideNav.css);
 @import url(../css/footer.css);
 @import url(../css/creationFlow.css);
-/* @import url(../css/input.css); */
+@import url(../css/Checkbox.css);
 
 
 @tailwind base;
