@@ -185,7 +185,7 @@ function AdsetSettings({
               />
               <button
                 onClick={() => deleteAdSet(adset.id)}
-                className="flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold"
+                className="flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold whitespace-nowrap min-w-[100px]"
               >
                 <MdDelete /> <span>Delete</span>
               </button>
