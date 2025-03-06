@@ -9,9 +9,9 @@ import { funnelStages } from '../../../components/data';
 
 const SelectChannelMix = () => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
-  //  const [openItemsSub, setOpenItemsSub] = useState<{ [key: string]: boolean }>({
+  // const [openItemsSub, setOpenItemsSub] = useState<{ [key: string]: boolean }>({
   //   "Social media": true, // Social media starts open
-  //  });
+  // });
 
   const [selected, setSelected] = useState({});
   const [validatedStages, setValidatedStages] = useState({});
@@ -47,10 +47,9 @@ const SelectChannelMix = () => {
 
   const isStageValid = (stageName) => {
     const stageSelections = selected[stageName] || {};
-    const requiredCategories = ["Social media", "Display networks", "Search engines"];
-
-    return requiredCategories.every(
-      (category) => stageSelections[category] && stageSelections[category].length > 0
+    // Check if at least one category has selections
+    return Object.values(stageSelections).some(
+      (categorySelections: any[]) => categorySelections.length > 0
     );
   };
 
@@ -63,12 +62,12 @@ const SelectChannelMix = () => {
     }
   };
 
-  //  const toggleSubItem = (category: string) => {
+  // const toggleSubItem = (category: string) => {
   //   setOpenItemsSub((prev) => ({
-  //    ...prev,
-  //    [category]: !prev[category], // Toggle only this category
+  //     ...prev,
+  //     [category]: !prev[category], // Toggle only this category
   //   }));
-  //  };
+  // };
 
   const handleEdit = (stageName) => {
     setValidatedStages((prev) => ({
@@ -77,14 +76,12 @@ const SelectChannelMix = () => {
     }));
   };
 
-  const areAllPlatformsSelected = (stageName: string) => {
+  const hasAnyPlatformSelected = (stageName: string) => {
     const stageSelections = selected[stageName] || {};
-    const requiredCategories = ["Social media", "Display networks", "Search engines"];
-
-    return requiredCategories.every(category => {
-      const platforms = stageSelections[category] || [];
-      return platforms.length > 0; // Changed to only check if at least one platform is selected
-    });
+    // Check if any category has at least one platform selected
+    return Object.values(stageSelections).some(
+      (platforms: any[]) => platforms.length > 0
+    );
   };
 
   return (
@@ -138,7 +135,7 @@ const SelectChannelMix = () => {
             {openItems[stage.name] && (
               <div className="card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px]">
                 {validatedStages[stage.name] ? (
-                  <div className="mt-8 px-6 opacity-50 transition-opacity duration-300">
+                  <div className="mt-8 px-6">
                     {Object.entries(selected[stage.name] || {}).map(([category, platformNames]) => (
                       <div key={category} className="mb-8">
                         <h2 className="mb-4 font-bold text-lg">{category}</h2>
@@ -166,7 +163,7 @@ const SelectChannelMix = () => {
                     <div className="flex justify-end pr-[24px] mt-4">
                       <button
                         onClick={() => handleEdit(stage.name)}
-                        className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] bg-blue-500"
+                        className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-bold text-[16px] leading-[22px] bg-blue-500 hover:bg-blue-600"
                       >
                         Edit
                       </button>
@@ -181,12 +178,12 @@ const SelectChannelMix = () => {
                         >
                           <h2 className='font-bold'>{category}</h2>
                           {/* <div className='mt-1 '>
-              {openItemsSub[category] ? (
-               <Image src={up} alt="up" />
-              ) : (
-               <Image src={down2} alt="down" />
-              )}
-             </div> */}
+                            {openItemsSub[category] ? (
+                              <Image src={up} alt="up" />
+                            ) : (
+                              <Image src={down2} alt="down" />
+                            )}
+                          </div> */}
                         </div>
 
 
@@ -236,11 +233,11 @@ const SelectChannelMix = () => {
 
                     <div className="flex justify-end pr-[24px] mt-4">
                       <button
-                        disabled={!isStageValid(stage.name) || !areAllPlatformsSelected(stage.name)}
                         onClick={() => handleValidate(stage.name)}
-                        className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isStageValid(stage.name) && areAllPlatformsSelected(stage.name)
+                        disabled={!hasAnyPlatformSelected(stage.name)}
+                        className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-bold text-[16px] leading-[22px] ${hasAnyPlatformSelected(stage.name)
                           ? 'bg-[#3175FF] hover:bg-[#2563eb]'
-                          : 'bg-[#3175FF] opacity-50 cursor-not-allowed'
+                          : 'bg-[#3175FF] opacity-30 cursor-not-allowed'
                           }`}
                       >
                         Validate
