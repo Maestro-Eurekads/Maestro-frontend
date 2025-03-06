@@ -135,7 +135,7 @@ const SelectChannelMix = () => {
       {openItems[stage.name] && (
        <div className="card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px]">
         {validatedStages[stage.name] ? (
-         <div className="mt-8 px-6 opacity-50 transition-opacity duration-300">
+         <div className="mt-8 px-6">
           {Object.entries(selected[stage.name] || {}).map(([category, platformNames]) => (
            <div key={category} className="mb-8">
             <h2 className="mb-4 font-bold text-lg">{category}</h2>
@@ -163,7 +163,7 @@ const SelectChannelMix = () => {
           <div className="flex justify-end pr-[24px] mt-4">
            <button
             onClick={() => handleEdit(stage.name)}
-            className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] bg-blue-500"
+            className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-bold text-[16px] leading-[22px] bg-blue-500 hover:bg-blue-600"
            >
             Edit
            </button>
@@ -230,12 +230,8 @@ const SelectChannelMix = () => {
 
           <div className="flex justify-end pr-[24px] mt-4">
            <button
-            disabled={!hasAnyPlatformSelected(stage.name)}
             onClick={() => handleValidate(stage.name)}
-            className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${hasAnyPlatformSelected(stage.name)
-             ? 'bg-[#3175FF] hover:bg-[#2563eb]'
-             : 'bg-[#3175FF] opacity-50 cursor-not-allowed'
-             }`}
+            className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-bold text-[16px] leading-[22px] bg-[#3175FF] hover:bg-[#2563eb]"
            >
             Validate
            </button>
