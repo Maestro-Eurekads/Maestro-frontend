@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { Select } from "../../../components/Select";
 import { Title } from "../../../components/Title";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import ClientSelection from "../../../components/ClientSelection";
@@ -25,26 +24,7 @@ export const SetupScreen = () => {
     });
   };
 
-  // const campaigns = [
 
-  // {
-  //   campaigns: {
-  //     mediaplan: {
-  //       setupNewCampaign: {},
-  //       defineCampaignObjective: {},
-  //       mapFunnelStages: {},
-  //       selectChannelMix: {},
-  //       formatsSelection: {},
-  //       setBuyObjectivesandTypes: {},
-  //       midRecap: {},
-  //       planCampaignSchedule: {},
-  //       configureAdSetsandBudget: {},
-  //       establishGoals: {},
-  //       overviewOfYourCampaign: {},
-  //     }
-  //   }
-  // },
-  // ];
 
   const clients = [
     { value: "John Doe", label: "John Doe" },
@@ -59,15 +39,6 @@ export const SetupScreen = () => {
     { value: "Product launch", label: "Product launch" },
   ];
 
-
-
-  const mediaPlan = [
-    { value: "Social Media", label: "Social Media Advertising" },
-    { value: "Search Engine", label: "Search Engine Marketing" },
-    { value: "Display Ads", label: "Display Advertising" },
-    { value: "Video Ads", label: "Video Advertising" },
-    { value: "Influencer Marketing", label: "Influencer Marketing" },
-  ];
 
   const internalApprover = [
     { value: "Karl Roida", label: "Karl Roida" },
