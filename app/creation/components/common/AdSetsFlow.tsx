@@ -109,7 +109,7 @@ function AdsetSettings({
   }
 
   return (
-    <div className="flex items-center gap-8 w-full">
+    <div className="flex items-center gap-8 w-full overflow-x-auto">
       <div className="relative">
         <button className="relative min-w-[150px] z-20 flex gap-4 justify-between items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-4 rounded-[10px]">
           <Image src={outlet.icon} alt="" className="w-[22px] h-[22px]" />
@@ -165,27 +165,29 @@ function AdsetSettings({
                   : "bottom-1/2 rounded-bl-[10px] border-b-2"
               }`}
             ></span>
-            <div className="flex gap-4 items-center flex-wrap md:flex-nowrap">
-              <div className="relative">
+            <div className="flex gap-4 items-center overflow-x-auto pb-4">
+              <div className="relative flex-shrink-0">
                 <p className="relative z-50 text-[#3175FF] text-sm font-bold flex gap-4 items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-4 rounded-[10px] min-w-[150px]">
                   {`Ad set n°${adset.addsetNumber}`}
                 </p>
                 <hr className="border border-[#0000001A] w-[50px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" />
               </div>
-              <AudienceDropdown />
+              <div className="flex-shrink-0">
+                <AudienceDropdown />
+              </div>
               <input
                 type="text"
                 placeholder="Enter ad set name"
-                className="text-black text-sm font-semibold flex gap-4 items-center border border-[#0000001A] py-4 px-4 rounded-[10px] min-w-[200px]"
+                className="text-black text-sm font-semibold flex gap-4 items-center border border-[#0000001A] py-4 px-4 rounded-[10px] min-w-[200px] flex-shrink-0"
               />
               <input
                 type="text"
                 placeholder="Enter size"
-                className="text-black text-sm font-semibold flex gap-4 items-center border border-[#0000001A] py-4 px-4 rounded-[10px] min-w-[150px]"
+                className="text-black text-sm font-semibold flex gap-4 items-center border border-[#0000001A] py-4 px-4 rounded-[10px] min-w-[150px] flex-shrink-0"
               />
               <button
                 onClick={() => deleteAdSet(adset.id)}
-                className="flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold whitespace-nowrap"
+                className="flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold whitespace-nowrap flex-shrink-0"
               >
                 <MdDelete /> <span>Delete</span>
               </button>
