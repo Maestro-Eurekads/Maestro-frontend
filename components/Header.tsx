@@ -23,7 +23,7 @@ const Header = ({ setIsOpen }) => {
           <Image src={down} alt='menu' />
         </button>
 
-        <button className='client_btn_text' onClick={() => setIsOpen(true)}>  <Image src={plus} alt='plus' />New client</button>
+        <button className='client_btn_text' onClick={() => setIsOpen(true)}>  <Image src={plus} alt='plus' />New Client</button>
       </div>
 
       <div className='profiledropdown_container_main'>
