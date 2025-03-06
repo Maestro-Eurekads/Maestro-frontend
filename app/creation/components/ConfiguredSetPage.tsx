@@ -561,7 +561,7 @@ const ConfiguredSetPage = () => {
                 <Button
                   text="Validate"
                   onClick={() => alert("Validate")}
-                  disabled
+                  disabled // The button is disabled by default
                   variant="primary"
                   className="h-[52px] rounded-md px-6 py-2"
                 />
