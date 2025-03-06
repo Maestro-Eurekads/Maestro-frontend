@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Button from "./common/button";
 import speaker from "../../../public/mdi_megaphone.svg";
@@ -43,6 +43,7 @@ const ConfiguredSetPage = () => {
   const [quantcastBudget, setQuantcastBudget] = useState("");
 
   const [isValidated, setIsValidated] = useState(false); // New state to track validation
+  const [results, setResults] = useState([]); // New state to store results
 
   const toggleItem = (stage) => {
     setOpenItems((prev) => ({ ...prev, [stage]: !prev[stage] }));
@@ -121,7 +122,15 @@ const ConfiguredSetPage = () => {
 
   const handleValidateClick = () => {
     setIsValidated(true);
-  
+    const newResults = [
+      { platform: "Top", budget, currency: topCurrency },
+      { platform: "Facebook", budget: facebookBudget, currency: facebookCurrency },
+      { platform: "Instagram", budget: instagramBudget, currency: instagramCurrency },
+      { platform: "YouTube", budget: youtubeBudget, currency: youtubeCurrency },
+      { platform: "TradeDesk", budget: tradeDeskBudget, currency: tradeDeskCurrency },
+      { platform: "Quantcast", budget: quantcastBudget, currency: quantcastCurrency },
+    ].filter(item => item.budget); // Filter out empty budgets
+    setResults(newResults);
   };
 
   return (
@@ -576,6 +585,19 @@ const ConfiguredSetPage = () => {
                   className="h-[52px] rounded-md px-6 py-2"
                 />
               </div>
+
+              {isValidated && results.length > 0 && (
+                <div className="mt-6">
+                  <h2 className="font-bold">Results:</h2>
+                  <ul>
+                    {results.map((result, index) => (
+                      <li key={index}>
+                        {result.platform}: {result.budget} {getCurrencySymbol(result.currency)}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               </div>
             </>
