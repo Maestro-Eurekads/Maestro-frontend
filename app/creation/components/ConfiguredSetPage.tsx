@@ -262,7 +262,7 @@ const ConfiguredSetPage = () => {
         </div>
 
 
-        <div className="flex items-start flex-col gap-4">
+        <div className="flex items-start flex-col gap-3">
           <h2 className="text-center font-bold">Percentage</h2>
           <div className="flex items-center gap-4">
 
@@ -289,7 +289,7 @@ const ConfiguredSetPage = () => {
     className="absolute inset-y-0 start-0 m-1 size-6 rounded-full bg-white transition-all peer-checked:start-6"
     ></span>
 </label>
-<p className="text-[#061237] text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap">Auto-split budget across ad sets</p>
+<p className="text-[#061237] text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap tracking-tighter">Auto-split budget across ad sets</p>
     </div>
 
             
