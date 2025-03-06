@@ -14,7 +14,6 @@ import youtube from "../../../public/youtube.svg";
 import quantcast from "../../../public/quantcast.svg";
 
 const funnelStages = [
-
   { name: "Awareness", icon: speaker, status: "In progress", statusIsActive: true },
   { name: "Consideration", icon: tablerzoomfilled, status: "Not started", statusIsActive: false },
   { name: "Conversion", icon: orangecredit, status: "Not started", statusIsActive: false },
@@ -27,21 +26,92 @@ const ConfiguredSetPage = () => {
     Conversion: false,
   });
 
-  const [currency, setCurrency] = useState("EUR");
-  const [budget, setBudget] = useState("0");
+  // Individual currency states for each section
+  const [topCurrency, setTopCurrency] = useState("EUR");
+  const [facebookCurrency, setFacebookCurrency] = useState("EUR");
+  const [instagramCurrency, setInstagramCurrency] = useState("EUR");
+  const [youtubeCurrency, setYoutubeCurrency] = useState("EUR");
+  const [tradeDeskCurrency, setTradeDeskCurrency] = useState("EUR");
+  const [quantcastCurrency, setQuantcastCurrency] = useState("EUR");
+
+  // Budget states for each section
+  const [budget, setBudget] = useState("");
+  const [facebookBudget, setFacebookBudget] = useState("");
+  const [instagramBudget, setInstagramBudget] = useState("");
+  const [youtubeBudget, setYoutubeBudget] = useState("");
+  const [tradeDeskBudget, setTradeDeskBudget] = useState("");
+  const [quantcastBudget, setQuantcastBudget] = useState("");
 
   const toggleItem = (stage) => {
     setOpenItems((prev) => ({ ...prev, [stage]: !prev[stage] }));
   };
 
-  const handleCurrencyChange = (event) => {
-    setCurrency(event.target.value);
+  const getCurrencySymbol = (currencyCode) => {
+    switch(currencyCode) {
+      case 'EUR':
+        return '€';
+      case 'USD':
+        return '$';
+      case 'GBP':
+        return '£';
+      default:
+        return '€';
+    }
+  };
+
+  // Individual handlers for each section
+  const handleTopCurrencyChange = (event) => {
+    setTopCurrency(event.target.value);
+  };
+
+  const handleFacebookCurrencyChange = (event) => {
+    setFacebookCurrency(event.target.value);
+  };
+
+  const handleInstagramCurrencyChange = (event) => {
+    setInstagramCurrency(event.target.value);
+  };
+
+  const handleYoutubeCurrencyChange = (event) => {
+    setYoutubeCurrency(event.target.value);
+  };
+
+  const handleTradeDeskCurrencyChange = (event) => {
+    setTradeDeskCurrency(event.target.value);
+  };
+
+  const handleQuantcastCurrencyChange = (event) => {
+    setQuantcastCurrency(event.target.value);
   };
 
   const handleBudgetChange = (event) => {
-    const value = event.target.value;
-    // Remove leading zero if the input is not empty
-    setBudget(value.replace(/^0+/, '') || "0");
+    const value = event.target.value.replace(/^0+/, '');
+    setBudget(value);
+  };
+
+  const handleFacebookBudgetChange = (event) => {
+    const value = event.target.value.replace(/^0+/, '');
+    setFacebookBudget(value);
+  };
+
+  const handleInstagramBudgetChange = (event) => {
+    const value = event.target.value.replace(/^0+/, '');
+    setInstagramBudget(value);
+  };
+
+  const handleYoutubeBudgetChange = (event) => {
+    const value = event.target.value.replace(/^0+/, '');
+    setYoutubeBudget(value);
+  };
+
+  const handleTradeDeskBudgetChange = (event) => {
+    const value = event.target.value.replace(/^0+/, '');
+    setTradeDeskBudget(value);
+  };
+
+  const handleQuantcastBudgetChange = (event) => {
+    const value = event.target.value.replace(/^0+/, '');
+    setQuantcastBudget(value);
   };
 
   return (
@@ -81,27 +151,22 @@ const ConfiguredSetPage = () => {
             
          <h2 className="text-center font-bold">What is your budget for this phase ?</h2>
            <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
-            
-             <div className="flex items-center gap-2">
-               <p className="font-bold">{currency === "EUR" ? "€" : currency}</p>
-               <span>{budget}</span>
-             </div>
-
+             <p className="font-bold">{getCurrencySymbol(topCurrency)}</p>
              <input 
                type="text" 
-               className="w-full px-4 focus:outline-none" 
-               value={budget} 
-               onChange={handleBudgetChange} 
+               className="w-full px-4 focus:outline-none"
+               value={budget || '0'}
+               onChange={handleBudgetChange}
              />
-            
-             <div className="flex items-center gap-2">
-             <select className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer" onChange={handleCurrencyChange} value={currency}>
-            <option value="EUR">EUR</option>
-            <option value="USD">USD</option>
-            <option value="GBP">GBP</option>
-            </select>
-             </div>
-
+             <select 
+               className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer" 
+               onChange={handleTopCurrencyChange} 
+               value={topCurrency}
+             >
+               <option value="EUR">EUR</option>
+               <option value="USD">USD</option>
+               <option value="GBP">GBP</option>
+             </select>
            </div>
         </div>
 
@@ -158,27 +223,22 @@ const ConfiguredSetPage = () => {
             
          <h2 className="text-center font-bold">Budget</h2>
            <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
-            
-             <div className="flex items-center gap-2">
-               <p className="font-bold">{currency === "EUR" ? "€" : currency}</p>
-               <span>{budget}</span>
-             </div>
-
+             <p className="font-bold">{getCurrencySymbol(facebookCurrency)}</p>
              <input 
                type="text" 
-               className="w-full px-4 focus:outline-none" 
-               value={budget} 
-               onChange={handleBudgetChange} 
+               className="w-full px-4 focus:outline-none"
+               value={facebookBudget || '0'}
+               onChange={handleFacebookBudgetChange}
              />
-            
-             <div className="flex items-center gap-2">
-             <select className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer" onChange={handleCurrencyChange} value={currency}>
-            <option value="EUR">EUR</option>
-            <option value="USD">USD</option>
-            <option value="GBP">GBP</option>
-            </select>
-             </div>
-
+             <select 
+               className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer" 
+               onChange={handleFacebookCurrencyChange} 
+               value={facebookCurrency}
+             >
+               <option value="EUR">EUR</option>
+               <option value="USD">USD</option>
+               <option value="GBP">GBP</option>
+             </select>
            </div>
         </div>
 
@@ -226,7 +286,7 @@ const ConfiguredSetPage = () => {
         {/* Third row */}
         <div className="flex mb-8 justify-center items-center gap-2">
           
-          {/* facebook */}
+          {/* Instagram */}
           
              
             <div className="flex mt-10 bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[190px] h-[50px] rounded-[10px] items-center gap-2">
@@ -247,22 +307,22 @@ const ConfiguredSetPage = () => {
             
          <h2 className="text-center font-bold">Budget</h2>
            <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
-            
-             <div className="flex items-center gap-2">
-               <p className="font-bold">€</p>
-               <span>0</span>
-             </div>
-
-             <input type="text" className="w-full px-4 focus:outline-none" />
-            
-             <div className="flex items-center gap-2">
-             <select className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer">
-            <option value="EUR" selected>EUR</option>
-            <option value="USD">USD</option>
-            <option value="GBP">GBP</option>
-            </select>
-             </div>
-
+             <p className="font-bold">{getCurrencySymbol(instagramCurrency)}</p>
+             <input 
+               type="text" 
+               className="w-full px-4 focus:outline-none"
+               value={instagramBudget || '0'}
+               onChange={handleInstagramBudgetChange}
+             />
+             <select 
+               className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer" 
+               onChange={handleInstagramCurrencyChange} 
+               value={instagramCurrency}
+             >
+               <option value="EUR">EUR</option>
+               <option value="USD">USD</option>
+               <option value="GBP">GBP</option>
+             </select>
            </div>
         </div>
 
@@ -294,7 +354,7 @@ const ConfiguredSetPage = () => {
          {/* Fourth row */}
          <div className="flex mb-8 justify-center items-center gap-2">
           
-          {/* facebook */}
+          {/* Youtube */}
            
             <div className="flex mt-10 bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[190px] h-[50px] rounded-[10px] items-center gap-2">
               <div className="flex justify-between w-full px-4">
@@ -314,22 +374,22 @@ const ConfiguredSetPage = () => {
             
          <h2 className="text-center font-bold">Budget</h2>
            <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
-            
-             <div className="flex items-center gap-2">
-               <p className="font-bold">€</p>
-               <span>0</span>
-             </div>
-
-             <input type="text" className="w-full px-4 focus:outline-none" />
-            
-             <div className="flex items-center gap-2">
-             <select className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer">
-            <option value="EUR" selected>EUR</option>
-            <option value="USD">USD</option>
-            <option value="GBP">GBP</option>
-            </select>
-             </div>
-
+             <p className="font-bold">{getCurrencySymbol(youtubeCurrency)}</p>
+             <input 
+               type="text" 
+               className="w-full px-4 focus:outline-none"
+               value={youtubeBudget || '0'}
+               onChange={handleYoutubeBudgetChange}
+             />
+             <select 
+               className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer" 
+               onChange={handleYoutubeCurrencyChange} 
+               value={youtubeCurrency}
+             >
+               <option value="EUR">EUR</option>
+               <option value="USD">USD</option>
+               <option value="GBP">GBP</option>
+             </select>
            </div>
         </div>
 
@@ -363,7 +423,7 @@ const ConfiguredSetPage = () => {
 
          <div className="flex mb-8 justify-center items-center gap-2">
               
-          {/* facebook */}
+          {/* TradeDesk */}
           
              
              
@@ -385,22 +445,22 @@ const ConfiguredSetPage = () => {
             
          <h2 className="text-center font-bold">Budget</h2>
            <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
-            
-             <div className="flex items-center gap-2">
-               <p className="font-bold">€</p>
-               <span>0</span>
-             </div>
-
-             <input type="text" className="w-full px-4 focus:outline-none" />
-            
-             <div className="flex items-center gap-2">
-             <select className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer">
-            <option value="EUR" selected>EUR</option>
-            <option value="USD">USD</option>
-            <option value="GBP">GBP</option>
-            </select>
-             </div>
-
+             <p className="font-bold">{getCurrencySymbol(tradeDeskCurrency)}</p>
+             <input 
+               type="text" 
+               className="w-full px-4 focus:outline-none"
+               value={tradeDeskBudget || '0'}
+               onChange={handleTradeDeskBudgetChange}
+             />
+             <select 
+               className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer" 
+               onChange={handleTradeDeskCurrencyChange} 
+               value={tradeDeskCurrency}
+             >
+               <option value="EUR">EUR</option>
+               <option value="USD">USD</option>
+               <option value="GBP">GBP</option>
+             </select>
            </div>
         </div>
 
@@ -432,7 +492,7 @@ const ConfiguredSetPage = () => {
          {/* Sixth row */}
          <div className="flex mb-8 justify-center items-center gap-2">
           
-          {/* facebook */}
+          {/* Quantcast */}
                
             <div className="flex mt-10 bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[190px] h-[50px] rounded-[10px] items-center gap-2">
               <div className="flex justify-between w-full px-4">
@@ -452,22 +512,22 @@ const ConfiguredSetPage = () => {
             
          <h2 className="text-center font-bold">Budget</h2>
            <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
-            
-             <div className="flex items-center gap-2">
-               <p className="font-bold">€</p>
-               <span>0</span>
-             </div>
-
-             <input type="text" className="w-full px-4 focus:outline-none" />
-            
-             <div className="flex items-center gap-2">
-             <select className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer">
-            <option value="EUR" selected>EUR</option>
-            <option value="USD">USD</option>
-            <option value="GBP">GBP</option>
-            </select>
-             </div>
-
+             <p className="font-bold">{getCurrencySymbol(quantcastCurrency)}</p>
+             <input 
+               type="text" 
+               className="w-full px-4 focus:outline-none"
+               value={quantcastBudget || '0'}
+               onChange={handleQuantcastBudgetChange}
+             />
+             <select 
+               className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer" 
+               onChange={handleQuantcastCurrencyChange} 
+               value={quantcastCurrency}
+             >
+               <option value="EUR">EUR</option>
+               <option value="USD">USD</option>
+               <option value="GBP">GBP</option>
+             </select>
            </div>
         </div>
 
@@ -522,5 +582,3 @@ const ConfiguredSetPage = () => {
 };
 
 export default ConfiguredSetPage;
-
-
