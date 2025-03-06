@@ -201,7 +201,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p>of Awareness budget</p>
+          <p className="tracking-tight">of budget</p>
          </div>
          </div>
         
@@ -274,7 +274,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p className="whitespace-nowrap">of total budget</p>
+          <p className="whitespace-nowrap tracking-tight">of Awareness budget</p>
            
            {/* switch */}
            <div className="flex items-center gap-2">
@@ -358,7 +358,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p>of total budget</p>
+          <p className="tracking-tight">of Awarenss budget</p>
         
             
          </div>
@@ -425,7 +425,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p>of total budget</p>
+          <p className="tracking-tight">of Awareness budget</p>
         
             
          </div>
@@ -496,7 +496,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p>of total budget</p>
+          <p className="tracking-tight">of Awareness budget</p>
         
             
          </div>
@@ -563,7 +563,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p>of total budget</p>
+          <p className="tracking-tight">of Awareness budget</p>
         
             
          </div>
