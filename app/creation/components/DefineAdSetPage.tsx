@@ -60,60 +60,62 @@ const DefineAdSetPage = () => {
   };
 
   return (
-    <div className="mt-12 flex items-start flex-col gap-12 w-full">
-      {funnelStages.map((stage, index) => (
-        <div key={index} className="w-full">
-          <div 
-            className="flex items-center justify-between px-6 py-4 w-full bg-[#FCFCFC] border border-gray-300 rounded-t-[10px] cursor-pointer"
-            onClick={() => toggleItem(stage.name)}
-          >
-            <div className="flex items-center gap-4">
-              <Image 
-                src={stage.icon} 
-                alt={stage.name}
-                width={24}
-                height={24}
-              />
-              <p className="text-md font-semibold text-[#061237]">
-                {stage.name}
-              </p>
+    <div className="container mx-auto px-4 overflow-x-hidden">
+      <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[1200px] mx-auto">
+        {funnelStages.map((stage, index) => (
+          <div key={index} className="w-full">
+            <div 
+              className="flex items-center justify-between px-6 py-4 w-full bg-[#FCFCFC] border border-gray-300 rounded-t-[10px] cursor-pointer"
+              onClick={() => toggleItem(stage.name)}
+            >
+              <div className="flex items-center gap-4">
+                <Image 
+                  src={stage.icon} 
+                  alt={stage.name}
+                  width={24}
+                  height={24}
+                />
+                <p className="text-md font-semibold text-[#061237]">
+                  {stage.name}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {stage.statusIsActive ? (
+                  <p className="text-[#3175FF] font-semibold text-base">
+                    {stage.status}
+                  </p>
+                ) : (
+                  <p className="text-[#061237] opacity-50 text-base">
+                    Not started
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Image 
+                  src={openItems[stage.name] ? up : down2}
+                  alt={openItems[stage.name] ? "collapse" : "expand"}
+                  width={24}
+                  height={24}
+                />
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              {stage.statusIsActive ? (
-                <p className="text-[#3175FF] font-semibold text-base">
-                  {stage.status}
-                </p>
-              ) : (
-                <p className="text-[#061237] opacity-50 text-base">
-                  Not started
-                </p>
-              )}
-            </div>
+            {openItems[stage.name] && stage.name === "Awareness" && (
+              <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg overflow-x-auto w-full">
+                <AdSetsFlow />
+              </div>
+            )}
 
-            <div>
-              <Image 
-                src={openItems[stage.name] ? up : down2}
-                alt={openItems[stage.name] ? "collapse" : "expand"}
-                width={24}
-                height={24}
-              />
-            </div>
+            {openItems[stage.name] && 
+             (stage.name === "Consideration" || stage.name === "Conversion") && (
+              <div className="flex items-center justify-between p-8 w-full bg-[#FCFCFC] border border-gray-300 rounded-lg cursor-pointer">
+              </div>
+            )}
           </div>
-
-          {openItems[stage.name] && stage.name === "Awareness" && (
-            <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
-              <AdSetsFlow />
-            </div>
-          )}
-
-          {openItems[stage.name] && 
-           (stage.name === "Consideration" || stage.name === "Conversion") && (
-            <div className="flex items-center justify-between p-8 w-full bg-[#FCFCFC] border border-gray-300 rounded-lg cursor-pointer">
-            </div>
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };
