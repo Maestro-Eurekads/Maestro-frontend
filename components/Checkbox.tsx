@@ -3,13 +3,18 @@ import React, { useState } from 'react';
 interface CheckboxProps {
 	id: string;
 	isEditing?: boolean;
+	selectedOption: string;
+	setSelectedOption: (option: string) => void;
 }
 
-const Checkbox: React.FC<CheckboxProps> = ({ id, isEditing }) => {
-	const [isChecked, setIsChecked] = useState(false);
+
+const Checkbox: React.FC<CheckboxProps> = ({ id, isEditing, selectedOption, setSelectedOption }) => {
+	const isChecked = selectedOption === id;
 
 	const handleChange = () => {
-		setIsChecked(!isChecked);
+		if (isEditing) {
+			setSelectedOption(id);
+		}
 	};
 
 	return (
