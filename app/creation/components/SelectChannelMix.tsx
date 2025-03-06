@@ -231,7 +231,12 @@ const SelectChannelMix = () => {
           <div className="flex justify-end pr-[24px] mt-4">
            <button
             onClick={() => handleValidate(stage.name)}
-            className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-bold text-[16px] leading-[22px] bg-[#3175FF] hover:bg-[#2563eb]"
+            disabled={!hasAnyPlatformSelected(stage.name)}
+            className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-bold text-[16px] leading-[22px] ${
+              hasAnyPlatformSelected(stage.name) 
+                ? 'bg-[#3175FF] hover:bg-[#2563eb]'
+                : 'bg-[#3175FF] opacity-30 cursor-not-allowed'
+            }`}
            >
             Validate
            </button>

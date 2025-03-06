@@ -66,7 +66,6 @@ const ObjectiveSelection = () => {
   const [selectedOptions, setSelectedOptions] = useState<{ [key: string]: string }>({});
   const [isEditable, setIsEditable] = useState<{ [key: string]: boolean }>({});
   const [previousSelectedOptions, setPreviousSelectedOptions] = useState<{ [key: string]: string }>({});
-  const [faded, setFaded] = useState<{ [key: string]: boolean }>({}); // New state for fading
 
   // Toggle expand/collapse for a stage
   const toggleItem = (stage: string) => {
@@ -99,7 +98,6 @@ const ObjectiveSelection = () => {
     updatedStatuses[index] = "Completed";
     setStatuses(updatedStatuses);
     setIsEditable((prev) => ({ ...prev, [funnelStages[index].name]: true }));
-    setFaded((prev) => ({ ...prev, [funnelStages[index].name]: true })); // Fade the result section
 
     // Store the current selected options before validation
     setPreviousSelectedOptions(selectedOptions);
@@ -200,9 +198,7 @@ const ObjectiveSelection = () => {
 
           {/* Expanded Content */}
           {openItems[stage.name] && (
-            <div className={`flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg ${
-              faded[stage.name] ? "opacity-50 transition-opacity duration-300" : ""
-            }`}>
+            <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
               {stage.name === "Awareness" && statuses[stageIndex] === "Completed" ? (
                 <div className="flex flex-col md:flex-row w-full gap-12">
                   {/* Left side - Social Media */}
@@ -302,7 +298,6 @@ const ObjectiveSelection = () => {
                     className="bg-blue-500"
                     onClick={() => {
                       setIsEditable((prev) => ({ ...prev, [stage.name]: false }));
-                      setFaded((prev) => ({ ...prev, [stage.name]: false })); // Reset fading
                       setSelectedOptions(previousSelectedOptions); // Restore previous selections
                       setStatuses((prev) => {
                         const updated = [...prev];
