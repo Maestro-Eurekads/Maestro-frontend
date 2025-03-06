@@ -211,7 +211,7 @@ const ConfiguredSetPage = () => {
 
           
           {/* Second row */}
-          <div className="flex mb-8 items-center justify-center gap-2">
+          <div className="flex mb-8 items-center justify-center gap-4">
           
           {/* facebook */}
           <div className="flex items-start flex-col gap-2">
@@ -289,7 +289,7 @@ const ConfiguredSetPage = () => {
     className="absolute inset-y-0 start-0 m-1 size-6 rounded-full bg-white transition-all peer-checked:start-6"
     ></span>
 </label>
-<p className="text-[#061237] text-sm font-semibold whitespace-nowrap">Auto-split budget across ad sets</p>
+<p className="text-[#061237] text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap">Auto-split budget across ad sets</p>
     </div>
 
             
@@ -303,7 +303,7 @@ const ConfiguredSetPage = () => {
 
 
         {/* Third row */}
-        <div className="flex mb-8 justify-center items-center gap-2">
+        <div className="flex mb-8 justify-center items-center gap-4">
           
           {/* Instagram */}
           
@@ -371,7 +371,7 @@ const ConfiguredSetPage = () => {
 
 
          {/* Fourth row */}
-         <div className="flex mb-8 justify-center items-center gap-2">
+         <div className="flex mb-8 justify-center items-center gap-4">
           
           {/* Youtube */}
            
@@ -440,7 +440,7 @@ const ConfiguredSetPage = () => {
 
          {/* Fifth row */}
 
-         <div className="flex mb-8 justify-center items-center gap-2">
+         <div className="flex mb-8 justify-center items-center gap-4">
               
           {/* TradeDesk */}
           
@@ -509,7 +509,7 @@ const ConfiguredSetPage = () => {
 
 
          {/* Sixth row */}
-         <div className="flex mb-8 justify-center items-center gap-2">
+         <div className="flex mb-8 justify-center items-center gap-4">
           
           {/* Quantcast */}
                
