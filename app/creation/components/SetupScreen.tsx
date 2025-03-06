@@ -11,7 +11,16 @@ import Checkbox from "../../../components/Checkbox";
 export const SetupScreen = () => {
   const { state, dispatch } = useCampaigns();
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedOption, setSelectedOption] = useState("percentage");
 
+  const getInputValue = () => {
+    if (selectedOption === "fix-amount") {
+      return "€10";
+    } else if (selectedOption === "percentage") {
+      return "15%";
+    }
+    return "";
+  };
 
 
   const handleObjectiveSelection = () => {
@@ -86,7 +95,7 @@ export const SetupScreen = () => {
       <div className="mt-[42px]">
         <Title>Client selection</Title>
         <div>
-          <ClientSelection options={clients} label={"Select a client"} isEditing={isEditing} />
+          <ClientSelectionInput label={"Enter media plan name"} isEditing={isEditing} />
 
         </div>
         <div className="client_selection_flow  pb-12">
@@ -108,17 +117,17 @@ export const SetupScreen = () => {
             <ClientSelection options={selectCurrency} label={"Select currency"} isEditing={isEditing} />
             <ClientSelection options={mediaBudgetPercentage} label={"% of media budget"} isEditing={isEditing} />
 
-            {/* Checkbox */}
+            {/* Radio Buttons */}
             <div className="flex gap-6 mt-[20px]">
               <div className="flex items-center gap-3">
-                <Checkbox id="fix-amount" isEditing={isEditing} />
-                <p className="whitespace-nowrap w-[86px] h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] mb-1">
+                <Checkbox id="fix-amount" isEditing={isEditing} selectedOption={selectedOption} setSelectedOption={setSelectedOption} />
+                <p className="whitespace-nowrap font-medium text-[16px] text-[#061237] mb-1">
                   Fix amount
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <Checkbox id="percentage" isEditing={isEditing} />
-                <p className="w-[86px] h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] mb-1">
+                <Checkbox id="percentage" isEditing={isEditing} selectedOption={selectedOption} setSelectedOption={setSelectedOption} />
+                <p className="font-medium text-[16px] text-[#061237] mb-1">
                   Percentage
                 </p>
               </div>
@@ -129,7 +138,8 @@ export const SetupScreen = () => {
 
           </div>
         </div>
-        <ClientSelectionInput label={"15%"} isEditing={isEditing} />
+        {/* Display the selected value */}
+        <ClientSelectionInput label={getInputValue()} isEditing={isEditing} />
       </div>
       <div className="flex justify-end pr-6 mt-[20px]">
 

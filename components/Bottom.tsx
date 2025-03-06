@@ -160,3 +160,4 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 };
 
 export default Bottom;
+
