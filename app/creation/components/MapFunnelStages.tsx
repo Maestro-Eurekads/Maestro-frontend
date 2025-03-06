@@ -1,88 +1,141 @@
-// components/MapFunnelStages.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import Image from "next/image";
 import speaker from '../../../public/mdi_megaphone.svg';
+import speakerWhite from '../../../public/mdi_megaphonewhite.svg';
 import zoom from '../../../public/tabler_zoom-filled.svg';
+import zoomWhite from '../../../public/tabler_zoom-filledwhite.svg';
 import credit from '../../../public/mdi_credit-card.svg';
+import creditWhite from '../../../public/mdi_credit-cardwhite.svg';
 import addPlus from '../../../public/addPlus.svg';
+import addPlusWhite from '../../../public/addPlusWhite.svg';
 import PageHeaderWrapper from '../../../components/PageHeaderWapper';
 import { useObjectives } from '../../utils/useObjectives';
 
-
-// const awarenessStages = [
-// 	{ id: 1, icon: speaker, label: "Awareness", bgColor: "bg-blue-500" },
-// 	{ id: 2, icon: zoom, label: "Consideration", bgColor: "bg-green-500" },
-// 	{ id: 3, icon: credit, label: "Conversion", bgColor: "bg-yellow-500" },
-// 	{ id: 4, icon: addPlus, label: "Loyalty", bgColor: "bg-red-500" },
-// ];
-
 const MapFunnelStages = () => {
 	const { selectedFunnels, setSelectedFunnels } = useObjectives();
+	const [isEditing, setIsEditing] = useState(false);
+	const [hovered, setHovered] = React.useState<number | null>(null);
+	const selectedFunnel: any = selectedFunnels;
+
+	console.log('selectedFunnels', selectedFunnels);
+
+	const funnelStages = {
+		1: "Awareness",
+		2: "Consideration",
+		3: "Conversion",
+		4: "Loyalty",
+	};
 
 	// Toggle selection logic
 	const handleSelect = (id: number) => {
+		if (!isEditing) return; // Prevent selection if not editing
+
+		const stageName = funnelStages[id]; // Get name from ID
 		setSelectedFunnels((prev) =>
-			prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+			prev.includes(stageName) ? prev.filter((name) => name !== stageName) : [...prev, stageName]
 		);
 	};
 
 	return (
 		<div>
-			<PageHeaderWrapper
-				t1={'How many funnel stage(s) would you like to activate to achieve your objective ?'}
-				t2={`This option is available only if you've selected any of the following main objectives:`}
-				t3={'Traffic, Purchase, Lead Generation, or App Install.'} />
+			<div className='flex items-center justify-between'>
+				<PageHeaderWrapper
+					t1={'How many funnel stage(s) would you like to activate to achieve your objective ?'}
+					t2={`This option is available only if you've selected any of the following main objectives:`}
+					t3={'Traffic, Purchase, Lead Generation, or App Install.'}
+				/>
 
+				{isEditing ? null : (
+					<button className="model_button_blue" onClick={() => setIsEditing(true)}>
+						Edit
+					</button>
+				)}
+			</div>
 
 			<div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
 				{/* Awareness */}
 				<button
-					className={`cursor-pointer awareness_card_one ${selectedFunnels.includes(1) ? "awareness_card_one_active" : ""
-						}`}
+					className={`cursor-pointer awareness_card_one 
+						${selectedFunnel.includes("Awareness") ? "awareness_card_one_active" : ""} 
+						${isEditing ? "" : "cursor-not-allowed"}`}
 					onClick={() => handleSelect(1)}
+					onMouseEnter={() => setHovered(1)}
+					onMouseLeave={() => setHovered(null)}
+					disabled={!isEditing}
 				>
-					<Image src={speaker} alt="speaker" />
+					{selectedFunnel.includes("Awareness") || hovered === 1 ? (
+						<Image src={speakerWhite} alt="speakerWhite" />
+					) : (
+						<Image src={speaker} alt="speaker" />
+					)}
 					<p>Awareness</p>
 				</button>
 
 				{/* Consideration */}
 				<button
-					className={`cursor-pointer awareness_card_two ${selectedFunnels.includes(2) ? "awareness_card_two_active" : ""
-						}`}
+					className={`cursor-pointer awareness_card_two 
+						${selectedFunnel.includes("Consideration") ? "awareness_card_two_active" : ""} 
+						${isEditing ? "" : "cursor-not-allowed"}`}
 					onClick={() => handleSelect(2)}
+					onMouseEnter={() => setHovered(2)}
+					onMouseLeave={() => setHovered(null)}
+					disabled={!isEditing}
 				>
-					<Image src={zoom} alt="zoom" />
+					{selectedFunnel.includes("Consideration") || hovered === 2 ? (
+						<Image src={zoomWhite} alt="zoomWhite" />
+					) : (
+						<Image src={zoom} alt="zoom" />
+					)}
 					<p>Consideration</p>
 				</button>
 
 				{/* Conversion */}
 				<button
-					className={`cursor-pointer awareness_card_three ${selectedFunnels.includes(3) ? "awareness_card_three_active" : ""
-						}`}
+					className={`cursor-pointer awareness_card_three 
+						${selectedFunnel.includes("Conversion") ? "awareness_card_three_active" : ""} 
+						${isEditing ? "" : "cursor-not-allowed"}`}
 					onClick={() => handleSelect(3)}
+					onMouseEnter={() => setHovered(3)}
+					onMouseLeave={() => setHovered(null)}
+					disabled={!isEditing}
 				>
-					<Image src={credit} alt="credit" />
+					{selectedFunnel.includes("Conversion") || hovered === 3 ? (
+						<Image src={creditWhite} alt="creditWhite" />
+					) : (
+						<Image src={credit} alt="credit" />
+					)}
 					<p>Conversion</p>
 				</button>
 
 				{/* Loyalty */}
 				<button
-					className={`cursor-pointer awareness_card_four ${selectedFunnels.includes(4) ? "awareness_card_four_active" : ""
-						}`}
+					className={`cursor-pointer awareness_card_four 
+						${selectedFunnel.includes("Loyalty") ? "awareness_card_four_active" : ""} 
+						${isEditing ? "" : "cursor-not-allowed"}`}
 					onClick={() => handleSelect(4)}
+					onMouseEnter={() => setHovered(4)}
+					onMouseLeave={() => setHovered(null)}
+					disabled={!isEditing}
 				>
-					<Image src={addPlus} alt="addPlus" />
+					{selectedFunnel.includes("Loyalty") || hovered === 4 ? (
+						<Image src={addPlusWhite} alt="addPlusWhite" />
+					) : (
+						<Image src={addPlus} alt="addPlus" />
+					)}
 					<p>Loyalty</p>
 				</button>
 			</div>
+
 			<div className="flex justify-end pr-6 mt-[50px]">
-				<button
-					disabled={selectedFunnels.length === 0}
-					// onClick={() => handleValidate(stage.name)} // Uncomment and fix stage reference when ready
-					className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg bg-[#3175FF] text-white font-semibold text-base leading-6 disabled:opacity-50 hover:bg-[#2557D6] transition-colors"
-				>
-					Validate
-				</button>
+				{isEditing && (
+					<button
+						// disabled={selectedFunnel.length === 0}
+						onClick={() => setIsEditing(false)}
+						className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg bg-[#3175FF] text-white font-semibold text-base leading-6 disabled:opacity-50 hover:bg-[#2557D6] transition-colors"
+					>
+						Validate
+					</button>
+				)}
 			</div>
 		</div>
 	);

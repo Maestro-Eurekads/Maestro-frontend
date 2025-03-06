@@ -54,7 +54,7 @@ const CreationFlow = ({ steps }) => {
 								{step.title}
 							</span>
 							{isCompleted && step.objective && (
-								<div className="objective_step_text">{step.objective}</div>
+								<div className="objective_step_text whitespace-nowrap">{step.objective}</div>
 							)}
 						</div>
 					</div>

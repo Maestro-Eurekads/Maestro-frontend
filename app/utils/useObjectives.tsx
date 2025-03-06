@@ -1,20 +1,24 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from "react";
 
 interface Objective {
 	id: number;
 	title: string;
 }
 
+
+
 interface ObjectivesContextType {
 	selectedObjectives: Objective[];
 	setSelectedObjectives: React.Dispatch<React.SetStateAction<Objective[]>>;
-	selectedFunnels: number[];
-	setSelectedFunnels: React.Dispatch<React.SetStateAction<number[]>>;
+	selectedFunnels: Objective[];
+	setSelectedFunnels: React.Dispatch<React.SetStateAction<Objective[]>>;
 }
 
-const ObjectivesContext = createContext<ObjectivesContextType | undefined>(undefined);
+const ObjectivesContext = createContext<ObjectivesContextType | undefined>(
+	undefined
+);
 
 interface ObjectivesProviderProps {
 	children: ReactNode;
@@ -22,7 +26,7 @@ interface ObjectivesProviderProps {
 
 export const ObjectivesProvider = ({ children }: ObjectivesProviderProps) => {
 	const [selectedObjectives, setSelectedObjectives] = useState<Objective[]>([]);
-	const [selectedFunnels, setSelectedFunnels] = useState<number[]>([]);
+	const [selectedFunnels, setSelectedFunnels] = useState<Objective[]>([]);
 
 	return (
 		<ObjectivesContext.Provider
