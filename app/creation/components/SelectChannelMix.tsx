@@ -45,7 +45,7 @@ const SelectChannelMix = () => {
   const isStageValid = (stageName) => {
     const stageSelections = selected[stageName] || {};
     return Object.values(stageSelections).some(
-      (categorySelections) => categorySelections.length > 0
+      (categorySelections) => Array.isArray(categorySelections) && categorySelections.length > 0
     );
   };
 
@@ -68,7 +68,7 @@ const SelectChannelMix = () => {
   const hasAnyPlatformSelected = (stageName) => {
     const stageSelections = selected[stageName] || {};
     return Object.values(stageSelections).some(
-      (platforms) => platforms.length > 0
+      (platforms) => Array.isArray(platforms) && platforms.length > 0
     );
   };
 
