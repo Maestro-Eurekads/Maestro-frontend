@@ -47,10 +47,9 @@ const SelectChannelMix = () => {
 
  const isStageValid = (stageName) => {
   const stageSelections = selected[stageName] || {};
-  const requiredCategories = ["Social media", "Display networks", "Search engines"];
-
-  return requiredCategories.every(
-   (category) => stageSelections[category] && stageSelections[category].length > 0
+  // Check if at least one category has selections
+  return Object.values(stageSelections).some(
+    (categorySelections: any[]) => categorySelections.length > 0
   );
  };
 
@@ -77,14 +76,12 @@ const SelectChannelMix = () => {
   }));
  };
 
- const areAllPlatformsSelected = (stageName: string) => {
+ const hasAnyPlatformSelected = (stageName: string) => {
   const stageSelections = selected[stageName] || {};
-  const requiredCategories = ["Social media", "Display networks", "Search engines"];
-
-  return requiredCategories.every(category => {
-   const platforms = stageSelections[category] || [];
-   return platforms.length > 0; // Changed to only check if at least one platform is selected
-  });
+  // Check if any category has at least one platform selected
+  return Object.values(stageSelections).some(
+    (platforms: any[]) => platforms.length > 0
+  );
  };
 
  return (
@@ -233,9 +230,9 @@ const SelectChannelMix = () => {
 
           <div className="flex justify-end pr-[24px] mt-4">
            <button
-            disabled={!isStageValid(stage.name) || !areAllPlatformsSelected(stage.name)}
+            disabled={!hasAnyPlatformSelected(stage.name)}
             onClick={() => handleValidate(stage.name)}
-            className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isStageValid(stage.name) && areAllPlatformsSelected(stage.name)
+            className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${hasAnyPlatformSelected(stage.name)
              ? 'bg-[#3175FF] hover:bg-[#2563eb]'
              : 'bg-[#3175FF] opacity-50 cursor-not-allowed'
              }`}
