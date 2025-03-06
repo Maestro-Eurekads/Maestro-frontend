@@ -281,7 +281,7 @@ const ConfiguredSetPage = () => {
 
            <label
   htmlFor="AcceptConditions"
-  className="relative inline-block h-6 w-12 cursor-pointer rounded-full bg-gray-300 transition [-webkit-tap-highlight-color:_transparent] has-[:checked]:bg-blue-500"
+  className="relative inline-block h-6 w-10 cursor-pointer rounded-full bg-gray-300 transition [-webkit-tap-highlight-color:_transparent] has-[:checked]:bg-blue-500"
 >
   <input type="checkbox" id="AcceptConditions" className="peer sr-only" />
 
