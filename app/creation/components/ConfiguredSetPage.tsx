@@ -270,7 +270,7 @@ const ConfiguredSetPage = () => {
     className="absolute inset-y-0 start-0 m-1 size-6 rounded-full bg-white transition-all peer-checked:start-6"
     ></span>
 </label>
-<p className="text-[#061237] font-semibold whitespace-nowrap">Auto-split budget across ad sets</p>
+<p className="text-[#061237] text-sm font-semibold whitespace-nowrap">Auto-split budget across ad sets</p>
     </div>
 
             
