@@ -201,7 +201,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p className="tracking-tight">of budget</p>
+          <p className="tracking-tight">of total budget</p>
          </div>
          </div>
         
