@@ -10,10 +10,6 @@ import { funnelStages } from '../../../components/data';
 const SelectChannelMix = () => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
   const [isEditing, setIsEditing] = useState(false);
-  // const [openItemsSub, setOpenItemsSub] = useState<{ [key: string]: boolean }>({
-  //   "Social media": true, // Social media starts open
-  // });
-
   const [selected, setSelected] = useState({});
   const [validatedStages, setValidatedStages] = useState({});
 
@@ -48,9 +44,8 @@ const SelectChannelMix = () => {
 
   const isStageValid = (stageName) => {
     const stageSelections = selected[stageName] || {};
-    // Check if at least one category has selections
     return Object.values(stageSelections).some(
-      (categorySelections: any[]) => categorySelections.length > 0
+      (categorySelections) => categorySelections.length > 0
     );
   };
 
@@ -63,13 +58,6 @@ const SelectChannelMix = () => {
     }
   };
 
-  // const toggleSubItem = (category: string) => {
-  //   setOpenItemsSub((prev) => ({
-  //     ...prev,
-  //     [category]: !prev[category], // Toggle only this category
-  //   }));
-  // };
-
   const handleEdit = (stageName) => {
     setValidatedStages((prev) => ({
       ...prev,
@@ -77,33 +65,22 @@ const SelectChannelMix = () => {
     }));
   };
 
-  const hasAnyPlatformSelected = (stageName: string) => {
+  const hasAnyPlatformSelected = (stageName) => {
     const stageSelections = selected[stageName] || {};
-    // Check if any category has at least one platform selected
     return Object.values(stageSelections).some(
-      (platforms: any[]) => platforms.length > 0
+      (platforms) => platforms.length > 0
     );
   };
 
   return (
-    <div  >
+    <div>
       <div className='flex justify-between'>
         <PageHeaderWrapper
           t1={'Which platforms would you like to activate for each funnel stage?'}
           t2={'Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time.'}
           span={1}
         />
-        {/* <div >
-          {isEditing ? (
-            ''
-          ) : (
-            <button className="model_button_blue" onClick={() => setIsEditing(true)}>
-              Edit
-            </button>
-          )}
-        </div> */}
       </div>
-
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
         {funnelStages.map((stage, index) => (
@@ -113,7 +90,6 @@ const SelectChannelMix = () => {
   ${openItems[stage.name] ? 'rounded-t-[10px]' : 'rounded-[10px]'}`}
               onClick={() => toggleItem(stage.name)}
             >
-
               <div className="flex items-center gap-2">
                 <Image src={stage.icon} alt={stage.name} />
                 <p className="w-[119px] h-[24px]  font-semibold text-[18px] leading-[24px] text-[#061237]">
@@ -188,21 +164,9 @@ const SelectChannelMix = () => {
                   <>
                     {Object.entries(stage.platforms).map(([category, platforms]) => (
                       <div key={category} className="card_bucket_container_main">
-                        <div className='flex items-center justify-between cursor-pointer w-[180px]'
-                        // onClick={() => toggleSubItem(category)}
-                        >
+                        <div className='flex items-center justify-between cursor-pointer w-[180px]'>
                           <h2 className='font-bold'>{category}</h2>
-                          {/* <div className='mt-1 '>
-               {openItemsSub[category] ? (
-               <Image src={up} alt="up" />
-                ) : (
-                <Image src={down2} alt="down" />
-                )}
-                </div> */}
                         </div>
-
-
-                        {/* {openItemsSub[category] && */}
                         <div className={`grid grid-cols-2 md:grid-cols-3 gap-6`}>
                           {platforms.map((platform, pIndex) => {
                             const isSelected =
@@ -240,8 +204,6 @@ const SelectChannelMix = () => {
                             );
                           })}
                         </div>
-                        {/* } */}
-
                         {category !== "Search engines" && <hr className="text-[#0000001A] px-4 w-full " />}
                       </div>
                     ))}

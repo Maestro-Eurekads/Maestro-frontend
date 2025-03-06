@@ -201,7 +201,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p>of total budget</p>
+          <p>of Awareness budget</p>
          </div>
          </div>
         

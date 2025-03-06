@@ -111,16 +111,16 @@ export const SetupScreen = () => {
             {/* Checkbox */}
             <div className="flex gap-6 mt-[20px]">
               <div className="flex items-center gap-3">
-                <Checkbox id="fix-amount" isEditing={isEditing} />
-                <p className="whitespace-nowrap w-[86px] h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] mb-1">
+                <input type="radio" id="fix-amount" name="budget-type" value="fix" className="form-radio text-blue-600" onChange={() => {}} />
+                <label htmlFor="fix-amount" className="whitespace-nowrap w-[86px] h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] mb-1">
                   Fix amount
-                </p>
+                </label>
               </div>
               <div className="flex items-center gap-3">
-                <Checkbox id="percentage" isEditing={isEditing} />
-                <p className="w-[86px] h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] mb-1">
+                <input type="radio" id="percentage" name="budget-type" value="percentage" className="form-radio text-blue-600" onChange={() => {}} />
+                <label htmlFor="percentage" className="w-[86px] h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] mb-1">
                   Percentage
-                </p>
+                </label>
               </div>
             </div>
 
