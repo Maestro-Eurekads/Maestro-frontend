@@ -26,12 +26,12 @@ function AudienceDropdown() {
     <div className="relative border-2 border-[#0000001A] rounded-[10px]">
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="relative z-20 w-full bg-[#ffffff] text-left border-2 border-[#0000001A] rounded-[10px] text-[#656565] text-sm flex items-center gap-2 py-4 px-8 transition-all duration-200"
+        className="relative z-20 w-[200px] bg-white text-left border-2 border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-3 px-4"
       >
-        {selected || "Your audience type"}
+        <span className="truncate">{selected || "Your audience type"}</span>
         <svg
-          className={`ml-auto h-4 w-4 transform transition-transform duration-200 ${
-            open ? "rotate-180" : "rotate-0"
+          className={`h-4 w-4 flex-shrink-0 transition-transform ${
+            open ? "rotate-180" : ""
           }`}
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -47,7 +47,7 @@ function AudienceDropdown() {
         </svg>
       </button>
       {open && (
-        <ul className="absolute whitespace-nowrap left-0 right-0 text-center px-4 py-2 mt-1 z-10 bg-white border-2 border-[#0000001A] rounded-[10px] transition-all duration-200">
+        <ul className="absolute w-full mt-1 z-10 bg-white border-2 border-[#0000001A] rounded-lg shadow-lg max-h-60 overflow-auto">
           {options.map((option, index) => (
             <li
               key={index}
@@ -55,7 +55,7 @@ function AudienceDropdown() {
                 setSelected(option);
                 setOpen(false);
               }}
-              className="px-6 py-4 whitespace-nowrap cursor-pointer text-[#656565] text-sm font-bold hover:bg-gray-100 w-full"
+              className="px-4 py-2 cursor-pointer text-[#656565] text-sm hover:bg-gray-50"
             >
               {option}
             </li>
