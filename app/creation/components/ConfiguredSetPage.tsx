@@ -161,7 +161,7 @@ const ConfiguredSetPage = () => {
 
           {openItems[stage.name] && stage.name === "Awareness" && (
             <>
-              <div className='pt-8 bg-[#FCFCFC] rounded-lg cursor-pointer border px-6 border-[rgba(6,18,55,0.1)]'>
+              <div className='pt-4 bg-[#FCFCFC] rounded-lg cursor-pointer border px-6 border-[rgba(6,18,55,0.1)]'>
               <div className="flex mt-6 flex-col items-start gap-12">
 
            <div className="flex mb-8 justify-center gap-6">
@@ -214,7 +214,7 @@ const ConfiguredSetPage = () => {
           <div className="flex mb-8 items-center justify-center gap-2">
           
           {/* facebook */}
-          <div className="flex items-start flex-col gap-4">
+          <div className="flex items-start flex-col gap-2">
            <div className="flex rounded-[50px] bg-[#00A36C1A] border border-[#00A36C1A] w-[82px] h-[29px] items-center gap-2">
              <span className="text-[#00A36C] pl-2">2 ad sets</span>
 
