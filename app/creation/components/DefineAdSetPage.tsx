@@ -17,7 +17,7 @@ const funnelStages = [
   {
     name: "Awareness",
     icon: speaker,
-    status: "In progress",
+    status: "In progress", 
     statusIsActive: true,
     platforms: {
       "Social media": [
@@ -37,7 +37,7 @@ const funnelStages = [
     platforms: {},
   },
   {
-    name: "Conversion",
+    name: "Conversion", 
     icon: orangecredit,
     status: "Not started",
     statusIsActive: false,
@@ -46,74 +46,72 @@ const funnelStages = [
 ];
 
 const DefineAdSetPage = () => {
-  const [openItems, setOpenItems] = useState({ Awareness: true });
-  
-  // Toggle expand/collapse for a stage
+  const [openItems, setOpenItems] = useState({
+    Awareness: true,
+    Consideration: false,
+    Conversion: false
+  });
+
   const toggleItem = (stage: string) => {
     setOpenItems((prev) => ({
       ...prev,
-      [stage]: !prev[stage],
+      [stage]: !prev[stage]
     }));
   };
 
   return (
-    <div className="mt-12 flex items-start flex-col gap-12 w-full ">
+    <div className="mt-12 flex items-start flex-col gap-12 w-full">
       {funnelStages.map((stage, index) => (
         <div key={index} className="w-full">
-          {/* Stage Header */}
-          <div
+          <div 
             className="flex items-center justify-between px-6 py-4 w-full bg-[#FCFCFC] border border-gray-300 rounded-t-[10px] cursor-pointer"
             onClick={() => toggleItem(stage.name)}
           >
             <div className="flex items-center gap-4">
-              <Image src={stage.icon} alt={stage.name} />
-              <p className="text-md font-semibold text-[#061237]">{stage.name}</p>
+              <Image 
+                src={stage.icon} 
+                alt={stage.name}
+                width={24}
+                height={24}
+              />
+              <p className="text-md font-semibold text-[#061237]">
+                {stage.name}
+              </p>
             </div>
 
             <div className="flex items-center gap-2">
               {stage.statusIsActive ? (
-                <p className="text-[#3175FF] font-semibold text-base">{stage.status}</p>
+                <p className="text-[#3175FF] font-semibold text-base">
+                  {stage.status}
+                </p>
               ) : (
-                <p className="text-[#061237] opacity-50 text-base">Not started</p>
+                <p className="text-[#061237] opacity-50 text-base">
+                  Not started
+                </p>
               )}
             </div>
 
             <div>
-              {openItems[stage.name] ? <Image src={up} alt="collapse" /> : <Image src={down2} alt="expand" />}
+              <Image 
+                src={openItems[stage.name] ? up : down2}
+                alt={openItems[stage.name] ? "collapse" : "expand"}
+                width={24}
+                height={24}
+              />
             </div>
           </div>
 
-          {/* Expanded Content */}
           {openItems[stage.name] && stage.name === "Awareness" && (
             <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
-              {/* No platforms to display */}
-              {/* Removed all platform-related content and validate button */}
-              
-
-              {/* <div className="flex items-center justify-between gap-8">
-                <div className="flex flex-col gap-4 p-6">
-               hello
-                </div>
-
-
-                <div className="flex gap-4">
-               
-                </div>
-
-              </div> */}
-
-
-
               <AdSetsFlow />
-              
             </div>
           )}
 
-
-            {openItems[stage.name] &&
-            (stage.name === "Consideration" || stage.name === "Conversion") && (
-              <div className="flex items-center justify-between p-8 w-full bg-[#FCFCFC] border border-gray-300 rounded-lg cursor-pointer"></div>
-            )}
+          {openItems[stage.name] && 
+           (stage.name === "Consideration" || stage.name === "Conversion") && (
+            <div className="flex items-center justify-between p-8 w-full bg-[#FCFCFC] border border-gray-300 rounded-lg cursor-pointer">
+            </div>
+          )}
         </div>
       ))}
     </div>
