@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Button from "./common/button";
 import speaker from "../../../public/mdi_megaphone.svg";
@@ -41,6 +41,8 @@ const ConfiguredSetPage = () => {
   const [youtubeBudget, setYoutubeBudget] = useState("");
   const [tradeDeskBudget, setTradeDeskBudget] = useState("");
   const [quantcastBudget, setQuantcastBudget] = useState("");
+
+  const [isValidated, setIsValidated] = useState(false); // New state to track validation
 
   const toggleItem = (stage) => {
     setOpenItems((prev) => ({ ...prev, [stage]: !prev[stage] }));
@@ -112,6 +114,14 @@ const ConfiguredSetPage = () => {
   const handleQuantcastBudgetChange = (event) => {
     const value = event.target.value.replace(/^0+/, '');
     setQuantcastBudget(value);
+  };
+
+  // Check if any budget input has data to enable the button
+  const isButtonEnabled = budget || facebookBudget || instagramBudget || youtubeBudget || tradeDeskBudget || quantcastBudget;
+
+  const handleValidateClick = () => {
+    setIsValidated(true);
+  
   };
 
   return (
@@ -559,9 +569,9 @@ const ConfiguredSetPage = () => {
         
               <div className="flex w-full my-6 justify-end items-center">
                 <Button
-                  text="Validate"
-                  onClick={() => alert("Validate")}
-                  disabled // The button is disabled by default
+                  text={isValidated ? "Edit" : "Validate"} // Change button text based on validation state
+                  onClick={isValidated ? () => setIsValidated(false) : handleValidateClick} // Toggle validation state
+                  disabled={!isButtonEnabled} // The button is enabled only when there is input
                   variant="primary"
                   className="h-[52px] rounded-md px-6 py-2"
                 />
