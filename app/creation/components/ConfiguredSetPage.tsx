@@ -42,6 +42,9 @@ const ConfiguredSetPage = () => {
   const [tradeDeskBudget, setTradeDeskBudget] = useState("");
   const [quantcastBudget, setQuantcastBudget] = useState("");
 
+  const [isValidated, setIsValidated] = useState(false); // New state to track validation
+  const [results, setResults] = useState([]); // New state to store results
+
   const toggleItem = (stage) => {
     setOpenItems((prev) => ({ ...prev, [stage]: !prev[stage] }));
   };
@@ -114,6 +117,22 @@ const ConfiguredSetPage = () => {
     setQuantcastBudget(value);
   };
 
+  // Check if any budget input has data to enable the button
+  const isButtonEnabled = budget || facebookBudget || instagramBudget || youtubeBudget || tradeDeskBudget || quantcastBudget;
+
+  const handleValidateClick = () => {
+    setIsValidated(true);
+    const newResults = [
+      { platform: "Top", budget, currency: topCurrency },
+      { platform: "Facebook", budget: facebookBudget, currency: facebookCurrency },
+      { platform: "Instagram", budget: instagramBudget, currency: instagramCurrency },
+      { platform: "YouTube", budget: youtubeBudget, currency: youtubeCurrency },
+      { platform: "TradeDesk", budget: tradeDeskBudget, currency: tradeDeskCurrency },
+      { platform: "Quantcast", budget: quantcastBudget, currency: quantcastCurrency },
+    ].filter(item => item.budget); // Filter out empty budgets
+    setResults(newResults);
+  };
+
   return (
     <div className="mt-12 flex items-start flex-col gap-12 w-full">
       {funnelStages.map((stage, index) => (
@@ -142,7 +161,7 @@ const ConfiguredSetPage = () => {
 
           {openItems[stage.name] && stage.name === "Awareness" && (
             <>
-              <div className='pt-8 bg-[#FCFCFC] rounded-lg cursor-pointer border px-6 border-[rgba(6,18,55,0.1)]'>
+              <div className='pt-4 bg-[#FCFCFC] rounded-lg cursor-pointer border px-6 border-[rgba(6,18,55,0.1)]'>
               <div className="flex mt-6 flex-col items-start gap-12">
 
            <div className="flex mb-8 justify-center gap-6">
@@ -182,7 +201,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p>of total budget</p>
+          <p className="tracking-tight">of total budget</p>
          </div>
          </div>
         
@@ -195,7 +214,7 @@ const ConfiguredSetPage = () => {
           <div className="flex mb-8 items-center justify-center gap-2">
           
           {/* facebook */}
-          <div className="flex items-start flex-col gap-4">
+          <div className="flex items-start flex-col gap-2">
            <div className="flex rounded-[50px] bg-[#00A36C1A] border border-[#00A36C1A] w-[82px] h-[29px] items-center gap-2">
              <span className="text-[#00A36C] pl-2">2 ad sets</span>
 
@@ -255,7 +274,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p className="whitespace-nowrap">of total budget</p>
+          <p className="whitespace-nowrap tracking-tight">of Awareness budget</p>
            
            {/* switch */}
            <div className="flex items-center gap-2">
@@ -339,7 +358,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p>of total budget</p>
+          <p className="tracking-tight">of Awarenss budget</p>
         
             
          </div>
@@ -406,7 +425,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p>of total budget</p>
+          <p className="tracking-tight">of Awareness budget</p>
         
             
          </div>
@@ -477,7 +496,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p>of total budget</p>
+          <p className="tracking-tight">of Awareness budget</p>
         
             
          </div>
@@ -544,7 +563,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p>of total budget</p>
+          <p className="tracking-tight">of Awareness budget</p>
         
             
          </div>
@@ -559,13 +578,26 @@ const ConfiguredSetPage = () => {
         
               <div className="flex w-full my-6 justify-end items-center">
                 <Button
-                  text="Validate"
-                  onClick={() => alert("Validate")}
-                  disabled
+                  text={isValidated ? "Edit" : "Validate"} // Change button text based on validation state
+                  onClick={isValidated ? () => setIsValidated(false) : handleValidateClick} // Toggle validation state
+                  disabled={!isButtonEnabled} // The button is enabled only when there is input
                   variant="primary"
                   className="h-[52px] rounded-md px-6 py-2"
                 />
               </div>
+
+              {isValidated && results.length > 0 && (
+                <div className="mt-6">
+                  <h2 className="font-bold">Results:</h2>
+                  <ul>
+                    {results.map((result, index) => (
+                      <li key={index}>
+                        {result.platform}: {result.budget} {getCurrencySymbol(result.currency)}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               </div>
             </>
