@@ -140,7 +140,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
 						{/* Scrollable Body */}
 						<div className="p-6 overflow-y-auto max-h-[60vh]">
-							<div className="grid grid-cols-2 gap-3">
+
+							<div className="flex items-center gap-3">
 								<Input
 									type="text"
 									value={inputs.name}
@@ -155,6 +156,9 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 									label="Email"
 									placeholder="Enter email address"
 								/>
+								<button className="flex items-center justify-center px-6 py-3 w-[76px] h-[44px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white mt-8">
+									Add
+								</button>
 
 							</div>
 
