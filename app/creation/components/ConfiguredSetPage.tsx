@@ -162,7 +162,7 @@ const ConfiguredSetPage = () => {
           {openItems[stage.name] && stage.name === "Awareness" && (
             <>
               <div className='pt-4 bg-[#FCFCFC] rounded-lg cursor-pointer border px-6 border-[rgba(6,18,55,0.1)]'>
-              <div className="flex mt-6 flex-col items-start gap-12">
+              <div className="flex mt-6 flex-col items-start gap-8">
 
            <div className="flex mb-8 justify-center gap-6">
          {/* top budget */}

@@ -8,10 +8,10 @@ import theTradeDeskIcon from "../../../../public/TheTradeDesk.svg";
 import quantcastIcon from "../../../../public/quantcast.svg";
 import { FaAngleRight } from "react-icons/fa";
 import { MdDelete, MdAdd } from "react-icons/md";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // AudienceDropdown component with animated dropdown
-function AudienceDropdown() {
+function AudienceDropdown({ onChange }: { onChange: () => void }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<string>("");
 
@@ -21,6 +21,12 @@ function AudienceDropdown() {
     "Broad audience",
     "Behavioral audience",
   ];
+
+  const handleSelect = (option: string) => {
+    setSelected(option);
+    setOpen(false);
+    onChange(); // Notify parent component of change
+  };
 
   return (
     <div className="relative border-2 border-[#0000001A] rounded-[10px]">
@@ -51,10 +57,7 @@ function AudienceDropdown() {
           {options.map((option, index) => (
             <li
               key={index}
-              onClick={() => {
-                setSelected(option);
-                setOpen(false);
-              }}
+              onClick={() => handleSelect(option)}
               className="p-4 cursor-pointer text-[#656565] text-base text-cener whitespace-nowrap hover:bg-gray-100"
             >
               {option}
@@ -68,8 +71,10 @@ function AudienceDropdown() {
 
 function AdsetSettings({
   outlet,
+  onChange,
 }: {
   outlet: { id: number; outlet: string; icon: StaticImageData };
+  onChange: () => void; // Prop to notify parent of changes
 }) {
   const isFacebook = outlet.outlet === "Facebook";
 
@@ -102,10 +107,12 @@ function AdsetSettings({
       addsetNumber: adsetAmount + 1,
     };
     setAdSets((prev) => [...prev, newAdSet]);
+    onChange(); // Notify parent component of change
   }
 
   function deleteAdSet(id: number) {
     setAdSets((prev) => prev.filter((adset) => adset.id !== id));
+    onChange(); // Notify parent component of change
   }
 
   return (
@@ -172,15 +179,17 @@ function AdsetSettings({
                 </p>
                 <hr className="border border-[#0000001A] w-[50px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" />
               </div>
-              <AudienceDropdown />
+              <AudienceDropdown onChange={onChange} />
               <input
                 type="text"
                 placeholder="Enter ad set name"
+                onChange={onChange} // Notify parent component of change
                 className="text-black text-sm font-semibold flex gap-4 items-center border border-gray-300 py-3 px-3 rounded-lg h-[48px] focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="text"
                 placeholder="Enter size"
+                onChange={onChange} // Notify parent component of change
                 className="text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
@@ -226,13 +235,22 @@ export default function AdSetFlow() {
     },
   ];
 
+  const [isValidateEnabled, setIsValidateEnabled] = useState(false);
+
+  const handleChange = () => {
+    setIsValidateEnabled(true); // Enable the validate button when any input changes
+  };
+
   return (
     <div className="w-full space-y-4 p-4">
       {outlets.map((outlet) => (
-        <AdsetSettings key={outlet.id} outlet={outlet} />
+        <AdsetSettings key={outlet.id} outlet={outlet} onChange={handleChange} />
       ))}
       <div className="flex justify-end gap-2 w-full">
-        <button className="bg-[#3175FF] w-[142px] h-[52px] text-white px-6 py-3 rounded-md text-sm font-bold">
+        <button 
+          className={`bg-[#3175FF] w-[142px] h-[52px] text-white px-6 py-3 rounded-md text-sm font-bold ${isValidateEnabled ? '' : 'opacity-50 cursor-not-allowed'}`} 
+          disabled={!isValidateEnabled}
+        >
           <span>Validate</span>
         </button>
       </div>
