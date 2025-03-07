@@ -62,7 +62,7 @@ const Consideration = ({ edit, onDelete }) => {
                   {item.icon && (
                     <Image src={item.icon} alt={item.name} className="w-5 h-5" />
                   )}
-                  <p className="text-black text-center text-md">{item.name}</p>
+                  <p className="text-black text-center text-base whitespace-nowrap">{item.name}</p>
                 </a>
               ))}
             </div>
@@ -80,7 +80,7 @@ const Consideration = ({ edit, onDelete }) => {
                   {item.icon && (
                     <Image src={item.icon} alt={item.name} className="w-5 h-5" />
                   )}
-                  <p className="text-black text-md text-center">{item.name}</p>
+                  <p className="text-black text-base whitespace-nowrap text-center">{item.name}</p>
                 </a>
               ))}
             </div>

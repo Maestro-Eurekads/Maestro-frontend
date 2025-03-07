@@ -4,14 +4,14 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Button from './button';
 import Image from 'next/image';
-
 import trade from '../../../../public/TheTradeDesk.svg';
 import facebook from '../../../../public/facebook.svg';
-import card from "../../../../public/mdi_credit-card.svg";
 import instagram from '../../../../public/ig.svg';
 import quantcast from '../../../../public/quantcast.svg';
 import arrowdown from '../../../../public/arrow-down-2.svg';
 import google from '../../../../public/Google.svg';
+import card from "../../../../public/mdi_credit-card.svg";
+
 
 const ConversionEdit = ({ onDelete }) => {
   // Social Media state and sequential addition
@@ -118,7 +118,7 @@ const ConversionEdit = ({ onDelete }) => {
               className="inline-block align-middle flex-shrink-0"
             />
           )}
-          <span className="flex-grow text-md text-black min-w-0">{item.name}</span>
+          <span className="flex-grow text-md text-black whitespace-nowrap">{item.name}</span>
         </div>
         <button
           onClick={() => onRemove(item.id)}
@@ -172,7 +172,7 @@ const ConversionEdit = ({ onDelete }) => {
         {/* Display Network */}
         <div className="flex flex-col">
           <h2 className="text-black font-bold text-md mb-4">Display Network</h2>
-          <div className="flex justify-center gap-6 w-full">
+          <div className="flex items-baseline gap-6 w-full">
             <div className="grid grid-cols-2 md:grid-cols-2 w-full gap-4">
               {displayNetwork.map(item => (
                 <ChannelItem key={item.id} item={item} onRemove={removeDisplayNetwork} />
@@ -182,7 +182,7 @@ const ConversionEdit = ({ onDelete }) => {
               text="Add new channel"
               variant="primary"
               onClick={addNewDisplayNetworkChannel}
-              className="!rounded-md h-[52px] px-4 py-2 text-sm"
+              className="!rounded-md h-[52px] px-4 py-2 text-sm mt-4" // Added margin-top to prevent overlap
             />
           </div>
         </div>
@@ -190,7 +190,7 @@ const ConversionEdit = ({ onDelete }) => {
         {/* Search Engines */}
         <div className="flex flex-col">
           <h2 className="text-black font-bold text-md mb-4">Search Engines</h2>
-          <div className="flex justify-center gap-4">
+          <div className="flex items-baseline gap-4">
             <div className="grid grid-cols-1 w-full gap-4">
               {searchEngines.map(item => (
                 <ChannelItem key={item.id} item={item} onRemove={removeSearchEngine} />
@@ -200,7 +200,7 @@ const ConversionEdit = ({ onDelete }) => {
               text="Add new channel"
               variant="primary"
               onClick={addNewSearchEngineChannel}
-              className="!rounded-md w-full h-[52px] px-4 py-2 text-sm"
+              className="!rounded-md w-full h-[52px] px-4 py-2 text-sm mt-4" // Added margin-top to prevent overlap
             />
           </div>
         </div>
