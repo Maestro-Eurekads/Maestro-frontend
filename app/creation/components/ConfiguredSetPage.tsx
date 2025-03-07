@@ -162,7 +162,7 @@ const ConfiguredSetPage = () => {
           {openItems[stage.name] && stage.name === "Awareness" && (
             <>
               <div className='pt-4 bg-[#FCFCFC] rounded-lg cursor-pointer border px-6 border-[rgba(6,18,55,0.1)]'>
-              <div className="flex mt-6 flex-col items-start gap-12">
+              <div className="flex mt-6 flex-col items-start gap-8">
 
            <div className="flex mb-8 justify-center gap-6">
          {/* top budget */}
@@ -211,7 +211,7 @@ const ConfiguredSetPage = () => {
 
           
           {/* Second row */}
-          <div className="flex mb-8 items-center justify-center gap-4">
+          <div className="flex mb-8 items-center justify-center gap-3">
           
           {/* facebook */}
           <div className="flex items-start flex-col gap-2">
@@ -281,12 +281,12 @@ const ConfiguredSetPage = () => {
 
            <label
   htmlFor="AcceptConditions"
-  className="relative inline-block h-6 w-10 cursor-pointer rounded-full bg-gray-300 transition [-webkit-tap-highlight-color:_transparent] has-[:checked]:bg-blue-500"
+  className="relative inline-block h-6 w-12 cursor-pointer rounded-full bg-gray-300 transition [-webkit-tap-highlight-color:_transparent] has-[:checked]:bg-blue-500 peer-checked:bg-blue-500"
 >
   <input type="checkbox" id="AcceptConditions" className="peer sr-only" />
 
   <span
-    className="absolute inset-y-0 start-0 m-1 size-5 rounded-full bg-white transition-all peer-checked:start-5"
+    className="absolute inset-y-0 left-0 w-6 h-6 rounded-full bg-white transition-transform duration-200 transform peer-checked:translate-x-6"
     ></span>
 </label>
 <p className="text-[#061237] text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap tracking-tighter">Auto-split budget across ad sets</p>
@@ -303,7 +303,7 @@ const ConfiguredSetPage = () => {
 
 
         {/* Third row */}
-        <div className="flex mb-8 justify-center items-center gap-4">
+        <div className="flex mb-8 justify-center items-center gap-3">
           
           {/* Instagram */}
           
@@ -371,7 +371,7 @@ const ConfiguredSetPage = () => {
 
 
          {/* Fourth row */}
-         <div className="flex mb-8 justify-center items-center gap-4">
+         <div className="flex mb-8 justify-center items-center gap-3">
           
           {/* Youtube */}
            
@@ -440,7 +440,7 @@ const ConfiguredSetPage = () => {
 
          {/* Fifth row */}
 
-         <div className="flex mb-8 justify-center items-center gap-4">
+         <div className="flex mb-8 justify-center items-center gap-3">
               
           {/* TradeDesk */}
           
@@ -509,7 +509,7 @@ const ConfiguredSetPage = () => {
 
 
          {/* Sixth row */}
-         <div className="flex mb-8 justify-center items-center gap-4">
+         <div className="flex mb-8 justify-center items-center gap-3">
           
           {/* Quantcast */}
                

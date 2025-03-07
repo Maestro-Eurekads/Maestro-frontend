@@ -118,13 +118,13 @@ const ConsiderationEdit = ({ onDelete }) => {
               className="inline-block align-middle flex-shrink-0"
             />
           )}
-          <span className="flex-grow text-md text-black min-w-0">{item.name}</span>
+          <span className="flex-grow text-md text-black whitespace-nowrap">{item.name}</span>
         </div>
-        <button
-          onClick={() => onRemove(item.id)}
-          className="flex-shrink-0 text-white bg-black rounded-full w-3 h-3 whitespace-nowrap flex items-center justify-center"
+        <button 
+          onClick={() => onRemove(item.id)} 
+          className="text-black bg-transparent border-none cursor-pointer"
         >
-          x
+          {/* No text displayed for removal */}
         </button>
       </div>
     );
@@ -172,7 +172,7 @@ const ConsiderationEdit = ({ onDelete }) => {
         {/* Display Network */}
         <div className="flex flex-col">
           <h2 className="text-black font-bold text-md mb-4">Display Network</h2>
-          <div className="flex justify-center gap-6 w-full">
+          <div className="flex items-baseline gap-6 w-full">
             <div className="grid grid-cols-2 md:grid-cols-2 w-full gap-4">
               {displayNetwork.map(item => (
                 <ChannelItem key={item.id} item={item} onRemove={removeDisplayNetwork} />
@@ -182,7 +182,7 @@ const ConsiderationEdit = ({ onDelete }) => {
               text="Add new channel"
               variant="primary"
               onClick={addNewDisplayNetworkChannel}
-              className="!rounded-md h-[52px] px-4 py-2 text-sm"
+              className="!rounded-md h-[52px] px-4 py-2 text-sm mt-4" // Added margin-top to prevent overlap
             />
           </div>
         </div>
@@ -190,7 +190,7 @@ const ConsiderationEdit = ({ onDelete }) => {
         {/* Search Engines */}
         <div className="flex flex-col">
           <h2 className="text-black font-bold text-md mb-4">Search Engines</h2>
-          <div className="flex justify-center gap-4">
+          <div className="flex items-baseline gap-4">
             <div className="grid grid-cols-1 w-full gap-4">
               {searchEngines.map(item => (
                 <ChannelItem key={item.id} item={item} onRemove={removeSearchEngine} />
@@ -200,7 +200,7 @@ const ConsiderationEdit = ({ onDelete }) => {
               text="Add new channel"
               variant="primary"
               onClick={addNewSearchEngineChannel}
-              className="!rounded-md w-full h-[52px] px-4 py-2 text-sm"
+              className="!rounded-md w-full h-[52px] px-4 py-2 text-sm mt-4" // Added margin-top to prevent overlap
             />
           </div>
         </div>
