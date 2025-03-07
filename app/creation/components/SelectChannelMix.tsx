@@ -77,7 +77,8 @@ const SelectChannelMix = () => {
         {funnelStages.map((stage, index) => (
           <div key={index}>
             <div
-              className="flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] rounded-t-[10px]"
+              className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
+  ${openItems[stage.name] ? 'rounded-t-[10px]' : 'rounded-[10px]'}`}
               onClick={() => toggleItem(stage.name)}
             >
               <div className="flex items-center gap-2">
@@ -165,11 +166,10 @@ const SelectChannelMix = () => {
                             return (
                               <div
                                 key={pIndex}
-                                className={`flex flex-row justify-between items-center p-4 gap-2 w-[230px] h-[62px] bg-white border rounded-[10px] cursor-pointer ${
-                                  isSelected
-                                    ? 'border-[#3175FF]'
-                                    : 'border-[rgba(0,0,0,0.1)]'
-                                }`}
+                                className={`flex flex-row justify-between items-center p-4 gap-2 w-[230px] h-[62px] bg-white border rounded-[10px] cursor-pointer ${isSelected
+                                  ? 'border-[#3175FF]'
+                                  : 'border-[rgba(0,0,0,0.1)]'
+                                  }`}
                                 onClick={() =>
                                   togglePlatform(stage.name, category, platform.name)
                                 }
@@ -180,11 +180,10 @@ const SelectChannelMix = () => {
                                     {platform.name}
                                   </p>
                                 </div>
-                                <div className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${
-                                  isSelected
-                                    ? 'bg-[#3175FF]'
-                                    : 'border-[0.769px] border-[rgba(0,0,0,0.2)]'
-                                }`}>
+                                <div className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${isSelected
+                                  ? 'bg-[#3175FF]'
+                                  : 'border-[0.769px] border-[rgba(0,0,0,0.2)]'
+                                  }`}>
                                   {isSelected && (
                                     <Image
                                       src={checkmark}
@@ -205,11 +204,10 @@ const SelectChannelMix = () => {
                       <button
                         disabled={!isStageValid(stage.name)}
                         onClick={() => handleValidate(stage.name)}
-                        className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-                          isStageValid(stage.name)
-                            ? 'bg-[#3175FF] hover:bg-[#2563eb]'
-                            : 'bg-[#3175FF] opacity-50 cursor-not-allowed'
-                        }`}
+                        className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isStageValid(stage.name)
+                          ? 'bg-[#3175FF] hover:bg-[#2563eb]'
+                          : 'bg-[#3175FF] opacity-50 cursor-not-allowed'
+                          }`}
                       >
                         Validate
                       </button>
