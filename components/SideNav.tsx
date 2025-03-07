@@ -20,7 +20,7 @@ import { useObjectives } from "../app/utils/useObjectives";
 
 
 const SideNav: React.FC = () => {
-  const { selectedObjectives, setSelectedObjectives } = useObjectives();
+  const { selectedObjectives, selectedFunnels } = useObjectives();
   const [close, setClose] = useState(false);
   const router = useRouter();
   const { setActive, setSubStep } = useActive();
@@ -51,7 +51,12 @@ const SideNav: React.FC = () => {
       state_text: "SideBar_Menu_state",
       sidecircle: "SideBar_Menu_active",
       title: "Map funnel stages",
-      objective: "Awareness · Consideration · Conversion",
+      objective: selectedFunnels.length > 0
+        ? selectedFunnels.length > 3
+          ? selectedFunnels.slice(0, 3).join(" · ") + " ..."
+          : selectedFunnels.join(" · ")
+        : "",
+
       img: <Image src={funnel} alt="funnel" />
     },
     {

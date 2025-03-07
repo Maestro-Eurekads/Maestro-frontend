@@ -35,12 +35,7 @@ export const SetupScreen = () => {
 
 
 
-  const clients = [
-    { value: "John Doe", label: "John Doe" },
-    { value: "Jane Smith", label: "Jane Smith" },
-    { value: "Michael Johnson", label: "Michael Johnson" },
-    { value: "Emily Davis", label: "Emily Davis" },
-  ];
+
 
   const businessLevel = [
     { value: "Marketing division", label: "Marketing division" },
@@ -68,10 +63,7 @@ export const SetupScreen = () => {
 
   ];
 
-  const currencyPercentage = [
-    { value: "0 %", label: "0 %" },
-    { value: "0 €  ", label: "0 €" }
-  ]
+
 
 
 
