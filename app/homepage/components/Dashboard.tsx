@@ -4,11 +4,6 @@ import HighlightViewDropdowns from './HighlightViewDropdowns'
 import DoughnutChart from '../../../components/DoughnutChat'
 import DoughnutChat from '../../../components/DoughnutChat'
 import PlatformSpending from '../../../components/PlatformSpending'
-import youtube from "../../../public/youtube.svg";
-import facebook from "../../../public/facebook.svg";
-import TheTradeDesk from "../../../public/TheTradeDesk.svg";
-import instagram from "../../../public/ig.svg";
-import Image from "next/image";
 import DateComponent from '../../creation/components/molecules/date-component/date-component'
 import WeekInterval from '../../creation/components/atoms/date-interval/WeekInterval'
 import WeekTimeline from '../../creation/components/atoms/date-interval/WeekTimeline'
