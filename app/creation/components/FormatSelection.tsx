@@ -103,7 +103,7 @@ export const Platforms = () => {
   };
 
   return (
-    <div className="text-[16px] my-6">
+    <div className="text-[16px] my-6 overflow-hidden"> {/* Added overflow-hidden to prevent horizontal scrollbar */}
       {channels.map((channel, channelIndex) => (
         <React.Fragment key={channelIndex}>
           <h3 className="font-[600] my-[24px]">{channel.title}</h3>
