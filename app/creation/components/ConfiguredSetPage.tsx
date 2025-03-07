@@ -281,12 +281,12 @@ const ConfiguredSetPage = () => {
 
            <label
   htmlFor="AcceptConditions"
-  className="relative inline-block h-6 w-10 cursor-pointer rounded-full bg-gray-300 transition [-webkit-tap-highlight-color:_transparent] has-[:checked]:bg-blue-500"
+  className="relative inline-block h-6 w-12 cursor-pointer rounded-full bg-gray-300 transition [-webkit-tap-highlight-color:_transparent] has-[:checked]:bg-blue-500 peer-checked:bg-blue-500"
 >
   <input type="checkbox" id="AcceptConditions" className="peer sr-only" />
 
   <span
-    className="absolute inset-y-0 start-0 m-1 size-5 rounded-full bg-white transition-all peer-checked:start-5"
+    className="absolute inset-y-0 left-0 w-6 h-6 rounded-full bg-white transition-transform duration-200 transform peer-checked:translate-x-6"
     ></span>
 </label>
 <p className="text-[#061237] text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap tracking-tighter">Auto-split budget across ad sets</p>
