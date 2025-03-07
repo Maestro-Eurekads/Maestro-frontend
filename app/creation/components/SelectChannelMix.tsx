@@ -9,17 +9,18 @@ import { funnelStages } from '../../../components/data';
 
 const SelectChannelMix = () => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
+  const [isEditing, setIsEditing] = useState(false);
   const [selected, setSelected] = useState({});
   const [validatedStages, setValidatedStages] = useState({});
 
-  const toggleItem = (stage) => {
+  const toggleItem = (stage: string) => {
     setOpenItems((prev) => ({
       ...prev,
       [stage]: !prev[stage],
     }));
   };
 
-  const togglePlatform = (stageName, category, platformName) => {
+  const togglePlatform = (stageName: string, category: string, platformName: string) => {
     if (validatedStages[stageName]) return;
 
     setSelected((prev) => {
@@ -67,11 +68,21 @@ const SelectChannelMix = () => {
 
   return (
     <div className="overflow-hidden">
-      <PageHeaderWrapper
-        t1={'Which platforms would you like to activate for each funnel stage?'}
-        t2={'Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time.'}
-        span={1}
-      />
+      <div className='flex items-center justify-between'>
+
+        <PageHeaderWrapper
+          t1={'Which platforms would you like to activate for each funnel stage?'}
+          t2={'Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time.'}
+          span={1}
+        />
+        {isEditing ? (
+          ''
+        ) : (
+          <button className="model_button_blue" onClick={() => setIsEditing(true)}>
+            Edit
+          </button>
+        )}
+      </div>
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
         {funnelStages.map((stage, index) => (
@@ -165,6 +176,7 @@ const SelectChannelMix = () => {
                               selected[stage.name]?.[category]?.includes(platform.name);
                             return (
                               <div
+                                // disabled={isEditing}
                                 key={pIndex}
                                 className={`flex flex-row justify-between items-center p-4 gap-2 w-[230px] h-[62px] bg-white border rounded-[10px] cursor-pointer ${isSelected
                                   ? 'border-[#3175FF]'
