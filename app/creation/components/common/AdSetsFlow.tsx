@@ -9,9 +9,11 @@ import quantcastIcon from "../../../../public/quantcast.svg";
 import { FaAngleRight } from "react-icons/fa";
 import { MdDelete, MdAdd } from "react-icons/md";
 import { useState } from "react";
+import { useEditing } from "../../../utils/EditingContext";
 
 // AudienceDropdown component with animated dropdown
 function AudienceDropdown() {
+
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<string>("");
 
@@ -30,9 +32,8 @@ function AudienceDropdown() {
       >
         <span className="truncate">{selected || "Your audience type"}</span>
         <svg
-          className={`h-4 w-4 flex-shrink-0 transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
+          className={`h-4 w-4 flex-shrink-0 transition-transform ${open ? "rotate-180" : ""
+            }`}
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -72,6 +73,8 @@ function AdsetSettings({
   outlet: { id: number; outlet: string; icon: StaticImageData };
 }) {
   const isFacebook = outlet.outlet === "Facebook";
+  const { isEditing, setIsEditing } = useEditing();
+
 
   if (!isFacebook) {
     return (
@@ -120,22 +123,20 @@ function AdsetSettings({
       </div>
       <div className="relative w-full min-h-[194px]">
         <div
-          className={`absolute ${
-            adsetAmount === 1
-              ? "top-0"
-              : adsetAmount === 2
+          className={`absolute ${adsetAmount === 1
+            ? "top-0"
+            : adsetAmount === 2
               ? "bottom-0"
               : "hidden"
-          }`}
+            }`}
         >
           <span
-            className={`border-l-2 border-[#0000001A] h-[78px] w-8 absolute -left-4 ${
-              adsetAmount === 1
-                ? "top-1/2 rounded-tl-[10px] border-t-2"
-                : adsetAmount === 2
+            className={`border-l-2 border-[#0000001A] h-[78px] w-8 absolute -left-4 ${adsetAmount === 1
+              ? "top-1/2 rounded-tl-[10px] border-t-2"
+              : adsetAmount === 2
                 ? "bottom-1/2 rounded-bl-[10px] border-b-2"
                 : ""
-            }`}
+              }`}
           ></span>
           <button
             onClick={addNewAddset}
@@ -148,22 +149,20 @@ function AdsetSettings({
         {adsets.map((adset, index) => (
           <div
             key={adset.id}
-            className={`absolute ${
-              index === 0
-                ? "top-1/2 -translate-y-1/2"
-                : index === 1
+            className={`absolute ${index === 0
+              ? "top-1/2 -translate-y-1/2"
+              : index === 1
                 ? "top-0"
                 : "bottom-0"
-            }`}
+              }`}
           >
             <span
-              className={`border-l-2 border-[#0000001A] h-[70px] w-8 absolute -left-4 ${
-                index === 0
-                  ? "hidden"
-                  : index === 1
+              className={`border-l-2 border-[#0000001A] h-[70px] w-8 absolute -left-4 ${index === 0
+                ? "hidden"
+                : index === 1
                   ? "top-1/2 rounded-tl-[10px] border-t-2"
                   : "bottom-1/2 rounded-bl-[10px] border-b-2"
-              }`}
+                }`}
             ></span>
             <div className="flex gap-2 items-center w-full px-4">
               <div className="relative">
@@ -176,16 +175,19 @@ function AdsetSettings({
               <input
                 type="text"
                 placeholder="Enter ad set name"
-                className="text-black text-sm font-semibold flex gap-4 items-center border border-gray-300 py-3 px-3 rounded-lg h-[48px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!isEditing}
+                className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] ${!isEditing ? "cursor-not-allowed" : ""}`}
               />
               <input
+                disabled={!isEditing}
                 type="text"
                 placeholder="Enter size"
-                className="text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isEditing ? "cursor-not-allowed" : ""}`}
               />
               <button
+                disabled={!isEditing}
                 onClick={() => deleteAdSet(adset.id)}
-                className="flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold"
+                className={`flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold ${!isEditing ? "cursor-not-allowed" : ""}`}
               >
                 <MdDelete /> <span>Delete</span>
               </button>
@@ -198,6 +200,7 @@ function AdsetSettings({
 }
 
 export default function AdSetFlow() {
+  const { isEditing, setIsEditing } = useEditing();
   const outlets = [
     {
       id: Date.now(),
@@ -231,11 +234,13 @@ export default function AdSetFlow() {
       {outlets.map((outlet) => (
         <AdsetSettings key={outlet.id} outlet={outlet} />
       ))}
-      <div className="flex justify-end gap-2 w-full">
-        <button className="bg-[#3175FF] w-[142px] h-[52px] text-white px-6 py-3 rounded-md text-sm font-bold">
-          <span>Validate</span>
-        </button>
-      </div>
+      {isEditing &&
+        <div className="flex justify-end gap-2 w-full" onClick={() => setIsEditing(false)}>
+          <button className="bg-[#3175FF] w-[142px] h-[52px] text-white px-6 py-3 rounded-md text-sm font-bold">
+            <span>Validate</span>
+          </button>
+        </div>}
+
     </div>
   );
 }

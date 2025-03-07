@@ -1,13 +1,15 @@
-import React, {useState} from 'react'
+import React, { useState } from 'react'
 import PageHeaderWrapper from '../../../components/PageHeaderWapper';
 import Topdown from '../../../public/Top-down.svg';
 import Selectstatus from '../../../public/Select-status.svg';
 import backdown from '../../../public/back-down.svg';
 import ecurrencyeur from '../../../public/e_currency-eur.svg';
 import Image from 'next/image';
+import { useEditing } from '../../utils/EditingContext';
 
 
 const CampaignBudget = () => {
+  const { isEditing, setIsEditing } = useEditing();
   const [active, setActive] = useState(null);
   const [show, setShow] = useState(false)
   // Clicking Top‑down: set active without auto-opening any details.
@@ -24,27 +26,30 @@ const CampaignBudget = () => {
 
   return (
     <div>
-      
-      <PageHeaderWrapper
-        t1='Allocate your campaign budget'
-        t2='Decide whether to allocate your budget by channel or ad set. First, enter an overall campaign budget if applicable.'
-        t3='Then, distribute it across channels and ad sets.'
-        t4='Choose how to set your campaign budget'
-        span={1}
-      
-      
-      />
+      <div className='flex justify-between'>
+        <PageHeaderWrapper
+          t1='Allocate your campaign budget'
+          t2='Decide whether to allocate your budget by channel or ad set. First, enter an overall campaign budget if applicable.'
+          t3='Then, distribute it across channels and ad sets.'
+          t4='Choose how to set your campaign budget'
+          span={1}
 
 
-     <div className="mt-[24px] flex gap-5">
+        />
+        {isEditing ? (
+          ''
+        ) : (
+          <button className="model_button_blue" onClick={() => setIsEditing(true)}>
+            Edit
+          </button>
+        )}
+      </div>
+
+      <div className="mt-[24px] flex gap-5">
         {/* Top‑down Option */}
         <div
-          className={
-            active === 1
-              ? "top_and_bottom_down_container_active relative"
-              : "top_and_bottom_down_container relative"
-          }
-          onClick={handleTopDownClick}
+          className={`relative ${active === 1 ? "top_and_bottom_down_container_active" : "top_and_bottom_down_container"} ${!isEditing ? "cursor-not-allowed" : ""}`}
+          onClick={isEditing ? handleTopDownClick : undefined}
         >
           <div className="flex items-start gap-2">
             {active === 2 ? (
@@ -74,12 +79,8 @@ const CampaignBudget = () => {
 
         {/* Bottom‑up Option */}
         <div
-          className={
-            active === 2
-              ? "top_and_bottom_down_container_active relative"
-              : "top_and_bottom_down_container relative"
-          }
-          onClick={handleBottomUpClick}
+          className={`relative ${active === 2 ? "top_and_bottom_down_container_active" : "top_and_bottom_down_container"} ${!isEditing ? "cursor-not-allowed" : ""}`}
+          onClick={isEditing ? handleBottomUpClick : undefined}
         >
           <div className="flex items-start gap-2">
             {active === 2 ? (
@@ -105,8 +106,9 @@ const CampaignBudget = () => {
       </div>
 
 
-       {/* Only show the 12,000 EUR section when an option is active */}
-       {active && (
+
+      {/* Only show the 12,000 EUR section when an option is active */}
+      {active && (
         <div className="mt-[24px] flex flex-row items-center gap-[16px] px-0 py-[24px] bg-[#F9FAFB] border-b border-[rgba(6,18,55,0.1)] box-border">
           <div className="e_currency-eur">
             <div className="flex">
@@ -123,7 +125,17 @@ const CampaignBudget = () => {
         </div>
       )}
 
-
+      {isEditing && <div className="flex justify-end pr-[24px] mt-4">
+        <button
+          onClick={() => { setIsEditing(false) }}
+          className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isEditing
+            ? 'bg-[#3175FF] hover:bg-[#2563eb]'
+            : 'bg-[#3175FF] opacity-50 cursor-not-allowed'
+            }`}
+        >
+          Validate
+        </button>
+      </div>}
     </div>
   )
 }
