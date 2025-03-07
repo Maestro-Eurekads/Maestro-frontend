@@ -17,7 +17,7 @@ const MapFunnelStages = () => {
 	const [hovered, setHovered] = React.useState<number | null>(null);
 	const selectedFunnel: any = selectedFunnels;
 
-	console.log('selectedFunnels', selectedFunnels);
+
 
 	const funnelStages = {
 		1: "Awareness",
@@ -40,6 +40,7 @@ const MapFunnelStages = () => {
 		<div>
 			<div className='flex items-center justify-between'>
 				<PageHeaderWrapper
+					className={"text-[22px]"}
 					t1={'How many funnel stage(s) would you like to activate to achieve your objective ?'}
 					t2={`This option is available only if you've selected any of the following main objectives:`}
 					t3={'Traffic, Purchase, Lead Generation, or App Install.'}
