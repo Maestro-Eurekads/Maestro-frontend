@@ -92,7 +92,7 @@ export const SetupScreen = () => {
       <div className="mt-[42px]">
         <Title>Client selection</Title>
         <div>
-          <ClientSelection options={clientselection} label={"Select"} isEditing={isEditing} />
+          <ClientSelection options={clientselection} label={"Select Client"} isEditing={isEditing} />
         </div>
         <div className="client_selection_flow  pb-12">
           <ClientSelection options={businessLevel} label={"Business level 1"} isEditing={isEditing} />
