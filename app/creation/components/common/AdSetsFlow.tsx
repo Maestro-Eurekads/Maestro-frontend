@@ -47,7 +47,7 @@ function AudienceDropdown() {
         </svg>
       </button>
       {open && (
-        <ul className="absolute w-full mt-1 z-10 bg-white border-2 border-[#0000001A] rounded-lg shadow-lg max-h-60 overflow-auto">
+        <ul className="absolute w-full mt-1 z-10 bg-white border-2 border-[#0000001A] rounded-lg shadow-lg overflow-auto">
           {options.map((option, index) => (
             <li
               key={index}
@@ -55,7 +55,7 @@ function AudienceDropdown() {
                 setSelected(option);
                 setOpen(false);
               }}
-              className="px-4 py-2 cursor-pointer text-[#656565] text-sm hover:bg-gray-50"
+              className="p-4 cursor-pointer text-[#656565] text-base text-cener whitespace-nowrap hover:bg-gray-100"
             >
               {option}
             </li>
@@ -75,7 +75,7 @@ function AdsetSettings({
 
   if (!isFacebook) {
     return (
-      <div className="flex items-center gap-8">
+      <div className="flex items-center gap-4"> {/* Adjusted gap from 8 to 4 */}
         <div className="relative border border-[#0000001A] rounded-[10px]">
           <button className="relative w-[150px] z-20 flex gap-4 justify-between items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
             <Image src={outlet.icon} alt="" className="w-[22px] h-[22px]" />
@@ -109,9 +109,9 @@ function AdsetSettings({
   }
 
   return (
-    <div className="flex items-center gap-8 min-w-full">
-      <div className="relative">
-        <button className="relative w-[150px] z-20 flex gap-4 justify-between items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
+    <div className="flex items-center gap-8 w-full">
+      <div className="relative ">
+        <button className="relative w-[150px] z-20 flex gap-4 justify-between items-center bg-[#F9FAFB] border border-[#0000001A] border-solid py-4 px-2 rounded-[10px]">
           <Image src={outlet.icon} alt="" className="w-[22px] h-[22px]" />
           <span className="text-[#061237] font-medium">{outlet.outlet}</span>
           <FaAngleRight />
@@ -165,7 +165,7 @@ function AdsetSettings({
                   : "bottom-1/2 rounded-bl-[10px] border-b-2"
               }`}
             ></span>
-            <div className="flex gap-2 items-center max-w-fit">
+            <div className="flex gap-2 items-center w-full">
               <div className="relative">
                 <p className="relative z-50 text-[#3175FF] text-sm whitespace-nowrap font-bold flex gap-4 items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
                   {`Ad set n°${adset.addsetNumber}`}
@@ -176,12 +176,12 @@ function AdsetSettings({
               <input
                 type="text"
                 placeholder="Enter ad set name"
-                className="text-black text-sm font-semibold whitespace-nowrap flex gap-4 items-center border border-[#0000001A] py-4 px-2 rounded-[10px] h-[52px]"
+                className="text-black text-sm font-semibold flex gap-4 items-center border border-gray-300 py-3 px-3 rounded-lg h-[48px] focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="text"
                 placeholder="Enter size"
-                className="text-black text-sm whitespace-nowrap font-semibold flex gap-4 items-center border border-[#0000001A] py-4 px-2 rounded-[10px] h-[52px]"
+                className="text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
                 onClick={() => deleteAdSet(adset.id)}

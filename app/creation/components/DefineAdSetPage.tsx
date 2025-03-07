@@ -102,7 +102,7 @@ const DefineAdSetPage = () => {
           </div>
 
           {openItems[stage.name] && stage.name === "Awareness" && (
-            <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg min-w-full overflow-x-auto">
+            <div className="flex items-start flex-col gap-4 bg-white border border-gray-300 rounded-b-lg max-w-[1340px] mx-auto">
               <AdSetsFlow />
             </div>
           )}
