@@ -1,11 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import MultiDatePicker from "../../../components/MultiDatePicker";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
-import { useEditing } from "../../utils/EditingContext";
 
 const PlanCampaignSchedule: React.FC = () => {
-
-	const { isEditing, setIsEditing } = useEditing();
+	const [isEditing, setIsEditing] = useState(false);
 
 
 	return (
