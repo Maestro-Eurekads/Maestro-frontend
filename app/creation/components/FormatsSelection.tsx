@@ -1,6 +1,3 @@
-
-
-
 "use client"
 import React, { useState } from 'react'
 import Image from "next/image";
@@ -22,10 +19,7 @@ import bing from '../../../public/bing.svg';
 import orangecredit from '../../../public/orangecredit-card.svg';
 import tablerzoomfilled from '../../../public/tabler_zoom-filled.svg';
 
-
-
 const funnelStages = [
-
 	{
 		name: "Consideration",
 		icon: tablerzoomfilled,
@@ -53,14 +47,12 @@ const FormatsSelection = () => {
 	};
 
 	return (
-		<div>
-			
-
+		<div className="overflow-x-hidden"> {/* Prevent horizontal scrollbar */}
 			<div className="mt-[32px] flex flex-col gap-[24px]">
 				{funnelStages.map((stage, index) => (
 					<div key={index}>
 						<div
-							className="flex justify-between items-center p-6 gap-3 w-[968px] cursor-pointer h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] rounded-t-[10px]"
+							className="flex justify-between items-center p-6 gap-3 w-full cursor-pointer h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] rounded-t-[10px]"
 							onClick={() => toggleItem(stage.name)}
 						>
 							<div className="flex items-center gap-2">
@@ -78,7 +70,7 @@ const FormatsSelection = () => {
 						</div>
 
 						{openItems[stage.name] && (
-							<div className="card_bucket_container_main_sub flex flex-col pb-6 w-[968px] min-h-[80px] cursor-pointer">
+							<div className="card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[80px] cursor-pointer">
 								{Object.entries(stage.platforms).map(([category, platforms]) => (
 									<div key={category} className="card_bucket_container_main">
 										<h3>{category}</h3>
@@ -94,19 +86,12 @@ const FormatsSelection = () => {
 															{platform.name}
 														</p>
 													</div>
-													{/* <div className="w-[20px] h-[20px] border-[0.769px] border-[rgba(0,0,0,0.2)] rounded-full" /> */}
 												</div>
 											))}
-
 										</div>
-
 									</div>
 								))}
-								{/* <div className='flex justify-end pr-[24px]'>
-									<button className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] bg-[#3175FF] opacity-50 rounded-lg text-white font-semibold text-[16px] leading-[22px] ">Validate</button>
-								</div> */}
 							</div>
-
 						)}
 					</div>
 				))}
