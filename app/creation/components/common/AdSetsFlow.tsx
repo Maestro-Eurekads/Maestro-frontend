@@ -165,7 +165,7 @@ function AdsetSettings({
                   : "bottom-1/2 rounded-bl-[10px] border-b-2"
               }`}
             ></span>
-            <div className="flex gap-2 items-center w-full">
+            <div className="flex gap-2 items-center w-full mx-auto px-4 flex-shrink-0">
               <div className="relative">
                 <p className="relative z-50 text-[#3175FF] text-sm whitespace-nowrap font-bold flex gap-4 items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
                   {`Ad set n°${adset.addsetNumber}`}
