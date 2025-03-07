@@ -99,7 +99,7 @@ export const SetupScreen = () => {
         <div className=" pb-12">
           <Title>Media Plan details</Title>
           <div className="client_selection_flow flex flex-wrap gap-4 ">
-            <ClientSelectionInput label={"Spring Collection Launch 2025"} isEditing={isEditing} />
+            <ClientSelectionInput label={"Enter media plan name"} isEditing={isEditing} />
             <ClientSelection options={internalApprover} label={"Select"} isEditing={isEditing} />
           </div>
         </div>
