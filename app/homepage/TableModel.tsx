@@ -106,9 +106,9 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       client_emails: emailList,
       responsible: inputs.responsiblePerson,
       approver: inputs.approver,
-      sport: sportList,
-      business_unit: businessUnit,
-      category: categoryList,
+      level_1: sportList,
+      level_2: businessUnit,
+      level_3: categoryList,
       fee_type: inputs.feeType,
     })
       .then(() => {
