@@ -211,7 +211,7 @@ const ConfiguredSetPage = () => {
 
           
           {/* Second row */}
-          <div className="flex mb-8 items-center justify-center gap-4">
+          <div className="flex mb-8 items-center justify-center gap-3">
           
           {/* facebook */}
           <div className="flex items-start flex-col gap-2">
@@ -303,7 +303,7 @@ const ConfiguredSetPage = () => {
 
 
         {/* Third row */}
-        <div className="flex mb-8 justify-center items-center gap-4">
+        <div className="flex mb-8 justify-center items-center gap-3">
           
           {/* Instagram */}
           
@@ -371,7 +371,7 @@ const ConfiguredSetPage = () => {
 
 
          {/* Fourth row */}
-         <div className="flex mb-8 justify-center items-center gap-4">
+         <div className="flex mb-8 justify-center items-center gap-3">
           
           {/* Youtube */}
            
@@ -440,7 +440,7 @@ const ConfiguredSetPage = () => {
 
          {/* Fifth row */}
 
-         <div className="flex mb-8 justify-center items-center gap-4">
+         <div className="flex mb-8 justify-center items-center gap-3">
               
           {/* TradeDesk */}
           
@@ -509,7 +509,7 @@ const ConfiguredSetPage = () => {
 
 
          {/* Sixth row */}
-         <div className="flex mb-8 justify-center items-center gap-4">
+         <div className="flex mb-8 justify-center items-center gap-3">
           
           {/* Quantcast */}
                
