@@ -109,7 +109,7 @@ function AdsetSettings({
   }
 
   return (
-    <div className="flex items-center gap-8 w-full">
+    <div className="flex items-center gap-8 w-full mx-auto px-4">
       <div className="relative ">
         <button className="relative w-[150px] z-20 flex gap-4 justify-between items-center bg-[#F9FAFB] border border-[#0000001A] border-solid py-4 px-2 rounded-[10px]">
           <Image src={outlet.icon} alt="" className="w-[22px] h-[22px]" />
