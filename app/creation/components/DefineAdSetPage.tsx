@@ -17,7 +17,7 @@ const funnelStages = [
   {
     name: "Awareness",
     icon: speaker,
-    status: "In progress", 
+    status: "In progress",
     statusIsActive: true,
     platforms: {
       "Social media": [
@@ -37,7 +37,7 @@ const funnelStages = [
     platforms: {},
   },
   {
-    name: "Conversion", 
+    name: "Conversion",
     icon: orangecredit,
     status: "Not started",
     statusIsActive: false,
@@ -63,13 +63,14 @@ const DefineAdSetPage = () => {
     <div className="mt-12 flex items-start flex-col mx-auto gap-12 w-full">
       {funnelStages.map((stage, index) => (
         <div key={index} className="w-full">
-          <div 
-            className="flex items-center justify-between px-6 py-4 w-full bg-[#FCFCFC] border border-gray-300 rounded-t-[10px] cursor-pointer"
+          <div
+            className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
+  ${openItems[stage.name] ? 'rounded-t-[10px]' : 'rounded-[10px]'}`}
             onClick={() => toggleItem(stage.name)}
           >
             <div className="flex items-center gap-4">
-              <Image 
-                src={stage.icon} 
+              <Image
+                src={stage.icon}
                 alt={stage.name}
                 width={24}
                 height={24}
@@ -92,7 +93,7 @@ const DefineAdSetPage = () => {
             </div>
 
             <div>
-              <Image 
+              <Image
                 src={openItems[stage.name] ? up : down2}
                 alt={openItems[stage.name] ? "collapse" : "expand"}
                 width={24}
@@ -102,19 +103,26 @@ const DefineAdSetPage = () => {
           </div>
 
           {openItems[stage.name] && stage.name === "Awareness" && (
-            <div className="flex items-start flex-col gap-4 bg-white border border-gray-300 rounded-b-lg max-w-[1024px] mx-auto">
+            <div className={`card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px] overflow-x-scroll`}>
+
               <AdSetsFlow />
             </div>
           )}
 
-          {openItems[stage.name] && 
-           (stage.name === "Consideration" || stage.name === "Conversion") && (
-            <div className="flex items-center justify-between p-8 w-full bg-[#FCFCFC] border border-gray-300 rounded-lg cursor-pointer">
-            </div>
-          )}
+          {openItems[stage.name] &&
+            (stage.name === "Consideration") && (
+              <div className="card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px] overflow-x-scroll">
+              </div>
+            )}
+          {openItems[stage.name] &&
+            (stage.name === "Conversion") && (
+              <div className="card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px] overflow-x-scroll">
+              </div>
+            )}
         </div>
-      ))}
-    </div>
+      ))
+      }
+    </div >
   );
 };
 
