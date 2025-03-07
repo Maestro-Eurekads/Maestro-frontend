@@ -103,7 +103,7 @@ export const Platforms = () => {
   };
 
   return (
-    <div className="text-[16px] my-6 overflow-hidden"> {/* Added overflow-hidden to prevent horizontal scrollbar */}
+    <div className="text-[16px] my-6 overflow-x-hidden"> {/* Changed overflow-hidden to overflow-x-hidden to prevent horizontal scrollbar */}
       {channels.map((channel, channelIndex) => (
         <React.Fragment key={channelIndex}>
           <h3 className="font-[600] my-[24px]">{channel.title}</h3>
@@ -183,7 +183,7 @@ export const FormatSelection = () => {
         t2="Select the creative formats you want to use for your campaign. Specify the number of visuals for each format. Multiple formats can be selected per channel."
       />
       <div className="card cursor-pointer mt-[32px] bg-[#FFFFFF] max-w-[968px]">
-        <div className="flex justify-between items-center p-6 gap-3 w-[968px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] rounded-t-[10px]" onClick={() => setIsOpen(!isOpen)}>
+        <div className="flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] rounded-t-[10px]" onClick={() => setIsOpen(!isOpen)}>
           <div className="flex items-center gap-2 cursor-pointer">
             <Image src={speaker} alt="speaker" />
             <p>Awareness</p>
