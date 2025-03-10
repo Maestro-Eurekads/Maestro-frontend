@@ -16,7 +16,7 @@ import arrowdown from "../../../../public/arrow-down-2.svg";
 import vector from "../../../../public/Vector.svg";
 import { campaignObjectives } from '../../../../components/data';
 
-const ConversionEdit = () => {
+const ConversionEdit = ( { onDelete }) => {
   // const [socialMedia, setSocialMedia] = useState([
   //   { id: 1, name: "Facebook", icon: facebook },
   //   { id: 2, name: "Instagram", icon: instagram },
