@@ -62,23 +62,27 @@ const CustomControl = (props) => {
     const selectedValue = selectProps.value;
     return (
       <div 
-        className="flex items-center justify-between p-2 bg-white border-2 border-[#D1D5DB] rounded-[0.8rem] cursor-pointer"
+        className="flex items-center justify-between p-2 bg-white border-2 border-[#D1D5DB] rounded-[0.8rem] cursor-pointer min-w-[200px]"
         ref={innerRef}
         {...innerProps}
       >
-        <div className="flex items-center">
-          {selectedValue.icon}
-          <span className="ml-2">{selectedValue.label}</span>
+        <div className="flex items-center flex-1">
+          <div className="flex-shrink-0">
+            {selectedValue.icon}
+          </div>
+          <span className="ml-2 truncate">{selectedValue.label}</span>
         </div>
-        <X 
-          size={14} 
-          className="text-white rounded-full bg-black cursor-pointer" 
-          onClick={(e) => {
-            e.stopPropagation();
-            selectProps.onChange(null);
-            selectProps.onMenuClose();
-          }}
-        />
+        <div className="flex-shrink-0 ml-2">
+          <X 
+            size={14} 
+            className="text-white rounded-full bg-black cursor-pointer" 
+            onClick={(e) => {
+              e.stopPropagation();
+              selectProps.onChange(null);
+              selectProps.onMenuClose();
+            }}
+          />
+        </div>
       </div>
     );
   }
@@ -139,6 +143,7 @@ const ChannelSelector = ({ channelName }) => {
                   borderRadius: "0.8rem",
                   boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
                   cursor: "pointer",
+                  minWidth: "200px"
                 }),
                 valueContainer: (provided) => ({
                   ...provided,
@@ -164,6 +169,7 @@ const ChannelSelector = ({ channelName }) => {
                     border: "2px solid #D1D5DB",
                     borderRadius: "0.8rem",
                     cursor: "pointer",
+                    minWidth: "200px"
                   }),
                 }}
               />
@@ -181,6 +187,7 @@ const ChannelSelector = ({ channelName }) => {
                     border: "2px solid #D1D5DB",
                     borderRadius: "0.8rem",
                     cursor: "pointer",
+                    minWidth: "200px"
                   }),
                 }}
               />
