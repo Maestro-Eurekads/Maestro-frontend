@@ -142,14 +142,14 @@ const ObjectiveSelection = () => {
     return (
       <div key={idx} className="flex flex-col gap-4">
         <div className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg">
-          <Image src={platform.icon} sizes="5" alt={platform.name} />
-          <p className="text-base font-medium text-[#061237] truncate">{platform.name}</p>
+          <Image src={platform.icon} className="size-4" alt={platform.name} />
+          <p className="text-sm font-medium text-[#061237] ">{platform.name}</p>
         </div>
         <div className="flex flex-col gap-2">
-          <div className="px-4 py-2 bg-white border text-center border-gray-300 rounded-lg">
+          <div className="px-4 py-2 bg-white border text-center whitespace-nowrap border-gray-300 rounded-lg">
             {selectedOptions[buyTypeKey] || "Buy type"}
           </div>
-          <div className="px-4 py-2 bg-white border text-center border-gray-300 rounded-lg">
+          <div className="px-4 py-2 bg-white whitespace-nowrap border text-center border-gray-300 rounded-lg">
             {selectedOptions[buyObjectiveKey] || "Buy objective"}
           </div>
         </div>
@@ -168,8 +168,8 @@ const ObjectiveSelection = () => {
             onClick={() => toggleItem(stage.name)}
           >
             <div className="flex items-center gap-4">
-              <Image src={stage.icon} sizes="5" alt={stage.name} />
-              <p className="text-md font-semibold text-[#061237] whitespace-nowrap">{stage.name}</p>
+              <Image src={stage.icon} className="size-4" alt={stage.name} />
+              <p className="text-sm font-semibold text-[#061237] whitespace-nowrap">{stage.name}</p>
             </div>
             <div className="flex items-center gap-2">
               {statuses[stageIndex] === "Completed" ? (
@@ -236,7 +236,7 @@ const ObjectiveSelection = () => {
                                 className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
                                 onClick={() => toggleDropdown(platformKey)}
                               >
-                                <p className="text-base font-medium truncate text-[#061237]">
+                                <p className="text-sm font-medium text-[#061237]">
                                   {selectedOptions[platformKey] || platform.name}
                                 </p>
                                 <Image src={down2} alt="dropdown" />
@@ -265,9 +265,9 @@ const ObjectiveSelection = () => {
                               className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg"
                             >
                               {platform.icon && (
-                                <Image src={platform.icon} sizes="4" alt={platform.name} />
+                                <Image src={platform.icon} className="size-4" alt={platform.name} />
                               )}
-                              <p className="text-base font-medium truncate text-[#061237]">
+                              <p className="text-base font-medium text-[#061237]">
                                 {platform.name}
                               </p>
                             </div>

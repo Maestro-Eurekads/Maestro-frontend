@@ -233,10 +233,11 @@ const BuyingObjective = () => {
           <Button
             text="Confirm Changes"
             variant="secondary"
+            className="!w-[180px] !h-[40px] !rounded-[8px] !hover:ease-in-out"
             onClick={confirmChanges}
           />
         ) : (
-          <Button text="Edit" variant="primary" onClick={() => setEdit(true)} />
+          <Button text="Edit" variant="primary" className="!w-[85px] !h-[40px]" onClick={() => setEdit(true)} />
         )}
       </div>
 
@@ -244,12 +245,13 @@ const BuyingObjective = () => {
       {edit && !isLoyalty && (
         <div className="mb-4">
           <Button
-            text="Add new Stage"
-            variant="primary"
-            icon={Plus}
-            className="!rounded-full"
-            onClick={handleLoyaltyButtonClick}
-          />
+          variant="primary"
+         text="Add new stage"
+         icon={Plus}
+         onClick={handleLoyaltyButtonClick}
+         className="!rounded-full !px-4 !py-4 !text-white !w-[167px] !h-[31px]"
+         
+         />
         </div>
       )}
 
@@ -261,7 +263,7 @@ const BuyingObjective = () => {
             <Button
               text="Loyalty"
               icon={UserRoundSearch}
-              className="!rounded-md my-4"
+              className="!rounded-md !my-4"
               variant="danger"
               onClick={handleLoyaltyButtonClick}
             />
@@ -270,6 +272,7 @@ const BuyingObjective = () => {
               text="Delete this stage"
               icon={Trash}
               variant="danger"
+              className="!rounded-full !px-4 !py-4 !text-white !w-[167px] !h-[31px]"
               onClick={handleDeleteLoyaltyStage}
             />
           </div>

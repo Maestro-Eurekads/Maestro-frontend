@@ -34,76 +34,125 @@ type IChannel = {
 
 export const Platforms = () => {
   const [item, setItem] = useState("");
-  const [selectedOptions, setSelectedOptions] = useState<{ [key: string]: boolean }>({});
-  const [mediaOptions, setMediaOptions] = useState([
+  const [selectedOptions, setSelectedOptions] = useState<{ [key: string]: { [key: string]: boolean } }>({});
+  const [platformMediaOptions, setPlatformMediaOptions] = useState<{ [key: string]: any[] }>({});
+  const [isValidateEnabled, setIsValidateEnabled] = useState(false);
+  const [validatedMediaOptions, setValidatedMediaOptions] = useState<{ [key: string]: any[] }>({});
+  const [isValidated, setIsValidated] = useState(false);
+  const [quantities, setQuantities] = useState<{ [key: string]: { [key: string]: number } }>({});
+
+  const defaultMediaOptions = [
     { name: "Carousel", icon: carousel, selected: false },
     { name: "Image", icon: image_format, selected: false },
     { name: "Video", icon: video_format, selected: false },
     { name: "Slideshow", icon: slideshow_format, selected: false },
     { name: "Collection", icon: collection_format, selected: false },
-  ]);
-  const [isValidateEnabled, setIsValidateEnabled] = useState(false);
-  const [validatedMediaOptions, setValidatedMediaOptions] = useState<any[]>([]);
-  const [isValidated, setIsValidated] = useState(false);
+  ];
 
-  // Enable the validate button if any media option is selected.
+  // Enable validate button if any platform has selections
   useEffect(() => {
-    const anySelected = mediaOptions.some(option => option.selected);
-    setIsValidateEnabled(anySelected);
-  }, [mediaOptions]);
+    const anyPlatformSelected = Object.values(platformMediaOptions).some(options =>
+      options.some(option => option.selected)
+    );
+    setIsValidateEnabled(anyPlatformSelected);
+  }, [platformMediaOptions]);
 
   const channels: IChannel[] = [
     {
       title: "Social media",
       platforms: [
-        { name: "Facebook", icon: facebook, mediaOptions },
-        { name: "Instagram", icon: ig, mediaOptions },
-        { name: "Youtube", icon: youtube, mediaOptions },
+        { name: "Facebook", icon: facebook },
+        { name: "Instagram", icon: ig },
+        { name: "Youtube", icon: youtube },
       ],
       style: "max-w-[150px] w-full h-[52px]",
     },
     {
-      title: "Display Network",
+      title: "Display Network", 
       platforms: [
-        { name: "TheTradeDesk", icon: TheTradeDesk, mediaOptions },
-        { name: "Quantcast", icon: Quantcast, mediaOptions },
+        { name: "TheTradeDesk", icon: TheTradeDesk },
+        { name: "Quantcast", icon: Quantcast },
       ],
       style: "max-w-[180px] w-full",
     },
   ];
 
-  // Toggle the selection of a media format.
+  // Initialize media options for a platform when first opened
+  const initializePlatformOptions = (platformName: string) => {
+    if (!platformMediaOptions[platformName]) {
+      setPlatformMediaOptions(prev => ({
+        ...prev,
+        [platformName]: [...defaultMediaOptions]
+      }));
+    }
+  };
+
+  // Toggle the selection of a media format for a specific platform
   const handleFormatSelection = (index: number, platformName: string) => {
-    setMediaOptions((prevOptions) =>
-      prevOptions.map((option, i) =>
+    setPlatformMediaOptions(prev => ({
+      ...prev,
+      [platformName]: prev[platformName].map((option, i) =>
         i === index ? { ...option, selected: !option.selected } : option
       )
-    );
-    setSelectedOptions((prev) => ({
+    }));
+    
+    setSelectedOptions(prev => ({
       ...prev,
-      [platformName]: true,
+      [platformName]: { ...prev[platformName], [index]: true }
+    }));
+
+    // Initialize quantity to 1 when format is selected
+    if (!quantities[platformName]) {
+      setQuantities(prev => ({
+        ...prev,
+        [platformName]: {}
+      }));
+    }
+    setQuantities(prev => ({
+      ...prev,
+      [platformName]: {
+        ...prev[platformName],
+        [index]: 1
+      }
     }));
   };
 
-  // Handle Validate / Edit button click.
+  const handleQuantityChange = (platformName: string, formatIndex: number, change: number) => {
+    setQuantities(prev => ({
+      ...prev,
+      [platformName]: {
+        ...prev[platformName],
+        [formatIndex]: Math.max(1, (prev[platformName]?.[formatIndex] || 1) + change)
+      }
+    }));
+  };
+
+  // Handle Validate / Edit button click
   const handleValidateOrEdit = () => {
     if (!isValidated) {
-      // Validate: store selected options and switch to validated view.
-      const selectedFormats = mediaOptions.filter(option => option.selected);
-      setValidatedMediaOptions(selectedFormats);
+      const validatedSelections: { [key: string]: any[] } = {};
+      Object.entries(platformMediaOptions).forEach(([platform, options]) => {
+        validatedSelections[platform] = options.filter(option => option.selected);
+      });
+      setValidatedMediaOptions(validatedSelections);
       setIsValidated(true);
     } else {
-      // Edit: revert to editing mode and reapply validated selections.
-      setMediaOptions(mediaOptions.map(option => ({
-        ...option,
-        selected: validatedMediaOptions.some(valid => valid.name === option.name)
-      })));
+      setPlatformMediaOptions(prev => {
+        const newOptions: { [key: string]: any[] } = {};
+        Object.keys(prev).forEach(platform => {
+          newOptions[platform] = prev[platform].map(option => ({
+            ...option,
+            selected: validatedMediaOptions[platform]?.some(valid => valid.name === option.name) || false
+          }));
+        });
+        return newOptions;
+      });
       setIsValidated(false);
     }
   };
 
   return (
-    <div className="text-[16px] my-6 overflow-x-hidden"> {/* Changed overflow-hidden to overflow-x-hidden to prevent horizontal scrollbar */}
+    <div className="text-[16px] my-6 overflow-x-hidden">
       {channels.map((channel, channelIndex) => (
         <React.Fragment key={channelIndex}>
           <h3 className="font-[600] my-[24px]">{channel.title}</h3>
@@ -111,19 +160,24 @@ export const Platforms = () => {
             {channel.platforms.map((platform, platformIndex) => (
               <div key={platformIndex}>
                 <div className="flex items-center gap-6">
-                  <div className={`flex items-center gap-[12px] font-[500] border p-5 rounded-[10px] ${channel.style ?? platform.style}`}>
+                  <div className={`flex items-center gap-[12px] font-[500] border p-5 rounded-[10px] ${channel.style}`}>
                     <Image src={platform.icon} alt={platform.name} />
                     <p>{platform.name}</p>
                   </div>
 
                   <div
-                    className="text-[#3175FF] flex gap-3 items-center font-semibold cursor-pointer"
-                    onClick={() => setItem(platform.name === item ? "" : platform.name)}
+                    className={`flex gap-3 items-center font-semibold cursor-pointer ${platform.name === item ? 'text-gray-600' : 'text-[#3175FF]'}`}
+                    onClick={() => {
+                      if (item !== platform.name) {
+                        initializePlatformOptions(platform.name);
+                      }
+                      setItem(platform.name === item ? "" : platform.name);
+                    }}
                   >
-                    {platform.name === item
-                      ? selectedOptions[platform.name]
-                        ? "Choose the number of visuals for this format"
-                        : "Select your format"
+                    {platform.name === item ? 
+                      selectedOptions[platform.name] ? 
+                        "Choose the number of visuals for this format" : 
+                        "Select your format"
                       : (
                         <>
                           <p className="font-bold text-[18px]">
@@ -138,21 +192,28 @@ export const Platforms = () => {
                   </div>
                 </div>
 
-                {/* If in validated mode (for Facebook), show the validated selections.
-                    Otherwise, show the editable MediaSelection if this platform is active */}
-                {platform.name === "Facebook" && isValidated ? (
+                {item === platform.name && platformMediaOptions[platform.name] && (
                   <div className="py-6">
-                    <MediaSelection mediaOptions={validatedMediaOptions} handleFormatSelection={() => {}} />
+                    <MediaSelection
+                      handleFormatSelection={(index) => handleFormatSelection(index, platform.name)}
+                      mediaOptions={platformMediaOptions[platform.name]}
+                    />
                   </div>
-                ) : (
-                  item === platform.name && (
-                    <div className="py-6">
-                      <MediaSelection
-                        handleFormatSelection={(index) => handleFormatSelection(index, platform.name)}
-                        mediaOptions={mediaOptions}
-                      />
-                    </div>
-                  )
+                )}
+
+                {isValidated && validatedMediaOptions[platform.name]?.length > 0 && (
+                  <div className="py-6">
+                    <MediaSelection 
+                      mediaOptions={validatedMediaOptions[platform.name]}
+                      handleFormatSelection={() => {}}
+                      isValidated={true}
+                      platformName={platform.name}
+                      quantities={quantities[platform.name] || {}}
+                      onQuantityChange={(formatIndex, change) => 
+                        handleQuantityChange(platform.name, formatIndex, change)
+                      }
+                    />
+                  </div>
                 )}
               </div>
             ))}
@@ -210,25 +271,55 @@ export const FormatSelection = () => {
 export default function MediaSelection({
   handleFormatSelection,
   mediaOptions,
+  isValidated = false,
+  platformName = "",
+  quantities = {},
+  onQuantityChange = () => {},
 }: {
   mediaOptions: any[];
   handleFormatSelection: (index: number) => void;
+  isValidated?: boolean;
+  platformName?: string;
+  quantities?: { [key: string]: number };
+  onQuantityChange?: (index: number, change: number) => void;
 }) {
   return (
     <div className="flex gap-4">
       {mediaOptions.map((option, index) => (
         <div
           key={index}
-          onClick={() => handleFormatSelection(index)}
-          className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
-            option.selected ? "border-blue-500 shadow-lg" : "border-gray-300"
-          }`}
+          className="flex flex-col items-center"
         >
-          <Image src={option.icon} width={168} height={132} alt={option.name} />
-          <p className="text-sm font-medium text-gray-700 mt-2">{option.name}</p>
-          {option.selected && (
-            <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-              <FaCheck />
+          <div
+            onClick={() => handleFormatSelection(index)}
+            className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
+              option.selected ? "border-blue-500 shadow-lg" : "border-gray-300"
+            }`}
+          >
+            <Image src={option.icon} width={168} height={132} alt={option.name} />
+            <p className="text-sm font-medium text-gray-700 mt-2">{option.name}</p>
+            {option.selected && (
+              <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                <FaCheck />
+              </div>
+            )}
+          </div>
+          
+          {isValidated && option.selected && (
+            <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
+              <button 
+                className="px-2 py-1 text-[#000000] text-lg font-semibold"
+                onClick={() => onQuantityChange(index, -1)}
+              >
+                -
+              </button>
+              <span className="px-2">{quantities[index] || 1}</span>
+              <button 
+                className="px-2 py-1 text-[#000000] text-lg font-semibold"
+                onClick={() => onQuantityChange(index, 1)}
+              >
+                +
+              </button>
             </div>
           )}
         </div>
