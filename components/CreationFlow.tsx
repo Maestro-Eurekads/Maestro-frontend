@@ -37,24 +37,24 @@ const CreationFlow = ({ steps }) => {
 						onClick={() => setActive(stepNumber)}
 					>
 						<div className="SideBar__state__container">
-							<div className={`${step.sidecircle} ${stepColor}`}>{step.img}</div>
-							{stepNumber !== steps.length && (
+							<div className={`${step?.sidecircle} ${stepColor}`}>{step?.img}</div>
+							{stepNumber !== steps?.length && (
 								<div
 									className={`${step.vl} ${active > stepNumber + 1
-										? `${step.vl_done}`
+										? `${step?.vl_done}`
 										: active === stepNumber + 1
-											? `${step.vl_active}`
+											? `${step?.vl_active}`
 											: ""
 										}`}
 								/>
 							)}
 						</div>
-						<div className={`${step.state_text}`}>
+						<div className={`${step?.state_text}`}>
 							<span className={`mb-2 SideBar_state_text ${stepColors}`}>
-								{step.title}
+								{step?.title}
 							</span>
-							{isCompleted && step.objective && (
-								<div className="objective_step_text whitespace-nowrap">{step.objective}</div>
+							{isCompleted && step?.objective && (
+								<div className="objective_step_text whitespace-nowrap">{step?.objective}</div>
 							)}
 						</div>
 					</div>

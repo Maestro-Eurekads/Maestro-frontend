@@ -46,7 +46,6 @@ font-weight: 500;
 font-size: 18px;
 line-height: 24px; 
 color: #061237; 
-
 }
 
 .awareness_card_one_active{ 
@@ -322,10 +321,19 @@ border-radius: 50px;
 	margin-top: -4px;
 }
 #Sidenavbar {
-  height: 90vh; /* Full viewport height */
-  overflow-y: auto; /* Enables vertical scrolling */
+  height: 90vh;  
+  overflow-y: auto;  
 		overflow-x: hidden !important;
 		margin-bottom: 1rem;
+		/* padding: 0px 10px; */
+}
+
+#Sidenavbar_active {
+  height: 90vh;  
+  overflow-y: auto;  
+		overflow-x: hidden !important;
+		margin-bottom: 1rem;
+		padding: 0px 10px;
 }
 
 .client_selection_flow{
