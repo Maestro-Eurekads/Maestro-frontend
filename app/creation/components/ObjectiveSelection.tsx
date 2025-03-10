@@ -111,8 +111,29 @@ const ObjectiveSelection = () => {
     }
   };
 
-  // Check if any option is selected
-  const hasAnySelection = Object.keys(selectedOptions).length > 0;
+  // Check if all buy types and objectives are selected for visible platforms
+  const hasAllBuySelections = () => {
+    const selectedCategory = selectedNetwork;
+    if (!selectedCategory) return false;
+
+    const platforms = funnelStages[0].platforms[selectedCategory];
+    const platformCount = platforms.filter(p => p.icon).length;
+    
+    let buyTypeCount = 0;
+    let buyObjectiveCount = 0;
+
+    Object.entries(selectedOptions).forEach(([key, value]) => {
+      if (key.includes(selectedCategory)) {
+        if (platforms[parseInt(key.split('-')[2])].name === "Buy type") {
+          buyTypeCount++;
+        } else if (platforms[parseInt(key.split('-')[2])].name === "Buy objective") {
+          buyObjectiveCount++;
+        }
+      }
+    });
+
+    return buyTypeCount === platformCount && buyObjectiveCount === platformCount;
+  };
 
   // Return dropdown options based on field name
   const getDropdownOptions = (platform: { name: string }) => {
@@ -271,7 +292,7 @@ const ObjectiveSelection = () => {
                     text="Validate"
                     variant="primary"
                     onClick={() => handleValidate(stageIndex)}
-                    disabled={!hasAnySelection}
+                    disabled={!hasAllBuySelections()}
                   />
                 </div>
               )}
