@@ -66,6 +66,7 @@ const ObjectiveSelection = () => {
   const [selectedOptions, setSelectedOptions] = useState<{ [key: string]: string }>({});
   const [isEditable, setIsEditable] = useState<{ [key: string]: boolean }>({});
   const [previousSelectedOptions, setPreviousSelectedOptions] = useState<{ [key: string]: string }>({});
+  const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null);
 
   // Toggle expand/collapse for a stage
   const toggleItem = (stage: string) => {
@@ -81,11 +82,12 @@ const ObjectiveSelection = () => {
   };
 
   // Handle selecting an option from the dropdown
-  const handleSelectOption = (platformKey: string, option: string) => {
+  const handleSelectOption = (platformKey: string, option: string, category: string) => {
     setSelectedOptions((prev) => ({
       ...prev,
       [platformKey]: option,
     }));
+    setSelectedNetwork(category);
     setDropdownOpen((prev) => ({
       ...prev,
       [platformKey]: false,
@@ -109,19 +111,8 @@ const ObjectiveSelection = () => {
     }
   };
 
-  // For the dropdown items, generate required keys only for "Buy type" and "Buy objective"
-  const requiredFieldKeys: string[] = [];
-  const awarenessStage = funnelStages.find((stage) => stage.name === "Awareness");
-  if (awarenessStage) {
-    Object.entries(awarenessStage.platforms).forEach(([category, platforms]) => {
-      platforms.forEach((platform, pIndex) => {
-        if (platform.name === "Buy type" || platform.name === "Buy objective") {
-          requiredFieldKeys.push(`Awareness-${category}-${pIndex}`);
-        }
-      });
-    });
-  }
-  const allRequiredSelected = requiredFieldKeys.every((key) => !!selectedOptions[key]);
+  // Check if any option is selected
+  const hasAnySelection = Object.keys(selectedOptions).length > 0;
 
   // Return dropdown options based on field name
   const getDropdownOptions = (platform: { name: string }) => {
@@ -138,6 +129,10 @@ const ObjectiveSelection = () => {
     const baseIndex = idx * 3;
     const buyTypeKey = `Awareness-${category}-${baseIndex + 1}`;
     const buyObjectiveKey = `Awareness-${category}-${baseIndex + 2}`;
+
+    if (category !== selectedNetwork) {
+      return null;
+    }
 
     return (
       <div key={idx} className="flex flex-col gap-4">
@@ -201,25 +196,16 @@ const ObjectiveSelection = () => {
             <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
               {stage.name === "Awareness" && statuses[stageIndex] === "Completed" ? (
                 <div className="flex flex-col md:flex-row w-full gap-12">
-                  {/* Left side - Social Media */}
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-[#061237] mb-6">Social media</h3>
-                    <div className="flex flex-row gap-8">
-                      {stage.platforms["Social media"]
-                        .filter((p) => p.icon)
-                        .map((platform, idx) => renderCompletedPlatform(platform, idx, "Social media"))}
+                  {selectedNetwork && (
+                    <div className="flex-1">
+                      <h3 className="text-xl font-semibold text-[#061237] mb-6">{selectedNetwork}</h3>
+                      <div className="flex flex-row gap-8">
+                        {stage.platforms[selectedNetwork]
+                          .filter((p) => p.icon)
+                          .map((platform, idx) => renderCompletedPlatform(platform, idx, selectedNetwork))}
+                      </div>
                     </div>
-                  </div>
-
-                  {/* Right side - Display Networks */}
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-[#061237] mb-6">Display networks</h3>
-                    <div className="flex flex-row gap-8">
-                      {stage.platforms["Display networks"]
-                        .filter((p) => p.icon)
-                        .map((platform, idx) => renderCompletedPlatform(platform, idx, "Display networks"))}
-                    </div>
-                  </div>
+                  )}
                 </div>
               ) : (
                 // Original grid layout for non-completed state
@@ -248,7 +234,7 @@ const ObjectiveSelection = () => {
                                       <li
                                         key={i}
                                         className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                                        onClick={() => handleSelectOption(platformKey, option)}
+                                        onClick={() => handleSelectOption(platformKey, option, category)}
                                       >
                                         {option}
                                       </li>
@@ -285,7 +271,7 @@ const ObjectiveSelection = () => {
                     text="Validate"
                     variant="primary"
                     onClick={() => handleValidate(stageIndex)}
-                    disabled={!allRequiredSelected}
+                    disabled={!hasAnySelection}
                   />
                 </div>
               )}
