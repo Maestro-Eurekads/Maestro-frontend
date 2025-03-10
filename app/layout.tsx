@@ -7,6 +7,7 @@ import { FunnelProvider } from "./utils/FunnelContextType";
 import { ObjectivesProvider } from "./utils/useObjectives";
 import ReduxProvider from "./provider";
 import { CampaignProvider } from "./utils/CampaignsContext";
+import { EditingProvider } from "./utils/EditingContext";
 import { Suspense } from "react";
 
 // Load Roboto font
@@ -44,15 +45,19 @@ export default function RootLayout({
       <body className={`${roboto.variable} ${inter.variable} antialiased`}>
         <ReduxProvider>
           <Suspense>
-            <CampaignProvider>
-              <ActiveProvider>
+          <CampaignProvider>
+            <ActiveProvider>
+              <EditingProvider>
                 <ObjectivesProvider>
                   <FunnelProvider>
-                    <DateRangeProvider>{children}</DateRangeProvider>
+                    <DateRangeProvider>
+                      {children}
+                    </DateRangeProvider>
                   </FunnelProvider>
                 </ObjectivesProvider>
-              </ActiveProvider>
-            </CampaignProvider>
+              </EditingProvider>
+            </ActiveProvider>
+          </CampaignProvider>
           </Suspense>
         </ReduxProvider>
       </body>

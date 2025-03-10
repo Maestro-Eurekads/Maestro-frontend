@@ -3,10 +3,14 @@ import Image from "next/image";
 import left from "../public/left.svg";
 import right from "../public/right.svg";
 
-const MultiDatePicker: React.FC = () => {
+interface MultiDatePickerProps {
+	isEditing: boolean;
+}
+
+const MultiDatePicker: React.FC<MultiDatePickerProps> = ({ isEditing }) => {
 	const weekdays = ["M", "T", "W", "T", "F", "S", "S"];
 
-	// Generate months dynamically based on offset
+	// Generate months dynamically
 	const getMonthData = (offset: number) => {
 		const today = new Date();
 		const baseDate = new Date(today.getFullYear(), today.getMonth() + offset, 1);
@@ -24,22 +28,22 @@ const MultiDatePicker: React.FC = () => {
 		};
 	};
 
-	// State for month offset (default: current & next month)
 	const [monthOffset, setMonthOffset] = useState(0);
-
-	// Generate the two months based on offset
 	const months = [getMonthData(monthOffset), getMonthData(monthOffset + 1)];
 
-	// State for selected dates
-	const [selectedDates, setSelectedDates] = useState<{ from: { day: number; month: number } | null; to: { day: number; month: number } | null }>({
+	const [selectedDates, setSelectedDates] = useState<{
+		from: { day: number; month: number } | null;
+		to: { day: number; month: number } | null;
+	}>({
 		from: null,
 		to: null,
 	});
 
-	// Handle Date Selection
+	// Handle Date Selection (Only if isEditing is true)
 	const handleDateClick = (day: number, monthIndex: number) => {
-		const newDate = { day, month: monthIndex };
+		if (!isEditing) return;
 
+		const newDate = { day, month: monthIndex };
 		if (!selectedDates.from || (selectedDates.from && selectedDates.to)) {
 			setSelectedDates({ from: newDate, to: null });
 		} else if (
@@ -52,19 +56,30 @@ const MultiDatePicker: React.FC = () => {
 		}
 	};
 
-	// Reset Dates
-	const resetDates = () => setSelectedDates({ from: null, to: null });
+	const resetDates = () => {
+		if (isEditing) {
+			setSelectedDates({ from: null, to: null });
+		}
+	};
 
 	return (
-		<div className="flex flex-col items-start p-[21.62px] gap-[21.62px] w-[791.89px] bg-white border border-[rgba(23,22,25,0.1)] rounded-[10.81px] mt-[32px]">
+		<div className={`flex flex-col items-start p-5 gap-5 w-[792px] bg-white border border-gray-200 rounded-lg mt-8 ${isEditing ? "" : " cursor-not-allowed"}`}>
 			{/* Navigation */}
 			<div className="flex justify-between w-full">
-				<button className="flex items-center gap-3" onClick={() => setMonthOffset(monthOffset - 1)}>
+				<button
+					className={`flex items-center gap-3 ${!isEditing ? "cursor-not-allowed " : ""}`}
+					onClick={() => isEditing && setMonthOffset(monthOffset - 1)}
+					disabled={!isEditing}
+				>
 					<Image src={left} alt="left" />
-					<h6 className="font-[600] text-[16.22px] leading-[22px] text-[#061237]">{months[0].name}</h6>
+					<h6 className="font-semibold text-[16px] text-[#061237]">{months[0].name}</h6>
 				</button>
-				<button className="flex items-center gap-3" onClick={() => setMonthOffset(monthOffset + 1)}>
-					<h6 className="font-[600] text-[16.22px] leading-[22px] text-[#061237]">{months[1].name}</h6>
+				<button
+					className={`flex items-center gap-3 ${!isEditing ? "cursor-not-allowed " : ""}`}
+					onClick={() => isEditing && setMonthOffset(monthOffset + 1)}
+					disabled={!isEditing}
+				>
+					<h6 className="font-semibold text-[16px] text-[#061237]">{months[1].name}</h6>
 					<Image src={right} alt="right" />
 				</button>
 			</div>
@@ -72,15 +87,11 @@ const MultiDatePicker: React.FC = () => {
 			{/* Calendar */}
 			<div className="flex w-full">
 				{months.map((month, monthIndex) => (
-					<div
-						key={monthIndex}
-						className={`w-full md:w-1/2 p-2 ${monthIndex === 1 ? "md:border-l border-[rgba(23,22,25,0.1)]" : ""}`}
-					>
+					<div key={monthIndex} className={`w-1/2 p-2 ${monthIndex === 1 ? "border-l border-gray-200" : ""}`}>
 						{/* Weekdays */}
 						<div className="grid grid-cols-7 gap-2 text-center font-semibold text-gray-700">
 							{weekdays.map((day, i) => (
-								<div key={i} className="w-[27.03px] h-[22px] font-[500] text-[16.22px] leading-[22px] text-center text-[rgba(23,22,25,0.4)] mb-[20px]"
-								>{day}</div>
+								<div key={i} className="w-8 h-8 text-[16px] text-gray-400 mb-4">{day}</div>
 							))}
 						</div>
 
@@ -109,11 +120,11 @@ const MultiDatePicker: React.FC = () => {
 								return (
 									<div
 										key={day}
-										className={`className=" font-[500] text-[16px] leading-[22px] text-center text-[#171619]"
-w-8 h-8 flex items-center justify-center rounded-full cursor-pointer transition-all
+										className={`w-8 h-8 flex items-center justify-center rounded-full cursor-pointer transition-all
                       ${isSelected ? "bg-blue-500 text-white" : ""}
                       ${isInRange ? "bg-blue-200" : ""}
-                      hover:bg-blue-100`}
+                      hover:bg-blue-100
+                      ${!isEditing ? "cursor-not-allowed " : ""}`}
 										onClick={() => handleDateClick(day, month.monthIndex)}
 									>
 										{day}
@@ -126,23 +137,22 @@ w-8 h-8 flex items-center justify-center rounded-full cursor-pointer transition-
 			</div>
 
 			{/* Date Selection & Reset */}
-			<div className="selection_reset flex flex-row items-end py-[21.62px] w-full h-[108.27px] justify-between 
-			border-t-[1.35px] border-[rgba(23, 22, 25, 0.04)]">
-				<div className="flex items-center gap-[20px] ">
+			<div className="flex flex-row items-end py-5 w-full h-28 justify-between border-t border-gray-100">
+				<div className="flex items-center gap-5">
 					<div>
-						<h6 className="w-[34px] h-[18px] font-semibold text-[13.51px] leading-[18px] text-[#061237]">From</h6>
+						<h6 className="font-semibold text-[14px] text-[#061237]">From</h6>
 						<button className="reset_dates_move">
 							{selectedDates.from ? `${months.find(m => m.monthIndex === selectedDates.from?.month)?.name} ${selectedDates.from.day}` : "Select date"}
 						</button>
 					</div>
 					<div>
-						<h6 className="w-[34px] h-[18px] font-semibold text-[13.51px] leading-[18px] text-[#061237]">To</h6>
+						<h6 className="font-semibold text-[14px] text-[#061237]">To</h6>
 						<button className="reset_dates_move">
 							{selectedDates.to ? `${months.find(m => m.monthIndex === selectedDates.to?.month)?.name} ${selectedDates.to.day}` : "Select date"}
 						</button>
 					</div>
 				</div>
-				<button type="button" className="reset_dates" onClick={resetDates}>
+				<button type="button" className={`reset_dates ${!isEditing ? "cursor-not-allowed " : ""}`} onClick={resetDates} disabled={!isEditing}>
 					Reset dates
 				</button>
 			</div>
@@ -151,6 +161,3 @@ w-8 h-8 flex items-center justify-center rounded-full cursor-pointer transition-
 };
 
 export default MultiDatePicker;
-
-
-

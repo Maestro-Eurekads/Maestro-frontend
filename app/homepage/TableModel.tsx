@@ -112,21 +112,21 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       fee_type: inputs.feeType,
     })
       .then(() => {
-		setInputs({
-			name: "",
-			email: "",
-			responsiblePerson: "",
-			approver: "",
-			sports: "",
-			categories: [],
-			businessUnits: [],
-			feeType: "",
-		  });
-		  setSportList([])
-		  setBusinessUnit([])
-		  setCategoryList([])
-		  setIsOpen(false)
-	  })
+        setInputs({
+          name: "",
+          email: "",
+          responsiblePerson: "",
+          approver: "",
+          sports: "",
+          categories: [],
+          businessUnits: [],
+          feeType: "",
+        });
+        setSportList([])
+        setBusinessUnit([])
+        setCategoryList([])
+        setIsOpen(false)
+      })
       .finally(() => {
         setLoading(false);
       });
@@ -159,7 +159,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
           <div className="flex flex-col w-[700px] bg-white rounded-[32px] max-h-[90vh]">
             <div className="w-full flex justify-end px-5 pt-5"></div>
 
-            {/* Header (Fixed) */}
+            {/* Header */}
             <div className="p-6 border-b flex justify-between items-center bg-white sticky top-0 z-10 rounded-t-[32px]">
               <div className="flex items-center gap-5">
                 <div className="madel_profile">
@@ -196,7 +196,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                       handleOnChange={(e) =>
                         handleOnChange("email", e.target.value)
                       }
-                      label="Email"
+                      label="Client emails (add up to 5 emails)"
                       placeholder="Enter email address"
                     />
                     <button
@@ -268,7 +268,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
               </div>
             </div>
 
-            {/* Footer (Fixed) */}
+            {/* Footer  */}
             <div className="p-6 border-t bg-white sticky bottom-0 z-10 flex justify-end rounded-b-[32px]">
               <div className="flex items-center gap-5">
                 <button className="btn_model_outline">Cancel</button>
