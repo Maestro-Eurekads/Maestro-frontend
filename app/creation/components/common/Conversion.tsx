@@ -52,7 +52,7 @@ const Conversion = ( { edit, onDelete}) => {
 
 
       {/* Content Layout */}
-      {edit ? <ConversionEdit/> : <div className="mt-6 flex flex-col md:flex-row gap-8">
+      {edit ? <ConversionEdit onDelete={onDelete} /> : <div className="mt-6 flex flex-col md:flex-row gap-8">
         {/* Social Media Section (Left) */}
         <div className="w-full md:w-1/3">
           <h2 className="text-black font-bold text-md mb-4">Social Media</h2>

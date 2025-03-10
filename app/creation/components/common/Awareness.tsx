@@ -42,7 +42,7 @@ const Awareness = ({ edit, onDelete }) => {
 
       {edit ? (
         // Pass the onDelete callback to AwarenessEdit
-        <AwarenessEdit />
+        <AwarenessEdit onDelete={onDelete} />
       ) : (
         <div className="mt-6 flex flex-col md:flex-row gap-8">
           {/* Social Media Section (Left) */}
