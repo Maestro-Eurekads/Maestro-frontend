@@ -12,8 +12,7 @@ export default {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
-    },
-    animation: {
+      animation: {
         'fade-in': 'fadeIn 0.3s ease-in',
         'fade-out': 'fadeOut 0.3s ease-out'
       },
@@ -27,6 +26,7 @@ export default {
           '100%': { opacity: '0', transform: 'translateY(-10px)' }
         }
       }
+    }
   },
   plugins: [require("daisyui")],
 } satisfies Config;

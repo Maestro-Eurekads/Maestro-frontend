@@ -12,12 +12,14 @@ const EditInput =  ({
 	setInputs,
 	categoryList,
 	setCategoryList,
+  label
   }: {
 	placeholder: string;
 	inputs: any;
 	setInputs: any;
 	categoryList: string[];
 	setCategoryList: any;
+  label?:string
   }) => {
   const [fields, setFields] = useState<{ id: number; text: string }[]>([
     { id: 1, text: "" },
@@ -70,7 +72,7 @@ const EditInput =  ({
     <div className="relative w-full">
      <div className="mb-4">
         <label className="font-medium text-[15px] leading-5 text-gray-600">
-          {placeholder}
+          {label || placeholder}
         </label>
         <div className="mt-[8px] flex items-center px-4 py-2 w-full h-[40px] border border-[#EFEFEF] rounded-[10px]">
           <input
@@ -92,7 +94,7 @@ const EditInput =  ({
             className="flex items-center gap-1 text-[#3175FF] font-semibold text-[14px]"
           >
             <Image src={blueSmallPlue} alt="add" />
-            Add
+            Add parameter
           </button>
 
           {/* Clear button */}
@@ -135,11 +137,12 @@ const CategoryDropdown = ({
   return (
     <div className="flex flex-col gap-4 mt-[20px]">
       <EditInput
-        placeholder="Category"
+        placeholder="Business level 3"
         inputs={inputs}
         setInputs={setInputs}
         categoryList={categoryList}
         setCategoryList={setCategoryList}
+        label="Business level 3"
       />
     </div>
   );
