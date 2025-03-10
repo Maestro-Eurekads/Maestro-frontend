@@ -170,7 +170,7 @@ const SideNav: React.FC = () => {
       </div>
 
       {/* Scrollable Bottom Section */}
-      {close ? <CreationFlowActive steps={steps} /> : <CreationFlow steps={steps} />}
+      {close ? <CreationFlowActive steps={steps} close={close} /> : <CreationFlow steps={steps} />}
 
 
       {/* Footer */}
