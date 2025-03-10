@@ -43,17 +43,17 @@ export default function RootLayout({
       </head>
       <body className={`${roboto.variable} ${inter.variable} antialiased`}>
         <ReduxProvider>
-          <CampaignProvider>
-            <ActiveProvider>
-              <ObjectivesProvider>
-                <FunnelProvider>
-                  <DateRangeProvider>
-                    <Suspense>{children}</Suspense>
-                  </DateRangeProvider>
-                </FunnelProvider>
-              </ObjectivesProvider>
-            </ActiveProvider>
-          </CampaignProvider>
+          <Suspense>
+            <CampaignProvider>
+              <ActiveProvider>
+                <ObjectivesProvider>
+                  <FunnelProvider>
+                    <DateRangeProvider>{children}</DateRangeProvider>
+                  </FunnelProvider>
+                </ObjectivesProvider>
+              </ActiveProvider>
+            </CampaignProvider>
+          </Suspense>
         </ReduxProvider>
       </body>
     </html>
