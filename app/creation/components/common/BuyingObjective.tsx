@@ -115,9 +115,9 @@ const ChannelSelector = ({ channelName }) => {
             {selectedOption && (
               <button
                 onClick={handleClearSelection}
-                className="absolute right-2 top-[3] -translate-y-1 p-1  hover:bg-gray-100 rounded-full"
+                className="absolute right-2 top-1 -translate-y-1 p-1  hover:bg-gray-100 rounded-full"
               >
-                <X size={16} className="text-white rounded-full bg-black" />
+                <X size={14} className="text-white rounded-full bg-black" />
               </button>
             )}
           </div>
