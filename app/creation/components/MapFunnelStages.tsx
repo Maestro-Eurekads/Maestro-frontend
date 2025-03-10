@@ -10,12 +10,14 @@ import addPlus from '../../../public/addPlus.svg';
 import addPlusWhite from '../../../public/addPlusWhite.svg';
 import PageHeaderWrapper from '../../../components/PageHeaderWapper';
 import { useObjectives } from '../../utils/useObjectives';
+import { useCampaigns } from '../../utils/CampaignsContext';
 
 const MapFunnelStages = () => {
 	const { selectedFunnels, setSelectedFunnels } = useObjectives();
 	const [isEditing, setIsEditing] = useState(false);
 	const [hovered, setHovered] = React.useState<number | null>(null);
 	const selectedFunnel: any = selectedFunnels;
+	const {setCampaignFormData, campaignFormData} = useCampaigns()
 
 
 
@@ -34,6 +36,10 @@ const MapFunnelStages = () => {
 		setSelectedFunnels((prev) =>
 			prev.includes(stageName) ? prev.filter((name) => name !== stageName) : [...prev, stageName]
 		);
+		setCampaignFormData((prev)=>({
+			...prev,
+			funnel_stages: prev?.funnel_stages?.includes(stageName) ? prev?.funnel_stages?.filter((name) => name !== stageName) : [...prev?.funnel_stage, stageName]
+		}))
 	};
 
 	return (
