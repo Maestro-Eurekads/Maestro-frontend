@@ -46,7 +46,7 @@ const Consideration = ({ edit, onDelete }) => {
       {/* Content Layout */}
       {edit ? (
         // When in edit mode, render the ConsiderationEdit component with the onDelete prop.
-        <ConsiderationEdit onDelete={onDelete} />
+        <ConsiderationEdit />
       ) : (
         <div className="mt-6 flex flex-col md:flex-row gap-4">
           {/* Social Media Section */}

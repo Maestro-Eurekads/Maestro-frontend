@@ -1,43 +1,68 @@
 "use client";
 
-import React, { createContext, useReducer, useContext, ReactNode } from "react";
+import React, {
+  createContext,
+  useReducer,
+  useContext,
+  ReactNode,
+  useState,
+  useEffect,
+} from "react";
+import useCampaignHook from "./useCampaignHook";
+import axios from "axios";
+import { useSearchParams } from "next/navigation";
 
 // 🎯 Initial Campaign State
 const initialState = {
-	campaigns: {
-		mediaplan: {
-			setupNewCampaign: {},
-			defineCampaignObjective: {},
-			mapFunnelStages: {},
-			selectChannelMix: {},
-			formatsSelection: {},
-			setBuyObjectivesandTypes: {},
-			midRecap: {},
-			planCampaignSchedule: {},
-			configureAdSetsandBudget: {},
-			establishGoals: {},
-			overviewOfYourCampaign: {},
-		},
-	},
+  client_selection: {
+    id: "",
+    value: "",
+  },
+  level_1: {
+    id: "",
+    value: "",
+  },
+  level_2: {
+    id: "",
+    value: "",
+  },
+  level_3: {
+    id: "",
+    value: "",
+  },
+  media_plan: "",
+  approver: "",
+  budget_details_currency: {
+    id: "",
+    value: "",
+  },
+  budget_details_fee_type: {
+    id: "",
+    value: "",
+  },
+  budget_details_sub_fee_type: "",
+  budget_details_value: "",
+  campaign_objectives: "",
+  funnel_stages: []
 };
 
 // 🎯 Reducer Function
 const campaignReducer = (state: any, action: any) => {
-	switch (action.type) {
-		case "UPDATE_CAMPAIGN":
-			return {
-				...state,
-				campaigns: {
-					...state.campaigns,
-					mediaplan: {
-						...state.campaigns.mediaplan,
-						[action.payload.step]: action.payload.data, // Update specific step
-					},
-				},
-			};
-		default:
-			return state;
-	}
+  switch (action.type) {
+    case "UPDATE_CAMPAIGN":
+      return {
+        ...state,
+        campaigns: {
+          ...state.campaigns,
+          mediaplan: {
+            ...state.campaigns.mediaplan,
+            [action.payload.step]: action.payload.data, // Update specific step
+          },
+        },
+      };
+    default:
+      return state;
+  }
 };
 
 // 🎯 Create Context
@@ -45,18 +70,139 @@ const CampaignContext = createContext<any>(null);
 
 // 🎯 Provider Component
 export const CampaignProvider = ({ children }: { children: ReactNode }) => {
-	const [state, dispatch] = useReducer(campaignReducer, initialState);
+  const [state, dispatch] = useReducer(campaignReducer, initialState);
+  const [campaignFormData, setCampaignFormData] = useState(initialState);
+  const [campaignData, setCampaignData] = useState(null);
 
-	return (
-		<CampaignContext.Provider value={{ state, dispatch }}>
-			{children}
-		</CampaignContext.Provider>
-	);
+  const query = useSearchParams();
+  const cId = query.get("campaignId");
+  const { loadingClients, allClients } = useCampaignHook();
+
+  const getActiveCampaign = async () => {
+    await axios
+      .get(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}?populate=*`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+        }
+      )
+      .then((res) => {
+        const data = res?.data?.data;
+        setCampaignData(data)
+        setCampaignFormData((prev) => ({
+          ...prev,
+          client_selection: {
+            id: data?.client?.documentId,
+            value: data?.client?.client_name,
+          },
+          level_1: {
+            id: data?.client_selection?.level_1,
+            value: data?.client_selection?.level_1,
+          },
+          level_2: {
+            id: data?.client_selection?.level_2,
+            value: data?.client_selection?.level_2,
+          },
+          level_3: {
+            id: data?.client_selection?.level_3,
+            value: data?.client_selection?.level_3,
+          },
+          media_plan: data?.media_plan_details?.plan_name,
+          approver: data?.media_plan_details?.internal_approver,
+          budget_details_currency: {
+            id: data?.client?.budget_details?.currency,
+            value: data?.client?.budget_details?.currency,
+          },
+          budget_details_fee_type: {
+            id: data?.budget_details?.fee_type,
+            value: data?.budget_details?.fee_type,
+          },
+          budget_details_sub_fee_type:
+            data?.budget_details?.sub_fee_type,
+          budget_details_value: data?.budget_details?.value,
+          campaign_objectives: data?.campaign_objective,
+        }));
+      });
+  };
+
+  const createCampaign = async () => {
+    console.log("here");
+    return await axios.post(
+      `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`,
+      {
+        data: {
+          client: campaignFormData?.client_selection?.id,
+          client_selection: {
+            client: campaignFormData?.client_selection?.value,
+            level_1: campaignFormData?.level_1?.id,
+            level_2: campaignFormData?.level_2?.id,
+            level_3: campaignFormData?.level_3?.id,
+          },
+          media_plan_details: {
+            plan_name: campaignFormData?.media_plan,
+            internal_approver: campaignFormData?.approver,
+          },
+          budget_details: {
+            currency: campaignFormData?.budget_details_currency?.id,
+            fee_type: campaignFormData?.budget_details_fee_type?.id,
+            sub_fee_type: campaignFormData?.budget_details_sub_fee_type,
+            value: campaignFormData?.budget_details_value,
+          },
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+        },
+      }
+    );
+  };
+
+  const updateCampaign = async (data) => {
+    return await axios.put(
+      `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
+      {
+        data: {...data},
+      }, {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+        }
+      }
+    );
+  };
+
+  useEffect(() => {
+    if (cId) {
+      getActiveCampaign();
+    }
+  }, []);
+
+  return (
+    <CampaignContext.Provider
+      value={{
+        state,
+        dispatch,
+        loadingClients,
+        allClients,
+        campaignFormData,
+        setCampaignFormData,
+        createCampaign,
+        updateCampaign,
+        campaignData,
+        cId
+      }}
+    >
+      {children}
+    </CampaignContext.Provider>
+  );
 };
 
 // 🎯 Custom Hook for easy access
 export const useCampaigns = () => {
-	const context = useContext(CampaignContext);
-	if (!context) throw new Error("useCampaigns must be used within a CampaignProvider");
-	return context;
+  const context = useContext(CampaignContext);
+  if (!context)
+    throw new Error("useCampaigns must be used within a CampaignProvider");
+  return context;
 };

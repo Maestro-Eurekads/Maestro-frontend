@@ -5,11 +5,14 @@ import PageHeaderWrapper from '../../../components/PageHeaderWapper';
 import { campaignObjectives } from '../../../components/data';
 import AlertMain from '../../../components/Alert/AlertMain';
 import { useObjectives } from '../../utils/useObjectives';
+import { useCampaigns } from '../../utils/CampaignsContext';
 
 const DefineCampaignObjective = () => {
 	const { selectedObjectives, setSelectedObjectives } = useObjectives();
 	const [isEditing, setIsEditing] = useState(false);
 	const [alert, setIsAlert] = useState(false);
+	const {setCampaignFormData, campaignFormData} = useCampaigns()
+
 
 	const handleSelect = (id: number, title: string) => {
 		setSelectedObjectives((prev) => {
@@ -20,6 +23,10 @@ const DefineCampaignObjective = () => {
 			}
 			return [{ id, title }]; // Store both ID & Title
 		});
+		setCampaignFormData((prev)=>({
+			...prev,
+			campaign_objectives: title
+		}))
 	};
 
 	const handleAlert = () => {

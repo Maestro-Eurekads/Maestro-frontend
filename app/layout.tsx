@@ -8,6 +8,7 @@ import { ObjectivesProvider } from "./utils/useObjectives";
 import ReduxProvider from "./provider";
 import { CampaignProvider } from "./utils/CampaignsContext";
 import { EditingProvider } from "./utils/EditingContext";
+import { Suspense } from "react";
 
 // Load Roboto font
 const roboto = Roboto({
@@ -43,6 +44,7 @@ export default function RootLayout({
       </head>
       <body className={`${roboto.variable} ${inter.variable} antialiased`}>
         <ReduxProvider>
+          <Suspense>
           <CampaignProvider>
             <ActiveProvider>
               <EditingProvider>
@@ -56,6 +58,7 @@ export default function RootLayout({
               </EditingProvider>
             </ActiveProvider>
           </CampaignProvider>
+          </Suspense>
         </ReduxProvider>
       </body>
     </html>
