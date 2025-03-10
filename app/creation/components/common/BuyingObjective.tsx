@@ -3,7 +3,7 @@ import Button from "./button";
 import Awareness from "./Awareness";
 import Consideration from "./Consideration";
 import Conversion from "./Conversion";
-import { Plus, Trash, UserRoundSearch, X } from "lucide-react";
+import { Plus, Trash, UserRoundSearch, X, ChevronDown } from "lucide-react";
 import YoutubeIcon from "../../../../public/youtube.svg";
 import LinkedinIcon from "../../../../public/linkedin.svg";
 import TiktokIcon from "../../../../public/tictok.svg";
@@ -55,14 +55,47 @@ const IconOption = (props) => (
   </components.Option>
 );
 
-const SingleValue = (props) => (
-  <components.SingleValue {...props}>
-    <div style={{ display: "flex", alignItems: "center" }}>
-      {props.data.icon && <span style={{ marginRight: 8 }}>{props.data.icon}</span>}
-      <span>{props.data.label}</span>
-    </div>
-  </components.SingleValue>
-);
+const CustomControl = (props) => {
+  const { hasValue, selectProps, innerProps, innerRef, children } = props;
+
+  if (hasValue) {
+    const selectedValue = selectProps.value;
+    return (
+      <div 
+        className="flex items-center justify-between p-2 bg-white border-2 border-[#D1D5DB] rounded-[0.8rem] cursor-pointer min-w-[200px]"
+        ref={innerRef}
+        {...innerProps}
+      >
+        <div className="flex items-center flex-1">
+          <div className="flex-shrink-0">
+            {selectedValue.icon}
+          </div>
+          <span className="ml-2 truncate">{selectedValue.label}</span>
+        </div>
+        <div className="flex-shrink-0 ml-2">
+          <X 
+            size={14} 
+            className="text-white rounded-full bg-black cursor-pointer" 
+            onClick={(e) => {
+              e.stopPropagation();
+              selectProps.onChange(null);
+              selectProps.onMenuClose();
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <components.Control {...props}>
+      <div className="flex items-center justify-between w-full">
+        {children}
+        <ChevronDown size={20} />
+      </div>
+    </components.Control>
+  );
+};
 
 const ChannelSelector = ({ channelName }) => {
   const [selectedOption, setSelectedOption] = useState(null);
@@ -70,9 +103,11 @@ const ChannelSelector = ({ channelName }) => {
   const [selectedBuyObjective, setSelectedBuyObjective] = useState(null);
   const [selectedBuyType, setSelectedBuyType] = useState(null);
 
-  const handleClearSelection = () => {
-    if (["TikTok", "Youtube", "Twitter/X", "Linkedin"].includes(selectedOption.value)) {
-      setSelectedOption(null);
+  const handleOptionChange = (option) => {
+    setSelectedOption(option);
+    if (!option) {
+      setSelectedBuyObjective(null);
+      setSelectedBuyType(null);
     }
   };
 
@@ -84,7 +119,6 @@ const ChannelSelector = ({ channelName }) => {
           variant="primary"
           className="bg-blue-500 text-white"
           onClick={() => setShowSelect(true)}
-          
         />
       ) : (
         <>
@@ -93,12 +127,12 @@ const ChannelSelector = ({ channelName }) => {
               options={options}
               components={{
                 Option: IconOption,
-                SingleValue: SingleValue // Ensure SingleValue is correctly referenced
+                Control: CustomControl,
+                IndicatorSeparator: () => null,
+                DropdownIndicator: () => null
               }}
               value={selectedOption}
-              onChange={(option) => {
-                setSelectedOption(option);
-              }}
+              onChange={handleOptionChange}
               placeholder="Select channel"
               styles={{
                 control: (provided) => ({
@@ -109,17 +143,15 @@ const ChannelSelector = ({ channelName }) => {
                   borderRadius: "0.8rem",
                   boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
                   cursor: "pointer",
+                  minWidth: "200px"
                 }),
+                valueContainer: (provided) => ({
+                  ...provided,
+                  padding: 0
+                })
               }}
+              isClearable={false}
             />
-            {selectedOption && (
-              <button
-                onClick={handleClearSelection}
-                className="absolute right-2 top-1 -translate-y-1 p-1  hover:bg-gray-100 rounded-full"
-              >
-                <X size={14} className="text-white rounded-full bg-black" />
-              </button>
-            )}
           </div>
 
           {selectedOption && (
@@ -137,6 +169,7 @@ const ChannelSelector = ({ channelName }) => {
                     border: "2px solid #D1D5DB",
                     borderRadius: "0.8rem",
                     cursor: "pointer",
+                    minWidth: "200px"
                   }),
                 }}
               />
@@ -154,6 +187,7 @@ const ChannelSelector = ({ channelName }) => {
                     border: "2px solid #D1D5DB",
                     borderRadius: "0.8rem",
                     cursor: "pointer",
+                    minWidth: "200px"
                   }),
                 }}
               />

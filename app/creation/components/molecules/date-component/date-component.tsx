@@ -12,7 +12,7 @@ const DateComponent = ({ useDate }) => {
         <DateRangeSelector />
       </div>}
 
-      <div className="bg-white  ">
+      <div className="bg-white relative  ">
         <DateInterval />
       </div>
 
