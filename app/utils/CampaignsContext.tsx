@@ -74,7 +74,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(campaignReducer, initialState);
   const [campaignFormData, setCampaignFormData] = useState(initialState);
   const [campaignData, setCampaignData] = useState(null);
-
+  const [clientCampaignData, setClientCampaignData] = useState([])
+  const [loading, setLoading] = useState(false);
   const query = useSearchParams();
   const cId = query.get("campaignId");
   const { loadingClients, allClients } = useCampaignHook();
@@ -82,7 +83,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const getActiveCampaign = async (docId?:string) => {
     await axios
       .get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}?populate=*`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}?populate=deep`,
         {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
@@ -179,7 +180,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     if (cId) {
       getActiveCampaign();
     }
-  }, []);
+  }, [cId]);
 
   return (
     <CampaignContext.Provider
@@ -194,7 +195,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         updateCampaign,
         campaignData,
         cId,
-        getActiveCampaign
+        getActiveCampaign,
+        clientCampaignData,
+        setClientCampaignData,
+        loading,
+        setLoading
       }}
     >
       {children}
