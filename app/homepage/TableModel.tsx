@@ -40,7 +40,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   const [categoryList, setCategoryList] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  console.log("isSuccess, isError, message", isSuccess, isError, message);
+
 
   const handleAddEmail = () => {
     if (emailList.includes(inputs.email)) {
@@ -243,7 +243,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                   setInputs={setInputs}
                   sportList={sportList}
                   setSportList={setSportList}
-                  
+
                 />
                 <BusinessUnit
                   inputs={inputs}
