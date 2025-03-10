@@ -243,6 +243,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                   setInputs={setInputs}
                   sportList={sportList}
                   setSportList={setSportList}
+                  
                 />
                 <BusinessUnit
                   inputs={inputs}
