@@ -57,7 +57,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 		setPosition(newPos);
 	};
 
-	console.log('width-width', width)
+
 
 	const handleMouseDownDrag = (e: React.MouseEvent<HTMLDivElement>) => {
 		e.preventDefault();
