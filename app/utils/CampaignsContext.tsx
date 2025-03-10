@@ -43,7 +43,8 @@ const initialState = {
   budget_details_sub_fee_type: "",
   budget_details_value: "",
   campaign_objectives: "",
-  funnel_stages: []
+  funnel_stages: [],
+  channel_mix: {}
 };
 
 // 🎯 Reducer Function
@@ -78,10 +79,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const cId = query.get("campaignId");
   const { loadingClients, allClients } = useCampaignHook();
 
-  const getActiveCampaign = async () => {
+  const getActiveCampaign = async (docId?:string) => {
     await axios
       .get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}?populate=*`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}?populate=*`,
         {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
@@ -123,6 +124,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             data?.budget_details?.sub_fee_type,
           budget_details_value: data?.budget_details?.value,
           campaign_objectives: data?.campaign_objective,
+          funnel_stages: data?.funnel_stages || []
         }));
       });
   };
@@ -191,7 +193,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         createCampaign,
         updateCampaign,
         campaignData,
-        cId
+        cId,
+        getActiveCampaign
       }}
     >
       {children}

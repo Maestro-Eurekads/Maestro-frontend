@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { useObjectives } from "../app/utils/useObjectives";
 import { useCampaigns } from "../app/utils/CampaignsContext";
 import axios from "axios";
+import { BiLoader } from "react-icons/bi";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -20,12 +21,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [loading, setLoading] = useState(false);
   const {
     createCampaign,
     updateCampaign,
     campaignData,
     campaignFormData,
     cId,
+    getActiveCampaign,
   } = useCampaigns();
 
   // Hide alerts after a few seconds
@@ -58,9 +61,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   const handleContinue = async () => {
     let hasError = false;
+    setLoading(true);
 
-    if (active === 0) {
-      console.log("Start Creating btn");
+    const updateCampaignData = async (data: any) => {
+      await updateCampaign(data);
+      await getActiveCampaign(data.documentId);
+    };
+
+    const handleStepZero = async () => {
       if (cId) {
         const {
           id,
@@ -70,7 +78,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           updatedAt,
           ...updatedCampaignData
         } = campaignData;
-        await updateCampaign({
+        await updateCampaignData({
           ...updatedCampaignData,
           client: campaignFormData?.client_selection?.id,
           client_selection: {
@@ -89,21 +97,18 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             sub_fee_type: campaignFormData?.budget_details_sub_fee_type,
             value: campaignFormData?.budget_details_value,
           },
-        }).then(() => {
-          setActive((prev) => Math.min(10, prev + 1));
         });
       } else {
-        await createCampaign().then((res) => {
-          const url = new URL(window.location.href);
-          url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
-          window.history.pushState({}, "", url.toString());
-          setActive((prev) => Math.min(10, prev + 1));
-        });
+        const res = await createCampaign();
+        const url = new URL(window.location.href);
+        url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
+        window.history.pushState({}, "", url.toString());
+        await getActiveCampaign(res?.data?.data.documentId);
       }
-    }
+      // setActive((prev) => Math.min(10, prev + 1));
+    };
 
-    if (active === 1) {
-      console.log("Start Creating btn", active);
+    const handleStepOne = async () => {
       const {
         id,
         documentId,
@@ -121,20 +126,18 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       const { id: clId, restC } = client_selection;
       const { id: mId, restM } = budget_details;
 
-      await updateCampaign({
+      await updateCampaignData({
         ...updatedCampaignData,
         client: clientDocumentId,
         budget_details: restB,
         client_selection: restC,
         media_plan_details: restM,
         campaign_objective: campaignFormData?.campaign_objectives,
-      }).then(() => {
-        setActive((prev) => prev + 1);
       });
-    }
+      // setActive((prev) => prev + 1);
+    };
 
-    if (active === 2) {
-      console.log("Start Creating btn", active);
+    const handleStepTwo = async () => {
       const {
         id,
         documentId,
@@ -152,49 +155,95 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       const { id: clId, restC } = client_selection;
       const { id: mId, restM } = budget_details;
 
-      await updateCampaign({
+      await updateCampaignData({
         ...updatedCampaignData,
         client: clientDocumentId,
         budget_details: restB,
         client_selection: restC,
         media_plan_details: restM,
-        campaign_objective: campaignFormData?.campaign_objectives,
-      }).then(() => {
-        // setActive((prev) => prev + 1);
+        funnel_stages: campaignFormData?.funnel_stages,
       });
+    };
+    const handleStepThree = async () => {
+      const {
+        id,
+        documentId,
+        createdAt,
+        publishedAt,
+        updatedAt,
+        client,
+        budget_details,
+        client_selection,
+        media_plan_details,
+        ...updatedCampaignData
+      } = campaignData;
+      const { documentId: clientDocumentId, ...restClientData } = client;
+      const { id: bId, restB } = budget_details;
+      const { id: clId, restC } = client_selection;
+      const { id: mId, restM } = budget_details;
+      const channel_mix = Object.keys(campaignFormData?.channel_mix || {}).map((key: string) => {
+        return campaignFormData?.channel_mix[key];
+      });
+      console.log(channel_mix)
+
+      await updateCampaignData({
+        ...updatedCampaignData,
+        client: clientDocumentId,
+        budget_details: restB,
+        client_selection: restC,
+        media_plan_details: restM,
+        channel_mix
+      });
+    };
+
+    if (active === 0) {
+      await handleStepZero();
+    } else if (active === 1) {
+      await handleStepOne();
+    } else if (active === 2) {
+      await handleStepTwo();
+    } else if(active === 3){
+      await handleStepThree()
     }
 
-    // Show error only once when conditions are met
     if (active === 1 && selectedObjectives.length === 0) {
       setTriggerObjectiveError(true);
       hasError = true;
     }
 
-    if (active === 2 && selectedFunnels.length === 0) {
+    if (active === 2 && campaignFormData?.funnel_stages?.length === 0) {
       setTriggerFunnelError(true);
       hasError = true;
     }
 
-    if (hasError) return; // Stop further execution if there's an error
+    if (hasError) {
+      setLoading(false);
+      return;
+    }
 
-    // Clear errors and proceed
     setTriggerObjectiveError(false);
     setTriggerFunnelError(false);
 
-    // Step 7: Handle its sub-step
-    if (active === 7 && subStep < 1) {
-      setSubStep((prev) => prev + 1);
-    } else if (active === 7 && subStep === 1) {
-      setSubStep(0);
-      setActive((prev) => prev + 1);
-    } else if (active === 8 && subStep < 2) {
-      setSubStep((prev) => prev + 1);
+    if (active === 7) {
+      if (subStep < 1) {
+        setSubStep((prev) => prev + 1);
+      } else {
+        setSubStep(0);
+        setActive((prev) => prev + 1);
+      }
+    } else if (active === 8) {
+      if (subStep < 2) {
+        setSubStep((prev) => prev + 1);
+      } else {
+        setSubStep(0);
+        setActive((prev) => prev + 1);
+      }
     } else {
       setSubStep(0);
-      if (active > 0) {
-        setActive((prev) => Math.min(10, prev + 1));
-      }
+      setActive((prev) => Math.min(10, prev + 1));
     }
+
+    setLoading(false);
   };
 
   return (
@@ -257,14 +306,22 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
-            <p>
-              {active === 0
-                ? "Start Creating"
-                : isHovered
-                ? "Next Step"
-                : "Continue"}
-            </p>
-            <Image src={Continue} alt="Continue" />
+            {loading ? (
+              <center>
+                <BiLoader className="animate-spin" />
+              </center>
+            ) : (
+              <>
+                <p>
+                  {active === 0
+                    ? "Start Creating"
+                    : isHovered
+                    ? "Next Step"
+                    : "Continue"}
+                </p>
+                <Image src={Continue} alt="Continue" />
+              </>
+            )}
           </button>
         )}
       </div>

@@ -264,6 +264,32 @@ export const funnelStages = [
 			],
 		},
 	},
+	{
+		name: "Loyalty",
+		icon: orangecredit,
+		status: "Not started",
+		statusIsActive: false,
+		platforms: {
+			"Social media": [
+				{ name: "Facebook", icon: facebook },
+				{ name: "Instagram", icon: ig },
+				{ name: "TikTok", icon: tictok },
+				{ name: "YouTube", icon: youtube },
+				{ name: "Twitter/X", icon: x },
+				{ name: "LinkedIn", icon: linkedin },
+			],
+			"Display networks": [
+				{ name: "TheTradeDesk", icon: TheTradeDesk },
+				{ name: "Quantcast", icon: Quantcast },
+				{ name: "Display & Video", icon: Display },
+			],
+			"Search engines": [
+				{ name: "Google", icon: Google },
+				{ name: "Yahoo", icon: yahoo },
+				{ name: "Bing", icon: bing },
+			],
+		},
+	},
 ];
 
 
