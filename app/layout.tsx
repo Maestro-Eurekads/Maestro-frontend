@@ -7,6 +7,7 @@ import { FunnelProvider } from "./utils/FunnelContextType";
 import { ObjectivesProvider } from "./utils/useObjectives";
 import ReduxProvider from "./provider";
 import { CampaignProvider } from "./utils/CampaignsContext";
+import { Suspense } from "react";
 
 // Load Roboto font
 const roboto = Roboto({
@@ -47,7 +48,7 @@ export default function RootLayout({
               <ObjectivesProvider>
                 <FunnelProvider>
                   <DateRangeProvider>
-                    {children}
+                    <Suspense>{children}</Suspense>
                   </DateRangeProvider>
                 </FunnelProvider>
               </ObjectivesProvider>
