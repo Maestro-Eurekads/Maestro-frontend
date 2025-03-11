@@ -17,12 +17,12 @@ const phases = [
 		name: "Awareness",
 		amount: "4 200 €",
 		platforms: [
-			// { img: facebook, name: "Facebook", value: 37, color: "#1877F2" },
-			// { img: ig, name: "Instagram", value: 23, color: "#C13584" },
-			{ img: youtube, name: "YouTube", value: 40, color: "#FF0000" },
-			{ img: tradedesk, name: "TheTradeDesk", value: 15, color: "#1A1A1A" },
-			{ img: quantcast, name: "Quantcast", value: 10, color: "#0057FF" },
-			{ img: Google, name: "Google", value: 50, color: "#4285F4" },
+			// { img: Google, name: "Google", value: 50, color: "#4285F4" },
+			{ img: facebook, name: "Facebook", value: 30, color: "#1877F2" },
+			{ img: ig, name: "Instagram", value: 25, color: "#C13584" },
+			{ img: youtube, name: "YouTube", value: 20, color: "#FF0000" },
+			{ img: tradedesk, name: "TheTradeDesk", value: 15, color: "#0099FA" },
+			{ img: quantcast, name: "Quantcast", value: 10, color: "#1A1A1A" },
 		],
 	},
 	{
@@ -30,12 +30,13 @@ const phases = [
 		name: "Consideration",
 		amount: "3 500 €",
 		platforms: [
-			{ img: facebook, name: "Facebook", value: 30, color: "#1877F2" },
-			{ img: ig, name: "Instagram", value: 35, color: "#C13584" },
-			{ img: youtube, name: "YouTube", value: 25, color: "#FF0000" },
-			{ img: tradedesk, name: "TheTradeDesk", value: 10, color: "#1A1A1A" },
-			{ img: quantcast, name: "Quantcast", value: 20, color: "#0057FF" },
-			{ img: Google, name: "Google", value: 45, color: "#4285F4" },
+			// { img: Google, name: "Google", value: 45, color: "#4285F4" },
+			{ img: facebook, name: "Facebook", value: 40, color: "#1877F2" },
+			{ img: ig, name: "Instagram", value: 30, color: "#C13584" },
+			{ img: Google, name: "Google", value: 15, color: "#4285F4" },
+			// { img: youtube, name: "YouTube", value: 15, color: "#FF0000" },
+			{ img: tradedesk, name: "TheTradeDesk", value: 10, color: "#0099FA" },
+			{ img: quantcast, name: "Quantcast", value: 10, color: "#1A1A1A" },
 		],
 	},
 	{
@@ -43,10 +44,11 @@ const phases = [
 		name: "Conversion",
 		amount: "5 000 €",
 		platforms: [
-			{ img: facebook, name: "Facebook", value: 40, color: "#1877F2" },
+			{ img: Google, name: "Google", value: 45, color: "#4285F4" },
+			{ img: facebook, name: "Facebook", value: 30, color: "#1877F2" },
 			{ img: ig, name: "Instagram", value: 20, color: "#C13584" },
-			{ img: youtube, name: "YouTube", value: 30, color: "#FF0000" },
-			{ img: tradedesk, name: "TheTradeDesk", value: 20, color: "#1A1A1A" },
+			// { img: youtube, name: "YouTube", value: 30, color: "#FF0000" },
+			{ img: tradedesk, name: "TheTradeDesk", value: 10, color: "#0099FA" },
 		],
 	},
 ];
@@ -80,7 +82,7 @@ export default function PlatformSpending() {
 								<div key={idx} className="flex items-center gap-2">
 									{/* <div className="w-3 h-3 rounded-full" style={{ backgroundColor: platform.color }}></div> */}
 									<Image src={platform.img} alt={platform.name} width={20} height={20} />
-									<p className="text-sm text-[#061237] font-medium">{platform.name}</p>
+									<p className="font-semibold text-[14px] leading-[19px] flex items-center text-[#061237]">{platform.value}%</p>
 								</div>
 							))}
 						</div>
