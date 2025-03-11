@@ -119,9 +119,7 @@ const SelectChannelMix = () => {
      }
      span={1}
     />
-    {isEditing ? (
-     ""
-    ) : (
+    {!Object.keys(validatedStages).length && (
      <button
       className="model_button_blue"
       onClick={() => setIsEditing(true)}
