@@ -15,7 +15,7 @@ const phases = [
 	{
 		img: speaker,
 		name: "Awareness",
-		amount: "4 200 €",
+		amount: "6,000 €",
 		platforms: [
 			// { img: Google, name: "Google", value: 50, color: "#4285F4" },
 			{ img: facebook, name: "Facebook", value: 30, color: "#1877F2" },
@@ -28,7 +28,7 @@ const phases = [
 	{
 		img: zoom,
 		name: "Consideration",
-		amount: "3 500 €",
+		amount: "5,250 €",
 		platforms: [
 			// { img: Google, name: "Google", value: 45, color: "#4285F4" },
 			{ img: facebook, name: "Facebook", value: 40, color: "#1877F2" },
@@ -42,7 +42,7 @@ const phases = [
 	{
 		img: credit,
 		name: "Conversion",
-		amount: "5 000 €",
+		amount: "3,750 €",
 		platforms: [
 			{ img: Google, name: "Google", value: 45, color: "#4285F4" },
 			{ img: facebook, name: "Facebook", value: 30, color: "#1877F2" },
