@@ -19,6 +19,7 @@ import slideshow_format from "../../../public/slideshow_format.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import FormatsSelection from "./FormatsSelection";
 
+// Types for platforms and channels
 type IPlatform = {
   name: string;
   icon: any;
@@ -32,15 +33,18 @@ type IChannel = {
   style?: string;
 };
 
+// Main Platforms component that handles format selection for different platforms
 export const Platforms = () => {
-  const [item, setItem] = useState("");
-  const [selectedOptions, setSelectedOptions] = useState<{ [key: string]: { [key: string]: boolean } }>({});
-  const [platformMediaOptions, setPlatformMediaOptions] = useState<{ [key: string]: any[] }>({});
-  const [isValidateEnabled, setIsValidateEnabled] = useState(false);
-  const [validatedMediaOptions, setValidatedMediaOptions] = useState<{ [key: string]: any[] }>({});
-  const [isValidated, setIsValidated] = useState(false);
-  const [quantities, setQuantities] = useState<{ [key: string]: { [key: string]: number } }>({});
+  // State management
+  const [item, setItem] = useState(""); // Currently selected platform
+  const [selectedOptions, setSelectedOptions] = useState<{ [key: string]: { [key: string]: boolean } }>({}); // Track selected formats per platform
+  const [platformMediaOptions, setPlatformMediaOptions] = useState<{ [key: string]: any[] }>({}); // Available media options per platform
+  const [isValidateEnabled, setIsValidateEnabled] = useState(false); // Enable/disable validate button
+  const [validatedMediaOptions, setValidatedMediaOptions] = useState<{ [key: string]: any[] }>({}); // Store validated selections
+  const [isValidated, setIsValidated] = useState(false); // Track if selections are validated
+  const [quantities, setQuantities] = useState<{ [key: string]: { [key: string]: number } }>({}); // Track quantities for each format
 
+  // Default media format options available
   const defaultMediaOptions = [
     { name: "Carousel", icon: carousel, selected: false },
     { name: "Image", icon: image_format, selected: false },
@@ -49,14 +53,16 @@ export const Platforms = () => {
     { name: "Collection", icon: collection_format, selected: false },
   ];
 
-  // Enable validate button if any platform has selections
+  // Enable validate button if any format is selected
   useEffect(() => {
     const anyPlatformSelected = Object.values(platformMediaOptions).some(options =>
       options.some(option => option.selected)
     );
     setIsValidateEnabled(anyPlatformSelected);
   }, [platformMediaOptions]);
+  
 
+  // Available channels and their platforms
   const channels: IChannel[] = [
     {
       title: "Social media",
@@ -77,7 +83,7 @@ export const Platforms = () => {
     },
   ];
 
-  // Initialize media options for a platform when first opened
+  // Initialize media options when platform is first opened
   const initializePlatformOptions = (platformName: string) => {
     if (!platformMediaOptions[platformName]) {
       setPlatformMediaOptions(prev => ({
@@ -87,7 +93,7 @@ export const Platforms = () => {
     }
   };
 
-  // Toggle the selection of a media format for a specific platform
+  // Handle selection of a media format
   const handleFormatSelection = (index: number, platformName: string) => {
     setPlatformMediaOptions(prev => ({
       ...prev,
@@ -117,6 +123,7 @@ export const Platforms = () => {
     }));
   };
 
+  // Handle quantity changes for formats
   const handleQuantityChange = (platformName: string, formatIndex: number, change: number) => {
     setQuantities(prev => ({
       ...prev,
@@ -127,9 +134,10 @@ export const Platforms = () => {
     }));
   };
 
-  // Handle Validate / Edit button click
+  // Handle validation or editing of selections
   const handleValidateOrEdit = () => {
     if (!isValidated) {
+      // Store validated selections
       const validatedSelections: { [key: string]: any[] } = {};
       Object.entries(platformMediaOptions).forEach(([platform, options]) => {
         validatedSelections[platform] = options.filter(option => option.selected);
@@ -137,6 +145,7 @@ export const Platforms = () => {
       setValidatedMediaOptions(validatedSelections);
       setIsValidated(true);
     } else {
+      // Reset to editing mode
       setPlatformMediaOptions(prev => {
         const newOptions: { [key: string]: any[] } = {};
         Object.keys(prev).forEach(platform => {
@@ -151,6 +160,7 @@ export const Platforms = () => {
     }
   };
 
+  // Render the platforms UI
   return (
     <div className="text-[16px] my-6 overflow-x-hidden">
       {channels.map((channel, channelIndex) => (
@@ -234,6 +244,7 @@ export const Platforms = () => {
   );
 };
 
+// Main FormatSelection component that wraps everything
 export const FormatSelection = () => {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -268,6 +279,7 @@ export const FormatSelection = () => {
   );
 };
 
+// MediaSelection component for rendering format options
 export default function MediaSelection({
   handleFormatSelection,
   mediaOptions,
