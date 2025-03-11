@@ -176,9 +176,8 @@ const SetBudgetOverviewModel = () => {
 
 						<div className="card-title p-6">
 							<button
-								className="btn btn-primary w-full text-sm"
-								onClick={() => setStep(2)}
-							>
+								className="btn btn-primary w-full text-sm bg-[#3175FF]"
+								onClick={() => setStep(2)}>
 								Start setting goals
 							</button>
 						</div>
@@ -329,7 +328,7 @@ const SetBudgetOverviewModel = () => {
 
 										<div className="">
 											<button
-												className="btn btn-primary w-full text-sm"
+												className="btn btn-primary w-full text-sm bg-[#3175FF]"
 												onClick={() => setStep(1)}>
 												Select
 											</button>

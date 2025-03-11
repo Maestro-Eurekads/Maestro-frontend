@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
-import PlatformSpending from '../../../components/PlatformSpending';
 import ConfiguredSetPage from './ConfiguredSetPage';
 import CampaignBudget from './CampaignBudget';
 import PageHeaderWrapper from '../../../components/PageHeaderWapper';
 import DoughnutChat from '../../../components/DoughnutChat';
 import ChannelDistributionChatTwo from '../../../components/ChannelDistribution/ChannelDistributionChatTwo';
+import CampaignPhases from './CampaignPhases';
 
 const ConfigureAdSetsAndBudget = () => {
 
 	const [show, setShow] = useState(false); // Start with budget shown 
-
+	const campaignPhases = [
+		{ name: "Awareness", percentage: 25, color: "#3175FF" },
+		{ name: "Consideration", percentage: 50, color: "#00A36C" },
+		{ name: "Conversion", percentage: 25, color: "#FF9037" },
+	];
 
 
 	return (
@@ -59,9 +63,11 @@ const ConfigureAdSetsAndBudget = () => {
 
 								<div className="campaign_phases_container mt-[24px]">
 									<div className="campaign_phases_container_one">
-										<DoughnutChat />
+										<DoughnutChat data={[25, 50, 25]} />
 									</div>
-									<div className='campaign_phases_container_two flex flex-col gap-[28px]'>
+
+									<CampaignPhases campaignPhases={campaignPhases} />
+									{/* <div className='campaign_phases_container_two flex flex-col gap-[28px]'>
 										<div className='flex items-center gap-2'>
 											<div className="w-[12px] h-[12px] bg-[#3175FF] rounded-[4px]"></div>
 											<p className="   font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
@@ -80,7 +86,7 @@ const ConfigureAdSetsAndBudget = () => {
 												Conversion (25%)
 											</p>
 										</div>
-									</div>
+									</div> */}
 								</div>
 							</div>
 							<div className="allocate_budget_phase_two">
