@@ -40,7 +40,7 @@ const SelectChannelMix = () => {
   category: string,
   platformName: string
  ) => {
-  if (validatedStages[stageName]) return;
+  if (!isEditing) return; // Only allow toggling if editing is enabled
 
   const prev = { ...selected };
 
@@ -105,6 +105,7 @@ const SelectChannelMix = () => {
    ...prev,
    [stageName]: false,
   }));
+  setIsEditing(true); // Enable editing when Edit button is clicked
  };
 
  return (
@@ -119,9 +120,7 @@ const SelectChannelMix = () => {
      }
      span={1}
     />
-    {isEditing ? (
-     ""
-    ) : (
+    {!Object.keys(validatedStages).length && (
      <button
       className="model_button_blue"
       onClick={() => setIsEditing(true)}
@@ -248,7 +247,7 @@ const SelectChannelMix = () => {
                   key={pIndex}
                   className={`${isEditing
                     ? "cursor-pointer"
-                    : "cursor-not-allowed"
+                    : "cursor-not-allowed opacity-50"
                    } 
           flex flex-row justify-between items-center p-4 gap-2 w-[230px] h-[62px] bg-white 
           border rounded-[10px] ${isSelected ? "border-[#3175FF]" : "border-[rgba(0,0,0,0.1)]"
@@ -301,7 +300,8 @@ const SelectChannelMix = () => {
             <button
              disabled={!isStageValid(stage.name)}
              onClick={() => {
-              handleValidate(stage.name), setIsEditing(false);
+              handleValidate(stage.name);
+              setIsEditing(false);
              }}
              className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isStageValid(stage.name)
                ? "bg-[#3175FF] hover:bg-[#2563eb]"

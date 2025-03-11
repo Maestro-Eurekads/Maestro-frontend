@@ -26,6 +26,7 @@ export default function PlatformSpending() {
 						<div className="flex items-center gap-2">
 							<p>{platform.img}</p>
 							<p>{platform.name}</p>
+
 						</div>
 						<div className="w-[72px] h-[29px] flex flex-row justify-center items-center p-[5px] px-[12px] gap-[8px] bg-[#E8F6FF] border border-[rgba(49,117,255,0.1)] rounded-[50px]">
 							<p className="font-semibold text-[14px] leading-[19px] text-[#3175FF] order-0 flex-none">
