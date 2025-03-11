@@ -4,6 +4,7 @@ import Button from "./button";
 import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Swal from 'sweetalert2';
 
 import trade from "../../../../public/TheTradeDesk.svg";
 import table from "../../../../public/tabler_zoom-filled.svg";
@@ -16,359 +17,429 @@ import arrowdown from "../../../../public/arrow-down-2.svg";
 import vector from "../../../../public/Vector.svg";
 import { campaignObjectives } from '../../../../components/data';
 
-const ConversionEdit = ( { onDelete }) => {
-  // const [socialMedia, setSocialMedia] = useState([
-  //   { id: 1, name: "Facebook", icon: facebook },
-  //   { id: 2, name: "Instagram", icon: instagram },
-  //   { id: 3, name: "Youtube", icon: youtube },
-  //   { id: 4, name: "Awareness", icon: arrowdown },
-  //   { id: 5, name: "Video Views", icon: arrowdown },
-  //   { id: 6, name: "Video Views", icon: arrowdown },
-  //   { id: 7, name: "Video Views", icon: arrowdown },
-  //   { id: 8, name: "CPV", icon: arrowdown },
-  //   { id: 9, name: "CPV", icon: arrowdown },
-  // ]);
+const ConversionEdit = ({ onDelete }) => {
+  const [isDeleted, setIsDeleted] = useState(false);
+  const [showDropdowns, setShowDropdowns] = useState({
+    traffic1: false,
+    traffic2: false,
+    videoView1: false,
+    videoView2: false,
+    cpm1: false,
+    cpm2: false,
+    cpv1: false,
+    cpv2: false,
+    searchTraffic: false,
+    searchBuyType: false
+  });
 
-  // const [displayNetwork, setDisplayNetwork] = useState([
-  //   { id: 1, name: "The TradeDesk", icon: trade },
-  //   { id: 2, name: "QuantCast", icon: quantcast },
-  //   { id: 3, name: "Video Views", icon: arrowdown },
-  //   { id: 4, name: "Video Views", icon: arrowdown },
-  //   { id: 5, name: "CPV", icon: arrowdown },
-  //   { id: 6, name: "CPV", icon: arrowdown },
-  // ]);
+  const [selectedValues, setSelectedValues] = useState({
+    traffic1: "Traffic",
+    traffic2: "Traffic", 
+    videoView1: "Video view",
+    videoView2: "Video view",
+    cpm1: "CPM",
+    cpm2: "CPM",
+    cpv1: "CPV",
+    cpv2: "CPV",
+    searchTraffic: "Traffic",
+    searchBuyType: "CPM"
+  });
 
-  // Social Media: sequentially add Facebook, Instagram, then Youtube
-  // const socialTypes = [
-  //   { name: "Facebook", icon: facebook },
-  //   { name: "Instagram", icon: instagram },
-  //   { name: "Youtube", icon: youtube },
-  // ];
-  // const [socialIndex, setSocialIndex] = useState(0);
+  const objectives = ["Traffic", "Awareness", "Video view"];
+  const buyTypes = ["CPM", "CPV"];
 
-  // const addNewSocialMediaChannel = () => {
-  //   const nextId = socialMedia.reduce((max, item) => Math.max(max, item.id), 0) + 1;
-  //   const channelToAdd = socialTypes[socialIndex % socialTypes.length];
-  //   setSocialMedia([...socialMedia, { id: nextId, ...channelToAdd }]);
-  //   setSocialIndex(socialIndex + 1);
-  // };
+  const toggleDropdown = (key) => {
+    setShowDropdowns(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
 
-  // Display Network: sequentially add The TradeDesk then QuantCast
-  // const displayTypes = [
-  //   { name: "The TradeDesk", icon: trade },
-  //   { name: "QuantCast", icon: quantcast },
-  // ];
-  // const [displayIndex, setDisplayIndex] = useState(0);
+  const handleSelect = (key, value) => {
+    setSelectedValues(prev => ({
+      ...prev,
+      [key]: value
+    }));
+    setShowDropdowns(prev => ({
+      ...prev,
+      [key]: false
+    }));
+  };
 
-  // const addNewDisplayNetworkChannel = () => {
-  //   const nextId = displayNetwork.reduce((max, item) => Math.max(max, item.id), 0) + 1;
-  //   const channelToAdd = displayTypes[displayIndex % displayTypes.length];
-  //   setDisplayNetwork([...displayNetwork, { id: nextId, ...channelToAdd }]);
-  //   setDisplayIndex(displayIndex + 1);
-  // };
+  const handleDelete = async () => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You want to delete this stage?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3175FF',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    });
 
-  // Remove functions
-  // const removeSocialMediaChannel = (id) => {
-  //   setSocialMedia(socialMedia.filter(item => item.id !== id));
-  // };
+    if (result.isConfirmed) {
+      setIsDeleted(true);
+      if (onDelete) {
+        onDelete();
+      }
+      Swal.fire(
+        'Deleted!',
+        'Your stage has been deleted.',
+        'success'
+      );
+    }
+  };
 
-  // const removeDisplayNetworkChannel = (id) => {
-  //   setDisplayNetwork(displayNetwork.filter(item => item.id !== id));
-  // };
+  const handleAddBack = () => {
+    setIsDeleted(false);
+  };
+
+  if (isDeleted) {
+    return (
+      <div className="w-full flex justify-center py-8">
+        <button 
+          onClick={handleAddBack}
+          className="bg-[#3175FF] text-white px-6 py-3 rounded-lg hover:bg-[#2861db]"
+        >
+          Add Conversion Stage
+        </button>
+      </div>
+    );
+  }
 
   return (
-    // <div className="flex flex-col items-start p-6">
-    //   {/* Header */}
-    //   <div className="flex justify-between w-full items-center mb-4">
-    //     <div className="flex items-center gap-4">
-    //       <Image src={speaker} alt="Awareness icon" className="w-5 h-5" />
-    //       <span className="text-black font-semibold">Awareness</span>
-    //     </div>
-    //     <Button
-    //       text="Delete this stage"
-    //       variant="danger"
-    //       icon={Trash}
-    //       onClick={() => {
-    //         toast.success("Stage Deleted successfully!");
-    //         setTimeout(() => onDelete(), 2000);
-    //       }}
-    //       iconColor="text-white"
-    //       className="rounded-full px-4 py-2 text-sm"
-    //     />
-    //   </div>
-
-    //   {/* Social Media Section */}
-    //   <h2 className="text-black font-bold text-md mb-4">Social Media</h2>
-
-    //   <div className="flex flex-col md:flex-row justify-center gap-4">
-    //     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-    //       {socialMedia.map((item) => (
-    //         <div
-    //           key={item.id}
-    //           className="flex justify-between items-center gap-2 p-3 cursor-pointer whitespace-nowrap border rounded-md bg-white shadow-md"
-    //         >
-    //           <div className="flex items-center space-x-4">
-    //             {/* Render the icon for YouTube, Instagram, and Facebook */}
-    //             {item.icon !== arrowdown && (
-    //               <Image src={item.icon} alt={item.name} className="w-4 h-4" />
-    //             )}
-    //             <p className="text-md text-black">{item.name}</p>
-    //             {/* Render the arrowdown icon on the right */}
-    //             {item.icon === arrowdown && (
-    //               <Image src={item.icon} alt={item.name} className="w-4 h-4" />
-    //             )}
-    //           </div>
-    //         </div>
-    //       ))}
-    //     </div>
-    //     <Button
-    //       text="Add new channel"
-    //       variant="primary"
-    //       onClick={addNewSocialMediaChannel}
-    //       className="rounded-md whitespace-nowrap px-4 py-2"
-    //     />
-    //   </div>
-
-    //   {/* Display Network Section */}
-    //   <h2 className="text-black font-bold text-md mt-6 mb-4">Display Network</h2>
-    //   <div className="flex flex-col md:flex-row justify-between gap-4">
-    //     <div className="grid grid-cols-2 md:grid-cols-2 gap-4 mb-4">
-    //       {displayNetwork.map((item) => (
-    //         <div
-    //           key={item.id}
-    //           className="flex justify-between items-center gap-2 p-3 cursor-pointer border rounded-md bg-white shadow-md"
-    //         >
-    //           <div className="flex items-center space-x-4">
-    //             {/* Render the icon for The TradeDesk and QuantCast */}
-    //             {item.icon !== arrowdown && (
-    //               <Image src={item.icon} alt={item.name} className="w-4 h-4" />
-    //             )}
-    //             <p className="text-md text-black whitespace-nowrap">{item.name}</p>
-    //             {/* Render the arrowdown icon on the right */}
-    //             {item.icon === arrowdown && (
-    //               <Image src={item.icon} alt={item.name} className="w-4 h-4" />
-    //             )}
-    //           </div>
-    //         </div>
-    //       ))}
-    //     </div>
-    //     <Button
-    //       text="Add new channel"
-    //       variant="primary"
-    //       onClick={addNewDisplayNetworkChannel}
-    //       className="rounded-md whitespace-nowrap px-4 py-2"
-    //     />
-    //   </div>
-
-    //   <ToastContainer />
-    // </div>
-    
-
-
-      <div className="flex items-start flex-col gap-6">
-        {/* Awareness */}
-       <div className="flex justify-between w-full">
-         <div className="flex items-center gap-4">
+    <div className="flex items-start flex-col gap-6">
+      {/* Awareness */}
+      <div className="flex justify-between w-full">
+        <div className="flex items-center gap-4">
           <Image src={card} alt="card" className="size-5" />
           <span className="text-lg leading-wider text-[#061237] font-semibold">Conversion</span>
-         </div>
+        </div>
 
-         <Button
-         variant="danger"
-         text="Delete this stage"
-         icon={Trash}
-         onClick={() => alert("Deleted")}
-         className="!rounded-full !px-4 !py-4 !text-white !w-[167px] !h-[31px]"
-         
-         />
-       </div>
+        <Button
+          variant="danger"
+          text="Delete this stage"
+          icon={Trash}
+          onClick={handleDelete}
+          className="!rounded-full !px-4 !py-4 !text-white !w-[167px] !h-[31px]"
+        />
+      </div>
 
-
-       {/* social media */}
-          <div className="flex flex-col items-start gap-4">
-
-          <h2 className="font-bold text-[#061237]">Social Media</h2>
-         <div className="flex justify-center gap-4">
+      {/* social media */}
+      <div className="flex flex-col items-start gap-4">
+        <h2 className="font-bold text-[#061237]">Social Media</h2>
+        <div className="flex justify-center gap-4">
           <div className="grid grid-cols-2 gap-4">
+            <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
+              <div className="flex items-center gap-2">
+                <Image src={facebook} className="size-4" alt="facebook" />
+                <span className="text-[#061237] font-semibold whitespace-nowrap">Facebook</span>
+              </div>
+              <Image src={vector} alt="vector" />
+            </button>
 
-          <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
-            <div className="flex items-center gap-2">
+            <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
+              <div className="flex items-center gap-2">
+                <Image src={instagram} className="size-4" alt="instagram" />
+                <span className="text-[#061237] font-semibold whitespace-nowrap">Instagram</span>
+              </div>
+              <Image src={vector} alt="vector" />
+            </button>
 
-            <Image src={facebook} className="size-4" alt="facebook" />
-            <span className="text-[#061237] font-semibold whitespace-nowrap">Facebook</span>
+            {/* second row */}
+            <div className="relative">
+              <button 
+                onClick={() => toggleDropdown('traffic1')}
+                className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
+              >
+                <span className="text-[#061237] font-semibold whitespace-nowrap">{selectedValues.traffic1}</span>
+                <Image src={arrowdown} className="size-4" alt="traffic" />
+              </button>
+              {showDropdowns.traffic1 && (
+                <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
+                  {objectives.map((objective) => (
+                    <div 
+                      key={objective}
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => handleSelect('traffic1', objective)}
+                    >
+                      {objective}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-             <Image src={vector} alt="vector" />
-          </button>
-          <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
-            <div className="flex items-center gap-2">
-
-            <Image src={instagram} className="size-4" alt="instagram" />
-            <span className="text-[#061237] font-semibold whitespace-nowrap">Instagram</span>
+            <div className="relative">
+              <button 
+                onClick={() => toggleDropdown('traffic2')}
+                className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
+              >
+                <span className="text-[#061237] font-semibold whitespace-nowrap">{selectedValues.traffic2}</span>
+                <Image src={arrowdown} className="size-4" alt="traffic" />
+              </button>
+              {showDropdowns.traffic2 && (
+                <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
+                  {objectives.map((objective) => (
+                    <div 
+                      key={objective}
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => handleSelect('traffic2', objective)}
+                    >
+                      {objective}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-             <Image src={vector} alt="vector" />
-          </button>
-         
-          {/* second row */}
-          <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
+            {/* Third rows */}
+            <div className="relative">
+              <button 
+                onClick={() => toggleDropdown('cpm1')}
+                className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
+              >
+                <span className="text-[#061237] font-semibold whitespace-nowrap">{selectedValues.cpm1}</span>
+                <Image src={arrowdown} className="size-4" alt="cpv" />
+              </button>
+              {showDropdowns.cpm1 && (
+                <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
+                  {buyTypes.map((type) => (
+                    <div 
+                      key={type}
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => handleSelect('cpm1', type)}
+                    >
+                      {type}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-            <span className="text-[#061237] font-semibold whitespace-nowrap">Traffic</span>
-            <Image src={arrowdown} className="size-4" alt="traffic" />
-
-          </button>
-          <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
-
-            <span className="text-[#061237] font-semibold whitespace-nowrap">Traffic</span>
-            <Image src={arrowdown} className="size-4" alt="traffic" />
-
-          </button>
-         
-
-          {/* Third rows */}
-
-          <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
-
-            <span className="text-[#061237] font-semibold whitespace-nowrap">CPM</span>
-            <Image src={arrowdown} className="size-4" alt="cpv" />
-
-          </button>
-
-          <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
-
-            <span className="text-[#061237] font-semibold whitespace-nowrap">CPM</span>
-            <Image src={arrowdown} className="size-4" alt="cpm" />
-
-          </button>
-          
-         
-         </div>
-
-         <div>
-          <button className="w-[153px] h-[52px] bg-[#3175FF] rounded-[8px] border border-[#0000001A] border-solid">
-          <span className="text-white">Add new channel</span>
-          </button>
-         </div>
+            <div className="relative">
+              <button 
+                onClick={() => toggleDropdown('cpm2')}
+                className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
+              >
+                <span className="text-[#061237] font-semibold whitespace-nowrap">{selectedValues.cpm2}</span>
+                <Image src={arrowdown} className="size-4" alt="cpm" />
+              </button>
+              {showDropdowns.cpm2 && (
+                <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
+                  {buyTypes.map((type) => (
+                    <div 
+                      key={type}
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => handleSelect('cpm2', type)}
+                    >
+                      {type}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
+          <div>
+            <button className="w-[153px] h-[52px] bg-[#3175FF] rounded-[8px] border border-[#0000001A] border-solid">
+              <span className="text-white">Add new channel</span>
+            </button>
           </div>
+        </div>
+      </div>
 
-          {/* Display network */}
-           <div className="flex justify-center gap-4">
-          <div className="flex flex-col items-start gap-4">
-
+      {/* Display network and Search engine container */}
+      <div className="flex gap-8">
+        {/* Display network */}
+        <div className="flex flex-col items-start gap-4">
           <h2 className="font-bold text-[#061237] pt-4">Display networks</h2>
-         <div className="flex justify-center gap-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="flex justify-center gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
+                <div className="flex items-center gap-2">
+                  <Image src={trade} className="size-4" alt="facebook" />
+                  <span className="text-[#061237] font-semibold whitespace-nowrap">TradeDesk</span>
+                </div>
+                <Image src={vector} alt="vector" />
+              </button>
 
-          <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
-            <div className="flex items-center gap-2">
+              <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
+                <div className="flex items-center gap-2">
+                  <Image src={quantcast} className="size-4" alt="instagram" />
+                  <span className="text-[#061237] font-semibold whitespace-nowrap">Quantcast</span>
+                </div>
+                <Image src={vector} alt="vector" />
+              </button>
 
-            <Image src={trade} className="size-4" alt="facebook" />
-            <span className="text-[#061237] font-semibold whitespace-nowrap">TradeDesk</span>
+              {/* second row */}
+              <div className="relative">
+                <button 
+                  onClick={() => toggleDropdown('videoView1')}
+                  className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
+                >
+                  <span className="text-[#061237] font-semibold whitespace-nowrap">{selectedValues.videoView1}</span>
+                  <Image src={arrowdown} className="size-4" alt="video view" />
+                </button>
+                {showDropdowns.videoView1 && (
+                  <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
+                    {objectives.map((objective) => (
+                      <div 
+                        key={objective}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleSelect('videoView1', objective)}
+                      >
+                        {objective}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="relative">
+                <button 
+                  onClick={() => toggleDropdown('videoView2')}
+                  className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
+                >
+                  <span className="text-[#061237] font-semibold whitespace-nowrap">{selectedValues.videoView2}</span>
+                  <Image src={arrowdown} className="size-4" alt="video view" />
+                </button>
+                {showDropdowns.videoView2 && (
+                  <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
+                    {objectives.map((objective) => (
+                      <div 
+                        key={objective}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleSelect('videoView2', objective)}
+                      >
+                        {objective}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Third rows */}
+              <div className="relative">
+                <button 
+                  onClick={() => toggleDropdown('cpv1')}
+                  className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
+                >
+                  <span className="text-[#061237] font-semibold whitespace-nowrap">{selectedValues.cpv1}</span>
+                  <Image src={arrowdown} className="size-4" alt="video view" />
+                </button>
+                {showDropdowns.cpv1 && (
+                  <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
+                    {buyTypes.map((type) => (
+                      <div 
+                        key={type}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleSelect('cpv1', type)}
+                      >
+                        {type}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="relative">
+                <button 
+                  onClick={() => toggleDropdown('cpv2')}
+                  className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
+                >
+                  <span className="text-[#061237] font-semibold whitespace-nowrap">{selectedValues.cpv2}</span>
+                  <Image src={arrowdown} className="size-4" alt="video view" />
+                </button>
+                {showDropdowns.cpv2 && (
+                  <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
+                    {buyTypes.map((type) => (
+                      <div 
+                        key={type}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleSelect('cpv2', type)}
+                      >
+                        {type}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
-             <Image src={vector} alt="vector" />
-          </button>
-          <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
-            <div className="flex items-center gap-2">
-
-            <Image src={quantcast} className="size-4" alt="instagram" />
-            <span className="text-[#061237] font-semibold whitespace-nowrap">Quantcast</span>
-            </div>
-
-             <Image src={vector} alt="vector" />
-          </button>
-        
-          {/* second row */}
-          <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
-
-            <span className="text-[#061237] font-semibold whitespace-nowrap">Video views</span>
-            <Image src={arrowdown} className="size-4" alt="video view" />
-
-          </button>
-          <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
-
-            <span className="text-[#061237] font-semibold whitespace-nowrap">Traffic</span>
-            <Image src={arrowdown} className="size-4" alt="video view" />
-
-          </button>
-         
-
-          {/* Third rows */}
-         
-          <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
-
-            <span className="text-[#061237] font-semibold whitespace-nowrap">CPV</span>
-            <Image src={arrowdown} className="size-4" alt="video view" />
-
-          </button>
-
-          <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
-
-            <span className="text-[#061237] font-semibold whitespace-nowrap">CPV</span>
-            <Image src={arrowdown} className="size-4" alt="video view" />
-
-          </button>
-          
-         
-         </div>
-
-          <button className="w-[153px] h-[52px] bg-[#3175FF] rounded-[8px] border border-[#0000001A] border-solid">
-          <span className="text-white">Add new channel</span>
-          </button>
-        
+            <button className="w-[153px] h-[52px] bg-[#3175FF] rounded-[8px] border border-[#0000001A] border-solid">
+              <span className="text-white">Add new channel</span>
+            </button>
           </div>
+        </div>
 
-          </div>
-       
-
-       {/* Search engine */}
-          <div className="flex ml-8 flex-col items-start gap-4">
+        {/* Search engine */}
+        <div className="flex flex-col items-start gap-4">
           <h2 className="font-bold text-[#061237] pt-4">Search engines</h2>
           <div className="flex justify-center gap-4">
             <div className="flex flex-col items-start gap-4">
-            <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
-            <div className="flex items-center gap-2">
+              <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
+                <div className="flex items-center gap-2">
+                  <Image src={google} className="size-4" alt="google" />
+                  <span className="text-[#061237] font-semibold whitespace-nowrap">Google</span>
+                </div>
+                <Image src={vector} alt="vector" />
+              </button>
 
-            <Image src={google} className="size-4" alt="google" />
-            <span className="text-[#061237] font-semibold whitespace-nowrap">Google</span>
+              <div className="relative">
+                <button 
+                  onClick={() => toggleDropdown('searchTraffic')}
+                  className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
+                >
+                  <span className="text-[#061237] font-semibold whitespace-nowrap">{selectedValues.searchTraffic}</span>
+                  <Image src={arrowdown} className="size-4" alt="traffic" />
+                </button>
+                {showDropdowns.searchTraffic && (
+                  <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
+                    {objectives.map((objective) => (
+                      <div 
+                        key={objective}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleSelect('searchTraffic', objective)}
+                      >
+                        {objective}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="relative">
+                <button 
+                  onClick={() => toggleDropdown('searchBuyType')}
+                  className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
+                >
+                  <span className="text-[#061237] font-semibold whitespace-nowrap">{selectedValues.searchBuyType}</span>
+                  <Image src={arrowdown} className="size-4" alt="buy type" />
+                </button>
+                {showDropdowns.searchBuyType && (
+                  <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
+                    {buyTypes.map((type) => (
+                      <div 
+                        key={type}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleSelect('searchBuyType', type)}
+                      >
+                        {type}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
-             <Image src={vector} alt="vector" />
-          </button>
-
-          <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
-
-          <span className="text-[#061237] font-semibold whitespace-nowrap">Traffic</span>
-         <Image src={arrowdown} className="size-4" alt="video view" />
-
-        </button>
-
-        <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
-
-       <span className="text-[#061237] font-semibold whitespace-nowrap">CPM</span>
-       <Image src={arrowdown} className="size-4" alt="video view" />
-
-        </button>
-
-
-            </div>
-          
-
-
-          <button className="w-[153px] h-[52px] bg-[#3175FF] rounded-[8px] border border-[#0000001A] border-solid">
-          <span className="text-white">Add new channel</span>
-          </button>
+            <button className="w-[153px] h-[52px] bg-[#3175FF] rounded-[8px] border border-[#0000001A] border-solid">
+              <span className="text-white">Add new channel</span>
+            </button>
           </div>
-          </div>
-
-          </div>
-
-          
-
+        </div>
       </div>
-  
+    </div>
   );
 };
 

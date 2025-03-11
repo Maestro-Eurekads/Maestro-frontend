@@ -21,3 +21,4 @@ const ThreeValuesProgress = ({ values }: { values: number[] }) => {
 };
 
 export default ThreeValuesProgress  
+

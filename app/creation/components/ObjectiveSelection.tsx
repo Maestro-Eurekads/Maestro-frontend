@@ -66,7 +66,9 @@ const ObjectiveSelection = () => {
   const [selectedOptions, setSelectedOptions] = useState<{ [key: string]: string }>({});
   const [isEditable, setIsEditable] = useState<{ [key: string]: boolean }>({});
   const [previousSelectedOptions, setPreviousSelectedOptions] = useState<{ [key: string]: string }>({});
-  const [selectedNetwork, setSelectedNetwork] = useState<string | null>(null);
+  const [selectedNetworks, setSelectedNetworks] = useState<Set<string>>(new Set());
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Set<string>>(new Set());
+  const [validatedPlatforms, setValidatedPlatforms] = useState<Set<string>>(new Set());
 
   // Toggle expand/collapse for a stage
   const toggleItem = (stage: string) => {
@@ -87,7 +89,25 @@ const ObjectiveSelection = () => {
       ...prev,
       [platformKey]: option,
     }));
-    setSelectedNetwork(category);
+    
+    // Extract platform name from the key
+    const platformIndex = parseInt(platformKey.split('-')[2]);
+    const platform = funnelStages[0].platforms[category][Math.floor(platformIndex / 3) * 3];
+    
+    if (platform && platform.name) {
+      setSelectedPlatforms(prev => {
+        const newSet = new Set(prev);
+        newSet.add(platform.name);
+        return newSet;
+      });
+    }
+    
+    setSelectedNetworks(prev => {
+      const newSet = new Set(prev);
+      newSet.add(category);
+      return newSet;
+    });
+    
     setDropdownOpen((prev) => ({
       ...prev,
       [platformKey]: false,
@@ -101,6 +121,17 @@ const ObjectiveSelection = () => {
     setStatuses(updatedStatuses);
     setIsEditable((prev) => ({ ...prev, [funnelStages[index].name]: true }));
 
+    // Store validated platforms
+    const validatedPlatformsSet = new Set<string>();
+    Object.entries(selectedOptions).forEach(([key]) => {
+      const [_, category, platformIndex] = key.split('-');
+      const platform = funnelStages[0].platforms[category][Math.floor(parseInt(platformIndex) / 3) * 3];
+      if (platform && platform.name && hasCompletePlatformSelection(platform.name, category)) {
+        validatedPlatformsSet.add(platform.name);
+      }
+    });
+    setValidatedPlatforms(validatedPlatformsSet);
+
     // Store the current selected options before validation
     setPreviousSelectedOptions(selectedOptions);
 
@@ -111,28 +142,33 @@ const ObjectiveSelection = () => {
     }
   };
 
-  // Check if all buy types and objectives are selected for visible platforms
-  const hasAllBuySelections = () => {
-    const selectedCategory = selectedNetwork;
-    if (!selectedCategory) return false;
+  // Check if a platform has both buy type and objective selected
+  const hasCompletePlatformSelection = (platformName: string, category: string) => {
+    const platforms = funnelStages[0].platforms[category];
+    const platformIndex = platforms.findIndex(p => p.name === platformName);
+    if (platformIndex === -1) return false;
 
-    const platforms = funnelStages[0].platforms[selectedCategory];
-    const platformCount = platforms.filter(p => p.icon).length;
-    
-    let buyTypeCount = 0;
-    let buyObjectiveCount = 0;
+    const baseIndex = platformIndex;
+    const buyTypeKey = `Awareness-${category}-${baseIndex + 1}`;
+    const buyObjectiveKey = `Awareness-${category}-${baseIndex + 2}`;
 
-    Object.entries(selectedOptions).forEach(([key, value]) => {
-      if (key.includes(selectedCategory)) {
-        if (platforms[parseInt(key.split('-')[2])].name === "Buy type") {
-          buyTypeCount++;
-        } else if (platforms[parseInt(key.split('-')[2])].name === "Buy objective") {
-          buyObjectiveCount++;
+    return selectedOptions[buyTypeKey] && selectedOptions[buyObjectiveKey];
+  };
+
+  // Check if at least one platform has both selections
+  const hasMinimumBuySelections = () => {
+    if (selectedNetworks.size === 0) return false;
+
+    for (const network of selectedNetworks) {
+      const platforms = funnelStages[0].platforms[network];
+      for (let i = 0; i < platforms.length; i += 3) {
+        const platform = platforms[i];
+        if (platform.icon && hasCompletePlatformSelection(platform.name, network)) {
+          return true;
         }
       }
-    });
-
-    return buyTypeCount === platformCount && buyObjectiveCount === platformCount;
+    }
+    return false;
   };
 
   // Return dropdown options based on field name
@@ -151,7 +187,7 @@ const ObjectiveSelection = () => {
     const buyTypeKey = `Awareness-${category}-${baseIndex + 1}`;
     const buyObjectiveKey = `Awareness-${category}-${baseIndex + 2}`;
 
-    if (category !== selectedNetwork) {
+    if (!validatedPlatforms.has(platform.name)) {
       return null;
     }
 
@@ -217,16 +253,16 @@ const ObjectiveSelection = () => {
             <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
               {stage.name === "Awareness" && statuses[stageIndex] === "Completed" ? (
                 <div className="flex flex-col md:flex-row w-full gap-12">
-                  {selectedNetwork && (
-                    <div className="flex-1">
-                      <h3 className="text-xl font-semibold text-[#061237] mb-6">{selectedNetwork}</h3>
+                  {Array.from(selectedNetworks).map(network => (
+                    <div key={network} className="flex-1">
+                      <h3 className="text-xl font-semibold text-[#061237] mb-6">{network}</h3>
                       <div className="flex flex-row gap-8">
-                        {stage.platforms[selectedNetwork]
+                        {stage.platforms[network]
                           .filter((p) => p.icon)
-                          .map((platform, idx) => renderCompletedPlatform(platform, idx, selectedNetwork))}
+                          .map((platform, idx) => renderCompletedPlatform(platform, idx, network))}
                       </div>
                     </div>
-                  )}
+                  ))}
                 </div>
               ) : (
                 // Original grid layout for non-completed state
@@ -292,7 +328,7 @@ const ObjectiveSelection = () => {
                     text="Validate"
                     variant="primary"
                     onClick={() => handleValidate(stageIndex)}
-                    disabled={!hasAllBuySelections()}
+                    disabled={!hasMinimumBuySelections()}
                   />
                 </div>
               )}

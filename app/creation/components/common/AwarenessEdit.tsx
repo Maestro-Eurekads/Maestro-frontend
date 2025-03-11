@@ -4,6 +4,7 @@ import Button from "./button";
 import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Swal from 'sweetalert2';
 
 import trade from "../../../../public/TheTradeDesk.svg";
 import speaker from "../../../../public/mdi_megaphone.svg";
@@ -16,14 +17,42 @@ import vector from "../../../../public/Vector.svg";
 import { campaignObjectives } from '../../../../components/data';
 
 const AwarenessEdit = ({ onDelete }) => {
-  // Separate state for each dropdown button
+  const [isDeleted, setIsDeleted] = useState(false);
   const [dropdowns, setDropdowns] = useState({});
   const [values, setValues] = useState({});
 
+  const handleDelete = () => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You want to delete this stage?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3175FF',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setIsDeleted(true);
+        if (onDelete) {
+          onDelete();
+        }
+        Swal.fire(
+          'Deleted!',
+          'Your stage has been deleted.',
+          'success'
+        )
+      }
+    })
+  };
+
+  const handleAddBack = () => {
+    setIsDeleted(false);
+  };
+
   const toggleDropdown = (id) => {
     setDropdowns(prev => ({
-      ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}), // Close all dropdowns
-      [id]: !prev[id] // Toggle the clicked dropdown
+      ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}),
+      [id]: !prev[id]
     }));
   };
 
@@ -67,6 +96,17 @@ const AwarenessEdit = ({ onDelete }) => {
     );
   };
 
+  if (isDeleted) {
+    return (
+      <button
+        onClick={handleAddBack}
+        className="w-full py-4 bg-[#3175FF] text-white rounded-lg hover:bg-blue-600 transition-colors"
+      >
+        Add Awareness Stage
+      </button>
+    );
+  }
+
   return (
     <div className="flex items-start flex-col gap-6">
       {/* Awareness */}
@@ -80,7 +120,7 @@ const AwarenessEdit = ({ onDelete }) => {
           variant="danger"
           text="Delete this stage"
           icon={Trash}
-          onClick={() => alert("Deleted")}
+          onClick={handleDelete}
           className="!rounded-full !px-4 !py-4 !text-white !w-[167px] !h-[31px]"
         />
       </div>
