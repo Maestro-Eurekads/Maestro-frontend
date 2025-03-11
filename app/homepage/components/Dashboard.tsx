@@ -7,6 +7,7 @@ import PlatformSpending from '../../../components/PlatformSpending'
 import DateComponent from '../../creation/components/molecules/date-component/date-component'
 import WeekInterval from '../../creation/components/atoms/date-interval/WeekInterval'
 import WeekTimeline from '../../creation/components/atoms/date-interval/WeekTimeline'
+import ChannelDistributionChatThree from '../../../components/ChannelDistribution/ChannelDistributionChatThree'
 
 const Dashboard = () => {
 	const weeksCount = 14; // Dynamic count
@@ -57,11 +58,11 @@ const Dashboard = () => {
 						</div>
 
 
-						<div className='flex items-center gap-6 mt-[24px]'>
-							<div className=''>
-								<DoughnutChat />
-							</div>
-							<div className=' flex flex-col gap-[28px]'>
+						<div className='flex items-center gap-6 mt-[24px] w-full'>
+							{/* Doughnut Chat */}
+							<DoughnutChat />
+
+							<div className=' flex flex-col gap-[28px] w-full'>
 								<div className='flex items-center gap-2'>
 									<div className="w-[12px] h-[12px] bg-[#3175FF] rounded-[4px]"></div>
 									<p className="   font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
@@ -92,10 +93,10 @@ const Dashboard = () => {
 							Channels
 						</p>
 
-						<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">6</h3>
+						<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">4</h3>
 					</div>
 
-					<PlatformSpending />
+					<ChannelDistributionChatThree />
 				</div>
 
 			</div>
