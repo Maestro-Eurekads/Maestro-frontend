@@ -4,6 +4,7 @@ import ConfiguredSetPage from './ConfiguredSetPage';
 import CampaignBudget from './CampaignBudget';
 import PageHeaderWrapper from '../../../components/PageHeaderWapper';
 import DoughnutChat from '../../../components/DoughnutChat';
+import ChannelDistributionChatTwo from '../../../components/ChannelDistribution/ChannelDistributionChatTwo';
 
 const ConfigureAdSetsAndBudget = () => {
 
@@ -97,7 +98,8 @@ const ConfigureAdSetsAndBudget = () => {
 										6 channels
 									</h3>
 								</div>
-								<PlatformSpending />
+								<ChannelDistributionChatTwo />
+								{/* <PlatformSpending /> */}
 							</div>
 						</div>
 					</div>

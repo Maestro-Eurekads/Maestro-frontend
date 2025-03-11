@@ -1,11 +1,12 @@
-import ThreeValuesProgress from "./ThreeValuesProgress";
-import Google from "../public/Google.svg";
-import facebook from "../public/facebook.svg";
-import ig from "../public/ig.svg";
-import quantcast from "../public/quantcast.svg";
-import youtube from "../public/youtube.svg";
-import tradedesk from "../public/tradedesk.svg";
+
+import Google from "../../public/Google.svg";
+import facebook from "../../public/facebook.svg";
+import ig from "../../public/ig.svg";
+import quantcast from "../../public/quantcast.svg";
+import youtube from "../../public/youtube.svg";
+import tradedesk from "../../public/tradedesk.svg";
 import Image from 'next/image'
+import ThreeValuesProgress from "../ThreeValuesProgress";
 
 const platforms = [
 	{ img: <Image src={facebook} alt='facebook' />, name: "Facebook", amount: "4 200 €", values: [37, 23, 40] },
@@ -16,9 +17,30 @@ const platforms = [
 	{ img: <Image src={Google} alt='Google' />, name: "Google", amount: "6 100 €", values: [0, 0, 100] },
 ];
 
-export default function PlatformSpending() {
+const ChannelDistributionChatOne = () => {
 	return (
 		<div className="flex flex-col gap-[20px]">
+			{/* Legend */}
+			<div className="flex gap-[24px] items-center mt-[10px] flex-wrap">
+				<div className="flex items-center gap-2">
+					<div className="w-[14px] h-[14px] bg-[#3175FF] rounded-[4px]"></div>
+					<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
+						Awareness
+					</p>
+				</div>
+				<div className="flex items-center gap-2">
+					<div className="w-[14px] h-[14px] bg-[#00A36C] rounded-[4px]"></div>
+					<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
+						Consideration
+					</p>
+				</div>
+				<div className="flex items-center gap-2">
+					<div className="w-[14px] h-[14px] bg-[#FF9037] rounded-[4px]"></div>
+					<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
+						Conversion
+					</p>
+				</div>
+			</div>
 			{platforms.map((platform, index) => (
 				<div key={index} className="flex flex-col gap-[10px]">
 					{/* Platform Name & Amount */}
@@ -33,35 +55,15 @@ export default function PlatformSpending() {
 							</p>
 						</div>
 					</div>
-
 					{/* Progress Bar */}
 					<div>
-						<ThreeValuesProgress values={platform.values} showpercent={false} />
+						<ThreeValuesProgress values={platform.values} showpercent={true} />
 					</div>
 
-					{/* Legend */}
-					<div className="flex justify-between items-center mt-[10px]">
-						<div className="flex items-center gap-2">
-							<div className="w-[12px] h-[12px] bg-[#3175FF] rounded-[4px]"></div>
-							<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-								Awareness ({platform.values[0]}%)
-							</p>
-						</div>
-						<div className="flex items-center gap-2">
-							<div className="w-[12px] h-[12px] bg-[#00A36C] rounded-[4px]"></div>
-							<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-								Consideration ({platform.values[1]}%)
-							</p>
-						</div>
-						<div className="flex items-center gap-2">
-							<div className="w-[12px] h-[12px] bg-[#FF9037] rounded-[4px]"></div>
-							<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-								Conversion ({platform.values[2]}%)
-							</p>
-						</div>
-					</div>
+
 				</div>
 			))}
 		</div>
 	);
 }
+export default ChannelDistributionChatOne
