@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import PlatformSpending from '../../../../components/PlatformSpending'
 import DoughnutChat from '../../../../components/DoughnutChat'
 import down from '../../../../public/down.svg';
 import Image from 'next/image'
@@ -10,6 +9,12 @@ import CampaignPhases from '../CampaignPhases';
 const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 	const [open, setOpen] = useState(false);
 	const [opens, setOpens] = useState(false);
+
+	const campaignPhases = [
+		{ name: "Awareness", percentage: 25, color: "#3175FF" },
+		{ name: "Consideration", percentage: 50, color: "#00A36C" },
+		{ name: "Conversion", percentage: 25, color: "#FF9037" },
+	];
 
 	return (
 		<div>
@@ -47,10 +52,10 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 
 							<div className='campaign_phases_container mt-[24px]'>
 								<div className='campaign_phases_container_one'>
-									<DoughnutChat />
+									<DoughnutChat data={[25, 50, 25]} />
 								</div>
 								{/* Campaign Phases */}
-								<CampaignPhases />
+								<CampaignPhases campaignPhases={campaignPhases} />
 							</div>
 
 							{/* Phase distribution */}
