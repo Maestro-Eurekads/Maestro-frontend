@@ -36,7 +36,7 @@ const AudienceDropdown = memo(function AudienceDropdown() {
     <div className="relative border-2 border-[#0000001A] rounded-[10px]">
       <button
         onClick={toggleOpen}
-        className="relative z-50 w-[172px] bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
+        className="relative z-30 w-[172px] bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
       >
         <span className="truncate">{selected || "Your audience type"}</span>
         <svg
@@ -56,7 +56,7 @@ const AudienceDropdown = memo(function AudienceDropdown() {
         </svg>
       </button>
       {open && (
-        <ul className="absolute w-full mt-1 z-[100] bg-white border-2 border-[#0000001A] rounded-lg shadow-lg overflow-auto">
+        <ul className="absolute mt-1 z-50 bg-white border-2 border-[#0000001A] rounded-lg shadow-lg overflow-hidden">
           {options.map((option, index) => (
             <li
               key={index}
