@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import mdEdit from "../../../public/line-md_edit.svg";
 import blueSmallPlue from "../../../public/blueSmallPlue.svg";
@@ -12,14 +11,16 @@ const EditInput = ({
   setInputs,
   businessList,
   setBusinessList,
-  label
+  label,
+  setAlert, // Pass setAlert for notifications
 }: {
   placeholder: string;
   inputs: any;
   setInputs: any;
   businessList: string[];
   setBusinessList: any;
-  label?:string
+  label?: string;
+  setAlert: any;
 }) => {
   const [fields, setFields] = useState<{ id: number; text: string }[]>([
     { id: 1, text: "" },
@@ -33,30 +34,66 @@ const EditInput = ({
     }));
   }, [fields, setInputs]);
 
-  // Handle adding a new field
+  // Handle adding a new field 
   const handleAddField = () => {
-    if (businessList.includes(inputs.businessUnits.toLowerCase())) {
-      alert("Business unit already exists");
-    } else {
-      setBusinessList([...businessList, inputs.businessUnits.toLowerCase()]);
-      setInputs((prevState) => ({
-        ...prevState,
-        sports: "",
-      }));
+    const trimmedUnit = inputs.businessUnits.trim().toLowerCase();
+
+    if (!trimmedUnit) {
+      setAlert({
+        variant: "error",
+        message: "Business unit name cannot be empty",
+        position: "bottom-right",
+      });
+      return;
     }
+
+    if (businessList.includes(trimmedUnit)) {
+      setAlert({
+        variant: "warning",
+        message: "Business unit already exists",
+        position: "bottom-right",
+      });
+      return;
+    }
+
+    if (businessList.length >= 5) {
+      setAlert({
+        variant: "warning",
+        message: "Maximum 5 business units allowed",
+        position: "bottom-right",
+      });
+      return;
+    }
+
+    setBusinessList([...businessList, trimmedUnit]);
+    setInputs((prevState) => ({
+      ...prevState,
+      businessUnits: "",
+    }));
+
+    setAlert({
+      variant: "success",
+      message: "Business unit added successfully",
+      position: "bottom-right",
+    });
   };
 
   // Handle removing a field
   const handleRemoveSport = (sport) => {
     const filteredEmails = businessList.filter((e) => e !== sport);
     setBusinessList(filteredEmails);
+    setAlert({
+      variant: "info",
+      message: "Business Units removed",
+      position: "bottom-right",
+    });
   };
 
   // Handle clearing a field
   const handleClear = () => {
     setInputs((prevState) => ({
       ...prevState,
-      sports: "",
+      businessUnits: "",
     }));
   };
 
@@ -128,11 +165,13 @@ const BusinessUnit = ({
   setInputs,
   businessList,
   setBusinessList,
+  setAlert,
 }: {
   inputs: any;
   setInputs: any;
   businessList: any;
   setBusinessList: any;
+  setAlert: any;
 }) => {
   return (
     <div className="flex flex-col gap-4 mt-[20px]">
@@ -142,6 +181,7 @@ const BusinessUnit = ({
         setInputs={setInputs}
         businessList={businessList}
         setBusinessList={setBusinessList}
+        setAlert={setAlert}
         label="Business level 2"
       />
     </div>
