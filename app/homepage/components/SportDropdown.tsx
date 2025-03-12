@@ -35,18 +35,6 @@ const EditInput = ({
     }));
   }, [fields, setInputs]);
 
-  // // Handle adding a new field
-  // const handleAddField = () => {
-  //   if (sportList.includes(inputs.sports.toLowerCase())) {
-  //     alert("Sport already exists");
-  //   } else {
-  //     setSportList([...sportList, inputs.sports.toLowerCase()]);
-  //     setInputs((prevState) => ({
-  //       ...prevState,
-  //       sports: "",
-  //     }));
-  //   }
-  // };
 
   // Handle adding a new field
   const handleAddField = () => {
