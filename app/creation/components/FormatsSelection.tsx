@@ -18,6 +18,7 @@ import yahoo from '../../../public/yahoo.svg';
 import bing from '../../../public/bing.svg';
 import orangecredit from '../../../public/orangecredit-card.svg';
 import tablerzoomfilled from '../../../public/tabler_zoom-filled.svg';
+import { Platforms } from './FormatSelection';
 
 const funnelStages = [
 	{
@@ -78,7 +79,7 @@ const FormatsSelection = () => {
 											{Array.isArray(platforms) && platforms.map((platform, pIndex) => (
 												<div
 													key={pIndex}
-													className="flex flex-row justify-between items-center p-5 gap-4 w-[230px] h-[62px] bg-white border border-[rgba(0,0,0,0.1)] rounded-[10px]"
+													className="flex flex-row justify-between items-center p-5 gap-4 w-[230px] h-[62p border border-[rgba(0,0,0,0.1)] rounded-[10px]"
 												>
 													<div className="flex items-center gap-2">
 														<Image src={platform.icon} alt={platform.name} />
@@ -86,16 +87,24 @@ const FormatsSelection = () => {
 															{platform.name}
 														</p>
 													</div>
+											
+													
 												</div>
 											))}
+											
 										</div>
 									</div>
+									
 								))}
+								 <div className="card-body">
+                              <Platforms />
+                               </div>
 							</div>
 						)}
 					</div>
 				))}
 			</div>
+
 		</div>
 	);
 };
