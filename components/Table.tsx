@@ -27,10 +27,10 @@ const Table = () => {
         </thead>
         <tbody className="data-table-content">
           {loading ? (
-            <center className="flex items-center gap-2 my-2">
+            <tr className="flex items-center gap-2 my-2">
               <FiLoader className="animate-spin" size={20} />
               <p>Loading client campaigns</p>
-            </center>
+            </tr>
           ) : (
             <>
               {clientCampaignData?.map((data) => (

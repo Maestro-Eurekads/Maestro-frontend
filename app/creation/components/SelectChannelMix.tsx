@@ -7,6 +7,7 @@ import checkmark from "../../../public/mingcute_check-fill.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { funnelStages } from "../../../components/data";
 import { useCampaigns } from "../../utils/CampaignsContext";
+import { channel } from "diagnostics_channel";
 
 const SelectChannelMix = () => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
@@ -33,6 +34,21 @@ const SelectChannelMix = () => {
       );
       setOpenItems(value);
     }
+    const ch_mix = campaignFormData?.channel_mix;
+    console.log("🚀 ~ useEffect ~ ch_mix:", JSON.stringify(ch_mix));
+    const v =
+      Array.isArray(ch_mix) &&
+      ch_mix.reduce((acc, ch) => {
+        acc[ch.funnel_stage] = {
+          "Social Media": ch?.social_media?.map((sm) => sm?.platform_name),
+          "Display Networks": ch?.display_networks?.map(
+            (dn) => dn?.platform_name
+          ),
+          "Search engines": ch?.search_engines?.map((se) => se?.platform_name),
+        };
+        return acc;
+      }, {});
+    console.log("🚀 ~ v ~ v:", v);
   }, [campaignFormData?.funnel_stages]);
 
   const togglePlatform = (
@@ -62,22 +78,39 @@ const SelectChannelMix = () => {
     });
     setCampaignFormData((prev1: any) => {
       const updatedCategorySelection = isAlreadySelected
-        ? categorySelection.filter((p) => p !== platformName)
-        : [...categorySelection, platformName];
+      ? categorySelection.filter((p) => p !== platformName)
+      : [...categorySelection, platformName];
+
+      const updatedChannelMix = prev1.channel_mix.map((ch) => {
+      if (ch.funnel_stage === stageName) {
+        return {
+        ...ch,
+        [category.toLowerCase().replaceAll(" ", "_")]:
+          updatedCategorySelection.map((cat: any) => ({
+          platform_name: cat,
+          })),
+        };
+      }
+      return ch;
+      }).map(({ id, ...rest }) => rest); // Remove the id from each channel mix object
+
+      const stageExists = prev1.channel_mix.some(
+      (ch) => ch.funnel_stage === stageName
+      );
+
+      if (!stageExists) {
+      updatedChannelMix.push({
+        funnel_stage: stageName,
+        [category.toLowerCase().replaceAll(" ", "_")]:
+        updatedCategorySelection.map((cat: any) => ({
+          platform_name: cat,
+        })),
+      });
+      }
+
       return {
-        ...prev1,
-        channel_mix: {
-          ...prev1.channel_mix,
-          [stageName]: {
-            ...prev1.channel_mix[stageName],
-            funnel_stage: stageName,
-            [category.toLowerCase().replaceAll(" ", "_")]: updatedCategorySelection.map(
-              (cat: any) => ({
-                platform_name: cat,
-              })
-            ),
-          },
-        },
+      ...prev1,
+      channel_mix: updatedChannelMix,
       };
     });
   };
@@ -106,6 +139,8 @@ const SelectChannelMix = () => {
       [stageName]: false,
     }));
   };
+
+  console.log("selected", JSON.stringify(selected));
 
   return (
     <div className="overflow-hidden">
