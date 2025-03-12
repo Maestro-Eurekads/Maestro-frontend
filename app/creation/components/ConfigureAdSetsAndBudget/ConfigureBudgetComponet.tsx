@@ -1,12 +1,20 @@
 import React, { useState } from 'react'
-import PlatformSpending from '../../../../components/PlatformSpending'
 import DoughnutChat from '../../../../components/DoughnutChat'
 import down from '../../../../public/down.svg';
 import Image from 'next/image'
 import PhasedistributionProgress from '../../../../components/PhasedistributionProgress';
+import ChannelDistributionChatOne from '../../../../components/ChannelDistribution/ChannelDistributionChatOne';
+import CampaignPhases from '../CampaignPhases';
 
 const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
-	const [open, setOpen] = useState(true);
+	const [open, setOpen] = useState(false);
+	const [opens, setOpens] = useState(false);
+
+	const campaignPhases = [
+		{ name: "Awareness", percentage: 25, color: "#3175FF" },
+		{ name: "Consideration", percentage: 50, color: "#00A36C" },
+		{ name: "Conversion", percentage: 25, color: "#FF9037" },
+	];
 
 	return (
 		<div>
@@ -44,34 +52,27 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 
 							<div className='campaign_phases_container mt-[24px]'>
 								<div className='campaign_phases_container_one'>
-									<DoughnutChat />
+									<DoughnutChat data={[25, 50, 25]} />
 								</div>
-								<div className='campaign_phases_container_two flex flex-col gap-[28px]'>
-									<div className='flex items-center gap-2'>
-										<div className="w-[12px] h-[12px] bg-[#3175FF] rounded-[4px]"></div>
-										<p className="   font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-											Awareness (25%)
-										</p>
-									</div>
-									<div className='flex items-center gap-2'>
-										<div className="w-[12px] h-[12px] bg-[#00A36C] rounded-[4px]"></div>
-										<p className="   font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-											Consideration (23%)
-										</p>
-									</div>
-									<div className='flex items-center gap-2'>
-										<div className="w-[12px] h-[12px] bg-[#FF9037] rounded-[4px]"></div>
-										<p className="   font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-											Conversion (25%)
-										</p>
-									</div>
-								</div>
+								{/* Campaign Phases */}
+								<CampaignPhases campaignPhases={campaignPhases} />
 							</div>
 
 							{/* Phase distribution */}
 							<div className="mr-[62px] mt-8 ">
-								<button onClick={() => setOpen(!open)}
-									className="flex flex-row items-center p-0 gap-2  h-[24px] font-[600] text-[18px] leading-[24px] text-[#061237]"> <Image src={down} alt="down" />Phase distribution</button>
+								<button
+									onClick={() => setOpen(!open)}
+									className="flex flex-row items-center p-0 gap-2 h-[24px] font-[600] text-[18px] leading-[24px] text-[#061237]"
+								>
+									<Image
+										src={down}
+										alt="down"
+										className={`transition-transform duration-300 ${open ? "rotate-0" : "-rotate-90"}`}
+									/>
+									Phase distribution
+								</button>
+
+
 
 								{open &&
 									<PhasedistributionProgress />}
@@ -82,21 +83,33 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 
 
 						<div className='allocate_budget_phase_two'>
-							<h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">Channel distribution</h3>
-							<p className="font-medium text-[15px] leading-[175%] text-[rgba(0,0,0,0.9)] order-1 self-stretch flex-none">
+							<button
+								onClick={() => setOpens(!opens)}
+								className="flex flex-row items-center p-0 gap-2 h-[24px] font-[600] text-[18px] leading-[24px] text-[#061237]"
+							>
+								<Image
+									src={down}
+									alt="down"
+									className={`transition-transform duration-300 ${opens ? "rotate-0" : "-rotate-90"}`}
+								/>
+								Channel distribution
+							</button>
+
+
+							{/* <p className="font-medium text-[15px] leading-[175%] text-[rgba(0,0,0,0.9)] order-1 self-stretch flex-none">
 								Graph showing the total budget spent and its breakdown across the three phases.
-							</p>
+							</p> */}
+							{opens &&
+								<div className='mt-[16px]'>
+									<p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
+										Channels
+									</p>
 
-							<div className='mt-[16px]'>
-								<p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-									Channels
-								</p>
+									<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">6</h3>
+								</div>}
 
-								<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">6 channels</h3>
-							</div>
-
-							<PlatformSpending />
-
+							{/* <PlatformSpending /> */}
+							{opens && <ChannelDistributionChatOne />}
 
 						</div>
 

@@ -1,12 +1,11 @@
 import React, { useState } from 'react'
 import FiltersDropdowns from './FiltersDropdowns'
 import HighlightViewDropdowns from './HighlightViewDropdowns'
-import DoughnutChart from '../../../components/DoughnutChat'
 import DoughnutChat from '../../../components/DoughnutChat'
-import PlatformSpending from '../../../components/PlatformSpending'
-import DateComponent from '../../creation/components/molecules/date-component/date-component'
 import WeekInterval from '../../creation/components/atoms/date-interval/WeekInterval'
 import WeekTimeline from '../../creation/components/atoms/date-interval/WeekTimeline'
+import ChannelDistributionChatThree from '../../../components/ChannelDistribution/ChannelDistributionChatThree'
+import CampaignPhases from '../../creation/components/CampaignPhases'
 
 const Dashboard = () => {
 	const weeksCount = 14; // Dynamic count
@@ -16,6 +15,12 @@ const Dashboard = () => {
 		{ startWeek: 3, endWeek: 10, label: "Campaign 1" },
 		{ startWeek: 4, endWeek: 7, label: "Campaign 2" },
 		// { startWeek: 4, endWeek: 7, label: "Campaign 2" },
+	];
+
+	const campaignPhases = [
+		{ name: "Awareness", percentage: 35, color: "#3175FF" },
+		{ name: "Consideration", percentage: 40, color: "#00A36C" },
+		{ name: "Conversion", percentage: 25, color: "#FF9037" },
 	];
 
 	return (
@@ -57,30 +62,13 @@ const Dashboard = () => {
 						</div>
 
 
-						<div className='flex items-center gap-6 mt-[24px]'>
-							<div className=''>
-								<DoughnutChat />
-							</div>
-							<div className=' flex flex-col gap-[28px]'>
-								<div className='flex items-center gap-2'>
-									<div className="w-[12px] h-[12px] bg-[#3175FF] rounded-[4px]"></div>
-									<p className="   font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-										Awareness (25%)
-									</p>
-								</div>
-								<div className='flex items-center gap-2'>
-									<div className="w-[12px] h-[12px] bg-[#00A36C] rounded-[4px]"></div>
-									<p className="   font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-										Consideration (23%)
-									</p>
-								</div>
-								<div className='flex items-center gap-2'>
-									<div className="w-[12px] h-[12px] bg-[#FF9037] rounded-[4px]"></div>
-									<p className="   font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-										Conversion (25%)
-									</p>
-								</div>
-							</div>
+						<div className='flex items-center gap-6 mt-[24px] w-full'>
+							{/* Doughnut Chat */}
+							<DoughnutChat data={[35, 40, 25]} />
+
+							{/* Campaign Phases */}
+							<CampaignPhases campaignPhases={campaignPhases} />
+
 						</div>
 					</div>
 				</div>
@@ -92,10 +80,10 @@ const Dashboard = () => {
 							Channels
 						</p>
 
-						<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">6</h3>
+						<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">4</h3>
 					</div>
 
-					<PlatformSpending />
+					<ChannelDistributionChatThree />
 				</div>
 
 			</div>

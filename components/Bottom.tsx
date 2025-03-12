@@ -96,7 +96,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     ]);
     const handleStepZero = async () => {
       // const updatedChannelMix = channel_mix.map(({ id, ...rest }) => rest);
-      if (cId) {
+      if (cId && campaignData) {
         await updateCampaignData({
           ...cleanData,
           client: campaignFormData?.client_selection?.id,
@@ -124,10 +124,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         window.history.pushState({}, "", url.toString());
         await getActiveCampaign(res?.data?.data.documentId);
       }
-      // setActive((prev) => Math.min(10, prev + 1));
     };
 
     const handleStepOne = async () => {
+      if (!campaignData) return;
       await updateCampaignData({
         ...cleanData,
         campaign_objective: campaignFormData?.campaign_objectives,
@@ -135,12 +135,17 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     };
 
     const handleStepTwo = async () => {
+      if (!campaignData) return;
+
       await updateCampaignData({
         ...cleanData,
         funnel_stages: campaignFormData?.funnel_stages,
       });
     };
+
     const handleStepThree = async () => {
+      if (!campaignData) return;
+
       await updateCampaignData({
         ...cleanData,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
@@ -220,6 +225,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
+
+
       <div className="flex justify-between w-full">
         {/* Back Button */}
         {active === 0 ? (

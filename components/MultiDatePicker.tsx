@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import left from "../public/left.svg";
 import right from "../public/right.svg";
+import moveright from "../public/lucide_move-right.svg";
 
 interface MultiDatePickerProps {
 	isEditing: boolean;
@@ -142,15 +143,21 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({ isEditing }) => {
 					<div>
 						<h6 className="font-semibold text-[14px] text-[#061237]">From</h6>
 						<button className="reset_dates_move">
-							{selectedDates.from ? `${months.find(m => m.monthIndex === selectedDates.from?.month)?.name} ${selectedDates.from.day}` : "Select date"}
+							{selectedDates.from
+								? `${String(selectedDates.from.day).padStart(2, "0")}-${String(selectedDates.from.month + 1).padStart(2, "0")}-${new Date().getFullYear().toString().slice(-2)}`
+								: "Select date"}
 						</button>
 					</div>
+					<Image src={moveright} alt="moveright" className="mt-5" />
 					<div>
 						<h6 className="font-semibold text-[14px] text-[#061237]">To</h6>
 						<button className="reset_dates_move">
-							{selectedDates.to ? `${months.find(m => m.monthIndex === selectedDates.to?.month)?.name} ${selectedDates.to.day}` : "Select date"}
+							{selectedDates.to
+								? `${String(selectedDates.to.day).padStart(2, "0")}-${String(selectedDates.to.month + 1).padStart(2, "0")}-${new Date().getFullYear().toString().slice(-2)}`
+								: "Select date"}
 						</button>
 					</div>
+
 				</div>
 				<button type="button" className={`reset_dates ${!isEditing ? "cursor-not-allowed " : ""}`} onClick={resetDates} disabled={!isEditing}>
 					Reset dates

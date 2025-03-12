@@ -60,7 +60,7 @@ const DefineAdSetPage = () => {
   };
 
   return (
-    <div className="mt-12 flex items-start flex-col mx-auto gap-12 w-full">
+    <div className="mt-12 flex items-start flex-col cursor-pointer mx-auto gap-12 w-full">
       {funnelStages.map((stage, index) => (
         <div key={index} className="w-full">
           <div
@@ -103,7 +103,7 @@ const DefineAdSetPage = () => {
           </div>
 
           {openItems[stage.name] && stage.name === "Awareness" && (
-            <div className={`card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px] overflow-x-scroll`}>
+            <div className={`card_bucket_container_main_sub flex flex-col pb-6 w-full cursor-pointer min-h-[300px] overflow-x-scroll`}>
 
               <AdSetsFlow />
             </div>
@@ -111,12 +111,14 @@ const DefineAdSetPage = () => {
 
           {openItems[stage.name] &&
             (stage.name === "Consideration") && (
-              <div className="card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px] overflow-x-scroll">
+              <div className="card_bucket_container_main_sub flex flex-col pb-6 cursor-pointer w-full min-h-[300px] overflow-x-scroll">
+                <AdSetsFlow />
               </div>
             )}
           {openItems[stage.name] &&
             (stage.name === "Conversion") && (
-              <div className="card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px] overflow-x-scroll">
+              <div className="card_bucket_container_main_sub flex flex-col cursor-pointer pb-6 w-full min-h-[300px] overflow-x-scroll">
+                <AdSetsFlow />
               </div>
             )}
         </div>

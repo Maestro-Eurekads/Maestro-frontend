@@ -102,6 +102,7 @@ const SetBudgetOverviewModel = () => {
 			>
 				See budget overview
 			</button>
+
 			<Modal isOpen={isModalOpen} onClose={handleCloseModal}>
 				{step === 1 && (
 					<div className="card bg-base-100 w-[418px]">
@@ -175,9 +176,8 @@ const SetBudgetOverviewModel = () => {
 
 						<div className="card-title p-6">
 							<button
-								className="btn btn-primary w-full text-sm"
-								onClick={() => setStep(2)}
-							>
+								className="btn btn-primary w-full text-sm bg-[#3175FF]"
+								onClick={() => setStep(2)}>
 								Start setting goals
 							</button>
 						</div>
@@ -185,7 +185,7 @@ const SetBudgetOverviewModel = () => {
 				)}
 
 				{step === 2 && (
-					<main className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px]">
+					<div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px]">
 						<form method="dialog" className="flex justify-between p-2 !pb-0">
 							<span></span>
 							<span className="w-[44px] h-[44px] grid place-items-center">
@@ -260,6 +260,7 @@ const SetBudgetOverviewModel = () => {
 									</g>
 								</svg>
 							</span>
+
 							<button className="self-start">
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
@@ -279,8 +280,16 @@ const SetBudgetOverviewModel = () => {
 							</button>
 						</form>
 
+						<div className="flex flex-col justify-center w-full">
+							<h1 className=" font-general font-semibold text-[20px] leading-[27px] text-gray-900 text-center" >
+								Choose your goal level
+							</h1>
+							<p className="  font-general font-medium text-[16px] leading-[150%] text-gray-600 text-center"
+							>Define how you want to set your benchmarks and goals for your media plan.</p>
+						</div>
+						<section className="flex gap-6 mt-[20px]">
 
-						<section className="flex gap-6 h-full">
+
 							{[
 								{
 									img: channel,
@@ -319,9 +328,8 @@ const SetBudgetOverviewModel = () => {
 
 										<div className="">
 											<button
-												className="btn btn-primary w-full text-sm"
-												onClick={() => setStep(1)}
-											>
+												className="btn btn-primary w-full text-sm bg-[#3175FF]"
+												onClick={() => setStep(1)}>
 												Select
 											</button>
 										</div>
@@ -329,7 +337,7 @@ const SetBudgetOverviewModel = () => {
 								</div>
 							))}
 						</section>
-					</main>
+					</div>
 				)}
 			</Modal>
 		</div >

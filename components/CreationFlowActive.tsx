@@ -2,7 +2,7 @@
 import { useState, useEffect, SetStateAction } from "react";
 import { useActive } from "../app/utils/ActiveContext";
 
-const CreationFlowActive = ({ steps }) => {
+const CreationFlowActive = ({ steps, close }) => {
 	const { active, setActive } = useActive();
 	const [hydrated, setHydrated] = useState(false);
 
@@ -19,7 +19,7 @@ const CreationFlowActive = ({ steps }) => {
 	};
 
 	return (
-		<div id="Sidenavbar">
+		<div id={close ? "Sidenavbar_active" : "Sidenavbar"}>
 			<div id="SideBar__container">
 				{steps.map((step, index) => {
 					const stepNumber = index + 1;

@@ -36,6 +36,7 @@ import FormatsSelection from "./FormatsSelection";
 import { funnelStages } from "../../../components/data";
 import { useCampaigns } from "../../utils/CampaignsContext";
 
+// Types for platforms and channels
 type IPlatform = {
   name: string;
   icon: any;
@@ -68,6 +69,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
   }>({});
   const [channels, setChannels] = useState<IChannel[]>([]);
 
+  // Default media format options available
   const defaultMediaOptions = [
     { name: "Carousel", icon: carousel, selected: false },
     { name: "Image", icon: image_format, selected: false },
@@ -105,6 +107,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     );
     setIsValidateEnabled(anyPlatformSelected);
   }, [platformMediaOptions]);
+  
 
   useEffect(() => {
     if (campaignFormData?.channel_mix && stageName) {
@@ -179,12 +182,9 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     setCampaignFormData({ ...campaignFormData, channel_mix: copy });
   };
 
-  const handleQuantityChange = (
-    platformName: string,
-    formatIndex: number,
-    change: number
-  ) => {
-    setQuantities((prev) => ({
+  // Handle quantity changes for formats
+  const handleQuantityChange = (platformName: string, formatIndex: number, change: number) => {
+    setQuantities(prev => ({
       ...prev,
       [platformName]: {
         ...prev[platformName],
@@ -196,9 +196,10 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     }));
   };
 
-  // Handle Validate / Edit button click
+  // Handle validation or editing of selections
   const handleValidateOrEdit = () => {
     if (!isValidated) {
+      // Store validated selections
       const validatedSelections: { [key: string]: any[] } = {};
       Object.entries(platformMediaOptions).forEach(([platform, options]) => {
         validatedSelections[platform] = options.filter(
@@ -208,7 +209,8 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       setValidatedMediaOptions(validatedSelections);
       setIsValidated(true);
     } else {
-      setPlatformMediaOptions((prev) => {
+      // Reset to editing mode
+      setPlatformMediaOptions(prev => {
         const newOptions: { [key: string]: any[] } = {};
         Object.keys(prev).forEach((platform) => {
           newOptions[platform] = prev[platform].map((option) => ({
@@ -225,6 +227,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     }
   };
 
+  // Render the platforms UI
   return (
     <div className="text-[16px] overflow-x-hidden">
       {channels?.map((channel, channelIndex) => (
@@ -337,6 +340,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
   );
 };
 
+// Main FormatSelection component that wraps everything
 export const FormatSelection = () => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
   const { campaignFormData } = useCampaigns();
@@ -493,5 +497,69 @@ export default function MediaSelection({
           </div>
         )}
       </div>
-  */
-}
+
+      <FormatsSelection />
+    </div>
+  );
+};
+
+// MediaSelection component for rendering format options
+export default function MediaSelection({
+  handleFormatSelection,
+  mediaOptions,
+  isValidated = false,
+  platformName = "",
+  quantities = {},
+  onQuantityChange = () => {},
+}: {
+  mediaOptions: any[];
+  handleFormatSelection: (index: number) => void;
+  isValidated?: boolean;
+  platformName?: string;
+  quantities?: { [key: string]: number };
+  onQuantityChange?: (index: number, change: number) => void;
+}) {
+  return (
+    <div className="flex gap-4">
+      {mediaOptions.map((option, index) => (
+        <div
+          key={index}
+          className="flex flex-col items-center"
+        >
+          <div
+            onClick={() => handleFormatSelection(index)}
+            className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
+              option.selected ? "border-blue-500 shadow-lg" : "border-gray-300"
+            }`}
+          >
+            <Image src={option.icon} width={168} height={132} alt={option.name} />
+            <p className="text-sm font-medium text-gray-700 mt-2">{option.name}</p>
+            {option.selected && (
+              <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                <FaCheck />
+              </div>
+            )}
+          </div>
+          
+          {isValidated && option.selected && (
+            <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
+              <button 
+                className="px-2 py-1 text-[#000000] text-lg font-semibold"
+                onClick={() => onQuantityChange(index, -1)}
+              >
+                -
+              </button>
+              <span className="px-2">{quantities[index] || 1}</span>
+              <button 
+                className="px-2 py-1 text-[#000000] text-lg font-semibold"
+                onClick={() => onQuantityChange(index, 1)}
+              >
+                +
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}*/}

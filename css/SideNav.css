@@ -16,10 +16,12 @@
   background: var(--white); 
   border-right: 1px solid rgba(28, 28, 28, 0.1); 
   display: block;
-  padding: 20px;
+  padding: 20px 10px;
    height: 100%;  
-  overflow: hidden; 
+  overflow: hidden;  
 }
+
+ 
 
 /* Media query for small screens */
 @media screen and (max-width: 768px) {

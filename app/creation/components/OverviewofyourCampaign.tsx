@@ -7,12 +7,10 @@ import TheTradeDesk from "../../../public/TheTradeDesk.svg";
 import instagram from "../../../public/ig.svg";
 import Image from "next/image";
 import ConfigureBudgetComponet from './ConfigureAdSetsAndBudget/ConfigureBudgetComponet';
-import { BsFillMegaphoneFill } from 'react-icons/bs';
+// import { BsFillMegaphoneFill } from 'react-icons/bs';
 import { FiChevronUp, FiChevronDown } from 'react-icons/fi';
 
 const OverviewofyourCampaign = () => {
-	const [expanded, setExpanded] = useState(false);
-	// const { range, setRange } = useDateRange();
 	const [show, setShow] = useState(false);
 	const [open, setOpen] = useState(false);
 
@@ -196,7 +194,7 @@ const OverviewofyourCampaign = () => {
 									</button>
 								</div>
 								<button className="bg-[#EBFEF4] py-2 px-3 rounded-[10px] border-solid border-2 border-[#00A36C1A] text-[#00A36C] flex gap-2">
-									1 add sets 
+									1 add sets
 									<span>
 										<svg
 											width="17"

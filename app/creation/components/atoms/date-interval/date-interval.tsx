@@ -19,9 +19,11 @@ const DateInterval = () => {
 
   return (
     <div
-      className=" w-full overflow-x-auto whitespace-nowrap flex justify-between border-y py-5 px-[23px] "
+      className="w-full overflow-x-auto whitespace-nowrap flex justify-between border-y py-5 px-[23px] "
       ref={containerRef}
     >
+
+
       {dateList.map((date, index) => {
         const isEdge = index === 0 || index === dateList.length - 1;
 
@@ -35,7 +37,9 @@ const DateInterval = () => {
               display: "grid",
               gridTemplateColumns: `repeat(${dateList.length}, 1fr)`,
             }}
+
           >
+
             <span className={`${isEdge ? "text-white" : "text-black"}`}>
               {format(date, "E")},&nbsp; {/* Added space here */}
             </span>
@@ -49,6 +53,7 @@ const DateInterval = () => {
                 <div className="w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-[#f05406]"></div>
               </div>
             )}
+
           </div>
         );
       })}
