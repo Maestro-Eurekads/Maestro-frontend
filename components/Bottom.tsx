@@ -10,6 +10,7 @@ import { useObjectives } from "../app/utils/useObjectives";
 import { useCampaigns } from "../app/utils/CampaignsContext";
 import axios from "axios";
 import { BiLoader } from "react-icons/bi";
+import { removeKeysRecursively } from "../utils/removeID";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -65,21 +66,39 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const updateCampaignData = async (data: any) => {
       await updateCampaign(data);
-      await getActiveCampaign(data.documentId);
+      await getActiveCampaign(data);
     };
 
+    // const {
+    //   id,
+    //   documentId,
+    //   createdAt,
+    //   publishedAt,
+    //   updatedAt,
+    //   client,
+    //   budget_details,
+    //   client_selection,
+    //   media_plan_details,
+    //   channel_mix,
+    //   ...updatedCampaignData
+    // } = campaignData;
+    // const { documentId: clientDocumentId, ...restClientData } = client;
+    // const { id: bId, restB } = budget_details;
+    // const { id: clId, restC } = client_selection;
+    // const { id: mId, restM } = budget_details;
+
+    const cleanData = removeKeysRecursively(campaignData, [
+      "id",
+      "documentId",
+      "createdAt",
+      "publishedAt",
+      "updatedAt",
+    ]);
     const handleStepZero = async () => {
+      // const updatedChannelMix = channel_mix.map(({ id, ...rest }) => rest);
       if (cId && campaignData) {
-        const {
-          id,
-          documentId,
-          createdAt,
-          publishedAt,
-          updatedAt,
-          ...updatedCampaignData
-        } = campaignData;
         await updateCampaignData({
-          ...updatedCampaignData,
+          ...cleanData,
           client: campaignFormData?.client_selection?.id,
           client_selection: {
             client: campaignFormData?.client_selection?.value,
@@ -109,33 +128,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const handleStepOne = async () => {
       if (!campaignData) return;
-
-      const {
-        id,
-        documentId,
-        createdAt,
-        publishedAt,
-        updatedAt,
-        client,
-        budget_details,
-        client_selection,
-        media_plan_details,
-        ...updatedCampaignData
-      } = campaignData;
-
-      if (!client || !budget_details || !client_selection || !media_plan_details) return;
-
-      const { documentId: clientDocumentId } = client;
-      const { id: bId, ...restB } = budget_details;
-      const { id: clId, ...restC } = client_selection;
-      const { id: mId, ...restM } = media_plan_details;
-
       await updateCampaignData({
-        ...updatedCampaignData,
-        client: clientDocumentId,
-        budget_details: restB,
-        client_selection: restC,
-        media_plan_details: restM,
+        ...cleanData,
         campaign_objective: campaignFormData?.campaign_objectives,
       });
     };
@@ -143,32 +137,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     const handleStepTwo = async () => {
       if (!campaignData) return;
 
-      const {
-        id,
-        documentId,
-        createdAt,
-        publishedAt,
-        updatedAt,
-        client,
-        budget_details,
-        client_selection,
-        media_plan_details,
-        ...updatedCampaignData
-      } = campaignData;
-
-      if (!client || !budget_details || !client_selection || !media_plan_details) return;
-
-      const { documentId: clientDocumentId } = client;
-      const { id: bId, ...restB } = budget_details;
-      const { id: clId, ...restC } = client_selection;
-      const { id: mId, ...restM } = media_plan_details;
-
       await updateCampaignData({
-        ...updatedCampaignData,
-        client: clientDocumentId,
-        budget_details: restB,
-        client_selection: restC,
-        media_plan_details: restM,
+        ...cleanData,
         funnel_stages: campaignFormData?.funnel_stages,
       });
     };
@@ -176,37 +146,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     const handleStepThree = async () => {
       if (!campaignData) return;
 
-      const {
-        id,
-        documentId,
-        createdAt,
-        publishedAt,
-        updatedAt,
-        client,
-        budget_details,
-        client_selection,
-        media_plan_details,
-        ...updatedCampaignData
-      } = campaignData;
-
-      if (!client || !budget_details || !client_selection || !media_plan_details) return;
-
-      const { documentId: clientDocumentId } = client;
-      const { id: bId, ...restB } = budget_details;
-      const { id: clId, ...restC } = client_selection;
-      const { id: mId, ...restM } = media_plan_details;
-
-      const channel_mix = Object.keys(campaignFormData?.channel_mix || {}).map((key: string) => {
-        return campaignFormData?.channel_mix[key];
-      });
-
       await updateCampaignData({
-        ...updatedCampaignData,
-        client: clientDocumentId,
-        budget_details: restB,
-        client_selection: restC,
-        media_plan_details: restM,
-        channel_mix
+        ...cleanData,
+        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+          "id",
+        ]),
       });
     };
 
@@ -216,8 +160,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       await handleStepOne();
     } else if (active === 2) {
       await handleStepTwo();
-    } else if(active === 3){
-      await handleStepThree()
+    } else if (active === 3 || active === 4) {
+      await handleStepThree();
     }
 
     if (active === 1 && selectedObjectives.length === 0) {
