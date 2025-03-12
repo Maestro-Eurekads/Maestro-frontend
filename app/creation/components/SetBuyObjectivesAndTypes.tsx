@@ -2,7 +2,6 @@ import React from 'react'
 
 import PageHeaderWrapper from '../../../components/PageHeaderWapper'
 import ObjectiveSelection from './ObjectiveSelection'
-// import ObjectiveSelection from './ObjectiveSelection'
 
 const SetBuyObjectivesAndTypes = () => {
 	return (

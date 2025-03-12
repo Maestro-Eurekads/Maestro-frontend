@@ -15,47 +15,49 @@ import orangecredit from "../../../public/orangecredit-card.svg";
 import tablerzoomfilled from "../../../public/tabler_zoom-filled.svg";
 import Button from "./common/button";
 
+const platformData = {
+  "Social media": [
+    { name: "Facebook", icon: facebook },
+    { name: "Buy type" },
+    { name: "Buy objective" },
+    { name: "Instagram", icon: ig },
+    { name: "Buy type" },
+    { name: "Buy objective" },
+    { name: "Youtube", icon: youtube },
+    { name: "Buy type" },
+    { name: "Buy objective" },
+  ],
+  "Display networks": [
+    { name: "TheTradeDesk", icon: TheTradeDesk },
+    { name: "Buy type" },
+    { name: "Buy objective" },
+    { name: "Quantcast", icon: Quantcast },
+    { name: "Buy type" },
+    { name: "Buy objective" },
+  ],
+};
+
 const funnelStages = [
   {
     name: "Awareness",
     icon: speaker,
     status: "In progress",
     statusIsActive: true,
-    platforms: {
-      "Social media": [
-        { name: "Facebook", icon: facebook },
-        { name: "Buy type" },
-        { name: "Buy objective" },
-        { name: "Instagram", icon: ig },
-        { name: "Buy type" },
-        { name: "Buy objective" },
-        { name: "Youtube", icon: youtube },
-        { name: "Buy type" },
-        { name: "Buy objective" },
-      ],
-      "Display networks": [
-        { name: "TheTradeDesk", icon: TheTradeDesk },
-        { name: "Buy type" },
-        { name: "Buy objective" },
-        { name: "Quantcast", icon: Quantcast },
-        { name: "Buy type" },
-        { name: "Buy objective" },
-      ],
-    },
+    platforms: platformData,
   },
   {
     name: "Consideration",
     icon: tablerzoomfilled,
     status: "Not started",
     statusIsActive: false,
-    platforms: {},
+    platforms: platformData,
   },
   {
     name: "Conversion",
     icon: orangecredit,
     status: "Not started",
     statusIsActive: false,
-    platforms: {},
+    platforms: platformData,
   },
 ];
 
@@ -66,9 +68,21 @@ const ObjectiveSelection = () => {
   const [selectedOptions, setSelectedOptions] = useState<{ [key: string]: string }>({});
   const [isEditable, setIsEditable] = useState<{ [key: string]: boolean }>({});
   const [previousSelectedOptions, setPreviousSelectedOptions] = useState<{ [key: string]: string }>({});
-  const [selectedNetworks, setSelectedNetworks] = useState<Set<string>>(new Set());
-  const [selectedPlatforms, setSelectedPlatforms] = useState<Set<string>>(new Set());
-  const [validatedPlatforms, setValidatedPlatforms] = useState<Set<string>>(new Set());
+  const [selectedNetworks, setSelectedNetworks] = useState<{ [key: string]: Set<string> }>({
+    Awareness: new Set(),
+    Consideration: new Set(),
+    Conversion: new Set()
+  });
+  const [selectedPlatforms, setSelectedPlatforms] = useState<{ [key: string]: Set<string> }>({
+    Awareness: new Set(),
+    Consideration: new Set(),
+    Conversion: new Set()
+  });
+  const [validatedPlatforms, setValidatedPlatforms] = useState<{ [key: string]: Set<string> }>({
+    Awareness: new Set(),
+    Consideration: new Set(),
+    Conversion: new Set()
+  });
 
   // Toggle expand/collapse for a stage
   const toggleItem = (stage: string) => {
@@ -84,7 +98,7 @@ const ObjectiveSelection = () => {
   };
 
   // Handle selecting an option from the dropdown
-  const handleSelectOption = (platformKey: string, option: string, category: string) => {
+  const handleSelectOption = (platformKey: string, option: string, category: string, stageName: string) => {
     setSelectedOptions((prev) => ({
       ...prev,
       [platformKey]: option,
@@ -95,18 +109,16 @@ const ObjectiveSelection = () => {
     const platform = funnelStages[0].platforms[category][Math.floor(platformIndex / 3) * 3];
     
     if (platform && platform.name) {
-      setSelectedPlatforms(prev => {
-        const newSet = new Set(prev);
-        newSet.add(platform.name);
-        return newSet;
-      });
+      setSelectedPlatforms(prev => ({
+        ...prev,
+        [stageName]: new Set([...prev[stageName], platform.name])
+      }));
     }
     
-    setSelectedNetworks(prev => {
-      const newSet = new Set(prev);
-      newSet.add(category);
-      return newSet;
-    });
+    setSelectedNetworks(prev => ({
+      ...prev,
+      [stageName]: new Set([...prev[stageName], category])
+    }));
     
     setDropdownOpen((prev) => ({
       ...prev,
@@ -116,21 +128,28 @@ const ObjectiveSelection = () => {
 
   // Mark the stage as validated/completed
   const handleValidate = (index: number) => {
+    const stageName = funnelStages[index].name;
     const updatedStatuses = [...statuses];
     updatedStatuses[index] = "Completed";
     setStatuses(updatedStatuses);
-    setIsEditable((prev) => ({ ...prev, [funnelStages[index].name]: true }));
+    setIsEditable((prev) => ({ ...prev, [stageName]: true }));
 
     // Store validated platforms
     const validatedPlatformsSet = new Set<string>();
     Object.entries(selectedOptions).forEach(([key]) => {
-      const [_, category, platformIndex] = key.split('-');
-      const platform = funnelStages[0].platforms[category][Math.floor(parseInt(platformIndex) / 3) * 3];
-      if (platform && platform.name && hasCompletePlatformSelection(platform.name, category)) {
-        validatedPlatformsSet.add(platform.name);
+      const [stage, category, platformIndex] = key.split('-');
+      if (stage === stageName) {
+        const platform = funnelStages[0].platforms[category][Math.floor(parseInt(platformIndex) / 3) * 3];
+        if (platform && platform.name && hasCompletePlatformSelection(platform.name, category, stageName)) {
+          validatedPlatformsSet.add(platform.name);
+        }
       }
     });
-    setValidatedPlatforms(validatedPlatformsSet);
+
+    setValidatedPlatforms(prev => ({
+      ...prev,
+      [stageName]: validatedPlatformsSet
+    }));
 
     // Store the current selected options before validation
     setPreviousSelectedOptions(selectedOptions);
@@ -143,27 +162,27 @@ const ObjectiveSelection = () => {
   };
 
   // Check if a platform has both buy type and objective selected
-  const hasCompletePlatformSelection = (platformName: string, category: string) => {
+  const hasCompletePlatformSelection = (platformName: string, category: string, stageName: string) => {
     const platforms = funnelStages[0].platforms[category];
     const platformIndex = platforms.findIndex(p => p.name === platformName);
     if (platformIndex === -1) return false;
 
     const baseIndex = platformIndex;
-    const buyTypeKey = `Awareness-${category}-${baseIndex + 1}`;
-    const buyObjectiveKey = `Awareness-${category}-${baseIndex + 2}`;
+    const buyTypeKey = `${stageName}-${category}-${baseIndex + 1}`;
+    const buyObjectiveKey = `${stageName}-${category}-${baseIndex + 2}`;
 
     return selectedOptions[buyTypeKey] && selectedOptions[buyObjectiveKey];
   };
 
   // Check if at least one platform has both selections
-  const hasMinimumBuySelections = () => {
-    if (selectedNetworks.size === 0) return false;
+  const hasMinimumBuySelections = (stageName: string) => {
+    if (!selectedNetworks[stageName] || selectedNetworks[stageName].size === 0) return false;
 
-    for (const network of selectedNetworks) {
+    for (const network of selectedNetworks[stageName]) {
       const platforms = funnelStages[0].platforms[network];
       for (let i = 0; i < platforms.length; i += 3) {
         const platform = platforms[i];
-        if (platform.icon && hasCompletePlatformSelection(platform.name, network)) {
+        if (platform.icon && hasCompletePlatformSelection(platform.name, network, stageName)) {
           return true;
         }
       }
@@ -182,12 +201,12 @@ const ObjectiveSelection = () => {
     return [];
   };
 
-  const renderCompletedPlatform = (platform: any, idx: number, category: string) => {
+  const renderCompletedPlatform = (platform: any, idx: number, category: string, stageName: string) => {
     const baseIndex = idx * 3;
-    const buyTypeKey = `Awareness-${category}-${baseIndex + 1}`;
-    const buyObjectiveKey = `Awareness-${category}-${baseIndex + 2}`;
+    const buyTypeKey = `${stageName}-${category}-${baseIndex + 1}`;
+    const buyObjectiveKey = `${stageName}-${category}-${baseIndex + 2}`;
 
-    if (!validatedPlatforms.has(platform.name)) {
+    if (!validatedPlatforms[stageName].has(platform.name)) {
       return null;
     }
 
@@ -251,15 +270,15 @@ const ObjectiveSelection = () => {
           {/* Expanded Content */}
           {openItems[stage.name] && (
             <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
-              {stage.name === "Awareness" && statuses[stageIndex] === "Completed" ? (
+              {statuses[stageIndex] === "Completed" ? (
                 <div className="flex flex-col md:flex-row w-full gap-12">
-                  {Array.from(selectedNetworks).map(network => (
+                  {Array.from(selectedNetworks[stage.name] || []).map(network => (
                     <div key={network} className="flex-1">
                       <h3 className="text-xl font-semibold text-[#061237] mb-6">{network}</h3>
                       <div className="flex flex-row gap-8">
                         {stage.platforms[network]
                           .filter((p) => p.icon)
-                          .map((platform, idx) => renderCompletedPlatform(platform, idx, network))}
+                          .map((platform, idx) => renderCompletedPlatform(platform, idx, network, stage.name))}
                       </div>
                     </div>
                   ))}
@@ -291,7 +310,7 @@ const ObjectiveSelection = () => {
                                       <li
                                         key={i}
                                         className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                                        onClick={() => handleSelectOption(platformKey, option, category)}
+                                        onClick={() => handleSelectOption(platformKey, option, category, stage.name)}
                                       >
                                         {option}
                                       </li>
@@ -321,19 +340,19 @@ const ObjectiveSelection = () => {
                   </div>
                 ))
               )}
-              {/* Validate Button (Only for Awareness stage when not completed) */}
-              {stage.name === "Awareness" && statuses[stageIndex] !== "Completed" && (
+              {/* Validate Button (Only when not completed) */}
+              {statuses[stageIndex] !== "Completed" && (
                 <div className="flex justify-end mt-6 w-full">
                   <Button
                     text="Validate"
                     variant="primary"
                     onClick={() => handleValidate(stageIndex)}
-                    disabled={!hasMinimumBuySelections()}
+                    disabled={!hasMinimumBuySelections(stage.name)}
                   />
                 </div>
               )}
-              {/* Edit Button (Only for Awareness stage when completed) */}
-              {stage.name === "Awareness" && statuses[stageIndex] === "Completed" && (
+              {/* Edit Button (Only when completed) */}
+              {statuses[stageIndex] === "Completed" && (
                 <div className="flex justify-end mt-2 w-full">
                   <Button
                     text="Edit"

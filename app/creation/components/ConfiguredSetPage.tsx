@@ -26,24 +26,73 @@ const ConfiguredSetPage = () => {
     Conversion: false,
   });
 
-  // Individual currency states for each section
-  const [topCurrency, setTopCurrency] = useState("EUR");
-  const [facebookCurrency, setFacebookCurrency] = useState("EUR");
-  const [instagramCurrency, setInstagramCurrency] = useState("EUR");
-  const [youtubeCurrency, setYoutubeCurrency] = useState("EUR");
-  const [tradeDeskCurrency, setTradeDeskCurrency] = useState("EUR");
-  const [quantcastCurrency, setQuantcastCurrency] = useState("EUR");
+  // Individual currency states for each section and stage
+  const [currencies, setCurrencies] = useState({
+    Awareness: {
+      top: "EUR",
+      facebook: "EUR",
+      instagram: "EUR",
+      youtube: "EUR",
+      tradeDesk: "EUR",
+      quantcast: "EUR"
+    },
+    Consideration: {
+      top: "EUR",
+      facebook: "EUR",
+      instagram: "EUR",
+      youtube: "EUR",
+      tradeDesk: "EUR",
+      quantcast: "EUR"
+    },
+    Conversion: {
+      top: "EUR",
+      facebook: "EUR",
+      instagram: "EUR",
+      youtube: "EUR",
+      tradeDesk: "EUR",
+      quantcast: "EUR"
+    }
+  });
 
-  // Budget states for each section
-  const [budget, setBudget] = useState("");
-  const [facebookBudget, setFacebookBudget] = useState("");
-  const [instagramBudget, setInstagramBudget] = useState("");
-  const [youtubeBudget, setYoutubeBudget] = useState("");
-  const [tradeDeskBudget, setTradeDeskBudget] = useState("");
-  const [quantcastBudget, setQuantcastBudget] = useState("");
+  // Budget states for each section and stage
+  const [budgets, setBudgets] = useState({
+    Awareness: {
+      top: "",
+      facebook: "",
+      instagram: "",
+      youtube: "",
+      tradeDesk: "",
+      quantcast: ""
+    },
+    Consideration: {
+      top: "",
+      facebook: "",
+      instagram: "",
+      youtube: "",
+      tradeDesk: "",
+      quantcast: ""
+    },
+    Conversion: {
+      top: "",
+      facebook: "",
+      instagram: "",
+      youtube: "",
+      tradeDesk: "",
+      quantcast: ""
+    }
+  });
 
-  const [isValidated, setIsValidated] = useState(false); // New state to track validation
-  const [results, setResults] = useState([]); // New state to store results
+  const [validatedStages, setValidatedStages] = useState({
+    Awareness: false,
+    Consideration: false,
+    Conversion: false
+  });
+
+  const [results, setResults] = useState({
+    Awareness: [],
+    Consideration: [],
+    Conversion: []
+  });
 
   const toggleItem = (stage) => {
     setOpenItems((prev) => ({ ...prev, [stage]: !prev[stage] }));
@@ -62,75 +111,45 @@ const ConfiguredSetPage = () => {
     }
   };
 
-  // Individual handlers for each section
-  const handleTopCurrencyChange = (event) => {
-    setTopCurrency(event.target.value);
+  const handleCurrencyChange = (stage, platform, event) => {
+    setCurrencies(prev => ({
+      ...prev,
+      [stage]: {
+        ...prev[stage],
+        [platform]: event.target.value
+      }
+    }));
   };
 
-  const handleFacebookCurrencyChange = (event) => {
-    setFacebookCurrency(event.target.value);
-  };
-
-  const handleInstagramCurrencyChange = (event) => {
-    setInstagramCurrency(event.target.value);
-  };
-
-  const handleYoutubeCurrencyChange = (event) => {
-    setYoutubeCurrency(event.target.value);
-  };
-
-  const handleTradeDeskCurrencyChange = (event) => {
-    setTradeDeskCurrency(event.target.value);
-  };
-
-  const handleQuantcastCurrencyChange = (event) => {
-    setQuantcastCurrency(event.target.value);
-  };
-
-  const handleBudgetChange = (event) => {
+  const handleBudgetChange = (stage, platform, event) => {
     const value = event.target.value.replace(/^0+/, '');
-    setBudget(value);
+    setBudgets(prev => ({
+      ...prev,
+      [stage]: {
+        ...prev[stage],
+        [platform]: value
+      }
+    }));
   };
 
-  const handleFacebookBudgetChange = (event) => {
-    const value = event.target.value.replace(/^0+/, '');
-    setFacebookBudget(value);
+  const isButtonEnabled = (stage) => {
+    const stageBudgets = budgets[stage];
+    return Object.values(stageBudgets).some(budget => budget);
   };
 
-  const handleInstagramBudgetChange = (event) => {
-    const value = event.target.value.replace(/^0+/, '');
-    setInstagramBudget(value);
-  };
-
-  const handleYoutubeBudgetChange = (event) => {
-    const value = event.target.value.replace(/^0+/, '');
-    setYoutubeBudget(value);
-  };
-
-  const handleTradeDeskBudgetChange = (event) => {
-    const value = event.target.value.replace(/^0+/, '');
-    setTradeDeskBudget(value);
-  };
-
-  const handleQuantcastBudgetChange = (event) => {
-    const value = event.target.value.replace(/^0+/, '');
-    setQuantcastBudget(value);
-  };
-
-  // Check if any budget input has data to enable the button
-  const isButtonEnabled = budget || facebookBudget || instagramBudget || youtubeBudget || tradeDeskBudget || quantcastBudget;
-
-  const handleValidateClick = () => {
-    setIsValidated(true);
+  const handleValidateClick = (stage) => {
+    setValidatedStages(prev => ({...prev, [stage]: true}));
+    
     const newResults = [
-      { platform: "Top", budget, currency: topCurrency },
-      { platform: "Facebook", budget: facebookBudget, currency: facebookCurrency },
-      { platform: "Instagram", budget: instagramBudget, currency: instagramCurrency },
-      { platform: "YouTube", budget: youtubeBudget, currency: youtubeCurrency },
-      { platform: "TradeDesk", budget: tradeDeskBudget, currency: tradeDeskCurrency },
-      { platform: "Quantcast", budget: quantcastBudget, currency: quantcastCurrency },
-    ].filter(item => item.budget); // Filter out empty budgets
-    setResults(newResults);
+      { platform: "Top", budget: budgets[stage].top, currency: currencies[stage].top },
+      { platform: "Facebook", budget: budgets[stage].facebook, currency: currencies[stage].facebook },
+      { platform: "Instagram", budget: budgets[stage].instagram, currency: currencies[stage].instagram },
+      { platform: "YouTube", budget: budgets[stage].youtube, currency: currencies[stage].youtube },
+      { platform: "TradeDesk", budget: budgets[stage].tradeDesk, currency: currencies[stage].tradeDesk },
+      { platform: "Quantcast", budget: budgets[stage].quantcast, currency: currencies[stage].quantcast },
+    ].filter(item => item.budget);
+
+    setResults(prev => ({...prev, [stage]: newResults}));
   };
 
   return (
@@ -159,7 +178,7 @@ const ConfiguredSetPage = () => {
             </div>
           </div>
 
-          {openItems[stage.name] && stage.name === "Awareness" && (
+          {openItems[stage.name] && (
             <>
               <div className='pt-4 bg-[#FCFCFC] rounded-lg cursor-pointer border px-6 border-[rgba(6,18,55,0.1)]'>
               <div className="flex mt-6 flex-col items-start gap-8">
@@ -170,17 +189,17 @@ const ConfiguredSetPage = () => {
             
          <h2 className="text-center font-bold">What is your budget for this phase ?</h2>
            <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
-             <p className="font-bold">{getCurrencySymbol(topCurrency)}</p>
+             <p className="font-bold">{getCurrencySymbol(currencies[stage.name].top)}</p>
              <input 
                type="text" 
                className="w-full px-4 focus:outline-none"
-               value={budget || '0'}
-               onChange={handleBudgetChange}
+               value={budgets[stage.name].top || '0'}
+               onChange={(e) => handleBudgetChange(stage.name, 'top', e)}
              />
              <select 
                className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer" 
-               onChange={handleTopCurrencyChange} 
-               value={topCurrency}
+               onChange={(e) => handleCurrencyChange(stage.name, 'top', e)}
+               value={currencies[stage.name].top}
              >
                <option value="EUR">EUR</option>
                <option value="USD">USD</option>
@@ -242,17 +261,17 @@ const ConfiguredSetPage = () => {
             
          <h2 className="text-center font-bold">Budget</h2>
            <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
-             <p className="font-bold">{getCurrencySymbol(facebookCurrency)}</p>
+             <p className="font-bold">{getCurrencySymbol(currencies[stage.name].facebook)}</p>
              <input 
                type="text" 
                className="w-full px-4 focus:outline-none"
-               value={facebookBudget || '0'}
-               onChange={handleFacebookBudgetChange}
+               value={budgets[stage.name].facebook || '0'}
+               onChange={(e) => handleBudgetChange(stage.name, 'facebook', e)}
              />
              <select 
                className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer" 
-               onChange={handleFacebookCurrencyChange} 
-               value={facebookCurrency}
+               onChange={(e) => handleCurrencyChange(stage.name, 'facebook', e)}
+               value={currencies[stage.name].facebook}
              >
                <option value="EUR">EUR</option>
                <option value="USD">USD</option>
@@ -274,7 +293,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p className="whitespace-nowrap tracking-tight">of Awareness budget</p>
+          <p className="whitespace-nowrap tracking-tight">of {stage.name} budget</p>
            
            {/* switch */}
            <div className="flex items-center gap-2">
@@ -326,17 +345,17 @@ const ConfiguredSetPage = () => {
             
          <h2 className="text-center font-bold">Budget</h2>
            <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
-             <p className="font-bold">{getCurrencySymbol(instagramCurrency)}</p>
+             <p className="font-bold">{getCurrencySymbol(currencies[stage.name].instagram)}</p>
              <input 
                type="text" 
                className="w-full px-4 focus:outline-none"
-               value={instagramBudget || '0'}
-               onChange={handleInstagramBudgetChange}
+               value={budgets[stage.name].instagram || '0'}
+               onChange={(e) => handleBudgetChange(stage.name, 'instagram', e)}
              />
              <select 
                className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer" 
-               onChange={handleInstagramCurrencyChange} 
-               value={instagramCurrency}
+               onChange={(e) => handleCurrencyChange(stage.name, 'instagram', e)}
+               value={currencies[stage.name].instagram}
              >
                <option value="EUR">EUR</option>
                <option value="USD">USD</option>
@@ -358,7 +377,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p className="tracking-tight">of Awareness budget</p>
+          <p className="tracking-tight">of {stage.name} budget</p>
         
             
          </div>
@@ -393,17 +412,17 @@ const ConfiguredSetPage = () => {
             
          <h2 className="text-center font-bold">Budget</h2>
            <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
-             <p className="font-bold">{getCurrencySymbol(youtubeCurrency)}</p>
+             <p className="font-bold">{getCurrencySymbol(currencies[stage.name].youtube)}</p>
              <input 
                type="text" 
                className="w-full px-4 focus:outline-none"
-               value={youtubeBudget || '0'}
-               onChange={handleYoutubeBudgetChange}
+               value={budgets[stage.name].youtube || '0'}
+               onChange={(e) => handleBudgetChange(stage.name, 'youtube', e)}
              />
              <select 
                className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer" 
-               onChange={handleYoutubeCurrencyChange} 
-               value={youtubeCurrency}
+               onChange={(e) => handleCurrencyChange(stage.name, 'youtube', e)}
+               value={currencies[stage.name].youtube}
              >
                <option value="EUR">EUR</option>
                <option value="USD">USD</option>
@@ -425,7 +444,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p className="tracking-tight">of Awareness budget</p>
+          <p className="tracking-tight">of {stage.name} budget</p>
         
             
          </div>
@@ -464,17 +483,17 @@ const ConfiguredSetPage = () => {
             
          <h2 className="text-center font-bold">Budget</h2>
            <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
-             <p className="font-bold">{getCurrencySymbol(tradeDeskCurrency)}</p>
+             <p className="font-bold">{getCurrencySymbol(currencies[stage.name].tradeDesk)}</p>
              <input 
                type="text" 
                className="w-full px-4 focus:outline-none"
-               value={tradeDeskBudget || '0'}
-               onChange={handleTradeDeskBudgetChange}
+               value={budgets[stage.name].tradeDesk || '0'}
+               onChange={(e) => handleBudgetChange(stage.name, 'tradeDesk', e)}
              />
              <select 
                className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer" 
-               onChange={handleTradeDeskCurrencyChange} 
-               value={tradeDeskCurrency}
+               onChange={(e) => handleCurrencyChange(stage.name, 'tradeDesk', e)}
+               value={currencies[stage.name].tradeDesk}
              >
                <option value="EUR">EUR</option>
                <option value="USD">USD</option>
@@ -496,7 +515,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p className="tracking-tight">of Awareness budget</p>
+          <p className="tracking-tight">of {stage.name} budget</p>
         
             
          </div>
@@ -531,17 +550,17 @@ const ConfiguredSetPage = () => {
             
          <h2 className="text-center font-bold">Budget</h2>
            <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
-             <p className="font-bold">{getCurrencySymbol(quantcastCurrency)}</p>
+             <p className="font-bold">{getCurrencySymbol(currencies[stage.name].quantcast)}</p>
              <input 
                type="text" 
                className="w-full px-4 focus:outline-none"
-               value={quantcastBudget || '0'}
-               onChange={handleQuantcastBudgetChange}
+               value={budgets[stage.name].quantcast || '0'}
+               onChange={(e) => handleBudgetChange(stage.name, 'quantcast', e)}
              />
              <select 
                className="bg-white font-bold text-gray-700 py-1 px-3 rounded focus:outline-none cursor-pointer" 
-               onChange={handleQuantcastCurrencyChange} 
-               value={quantcastCurrency}
+               onChange={(e) => handleCurrencyChange(stage.name, 'quantcast', e)}
+               value={currencies[stage.name].quantcast}
              >
                <option value="EUR">EUR</option>
                <option value="USD">USD</option>
@@ -563,7 +582,7 @@ const ConfiguredSetPage = () => {
            </div>
           </div>
          
-          <p className="tracking-tight">of Awareness budget</p>
+          <p className="tracking-tight">of {stage.name} budget</p>
         
             
          </div>
@@ -578,19 +597,21 @@ const ConfiguredSetPage = () => {
         
               <div className="flex w-full my-6 justify-end items-center">
                 <Button
-                  text={isValidated ? "Edit" : "Validate"} // Change button text based on validation state
-                  onClick={isValidated ? () => setIsValidated(false) : handleValidateClick} // Toggle validation state
-                  disabled={!isButtonEnabled} // The button is enabled only when there is input
+                  text={validatedStages[stage.name] ? "Edit" : "Validate"}
+                  onClick={validatedStages[stage.name] ? 
+                    () => setValidatedStages(prev => ({...prev, [stage.name]: false})) : 
+                    () => handleValidateClick(stage.name)}
+                  disabled={!isButtonEnabled(stage.name)}
                   variant="primary"
                   className="h-[52px] rounded-md px-6 py-2"
                 />
               </div>
 
-              {isValidated && results.length > 0 && (
+              {validatedStages[stage.name] && results[stage.name].length > 0 && (
                 <div className="mt-6">
                   <h2 className="font-bold">Results:</h2>
                   <ul>
-                    {results.map((result, index) => (
+                    {results[stage.name].map((result, index) => (
                       <li key={index}>
                         {result.platform}: {result.budget} {getCurrencySymbol(result.currency)}
                       </li>
@@ -602,11 +623,6 @@ const ConfiguredSetPage = () => {
               </div>
             </>
           )}
-
-          {openItems[stage.name] &&
-            (stage.name === "Consideration" || stage.name === "Conversion") && (
-              <div className="flex items-center justify-between p-8 w-full bg-[#FCFCFC] border border-gray-300 rounded-lg cursor-pointer"></div>
-            )}
         </div>
       ))}
     </div>
