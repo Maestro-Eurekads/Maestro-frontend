@@ -60,7 +60,7 @@ const DefineAdSetPage = () => {
   };
 
   return (
-    <div className="mt-12 flex items-start flex-col mx-auto gap-12 w-full">
+    <div className="mt-12 flex items-start flex-col cursor-pointer mx-auto gap-12 w-full">
       {funnelStages.map((stage, index) => (
         <div key={index} className="w-full">
           <div
