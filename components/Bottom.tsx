@@ -281,6 +281,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
+
+
       <div className="flex justify-between w-full">
         {/* Back Button */}
         {active === 0 ? (
