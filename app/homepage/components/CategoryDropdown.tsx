@@ -6,21 +6,23 @@ import blueSmallPlue from "../../../public/blueSmallPlue.svg";
 import Image from "next/image";
 import { MdOutlineCancel } from "react-icons/md";
 
-const EditInput =  ({
-	placeholder,
-	inputs,
-	setInputs,
-	categoryList,
-	setCategoryList,
-  label
-  }: {
-	placeholder: string;
-	inputs: any;
-	setInputs: any;
-	categoryList: string[];
-	setCategoryList: any;
-  label?:string
-  }) => {
+const EditInput = ({
+  placeholder,
+  inputs,
+  setInputs,
+  categoryList,
+  setCategoryList,
+  label,
+  setAlert, // Pass setAlert for notifications
+}: {
+  placeholder: string;
+  inputs: any;
+  setInputs: any;
+  categoryList: string[];
+  setCategoryList: any;
+  label?: string;
+  setAlert: any;
+}) => {
   const [fields, setFields] = useState<{ id: number; text: string }[]>([
     { id: 1, text: "" },
   ]);
@@ -33,23 +35,72 @@ const EditInput =  ({
     }));
   }, [fields, setInputs]);
 
- // Handle adding a new field
- const handleAddField = () => {
-    if (categoryList.includes(inputs.categories.toLowerCase())) {
-      alert("Business unit already exists");
-    } else {
-      setCategoryList([...categoryList, inputs.categories.toLowerCase()]);
-      setInputs((prevState) => ({
-        ...prevState,
-        categories: "",
-      }));
+  // Handle adding a new field
+  // const handleAddField = () => {
+  //   if (categoryList.includes(inputs.categories.toLowerCase())) {
+  //     alert("Business unit already exists");
+  //   } else {
+  //     setCategoryList([...categoryList, inputs.categories.toLowerCase()]);
+  //     setInputs((prevState) => ({
+  //       ...prevState,
+  //       categories: "",
+  //     }));
+  //   }
+  // };
+
+  // Handle adding a new category
+  const handleAddField = () => {
+    const trimmedCategory = inputs.categories.trim().toLowerCase();
+
+    if (!trimmedCategory) {
+      setAlert({
+        variant: "error",
+        message: "Business level 3 name cannot be empty",
+        position: "bottom-right",
+      });
+      return;
     }
+
+    if (categoryList.includes(trimmedCategory)) {
+      setAlert({
+        variant: "warning",
+        message: "Business level 3 already exists",
+        position: "bottom-right",
+      });
+      return;
+    }
+
+    if (categoryList.length >= 5) {
+      setAlert({
+        variant: "warning",
+        message: "Maximum 5 categories allowed",
+        position: "bottom-right",
+      });
+      return;
+    }
+
+    setCategoryList([...categoryList, trimmedCategory]);
+    setInputs((prevState) => ({
+      ...prevState,
+      categories: "",
+    }));
+
+    setAlert({
+      variant: "success",
+      message: "Business level 3 added successfully",
+      position: "bottom-right",
+    });
   };
 
   // Handle removing a field
   const handleRemoveSport = (sport) => {
     const filteredEmails = categoryList.filter((e) => e !== sport);
     setCategoryList(filteredEmails);
+    setAlert({
+      variant: "info",
+      message: "Business level 3 removed",
+      position: "bottom-right",
+    });
   };
 
   // Handle clearing a field
@@ -70,7 +121,7 @@ const EditInput =  ({
 
   return (
     <div className="relative w-full">
-     <div className="mb-4">
+      <div className="mb-4">
         <label className="font-medium text-[15px] leading-5 text-gray-600">
           {label || placeholder}
         </label>
@@ -128,11 +179,13 @@ const CategoryDropdown = ({
   setInputs,
   categoryList,
   setCategoryList,
+  setAlert, // Pass alert state to EditInput
 }: {
   inputs: any;
   setInputs: any;
   categoryList: any;
   setCategoryList: any;
+  setAlert: any;
 }) => {
   return (
     <div className="flex flex-col gap-4 mt-[20px]">
@@ -142,6 +195,7 @@ const CategoryDropdown = ({
         setInputs={setInputs}
         categoryList={categoryList}
         setCategoryList={setCategoryList}
+        setAlert={setAlert}
         label="Business level 3"
       />
     </div>

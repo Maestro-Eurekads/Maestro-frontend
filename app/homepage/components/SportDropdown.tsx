@@ -13,13 +13,15 @@ const EditInput = ({
   sportList,
   setSportList,
   label,
+  setAlert, // Pass setAlert from parent component
 }: {
   placeholder: string;
   inputs: any;
   setInputs: any;
   sportList: string[];
   setSportList: any;
-  label?:string
+  label?: string;
+  setAlert: any;
 }) => {
   const [fields, setFields] = useState<{ id: number; text: string }[]>([
     { id: 1, text: "" },
@@ -33,23 +35,72 @@ const EditInput = ({
     }));
   }, [fields, setInputs]);
 
+  // // Handle adding a new field
+  // const handleAddField = () => {
+  //   if (sportList.includes(inputs.sports.toLowerCase())) {
+  //     alert("Sport already exists");
+  //   } else {
+  //     setSportList([...sportList, inputs.sports.toLowerCase()]);
+  //     setInputs((prevState) => ({
+  //       ...prevState,
+  //       sports: "",
+  //     }));
+  //   }
+  // };
+
   // Handle adding a new field
   const handleAddField = () => {
-    if (sportList.includes(inputs.sports.toLowerCase())) {
-      alert("Sport already exists");
-    } else {
-      setSportList([...sportList, inputs.sports.toLowerCase()]);
-      setInputs((prevState) => ({
-        ...prevState,
-        sports: "",
-      }));
+    const trimmedSport = inputs.sports.trim().toLowerCase();
+
+    if (!trimmedSport) {
+      setAlert({
+        variant: "error",
+        message: "Business Type name cannot be empty",
+        position: "bottom-right",
+      });
+      return;
     }
+
+    if (sportList.includes(trimmedSport)) {
+      setAlert({
+        variant: "warning",
+        message: "Business Type already exists",
+        position: "bottom-right",
+      });
+      return;
+    }
+
+    if (sportList.length >= 5) {
+      setAlert({
+        variant: "warning",
+        message: "Maximum 5 sports allowed",
+        position: "bottom-right",
+      });
+      return;
+    }
+
+    setSportList([...sportList, trimmedSport]);
+    setInputs((prevState) => ({
+      ...prevState,
+      sports: "",
+    }));
+
+    setAlert({
+      variant: "success",
+      message: "Business Type added successfully",
+      position: "bottom-right",
+    });
   };
 
   // Handle removing a field
   const handleRemoveSport = (sport) => {
     const filteredEmails = sportList.filter((e) => e !== sport);
     setSportList(filteredEmails);
+    setAlert({
+      variant: "info",
+      message: "Business Type removed",
+      position: "bottom-right",
+    });
   };
 
   // Handle clearing a field
@@ -128,11 +179,13 @@ const SportDropdown = ({
   setInputs,
   sportList,
   setSportList,
+  setAlert, // Pass alert state to EditInput
 }: {
   inputs: any;
   setInputs: any;
   sportList: any;
   setSportList: any;
+  setAlert: any;
 }) => {
   return (
     <div className="flex flex-col gap-4 mt-[20px]">
@@ -142,6 +195,7 @@ const SportDropdown = ({
         setInputs={setInputs}
         sportList={sportList}
         setSportList={setSportList}
+        setAlert={setAlert}
         label="Business level 1"
       />
     </div>

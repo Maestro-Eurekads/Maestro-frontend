@@ -39,20 +39,49 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   const [businessUnit, setBusinessUnit] = useState([]);
   const [categoryList, setCategoryList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState(null); // ✅ State for alerts
 
-
-
-  const handleAddEmail = () => {
-    if (emailList.includes(inputs.email)) {
-      alert("Email already exists");
-    } else {
-      setEmailList([...emailList, inputs.email]);
-      setInputs((prevState) => ({
-        ...prevState,
-        email: "",
-      }));
+  // ✅ Automatically reset alert after showing
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 3000); // Reset after 3 seconds
+      return () => clearTimeout(timer);
     }
+  }, [alert]);
+  const handleAddEmail = () => {
+    const trimmedEmail = inputs.email.trim();
+
+    // ✅ Email validation regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!trimmedEmail) {
+      setAlert({ variant: "error", message: "Email cannot be empty", position: "bottom-right" });
+      return;
+    }
+
+    if (!emailRegex.test(trimmedEmail)) {
+      setAlert({ variant: "error", message: "Invalid email format", position: "bottom-right" });
+      return;
+    }
+
+    if (emailList.includes(trimmedEmail)) {
+      setAlert({ variant: "warning", message: "Email already exists", position: "bottom-right" });
+      return;
+    }
+
+    if (emailList.length >= 5) {
+      setAlert({ variant: "warning", message: "Maximum 5 emails allowed", position: "bottom-right" });
+      return;
+    }
+
+    setEmailList([...emailList, trimmedEmail]);
+    setInputs((prevState) => ({
+      ...prevState,
+      email: "",
+    }));
   };
+
+
 
   const handleRemoveEmail = (email) => {
     const filteredEmails = emailList.filter((e) => e !== email);
@@ -76,28 +105,28 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     return () => document.body.classList.remove("overflow-hidden");
   }, [isOpen]);
 
-  useEffect(() => {
-    if (isError) {
-      setTimeout(() => {
-        dispatch(reset());
-      }, 3000);
-    } else if (isSuccess) {
-      setIsOpen(false);
-      setInputs({
-        name: "",
-        email: "",
-        responsiblePerson: "",
-        approver: "",
-        sports: "",
-        categories: [],
-        businessUnits: [],
-        feeType: "",
-      });
-      setTimeout(() => {
-        dispatch(reset());
-      }, 3000);
-    }
-  }, [isError, isSuccess]);
+  // useEffect(() => {
+  //   if (isError) {
+  //     setTimeout(() => {
+  //       dispatch(reset());
+  //     }, 3000);
+  //   } else if (isSuccess) {
+  //     setIsOpen(false);
+  //     setInputs({
+  //       name: "",
+  //       email: "",
+  //       responsiblePerson: "",
+  //       approver: "",
+  //       sports: "",
+  //       categories: [],
+  //       businessUnits: [],
+  //       feeType: "",
+  //     });
+  //     setTimeout(() => {
+  //       dispatch(reset());
+  //     }, 3000);
+  //   }
+  // }, [isError, isSuccess]);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -133,8 +162,10 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   };
   return (
     <div className="z-50">
+      {/* ✅ Show Alert */}
+      {alert && <AlertMain alert={alert} />}
       {/* Show alert only when needed */}
-      {isSuccess && (
+      {/* {isSuccess && (
         <AlertMain
           alert={{
             variant: "success",
@@ -142,8 +173,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
             position: "bottom-right",
           }}
         />
-      )}
-      {isError && (
+      )} */}
+      {/* {isError && (
         <AlertMain
           alert={{
             variant: "error",
@@ -151,7 +182,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
             position: "bottom-right",
           }}
         />
-      )}
+      )} */}
 
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
@@ -193,9 +224,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                     <Input
                       type="email"
                       value={inputs.email}
-                      handleOnChange={(e) =>
-                        handleOnChange("email", e.target.value)
-                      }
+                      handleOnChange={(e) => handleOnChange("email", e.target.value)}
                       label="Client emails (add up to 5 emails)"
                       placeholder="Enter email address"
                     />
@@ -243,19 +272,21 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                   setInputs={setInputs}
                   sportList={sportList}
                   setSportList={setSportList}
-
+                  setAlert={setAlert}
                 />
                 <BusinessUnit
                   inputs={inputs}
                   setInputs={setInputs}
                   businessList={businessUnit}
                   setBusinessList={setBusinessUnit}
+                  setAlert={setAlert}
                 />
                 <CategoryDropdown
                   inputs={inputs}
                   setInputs={setInputs}
                   categoryList={categoryList}
                   setCategoryList={setCategoryList}
+                  setAlert={setAlert}
                 />
                 {/* <EditInputs inputs={inputs} setInputs={setInputs} /> */}
               </div>

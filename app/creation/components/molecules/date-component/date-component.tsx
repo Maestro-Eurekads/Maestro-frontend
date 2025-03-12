@@ -13,12 +13,7 @@ const DateComponent = ({ useDate }) => {
       </div>}
 
       <div className="bg-white relative">
-
         <DateInterval />
-        <div className="absolute right-16 top-18 w-1 bg-orange-500 h-screen"></div>
-        <div className="absolute left-16 top-18 w-1 bg-orange-500 h-screen"></div>
-
-
       </div>
 
     </div>
@@ -26,3 +21,8 @@ const DateComponent = ({ useDate }) => {
 };
 
 export default DateComponent;
+
+
+
+{/* <div className="absolute right-16 top-18 w-1 bg-orange-500 h-screen"></div> */ }
+{/* <div className="absolute left-16 top-18 w-1 bg-orange-500 h-screen"></div> */ }
