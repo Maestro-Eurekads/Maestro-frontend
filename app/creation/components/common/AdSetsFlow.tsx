@@ -36,7 +36,7 @@ const AudienceDropdown = memo(function AudienceDropdown() {
     <div className="relative border-2 border-[#0000001A] rounded-[10px]">
       <button
         onClick={toggleOpen}
-        className="relative z-20 w-[172px] bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
+        className="relative z-50 w-[172px] bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
       >
         <span className="truncate">{selected || "Your audience type"}</span>
         <svg
@@ -56,7 +56,7 @@ const AudienceDropdown = memo(function AudienceDropdown() {
         </svg>
       </button>
       {open && (
-        <ul className="absolute w-full mt-1 z-10 bg-white border-2 border-[#0000001A] rounded-lg shadow-lg overflow-auto">
+        <ul className="absolute w-full mt-1 z-[100] bg-white border-2 border-[#0000001A] rounded-lg shadow-lg overflow-auto">
           {options.map((option, index) => (
             <li
               key={index}
@@ -121,7 +121,10 @@ const AdSet = memo(function AdSet({
           </p>
           <hr className="border border-[#0000001A] w-[50px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" />
         </div>
+
+
         <AudienceDropdown />
+           
         <input
           type="text"
           placeholder="Enter ad set name"
@@ -181,7 +184,7 @@ const AdsetSettings = memo(function AdsetSettings({
   return (
     <div className="flex items-center gap-8 w-full max-w-[1024px]">
       <div className="relative ">
-        <button className="relative w-[150px] z-20 flex gap-4 justify-between items-center bg-[#F9FAFB] border border-[#0000001A] border-solid py-4 px-4 rounded-[10px]">
+        <button className="relative w-[150px] z-20 flex gap-4 justify-between cursor-pointer items-center bg-[#F9FAFB] border border-[#0000001A] border-solid py-4 px-4 rounded-[10px]">
           <Image src={outlet.icon} alt="" className="w-[22px] h-[22px]" />
           <span className="text-[#061237] font-medium">{outlet.outlet}</span>
           <FaAngleRight />

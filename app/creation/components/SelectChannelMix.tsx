@@ -12,7 +12,6 @@ import { useCampaigns } from "../../utils/CampaignsContext";
 const SelectChannelMix = () => {
   // State management
   const [openItems, setOpenItems] = useState({ Awareness: true }); // Tracks which funnel stages are expanded
-  const [isEditing, setIsEditing] = useState(false); // Whether user is in edit mode
   const [selected, setSelected] = useState({}); // Stores selected platforms for each stage
   const [validatedStages, setValidatedStages] = useState({}); // Tracks which stages are validated
   const { campaignFormData, setCampaignFormData } = useCampaigns(); // Campaign context
@@ -45,8 +44,6 @@ const SelectChannelMix = () => {
     category: string,
     platformName: string
   ) => {
-    if (!isEditing) return; // Only allow changes in edit mode
-
     const prev = { ...selected };
     const stageSelection = prev[stageName] || {};
     const categorySelection = stageSelection[category] || [];
@@ -112,7 +109,6 @@ const SelectChannelMix = () => {
       ...prev,
       [stageName]: false,
     }));
-    setIsEditing(true);
   };
 
   return (
@@ -123,11 +119,6 @@ const SelectChannelMix = () => {
           t2={"Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time."}
           span={1}
         />
-        {!Object.keys(validatedStages).length && (
-          <button className="model_button_blue" onClick={() => setIsEditing(true)}>
-            Edit
-          </button>
-        )}
       </div>
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
@@ -234,20 +225,13 @@ const SelectChannelMix = () => {
                               return (
                                 <div
                                   key={pIndex}
-                                  className={`${
-                                    isEditing ? "cursor-pointer" : "cursor-not-allowed opacity-50"
-                                  } 
-                                  flex flex-row justify-between items-center p-4 gap-2 w-[230px] h-[62px] bg-white 
+                                  className={`cursor-pointer flex flex-row justify-between items-center p-4 gap-2 w-[230px] h-[62px] bg-white 
                                   border rounded-[10px] ${
                                     isSelected
                                       ? "border-[#3175FF]"
                                       : "border-[rgba(0,0,0,0.1)]"
                                   }`}
-                                  onClick={() => {
-                                    if (isEditing) {
-                                      togglePlatform(stage.name, category, platform.name);
-                                    }
-                                  }}
+                                  onClick={() => togglePlatform(stage.name, category, platform.name)}
                                 >
                                   <div className="flex items-center gap-2">
                                     <Image src={platform.icon} alt={platform.name} />
@@ -285,7 +269,6 @@ const SelectChannelMix = () => {
                           disabled={!isStageValid(stage.name)}
                           onClick={() => {
                             handleValidate(stage.name);
-                            setIsEditing(false);
                           }}
                           className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
                             isStageValid(stage.name)
