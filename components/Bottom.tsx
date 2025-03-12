@@ -69,7 +69,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     };
 
     const handleStepZero = async () => {
-      if (cId) {
+      if (cId && campaignData) {
         const {
           id,
           documentId,
@@ -105,10 +105,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         window.history.pushState({}, "", url.toString());
         await getActiveCampaign(res?.data?.data.documentId);
       }
-      // setActive((prev) => Math.min(10, prev + 1));
     };
 
     const handleStepOne = async () => {
+      if (!campaignData) return;
+
       const {
         id,
         documentId,
@@ -121,10 +122,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         media_plan_details,
         ...updatedCampaignData
       } = campaignData;
-      const { documentId: clientDocumentId, ...restClientData } = client;
-      const { id: bId, restB } = budget_details;
-      const { id: clId, restC } = client_selection;
-      const { id: mId, restM } = budget_details;
+
+      if (!client || !budget_details || !client_selection || !media_plan_details) return;
+
+      const { documentId: clientDocumentId } = client;
+      const { id: bId, ...restB } = budget_details;
+      const { id: clId, ...restC } = client_selection;
+      const { id: mId, ...restM } = media_plan_details;
 
       await updateCampaignData({
         ...updatedCampaignData,
@@ -134,10 +138,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         media_plan_details: restM,
         campaign_objective: campaignFormData?.campaign_objectives,
       });
-      // setActive((prev) => prev + 1);
     };
 
     const handleStepTwo = async () => {
+      if (!campaignData) return;
+
       const {
         id,
         documentId,
@@ -150,10 +155,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         media_plan_details,
         ...updatedCampaignData
       } = campaignData;
-      const { documentId: clientDocumentId, ...restClientData } = client;
-      const { id: bId, restB } = budget_details;
-      const { id: clId, restC } = client_selection;
-      const { id: mId, restM } = budget_details;
+
+      if (!client || !budget_details || !client_selection || !media_plan_details) return;
+
+      const { documentId: clientDocumentId } = client;
+      const { id: bId, ...restB } = budget_details;
+      const { id: clId, ...restC } = client_selection;
+      const { id: mId, ...restM } = media_plan_details;
 
       await updateCampaignData({
         ...updatedCampaignData,
@@ -164,7 +172,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         funnel_stages: campaignFormData?.funnel_stages,
       });
     };
+
     const handleStepThree = async () => {
+      if (!campaignData) return;
+
       const {
         id,
         documentId,
@@ -177,14 +188,17 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         media_plan_details,
         ...updatedCampaignData
       } = campaignData;
-      const { documentId: clientDocumentId, ...restClientData } = client;
-      const { id: bId, restB } = budget_details;
-      const { id: clId, restC } = client_selection;
-      const { id: mId, restM } = budget_details;
+
+      if (!client || !budget_details || !client_selection || !media_plan_details) return;
+
+      const { documentId: clientDocumentId } = client;
+      const { id: bId, ...restB } = budget_details;
+      const { id: clId, ...restC } = client_selection;
+      const { id: mId, ...restM } = media_plan_details;
+
       const channel_mix = Object.keys(campaignFormData?.channel_mix || {}).map((key: string) => {
         return campaignFormData?.channel_mix[key];
       });
-      console.log(channel_mix)
 
       await updateCampaignData({
         ...updatedCampaignData,
