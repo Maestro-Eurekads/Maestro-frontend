@@ -20,6 +20,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const { selectedObjectives, selectedFunnels } = useObjectives();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
+  const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const {
@@ -230,6 +231,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       hasError = true;
     }
 
+    if (active === 3 && (!campaignFormData?.channel_mix || Object.keys(campaignFormData.channel_mix).length === 0)) {
+      setTriggerChannelMixError(true);
+      hasError = true;
+    }
+
     if (hasError) {
       setLoading(false);
       return;
@@ -237,6 +243,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     setTriggerObjectiveError(false);
     setTriggerFunnelError(false);
+    setTriggerChannelMixError(false);
 
     if (active === 7) {
       if (subStep < 1) {
@@ -282,6 +289,15 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         />
       )}
 
+      {triggerChannelMixError && (
+        <AlertMain
+          alert={{
+            variant: "error",
+            message: "Please select at least one channel mix!",
+            position: "bottom-right"
+          }}
+        />
+      )}
 
       <div className="flex justify-between w-full">
         {/* Back Button */}
