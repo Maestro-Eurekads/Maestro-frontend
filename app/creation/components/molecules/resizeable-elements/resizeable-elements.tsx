@@ -22,6 +22,8 @@ const ResizeableElements = ({ dateList }) => {
     }));
   };
 
+
+
   return (
     <div
       className="w-full min-h-[494px] relative pb-5"
@@ -32,6 +34,7 @@ const ResizeableElements = ({ dateList }) => {
     >
       {funnels.map(({ startWeek, endWeek, bg, description, Icon }, index) => {
         const channelWidth = funnelWidths[description] || 400;
+        console.log('channelWidth-channelWidth', channelWidth)
         const isOpen = openChannels[description] || false; // Get open state by ID
 
         return (
@@ -62,7 +65,7 @@ const ResizeableElements = ({ dateList }) => {
 
               {isOpen && ( // Only show this if the specific channel is open
                 <div>
-                  {channelWidth < 350 && (
+                  {channelWidth < 400 && (
                     <button className="channel-btn-blue mt-[12px] mb-[12px]"
                       onClick={() => {
                         setIsOpen(true);

@@ -29,7 +29,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     email: "",
     responsiblePerson: "",
     approver: "",
-    sports: "",
+    sports: [],
     categories: [],
     businessUnits: [],
     feeType: "",
@@ -84,7 +84,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   };
 
 
-  console.log('inputs-inputs', inputs)
+  // console.log('inputs-inputs', inputs)
 
 
   const handleRemoveEmail = (email) => {
@@ -109,28 +109,9 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     return () => document.body.classList.remove("overflow-hidden");
   }, [isOpen]);
 
-  // useEffect(() => {
-  //   if (isError) {
-  //     setTimeout(() => {
-  //       dispatch(reset());
-  //     }, 3000);
-  //   } else if (isSuccess) {
-  //     setIsOpen(false);
-  //     setInputs({
-  //       name: "",
-  //       email: "",
-  //       responsiblePerson: "",
-  //       approver: "",
-  //       sports: "",
-  //       categories: [],
-  //       businessUnits: [],
-  //       feeType: "",
-  //     });
-  //     setTimeout(() => {
-  //       dispatch(reset());
-  //     }, 3000);
-  //   }
-  // }, [isError, isSuccess]);
+
+
+  console.log('emailList-emailList', emailList)
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -139,9 +120,9 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       client_emails: emailList,
       responsible: inputs.responsiblePerson,
       approver: inputs.approver,
-      level_1: sportList,
-      level_2: businessUnit,
-      level_3: categoryList,
+      level_1: inputs.sports,
+      level_2: inputs.businessUnits,
+      level_3: inputs.categories,
       fee_type: inputs.feeType,
     })
       .then(() => {
@@ -150,7 +131,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
           email: "",
           responsiblePerson: "",
           approver: "",
-          sports: "",
+          sports: [],
           categories: [],
           businessUnits: [],
           feeType: "",
