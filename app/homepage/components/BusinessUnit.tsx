@@ -15,6 +15,7 @@ const EditInput = ({
   const [fields, setFields] = useState([{ id: 1, text: "" }]);
 
   useEffect(() => {
+    console.log('business units ')
     setInputs((prev) => ({
       ...prev,
       businessUnits: fields.map((item) => item.text),
@@ -109,7 +110,7 @@ const EditInput = ({
   );
 };
 
-const BusinessUnit = ({ inputs, setInputs, setAlert }) => {
+const BusinessUnit = ({ setInputs, setAlert }) => {
   return (
     <div className="flex flex-col gap-4 mt-[20px]">
       <EditInput

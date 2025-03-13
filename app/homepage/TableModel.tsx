@@ -274,24 +274,15 @@ const TableModel = ({ isOpen, setIsOpen }) => {
               </div>
               <div className="w-full flex items-start gap-3">
                 <SportDropdown
-                  inputs={inputs}
                   setInputs={setInputs}
-                  // sportList={sportList}
-                  // setSportList={setSportList}
                   setAlert={setAlert}
                 />
                 <BusinessUnit
-                  inputs={inputs}
                   setInputs={setInputs}
-                  // businessList={businessUnit}
-                  // setBusinessList={setBusinessUnit}
                   setAlert={setAlert}
                 />
                 <CategoryDropdown
-                  inputs={inputs}
                   setInputs={setInputs}
-                  // categoryList={categoryList}
-                  // setCategoryList={setCategoryList}
                   setAlert={setAlert}
                 />
               </div>
