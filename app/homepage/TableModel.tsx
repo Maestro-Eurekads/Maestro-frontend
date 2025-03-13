@@ -35,11 +35,13 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     feeType: "",
   });
   const [emailList, setEmailList] = useState([]);
-  const [sportList, setSportList] = useState([]);
+  const [sportList, setSportList] = useState([{ id: 1, text: "" }]);
   const [businessUnit, setBusinessUnit] = useState([]);
   const [categoryList, setCategoryList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null); // ✅ State for alerts
+
+  console.log('businessUnit-businessUnit', categoryList, businessUnit, sportList)
 
   // ✅ Automatically reset alert after showing
   useEffect(() => {
@@ -81,6 +83,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     }));
   };
 
+
+  console.log('inputs-inputs', inputs)
 
 
   const handleRemoveEmail = (email) => {
@@ -266,7 +270,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                   setInputs={setInputs}
                 />
               </div>
-              {/* <div className="w-full flex items-start gap-3">
+              <div className="w-full flex items-start gap-3">
                 <SportDropdown
                   inputs={inputs}
                   setInputs={setInputs}
@@ -287,8 +291,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                   categoryList={categoryList}
                   setCategoryList={setCategoryList}
                   setAlert={setAlert}
-                /> 
-              </div> */}
+                />
+              </div>
 
               <div className="w-full flex items-center gap-3">
                 {/* <SportDropdown setInputs={setInputs} />
