@@ -24,6 +24,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [selectedDatesError, setSelectedDateslError] = useState(false);
   const { selectedDates, setSelectedDates } = useSelectedDates();
   console.log('selectedDates-selectedDates', selectedDates?.to?.day)
+  const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const {
@@ -223,6 +224,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       hasError = true;
     }
 
+    if (active === 3 && (!campaignFormData?.channel_mix || Object.keys(campaignFormData.channel_mix).length === 0)) {
+      setTriggerChannelMixError(true);
+      hasError = true;
+    }
+
     if (hasError) {
       setLoading(false);
       return;
@@ -230,7 +236,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     setTriggerObjectiveError(false);
     setTriggerFunnelError(false);
+<<<<<<< HEAD
     setSelectedDateslError(false);
+=======
+    setTriggerChannelMixError(false);
+>>>>>>> d36a4ee3d5e2b4eb7b28eb6abf692476e71acbb9
 
     if (active === 7) {
       if (subStep < 1) {
@@ -275,74 +285,90 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-      {selectedDatesError && (
+<<<<<<< HEAD
+  {
+    selectedDatesError && (
+      <AlertMain
+        alert={{
+          variant: "error",
+          message: "Choose your start and end date!",
+          position: "bottom-right",
+        }}
+      />
+    )
+  }
+=======
+
+      {triggerChannelMixError && (
         <AlertMain
           alert={{
             variant: "error",
-            message: "Choose your start and end date!",
-            position: "bottom-right",
+            message: "Please select at least one channel mix!",
+            position: "bottom-right"
           }}
         />
       )}
-      <div className="flex justify-between w-full">
-        {/* Back Button */}
-        {active === 0 ? (
-          <div />
-        ) : (
-          <button
-            className={clsx(
-              "bottom_black_back_btn",
-              active === 0 && subStep === 0 && "opacity-50 cursor-not-allowed",
-              active > 0 && "hover:bg-gray-200"
-            )}
-            onClick={handleBack}
-            disabled={active === 0 && subStep === 0}
-          >
-            <Image src={Back} alt="Back" />
-            <p>Back</p>
-          </button>
+
+>>>>>>> d36a4ee3d5e2b4eb7b28eb6abf692476e71acbb9
+  <div className="flex justify-between w-full">
+    {/* Back Button */}
+    {active === 0 ? (
+      <div />
+    ) : (
+      <button
+        className={clsx(
+          "bottom_black_back_btn",
+          active === 0 && subStep === 0 && "opacity-50 cursor-not-allowed",
+          active > 0 && "hover:bg-gray-200"
         )}
-        {/* Continue Button */}
-        {active === 10 ? (
-          <button
-            className="bottom_black_next_btn hover:bg-blue-500"
-            onClick={() => setIsOpen(true)}
-          >
-            <p>Confirm</p>
+        onClick={handleBack}
+        disabled={active === 0 && subStep === 0}
+      >
+        <Image src={Back} alt="Back" />
+        <p>Back</p>
+      </button>
+    )}
+    {/* Continue Button */}
+    {active === 10 ? (
+      <button
+        className="bottom_black_next_btn hover:bg-blue-500"
+        onClick={() => setIsOpen(true)}
+      >
+        <p>Confirm</p>
+        <Image src={Continue} alt="Continue" />
+      </button>
+    ) : (
+      <button
+        className={clsx(
+          "bottom_black_next_btn whitespace-nowrap",
+          active === 10 && "opacity-50 cursor-not-allowed",
+          active < 10 && "hover:bg-blue-500"
+        )}
+        onClick={handleContinue}
+        disabled={active === 10}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {loading ? (
+          <center>
+            <BiLoader className="animate-spin" />
+          </center>
+        ) : (
+          <>
+            <p>
+              {active === 0
+                ? "Start Creating"
+                : isHovered
+                  ? "Next Step"
+                  : "Continue"}
+            </p>
             <Image src={Continue} alt="Continue" />
-          </button>
-        ) : (
-          <button
-            className={clsx(
-              "bottom_black_next_btn whitespace-nowrap",
-              active === 10 && "opacity-50 cursor-not-allowed",
-              active < 10 && "hover:bg-blue-500"
-            )}
-            onClick={handleContinue}
-            disabled={active === 10}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-          >
-            {loading ? (
-              <center>
-                <BiLoader className="animate-spin" />
-              </center>
-            ) : (
-              <>
-                <p>
-                  {active === 0
-                    ? "Start Creating"
-                    : isHovered
-                      ? "Next Step"
-                      : "Continue"}
-                </p>
-                <Image src={Continue} alt="Continue" />
-              </>
-            )}
-          </button>
+          </>
         )}
-      </div>
-    </footer>
+      </button>
+    )}
+  </div>
+    </footer >
   );
 };
 
