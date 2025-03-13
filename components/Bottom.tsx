@@ -232,10 +232,22 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       hasError = true;
     }
 
-    if (active === 3 && (!campaignFormData?.channel_mix?.length)) {
+
+
+    if (active === 3 && (!campaignFormData?.channel_mix || Object.keys(campaignFormData?.channel_mix).length === 0)) {
       setTriggerChannelMixError(true);
       hasError = true;
     }
+
+
+
+  
+
+
+    // if (active === 3 && (!campaignFormData?.channel_mix?.length)) {
+    //   setTriggerChannelMixError(true);
+    //   hasError = true;
+    // }
 
     if (hasError) {
       setLoading(false);
