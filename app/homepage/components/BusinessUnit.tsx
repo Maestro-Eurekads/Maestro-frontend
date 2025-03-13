@@ -202,10 +202,7 @@ import { MdOutlineCancel } from "react-icons/md";
 
 const EditInput = ({
   placeholder,
-  inputs,
   setInputs,
-  businessList,
-  setBusinessList,
   label,
   setAlert,
 }) => {
@@ -311,10 +308,10 @@ const BusinessUnit = ({ inputs, setInputs, setAlert }) => {
     <div className="flex flex-col gap-4 mt-[20px]">
       <EditInput
         placeholder="Business Unit"
-        inputs={inputs}
+        // inputs={inputs}
         setInputs={setInputs}
-        businessList={inputs.businessUnits}
-        setBusinessList={(newList) => setInputs({ ...inputs, businessUnits: newList })}
+        // businessList={inputs.businessUnits}
+        // setBusinessList={(newList) => setInputs({ ...inputs, businessUnits: newList })}
         setAlert={setAlert}
         label="Business level 2"
       />
