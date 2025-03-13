@@ -83,7 +83,28 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     }));
   };
 
-
+  // useEffect(() => {
+  //   if (isError) {
+  //     setTimeout(() => {
+  //       dispatch(reset());
+  //     }, 3000);
+  //   } else if (isSuccess) {
+  //     setIsOpen(false);
+  //     setInputs({
+  //       name: "",
+  //       email: "",
+  //       responsiblePerson: "",
+  //       approver: "",
+  //       sports: "",
+  //       categories: [],
+  //       businessUnits: [],
+  //       feeType: "",
+  //     });
+  //     setTimeout(() => {
+  //       dispatch(reset());
+  //     }, 3000);
+  //   }
+  // }, [isError, isSuccess]);
   // console.log('inputs-inputs', inputs)
 
 
