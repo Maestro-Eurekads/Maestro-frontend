@@ -20,6 +20,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const { active, setActive, subStep, setSubStep } = useActive();
   const { selectedObjectives, selectedFunnels } = useObjectives();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
+  const [setupyournewcampaignError, SetupyournewcampaignError] = useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
   const [selectedDatesError, setSelectedDateslError] = useState(false);
   const { selectedDates, setSelectedDates } = useSelectedDates();
@@ -37,16 +38,28 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   // Hide alerts after a few seconds
   useEffect(() => {
-    if (triggerObjectiveError || triggerFunnelError || selectedDatesError) {
+    if (triggerObjectiveError ||
+      triggerFunnelError ||
+      selectedDatesError ||
+      setupyournewcampaignError ||
+      triggerChannelMixError) {
       const timer = setTimeout(() => {
         setTriggerObjectiveError(false);
         setTriggerFunnelError(false);
         setSelectedDateslError(false);
+        SetupyournewcampaignError(false);
+        setTriggerChannelMixError(false);
       }, 3000); // Hides alert after 3 seconds
 
       return () => clearTimeout(timer);
     }
-  }, [triggerObjectiveError, triggerFunnelError, selectedDatesError]);
+  }, [triggerObjectiveError,
+    triggerFunnelError,
+    selectedDatesError,
+    setupyournewcampaignError,
+    triggerChannelMixError]);
+
+  console.log('campaignFormData-campaignFormData', campaignFormData?.client_selection.value.length)
 
   const handleBack = () => {
     if (subStep > 0) {
@@ -67,6 +80,34 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const handleContinue = async () => {
     let hasError = false;
     setLoading(true);
+
+    if (active === 0 && campaignFormData?.client_selection.value.length === 0) {
+      SetupyournewcampaignError(true);
+      hasError = true;
+    }
+    if (active === 1 && selectedObjectives.length === 0) {
+      setTriggerObjectiveError(true);
+      hasError = true;
+    }
+
+    if (active === 2 && campaignFormData?.funnel_stages?.length === 0) {
+      setTriggerFunnelError(true);
+      hasError = true;
+    }
+    if (active === 7 && selectedDates?.to?.day === undefined) {
+      setSelectedDateslError(true);
+      hasError = true;
+    }
+
+    if (active === 3 && (!campaignFormData?.channel_mix || Object.keys(campaignFormData.channel_mix).length === 0)) {
+      setTriggerChannelMixError(true);
+      hasError = true;
+    }
+
+    if (hasError) {
+      setLoading(false);
+      return;
+    }
 
     const updateCampaignData = async (data: any) => {
       await updateCampaign(data);
@@ -209,34 +250,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       await handleStepThree()
     }
 
-    if (active === 1 && selectedObjectives.length === 0) {
-      setTriggerObjectiveError(true);
-      hasError = true;
-    }
 
-    if (active === 2 && campaignFormData?.funnel_stages?.length === 0) {
-      setTriggerFunnelError(true);
-      hasError = true;
-    }
-    if (active === 7 && selectedDates?.to?.day === undefined) {
-      setSelectedDateslError(true);
-      hasError = true;
-    }
 
-    if (active === 3 && (!campaignFormData?.channel_mix || Object.keys(campaignFormData.channel_mix).length === 0)) {
-      setTriggerChannelMixError(true);
-      hasError = true;
-    }
 
-    if (hasError) {
-      setLoading(false);
-      return;
-    }
-
-    setTriggerObjectiveError(false);
-    setTriggerFunnelError(false);
-    setSelectedDateslError(false);
-    setTriggerChannelMixError(false);
 
     if (active === 7) {
       if (subStep < 1) {
@@ -263,6 +279,15 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   return (
     <footer id="footer" className="w-full">
       {/* Show alert only when needed */}
+      {setupyournewcampaignError && (
+        <AlertMain
+          alert={{
+            variant: "error",
+            message: "Set up your new campaign cannot be empty!",
+            position: "bottom-right",
+          }}
+        />
+      )}
       {triggerObjectiveError && (
         <AlertMain
           alert={{
