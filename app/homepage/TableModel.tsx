@@ -295,13 +295,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                   setAlert={setAlert}
                 />
               </div>
-
-              <div className="w-full flex items-center gap-3">
-                {/* <SportDropdown setInputs={setInputs} />
-                <BusinessUnit setInputs={setInputs} />
-                <CategoryDropdown setInputs={setInputs} inputs={inputs} /> */}
-                {/* <EditInputs inputs={inputs} setInputs={setInputs} /> */}
-              </div>
               <div className="w-[50%]">
                 <FeeDropdowns
                   labelone="Select fee type"
