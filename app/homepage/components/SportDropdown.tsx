@@ -290,7 +290,7 @@ const EditInput = ({
             className="flex items-center gap-1 text-[#3175FF] font-semibold text-[14px]"
           >
             <Image src={blueSmallPlue} alt="add" />
-            Add
+            Add parameter
           </button>
         </div>
       </div>
