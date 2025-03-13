@@ -34,15 +34,16 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   // Hide alerts after a few seconds
   useEffect(() => {
-    if (triggerObjectiveError || triggerFunnelError) {
+    if (triggerObjectiveError || triggerFunnelError || triggerChannelMixError) {
       const timer = setTimeout(() => {
         setTriggerObjectiveError(false);
         setTriggerFunnelError(false);
+        setTriggerChannelMixError(false);
       }, 3000); // Hides alert after 3 seconds
 
       return () => clearTimeout(timer);
     }
-  }, [triggerObjectiveError, triggerFunnelError]);
+  }, [triggerObjectiveError, triggerFunnelError, triggerChannelMixError]);
 
   const handleBack = () => {
     if (subStep > 0) {
@@ -231,7 +232,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       hasError = true;
     }
 
-    if (active === 3 && (!campaignFormData?.channel_mix || Object.keys(campaignFormData.channel_mix).length === 0)) {
+    if (active === 3 && (!campaignFormData?.channel_mix?.length)) {
       setTriggerChannelMixError(true);
       hasError = true;
     }
