@@ -203,10 +203,7 @@ import { MdOutlineCancel } from "react-icons/md";
 
 const EditInput = ({
   placeholder,
-  inputs,
   setInputs,
-  sportList,
-  setSportList,
   label,
   setAlert,
 }) => {
@@ -306,10 +303,10 @@ const SportDropdown = ({ inputs, setInputs, setAlert }) => {
     <div className="flex flex-col gap-4 mt-[20px]">
       <EditInput
         placeholder="Business Type"
-        inputs={inputs}
+        // inputs={inputs}
         setInputs={setInputs}
-        sportList={inputs.sports}
-        setSportList={(newList) => setInputs({ ...inputs, sports: newList })}
+        // sportList={inputs.sports}
+        // setSportList={(newList) => setInputs({ ...inputs, sports: newList })}
         setAlert={setAlert}
         label="Business level 1"
       />

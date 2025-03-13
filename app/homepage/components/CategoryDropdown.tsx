@@ -216,10 +216,7 @@ import { MdOutlineCancel } from "react-icons/md";
 
 const EditInput = ({
   placeholder,
-  inputs,
   setInputs,
-  categoryList,
-  setCategoryList,
   label,
   setAlert,
 }) => {
@@ -315,10 +312,10 @@ const CategoryDropdown = ({ inputs, setInputs, setAlert }) => {
     <div className="flex flex-col gap-4 mt-[20px]">
       <EditInput
         placeholder="Business level 3"
-        inputs={inputs}
+        // inputs={inputs}
         setInputs={setInputs}
-        categoryList={inputs.categories}
-        setCategoryList={(newList) => setInputs({ ...inputs, categories: newList })}
+        // categoryList={inputs.categories}
+        // setCategoryList={(newList) => setInputs({ ...inputs, categories: newList })}
         setAlert={setAlert}
         label="Business level 3"
       />

@@ -35,13 +35,13 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     feeType: "",
   });
   const [emailList, setEmailList] = useState([]);
-  const [sportList, setSportList] = useState([{ id: 1, text: "" }]);
+  const [sportList, setSportList] = useState<any>([{ id: 1, text: "" }]);
   const [businessUnit, setBusinessUnit] = useState([]);
   const [categoryList, setCategoryList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null); // ✅ State for alerts
 
-  console.log('businessUnit-businessUnit', categoryList, businessUnit, sportList)
+  // console.log('businessUnit-businessUnit', categoryList, businessUnit, sportList)
 
   // ✅ Automatically reset alert after showing
   useEffect(() => {
@@ -111,7 +111,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
 
 
-  console.log('emailList-emailList', emailList)
+  console.log('emailList-emailList', inputs)
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -255,22 +255,22 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                 <SportDropdown
                   inputs={inputs}
                   setInputs={setInputs}
-                  sportList={sportList}
-                  setSportList={setSportList}
+                  // sportList={sportList}
+                  // setSportList={setSportList}
                   setAlert={setAlert}
                 />
                 <BusinessUnit
                   inputs={inputs}
                   setInputs={setInputs}
-                  businessList={businessUnit}
-                  setBusinessList={setBusinessUnit}
+                  // businessList={businessUnit}
+                  // setBusinessList={setBusinessUnit}
                   setAlert={setAlert}
                 />
                 <CategoryDropdown
                   inputs={inputs}
                   setInputs={setInputs}
-                  categoryList={categoryList}
-                  setCategoryList={setCategoryList}
+                  // categoryList={categoryList}
+                  // setCategoryList={setCategoryList}
                   setAlert={setAlert}
                 />
               </div>
