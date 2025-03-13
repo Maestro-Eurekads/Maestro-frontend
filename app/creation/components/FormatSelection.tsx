@@ -69,6 +69,8 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
   }>({});
   const [channels, setChannels] = useState<IChannel[]>([]);
 
+  console.log("here", campaignFormData?.channel_mix);
+
   // Default media format options available
   const defaultMediaOptions = [
     { name: "Carousel", icon: carousel, selected: false },
@@ -107,7 +109,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     );
     setIsValidateEnabled(anyPlatformSelected);
   }, [platformMediaOptions]);
-  
 
   useEffect(() => {
     if (campaignFormData?.channel_mix && stageName) {
@@ -167,7 +168,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     const formatIndex = platform?.format?.findIndex(
       (f) => f.format_type === defaultMediaOptions[index].name
     );
-    
+
     if (formatIndex !== -1) {
       platform.format.splice(formatIndex, 1);
     } else {
@@ -183,8 +184,12 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
   };
 
   // Handle quantity changes for formats
-  const handleQuantityChange = (platformName: string, formatIndex: number, change: number) => {
-    setQuantities(prev => ({
+  const handleQuantityChange = (
+    platformName: string,
+    formatIndex: number,
+    change: number
+  ) => {
+    setQuantities((prev) => ({
       ...prev,
       [platformName]: {
         ...prev[platformName],
@@ -210,7 +215,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       setIsValidated(true);
     } else {
       // Reset to editing mode
-      setPlatformMediaOptions(prev => {
+      setPlatformMediaOptions((prev) => {
         const newOptions: { [key: string]: any[] } = {};
         Object.keys(prev).forEach((platform) => {
           newOptions[platform] = prev[platform].map((option) => ({
@@ -227,101 +232,118 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     }
   };
 
+  console.log("channels", channels);
+
   // Render the platforms UI
   return (
     <div className="text-[16px] overflow-x-hidden">
-      {channels?.map((channel, channelIndex) => (
-        <React.Fragment key={channelIndex}>
-          <h3 className="font-[600] my-[24px]">{channel?.title}</h3>
-          <div className="flex flex-col gap-[24px]">
-            {channel?.platforms?.map((platform, platformIndex) => (
-              <div key={platformIndex}>
-                <div className="flex items-center gap-6">
-                  <div
-                    className={`flex items-center gap-[12px] font-[500] border p-5 rounded-[10px] ${channel?.style}`}
-                  >
-                    <Image src={platform.icon} alt={platform.name} />
-                    <p>{platform.name}</p>
-                  </div>
+      {channels?.map((channel, channelIndex) => {
+        return (
+          <React.Fragment key={channelIndex}>
+            <h3 className="font-[600] my-[24px]">{channel?.title}</h3>
+            <div className="flex flex-col gap-[24px]">
+              {channel?.platforms?.map((platform, platformIndex) => {
+                const existsInDB =
+                  campaignFormData?.channel_mix
+                    ?.find((ch) => ch?.funnel_stage === stageName)
+                    ?.[
+                      channel?.title?.toLowerCase()?.replaceAll(" ", "_")
+                    ]?.find((pl) => pl?.platform_name === platform.name)?.format
+                    ?.length > 0;
+                // console.log("jbfjd", existsInDB)
+                return (
+                  <div key={platformIndex}>
+                    <div className="flex items-center gap-6">
+                      <div
+                        className={`flex items-center gap-[12px] font-[500] border p-5 rounded-[10px] ${channel?.style}`}
+                      >
+                        <Image src={platform.icon} alt={platform.name} />
+                        <p>{platform.name}</p>
+                      </div>
 
-                  <div
-                    className={`flex gap-3 items-center font-semibold cursor-pointer ${
-                      platform.name === item
-                        ? "text-gray-600"
-                        : "text-[#3175FF]"
-                    }`}
-                    onClick={() => {
-                      setItem(platform.name === item ? "" : platform.name);
-                    }}
-                  >
-                    {platform.name === item ? (
-                      selectedOptions[platform.name] ? (
-                        "Choose the number of visuals for this format"
-                      ) : (
-                        "Select your format"
-                      )
-                    ) : (
-                      <>
-                        <p className="font-bold text-[18px]">
-                          <svg
-                            width="13"
-                            height="12"
-                            viewBox="0 0 13 12"
-                            fill="none"
-                          >
-                            <path
-                              d="M5.87891 5.16675V0.166748H7.54557V5.16675H12.5456V6.83342H7.54557V11.8334H5.87891V6.83342H0.878906V5.16675H5.87891Z"
-                              fill="#3175FF"
-                            />
-                          </svg>
-                        </p>
-                        <h3>Add format</h3>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {item === platform.name && (
-                  <div className="py-6">
-                    <MediaSelection
-                      handleFormatSelection={(index) =>
-                        handleFormatSelection(
-                          channel?.title,
-                          index,
-                          platform.name
-                        )
-                      }
-                      mediaOptions={defaultMediaOptions}
-                      channelName={channel?.title}
-                      platformName={platform?.name}
-                    />
-                  </div>
-                )}
-
-                {isValidated &&
-                  validatedMediaOptions[platform.name]?.length > 0 && (
-                    <div className="py-6">
-                      <MediaSelection
-                        mediaOptions={validatedMediaOptions[platform.name]}
-                        handleFormatSelection={() => {}}
-                        isValidated={true}
-                        platformName={platform.name}
-                        quantities={quantities[platform.name] || {}}
-                        onQuantityChange={(formatIndex, change) =>
-                          handleQuantityChange(
-                            platform.name,
-                            formatIndex,
-                            change
+                      <div
+                        className={`flex gap-3 items-center font-semibold cursor-pointer ${
+                          platform.name === item
+                            ? "text-gray-600"
+                            : "text-[#3175FF]"
+                        }`}
+                        onClick={() => {
+                          setItem(platform.name === item ? "" : platform.name);
+                        }}
+                      >
+                        {platform.name === item || existsInDB ? (
+                          selectedOptions[platform.name] ? (
+                            "Choose the number of visuals for this format"
+                          ) : (
+                            "Select your format"
                           )
-                        }
-                      />
+                        ) : (
+                          <>
+                            <p className="font-bold text-[18px]">
+                              <svg
+                                width="13"
+                                height="12"
+                                viewBox="0 0 13 12"
+                                fill="none"
+                              >
+                                <path
+                                  d="M5.87891 5.16675V0.166748H7.54557V5.16675H12.5456V6.83342H7.54557V11.8334H5.87891V6.83342H0.878906V5.16675H5.87891Z"
+                                  fill="#3175FF"
+                                />
+                              </svg>
+                            </p>
+                            <h3>Add format</h3>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  )}
-              </div>
-            ))}
-          </div>
-        </React.Fragment>
-      ))}
+
+                    {(item === platform.name || existsInDB) && (
+                      <div className="py-6">
+                        <MediaSelection
+                          handleFormatSelection={(index) =>
+                            handleFormatSelection(
+                              channel?.title,
+                              index,
+                              platform.name
+                            )
+                          }
+                          mediaOptions={defaultMediaOptions}
+                          channelName={channel?.title}
+                          platformName={platform?.name}
+                          stageName={stageName}
+                        />
+                      </div>
+                    )}
+
+                    {isValidated &&
+                      validatedMediaOptions[platform.name]?.length > 0 && (
+                        <div className="py-6">
+                          <MediaSelection
+                            mediaOptions={validatedMediaOptions[platform.name]}
+                            handleFormatSelection={() => {}}
+                            isValidated={true}
+                            stageName={stageName}
+                            channelName={channel?.title}
+                            platformName={platform.name}
+                            quantities={quantities[platform.name] || {}}
+                            onQuantityChange={(formatIndex, change) =>
+                              handleQuantityChange(
+                                platform.name,
+                                formatIndex,
+                                change
+                              )
+                            }
+                          />
+                        </div>
+                      )}
+                  </div>
+                );
+              })}
+            </div>
+          </React.Fragment>
+        );
+      })}
 
       <div className="w-full flex items-center justify-end mt-9">
         <button
@@ -414,7 +436,8 @@ export default function MediaSelection({
   platformName,
   quantities = {},
   onQuantityChange = () => {},
-  channelName
+  channelName,
+  stageName
 }: {
   mediaOptions: any[];
   handleFormatSelection: (index: number) => void;
@@ -423,53 +446,64 @@ export default function MediaSelection({
   channelName?: string;
   quantities?: { [key: string]: number };
   onQuantityChange?: (index: number, change: number) => void;
+  stageName: string
 }) {
-  const {campaignFormData} = useCampaigns()
+  const { campaignFormData } = useCampaigns();
   return (
     <div className="flex gap-4">
-      {mediaOptions.map((option, index) => (
-        <div key={index} className="flex flex-col items-center">
-          <div
-            onClick={() => handleFormatSelection(index)}
-            className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
-              option.selected ? "border-blue-500 shadow-lg" : "border-gray-300"
-            }`}
-          >
-            <Image
-              src={option.icon}
-              width={168}
-              height={132}
-              alt={option.name}
-            />
-            <p className="text-sm font-medium text-gray-700 mt-2">
-              {option.name}
-            </p>
-            {option.selected && (
-              <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                <FaCheck />
+      {mediaOptions.map((option, index) => {
+        const existsInDB =
+        campaignFormData?.channel_mix
+          ?.find((ch) => ch?.funnel_stage === stageName)
+          ?.[
+            channelName?.toLowerCase()?.replaceAll(" ", "_")
+          ]?.find((pl) => pl?.platform_name === platformName)?.format?.find((ty)=>ty?.format_type === option?.name);
+        return (
+          <div key={index} className="flex flex-col items-center">
+            <div
+              onClick={() => handleFormatSelection(index)}
+              className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
+                (option.selected || existsInDB)
+                  ? "border-blue-500 shadow-lg"
+                  : "border-gray-300"
+              }`}
+            >
+              <Image
+                src={option.icon}
+                width={168}
+                height={132}
+                alt={option.name}
+              />
+              <p className="text-sm font-medium text-gray-700 mt-2">
+                {option.name}
+              </p>
+              {(option.selected || existsInDB) && (
+                <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                  <FaCheck />
+                </div>
+              )}
+            </div>
+
+            {isValidated && option.selected && (
+              <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
+                <button
+                  className="px-2 py-1 text-[#000000] text-lg font-semibold"
+                  onClick={() => onQuantityChange(index, -1)}
+                >
+                  -
+                </button>
+                <span className="px-2">{quantities[index] || 1}</span>
+                <button
+                  className="px-2 py-1 text-[#000000] text-lg font-semibold"
+                  onClick={() => onQuantityChange(index, 1)}
+                >
+                  +
+                </button>
               </div>
             )}
           </div>
-
-          {isValidated && option.selected && (
-            <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
-              <button
-                className="px-2 py-1 text-[#000000] text-lg font-semibold"
-                onClick={() => onQuantityChange(index, -1)}
-              >
-                -
-              </button>
-              <span className="px-2">{quantities[index] || 1}</span>
-              <button
-                className="px-2 py-1 text-[#000000] text-lg font-semibold"
-                onClick={() => onQuantityChange(index, 1)}
-              >
-                +
-              </button>
-            </div>
-          )}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

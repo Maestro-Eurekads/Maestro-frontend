@@ -160,7 +160,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       await handleStepOne();
     } else if (active === 2) {
       await handleStepTwo();
-    } else if (active === 3 || active === 4) {
+    } else if (active === 3 || active === 4 || active === 5) {
       await handleStepThree();
     }
 

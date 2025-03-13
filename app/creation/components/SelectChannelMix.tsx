@@ -17,6 +17,8 @@ const SelectChannelMix = () => {
   const [validatedStages, setValidatedStages] = useState({}); // Tracks which stages are validated
   const { campaignFormData, setCampaignFormData } = useCampaigns(); // Campaign context
 
+  console.log("channel_mix_data", campaignFormData?.channel_mix)
+
   // Toggle expansion of a funnel stage section
   const toggleItem = (stage: string) => {
     setOpenItems((prev) => ({
@@ -43,8 +45,8 @@ const SelectChannelMix = () => {
       Array.isArray(ch_mix) &&
       ch_mix.reduce((acc, ch) => {
         acc[ch.funnel_stage] = {
-          "Social Media": ch?.social_media?.map((sm) => sm?.platform_name),
-          "Display Networks": ch?.display_networks?.map(
+          "Social media": ch?.social_media?.map((sm) => sm?.platform_name),
+          "Display networks": ch?.display_networks?.map(
             (dn) => dn?.platform_name
           ),
           "Search engines": ch?.search_engines?.map((se) => se?.platform_name),
@@ -52,6 +54,7 @@ const SelectChannelMix = () => {
         return acc;
       }, {});
     console.log("🚀 ~ v ~ v:", v);
+    setSelected(v)
   }, [campaignFormData?.funnel_stages]);
 
   // Handle selection/deselection of platforms
@@ -256,7 +259,7 @@ const SelectChannelMix = () => {
                             {platforms.map((platform, pIndex) => {
                               const isSelected = selected[stage.name]?.[category]?.includes(
                                 platform.name
-                              );
+                              ) || campaignFormData?.channel_mix?.find((ch)=>ch?.funnel_stage === stageName)?.[category?.toLowerCase()?.replaceAll(" ", "_")]?.find((p)=>p?.platform_name === platform?.name);
                               return (
                                 <div
                                   key={pIndex}
