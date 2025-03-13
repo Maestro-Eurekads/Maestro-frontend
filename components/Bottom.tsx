@@ -8,7 +8,6 @@ import AlertMain from "../components/Alert/AlertMain";
 import { useState, useEffect } from "react";
 import { useObjectives } from "../app/utils/useObjectives";
 import { useCampaigns } from "../app/utils/CampaignsContext";
-import axios from "axios";
 import { BiLoader } from "react-icons/bi";
 import { useSelectedDates } from "../app/utils/SelectedDatesContext";
 
