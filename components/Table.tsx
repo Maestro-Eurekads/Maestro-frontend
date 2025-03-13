@@ -12,41 +12,41 @@ const Table = () => {
 			<table >
 				<thead>
 					<tr>
-						<th>Name</th>
-						<th>Version</th>
-						<th>Progress</th>
-						<th>Status</th>
-						<th>Budget</th>
-						<th>Made by</th>
-						<th>Approved by</th>
-						<th>Actions</th>
+						<th className='py-[12px] px-[16px]'>Name</th>
+						<th className='py-[12px] px-[16px]'>Version</th>
+						<th className='py-[12px] px-[16px]'>Progress</th>
+						<th className='py-[12px] px-[16px]'>Status</th>
+						<th className='py-[12px] px-[16px]'>Budget</th>
+						<th className='py-[12px] px-[16px]'>Made by</th>
+						<th className='py-[12px] px-[16px]'>Approved by</th>
+						<th className='py-[12px] px-[16px]'>Actions</th>
 					</tr>
 				</thead>
 				<tbody className="data-table-content">
 
 					<tr >
-						<td className='whitespace-nowrap'>Campaign 1 - Running</td>
-						<td >V9</td>
-						<td >
+						<td className='whitespace-nowrap py-[12px] px-[16px]'>Campaign 1 - Running</td>
+						<td className='py-[12px] px-[16px]' >V9</td>
+						<td className='py-[12px] px-[16px]' >
 							<ProgressBar progress={100} />
 						</td>
-						<td >
+						<td className='py-[12px] px-[16px]' >
 							<div className='approved'>Approved</div>
 						</td>
-						<td >250,000 €</td>
-						<td >
+						<td className='py-[12px] px-[16px]' >250,000 €</td>
+						<td className='py-[12px] px-[16px]' >
 							<div className='flex items-center whitespace-nowrap gap-3'>
 								<div className='view_content_table'>MD</div>
 								Maxime Brevet
 							</div>
 						</td>
-						<td className=' '>
+						<td className='py-[12px] px-[16px]'  >
 							<div className='flex items-center whitespace-nowrap gap-3'>
 								<div className='view_content_table'>JB</div>
 								<p>Julien Dahmoun</p>
 							</div>
 						</td>
-						<td>
+						<td className='py-[12px] px-[16px]'>
 							<div className='flex gap-4'>
 								<Image src={edit} alt='menu' />
 								<Image src={share} alt='menu' />
@@ -55,28 +55,28 @@ const Table = () => {
 						</td>
 					</tr>
 					<tr >
-						<td className='whitespace-nowrap'>Campaign 2 - Running</td>
-						<td >V9</td>
-						<td >
+						<td className='py-[12px] px-[16px] whitespace-nowrap'>Campaign 2 - Running</td>
+						<td className='py-[12px] px-[16px]' >V9</td>
+						<td className='py-[12px] px-[16px]' >
 							<ProgressBar progress={25} />
 						</td>
-						<td >
+						<td className='py-[12px] px-[16px]' >
 							<div className='approved'>Approved</div>
 						</td>
-						<td >250,000 €</td>
-						<td >
+						<td className='py-[12px] px-[16px]' >250,000 €</td>
+						<td className='py-[12px] px-[16px]' >
 							<div className='flex items-center whitespace-nowrap gap-3'>
 								<div className='view_content_table'>MD</div>
 								Maxime Brevet
 							</div>
 						</td>
-						<td className=' '>
+						<td className='py-[12px] px-[16px]'  >
 							<div className='flex items-center whitespace-nowrap gap-3'>
 								<div className='view_content_table'>JB</div>
 								<p>Julien Dahmoun</p>
 							</div>
 						</td>
-						<td>
+						<td className='py-[12px] px-[16px]'>
 							<div className='flex gap-4'>
 								<Image src={edit} alt='menu' />
 								<Image src={share} alt='menu' />

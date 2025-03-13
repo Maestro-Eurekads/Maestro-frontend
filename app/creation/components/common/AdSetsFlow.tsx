@@ -1,106 +1,3 @@
-// import React from "react";
-// import Image from "next/image";
-
-// // Example icons for the platforms (replace with your own)
-// import facebookIcon from "../../../../public/facebook.svg";
-// import instagramIcon from "../../../../public/ig.svg";
-// import youtubeIcon from "../../../../public/youtube.svg";
-// import theTradeDeskIcon from "../../../../public/TheTradeDesk.svg";
-// import quantcastIcon from "../../../../public/quantcast.svg";
-// import { Trash } from "lucide-react";
-
-// // Minimal example component
-// export default function AdSetsFlow() {
-
-
-//   return (
-//     <div className="relative flex items-center gap-10 mt-8 p-2">
-//       {/* LEFT COLUMN: vertical list of platforms */}
-//       <div className="flex absolute flex-col gap-4">
-//         <PlatformItem icon={facebookIcon} label="Facebook" />
-//         <PlatformItem icon={instagramIcon} label="Instagram" />
-//         <PlatformItem icon={youtubeIcon} label="Youtube" />
-//         <PlatformItem icon={theTradeDeskIcon} label="The TradeDesk" />
-//         <PlatformItem icon={quantcastIcon} label="Quantcast" />
-//       </div>
-
-//       {/* RIGHT COLUMN: the flow with lines */}
-//       <div className="relative min-h-[500px] rounded-lg p-6">
-//         {/* "New add set" button + connecting line */}
-//         <div className="relative left-[15%] w-max">
-//           {/* Button */}
-//           <button className="bg-blue-500 rounded-full text-white px-4 py-2 w-[133px] h-[39px] font-semibold">
-//             + New add set
-//           </button>
-
-//           {/* The vertical line from the button to the ad-set row */}
-//           <div className="absolute left-1/2 top-full h-[50px] w-[2px] bg-gray-300" />
-//         </div>
-
-//         {/* Ad set row (fields) + connecting line from above */}
-//         <div className="flex flex-col md:flex-row relative ml-[8rem] items-center justify-center max-w-fit gap-2 rounded p-6 ">
-//           {/* "Ad set n°1" label */}
-//           <button className=" w-[96px] h-[51px] border-2 border-gray-300 bg-[#F9FAFB] rounded-md px-4 py-2 font-semibold">
-//           <span className="text-[#3175FF] text-sm font-600 whitespace-nowrap">
-//             Ad set n°1
-//           </span>
-
-//           <div className="absolute left-1/2 top-full h-[50px] w-[2px]"></div>
-//           </button>
-
-
-//           {/* A horizontal line from the label to the fields (optional) */}
-//           <div className="h-[2px] w-4 bg-gray-300" />
-
-//           {/* Fields */}
-//           <input
-//             placeholder="Your audience type"
-//             className="rounded-md h-[52px] w-[202px]  bg-[#FFFFFF]  border-2 border-gray-300 px-4 py-2 text-[#656565] text-sm focus:border-none"
-//           />
-//           <input
-//             placeholder="Enter ad set name"
-//             className="border-2 border-gray-300  bg-[#FFFFFF] rounded-md h-[52px] w-[202px] px-4 py-2 text-[#656565]  text-sm focus:border-none"
-//           />
-//           <input
-//             placeholder="Enter size"
-//             className="border-2 border-gray-300 bg-[#FFFFFF]  rounded-md h-[52px] w-[202px] px-4 py-2  text-[#656565] text-sm focus:border-none"
-//           />
-
-//           {/* Delete button */}
-//           <button className="text-white border-2 border-[#0000001A] bg-[#FF5955] px-4 py-2 rounded-full h-[38px] w-[94px] text-sm hover:bg-red-300">
-//             <div className="flex items-center gap-2">
-//             <span><Trash className="size-4" /></span>
-//             <p>Delete</p>
-//             </div>
-
-//           </button>
-//         </div>
-
-//         {/* Validate button at bottom right */}
-//         <div className="absolute bottom-1 right-16">
-//           <button className="bg-blue-500 text-white w-[142px] h-[52px] px-4 py-2 rounded-md font-semibold hover:bg-blue-600">
-//             Validate
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-
-// function PlatformItem({ icon, label }) {
-//     return (
-//       <div className="flex border-2 border-gray-300 bg-[#F9FAFB] rounded-md px-4 py-2 h-[52px] items-center gap-2">
-//         <div className="w-5 h-5 relative">
-//           <Image src={icon} alt={label} fill style={{ objectFit: "contain" }} />
-//         </div>
-//         <span className="font-medium text-gray-700">{label}</span>
-//       </div>
-//     );
-// }
-
-
-
 "use client";
 
 import Image, { StaticImageData } from "next/image";
@@ -110,51 +7,61 @@ import youtubeIcon from "../../../../public/youtube.svg";
 import theTradeDeskIcon from "../../../../public/TheTradeDesk.svg";
 import quantcastIcon from "../../../../public/quantcast.svg";
 import { FaAngleRight } from "react-icons/fa";
-import { MdDelete } from "react-icons/md";
-import { MdAdd } from "react-icons/md";
-import { useState } from "react";
+import { MdDelete, MdAdd } from "react-icons/md";
+import { useState, useCallback, memo, useMemo } from "react";
+import { useEditing } from "../../../utils/EditingContext";
 
 // AudienceDropdown component with animated dropdown
-function AudienceDropdown() {
+const AudienceDropdown = memo(function AudienceDropdown() {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<string>("");
 
-  const options = [
+  const options = useMemo(() => [
     "Lookalike audience",
-    "Retargeting audience",
+    "Retargeting audience", 
     "Broad audience",
-    "Behavioral audience"
-  ];
+    "Behavioral audience",
+  ], []);
+
+  const handleSelect = useCallback((option: string) => {
+    setSelected(option);
+    setOpen(false);
+  }, []);
+
+  const toggleOpen = useCallback(() => {
+    setOpen(prev => !prev);
+  }, []);
 
   return (
-    <div className="relative">
+    <div className="relative border-2 border-[#0000001A] rounded-[10px]">
       <button
-        onClick={() => setOpen((prev) => !prev)}
-        className="relative z-20 w-full bg-[#ffffff] text-left border border-gray-300 text-[#656565] text-sm flex items-center gap-2 py-4 px-8 rounded-[10px] transition-all duration-200"
+        onClick={toggleOpen}
+        className="relative z-30 w-[172px] bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
       >
-        {selected || "Your audience type"}
+        <span className="truncate">{selected || "Your audience type"}</span>
         <svg
-          className={`ml-auto h-4 w-4 transform transition-transform duration-200 ${open ? "rotate-180" : "rotate-0"
+          className={`h-4 w-4 flex-shrink-0 transition-transform ${open ? "rotate-180" : ""
             }`}
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
-
           stroke="currentColor"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
       {open && (
-        <ul className="absolute whitespace-nowrap left-0 right-0 px-4 py-2 mt-1 z-10 bg-white border-2 border-[#0000001A] rounded-[10px] transition-all duration-200">
+        <ul className="absolute mt-1 top-1 z-[999] w-full bg-white border-2 border-[#0000001A] rounded-lg shadow-lg overflow-hidden">
           {options.map((option, index) => (
             <li
               key={index}
-              onClick={() => {
-                setSelected(option);
-                setOpen(false);
-              }}
-              className="px-6 py-4 whitespace-nowrap hover:bg-gray-100 cursor-pointer text-[#656565] text-sm font-bold"
+              onClick={() => handleSelect(option)}
+              className="p-4 cursor-pointer text-[#656565] text-sm text-center whitespace-nowrap hover:bg-gray-100"
             >
               {option}
             </li>
@@ -163,32 +70,96 @@ function AudienceDropdown() {
       )}
     </div>
   );
-}
+});
 
-function AdsetSettings({
+const NonFacebookOutlet = memo(function NonFacebookOutlet({ outlet }: { outlet: { icon: StaticImageData; outlet: string } }) {
+  return (
+    <div className="flex items-center gap-4">
+      <div className="relative border border-[#0000001A] rounded-[10px]">
+        <button className="relative w-[150px] z-20 flex gap-4 justify-between items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
+          <Image src={outlet.icon} alt="" className="w-[22px] h-[22px]" />
+          <span className="text-[#061237] font-medium whitespace-nowrap">{outlet.outlet}</span>
+          <FaAngleRight />
+        </button>
+      </div>
+    </div>
+  );
+});
+
+const AdSet = memo(function AdSet({ 
+  adset, 
+  index, 
+  isEditing, 
+  onDelete 
+}: { 
+  adset: { id: number; addsetNumber: number }; 
+  index: number; 
+  isEditing: boolean;
+  onDelete: (id: number) => void;
+}) {
+  return (
+    <div
+      className={`absolute ${index === 0
+        ? "top-1/2 -translate-y-1/2"
+        : index === 1
+          ? "top-0"
+          : "bottom-0"
+        }`}
+    >
+      <span
+        className={`border-l-2 border-[#0000001A] h-[70px] w-8 absolute -left-4 ${index === 0
+          ? "hidden"
+          : index === 1
+            ? "top-1/2 rounded-tl-[10px] border-t-2"
+            : "bottom-1/2 rounded-bl-[10px] border-b-2"
+          }`}
+      ></span>
+      <div className="flex gap-2 items-center w-full px-4">
+        <div className="relative">
+          <p className="relative z-[999] text-[#3175FF] text-sm whitespace-nowrap font-bold flex gap-4 items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
+            {`Ad set n°${adset.addsetNumber}`}
+          </p>
+          <hr className="border border-[#0000001A] w-[50px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" />
+        </div>
+
+          <AudienceDropdown />
+
+          <input
+          type="text"
+          placeholder="Enter ad set name"
+          disabled={!isEditing}
+          className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[160px] ${!isEditing ? "cursor-not-allowed" : ""}`}
+        />
+        <input
+          disabled={!isEditing}
+          type="text"
+          placeholder="Enter size"
+          className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] w-[100px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isEditing ? "cursor-not-allowed" : ""}`}
+        />
+        <button
+          disabled={!isEditing}
+          onClick={() => onDelete(adset.id)}
+          className={`flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold ${!isEditing ? "cursor-not-allowed" : ""}`}
+        >
+          <MdDelete /> <span>Delete</span>
+        </button>
+      </div>
+    </div>
+  );
+});
+
+const AdsetSettings = memo(function AdsetSettings({
   outlet,
 }: {
   outlet: { id: number; outlet: string; icon: StaticImageData };
 }) {
-  // Only show full ad set settings for Facebook.
   const isFacebook = outlet.outlet === "Facebook";
+  const { isEditing } = useEditing();
 
   if (!isFacebook) {
-    // For non-Facebook outlets, display only the outlet button.
-    return (
-      <div className="flex items-center gap-8">
-        <div className="relative">
-          <button className="relative w-[150px] z-20 flex gap-4 justify-between items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
-            <Image src={outlet.icon} alt="" className="w-[22px] h-[22px]" />
-            <span className="text-[#061237] font-medium">{outlet.outlet}</span>
-            <FaAngleRight />
-          </button>
-        </div>
-      </div>
-    );
+    return <NonFacebookOutlet outlet={outlet} />;
   }
 
-  // For Facebook, include the full ad set settings UI.
   const [adsets, setAdSets] = useState([
     {
       id: Date.now(),
@@ -198,43 +169,42 @@ function AdsetSettings({
 
   const adsetAmount = adsets.length;
 
-  function addNewAddset() {
-    const newAdSet = {
+  const addNewAddset = useCallback(() => {
+    setAdSets(prev => [...prev, {
       id: Date.now(),
-      addsetNumber: adsetAmount + 1,
-    };
-    setAdSets((prev) => [...prev, newAdSet]);
-  }
+      addsetNumber: prev.length + 1,
+    }]);
+  }, []);
 
-  function deleteAdSet(id: number) {
-    setAdSets((prev) => prev.filter((adset) => adset.id !== id));
-  }
+  const deleteAdSet = useCallback((id: number) => {
+    setAdSets(prev => prev.filter(adset => adset.id !== id));
+  }, []);
 
   return (
-    <div className="flex items-center gap-8">
-      <div className="relative">
-        <button className="relative w-[150px] z-20 flex gap-4 justify-between items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
+    <div className="flex items-center gap-8 w-full max-w-[1024px]">
+      <div className="relative ">
+        <button className="relative w-[150px] z-20 flex gap-4 justify-between cursor-pointer items-center bg-[#F9FAFB] border border-[#0000001A] border-solid py-4 px-4 rounded-[10px]">
           <Image src={outlet.icon} alt="" className="w-[22px] h-[22px]" />
           <span className="text-[#061237] font-medium">{outlet.outlet}</span>
           <FaAngleRight />
         </button>
         <hr className="border border-[#0000001A] w-[100px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" />
       </div>
-      <div className="relative w-full h-[194px]">
+      <div className="relative w-full min-h-[194px]">
         <div
           className={`absolute ${adsetAmount === 1
-              ? "top-0"
-              : adsetAmount === 2
-                ? "bottom-0"
-                : "hidden"
+            ? "top-0"
+            : adsetAmount === 2
+              ? "bottom-0"
+              : "hidden"
             }`}
         >
           <span
             className={`border-l-2 border-[#0000001A] h-[78px] w-8 absolute -left-4 ${adsetAmount === 1
-                ? "top-1/2 rounded-tl-[10px] border-t-2"
-                : adsetAmount === 2
-                  ? "bottom-1/2 rounded-bl-[10px] border-b-2"
-                  : ""
+              ? "top-1/2 rounded-tl-[10px] border-t-2"
+              : adsetAmount === 2
+                ? "bottom-1/2 rounded-bl-[10px] border-b-2"
+                : ""
               }`}
           ></span>
           <button
@@ -246,60 +216,23 @@ function AdsetSettings({
           </button>
         </div>
         {adsets.map((adset, index) => (
-          <div
+          <AdSet 
             key={adset.id}
-            className={`absolute ${index === 0
-                ? "top-1/2 -translate-y-1/2"
-                : index === 1
-                  ? "top-0"
-                  : "bottom-0"
-              }`}
-          >
-            <span
-              className={`border-l-2 border-[#0000001A] h-[70px] w-8 absolute -left-4 ${index === 0
-                  ? "hidden"
-                  : index === 1
-                    ? "top-1/2 rounded-tl-[10px] border-t-2"
-                    : "bottom-1/2 rounded-bl-[10px] border-b-2"
-                }`}
-            ></span>
-            <div className="flex gap-2 items-center">
-              <div className="relative">
-                <p className="relative z-20 text-[#3175FF] text-sm font-bold flex gap-4 items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
-                  {`Ad set n°${adset.addsetNumber}`}
-                </p>
-                <hr className="border border-[#0000001A] w-[50px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" />
-              </div>
-              <AudienceDropdown />
-              <input
-                type="text"
-                placeholder="Enter ad set name"
-                className="text-[#3175FF] text-sm font-bold flex gap-4 items-center border border-[#0000001A] py-4 px-2 rounded-[10px]"
-              />
-              <input
-                type="text"
-                placeholder="Enter size"
-                className="text-[#3175FF] text-sm font-bold flex gap-4 items-center border border-[#0000001A] py-4 px-2 rounded-[10px]"
-              />
-              <button
-                onClick={() => deleteAdSet(adset.id)}
-                className="flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold"
-              >
-                <MdDelete /> <span>Delete</span>
-              </button>
-            </div>
-          </div>
+            adset={adset}
+            index={index}
+            isEditing={isEditing}
+            onDelete={deleteAdSet}
+          />
         ))}
       </div>
-
     </div>
-
-
   );
-}
+});
 
-export default function AdSetFlow() {
-  const outlets = [
+const AdSetFlow = memo(function AdSetFlow() {
+  const { isEditing, setIsEditing } = useEditing();
+  
+  const outlets = useMemo(() => [
     {
       id: Date.now(),
       outlet: "Facebook",
@@ -307,7 +240,7 @@ export default function AdSetFlow() {
     },
     {
       id: Date.now(),
-      outlet: "Instagram",
+      outlet: "Instagram", 
       icon: instagramIcon,
     },
     {
@@ -325,23 +258,25 @@ export default function AdSetFlow() {
       outlet: "Quantcast",
       icon: quantcastIcon,
     },
-  ];
+  ], []);
+
+  const handleValidate = useCallback(() => {
+    setIsEditing(false);
+  }, [setIsEditing]);
+
   return (
-    <>
-      <div className="w-full space-y-4">
-        {outlets.map((outlet) => (
-          <AdsetSettings key={outlet.id} outlet={outlet} />
-        ))}
-
-
-      </div>
-
-      <div className="flex justify-end gap-2">
-        <button className="bg-[#3175FF] text-white px-6 py-3 rounded-md text-sm font-bold">
-          <span>Validate</span>
-        </button>
-
-      </div>
-    </>
+    <div className="w-full space-y-4 p-4">
+      {outlets.map((outlet) => (
+        <AdsetSettings key={outlet.id} outlet={outlet} />
+      ))}
+      {isEditing &&
+        <div className="flex justify-end gap-2 w-full" onClick={handleValidate}>
+          <button className="bg-[#3175FF] w-[142px] h-[52px] text-white px-6 py-3 rounded-md text-sm font-bold">
+            <span>Validate</span>
+          </button>
+        </div>}
+    </div>
   );
-}
+});
+
+export default AdSetFlow;

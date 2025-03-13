@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, { useState } from 'react'
 import PageHeaderWrapper from '../../../components/PageHeaderWapper';
 import Topdown from '../../../public/Top-down.svg';
 import Selectstatus from '../../../public/Select-status.svg';
@@ -6,10 +6,10 @@ import backdown from '../../../public/back-down.svg';
 import ecurrencyeur from '../../../public/e_currency-eur.svg';
 import Image from 'next/image';
 
-
 const CampaignBudget = () => {
   const [active, setActive] = useState(null);
   const [show, setShow] = useState(false)
+  
   // Clicking Top‑down: set active without auto-opening any details.
   const handleTopDownClick = () => {
     setActive(1);
@@ -20,30 +20,22 @@ const CampaignBudget = () => {
     setActive(2);
   };
 
-
-
   return (
     <div>
-      
-      <PageHeaderWrapper
-        t1='Allocate your campaign budget'
-        t2='Decide whether to allocate your budget by channel or ad set. First, enter an overall campaign budget if applicable.'
-        t3='Then, distribute it across channels and ad sets.'
-        t4='Choose how to set your campaign budget'
-        span={1}
-      
-      
-      />
+      <div className='flex justify-between'>
+        <PageHeaderWrapper
+          t1='Allocate your campaign budget'
+          t2='Decide whether to allocate your budget by channel or ad set. First, enter an overall campaign budget if applicable.'
+          t3='Then, distribute it across channels and ad sets.'
+          t4='Choose how to set your campaign budget'
+          span={1}
+        />
+      </div>
 
-
-     <div className="mt-[24px] flex gap-5">
+      <div className="mt-[24px] flex gap-5">
         {/* Top‑down Option */}
         <div
-          className={
-            active === 1
-              ? "top_and_bottom_down_container_active relative"
-              : "top_and_bottom_down_container relative"
-          }
+          className={`relative ${active === 1 ? "top_and_bottom_down_container_active" : "top_and_bottom_down_container"}`}
           onClick={handleTopDownClick}
         >
           <div className="flex items-start gap-2">
@@ -74,11 +66,7 @@ const CampaignBudget = () => {
 
         {/* Bottom‑up Option */}
         <div
-          className={
-            active === 2
-              ? "top_and_bottom_down_container_active relative"
-              : "top_and_bottom_down_container relative"
-          }
+          className={`relative ${active === 2 ? "top_and_bottom_down_container_active" : "top_and_bottom_down_container"}`}
           onClick={handleBottomUpClick}
         >
           <div className="flex items-start gap-2">
@@ -104,9 +92,8 @@ const CampaignBudget = () => {
         </div>
       </div>
 
-
-       {/* Only show the 12,000 EUR section when an option is active */}
-       {active && (
+      {/* Only show the 12,000 EUR section when an option is active */}
+      {active && (
         <div className="mt-[24px] flex flex-row items-center gap-[16px] px-0 py-[24px] bg-[#F9FAFB] border-b border-[rgba(6,18,55,0.1)] box-border">
           <div className="e_currency-eur">
             <div className="flex">
@@ -122,8 +109,6 @@ const CampaignBudget = () => {
           </div>
         </div>
       )}
-
-
     </div>
   )
 }

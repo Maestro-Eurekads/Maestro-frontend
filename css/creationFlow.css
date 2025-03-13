@@ -46,7 +46,6 @@ font-weight: 500;
 font-size: 18px;
 line-height: 24px; 
 color: #061237; 
-
 }
 
 .awareness_card_one_active{ 
@@ -321,11 +320,71 @@ border-radius: 50px;
 	margin-left: 1rem; 
 	margin-top: -4px;
 }
-
-#SideBar__container{
-	width: 327px !important;
+#Sidenavbar {
+  height: 90vh;  
+  overflow-y: auto;  
+		overflow-x: hidden !important;
+		margin-bottom: 1rem;
+		/* padding: 0px 10px; */
 }
 
+#Sidenavbar_active {
+  height: 90vh;  
+  overflow-y: auto;  
+		overflow-x: hidden !important;
+		margin-bottom: 1rem;
+		padding: 0px 10px;
+}
+
+.client_selection_flow{
+	display: flex;
+ align-items: center  ;
+	gap: 16px ;
+}
+
+.dropdown_button_width{
+	width: 327px;
+}
+
+ 
+/* For small screens, use a single-column layout */
+@media (max-width: 768px) {
+  .client_selection_flow {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    align-items: center;
+    place-items: center;
+  }
+}
+
+/* For medium screens, use a two-column layout */
+@media (max-width: 1080px) { 
+  .client_selection_flow {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .dropdown_button_width {
+    width: 280px;
+  }
+}
+
+/* For larger screens, maintain a two-column layout */
+@media (max-width: 1440px) {
+  .client_selection_flow {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .dropdown_button_width {
+    width: 280px;
+  }
+}
+ 
 
 .SideBar_state_circle{
 width: 10px;
@@ -357,7 +416,7 @@ border-radius: 50px;
 z-index: 20;  
 font-style: normal;
 font-weight: 500;
-font-size: 13px;
+font-size: 12px;
 line-height: 18px; 
 color: var(--accent-green); 
 
@@ -450,11 +509,110 @@ background: var(--accent-green);
 	width: 50%;
 }
 
+.doughnut_chart_settings{
+	width:243.73px ; 
+	height:243.73px;
+}
+
+/* Large Devices (Laptops & Desktops) */
+@media (max-width: 1536px) { 
+.doughnut_chart_settings{
+	width:180px ; 
+	height:180px;
+}
+
+}
+
 
 .doughnutcontainer{
 width: 243.73px;
 }
 
+.budgetImpressions{ 
+box-sizing: border-box; 
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 12px;
+gap: 12px;
+ 
+width: fit-content;
+min-height: 70px;
+ 
+
+background: #F0F6FF;
+border: 1px solid rgba(8, 102, 255, 0.2);
+border-radius: 6px;
+
+}
+
+.cpm_bg{ 
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px 14px;
+gap: 8px; 
+/* width: 63px; */
+height: 36px; 
+background: #EFEFEF;
+border-radius: 8px;  
+font-style: normal;
+font-weight: 500;
+font-size: 15px;
+line-height: 20px;
+color: rgba(6, 18, 55, 0.5); 
+
+}
+
+.reach-btn-text{ 
+font-style: normal;
+font-weight: 500;
+font-size: 12px;
+line-height: 16px;
+text-align: center; 
+color: rgba(6, 18, 55, 0.7); 
+}
+
+.reach-btn{ 
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center; 
+width: 18px;
+height: 18px; 
+background: #3175FF;
+border-radius: 5px; 
+color: var(--accent-white);
+}
+
+.budget_number{
+width: 45px;
+height: 19px; 
+font-style: normal;
+font-weight: 500;
+font-size: 14px;
+line-height: 19px; 
+text-align: center; 
+color: #061237;  
+white-space: nowrap;
+}
+
+.budget_number_btn{ 
+
+box-sizing: border-box; 
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px 10px;
+gap: 8px;
+width: auto;
+height: 24px;
+background: rgba(255, 255, 255, 0.8);
+border: 1px solid rgba(49, 117, 255, 0.2);
+border-radius: 8px; 
+
+}
 
 
 @media screen and (max-width: 768px) {
@@ -463,14 +621,67 @@ width: 243.73px;
 }
 }
 
+
+
+ 
+
+ /* Medium Devices (Small Laptops) */
+@media (max-width: 1280px) { 
+ .creation_card{
+		width: 300px;
+	}
+ .creation_card_active{
+		width: 300px;
+	}
+}
+
+  /* Medium Devices (Small Laptops) */
+@media (max-width: 1024px) { 
+  /* Styles for small laptops */
+		.creation_card{
+		width: 420px;
+	}
+		.creation_card_active{
+		width: 420px;
+	}
+}
+/* Small Devices (Tablets) */
+@media (max-width: 768px) { 
+	.creation_card{
+		width: 100%;
+	}
+	.creation_card_active{
+		width: 100%;
+	}
+}
+ 
  
 
  
-  
- 
- 
+/* Extra Small Devices (Phones) */
+@media (max-width: 480px) { 
+  /* Styles for phones */
+}
 
- 
+/* Small Devices (Tablets) */
+@media (max-width: 768px) { 
+  /* Styles for tablets */
+}
+
+/* Medium Devices (Small Laptops) */
+@media (max-width: 1024px) { 
+  /* Styles for small laptops */
+}
+
+/* Large Devices (Laptops & Desktops) */
+@media (max-width: 1280px) { 
+  /* Styles for larger screens */
+}
+
+/* Extra Large Devices (Big Screens) */
+@media (max-width: 1536px) { 
+  /* Styles for extra-large screens */
+}
 
  
 

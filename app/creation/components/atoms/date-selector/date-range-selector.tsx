@@ -12,6 +12,7 @@ const DateRangeSelector = () => {
 
   return (
     <div className="flex items-center justify-center h-full relative">
+
       <div className="relative">
         <div className="flex items-center gap-2 text-sm">
           <span
@@ -21,10 +22,10 @@ const DateRangeSelector = () => {
             <MdArrowBackIos />
           </span>
           <div className="py-2.5 px-4 border rounded-lg text-gray-800">
-            {range.startDate
-              ? format(range.startDate, "dd MMM")
+            {range?.startDate
+              ? format(range?.startDate, "dd MMM")
               : "Select Date"}{" "}
-            - {range.endDate ? format(range.endDate, "dd MMM") : "Select Date"}
+            - {range?.endDate ? format(range?.endDate, "dd MMM") : "Select Date"}
           </div>
           <span
             className="border rounded-lg flex gap-2 p-2.5 items-center justify-center"
@@ -39,8 +40,8 @@ const DateRangeSelector = () => {
               editableDateInputs={true}
               onChange={(item) =>
                 setRange({
-                  startDate: item.selection.startDate,
-                  endDate: item.selection.endDate,
+                  startDate: item?.selection?.startDate,
+                  endDate: item?.selection?.endDate,
                 })
               }
               moveRangeOnFirstSelection={false}

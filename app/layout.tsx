@@ -1,15 +1,28 @@
 import type { Metadata } from "next";
-import { Roboto } from "next/font/google";
+import { Roboto, Inter } from "next/font/google"; // Import Inter font
 import "./globals.css";
 import { ActiveProvider } from "./utils/ActiveContext";
 import { DateRangeProvider } from "../src/date-range-context";
 import { FunnelProvider } from "./utils/FunnelContextType";
+import { ObjectivesProvider } from "./utils/useObjectives";
+import ReduxProvider from "./provider";
+import { CampaignProvider } from "./utils/CampaignsContext";
+import { EditingProvider } from "./utils/EditingContext";
+import { Suspense } from "react";
+import { SelectedDatesProvider } from "./utils/SelectedDatesContext";
 
 // Load Roboto font
 const roboto = Roboto({
   variable: "--font-roboto",
   subsets: ["latin"],
   weight: "400",
+});
+
+// Load Inter font
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"], // Adjust weights as needed
 });
 
 export const metadata: Metadata = {
@@ -30,14 +43,26 @@ export default function RootLayout({
           content="width=device-width, maximum-scale=1.0, user-scalable=no, initial-scale=1, shrink-to-fit=no"
         />
       </head>
-      <body className={`${roboto.variable} antialiased`}>
-        <ActiveProvider>
-          <FunnelProvider>
-            <DateRangeProvider>
-              {children}
-            </DateRangeProvider>
-          </FunnelProvider>
-        </ActiveProvider>
+      <body className={`${roboto.variable} ${inter.variable} antialiased`}>
+        <ReduxProvider>
+          <Suspense>
+            <CampaignProvider>
+              <DateRangeProvider>
+                <SelectedDatesProvider>
+                  <ActiveProvider>
+                    <EditingProvider>
+                      <ObjectivesProvider>
+                        <FunnelProvider>
+                          {children}
+                        </FunnelProvider>
+                      </ObjectivesProvider>
+                    </EditingProvider>
+                  </ActiveProvider>
+                </SelectedDatesProvider>
+              </DateRangeProvider>
+            </CampaignProvider>
+          </Suspense>
+        </ReduxProvider>
       </body>
     </html>
   );

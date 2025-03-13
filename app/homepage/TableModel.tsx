@@ -1,98 +1,322 @@
-"use client"
-import { useState } from "react";
+"use client";
+import { useState, useEffect, SetStateAction } from "react";
 import Image from "next/image";
 import closefill from "../../public/close-fill.svg";
 import blueprofile from "../../public/blueprofile.svg";
 import Input from "../../components/Input";
-import Dropdowns from "../../components/CustomDropdown";
 import EditInputs from "../../components/EditInput";
+import ResponsibleApproverDropdowns from "../../components/ResponsibleApproverDropdowns";
+import FeeDropdowns from "./FeeDropdowns";
+import CategoryDropdown from "./components/CategoryDropdown";
+import SportDropdown from "./components/SportDropdown";
+import BusinessUnit from "./components/BusinessUnit";
+import { useDispatch } from "react-redux";
+import { createClient, reset } from "../../features/Client/clientSlice";
+import { useAppSelector } from "../../store/useStore";
+import { RootState } from "../../store/store";
+import { SVGLoader } from "../../components/SVGLoader";
+import AlertMain from "../../components/Alert/AlertMain";
+import { MdOutlineCancel } from "react-icons/md";
+import { addNewClient } from "./functions/clients";
 
 const TableModel = ({ isOpen, setIsOpen }) => {
+  const { isLoading, isSuccess, isError, message } = useAppSelector(
+    (state: RootState) => state.client
+  );
+  const dispatch = useDispatch();
+  const [inputs, setInputs] = useState({
+    name: "",
+    email: "",
+    responsiblePerson: "",
+    approver: "",
+    sports: [],
+    categories: [],
+    businessUnits: [],
+    feeType: "",
+  });
+  const [emailList, setEmailList] = useState([]);
+  const [sportList, setSportList] = useState<any>([{ id: 1, text: "" }]);
+  const [businessUnit, setBusinessUnit] = useState([]);
+  const [categoryList, setCategoryList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState(null); // ✅ State for alerts
+
+  // console.log('businessUnit-businessUnit', categoryList, businessUnit, sportList)
+
+  // ✅ Automatically reset alert after showing
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 3000); // Reset after 3 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
+  const handleAddEmail = () => {
+    const trimmedEmail = inputs.email.trim();
+
+    // ✅ Email validation regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!trimmedEmail) {
+      setAlert({ variant: "error", message: "Email cannot be empty", position: "bottom-right" });
+      return;
+    }
+
+    if (!emailRegex.test(trimmedEmail)) {
+      setAlert({ variant: "error", message: "Invalid email format", position: "bottom-right" });
+      return;
+    }
+
+    if (emailList.includes(trimmedEmail)) {
+      setAlert({ variant: "warning", message: "Email already exists", position: "bottom-right" });
+      return;
+    }
+
+    if (emailList.length >= 5) {
+      setAlert({ variant: "warning", message: "Maximum 5 emails allowed", position: "bottom-right" });
+      return;
+    }
+
+    setEmailList([...emailList, trimmedEmail]);
+    setInputs((prevState) => ({
+      ...prevState,
+      email: "",
+    }));
+  };
+
+  // useEffect(() => {
+  //   if (isError) {
+  //     setTimeout(() => {
+  //       dispatch(reset());
+  //     }, 3000);
+  //   } else if (isSuccess) {
+  //     setIsOpen(false);
+  //     setInputs({
+  //       name: "",
+  //       email: "",
+  //       responsiblePerson: "",
+  //       approver: "",
+  //       sports: "",
+  //       categories: [],
+  //       businessUnits: [],
+  //       feeType: "",
+  //     });
+  //     setTimeout(() => {
+  //       dispatch(reset());
+  //     }, 3000);
+  //   }
+  // }, [isError, isSuccess]);
+  // console.log('inputs-inputs', inputs)
 
 
-	const [inputs, setInputs] = useState({
-		firstName: "",
-		lastName: "",
-		schoolName: "",
-		schoolLocation: "",
-		subjectsTaught: "",
-		yearGroupsTaught: "",
-		others: "",
-		username: "",
-		email: "",
-	});
+  const handleRemoveEmail = (email) => {
+    const filteredEmails = emailList.filter((e) => e !== email);
+    setEmailList(filteredEmails);
+  };
 
-	const handleOnChange = (input: string, value: string) => {
-		setInputs((prevState) => ({
-			...prevState,
-			[input]: value,
-		}));
-	};
+  const handleOnChange = (input: string, value: string) => {
+    setInputs((prevState) => ({
+      ...prevState,
+      [input]: value,
+    }));
+  };
 
-	return (
-		<div className="z-500">
-			{isOpen && (
-				<div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-					<div className="flex flex-col items-start p-6 gap-6 w-[700px]  bg-white rounded-[32px]">
-						<div className="border-structure flex justify-between w-full border-">
-							<div className="flex items-center gap-5">
-								<div className="madel_profile">
-									<Image src={blueprofile} alt="menu" />
-								</div>
-								<div className="madel_profile_text_container">
-									<h3>Add a new client</h3>
-									<p>Define the client structure and initial setup.</p>
-								</div>
-							</div>
-							<button
-								className="self-start text-gray-500 hover:text-gray-800"
-								onClick={() => setIsOpen(false)}
-							>
-								<Image src={closefill} alt="menu" />
-							</button>
-						</div>
+  // Prevent background scrolling when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+    return () => document.body.classList.remove("overflow-hidden");
+  }, [isOpen]);
 
 
-						<div className="w-full flex justify-between items-end gap-3">
-							<div className="w-full">
-								<Input
-									type="email"
-									value={inputs.email || ''}
-									handleOnChange={(e) => handleOnChange("email", e.target.value)}
-									label={'Client name'}
-									disabled={true} placeholder={'Client name'} />
-							</div>
 
-							<div className="w-full">
-								<Input
-									type="email"
-									value={inputs.email || ''}
-									handleOnChange={(e) => handleOnChange("email", e.target.value)}
-									label={'Client name'}
-									disabled={true} placeholder={'Client name'} />
-							</div>
-							<button className="model_button_black">Add</button>
-						</div>
-						<div className="w-full">
-							<Dropdowns one={true} two={true} labelone={"Julien Dahmoun "} labeltwo={"Select fee type"} right={true} islabelone={"Responsible"} islabeltwo={"Approver"} />
-						</div>
-						<div className="w-full">
-							<EditInputs islabelone={"Business level 1"} islabeltwo={"Business level 2"} islabelthree={"Business level 3"} />
-						</div>
-						<div className="w-[50%]">
-							<Dropdowns one={true} two={false} labelone={"Select fee type"} labeltwo={undefined} right={false} islabelone={"Fee"} islabeltwo={undefined} />
-						</div>
-						<div className="model_buttom_btn_containers flex items-center justify-end mt-1 pt-4">
-							<div className="flex items-center gap-5">
-								<button className="btn_model_outline">Cancel</button>
-								<button className="btn_model_active">Add client</button>
-							</div>
-						</div>
-					</div>
-				</div>
-			)}
-		</div>
-	)
-}
+  console.log('emailList-emailList', inputs)
 
-export default TableModel
+  const handleSubmit = async () => {
+    setLoading(true);
+    await addNewClient({
+      client_name: inputs.name,
+      client_emails: emailList,
+      responsible: inputs.responsiblePerson,
+      approver: inputs.approver,
+      level_1: inputs.sports,
+      level_2: inputs.businessUnits,
+      level_3: inputs.categories,
+      fee_type: inputs.feeType,
+    })
+      .then(() => {
+        setInputs({
+          name: "",
+          email: "",
+          responsiblePerson: "",
+          approver: "",
+          sports: [],
+          categories: [],
+          businessUnits: [],
+          feeType: "",
+        });
+        setSportList([])
+        setBusinessUnit([])
+        setCategoryList([])
+        setIsOpen(false)
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+  return (
+    <div className="z-50">
+      {/* ✅ Show Alert */}
+      {alert && <AlertMain alert={alert} />}
+      {/* Show alert only when needed */}
+      {/* {isSuccess && (
+        <AlertMain
+          alert={{
+            variant: "success",
+            message: "Client created successfully!",
+            position: "bottom-right",
+          }}
+        />
+      )} */}
+      {/* {isError && (
+        <AlertMain
+          alert={{
+            variant: "error",
+            message: message,
+            position: "bottom-right",
+          }}
+        />
+      )} */}
+
+      {isOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          {/* Modal container */}
+          <div className="flex flex-col w-[700px] bg-white rounded-[32px] max-h-[90vh]">
+            <div className="w-full flex justify-end px-5 pt-5"></div>
+
+            {/* Header */}
+            <div className="p-6 border-b flex justify-between items-center bg-white sticky top-0 z-10 rounded-t-[32px]">
+              <div className="flex items-center gap-5">
+                <div className="madel_profile">
+                  <Image src={blueprofile} alt="menu" />
+                </div>
+                <div className="madel_profile_text_container">
+                  <h3>Add a new client</h3>
+                  <p>Define the client structure and initial setup.</p>
+                </div>
+              </div>
+              <button
+                className="text-gray-500 hover:text-gray-800"
+                onClick={() => setIsOpen(false)}
+              >
+                <Image src={closefill} alt="menu" />
+              </button>
+            </div>
+
+            {/* Scrollable Body */}
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              <div className="flex items-start gap-3">
+                <Input
+                  type="text"
+                  value={inputs.name}
+                  handleOnChange={(e) => handleOnChange("name", e.target.value)}
+                  label="Client Name"
+                  placeholder="Client Name"
+                />
+                <div className="w-[60%] shrink-0">
+                  <div className="shrink-0 flex items-center w-full gap-3 mb-2">
+                    <Input
+                      type="email"
+                      value={inputs.email}
+                      handleOnChange={(e) => handleOnChange("email", e.target.value)}
+                      label="Client emails (add up to 5 emails)"
+                      placeholder="Enter email address"
+                    />
+                    <button
+                      className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white mt-8"
+                      onClick={handleAddEmail}
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <div className="w-[78%]">
+                    {emailList?.map((email) => (
+                      <div
+                        key={email}
+                        className="flex items-center justify-between"
+                      >
+                        <p className="text-[14px]">{email}</p>
+                        <MdOutlineCancel
+                          size={18}
+                          color="red"
+                          onClick={() => handleRemoveEmail(email)}
+                          className="cursor-pointer"
+                        />
+                        {/* <p
+                          className="text-red-500 cursor-pointer"
+                          onClick={() => handleRemoveEmail(email)}
+                        >
+                          x
+                        </p> */}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="w-full">
+                <ResponsibleApproverDropdowns
+                  right={true}
+                  setInputs={setInputs}
+                />
+              </div>
+              <div className="w-full flex items-start gap-3">
+                <SportDropdown
+                  setInputs={setInputs}
+                  setAlert={setAlert}
+                />
+                <BusinessUnit
+                  setInputs={setInputs}
+                  setAlert={setAlert}
+                />
+                <CategoryDropdown
+                  setInputs={setInputs}
+                  setAlert={setAlert}
+                />
+              </div>
+              <div className="w-[50%]">
+                <FeeDropdowns
+                  labelone="Select fee type"
+                  islabelone="Fee"
+                  inputs={inputs}
+                  setInputs={setInputs}
+                />
+              </div>
+            </div>
+
+            {/* Footer  */}
+            <div className="p-6 border-t bg-white sticky bottom-0 z-10 flex justify-end rounded-b-[32px]">
+              <div className="flex items-center gap-5">
+                <button className="btn_model_outline">Cancel</button>
+                <button
+                  className="btn_model_active whitespace-nowrap"
+                  onClick={handleSubmit}
+                >
+                  {loading ? (
+                    <SVGLoader width={"30px"} height={"30px"} color={"#FFF"} />
+                  ) : (
+                    "Add Client"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default TableModel;

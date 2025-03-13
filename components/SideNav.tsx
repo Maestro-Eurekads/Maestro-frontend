@@ -7,12 +7,25 @@ import { useRouter } from "next/navigation";
 import { useActive } from "../app/utils/ActiveContext";
 import { useState } from "react";
 import CreationFlowActive from "./CreationFlowActive";
+import symbol from "../public/material-symbols_campaign-rounded.svg";
+import funnel from "../public/ant-design_funnel-plot-filled.svg";
+import channel from "../public/icon-park-solid_web-page.svg";
+import devicefill from "../public/device-fill.svg";
+import basket from "../public/bxs_basket.svg";
+import click from "../public/fluent_cursor-click-24-filled.svg";
+import workbench from "../public/icon-park-solid_workbench.svg";
+import checkfill from "../public/mingcute_check-fill.svg";
+import Calender from "../public/Calender.svg";
+import { useObjectives } from "../app/utils/useObjectives";
 
 
 const SideNav: React.FC = () => {
+  const { selectedObjectives, selectedFunnels } = useObjectives();
   const [close, setClose] = useState(false);
   const router = useRouter();
   const { setActive, setSubStep } = useActive();
+
+
 
   const handleBackClick = () => {
     setActive(0); // Reset state
@@ -20,46 +33,158 @@ const SideNav: React.FC = () => {
     router.push("/"); // Navigate to home
   };
 
-  return (
-    <div id={close ? "side-nav-active" : "side-nav"} className="!flex !flex-col !h-full justify-between">
+  const steps = [
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Define campaign objective",
+      objective: !selectedObjectives[0]?.title ? "" : `Main objective: ${selectedObjectives[0]?.title}`,
+      img: <Image src={symbol} alt="symbol" />
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Map funnel stages",
+      objective: selectedFunnels.length > 0
+        ? selectedFunnels.length > 3
+          ? selectedFunnels.slice(0, 3).join(" · ") + " ..."
+          : selectedFunnels.join(" · ")
+        : "",
 
-      <div>
+      img: <Image src={funnel} alt="funnel" />
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Select channel mix",
+      img: <Image src={channel} alt="channel" />
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Formats selection",
+      img: <Image src={devicefill} alt="devicefill" />
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Set buy objectives and types",
+      img: <Image src={basket} alt="basket" />
+    },
+    {
+      vl: "vls",
+      vl_done: "vl_dones",
+      vl_active: "vl_actives",
+      state_text: "SideBar_Menu_state_sub",
+      sidecircle: "SideBar_Menu_active_sub",
+      title: "Mid-recap",
+      // img: <Image src={basket} alt="basket" />
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Plan campaign schedule",
+      img: <Image src={Calender} alt="click" />
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Configure ad sets and budget",
+      img: <Image src={click} alt="click" />
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Establish goals",
+      img: <Image src={workbench} alt="workbench" />
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Overview of your campaign",
+      img: <Image src={checkfill} alt="checkfill" />
+    },
+  ];
+
+  return (
+    <div id={close ? "side-nav-active" : "side-nav"} className="!flex !flex-col !h-full">
+      {/* Fixed Top Section */}
+      <div className="flex flex-col">
         <div className={`flex ${close ? 'justify-center mb-[30px]' : 'justify-end'} w-full`}>
           <button onClick={() => setClose(!close)}>
             <Image src={closeicon} alt={"closeicon"} />
           </button>
         </div>
-        {close === false && <div className="flex flex-col items-start mb-8">
-          <button
-            onClick={handleBackClick}
-            className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF] flex items-center gap-2"
-          >
-            <Image src={left_arrow} alt="menu" />
-            <p>Back to Dashboard</p>
-          </button>
-          <span className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
-            Spring Collection Launch 2025
-          </span>
-          <div className="flex items-center gap-[8px]">
-            <Image src={nike} alt="nike" />
-            <p className="w-[35px] h-[22px] font-[General Sans] font-semibold text-[16px] leading-[22px] text-[#061237]">
-              Nike
-            </p>
+        {close === false && (
+          <div className="flex flex-col items-start mb-8">
+            <button
+              onClick={handleBackClick}
+              className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF] flex items-center gap-2"
+            >
+              <Image src={left_arrow} alt="menu" />
+              <p>Back to Dashboard</p>
+            </button>
+            <div>
+              <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
+                Let’s create your
+              </h6>
+              <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
+                new campaign :
+              </h6>
 
+            </div>
+            <div className="flex items-center gap-[8px]">
+              <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic">
+                Follow the steps to set up an effective and successful campaign strategy.
+              </p>
+            </div>
           </div>
-        </div >}
-        {close ? <CreationFlowActive /> : <CreationFlow />}
+        )}
       </div>
-      {
-        close ? <div /> :
-          <p className="font-general-sans italic font-medium text-[12px] leading-[21px] text-[rgba(6,18,55,0.8)]">
-            This screen, all the other ones, as well as the system they build together are protected by
-            copyright © - all use, display, and any other rights are exclusively reserved to Eurekads
-            Pte. Ltd.
-          </p>
-      }
-    </div >
+
+      {/* Scrollable Bottom Section */}
+      {close ? <CreationFlowActive steps={steps} close={close} /> : <CreationFlow steps={steps} />}
+
+
+      {/* Footer */}
+      {!close && (
+        <p className="font-general-sans italic font-medium text-[12px] leading-[21px] text-[rgba(6,18,55,0.8)]">
+          This screen, all the other ones, as well as the system they build together are protected by
+          copyright © - all use, display, and any other rights are exclusively reserved to Eurekads
+          Pte. Ltd.
+        </p>
+      )}
+    </div>
   );
+
+
 };
 
 export default SideNav;

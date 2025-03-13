@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react";
-import FunnelStage from "../../app/creation/components/FunnelStage";
+import FunnelStage from "../../app/creation/components/SelectChannelMix";
 import { funnelStages } from "../data";
 import Image from "next/image";
 import up from '../../public/arrow-down.svg';
@@ -70,7 +70,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen }) => {
 	return (
 		<div className="z-50">
 			{isOpen && (
-				<div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+				<div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 w-full">
 
 					<div className="flex flex-col items-start p-6 gap-6    bg-white rounded-[10px]">
 						<button className="self-end" onClick={() => setIsOpen(false)}>
@@ -90,14 +90,15 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen }) => {
 								/>
 							</svg>
 						</button>
-						<div className="card bg-base-100 w-[100%]  h-[600px] overflow-y-auto">
+						<div className="card bg-base-100  overflow-y-auto max-h-[60vh]">
 
 							{/* <FunnelStage /> */}
-							<div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
+							<div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer w-full">
 								{funnelStages.map((stage, index) => (
-									<div key={index}>
+									<div key={index} className="w-full">
 										<div
-											className="flex justify-between items-center p-6 gap-3 w-[968px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] rounded-t-[10px]"
+											className={`md:w-[850px] flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
+          ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
 											onClick={() => toggleItem(stage.name)}
 										>
 											<div className="flex items-center gap-2">
@@ -134,7 +135,8 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen }) => {
 										</div>
 
 										{openItems[stage.name] && (
-											<div className="card_bucket_container_main_sub flex flex-col pb-6 w-[968px] min-h-[300px]">
+											<div className="card_bucket_container_main_sub flex flex-col pb-6 w-full md:w-[850px] min-h-[300px]">
+
 												{validatedStages[stage.name] ? (
 													// Read-only summary view with full card UI for each selected field, using default border styling
 													<div className="mt-8 px-6">

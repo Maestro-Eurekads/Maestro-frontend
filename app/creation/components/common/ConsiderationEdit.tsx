@@ -1,212 +1,274 @@
-import React, { useState } from 'react';
-import { Trash } from 'lucide-react';
+import React, { useState } from "react";
+import { Trash } from "lucide-react";
+import Button from "./button";
+import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Button from './button';
-import Image from 'next/image';
+import Swal from 'sweetalert2';
 
-import trade from '../../../../public/TheTradeDesk.svg';
-import facebook from '../../../../public/facebook.svg';
+import trade from "../../../../public/TheTradeDesk.svg";
 import table from "../../../../public/tabler_zoom-filled.svg";
-import instagram from '../../../../public/ig.svg';
-import quantcast from '../../../../public/quantcast.svg';
-import arrowdown from '../../../../public/arrow-down-2.svg';
-import google from '../../../../public/Google.svg';
+import facebook from "../../../../public/facebook.svg";
+import google from "../../../../public/Google.svg"
+import instagram from "../../../../public/ig.svg";
+import quantcast from "../../../../public/quantcast.svg";
+import arrowdown from "../../../../public/arrow-down-2.svg";
+import vector from "../../../../public/Vector.svg";
+import { campaignObjectives } from '../../../../components/data';
 
 const ConsiderationEdit = ({ onDelete }) => {
-  // Social Media state and sequential addition
-  const [socialMedia, setSocialMedia] = useState([
-    { id: 1, name: 'Facebook', icon: facebook },
-    { id: 2, name: 'Instagram', icon: instagram },
-    { id: 3, name: 'Traffic' },
-    { id: 4, name: 'Traffic' },
-    { id: 5, name: 'CPM' },
-    { id: 6, name: 'CPM' }
-  ]);
-  const socialTypes = [
-    { name: 'Facebook', icon: facebook },
-    { name: 'Instagram', icon: instagram },
-    { name: 'Traffic' },
-    { name: 'CPM' }
-  ];
-  const [socialIndex, setSocialIndex] = useState(0);
-  const addNewSocialMediaChannel = () => {
-    const nextId = socialMedia.reduce((max, item) => Math.max(max, item.id), 0) + 1;
-    const channelToAdd = socialTypes[socialIndex % socialTypes.length];
-    setSocialMedia([...socialMedia, { id: nextId, ...channelToAdd }]);
-    setSocialIndex(socialIndex + 1);
-  };
-  const removeSocialMedia = (id) => {
-    setSocialMedia(socialMedia.filter(item => item.id !== id));
+  const [showConsideration, setShowConsideration] = useState(true);
+  const [selectedObjectives, setSelectedObjectives] = useState({
+    socialVideoView: "",
+    socialTraffic: "",
+    displayVideoView: "",
+    displayTraffic: "",
+    searchTraffic: "",
+    socialBuyType1: "CPM",
+    socialBuyType2: "CPM",
+    displayBuyType1: "CPV",
+    displayBuyType2: "CPV",
+    searchBuyType: "CPM"
+  });
+  
+  const [showDropdowns, setShowDropdowns] = useState({
+    socialVideoView: false,
+    socialTraffic: false,
+    displayVideoView: false,
+    displayTraffic: false,
+    searchTraffic: false,
+    socialBuyType1: false,
+    socialBuyType2: false,
+    displayBuyType1: false,
+    displayBuyType2: false,
+    searchBuyType: false
+  });
+
+  const objectives = ["Video view", "Traffic", "Awareness"];
+  const buyTypes = ["CPV", "CPM"];
+
+  const handleObjectiveClick = (type, objective) => {
+    setSelectedObjectives(prev => ({
+      ...prev,
+      [type]: objective
+    }));
+    setShowDropdowns(prev => ({
+      ...prev,
+      [type]: false
+    }));
   };
 
-  // Display Network state and sequential addition
-  const [displayNetwork, setDisplayNetwork] = useState([
-    { id: 1, name: 'The TradeDesk', icon: trade },
-    { id: 2, name: 'QuantCast', icon: quantcast },
-    { id: 3, name: 'Traffic' },
-    { id: 4, name: 'Traffic' },
-    { id: 5, name: 'CPV' },
-    { id: 6, name: 'CPV' }
-  ]);
-  const displayTypes = [
-    { name: 'The TradeDesk', icon: trade },
-    { name: 'QuantCast', icon: quantcast },
-    { name: 'Traffic' },
-    { name: 'CPV' }
-  ];
-  const [displayIndex, setDisplayIndex] = useState(0);
-  const addNewDisplayNetworkChannel = () => {
-    const nextId = displayNetwork.reduce((max, item) => Math.max(max, item.id), 0) + 1;
-    const channelToAdd = displayTypes[displayIndex % displayTypes.length];
-    setDisplayNetwork([...displayNetwork, { id: nextId, ...channelToAdd }]);
-    setDisplayIndex(displayIndex + 1);
-  };
-  const removeDisplayNetwork = (id) => {
-    setDisplayNetwork(displayNetwork.filter(item => item.id !== id));
+  const toggleDropdown = (type) => {
+    setShowDropdowns(prev => ({
+      ...prev,
+      [type]: !prev[type]
+    }));
   };
 
-  // Search Engines state and sequential addition
-  const [searchEngines, setSearchEngines] = useState([
-    { id: 1, name: 'Google', icon: google },
-    { id: 2, name: 'Traffic' },
-    { id: 3, name: 'CPM' }
-  ]);
-  const searchTypes = [
-    { name: 'Google', icon: google },
-    { name: 'Traffic' },
-    { name: 'CPM' }
-  ];
-  const [searchIndex, setSearchIndex] = useState(0);
-  const addNewSearchEngineChannel = () => {
-    const nextId = searchEngines.reduce((max, item) => Math.max(max, item.id), 0) + 1;
-    const channelToAdd = searchTypes[searchIndex % searchTypes.length];
-    setSearchEngines([...searchEngines, { id: nextId, ...channelToAdd }]);
-    setSearchIndex(searchIndex + 1);
-  };
-  const removeSearchEngine = (id) => {
-    setSearchEngines(searchEngines.filter(item => item.id !== id));
+  const handleDelete = () => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "Do you want to delete this stage?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3175FF',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes',
+      cancelButtonText: 'No'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setShowConsideration(false);
+        if (onDelete) {
+          onDelete();
+        }
+      }
+    });
   };
 
-  // A helper component for a channel item
-  const ChannelItem = ({ item, onRemove }) => {
-    // Check if we have the arrow down special case
-    if (item.icon === arrowdown) {
-      return (
-        <div className="flex items-center justify-between px-4 py-3 rounded-md border border-gray-200 bg-white">
-          <span className="text-md text-black whitespace-nowrap">{item.name}</span>
-          <Image
-            src={item.icon}
-            alt={item.name}
-            width={16}
-            height={16}
-            className="inline-block align-middle"
-          />
-        </div>
-      );
-    }
+  const DropdownButton = ({ type, defaultText }) => (
+    <div className="relative">
+      <button 
+        className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
+        onClick={() => toggleDropdown(type)}
+      >
+        <span className="text-[#061237] font-semibold whitespace-nowrap">
+          {selectedObjectives[type] || defaultText}
+        </span>
+        <Image src={arrowdown} className="size-4" alt="dropdown" />
+      </button>
 
-    return (
-      <div className="flex items-center justify-between px-4 py-3 rounded-md border border-gray-200 bg-white">
-        <div className="flex items-center gap-2">
-          {item.icon && (
-            <Image
-              src={item.icon}
-              alt={item.name}
-              width={16}
-              height={16}
-              className="inline-block align-middle flex-shrink-0"
-            />
-          )}
-          <span className="flex-grow text-md text-black min-w-0">{item.name}</span>
-        </div>
-        <button
-          onClick={() => onRemove(item.id)}
-          className="flex-shrink-0 text-white bg-black rounded-full w-3 h-3 whitespace-nowrap flex items-center justify-center"
-        >
-          x
-        </button>
-      </div>
-    );
-  };
-
-  return (
-    <div className="flex flex-col items-start p-6">
-      {/* Header */}
-      <div className="flex justify-between w-full items-center mb-4">
-        <div className="flex items-center gap-4">
-          <Image src={table} alt="Consideration icon" width={20} height={20} />
-          <span className="text-black font-semibold">Consideration</span>
-        </div>
-        <Button
-          text="Delete this stage"
-          variant="danger"
-          icon={Trash}
-          onClick={() => {
-            toast.success("Stage Deleted successfully!");
-            setTimeout(() => onDelete(), 2000);
-          }}
-          iconColor="text-white"
-          className="rounded-full px-4 py-2 text-sm"
-        />
-      </div>
-
-      {/* Social Media Section */}
-      <h2 className="text-black font-bold text-md mb-4">Social Media</h2>
-      <div className="flex flex-col items-start mt-8 md:flex-row justify-center gap-4">
-        <div className="grid grid-cols-3 md:grid-cols-3 w-[70%] gap-4">
-          {socialMedia.map(item => (
-            <ChannelItem key={item.id} item={item} onRemove={removeSocialMedia} />
+      {showDropdowns[type] && (
+        <div className="absolute top-full left-0 w-[150px] bg-white border border-[#0000001A] rounded-[10px] mt-1 z-10">
+          {objectives.map((objective) => (
+            <div
+              key={objective}
+              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+              onClick={() => handleObjectiveClick(type, objective)}
+            >
+              {objective}
+            </div>
           ))}
         </div>
+      )}
+    </div>
+  );
+
+  const BuyTypeDropdown = ({ type }) => (
+    <div className="relative">
+      <button 
+        className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
+        onClick={() => toggleDropdown(type)}
+      >
+        <span className="text-[#061237] font-semibold whitespace-nowrap">
+          {selectedObjectives[type]}
+        </span>
+        <Image src={arrowdown} className="size-4" alt="dropdown" />
+      </button>
+
+      {showDropdowns[type] && (
+        <div className="absolute top-full left-0 w-[150px] bg-white border border-[#0000001A] rounded-[10px] mt-1 z-10">
+          {buyTypes.map((buyType) => (
+            <div
+              key={buyType}
+              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+              onClick={() => handleObjectiveClick(type, buyType)}
+            >
+              {buyType}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  if (!showConsideration) {
+    return (
+      <button 
+        onClick={() => setShowConsideration(true)}
+        className="w-full h-[52px] bg-[#3175FF] rounded-[8px] border border-[#0000001A] border-solid text-white"
+      >
+        Add Consideration Stage
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-start flex-col gap-6">
+      {/* Awareness */}
+      <div className="flex justify-between w-full">
+        <div className="flex items-center gap-4">
+          <Image src={table} alt="speaker" className="size-5" />
+          <span className="text-lg leading-wider text-[#061237] font-semibold">Consideration</span>
+        </div>
+
         <Button
-          text="Add new channel"
-          variant="primary"
-          onClick={addNewSocialMediaChannel}
-          className="!rounded-md h-[52px] px-4 py-2 text-sm"
+          variant="danger"
+          text="Delete this stage"
+          icon={Trash}
+          onClick={handleDelete}
+          className="!rounded-full !px-4 !py-4 !text-white !w-[167px] !h-[31px]"
         />
       </div>
 
-      {/* Display Network & Search Engines Section */}
-      <div className="flex flex-col items-start gap-8 md:flex-row justify-center mt-8 w-full">
-        {/* Display Network */}
-        <div className="flex flex-col">
-          <h2 className="text-black font-bold text-md mb-4">Display Network</h2>
-          <div className="flex justify-center gap-6 w-full">
-            <div className="grid grid-cols-2 md:grid-cols-2 w-full gap-4">
-              {displayNetwork.map(item => (
-                <ChannelItem key={item.id} item={item} onRemove={removeDisplayNetwork} />
-              ))}
-            </div>
-            <Button
-              text="Add new channel"
-              variant="primary"
-              onClick={addNewDisplayNetworkChannel}
-              className="!rounded-md h-[52px] px-4 py-2 text-sm"
-            />
-          </div>
-        </div>
+      {/* social media */}
+      <div className="flex flex-col items-start gap-4">
+        <h2 className="font-bold text-[#061237]">Social Media</h2>
+        <div className="flex justify-center gap-4">
+          <div className="grid grid-cols-2 gap-4">
+            <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
+              <div className="flex items-center gap-2">
+                <Image src={facebook} className="size-4" alt="facebook" />
+                <span className="text-[#061237] font-semibold whitespace-nowrap">Facebook</span>
+              </div>
+              <Image src={vector} alt="vector" />
+            </button>
 
-        {/* Search Engines */}
-        <div className="flex flex-col">
-          <h2 className="text-black font-bold text-md mb-4">Search Engines</h2>
-          <div className="flex justify-center gap-4">
-            <div className="grid grid-cols-1 w-full gap-4">
-              {searchEngines.map(item => (
-                <ChannelItem key={item.id} item={item} onRemove={removeSearchEngine} />
-              ))}
-            </div>
-            <Button
-              text="Add new channel"
-              variant="primary"
-              onClick={addNewSearchEngineChannel}
-              className="!rounded-md w-full h-[52px] px-4 py-2 text-sm"
-            />
+            <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
+              <div className="flex items-center gap-2">
+                <Image src={instagram} className="size-4" alt="instagram" />
+                <span className="text-[#061237] font-semibold whitespace-nowrap">Instagram</span>
+              </div>
+              <Image src={vector} alt="vector" />
+            </button>
+
+            {/* second row */}
+            <DropdownButton type="socialVideoView" defaultText="Video view" />
+            <DropdownButton type="socialTraffic" defaultText="Traffic" />
+
+            {/* Third rows */}
+            <BuyTypeDropdown type="socialBuyType1" />
+            <BuyTypeDropdown type="socialBuyType2" />
+          </div>
+
+          <div>
+            <button className="w-[153px] h-[52px] bg-[#3175FF] rounded-[8px] border border-[#0000001A] border-solid">
+              <span className="text-white">Add new channel</span>
+            </button>
           </div>
         </div>
       </div>
 
-      <ToastContainer />
+      {/* Display network */}
+      <div className="flex justify-center gap-4">
+        <div className="flex flex-col items-start gap-4">
+          <h2 className="font-bold text-[#061237] pt-4">Display networks</h2>
+          <div className="flex justify-center gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
+                <div className="flex items-center gap-2">
+                  <Image src={trade} className="size-4" alt="facebook" />
+                  <span className="text-[#061237] font-semibold whitespace-nowrap">TradeDesk</span>
+                </div>
+                <Image src={vector} alt="vector" />
+              </button>
+
+              <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
+                <div className="flex items-center gap-2">
+                  <Image src={quantcast} className="size-4" alt="instagram" />
+                  <span className="text-[#061237] font-semibold whitespace-nowrap">Quantcast</span>
+                </div>
+                <Image src={vector} alt="vector" />
+              </button>
+
+              {/* second row */}
+              <DropdownButton type="displayVideoView" defaultText="Video view" />
+              <DropdownButton type="displayTraffic" defaultText="Traffic" />
+
+              {/* Third rows */}
+              <BuyTypeDropdown type="displayBuyType1" />
+              <BuyTypeDropdown type="displayBuyType2" />
+            </div>
+
+            <button className="w-[153px] h-[52px] bg-[#3175FF] rounded-[8px] border border-[#0000001A] border-solid">
+              <span className="text-white">Add new channel</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Search engine */}
+        <div className="flex ml-8 flex-col items-start gap-4">
+          <h2 className="font-bold text-[#061237] pt-4">Search engines</h2>
+          <div className="flex justify-center gap-4">
+            <div className="flex flex-col items-start gap-4">
+              <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4 ">
+                <div className="flex items-center gap-2">
+                  <Image src={google} className="size-4" alt="google" />
+                  <span className="text-[#061237] font-semibold whitespace-nowrap">Google</span>
+                </div>
+                <Image src={vector} alt="vector" />
+              </button>
+
+              <DropdownButton type="searchTraffic" defaultText="Traffic" />
+
+              <BuyTypeDropdown type="searchBuyType" />
+            </div>
+
+            <button className="w-[153px] h-[52px] bg-[#3175FF] rounded-[8px] border border-[#0000001A] border-solid">
+              <span className="text-white">Add new channel</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

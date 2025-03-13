@@ -11,7 +11,6 @@ function Layout({ children }: never) {
   return (
     <div id="page-wrapper">
       <Header setIsOpen={setIsOpen} />
-      dddddddd
       <main className="!px-0">{children}</main>
       <TableModel isOpen={isOpen} setIsOpen={setIsOpen} />
     </div>

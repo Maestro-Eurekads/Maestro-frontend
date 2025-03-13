@@ -1,18 +1,40 @@
 "use client"
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useActive } from "../../app/utils/ActiveContext";
+import AlertMain from "../Alert/AlertMain";
 
 
 
 const ComfirmModel = ({ isOpen, setIsOpen }) => {
+	const router = useRouter();
+	const { setActive, setSubStep } = useActive();
+	const [approval, setApproval] = useState(false);
 
+
+	const handleBackClick = () => {
+		setActive(0); // Reset state
+		setSubStep(0);
+		router.push("/"); // Navigate to home
+	};
+
+	const handleApproval = () => {
+		setApproval(true)
+		setTimeout(() => {
+			setApproval(false)
+		}, 3000);
+
+
+	};
 
 	return (
 		<div className="z-50">
+
 			{isOpen && (
 				<div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
 					<div className="flex flex-col items-start p-6 gap-6   bg-white rounded-[10px]">
-						<div className="card bg-base-100 w-[418px]">
-							<form method="dialog" className="flex justify-between p-6 !pb-0">
+						<div className="card bg-base-100 h-[160px] w-[418px]">
+							<div className="flex justify-between p-6 !pb-0">
 								<span></span>
 								<span className="w-[44px]   grid place-items-center">
 									<svg
@@ -67,7 +89,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 										/>
 									</svg>
 								</button>
-							</form>
+							</div>
 
 							<div className="p-6 pb-0 text-center">
 								<h2 className="text-xl mb-4 text-[#181D27] font-[500]">
@@ -78,14 +100,23 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 								</p>
 							</div>
 
-
+							{approval && (
+								<AlertMain
+									alert={{
+										variant: 'info',
+										message: 'Request approval not available!',
+										position: 'bottom-right',
+									}}
+								/>
+							)}
 						</div>
 
 
 						<div className=" w-full mt-1 pt-4">
+
 							<div className="flex items-center justify-between gap-5 w-full">
-								<button className="btn_model_outline w-full">Back to Dashboard</button>
-								<button className="btn_model_active w-full">Request approval</button>
+								<button className="btn_model_outline w-full" onClick={handleBackClick}>Back to Dashboard</button>
+								<button className="btn_model_active w-full" onClick={handleApproval}>Request approval</button>
 							</div>
 						</div>
 					</div>

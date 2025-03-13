@@ -339,15 +339,15 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
 					}}
 				>
 					<div
-						className="flex flex-col min-h-[69px] bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px] p-4 justify-between"
+						className="flex flex-col min-h-[69px] bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px]  justify-between"
 						style={{
 							gridColumnStart: startWeek,
 							gridColumnEnd: endWeek + 1,
 						}}
 					>
-						<div className="flex justify-between items-center">
-							<div>
-								<h3 className="text-[#061237] font-semibold text-[16px] leading-[22px]">
+						<div className={`${expanded[index] ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4    h-[77px] bg-[#F9FAFB]  "' : 'flex justify-between items-center p-4'} `}>
+							<div >
+								<h3 className="text-[#061237] font-semibold text-[16px] leading-[22px]  ">
 									{label} - Running
 								</h3>
 								<p className="text-[#061237] font-medium text-[14px]">
@@ -361,7 +361,7 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
 
 						{/* Expanded section */}
 						{expanded[index] && (
-							<div>
+							<div className="p-4">
 								{["Awareness", "Consideration", "Conversion"].map((section) => (
 									<div key={section}
 										style={{
