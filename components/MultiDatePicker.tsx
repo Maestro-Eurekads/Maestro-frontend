@@ -3,6 +3,7 @@ import Image from "next/image";
 import left from "../public/left.svg";
 import right from "../public/right.svg";
 import moveright from "../public/lucide_move-right.svg";
+import { useSelectedDates } from "../app/utils/SelectedDatesContext";
 
 interface MultiDatePickerProps {
 	isEditing: boolean;
@@ -10,6 +11,7 @@ interface MultiDatePickerProps {
 
 const MultiDatePicker: React.FC<MultiDatePickerProps> = ({ isEditing }) => {
 	const weekdays = ["M", "T", "W", "T", "F", "S", "S"];
+	const { selectedDates, setSelectedDates } = useSelectedDates();
 
 	// Generate months dynamically
 	const getMonthData = (offset: number) => {
@@ -32,13 +34,15 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({ isEditing }) => {
 	const [monthOffset, setMonthOffset] = useState(0);
 	const months = [getMonthData(monthOffset), getMonthData(monthOffset + 1)];
 
-	const [selectedDates, setSelectedDates] = useState<{
-		from: { day: number; month: number } | null;
-		to: { day: number; month: number } | null;
-	}>({
-		from: null,
-		to: null,
-	});
+	// const [selectedDates, setSelectedDates] = useState<{
+	// 	from: { day: number; month: number } | null;
+	// 	to: { day: number; month: number } | null;
+	// }>({
+	// 	from: null,
+	// 	to: null,
+	// });
+
+	console.log('selectedDates-selectedDates', selectedDates)
 
 	// Handle Date Selection (Only if isEditing is true)
 	const handleDateClick = (day: number, monthIndex: number) => {

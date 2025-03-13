@@ -9,8 +9,8 @@ import CampaignPhases from '../../creation/components/CampaignPhases'
 
 const Dashboard = () => {
 	const weeksCount = 14; // Dynamic count
-	const [show, setShow] = useState(false);
-	const [open, setOpen] = useState(false);
+	// const [show, setShow] = useState(false);
+	// const [open, setOpen] = useState(false);
 	const funnelsData = [
 		{ startWeek: 3, endWeek: 10, label: "Campaign 1" },
 		{ startWeek: 4, endWeek: 7, label: "Campaign 2" },

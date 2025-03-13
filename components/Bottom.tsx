@@ -10,6 +10,7 @@ import { useObjectives } from "../app/utils/useObjectives";
 import { useCampaigns } from "../app/utils/CampaignsContext";
 import axios from "axios";
 import { BiLoader } from "react-icons/bi";
+import { useSelectedDates } from "../app/utils/SelectedDatesContext";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -20,6 +21,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const { selectedObjectives, selectedFunnels } = useObjectives();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
+  const [selectedDatesError, setSelectedDateslError] = useState(false);
+  const { selectedDates, setSelectedDates } = useSelectedDates();
+  console.log('selectedDates-selectedDates', selectedDates?.to?.day)
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const {
@@ -33,15 +37,16 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   // Hide alerts after a few seconds
   useEffect(() => {
-    if (triggerObjectiveError || triggerFunnelError) {
+    if (triggerObjectiveError || triggerFunnelError || selectedDatesError) {
       const timer = setTimeout(() => {
         setTriggerObjectiveError(false);
         setTriggerFunnelError(false);
+        setSelectedDateslError(false);
       }, 3000); // Hides alert after 3 seconds
 
       return () => clearTimeout(timer);
     }
-  }, [triggerObjectiveError, triggerFunnelError]);
+  }, [triggerObjectiveError, triggerFunnelError, selectedDatesError]);
 
   const handleBack = () => {
     if (subStep > 0) {
@@ -69,7 +74,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     };
 
     const handleStepZero = async () => {
-      if (cId && campaignData) {
+      if (cId) {
         const {
           id,
           documentId,
@@ -105,11 +110,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         window.history.pushState({}, "", url.toString());
         await getActiveCampaign(res?.data?.data.documentId);
       }
+      // setActive((prev) => Math.min(10, prev + 1));
     };
-
     const handleStepOne = async () => {
-      if (!campaignData) return;
-
       const {
         id,
         documentId,
@@ -122,13 +125,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         media_plan_details,
         ...updatedCampaignData
       } = campaignData;
-
-      if (!client || !budget_details || !client_selection || !media_plan_details) return;
-
-      const { documentId: clientDocumentId } = client;
-      const { id: bId, ...restB } = budget_details;
-      const { id: clId, ...restC } = client_selection;
-      const { id: mId, ...restM } = media_plan_details;
+      const { documentId: clientDocumentId, ...restClientData } = client;
+      const { id: bId, restB } = budget_details;
+      const { id: clId, restC } = client_selection;
+      const { id: mId, restM } = budget_details;
 
       await updateCampaignData({
         ...updatedCampaignData,
@@ -138,11 +138,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         media_plan_details: restM,
         campaign_objective: campaignFormData?.campaign_objectives,
       });
+      // setActive((prev) => prev + 1);
     };
-
     const handleStepTwo = async () => {
-      if (!campaignData) return;
-
       const {
         id,
         documentId,
@@ -155,13 +153,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         media_plan_details,
         ...updatedCampaignData
       } = campaignData;
-
-      if (!client || !budget_details || !client_selection || !media_plan_details) return;
-
-      const { documentId: clientDocumentId } = client;
-      const { id: bId, ...restB } = budget_details;
-      const { id: clId, ...restC } = client_selection;
-      const { id: mId, ...restM } = media_plan_details;
+      const { documentId: clientDocumentId, ...restClientData } = client;
+      const { id: bId, restB } = budget_details;
+      const { id: clId, restC } = client_selection;
+      const { id: mId, restM } = budget_details;
 
       await updateCampaignData({
         ...updatedCampaignData,
@@ -172,10 +167,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         funnel_stages: campaignFormData?.funnel_stages,
       });
     };
-
     const handleStepThree = async () => {
-      if (!campaignData) return;
-
       const {
         id,
         documentId,
@@ -188,17 +180,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         media_plan_details,
         ...updatedCampaignData
       } = campaignData;
-
-      if (!client || !budget_details || !client_selection || !media_plan_details) return;
-
-      const { documentId: clientDocumentId } = client;
-      const { id: bId, ...restB } = budget_details;
-      const { id: clId, ...restC } = client_selection;
-      const { id: mId, ...restM } = media_plan_details;
-
+      const { documentId: clientDocumentId, ...restClientData } = client;
+      const { id: bId, restB } = budget_details;
+      const { id: clId, restC } = client_selection;
+      const { id: mId, restM } = budget_details;
       const channel_mix = Object.keys(campaignFormData?.channel_mix || {}).map((key: string) => {
         return campaignFormData?.channel_mix[key];
       });
+      console.log(channel_mix)
 
       await updateCampaignData({
         ...updatedCampaignData,
@@ -216,7 +205,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       await handleStepOne();
     } else if (active === 2) {
       await handleStepTwo();
-    } else if(active === 3){
+    } else if (active === 3) {
       await handleStepThree()
     }
 
@@ -229,6 +218,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       setTriggerFunnelError(true);
       hasError = true;
     }
+    if (active === 7 && selectedDates?.to?.day === undefined) {
+      setSelectedDateslError(true);
+      hasError = true;
+    }
 
     if (hasError) {
       setLoading(false);
@@ -237,6 +230,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     setTriggerObjectiveError(false);
     setTriggerFunnelError(false);
+    setSelectedDateslError(false);
 
     if (active === 7) {
       if (subStep < 1) {
@@ -281,8 +275,15 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-
-
+      {selectedDatesError && (
+        <AlertMain
+          alert={{
+            variant: "error",
+            message: "Choose your start and end date!",
+            position: "bottom-right",
+          }}
+        />
+      )}
       <div className="flex justify-between w-full">
         {/* Back Button */}
         {active === 0 ? (
@@ -332,8 +333,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                   {active === 0
                     ? "Start Creating"
                     : isHovered
-                    ? "Next Step"
-                    : "Continue"}
+                      ? "Next Step"
+                      : "Continue"}
                 </p>
                 <Image src={Continue} alt="Continue" />
               </>
