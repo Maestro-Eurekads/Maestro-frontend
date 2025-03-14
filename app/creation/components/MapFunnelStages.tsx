@@ -29,7 +29,7 @@ const MapFunnelStages = () => {
   // Toggle selection logic
   const handleSelect = (id: string) => {
     if (!isEditing) return; // Prevent selection if not editing
-    console.log("jbfgjbjfgfg", campaignFormData);
+     
     const updatedFunnels = campaignFormData?.funnel_stages?.includes(id)
       ? {
           ...campaignFormData,

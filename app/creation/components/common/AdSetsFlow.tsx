@@ -121,8 +121,11 @@ const AdSet = memo(function AdSet({
           </p>
           <hr className="border border-[#0000001A] w-[50px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" />
         </div>
+           
+           <div className="relative z-1">
 
           <AudienceDropdown />
+           </div>
 
           <input
           type="text"

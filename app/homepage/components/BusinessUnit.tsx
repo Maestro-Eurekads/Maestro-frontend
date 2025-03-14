@@ -15,7 +15,6 @@ const EditInput = ({
   const [fields, setFields] = useState([{ id: 1, text: "" }]);
 
   useEffect(() => {
-    console.log('business units ')
     setInputs((prev) => ({
       ...prev,
       businessUnits: fields.map((item) => item.text),

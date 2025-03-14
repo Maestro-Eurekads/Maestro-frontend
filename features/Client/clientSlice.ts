@@ -80,7 +80,7 @@ export const getCreateClient = createAsyncThunk<
       const axiosError = error as { response?: { data?: { error?: { details?: { errors?: any[] }; message?: string } } } };
 					const errors = axiosError.response?.data?.error?.details?.errors || axiosError.response?.data?.error?.message || [];
 					
-					console.log('axiosError-axiosError',axiosError)
+					 
       
       const errorArray = Array.isArray(errors) ? errors : [errors];  
       const errorMessages = errorArray.map((err: { path?: string[]; message?: string }) => {
