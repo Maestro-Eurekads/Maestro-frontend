@@ -109,7 +109,7 @@ const EditInput = ({
   );
 };
 
-const BusinessUnit = ({ inputs, setInputs, setAlert }) => {
+const BusinessUnit = ({ setInputs, setAlert }) => {
   return (
     <div className="flex flex-col gap-4 mt-[20px]">
       <EditInput

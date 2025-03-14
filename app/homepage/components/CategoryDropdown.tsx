@@ -99,15 +99,12 @@ const EditInput = ({
   );
 };
 
-const CategoryDropdown = ({ inputs, setInputs, setAlert }) => {
+const CategoryDropdown = ({ setInputs, setAlert }) => {
   return (
     <div className="flex flex-col gap-4 mt-[20px]">
       <EditInput
         placeholder="Business level 3"
-        // inputs={inputs}
         setInputs={setInputs}
-        // categoryList={inputs.categories}
-        // setCategoryList={(newList) => setInputs({ ...inputs, categories: newList })}
         setAlert={setAlert}
         label="Business level 3"
       />

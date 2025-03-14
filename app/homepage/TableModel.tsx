@@ -41,7 +41,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null); // ✅ State for alerts
 
-  // console.log('businessUnit-businessUnit', categoryList, businessUnit, sportList)
+
 
   // ✅ Automatically reset alert after showing
   useEffect(() => {
@@ -105,7 +105,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   //     }, 3000);
   //   }
   // }, [isError, isSuccess]);
-  // console.log('inputs-inputs', inputs)
+
 
 
   const handleRemoveEmail = (email) => {
@@ -132,7 +132,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
 
 
-  console.log('emailList-emailList', inputs)
+
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -274,24 +274,15 @@ const TableModel = ({ isOpen, setIsOpen }) => {
               </div>
               <div className="w-full flex items-start gap-3">
                 <SportDropdown
-                  inputs={inputs}
                   setInputs={setInputs}
-                  // sportList={sportList}
-                  // setSportList={setSportList}
                   setAlert={setAlert}
                 />
                 <BusinessUnit
-                  inputs={inputs}
                   setInputs={setInputs}
-                  // businessList={businessUnit}
-                  // setBusinessList={setBusinessUnit}
                   setAlert={setAlert}
                 />
                 <CategoryDropdown
-                  inputs={inputs}
                   setInputs={setInputs}
-                  // categoryList={categoryList}
-                  // setCategoryList={setCategoryList}
                   setAlert={setAlert}
                 />
               </div>

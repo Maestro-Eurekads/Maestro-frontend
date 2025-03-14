@@ -34,18 +34,19 @@ const EditInput = ({
       });
       return;
     }
+    if (!fields[fields.length - 1].text.trim()) {
+      setAlert({
+        variant: "error",
+        message: "Business Type cannot be empty",
+        position: "bottom-right",
+      });
+      return;
+    }
     setFields((prev) => [...prev, { id: prev.length + 1, text: "" }]);
+
   };
 
 
-  if (!fields[fields.length - 1].text.trim()) {
-    setAlert({
-      variant: "error",
-      message: "Business Type cannot be empty",
-      position: "bottom-right",
-    });
-    return;
-  }
 
   // Handle removing a field
   const handleRemoveField = (index) => {
@@ -113,7 +114,7 @@ const EditInput = ({
   );
 };
 
-const SportDropdown = ({ inputs, setInputs, setAlert }) => {
+const SportDropdown = ({ setInputs, setAlert }) => {
   return (
     <div className="flex flex-col gap-4 mt-[20px]">
       <EditInput
