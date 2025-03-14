@@ -97,7 +97,7 @@ const FormatsSelection = () => {
 									
 								))}
 								 <div className="card-body">
-                                 <Platforms />
+                                 <Platforms stageName={stage?.name} />
                                </div>
 							</div>
 						)}
