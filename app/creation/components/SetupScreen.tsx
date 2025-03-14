@@ -18,7 +18,7 @@ export const SetupScreen = () => {
     setCampaignFormData,
   } = useCampaigns();
   const { client_selection } = campaignFormData;
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(true);
   const [selectedOption, setSelectedOption] = useState("percentage");
   const [clientOptions, setClientOptions] = useState([]);
   const [level1Options, setlevel1Options] = useState([]);
@@ -112,17 +112,13 @@ export const SetupScreen = () => {
 
   return (
     <div>
-      <div className="flex w-full items-center justify-between">
-        <PageHeaderWrapper
-          t1={"Set up your new campaign"}
-          t2={
-            "Fill in the following information to define the foundation of your media plan."
-          }
-          t3={
-            "This information helps structure your campaign strategy and align with business goals."
-          }
-        />
-        {isEditing ? (
+      {/* <div className="flex w-full items-center justify-between"> */}
+      <PageHeaderWrapper
+        t1={"Set up your new campaign"}
+        t2={"Fill in the following information to define the foundation of your media plan."}
+        t3={"This information helps structure your campaign strategy and align with business goals."}
+      />
+      {/* {isEditing ? (
           ""
         ) : (
           <button
@@ -131,8 +127,8 @@ export const SetupScreen = () => {
           >
             {isEditing ? "Disable Edit" : "Edit"}
           </button>
-        )}
-      </div>
+        )} */}
+      {/* </div> */}
 
       <div className="mt-[42px]">
         <Title>Client selection</Title>
@@ -147,19 +143,20 @@ export const SetupScreen = () => {
         <div className="flex items-center flex-wrap gap-4 pb-12">
           <ClientSelection
             options={level1Options}
-            label={"Business level 1"}
+            label={"Parameter"}
             isEditing={isEditing}
             formId="level_1"
           />
+
           <ClientSelection
             options={level2Options}
-            label={"Business level 2"}
+            label={"Parameter"}
             isEditing={isEditing}
             formId="level_2"
           />
           <ClientSelection
             options={level3Options}
-            label={"Business level 3"}
+            label={"Parameter"}
             isEditing={isEditing}
             formId="level_3"
           />
@@ -238,7 +235,7 @@ export const SetupScreen = () => {
           </div>
         </div>
       </div>
-      <div className="flex justify-end pr-6 mt-[20px]">
+      {/* <div className="flex justify-end pr-6 mt-[20px]">
         {isEditing ? (
           <button
             disabled={businessLevel.length === 0}
@@ -250,7 +247,7 @@ export const SetupScreen = () => {
         ) : (
           ""
         )}
-      </div>
+      </div> */}
     </div>
   );
 };

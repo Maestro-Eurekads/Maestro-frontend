@@ -57,7 +57,7 @@ const EditInput = ({
     <div className="relative w-full">
       <div className="mb-4">
         <label className="font-medium text-[15px] leading-5 text-gray-600">
-          {label || placeholder}
+          {label}
         </label>
         {fields.map((field, index) => (
           <div
@@ -67,7 +67,7 @@ const EditInput = ({
             <input
               type="text"
               className="w-full bg-transparent outline-none text-gray-600"
-              placeholder={placeholder}
+              placeholder={`Parameter Level 3`}
               value={field.text}
               onChange={(e) => handleInputChange(index, e.target.value)}
             />
