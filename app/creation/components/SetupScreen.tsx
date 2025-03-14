@@ -26,7 +26,7 @@ export const SetupScreen = () => {
   const [level3Options, setlevel3Options] = useState([]);
 
 
-
+ 
 
   useEffect(() => {
     if (allClients) {
@@ -70,7 +70,7 @@ export const SetupScreen = () => {
     }));
   }, [client_selection]);
 
-
+ 
 
   const getInputValue = () => {
     if (selectedOption === "fix-amount") {
