@@ -10,6 +10,7 @@ import { useObjectives } from "../app/utils/useObjectives";
 import { useCampaigns } from "../app/utils/CampaignsContext";
 import { BiLoader } from "react-icons/bi";
 import { useSelectedDates } from "../app/utils/SelectedDatesContext";
+// import { useChannelMix } from "../app/utils/SelectChannelMixContext";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -22,6 +23,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [setupyournewcampaignError, SetupyournewcampaignError] = useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
   const [selectedDatesError, setSelectedDateslError] = useState(false);
+  // const {selectedChannels, setSelectedChannel} = useChannelMix();
   const { selectedDates, setSelectedDates } = useSelectedDates();
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -98,10 +100,12 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       hasError = true;
     }
 
-    if (active === 3 && (!campaignFormData?.channel_mix || Object.keys(campaignFormData.channel_mix).length === 0)) {
-      setTriggerChannelMixError(true);
-      hasError = true;
-    }
+ 
+
+    // if (active === 3 && (!selectedChannels || Object.keys(selectedChannels).length === 0)) {
+    //   setTriggerChannelMixError(true);
+    //   hasError = true;
+    // }
 
     if (hasError) {
       setLoading(false);
@@ -115,6 +119,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const handleStepZero = async () => {
       if (cId) {
+        if (!campaignData) return;
+        
         const {
           id,
           documentId,
@@ -153,6 +159,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       // setActive((prev) => Math.min(10, prev + 1));
     };
     const handleStepOne = async () => {
+      if (!campaignData) return;
+
       const {
         id,
         documentId,
@@ -166,9 +174,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         ...updatedCampaignData
       } = campaignData;
       const { documentId: clientDocumentId, ...restClientData } = client;
-      const { id: bId, restB } = budget_details;
-      const { id: clId, restC } = client_selection;
-      const { id: mId, restM } = budget_details;
+      const { id: bId, ...restB } = budget_details;
+      const { id: clId, ...restC } = client_selection;
+      const { id: mId, ...restM } = budget_details;
 
       await updateCampaignData({
         ...updatedCampaignData,
@@ -181,6 +189,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       // setActive((prev) => prev + 1);
     };
     const handleStepTwo = async () => {
+      if (!campaignData) return;
+
       const {
         id,
         documentId,
@@ -194,9 +204,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         ...updatedCampaignData
       } = campaignData;
       const { documentId: clientDocumentId, ...restClientData } = client;
-      const { id: bId, restB } = budget_details;
-      const { id: clId, restC } = client_selection;
-      const { id: mId, restM } = budget_details;
+      const { id: bId, ...restB } = budget_details;
+      const { id: clId, ...restC } = client_selection;
+      const { id: mId, ...restM } = budget_details;
 
       await updateCampaignData({
         ...updatedCampaignData,
@@ -208,6 +218,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       });
     };
     const handleStepThree = async () => {
+      if (!campaignData) return;
+
       const {
         id,
         documentId,
@@ -221,9 +233,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         ...updatedCampaignData
       } = campaignData;
       const { documentId: clientDocumentId, ...restClientData } = client;
-      const { id: bId, restB } = budget_details;
-      const { id: clId, restC } = client_selection;
-      const { id: mId, restM } = budget_details;
+      const { id: bId, ...restB } = budget_details;
+      const { id: clId, ...restC } = client_selection;
+      const { id: mId, ...restM } = budget_details;
       const channel_mix = Object.keys(campaignFormData?.channel_mix || {}).map((key: string) => {
         return campaignFormData?.channel_mix[key];
       });
@@ -248,10 +260,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     } else if (active === 3) {
       await handleStepThree()
     }
-
-
-
-
 
     if (active === 7) {
       if (subStep < 1) {
