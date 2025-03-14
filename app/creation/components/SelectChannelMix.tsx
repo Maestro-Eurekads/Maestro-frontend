@@ -7,6 +7,7 @@ import checkmark from "../../../public/mingcute_check-fill.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { funnelStages } from "../../../components/data";
 import { useCampaigns } from "../../utils/CampaignsContext";
+import { channel } from "diagnostics_channel";
 
 // SelectChannelMix component allows users to select marketing platforms for different funnel stages
 const SelectChannelMix = () => {
@@ -15,6 +16,8 @@ const SelectChannelMix = () => {
   const [selected, setSelected] = useState({}); // Stores selected platforms for each stage
   const [validatedStages, setValidatedStages] = useState({}); // Tracks which stages are validated
   const { campaignFormData, setCampaignFormData } = useCampaigns(); // Campaign context
+
+  console.log("channel_mix_data", campaignFormData?.channel_mix)
 
   // Toggle expansion of a funnel stage section
   const toggleItem = (stage: string) => {
@@ -36,6 +39,22 @@ const SelectChannelMix = () => {
       );
       setOpenItems(value);
     }
+    const ch_mix = campaignFormData?.channel_mix;
+    console.log("🚀 ~ useEffect ~ ch_mix:", JSON.stringify(ch_mix));
+    const v =
+      Array.isArray(ch_mix) &&
+      ch_mix.reduce((acc, ch) => {
+        acc[ch.funnel_stage] = {
+          "Social media": ch?.social_media?.map((sm) => sm?.platform_name),
+          "Display networks": ch?.display_networks?.map(
+            (dn) => dn?.platform_name
+          ),
+          "Search engines": ch?.search_engines?.map((se) => se?.platform_name),
+        };
+        return acc;
+      }, {});
+    console.log("🚀 ~ v ~ v:", v);
+    setSelected(v)
   }, [campaignFormData?.funnel_stages]);
 
   // Handle selection/deselection of platforms
@@ -64,22 +83,39 @@ const SelectChannelMix = () => {
     // Update campaign form data context
     setCampaignFormData((prev1: any) => {
       const updatedCategorySelection = isAlreadySelected
-        ? categorySelection.filter((p) => p !== platformName)
-        : [...categorySelection, platformName];
+      ? categorySelection.filter((p) => p !== platformName)
+      : [...categorySelection, platformName];
+
+      const updatedChannelMix = prev1.channel_mix.map((ch) => {
+      if (ch.funnel_stage === stageName) {
+        return {
+        ...ch,
+        [category.toLowerCase().replaceAll(" ", "_")]:
+          updatedCategorySelection.map((cat: any) => ({
+          platform_name: cat,
+          })),
+        };
+      }
+      return ch;
+      }).map(({ id, ...rest }) => rest); // Remove the id from each channel mix object
+
+      const stageExists = prev1.channel_mix.some(
+      (ch) => ch.funnel_stage === stageName
+      );
+
+      if (!stageExists) {
+      updatedChannelMix.push({
+        funnel_stage: stageName,
+        [category.toLowerCase().replaceAll(" ", "_")]:
+        updatedCategorySelection.map((cat: any) => ({
+          platform_name: cat,
+        })),
+      });
+      }
+
       return {
-        ...prev1,
-        channel_mix: {
-          ...prev1.channel_mix,
-          [stageName]: {
-            ...prev1.channel_mix[stageName],
-            funnel_stage: stageName,
-            [category.toLowerCase().replaceAll(" ", "_")]: updatedCategorySelection.map(
-              (cat: any) => ({
-                platform_name: cat,
-              })
-            ),
-          },
-        },
+      ...prev1,
+      channel_mix: updatedChannelMix,
       };
     });
   };
@@ -110,6 +146,8 @@ const SelectChannelMix = () => {
       [stageName]: false,
     }));
   };
+
+  console.log("selected", JSON.stringify(selected));
 
   return (
     <div className="overflow-hidden">
@@ -221,7 +259,7 @@ const SelectChannelMix = () => {
                             {platforms.map((platform, pIndex) => {
                               const isSelected = selected[stage.name]?.[category]?.includes(
                                 platform.name
-                              );
+                              ) || campaignFormData?.channel_mix?.find((ch)=>ch?.funnel_stage === stageName)?.[category?.toLowerCase()?.replaceAll(" ", "_")]?.find((p)=>p?.platform_name === platform?.name);
                               return (
                                 <div
                                   key={pIndex}
