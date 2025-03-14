@@ -19,7 +19,7 @@ const DefineCampaignObjective = () => {
         (ff) => ff?.title === campaignFormData?.campaign_objectives
       );
       console.log([{ id: f.id, title: f?.title }]);
-	  setSelectedObjectives([{ id: f.id, title: f?.title }]);
+      setSelectedObjectives([{ id: f.id, title: f?.title }]);
     }
   }, [campaignFormData?.campaign_objectives]);
 
@@ -83,9 +83,8 @@ const DefineCampaignObjective = () => {
           return (
             <div
               key={item.id}
-              className={`relative p-4 rounded-lg transition-all duration-300 ${
-                isSelected ? "creation_card_active shadow-lg" : "creation_card"
-              } ${isEditing ? "cursor-pointer" : "cursor-not-allowed"}`}
+              className={`relative p-4 rounded-lg transition-all duration-300 ${isSelected ? "creation_card_active shadow-lg" : "creation_card"
+                } ${isEditing ? "cursor-pointer" : "cursor-not-allowed"}`}
               onClick={() =>
                 isEditing ? handleSelect(item.id, item.title) : handleAlert()
               }
