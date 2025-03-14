@@ -1,43 +1,89 @@
-'use client'
-import Image from 'next/image'
-import nike from '../public/nike.svg';
-import plus from '../public/plus.svg';
-import white from '../public/white-plus.svg';
-import down from '../public/ri-arrow-down-s-line.svg';
-import Link from 'next/link';
-
+"use client";
+import Image from "next/image";
+import nike from "../public/nike.svg";
+import plus from "../public/plus.svg";
+import white from "../public/white-plus.svg";
+import down from "../public/ri-arrow-down-s-line.svg";
+import Link from "next/link";
+import { useCampaigns } from "../app/utils/CampaignsContext";
+import { FiLoader } from "react-icons/fi";
+import useCampaignHook from "../app/utils/useCampaignHook";
+import { useEffect, useState } from "react";
 
 const Header = ({ setIsOpen }) => {
+  const { loadingClients, allClients, setClientCampaignData, setLoading } = useCampaigns();
+  const [selected, setSelected] = useState("");
+  const { fetchClientCampaign } = useCampaignHook();
 
-
+  useEffect(() => {
+    if (allClients) {
+      setLoading(true);
+      if (selected === "") {
+        fetchClientCampaign(allClients[0]?.id)
+          .then((res) => {
+            setClientCampaignData(res?.data?.data);
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+      } else {
+        fetchClientCampaign(selected)
+          .then((res) => {
+            setClientCampaignData(res?.data?.data);
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+      }
+    }
+  }, [selected, allClients]);
 
   return (
     <div id="header">
-      <div className='hand_bugger flex items-center'  >
-        <button className='nike_btn'>
-          <div className='flex items-center gap-2'>
-            <Image src={nike} alt='nike' />
-
-            <p className='btw_nike_text'>Nike</p>
+      <div className="hand_bugger flex items-center">
+        {loadingClients && (
+          <div className="flex items-center gap-2">
+            {" "}
+            <FiLoader className="animate-spin" />
+            <p>Loading clients...</p>
           </div>
-          <Image src={down} alt='menu' />
+        )}
+        {!loadingClients && (
+          <select
+            name=""
+            id=""
+            className="bg-[#F7F7F7] border border-[#EFEFEF] rounded-[8px] py-[8px] px-[16px] outline-none text-[#061237] font-semibold text-[16px]"
+            onChange={(e) => {
+              setSelected(e.target.value);
+            }}
+          >
+            {!loadingClients &&
+              allClients &&
+              allClients
+                ?.filter((c) => c?.client_name)
+                ?.map((cl) => (
+                  <option key={cl?.id} value={cl?.id}>
+                    {cl?.client_name}
+                  </option>
+                ))}
+          </select>
+        )}
+        <button className="client_btn_text" onClick={() => setIsOpen(true)}>
+          {" "}
+          <Image src={plus} alt="plus" />
+          New Client
         </button>
-
-        <button className='client_btn_text' onClick={() => setIsOpen(true)}>  <Image src={plus} alt='plus' />New Client</button>
       </div>
 
-      <div className='profiledropdown_container_main'>
-
-        <div className='profiledropdown_container'  >
+      <div className="profiledropdown_container_main">
+        <div className="profiledropdown_container">
           <Link href={`/creation`}>
-            <button className='new_plan_btn'>
-              <Image src={white} alt='white' />
-              <p className='new_plan_btn_text'>New media plan</p>
+            <button className="new_plan_btn">
+              <Image src={white} alt="white" />
+              <p className="new_plan_btn_text">New media plan</p>
             </button>
           </Link>
-          <div className='profile_container'>
-            MD
-          </div>
+          <div className="profile_container">MD</div>
         </div>
       </div>
     </div>
@@ -45,7 +91,3 @@ const Header = ({ setIsOpen }) => {
 };
 
 export default Header;
-
-
-
-

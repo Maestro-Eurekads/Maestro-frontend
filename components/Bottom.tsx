@@ -8,9 +8,9 @@ import AlertMain from "../components/Alert/AlertMain";
 import { useState, useEffect } from "react";
 import { useObjectives } from "../app/utils/useObjectives";
 import { useCampaigns } from "../app/utils/CampaignsContext";
+import axios from "axios";
 import { BiLoader } from "react-icons/bi";
-import { useSelectedDates } from "../app/utils/SelectedDatesContext";
-// import { useChannelMix } from "../app/utils/SelectChannelMixContext";
+import { removeKeysRecursively } from "../utils/removeID";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -20,12 +20,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const { active, setActive, subStep, setSubStep } = useActive();
   const { selectedObjectives, selectedFunnels } = useObjectives();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
-  const [setupyournewcampaignError, SetupyournewcampaignError] = useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
-  const [selectedDatesError, setSelectedDateslError] = useState(false);
-  // const {selectedChannels, setSelectedChannel} = useChannelMix();
-  const { selectedDates, setSelectedDates } = useSelectedDates();
-  const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const {
@@ -39,28 +34,15 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   // Hide alerts after a few seconds
   useEffect(() => {
-    if (triggerObjectiveError ||
-      triggerFunnelError ||
-      selectedDatesError ||
-      setupyournewcampaignError ||
-      triggerChannelMixError) {
+    if (triggerObjectiveError || triggerFunnelError) {
       const timer = setTimeout(() => {
         setTriggerObjectiveError(false);
         setTriggerFunnelError(false);
-        setSelectedDateslError(false);
-        SetupyournewcampaignError(false);
-        setTriggerChannelMixError(false);
       }, 3000); // Hides alert after 3 seconds
 
       return () => clearTimeout(timer);
     }
-  }, [triggerObjectiveError,
-    triggerFunnelError,
-    selectedDatesError,
-    setupyournewcampaignError,
-    triggerChannelMixError]);
-
-
+  }, [triggerObjectiveError, triggerFunnelError]);
 
   const handleBack = () => {
     if (subStep > 0) {
@@ -82,55 +64,41 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     let hasError = false;
     setLoading(true);
 
-    if (active === 0 && campaignFormData?.client_selection.value.length === 0) {
-      SetupyournewcampaignError(true);
-      hasError = true;
-    }
-    if (active === 1 && selectedObjectives.length === 0) {
-      setTriggerObjectiveError(true);
-      hasError = true;
-    }
-
-    if (active === 2 && campaignFormData?.funnel_stages?.length === 0) {
-      setTriggerFunnelError(true);
-      hasError = true;
-    }
-    if (active === 7 && selectedDates?.to?.day === undefined) {
-      setSelectedDateslError(true);
-      hasError = true;
-    }
-
- 
-
-    // if (active === 3 && (!selectedChannels || Object.keys(selectedChannels).length === 0)) {
-    //   setTriggerChannelMixError(true);
-    //   hasError = true;
-    // }
-
-    if (hasError) {
-      setLoading(false);
-      return;
-    }
-
     const updateCampaignData = async (data: any) => {
       await updateCampaign(data);
-      await getActiveCampaign(data.documentId);
+      await getActiveCampaign(data);
     };
 
+    // const {
+    //   id,
+    //   documentId,
+    //   createdAt,
+    //   publishedAt,
+    //   updatedAt,
+    //   client,
+    //   budget_details,
+    //   client_selection,
+    //   media_plan_details,
+    //   channel_mix,
+    //   ...updatedCampaignData
+    // } = campaignData;
+    // const { documentId: clientDocumentId, ...restClientData } = client;
+    // const { id: bId, restB } = budget_details;
+    // const { id: clId, restC } = client_selection;
+    // const { id: mId, restM } = budget_details;
+
+    const cleanData = removeKeysRecursively(campaignData, [
+      "id",
+      "documentId",
+      "createdAt",
+      "publishedAt",
+      "updatedAt",
+    ]);
     const handleStepZero = async () => {
-      if (cId) {
-        if (!campaignData) return;
-        
-        const {
-          id,
-          documentId,
-          createdAt,
-          publishedAt,
-          updatedAt,
-          ...updatedCampaignData
-        } = campaignData;
+      // const updatedChannelMix = channel_mix.map(({ id, ...rest }) => rest);
+      if (cId && campaignData) {
         await updateCampaignData({
-          ...updatedCampaignData,
+          ...cleanData,
           client: campaignFormData?.client_selection?.id,
           client_selection: {
             client: campaignFormData?.client_selection?.value,
@@ -156,98 +124,33 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         window.history.pushState({}, "", url.toString());
         await getActiveCampaign(res?.data?.data.documentId);
       }
-      // setActive((prev) => Math.min(10, prev + 1));
     };
+
     const handleStepOne = async () => {
       if (!campaignData) return;
-
-      const {
-        id,
-        documentId,
-        createdAt,
-        publishedAt,
-        updatedAt,
-        client,
-        budget_details,
-        client_selection,
-        media_plan_details,
-        ...updatedCampaignData
-      } = campaignData;
-      const { documentId: clientDocumentId, ...restClientData } = client;
-      const { id: bId, ...restB } = budget_details;
-      const { id: clId, ...restC } = client_selection;
-      const { id: mId, ...restM } = budget_details;
-
       await updateCampaignData({
-        ...updatedCampaignData,
-        client: clientDocumentId,
-        budget_details: restB,
-        client_selection: restC,
-        media_plan_details: restM,
+        ...cleanData,
         campaign_objective: campaignFormData?.campaign_objectives,
       });
-      // setActive((prev) => prev + 1);
     };
+
     const handleStepTwo = async () => {
       if (!campaignData) return;
 
-      const {
-        id,
-        documentId,
-        createdAt,
-        publishedAt,
-        updatedAt,
-        client,
-        budget_details,
-        client_selection,
-        media_plan_details,
-        ...updatedCampaignData
-      } = campaignData;
-      const { documentId: clientDocumentId, ...restClientData } = client;
-      const { id: bId, ...restB } = budget_details;
-      const { id: clId, ...restC } = client_selection;
-      const { id: mId, ...restM } = budget_details;
-
       await updateCampaignData({
-        ...updatedCampaignData,
-        client: clientDocumentId,
-        budget_details: restB,
-        client_selection: restC,
-        media_plan_details: restM,
+        ...cleanData,
         funnel_stages: campaignFormData?.funnel_stages,
       });
     };
+
     const handleStepThree = async () => {
       if (!campaignData) return;
 
-      const {
-        id,
-        documentId,
-        createdAt,
-        publishedAt,
-        updatedAt,
-        client,
-        budget_details,
-        client_selection,
-        media_plan_details,
-        ...updatedCampaignData
-      } = campaignData;
-      const { documentId: clientDocumentId, ...restClientData } = client;
-      const { id: bId, ...restB } = budget_details;
-      const { id: clId, ...restC } = client_selection;
-      const { id: mId, ...restM } = budget_details;
-      const channel_mix = Object.keys(campaignFormData?.channel_mix || {}).map((key: string) => {
-        return campaignFormData?.channel_mix[key];
-      });
-
-
       await updateCampaignData({
-        ...updatedCampaignData,
-        client: clientDocumentId,
-        budget_details: restB,
-        client_selection: restC,
-        media_plan_details: restM,
-        channel_mix
+        ...cleanData,
+        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+          "id",
+        ]),
       });
     };
 
@@ -257,9 +160,27 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       await handleStepOne();
     } else if (active === 2) {
       await handleStepTwo();
-    } else if (active === 3) {
-      await handleStepThree()
+    } else if (active === 3 || active === 4 || active === 5) {
+      await handleStepThree();
     }
+
+    if (active === 1 && selectedObjectives.length === 0) {
+      setTriggerObjectiveError(true);
+      hasError = true;
+    }
+
+    if (active === 2 && campaignFormData?.funnel_stages?.length === 0) {
+      setTriggerFunnelError(true);
+      hasError = true;
+    }
+
+    if (hasError) {
+      setLoading(false);
+      return;
+    }
+
+    setTriggerObjectiveError(false);
+    setTriggerFunnelError(false);
 
     if (active === 7) {
       if (subStep < 1) {
@@ -286,15 +207,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   return (
     <footer id="footer" className="w-full">
       {/* Show alert only when needed */}
-      {setupyournewcampaignError && (
-        <AlertMain
-          alert={{
-            variant: "error",
-            message: "Set up your new campaign cannot be empty!",
-            position: "bottom-right",
-          }}
-        />
-      )}
       {triggerObjectiveError && (
         <AlertMain
           alert={{
@@ -313,27 +225,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-      {
-        selectedDatesError && (
-          <AlertMain
-            alert={{
-              variant: "error",
-              message: "Choose your start and end date!",
-              position: "bottom-right",
-            }}
-          />
-        )
-      }
 
-      {triggerChannelMixError && (
-        <AlertMain
-          alert={{
-            variant: "error",
-            message: "Please select at least one channel mix!",
-            position: "bottom-right"
-          }}
-        />
-      )}
 
       <div className="flex justify-between w-full">
         {/* Back Button */}
@@ -384,8 +276,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                   {active === 0
                     ? "Start Creating"
                     : isHovered
-                      ? "Next Step"
-                      : "Continue"}
+                    ? "Next Step"
+                    : "Continue"}
                 </p>
                 <Image src={Continue} alt="Continue" />
               </>
@@ -393,7 +285,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           </button>
         )}
       </div>
-    </footer >
+    </footer>
   );
 };
 

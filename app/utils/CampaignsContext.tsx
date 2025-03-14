@@ -74,7 +74,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(campaignReducer, initialState);
   const [campaignFormData, setCampaignFormData] = useState(initialState);
   const [campaignData, setCampaignData] = useState(null);
-
+  const [clientCampaignData, setClientCampaignData] = useState([])
+  const [loading, setLoading] = useState(false);
   const query = useSearchParams();
   const cId = query.get("campaignId");
   const { loadingClients, allClients } = useCampaignHook();
@@ -82,7 +83,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const getActiveCampaign = async (docId?: string) => {
     await axios
       .get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}?populate=*`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}?populate[0]=media_plan_details&populate[1]=budget_details&populate[2]=channel_mix&populate[3]=channel_mix.social_media&populate[4]=channel_mix.display_networks&populate[5]=channel_mix.search_engines&populate[6]=channel_mix.social_media.format&populate[7]=channel_mix.display_networks.format&populate[8]=channel_mix.search_engines.format&populate[9]=client_selection&populate[10]=client`,
         {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
@@ -124,7 +125,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             data?.budget_details?.sub_fee_type,
           budget_details_value: data?.budget_details?.value,
           campaign_objectives: data?.campaign_objective,
-          funnel_stages: data?.funnel_stages || []
+          funnel_stages: data?.funnel_stages || [],
+          channel_mix: data?.channel_mix || []
         }));
       });
   };
@@ -179,7 +181,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     if (cId) {
       getActiveCampaign();
     }
-  }, []);
+  }, [cId]);
 
   return (
     <CampaignContext.Provider
@@ -194,7 +196,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         updateCampaign,
         campaignData,
         cId,
-        getActiveCampaign
+        getActiveCampaign,
+        clientCampaignData,
+        setClientCampaignData,
+        loading,
+        setLoading
       }}
     >
       {children}

@@ -10,16 +10,18 @@ import TiktokIcon from "../../../../public/tictok.svg";
 import TwitterIcon from "../../../../public/x.svg";
 import Select, { components } from "react-select";
 import Image from "next/image";
+import { useCampaigns } from "../../../utils/CampaignsContext";
+import { funnelStages } from "../../../../components/data";
 
 const buyObjectiveOptions = [
   { value: "awareness", label: "Awareness" },
   { value: "traffic", label: "Traffic" },
-  { value: "purchase", label: "Purchase" }
+  { value: "purchase", label: "Purchase" },
 ];
 
 const buyTypeOptions = [
   { value: "cpm", label: "CPM" },
-  { value: "cpv", label: "CPV" }
+  { value: "cpv", label: "CPV" },
 ];
 
 // Updated ChannelSelector with react‑select and icons
@@ -27,29 +29,63 @@ const options = [
   {
     value: "TikTok",
     label: "TikTok",
-    icon: <Image src={TiktokIcon} alt="TikTok" width={16} height={16} className="cursor-pointer font-bold size-5" />
+    icon: (
+      <Image
+        src={TiktokIcon}
+        alt="TikTok"
+        width={16}
+        height={16}
+        className="cursor-pointer font-bold size-5"
+      />
+    ),
   },
   {
     value: "Youtube",
     label: "Youtube",
-    icon: <Image src={YoutubeIcon} alt="Youtube" width={16} height={16} className="font-bold size-5" />
+    icon: (
+      <Image
+        src={YoutubeIcon}
+        alt="Youtube"
+        width={16}
+        height={16}
+        className="font-bold size-5"
+      />
+    ),
   },
   {
     value: "Twitter/X",
     label: "Twitter/X",
-    icon: <Image src={TwitterIcon} alt="Twitter" width={16} height={16} className="cursor-pointer font-bold size-5" />
+    icon: (
+      <Image
+        src={TwitterIcon}
+        alt="Twitter"
+        width={16}
+        height={16}
+        className="cursor-pointer font-bold size-5"
+      />
+    ),
   },
   {
     value: "Linkedin",
     label: "Linkedin",
-    icon: <Image src={LinkedinIcon} alt="LinkedIn" width={16} height={16} className="cursor-pointer font-bold size-5" />
+    icon: (
+      <Image
+        src={LinkedinIcon}
+        alt="LinkedIn"
+        width={16}
+        height={16}
+        className="cursor-pointer font-bold size-5"
+      />
+    ),
   },
 ];
 
 const IconOption = (props) => (
   <components.Option {...props}>
     <div style={{ display: "flex", alignItems: "center" }}>
-      {props.data.icon && <span style={{ marginRight: 8 }}>{props.data.icon}</span>}
+      {props.data.icon && (
+        <span style={{ marginRight: 8 }}>{props.data.icon}</span>
+      )}
       <span>{props.data.label}</span>
     </div>
   </components.Option>
@@ -61,21 +97,19 @@ const CustomControl = (props) => {
   if (hasValue) {
     const selectedValue = selectProps.value;
     return (
-      <div 
+      <div
         className="flex items-center justify-between p-2 bg-white border-2 border-[#D1D5DB] rounded-[0.8rem] cursor-pointer min-w-[200px]"
         ref={innerRef}
         {...innerProps}
       >
         <div className="flex items-center flex-1">
-          <div className="flex-shrink-0">
-            {selectedValue.icon}
-          </div>
+          <div className="flex-shrink-0">{selectedValue.icon}</div>
           <span className="ml-2 truncate">{selectedValue.label}</span>
         </div>
         <div className="flex-shrink-0 ml-2">
-          <X 
-            size={14} 
-            className="text-white rounded-full bg-black cursor-pointer" 
+          <X
+            size={14}
+            className="text-white rounded-full bg-black cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               selectProps.onChange(null);
@@ -129,7 +163,7 @@ const ChannelSelector = ({ channelName }) => {
                 Option: IconOption,
                 Control: CustomControl,
                 IndicatorSeparator: () => null,
-                DropdownIndicator: () => null
+                DropdownIndicator: () => null,
               }}
               value={selectedOption}
               onChange={handleOptionChange}
@@ -143,12 +177,12 @@ const ChannelSelector = ({ channelName }) => {
                   borderRadius: "0.8rem",
                   boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
                   cursor: "pointer",
-                  minWidth: "200px"
+                  minWidth: "200px",
                 }),
                 valueContainer: (provided) => ({
                   ...provided,
-                  padding: 0
-                })
+                  padding: 0,
+                }),
               }}
               isClearable={false}
             />
@@ -169,7 +203,7 @@ const ChannelSelector = ({ channelName }) => {
                     border: "2px solid #D1D5DB",
                     borderRadius: "0.8rem",
                     cursor: "pointer",
-                    minWidth: "200px"
+                    minWidth: "200px",
                   }),
                 }}
               />
@@ -187,7 +221,7 @@ const ChannelSelector = ({ channelName }) => {
                     border: "2px solid #D1D5DB",
                     borderRadius: "0.8rem",
                     cursor: "pointer",
-                    minWidth: "200px"
+                    minWidth: "200px",
                   }),
                 }}
               />
@@ -212,6 +246,7 @@ const BuyingObjective = () => {
     "Consideration",
     "Conversion",
   ]);
+  const { campaignFormData } = useCampaigns();
   const [savedStages, setSavedStages] = useState([...stages]);
 
   // State for the two-step Loyalty flow
@@ -271,7 +306,12 @@ const BuyingObjective = () => {
             onClick={confirmChanges}
           />
         ) : (
-          <Button text="Edit" variant="primary" className="!w-[85px] !h-[40px]" onClick={() => setEdit(true)} />
+          <Button
+            text="Edit"
+            variant="primary"
+            className="!w-[85px] !h-[40px]"
+            onClick={() => setEdit(true)}
+          />
         )}
       </div>
 
@@ -279,13 +319,12 @@ const BuyingObjective = () => {
       {edit && !isLoyalty && (
         <div className="mb-4">
           <Button
-          variant="primary"
-         text="Add new stage"
-         icon={Plus}
-         onClick={handleLoyaltyButtonClick}
-         className="!rounded-full !px-4 !py-4 !text-white !w-[167px] !h-[31px]"
-         
-         />
+            variant="primary"
+            text="Add new stage"
+            icon={Plus}
+            onClick={handleLoyaltyButtonClick}
+            className="!rounded-full !px-4 !py-4 !text-white !w-[167px] !h-[31px]"
+          />
         </div>
       )}
 
@@ -345,13 +384,15 @@ const BuyingObjective = () => {
       )}
 
       {/* Render Each Stage */}
-      {stages.map((stage) => {
-        const StageComponent = stageComponents[stage];
+      {campaignFormData?.funnel_stages.map((stageName, index) => {
+        const stage = funnelStages.find((s) => s.name === stageName);
+        if (!stage) return null;
+        const StageComponent = Awareness;
         return (
           <StageComponent
-            key={stage}
             edit={edit}
             onDelete={() => removeStage(stage)}
+            stageName={stageName}
           />
         );
       })}
