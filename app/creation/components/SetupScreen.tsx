@@ -143,20 +143,20 @@ export const SetupScreen = () => {
         <div className="flex items-center flex-wrap gap-4 pb-12">
           <ClientSelection
             options={level1Options}
-            label={"Parameter"}
+            label={"Parameter Level 1"}
             isEditing={isEditing}
             formId="level_1"
           />
 
           <ClientSelection
             options={level2Options}
-            label={"Parameter"}
+            label={"Parameter Level 2"}
             isEditing={isEditing}
             formId="level_2"
           />
           <ClientSelection
             options={level3Options}
-            label={"Parameter"}
+            label={"Parameter Level 3"}
             isEditing={isEditing}
             formId="level_3"
           />
