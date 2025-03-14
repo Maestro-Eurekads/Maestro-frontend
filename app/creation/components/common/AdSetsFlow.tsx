@@ -36,7 +36,7 @@ const AudienceDropdown = memo(function AudienceDropdown() {
     <div className="relative border-2 border-[#0000001A] rounded-[10px]">
       <button
         onClick={toggleOpen}
-        className="relative z-20 w-[172px] bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
+        className="relative z-30 w-[172px] bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
       >
         <span className="truncate">{selected || "Your audience type"}</span>
         <svg
@@ -56,7 +56,7 @@ const AudienceDropdown = memo(function AudienceDropdown() {
         </svg>
       </button>
       {open && (
-        <ul className="absolute w-full mt-1 z-10 bg-white border-2 border-[#0000001A] rounded-lg shadow-lg overflow-auto">
+        <ul className="absolute mt-1 top-1 z-[999] w-full bg-white border-2 border-[#0000001A] rounded-lg shadow-lg overflow-hidden">
           {options.map((option, index) => (
             <li
               key={index}
@@ -116,13 +116,15 @@ const AdSet = memo(function AdSet({
       ></span>
       <div className="flex gap-2 items-center w-full px-4">
         <div className="relative">
-          <p className="relative z-50 text-[#3175FF] text-sm whitespace-nowrap font-bold flex gap-4 items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
+          <p className="relative z-[999] text-[#3175FF] text-sm whitespace-nowrap font-bold flex gap-4 items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
             {`Ad set n°${adset.addsetNumber}`}
           </p>
           <hr className="border border-[#0000001A] w-[50px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" />
         </div>
-        <AudienceDropdown />
-        <input
+
+          <AudienceDropdown />
+
+          <input
           type="text"
           placeholder="Enter ad set name"
           disabled={!isEditing}

@@ -25,6 +25,9 @@ export const SetupScreen = () => {
   const [level2Options, setlevel2Options] = useState([]);
   const [level3Options, setlevel3Options] = useState([]);
 
+
+  console.log('client', client_selection)
+
   useEffect(() => {
     if (allClients) {
       const options = allClients.map(
@@ -78,15 +81,7 @@ export const SetupScreen = () => {
     return "";
   };
 
-  const handleObjectiveSelection = () => {
-    dispatch({
-      type: "UPDATE_CAMPAIGN",
-      payload: {
-        step: "defineCampaignObjective",
-        data: { selectedObjective: "Brand Awareness" },
-      },
-    });
-  };
+
 
   const businessLevel = [
     { value: "Marketing division", label: "Marketing division" },
@@ -94,16 +89,16 @@ export const SetupScreen = () => {
     { value: "Product launch", label: "Product launch" },
   ];
 
-  const internalApprover = [{ value: "Karl Roida", label: "Karl Roida" }];
+
 
   const selectCurrency = [
-    {  value: "US Dollar (USD)", label: "US Dollar (USD)" },
+    { value: "US Dollar (USD)", label: "US Dollar (USD)" },
     { value: "Euro (EUR)", label: "Euro (EUR)" },
-    {  value: "British Pound (GBP)", label: "British Pound (GBP)" },
-    {  value: "Nigerian Naira (NGN)", label: "Nigerian Naira (NGN)" },
-    {  value: "Japanese Yen (JPY)", label: "Japanese Yen (JPY)" },
+    { value: "British Pound (GBP)", label: "British Pound (GBP)" },
+    { value: "Nigerian Naira (NGN)", label: "Nigerian Naira (NGN)" },
+    { value: "Japanese Yen (JPY)", label: "Japanese Yen (JPY)" },
     {
-      
+
       value: "Canadian Dollar (CAD)",
       label: "Canadian Dollar (CAD)",
     },
@@ -113,10 +108,7 @@ export const SetupScreen = () => {
     { value: "Tooling", label: "Tooling" },
     { value: "Fix budget fee", label: "Fix budget fee" },
   ];
-  const clientselection = [
-    { value: "Nike", label: "Nike" },
-    { value: "Sony", label: "Sony" },
-  ];
+
 
   return (
     <div>
@@ -152,7 +144,7 @@ export const SetupScreen = () => {
             formId="client_selection"
           />
         </div>
-        <div className="grid grid-cols-3 gap-[16px] pb-12">
+        <div className="flex items-center flex-wrap gap-4 pb-12">
           <ClientSelection
             options={level1Options}
             label={"Business level 1"}

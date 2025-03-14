@@ -8,26 +8,18 @@ import { MdOutlineCancel } from "react-icons/md";
 
 const EditInput = ({
   placeholder,
-  inputs,
   setInputs,
-  sportList,
-  setSportList,
   label,
-}: {
-  placeholder: string;
-  inputs: any;
-  setInputs: any;
-  sportList: string[];
-  setSportList: any;
-  label?:string
+  setAlert,
 }) => {
-  const [fields, setFields] = useState<{ id: number; text: string }[]>([
-    { id: 1, text: "" },
-  ]);
+  const [fields, setFields] = useState([{ id: 1, text: "" }]);
+
+
 
   // Sync fields with global state
   useEffect(() => {
-    setInputs((prev: any) => ({
+    console.log('sports')
+    setInputs((prev) => ({
       ...prev,
       sports: fields.map((item) => item.text),
     }));
@@ -35,37 +27,45 @@ const EditInput = ({
 
   // Handle adding a new field
   const handleAddField = () => {
-    if (sportList.includes(inputs.sports.toLowerCase())) {
-      alert("Sport already exists");
-    } else {
-      setSportList([...sportList, inputs.sports.toLowerCase()]);
-      setInputs((prevState) => ({
-        ...prevState,
-        sports: "",
-      }));
+    if (fields.length >= 5) {
+      setAlert({
+        variant: "warning",
+        message: "Maximum 5 Business Type allowed",
+        position: "bottom-right",
+      });
+      return;
     }
+    if (!fields[fields.length - 1].text.trim()) {
+      setAlert({
+        variant: "error",
+        message: "Business Type cannot be empty",
+        position: "bottom-right",
+      });
+      return;
+    }
+    setFields((prev) => [...prev, { id: prev.length + 1, text: "" }]);
+
   };
 
+
+
   // Handle removing a field
-  const handleRemoveSport = (sport) => {
-    const filteredEmails = sportList.filter((e) => e !== sport);
-    setSportList(filteredEmails);
+  const handleRemoveField = (index) => {
+    setFields((prev) => prev.filter((_, i) => i !== index));
   };
 
   // Handle clearing a field
-  const handleClear = () => {
-    setInputs((prevState) => ({
-      ...prevState,
-      sports: "",
-    }));
+  const handleClear = (index) => {
+    setFields((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, text: "" } : item))
+    );
   };
 
   // Handle input change
-  const handleInputChange = (text: string) => {
-    setInputs((prevState) => ({
-      ...prevState,
-      sports: text,
-    }));
+  const handleInputChange = (index, text) => {
+    setFields((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, text } : item))
+    );
   };
 
   return (
@@ -74,18 +74,31 @@ const EditInput = ({
         <label className="font-medium text-[15px] leading-5 text-gray-600">
           {label || placeholder}
         </label>
-        <div className="mt-[8px] flex items-center px-4 py-2 w-full h-[40px] border border-[#EFEFEF] rounded-[10px]">
-          <input
-            type="text"
-            className="w-full bg-transparent outline-none text-gray-600"
-            placeholder={placeholder}
-            value={inputs.sports}
-            onChange={(e) => handleInputChange(e.target.value)}
-          />
-          <span className="ml-auto text-gray-500 cursor-pointer">
-            <Image src={mdEdit} alt="edit" />
-          </span>
-        </div>
+        {fields.map((field, index) => (
+          <div
+            key={field.id}
+            className="mt-[8px] flex items-center px-4 py-2 w-full h-[40px] border border-[#EFEFEF] rounded-[10px]"
+          >
+            <input
+              type="text"
+              className="w-full bg-transparent outline-none text-gray-600"
+              placeholder={placeholder}
+              value={field.text}
+              onChange={(e) => handleInputChange(index, e.target.value)}
+            />
+            <span className="ml-auto text-gray-500 cursor-pointer">
+              <Image src={mdEdit} alt="edit" />
+            </span>
+            {fields.length > 1 &&
+              <MdOutlineCancel
+                size={18}
+                color="red"
+                onClick={() => handleRemoveField(index)}
+                className="cursor-pointer"
+              />}
+
+          </div>
+        ))}
 
         <div className="flex items-center gap-2 mt-[8px]">
           {/* Add button */}
@@ -96,52 +109,22 @@ const EditInput = ({
             <Image src={blueSmallPlue} alt="add" />
             Add parameter
           </button>
-
-          {/* Clear button */}
-          {inputs.sports && (
-            <button
-              onClick={handleClear}
-              className="text-gray-500 font-semibold text-[14px]"
-            >
-              Clear
-            </button>
-          )}
         </div>
-        {sportList.map((sport) => (
-          <div key={sport} className="flex justify-between items-center">
-            <p className="capitalize">{sport}</p>
-            <MdOutlineCancel
-              size={18}
-              color="red"
-              onClick={() => handleRemoveSport(sport)}
-              className="cursor-pointer"
-            />
-          </div>
-        ))}
       </div>
     </div>
   );
 };
 
-const SportDropdown = ({
-  inputs,
-  setInputs,
-  sportList,
-  setSportList,
-}: {
-  inputs: any;
-  setInputs: any;
-  sportList: any;
-  setSportList: any;
-}) => {
+const SportDropdown = ({ setInputs, setAlert }) => {
   return (
     <div className="flex flex-col gap-4 mt-[20px]">
       <EditInput
         placeholder="Business Type"
-        inputs={inputs}
+        // inputs={inputs}
         setInputs={setInputs}
-        sportList={sportList}
-        setSportList={setSportList}
+        // sportList={inputs.sports}
+        // setSportList={(newList) => setInputs({ ...inputs, sports: newList })}
+        setAlert={setAlert}
         label="Business level 1"
       />
     </div>

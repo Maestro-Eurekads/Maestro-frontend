@@ -9,6 +9,7 @@ import ReduxProvider from "./provider";
 import { CampaignProvider } from "./utils/CampaignsContext";
 import { EditingProvider } from "./utils/EditingContext";
 import { Suspense } from "react";
+import { SelectedDatesProvider } from "./utils/SelectedDatesContext";
 
 // Load Roboto font
 const roboto = Roboto({
@@ -47,15 +48,17 @@ export default function RootLayout({
           <Suspense>
             <CampaignProvider>
               <DateRangeProvider>
-                <ActiveProvider>
-                  <EditingProvider>
-                    <ObjectivesProvider>
-                      <FunnelProvider>
-                        {children}
-                      </FunnelProvider>
-                    </ObjectivesProvider>
-                  </EditingProvider>
-                </ActiveProvider>
+                <SelectedDatesProvider>
+                  <ActiveProvider>
+                    <EditingProvider>
+                      <ObjectivesProvider>
+                        <FunnelProvider>
+                          {children}
+                        </FunnelProvider>
+                      </ObjectivesProvider>
+                    </EditingProvider>
+                  </ActiveProvider>
+                </SelectedDatesProvider>
               </DateRangeProvider>
             </CampaignProvider>
           </Suspense>
