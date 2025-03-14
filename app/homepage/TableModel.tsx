@@ -41,7 +41,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null); // ✅ State for alerts
 
-  // console.log('businessUnit-businessUnit', categoryList, businessUnit, sportList)
+
 
   // ✅ Automatically reset alert after showing
   useEffect(() => {
@@ -105,7 +105,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   //     }, 3000);
   //   }
   // }, [isError, isSuccess]);
-  // console.log('inputs-inputs', inputs)
+
 
 
   const handleRemoveEmail = (email) => {
@@ -132,7 +132,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
 
 
-  console.log('emailList-emailList', inputs)
+
 
   const handleSubmit = async () => {
     setLoading(true);

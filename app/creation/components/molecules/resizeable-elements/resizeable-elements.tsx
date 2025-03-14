@@ -34,7 +34,7 @@ const ResizeableElements = ({ dateList }) => {
     >
       {funnels.map(({ startWeek, endWeek, bg, description, Icon }, index) => {
         const channelWidth = funnelWidths[description] || 400;
-        console.log('channelWidth-channelWidth', channelWidth)
+        
         const isOpen = openChannels[description] || false; // Get open state by ID
 
         return (

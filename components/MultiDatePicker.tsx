@@ -42,7 +42,7 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({ isEditing }) => {
 	// 	to: null,
 	// });
 
-	console.log('selectedDates-selectedDates', selectedDates)
+
 
 	// Handle Date Selection (Only if isEditing is true)
 	const handleDateClick = (day: number, monthIndex: number) => {
