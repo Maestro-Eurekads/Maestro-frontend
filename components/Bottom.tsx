@@ -58,7 +58,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     setupyournewcampaignError,
     triggerChannelMixError]);
 
-  console.log('campaignFormData-campaignFormData', campaignFormData?.client_selection.value.length)
+
 
   const handleBack = () => {
     if (subStep > 0) {
@@ -227,7 +227,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       const channel_mix = Object.keys(campaignFormData?.channel_mix || {}).map((key: string) => {
         return campaignFormData?.channel_mix[key];
       });
-      console.log(channel_mix)
+
 
       await updateCampaignData({
         ...updatedCampaignData,

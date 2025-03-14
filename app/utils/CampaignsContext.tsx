@@ -79,7 +79,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const cId = query.get("campaignId");
   const { loadingClients, allClients } = useCampaignHook();
 
-  const getActiveCampaign = async (docId?:string) => {
+  const getActiveCampaign = async (docId?: string) => {
     await axios
       .get(
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}?populate=*`,
@@ -130,7 +130,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const createCampaign = async () => {
-    console.log("here");
+
     return await axios.post(
       `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`,
       {
@@ -166,12 +166,12 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     return await axios.put(
       `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
       {
-        data: {...data},
+        data: { ...data },
       }, {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-        }
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
       }
+    }
     );
   };
 

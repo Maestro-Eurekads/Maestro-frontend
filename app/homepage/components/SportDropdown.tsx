@@ -18,7 +18,6 @@ const EditInput = ({
 
   // Sync fields with global state
   useEffect(() => {
-    console.log('sports')
     setInputs((prev) => ({
       ...prev,
       sports: fields.map((item) => item.text),

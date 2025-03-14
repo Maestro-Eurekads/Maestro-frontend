@@ -40,7 +40,7 @@ const DefineCampaignObjective = () => {
 		<div>
 			<div className="flex items-center justify-between">
 				<PageHeaderWrapper
-					t1={'What is the main objective of your campaign ?'}
+					t1={'What is the main objective of your campaign?'}
 					t2={'Please select only one objective.'}
 				/>
 
