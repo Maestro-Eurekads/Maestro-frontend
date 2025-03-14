@@ -23,6 +23,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [setupyournewcampaignError, SetupyournewcampaignError] = useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
   const [selectedDatesError, setSelectedDateslError] = useState(false);
+  const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
   // const {selectedChannels, setSelectedChannel} = useChannelMix();
   const { selectedDates, setSelectedDates } = useSelectedDates();
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
@@ -82,9 +83,31 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     let hasError = false;
     setLoading(true);
 
-    if (active === 0 && campaignFormData?.client_selection.value.length === 0) {
-      SetupyournewcampaignError(true);
-      hasError = true;
+    // ✅ Step Zero Validation - Ensure all fields are filled
+    if (active === 0) {
+      const requiredFields = [
+        campaignFormData?.client_selection?.value,
+        campaignFormData?.media_plan,
+        campaignFormData?.approver,
+        campaignFormData?.budget_details_currency?.id,
+        campaignFormData?.budget_details_fee_type?.id,
+        campaignFormData?.budget_details_value
+      ];
+
+      // ✅ Check if at least one field is filled but not all
+      const filledFields = requiredFields.filter(field => field);
+
+      if (filledFields.length > 0 && filledFields.length < requiredFields.length) {
+        setIncompleteFieldsError(true); // Show alert for incomplete fields
+        setLoading(false);
+        return;
+      }
+
+      // ✅ If no fields are filled, trigger the "cannot be empty" alert
+      if (filledFields.length === 0) {
+        SetupyournewcampaignError(true);
+        hasError = true;
+      }
     }
     if (active === 1 && selectedObjectives.length === 0) {
       setTriggerObjectiveError(true);
@@ -100,7 +123,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       hasError = true;
     }
 
- 
+
 
     // if (active === 3 && (!selectedChannels || Object.keys(selectedChannels).length === 0)) {
     //   setTriggerChannelMixError(true);
@@ -120,7 +143,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     const handleStepZero = async () => {
       if (cId) {
         if (!campaignData) return;
-        
+
         const {
           id,
           documentId,
@@ -295,6 +318,17 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
+      {/* ✅ Show alert when some fields are filled but not all */}
+      {incompleteFieldsError && (
+        <AlertMain
+          alert={{
+            variant: "error",
+            message: "All fields must be filled before proceeding!",
+            position: "bottom-right",
+          }}
+        />
+      )}
+
       {triggerObjectiveError && (
         <AlertMain
           alert={{
