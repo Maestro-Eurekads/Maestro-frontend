@@ -387,12 +387,12 @@ const BuyingObjective = () => {
       {campaignFormData?.funnel_stages.map((stageName, index) => {
         const stage = funnelStages.find((s) => s.name === stageName);
         if (!stage) return null;
-        const StageComponent = stageComponents[stage?.name];
+        const StageComponent = Awareness;
         return (
           <StageComponent
-            key={stage}
             edit={edit}
             onDelete={() => removeStage(stage)}
+            stageName={stageName}
           />
         );
       })}
