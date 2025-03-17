@@ -390,11 +390,16 @@ export default function MediaSelection({
   stageName: string;
 }) {
   const { campaignFormData } = useCampaigns();
-  const [showUploadModal, setShowUploadModal] = useState(false);
-
-  const handleCloseModal = () => {
-    setShowUploadModal(false);
-  };
+  
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  
+  const openModal = () => {
+    setIsModalOpen(true)
+  }
+  
+  const closeModal = () => {
+    setIsModalOpen(false)
+  }
 
   return (
     <>
@@ -458,7 +463,7 @@ export default function MediaSelection({
               </div>
               {isValidated && (
                 <div 
-                  onClick={() => setShowUploadModal(true)}
+                  onClick={openModal}
                   className='w-[225px] h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors'
                 >
                   <div className="flex flex-col items-center gap-2 text-center">
@@ -474,11 +479,10 @@ export default function MediaSelection({
         })}
       </div>
 
-      {showUploadModal && (
         <div className="bg-opacity-50 flex items-center justify-center">
-          <UploadModal />
+          <UploadModal isOpen={isModalOpen} onClose={closeModal} />
         </div>
-      )}
+    
     </>
   );
 }
