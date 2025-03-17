@@ -4,12 +4,15 @@ import left from "../public/left.svg";
 import right from "../public/right.svg";
 import moveright from "../public/lucide_move-right.svg";
 import { useSelectedDates } from "../app/utils/SelectedDatesContext";
+import { useCampaigns } from "../app/utils/CampaignsContext";
+import { removeKeysRecursively } from "../utils/removeID";
 
 interface MultiDatePickerProps {
 	isEditing: boolean;
 }
 
 const MultiDatePicker: React.FC<MultiDatePickerProps> = ({ isEditing }) => {
+
 	const weekdays = ["M", "T", "W", "T", "F", "S", "S"];
 	const { selectedDates, setSelectedDates } = useSelectedDates();
 
@@ -33,14 +36,6 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({ isEditing }) => {
 
 	const [monthOffset, setMonthOffset] = useState(0);
 	const months = [getMonthData(monthOffset), getMonthData(monthOffset + 1)];
-
-	// const [selectedDates, setSelectedDates] = useState<{
-	// 	from: { day: number; month: number } | null;
-	// 	to: { day: number; month: number } | null;
-	// }>({
-	// 	from: null,
-	// 	to: null,
-	// });
 
 
 
@@ -66,6 +61,9 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({ isEditing }) => {
 			setSelectedDates({ from: null, to: null });
 		}
 	};
+
+
+
 
 	return (
 		<div className={`flex flex-col items-start p-5 gap-5 w-[792px] bg-white border border-gray-200 rounded-lg mt-8 ${isEditing ? "" : " cursor-not-allowed"}`}>

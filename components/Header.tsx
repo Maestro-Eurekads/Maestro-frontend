@@ -52,7 +52,7 @@ const Header = ({ setIsOpen }) => {
           <select
             name=""
             id=""
-            className="bg-[#F7F7F7] border border-[#EFEFEF] rounded-[8px] py-[8px] px-[16px] outline-none text-[#061237] font-semibold text-[16px]"
+            className="bg-[#F7F7F7] border border-[#EFEFEF] rounded-[8px] py-[8px] px-[16px] outline-none text-[#061237] font-semibold text-[16px] min-w-[60px]"
             onChange={(e) => {
               setSelected(e.target.value);
             }}
