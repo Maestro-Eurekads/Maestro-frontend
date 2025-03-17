@@ -10,20 +10,12 @@ import FeeDropdowns from "./FeeDropdowns";
 import CategoryDropdown from "./components/CategoryDropdown";
 import SportDropdown from "./components/SportDropdown";
 import BusinessUnit from "./components/BusinessUnit";
-import { useDispatch } from "react-redux";
-import { createClient, reset } from "../../features/Client/clientSlice";
-import { useAppSelector } from "../../store/useStore";
-import { RootState } from "../../store/store";
 import { SVGLoader } from "../../components/SVGLoader";
 import AlertMain from "../../components/Alert/AlertMain";
 import { MdOutlineCancel } from "react-icons/md";
 import { addNewClient } from "./functions/clients";
 
 const TableModel = ({ isOpen, setIsOpen }) => {
-  const { isLoading, isSuccess, isError, message } = useAppSelector(
-    (state: RootState) => state.client
-  );
-  const dispatch = useDispatch();
   const [inputs, setInputs] = useState({
     name: "",
     email: "",

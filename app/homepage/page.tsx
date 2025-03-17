@@ -5,6 +5,7 @@ import Header from '../../components/Header'
 import TableModel from './TableModel';
 import Overview from './components/Overview'
 import Dashboard from './components/Dashboard'
+import UploadModal from '../../components/UploadModal/UploadModal';
 
 
 
@@ -17,6 +18,7 @@ const Homepage = () => {
 
 
 	return (
+		<>
 		<div id="page-wrapper">
 			<Header setIsOpen={setIsOpen} />
 			<main className="!px-0">
@@ -29,6 +31,8 @@ const Homepage = () => {
 			</main>
 			<TableModel isOpen={isOpen} setIsOpen={setIsOpen} />
 		</div>
+      <UploadModal />
+		</>
 	)
 }
 

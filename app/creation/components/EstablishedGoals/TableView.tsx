@@ -397,15 +397,15 @@ const TableView = ({ channels }) => {
 																<span>{awareness.channel}</span>
 															</div>
 														</td>
-														<td className="py-6 px-6 border-none">{awareness.audience} </td>
-														<td className="py-6 px-6 border-none">{awareness.startDate} </td>
-														<td className="py-6 px-6 border-none">{awareness.endDate}  </td>
-														<td className="py-6 px-6 border-none">{awareness.audienceSize}  </td>
-														<td className="py-6 px-6 border-none">{awareness.budget}  </td>
-														<td className="py-6 px-6 border-none"><div className="cpm_bg"> {awareness.cpm}</div>  </td>
-														<td className="py-6 px-6 border-none">{awareness.audience} </td>
-														<td className="py-6 px-6 border-none">{awareness.frequency}  </td>
-														<td className="py-6 px-6 border-none">{awareness.reach}</td>
+														<td className="!py-0 px-6 border-none">{awareness.audience} </td>
+														<td className="!py-0 px-6 border-none">{awareness.startDate} </td>
+														<td className="!py-0 px-6 border-none">{awareness.endDate}  </td>
+														<td className="!py-0 px-6 border-none">{awareness.audienceSize}  </td>
+														<td className="!py-0 px-6 border-none">{awareness.budget}  </td>
+														<td className="!py-0 px-6 border-none"><div className="cpm_bg"> {awareness.cpm}</div>  </td>
+														<td className="!py-0 px-6 border-none">{awareness.audience} </td>
+														<td className="!py-0 px-6 border-none">{awareness.frequency}  </td>
+														<td className="!py-0 px-6 border-none">{awareness.reach}</td>
 													</tr>
 												))}
 

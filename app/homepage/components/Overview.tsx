@@ -7,7 +7,7 @@ import Dropdowns from '../Dropdowns';
 import { useCampaigns } from '../../utils/CampaignsContext';
 
 const Overview = () => {
-	const {loading, clientCampaignData } = useCampaigns()
+	// const {loading, clientCampaignData } = useCampaigns()
 	return (
 		<div className='px-[72px]'>
 
