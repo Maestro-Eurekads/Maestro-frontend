@@ -10,31 +10,22 @@ import ig from "../../../public/ig.svg";
 import youtube from "../../../public/youtube.svg";
 import TheTradeDesk from "../../../public/TheTradeDesk.svg";
 import Quantcast from "../../../public/quantcast.svg";
-
 import google from "../../../public/social/google.svg";
 import x from "../../../public/x.svg";
 import linkedin from "../../../public/linkedin.svg";
 import Display from "../../../public/Display.svg";
 import yahoo from "../../../public/yahoo.svg";
 import bing from "../../../public/bing.svg";
-import orangecredit from "../../../public/orangecredit-card.svg";
-import tablerzoomfilled from "../../../public/tabler_zoom-filled.svg";
 import tictok from "../../../public/tictok.svg";
-import cursor from "../../../public/blue_fluent_cursor-click.svg";
-import State12 from "../../../public/State12.svg";
-import roundget from "../../../public/ic_round-get-app.svg";
-import mingcute_basket from "../../../public/mingcute_basket-fill.svg";
-import mdi_leads from "../../../public/mdi_leads.svg";
-
 import carousel from "../../../public/carousel.svg";
 import video_format from "../../../public/video_format.svg";
 import image_format from "../../../public/Image_format.svg";
 import collection_format from "../../../public/collection_format.svg";
 import slideshow_format from "../../../public/slideshow_format.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
-import FormatsSelection from "./FormatsSelection";
 import { funnelStages } from "../../../components/data";
 import { useCampaigns } from "../../utils/CampaignsContext";
+import UploadModal from "../../../components/UploadModal/UploadModal";
 
 // Types for platforms and channels
 type IPlatform = {
@@ -42,6 +33,7 @@ type IPlatform = {
   icon: any;
   style?: string;
   mediaOptions?: any[];
+  isExpanded?: boolean;
 };
 
 type IChannel = {
@@ -51,33 +43,22 @@ type IChannel = {
 };
 
 export const Platforms = ({ stageName }: { stageName: string }) => {
-  const [item, setItem] = useState("");
+  const [expandedPlatforms, setExpandedPlatforms] = useState<{[key: string]: boolean}>({});
   const { campaignFormData, setCampaignFormData } = useCampaigns();
-  const [selectedOptions, setSelectedOptions] = useState<{
-    [key: string]: { [key: string]: boolean };
-  }>({});
-  const [platformMediaOptions, setPlatformMediaOptions] = useState<{
-    [key: string]: any[];
-  }>({});
   const [isValidateEnabled, setIsValidateEnabled] = useState(false);
-  const [validatedMediaOptions, setValidatedMediaOptions] = useState<{
-    [key: string]: any[];
-  }>({});
   const [isValidated, setIsValidated] = useState(false);
   const [quantities, setQuantities] = useState<{
     [key: string]: { [key: string]: number };
   }>({});
   const [channels, setChannels] = useState<IChannel[]>([]);
 
-  console.log("here", campaignFormData?.channel_mix);
-
   // Default media format options available
   const defaultMediaOptions = [
-    { name: "Carousel", icon: carousel, selected: false },
-    { name: "Image", icon: image_format, selected: false },
-    { name: "Video", icon: video_format, selected: false },
-    { name: "Slideshow", icon: slideshow_format, selected: false },
-    { name: "Collection", icon: collection_format, selected: false },
+    { name: "Carousel", icon: carousel },
+    { name: "Image", icon: image_format },
+    { name: "Video", icon: video_format },
+    { name: "Slideshow", icon: slideshow_format },
+    { name: "Collection", icon: collection_format },
   ];
 
   const platformIcons = {
@@ -102,13 +83,27 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     return platformIcons[platformName] || null;
   };
 
-  // Enable validate button if any platform has selections
+  const togglePlatformExpansion = (platformName: string) => {
+    if (!isValidated) {
+      setExpandedPlatforms(prev => ({
+        ...prev,
+        [platformName]: !prev[platformName]
+      }));
+    }
+  };
+
+  // Enable validate button only when a media option is selected
   useEffect(() => {
-    const anyPlatformSelected = Object.values(platformMediaOptions).some(
-      (options) => options.some((option) => option.selected)
+    const stage = campaignFormData?.channel_mix?.find(
+      (chan) => chan?.funnel_stage === stageName
     );
-    setIsValidateEnabled(anyPlatformSelected);
-  }, [platformMediaOptions]);
+    const hasMediaOptionsSelected =
+      stage &&
+      (stage.social_media?.some((platform) => platform.format?.length > 0) ||
+        stage.display_networks?.some((platform) => platform.format?.length > 0) ||
+        stage.search_engines?.some((platform) => platform.format?.length > 0));
+    setIsValidateEnabled(hasMediaOptionsSelected);
+  }, [campaignFormData, stageName]);
 
   useEffect(() => {
     if (campaignFormData?.channel_mix && stageName) {
@@ -133,7 +128,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
         style: "max-w-[200px] w-full",
       };
 
-      const serachEnginesData = {
+      const searchEnginesData = {
         title: "Search Engines",
         platforms: stage?.search_engines?.map((platform) => ({
           name: platform.platform_name,
@@ -142,30 +137,30 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
         style: "max-w-[180px] w-full",
       };
 
-      console.log("Transformed Data:", [
-        transformedData,
-        displayNetworkData,
-        serachEnginesData,
-      ]);
-      setChannels([transformedData, displayNetworkData, serachEnginesData]);
+      setChannels([transformedData, displayNetworkData, searchEnginesData]);
     }
-  }, [stageName]);
+  }, [campaignFormData, stageName]);
 
   // Toggle the selection of a media format for a specific platform
   const handleFormatSelection = (
-    channelName,
+    channelName: string,
     index: number,
     platformName: string
   ) => {
     const copy = [...campaignFormData?.channel_mix];
-    const stage = copy.find((item) => item.funnel_stage === stageName);
-    // console.log("🚀 ~ initializePlatformOptions ~ stage:", stage);
-    const channel = stage[channelName?.toLowerCase()?.replace(" ", "_")];
-    // console.log("🚀 ~ initializePlatformOptions ~ channel:", channel);
-    const platform = channel?.find(
+    const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName);
+    if (stageIndex === -1) return;
+
+    const channel = copy[stageIndex][channelName?.toLowerCase()?.replace(" ", "_")];
+    const platformIndex = channel?.findIndex(
       (item) => item?.platform_name === platformName
     );
-    const formatIndex = platform?.format?.findIndex(
+    if (platformIndex === -1) return;
+
+    const platform = channel[platformIndex];
+    if (!platform.format) platform.format = [];
+
+    const formatIndex = platform.format.findIndex(
       (f) => f.format_type === defaultMediaOptions[index].name
     );
 
@@ -178,7 +173,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
         previews: null,
       });
     }
-    console.log("🚀 ~ updatedData ~ campaignFormData:", copy);
 
     setCampaignFormData({ ...campaignFormData, channel_mix: copy });
   };
@@ -203,83 +197,50 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
 
   // Handle validation or editing of selections
   const handleValidateOrEdit = () => {
-    if (!isValidated) {
-      // Store validated selections
-      const validatedSelections: { [key: string]: any[] } = {};
-      Object.entries(platformMediaOptions).forEach(([platform, options]) => {
-        validatedSelections[platform] = options.filter(
-          (option) => option.selected
-        );
-      });
-      setValidatedMediaOptions(validatedSelections);
-      setIsValidated(true);
-    } else {
-      // Reset to editing mode
-      setPlatformMediaOptions((prev) => {
-        const newOptions: { [key: string]: any[] } = {};
-        Object.keys(prev).forEach((platform) => {
-          newOptions[platform] = prev[platform].map((option) => ({
-            ...option,
-            selected:
-              validatedMediaOptions[platform]?.some(
-                (valid) => valid.name === option.name
-              ) || false,
-          }));
-        });
-        return newOptions;
-      });
-      setIsValidated(false);
-    }
+    setIsValidated(!isValidated);
   };
 
-  console.log("channels", channels);
+  const hasPlatformSelectedFormats = (platformName: string, channelName: string) => {
+    const stage = campaignFormData?.channel_mix?.find(
+      (chan) => chan?.funnel_stage === stageName
+    );
+    const channel = stage?.[channelName?.toLowerCase()?.replaceAll(" ", "_")];
+    const platform = channel?.find(pl => pl?.platform_name === platformName);
+    return platform?.format?.length > 0;
+  };
 
-  // Render the platforms UI
   return (
     <div className="text-[16px] overflow-x-hidden">
-      {channels?.map((channel, channelIndex) => {
-        return (
-          <React.Fragment key={channelIndex}>
-            <h3 className="font-[600] my-[24px]">{channel?.title}</h3>
-            <div className="flex flex-col gap-[24px]">
-              {channel?.platforms?.map((platform, platformIndex) => {
-                const existsInDB =
-                  campaignFormData?.channel_mix
-                    ?.find((ch) => ch?.funnel_stage === stageName)
-                    ?.[
-                      channel?.title?.toLowerCase()?.replaceAll(" ", "_")
-                    ]?.find((pl) => pl?.platform_name === platform.name)?.format
-                    ?.length > 0;
-                // console.log("jbfjd", existsInDB)
-                return (
-                  <div key={platformIndex}>
-                    <div className="flex items-center gap-6">
-                      <div
-                        className={`flex items-center gap-[12px] font-[500] border p-5 rounded-[10px] ${channel?.style}`}
-                      >
-                        <Image src={platform.icon} alt={platform.name} />
-                        <p>{platform.name}</p>
-                      </div>
+      {channels?.map((channel, channelIndex) => (
+        <React.Fragment key={channelIndex}>
+          <h3 className="font-[600] my-[24px]">{channel?.title}</h3>
+          <div className="flex flex-col gap-[24px]">
+            {channel?.platforms?.map((platform, platformIndex) => {
+              const hasSelectedFormats = hasPlatformSelectedFormats(platform.name, channel.title);
+              const isExpanded = expandedPlatforms[platform.name];
 
+              return (
+                <div key={platformIndex}>
+                  <div className="flex items-center gap-6">
+                    <div
+                      className={`flex items-center gap-[12px] font-[500] border p-5 rounded-[10px] ${channel?.style}`}
+                    >
+                      <Image src={platform.icon} alt={platform.name} />
+                      <p>{platform.name}</p>
+                    </div>
+
+                    {(!isValidated || (isValidated && hasSelectedFormats)) && (
                       <div
-                        className={`flex gap-3 items-center font-semibold cursor-pointer ${
-                          platform.name === item
-                            ? "text-gray-600"
-                            : "text-[#3175FF]"
-                        }`}
-                        onClick={() => {
-                          setItem(platform.name === item ? "" : platform.name);
-                        }}
+                        className="flex gap-3 items-center font-semibold cursor-pointer"
+                        onClick={() => togglePlatformExpansion(platform.name)}
                       >
-                        {platform.name === item || existsInDB ? (
-                          selectedOptions[platform.name] ? (
-                            "Choose the number of visuals for this format"
-                          ) : (
-                            "Select your format"
-                          )
+                        {isExpanded ? (
+                          <span className="text-gray-500">
+                            {isValidated ? "Choose the number of visuals for this format" : "Select your format"}
+                          </span>
                         ) : (
                           <>
-                            <p className="font-bold text-[18px]">
+                            <p className="font-bold text-[18px] text-[#3175FF]">
                               <svg
                                 width="13"
                                 height="12"
@@ -292,58 +253,41 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
                                 />
                               </svg>
                             </p>
-                            <h3>Add format</h3>
+                            <h3 className="text-[#3175FF]">Add format</h3>
                           </>
                         )}
                       </div>
-                    </div>
-
-                    {(item === platform.name || existsInDB) && (
-                      <div className="py-6">
-                        <MediaSelection
-                          handleFormatSelection={(index) =>
-                            handleFormatSelection(
-                              channel?.title,
-                              index,
-                              platform.name
-                            )
-                          }
-                          mediaOptions={defaultMediaOptions}
-                          channelName={channel?.title}
-                          platformName={platform?.name}
-                          stageName={stageName}
-                        />
-                      </div>
                     )}
-
-                    {isValidated &&
-                      validatedMediaOptions[platform.name]?.length > 0 && (
-                        <div className="py-6">
-                          <MediaSelection
-                            mediaOptions={validatedMediaOptions[platform.name]}
-                            handleFormatSelection={() => {}}
-                            isValidated={true}
-                            stageName={stageName}
-                            channelName={channel?.title}
-                            platformName={platform.name}
-                            quantities={quantities[platform.name] || {}}
-                            onQuantityChange={(formatIndex, change) =>
-                              handleQuantityChange(
-                                platform.name,
-                                formatIndex,
-                                change
-                              )
-                            }
-                          />
-                        </div>
-                      )}
                   </div>
-                );
-              })}
-            </div>
-          </React.Fragment>
-        );
-      })}
+
+                  {((isExpanded && !isValidated) || (isValidated && hasSelectedFormats)) && (
+                    <div className="py-6">
+                      <MediaSelection
+                        handleFormatSelection={(index) =>
+                          handleFormatSelection(
+                            channel?.title,
+                            index,
+                            platform.name
+                          )
+                        }
+                        mediaOptions={defaultMediaOptions}
+                        channelName={channel?.title}
+                        platformName={platform.name}
+                        stageName={stageName}
+                        isValidated={isValidated}
+                        quantities={quantities[platform.name] || {}}
+                        onQuantityChange={(formatIndex, change) =>
+                          handleQuantityChange(platform.name, formatIndex, change)
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </React.Fragment>
+      ))}
 
       <div className="w-full flex items-center justify-end mt-9">
         <button
@@ -366,20 +310,18 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
 export const FormatSelection = () => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
   const { campaignFormData } = useCampaigns();
-  // console.log("🚀 ~ FormatSelection ~ campaignFormData:", campaignFormData);
 
   useEffect(() => {
     if (campaignFormData?.channel_mix) {
       setOpenTabs([campaignFormData?.channel_mix[0]?.funnel_stage]);
     }
-  }, []);
+  }, [campaignFormData]);
 
   const toggleTab = (stageName: string) => {
-    setOpenTabs(
-      (prevOpenTabs) =>
-        prevOpenTabs.includes(stageName)
-          ? prevOpenTabs.filter((tab) => tab !== stageName) // Remove if already open
-          : [...prevOpenTabs, stageName] // Add if not open
+    setOpenTabs((prevOpenTabs) =>
+      prevOpenTabs.includes(stageName)
+        ? prevOpenTabs.filter((tab) => tab !== stageName)
+        : [...prevOpenTabs, stageName]
     );
   };
 
@@ -398,7 +340,7 @@ export const FormatSelection = () => {
             <div key={index}>
               <div
                 className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-          rounded-t-[10px]`}
+                rounded-t-[10px]`}
                 onClick={() => toggleTab(stage.name)}
               >
                 <div className="flex items-center gap-2">
@@ -424,7 +366,6 @@ export const FormatSelection = () => {
           );
         })}
       </div>
-      {/* <FormatsSelection /> */}
     </div>
   );
 };
@@ -437,7 +378,7 @@ export default function MediaSelection({
   quantities = {},
   onQuantityChange = () => {},
   channelName,
-  stageName
+  stageName,
 }: {
   mediaOptions: any[];
   handleFormatSelection: (index: number) => void;
@@ -446,64 +387,98 @@ export default function MediaSelection({
   channelName?: string;
   quantities?: { [key: string]: number };
   onQuantityChange?: (index: number, change: number) => void;
-  stageName: string
+  stageName: string;
 }) {
   const { campaignFormData } = useCampaigns();
+  const [showUploadModal, setShowUploadModal] = useState(false);
+
+  const handleCloseModal = () => {
+    setShowUploadModal(false);
+  };
+
   return (
-    <div className="flex gap-4">
-      {mediaOptions.map((option, index) => {
-        const existsInDB =
-        campaignFormData?.channel_mix
-          ?.find((ch) => ch?.funnel_stage === stageName)
-          ?.[
-            channelName?.toLowerCase()?.replaceAll(" ", "_")
-          ]?.find((pl) => pl?.platform_name === platformName)?.format?.find((ty)=>ty?.format_type === option?.name);
-        return (
-          <div key={index} className="flex flex-col items-center">
-            <div
-              onClick={() => handleFormatSelection(index)}
-              className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
-                (option.selected || existsInDB)
-                  ? "border-blue-500 shadow-lg"
-                  : "border-gray-300"
-              }`}
-            >
-              <Image
-                src={option.icon}
-                width={168}
-                height={132}
-                alt={option.name}
-              />
-              <p className="text-sm font-medium text-gray-700 mt-2">
-                {option.name}
-              </p>
-              {(option.selected || existsInDB) && (
-                <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                  <FaCheck />
+    <>
+      <div className="flex gap-4">
+        {mediaOptions.map((option, index) => {
+          const existsInDB =
+            campaignFormData?.channel_mix
+              ?.find((ch) => ch?.funnel_stage === stageName)
+              ?.[channelName?.toLowerCase()?.replaceAll(" ", "_")]
+              ?.find((pl) => pl?.platform_name === platformName)
+              ?.format?.some((ty) => ty?.format_type === option?.name);
+
+          if (isValidated && !existsInDB) {
+            return null;
+          }
+
+          return (
+            <div key={index} className="flex justify-center gap-6">
+              <div className="flex flex-col items-center">
+                <div
+                  onClick={() => !isValidated && handleFormatSelection(index)}
+                  className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
+                    existsInDB
+                      ? "border-blue-500 shadow-lg"
+                      : "border-gray-300"
+                  } ${isValidated ? "cursor-default" : "cursor-pointer"}`}
+                >
+                  <Image
+                    src={option.icon}
+                    width={168}
+                    height={132}
+                    alt={option.name}
+                  />
+                  <p className="text-sm font-medium text-gray-700 mt-2">
+                    {option.name}
+                  </p>
+                  {existsInDB && (
+                    <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                      <FaCheck />
+                    </div>
+                  )}
+                </div>
+
+                {isValidated && existsInDB && (
+                  <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
+                    <button
+                      className="px-2 py-1 text-[#000000] text-lg font-semibold"
+                      onClick={() => onQuantityChange(index, -1)}
+                    >
+                      -
+                    </button>
+                    <span className="px-2">{quantities[index] || 1}</span>
+                    <button
+                      className="px-2 py-1 text-[#000000] text-lg font-semibold"
+                      onClick={() => onQuantityChange(index, 1)}
+                    >
+                      +
+                    </button>
+                  </div>
+                )}
+              </div>
+              {isValidated && (
+                <div 
+                  onClick={() => setShowUploadModal(true)}
+                  className='w-[225px] h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors'
+                >
+                  <div className="flex flex-col items-center gap-2 text-center">
+                    <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z" fill="#3175FF"/>
+                    </svg>
+                    <p className="text-md font-lighter text-black mt-2">Upload your previews</p>
+                  </div>    
                 </div>
               )}
             </div>
+          );
+        })}
+      </div>
 
-            {isValidated && option.selected && (
-              <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
-                <button
-                  className="px-2 py-1 text-[#000000] text-lg font-semibold"
-                  onClick={() => onQuantityChange(index, -1)}
-                >
-                  -
-                </button>
-                <span className="px-2">{quantities[index] || 1}</span>
-                <button
-                  className="px-2 py-1 text-[#000000] text-lg font-semibold"
-                  onClick={() => onQuantityChange(index, 1)}
-                >
-                  +
-                </button>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
+      {showUploadModal && (
+        <div className="fixed inset-0 p-4 bg-opacity-50 flex items-center justify-center z-50">
+          <UploadModal />
+        </div>
+      )}
+    </>
   );
 }
