@@ -44,34 +44,18 @@ const initialState = {
   budget_details_value: "",
   campaign_objectives: "",
   funnel_stages: [],
-  channel_mix: {}
+  channel_mix: {},
+  campaign_timeline_start_date: "",
+  campaign_timeline_end_date: "",
 };
 
-// 🎯 Reducer Function
-const campaignReducer = (state: any, action: any) => {
-  switch (action.type) {
-    case "UPDATE_CAMPAIGN":
-      return {
-        ...state,
-        campaigns: {
-          ...state.campaigns,
-          mediaplan: {
-            ...state.campaigns.mediaplan,
-            [action.payload.step]: action.payload.data, // Update specific step
-          },
-        },
-      };
-    default:
-      return state;
-  }
-};
+
 
 // 🎯 Create Context
 const CampaignContext = createContext<any>(null);
 
 // 🎯 Provider Component
 export const CampaignProvider = ({ children }: { children: ReactNode }) => {
-  const [state, dispatch] = useReducer(campaignReducer, initialState);
   const [campaignFormData, setCampaignFormData] = useState(initialState);
   const [campaignData, setCampaignData] = useState(null);
   const [clientCampaignData, setClientCampaignData] = useState([])
@@ -126,7 +110,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           budget_details_value: data?.budget_details?.value,
           campaign_objectives: data?.campaign_objective,
           funnel_stages: data?.funnel_stages || [],
-          channel_mix: data?.channel_mix || []
+          channel_mix: data?.channel_mix || [],
+          campaign_timeline_start_date: "",
+          campaign_timeline_end_date: "",
         }));
       });
   };
@@ -186,8 +172,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   return (
     <CampaignContext.Provider
       value={{
-        state,
-        dispatch,
         loadingClients,
         allClients,
         campaignFormData,

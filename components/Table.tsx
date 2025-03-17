@@ -6,6 +6,7 @@ import ProgressBar from "./ProgressBar";
 import { useCampaigns } from "../app/utils/CampaignsContext";
 import { FiLoader } from "react-icons/fi";
 import { useRouter } from "next/navigation";
+import { NoRecordFound, SVGLoaderFetch } from "./Options";
 
 const Table = () => {
   const { loading, clientCampaignData } = useCampaigns();
@@ -26,11 +27,21 @@ const Table = () => {
           </tr>
         </thead>
         <tbody className="data-table-content">
-          {loading ? (
+          {/* {loading ? (
             <tr className="flex items-center gap-2 my-2">
               <FiLoader className="animate-spin" size={20} />
               <p>Loading client campaigns</p>
             </tr>
+          ) : */}
+
+          {loading ? (
+            <SVGLoaderFetch colSpan={8} text={"Loading client campaigns"} />
+          ) : clientCampaignData?.length === 0 ||
+            clientCampaignData?.length === undefined ? (
+            <NoRecordFound
+              colSpan={8}
+              children={"No Client campaigns!"}
+            />
           ) : (
             <>
               {clientCampaignData?.map((data) => (
@@ -39,7 +50,7 @@ const Table = () => {
                   onClick={() =>
                     router.push(`/creation?campaignId=${data?.documentId}`)
                   }
-				  className="cursor-pointer"
+                  className="cursor-pointer"
                 >
                   <td className="whitespace-nowrap py-[12px] px-[16px]">
                     {data?.media_plan_details?.plan_name} - Running
@@ -54,7 +65,7 @@ const Table = () => {
                   <td className="py-[12px] px-[16px]">
                     {data?.budget_details?.value}{" "}
                     {!data?.budget_details?.currency?.includes("%") &&
-                    data?.budget_details?.currency?.includes("EUR")
+                      data?.budget_details?.currency?.includes("EUR")
                       ? "€"
                       : ""}
                   </td>
