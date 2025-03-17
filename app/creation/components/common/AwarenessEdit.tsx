@@ -7,13 +7,25 @@ import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
 
 import trade from "../../../../public/TheTradeDesk.svg";
-import speaker from "../../../../public/mdi_megaphone.svg";
-import facebook from "../../../../public/facebook.svg";
-import youtube from "../../../../public/youtube.svg";
 import instagram from "../../../../public/ig.svg";
 import quantcast from "../../../../public/quantcast.svg";
 import arrowdown from "../../../../public/arrow-down-2.svg";
 import vector from "../../../../public/Vector.svg";
+
+import facebook from "../../../../public/facebook.svg";
+import ig from "../../../../public/ig.svg";
+import youtube from "../../../../public/youtube.svg";
+import TheTradeDesk from "../../../../public/TheTradeDesk.svg";
+import Quantcast from "../../../../public/quantcast.svg";
+import speaker from "../../../../public/mdi_megaphone.svg";
+
+import google from "../../../../public/social/google.svg";
+import x from "../../../../public/x.svg";
+import linkedin from "../../../../public/linkedin.svg";
+import Display from "../../../../public/Display.svg";
+import yahoo from "../../../../public/yahoo.svg";
+import bing from "../../../../public/bing.svg";
+import tictok from "../../../../public/tictok.svg";
 import { campaignObjectives } from "../../../../components/data";
 
 const AwarenessEdit = ({ onDelete, stageName, sm_data, dn_data, se_data }) => {
@@ -46,10 +58,7 @@ const AwarenessEdit = ({ onDelete, stageName, sm_data, dn_data, se_data }) => {
   };
 
   const toggleDropdown = (id) => {
-    setDropdowns((prev) => ({
-      ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}),
-      [id]: !prev[id],
-    }));
+    setDropdowns(id);
   };
 
   const handleSelect = (id, value) => {
@@ -63,35 +72,6 @@ const AwarenessEdit = ({ onDelete, stageName, sm_data, dn_data, se_data }) => {
     }));
   };
 
-  const renderDropdownButton = (id, defaultValue, options) => {
-    return (
-      <div className="relative">
-        <button
-          onClick={() => toggleDropdown(id)}
-          className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
-        >
-          <span className="text-[#061237] font-semibold whitespace-nowrap">
-            {values[id] || defaultValue}
-          </span>
-          <Image src={arrowdown} className="size-4" alt="dropdown" />
-        </button>
-        {dropdowns[id] && (
-          <div className="absolute top-full left-0 w-[150px] bg-white border border-[#0000001A] rounded-[10px] mt-1 z-10">
-            {options.map((option, index) => (
-              <button
-                key={index}
-                onClick={() => handleSelect(id, option)}
-                className="w-full text-left px-4 py-2 hover:bg-gray-100"
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
   if (isDeleted) {
     return (
       <button
@@ -102,6 +82,28 @@ const AwarenessEdit = ({ onDelete, stageName, sm_data, dn_data, se_data }) => {
       </button>
     );
   }
+
+  const platformIcons = {
+    Facebook: facebook,
+    Instagram: ig,
+    YouTube: youtube,
+    TheTradeDesk: TheTradeDesk,
+    Quantcast: Quantcast,
+    Google: google,
+    "Twitter/X": x,
+    LinkedIn: linkedin,
+    TikTok: tictok,
+    "Display & Video": Display,
+    Yahoo: yahoo,
+    Bing: bing,
+    "Apple Search": google,
+    "The Trade Desk": TheTradeDesk,
+    QuantCast: Quantcast,
+  };
+
+  const getPlatformIcon = (platformName) => {
+    return platformIcons[platformName] || null;
+  };
 
   return (
     <div className="flex items-start flex-col gap-6">
@@ -130,82 +132,102 @@ const AwarenessEdit = ({ onDelete, stageName, sm_data, dn_data, se_data }) => {
           <div className="flex flex-col gap-4 w-[680px] overflow-x-auto">
             {/* First row - Static buttons */}
             <div className="flex gap-4 items-center">
-              <div className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit">
-                <div className="flex items-center gap-2">
-                  <Image src={facebook} className="size-4" alt="facebook" />
-                  <span className="text-[#061237] font-semibold whitespace-nowrap">
-                    Facebook
-                  </span>
+              {sm_data?.map((sm, index) => (
+                <div className="flex flex-col gap-4">
+                  <div
+                    key={`${stageName - index}`}
+                    className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Image
+                        src={getPlatformIcon(sm?.platform_name)}
+                        className="size-4"
+                        alt="facebook"
+                      />
+                      <span className="text-[#061237] font-semibold whitespace-nowrap">
+                        {sm?.platform_name}
+                      </span>
+                    </div>
+                    <Image src={vector} alt="vector" />
+                  </div>
+                  <div className="flex gap-4 items-center">
+                    <div className="relative">
+                      <button
+                        onClick={() =>
+                          toggleDropdown(
+                            `${stageName}${index}${sm?.platform_name}`
+                          )
+                        }
+                        className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
+                      >
+                        <span className="text-[#061237] font-semibold whitespace-nowrap">
+                          {sm?.buy_type}
+                        </span>
+                        <Image
+                          src={arrowdown}
+                          className="size-4"
+                          alt="dropdown"
+                        />
+                      </button>
+                      {dropdowns ===
+                        `${stageName}${index}${sm?.platform_name}` && (
+                        <div className="absolute top-full left-0 w-[150px] bg-white border border-[#0000001A] rounded-[10px] mt-1 z-10">
+                          {["option"].map((option, index) => (
+                            <button
+                              key={index}
+                              onClick={() =>
+                                handleSelect(`${stageName - index}`, option)
+                              }
+                              className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-4 items-center">
+                    <div className="relative">
+                      <button
+                        onClick={() =>
+                          toggleDropdown(
+                            `${stageName}${index}${sm?.platform_name}`
+                          )
+                        }
+                        className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
+                      >
+                        <span className="text-[#061237] font-semibold whitespace-nowrap">
+                          {sm?.objective_type}
+                        </span>
+                        <Image
+                          src={arrowdown}
+                          className="size-4"
+                          alt="dropdown"
+                        />
+                      </button>
+                      {dropdowns ===
+                        `${stageName}${index}${sm?.platform_name}` && (
+                        <div className="absolute top-full left-0 w-[150px] bg-white border border-[#0000001A] rounded-[10px] mt-1 z-10">
+                          {["option"].map((option, index) => (
+                            <button
+                              key={index}
+                              onClick={() =>
+                                handleSelect(`${stageName - index}`, option)
+                              }
+                              className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <Image src={vector} alt="vector" />
-              </div>
-              <div className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit">
-                <div className="flex items-center gap-2">
-                  <Image src={facebook} className="size-4" alt="facebook" />
-                  <span className="text-[#061237] font-semibold whitespace-nowrap">
-                    Facebook
-                  </span>
-                </div>
-                <Image src={vector} alt="vector" />
-              </div>
-              <div className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit">
-                <div className="flex items-center gap-2">
-                  <Image src={facebook} className="size-4" alt="facebook" />
-                  <span className="text-[#061237] font-semibold whitespace-nowrap">
-                    Facebook
-                  </span>
-                </div>
-                <Image src={vector} alt="vector" />
-              </div>
-              <div className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit">
-                <div className="flex items-center gap-2">
-                  <Image src={facebook} className="size-4" alt="facebook" />
-                  <span className="text-[#061237] font-semibold whitespace-nowrap">
-                    Facebook
-                  </span>
-                </div>
-                <Image src={vector} alt="vector" />
-              </div>
-              <div className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit">
-                <div className="flex items-center gap-2">
-                  <Image src={facebook} className="size-4" alt="facebook" />
-                  <span className="text-[#061237] font-semibold whitespace-nowrap">
-                    Facebook
-                  </span>
-                </div>
-                <Image src={vector} alt="vector" />
-              </div>
-              <div className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit">
-                <div className="flex items-center gap-2">
-                  <Image src={facebook} className="size-4" alt="facebook" />
-                  <span className="text-[#061237] font-semibold whitespace-nowrap">
-                    Facebook
-                  </span>
-                </div>
-                <Image src={vector} alt="vector" />
-              </div>
-              <div className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit">
-                <div className="flex items-center gap-2">
-                  <Image src={facebook} className="size-4" alt="facebook" />
-                  <span className="text-[#061237] font-semibold whitespace-nowrap">
-                    Facebook
-                  </span>
-                </div>
-                <Image src={vector} alt="vector" />
-              </div>
+              ))}
             </div>
             {/* Second row - Static buttons */}
-            <div className="flex gap-4 items-center">
-              <div className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit">
-                <div className="flex items-center gap-2">
-                  <Image src={facebook} className="size-4" alt="facebook" />
-                  <span className="text-[#061237] font-semibold whitespace-nowrap">
-                    Facebook
-                  </span>
-                </div>
-                <Image src={vector} alt="vector" />
-              </div>
-            </div>
           </div>
           <div className="shrink-0 max-w-[300px]">
             <button className="w-[153px] h-[52px] bg-[#3175FF] rounded-[8px] border border-[#0000001A] border-solid">
@@ -215,61 +237,227 @@ const AwarenessEdit = ({ onDelete, stageName, sm_data, dn_data, se_data }) => {
         </div>
       </div>
 
-      {/* Display network */}
-      <div className="flex justify-center gap-4">
-        <div className="flex flex-col items-start gap-4">
-          <h2 className="font-bold text-[#061237] pt-4">Display networks</h2>
-          <div className="flex justify-center gap-4">
-            <div className="grid grid-cols-2 gap-4">
-              <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4">
-                <div className="flex items-center gap-2">
-                  <Image src={trade} className="size-4" alt="facebook" />
-                  <span className="text-[#061237] font-semibold whitespace-nowrap">
-                    TradeDesk
-                  </span>
+      {/* Display Networks */}
+      <div className="flex flex-col items-start gap-4">
+        <h2 className="font-bold text-[#061237]">Display Networks</h2>
+        <div className="flex gap-4 w-full">
+          <div className="flex flex-col gap-4 w-[680px] overflow-x-auto">
+            {/* First row - Static buttons */}
+            <div className="flex gap-4 items-center">
+              {dn_data?.map((sm, index) => (
+                <div className="flex flex-col gap-4">
+                  <div
+                    key={`${stageName - index}`}
+                    className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Image
+                        src={getPlatformIcon(sm?.platform_name)}
+                        className="size-4"
+                        alt="facebook"
+                      />
+                      <span className="text-[#061237] font-semibold whitespace-nowrap">
+                        {sm?.platform_name}
+                      </span>
+                    </div>
+                    <Image src={vector} alt="vector" />
+                  </div>
+                  <div className="flex gap-4 items-center">
+                    <div className="relative">
+                      <button
+                        onClick={() =>
+                          toggleDropdown(
+                            `${stageName}${index}${sm?.platform_name}`
+                          )
+                        }
+                        className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
+                      >
+                        <span className="text-[#061237] font-semibold whitespace-nowrap">
+                          {sm?.buy_type}
+                        </span>
+                        <Image
+                          src={arrowdown}
+                          className="size-4"
+                          alt="dropdown"
+                        />
+                      </button>
+                      {dropdowns ===
+                        `${stageName}${index}${sm?.platform_name}` && (
+                        <div className="absolute top-full left-0 w-[150px] bg-white border border-[#0000001A] rounded-[10px] mt-1 z-10">
+                          {["option"].map((option, index) => (
+                            <button
+                              key={index}
+                              onClick={() =>
+                                handleSelect(`${stageName - index}`, option)
+                              }
+                              className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-4 items-center">
+                    <div className="relative">
+                      <button
+                        onClick={() =>
+                          toggleDropdown(
+                            `${stageName}${index}${sm?.platform_name}`
+                          )
+                        }
+                        className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
+                      >
+                        <span className="text-[#061237] font-semibold whitespace-nowrap">
+                          {sm?.objective_type}
+                        </span>
+                        <Image
+                          src={arrowdown}
+                          className="size-4"
+                          alt="dropdown"
+                        />
+                      </button>
+                      {dropdowns ===
+                        `${stageName}${index}${sm?.platform_name}` && (
+                        <div className="absolute top-full left-0 w-[150px] bg-white border border-[#0000001A] rounded-[10px] mt-1 z-10">
+                          {["option"].map((option, index) => (
+                            <button
+                              key={index}
+                              onClick={() =>
+                                handleSelect(`${stageName - index}`, option)
+                              }
+                              className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <Image src={vector} alt="vector" />
-              </button>
-
-              <button className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4">
-                <div className="flex items-center gap-2">
-                  <Image src={quantcast} className="size-4" alt="instagram" />
-                  <span className="text-[#061237] font-semibold whitespace-nowrap">
-                    Quantcast
-                  </span>
-                </div>
-                <Image src={vector} alt="vector" />
-              </button>
-
-              {/* Second row - Dropdown buttons */}
-              {renderDropdownButton("videoviews3", "Video views", [
-                "Video View",
-                "Awareness",
-                "Traffic",
-              ])}
-              {renderDropdownButton("videoviews4", "Video views", [
-                "Video View",
-                "Awareness",
-                "Traffic",
-              ])}
-
-              {/* Third row - Dropdown buttons */}
-              {renderDropdownButton("cpm4", "CPM", ["CPM", "CPV"])}
-              {renderDropdownButton("cpm5", "CPM", ["CPM", "CPV"])}
+              ))}
             </div>
-
+            {/* Second row - Static buttons */}
+          </div>
+          <div className="shrink-0 max-w-[300px]">
             <button className="w-[153px] h-[52px] bg-[#3175FF] rounded-[8px] border border-[#0000001A] border-solid">
               <span className="text-white">Add new channel</span>
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Search engine */}
-        <div className="flex ml-8 flex-col items-start gap-4">
-          <h2 className="font-bold text-[#061237] pt-4">Search engines</h2>
-          <button className="w-[153px] h-[52px] bg-[#3175FF] rounded-[8px] border border-[#0000001A] border-solid">
-            <span className="text-white">Add new channel</span>
-          </button>
+      {/* Search Engines */}
+      <div className="flex flex-col items-start gap-4">
+        <h2 className="font-bold text-[#061237]">Search engines</h2>
+        <div className="flex gap-4 w-full">
+          <div className="flex flex-col gap-4 w-[680px] overflow-x-auto">
+            {/* First row - Static buttons */}
+            <div className="flex gap-4 items-center">
+              {se_data?.map((sm, index) => (
+                <div className="flex flex-col gap-4">
+                  <div
+                    key={`${stageName - index}`}
+                    className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Image
+                        src={getPlatformIcon(sm?.platform_name)}
+                        className="size-4"
+                        alt="facebook"
+                      />
+                      <span className="text-[#061237] font-semibold whitespace-nowrap">
+                        {sm?.platform_name}
+                      </span>
+                    </div>
+                    <Image src={vector} alt="vector" />
+                  </div>
+                  <div className="flex gap-4 items-center">
+                    <div className="relative">
+                      <button
+                        onClick={() =>
+                          toggleDropdown(
+                            `${stageName}${index}${sm?.platform_name}`
+                          )
+                        }
+                        className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
+                      >
+                        <span className="text-[#061237] font-semibold whitespace-nowrap">
+                          {sm?.buy_type}
+                        </span>
+                        <Image
+                          src={arrowdown}
+                          className="size-4"
+                          alt="dropdown"
+                        />
+                      </button>
+                      {dropdowns ===
+                        `${stageName}${index}${sm?.platform_name}` && (
+                        <div className="absolute top-full left-0 w-[150px] bg-white border border-[#0000001A] rounded-[10px] mt-1 z-10">
+                          {["option"].map((option, index) => (
+                            <button
+                              key={index}
+                              onClick={() =>
+                                handleSelect(`${stageName - index}`, option)
+                              }
+                              className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-4 items-center">
+                    <div className="relative">
+                      <button
+                        onClick={() =>
+                          toggleDropdown(
+                            `${stageName}${index}${sm?.platform_name}`
+                          )
+                        }
+                        className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
+                      >
+                        <span className="text-[#061237] font-semibold whitespace-nowrap">
+                          {sm?.objective_type}
+                        </span>
+                        <Image
+                          src={arrowdown}
+                          className="size-4"
+                          alt="dropdown"
+                        />
+                      </button>
+                      {dropdowns ===
+                        `${stageName}${index}${sm?.platform_name}` && (
+                        <div className="absolute top-full left-0 w-[150px] bg-white border border-[#0000001A] rounded-[10px] mt-1 z-10">
+                          {["option"].map((option, index) => (
+                            <button
+                              key={index}
+                              onClick={() =>
+                                handleSelect(`${stageName - index}`, option)
+                              }
+                              className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Second row - Static buttons */}
+          </div>
+          <div className="shrink-0 max-w-[300px]">
+            <button className="w-[153px] h-[52px] bg-[#3175FF] rounded-[8px] border border-[#0000001A] border-solid">
+              <span className="text-white">Add new channel</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
