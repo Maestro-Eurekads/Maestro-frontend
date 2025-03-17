@@ -12,6 +12,8 @@ import axios from "axios";
 import { BiLoader } from "react-icons/bi";
 import { removeKeysRecursively } from "../utils/removeID";
 import { useSelectedDates } from "../app/utils/SelectedDatesContext";
+import { useChannelMix } from "../app/utils/SelectChannelMixContext";
+
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -21,6 +23,7 @@ const
   Bottom = ({ setIsOpen }: BottomProps) => {
     const { active, setActive, subStep, setSubStep } = useActive();
     const { selectedObjectives, selectedFunnels } = useObjectives();
+    const { selectedChannels } = useChannelMix();
     const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
     const [setupyournewcampaignError, SetupyournewcampaignError] = useState(false);
     const [triggerFunnelError, setTriggerFunnelError] = useState(false);
@@ -119,6 +122,17 @@ const
       if (active === 2 && campaignFormData?.funnel_stages?.length === 0) {
         setTriggerFunnelError(true);
         hasError = true;
+
+        if (active === 3) {
+          const hasChannelSelections = Object.values(selectedChannels).some((stage) =>
+            Object.values(stage).some((category) => category.length > 0)
+          );
+          if (!hasChannelSelections) {
+            setTriggerChannelMixError(true);
+            hasError = true;
+          }
+        }
+
       }
       if (active === 7 && selectedDates?.to?.day === undefined) {
         setSelectedDateslError(true);
