@@ -475,7 +475,7 @@ export default function MediaSelection({
       </div>
 
       {showUploadModal && (
-        <div className="fixed inset-0 p-4 bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-opacity-50 flex items-center justify-center">
           <UploadModal />
         </div>
       )}
