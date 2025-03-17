@@ -114,7 +114,7 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
 										</button>
 
 										{openSections[`${index}-${section}`] && (
-											<div style={{ gridColumnStart: 2, gridColumnEnd: ((endWeek + 1) - startWeek) + 1, }}>
+											<div style={{ gridColumnStart: 1, gridColumnEnd: ((endWeek + 1) - startWeek) + 1, }}>
 												{[
 													{ platform: "Facebook", image: facebook, amount: "1,800 €", bg: "bg-[#0866FF33]" },
 													{ platform: "Instagram", image: instagram, amount: "1,800 €", bg: "bg-[#FEF1F8]" },
