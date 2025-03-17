@@ -194,7 +194,6 @@ export {
   TableFetch,
   EntriesPerPage,
   NoRecordFound,
-  InputField,
   TableProgressBar,
   months,
   getMonth,
