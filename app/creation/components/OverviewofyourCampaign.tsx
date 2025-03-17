@@ -5,6 +5,8 @@ import ConfigureBudgetComponet from './ConfigureAdSetsAndBudget/ConfigureBudgetC
 import OverviewOfYourCampaigntimeline from './OverviewOfYourCampaign/OverviewOfYourCampaigntimeline';
 import { useDateRange } from '../../../src/date-range-context';
 import { format, eachDayOfInterval } from "date-fns";
+import { parseApiDate } from '../../../components/Options';
+import { useCampaigns } from '../../utils/CampaignsContext';
 
 const OverviewofyourCampaign = () => {
 	const [show, setShow] = useState(false);
@@ -14,15 +16,29 @@ const OverviewofyourCampaign = () => {
 		end: range.endDate,
 	});
 
-	const weeksCount = ""
+	const {
+		updateCampaign,
+		campaignData,
+		getActiveCampaign,
+		clientCampaignData
+	} = useCampaigns();
 
 
-	const funnelsData = [
-		{ startWeek: 2, endWeek: 10, label: "Campaign 1" },
-		// { startWeek: 3, endWeek: 5, label: "Campaign 2" },
-		// { startWeek: 3, endWeek: 5, label: "Campaign 2" },
-	];
 
+	const mapCampaignsToFunnels = (campaigns: any[]) => {
+		return campaigns.map((campaign, index) => {
+			const fromDate = parseApiDate(campaign.campaign_timeline_start_date);
+			const toDate = parseApiDate(campaign.campaign_timeline_end_date);
+
+			return {
+				startWeek: fromDate?.day ?? 0, // Default to 0 if null
+				endWeek: toDate?.day ?? 0,
+				label: `Campaign ${index + 1}`,
+			};
+		});
+	};
+
+	const funnelsData = mapCampaignsToFunnels(clientCampaignData);
 
 
 

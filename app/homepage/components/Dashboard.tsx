@@ -6,16 +6,62 @@ import WeekInterval from '../../creation/components/atoms/date-interval/WeekInte
 import WeekTimeline from '../../creation/components/atoms/date-interval/WeekTimeline'
 import ChannelDistributionChatThree from '../../../components/ChannelDistribution/ChannelDistributionChatThree'
 import CampaignPhases from '../../creation/components/CampaignPhases'
+import { useCampaigns } from '../../utils/CampaignsContext'
+import { parseApiDate } from '../../../components/Options'
+import TableLoader from '../../creation/components/TableLoader'
 
 const Dashboard = () => {
 	const weeksCount = 14; // Dynamic count
 	// const [show, setShow] = useState(false);
 	// const [open, setOpen] = useState(false);
-	const funnelsData = [
-		{ startWeek: 3, endWeek: 10, label: "Campaign 1" },
-		{ startWeek: 4, endWeek: 7, label: "Campaign 2" },
-		// { startWeek: 4, endWeek: 7, label: "Campaign 2" },
-	];
+	// const funnelsData = [
+	// 	{ startWeek: 3, endWeek: 10, label: "Campaign 1" },
+	// 	{ startWeek: 4, endWeek: 7, label: "Campaign 2" },
+	// 	// { startWeek: 4, endWeek: 7, label: "Campaign 2" },
+	// ];
+
+	const currencySymbols: Record<string, string> = {
+		"Euro (EUR)": "€",
+		"US Dollar (USD)": "$",
+		"British Pound (GBP)": "£",
+		"Nigerian Naira (NGN)": "₦",
+		"Japanese Yen (JPY)": "¥",
+		"Canadian Dollar (CAD)": "C$"
+	};
+
+	const {
+		updateCampaign,
+		campaignData,
+		getActiveCampaign,
+		clientCampaignData,
+		loading
+	} = useCampaigns();
+
+
+	console.log('clientCampaignData-clientCampaignData', clientCampaignData)
+
+
+
+	const mapCampaignsToFunnels = (campaigns: any[]) => {
+		return campaigns.map((campaign, index) => {
+			const fromDate = parseApiDate(campaign.campaign_timeline_start_date);
+			const toDate = parseApiDate(campaign.campaign_timeline_end_date);
+
+			const budgetDetails = campaign.budget_details;
+			const currencySymbol = currencySymbols[budgetDetails?.currency] || "";
+			const budgetValue = budgetDetails?.value ? `${budgetDetails.value} ${currencySymbol}` : "N/A";
+
+			return {
+				startWeek: fromDate?.day ?? 0, // Default to 0 if null
+				endWeek: toDate?.day ?? 0,
+				label: `Campaign ${index + 1}`,
+				budget: budgetValue
+			};
+		});
+	};
+
+
+	const funnelsData = mapCampaignsToFunnels(clientCampaignData);
 
 	const campaignPhases = [
 		{ name: "Awareness", percentage: 35, color: "#3175FF" },
@@ -32,8 +78,11 @@ const Dashboard = () => {
 			</div>
 
 
+			<div className=' mt-[20px] w-full'>
 
-			<div className="box-border w-full min-h-[519px] bg-white mt-[20px] border-b-2">
+				{loading ? <TableLoader isLoading={loading} /> : ""}
+			</div>
+			<div className="box-border w-full min-h-[519px] bg-white border-b-2">
 				<WeekInterval weeksCount={weeksCount} />
 				<WeekTimeline weeksCount={weeksCount} funnels={funnelsData} />
 			</div>;
