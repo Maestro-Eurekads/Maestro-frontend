@@ -23,13 +23,12 @@ const
   Bottom = ({ setIsOpen }: BottomProps) => {
     const { active, setActive, subStep, setSubStep } = useActive();
     const { selectedObjectives, selectedFunnels } = useObjectives();
-    const { selectedChannels } = useChannelMix();
     const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
     const [setupyournewcampaignError, SetupyournewcampaignError] = useState(false);
     const [triggerFunnelError, setTriggerFunnelError] = useState(false);
     const [selectedDatesError, setSelectedDateslError] = useState(false);
     const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
-    // const {selectedChannels, setSelectedChannel} = useChannelMix();
+    const {selectedChannels, setSelectedChannel} = useChannelMix();
     const { selectedDates, setSelectedDates } = useSelectedDates();
     const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
