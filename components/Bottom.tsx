@@ -11,6 +11,7 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 import { BiLoader } from "react-icons/bi";
 import { removeKeysRecursively } from "../utils/removeID";
 import { useSelectedDates } from "../app/utils/SelectedDatesContext";
+// import { useChannelMix } from "../app/utils/SelectChannelMixContext";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -25,6 +26,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [selectedDatesError, setSelectedDateslError] = useState(false);
   const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
   const { selectedDates } = useSelectedDates();
+  // const { validatedStages } = useChannelMix();
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
