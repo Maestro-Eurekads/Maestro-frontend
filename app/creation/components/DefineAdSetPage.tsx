@@ -12,6 +12,7 @@ import youtube from "../../../public/youtube.svg";
 import TheTradeDesk from "../../../public/TheTradeDesk.svg";
 import Quantcast from "../../../public/quantcast.svg";
 import AdSetsFlow from "./common/AdSetsFlow";
+import { useCampaigns } from "../../utils/CampaignsContext";
 
 const funnelStages = [
   {
@@ -46,85 +47,74 @@ const funnelStages = [
 ];
 
 const DefineAdSetPage = () => {
-  const [openItems, setOpenItems] = useState({
-    Awareness: true,
-    Consideration: false,
-    Conversion: false
-  });
+  const [openItems, setOpenItems] = useState({});
+  const { campaignFormData } = useCampaigns();
+
+  // console.log(JSON.stringify(campaignFormData?.channel_mix))
 
   const toggleItem = (stage: string) => {
     setOpenItems((prev) => ({
       ...prev,
-      [stage]: !prev[stage]
+      [stage]: !prev[stage],
     }));
   };
 
   return (
     <div className="mt-12 flex items-start flex-col cursor-pointer mx-auto gap-12 w-full">
-      {funnelStages.map((stage, index) => (
-        <div key={index} className="w-full">
-          <div
-            className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-  ${openItems[stage.name] ? 'rounded-t-[10px]' : 'rounded-[10px]'}`}
-            onClick={() => toggleItem(stage.name)}
-          >
-            <div className="flex items-center gap-4">
-              <Image
-                src={stage.icon}
-                alt={stage.name}
-                width={24}
-                height={24}
-              />
-              <p className="text-md font-semibold text-[#061237]">
-                {stage.name}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {stage.statusIsActive ? (
-                <p className="text-[#3175FF] font-semibold text-base">
-                  {stage.status}
+      {campaignFormData?.funnel_stages.map((stageName, index) => {
+        const stage = funnelStages.find((s) => s.name === stageName);
+        if (!stage) return null;
+        return (
+          <div key={index} className="w-full">
+            <div
+              className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
+  ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
+              onClick={() => toggleItem(stage.name)}
+            >
+              <div className="flex items-center gap-4">
+                <Image
+                  src={stage.icon}
+                  alt={stage.name}
+                  width={24}
+                  height={24}
+                />
+                <p className="text-md font-semibold text-[#061237]">
+                  {stage.name}
                 </p>
-              ) : (
-                <p className="text-[#061237] opacity-50 text-base">
-                  Not started
-                </p>
-              )}
-            </div>
+              </div>
 
-            <div>
-              <Image
-                src={openItems[stage.name] ? up : down2}
-                alt={openItems[stage.name] ? "collapse" : "expand"}
-                width={24}
-                height={24}
-              />
+              <div className="flex items-center gap-2">
+                {stage.statusIsActive ? (
+                  <p className="text-[#3175FF] font-semibold text-base">
+                    {stage.status}
+                  </p>
+                ) : (
+                  <p className="text-[#061237] opacity-50 text-base">
+                    Not started
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Image
+                  src={openItems[stage.name] ? up : down2}
+                  alt={openItems[stage.name] ? "collapse" : "expand"}
+                  width={24}
+                  height={24}
+                />
+              </div>
             </div>
+            {openItems[stage.name] && (
+              <div
+                className={`card_bucket_container_main_sub flex flex-col pb-6 w-full cursor-pointer min-h-[300px] overflow-x-scroll`}
+              >
+                <AdSetsFlow stageName={stage.name} />
+              </div>
+            )}
           </div>
-
-          {openItems[stage.name] && stage.name === "Awareness" && (
-            <div className={`card_bucket_container_main_sub flex flex-col pb-6 w-full cursor-pointer min-h-[300px] overflow-x-scroll`}>
-
-              <AdSetsFlow />
-            </div>
-          )}
-
-          {openItems[stage.name] &&
-            (stage.name === "Consideration") && (
-              <div className="card_bucket_container_main_sub flex flex-col pb-6 cursor-pointer w-full min-h-[300px] overflow-x-scroll">
-                <AdSetsFlow />
-              </div>
-            )}
-          {openItems[stage.name] &&
-            (stage.name === "Conversion") && (
-              <div className="card_bucket_container_main_sub flex flex-col cursor-pointer pb-6 w-full min-h-[300px] overflow-x-scroll">
-                <AdSetsFlow />
-              </div>
-            )}
-        </div>
-      ))
-      }
-    </div >
+        );
+      })}
+    </div>
   );
 };
 

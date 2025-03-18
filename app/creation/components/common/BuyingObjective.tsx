@@ -8,10 +8,15 @@ import YoutubeIcon from "../../../../public/youtube.svg";
 import LinkedinIcon from "../../../../public/linkedin.svg";
 import TiktokIcon from "../../../../public/tictok.svg";
 import TwitterIcon from "../../../../public/x.svg";
+import creditWhite from "../../../../public/mdi_credit-cardwhite.svg";
+import zoomWhite from "../../../../public/tabler_zoom-filledwhite.svg";
+import speakerWhite from "../../../../public/mdi_megaphonewhite.svg";
+import addPlusWhite from "../../../../public/addPlusWhite.svg";
 import Select, { components } from "react-select";
 import Image from "next/image";
 import { useCampaigns } from "../../../utils/CampaignsContext";
 import { funnelStages } from "../../../../components/data";
+import { ChannelSelector } from "./ChannelSelector";
 
 const buyObjectiveOptions = [
   { value: "awareness", label: "Awareness" },
@@ -20,8 +25,8 @@ const buyObjectiveOptions = [
 ];
 
 const buyTypeOptions = [
-  { value: "cpm", label: "CPM" },
-  { value: "cpv", label: "CPV" },
+  { value: "CPM", label: "CPM" },
+  { value: "CPV", label: "CPV" },
 ];
 
 // Updated ChannelSelector with react‑select and icons
@@ -40,8 +45,8 @@ const options = [
     ),
   },
   {
-    value: "Youtube",
-    label: "Youtube",
+    value: "YouTube",
+    label: "YouYube",
     icon: (
       <Image
         src={YoutubeIcon}
@@ -66,8 +71,8 @@ const options = [
     ),
   },
   {
-    value: "Linkedin",
-    label: "Linkedin",
+    value: "LinkedIn",
+    label: "LinkedIn",
     icon: (
       <Image
         src={LinkedinIcon}
@@ -131,108 +136,6 @@ const CustomControl = (props) => {
   );
 };
 
-const ChannelSelector = ({ channelName }) => {
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [showSelect, setShowSelect] = useState(false);
-  const [selectedBuyObjective, setSelectedBuyObjective] = useState(null);
-  const [selectedBuyType, setSelectedBuyType] = useState(null);
-
-  const handleOptionChange = (option) => {
-    setSelectedOption(option);
-    if (!option) {
-      setSelectedBuyObjective(null);
-      setSelectedBuyType(null);
-    }
-  };
-
-  return (
-    <div className="flex flex-col gap-4">
-      {!showSelect ? (
-        <Button
-          text="Add Channel"
-          variant="primary"
-          className="bg-blue-500 text-white"
-          onClick={() => setShowSelect(true)}
-        />
-      ) : (
-        <>
-          <div className="relative">
-            <Select
-              options={options}
-              components={{
-                Option: IconOption,
-                Control: CustomControl,
-                IndicatorSeparator: () => null,
-                DropdownIndicator: () => null,
-              }}
-              value={selectedOption}
-              onChange={handleOptionChange}
-              placeholder="Select channel"
-              styles={{
-                control: (provided) => ({
-                  ...provided,
-                  backgroundColor: "white",
-                  padding: "8px 8px",
-                  border: "2px solid #D1D5DB",
-                  borderRadius: "0.8rem",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                  cursor: "pointer",
-                  minWidth: "200px",
-                }),
-                valueContainer: (provided) => ({
-                  ...provided,
-                  padding: 0,
-                }),
-              }}
-              isClearable={false}
-            />
-          </div>
-
-          {selectedOption && (
-            <>
-              <Select
-                options={buyObjectiveOptions}
-                value={selectedBuyObjective}
-                onChange={setSelectedBuyObjective}
-                placeholder="Buy Objective"
-                styles={{
-                  control: (provided) => ({
-                    ...provided,
-                    backgroundColor: "white",
-                    padding: "4px",
-                    border: "2px solid #D1D5DB",
-                    borderRadius: "0.8rem",
-                    cursor: "pointer",
-                    minWidth: "200px",
-                  }),
-                }}
-              />
-
-              <Select
-                options={buyTypeOptions}
-                value={selectedBuyType}
-                onChange={setSelectedBuyType}
-                placeholder="Buy Type"
-                styles={{
-                  control: (provided) => ({
-                    ...provided,
-                    backgroundColor: "white",
-                    padding: "4px",
-                    border: "2px solid #D1D5DB",
-                    borderRadius: "0.8rem",
-                    cursor: "pointer",
-                    minWidth: "200px",
-                  }),
-                }}
-              />
-            </>
-          )}
-        </>
-      )}
-    </div>
-  );
-};
-
 const stageComponents = {
   Awareness,
   Consideration,
@@ -241,43 +144,130 @@ const stageComponents = {
 
 const BuyingObjective = () => {
   const [edit, setEdit] = useState(false);
-  const [stages, setStages] = useState([
-    "Awareness",
-    "Consideration",
-    "Conversion",
-  ]);
-  const { campaignFormData } = useCampaigns();
-  const [savedStages, setSavedStages] = useState([...stages]);
-
+  const [selectedStage, setSelectedStage] = useState("");
+  const { campaignFormData, setCampaignFormData } = useCampaigns();
+  const [updatedData, setUpdatedData] = useState(null);
   // State for the two-step Loyalty flow
   const [isLoyalty, setIsLoyalty] = useState(false);
   const [showLoyaltyField, setShowLoyaltyField] = useState(false);
 
-  // Add a new stage
-  const addStage = (stageName) => {
-    if (!stages.includes(stageName)) {
-      setStages((prevStages) => [...prevStages, stageName]);
-    }
-  };
-
-  // Remove an existing stage
-  const removeStage = (stageName) => {
-    setStages(stages.filter((stage) => stage !== stageName));
-  };
-
-  // Confirm changes to stages
-  const confirmChanges = () => {
-    setSavedStages([...stages]);
-    setEdit(false);
-  };
-
   // Loyalty button handler
-  const handleLoyaltyButtonClick = () => {
+  const handleLoyaltyButtonClick = (stageName?: string) => {
+    if (stageName) {
+      setSelectedStage(stageName);
+      const updatedFunnels = updatedData?.funnel_stages?.includes(stageName)
+        ? {
+            ...updatedData,
+            funnel_stages: updatedData?.funnel_stages?.filter(
+              (name: string) => name !== stageName
+            ),
+          }
+        : {
+            ...updatedData,
+            funnel_stages: [...updatedData?.funnel_stages, stageName],
+            channel_mix: [
+              ...updatedData?.channel_mix,
+              {
+                funnel_stage: stageName,
+                social_media: [],
+                display_networks: [],
+                search_engines: [],
+              },
+            ],
+          };
+      setUpdatedData(updatedFunnels);
+    }
+    setSelectedStage(stageName);
     if (!isLoyalty) {
       setIsLoyalty(true);
     } else {
       setShowLoyaltyField(true);
     }
+  };
+
+  const handlePlatformSelect = (stageName, category, platformName) => {
+    const updatedChannelMix = updatedData?.channel_mix?.map((stage) => {
+      if (stage.funnel_stage === stageName) {
+        const updatedStage = { ...stage };
+        if (category === "Social media") {
+          updatedStage.social_media = [
+            ...stage.social_media,
+            { platform_name: platformName },
+          ];
+        } else if (category === "Display networks") {
+          updatedStage.display_networks = [
+            ...stage.display_networks,
+            { platform_name: platformName },
+          ];
+        } else if (category === "Search engines") {
+          updatedStage.search_engines = [
+            ...stage.search_engines,
+            { platform_name: platformName },
+          ];
+        }
+        return updatedStage;
+      }
+      return stage;
+    });
+
+    setUpdatedData((prevData) => ({
+      ...prevData,
+      channel_mix: updatedChannelMix,
+    }));
+  };
+
+  const handleDropDownSelection = (
+    stageName,
+    category,
+    platformName,
+    dropDownName,
+    option
+  ) => {
+    const updatedChannelMix = updatedData?.channel_mix?.map((stage) => {
+      if (stage.funnel_stage === stageName) {
+        const updatedStage = { ...stage };
+        if (category === "Social media") {
+          updatedStage.social_media = stage.social_media.map((platform) => {
+            if (platform.platform_name === platformName) {
+              return {
+                ...platform,
+                [dropDownName]: option,
+              };
+            }
+            console.log(platform);
+            return platform;
+          });
+        } else if (category === "Display networks") {
+          updatedStage.display_networks = stage.display_networks.map(
+            (platform) => {
+              if (platform.platform_name === platformName) {
+                return {
+                  ...platform,
+                  [dropDownName]: option,
+                };
+              }
+              return platform;
+            }
+          );
+        } else if (category === "Search engines") {
+          updatedStage.search_engines = stage.search_engines.map((platform) => {
+            if (platform.platform_name === platformName) {
+              return {
+                ...platform,
+                [dropDownName]: option,
+              };
+            }
+            return platform;
+          });
+        }
+        return updatedStage;
+      }
+      return stage;
+    });
+    setUpdatedData((prevData) => ({
+      ...prevData,
+      channel_mix: updatedChannelMix,
+    }));
   };
 
   // Delete the loyalty stage
@@ -299,30 +289,55 @@ const BuyingObjective = () => {
           </h1>
         </div>
         {edit ? (
-          <Button
-            text="Confirm Changes"
-            variant="secondary"
-            className="!w-[180px] !h-[40px] !rounded-[8px] !hover:ease-in-out"
-            onClick={confirmChanges}
-          />
+          <div className="flex items-center gap-[15px]">
+            <Button
+              text="Confirm Changes"
+              variant="primary"
+              className="!w-[180px] !h-[40px] !rounded-[8px] !hover:ease-in-out"
+              onClick={() => {
+                setEdit(false);
+                setCampaignFormData(updatedData);
+                setSelectedStage("");
+                setUpdatedData(null);
+                setSelectedStage("");
+                setIsLoyalty(false);
+                setShowLoyaltyField(false);
+              }}
+            />
+            <Button
+              text="Cancel"
+              variant="secondary"
+              className="!w-[180px] !h-[40px] !rounded-[8px] !hover:ease-in-out"
+              onClick={() => {
+                setUpdatedData(null);
+                setSelectedStage("");
+                setIsLoyalty(false);
+                setShowLoyaltyField(false);
+                setEdit(false);
+              }}
+            />
+          </div>
         ) : (
           <Button
             text="Edit"
             variant="primary"
             className="!w-[85px] !h-[40px]"
-            onClick={() => setEdit(true)}
+            onClick={() => {
+              setEdit(true);
+              setUpdatedData(campaignFormData);
+            }}
           />
         )}
       </div>
 
       {/* Loyalty / Add new Stage Button (visible only in edit mode) */}
-      {edit && !isLoyalty && (
+      {edit && (
         <div className="mb-4">
           <Button
             variant="primary"
             text="Add new stage"
             icon={Plus}
-            onClick={handleLoyaltyButtonClick}
+            onClick={() => handleLoyaltyButtonClick()}
             className="!rounded-full !px-4 !py-4 !text-white !w-[167px] !h-[31px]"
           />
         </div>
@@ -331,42 +346,87 @@ const BuyingObjective = () => {
       {/* Loyalty Container with Gray Background (visible in edit mode when loyalty is active) */}
       {edit && isLoyalty && (
         <div className="bg-gray-200 p-4 rounded-lg mt-4">
-          <div className="flex justify-between items-center mb-4">
-            {/* Loyalty Button */}
-            <Button
-              text="Loyalty"
-              icon={UserRoundSearch}
-              className="!rounded-md !my-4"
-              variant="danger"
-              onClick={handleLoyaltyButtonClick}
-            />
-            {/* Delete Loyalty Stage Button */}
-            <Button
-              text="Delete this stage"
-              icon={Trash}
-              variant="danger"
-              className="!rounded-full !px-4 !py-4 !text-white !w-[167px] !h-[31px]"
-              onClick={handleDeleteLoyaltyStage}
-            />
-          </div>
-          {showLoyaltyField && (
-            <div className="flex gap-4">
-              {["Social Media", "Display network", "Search engine"].map(
-                (channel) => (
-                  <div key={channel} className="flex flex-col items-center">
-                    <span className="mb-2 font-medium">{channel}</span>
-                    {/* Use the updated ChannelSelector */}
-                    <ChannelSelector channelName={channel} />
+          {funnelStages.map((stageName, stageIndex) => {
+            const stage = !campaignFormData?.funnel_stages?.includes(
+              stageName?.name
+            );
+            if (!stage) return null;
+            return (
+              <div className="flex justify-between items-center mb-4">
+                {/* Loyalty Button */}
+                <div>
+                  <div
+                    className={` ${
+                      stageName?.name === "Conversion"
+                        ? "bg-[#FF9037]"
+                        : stageName?.name === "Loyalty"
+                        ? "bg-[#EF5407]"
+                        : stageName?.name === "Awareness"
+                        ? "bg-[#0866FF]"
+                        : stageName?.name === "Consideration"
+                        ? "bg-[#00A36C]"
+                        : ""
+                    } rounded-[10px]`}
+                    onClick={() => handleLoyaltyButtonClick(stageName?.name)}
+                  >
+                    <div className="flex items-center justify-center gap-[16px] p-[24px]">
+                      {stageName?.name === "Conversion" ? (
+                        <Image src={creditWhite} alt={stageName?.name} />
+                      ) : stageName?.name === "Loyalty" ? (
+                        <Image src={addPlusWhite} alt={stageName?.name} />
+                      ) : stageName?.name === "Awareness" ? (
+                        <Image src={speakerWhite} alt={stageName?.name} />
+                      ) : stageName?.name === "Consideration" ? (
+                        <Image src={zoomWhite} alt={stageName?.name} />
+                      ) : (
+                        ""
+                      )}
+                      <p className="text-[18px] font-medium text-white">
+                        {stageName?.name}
+                      </p>
+                    </div>
                   </div>
-                )
-              )}
-            </div>
-          )}
+                  {selectedStage === stageName?.name && showLoyaltyField && (
+                    <div className="flex gap-4 mt-4">
+                      {[
+                        "Social media",
+                        "Display networks",
+                        "Search engines",
+                      ].map((channel) => (
+                        <div
+                          key={channel}
+                          className="flex flex-col items-center"
+                        >
+                          <span className="mb-2 font-medium">{channel}</span>
+                          {/* Use the updated ChannelSelector */}
+                          <ChannelSelector
+                            stageName={stageName?.name}
+                            channelName={channel}
+                            handlePlatformSelect={handlePlatformSelect}
+                            handleDropDownSelection={handleDropDownSelection}
+                            hideSelectAfterSelection={false}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {/* Delete Loyalty Stage Button */}
+                <Button
+                  text="Delete this stage"
+                  icon={Trash}
+                  variant="danger"
+                  className="!rounded-full !px-4 !py-4 !text-white !w-[167px] !h-[31px]"
+                  onClick={handleDeleteLoyaltyStage}
+                />
+              </div>
+            );
+          })}
         </div>
       )}
 
       {/* Additional Stage Buttons (Only in Edit Mode) */}
-      {edit && (
+      {/* {edit && (
         <div className="flex flex-wrap gap-2 mb-4">
           {["Awareness", "Consideration", "Conversion"].map(
             (stage) =>
@@ -381,7 +441,7 @@ const BuyingObjective = () => {
               )
           )}
         </div>
-      )}
+      )} */}
 
       {/* Render Each Stage */}
       {campaignFormData?.funnel_stages.map((stageName, index) => {
@@ -391,8 +451,14 @@ const BuyingObjective = () => {
         return (
           <StageComponent
             edit={edit}
-            onDelete={() => removeStage(stage)}
+            setEdit={setEdit}
+            onDelete={() => console.log("")}
             stageName={stageName}
+            updatedData={updatedData}
+            setUpdatedData={setUpdatedData}
+            handleLoyaltyButtonClick={handleLoyaltyButtonClick}
+            handlePlatformSelect={handlePlatformSelect}
+            handleDropDownSelection={handleDropDownSelection}
           />
         );
       })}
