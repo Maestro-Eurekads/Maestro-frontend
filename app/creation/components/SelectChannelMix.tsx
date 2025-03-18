@@ -136,6 +136,15 @@ const SelectChannelMix = () => {
         ...prev,
         [stageName]: true,
       }));
+      
+      // Also update validatedStages in the campaign context
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        validatedStages: {
+          ...(prev.validatedStages || {}),
+          [stageName]: true
+        }
+      }));
     }
   };
 
@@ -144,6 +153,15 @@ const SelectChannelMix = () => {
     setValidatedStages((prev) => ({
       ...prev,
       [stageName]: false,
+    }));
+    
+    // Also update validatedStages in the campaign context
+    setCampaignFormData((prev: any) => ({
+      ...prev,
+      validatedStages: {
+        ...(prev.validatedStages || {}),
+        [stageName]: false
+      }
     }));
   };
 
@@ -160,7 +178,7 @@ const SelectChannelMix = () => {
       </div>
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
-        {campaignFormData?.funnel_stages.map((stageName, index) => {
+        {campaignFormData?.funnel_stages?.map((stageName, index) => {
           const stage = funnelStages.find((s) => s.name === stageName);
           if (!stage) return null;
 

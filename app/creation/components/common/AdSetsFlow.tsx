@@ -10,6 +10,7 @@ import { FaAngleRight } from "react-icons/fa";
 import { MdDelete, MdAdd } from "react-icons/md";
 import { useState, useCallback, memo, useMemo } from "react";
 import { useEditing } from "../../../utils/EditingContext";
+import UploadModal from "../../../../components/UploadModal/UploadModal";
 
 // AudienceDropdown component with animated dropdown
 const AudienceDropdown = memo(function AudienceDropdown() {
@@ -33,7 +34,7 @@ const AudienceDropdown = memo(function AudienceDropdown() {
   }, []);
 
   return (
-    <div className="relative border-2 border-[#0000001A] rounded-[10px]">
+    <div className="relative border-2 border-[#0000001A] rounded-[10px] z-50">
       <button
         onClick={toggleOpen}
         className="relative z-30 w-[172px] bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
@@ -56,7 +57,7 @@ const AudienceDropdown = memo(function AudienceDropdown() {
         </svg>
       </button>
       {open && (
-        <ul className="absolute mt-1 top-1 z-[999] w-full bg-white border-2 border-[#0000001A] rounded-lg shadow-lg overflow-hidden">
+        <ul className="absolute mt-1 left-0 top-full z-[999] w-full bg-white border-2 border-[#0000001A] rounded-lg shadow-lg overflow-hidden">
           {options.map((option, index) => (
             <li
               key={index}
@@ -122,10 +123,7 @@ const AdSet = memo(function AdSet({
           <hr className="border border-[#0000001A] w-[50px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" />
         </div>
            
-           <div className="relative z-1">
-
-          <AudienceDropdown />
-           </div>
+        <AudienceDropdown />
 
           <input
           type="text"
@@ -268,6 +266,7 @@ const AdSetFlow = memo(function AdSetFlow() {
   }, [setIsEditing]);
 
   return (
+    
     <div className="w-full space-y-4 p-4">
       {outlets.map((outlet) => (
         <AdsetSettings key={outlet.id} outlet={outlet} />
@@ -279,7 +278,11 @@ const AdSetFlow = memo(function AdSetFlow() {
           </button>
         </div>}
     </div>
-  );
+
+      
+
+);
 });
+
 
 export default AdSetFlow;

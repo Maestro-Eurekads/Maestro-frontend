@@ -15,8 +15,8 @@ const Homepage = () => {
 
 
 
-
 	return (
+		<>
 		<div id="page-wrapper">
 			<Header setIsOpen={setIsOpen} />
 			<main className="!px-0">
@@ -29,6 +29,7 @@ const Homepage = () => {
 			</main>
 			<TableModel isOpen={isOpen} setIsOpen={setIsOpen} />
 		</div>
+		</>
 	)
 }
 

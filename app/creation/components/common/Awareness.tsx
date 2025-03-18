@@ -137,7 +137,7 @@ const Awareness = ({ edit, onDelete, stageName }) => {
             <h2 className="text-black font-bold text-md mb-4">
               Display Network
             </h2>
-            <div className="grid grid-cols-2 grid-rows-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               {campaignFormData?.channel_mix
                 ?.find((ch) => ch?.funnel_stage === stageName)
                 ["display_networks"].map((item) => (
@@ -192,7 +192,7 @@ const Awareness = ({ edit, onDelete, stageName }) => {
             <h2 className="text-black font-bold text-md mb-4">
               Search Engines
             </h2>
-            <div className="grid grid-cols-2 grid-rows-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               {campaignFormData?.channel_mix
                 ?.find((ch) => ch?.funnel_stage === stageName)
                 ["search_engines"].map((item) => (
