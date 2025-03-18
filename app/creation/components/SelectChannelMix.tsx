@@ -97,16 +97,20 @@ const SelectChannelMix = () => {
       let updatedChannelMix = [...(prevFormData.channel_mix || [])];
       
       if (existingChannelMixIndex >= 0) {
-        // Update existing funnel stage
+        // Update existing funnel stage with all categories, even if empty
         updatedChannelMix[existingChannelMixIndex] = {
-          ...updatedChannelMix[existingChannelMixIndex],
-          [categoryKey]: platformObjects
+          funnel_stage: stageName,
+          social_media: categoryKey === 'social_media' ? platformObjects : (prevFormData.channel_mix[existingChannelMixIndex].social_media || []),
+          display_networks: categoryKey === 'display_networks' ? platformObjects : (prevFormData.channel_mix[existingChannelMixIndex].display_networks || []),
+          search_engines: categoryKey === 'search_engines' ? platformObjects : (prevFormData.channel_mix[existingChannelMixIndex].search_engines || [])
         };
       } else {
-        // Add new funnel stage
+        // Add new funnel stage with all categories initialized
         updatedChannelMix.push({
           funnel_stage: stageName,
-          [categoryKey]: platformObjects
+          social_media: categoryKey === 'social_media' ? platformObjects : [],
+          display_networks: categoryKey === 'display_networks' ? platformObjects : [],
+          search_engines: categoryKey === 'search_engines' ? platformObjects : []
         });
       }
       

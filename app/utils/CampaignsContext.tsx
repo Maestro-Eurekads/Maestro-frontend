@@ -45,6 +45,7 @@ const initialState = {
   campaign_objectives: "",
   funnel_stages: [],
   channel_mix: {},
+
   campaign_timeline_start_date: "",
   campaign_timeline_end_date: "",
 };

@@ -162,9 +162,9 @@ export const funnelStages = [
 			// ],
 			"Search engines": [
 				{ name: "Google", icon: Google },
-				{ name: "Apple Search", icon: Google },
+				// { name: "Apple Search", icon: Google },
 				{ name: "Yahoo", icon: yahoo },
-				{ name: "Bing", icon: bing },
+			// 	{ name: "Bing", icon: bing },
 				// { name: "Baidu", icon: bing },
 				// { name: "Yandex", icon: bing },
 				// { name: "Naver", icon: bing },
