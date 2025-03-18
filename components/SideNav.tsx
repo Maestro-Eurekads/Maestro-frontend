@@ -23,9 +23,7 @@ const SideNav: React.FC = () => {
   const { selectedObjectives, selectedFunnels } = useObjectives();
   const [close, setClose] = useState(false);
   const router = useRouter();
-  const { setActive, setSubStep } = useActive();
-
-
+  const { active, setActive, setSubStep } = useActive();
 
   const handleBackClick = () => {
     setActive(0); // Reset state
@@ -152,19 +150,30 @@ const SideNav: React.FC = () => {
               <p>Back to Dashboard</p>
             </button>
             <div>
-              <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
-                Let’s create your
-              </h6>
-              <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
-                new campaign :
-              </h6>
-
+              <div className="flex flex-col items-start gap-2">
+                <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
+                  {active === 0 ? "Let's create your" : "Spring Collection Launch 2025"}
+                </h6>
+                {active !== 0 && (
+                  <div className="flex items-center gap-2">
+                    <Image src={nike} alt="nike" />
+                    <p className="font-semibold text-[#061237]">Nike</p>
+                  </div>
+                )}
+              </div>
+              {active === 0 && (
+                <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
+                  new campaign :
+                </h6>
+              )}
             </div>
-            <div className="flex items-center gap-[8px]">
-              <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic">
-                Follow the steps to set up an effective and successful campaign strategy.
-              </p>
-            </div>
+            {active === 0 && (
+              <div className="flex items-center gap-[8px]">
+                <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic">
+                  Follow the steps to set up an effective and successful campaign strategy.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
