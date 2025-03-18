@@ -11,7 +11,6 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 import { BiLoader } from "react-icons/bi";
 import { removeKeysRecursively } from "../utils/removeID";
 import { useSelectedDates } from "../app/utils/SelectedDatesContext";
-// import { useChannelMix } from "../app/utils/SelectChannelMixContext";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -25,11 +24,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
   const [selectedDatesError, setSelectedDateslError] = useState(false);
   const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
-  const { selectedDates } = useSelectedDates();
-  // const { validatedStages } = useChannelMix();
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [formatSelectionError, setFormatSelectionError] = useState(false);
+  const [formatValidationError, setFormatValidationError] = useState(false);
 
   const {
     createCampaign,
@@ -39,8 +38,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     cId,
     getActiveCampaign,
   } = useCampaigns();
+  const { selectedDates } = useSelectedDates();
 
-  // Hide alerts after a few seconds
   useEffect(() => {
     if (
       triggerObjectiveError ||
@@ -48,7 +47,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       selectedDatesError ||
       setupyournewcampaignError ||
       triggerChannelMixError ||
-      incompleteFieldsError
+      incompleteFieldsError ||
+      formatSelectionError ||
+      formatValidationError
     ) {
       const timer = setTimeout(() => {
         setTriggerObjectiveError(false);
@@ -57,7 +58,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         SetupyournewcampaignError(false);
         setTriggerChannelMixError(false);
         setIncompleteFieldsError(false);
-      }, 3000); // Hides alert after 3 seconds
+        setFormatSelectionError(false);
+        setFormatValidationError(false);
+      }, 3000);
 
       return () => clearTimeout(timer);
     }
@@ -68,6 +71,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     setupyournewcampaignError,
     triggerChannelMixError,
     incompleteFieldsError,
+    formatSelectionError,
+    formatValidationError,
   ]);
 
   const handleBack = () => {
@@ -75,7 +80,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       setSubStep((prev) => prev - 1);
     } else if (active === 7 && subStep === 0) {
       setActive((prev) => Math.max(0, prev - 1));
-      setSubStep(1); // Ensure it correctly navigates back to Step 7's sub-step
+      setSubStep(1);
     } else {
       if (active === 8) {
         setSubStep(1);
@@ -90,7 +95,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     let hasError = false;
     setLoading(true);
 
-    // ✅ Step Zero Validation - Ensure all fields are filled
+    // Step Zero Validation
     if (active === 0) {
       const requiredFields = [
         campaignFormData?.client_selection?.value,
@@ -101,47 +106,63 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         campaignFormData?.budget_details_value,
       ];
 
-      // ✅ Check if at least one field is filled but not all
       const filledFields = requiredFields.filter((field) => field);
-
       if (filledFields.length > 0 && filledFields.length < requiredFields.length) {
-        setIncompleteFieldsError(true); // Show alert for incomplete fields
+        setIncompleteFieldsError(true);
         setLoading(false);
         return;
       }
-
-      // ✅ If no fields are filled, trigger the "cannot be empty" alert
       if (filledFields.length === 0) {
         SetupyournewcampaignError(true);
         hasError = true;
       }
     }
 
-    // ✅ Step One Validation - Ensure at least one objective is selected
+    // Step One Validation
     if (active === 1 && selectedObjectives.length === 0) {
       setTriggerObjectiveError(true);
       hasError = true;
     }
 
-    // ✅ Step Two Validation - Ensure at least one funnel stage is selected
+    // Step Two Validation
     if (active === 2 && campaignFormData?.funnel_stages?.length === 0) {
       setTriggerFunnelError(true);
       hasError = true;
     }
 
-    // ✅ Step Three Validation - Check if at least one channel is validated
+    // Step Three Validation
     if (active === 3) {
-      // Check if validatedStages exists and has at least one validated stage
-      const hasAnyValidatedStage = campaignFormData?.validatedStages && 
-        Object.values(campaignFormData.validatedStages).some(isValidated => isValidated === true);
-      
+      const hasAnyValidatedStage =
+        campaignFormData?.validatedStages &&
+        Object.values(campaignFormData.validatedStages).some(
+          (isValidated) => isValidated === true
+        );
       if (!hasAnyValidatedStage) {
         setTriggerChannelMixError(true);
         hasError = true;
       }
     }
 
-    // ✅ Step Seven Validation - Ensure dates are selected
+    // Step Four Validation - Check only format selection and validation
+    if (active === 4) {
+      // For step 4, check if formats are selected and validated, without validating channel mix
+      // This fixes the issue by not checking channel_mix in step 4
+      const hasSelectedFormats = campaignFormData?.formats && 
+        Object.values(campaignFormData.formats).some(format => format.selected === true);
+      
+      const hasValidatedFormats = campaignFormData?.formats && 
+        Object.values(campaignFormData.formats).some(format => format.selected === true && format.validated === true);
+
+      if (!hasSelectedFormats) {
+        setFormatSelectionError(true);
+        hasError = true;
+      } else if (!hasValidatedFormats) {
+        setFormatValidationError(true);
+        hasError = true;
+      }
+    }
+
+    // Step Seven Validation
     if (active === 7 && selectedDates?.to?.day === undefined) {
       setSelectedDateslError(true);
       hasError = true;
@@ -220,13 +241,25 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       });
     };
 
+    const handleStepFour = async () => {
+      if (!campaignData) return;
+      await updateCampaignData({
+        ...cleanData,
+        formats: campaignFormData?.formats,
+      });
+    };
+
     if (active === 0) {
       await handleStepZero();
     } else if (active === 1) {
       await handleStepOne();
     } else if (active === 2) {
       await handleStepTwo();
-    } else if (active === 3 || active === 4 || active === 5) {
+    } else if (active === 3) {
+      await handleStepThree();
+    } else if (active === 4) {
+      await handleStepFour();
+    } else if (active === 5) {
       await handleStepThree();
     }
 
@@ -254,7 +287,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   return (
     <footer id="footer" className="w-full">
-      {/* Show alert only when needed */}
       {setupyournewcampaignError && (
         <AlertMain
           alert={{
@@ -264,7 +296,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-      {/* ✅ Show alert when some fields are filled but not all */}
       {incompleteFieldsError && (
         <AlertMain
           alert={{
@@ -274,7 +305,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-
       {triggerObjectiveError && (
         <AlertMain
           alert={{
@@ -302,7 +332,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-
       {triggerChannelMixError && (
         <AlertMain
           alert={{
@@ -312,9 +341,26 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
+      {formatSelectionError && (
+        <AlertMain
+          alert={{
+            variant: "error",
+            message: "Please select at least one format!",
+            position: "bottom-right",
+          }}
+        />
+      )}
+      {formatValidationError && (
+        <AlertMain
+          alert={{
+            variant: "error",
+            message: "Please validate all selected formats!",
+            position: "bottom-right",
+          }}
+        />
+      )}
 
       <div className="flex justify-between w-full">
-        {/* Back Button */}
         {active === 0 ? (
           <div />
         ) : (
@@ -331,7 +377,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             <p>Back</p>
           </button>
         )}
-        {/* Continue Button */}
         {active === 10 ? (
           <button
             className="bottom_black_next_btn hover:bg-blue-500"

@@ -110,7 +110,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 						}}
 					>
 						<Image src={icroundadd} alt="icroundadd" />
-						<p>Add new channel</p>
+						<p className="whitespace-nowrap">Add new channel</p>
 					</button>
 				) : <div />}
 
