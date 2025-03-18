@@ -4,19 +4,18 @@ import left from "../public/left.svg";
 import right from "../public/right.svg";
 import moveright from "../public/lucide_move-right.svg";
 import { useSelectedDates } from "../app/utils/SelectedDatesContext";
-import { useCampaigns } from "../app/utils/CampaignsContext";
-import { removeKeysRecursively } from "../utils/removeID";
+import { parseApiDate } from "./Options";
 
 interface MultiDatePickerProps {
 	isEditing: boolean;
+	campaignData: any;
 }
 
-const MultiDatePicker: React.FC<MultiDatePickerProps> = ({ isEditing }) => {
-
-	const weekdays = ["M", "T", "W", "T", "F", "S", "S"];
+const MultiDatePicker: React.FC<MultiDatePickerProps> = ({ isEditing, campaignData }) => {
+	const weekdays = ["M", "T", "W", "Th", "F", "S", "S"];
 	const { selectedDates, setSelectedDates } = useSelectedDates();
+	const [monthOffset, setMonthOffset] = useState(0);
 
-	// Generate months dynamically
 	const getMonthData = (offset: number) => {
 		const today = new Date();
 		const baseDate = new Date(today.getFullYear(), today.getMonth() + offset, 1);
@@ -28,22 +27,30 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({ isEditing }) => {
 		return {
 			name: baseDate.toLocaleString("default", { month: "long", year: "numeric" }),
 			days: daysInMonth,
-			startDay: firstDay === 0 ? 6 : firstDay - 1, // Adjust for Monday start
+			startDay: firstDay === 0 ? 6 : firstDay - 1,
 			monthIndex: month,
 			year,
 		};
 	};
 
-	const [monthOffset, setMonthOffset] = useState(0);
-	const months = [getMonthData(monthOffset), getMonthData(monthOffset + 1)];
+	// const parseApiDate = (dateString: string | null): { day: number; month: number } | null => {
+	// 	if (!dateString) return null;
+	// 	const parsedDate = new Date(dateString);
+	// 	return {
+	// 		day: parsedDate.getDate(),
+	// 		month: parsedDate.getMonth(),
+	// 	};
+	// };
 
+	// Use selected dates if set, otherwise fallback to API dates
+	const fromDate = selectedDates.from || parseApiDate(campaignData?.campaign_timeline_start_date);
+	const toDate = selectedDates.to || parseApiDate(campaignData?.campaign_timeline_end_date);
 
-
-	// Handle Date Selection (Only if isEditing is true)
 	const handleDateClick = (day: number, monthIndex: number) => {
 		if (!isEditing) return;
 
 		const newDate = { day, month: monthIndex };
+
 		if (!selectedDates.from || (selectedDates.from && selectedDates.to)) {
 			setSelectedDates({ from: newDate, to: null });
 		} else if (
@@ -62,26 +69,19 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({ isEditing }) => {
 		}
 	};
 
+	console.log('fromDate-fromDate', fromDate, toDate)
 
-
+	const months = [getMonthData(monthOffset), getMonthData(monthOffset + 1)];
 
 	return (
 		<div className={`flex flex-col items-start p-5 gap-5 w-[792px] bg-white border border-gray-200 rounded-lg mt-8 ${isEditing ? "" : " cursor-not-allowed"}`}>
 			{/* Navigation */}
 			<div className="flex justify-between w-full">
-				<button
-					className={`flex items-center gap-3 ${!isEditing ? "cursor-not-allowed " : ""}`}
-					onClick={() => isEditing && setMonthOffset(monthOffset - 1)}
-					disabled={!isEditing}
-				>
+				<button className={`flex items-center gap-3 ${!isEditing ? "cursor-not-allowed" : ""}`} onClick={() => isEditing && setMonthOffset(monthOffset - 1)} disabled={!isEditing}>
 					<Image src={left} alt="left" />
 					<h6 className="font-semibold text-[16px] text-[#061237]">{months[0].name}</h6>
 				</button>
-				<button
-					className={`flex items-center gap-3 ${!isEditing ? "cursor-not-allowed " : ""}`}
-					onClick={() => isEditing && setMonthOffset(monthOffset + 1)}
-					disabled={!isEditing}
-				>
+				<button className={`flex items-center gap-3 ${!isEditing ? "cursor-not-allowed" : ""}`} onClick={() => isEditing && setMonthOffset(monthOffset + 1)} disabled={!isEditing}>
 					<h6 className="font-semibold text-[16px] text-[#061237]">{months[1].name}</h6>
 					<Image src={right} alt="right" />
 				</button>
@@ -101,24 +101,15 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({ isEditing }) => {
 						{/* Days Grid */}
 						<div className="grid grid-cols-7 gap-2 text-center mt-2">
 							{/* Empty spaces for the starting day */}
-							{Array.from({ length: month.startDay }).map((_, i) => (
-								<div key={i}></div>
-							))}
+							{Array.from({ length: month.startDay }).map((_, i) => <div key={i}></div>)}
 
 							{/* Render Days */}
 							{Array.from({ length: month.days }).map((_, i) => {
 								const day = i + 1;
-								const isSelected =
-									(selectedDates.from?.day === day && selectedDates.from?.month === month.monthIndex) ||
-									(selectedDates.to?.day === day && selectedDates.to?.month === month.monthIndex);
-
-								const isInRange =
-									selectedDates.from &&
-									selectedDates.to &&
-									(month.monthIndex > selectedDates.from.month ||
-										(month.monthIndex === selectedDates.from.month && day > selectedDates.from.day)) &&
-									(month.monthIndex < selectedDates.to.month ||
-										(month.monthIndex === selectedDates.to.month && day < selectedDates.to.day));
+								const isSelected = (fromDate?.day === day && fromDate?.month === month.monthIndex) || (toDate?.day === day && toDate?.month === month.monthIndex);
+								const isInRange = fromDate && toDate &&
+									(month.monthIndex > fromDate.month || (month.monthIndex === fromDate.month && day > fromDate.day)) &&
+									(month.monthIndex < toDate.month || (month.monthIndex === toDate.month && day < toDate.day));
 
 								return (
 									<div
@@ -127,7 +118,7 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({ isEditing }) => {
                       ${isSelected ? "bg-blue-500 text-white" : ""}
                       ${isInRange ? "bg-blue-200" : ""}
                       hover:bg-blue-100
-                      ${!isEditing ? "cursor-not-allowed " : ""}`}
+                      ${!isEditing ? "cursor-not-allowed" : ""}`}
 										onClick={() => handleDateClick(day, month.monthIndex)}
 									>
 										{day}
@@ -145,23 +136,18 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({ isEditing }) => {
 					<div>
 						<h6 className="font-semibold text-[14px] text-[#061237]">From</h6>
 						<button className="reset_dates_move">
-							{selectedDates.from
-								? `${String(selectedDates.from.day).padStart(2, "0")}-${String(selectedDates.from.month + 1).padStart(2, "0")}-${new Date().getFullYear().toString().slice(-2)}`
-								: "Select date"}
+							{fromDate ? `${String(fromDate.day).padStart(2, "0")}-${String(fromDate.month + 1).padStart(2, "0")}-${new Date().getFullYear().toString().slice(-2)}` : "Select date"}
 						</button>
 					</div>
 					<Image src={moveright} alt="moveright" className="mt-5" />
 					<div>
 						<h6 className="font-semibold text-[14px] text-[#061237]">To</h6>
 						<button className="reset_dates_move">
-							{selectedDates.to
-								? `${String(selectedDates.to.day).padStart(2, "0")}-${String(selectedDates.to.month + 1).padStart(2, "0")}-${new Date().getFullYear().toString().slice(-2)}`
-								: "Select date"}
+							{toDate ? `${String(toDate.day).padStart(2, "0")}-${String(toDate.month + 1).padStart(2, "0")}-${new Date().getFullYear().toString().slice(-2)}` : "Select date"}
 						</button>
 					</div>
-
 				</div>
-				<button type="button" className={`reset_dates ${!isEditing ? "cursor-not-allowed " : ""}`} onClick={resetDates} disabled={!isEditing}>
+				<button type="button" className={`reset_dates ${!isEditing ? "cursor-not-allowed" : ""}`} onClick={resetDates} disabled={!isEditing}>
 					Reset dates
 				</button>
 			</div>

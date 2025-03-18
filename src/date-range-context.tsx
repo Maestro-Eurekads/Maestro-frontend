@@ -32,8 +32,7 @@ export const DateRangeProvider = ({
 
   return (
     <DateRangeContext.Provider
-      value={{ range, setRange, dateRangeWidth, setDateRangeWidth }}
-    >
+      value={{ range, setRange, dateRangeWidth, setDateRangeWidth }}>
       {children}
     </DateRangeContext.Provider>
   );
