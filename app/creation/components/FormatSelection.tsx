@@ -42,6 +42,7 @@ type IChannel = {
   style?: string;
 };
 
+
 export const Platforms = ({ stageName }: { stageName: string }) => {
   const [expandedPlatforms, setExpandedPlatforms] = useState<{[key: string]: boolean}>({});
   const { campaignFormData, setCampaignFormData } = useCampaigns();
@@ -91,6 +92,18 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       }));
     }
   };
+
+  // Check if current stage is already validated
+  useEffect(() => {
+    if (campaignFormData?.channel_mix) {
+      const stage = campaignFormData.channel_mix.find(
+        (chan) => chan?.funnel_stage === stageName
+      );
+      if (stage && stage.isValidated) {
+        setIsValidated(true);
+      }
+    }
+  }, [campaignFormData, stageName]);
 
   // Enable validate button only when a media option is selected
   useEffect(() => {
@@ -183,6 +196,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     formatIndex: number,
     change: number
   ) => {
+    // Update quantities state
     setQuantities((prev) => ({
       ...prev,
       [platformName]: {
@@ -193,11 +207,48 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
         ),
       },
     }));
+
+    // Also update the quantity in campaignFormData
+    const copy = [...campaignFormData?.channel_mix];
+    const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName);
+    if (stageIndex === -1) return;
+
+    // Update all channel types
+    ["social_media", "display_networks", "search_engines"].forEach(channelType => {
+      const channel = copy[stageIndex][channelType];
+      if (!channel) return;
+
+      const platformIndex = channel.findIndex(
+        (item) => item?.platform_name === platformName
+      );
+      if (platformIndex === -1) return;
+
+      const platform = channel[platformIndex];
+      if (!platform.format || platform.format.length <= formatIndex) return;
+
+      const newQuantity = Math.max(
+        1,
+        parseInt(platform.format[formatIndex].num_of_visuals || "1") + change
+      );
+      
+      platform.format[formatIndex].num_of_visuals = newQuantity.toString();
+    });
+
+    setCampaignFormData({ ...campaignFormData, channel_mix: copy });
   };
 
   // Handle validation or editing of selections
   const handleValidateOrEdit = () => {
-    setIsValidated(!isValidated);
+    const newValidationState = !isValidated;
+    setIsValidated(newValidationState);
+    
+    // Update the campaign form data with the validation status
+    const copy = [...campaignFormData?.channel_mix];
+    const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName);
+    if (stageIndex !== -1) {
+      copy[stageIndex].isValidated = newValidationState;
+      setCampaignFormData({ ...campaignFormData, channel_mix: copy });
+    }
   };
 
   const hasPlatformSelectedFormats = (platformName: string, channelName: string) => {
@@ -306,6 +357,8 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
   );
 };
 
+
+
 // Main FormatSelection component that wraps everything
 export const FormatSelection = () => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
@@ -390,11 +443,16 @@ export default function MediaSelection({
   stageName: string;
 }) {
   const { campaignFormData } = useCampaigns();
-  const [showUploadModal, setShowUploadModal] = useState(false);
-
-  const handleCloseModal = () => {
-    setShowUploadModal(false);
-  };
+  
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  
+  const openModal = () => {
+    setIsModalOpen(true)
+  }
+  
+  const closeModal = () => {
+    setIsModalOpen(false)
+  }
 
   return (
     <>
@@ -458,7 +516,7 @@ export default function MediaSelection({
               </div>
               {isValidated && (
                 <div 
-                  onClick={() => setShowUploadModal(true)}
+                  onClick={openModal}
                   className='w-[225px] h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors'
                 >
                   <div className="flex flex-col items-center gap-2 text-center">
@@ -474,11 +532,10 @@ export default function MediaSelection({
         })}
       </div>
 
-      {showUploadModal && (
         <div className="bg-opacity-50 flex items-center justify-center">
-          <UploadModal />
+          <UploadModal isOpen={isModalOpen} onClose={closeModal} />
         </div>
-      )}
+    
     </>
   );
 }

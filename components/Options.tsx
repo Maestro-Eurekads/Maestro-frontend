@@ -186,6 +186,17 @@ const LoginSpiner = () => {
 
 
 
+const parseApiDate = (dateString: string | null): { day: number; month: number } | null => {
+  if (!dateString) return null;
+  const parsedDate = new Date(dateString);
+  return {
+    day: parsedDate.getDate(),
+    month: parsedDate.getMonth(),
+  };
+};
+
+
+
 
 
 
@@ -206,5 +217,6 @@ export {
   customId,
   tokenKey,
   SVGLoaderFetch,
-  NoRecordFoundD
+  NoRecordFoundD,
+  parseApiDate
 };

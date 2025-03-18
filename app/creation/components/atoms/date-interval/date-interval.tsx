@@ -11,6 +11,8 @@ const DateInterval = () => {
     end: range.endDate,
   });
 
+  console.log('range.startDate', range.startDate)
+
   useEffect(() => {
     if (containerRef.current) {
       setDateRangeWidth(containerRef.current.offsetWidth);

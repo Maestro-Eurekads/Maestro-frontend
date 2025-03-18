@@ -71,7 +71,7 @@ const ResizeableElements = ({ dateList }) => {
                         setIsOpen(true);
                       }}>
                       <Image src={whiteplus} alt="whiteplus" />
-                      <p>Add new channel</p>
+                      <p className="whitespace-nowrap">Add new channel</p>
                     </button>
                   )}
                   <ResizableChannels channels={channels} parentId={description} />
