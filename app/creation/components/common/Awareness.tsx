@@ -57,7 +57,7 @@ const getPlatformIcon = (platformName) => {
 
 const Awareness = ({ edit, onDelete, stageName }) => {
   const { campaignFormData } = useCampaigns();
-  console.log(campaignFormData?.channel_mix);
+
   return (
     <div className="mt-6 bg-gray-100 p-6 gap-8 rounded-lg">
       {/* Header */}
@@ -80,54 +80,54 @@ const Awareness = ({ edit, onDelete, stageName }) => {
               <div className="flex items-center gap-4">
                 {campaignFormData?.channel_mix
                   ?.find((ch) => ch?.funnel_stage === stageName)
-                  ["social_media"].map((item) => (
-                    <a
-                      key={item.platform_name}
-                      // onClick={() => window.open(item.link, "_blank")}
-                      className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2 shrink-0 w-[150px]"
-                    >
-                      {item.platform_name && (
-                        <Image
-                          src={getPlatformIcon(item.platform_name)}
-                          alt={item.name}
-                          className="size-4"
-                        />
-                      )}
-                      <p className="text-black text-center text-md">
-                        {item.platform_name}
-                      </p>
-                    </a>
-                  ))}
+                ["social_media"].map((item) => (
+                  <a
+                    key={item.platform_name}
+                    // onClick={() => window.open(item.link, "_blank")}
+                    className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2 shrink-0 w-[150px]"
+                  >
+                    {item.platform_name && (
+                      <Image
+                        src={getPlatformIcon(item.platform_name)}
+                        alt={item.name}
+                        className="size-4"
+                      />
+                    )}
+                    <p className="text-black text-center text-md">
+                      {item.platform_name}
+                    </p>
+                  </a>
+                ))}
               </div>
               <div className="flex items-center gap-4">
                 {campaignFormData?.channel_mix
                   ?.find((ch) => ch?.funnel_stage === stageName)
-                  ["social_media"].map((item) => (
-                    <a
-                      key={item.platform_name}
-                      // onClick={() => window.open(item.link, "_blank")}
-                      className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2 shrink-0 w-[150px]"
-                    >
-                      <p className="text-black text-center text-md">
-                        {item.buy_type}
-                      </p>
-                    </a>
-                  ))}
+                ["social_media"].map((item) => (
+                  <a
+                    key={item.platform_name}
+                    // onClick={() => window.open(item.link, "_blank")}
+                    className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2 shrink-0 w-[150px]"
+                  >
+                    <p className="text-black text-center text-md">
+                      {item.buy_type}
+                    </p>
+                  </a>
+                ))}
               </div>
               <div className="flex items-center gap-4">
                 {campaignFormData?.channel_mix
                   ?.find((ch) => ch?.funnel_stage === stageName)
-                  ["social_media"].map((item) => (
-                    <a
-                      key={item.platform_name}
-                      // onClick={() => window.open(item.link, "_blank")}
-                      className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2 shrink-0 w-[150px]"
-                    >
-                      <p className="text-black text-center text-md">
-                        {item.objective_type}
-                      </p>
-                    </a>
-                  ))}
+                ["social_media"].map((item) => (
+                  <a
+                    key={item.platform_name}
+                    // onClick={() => window.open(item.link, "_blank")}
+                    className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2 shrink-0 w-[150px]"
+                  >
+                    <p className="text-black text-center text-md">
+                      {item.objective_type}
+                    </p>
+                  </a>
+                ))}
               </div>
             </div>
           </div>
@@ -140,50 +140,50 @@ const Awareness = ({ edit, onDelete, stageName }) => {
             <div className="grid grid-cols-2 gap-4">
               {campaignFormData?.channel_mix
                 ?.find((ch) => ch?.funnel_stage === stageName)
-                ["display_networks"].map((item) => (
-                  <a
-                    key={item.platform_name}
-                    // onClick={() => window.open(item.link, "_blank")}
-                    className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2"
-                  >
-                    {item.platform_name && (
-                      <Image
-                        src={getPlatformIcon(item.platform_name)}
-                        alt={item.name}
-                        className="size-4"
-                      />
-                    )}
-                    <p className="text-black text-center text-md">
-                      {item.platform_name}
-                    </p>
-                  </a>
-                ))}
+              ["display_networks"].map((item) => (
+                <a
+                  key={item.platform_name}
+                  // onClick={() => window.open(item.link, "_blank")}
+                  className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2"
+                >
+                  {item.platform_name && (
+                    <Image
+                      src={getPlatformIcon(item.platform_name)}
+                      alt={item.name}
+                      className="size-4"
+                    />
+                  )}
+                  <p className="text-black text-center text-md">
+                    {item.platform_name}
+                  </p>
+                </a>
+              ))}
               {campaignFormData?.channel_mix
                 ?.find((ch) => ch?.funnel_stage === stageName)
-                ["display_networks"].map((item) => (
-                  <a
-                    key={item.platform_name}
-                    // onClick={() => window.open(item.link, "_blank")}
-                    className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2"
-                  >
-                    <p className="text-black text-center text-md">
-                      {item.buy_type}
-                    </p>
-                  </a>
-                ))}
+              ["display_networks"].map((item) => (
+                <a
+                  key={item.platform_name}
+                  // onClick={() => window.open(item.link, "_blank")}
+                  className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2"
+                >
+                  <p className="text-black text-center text-md">
+                    {item.buy_type}
+                  </p>
+                </a>
+              ))}
               {campaignFormData?.channel_mix
                 ?.find((ch) => ch?.funnel_stage === stageName)
-                ["display_networks"].map((item) => (
-                  <a
-                    key={item.platform_name}
-                    // onClick={() => window.open(item.link, "_blank")}
-                    className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2"
-                  >
-                    <p className="text-black text-center text-md">
-                      {item.objective_type}
-                    </p>
-                  </a>
-                ))}
+              ["display_networks"].map((item) => (
+                <a
+                  key={item.platform_name}
+                  // onClick={() => window.open(item.link, "_blank")}
+                  className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2"
+                >
+                  <p className="text-black text-center text-md">
+                    {item.objective_type}
+                  </p>
+                </a>
+              ))}
             </div>
           </div>
 
@@ -195,50 +195,50 @@ const Awareness = ({ edit, onDelete, stageName }) => {
             <div className="grid grid-cols-2 gap-4">
               {campaignFormData?.channel_mix
                 ?.find((ch) => ch?.funnel_stage === stageName)
-                ["search_engines"].map((item) => (
-                  <a
-                    key={item.platform_name}
-                    // onClick={() => window.open(item.link, "_blank")}
-                    className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2"
-                  >
-                    {item.platform_name && (
-                      <Image
-                        src={getPlatformIcon(item.platform_name)}
-                        alt={item.name}
-                        className="size-4"
-                      />
-                    )}
-                    <p className="text-black text-center text-md">
-                      {item.platform_name}
-                    </p>
-                  </a>
-                ))}
+              ["search_engines"].map((item) => (
+                <a
+                  key={item.platform_name}
+                  // onClick={() => window.open(item.link, "_blank")}
+                  className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2"
+                >
+                  {item.platform_name && (
+                    <Image
+                      src={getPlatformIcon(item.platform_name)}
+                      alt={item.name}
+                      className="size-4"
+                    />
+                  )}
+                  <p className="text-black text-center text-md">
+                    {item.platform_name}
+                  </p>
+                </a>
+              ))}
               {campaignFormData?.channel_mix
                 ?.find((ch) => ch?.funnel_stage === stageName)
-                ["search_engines"].map((item) => (
-                  <a
-                    key={item.platform_name}
-                    // onClick={() => window.open(item.link, "_blank")}
-                    className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2"
-                  >
-                    <p className="text-black text-center text-md">
-                      {item.buy_type}
-                    </p>
-                  </a>
-                ))}
+              ["search_engines"].map((item) => (
+                <a
+                  key={item.platform_name}
+                  // onClick={() => window.open(item.link, "_blank")}
+                  className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2"
+                >
+                  <p className="text-black text-center text-md">
+                    {item.buy_type}
+                  </p>
+                </a>
+              ))}
               {campaignFormData?.channel_mix
                 ?.find((ch) => ch?.funnel_stage === stageName)
-                ["search_engines"].map((item) => (
-                  <a
-                    key={item.platform_name}
-                    // onClick={() => window.open(item.link, "_blank")}
-                    className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2"
-                  >
-                    <p className="text-black text-center text-md">
-                      {item.objective_type}
-                    </p>
-                  </a>
-                ))}
+              ["search_engines"].map((item) => (
+                <a
+                  key={item.platform_name}
+                  // onClick={() => window.open(item.link, "_blank")}
+                  className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2"
+                >
+                  <p className="text-black text-center text-md">
+                    {item.objective_type}
+                  </p>
+                </a>
+              ))}
             </div>
           </div>
         </div>

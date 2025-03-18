@@ -69,7 +69,7 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({ isEditing, campaignDa
 		}
 	};
 
-	console.log('fromDate-fromDate', fromDate, toDate)
+
 
 	const months = [getMonthData(monthOffset), getMonthData(monthOffset + 1)];
 

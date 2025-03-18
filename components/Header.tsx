@@ -9,6 +9,7 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 import { FiLoader } from "react-icons/fi";
 import useCampaignHook from "../app/utils/useCampaignHook";
 import { useEffect, useState } from "react";
+import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 const Header = ({ setIsOpen }) => {
   const { loadingClients, allClients, setClientCampaignData, setLoading } = useCampaigns();
@@ -40,7 +41,7 @@ const Header = ({ setIsOpen }) => {
 
   return (
     <div id="header">
-      <div className="hand_bugger flex items-center">
+      <div className="flex items-center">
         {loadingClients && (
           <div className="flex items-center gap-2">
             {" "}
@@ -48,7 +49,7 @@ const Header = ({ setIsOpen }) => {
             <p>Loading clients...</p>
           </div>
         )}
-        {!loadingClients && (
+        {/* {!loadingClients && (
           <select
             name=""
             id=""
@@ -67,8 +68,9 @@ const Header = ({ setIsOpen }) => {
                   </option>
                 ))}
           </select>
-        )}
-        <button className="client_btn_text" onClick={() => setIsOpen(true)}>
+        )} */}
+        <AllClientsCustomDropdown setSelected={setSelected} selected={selected} allClients={allClients} loadingClients={loadingClients} />
+        <button className="client_btn_text whitespace-nowrap" onClick={() => setIsOpen(true)}>
           {" "}
           <Image src={plus} alt="plus" />
           New Client

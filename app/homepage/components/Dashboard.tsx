@@ -30,15 +30,12 @@ const Dashboard = () => {
 	};
 
 	const {
-		updateCampaign,
-		campaignData,
-		getActiveCampaign,
 		clientCampaignData,
 		loading
 	} = useCampaigns();
 
 
-	console.log('clientCampaignData-clientCampaignData', clientCampaignData)
+
 
 
 
