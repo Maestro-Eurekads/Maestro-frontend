@@ -105,6 +105,7 @@ const PlanCampaignSchedule: React.FC = () => {
 					</button>
 				)}
 			</div>
+			{/* @ts-ignore      */}
 			{alert && <AlertMain alert={alert} />}
 
 			<MultiDatePicker isEditing={isEditing} campaignData={campaignData} />
