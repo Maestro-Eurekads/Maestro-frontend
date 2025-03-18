@@ -64,6 +64,7 @@ const SelectChannelMix = () => {
     platformName: string
   ) => {
     const prev = { ...selected };
+    console.log("🚀 ~ SelectChannelMix ~ prev:", prev)
     const stageSelection = prev[stageName] || {};
     const categorySelection = stageSelection[category] || [];
     const isAlreadySelected = categorySelection.includes(platformName);

@@ -27,49 +27,34 @@ import yahoo from "../../../../public/yahoo.svg";
 import bing from "../../../../public/bing.svg";
 import tictok from "../../../../public/tictok.svg";
 import { campaignObjectives } from "../../../../components/data";
+import Select from "react-select";
+import { useCampaigns } from "../../../utils/CampaignsContext";
+import { ChannelSelector } from "./ChannelSelector";
 
-const AwarenessEdit = ({ onDelete, stageName, sm_data, dn_data, se_data }) => {
+const AwarenessEdit = ({
+  onDelete,
+  stageName,
+  sm_data,
+  dn_data,
+  se_data,
+  updatedData,
+  setUpdatedData,
+  setEdit,
+  handleLoyaltyButtonClick,
+  handlePlatformSelect,
+  handleDropDownSelection,
+}) => {
   const [isDeleted, setIsDeleted] = useState(false);
   const [dropdowns, setDropdowns] = useState({});
   const [values, setValues] = useState({});
-
-  const handleDelete = () => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "You want to delete this stage?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3175FF",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        setIsDeleted(true);
-        if (onDelete) {
-          onDelete();
-        }
-        Swal.fire("Deleted!", "Your stage has been deleted.", "success");
-      }
-    });
-  };
+  const { campaignFormData, setCampaignFormData } = useCampaigns();
+  const [newChannel, setNewChannel] = useState({
+    show: false,
+    channel: "",
+  });
 
   const handleAddBack = () => {
     setIsDeleted(false);
-  };
-
-  const toggleDropdown = (id) => {
-    setDropdowns(id);
-  };
-
-  const handleSelect = (id, value) => {
-    setValues((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
-    setDropdowns((prev) => ({
-      ...prev,
-      [id]: false,
-    }));
   };
 
   if (isDeleted) {
@@ -82,6 +67,17 @@ const AwarenessEdit = ({ onDelete, stageName, sm_data, dn_data, se_data }) => {
       </button>
     );
   }
+
+  const buyObjectiveOptions = [
+    { value: "Awareness", label: "Awareness" },
+    { value: "Traffic", label: "Traffic" },
+    { value: "Purchase", label: "Purchase" },
+  ];
+
+  const buyTypeOptions = [
+    { value: "CPM", label: "CPM" },
+    { value: "CPV", label: "CPV" },
+  ];
 
   const platformIcons = {
     Facebook: facebook,
@@ -105,6 +101,113 @@ const AwarenessEdit = ({ onDelete, stageName, sm_data, dn_data, se_data }) => {
     return platformIcons[platformName] || null;
   };
 
+  const handleSelectOption = (
+    platformName: string,
+    option: string,
+    category: string,
+    stageName: string,
+    dropDownName: string
+  ) => {
+    console.log({ platformName, option, category, stageName, dropDownName });
+    // Update the campaignFormData with the selected buy type or objective type
+    const updatedChannelMix = updatedData.channel_mix.map((stage) => {
+      if (stage.funnel_stage === stageName) {
+        console.log({ category });
+        const updatedStage = { ...stage };
+        if (category === "Social media") {
+          updatedStage.social_media = stage.social_media.map((platform) => {
+            if (platform.platform_name === platformName) {
+              return {
+                ...platform,
+                [dropDownName]: option,
+              };
+            }
+            console.log(platform);
+            return platform;
+          });
+        } else if (category === "Display networks") {
+          updatedStage.display_networks = stage.display_networks.map(
+            (platform) => {
+              if (platform.platform_name === platformName) {
+                return {
+                  ...platform,
+                  [dropDownName]: option,
+                };
+              }
+              return platform;
+            }
+          );
+        } else if (category === "Search engines") {
+          updatedStage.search_engines = stage.search_engines.map((platform) => {
+            if (platform.platform_name === platformName) {
+              return {
+                ...platform,
+                [dropDownName]: option,
+              };
+            }
+            return platform;
+          });
+        }
+        return updatedStage;
+      }
+      return stage;
+    });
+
+    // console.log(updatedChannelMix)
+    // Update the campaignFormData state
+    setUpdatedData((prev) => ({
+      ...prev,
+      channel_mix: updatedChannelMix,
+    }));
+  };
+
+  const handleRemoveStage = (stageName) => {
+    const updatedFunnelStages = updatedData?.funnel_stages?.filter(
+      (stage) => stage !== stageName
+    );
+    const updatedChannelMix = updatedData.channel_mix.filter(
+      (stage) => stage.funnel_stage !== stageName
+    );
+
+    setUpdatedData((prev) => ({
+      ...prev,
+      funnel_stages: updatedFunnelStages,
+      channel_mix: updatedChannelMix,
+    }));
+  };
+
+  const handleRemovePlatform = (
+    platformName: string,
+    category: string,
+    stageName: string
+  ) => {
+    const updatedChannelMix = updatedData.channel_mix.map((stage) => {
+      if (stage.funnel_stage === stageName) {
+        const updatedStage = { ...stage };
+        if (category === "Social media") {
+          updatedStage.social_media = stage.social_media.filter(
+            (platform) => platform.platform_name !== platformName
+          );
+        } else if (category === "Display networks") {
+          updatedStage.display_networks = stage.display_networks.filter(
+            (platform) => platform.platform_name !== platformName
+          );
+        } else if (category === "Search engines") {
+          updatedStage.search_engines = stage.search_engines.filter(
+            (platform) => platform.platform_name !== platformName
+          );
+        }
+        return updatedStage;
+      }
+      return stage;
+    });
+
+    setUpdatedData((prev) => ({
+      ...prev,
+      channel_mix: updatedChannelMix,
+    }));
+  };
+
   return (
     <div className="flex items-start flex-col gap-6">
       {/* Awareness */}
@@ -120,22 +223,22 @@ const AwarenessEdit = ({ onDelete, stageName, sm_data, dn_data, se_data }) => {
           variant="danger"
           text="Delete this stage"
           icon={Trash}
-          onClick={handleDelete}
+          onClick={() => handleRemoveStage(stageName)}
           className="!rounded-full !px-4 !py-4 !text-white !w-[167px] !h-[31px]"
         />
       </div>
 
       {/* social media */}
-      <div className="flex flex-col items-start gap-4">
+      <div className="flex flex-col items-start gap-4 w-full flex-1">
         <h2 className="font-bold text-[#061237]">Social Media</h2>
         <div className="flex gap-4 w-full">
-          <div className="flex flex-col gap-4 w-[680px] overflow-x-auto">
+          <div className="flex justify-between gap-4 w-full">
             {/* First row - Static buttons */}
-            <div className="flex gap-4 items-center">
-              {sm_data?.map((sm, index) => (
-                <div className="flex flex-col gap-4">
+            <div className="flex gap-4 items-start justify-between overflow-x-auto">
+              {sm_data?.map((sm: any, index: number) => (
+                <div className="shrink-0 flex flex-col gap-4">
                   <div
-                    key={`${stageName - index}`}
+                    key={`${stageName}${index}`}
                     className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit"
                   >
                     <div className="flex items-center gap-2">
@@ -148,106 +251,105 @@ const AwarenessEdit = ({ onDelete, stageName, sm_data, dn_data, se_data }) => {
                         {sm?.platform_name}
                       </span>
                     </div>
-                    <Image src={vector} alt="vector" />
+                    <Image
+                      src={vector}
+                      alt="vector"
+                      className="cursor-pointer"
+                      onClick={() =>
+                        handleRemovePlatform(
+                          sm?.platform_name,
+                          "Social media",
+                          stageName
+                        )
+                      }
+                    />
                   </div>
                   <div className="flex gap-4 items-center">
-                    <div className="relative">
-                      <button
-                        onClick={() =>
-                          toggleDropdown(
-                            `${stageName}${index}${sm?.platform_name}`
-                          )
-                        }
-                        className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
-                      >
-                        <span className="text-[#061237] font-semibold whitespace-nowrap">
-                          {sm?.buy_type}
-                        </span>
-                        <Image
-                          src={arrowdown}
-                          className="size-4"
-                          alt="dropdown"
-                        />
-                      </button>
-                      {dropdowns ===
-                        `${stageName}${index}${sm?.platform_name}` && (
-                        <div className="absolute top-full left-0 w-[150px] bg-white border border-[#0000001A] rounded-[10px] mt-1 z-10">
-                          {["option"].map((option, index) => (
-                            <button
-                              key={index}
-                              onClick={() =>
-                                handleSelect(`${stageName - index}`, option)
-                              }
-                              className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
+                    <Select
+                      options={buyObjectiveOptions}
+                      value={buyObjectiveOptions.find(
+                        (option) => option.value === sm?.objective_type
                       )}
-                    </div>
+                      onChange={(selectedOption) =>
+                        handleSelectOption(
+                          sm?.platform_name,
+                          selectedOption?.value,
+                          "Social media",
+                          stageName,
+                          "objective_type"
+                        )
+                      }
+                      placeholder="Buy Objective"
+                      styles={{
+                        control: (provided) => ({
+                          ...provided,
+                          backgroundColor: "white",
+                          padding: "4px",
+                          border: "1px solid #D1D5DB",
+                          borderRadius: "0.8rem",
+                          cursor: "pointer",
+                          minWidth: "fit",
+                          zIndex: 200
+                        }),
+                      }}
+                    />
                   </div>
                   <div className="flex gap-4 items-center">
-                    <div className="relative">
-                      <button
-                        onClick={() =>
-                          toggleDropdown(
-                            `${stageName}${index}${sm?.platform_name}`
-                          )
-                        }
-                        className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
-                      >
-                        <span className="text-[#061237] font-semibold whitespace-nowrap">
-                          {sm?.objective_type}
-                        </span>
-                        <Image
-                          src={arrowdown}
-                          className="size-4"
-                          alt="dropdown"
-                        />
-                      </button>
-                      {dropdowns ===
-                        `${stageName}${index}${sm?.platform_name}` && (
-                        <div className="absolute top-full left-0 w-[150px] bg-white border border-[#0000001A] rounded-[10px] mt-1 z-10">
-                          {["option"].map((option, index) => (
-                            <button
-                              key={index}
-                              onClick={() =>
-                                handleSelect(`${stageName - index}`, option)
-                              }
-                              className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
+                    <Select
+                      options={buyTypeOptions}
+                      value={buyTypeOptions.find(
+                        (option) => option.value === sm?.buy_type
                       )}
-                    </div>
+                      onChange={(selectedOption) =>
+                        handleSelectOption(
+                          sm?.platform_name,
+                          selectedOption?.value,
+                          "Social media",
+                          stageName,
+                          "buy_type"
+                        )
+                      }
+                      placeholder="Buy Type"
+                      styles={{
+                        control: (provided) => ({
+                          ...provided,
+                          backgroundColor: "white",
+                          padding: "4px",
+                          border: "1px solid #D1D5DB",
+                          borderRadius: "0.8rem",
+                          cursor: "pointer",
+                          minWidth: "fit",
+                        }),
+                      }}
+                    />
                   </div>
                 </div>
               ))}
             </div>
-            {/* Second row - Static buttons */}
-          </div>
-          <div className="shrink-0 max-w-[300px]">
-            <button className="w-[153px] h-[52px] bg-[#3175FF] rounded-[8px] border border-[#0000001A] border-solid">
-              <span className="text-white">Add new channel</span>
-            </button>
+            <div>
+              <ChannelSelector
+                stageName={stageName}
+                channelName="Social media"
+                handlePlatformSelect={handlePlatformSelect}
+                handleDropDownSelection={handleDropDownSelection}
+                hideSelectAfterSelection
+              />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Display Networks */}
-      <div className="flex flex-col items-start gap-4">
+      <div className="flex flex-col items-start gap-4 w-full">
         <h2 className="font-bold text-[#061237]">Display Networks</h2>
-        <div className="flex gap-4 w-full">
-          <div className="flex flex-col gap-4 w-[680px] overflow-x-auto">
+        <div className="flex gap-4 w-full h-full">
+          <div className="flex justify-between gap-4 w-full">
             {/* First row - Static buttons */}
-            <div className="flex gap-4 items-center">
+            <div className="flex gap-4 items-start justify-between">
               {dn_data?.map((sm, index) => (
                 <div className="flex flex-col gap-4">
                   <div
-                    key={`${stageName - index}`}
+                    key={`${stageName}${index}`}
                     className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit"
                   >
                     <div className="flex items-center gap-2">
@@ -260,106 +362,104 @@ const AwarenessEdit = ({ onDelete, stageName, sm_data, dn_data, se_data }) => {
                         {sm?.platform_name}
                       </span>
                     </div>
-                    <Image src={vector} alt="vector" />
+                    <Image
+                      src={vector}
+                      alt="vector"
+                      className="cursor-pointer"
+                      onClick={() =>
+                        handleRemovePlatform(
+                          sm?.platform_name,
+                          "Display networks",
+                          stageName
+                        )
+                      }
+                    />
                   </div>
                   <div className="flex gap-4 items-center">
-                    <div className="relative">
-                      <button
-                        onClick={() =>
-                          toggleDropdown(
-                            `${stageName}${index}${sm?.platform_name}`
-                          )
-                        }
-                        className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
-                      >
-                        <span className="text-[#061237] font-semibold whitespace-nowrap">
-                          {sm?.buy_type}
-                        </span>
-                        <Image
-                          src={arrowdown}
-                          className="size-4"
-                          alt="dropdown"
-                        />
-                      </button>
-                      {dropdowns ===
-                        `${stageName}${index}${sm?.platform_name}` && (
-                        <div className="absolute top-full left-0 w-[150px] bg-white border border-[#0000001A] rounded-[10px] mt-1 z-10">
-                          {["option"].map((option, index) => (
-                            <button
-                              key={index}
-                              onClick={() =>
-                                handleSelect(`${stageName - index}`, option)
-                              }
-                              className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
+                    <Select
+                      options={buyObjectiveOptions}
+                      value={buyObjectiveOptions.find(
+                        (option) => option.value === sm?.objective_type
                       )}
-                    </div>
+                      onChange={(selectedOption) =>
+                        handleSelectOption(
+                          sm?.platform_name,
+                          selectedOption?.value,
+                          "Display networks",
+                          stageName,
+                          "objective_type"
+                        )
+                      }
+                      placeholder="Buy Objective"
+                      styles={{
+                        control: (provided) => ({
+                          ...provided,
+                          backgroundColor: "white",
+                          padding: "4px",
+                          border: "1px solid #D1D5DB",
+                          borderRadius: "0.8rem",
+                          cursor: "pointer",
+                          minWidth: "fit",
+                        }),
+                      }}
+                    />
                   </div>
                   <div className="flex gap-4 items-center">
-                    <div className="relative">
-                      <button
-                        onClick={() =>
-                          toggleDropdown(
-                            `${stageName}${index}${sm?.platform_name}`
-                          )
-                        }
-                        className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
-                      >
-                        <span className="text-[#061237] font-semibold whitespace-nowrap">
-                          {sm?.objective_type}
-                        </span>
-                        <Image
-                          src={arrowdown}
-                          className="size-4"
-                          alt="dropdown"
-                        />
-                      </button>
-                      {dropdowns ===
-                        `${stageName}${index}${sm?.platform_name}` && (
-                        <div className="absolute top-full left-0 w-[150px] bg-white border border-[#0000001A] rounded-[10px] mt-1 z-10">
-                          {["option"].map((option, index) => (
-                            <button
-                              key={index}
-                              onClick={() =>
-                                handleSelect(`${stageName - index}`, option)
-                              }
-                              className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
+                    <Select
+                      options={buyTypeOptions}
+                      value={buyTypeOptions.find(
+                        (option) => option.value === sm?.buy_type
                       )}
-                    </div>
+                      onChange={(selectedOption) =>
+                        handleSelectOption(
+                          sm?.platform_name,
+                          selectedOption?.value,
+                          "Display networks",
+                          stageName,
+                          "buy_type"
+                        )
+                      }
+                      placeholder="Buy Type"
+                      styles={{
+                        control: (provided) => ({
+                          ...provided,
+                          backgroundColor: "white",
+                          padding: "4px",
+                          border: "1px solid #D1D5DB",
+                          borderRadius: "0.8rem",
+                          cursor: "pointer",
+                          minWidth: "fit",
+                        }),
+                      }}
+                    />
                   </div>
                 </div>
               ))}
             </div>
-            {/* Second row - Static buttons */}
-          </div>
-          <div className="shrink-0 max-w-[300px]">
-            <button className="w-[153px] h-[52px] bg-[#3175FF] rounded-[8px] border border-[#0000001A] border-solid">
-              <span className="text-white">Add new channel</span>
-            </button>
+            <div>
+              <ChannelSelector
+                stageName={stageName}
+                channelName="Display networks"
+                handlePlatformSelect={handlePlatformSelect}
+                handleDropDownSelection={handleDropDownSelection}
+                hideSelectAfterSelection
+              />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Search Engines */}
-      <div className="flex flex-col items-start gap-4">
-        <h2 className="font-bold text-[#061237]">Search engines</h2>
-        <div className="flex gap-4 w-full">
-          <div className="flex flex-col gap-4 w-[680px] overflow-x-auto">
+      <div className="flex flex-col items-start gap-4 w-full">
+        <h2 className="font-bold text-[#061237]">Search Engines</h2>
+        <div className="flex gap-4 w-full h-full">
+          <div className="flex justify-between gap-4 w-full">
             {/* First row - Static buttons */}
-            <div className="flex gap-4 items-center">
+            <div className="flex gap-4 items-start justify-between">
               {se_data?.map((sm, index) => (
                 <div className="flex flex-col gap-4">
                   <div
-                    key={`${stageName - index}`}
+                    key={`${stageName}${index}`}
                     className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit"
                   >
                     <div className="flex items-center gap-2">
@@ -372,91 +472,89 @@ const AwarenessEdit = ({ onDelete, stageName, sm_data, dn_data, se_data }) => {
                         {sm?.platform_name}
                       </span>
                     </div>
-                    <Image src={vector} alt="vector" />
+                    <Image
+                      src={vector}
+                      alt="vector"
+                      className="cursor-pointer"
+                      onClick={() =>
+                        handleRemovePlatform(
+                          sm?.platform_name,
+                          "Search engines",
+                          stageName
+                        )
+                      }
+                    />
                   </div>
                   <div className="flex gap-4 items-center">
-                    <div className="relative">
-                      <button
-                        onClick={() =>
-                          toggleDropdown(
-                            `${stageName}${index}${sm?.platform_name}`
-                          )
-                        }
-                        className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
-                      >
-                        <span className="text-[#061237] font-semibold whitespace-nowrap">
-                          {sm?.buy_type}
-                        </span>
-                        <Image
-                          src={arrowdown}
-                          className="size-4"
-                          alt="dropdown"
-                        />
-                      </button>
-                      {dropdowns ===
-                        `${stageName}${index}${sm?.platform_name}` && (
-                        <div className="absolute top-full left-0 w-[150px] bg-white border border-[#0000001A] rounded-[10px] mt-1 z-10">
-                          {["option"].map((option, index) => (
-                            <button
-                              key={index}
-                              onClick={() =>
-                                handleSelect(`${stageName - index}`, option)
-                              }
-                              className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
+                    <Select
+                      options={buyObjectiveOptions}
+                      value={buyObjectiveOptions.find(
+                        (option) => option.value === sm?.objective_type
                       )}
-                    </div>
+                      onChange={(selectedOption) =>
+                        handleSelectOption(
+                          sm?.platform_name,
+                          selectedOption?.value,
+                          "Search engines",
+                          stageName,
+                          "objective_type"
+                        )
+                      }
+                      placeholder="Buy Objective"
+                      styles={{
+                        control: (provided) => ({
+                          ...provided,
+                          backgroundColor: "white",
+                          padding: "4px",
+                          border: "1px solid #D1D5DB",
+                          borderRadius: "0.8rem",
+                          cursor: "pointer",
+                          minWidth: "fit",
+                        }),
+                      }}
+                    />
                   </div>
                   <div className="flex gap-4 items-center">
-                    <div className="relative">
-                      <button
-                        onClick={() =>
-                          toggleDropdown(
-                            `${stageName}${index}${sm?.platform_name}`
-                          )
-                        }
-                        className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
-                      >
-                        <span className="text-[#061237] font-semibold whitespace-nowrap">
-                          {sm?.objective_type}
-                        </span>
-                        <Image
-                          src={arrowdown}
-                          className="size-4"
-                          alt="dropdown"
-                        />
-                      </button>
-                      {dropdowns ===
-                        `${stageName}${index}${sm?.platform_name}` && (
-                        <div className="absolute top-full left-0 w-[150px] bg-white border border-[#0000001A] rounded-[10px] mt-1 z-10">
-                          {["option"].map((option, index) => (
-                            <button
-                              key={index}
-                              onClick={() =>
-                                handleSelect(`${stageName - index}`, option)
-                              }
-                              className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
+                    <Select
+                      options={buyTypeOptions}
+                      value={buyTypeOptions.find(
+                        (option) => option.value === sm?.buy_type
                       )}
-                    </div>
+                      onChange={(selectedOption) =>
+                        handleSelectOption(
+                          sm?.platform_name,
+                          selectedOption?.value,
+                          "Search engines",
+                          stageName,
+                          "buy_type"
+                        )
+                      }
+                      placeholder="Buy Type"
+                      styles={{
+                        control: (provided) => ({
+                          ...provided,
+                          backgroundColor: "white",
+                          padding: "4px",
+                          border: "1px solid #D1D5DB",
+                          borderRadius: "0.8rem",
+                          cursor: "pointer",
+                          minWidth: "fit",
+                        }),
+                      }}
+                    />
                   </div>
                 </div>
               ))}
             </div>
-            {/* Second row - Static buttons */}
-          </div>
-          <div className="shrink-0 max-w-[300px]">
-            <button className="w-[153px] h-[52px] bg-[#3175FF] rounded-[8px] border border-[#0000001A] border-solid">
-              <span className="text-white">Add new channel</span>
-            </button>
+            <div>
+              <ChannelSelector
+                stageName={stageName}
+                channelName="Search engines"
+                handlePlatformSelect={handlePlatformSelect}
+                handleDropDownSelection={handleDropDownSelection}
+                hideSelectAfterSelection
+              />
+            </div>
           </div>
         </div>
       </div>

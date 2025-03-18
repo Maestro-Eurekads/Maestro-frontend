@@ -1,12 +1,13 @@
 import React from "react";
 import Image from "next/image";
+import AwarenessEdit from "./AwarenessEdit";
+import { useCampaigns } from "../../../utils/CampaignsContext";
 import facebook from "../../../../public/facebook.svg";
 import ig from "../../../../public/ig.svg";
 import youtube from "../../../../public/youtube.svg";
 import TheTradeDesk from "../../../../public/TheTradeDesk.svg";
 import Quantcast from "../../../../public/quantcast.svg";
 import speaker from "../../../../public/mdi_megaphone.svg";
-
 import google from "../../../../public/social/google.svg";
 import x from "../../../../public/x.svg";
 import linkedin from "../../../../public/linkedin.svg";
@@ -14,18 +15,18 @@ import Display from "../../../../public/Display.svg";
 import yahoo from "../../../../public/yahoo.svg";
 import bing from "../../../../public/bing.svg";
 import tictok from "../../../../public/tictok.svg";
-import AwarenessEdit from "./AwarenessEdit";
-import { useCampaigns } from "../../../utils/CampaignsContext";
 
 const platformIcons = {
   Facebook: facebook,
   Instagram: ig,
   YouTube: youtube,
+  Youtube: youtube,
   TheTradeDesk: TheTradeDesk,
   Quantcast: Quantcast,
   Google: google,
   "Twitter/X": x,
   LinkedIn: linkedin,
+  Linkedin: linkedin,
   TikTok: tictok,
   "Display & Video": Display,
   Yahoo: yahoo,
@@ -39,7 +40,17 @@ const getPlatformIcon = (platformName) => {
   return platformIcons[platformName] || null;
 };
 
-const Awareness = ({ edit, onDelete, stageName }) => {
+const Awareness = ({
+  edit,
+  setEdit,
+  onDelete,
+  stageName,
+  updatedData,
+  setUpdatedData,
+  handleLoyaltyButtonClick,
+  handlePlatformSelect,
+  handleDropDownSelection,
+}) => {
   const { campaignFormData } = useCampaigns();
 
   return (
@@ -48,7 +59,9 @@ const Awareness = ({ edit, onDelete, stageName }) => {
       {!edit && (
         <div className="flex items-center gap-4">
           <Image src={speaker} alt="Awareness icon" className="w-6 h-6" />
-          <p className="text-black font-bold text-md">{stageName}</p>
+          <p className="text-black font-bold text-md">
+            {stageName && stageName}
+          </p>
         </div>
       )}
 
@@ -58,20 +71,26 @@ const Awareness = ({ edit, onDelete, stageName }) => {
           onDelete={onDelete}
           stageName={stageName}
           sm_data={
-            campaignFormData?.channel_mix?.find(
+            updatedData?.channel_mix?.find(
               (ch) => ch?.funnel_stage === stageName
             )["social_media"]
           }
           dn_data={
-            campaignFormData?.channel_mix?.find(
+            updatedData?.channel_mix?.find(
               (ch) => ch?.funnel_stage === stageName
             )["display_networks"]
           }
           se_data={
-            campaignFormData?.channel_mix?.find(
+            updatedData?.channel_mix?.find(
               (ch) => ch?.funnel_stage === stageName
             )["search_engines"]
           }
+          updatedData={updatedData}
+          setUpdatedData={setUpdatedData}
+          setEdit={setEdit}
+          handleLoyaltyButtonClick={handleLoyaltyButtonClick}
+          handlePlatformSelect={handlePlatformSelect}
+          handleDropDownSelection={handleDropDownSelection}
         />
       ) : (
         <div className="mt-6 flex flex-col md:flex-row gap-8 overflow-x-auto w-full">
