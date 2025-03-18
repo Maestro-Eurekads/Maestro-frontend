@@ -16,6 +16,11 @@ interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
 }
 
+interface Format {
+  selected: boolean;
+  validated: boolean;
+}
+
 const Bottom = ({ setIsOpen }: BottomProps) => {
   const { active, setActive, subStep, setSubStep } = useActive();
   const { selectedObjectives } = useObjectives();
@@ -145,13 +150,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     // Step Four Validation - Check only format selection and validation
     if (active === 4) {
-      // For step 4, check if formats are selected and validated, without validating channel mix
-      // This fixes the issue by not checking channel_mix in step 4
-      const hasSelectedFormats = campaignFormData?.formats && 
-        Object.values(campaignFormData.formats).some(format => format.selected === true);
+      const formats = campaignFormData?.formats as Record<string, Format> | undefined;
       
-      const hasValidatedFormats = campaignFormData?.formats && 
-        Object.values(campaignFormData.formats).some(format => format.selected === true && format.validated === true);
+      const hasSelectedFormats = formats && 
+        Object.values(formats).some(format => format.selected === true);
+      
+      const hasValidatedFormats = formats && 
+        Object.values(formats).some(format => format.selected === true && format.validated === true);
 
       if (!hasSelectedFormats) {
         setFormatSelectionError(true);
