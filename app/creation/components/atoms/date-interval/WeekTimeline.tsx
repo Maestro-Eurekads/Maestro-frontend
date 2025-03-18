@@ -38,7 +38,7 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
 			}}
 		>
 			{/* Loop through funnels */}
-			{funnels.map(({ startWeek, endWeek, label }, index) => (
+			{funnels.map(({ startWeek, endWeek, label, budget }, index) => (
 				<div
 					key={index}
 					style={{
@@ -59,7 +59,8 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
 									{label} - Running
 								</h3>
 								<p className="text-[#061237] font-medium text-[14px]">
-									250,000 €
+									{/* 250,000 € */}
+									{budget}
 								</p>
 							</div>
 							<button onClick={() => toggleShow(index)}>

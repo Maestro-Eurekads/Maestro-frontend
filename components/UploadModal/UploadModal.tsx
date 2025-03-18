@@ -1,28 +1,29 @@
+// UploadModal.js
 import Image from 'next/image'
-import React, { useState } from 'react'
+import React from 'react'
 import upload from "../../public/Featured icon.svg"
 import icon from "../../public/Icon.svg"
 
-const UploadModal = () => {
-  const [isOpen, setIsOpen] = useState(true)
-  
+// Make the modal controlled by passing isOpen and onClose props
+const UploadModal = ({ isOpen, onClose }) => {
   const handleCancel = () => {
     // Add cancel logic here
     alert("Cancel clicked")
-    setIsOpen(false)
+    onClose()
   }
 
   const handleConfirm = () => {
     // Add confirm logic here 
     alert("Confirm clicked")
-    setIsOpen(false)
+    onClose()
   }
 
   const handleClose = () => {
     // Close the modal
-    setIsOpen(false)
+    onClose()
   }
 
+  // Don't render anything if the modal is not open
   if (!isOpen) return null
   
   return (

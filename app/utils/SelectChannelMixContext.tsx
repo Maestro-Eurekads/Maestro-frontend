@@ -42,12 +42,14 @@ export const ChannelMixProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 	};
 
 	return (
-		<ChannelMixContext.Provider value={{ 
-			selectedChannels, 
-			setSelectedChannel,
-			validatedStages,
-			setStageValidation 
-		}}>
+		<ChannelMixContext.Provider
+			value={{
+				selectedChannels,
+				setSelectedChannel,
+				validatedStages,
+				setStageValidation
+			}}
+		>
 			{children}
 		</ChannelMixContext.Provider>
 	);

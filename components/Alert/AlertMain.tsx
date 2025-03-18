@@ -59,7 +59,7 @@ const AlertMain = ({ alert }: AlertMainProps) => {
 	}, [alert?.variant, alert?.message, alert?.position]); // Use specific properties to avoid unnecessary triggers
 
 	return (
-		<div className="min-h-screen relative">
+		<div className="relative">
 			{/* Alert Container */}
 			<div className="fixed inset-0 z-50 pointer-events-none">
 				{alerts.length > 0 && (

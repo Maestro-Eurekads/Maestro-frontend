@@ -77,7 +77,7 @@ const EditInput = ({
             <input
               type="text"
               className="w-full bg-transparent outline-none text-gray-600"
-              placeholder={`Parameter Level 2`}
+              placeholder={index === 0 ? "Business Level 2" : `Parameter ${index}`}
               value={field.text}
               onChange={(e) => handleInputChange(index, e.target.value)}
             />

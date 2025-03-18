@@ -5,7 +5,6 @@ import Header from '../../components/Header'
 import TableModel from './TableModel';
 import Overview from './components/Overview'
 import Dashboard from './components/Dashboard'
-import UploadModal from '../../components/UploadModal/UploadModal';
 
 
 
@@ -13,7 +12,6 @@ import UploadModal from '../../components/UploadModal/UploadModal';
 const Homepage = () => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [active, setActive] = useState("Overview");
-
 
 
 
@@ -31,7 +29,6 @@ const Homepage = () => {
 			</main>
 			<TableModel isOpen={isOpen} setIsOpen={setIsOpen} />
 		</div>
-      <UploadModal />
 		</>
 	)
 }

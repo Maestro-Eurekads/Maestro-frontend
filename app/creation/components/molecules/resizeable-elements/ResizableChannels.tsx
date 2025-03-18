@@ -85,7 +85,7 @@ const ResizableChannels = ({ channels, parentId }) => {
 					>
 						<div className="flex items-center gap-3">
 							<Image src={channel.icon} alt={channel.icon} />
-							<span className="font-medium">{channel.name}</span>
+							<span className="font-medium whitespace-nowrap">{channel.name}</span>
 						</div>
 					</div>
 

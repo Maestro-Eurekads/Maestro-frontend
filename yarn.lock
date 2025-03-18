@@ -4842,6 +4842,10 @@ react-textarea-autosize@^8.5.3:
     "@babel/runtime" "^7.20.13"
     use-composed-ref "^1.3.0"
     use-latest "^1.2.1"
+react-spinners@^0.15.0:
+  version "0.15.0"
+  resolved "https://registry.npmjs.org/react-spinners/-/react-spinners-0.15.0.tgz"
+  integrity sha512-ZO3/fNB9Qc+kgpG3SfdlMnvTX6LtLmTnOogb3W6sXIaU/kZ1ydEViPfZ06kSOaEsor58C/tzXw2wROGQu3X2pA==
 
 react-toastify@^11.0.3:
   version "11.0.3"

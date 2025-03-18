@@ -8,7 +8,6 @@ import AlertMain from "../components/Alert/AlertMain";
 import { useState, useEffect } from "react";
 import { useObjectives } from "../app/utils/useObjectives";
 import { useCampaigns } from "../app/utils/CampaignsContext";
-import axios from "axios";
 import { BiLoader } from "react-icons/bi";
 import { removeKeysRecursively } from "../utils/removeID";
 import { useSelectedDates } from "../app/utils/SelectedDatesContext";
@@ -285,7 +284,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-
       {triggerObjectiveError && (
         <AlertMain
           alert={{
@@ -313,7 +311,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-
       {triggerChannelMixError && (
         <AlertMain
           alert={{

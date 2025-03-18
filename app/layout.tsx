@@ -10,6 +10,7 @@ import { CampaignProvider } from "./utils/CampaignsContext";
 import { EditingProvider } from "./utils/EditingContext";
 import { Suspense } from "react";
 import { SelectedDatesProvider } from "./utils/SelectedDatesContext";
+import { CampaignSelectionProvider } from "./utils/CampaignSelectionContext";
 
 // Load Roboto font
 const roboto = Roboto({
@@ -36,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html data-theme="light" lang="en" suppressHydrationWarning>
+    <html data-theme="light" lang="en" suppressHydrationWarning={true}>
       <head>
         <meta
           name="viewport"
@@ -46,21 +47,23 @@ export default function RootLayout({
       <body className={`${roboto.variable} ${inter.variable} antialiased`}>
         <ReduxProvider>
           <Suspense>
-            <CampaignProvider>
-              <DateRangeProvider>
-                <SelectedDatesProvider>
-                  <ActiveProvider>
-                    <EditingProvider>
-                      <ObjectivesProvider>
-                        <FunnelProvider>
-                          {children}
-                        </FunnelProvider>
-                      </ObjectivesProvider>
-                    </EditingProvider>
-                  </ActiveProvider>
-                </SelectedDatesProvider>
-              </DateRangeProvider>
-            </CampaignProvider>
+            <CampaignSelectionProvider>
+              <CampaignProvider>
+                <DateRangeProvider>
+                  <SelectedDatesProvider>
+                    <ActiveProvider>
+                      <EditingProvider>
+                        <ObjectivesProvider>
+                          <FunnelProvider>
+                            {children}
+                          </FunnelProvider>
+                        </ObjectivesProvider>
+                      </EditingProvider>
+                    </ActiveProvider>
+                  </SelectedDatesProvider>
+                </DateRangeProvider>
+              </CampaignProvider>
+            </CampaignSelectionProvider>
           </Suspense>
         </ReduxProvider>
       </body>
