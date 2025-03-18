@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import speaker from "../../../public/mdi_megaphone.svg";
-import speakerWhite from "../../../public/mdi_megaphonewhite.svg";
 import zoom from "../../../public/tabler_zoom-filled.svg";
-import zoomWhite from "../../../public/tabler_zoom-filledwhite.svg";
 import credit from "../../../public/mdi_credit-card.svg";
-import creditWhite from "../../../public/mdi_credit-cardwhite.svg";
 import addPlus from "../../../public/addPlus.svg";
+import creditWhite from "../../../public/mdi_credit-cardwhite.svg";
+import zoomWhite from "../../../public/tabler_zoom-filledwhite.svg";
+import speakerWhite from "../../../public/mdi_megaphonewhite.svg";
 import addPlusWhite from "../../../public/addPlusWhite.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { useObjectives } from "../../utils/useObjectives";
