@@ -35,6 +35,7 @@ const SideNav: React.FC = () => {
   const {
     campaignData,
     getActiveCampaign,
+    setCampaignData
   } = useCampaigns();
 
 
@@ -49,10 +50,11 @@ const SideNav: React.FC = () => {
   }, [campaignId]);
 
 
-  console.log('getActiveCampaign-getActiveCampaign', campaignData)
+
 
 
   const handleBackClick = () => {
+    setCampaignData(null)
     setActive(0); // Reset state
     setSubStep(0);
     router.push("/"); // Navigate to home
