@@ -1,15 +1,24 @@
-import React, { useState } from 'react'
-import PageHeaderWrapper from '../../../components/PageHeaderWapper';
-import Topdown from '../../../public/Top-down.svg';
-import Selectstatus from '../../../public/Select-status.svg';
-import backdown from '../../../public/back-down.svg';
-import ecurrencyeur from '../../../public/e_currency-eur.svg';
-import Image from 'next/image';
+import React, { useState } from "react";
+import PageHeaderWrapper from "../../../components/PageHeaderWapper";
+import Topdown from "../../../public/Top-down.svg";
+import Selectstatus from "../../../public/Select-status.svg";
+import backdown from "../../../public/back-down.svg";
+import ecurrencyeur from "../../../public/e_currency-eur.svg";
+import Image from "next/image";
+import Input from "components/Input";
+import Select from "react-select";
+import { useCampaigns } from "app/utils/CampaignsContext";
 
 const CampaignBudget = () => {
   const [active, setActive] = useState(null);
-  const [show, setShow] = useState(false)
-  
+  const [show, setShow] = useState(false);
+  const [selectedOption, setSelectedOption] = useState({
+    value: "EUR",
+    label: "EUR",
+  });
+
+  const { campaignFormData, setCampaignFormData } = useCampaigns();
+
   // Clicking Top‑down: set active without auto-opening any details.
   const handleTopDownClick = () => {
     setActive(1);
@@ -20,14 +29,59 @@ const CampaignBudget = () => {
     setActive(2);
   };
 
+  const selectCurrency = [
+    { value: "USD", label: "USD" },
+    { value: "EUR", label: "EUR" },
+    { value: "GBP", label: "GBP" },
+    { value: "NGN", label: "NGN" },
+    { value: "JPY", label: "JPY" },
+    { value: "CAD", label: "CAD" },
+  ];
+
+  const handleCurrencyChange = (option) => {
+    setSelectedOption(option);
+    handleBudgetEdit("currency", option.value);
+  };
+
+  const getCurrencySymbol = (currency) => {
+    const symbols = {
+      USD: "$",
+      EUR: "€",
+      GBP: "£",
+      NGN: "₦",
+      JPY: "¥",
+      CAD: "$",
+    };
+    return symbols[currency] || "";
+  };
+
+  const handleBudgetEdit = (param: string, type: string) => {
+    setCampaignFormData((prev) => ({
+      ...prev,
+      campaign_budget: {
+        ...prev?.campaign_budget,
+        [param]: type?.toString(),
+      },
+    }));
+  };
+
+  const calculateRemainingBudget = () => {
+    const totalBudget = Number(campaignFormData?.campaign_budget?.amount) || 0;
+    const subBudgets =
+      campaignFormData?.channel_mix?.reduce((acc, stage) => {
+        return acc + (Number(stage?.stage_budget?.fixed_value) || 0);
+      }, 0) || 0;
+    return totalBudget - subBudgets;
+  };
+
   return (
     <div>
-      <div className='flex justify-between'>
+      <div className="flex justify-between">
         <PageHeaderWrapper
-          t1='Allocate your campaign budget'
-          t2='Decide whether to allocate your budget by channel or ad set. First, enter an overall campaign budget if applicable.'
-          t3='Then, distribute it across channels and ad sets.'
-          t4='Choose how to set your campaign budget'
+          t1="Allocate your campaign budget"
+          t2="Decide whether to allocate your budget by channel or ad set. First, enter an overall campaign budget if applicable."
+          t3="Then, distribute it across channels and ad sets."
+          t4="Choose how to set your campaign budget"
           span={1}
         />
       </div>
@@ -35,12 +89,23 @@ const CampaignBudget = () => {
       <div className="mt-[24px] flex gap-5">
         {/* Top‑down Option */}
         <div
-          className={`relative ${active === 1 ? "top_and_bottom_down_container_active" : "top_and_bottom_down_container"}`}
-          onClick={handleTopDownClick}
+          className={`relative ${
+            active === 1
+              ? "top_and_bottom_down_container_active"
+              : "top_and_bottom_down_container"
+          }`}
+          onClick={() => {
+            handleTopDownClick();
+            handleBudgetEdit("budget_type", "top_down");
+          }}
         >
           <div className="flex items-start gap-2">
             {active === 2 ? (
-              <Image src={backdown} alt="backdown" className="rotate-180 transform" />
+              <Image
+                src={backdown}
+                alt="backdown"
+                className="rotate-180 transform"
+              />
             ) : (
               <Image
                 src={Topdown}
@@ -66,12 +131,23 @@ const CampaignBudget = () => {
 
         {/* Bottom‑up Option */}
         <div
-          className={`relative ${active === 2 ? "top_and_bottom_down_container_active" : "top_and_bottom_down_container"}`}
-          onClick={handleBottomUpClick}
+          className={`relative ${
+            active === 2
+              ? "top_and_bottom_down_container_active"
+              : "top_and_bottom_down_container"
+          }`}
+          onClick={() => {
+            handleBottomUpClick();
+            handleBudgetEdit("budget_type", "bottom_up");
+          }}
         >
           <div className="flex items-start gap-2">
             {active === 2 ? (
-              <Image src={Topdown} alt="Topdown" className="rotate-180 transform" />
+              <Image
+                src={Topdown}
+                alt="Topdown"
+                className="rotate-180 transform"
+              />
             ) : (
               <Image src={backdown} alt="backdown" />
             )}
@@ -95,22 +171,79 @@ const CampaignBudget = () => {
       {/* Only show the 12,000 EUR section when an option is active */}
       {active && (
         <div className="mt-[24px] flex flex-row items-center gap-[16px] px-0 py-[24px] bg-[#F9FAFB] border-b border-[rgba(6,18,55,0.1)] box-border">
-          <div className="e_currency-eur">
-            <div className="flex">
-              <Image src={ecurrencyeur} alt="e_currency-eur" />
-              <h3>12,000,00</h3>
+          <div className="e_currency-eur items-center">
+            <div className="flex items-center">
+              <p>{getCurrencySymbol(selectedOption.value)}</p>
+              <input
+                className="text-center outline-none w-[145px]"
+                placeholder="Budget value"
+                value={campaignFormData?.campaign_budget?.amount || ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (/^\d*\.?\d*$/.test(value)) {
+                    handleBudgetEdit("amount", value);
+                  }
+                }}
+              />
             </div>
-            <div>EUR</div>
+            <div className="w-[120px]">
+              <Select
+                placeholder="EUR"
+                options={selectCurrency}
+                onChange={handleCurrencyChange}
+                defaultValue={{ value: "EUR", label: "EUR" }}
+                styles={{
+                  control: (provided) => ({
+                    ...provided,
+                    border: "none",
+                    background: "none",
+                    outline: "none",
+                    padding: "0",
+                  }),
+                  indicatorSeparator: (provided) => ({
+                    ...provided,
+                    display: "none",
+                  }),
+                  indicatorsContainer: (provided) => ({
+                    ...provided,
+                    scale: "0.7",
+                  }),
+                  placeholder: (provided) => ({
+                    ...provided,
+                    padding: "5px",
+                    outline: "none",
+                    fontSize: "14px",
+                  }),
+                  valueContainer: (provided) => ({
+                    ...provided,
+                    padding: 0,
+                  }),
+                }}
+              />
+            </div>
           </div>
           <div>
-            <p className="font-[600] text-[15px] leading-[20px] text-[#00A36C]">
-              Remaining budget: 12 000
+            <p
+              className={`font-[600] text-[15px] leading-[20px] ${
+                Number(calculateRemainingBudget()) < 1
+                  ? "text-red-500"
+                  : "text-[#00A36C]"
+              }`}
+            >
+              Remaining budget:{" "}
+              {Number(campaignFormData?.campaign_budget?.amount) > 0
+                ? getCurrencySymbol(
+                    campaignFormData?.campaign_budget?.currency ||
+                      selectedOption?.value
+                  )
+                : ""}
+              {Number(calculateRemainingBudget())?.toLocaleString()}
             </p>
           </div>
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default CampaignBudget
+export default CampaignBudget;
