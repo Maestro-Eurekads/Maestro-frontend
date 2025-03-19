@@ -11,6 +11,7 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 import { BiLoader } from "react-icons/bi";
 import { removeKeysRecursively } from "../utils/removeID";
 import { useSelectedDates } from "../app/utils/SelectedDatesContext";
+// import { useChannelMix } from "../app/utils/SelectChannelMixContext";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -18,15 +19,14 @@ interface BottomProps {
 
 const Bottom = ({ setIsOpen }: BottomProps) => {
   const { active, setActive, subStep, setSubStep } = useActive();
-  const { selectedObjectives, selectedFunnels } = useObjectives();
+  const { selectedObjectives } = useObjectives();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
-  const [setupyournewcampaignError, SetupyournewcampaignError] =
-    useState(false);
+  const [setupyournewcampaignError, SetupyournewcampaignError] = useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
   const [selectedDatesError, setSelectedDateslError] = useState(false);
   const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
-  // const {selectedChannels, setSelectedChannel} = useChannelMix();
-  const { selectedDates, setSelectedDates } = useSelectedDates();
+  const { selectedDates } = useSelectedDates();
+  // const { validatedStages } = useChannelMix();
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -47,7 +47,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       triggerFunnelError ||
       selectedDatesError ||
       setupyournewcampaignError ||
-      triggerChannelMixError
+      triggerChannelMixError ||
+      incompleteFieldsError
     ) {
       const timer = setTimeout(() => {
         setTriggerObjectiveError(false);
@@ -55,6 +56,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setSelectedDateslError(false);
         SetupyournewcampaignError(false);
         setTriggerChannelMixError(false);
+        setIncompleteFieldsError(false);
       }, 3000); // Hides alert after 3 seconds
 
       return () => clearTimeout(timer);
@@ -65,6 +67,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     selectedDatesError,
     setupyournewcampaignError,
     triggerChannelMixError,
+    incompleteFieldsError,
   ]);
 
   const handleBack = () => {
@@ -101,10 +104,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       // ✅ Check if at least one field is filled but not all
       const filledFields = requiredFields.filter((field) => field);
 
-      if (
-        filledFields.length > 0 &&
-        filledFields.length < requiredFields.length
-      ) {
+      if (filledFields.length > 0 && filledFields.length < requiredFields.length) {
         setIncompleteFieldsError(true); // Show alert for incomplete fields
         setLoading(false);
         return;
@@ -116,51 +116,46 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         hasError = true;
       }
     }
+
+    // ✅ Step One Validation - Ensure at least one objective is selected
     if (active === 1 && selectedObjectives.length === 0) {
       setTriggerObjectiveError(true);
       hasError = true;
     }
 
+    // ✅ Step Two Validation - Ensure at least one funnel stage is selected
     if (active === 2 && campaignFormData?.funnel_stages?.length === 0) {
       setTriggerFunnelError(true);
       hasError = true;
     }
+
+    // ✅ Step Three Validation - Check if at least one channel is validated
+    if (active === 3) {
+      // Check if validatedStages exists and has at least one validated stage
+      const hasAnyValidatedStage = campaignFormData?.validatedStages && 
+        Object.values(campaignFormData.validatedStages).some(isValidated => isValidated === true);
+      
+      if (!hasAnyValidatedStage) {
+        setTriggerChannelMixError(true);
+        hasError = true;
+      }
+    }
+
+    // ✅ Step Seven Validation - Ensure dates are selected
     if (active === 7 && selectedDates?.to?.day === undefined) {
       setSelectedDateslError(true);
       hasError = true;
     }
 
-    // if (active === 3 && (!selectedChannels || Object.keys(selectedChannels).length === 0)) {
-    //   setTriggerChannelMixError(true);
-    //   hasError = true;
-    // }
-
     if (hasError) {
       setLoading(false);
       return;
     }
+
     const updateCampaignData = async (data: any) => {
       await updateCampaign(data);
       await getActiveCampaign(data);
     };
-
-    // const {
-    //   id,
-    //   documentId,
-    //   createdAt,
-    //   publishedAt,
-    //   updatedAt,
-    //   client,
-    //   budget_details,
-    //   client_selection,
-    //   media_plan_details,
-    //   channel_mix,
-    //   ...updatedCampaignData
-    // } = campaignData;
-    // const { documentId: clientDocumentId, ...restClientData } = client;
-    // const { id: bId, restB } = budget_details;
-    // const { id: clId, restC } = client_selection;
-    // const { id: mId, restM } = budget_details;
 
     const cleanData = removeKeysRecursively(campaignData, [
       "id",
@@ -169,8 +164,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       "publishedAt",
       "updatedAt",
     ]);
+
     const handleStepZero = async () => {
-      // const updatedChannelMix = channel_mix.map(({ id, ...rest }) => rest);
       if (cId && campaignData) {
         await updateCampaignData({
           ...cleanData,
@@ -211,7 +206,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const handleStepTwo = async () => {
       if (!campaignData) return;
-
       await updateCampaignData({
         ...cleanData,
         funnel_stages: campaignFormData?.funnel_stages,
@@ -220,13 +214,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const handleStepThree = async () => {
       if (!campaignData) return;
-
       await updateCampaignData({
         ...cleanData,
-        funnel_stages: campaignFormData?.funnel_stages,
-        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
-          "id",
-        ]),
+        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, ["id"]),
       });
     };
 
@@ -236,7 +226,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       await handleStepOne();
     } else if (active === 2) {
       await handleStepTwo();
-    } else if (active > 2) {
+    } else if (active === 3 || active === 4 || active === 5) {
       await handleStepThree();
     }
 
@@ -284,6 +274,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
+
       {triggerObjectiveError && (
         <AlertMain
           alert={{
@@ -311,11 +302,12 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
+
       {triggerChannelMixError && (
         <AlertMain
           alert={{
             variant: "error",
-            message: "Please select at least one channel mix!",
+            message: "Please select and validate at least one channel!",
             position: "bottom-right",
           }}
         />
