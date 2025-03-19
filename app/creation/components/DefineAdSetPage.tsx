@@ -13,38 +13,7 @@ import TheTradeDesk from "../../../public/TheTradeDesk.svg";
 import Quantcast from "../../../public/quantcast.svg";
 import AdSetsFlow from "./common/AdSetsFlow";
 import { useCampaigns } from "../../utils/CampaignsContext";
-
-const funnelStages = [
-  {
-    name: "Awareness",
-    icon: speaker,
-    status: "In progress",
-    statusIsActive: true,
-    platforms: {
-      "Social media": [
-        { name: "Facebook", icon: facebook },
-        { name: "Instagram", icon: ig },
-        { name: "Youtube", icon: youtube },
-        { name: "The TradeDesk", icon: TheTradeDesk },
-        { name: "Quantcast", icon: Quantcast },
-      ],
-    },
-  },
-  {
-    name: "Consideration",
-    icon: tablerzoomfilled,
-    status: "Not started",
-    statusIsActive: false,
-    platforms: {},
-  },
-  {
-    name: "Conversion",
-    icon: orangecredit,
-    status: "Not started",
-    statusIsActive: false,
-    platforms: {},
-  },
-];
+import { funnelStages } from "components/data";
 
 const DefineAdSetPage = () => {
   const [openItems, setOpenItems] = useState({});
