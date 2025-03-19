@@ -135,7 +135,7 @@ const ResizeableBar = ({ bg, description, Icon }: ResizeableProps) => {
             setOpenChannel(true);
           }}>
             <Image src={icroundadd} alt="icroundadd" />
-            <p>Add new channel</p>
+            <p className="whitespace-nowrap">Add new channel</p>
           </button>
           {/* )} */}
 

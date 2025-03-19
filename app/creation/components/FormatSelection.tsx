@@ -42,6 +42,7 @@ type IChannel = {
   style?: string;
 };
 
+
 export const Platforms = ({ stageName }: { stageName: string }) => {
   const [expandedPlatforms, setExpandedPlatforms] = useState<{ [key: string]: boolean }>({});
   const { campaignFormData, setCampaignFormData } = useCampaigns();
@@ -91,6 +92,18 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       }));
     }
   };
+
+  // Check if current stage is already validated
+  useEffect(() => {
+    if (campaignFormData?.channel_mix) {
+      const stage = campaignFormData.channel_mix.find(
+        (chan) => chan?.funnel_stage === stageName
+      );
+      if (stage && stage.isValidated) {
+        setIsValidated(true);
+      }
+    }
+  }, [campaignFormData, stageName]);
 
   // Enable validate button only when a media option is selected
   useEffect(() => {
@@ -183,6 +196,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     formatIndex: number,
     change: number
   ) => {
+    // Update quantities state
     setQuantities((prev) => ({
       ...prev,
       [platformName]: {
@@ -193,11 +207,48 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
         ),
       },
     }));
+
+    // Also update the quantity in campaignFormData
+    const copy = [...campaignFormData?.channel_mix];
+    const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName);
+    if (stageIndex === -1) return;
+
+    // Update all channel types
+    ["social_media", "display_networks", "search_engines"].forEach(channelType => {
+      const channel = copy[stageIndex][channelType];
+      if (!channel) return;
+
+      const platformIndex = channel.findIndex(
+        (item) => item?.platform_name === platformName
+      );
+      if (platformIndex === -1) return;
+
+      const platform = channel[platformIndex];
+      if (!platform.format || platform.format.length <= formatIndex) return;
+
+      const newQuantity = Math.max(
+        1,
+        parseInt(platform.format[formatIndex].num_of_visuals || "1") + change
+      );
+      
+      platform.format[formatIndex].num_of_visuals = newQuantity.toString();
+    });
+
+    setCampaignFormData({ ...campaignFormData, channel_mix: copy });
   };
 
   // Handle validation or editing of selections
   const handleValidateOrEdit = () => {
-    setIsValidated(!isValidated);
+    const newValidationState = !isValidated;
+    setIsValidated(newValidationState);
+    
+    // Update the campaign form data with the validation status
+    const copy = [...campaignFormData?.channel_mix];
+    const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName);
+    if (stageIndex !== -1) {
+      copy[stageIndex].isValidated = newValidationState;
+      setCampaignFormData({ ...campaignFormData, channel_mix: copy });
+    }
   };
 
   const hasPlatformSelectedFormats = (platformName: string, channelName: string) => {
@@ -305,6 +356,8 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     </div>
   );
 };
+
+
 
 // Main FormatSelection component that wraps everything
 export const FormatSelection = () => {
