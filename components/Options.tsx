@@ -149,6 +149,11 @@ function getCurrentMonth() {
   return currentMonth;
 }
 
+
+const CapitalizeFirstLetter = (str: string | undefined | any) => {
+  return str ? str?.charAt(0).toUpperCase() + str?.slice(1) : "";
+};
+
 function TooltipPositioned(userInfo: any, userInfo2: any) {
   return (
     <>
@@ -218,5 +223,6 @@ export {
   tokenKey,
   SVGLoaderFetch,
   NoRecordFoundD,
-  parseApiDate
+  parseApiDate,
+  CapitalizeFirstLetter
 };

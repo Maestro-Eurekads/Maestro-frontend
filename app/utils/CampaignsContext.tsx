@@ -185,7 +185,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         clientCampaignData,
         setClientCampaignData,
         loading,
-        setLoading
+        setLoading,
+        setCampaignData
       }}
     >
       {children}

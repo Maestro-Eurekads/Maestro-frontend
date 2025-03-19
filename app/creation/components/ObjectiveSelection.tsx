@@ -45,9 +45,7 @@ const ObjectiveSelection = () => {
   const [statuses, setStatuses] = useState(
     funnelStages.map((stage) => stage.status)
   );
-  const [dropdownOpen, setDropdownOpen] = useState<{ [key: string]: boolean }>(
-    {}
-  );
+
   const [selectedOptions, setSelectedOptions] = useState<{
     [key: string]: string;
   }>({});
@@ -106,12 +104,15 @@ const ObjectiveSelection = () => {
       [stage]: !prev[stage],
     }));
   };
+  const [dropdownOpen, setDropdownOpen] = useState<{ [key: string]: boolean }>({});
 
-  const toggleDropdown = (platformKey: string) => {
-    setDropdownOpen((prev) => ({
-      ...prev,
-      [platformKey]: !prev[platformKey],
-    }));
+  const toggleDropdown = (key: string) => {
+    setDropdownOpen((prevState) => {
+      // Close all dropdowns except the clicked one
+      const newState: { [key: string]: boolean } = {};
+      newState[key] = !prevState[key];
+      return newState;
+    });
   };
 
   const handleSelectOption = (
@@ -297,7 +298,11 @@ const ObjectiveSelection = () => {
         return (
           <div key={stageIndex} className="w-full">
             <div
-              className="flex items-center justify-between px-6 py-4 w-full bg-[#FCFCFC] border border-gray-300 rounded-lg cursor-pointer"
+              className={`flex justify-between items-center p-6 gap-3 max-w-[950px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
+                rounded-t-[10px] ${openItems[stage.name]
+                  ? "rounded-t-[10px]"
+                  : "rounded-[10px]"
+                }`}
               onClick={() => toggleItem(stage.name)}
             >
               <div className="flex items-center gap-4">
@@ -377,7 +382,9 @@ const ObjectiveSelection = () => {
                         <h3 className="text-xl font-semibold text-[#061237]">
                           {category}
                         </h3>
-                        <div className="flex flex-col gap-8 w-fit">
+
+
+                        <div className="flex flex-col gap-8 ">
                           {Array.from(selectedNetworks[stageName] || [])
                             .filter((platform) =>
                               campaignFormData?.channel_mix
@@ -397,55 +404,33 @@ const ObjectiveSelection = () => {
                                 ?.[category.toLowerCase().replaceAll(" ", "_")]
                                 ?.find((pl) => pl?.platform_name === platform)
                                 ?.buy_type;
+
                               return (
-                                <div
-                                  key={platformKey}
-                                  className="flex items-center gap-8"
-                                >
+                                <div key={platformKey} className="flex items-center gap-8">
                                   <div className="w-[180px]">
-                                    <div className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg shrink-0 w-fit">
-                                      <Image
-                                        src={getPlatformIcon(platform)}
-                                        className="size-4"
-                                        alt={platform}
-                                      />
-                                      <p className="text-base font-medium text-[#061237]">
-                                        {platform}
-                                      </p>
+                                    <div className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg shrink-0 w-fit min-w-[150px]">
+                                      <Image src={getPlatformIcon(platform)} className="size-4" alt={platform} />
+                                      <p className="text-base font-medium text-[#061237]">{platform}</p>
                                     </div>
                                   </div>
-                                  <div className="relative w-fit shrink-0">
+
+                                  {/* Buy Objective Dropdown */}
+                                  <div className="relative min-w-[150px]">
                                     <div
                                       className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
-                                      onClick={() =>
-                                        toggleDropdown(platformKey + "obj")
-                                      }
+                                      onClick={() => toggleDropdown(platformKey + "obj")}
                                     >
-                                      <p className="text-sm font-medium text-[#061237]">
-                                        {selectedObj || "Buy Objective"}
-                                      </p>
+                                      <p className="text-sm font-medium text-[#061237]">{selectedObj || "Buy Objective"}</p>
                                       <Image src={down2} alt="dropdown" />
                                     </div>
                                     {dropdownOpen[platformKey + "obj"] && (
                                       <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg transition-transform transform hover:scale-105 z-10">
                                         <ul>
-                                          {[
-                                            "Awareness",
-                                            "Video views",
-                                            "Traffic",
-                                          ].map((option, i) => (
+                                          {["Awareness", "Video views", "Traffic"].map((option, i) => (
                                             <li
                                               key={`${platformKey}-objective-${i}`}
                                               className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                                              onClick={() =>
-                                                handleSelectOption(
-                                                  platform,
-                                                  option,
-                                                  category,
-                                                  stage.name,
-                                                  "objective_type"
-                                                )
-                                              }
+                                              onClick={() => handleSelectOption(platform, option, category, stage.name, "objective_type")}
                                             >
                                               {option}
                                             </li>
@@ -454,16 +439,14 @@ const ObjectiveSelection = () => {
                                       </div>
                                     )}
                                   </div>
-                                  <div className="relative w-fit shrink-0">
+
+                                  {/* Buy Type Dropdown */}
+                                  <div className="relative min-w-[150px]">
                                     <div
                                       className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
-                                      onClick={() =>
-                                        toggleDropdown(platformKey)
-                                      }
+                                      onClick={() => toggleDropdown(platformKey)}
                                     >
-                                      <p className="text-sm font-medium text-[#061237]">
-                                        {selectedBuy || "Buy Type"}
-                                      </p>
+                                      <p className="text-sm font-medium text-[#061237]">{selectedBuy || "Buy Type"}</p>
                                       <Image src={down2} alt="dropdown" />
                                     </div>
                                     {dropdownOpen[platformKey] && (
@@ -473,15 +456,7 @@ const ObjectiveSelection = () => {
                                             <li
                                               key={`${platformKey}-type-${i}`}
                                               className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                                              onClick={() =>
-                                                handleSelectOption(
-                                                  platform,
-                                                  option,
-                                                  category,
-                                                  stage.name,
-                                                  "buy_type"
-                                                )
-                                              }
+                                              onClick={() => handleSelectOption(platform, option, category, stage.name, "buy_type")}
                                             >
                                               {option}
                                             </li>
@@ -494,6 +469,7 @@ const ObjectiveSelection = () => {
                               );
                             })}
                         </div>
+
                       </div>
                     )
                   )

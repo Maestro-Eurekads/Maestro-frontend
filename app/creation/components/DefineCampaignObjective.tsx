@@ -18,7 +18,7 @@ const DefineCampaignObjective = () => {
       const f = campaignObjectives?.find(
         (ff) => ff?.title === campaignFormData?.campaign_objectives
       );
-      console.log([{ id: f.id, title: f?.title }]);
+
       setSelectedObjectives([{ id: f.id, title: f?.title }]);
     }
   }, [campaignFormData?.campaign_objectives]);

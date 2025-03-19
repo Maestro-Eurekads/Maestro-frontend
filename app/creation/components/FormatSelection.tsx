@@ -44,7 +44,7 @@ type IChannel = {
 
 
 export const Platforms = ({ stageName }: { stageName: string }) => {
-  const [expandedPlatforms, setExpandedPlatforms] = useState<{[key: string]: boolean}>({});
+  const [expandedPlatforms, setExpandedPlatforms] = useState<{ [key: string]: boolean }>({});
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   const [isValidateEnabled, setIsValidateEnabled] = useState(false);
   const [isValidated, setIsValidated] = useState(false);
@@ -261,7 +261,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
   };
 
   return (
-    <div className="text-[16px] overflow-x-hidden">
+    <div className="text-[16px] overflow-x-hidden w-full">
       {channels?.map((channel, channelIndex) => (
         <React.Fragment key={channelIndex}>
           <h3 className="font-[600] my-[24px]">{channel?.title}</h3>
@@ -273,8 +273,9 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
               return (
                 <div key={platformIndex}>
                   <div className="flex items-center gap-6">
-                    <div
-                      className={`flex items-center gap-[12px] font-[500] border p-5 rounded-[10px] ${channel?.style}`}
+                    <div className={`flex items-center gap-[12px] font-[500] border p-5 rounded-[10px] min-w-[150px] 
+                    `}
+                    // ${channel?.style} 
                     >
                       <Image src={platform.icon} alt={platform.name} />
                       <p>{platform.name}</p>
@@ -286,12 +287,12 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
                         onClick={() => togglePlatformExpansion(platform.name)}
                       >
                         {isExpanded ? (
-                          <span className="text-gray-500">
+                          <button className="text-gray-500">
                             {isValidated ? "Choose the number of visuals for this format" : "Select your format"}
-                          </span>
+                          </button>
                         ) : (
                           <>
-                            <p className="font-bold text-[18px] text-[#3175FF]">
+                            <div  >
                               <svg
                                 width="13"
                                 height="12"
@@ -303,8 +304,8 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
                                   fill="#3175FF"
                                 />
                               </svg>
-                            </p>
-                            <h3 className="text-[#3175FF]">Add format</h3>
+                            </div>
+                            <button className="font-bold text-[18px] text-[#3175FF]">Add format</button>
                           </>
                         )}
                       </div>
@@ -342,11 +343,10 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
 
       <div className="w-full flex items-center justify-end mt-9">
         <button
-          className={`px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-            isValidateEnabled
-              ? "bg-[#3175FF]"
-              : "bg-[#3175FF] opacity-50 cursor-not-allowed"
-          }`}
+          className={`px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isValidateEnabled
+            ? "bg-[#3175FF]"
+            : "bg-[#3175FF] opacity-50 cursor-not-allowed"
+            }`}
           disabled={!isValidateEnabled}
           onClick={handleValidateOrEdit}
         >
@@ -392,8 +392,11 @@ export const FormatSelection = () => {
           return (
             <div key={index}>
               <div
-                className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-                rounded-t-[10px]`}
+                className={`flex justify-between items-center p-6 gap-3 max-w-[950px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
+                rounded-t-[10px] ${openTabs.includes(stage.name)
+                    ? "rounded-t-[10px]"
+                    : "rounded-[10px]"
+                  }`}
                 onClick={() => toggleTab(stage.name)}
               >
                 <div className="flex items-center gap-2">
@@ -411,7 +414,7 @@ export const FormatSelection = () => {
                 />
               </div>
               {openTabs.includes(stage.name) && (
-                <div className="card-body">
+                <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg max-w-[950px]">
                   <Platforms stageName={stage?.name} />
                 </div>
               )}
@@ -429,7 +432,7 @@ export default function MediaSelection({
   isValidated = false,
   platformName,
   quantities = {},
-  onQuantityChange = () => {},
+  onQuantityChange = () => { },
   channelName,
   stageName,
 }: {
@@ -443,13 +446,13 @@ export default function MediaSelection({
   stageName: string;
 }) {
   const { campaignFormData } = useCampaigns();
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false)
-  
+
   const openModal = () => {
     setIsModalOpen(true)
   }
-  
+
   const closeModal = () => {
     setIsModalOpen(false)
   }
@@ -474,11 +477,10 @@ export default function MediaSelection({
               <div className="flex flex-col items-center">
                 <div
                   onClick={() => !isValidated && handleFormatSelection(index)}
-                  className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
-                    existsInDB
-                      ? "border-blue-500 shadow-lg"
-                      : "border-gray-300"
-                  } ${isValidated ? "cursor-default" : "cursor-pointer"}`}
+                  className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${existsInDB
+                    ? "border-blue-500 shadow-lg"
+                    : "border-gray-300"
+                    } ${isValidated ? "cursor-default" : "cursor-pointer"}`}
                 >
                   <Image
                     src={option.icon}
@@ -515,16 +517,16 @@ export default function MediaSelection({
                 )}
               </div>
               {isValidated && (
-                <div 
+                <div
                   onClick={openModal}
                   className='w-[225px] h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors'
                 >
                   <div className="flex flex-col items-center gap-2 text-center">
                     <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z" fill="#3175FF"/>
+                      <path d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z" fill="#3175FF" />
                     </svg>
                     <p className="text-md font-lighter text-black mt-2">Upload your previews</p>
-                  </div>    
+                  </div>
                 </div>
               )}
             </div>
@@ -532,10 +534,10 @@ export default function MediaSelection({
         })}
       </div>
 
-        <div className="bg-opacity-50 flex items-center justify-center">
-          <UploadModal isOpen={isModalOpen} onClose={closeModal} />
-        </div>
-    
+      <div className="bg-opacity-50 flex items-center justify-center">
+        <UploadModal isOpen={isModalOpen} onClose={closeModal} />
+      </div>
+
     </>
   );
 }

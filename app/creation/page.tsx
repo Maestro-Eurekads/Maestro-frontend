@@ -15,14 +15,11 @@ import OverviewofyourCampaign from "./components/OverviewofyourCampaign";
 import CampaignBudget from './components/CampaignBudget';
 import ConfigureAdSetsAndBudget from "./components/ ConfigureadSetsAndbudget";
 import DefineAdSet from "./components/DefineAdSet";
-import { useParams, useRouter } from 'next/navigation';
 
 const Creation = () => {
-  const router = useRouter();
-  const id = useParams();
 
 
-  console.log('useParams-useParams', id)
+
   const { active, subStep } = useActive();
   return (
     <div>

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import up from "../../../public/arrow-down.svg";
-import down2 from "../../../public/arrow-down-2.svg"; 
+import down2 from "../../../public/arrow-down-2.svg";
 import checkmark from "../../../public/mingcute_check-fill.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { funnelStages } from "../../../components/data";
@@ -29,11 +29,11 @@ const SelectChannelMix = () => {
       );
       setOpenItems(initialOpenItems);
     }
-    
+
     // Initialize selected platforms from existing channel_mix data
     if (campaignFormData?.channel_mix?.length > 0) {
       const initialSelected = {};
-      
+
       campaignFormData.channel_mix.forEach(channelMixItem => {
         const stageName = channelMixItem.funnel_stage;
         initialSelected[stageName] = {
@@ -42,10 +42,10 @@ const SelectChannelMix = () => {
           "Search engines": channelMixItem?.search_engines?.map(se => se.platform_name) || []
         };
       });
-      
+
       setSelected(initialSelected);
     }
-    
+
     // Initialize validatedStages from campaign data
     if (campaignFormData?.validatedStages) {
       setValidatedStages(campaignFormData.validatedStages);
@@ -76,7 +76,7 @@ const SelectChannelMix = () => {
     const newCategorySelection = isAlreadySelected
       ? categorySelection.filter(p => p !== platformName)
       : [...categorySelection, platformName];
-      
+
     setSelected(prev => ({
       ...prev,
       [stageName]: {
@@ -89,19 +89,19 @@ const SelectChannelMix = () => {
     setCampaignFormData(prevFormData => {
       // Create normalized category key (lowercase with underscores)
       const categoryKey = category.toLowerCase().replaceAll(" ", "_");
-      
+
       // Map selected platform names to objects with platform_name property
       const platformObjects = newCategorySelection.map(name => ({
         platform_name: name
       }));
-      
+
       // Check if this funnel stage already exists in channel_mix
       const existingChannelMixIndex = prevFormData.channel_mix?.findIndex(
         item => item.funnel_stage === stageName
       );
-      
+
       let updatedChannelMix = [...(prevFormData.channel_mix || [])];
-      
+
       if (existingChannelMixIndex >= 0) {
         // Update existing funnel stage with all categories, even if empty
         updatedChannelMix[existingChannelMixIndex] = {
@@ -119,7 +119,7 @@ const SelectChannelMix = () => {
           search_engines: categoryKey === 'search_engines' ? platformObjects : []
         });
       }
-      
+
       return {
         ...prevFormData,
         channel_mix: updatedChannelMix
@@ -142,9 +142,9 @@ const SelectChannelMix = () => {
         ...validatedStages,
         [stageName]: true
       };
-      
+
       setValidatedStages(updatedValidatedStages);
-      
+
       // Update validatedStages in the campaign context
       setCampaignFormData(prev => ({
         ...prev,
@@ -159,9 +159,9 @@ const SelectChannelMix = () => {
       ...validatedStages,
       [stageName]: false
     };
-    
+
     setValidatedStages(updatedValidatedStages);
-    
+
     // Update validatedStages in the campaign context
     setCampaignFormData(prev => ({
       ...prev,
@@ -188,7 +188,7 @@ const SelectChannelMix = () => {
             <div key={index}>
               {/* Stage Header */}
               <div
-                className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
+                className={`flex justify-between items-center p-6 gap-3 max-w-[950px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
                   ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
                 onClick={() => toggleItem(stage.name)}
               >
@@ -224,7 +224,7 @@ const SelectChannelMix = () => {
 
               {/* Stage Content */}
               {openItems[stage.name] && (
-                <div className="card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px]">
+                <div className="card_bucket_container_main_sub flex flex-col pb-6 max-w-[950px] min-h-[300px]">
                   {validatedStages[stage.name] ? (
                     // Validated Stage View
                     <div className="mt-8 px-6">
@@ -282,11 +282,10 @@ const SelectChannelMix = () => {
                                 <div
                                   key={pIndex}
                                   className={`cursor-pointer flex flex-row justify-between items-center p-4 gap-2 w-[230px] h-[62px] bg-white 
-                                  border rounded-[10px] ${
-                                    isSelected
+                                  border rounded-[10px] ${isSelected
                                       ? "border-[#3175FF]"
                                       : "border-[rgba(0,0,0,0.1)]"
-                                  }`}
+                                    }`}
                                   onClick={() => togglePlatform(stage.name, category, platform.name)}
                                 >
                                   <div className="flex items-center gap-2">
@@ -296,11 +295,10 @@ const SelectChannelMix = () => {
                                     </p>
                                   </div>
                                   <div
-                                    className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${
-                                      isSelected
-                                        ? "bg-[#3175FF]"
-                                        : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
-                                    }`}
+                                    className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${isSelected
+                                      ? "bg-[#3175FF]"
+                                      : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
+                                      }`}
                                   >
                                     {isSelected && (
                                       <Image
@@ -324,11 +322,10 @@ const SelectChannelMix = () => {
                         <button
                           disabled={!isStageValid(stage.name)}
                           onClick={() => handleValidate(stage.name)}
-                          className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-                            isStageValid(stage.name)
+                          className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isStageValid(stage.name)
                               ? "bg-[#3175FF] hover:bg-[#2563eb]"
                               : "bg-[#3175FF] opacity-50 cursor-not-allowed"
-                          }`}
+                            }`}
                         >
                           Validate
                         </button>

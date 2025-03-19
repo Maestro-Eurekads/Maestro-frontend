@@ -24,7 +24,7 @@ const TimelineView = () => {
 	} = useCampaigns();
 
 
-	console.log('campaignData-campaignData', campaignData)
+
 
 	const { range } = useDateRange();
 	const dateList = eachDayOfInterval({
@@ -38,7 +38,7 @@ const TimelineView = () => {
 	// 	}
 	// }, [campaignId]);
 
-	// console.log('campaignData-campaignData', clientCampaignData)
+
 
 	// const fromDate = parseApiDate(campaignData?.campaign_timeline_start_date);
 	// const toDate = parseApiDate(campaignData?.campaign_timeline_end_date);

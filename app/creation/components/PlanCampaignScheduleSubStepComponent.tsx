@@ -14,7 +14,7 @@ const PlanCampaignScheduleSubStepComponent = () => {
 	} = useCampaigns();
 
 
-	console.log('campaignId-campaignId', campaignData)
+
 
 
 	return (

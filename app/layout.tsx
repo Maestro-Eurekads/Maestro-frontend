@@ -11,6 +11,9 @@ import { EditingProvider } from "./utils/EditingContext";
 import { Suspense } from "react";
 import { SelectedDatesProvider } from "./utils/SelectedDatesContext";
 import { CampaignSelectionProvider } from "./utils/CampaignSelectionContext";
+import NewProvider from "./provider";
+
+
 
 // Load Roboto font
 const roboto = Roboto({
@@ -45,7 +48,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${roboto.variable} ${inter.variable} antialiased`}>
-        <ReduxProvider>
+        <NewProvider>
           <Suspense>
             <CampaignSelectionProvider>
               <CampaignProvider>
@@ -65,8 +68,8 @@ export default function RootLayout({
               </CampaignProvider>
             </CampaignSelectionProvider>
           </Suspense>
-        </ReduxProvider>
+        </NewProvider>
       </body>
-    </html>
+    </html >
   );
 }

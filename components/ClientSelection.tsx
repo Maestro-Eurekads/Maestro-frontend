@@ -55,46 +55,46 @@ const Dropdown = ({
     <div className="relative" ref={dropdownRef}>
       {/* Dropdown Button */}
       <div
-      className={`dropdown_button_width flex items-center px-4 py-2 h-[45px] bg-white max-w-xs border-2 border-[#EFEFEF] rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 
+        className={`dropdown_button_width flex items-center px-4 py-2 h-[45px] bg-white max-w-xs border-2 border-[#EFEFEF] rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 
           ${isEditing ? "cursor-pointer" : "cursor-not-allowed"}`}
-      onClick={toggleDropdown}
+        onClick={toggleDropdown}
       >
-      <span className="text-[#061237]">
-        {campaignFormData[formId]?.value || label}
-      </span>
-      <span className="ml-auto text-[#061237]">
-        <Image src={down} alt="dropdown-icon" />
-      </span>
+        <span className="text-[#061237]">
+          {campaignFormData[formId]?.value || label}
+        </span>
+        <span className="ml-auto text-[#061237]">
+          <Image src={down} alt="dropdown-icon" />
+        </span>
       </div>
 
       {/* Dropdown List */}
       {loadingClients && label === "Select Client" && (
-      <div className="flex items-center gap-2">
-        <BiLoader className="animate-spin" />
-        <p>Loading clients...</p>
-      </div>
-      )}
-      {isEditing &&
-      isOpen &&
-      ((label === "Business level 1" ||
-        label === "Business level 2" ||
-        label === "Business level 3")
-        ? campaignFormData["client_selection"]?.value
-        : true) && (
-        <div className="absolute w-full bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-1 z-10">
-        {options.map((option) => (
-          <div
-          key={option.value}
-          className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-          onClick={() =>
-            handleSelect(option?.id || option.value, option?.value)
-          }
-          >
-          {option.label}
-          </div>
-        ))}
+        <div className="flex items-center gap-2">
+          <BiLoader className="animate-spin" />
+          <p>Loading clients...</p>
         </div>
       )}
+      {isEditing &&
+        isOpen &&
+        ((label === "Business level 1" ||
+          label === "Business level 2" ||
+          label === "Business level 3")
+          ? campaignFormData["client_selection"]?.value
+          : true) && (
+          <div className="absolute w-full bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-1 z-10 max-h-[300px] overflow-y-scroll">
+            {options.map((option) => (
+              <div
+                key={option.value}
+                className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                onClick={() =>
+                  handleSelect(option?.id || option?.value, option?.value)
+                }
+              >
+                {option?.label}
+              </div>
+            ))}
+          </div>
+        )}
     </div>
   );
 };
