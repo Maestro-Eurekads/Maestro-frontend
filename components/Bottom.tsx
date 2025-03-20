@@ -232,7 +232,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       if (!campaignData) return;
       await updateCampaignData({
         ...cleanData,
-        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, ["id"]),
+        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, ["id", "isValidated"]),
       });
     };
 
@@ -243,7 +243,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         ...cleanData,
         funnel_stages: campaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
-          "id",
+          "id", "isValidated",
         ]),
         campaign_budget: removeKeysRecursively(
           campaignFormData?.campaign_budget,
