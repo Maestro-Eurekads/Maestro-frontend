@@ -1,10 +1,10 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
-// Validation Rules
+// Step validation rules
 export const validationRules = {
-	"Set up your new campaign": (data: any) =>
+	step0: (data: any) =>
 		data?.client_selection?.value &&
 		data?.media_plan &&
 		data?.approver &&
@@ -12,18 +12,18 @@ export const validationRules = {
 		data?.budget_details_fee_type?.id &&
 		data?.budget_details_value,
 
-	"Define campaign objective": (data: any) => !!data?.campaign_objectives?.length,
-	"Map funnel stages": (data: any) => !!data?.funnel_stages?.length,
-	"Select channel mix": (data: any) => !!data?.channel_mix && Object.keys(data.channel_mix).length > 0,
-	"Formats selection": (data: any) => !!data?.formats?.length,
-	"Set buy objectives and types": (data: any) => !!data?.buyObjectives?.length,
-	"Plan campaign schedule": (data: any) => !!data?.schedule?.startDate && !!data?.schedule?.endDate,
-	"Configure ad sets and budget": (data: any) => data?.budget > 0,
-	"Establish goals": (data: any) => !!data?.goal,
-	"Overview of your campaign": (data: any) => Object.values(data).every((value) => value !== null && value !== ""),
+	step1: (data: any) => !!data?.campaign_objectives?.length,
+	step2: (data: any) => !!data?.funnel_stages?.length,
+	step3: (data: any) => !!data?.channel_mix && Object.keys(data.channel_mix).length > 0,
+	step4: (data: any) => !!data?.formats?.length,
+	step5: (data: any) => !!data?.buyObjectives?.length,
+	step6: (data: any) => !!data?.schedule?.startDate && !!data?.schedule?.endDate,
+	step7: (data: any) => data?.budget > 0,
+	step8: (data: any) => !!data?.goal,
+	step9: (data: any) => Object.values(data).every((value) => value !== null && value !== ""),
 };
 
-// Verification Context Types
+// Context Types
 interface VerificationState {
 	[key: string]: boolean;
 }
@@ -34,32 +34,54 @@ interface VerificationContextType {
 	isStepVerified: (step: string) => boolean;
 	resetStep: (step: string) => void;
 	validateStep: (step: string, data: any) => boolean;
-	verifybeforeMove: { [key: string]: boolean }[];
-	setverifybeforeMove: React.Dispatch<React.SetStateAction<{ [key: string]: boolean }[]>>;
+	verifybeforeMove: { [key: string]: boolean };
+	setverifybeforeMove: React.Dispatch<React.SetStateAction<{ [key: string]: boolean }>>;
 }
-
 
 const VerificationContext = createContext<VerificationContextType | undefined>(undefined);
 
 // Provider Component
 export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [verificationState, setVerificationState] = useState<VerificationState>({});
-	const [verifybeforeMove, setverifybeforeMove] = useState([
-		{ "Set up your new campaign": false },
-		{ "Define campaign objective": false },
-		{ "Map funnel stages": false },
-		{ "Select channel mix": false },
-		{ "Formats selection": false },
-		{ "Set buy objectives and types": false },
-		{ "Plan campaign schedule": false },
-		{ "Configure ad sets and budget": false },
-		{ "Establish goals": false },
-		{ "Overview of your campaign": false },
-	]);
+
+	// Load stored verification state from local storage
+	const loadStoredState = () => {
+		if (typeof window !== "undefined") {
+			const storedState = localStorage.getItem("verifybeforeMove");
+			return storedState
+				? JSON.parse(storedState)
+				: {
+					step0: false,
+					step1: false,
+					step2: false,
+					step3: false,
+					step4: false,
+					step5: false,
+					step6: false,
+					step7: false,
+					step8: false,
+					step9: false,
+				};
+		}
+		return {};
+	};
+
+	const [verifybeforeMove, setverifybeforeMove] = useState<{ [key: string]: boolean }>(loadStoredState);
+
+	// Persist state in local storage whenever verifybeforeMove updates
+	useEffect(() => {
+		if (typeof window !== "undefined") {
+			localStorage.setItem("verifybeforeMove", JSON.stringify(verifybeforeMove));
+		}
+	}, [verifybeforeMove]);
 
 	// Validate and update step status
 	const verifyStep = (step: string, isValid: boolean) => {
 		setVerificationState((prev) => ({ ...prev, [step]: isValid }));
+		setverifybeforeMove((prev) => ({
+			...prev,
+			[step.toLowerCase().replace(" ", "")]: isValid, // "Step 1" -> "step1"
+		}));
 	};
 
 	// Check if a step is verified
@@ -72,13 +94,16 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
 	// Validate a step using predefined rules
 	const validateStep = (step: string, data: any) => {
-		const isValid = validationRules[step]?.(data) || false;
-		verifyStep(step, isValid);
+		const stepKey = step.toLowerCase().replace(" ", ""); // Convert "Step 1" -> "step1"
+		const isValid = validationRules[stepKey]?.(data) || false;
+		verifyStep(stepKey, isValid);
 		return isValid;
 	};
 
 	return (
-		<VerificationContext.Provider value={{ verificationState, verifyStep, isStepVerified, resetStep, validateStep, verifybeforeMove, setverifybeforeMove }}>
+		<VerificationContext.Provider
+			value={{ verificationState, verifyStep, isStepVerified, resetStep, validateStep, verifybeforeMove, setverifybeforeMove }}
+		>
 			{children}
 		</VerificationContext.Provider>
 	);

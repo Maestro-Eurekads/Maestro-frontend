@@ -37,17 +37,67 @@ export const SetupScreen = () => {
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const { verifyStep } = useVerification();
+  const { verifyStep, verifybeforeMove, setverifybeforeMove } = useVerification();
+
+
+
+  console.log('verifybeforeMove', verifybeforeMove)
+
 
   useEffect(() => {
-    const isValid = validationRules["Define campaign objective"](campaignData);
-
-    // Only call verifyStep if the validation status has changed
+    const isValid = validationRules["step0"](campaignData);
     if (isValid !== previousValidationState) {
-      verifyStep("Define campaign objective", isValid);
+      verifyStep("step0", isValid);
       setPreviousValidationState(isValid);
     }
-  }, [campaignData]);
+  }, [campaignData, previousValidationState, verifyStep]);
+
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
+
+  useEffect(() => {
+    const storedState = localStorage.getItem("verifybeforeMove");
+    if (storedState) {
+      setverifybeforeMove(JSON.parse(storedState));
+    }
+  }, [setverifybeforeMove]);
+
+  useEffect(() => {
+    localStorage.setItem("verifybeforeMove", JSON.stringify(verifybeforeMove));
+  }, [verifybeforeMove]);
+
+  useEffect(() => {
+    let fields = [
+      campaignFormData?.client_selection?.id,
+      campaignFormData?.level_1?.id,
+      campaignFormData?.level_2?.id,
+      campaignFormData?.media_plan,
+      campaignFormData?.approver,
+    ];
+
+    const isValid = fields.every((field) => field !== undefined && field !== "");
+    setRequiredFields(fields);
+    setIsStepZeroValid(isValid);
+
+    setverifybeforeMove((prev: any) => {
+      // Ensure `prev` is an array
+      if (!Array.isArray(prev)) return [{ step0: true }];
+
+      return prev.map((step) => ({ ...step, step0: true })); // Force step0 to be true
+    });
+  }, [campaignFormData]); // Trigger on campaignFormData changes
+
+
+
+
+
+
+
+
 
 
   //  Automatically reset alert after showing
@@ -114,13 +164,6 @@ export const SetupScreen = () => {
 
 
 
-  const businessLevel = [
-    { value: "Marketing division", label: "Marketing division" },
-    { value: "Digital campaigns", label: "Digital campaigns" },
-    { value: "Product launch", label: "Product launch" },
-  ];
-
-
 
   const selectCurrency = [
     { value: "US Dollar (USD)", label: "US Dollar (USD)" },
@@ -128,9 +171,7 @@ export const SetupScreen = () => {
     { value: "British Pound (GBP)", label: "British Pound (GBP)" },
     { value: "Nigerian Naira (NGN)", label: "Nigerian Naira (NGN)" },
     { value: "Japanese Yen (JPY)", label: "Japanese Yen (JPY)" },
-    {
-      value: "Canadian Dollar (CAD)", label: "Canadian Dollar (CAD)",
-    },
+    { value: "Canadian Dollar (CAD)", label: "Canadian Dollar (CAD)" },
   ];
 
   const mediaBudgetPercentage = [
@@ -192,7 +233,6 @@ export const SetupScreen = () => {
 
 
 
-  //   Validation handler
   const handleStepZero = async () => {
     setLoading(true);
     try {
@@ -228,6 +268,7 @@ export const SetupScreen = () => {
             value: campaignFormData?.budget_details_value,
           },
         });
+
         setAlert({ variant: "success", message: "Campaign updated successfully!", position: "bottom-right" });
       } else {
         // Creating a new campaign
@@ -238,6 +279,11 @@ export const SetupScreen = () => {
         await getActiveCampaign(res?.data?.data.documentId);
         setAlert({ variant: "success", message: "Campaign created successfully!", position: "bottom-right" });
       }
+
+      //   After validation, set step0 to false
+      setverifybeforeMove((prev: any) =>
+        prev.map((step: any) => (step.hasOwnProperty("step0") ? { ...step, step0: false } : step))
+      );
     } catch (error) {
       console.error("Error in handleStepZero:", error);
       setAlert({ variant: "error", message: "Something went wrong. Please try again.", position: "bottom-right" });
@@ -373,7 +419,8 @@ export const SetupScreen = () => {
         </div>
       </div>
       {/*   BUTTON - Enabled only when required fields are filled */}
-      {isStepZeroValid && (
+
+      {verifybeforeMove?.[0]?.step0 && (
         <div className="flex justify-end pr-6 mt-[20px]">
           <button
             onClick={handleStepZero}
