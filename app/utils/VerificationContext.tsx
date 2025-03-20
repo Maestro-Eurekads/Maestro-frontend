@@ -34,13 +34,28 @@ interface VerificationContextType {
 	isStepVerified: (step: string) => boolean;
 	resetStep: (step: string) => void;
 	validateStep: (step: string, data: any) => boolean;
+	verifybeforeMove: { [key: string]: boolean }[];
+	setverifybeforeMove: React.Dispatch<React.SetStateAction<{ [key: string]: boolean }[]>>;
 }
+
 
 const VerificationContext = createContext<VerificationContextType | undefined>(undefined);
 
 // Provider Component
 export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [verificationState, setVerificationState] = useState<VerificationState>({});
+	const [verifybeforeMove, setverifybeforeMove] = useState([
+		{ "Set up your new campaign": false },
+		{ "Define campaign objective": false },
+		{ "Map funnel stages": false },
+		{ "Select channel mix": false },
+		{ "Formats selection": false },
+		{ "Set buy objectives and types": false },
+		{ "Plan campaign schedule": false },
+		{ "Configure ad sets and budget": false },
+		{ "Establish goals": false },
+		{ "Overview of your campaign": false },
+	]);
 
 	// Validate and update step status
 	const verifyStep = (step: string, isValid: boolean) => {
@@ -63,7 +78,7 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 	};
 
 	return (
-		<VerificationContext.Provider value={{ verificationState, verifyStep, isStepVerified, resetStep, validateStep }}>
+		<VerificationContext.Provider value={{ verificationState, verifyStep, isStepVerified, resetStep, validateStep, verifybeforeMove, setverifybeforeMove }}>
 			{children}
 		</VerificationContext.Provider>
 	);

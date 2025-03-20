@@ -18,7 +18,7 @@ interface BottomProps {
 }
 
 const Bottom = ({ setIsOpen }: BottomProps) => {
-  const { validateStep, validatedSteps, setValidatedSteps, stepHasChanged, setStepHasChanged } = useVerification();
+  const { validateStep } = useVerification();
   const { active, setActive, subStep, setSubStep } = useActive();
   const { selectedObjectives } = useObjectives();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
@@ -235,12 +235,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       "updatedAt",
     ]);
 
-    if (active === 1) {
+    const handleStepOne = async () => {
+      if (!campaignData) return;
       await updateCampaignData({
         ...cleanData,
         campaign_objective: campaignFormData?.campaign_objectives,
       });
     };
+
 
     const handleStepTwo = async () => {
       if (!campaignData) return;

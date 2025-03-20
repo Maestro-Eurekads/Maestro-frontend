@@ -5,18 +5,14 @@ import { ActiveProvider } from "./utils/ActiveContext";
 import { DateRangeProvider } from "../src/date-range-context";
 import { FunnelProvider } from "./utils/FunnelContextType";
 import { ObjectivesProvider } from "./utils/useObjectives";
-import ReduxProvider from "./provider";
 import { CampaignProvider } from "./utils/CampaignsContext";
 import { EditingProvider } from "./utils/EditingContext";
 import { Suspense } from "react";
 import { SelectedDatesProvider } from "./utils/SelectedDatesContext";
 import { CampaignSelectionProvider } from "./utils/CampaignSelectionContext";
 import NewProvider from "./provider";
-<<<<<<< HEAD
-import { VerificationProvider } from "./utils/VerificationContext";
-=======
 import { ToastContainer } from "react-toastify";
->>>>>>> 5ed245e5df4bfdc0792a38f72f9f6edf5277c1f8
+import { VerificationProvider } from "./utils/VerificationContext";
 
 
 
@@ -55,7 +51,6 @@ export default function RootLayout({
       <body className={`${roboto.variable} ${inter.variable} antialiased`}>
         <NewProvider>
           <Suspense>
-<<<<<<< HEAD
             <VerificationProvider>
               <CampaignSelectionProvider>
                 <CampaignProvider>
@@ -65,6 +60,7 @@ export default function RootLayout({
                         <EditingProvider>
                           <ObjectivesProvider>
                             <FunnelProvider>
+                              <ToastContainer />
                               {children}
                             </FunnelProvider>
                           </ObjectivesProvider>
@@ -75,26 +71,6 @@ export default function RootLayout({
                 </CampaignProvider>
               </CampaignSelectionProvider>
             </VerificationProvider>
-=======
-            <CampaignSelectionProvider>
-              <CampaignProvider>
-                <DateRangeProvider>
-                  <SelectedDatesProvider>
-                    <ActiveProvider>
-                      <EditingProvider>
-                        <ObjectivesProvider>
-                          <FunnelProvider>
-                            <ToastContainer/>
-                            {children}
-                          </FunnelProvider>
-                        </ObjectivesProvider>
-                      </EditingProvider>
-                    </ActiveProvider>
-                  </SelectedDatesProvider>
-                </DateRangeProvider>
-              </CampaignProvider>
-            </CampaignSelectionProvider>
->>>>>>> 5ed245e5df4bfdc0792a38f72f9f6edf5277c1f8
           </Suspense>
         </NewProvider>
       </body>
