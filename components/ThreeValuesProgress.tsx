@@ -1,4 +1,4 @@
-const ThreeValuesProgress = ({ values, color, showpercent }: { values: number[]; showpercent: boolean, color: string[] }) => {
+const ThreeValuesProgress = ({ values, color, showpercent }: { values: number[]; showpercent: boolean, color?: string[] }) => {
 	console.log("color", color)
 	const total = values.reduce((acc, val) => acc + val, 0);
 	const percentages = total > 0 ? values.map((val) => (val / total) * 100) : [0, 0, 0];
