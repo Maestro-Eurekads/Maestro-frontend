@@ -287,7 +287,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
                         onClick={() => togglePlatformExpansion(platform.name)}
                       >
                         {isExpanded ? (
-                          <button className="text-gray-500">
+                          <button className="text-gray-500 text-[14px]">
                             {isValidated ? "Choose the number of visuals for this format" : "Select your format"}
                           </button>
                         ) : (
@@ -305,7 +305,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
                                 />
                               </svg>
                             </div>
-                            <button className="font-bold text-[18px] text-[#3175FF]">Add format</button>
+                            <button className="font-semibold text-[14px] text-[#3175FF]">Add format</button>
                           </>
                         )}
                       </div>

@@ -20,15 +20,14 @@ interface BottomProps {
 const Bottom = ({ setIsOpen }: BottomProps) => {
   const { validateStep, validatedSteps, setValidatedSteps, stepHasChanged, setStepHasChanged } = useVerification();
   const { active, setActive, subStep, setSubStep } = useActive();
-  const { selectedObjectives, selectedFunnels } = useObjectives();
+  const { selectedObjectives } = useObjectives();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
-  const [setupyournewcampaignError, SetupyournewcampaignError] =
-    useState(false);
+  const [setupyournewcampaignError, SetupyournewcampaignError] = useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
   const [selectedDatesError, setSelectedDateslError] = useState(false);
   const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
-  // const {selectedChannels, setSelectedChannel} = useChannelMix();
-  const { selectedDates, setSelectedDates } = useSelectedDates();
+  const [triggerFormatError, setTriggerFormatError] = useState(false);
+  const { selectedDates } = useSelectedDates();
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -52,7 +51,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       triggerFunnelError ||
       selectedDatesError ||
       setupyournewcampaignError ||
-      triggerChannelMixError
+      triggerChannelMixError ||
+      incompleteFieldsError ||
+      triggerFormatError
     ) {
       const timer = setTimeout(() => {
         setTriggerObjectiveError(false);
@@ -60,6 +61,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setSelectedDateslError(false);
         SetupyournewcampaignError(false);
         setTriggerChannelMixError(false);
+        setIncompleteFieldsError(false);
+        setTriggerFormatError(false);
       }, 3000); // Hides alert after 3 seconds
 
       return () => clearTimeout(timer);
@@ -70,6 +73,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     selectedDatesError,
     setupyournewcampaignError,
     triggerChannelMixError,
+    incompleteFieldsError,
+    triggerFormatError,
   ]);
 
   const handleBack = () => {
@@ -235,17 +240,48 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         ...cleanData,
         campaign_objective: campaignFormData?.campaign_objectives,
       });
-    } else if (active === 2) {
+    };
+
+    const handleStepTwo = async () => {
+      if (!campaignData) return;
       await updateCampaignData({
         ...cleanData,
         funnel_stages: campaignFormData?.funnel_stages,
       });
-    } else if (active > 2) {
+    };
+
+    const handleStepThree = async () => {
+      if (!campaignData) return;
       await updateCampaignData({
         ...cleanData,
-        funnel_stages: campaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, ["id"]),
       });
+    };
+
+    const handleStepFour = async () => {
+      if (!campaignData) return;
+
+      await updateCampaignData({
+        ...cleanData,
+        funnel_stages: campaignFormData?.funnel_stages,
+        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+          "id",
+        ]),
+        campaign_budget: removeKeysRecursively(
+          campaignFormData?.campaign_budget,
+          ["id"]
+        ),
+      });
+    };
+
+    if (active === 1) {
+      await handleStepOne();
+    } else if (active === 2) {
+      await handleStepTwo();
+    } else if (active > 2 && subStep < 1) {
+      await handleStepThree();
+    } else if (active > 2 && subStep > 1) {
+      await handleStepFour();
     }
 
     // Proceed to next step logic
@@ -517,18 +553,27 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
+
       {triggerChannelMixError && (
         <AlertMain
           alert={{
             variant: "error",
-            message: "Please select at least one channel mix!",
+            message: "Please select and validate at least one channel!",
+            position: "bottom-right",
+          }}
+        />
+      )}
+      {triggerFormatError && (
+        <AlertMain
+          alert={{
+            variant: "error",
+            message: "Please select and validate at least one format!",
             position: "bottom-right",
           }}
         />
       )}
 
       <div className="flex justify-between w-full">
-        {/* Back Button */}
         {active === 0 ? (
           <div />
         ) : (
@@ -545,7 +590,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             <p>Back</p>
           </button>
         )}
-        {/* Continue Button */}
         {active === 10 ? (
           <button
             className="bottom_black_next_btn hover:bg-blue-500"

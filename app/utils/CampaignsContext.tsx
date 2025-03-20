@@ -68,7 +68,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const getActiveCampaign = async (docId?: string) => {
     await axios
       .get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}?populate[0]=media_plan_details&populate[1]=budget_details&populate[2]=channel_mix&populate[3]=channel_mix.social_media&populate[4]=channel_mix.display_networks&populate[5]=channel_mix.search_engines&populate[6]=channel_mix.social_media.format&populate[7]=channel_mix.display_networks.format&populate[8]=channel_mix.search_engines.format&populate[9]=client_selection&populate[10]=client&populate[11]=channel_mix.social_media.ad_sets&populate[12]=channel_mix.display_networks.ad_sets&populate[13]=channel_mix.search_engines.ad_sets`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}?populate[0]=media_plan_details&populate[1]=budget_details&populate[2]=channel_mix&populate[3]=channel_mix.social_media&populate[4]=channel_mix.display_networks&populate[5]=channel_mix.search_engines&populate[6]=channel_mix.social_media.format&populate[7]=channel_mix.display_networks.format&populate[8]=channel_mix.search_engines.format&populate[9]=client_selection&populate[10]=client&populate[11]=channel_mix.social_media.ad_sets&populate[12]=channel_mix.display_networks.ad_sets&populate[13]=channel_mix.search_engines.ad_sets&populate[14]=channel_mix.social_media.budget&populate[15]=channel_mix.display_networks.budget&populate[16]=channel_mix.search_engines.budget&populate[17]=channel_mix.stage_budget&populate[18]=campaign_budget`,
         {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
@@ -112,8 +112,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           campaign_objectives: data?.campaign_objective,
           funnel_stages: data?.funnel_stages || [],
           channel_mix: data?.channel_mix || [],
-          campaign_timeline_start_date: "",
-          campaign_timeline_end_date: "",
+          campaign_timeline_start_date: data?.campaign_timeline_start_date,
+          campaign_timeline_end_date: data?.campaign_timeline_start_date,
+          campaign_budget: data?.campaign_budget || {}
         }));
       });
   };
