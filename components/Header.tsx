@@ -24,6 +24,9 @@ const Header = ({ setIsOpen }) => {
           .then((res) => {
             setClientCampaignData(res?.data?.data);
           })
+          .catch((err)=>{
+            console.log("err", err)
+          })
           .finally(() => {
             setLoading(false);
           });
@@ -31,6 +34,9 @@ const Header = ({ setIsOpen }) => {
         fetchClientCampaign(selected)
           .then((res) => {
             setClientCampaignData(res?.data?.data);
+          })
+          .catch((err)=>{
+            console.log("err", err)
           })
           .finally(() => {
             setLoading(false);

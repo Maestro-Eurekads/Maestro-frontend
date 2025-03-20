@@ -39,9 +39,6 @@ const useCampaignHook = () => {
           },
         }
       )
-      .catch((err) => {
-        console.log("An error occured", err);
-      });
   };
 
   useEffect(() => {
