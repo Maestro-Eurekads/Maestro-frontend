@@ -5,7 +5,7 @@ import type React from "react"
 import Image, { type StaticImageData } from "next/image"
 import { FaAngleRight } from "react-icons/fa"
 import { MdDelete, MdAdd } from "react-icons/md"
-import { useState, useCallback, memo, useMemo, useEffect, useRef } from "react"
+import { useState, useCallback, memo, useMemo, useEffect, useRef, createContext, useContext } from "react"
 
 // Import platform icons
 import facebook from "../../../../public/facebook.svg";
@@ -263,6 +263,15 @@ const updateMultipleAdSets = (
   return updatedCampaignData
 }
 
+// Create a context to manage which dropdown is currently open
+const DropdownContext = createContext<{
+  openDropdownId: number | null;
+  setOpenDropdownId: (id: number | null) => void;
+}>({
+  openDropdownId: null,
+  setOpenDropdownId: () => {},
+});
+
 // Update the AdSet component to include the update functionality
 const AdSet = memo(function AdSet({
   adset,
@@ -337,13 +346,17 @@ const AdSet = memo(function AdSet({
       <span className={`border-l-2 border-[#0000001A] h-[70px] w-8 absolute -left-4 ${lineClass}`}></span>
       <div className="flex gap-2 items-center w-full px-4">
         <div className="relative">
-          <p className="relative z-[999] text-[#3175FF] text-sm whitespace-nowrap font-bold flex gap-4 items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
+          <p className="relative z-[1] text-[#3175FF] text-sm whitespace-nowrap font-bold flex gap-4 items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
             {`Ad set n°${adset.addsetNumber}`}
           </p>
           <hr className="border border-[#0000001A] w-[50px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" />
         </div>
 
-        <AudienceDropdownWithCallback onSelect={handleAudienceSelect} initialValue={audience} />
+        <AudienceDropdownWithCallback 
+          onSelect={handleAudienceSelect} 
+          initialValue={audience} 
+          dropdownId={adset.id}
+        />
 
         <input
           type="text"
@@ -379,16 +392,21 @@ const AdSet = memo(function AdSet({
   )
 })
 
+
+
 // Create a new AudienceDropdown component that accepts a callback
 const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback({
   onSelect,
   initialValue,
+  dropdownId,
 }: {
   onSelect: (option: string) => void
   initialValue?: string
+  dropdownId: number
 }) {
-  const [open, setOpen] = useState(false)
+  const { openDropdownId, setOpenDropdownId } = useContext(DropdownContext);
   const [selected, setSelected] = useState<string>(initialValue || "")
+  const isOpen = openDropdownId === dropdownId;
 
   // Update selected when initialValue changes
   useEffect(() => {
@@ -405,25 +423,44 @@ const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback(
   const handleSelect = useCallback(
     (option: string) => {
       setSelected(option)
-      setOpen(false)
+      setOpenDropdownId(null)
       onSelect(option)
     },
-    [onSelect],
+    [onSelect, setOpenDropdownId],
   )
 
   const toggleOpen = useCallback(() => {
-    setOpen((prev) => !prev)
-  }, [])
+    if (isOpen) {
+      setOpenDropdownId(null);
+    } else {
+      setOpenDropdownId(dropdownId);
+    }
+  }, [isOpen, setOpenDropdownId, dropdownId])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (isOpen && !target.closest(`[data-dropdown-id="${dropdownId}"]`)) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, dropdownId, setOpenDropdownId]);
 
   return (
-    <div className="relative border-2 border-[#0000001A] rounded-[10px] z-50">
+    <div className="relative border-2 border-[#0000001A] rounded-[10px]" data-dropdown-id={dropdownId}>
       <button
         onClick={toggleOpen}
-        className="relative z-30 w-[172px] bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
+        className="relative z-10 w-[172px] bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
       >
         <span className="truncate">{selected || "Your audience type"}</span>
         <svg
-          className={`h-4 w-4 flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 flex-shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -432,8 +469,8 @@ const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback(
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
-      {open && (
-        <ul className="absolute mt-1 left-0 top-full z-[999] w-full bg-white border-2 border-[#0000001A] rounded-lg shadow-lg overflow-hidden">
+      {isOpen && (
+        <ul className="absolute mt-1 top-full z-50 w-full bg-white border-2 border-[#0000001A] rounded-lg shadow-lg overflow-hidden">
           {options.map((option, index) => (
             <li
               key={index}
@@ -448,6 +485,8 @@ const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback(
     </div>
   )
 })
+
+
 
 const NonFacebookOutlet = memo(function NonFacebookOutlet({
   outlet,
@@ -486,6 +525,7 @@ const AdsetSettings = memo(function AdsetSettings({
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
   const [adsets, setAdSets] = useState<AdSetType[]>([])
   const [adSetDataMap, setAdSetDataMap] = useState<Record<number, AdSetData>>({})
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const initialized = useRef(false)
 
   // Load existing ad sets from campaignFormData when platform is selected
@@ -648,37 +688,41 @@ const AdsetSettings = memo(function AdsetSettings({
         </button>
         <hr className="border border-[#0000001A] w-[100px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" />
       </div>
-      <div className="relative w-full min-h-[194px]">
-        <div className={`absolute ${buttonPositionClass}`}>
-          <span className={`border-l-2 border-[#0000001A] h-[78px] w-8 absolute -left-4 ${linePositionClass}`}></span>
-          <button
-            onClick={addNewAddset}
-            className="flex gap-2 items-center text-white bg-[#3175FF] px-4 py-2 rounded-full text-sm font-bold z-20 relative"
-          >
-            <MdAdd />
-            <span>New add set</span>
-          </button>
+      <DropdownContext.Provider value={{ openDropdownId, setOpenDropdownId }}>
+        <div className="relative w-full min-h-[194px]">
+          <div className={`absolute ${buttonPositionClass}`}>
+            <span className={`border-l-2 border-[#0000001A] h-[78px] w-8 absolute -left-4 ${linePositionClass}`}></span>
+            <button
+              onClick={addNewAddset}
+              className="flex gap-2 items-center text-white bg-[#3175FF] px-4 py-2 rounded-full text-sm font-bold z-50 relative"
+            >
+              <MdAdd />
+              <span>New add set</span>
+            </button>
+          </div>
+          {adsets.map((adset, index) => {
+            const adSetData = adSetDataMap[adset.id] || { name: "", audience_type: "", size: "" }
+            return (
+              <AdSet
+                key={adset.id}
+                adset={adset}
+                index={index}
+                isEditing={isEditing}
+                onDelete={deleteAdSet}
+                onUpdate={updateAdSetData}
+                audienceType={adSetData.audience_type}
+                adSetName={adSetData.name}
+                adSetSize={adSetData.size}
+              />
+            )
+          })}
         </div>
-        {adsets.map((adset, index) => {
-          const adSetData = adSetDataMap[adset.id] || { name: "", audience_type: "", size: "" }
-          return (
-            <AdSet
-              key={adset.id}
-              adset={adset}
-              index={index}
-              isEditing={isEditing}
-              onDelete={deleteAdSet}
-              onUpdate={updateAdSetData}
-              audienceType={adSetData.audience_type}
-              adSetName={adSetData.name}
-              adSetSize={adSetData.size}
-            />
-          )
-        })}
-      </div>
+      </DropdownContext.Provider>
     </div>
   )
 })
+
+
 
 // Update the AdSetFlow component to include the campaign data update functionality
 const AdSetFlow = memo(function AdSetFlow({ stageName }: AdSetFlowProps) {
