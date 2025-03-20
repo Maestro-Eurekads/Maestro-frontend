@@ -30,14 +30,15 @@ const useCampaignHook = () => {
 
   const fetchClientCampaign = async (clientID) => {
     // console.log("🚀 ~ fetchClientCampaign ~ clientID:", clientID)
-    return await axios.get(
-      `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns?filters[client][$eq]=${clientID}&populate=*`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-        },
-      }
-    );
+    return await axios
+      .get(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns?filters[client][$eq]=${clientID}&populate=*`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+        }
+      )
   };
 
   useEffect(() => {
