@@ -31,11 +31,11 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   const [businessUnit, setBusinessUnit] = useState([]);
   const [categoryList, setCategoryList] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState(null); // ✅ State for alerts
+  const [alert, setAlert] = useState(null);
 
 
 
-  // ✅ Automatically reset alert after showing
+  //  Automatically reset alert after showing
   useEffect(() => {
     if (alert) {
       const timer = setTimeout(() => setAlert(null), 3000); // Reset after 3 seconds
@@ -45,7 +45,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   const handleAddEmail = () => {
     const trimmedEmail = inputs.email.trim();
 
-    // ✅ Email validation regex
+    //  Email validation regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!trimmedEmail) {
@@ -75,28 +75,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     }));
   };
 
-  // useEffect(() => {
-  //   if (isError) {
-  //     setTimeout(() => {
-  //       dispatch(reset());
-  //     }, 3000);
-  //   } else if (isSuccess) {
-  //     setIsOpen(false);
-  //     setInputs({
-  //       name: "",
-  //       email: "",
-  //       responsiblePerson: "",
-  //       approver: "",
-  //       sports: "",
-  //       categories: [],
-  //       businessUnits: [],
-  //       feeType: "",
-  //     });
-  //     setTimeout(() => {
-  //       dispatch(reset());
-  //     }, 3000);
-  //   }
-  // }, [isError, isSuccess]);
+
 
 
 
@@ -160,28 +139,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   };
   return (
     <div className="z-50">
-      {/* ✅ Show Alert */}
+      {/* Show Alert */}
       {alert && <AlertMain alert={alert} />}
-      {/* Show alert only when needed */}
-      {/* {isSuccess && (
-        <AlertMain
-          alert={{
-            variant: "success",
-            message: "Client created successfully!",
-            position: "bottom-right",
-          }}
-        />
-      )} */}
-      {/* {isError && (
-        <AlertMain
-          alert={{
-            variant: "error",
-            message: message,
-            position: "bottom-right",
-          }}
-        />
-      )} */}
-
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           {/* Modal container */}
@@ -291,7 +250,9 @@ const TableModel = ({ isOpen, setIsOpen }) => {
             {/* Footer  */}
             <div className="p-6 border-t bg-white sticky bottom-0 z-10 flex justify-end rounded-b-[32px]">
               <div className="flex items-center gap-5">
-                <button className="btn_model_outline">Cancel</button>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="btn_model_outline">Cancel</button>
                 <button
                   className="btn_model_active whitespace-nowrap"
                   onClick={handleSubmit}

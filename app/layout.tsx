@@ -12,6 +12,7 @@ import { Suspense } from "react";
 import { SelectedDatesProvider } from "./utils/SelectedDatesContext";
 import { CampaignSelectionProvider } from "./utils/CampaignSelectionContext";
 import NewProvider from "./provider";
+import { VerificationProvider } from "./utils/VerificationContext";
 
 
 
@@ -50,23 +51,25 @@ export default function RootLayout({
       <body className={`${roboto.variable} ${inter.variable} antialiased`}>
         <NewProvider>
           <Suspense>
-            <CampaignSelectionProvider>
-              <CampaignProvider>
-                <DateRangeProvider>
-                  <SelectedDatesProvider>
-                    <ActiveProvider>
-                      <EditingProvider>
-                        <ObjectivesProvider>
-                          <FunnelProvider>
-                            {children}
-                          </FunnelProvider>
-                        </ObjectivesProvider>
-                      </EditingProvider>
-                    </ActiveProvider>
-                  </SelectedDatesProvider>
-                </DateRangeProvider>
-              </CampaignProvider>
-            </CampaignSelectionProvider>
+            <VerificationProvider>
+              <CampaignSelectionProvider>
+                <CampaignProvider>
+                  <DateRangeProvider>
+                    <SelectedDatesProvider>
+                      <ActiveProvider>
+                        <EditingProvider>
+                          <ObjectivesProvider>
+                            <FunnelProvider>
+                              {children}
+                            </FunnelProvider>
+                          </ObjectivesProvider>
+                        </EditingProvider>
+                      </ActiveProvider>
+                    </SelectedDatesProvider>
+                  </DateRangeProvider>
+                </CampaignProvider>
+              </CampaignSelectionProvider>
+            </VerificationProvider>
           </Suspense>
         </NewProvider>
       </body>
