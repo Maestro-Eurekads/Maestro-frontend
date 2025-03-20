@@ -80,7 +80,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     QuantCast: Quantcast,
   };
 
-  const getPlatformIcon = (platformName) => {
+  const getPlatformIcon = (platformName: string | number) => {
     return platformIcons[platformName] || null;
   };
 
@@ -112,9 +112,9 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     );
     const hasMediaOptionsSelected =
       stage &&
-      (stage.social_media?.some((platform) => platform.format?.length > 0) ||
-        stage.display_networks?.some((platform) => platform.format?.length > 0) ||
-        stage.search_engines?.some((platform) => platform.format?.length > 0));
+      (stage.social_media?.some((platform: { format: string | any[]; }) => platform.format?.length > 0) ||
+        stage.display_networks?.some((platform: { format: string | any[]; }) => platform.format?.length > 0) ||
+        stage.search_engines?.some((platform: { format: string | any[]; }) => platform.format?.length > 0));
     setIsValidateEnabled(hasMediaOptionsSelected);
   }, [campaignFormData, stageName]);
 
@@ -230,7 +230,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
         1,
         parseInt(platform.format[formatIndex].num_of_visuals || "1") + change
       );
-      
+
       platform.format[formatIndex].num_of_visuals = newQuantity.toString();
     });
 
@@ -241,7 +241,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
   const handleValidateOrEdit = () => {
     const newValidationState = !isValidated;
     setIsValidated(newValidationState);
-    
+
     // Update the campaign form data with the validation status
     const copy = [...campaignFormData?.channel_mix];
     const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName);
@@ -460,7 +460,7 @@ export default function MediaSelection({
   return (
     <>
       <div className="flex gap-4">
-        {mediaOptions.map((option, index) => {
+        {mediaOptions?.map((option, index) => {
           const existsInDB =
             campaignFormData?.channel_mix
               ?.find((ch) => ch?.funnel_stage === stageName)

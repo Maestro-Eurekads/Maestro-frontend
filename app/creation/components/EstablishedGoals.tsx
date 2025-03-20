@@ -90,7 +90,7 @@ export const EstablishedGoals = () => {
 
         <div className="flex justify-between ">
           <PageHeaderWrapper
-            t1={' Establish your goals'}
+            t1={'Establish your goals'}
             t2={'Define the KPIs for each phase, channel, and ad set. Use the Table View to input and customize'}
             t3={'your metrics, and switch to the Timeline View to visualize them across the campaign.'}
           />

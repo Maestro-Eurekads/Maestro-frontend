@@ -87,18 +87,18 @@ const FormatsSelection = () => {
 															{platform.name}
 														</p>
 													</div>
-											
-													
+
+
 												</div>
 											))}
-											
+
 										</div>
 									</div>
-									
+
 								))}
-								 <div className="card-body">
-                                 <Platforms stageName={stage?.name} />
-                               </div>
+								<div className="card-body">
+									<Platforms stageName={stage?.name} />
+								</div>
 							</div>
 						)}
 					</div>
