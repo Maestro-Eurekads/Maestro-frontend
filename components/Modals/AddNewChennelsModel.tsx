@@ -45,16 +45,11 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen }) => {
 		});
 	};
 
-	// A stage is valid if every required category has at least one selection
+	// A stage is valid if at least one channel has a selection
 	const isStageValid = (stageName) => {
 		const stageSelections = selected[stageName] || {};
-		return (
-			stageSelections["Social media"] &&
-			stageSelections["Social media"].length > 0 &&
-			stageSelections["Display networks"] &&
-			stageSelections["Display networks"].length > 0 &&
-			stageSelections["Search engines"] &&
-			stageSelections["Search engines"].length > 0
+		return Object.values(stageSelections).some(selections => 
+			Array.isArray(selections) && selections.length > 0
 		);
 	};
 
@@ -215,14 +210,13 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen }) => {
 
 														<div className="flex justify-end pr-[24px] mt-4">
 															<button
-																disabled={!isStageValid(stage.name)}
 																onClick={() => handleValidate(stage.name)}
 																className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isStageValid(stage.name)
 																	? 'bg-[#3175FF]'
 																	: 'bg-[#3175FF] opacity-50'
 																	}`}
 															>
-																Submitted
+																Submit
 															</button>
 														</div>
 													</>
