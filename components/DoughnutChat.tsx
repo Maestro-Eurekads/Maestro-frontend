@@ -21,7 +21,15 @@ ChartJS.register(
   Legend
 );
 
-const DoughnutChart = ({ data, insideText, color }) => {
+const DoughnutChart = ({
+  data,
+  insideText,
+  color,
+}: {
+  data?: number[];
+  insideText?: string;
+  color?: string[];
+}) => {
   const chartRef = useRef(null);
 
   // Custom plugin to add text in the center
@@ -81,7 +89,12 @@ const DoughnutChart = ({ data, insideText, color }) => {
 
   return (
     <div className="doughnut_chart_settings">
-      <Doughnut ref={chartRef} data={doughnutData} options={chartOptions} plugins={[centerTextPlugin]} />
+      <Doughnut
+        ref={chartRef}
+        data={doughnutData}
+        options={chartOptions}
+        plugins={[centerTextPlugin]}
+      />
     </div>
   );
 };
