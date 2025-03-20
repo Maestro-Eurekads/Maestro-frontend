@@ -1,7 +1,7 @@
 const ThreeValuesProgress = ({ values, color, showpercent }: { values: number[]; showpercent: boolean, color?: string[] }) => {
 	console.log("color", color)
-	const total = values.reduce((acc, val) => acc + val, 0);
-	const percentages = total > 0 ? values.map((val) => (val / total) * 100) : [0, 0, 0];
+	const total = values?.reduce((acc, val) => acc + val, 0);
+	const percentages = total > 0 ? values?.map((val) => (val / total) * 100) : [0, 0, 0];
 
 	// Function to format percentage: remove `.0` if it's a whole number
 	const formatPercentage = (value: number) =>
@@ -9,7 +9,7 @@ const ThreeValuesProgress = ({ values, color, showpercent }: { values: number[];
 
 	return (
 		<div className="w-full h-[24px] flex overflow-hidden rounded-[4px] bg-gray-200">
-			{percentages.map((percent, index) => {
+			{percentages && percentages?.map((percent, index) => {
 				console.log(percent)
 				const bgColors = ["bg-[#3175FF]", "bg-[#00A36C]", "bg-[#FF9037]"];
 				const borderRadiusStyles = [
@@ -21,7 +21,7 @@ const ThreeValuesProgress = ({ values, color, showpercent }: { values: number[];
 				return (
 					<div
 						key={index}
-						className={`h-full ${color[index]} flex items-center justify-center`}
+						className={`h-full ${color && color[index]} flex items-center justify-center`}
 						style={{ width: `${percent}%`, borderRadius: borderRadiusStyles[index] }}
 					>
 						{showpercent && percent > 0 && (
