@@ -81,8 +81,8 @@ const Dropdown = ({
           label === "Business level 3")
           ? campaignFormData["client_selection"]?.value
           : true) && (
-          <div className="absolute w-full bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-1 z-10 max-h-[300px] overflow-y-scroll">
-            {options.map((option) => (
+          <div className="absolute w-full bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-1 z-10 max-h-[300px] overflow-y-auto">
+            {options?.map((option) => (
               <div
                 key={option.value}
                 className="px-4 py-2 cursor-pointer hover:bg-gray-100"

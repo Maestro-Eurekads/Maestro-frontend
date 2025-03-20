@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import DateComponent from '../molecules/date-component/date-component'
 import Image from "next/image";
 import facebook from "../../../../public/facebook.svg";
@@ -12,43 +12,123 @@ import EstablishedGoalsTimeline from './EstablishedGoalsTimeline';
 import { useSearchParams } from 'next/navigation';
 import { useCampaigns } from '../../../utils/CampaignsContext';
 import { parseApiDate } from '../../../../components/Options';
+import ig from "../../../../public/ig.svg";
+import TheTradeDesk from "../../../../public/TheTradeDesk.svg";
+import Quantcast from "../../../../public/quantcast.svg";
+import google from "../../../../public/social/google.svg";
+import x from "../../../../public/x.svg";
+import linkedin from "../../../../public/linkedin.svg";
+import Display from "../../../../public/Display.svg";
+import yahoo from "../../../../public/yahoo.svg";
+import bing from "../../../../public/bing.svg";
+import tictok from "../../../../public/tictok.svg";
 
+// Types for platforms and channels
+type IPlatform = {
+	name: string;
+	icon: any;
+	style?: string;
+	mediaOptions?: any[];
+	isExpanded?: boolean;
+};
+type IChannel = {
+	title: string;
+	platforms: IPlatform[];
+	style?: string;
+};
+const platformIcons = {
+	Facebook: facebook,
+	Instagram: ig,
+	YouTube: youtube,
+	TheTradeDesk: TheTradeDesk,
+	Quantcast: Quantcast,
+	Google: google,
+	"Twitter/X": x,
+	LinkedIn: linkedin,
+	TikTok: tictok,
+	"Display & Video": Display,
+	Yahoo: yahoo,
+	Bing: bing,
+	"Apple Search": google,
+	"The Trade Desk": TheTradeDesk,
+	QuantCast: Quantcast,
+};
+
+const getPlatformIcon = (platformName: string | number) => {
+	return platformIcons[platformName] || null;
+};
 const TimelineView = () => {
+	const [channels, setChannels] = useState<IChannel[]>([]);
 	const searchParams = useSearchParams();
 	const campaignId = searchParams.get("campaignId");
 	const {
 		updateCampaign,
 		campaignData,
 		getActiveCampaign,
-		clientCampaignData
+		campaignFormData,
+		clientCampaignData,
 	} = useCampaigns();
-
-
-
-
 	const { range } = useDateRange();
+
+
+	console.log('channels-channels', campaignFormData)
+
 	const dateList = eachDayOfInterval({
 		start: range.startDate,
 		end: range.endDate,
 	});
 
-	// useEffect(() => {
-	// 	if (campaignId) {
-	// 		getActiveCampaign(campaignId);
-	// 	}
-	// }, [campaignId]);
+	useEffect(() => {
+		if (campaignId) {
+			getActiveCampaign(campaignId);
+		}
+	}, [campaignId, getActiveCampaign]);
 
+	useEffect(() => {
+		if (campaignFormData?.channel_mix) {
+			const newChannels = campaignFormData.funnel_stages
+				.map((stageName) => {
+					const stage = campaignFormData.channel_mix.find(
+						(chan) => chan.funnel_stage === stageName
+					);
+					if (!stage) return null;
 
+					return [
+						{
+							title: "Social media",
+							platforms: stage.social_media?.map((platform) => ({
+								name: platform.platform_name,
+								icon: getPlatformIcon(platform.platform_name),
+							})),
+							style: "max-w-[150px] w-full h-[52px]",
+						},
+						{
+							title: "Display Networks",
+							platforms: stage.display_networks?.map((platform) => ({
+								name: platform.platform_name,
+								icon: getPlatformIcon(platform.platform_name),
+							})),
+							style: "max-w-[200px] w-full",
+						},
+						{
+							title: "Search Engines",
+							platforms: stage.search_engines?.map((platform) => ({
+								name: platform.platform_name,
+								icon: getPlatformIcon(platform.platform_name),
+							})),
+							style: "max-w-[180px] w-full",
+						},
+					];
+				})
+				.flat()
+				.filter(Boolean); // Flatten array and remove null values
 
-	// const fromDate = parseApiDate(campaignData?.campaign_timeline_start_date);
-	// const toDate = parseApiDate(campaignData?.campaign_timeline_end_date);
-
-
-	// const funnelsData = [
-	// 	{ startWeek: fromDate?.day, endWeek: toDate?.day, label: "Campaign 1" },
-	// 	// { startWeek: 3, endWeek: 5, label: "Campaign 2" },
-	// 	// { startWeek: 3, endWeek: 5, label: "Campaign 2" },
-	// ];
+			// **Fix: Prevent re-render loop**
+			if (JSON.stringify(channels) !== JSON.stringify(newChannels)) {
+				setChannels(newChannels);
+			}
+		}
+	}, [campaignFormData]); // 🚨 Removed `channels` from dependencies
 
 	const mapCampaignsToFunnels = (campaigns: any[]) => {
 		return campaigns.map((campaign, index) => {
@@ -62,11 +142,12 @@ const TimelineView = () => {
 			};
 		});
 	};
+
 	const funnelsData = mapCampaignsToFunnels(clientCampaignData);
 
 	return (
 		<div
-			className="w-full min-h-[494px] relative "
+			className="w-full min-h-[494px] relative"
 			style={{
 				backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
 				backgroundSize: `calc(100% / ${dateList.length}) 100%`,
@@ -78,9 +159,7 @@ const TimelineView = () => {
 
 			<EstablishedGoalsTimeline dateList={dateList} funnels={funnelsData} />
 		</div>
-	)
-}
+	);
+};
 
-export default TimelineView
-
-
+export default TimelineView;

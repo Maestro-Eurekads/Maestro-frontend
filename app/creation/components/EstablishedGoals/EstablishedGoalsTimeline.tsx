@@ -16,7 +16,7 @@ const EstablishedGoalsTimeline = ({ dateList, funnels }) => {
 	const [openSections, setOpenSections] = useState({});
 
 	// Function to toggle campaign dropdown
-	const toggleShow = (index, section, platform) => {
+	const toggleShow = (index: any, section: string, platform: string) => {
 		const key = `${index}-${section}-${platform}`;
 		setExpanded((prev) => ({
 			...prev,
@@ -25,7 +25,7 @@ const EstablishedGoalsTimeline = ({ dateList, funnels }) => {
 	};
 
 	// Function to toggle Awareness/Consideration/Conversion dropdowns
-	const toggleOpen = (index, section) => {
+	const toggleOpen = (index: any, section: string) => {
 		setOpenSections((prev) => ({
 			...prev,
 			[`${index}-${section}`]: !prev[`${index}-${section}`],

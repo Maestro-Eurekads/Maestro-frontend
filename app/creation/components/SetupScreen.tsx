@@ -7,26 +7,57 @@ import ClientSelection from "../../../components/ClientSelection";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import ClientSelectionInput from "../../../components/ClientSelectionInput";
 import Checkbox from "../../../components/Checkbox";
+import { removeKeysRecursively } from "utils/removeID";
+import AlertMain from "components/Alert/AlertMain";
+import { SVGLoader } from "components/SVGLoader";
+import { useVerification, validationRules } from "app/utils/VerificationContext";
 
 export const SetupScreen = () => {
   const {
-    state,
-    dispatch,
-    loadingClients,
-    allClients,
+    createCampaign,
+    updateCampaign,
+    campaignData,
     campaignFormData,
+    allClients,
+    cId,
+    getActiveCampaign,
     setCampaignFormData,
   } = useCampaigns();
   const { client_selection } = campaignFormData;
   const [isEditing, setIsEditing] = useState(true);
   const [selectedOption, setSelectedOption] = useState("percentage");
+  const [previousValidationState, setPreviousValidationState] = useState(null);
+  const [isStepZeroValid, setIsStepZeroValid] = useState(false); //   Track form validity
   const [clientOptions, setClientOptions] = useState([]);
   const [level1Options, setlevel1Options] = useState([]);
   const [level2Options, setlevel2Options] = useState([]);
   const [level3Options, setlevel3Options] = useState([]);
+  const [requiredFields, setRequiredFields] = useState<string[]>([]);
+
+  const [alert, setAlert] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const { verifyStep } = useVerification();
+
+  useEffect(() => {
+    const isValid = validationRules["Define campaign objective"](campaignData);
+
+    // Only call verifyStep if the validation status has changed
+    if (isValid !== previousValidationState) {
+      verifyStep("Define campaign objective", isValid);
+      setPreviousValidationState(isValid);
+    }
+  }, [campaignData]);
 
 
- 
+  //  Automatically reset alert after showing
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 3000); // Reset after 3 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
+
 
   useEffect(() => {
     if (allClients) {
@@ -70,7 +101,7 @@ export const SetupScreen = () => {
     }));
   }, [client_selection]);
 
- 
+
 
   const getInputValue = () => {
     if (selectedOption === "fix-amount") {
@@ -98,9 +129,7 @@ export const SetupScreen = () => {
     { value: "Nigerian Naira (NGN)", label: "Nigerian Naira (NGN)" },
     { value: "Japanese Yen (JPY)", label: "Japanese Yen (JPY)" },
     {
-
-      value: "Canadian Dollar (CAD)",
-      label: "Canadian Dollar (CAD)",
+      value: "Canadian Dollar (CAD)", label: "Canadian Dollar (CAD)",
     },
   ];
 
@@ -108,7 +137,114 @@ export const SetupScreen = () => {
     { value: "Tooling", label: "Tooling" },
     { value: "Fix budget fee", label: "Fix budget fee" },
   ];
+  const updateCampaignData = async (data: any) => {
+    await updateCampaign(data);
+    await getActiveCampaign(data);
+  };
+  const cleanData = removeKeysRecursively(campaignData, [
+    "id",
+    "documentId",
+    "createdAt",
+    "publishedAt",
+    "updatedAt",
+  ]);
 
+
+  useEffect(() => {
+    setIsStepZeroValid(prev => !prev);  // Toggle state
+    setTimeout(() => setIsStepZeroValid(requiredFields.every(field => field)), 0);
+  }, [campaignFormData, cId]);
+
+
+
+
+  useEffect(() => {
+    let fields = [];
+
+    if (cId) {
+      //   Editing an existing campaign
+      fields = [
+        campaignFormData?.client_selection?.value,
+        campaignFormData?.media_plan,
+        campaignFormData?.approver,
+        campaignFormData?.budget_details_currency?.id,
+        campaignFormData?.budget_details_fee_type?.id,
+        campaignFormData?.budget_details_value,
+      ];
+    } else {
+      //   Creating a new campaign
+      fields = [
+        campaignFormData?.client_selection?.id,
+        campaignFormData?.level_1?.id,
+        campaignFormData?.level_2?.id,
+        campaignFormData?.media_plan,
+        campaignFormData?.approver,
+      ];
+    }
+
+    //   Store fields for reference
+    setRequiredFields(fields);
+
+    //   Enable button if ANY field is changed (not necessarily filled)
+    setIsStepZeroValid(fields.some((field) => field !== undefined && field !== ""));
+  }, [campaignFormData, cId]); //   Re-run only when form data changes
+
+
+
+
+  //   Validation handler
+  const handleStepZero = async () => {
+    setLoading(true);
+    try {
+      if (!isStepZeroValid) {
+        setAlert({
+          variant: "error",
+          message: "Please complete all required fields before proceeding.",
+          position: "bottom-right",
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (cId && campaignData) {
+        // Updating an existing campaign
+        await updateCampaign({
+          ...removeKeysRecursively(campaignData, ["id", "documentId", "createdAt", "publishedAt", "updatedAt"]),
+          client: campaignFormData?.client_selection?.id,
+          client_selection: {
+            client: campaignFormData?.client_selection?.value,
+            level_1: campaignFormData?.level_1?.id,
+            level_2: campaignFormData?.level_2?.id,
+            level_3: campaignFormData?.level_3?.id,
+          },
+          media_plan_details: {
+            plan_name: campaignFormData?.media_plan,
+            internal_approver: campaignFormData?.approver,
+          },
+          budget_details: {
+            currency: campaignFormData?.budget_details_currency?.id,
+            fee_type: campaignFormData?.budget_details_fee_type?.id,
+            sub_fee_type: campaignFormData?.budget_details_sub_fee_type,
+            value: campaignFormData?.budget_details_value,
+          },
+        });
+        setAlert({ variant: "success", message: "Campaign updated successfully!", position: "bottom-right" });
+      } else {
+        // Creating a new campaign
+        const res = await createCampaign();
+        const url = new URL(window.location.href);
+        url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
+        window.history.pushState({}, "", url.toString());
+        await getActiveCampaign(res?.data?.data.documentId);
+        setAlert({ variant: "success", message: "Campaign created successfully!", position: "bottom-right" });
+      }
+    } catch (error) {
+      console.error("Error in handleStepZero:", error);
+      setAlert({ variant: "error", message: "Something went wrong. Please try again.", position: "bottom-right" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div>
@@ -129,7 +265,8 @@ export const SetupScreen = () => {
           </button>
         )} */}
       {/* </div> */}
-
+      {/* Show Alert */}
+      {alert && <AlertMain alert={alert} />}
       <div className="mt-[42px]">
         <Title>Client selection</Title>
         <div>
@@ -225,7 +362,7 @@ export const SetupScreen = () => {
               </div>
             )}
             {/* Display the selected value */}
-            <div className="w-[150px]">
+            <div className="w-full">
               <ClientSelectionInput
                 label={getInputValue()}
                 isEditing={isEditing}
@@ -235,19 +372,19 @@ export const SetupScreen = () => {
           </div>
         </div>
       </div>
-      {/* <div className="flex justify-end pr-6 mt-[20px]">
-        {isEditing ? (
+      {/*   BUTTON - Enabled only when required fields are filled */}
+      {isStepZeroValid && (
+        <div className="flex justify-end pr-6 mt-[20px]">
           <button
-            disabled={businessLevel.length === 0}
-            onClick={() => setIsEditing(false)}
-            className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg bg-[#3175FF] text-white font-semibold text-base leading-6 disabled:opacity-50 hover:bg-[#2557D6] transition-colors"
+            onClick={handleStepZero}
+            className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg text-white font-semibold text-base leading-6 transition-colors bg-[#3175FF] hover:bg-[#2557D6]"
           >
-            Validate
+            {loading ? <SVGLoader width="30px" height="30px" color="#FFF" /> : "Validate"}
           </button>
-        ) : (
-          ""
-        )}
-      </div> */}
+        </div>)}
+
     </div>
   );
 };
+
+

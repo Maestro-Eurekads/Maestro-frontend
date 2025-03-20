@@ -292,8 +292,8 @@ const ObjectiveSelection = () => {
   return (
     <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
       <Toaster position="top-right" reverseOrder={false} />
-      {campaignFormData?.funnel_stages.map((stageName, stageIndex) => {
-        const stage = funnelStages.find((s) => s.name === stageName);
+      {campaignFormData?.funnel_stages?.map((stageName, stageIndex) => {
+        const stage = funnelStages?.find((s) => s?.name === stageName);
         if (!stage) return null;
         return (
           <div key={stageIndex} className="w-full">
