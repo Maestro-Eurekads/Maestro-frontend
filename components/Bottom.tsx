@@ -238,14 +238,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const handleStepFour = async () => {
       if (!campaignData) return;
-      await updateCampaignData({
-        ...cleanData,
-        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, ["id"]),
-      });
-    };
-
-    const handleStepFour = async () => {
-      if (!campaignData) return;
 
       await updateCampaignData({
         ...cleanData,
