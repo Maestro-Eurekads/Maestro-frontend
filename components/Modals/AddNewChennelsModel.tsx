@@ -222,7 +222,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen }) => {
 																	: 'bg-[#3175FF] opacity-50'
 																	}`}
 															>
-																Submitted
+																Submit
 															</button>
 														</div>
 													</>
