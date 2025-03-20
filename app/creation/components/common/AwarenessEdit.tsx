@@ -153,8 +153,6 @@ const AwarenessEdit = ({
       return stage;
     });
 
-    // console.log(updatedChannelMix)
-    // Update the campaignFormData state
     setUpdatedData((prev) => ({
       ...prev,
       channel_mix: updatedChannelMix,
@@ -208,6 +206,30 @@ const AwarenessEdit = ({
     }));
   };
 
+  // Custom styles for react-select to prevent overflow issues
+  const customSelectStyles = {
+    control: (provided) => ({
+      ...provided,
+      backgroundColor: "white",
+      padding: "4px",
+      border: "1px solid #D1D5DB",
+      borderRadius: "0.8rem",
+      cursor: "pointer",
+      minWidth: "150px",
+      width: "100%",
+    }),
+    menu: (provided) => ({
+      ...provided,
+      zIndex: 9999,
+      width: "auto",
+      minWidth: "150px",
+    }),
+    menuPortal: (base) => ({
+      ...base,
+      zIndex: 9999,
+    }),
+  };
+
   return (
     <div className="flex items-start flex-col gap-6">
       {/* Awareness */}
@@ -234,11 +256,10 @@ const AwarenessEdit = ({
         <div className="flex gap-4 w-full">
           <div className="flex justify-between gap-4 w-full">
             {/* First row - Static buttons */}
-            <div className="flex gap-4 items-start justify-between overflow-x-auto">
+            <div className="flex gap-4 items-start overflow-x-auto pb-4">
               {sm_data?.map((sm: any, index: number) => (
-                <div className="shrink-0 flex flex-col gap-4">
+                <div key={`${stageName}-sm-${index}`} className="shrink-0 flex flex-col gap-4">
                   <div
-                    key={`${stageName}${index}`}
                     className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit"
                   >
                     <div className="flex items-center gap-2">
@@ -280,18 +301,10 @@ const AwarenessEdit = ({
                         )
                       }
                       placeholder="Buy Objective"
-                      styles={{
-                        control: (provided) => ({
-                          ...provided,
-                          backgroundColor: "white",
-                          padding: "4px",
-                          border: "1px solid #D1D5DB",
-                          borderRadius: "0.8rem",
-                          cursor: "pointer",
-                          minWidth: "fit",
-                          zIndex: 200
-                        }),
-                      }}
+                      styles={customSelectStyles}
+                      menuPosition="fixed"
+                      menuPlacement="auto"
+                      menuPortalTarget={document.body}
                     />
                   </div>
                   <div className="flex gap-4 items-center">
@@ -310,17 +323,10 @@ const AwarenessEdit = ({
                         )
                       }
                       placeholder="Buy Type"
-                      styles={{
-                        control: (provided) => ({
-                          ...provided,
-                          backgroundColor: "white",
-                          padding: "4px",
-                          border: "1px solid #D1D5DB",
-                          borderRadius: "0.8rem",
-                          cursor: "pointer",
-                          minWidth: "fit",
-                        }),
-                      }}
+                      styles={customSelectStyles}
+                      menuPosition="fixed"
+                      menuPlacement="auto"
+                      menuPortalTarget={document.body}
                     />
                   </div>
                 </div>
@@ -345,21 +351,20 @@ const AwarenessEdit = ({
         <div className="flex gap-4 w-full h-full">
           <div className="flex justify-between gap-4 w-full">
             {/* First row - Static buttons */}
-            <div className="flex gap-4 items-start justify-between">
-              {dn_data?.map((sm, index) => (
-                <div className="flex flex-col gap-4">
+            <div className="flex gap-4 items-start overflow-x-auto pb-4">
+              {dn_data?.map((dn, index) => (
+                <div key={`${stageName}-dn-${index}`} className="shrink-0 flex flex-col gap-4">
                   <div
-                    key={`${stageName}${index}`}
                     className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit"
                   >
                     <div className="flex items-center gap-2">
                       <Image
-                        src={getPlatformIcon(sm?.platform_name)}
+                        src={getPlatformIcon(dn?.platform_name)}
                         className="size-4"
-                        alt="facebook"
+                        alt="display"
                       />
                       <span className="text-[#061237] font-semibold whitespace-nowrap">
-                        {sm?.platform_name}
+                        {dn?.platform_name}
                       </span>
                     </div>
                     <Image
@@ -368,7 +373,7 @@ const AwarenessEdit = ({
                       className="cursor-pointer"
                       onClick={() =>
                         handleRemovePlatform(
-                          sm?.platform_name,
+                          dn?.platform_name,
                           "Display networks",
                           stageName
                         )
@@ -379,11 +384,11 @@ const AwarenessEdit = ({
                     <Select
                       options={buyObjectiveOptions}
                       value={buyObjectiveOptions.find(
-                        (option) => option.value === sm?.objective_type
+                        (option) => option.value === dn?.objective_type
                       )}
                       onChange={(selectedOption) =>
                         handleSelectOption(
-                          sm?.platform_name,
+                          dn?.platform_name,
                           selectedOption?.value,
                           "Display networks",
                           stageName,
@@ -391,28 +396,21 @@ const AwarenessEdit = ({
                         )
                       }
                       placeholder="Buy Objective"
-                      styles={{
-                        control: (provided) => ({
-                          ...provided,
-                          backgroundColor: "white",
-                          padding: "4px",
-                          border: "1px solid #D1D5DB",
-                          borderRadius: "0.8rem",
-                          cursor: "pointer",
-                          minWidth: "fit",
-                        }),
-                      }}
+                      styles={customSelectStyles}
+                      menuPosition="fixed"
+                      menuPlacement="auto"
+                      menuPortalTarget={document.body}
                     />
                   </div>
                   <div className="flex gap-4 items-center">
                     <Select
                       options={buyTypeOptions}
                       value={buyTypeOptions.find(
-                        (option) => option.value === sm?.buy_type
+                        (option) => option.value === dn?.buy_type
                       )}
                       onChange={(selectedOption) =>
                         handleSelectOption(
-                          sm?.platform_name,
+                          dn?.platform_name,
                           selectedOption?.value,
                           "Display networks",
                           stageName,
@@ -420,17 +418,10 @@ const AwarenessEdit = ({
                         )
                       }
                       placeholder="Buy Type"
-                      styles={{
-                        control: (provided) => ({
-                          ...provided,
-                          backgroundColor: "white",
-                          padding: "4px",
-                          border: "1px solid #D1D5DB",
-                          borderRadius: "0.8rem",
-                          cursor: "pointer",
-                          minWidth: "fit",
-                        }),
-                      }}
+                      styles={customSelectStyles}
+                      menuPosition="fixed"
+                      menuPlacement="auto"
+                      menuPortalTarget={document.body}
                     />
                   </div>
                 </div>
@@ -455,21 +446,20 @@ const AwarenessEdit = ({
         <div className="flex gap-4 w-full h-full">
           <div className="flex justify-between gap-4 w-full">
             {/* First row - Static buttons */}
-            <div className="flex gap-4 items-start justify-between">
-              {se_data?.map((sm, index) => (
-                <div className="flex flex-col gap-4">
+            <div className="flex gap-4 items-start overflow-x-auto pb-4">
+              {se_data?.map((se, index) => (
+                <div key={`${stageName}-se-${index}`} className="shrink-0 flex flex-col gap-4">
                   <div
-                    key={`${stageName}${index}`}
                     className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit"
                   >
                     <div className="flex items-center gap-2">
                       <Image
-                        src={getPlatformIcon(sm?.platform_name)}
+                        src={getPlatformIcon(se?.platform_name)}
                         className="size-4"
-                        alt="facebook"
+                        alt="search"
                       />
                       <span className="text-[#061237] font-semibold whitespace-nowrap">
-                        {sm?.platform_name}
+                        {se?.platform_name}
                       </span>
                     </div>
                     <Image
@@ -478,7 +468,7 @@ const AwarenessEdit = ({
                       className="cursor-pointer"
                       onClick={() =>
                         handleRemovePlatform(
-                          sm?.platform_name,
+                          se?.platform_name,
                           "Search engines",
                           stageName
                         )
@@ -489,11 +479,11 @@ const AwarenessEdit = ({
                     <Select
                       options={buyObjectiveOptions}
                       value={buyObjectiveOptions.find(
-                        (option) => option.value === sm?.objective_type
+                        (option) => option.value === se?.objective_type
                       )}
                       onChange={(selectedOption) =>
                         handleSelectOption(
-                          sm?.platform_name,
+                          se?.platform_name,
                           selectedOption?.value,
                           "Search engines",
                           stageName,
@@ -501,28 +491,21 @@ const AwarenessEdit = ({
                         )
                       }
                       placeholder="Buy Objective"
-                      styles={{
-                        control: (provided) => ({
-                          ...provided,
-                          backgroundColor: "white",
-                          padding: "4px",
-                          border: "1px solid #D1D5DB",
-                          borderRadius: "0.8rem",
-                          cursor: "pointer",
-                          minWidth: "fit",
-                        }),
-                      }}
+                      styles={customSelectStyles}
+                      menuPosition="fixed"
+                      menuPlacement="auto"
+                      menuPortalTarget={document.body}
                     />
                   </div>
                   <div className="flex gap-4 items-center">
                     <Select
                       options={buyTypeOptions}
                       value={buyTypeOptions.find(
-                        (option) => option.value === sm?.buy_type
+                        (option) => option.value === se?.buy_type
                       )}
                       onChange={(selectedOption) =>
                         handleSelectOption(
-                          sm?.platform_name,
+                          se?.platform_name,
                           selectedOption?.value,
                           "Search engines",
                           stageName,
@@ -530,17 +513,10 @@ const AwarenessEdit = ({
                         )
                       }
                       placeholder="Buy Type"
-                      styles={{
-                        control: (provided) => ({
-                          ...provided,
-                          backgroundColor: "white",
-                          padding: "4px",
-                          border: "1px solid #D1D5DB",
-                          borderRadius: "0.8rem",
-                          cursor: "pointer",
-                          minWidth: "fit",
-                        }),
-                      }}
+                      styles={customSelectStyles}
+                      menuPosition="fixed"
+                      menuPlacement="auto"
+                      menuPortalTarget={document.body}
                     />
                   </div>
                 </div>

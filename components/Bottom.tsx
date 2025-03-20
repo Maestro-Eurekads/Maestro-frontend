@@ -11,14 +11,12 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 import { BiLoader } from "react-icons/bi";
 import { removeKeysRecursively } from "../utils/removeID";
 import { useSelectedDates } from "../app/utils/SelectedDatesContext";
-import { useVerification, validationRules } from "app/utils/VerificationContext";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
 }
 
 const Bottom = ({ setIsOpen }: BottomProps) => {
-  const { validateStep } = useVerification();
   const { active, setActive, subStep, setSubStep } = useActive();
   const { selectedObjectives } = useObjectives();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
@@ -31,9 +29,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
-
-
 
   const {
     createCampaign,
@@ -94,11 +89,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   };
 
   const handleContinue = async () => {
+    let hasError = false;
     setLoading(true);
 
-    let hasError = false;
-
-    // Step 0: Validate "Set up your new campaign"
+    // ✅ Step Zero Validation - Ensure all fields are filled
     if (active === 0) {
       const requiredFields = [
         campaignFormData?.client_selection?.value,
@@ -109,119 +103,71 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         campaignFormData?.budget_details_value,
       ];
 
-      const stepNames = [
-        "Set up your new campaign",
-        "Define campaign objective",
-        "Map funnel stages",
-        "Select channel mix",
-        "Formats selection",
-        "Set buy objectives and types",
-        "Plan campaign schedule",
-        "Configure ad sets and budget",
-        "Establish goals",
-        "Overview of your campaign",
-      ];
+      const filledFields = requiredFields.filter((field) => field);
 
-      const currentStepName = stepNames[active];
-
-      console.log(`Validating step: ${currentStepName}`);
-      console.log("Campaign Form Data:", campaignFormData);
-
-      const isValids = validateStep(currentStepName, campaignFormData);
-      console.log(`Validation result for ${currentStepName}:`, isValids);
-
-      if (!isValids) {
-        setAlert({
-          variant: "error",
-          message: "Please complete all required fields before proceeding!",
-          position: "bottom-right",
-        });
-        // console.error("Validation failed. Missing fields:", campaignFormData);
+      if (filledFields.length > 0 && filledFields.length < requiredFields.length) {
+        setIncompleteFieldsError(true);
         setLoading(false);
         return;
       }
 
-      console.log("Validation passed!");
-      //     const filledFields = requiredFields.filter((field) => field);
-
-      //     if (
-      //       filledFields.length > 0 &&
-      //       filledFields.length < requiredFields.length
-      //     ) {
-      //       setIncompleteFieldsError(true); // Show alert for incomplete fields
-      //       setLoading(false);
-      //       return;
-      //     }
-
-
-      //     if (filledFields.length === 0) {
-      //       SetupyournewcampaignError(true);
-      //       hasError = true;
-      //     }
-      //   }
-      const isValid = requiredFields.every((field) => field !== undefined && field !== null && field !== "");
-
-      if (!isValid) {
+      if (filledFields.length === 0) {
         SetupyournewcampaignError(true);
-        setAlert({
-          variant: "error",
-          message: "Please complete all required fields before proceeding!",
-          position: "bottom-right",
-        });
-        setLoading(false);
-        return; // Stop execution
+        hasError = true;
       }
     }
 
-    // Step 1: Validate "Define campaign objective"
+    // ✅ Step One Validation - Ensure at least one objective is selected
     if (active === 1 && selectedObjectives.length === 0) {
       setTriggerObjectiveError(true);
-      setAlert({
-        variant: "error",
-        message: "Please define a campaign objective before proceeding!",
-        position: "bottom-right",
-      });
-      setLoading(false);
-      return; // Stop execution
+      hasError = true;
     }
 
-    // Step 2: Validate "Map funnel stages"
-    if (active === 2 && (!campaignFormData?.funnel_stages || campaignFormData?.funnel_stages.length === 0)) {
+    // ✅ Step Two Validation - Ensure at least one funnel stage is selected
+    if (active === 2 && campaignFormData?.funnel_stages?.length === 0) {
       setTriggerFunnelError(true);
-      setAlert({
-        variant: "error",
-        message: "Please select at least one funnel stage before continuing!",
-        position: "bottom-right",
-      });
-      setLoading(false);
-      return; // Stop execution
+      hasError = true;
     }
 
-    // Step 7: Validate "Plan campaign schedule"
-    if (active === 7 && (!selectedDates?.to?.day || !selectedDates?.from?.day)) {
+    // ✅ Step Three Validation - Check if at least one channel is validated
+    if (active === 3) {
+      const hasAnyValidatedStage =
+        campaignFormData?.validatedStages &&
+        Object.values(campaignFormData.validatedStages).some(
+          (isValidated) => isValidated === true
+        );
+      if (!hasAnyValidatedStage) {
+        setTriggerChannelMixError(true);
+        hasError = true;
+      }
+    }
+
+    // ✅ Step Four Validation - Ensure at least one format is selected and validated
+    if (active === 4) {
+      const hasValidatedFormats = campaignFormData?.channel_mix?.some(
+        (stage) =>
+          stage.isValidated &&
+          (stage.social_media?.some((platform) => platform.format?.length > 0) ||
+            stage.display_networks?.some((platform) => platform.format?.length > 0) ||
+            stage.search_engines?.some((platform) => platform.format?.length > 0))
+      );
+      if (!hasValidatedFormats) {
+        setTriggerFormatError(true);
+        hasError = true;
+      }
+    }
+
+    // ✅ Step Seven Validation - Ensure dates are selected
+    if (active === 7 && selectedDates?.to?.day === undefined) {
       setSelectedDateslError(true);
-      setAlert({
-        variant: "error",
-        message: "Please choose a start and end date before proceeding!",
-        position: "bottom-right",
-      });
-      setLoading(false);
-      return; // Stop execution
+      hasError = true;
     }
 
-    // Step 3: Validate "Select channel mix" (if needed)
-    // if (active === 3 && (!selectedChannels || Object.keys(selectedChannels).length === 0)) {
-    //   setTriggerChannelMixError(true);
-    //   setAlert({
-    //     variant: "error",
-    //     message: "Please select at least one channel mix before proceeding!",
-    //     position: "bottom-right",
-    //   });
-    //   setLoading(false);
-    //   return; // Stop execution
-    // }
+    if (hasError) {
+      setLoading(false);
+      return;
+    }
 
-    // Process valid steps and update campaign
     const updateCampaignData = async (data: any) => {
       await updateCampaign(data);
       await getActiveCampaign(data);
@@ -235,6 +181,37 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       "updatedAt",
     ]);
 
+    const handleStepZero = async () => {
+      if (cId && campaignData) {
+        await updateCampaignData({
+          ...cleanData,
+          client: campaignFormData?.client_selection?.id,
+          client_selection: {
+            client: campaignFormData?.client_selection?.value,
+            level_1: campaignFormData?.level_1?.id,
+            level_2: campaignFormData?.level_2?.id,
+            level_3: campaignFormData?.level_3?.id,
+          },
+          media_plan_details: {
+            plan_name: campaignFormData?.media_plan,
+            internal_approver: campaignFormData?.approver,
+          },
+          budget_details: {
+            currency: campaignFormData?.budget_details_currency?.id,
+            fee_type: campaignFormData?.budget_details_fee_type?.id,
+            sub_fee_type: campaignFormData?.budget_details_sub_fee_type,
+            value: campaignFormData?.budget_details_value,
+          },
+        });
+      } else {
+        const res = await createCampaign();
+        const url = new URL(window.location.href);
+        url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
+        window.history.pushState({}, "", url.toString());
+        await getActiveCampaign(res?.data?.data.documentId);
+      }
+    };
+
     const handleStepOne = async () => {
       if (!campaignData) return;
       await updateCampaignData({
@@ -242,7 +219,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         campaign_objective: campaignFormData?.campaign_objectives,
       });
     };
-
 
     const handleStepTwo = async () => {
       if (!campaignData) return;
@@ -256,282 +232,80 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       if (!campaignData) return;
       await updateCampaignData({
         ...cleanData,
-        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, ["id", "isValidated"]),
+        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, ["id"]),
       });
     };
 
     const handleStepFour = async () => {
       if (!campaignData) return;
-
       await updateCampaignData({
         ...cleanData,
-        funnel_stages: campaignFormData?.funnel_stages,
-        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
-          "id", "isValidated",
-        ]),
-        campaign_budget: removeKeysRecursively(
-          campaignFormData?.campaign_budget,
-          ["id"]
-        ),
+        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, ["id"]),
       });
     };
 
-    if (active === 1) {
+    if (active === 0) {
+      await handleStepZero();
+    } else if (active === 1) {
       await handleStepOne();
     } else if (active === 2) {
       await handleStepTwo();
-    } else if (active > 2 && subStep < 1) {
+    } else if (active === 3) {
       await handleStepThree();
-    } else if (active > 2 && subStep > 1) {
+    } else if (active === 4) {
       await handleStepFour();
+    } else if (active === 5) {
+      await handleStepThree(); // Assuming step 5 still uses handleStepThree for channel_mix updates
     }
 
-    // Proceed to next step logic
     if (active === 7) {
-      subStep < 1 ? setSubStep((prev) => prev + 1) : setActive((prev) => prev + 1);
+      if (subStep < 1) {
+        setSubStep((prev) => prev + 1);
+      } else {
+        setSubStep(0);
+        setActive((prev) => prev + 1);
+      }
     } else if (active === 8) {
-      subStep < 2 ? setSubStep((prev) => prev + 1) : setActive((prev) => prev + 1);
+      if (subStep < 2) {
+        setSubStep((prev) => prev + 1);
+      } else {
+        setSubStep(0);
+        setActive((prev) => prev + 1);
+      }
     } else {
+      setSubStep(0);
       setActive((prev) => Math.min(10, prev + 1));
     }
 
     setLoading(false);
   };
 
-
-  // const handleContinue = async () => {
-  //   setLoading(true);
-  //   let hasError = false;
-
-  //   // Validate current step based on `active` step
-  //   const validationCheck = [
-  //     validationRules["Set up your new campaign"](campaignFormData), // Step 0
-  //     // validationRules["Define campaign objective"](campaignFormData), // Step 1
-  //     // validationRules["Map funnel stages"](campaignFormData), // Step 2
-  //     // validationRules["Select channel mix"](campaignFormData), // Step 3
-  //     // validationRules["Plan campaign schedule"](campaignFormData), // Step 7
-  //   ];
-
-  //   // If validation fails, show an alert and stop execution
-  //   if (!validationCheck[active]) {
-  //     if (active === 0) setIncompleteFieldsError(true);
-  //     if (active === 1) setTriggerObjectiveError(true);
-  //     if (active === 2) setTriggerFunnelError(true);
-  //     if (active === 7) setSelectedDateslError(true);
-
-  //     setLoading(false);
-  //     return;
-  //   }
-
-  //   const updateCampaignData = async (data: any) => {
-  //     await updateCampaign(data);
-  //     await getActiveCampaign(data);
-  //   };
-
-  //   const cleanData = removeKeysRecursively(campaignData, [
-  //     "id",
-  //     "documentId",
-  //     "createdAt",
-  //     "publishedAt",
-  //     "updatedAt",
-  //   ]);
-
-  //   if (active === 1) {
-  //     await updateCampaignData({
-  //       ...cleanData,
-  //       campaign_objective: campaignFormData?.campaign_objectives,
-  //     });
-  //   } else if (active === 2) {
-  //     await updateCampaignData({
-  //       ...cleanData,
-  //       funnel_stages: campaignFormData?.funnel_stages,
-  //     });
-  //   } else if (active > 2) {
-  //     await updateCampaignData({
-  //       ...cleanData,
-  //       funnel_stages: campaignFormData?.funnel_stages,
-  //       channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, ["id"]),
-  //     });
-  //   }
-
-  //   // Proceed to next step logic
-  //   if (active === 7) {
-  //     subStep < 1 ? setSubStep((prev) => prev + 1) : setActive((prev) => prev + 1);
-  //   } else if (active === 8) {
-  //     subStep < 2 ? setSubStep((prev) => prev + 1) : setActive((prev) => prev + 1);
-  //   } else {
-  //     setActive((prev) => Math.min(10, prev + 1));
-  //   }
-
-  //   setLoading(false);
-  // };
-
-
-  // const handleContinue = async () => {
-  //   let hasError = false;
-  //   setLoading(true);
-
-  //   if (active === 0) {
-  //     const requiredFields = [
-  //       campaignFormData?.client_selection?.value,
-  //       campaignFormData?.media_plan,
-  //       campaignFormData?.approver,
-  //       campaignFormData?.budget_details_currency?.id,
-  //       campaignFormData?.budget_details_fee_type?.id,
-  //       campaignFormData?.budget_details_value,
-  //     ];
-
-  //     const filledFields = requiredFields.filter((field) => field);
-
-  //     if (
-  //       filledFields.length > 0 &&
-  //       filledFields.length < requiredFields.length
-  //     ) {
-  //       setIncompleteFieldsError(true); // Show alert for incomplete fields
-  //       setLoading(false);
-  //       return;
-  //     }
-
-
-  //     if (filledFields.length === 0) {
-  //       SetupyournewcampaignError(true);
-  //       hasError = true;
-  //     }
-  //   }
-  //   if (active === 1 && selectedObjectives.length === 0) {
-  //     setTriggerObjectiveError(true);
-  //     hasError = true;
-  //   }
-
-  //   if (active === 2 && campaignFormData?.funnel_stages?.length === 0) {
-  //     setTriggerFunnelError(true);
-  //     hasError = true;
-  //   }
-  //   if (active === 7 && selectedDates?.to?.day === undefined) {
-  //     setSelectedDateslError(true);
-  //     hasError = true;
-  //   }
-
-  //   // if (active === 3 && (!selectedChannels || Object.keys(selectedChannels).length === 0)) {
-  //   //   setTriggerChannelMixError(true);
-  //   //   hasError = true;
-  //   // }
-
-  //   if (hasError) {
-  //     setLoading(false);
-  //     return;
-  //   }
-  //   const updateCampaignData = async (data: any) => {
-  //     await updateCampaign(data);
-  //     await getActiveCampaign(data);
-  //   };
-
-
-
-  //   const cleanData = removeKeysRecursively(campaignData, [
-  //     "id",
-  //     "documentId",
-  //     "createdAt",
-  //     "publishedAt",
-  //     "updatedAt",
-  //   ]);
-
-
-  //   const handleStepOne = async () => {
-  //     if (!campaignData) return;
-  //     await updateCampaignData({
-  //       ...cleanData,
-  //       campaign_objective: campaignFormData?.campaign_objectives,
-  //     });
-  //   };
-
-  //   const handleStepTwo = async () => {
-  //     if (!campaignData) return;
-
-  //     await updateCampaignData({
-  //       ...cleanData,
-  //       funnel_stages: campaignFormData?.funnel_stages,
-  //     });
-  //   };
-
-  //   const handleStepThree = async () => {
-  //     if (!campaignData) return;
-
-  //     await updateCampaignData({
-  //       ...cleanData,
-  //       funnel_stages: campaignFormData?.funnel_stages,
-  //       channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
-  //         "id",
-  //       ]),
-  //     });
-  //   };
-
-  //   if (active === 1) {
-  //     await handleStepOne();
-  //   } else if (active === 2) {
-  //     await handleStepTwo();
-  //   } else if (active > 2) {
-  //     await handleStepThree();
-  //   }
-  //   // if (active === 0) {
-  //   //   await handleStepZero();
-  //   // } else if (active === 1) {
-  //   //   await handleStepOne();
-  //   // } else if (active === 2) {
-  //   //   await handleStepTwo();
-  //   // } else if (active > 2) {
-  //   //   await handleStepThree();
-  //   // }
-
-  //   if (active === 7) {
-  //     if (subStep < 1) {
-  //       setSubStep((prev) => prev + 1);
-  //     } else {
-  //       setSubStep(0);
-  //       setActive((prev) => prev + 1);
-  //     }
-  //   } else if (active === 8) {
-  //     if (subStep < 2) {
-  //       setSubStep((prev) => prev + 1);
-  //     } else {
-  //       setSubStep(0);
-  //       setActive((prev) => prev + 1);
-  //     }
-  //   } else {
-  //     setSubStep(0);
-  //     setActive((prev) => Math.min(10, prev + 1));
-  //   }
-
-  //   setLoading(false);
-  // };
-
   return (
     <footer id="footer" className="w-full">
-      {alert && <AlertMain alert={alert} />}
       {/* Show alert only when needed */}
-      {/* {setupyournewcampaignError && (
+      {setupyournewcampaignError && (
         <AlertMain
           alert={{
-            variant: "info",
-            message: "Please set up your new campaign!",
+            variant: "error",
+            message: "Set up your new campaign cannot be empty!",
             position: "bottom-right",
           }}
         />
-      )} */}
-      {/* Show alert when some fields are filled but not all */}
-      {/* {incompleteFieldsError && (
+      )}
+      {incompleteFieldsError && (
         <AlertMain
           alert={{
-            variant: "info",
+            variant: "error",
             message: "All fields must be filled before proceeding!",
             position: "bottom-right",
           }}
         />
-      )} */}
+      )}
+
       {triggerObjectiveError && (
         <AlertMain
           alert={{
-            variant: "info",
+            variant: "error",
             message: "Please select at least one campaign objective!",
             position: "bottom-right",
           }}
@@ -540,7 +314,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       {triggerFunnelError && (
         <AlertMain
           alert={{
-            variant: "info",
+            variant: "error",
             message: "Please select at least one funnel stage!",
             position: "bottom-right",
           }}
@@ -622,8 +396,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                   {active === 0
                     ? "Start Creating"
                     : isHovered
-                      ? "Next Step"
-                      : "Continue"}
+                    ? "Next Step"
+                    : "Continue"}
                 </p>
                 <Image src={Continue} alt="Continue" />
               </>
