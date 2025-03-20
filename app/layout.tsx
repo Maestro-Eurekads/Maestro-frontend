@@ -12,6 +12,7 @@ import { Suspense } from "react";
 import { SelectedDatesProvider } from "./utils/SelectedDatesContext";
 import { CampaignSelectionProvider } from "./utils/CampaignSelectionContext";
 import NewProvider from "./provider";
+import { ToastContainer } from "react-toastify";
 
 
 
@@ -58,6 +59,7 @@ export default function RootLayout({
                       <EditingProvider>
                         <ObjectivesProvider>
                           <FunnelProvider>
+                            <ToastContainer/>
                             {children}
                           </FunnelProvider>
                         </ObjectivesProvider>

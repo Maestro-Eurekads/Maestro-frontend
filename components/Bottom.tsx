@@ -244,18 +244,32 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       });
     };
 
+    const handleStepFour = async () => {
+      if (!campaignData) return;
+
+      await updateCampaignData({
+        ...cleanData,
+        funnel_stages: campaignFormData?.funnel_stages,
+        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+          "id",
+        ]),
+        campaign_budget: removeKeysRecursively(
+          campaignFormData?.campaign_budget,
+          ["id"]
+        ),
+      });
+    };
+
     if (active === 0) {
       await handleStepZero();
     } else if (active === 1) {
       await handleStepOne();
     } else if (active === 2) {
       await handleStepTwo();
-    } else if (active === 3) {
+    } else if (active > 2 && subStep < 1) {
       await handleStepThree();
-    } else if (active === 4) {
+    } else if (active > 2 && subStep > 1) {
       await handleStepFour();
-    } else if (active === 5) {
-      await handleStepThree(); // Assuming step 5 still uses handleStepThree for channel_mix updates
     }
 
     if (active === 7) {
