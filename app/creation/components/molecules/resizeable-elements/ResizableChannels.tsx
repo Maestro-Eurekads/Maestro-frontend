@@ -4,12 +4,14 @@ import { MdDragHandle } from "react-icons/md";
 import reddelete from "../../../../../public/red-delete.svg";
 import Image from "next/image";
 import { useFunnelContext } from "../../../../utils/FunnelContextType";
+import whiteplus from "../../../../../public/white-plus.svg";
 
 const ResizableChannels = ({
   channels: initialChannels,
   parentId,
   parentWidth,
   parentLeft,
+  setIsOpen,
 }) => {
   console.log("🚀 ~ ResizableChannels ~ parentWidth:", parentWidth);
   const { funnelWidths } = useFunnelContext(); // Get parent widths
@@ -135,6 +137,20 @@ const ResizableChannels = ({
 
   return (
     <div className="open_channel_btn_container">
+      {parentWidth < 350 && (
+        <button
+          className="channel-btn-blue mt-[12px] mb-[12px] relative w-fit"
+          onClick={() => {
+            setIsOpen(true);
+          }}
+          style={{
+            left: `${channelState[0]?.left || parentLeft}px`,
+          }}
+        >
+          <Image src={whiteplus || "/placeholder.svg"} alt="whiteplus" />
+          <p className="whitespace-nowrap">Add new channel</p>
+        </button>
+      )}
       {channels.map((channel, index) => (
         <div key={channel.name} className="relative w-full h-12">
           <div
