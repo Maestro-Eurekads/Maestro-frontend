@@ -40,7 +40,7 @@ export const SetupScreen = () => {
 
   const { verifyStep, verifybeforeMove, setverifybeforeMove } = useVerification();
 
-  console.log('verifybeforeMove-verifybeforeMove', verifybeforeMove)
+
 
   useEffect(() => {
     const isValid = validationRules["step0"](campaignData);
