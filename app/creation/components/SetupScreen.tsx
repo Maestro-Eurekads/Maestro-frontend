@@ -79,6 +79,7 @@ export const SetupScreen = () => {
       window.removeEventListener("focus", resetChanges);
     };
   }, []);
+
   //  Automatically reset alert after showing
   useEffect(() => {
     if (alert) {
@@ -273,7 +274,6 @@ export const SetupScreen = () => {
       // After verification, set step0 to false
       setverifybeforeMove((prev: any) => {
         if (!Array.isArray(prev)) {
-          console.error("setverifybeforeMove: Expected an array, got", prev);
           return prev; // Return as is if it's not an array
         }
 

@@ -14,8 +14,10 @@ const Table = () => {
   const { setSelectedCampaignId } = useCampaignSelection(); // ✅ Use context
   const router = useRouter();
 
+  console.log('clientCampaignData', clientCampaignData)
+
   return (
-    <div className="table-container mt-[20px] rounded-[8px] overflow-x-auto">
+    <div className="table-container mt-[20px] rounded-[8px] overflow-x-scroll">
       <table>
         <thead>
           <tr>
@@ -24,8 +26,8 @@ const Table = () => {
             <th className="py-[12px] px-[16px]">Progress</th>
             <th className="py-[12px] px-[16px]">Status</th>
             <th className="py-[12px] px-[16px]">Budget</th>
-            <th className="py-[12px] px-[16px]">Made by</th>
-            <th className="py-[12px] px-[16px]">Approved by</th>
+            <th className="py-[12px] px-[16px] whitespace-nowrap">Made by</th>
+            <th className="py-[12px] px-[16px] whitespace-nowrap">Approved by</th>
             <th className="py-[12px] px-[16px]">Actions</th>
           </tr>
         </thead>
@@ -64,7 +66,7 @@ const Table = () => {
                 <td className="py-[12px] px-[16px]">
                   <div className="flex items-center whitespace-nowrap gap-3">
                     <div className="view_content_table">MD</div>
-                    Maxime Brevet
+                    {data?.responsible}
                   </div>
                 </td>
                 <td className="py-[12px] px-[16px]">

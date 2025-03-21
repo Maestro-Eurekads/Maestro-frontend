@@ -29,14 +29,7 @@ const Dashboard = () => {
 		"Canadian Dollar (CAD)": "C$"
 	};
 
-	const {
-		clientCampaignData,
-		loading
-	} = useCampaigns();
-
-
-
-
+	const { clientCampaignData, loading } = useCampaigns();
 
 
 	const mapCampaignsToFunnels = (campaigns: any[]) => {

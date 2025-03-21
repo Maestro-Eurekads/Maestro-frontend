@@ -73,7 +73,7 @@ export const getCreateClient = createAsyncThunk<
   { rejectValue: string[] }
 >('client/getCreateClient', async (data, thunkAPI) => {
   try {
-    const response = await clientService.getCreateClient(data);
+    const response = await clientService.getCreateClient( );
     return response;
   } catch (error: unknown) {
     if (typeof error === 'object' && error !== null && 'response' in error) {

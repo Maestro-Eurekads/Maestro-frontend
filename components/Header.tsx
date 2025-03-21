@@ -14,36 +14,42 @@ import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 const Header = ({ setIsOpen }) => {
   const { loadingClients, allClients, setClientCampaignData, setLoading } = useCampaigns();
   const [selected, setSelected] = useState("");
-  const { fetchClientCampaign } = useCampaignHook();
+  const { fetchClientCampaign, refresh, fetchAllClients, setRefresh } = useCampaignHook();
+
 
   useEffect(() => {
-    if (allClients) {
-      setLoading(true);
-      if (selected === "") {
-        fetchClientCampaign(allClients[0]?.id)
-          .then((res) => {
-            setClientCampaignData(res?.data?.data);
-          })
-          .catch((err)=>{
-            console.log("err", err)
-          })
-          .finally(() => {
-            setLoading(false);
-          });
-      } else {
-        fetchClientCampaign(selected)
-          .then((res) => {
-            setClientCampaignData(res?.data?.data);
-          })
-          .catch((err)=>{
-            console.log("err", err)
-          })
-          .finally(() => {
-            setLoading(false);
-          });
-      }
-    }
+    fetchAllClients();
+    const timer = setTimeout(() => {
+      setRefresh(false);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [refresh]);
+
+
+
+  useEffect(() => {
+    if (!allClients || allClients.length === 0) return; // Ensure allClients exists and is not empty
+
+    setLoading(true);
+    let isMounted = true; // Prevent setting state after unmount
+
+    const clientId = selected || allClients[0]?.id; // Use selected client ID or default to the first client
+    if (!clientId) return setLoading(false); // If no valid client ID, stop loading
+
+    fetchClientCampaign(clientId)
+      .then((res) => {
+        if (isMounted) setClientCampaignData(res?.data?.data);
+      })
+      .catch((err) => console.error("Error fetching client campaigns:", err))
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false; // Cleanup function to avoid memory leaks
+    };
   }, [selected, allClients]);
+
 
   return (
     <div id="header">
@@ -55,29 +61,9 @@ const Header = ({ setIsOpen }) => {
             <p>Loading clients...</p>
           </div>
         )}
-        {/* {!loadingClients && (
-          <select
-            name=""
-            id=""
-            className="bg-[#F7F7F7] border border-[#EFEFEF] rounded-[8px] py-[8px] px-[16px] outline-none text-[#061237] font-semibold text-[16px] min-w-[60px]"
-            onChange={(e) => {
-              setSelected(e.target.value);
-            }}
-          >
-            {!loadingClients &&
-              allClients &&
-              allClients
-                ?.filter((c) => c?.client_name)
-                ?.map((cl) => (
-                  <option key={cl?.id} value={cl?.id}>
-                    {cl?.client_name}
-                  </option>
-                ))}
-          </select>
-        )} */}
+
         <AllClientsCustomDropdown setSelected={setSelected} selected={selected} allClients={allClients} loadingClients={loadingClients} />
         <button className="client_btn_text whitespace-nowrap" onClick={() => setIsOpen(true)}>
-          {" "}
           <Image src={plus} alt="plus" />
           New Client
         </button>
