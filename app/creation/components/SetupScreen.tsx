@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Title } from "../../../components/Title";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import ClientSelection from "../../../components/ClientSelection";
@@ -33,23 +33,52 @@ export const SetupScreen = () => {
   const [level2Options, setlevel2Options] = useState([]);
   const [level3Options, setlevel3Options] = useState([]);
   const [requiredFields, setRequiredFields] = useState<string[]>([]);
+  const [hasChanges, setHasChanges] = useState(false);
 
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const { verifyStep } = useVerification();
+  const { verifyStep, verifybeforeMove, setverifybeforeMove } = useVerification();
+
+  console.log('verifybeforeMove-verifybeforeMove', verifybeforeMove)
 
   useEffect(() => {
-    const isValid = validationRules["Define campaign objective"](campaignData);
-
-    // Only call verifyStep if the validation status has changed
+    const isValid = validationRules["step0"](campaignData);
     if (isValid !== previousValidationState) {
-      verifyStep("Define campaign objective", isValid);
+      verifyStep("step0", isValid, cId);
       setPreviousValidationState(isValid);
     }
-  }, [campaignData]);
+  }, [campaignData, previousValidationState, verifyStep]);
+
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
+
+  useEffect(() => {
+    const storedState = localStorage.getItem("verifybeforeMove");
+    if (storedState) {
+      setverifybeforeMove(JSON.parse(storedState));
+    }
+  }, [setverifybeforeMove]);
+
+  useEffect(() => {
+    localStorage.setItem("verifybeforeMove", JSON.stringify(verifybeforeMove));
+  }, [verifybeforeMove]);
 
 
+  useEffect(() => {
+    const resetChanges = () => {
+      setHasChanges(false);
+    };
+
+    window.addEventListener("focus", resetChanges);
+    return () => {
+      window.removeEventListener("focus", resetChanges);
+    };
+  }, []);
   //  Automatically reset alert after showing
   useEffect(() => {
     if (alert) {
@@ -114,13 +143,6 @@ export const SetupScreen = () => {
 
 
 
-  const businessLevel = [
-    { value: "Marketing division", label: "Marketing division" },
-    { value: "Digital campaigns", label: "Digital campaigns" },
-    { value: "Product launch", label: "Product launch" },
-  ];
-
-
 
   const selectCurrency = [
     { value: "US Dollar (USD)", label: "US Dollar (USD)" },
@@ -128,9 +150,7 @@ export const SetupScreen = () => {
     { value: "British Pound (GBP)", label: "British Pound (GBP)" },
     { value: "Nigerian Naira (NGN)", label: "Nigerian Naira (NGN)" },
     { value: "Japanese Yen (JPY)", label: "Japanese Yen (JPY)" },
-    {
-      value: "Canadian Dollar (CAD)", label: "Canadian Dollar (CAD)",
-    },
+    { value: "Canadian Dollar (CAD)", label: "Canadian Dollar (CAD)" },
   ];
 
   const mediaBudgetPercentage = [
@@ -192,7 +212,6 @@ export const SetupScreen = () => {
 
 
 
-  //   Validation handler
   const handleStepZero = async () => {
     setLoading(true);
     try {
@@ -206,8 +225,8 @@ export const SetupScreen = () => {
         return;
       }
 
+      // Perform API operations
       if (cId && campaignData) {
-        // Updating an existing campaign
         await updateCampaign({
           ...removeKeysRecursively(campaignData, ["id", "documentId", "createdAt", "publishedAt", "updatedAt"]),
           client: campaignFormData?.client_selection?.id,
@@ -228,9 +247,14 @@ export const SetupScreen = () => {
             value: campaignFormData?.budget_details_value,
           },
         });
+
         setAlert({ variant: "success", message: "Campaign updated successfully!", position: "bottom-right" });
+        // After verification, set step0 to false
+        setverifybeforeMove((prev: any) =>
+          prev.map((step: any) => (step.hasOwnProperty("step0") ? { ...step, step0: true } : step))
+        );
+        setHasChanges(false); // Reset changes tracking
       } else {
-        // Creating a new campaign
         const res = await createCampaign();
         const url = new URL(window.location.href);
         url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
@@ -238,6 +262,13 @@ export const SetupScreen = () => {
         await getActiveCampaign(res?.data?.data.documentId);
         setAlert({ variant: "success", message: "Campaign created successfully!", position: "bottom-right" });
       }
+      setHasChanges(false); // Reset changes tracking
+      // After verification, set step0 to false
+      setverifybeforeMove((prev: any) =>
+        prev.map((step: any) => (step.hasOwnProperty("step0") ? { ...step, step0: true } : step))
+      );
+
+
     } catch (error) {
       console.error("Error in handleStepZero:", error);
       setAlert({ variant: "error", message: "Something went wrong. Please try again.", position: "bottom-right" });
@@ -245,6 +276,7 @@ export const SetupScreen = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div>
@@ -275,6 +307,7 @@ export const SetupScreen = () => {
             label={"Select Client"}
             isEditing={isEditing}
             formId="client_selection"
+            setHasChanges={setHasChanges}
           />
         </div>
         <div className="flex items-center flex-wrap gap-4 pb-12">
@@ -283,6 +316,7 @@ export const SetupScreen = () => {
             label={"Parameter Level 1"}
             isEditing={isEditing}
             formId="level_1"
+            setHasChanges={setHasChanges}
           />
 
           <ClientSelection
@@ -290,12 +324,14 @@ export const SetupScreen = () => {
             label={"Parameter Level 2"}
             isEditing={isEditing}
             formId="level_2"
+            setHasChanges={setHasChanges}
           />
           <ClientSelection
             options={level3Options}
             label={"Parameter Level 3"}
             isEditing={isEditing}
             formId="level_3"
+            setHasChanges={setHasChanges}
           />
         </div>
         <div className=" pb-12">
@@ -326,12 +362,14 @@ export const SetupScreen = () => {
               label={"Select currency"}
               isEditing={isEditing}
               formId="budget_details_currency"
+              setHasChanges={setHasChanges}
             />
             <ClientSelection
               options={mediaBudgetPercentage}
               label={"% of media budget"}
               isEditing={isEditing}
               formId="budget_details_fee_type"
+              setHasChanges={setHasChanges}
             />
             {campaignFormData?.budget_details_fee_type?.id === "Tooling" && (
               <div className="flex gap-6 mt-[20px]">
@@ -373,15 +411,18 @@ export const SetupScreen = () => {
         </div>
       </div>
       {/*   BUTTON - Enabled only when required fields are filled */}
-      {isStepZeroValid && (
+
+      {hasChanges && (
         <div className="flex justify-end pr-6 mt-[20px]">
           <button
             onClick={handleStepZero}
             className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg text-white font-semibold text-base leading-6 transition-colors bg-[#3175FF] hover:bg-[#2557D6]"
           >
-            {loading ? <SVGLoader width="30px" height="30px" color="#FFF" /> : "Validate"}
+            {loading ? <SVGLoader width="30px" height="30px" color="#FFF" /> : "Verify"}
           </button>
-        </div>)}
+        </div>
+      )}
+
 
     </div>
   );
