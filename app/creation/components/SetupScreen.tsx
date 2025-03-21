@@ -250,9 +250,16 @@ export const SetupScreen = () => {
 
         setAlert({ variant: "success", message: "Campaign updated successfully!", position: "bottom-right" });
         // After verification, set step0 to false
-        setverifybeforeMove((prev: any) =>
-          prev.map((step: any) => (step.hasOwnProperty("step0") ? { ...step, step0: true } : step))
-        );
+        setverifybeforeMove((prev: any) => {
+          if (!Array.isArray(prev)) {
+            console.error("setverifybeforeMove: Expected an array, got", prev);
+            return prev; // Return as is if it's not an array
+          }
+
+          return prev.map((step: any) =>
+            step.hasOwnProperty("step0") ? { ...step, step0: true } : step
+          );
+        });
         setHasChanges(false); // Reset changes tracking
       } else {
         const res = await createCampaign();
@@ -264,9 +271,16 @@ export const SetupScreen = () => {
       }
       setHasChanges(false); // Reset changes tracking
       // After verification, set step0 to false
-      setverifybeforeMove((prev: any) =>
-        prev.map((step: any) => (step.hasOwnProperty("step0") ? { ...step, step0: true } : step))
-      );
+      setverifybeforeMove((prev: any) => {
+        if (!Array.isArray(prev)) {
+          console.error("setverifybeforeMove: Expected an array, got", prev);
+          return prev; // Return as is if it's not an array
+        }
+
+        return prev.map((step: any) =>
+          step.hasOwnProperty("step0") ? { ...step, step0: true } : step
+        );
+      });
 
 
     } catch (error) {
