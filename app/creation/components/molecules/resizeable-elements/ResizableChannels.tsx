@@ -28,6 +28,53 @@ const ResizableChannels = ({
 
   const [dragging, setDragging] = useState(null);
 
+  const [draggingPosition, setDraggingPosition] = useState(null);
+
+  const handleDragStart = (index) => (event) => {
+    event.preventDefault();
+    setDraggingPosition({
+      index,
+      startX: event.clientX,
+      startLeft: channelState[index].left,
+    });
+  };
+
+  useEffect(() => {
+    if (draggingPosition === null) return;
+
+    const handleDragMove = (event) => {
+      event.preventDefault();
+      const { index, startX, startLeft } = draggingPosition;
+      const deltaX = event.clientX - startX;
+
+      setChannelState((prev) =>
+        prev.map((state, i) => {
+          if (i !== index) return state;
+
+          let newLeft = startLeft + deltaX;
+
+          // Restrict movement within parent boundaries
+          const maxLeft = parentLeft + parentWidth - state.width;
+          newLeft = Math.max(parentLeft, Math.min(newLeft, maxLeft));
+
+          return { ...state, left: newLeft };
+        })
+      );
+    };
+
+    const handleDragEnd = () => {
+      setDraggingPosition(null);
+    };
+
+    document.addEventListener("mousemove", handleDragMove);
+    document.addEventListener("mouseup", handleDragEnd);
+
+    return () => {
+      document.removeEventListener("mousemove", handleDragMove);
+      document.removeEventListener("mouseup", handleDragEnd);
+    };
+  }, [draggingPosition, parentLeft, parentWidth]);
+
   const handleMouseDown = (index, direction) => (event) => {
     event.preventDefault();
     setDragging({ index, direction, startX: event.clientX });
@@ -65,27 +112,6 @@ const ResizableChannels = ({
 
   useEffect(() => {
     if (!dragging) return;
-
-    // const handleMouseMove = (event) => {
-    //   event.preventDefault()
-    //   const { index, direction, startX } = dragging
-    //   const deltaX = event.clientX - startX
-
-    //   setChannelState((prev) =>
-    //     prev.map((state, i) => {
-    //       if (i !== index) return state
-
-    //       const newWidth =
-    //         direction === "left"
-    //           ? Math.max(150, Math.min(state.width - deltaX, parentWidth)) // Ensure it stays within parent width
-    //           : Math.max(150, Math.min(state.width + deltaX, parentWidth))
-
-    //       return { ...state, width: newWidth }
-    //     }),
-    //   )
-
-    //   setDragging((prev) => ({ ...prev, startX: event.clientX }))
-    // }
 
     const handleMouseMove = (event) => {
       event.preventDefault();
@@ -154,7 +180,7 @@ const ResizableChannels = ({
       {channels.map((channel, index) => (
         <div key={channel.name} className="relative w-full h-12">
           <div
-            className="absolute top-0 h-full flex justify-center items-center text-white px-4 gap-2 border shadow-md min-w-[150px]"
+            className="absolute top-0 h-full flex justify-center items-center text-white px-4 gap-2 border shadow-md min-w-[150px] cursor-move"
             style={{
               left: `${channelState[index]?.left || parentLeft}px`,
               width: `${channelState[index]?.width || 150}px`,
@@ -163,6 +189,7 @@ const ResizableChannels = ({
               borderColor: channel.color,
               borderRadius: "10px",
             }}
+            onMouseDown={handleDragStart(index)}
           >
             <div className="flex items-center gap-3">
               <Image

@@ -5,6 +5,8 @@ import { MdDragHandle, MdOutlineKeyboardArrowDown } from "react-icons/md";
 import Image from "next/image";
 import icroundadd from "../public/ic_round-add.svg";
 import { useFunnelContext } from "../app/utils/FunnelContextType";
+import { useCampaigns } from "app/utils/CampaignsContext";
+import moment from "moment";
 
 interface DraggableChannelProps {
   id: string;
@@ -46,14 +48,18 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     direction: "left" | "right";
   } | null>(null);
   const isDragging = useRef<{ startX: number; startPos: number } | null>(null);
+  const { campaignFormData, setCampaignFormData } = useCampaigns();
 
   const pixelToDate = (pixel: number, containerWidth: number) => {
     const startDate = dateList[0]; // First date in the range
-    const endDate = dateList[dateList.length - 1]; // Last date in range
-    const totalDays = dateList.length; // Number of days in the grid
+    const totalDays = dateList.length - 1; // Use totalDays - 1 to match grid intervals
 
-    // Calculate the corresponding day
-    const dayIndex = Math.round((pixel / containerWidth) * totalDays);
+    // Convert pixel to date index
+    const dayIndex = Math.min(
+      totalDays,
+      Math.max(0, Math.round((pixel / containerWidth) * totalDays))
+    );
+
     const calculatedDate = new Date(startDate);
     calculatedDate.setDate(startDate.getDate() + dayIndex);
 
@@ -145,6 +151,23 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     // Convert pixel positions to dates
     const startDate = pixelToDate(startPixel, containerRect.width);
     const endDate = pixelToDate(endPixel, containerRect.width);
+
+    const updatedChannelMix = campaignFormData?.channel_mix?.find(
+      (ch) => ch?.funnel_stage === description
+    );
+
+    if (updatedChannelMix) {
+      updatedChannelMix["funnel_stage_timeline_start_date"] = moment(startDate).format("YYYY-MM-DD");
+      updatedChannelMix["funnel_stage_timeline_end_date"] = moment(endDate).format("YYYY-MM-DD");
+      setCampaignFormData((prev) => ({
+      ...prev,
+      channel_mix: prev.channel_mix.map((ch) =>
+        ch.funnel_stage === description ? updatedChannelMix : ch
+      ),
+      }));
+    }
+
+    console.log({ startDate, endDate });
     setParentLeft(newPosition);
     setPosition(newPosition);
   };
