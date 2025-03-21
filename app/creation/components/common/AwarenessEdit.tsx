@@ -278,7 +278,21 @@ const AwarenessEdit = ({
       ...base,
       zIndex: 9999,
     }),
+    option: (provided, state) => ({
+      ...provided,
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      padding: '8px 12px',
+    }),
   };
+
+  const formatOptionLabel = ({ value, label, icon }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <Image src={icon} alt={label} width={16} height={16} />
+      <span>{label}</span>
+    </div>
+  );
 
   return (
     <div className="flex items-start flex-col gap-6">
@@ -386,6 +400,7 @@ const AwarenessEdit = ({
                   onChange={(option) => handleChannelSelect(option, "Social media")}
                   placeholder="Select Channel"
                   styles={customSelectStyles}
+                  formatOptionLabel={formatOptionLabel}
                   menuPosition="fixed"
                   menuPlacement="auto"
                   menuPortalTarget={document.body}
@@ -489,6 +504,7 @@ const AwarenessEdit = ({
                   onChange={(option) => handleChannelSelect(option, "Display networks")}
                   placeholder="Select Channel"
                   styles={customSelectStyles}
+                  formatOptionLabel={formatOptionLabel}
                   menuPosition="fixed"
                   menuPlacement="auto"
                   menuPortalTarget={document.body}
@@ -592,6 +608,7 @@ const AwarenessEdit = ({
                   onChange={(option) => handleChannelSelect(option, "Search engines")}
                   placeholder="Select Channel"
                   styles={customSelectStyles}
+                  formatOptionLabel={formatOptionLabel}
                   menuPosition="fixed"
                   menuPlacement="auto"
                   menuPortalTarget={document.body}
