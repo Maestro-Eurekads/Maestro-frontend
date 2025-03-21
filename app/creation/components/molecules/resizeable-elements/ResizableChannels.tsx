@@ -5,9 +5,11 @@ import reddelete from '../../../../../public/red-delete.svg';
 import Image from "next/image";
 import { useFunnelContext } from "../../../../utils/FunnelContextType";
 
-const ResizableChannels = ({ channels, parentId }) => {
+const ResizableChannels = ({ channels: initialChannels, parentId }) => {
 	const { funnelWidths } = useFunnelContext(); // Get parent widths
 	const parentWidth = funnelWidths[parentId] || 400; // Default to 400px if not found
+
+	const [channels, setChannels] = useState(initialChannels);
 
 	// Initialize child width based on available parent space
 	const [channelState, setChannelState] = useState(
@@ -19,6 +21,11 @@ const ResizableChannels = ({ channels, parentId }) => {
 	const handleMouseDown = (index, direction) => (event) => {
 		event.preventDefault();
 		setDragging({ index, direction, startX: event.clientX });
+	};
+
+	const handleDeleteChannel = (indexToDelete) => {
+		setChannels(channels.filter((_, index) => index !== indexToDelete));
+		setChannelState(channelState.filter((_, index) => index !== indexToDelete));
 	};
 
 	// Ensure child width does not exceed parent when the parent resizes
@@ -109,7 +116,10 @@ const ResizableChannels = ({ channels, parentId }) => {
 						onMouseDown={handleMouseDown(index, "right")}
 					>
 						<MdDragHandle className="rotate-90" />
-						<button className="delete-resizeableBar">
+						<button 
+							className="delete-resizeableBar"
+							onClick={() => handleDeleteChannel(index)}
+						>
 							<Image src={reddelete} alt="reddelete" />
 						</button>
 					</div>
