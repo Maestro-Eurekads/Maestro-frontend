@@ -12,6 +12,7 @@ const ResizableChannels = ({
   parentWidth,
   parentLeft,
   setIsOpen,
+  dateList
 }) => {
   console.log("🚀 ~ ResizableChannels ~ parentWidth:", parentWidth);
   const { funnelWidths } = useFunnelContext(); // Get parent widths
@@ -29,6 +30,22 @@ const ResizableChannels = ({
   const [dragging, setDragging] = useState(null);
 
   const [draggingPosition, setDraggingPosition] = useState(null);
+
+  const pixelToDate = (pixel: number, containerWidth: number) => {
+    const startDate = dateList[0]; // First date in the range
+    const totalDays = dateList.length - 1; // Use totalDays - 1 to match grid intervals
+
+    // Convert pixel to date index
+    const dayIndex = Math.min(
+      totalDays,
+      Math.max(0, Math.round((pixel / containerWidth) * totalDays))
+    );
+
+    const calculatedDate = new Date(startDate);
+    calculatedDate.setDate(startDate.getDate() + dayIndex);
+
+    return calculatedDate;
+  };
 
   const handleDragStart = (index) => (event) => {
     event.preventDefault();
@@ -113,40 +130,39 @@ const ResizableChannels = ({
   useEffect(() => {
     if (!dragging) return;
 
-    const handleMouseMove = (event) => {
-      event.preventDefault();
-      const { index, direction, startX } = dragging;
-      let deltaX = event.clientX - startX;
-
-      setChannelState((prev) =>
-        prev.map((state, i) => {
-          if (i !== index) return state;
-
-          let newWidth;
-          if (direction === "left") {
-            newWidth = Math.max(
-              150,
-              Math.min(
-                state.width - deltaX,
-                parentWidth - (state.left - parentLeft)
-              )
-            );
-          } else {
-            newWidth = Math.max(
-              150,
-              Math.min(
-                state.width + deltaX,
-                parentWidth - (state.left - parentLeft)
-              )
-            );
-          }
-
-          return { ...state, width: newWidth };
-        })
-      );
-
-      setDragging((prev) => ({ ...prev, startX: event.clientX }));
-    };
+	const handleMouseMove = (event) => {
+		event.preventDefault();
+		const { index, direction, startX } = dragging;
+		let deltaX = event.clientX - startX;
+	  
+		setChannelState((prev) =>
+		  prev.map((state, i) => {
+			if (i !== index) return state;
+	  
+			let newLeft = state.left;
+			let newWidth = state.width;
+	  
+			if (direction === "left") {
+			  // Move the left side while keeping the right side fixed
+			  newLeft = Math.max(parentLeft, state.left + deltaX);
+			  newWidth = Math.max(150, state.width - deltaX);
+			} else {
+			  // Move the right side, increasing width
+			  newWidth = Math.max(150, state.width + deltaX);
+			}
+	  
+			// Restrict movement within parent boundaries
+			if (newLeft + newWidth > parentLeft + parentWidth) {
+			  newWidth = parentLeft + parentWidth - newLeft;
+			}
+	  
+			return { ...state, left: newLeft, width: newWidth };
+		  })
+		);
+	  
+		setDragging((prev) => ({ ...prev, startX: event.clientX }));
+	  };
+	  
 
     const handleMouseUp = () => {
       setDragging(null);

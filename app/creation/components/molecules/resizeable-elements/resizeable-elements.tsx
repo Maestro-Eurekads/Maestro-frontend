@@ -222,6 +222,7 @@ const ResizeableElements = () => {
                     parentWidth={currentChannelWidth} // Use channel-specific width
                     parentLeft={currentChannelPosition} // Pass parent's left position
                     setIsOpen={setIsOpen}
+                    dateList={range}
                   />
                 </div>
               )}

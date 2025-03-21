@@ -110,6 +110,29 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       newWidth = maxX - newPos;
     }
 
+    // Convert pixel positions to dates
+    const startDate = pixelToDate(newPos, containerRect.width);
+    const endDate = pixelToDate(newPos + newWidth, containerRect.width);
+
+    const updatedChannelMix = campaignFormData?.channel_mix?.find(
+      (ch) => ch?.funnel_stage === description
+    );
+
+    if (updatedChannelMix) {
+      updatedChannelMix["funnel_stage_timeline_start_date"] =
+        moment(startDate).format("YYYY-MM-DD");
+      updatedChannelMix["funnel_stage_timeline_end_date"] =
+        moment(endDate).format("YYYY-MM-DD");
+      setCampaignFormData((prev) => ({
+        ...prev,
+        channel_mix: prev.channel_mix.map((ch) =>
+          ch.funnel_stage === description ? updatedChannelMix : ch
+        ),
+      }));
+    }
+
+    console.log({ startDate, endDate });
+
     setParentWidth(newWidth);
     setParentLeft(newPos);
     setPosition(newPos);
@@ -157,13 +180,15 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     );
 
     if (updatedChannelMix) {
-      updatedChannelMix["funnel_stage_timeline_start_date"] = moment(startDate).format("YYYY-MM-DD");
-      updatedChannelMix["funnel_stage_timeline_end_date"] = moment(endDate).format("YYYY-MM-DD");
+      updatedChannelMix["funnel_stage_timeline_start_date"] =
+        moment(startDate).format("YYYY-MM-DD");
+      updatedChannelMix["funnel_stage_timeline_end_date"] =
+        moment(endDate).format("YYYY-MM-DD");
       setCampaignFormData((prev) => ({
-      ...prev,
-      channel_mix: prev.channel_mix.map((ch) =>
-        ch.funnel_stage === description ? updatedChannelMix : ch
-      ),
+        ...prev,
+        channel_mix: prev.channel_mix.map((ch) =>
+          ch.funnel_stage === description ? updatedChannelMix : ch
+        ),
       }));
     }
 
