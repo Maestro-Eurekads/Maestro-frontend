@@ -279,11 +279,25 @@ const FormatSelection = () => {
     if (isStageValid(stageName)) {
       const updatedValidatedStages = { ...validatedStages, [stageName]: true };
       setValidatedStages(updatedValidatedStages);
-      setOpenTabs((prev) => prev.filter((tab) => tab !== stageName));
+      
+      // Keep the current stage open after validation
+      setOpenTabs((prev) => [...prev]);
+      
       setCampaignFormData((prev) => ({
         ...prev,
         validatedStages: updatedValidatedStages,
       }));
+
+      // Preserve expanded platforms state
+      setExpandedPlatforms((prev) => {
+        const newState = { ...prev };
+        Object.keys(prev).forEach((key) => {
+          if (key.startsWith(`${stageName}-`)) {
+            newState[key] = prev[key];
+          }
+        });
+        return newState;
+      });
     }
   };
 
