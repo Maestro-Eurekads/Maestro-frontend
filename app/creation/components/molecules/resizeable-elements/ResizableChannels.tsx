@@ -1,92 +1,122 @@
-"use client";
-import React, { useState, useEffect } from "react";
-import { MdDragHandle } from "react-icons/md";
-import reddelete from "../../../../../public/red-delete.svg";
-import Image from "next/image";
-import { useFunnelContext } from "../../../../utils/FunnelContextType";
+"use client"
+import { useState, useEffect } from "react"
+import { MdDragHandle } from "react-icons/md"
+import reddelete from "../../../../../public/red-delete.svg"
+import Image from "next/image"
+import { useFunnelContext } from "../../../../utils/FunnelContextType"
 
-const ResizableChannels = ({
-  channels,
-  parentId,
-  dragConstraints,
-  parentWidth,
-}) => {
-  const { funnelWidths } = useFunnelContext(); // Get parent widths
+const ResizableChannels = ({ channels: initialChannels, parentId, parentWidth, parentLeft }) => {
+  console.log("🚀 ~ ResizableChannels ~ parentWidth:", parentWidth)
+  const { funnelWidths } = useFunnelContext() // Get parent widths
 
-  // Initialize child width based on available parent space
+  const [channels, setChannels] = useState(initialChannels)
+
+  // Initialize child width based on available parent space and position
   const [channelState, setChannelState] = useState(
-    channels.map(() => ({ left: 0, width: Math.min(150, parentWidth) })) // Ensure initial width fits
-  );
+    channels.map(() => ({
+      left: parentLeft, // Start at parent's left position
+      width: Math.min(150, parentWidth),
+    })),
+  )
 
-  const [dragging, setDragging] = useState(null);
+  const [dragging, setDragging] = useState(null)
 
   const handleMouseDown = (index, direction) => (event) => {
-	event.preventDefault();
-	setDragging({ index, direction, startX: event.clientX });
-  };
+    event.preventDefault()
+    setDragging({ index, direction, startX: event.clientX })
+  }
+
+  const handleDeleteChannel = (indexToDelete) => {
+    setChannels(channels.filter((_, index) => index !== indexToDelete))
+    setChannelState(channelState.filter((_, index) => index !== indexToDelete))
+  }
+
+  // Update channel positions when parent position changes
+  useEffect(() => {
+	setChannelState((prev) =>
+	  prev.map((state) => ({
+		...state,
+		left: parentLeft,
+		width: Math.min(state.width, parentWidth - (state.left - parentLeft)), // Ensure it fits within the new parent width
+	  }))
+	);
+  }, [parentLeft, parentWidth]);
   
 
-  // Ensure child width does not exceed parent when the parent resizes
+  // Update channel state when initialChannels changes
   useEffect(() => {
-    setChannelState((prev) =>
-      prev.map((state) => ({
-        ...state,
-        width: Math.min(state.width, parentWidth), // Adjust width if it exceeds parent
-      }))
-    );
-  }, [parentWidth]); // React to parent width changes
+    if (initialChannels && initialChannels.length > 0) {
+      setChannels(initialChannels)
+      // Initialize new channels with parent's position
+      setChannelState(
+        initialChannels.map(() => ({
+          left: parentLeft,
+          width: Math.min(150, parentWidth),
+        })),
+      )
+    }
+  }, [initialChannels, parentLeft, parentWidth])
 
   useEffect(() => {
-    if (!dragging) return;
+    if (!dragging) return
+
+    // const handleMouseMove = (event) => {
+    //   event.preventDefault()
+    //   const { index, direction, startX } = dragging
+    //   const deltaX = event.clientX - startX
+
+    //   setChannelState((prev) =>
+    //     prev.map((state, i) => {
+    //       if (i !== index) return state
+
+    //       const newWidth =
+    //         direction === "left"
+    //           ? Math.max(150, Math.min(state.width - deltaX, parentWidth)) // Ensure it stays within parent width
+    //           : Math.max(150, Math.min(state.width + deltaX, parentWidth))
+
+    //       return { ...state, width: newWidth }
+    //     }),
+    //   )
+
+    //   setDragging((prev) => ({ ...prev, startX: event.clientX }))
+    // }
 
 	const handleMouseMove = (event) => {
 		event.preventDefault();
-		if (!dragging || !dragConstraints) return;
-	  
 		const { index, direction, startX } = dragging;
-		const deltaX = event.clientX - startX;
-	  
-		// 🔥 Get parent boundary values
-		const { left: minX, right: maxX } = dragConstraints;
+		let deltaX = event.clientX - startX;
 	  
 		setChannelState((prev) =>
 		  prev.map((state, i) => {
 			if (i !== index) return state;
 	  
-			let newLeft = state.left;
-			let newWidth = state.width;
-	  
+			let newWidth;
 			if (direction === "left") {
-			  // Shrinking from the left
-			  newLeft = Math.max(0, state.left + deltaX);
-			  newWidth = Math.max(50, state.width - deltaX); // Ensure min width of 150px
+			  newWidth = Math.max(150, Math.min(state.width - deltaX, parentWidth - (state.left - parentLeft)));
 			} else {
-			  // Expanding from the right
-			  newWidth = Math.min(state.width + deltaX, maxX - minX - state.left); // Ensure it doesn’t exceed parent
+			  newWidth = Math.max(150, Math.min(state.width + deltaX, parentWidth - (state.left - parentLeft)));
 			}
 	  
-			return { ...state, left: newLeft, width: newWidth };
+			return { ...state, width: newWidth };
 		  })
 		);
 	  
 		setDragging((prev) => ({ ...prev, startX: event.clientX }));
 	  };
 	  
-    console.log("channelState", channelState);
 
     const handleMouseUp = () => {
-      setDragging(null);
-    };
+      setDragging(null)
+    }
 
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener("mousemove", handleMouseMove)
+    document.addEventListener("mouseup", handleMouseUp)
 
     return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [dragging, parentWidth]); // React when parent width changes
-  
+      document.removeEventListener("mousemove", handleMouseMove)
+      document.removeEventListener("mouseup", handleMouseUp)
+    }
+  }, [dragging, parentWidth]) // React when parent width changes
 
   return (
     <div className="open_channel_btn_container">
@@ -95,8 +125,8 @@ const ResizableChannels = ({
           <div
             className="absolute top-0 h-full flex justify-center items-center text-white px-4 gap-2 border shadow-md min-w-[150px]"
             style={{
-				left: `${channelState[index]?.left || 0}px`, // ✅ Now relative to parent
-				width: `${channelState[index]?.width || 150}px`,
+              left: `${channelState[index]?.left || parentLeft}px`,
+              width: `${channelState[index]?.width || 150}px`,
               backgroundColor: channel.bg,
               color: channel.color,
               borderColor: channel.color,
@@ -104,17 +134,15 @@ const ResizableChannels = ({
             }}
           >
             <div className="flex items-center gap-3">
-              <Image src={channel.icon} alt={channel.icon} />
-              <span className="font-medium whitespace-nowrap">
-                {channel.name}
-              </span>
+              <Image src={channel.icon || "/placeholder.svg"} alt={channel.icon} />
+              <span className="font-medium whitespace-nowrap">{channel.name}</span>
             </div>
           </div>
 
           <div
             className="absolute top-0 w-5 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center"
             style={{
-              left: `${channelState[index]?.left || 0}px`,
+              left: `${channelState[index]?.left || parentLeft}px`,
               backgroundColor: channel.color,
             }}
             onMouseDown={handleMouseDown(index, "left")}
@@ -125,24 +153,21 @@ const ResizableChannels = ({
           <div
             className="absolute top-0 w-5 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center"
             style={{
-              left: `${
-                (channelState[index]?.left || 0) +
-                (channelState[index]?.width || 150) -
-                5
-              }px`,
+              left: `${(channelState[index]?.left || parentLeft) + (channelState[index]?.width || 150) - 5}px`,
               backgroundColor: channel.color,
             }}
             onMouseDown={handleMouseDown(index, "right")}
           >
             <MdDragHandle className="rotate-90" />
-            <button className="delete-resizeableBar">
-              <Image src={reddelete} alt="reddelete" />
+            <button className="delete-resizeableBar" onClick={() => handleDeleteChannel(index)}>
+              <Image src={reddelete || "/placeholder.svg"} alt="reddelete" />
             </button>
           </div>
         </div>
       ))}
     </div>
-  );
-};
+  )
+}
 
-export default ResizableChannels;
+export default ResizableChannels
+

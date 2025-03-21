@@ -16,6 +16,10 @@ interface DraggableChannelProps {
   Icon: React.ReactNode;
   dateList: Date[];
   dragConstraints: any;
+  parentWidth: any;
+  setParentWidth: any;
+  parentLeft: any;
+  setParentLeft: any;
 }
 
 const DraggableChannel: React.FC<DraggableChannelProps> = ({
@@ -28,10 +32,13 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   Icon,
   dateList,
   dragConstraints,
+  parentWidth,
+  setParentWidth,
+  parentLeft,
+  setParentLeft,
 }) => {
   const { funnelWidths, setFunnelWidth } = useFunnelContext();
   const [position, setPosition] = useState(0);
-  const [width, setWidth] = useState(300);
   const isResizing = useRef<{
     startX: number;
     startWidth: number;
@@ -60,7 +67,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     e.preventDefault();
     isResizing.current = {
       startX: e.clientX,
-      startWidth: width,
+      startWidth: parentWidth,
       startPos: position,
       direction,
     };
@@ -83,23 +90,23 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
     // Get container boundaries
     const containerRect = gridContainer.getBoundingClientRect();
-    const minX = 0; // 🔥 Left-most boundary
-    const maxX = containerRect.width; // 🔥 Right-most boundary (grid width)
+    const minX = 0;
+    const maxX = containerRect.width;
 
     if (direction === "left") {
       newWidth = Math.max(150, startWidth - (e.clientX - startX));
-      newPos = Math.max(minX, startPos + (e.clientX - startX)); // 🔥 Ensure it doesn't move left past grid start
+      newPos = Math.max(minX, startPos + (e.clientX - startX));
     } else {
       newWidth = Math.max(150, startWidth + (e.clientX - startX));
     }
 
-    // 🔥 Prevent resizing beyond the right boundary
     if (newPos + newWidth > maxX) {
-      newWidth = maxX - newPos; // Clamp to prevent overflow
+      newWidth = maxX - newPos;
     }
 
-    setWidth(newWidth); // ✅ Update width dynamically
-    setPosition(newPos); // ✅ Update position when resizing from left
+    setParentWidth(newWidth);
+    setParentLeft(newPos);
+    setPosition(newPos);
   };
 
   const handleMouseUp = () => {
@@ -116,38 +123,29 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     document.addEventListener("mousemove", handleMouseMoveDrag);
     document.addEventListener("mouseup", handleMouseUp);
   };
-
   const handleMouseMoveDrag = (e: MouseEvent) => {
     if (!isDragging.current) return;
     const { startX, startPos } = isDragging.current;
 
-    // Get the grid container
     const gridContainer = document.querySelector(
       ".grid-container"
     ) as HTMLElement;
     if (!gridContainer) return;
 
-    // Get container boundaries
     const containerRect = gridContainer.getBoundingClientRect();
     const minX = 0;
-    const maxX = containerRect.width - 45 - width;
+    const maxX = containerRect.width - 45 - parentWidth;
 
-    // Calculate new position
     let newPosition = startPos + (e.clientX - startX);
-
-    // Clamp position within grid
     newPosition = Math.max(minX, Math.min(newPosition, maxX));
-
     // Calculate start and end pixel positions
     const startPixel = newPosition;
-    const endPixel = startPixel + width;
+    const endPixel = startPixel + parentWidth;
 
     // Convert pixel positions to dates
     const startDate = pixelToDate(startPixel, containerRect.width);
     const endDate = pixelToDate(endPixel, containerRect.width);
-
-    console.log("Start Date:", startDate, "End Date:", endDate);
-
+    setParentLeft(newPosition);
     setPosition(newPosition);
   };
 
@@ -167,7 +165,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       {/* Draggable Content */}
       <div
         className="h-full flex justify-between items-center text-white px-4 gap-2 border shadow-md min-w-[150px] cursor-move"
-        style={{ width, backgroundColor: bg }}
+        style={{ width: parentWidth, backgroundColor: bg }}
         onMouseDown={handleMouseDownDrag}
       >
         <div />
@@ -180,7 +178,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           <MdOutlineKeyboardArrowDown />
         </button>
 
-        {width >= 350 ? (
+        {parentWidth >= 350 ? (
           <button
             className="channel-btn"
             onClick={() => {
