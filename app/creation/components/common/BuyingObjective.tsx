@@ -358,15 +358,15 @@ const BuyingObjective = () => {
                   <div
                     className={` ${
                       stageName?.name === "Conversion"
-                        ? "bg-[#FF9037]"
+                        ? "bg-[#FF9037] cursor-pointer"
                         : stageName?.name === "Loyalty"
-                        ? "bg-[#EF5407]"
+                        ? "bg-[#EF5407] cursor-pointer"
                         : stageName?.name === "Awareness"
                         ? "bg-[#0866FF]"
                         : stageName?.name === "Consideration"
                         ? "bg-[#00A36C]"
                         : ""
-                    } rounded-[10px]`}
+                    } rounded-[10px] `}
                     onClick={() => handleLoyaltyButtonClick(stageName?.name)}
                   >
                     <div className="flex items-center justify-center gap-[16px] p-[24px]">

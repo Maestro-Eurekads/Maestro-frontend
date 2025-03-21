@@ -5,7 +5,6 @@ import { ActiveProvider } from "./utils/ActiveContext";
 import { DateRangeProvider } from "../src/date-range-context";
 import { FunnelProvider } from "./utils/FunnelContextType";
 import { ObjectivesProvider } from "./utils/useObjectives";
-import ReduxProvider from "./provider";
 import { CampaignProvider } from "./utils/CampaignsContext";
 import { EditingProvider } from "./utils/EditingContext";
 import { Suspense } from "react";
@@ -13,6 +12,7 @@ import { SelectedDatesProvider } from "./utils/SelectedDatesContext";
 import { CampaignSelectionProvider } from "./utils/CampaignSelectionContext";
 import NewProvider from "./provider";
 import { ToastContainer } from "react-toastify";
+import { VerificationProvider } from "./utils/VerificationContext";
 
 
 
@@ -51,24 +51,26 @@ export default function RootLayout({
       <body className={`${roboto.variable} ${inter.variable} antialiased`}>
         <NewProvider>
           <Suspense>
-            <CampaignSelectionProvider>
-              <CampaignProvider>
-                <DateRangeProvider>
-                  <SelectedDatesProvider>
-                    <ActiveProvider>
-                      <EditingProvider>
-                        <ObjectivesProvider>
-                          <FunnelProvider>
-                            <ToastContainer/>
-                            {children}
-                          </FunnelProvider>
-                        </ObjectivesProvider>
-                      </EditingProvider>
-                    </ActiveProvider>
-                  </SelectedDatesProvider>
-                </DateRangeProvider>
-              </CampaignProvider>
-            </CampaignSelectionProvider>
+            <VerificationProvider>
+              <CampaignSelectionProvider>
+                <CampaignProvider>
+                  <DateRangeProvider>
+                    <SelectedDatesProvider>
+                      <ActiveProvider>
+                        <EditingProvider>
+                          <ObjectivesProvider>
+                            <FunnelProvider>
+                              <ToastContainer />
+                              {children}
+                            </FunnelProvider>
+                          </ObjectivesProvider>
+                        </EditingProvider>
+                      </ActiveProvider>
+                    </SelectedDatesProvider>
+                  </DateRangeProvider>
+                </CampaignProvider>
+              </CampaignSelectionProvider>
+            </VerificationProvider>
           </Suspense>
         </NewProvider>
       </body>

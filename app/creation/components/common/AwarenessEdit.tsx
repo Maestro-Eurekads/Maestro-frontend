@@ -48,10 +48,32 @@ const AwarenessEdit = ({
   const [dropdowns, setDropdowns] = useState({});
   const [values, setValues] = useState({});
   const { campaignFormData, setCampaignFormData } = useCampaigns();
-  const [newChannel, setNewChannel] = useState({
-    show: false,
-    channel: "",
+  const [showChannelSelect, setShowChannelSelect] = useState({
+    "Social media": false,
+    "Display networks": false,
+    "Search engines": false
   });
+
+  const channelOptions = {
+    "Social media": [
+      { value: "Facebook", label: "Facebook", icon: facebook },
+      { value: "Instagram", label: "Instagram", icon: ig },
+      { value: "TikTok", label: "TikTok", icon: tictok },
+      { value: "YouTube", label: "YouTube", icon: youtube },
+      { value: "Twitter/X", label: "Twitter/X", icon: x },
+      { value: "LinkedIn", label: "LinkedIn", icon: linkedin }
+    ],
+    "Display networks": [
+      { value: "The Trade Desk", label: "The Trade Desk", icon: TheTradeDesk },
+      { value: "Quantcast", label: "Quantcast", icon: Quantcast },
+      { value: "Display & Video", label: "Display & Video", icon: Display }
+    ],
+    "Search engines": [
+      { value: "Google", label: "Google", icon: google },
+      { value: "Yahoo", label: "Yahoo", icon: yahoo },
+      { value: "Bing", label: "Bing", icon: bing }
+    ]
+  };
 
   const handleAddBack = () => {
     setIsDeleted(false);
@@ -92,9 +114,7 @@ const AwarenessEdit = ({
     "Display & Video": Display,
     Yahoo: yahoo,
     Bing: bing,
-    "Apple Search": google,
     "The Trade Desk": TheTradeDesk,
-    QuantCast: Quantcast,
   };
 
   const getPlatformIcon = (platformName) => {
@@ -108,11 +128,8 @@ const AwarenessEdit = ({
     stageName: string,
     dropDownName: string
   ) => {
-    console.log({ platformName, option, category, stageName, dropDownName });
-    // Update the campaignFormData with the selected buy type or objective type
     const updatedChannelMix = updatedData.channel_mix.map((stage) => {
       if (stage.funnel_stage === stageName) {
-        console.log({ category });
         const updatedStage = { ...stage };
         if (category === "Social media") {
           updatedStage.social_media = stage.social_media.map((platform) => {
@@ -122,7 +139,6 @@ const AwarenessEdit = ({
                 [dropDownName]: option,
               };
             }
-            console.log(platform);
             return platform;
           });
         } else if (category === "Display networks") {
@@ -153,12 +169,45 @@ const AwarenessEdit = ({
       return stage;
     });
 
-    // console.log(updatedChannelMix)
-    // Update the campaignFormData state
     setUpdatedData((prev) => ({
       ...prev,
       channel_mix: updatedChannelMix,
     }));
+  };
+
+  const handleChannelSelect = (selectedOption, category) => {
+    if (selectedOption) {
+      // Create a new platform object
+      const newPlatform = {
+        platform_name: selectedOption.value,
+        objective_type: "",
+        buy_type: ""
+      };
+
+      // Update the channel mix with the new platform
+      const updatedChannelMix = updatedData.channel_mix.map((stage) => {
+        if (stage.funnel_stage === stageName) {
+          const updatedStage = { ...stage };
+          if (category === "Social media") {
+            updatedStage.social_media = [...(stage.social_media || []), newPlatform];
+          } else if (category === "Display networks") {
+            updatedStage.display_networks = [...(stage.display_networks || []), newPlatform];
+          } else if (category === "Search engines") {
+            updatedStage.search_engines = [...(stage.search_engines || []), newPlatform];
+          }
+          return updatedStage;
+        }
+        return stage;
+      });
+
+      setUpdatedData((prev) => ({
+        ...prev,
+        channel_mix: updatedChannelMix,
+      }));
+
+      // Reset the select dropdown
+      setShowChannelSelect(prev => ({...prev, [category]: false}));
+    }
   };
 
   const handleRemoveStage = (stageName) => {
@@ -208,6 +257,43 @@ const AwarenessEdit = ({
     }));
   };
 
+  const customSelectStyles = {
+    control: (provided) => ({
+      ...provided,
+      backgroundColor: "white",
+      padding: "4px",
+      border: "1px solid #D1D5DB",
+      borderRadius: "0.8rem",
+      cursor: "pointer",
+      minWidth: "150px",
+      width: "100%",
+    }),
+    menu: (provided) => ({
+      ...provided,
+      zIndex: 9999,
+      width: "auto",
+      minWidth: "150px",
+    }),
+    menuPortal: (base) => ({
+      ...base,
+      zIndex: 9999,
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      padding: '8px 12px',
+    }),
+  };
+
+  const formatOptionLabel = ({ value, label, icon }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <Image src={icon} alt={label} width={16} height={16} />
+      <span>{label}</span>
+    </div>
+  );
+
   return (
     <div className="flex items-start flex-col gap-6">
       {/* Awareness */}
@@ -233,19 +319,15 @@ const AwarenessEdit = ({
         <h2 className="font-bold text-[#061237]">Social Media</h2>
         <div className="flex gap-4 w-full">
           <div className="flex justify-between gap-4 w-full">
-            {/* First row - Static buttons */}
-            <div className="flex gap-4 items-start justify-between overflow-x-auto">
+            <div className="flex gap-4 items-start overflow-x-auto pb-4">
               {sm_data?.map((sm: any, index: number) => (
-                <div className="shrink-0 flex flex-col gap-4">
-                  <div
-                    key={`${stageName}${index}`}
-                    className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit"
-                  >
+                <div key={`${stageName}-sm-${index}`} className="shrink-0 flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit">
                     <div className="flex items-center gap-2">
                       <Image
                         src={getPlatformIcon(sm?.platform_name)}
                         className="size-4"
-                        alt="facebook"
+                        alt="platform"
                       />
                       <span className="text-[#061237] font-semibold whitespace-nowrap">
                         {sm?.platform_name}
@@ -280,18 +362,10 @@ const AwarenessEdit = ({
                         )
                       }
                       placeholder="Buy Objective"
-                      styles={{
-                        control: (provided) => ({
-                          ...provided,
-                          backgroundColor: "white",
-                          padding: "4px",
-                          border: "1px solid #D1D5DB",
-                          borderRadius: "0.8rem",
-                          cursor: "pointer",
-                          minWidth: "fit",
-                          zIndex: 200
-                        }),
-                      }}
+                      styles={customSelectStyles}
+                      menuPosition="fixed"
+                      menuPlacement="auto"
+                      menuPortalTarget={document.body}
                     />
                   </div>
                   <div className="flex gap-4 items-center">
@@ -310,30 +384,35 @@ const AwarenessEdit = ({
                         )
                       }
                       placeholder="Buy Type"
-                      styles={{
-                        control: (provided) => ({
-                          ...provided,
-                          backgroundColor: "white",
-                          padding: "4px",
-                          border: "1px solid #D1D5DB",
-                          borderRadius: "0.8rem",
-                          cursor: "pointer",
-                          minWidth: "fit",
-                        }),
-                      }}
+                      styles={customSelectStyles}
+                      menuPosition="fixed"
+                      menuPlacement="auto"
+                      menuPortalTarget={document.body}
                     />
                   </div>
                 </div>
               ))}
             </div>
             <div>
-              <ChannelSelector
-                stageName={stageName}
-                channelName="Social media"
-                handlePlatformSelect={handlePlatformSelect}
-                handleDropDownSelection={handleDropDownSelection}
-                hideSelectAfterSelection
-              />
+              {showChannelSelect["Social media"] ? (
+                <Select
+                  options={channelOptions["Social media"]}
+                  onChange={(option) => handleChannelSelect(option, "Social media")}
+                  placeholder="Select Channel"
+                  styles={customSelectStyles}
+                  formatOptionLabel={formatOptionLabel}
+                  menuPosition="fixed"
+                  menuPlacement="auto"
+                  menuPortalTarget={document.body}
+                />
+              ) : (
+                <button
+                  onClick={() => setShowChannelSelect(prev => ({...prev, "Social media": true}))}
+                  className="px-6 py-3 bg-[#3175FF] text-white rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap h-[52px]"
+                >
+                  Add Channel
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -344,22 +423,18 @@ const AwarenessEdit = ({
         <h2 className="font-bold text-[#061237]">Display Networks</h2>
         <div className="flex gap-4 w-full h-full">
           <div className="flex justify-between gap-4 w-full">
-            {/* First row - Static buttons */}
-            <div className="flex gap-4 items-start justify-between">
-              {dn_data?.map((sm, index) => (
-                <div className="flex flex-col gap-4">
-                  <div
-                    key={`${stageName}${index}`}
-                    className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit"
-                  >
+            <div className="flex gap-4 items-start overflow-x-auto pb-4">
+              {dn_data?.map((dn, index) => (
+                <div key={`${stageName}-dn-${index}`} className="shrink-0 flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit">
                     <div className="flex items-center gap-2">
                       <Image
-                        src={getPlatformIcon(sm?.platform_name)}
+                        src={getPlatformIcon(dn?.platform_name)}
                         className="size-4"
-                        alt="facebook"
+                        alt="platform"
                       />
                       <span className="text-[#061237] font-semibold whitespace-nowrap">
-                        {sm?.platform_name}
+                        {dn?.platform_name}
                       </span>
                     </div>
                     <Image
@@ -368,7 +443,7 @@ const AwarenessEdit = ({
                       className="cursor-pointer"
                       onClick={() =>
                         handleRemovePlatform(
-                          sm?.platform_name,
+                          dn?.platform_name,
                           "Display networks",
                           stageName
                         )
@@ -379,11 +454,11 @@ const AwarenessEdit = ({
                     <Select
                       options={buyObjectiveOptions}
                       value={buyObjectiveOptions.find(
-                        (option) => option.value === sm?.objective_type
+                        (option) => option.value === dn?.objective_type
                       )}
                       onChange={(selectedOption) =>
                         handleSelectOption(
-                          sm?.platform_name,
+                          dn?.platform_name,
                           selectedOption?.value,
                           "Display networks",
                           stageName,
@@ -391,28 +466,21 @@ const AwarenessEdit = ({
                         )
                       }
                       placeholder="Buy Objective"
-                      styles={{
-                        control: (provided) => ({
-                          ...provided,
-                          backgroundColor: "white",
-                          padding: "4px",
-                          border: "1px solid #D1D5DB",
-                          borderRadius: "0.8rem",
-                          cursor: "pointer",
-                          minWidth: "fit",
-                        }),
-                      }}
+                      styles={customSelectStyles}
+                      menuPosition="fixed"
+                      menuPlacement="auto"
+                      menuPortalTarget={document.body}
                     />
                   </div>
                   <div className="flex gap-4 items-center">
                     <Select
                       options={buyTypeOptions}
                       value={buyTypeOptions.find(
-                        (option) => option.value === sm?.buy_type
+                        (option) => option.value === dn?.buy_type
                       )}
                       onChange={(selectedOption) =>
                         handleSelectOption(
-                          sm?.platform_name,
+                          dn?.platform_name,
                           selectedOption?.value,
                           "Display networks",
                           stageName,
@@ -420,30 +488,35 @@ const AwarenessEdit = ({
                         )
                       }
                       placeholder="Buy Type"
-                      styles={{
-                        control: (provided) => ({
-                          ...provided,
-                          backgroundColor: "white",
-                          padding: "4px",
-                          border: "1px solid #D1D5DB",
-                          borderRadius: "0.8rem",
-                          cursor: "pointer",
-                          minWidth: "fit",
-                        }),
-                      }}
+                      styles={customSelectStyles}
+                      menuPosition="fixed"
+                      menuPlacement="auto"
+                      menuPortalTarget={document.body}
                     />
                   </div>
                 </div>
               ))}
             </div>
             <div>
-              <ChannelSelector
-                stageName={stageName}
-                channelName="Display networks"
-                handlePlatformSelect={handlePlatformSelect}
-                handleDropDownSelection={handleDropDownSelection}
-                hideSelectAfterSelection
-              />
+              {showChannelSelect["Display networks"] ? (
+                <Select
+                  options={channelOptions["Display networks"]}
+                  onChange={(option) => handleChannelSelect(option, "Display networks")}
+                  placeholder="Select Channel"
+                  styles={customSelectStyles}
+                  formatOptionLabel={formatOptionLabel}
+                  menuPosition="fixed"
+                  menuPlacement="auto"
+                  menuPortalTarget={document.body}
+                />
+              ) : (
+                <button
+                  onClick={() => setShowChannelSelect(prev => ({...prev, "Display networks": true}))}
+                  className="px-6 py-3 bg-[#3175FF] text-white rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap h-[52px]"
+                >
+                  Add Channel
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -454,22 +527,18 @@ const AwarenessEdit = ({
         <h2 className="font-bold text-[#061237]">Search Engines</h2>
         <div className="flex gap-4 w-full h-full">
           <div className="flex justify-between gap-4 w-full">
-            {/* First row - Static buttons */}
-            <div className="flex gap-4 items-start justify-between">
-              {se_data?.map((sm, index) => (
-                <div className="flex flex-col gap-4">
-                  <div
-                    key={`${stageName}${index}`}
-                    className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit"
-                  >
+            <div className="flex gap-4 items-start overflow-x-auto pb-4">
+              {se_data?.map((se, index) => (
+                <div key={`${stageName}-se-${index}`} className="shrink-0 flex flex-col gap-4">
+                  <div className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit">
                     <div className="flex items-center gap-2">
                       <Image
-                        src={getPlatformIcon(sm?.platform_name)}
+                        src={getPlatformIcon(se?.platform_name)}
                         className="size-4"
-                        alt="facebook"
+                        alt="platform"
                       />
                       <span className="text-[#061237] font-semibold whitespace-nowrap">
-                        {sm?.platform_name}
+                        {se?.platform_name}
                       </span>
                     </div>
                     <Image
@@ -478,7 +547,7 @@ const AwarenessEdit = ({
                       className="cursor-pointer"
                       onClick={() =>
                         handleRemovePlatform(
-                          sm?.platform_name,
+                          se?.platform_name,
                           "Search engines",
                           stageName
                         )
@@ -489,11 +558,11 @@ const AwarenessEdit = ({
                     <Select
                       options={buyObjectiveOptions}
                       value={buyObjectiveOptions.find(
-                        (option) => option.value === sm?.objective_type
+                        (option) => option.value === se?.objective_type
                       )}
                       onChange={(selectedOption) =>
                         handleSelectOption(
-                          sm?.platform_name,
+                          se?.platform_name,
                           selectedOption?.value,
                           "Search engines",
                           stageName,
@@ -501,28 +570,21 @@ const AwarenessEdit = ({
                         )
                       }
                       placeholder="Buy Objective"
-                      styles={{
-                        control: (provided) => ({
-                          ...provided,
-                          backgroundColor: "white",
-                          padding: "4px",
-                          border: "1px solid #D1D5DB",
-                          borderRadius: "0.8rem",
-                          cursor: "pointer",
-                          minWidth: "fit",
-                        }),
-                      }}
+                      styles={customSelectStyles}
+                      menuPosition="fixed"
+                      menuPlacement="auto"
+                      menuPortalTarget={document.body}
                     />
                   </div>
                   <div className="flex gap-4 items-center">
                     <Select
                       options={buyTypeOptions}
                       value={buyTypeOptions.find(
-                        (option) => option.value === sm?.buy_type
+                        (option) => option.value === se?.buy_type
                       )}
                       onChange={(selectedOption) =>
                         handleSelectOption(
-                          sm?.platform_name,
+                          se?.platform_name,
                           selectedOption?.value,
                           "Search engines",
                           stageName,
@@ -530,30 +592,35 @@ const AwarenessEdit = ({
                         )
                       }
                       placeholder="Buy Type"
-                      styles={{
-                        control: (provided) => ({
-                          ...provided,
-                          backgroundColor: "white",
-                          padding: "4px",
-                          border: "1px solid #D1D5DB",
-                          borderRadius: "0.8rem",
-                          cursor: "pointer",
-                          minWidth: "fit",
-                        }),
-                      }}
+                      styles={customSelectStyles}
+                      menuPosition="fixed"
+                      menuPlacement="auto"
+                      menuPortalTarget={document.body}
                     />
                   </div>
                 </div>
               ))}
             </div>
             <div>
-              <ChannelSelector
-                stageName={stageName}
-                channelName="Search engines"
-                handlePlatformSelect={handlePlatformSelect}
-                handleDropDownSelection={handleDropDownSelection}
-                hideSelectAfterSelection
-              />
+              {showChannelSelect["Search engines"] ? (
+                <Select
+                  options={channelOptions["Search engines"]}
+                  onChange={(option) => handleChannelSelect(option, "Search engines")}
+                  placeholder="Select Channel"
+                  styles={customSelectStyles}
+                  formatOptionLabel={formatOptionLabel}
+                  menuPosition="fixed"
+                  menuPlacement="auto"
+                  menuPortalTarget={document.body}
+                />
+              ) : (
+                <button
+                  onClick={() => setShowChannelSelect(prev => ({...prev, "Search engines": true}))}
+                  className="px-6 py-3 bg-[#3175FF] text-white rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap h-[52px]"
+                >
+                  Add Channel
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -268,20 +268,20 @@ const ObjectiveSelection = () => {
     }
 
     return (
-      <div key={platformName} className="flex flex-col gap-4">
+      <div key={platformName} className="flex flex-col gap-4 min-w-[150px] max-w-[200px]">
         <div className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg">
           <Image
             src={getPlatformIcon(platformName)}
             className="size-4"
             alt={platformName}
           />
-          <p className="text-sm font-medium text-[#061237]">{platformName}</p>
+          <p className="text-sm font-medium text-[#061237] truncate">{platformName}</p>
         </div>
         <div className="flex flex-col gap-2">
-          <div className="px-4 py-2 bg-white border text-center whitespace-nowrap border-gray-300 rounded-lg">
+          <div className="px-4 py-2 bg-white border text-center truncate border-gray-300 rounded-lg">
             {selectedOptions[buyTypeKey] || "Buy type"}
           </div>
-          <div className="px-4 py-2 bg-white whitespace-nowrap border text-center border-gray-300 rounded-lg">
+          <div className="px-4 py-2 bg-white border text-center truncate border-gray-300 rounded-lg">
             {selectedOptions[buyObjectiveKey] || "Buy objective"}
           </div>
         </div>
@@ -292,8 +292,8 @@ const ObjectiveSelection = () => {
   return (
     <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
       <Toaster position="top-right" reverseOrder={false} />
-      {campaignFormData?.funnel_stages.map((stageName, stageIndex) => {
-        const stage = funnelStages.find((s) => s.name === stageName);
+      {campaignFormData?.funnel_stages?.map((stageName, stageIndex) => {
+        const stage = funnelStages?.find((s) => s?.name === stageName);
         if (!stage) return null;
         return (
           <div key={stageIndex} className="w-full">
@@ -345,14 +345,14 @@ const ObjectiveSelection = () => {
             {openItems[stage.name] && (
               <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
                 {statuses[stageIndex] === "Completed" ? (
-                  <div className="flex flex-col md:flex-row w-full gap-12">
+                  <div className="flex flex-col w-full gap-12">
                     {["Social media", "Display networks", "Search engines"].map(
                       (category) => (
-                        <div key={category} className="flex-1">
+                        <div key={category} className="w-full">
                           <h3 className="text-xl font-semibold text-[#061237] mb-6">
                             {category}
                           </h3>
-                          <div className="flex flex-row gap-8">
+                          <div className="flex flex-wrap gap-8">
                             {Array.from(selectedNetworks[stage.name] || [])
                               .filter((platform) =>
                                 campaignFormData?.channel_mix
