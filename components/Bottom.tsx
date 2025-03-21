@@ -154,16 +154,28 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    // ✅ Step Four Validation - Ensure at least one format is selected and validated
+    // ✅ Step Four Validation - Check if all selected formats are validated
     if (active === 4) {
-      const hasValidatedFormats = campaignFormData?.channel_mix?.some(
-        (stage) =>
-          stage.isValidated &&
-          (stage.social_media?.some((platform) => platform.format?.length > 0) ||
-            stage.display_networks?.some((platform) => platform.format?.length > 0) ||
-            stage.search_engines?.some((platform) => platform.format?.length > 0))
-      );
-      if (!hasValidatedFormats) {
+      const selectedStages = campaignFormData?.funnel_stages || [];
+      const validatedStages = campaignFormData?.validatedStages || {};
+      
+      const hasUnvalidatedSelectedStage = selectedStages.some(stage => {
+        const isSelected = campaignFormData?.channel_mix?.some(mix => 
+          mix.funnel_stage === stage && 
+          (mix.social_media?.some(platform => platform.format?.length > 0) || 
+           mix.display_networks?.some(platform => platform.format?.length > 0) || 
+           mix.search_engines?.some(platform => platform.format?.length > 0))
+        );
+        return isSelected && !validatedStages[stage];
+      });
+
+      if (hasUnvalidatedSelectedStage) {
+        setTriggerFormatError(true);
+        hasError = true;
+      }
+
+      const hasAnyValidatedFormat = Object.values(validatedStages).some(isValidated => isValidated === true);
+      if (!hasAnyValidatedFormat) {
         setTriggerFormatError(true);
         hasError = true;
       }
