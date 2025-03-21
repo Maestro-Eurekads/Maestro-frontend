@@ -129,13 +129,25 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       hasError = true;
     }
 
-    // ✅ Step Three Validation - Check if at least one channel is validated
+    // ✅ Step Three Validation - Check if all selected stages are validated
     if (active === 3) {
-      const hasAnyValidatedStage =
-        campaignFormData?.validatedStages &&
-        Object.values(campaignFormData.validatedStages).some(
-          (isValidated) => isValidated === true
+      const selectedStages = campaignFormData?.funnel_stages || [];
+      const validatedStages = campaignFormData?.validatedStages || {};
+      
+      const hasUnvalidatedSelectedStage = selectedStages.some(stage => {
+        const isSelected = campaignFormData?.channel_mix?.some(mix => 
+          mix.funnel_stage === stage && 
+          (mix.social_media?.length > 0 || mix.display_networks?.length > 0 || mix.search_engines?.length > 0)
         );
+        return isSelected && !validatedStages[stage];
+      });
+
+      if (hasUnvalidatedSelectedStage) {
+        setTriggerChannelMixError(true);
+        hasError = true;
+      }
+
+      const hasAnyValidatedStage = Object.values(validatedStages).some(isValidated => isValidated === true);
       if (!hasAnyValidatedStage) {
         setTriggerChannelMixError(true);
         hasError = true;
@@ -334,7 +346,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         <AlertMain
           alert={{
             variant: "error",
-            message: "Please select and validate at least one channel!",
+            message: "Please validate all selected channels before proceeding!",
             position: "bottom-right",
           }}
         />
