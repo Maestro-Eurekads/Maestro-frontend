@@ -113,7 +113,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           funnel_stages: data?.funnel_stages || [],
           channel_mix: data?.channel_mix || [],
           campaign_timeline_start_date: data?.campaign_timeline_start_date,
-          campaign_timeline_end_date: data?.campaign_timeline_start_date,
+          campaign_timeline_end_date: data?.campaign_timeline_end_date,
           campaign_budget: data?.campaign_budget || {}
         }));
       });

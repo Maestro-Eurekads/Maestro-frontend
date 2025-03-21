@@ -23,8 +23,31 @@ import State12 from '../public/State12.svg';
 import roundget from '../public/ic_round-get-app.svg';
 import mingcute_basket from '../public/mingcute_basket-fill.svg';
 import mdi_leads from '../public/mdi_leads.svg';
+import { StaticImageData } from "next/image";
 
-
+const platformIcons: Record<string, StaticImageData> = {
+	Facebook: facebook,
+	Instagram: ig,
+	YouTube: youtube,
+	Youtube: youtube,
+	TheTradeDesk: TheTradeDesk,
+	Quantcast: Quantcast,
+	Google: google,
+	"Twitter/X": x,
+	LinkedIn: linkedin,
+	Linkedin: linkedin,
+	TikTok: tictok,
+	"Display & Video": Display,
+	Yahoo: yahoo,
+	Bing: bing,
+	"Apple Search": google,
+	"The Trade Desk": TheTradeDesk,
+	QuantCast: Quantcast,
+  }
+  
+  export const getPlatformIcon = (platformName: string): StaticImageData | null => {
+	return platformIcons[platformName] || null
+  }
 
 export const funnels = [
 	{
@@ -49,6 +72,14 @@ export const funnels = [
 		label: "Campaign 2",
 		bg: "#ff9037",
 		description: "Conversion",
+		Icon: <TbCreditCardFilled />
+	},
+	{
+		startWeek: 2,
+		endWeek: 9,
+		label: "Campaign 2",
+		bg: "#F05406",
+		description: "Loyalty",
 		Icon: <TbCreditCardFilled />
 	},
 ];
