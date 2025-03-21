@@ -27,10 +27,6 @@ const TimelineView = () => {
 
 
 	const { range } = useDateRange();
-	const dateList = eachDayOfInterval({
-		start: range.startDate,
-		end: range.endDate,
-	});
 
 	// useEffect(() => {
 	// 	if (campaignId) {
@@ -63,20 +59,21 @@ const TimelineView = () => {
 		});
 	};
 	const funnelsData = mapCampaignsToFunnels(clientCampaignData);
+	console.log("🚀 ~ TimelineView ~ funnelsData:", funnelsData)
 
 	return (
 		<div
 			className="w-full min-h-[494px] relative "
 			style={{
 				backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-				backgroundSize: `calc(100% / ${dateList.length}) 100%`,
+				backgroundSize: `calc(100% / ${range.length}) 100%`,
 			}}
 		>
 			<div className="bg-white">
 				<DateComponent useDate={undefined} />
 			</div>
 
-			<EstablishedGoalsTimeline dateList={dateList} funnels={funnelsData} />
+			<EstablishedGoalsTimeline dateList={range} />
 		</div>
 	)
 }

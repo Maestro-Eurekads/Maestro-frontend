@@ -9,19 +9,21 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 import moment from "moment";
 
 interface DraggableChannelProps {
-  id: string;
-  bg: string;
-  description: string;
-  setIsOpen: (show: boolean) => void;
-  openChannel: boolean;
-  setOpenChannel: (open: boolean) => void;
-  Icon: React.ReactNode;
-  dateList: Date[];
-  dragConstraints: any;
-  parentWidth: any;
-  setParentWidth: any;
-  parentLeft: any;
-  setParentLeft: any;
+  id?: string;
+  bg?: string;
+  description?: string;
+  setIsOpen?: (show: boolean) => void;
+  openChannel?: boolean;
+  setOpenChannel?: (open: boolean) => void;
+  Icon?: React.ReactNode;
+  dateList?: Date[];
+  dragConstraints?: any;
+  parentWidth?: any;
+  setParentWidth?: any;
+  parentLeft?: any;
+  setParentLeft?: any;
+  disableDrag?:boolean;
+  budget?:string
 }
 
 const DraggableChannel: React.FC<DraggableChannelProps> = ({
@@ -38,6 +40,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   setParentWidth,
   parentLeft,
   setParentLeft,
+  disableDrag = false, // Default to false
+  budget
 }) => {
   const { funnelWidths, setFunnelWidth } = useFunnelContext();
   const [position, setPosition] = useState(0);
@@ -70,6 +74,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     e: React.MouseEvent<HTMLDivElement>,
     direction: "left" | "right"
   ) => {
+    if (disableDrag) return;
     e.preventDefault();
     isResizing.current = {
       startX: e.clientX,
@@ -147,6 +152,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   };
 
   const handleMouseDownDrag = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (disableDrag) return;
     e.preventDefault();
     isDragging.current = { startX: e.clientX, startPos: position };
     document.addEventListener("mousemove", handleMouseMoveDrag);
@@ -199,40 +205,39 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
   return (
     <div
-      className="relative w-full h-14 flex select-none"
-      style={{ transform: `translateX(${position}px)` }}
+      className={`relative w-full h-14 flex select-none ${disableDrag ? "rounded-[10px]" : "rounded-none"}`}
+      style={{ transform: `translateX(${position}px)`, left: parentLeft ? `${parentLeft}px` : "" }}
     >
       {/* Left Resize Handle */}
       <div
-        className="w-5 h-full bg-opacity-80 bg-black cursor-ew-resize rounded-l-lg text-white flex items-center justify-center"
-        onMouseDown={(e) => handleMouseDownResize(e, "left")}
+        className={`w-5 h-full bg-opacity-80 bg-black ${
+          disableDrag ? "cursor-default hidden rounded-[10px]" : "cursor-ew-resize rounded-l-lg"
+        }  text-white flex items-center justify-center`}
+        onMouseDown={(e) => !disableDrag && handleMouseDownResize(e, "left")}
       >
         <MdDragHandle className="rotate-90" />
       </div>
 
       {/* Draggable Content */}
       <div
-        className="h-full flex justify-between items-center text-white px-4 gap-2 border shadow-md min-w-[150px] cursor-move"
+        className={`h-full flex justify-between items-center text-white px-4 gap-2  shadow-md min-w-[150px] ${
+          disableDrag ? "cursor-default rounded-[10px]" : "cursor-move border"
+        }`}
         style={{ width: parentWidth, backgroundColor: bg }}
         onMouseDown={handleMouseDownDrag}
       >
         <div />
         <button
           className="flex items-center gap-3"
-          onClick={() => setOpenChannel(!openChannel)}
+          onClick={() => setOpenChannel?.(!openChannel)}
         >
           {Icon}
           <span className="font-medium">{description}</span>
           <MdOutlineKeyboardArrowDown />
         </button>
 
-        {parentWidth >= 350 ? (
-          <button
-            className="channel-btn"
-            onClick={() => {
-              setIsOpen(true);
-            }}
-          >
+        {!disableDrag && parentWidth >= 350 ? (
+          <button className="channel-btn" onClick={() => setIsOpen?.(true)}>
             <Image src={icroundadd} alt="icroundadd" />
             <p className="whitespace-nowrap">Add new channel</p>
           </button>
@@ -243,8 +248,10 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
       {/* Right Resize Handle */}
       <div
-        className="w-5 h-full bg-opacity-80 bg-black cursor-ew-resize rounded-r-lg text-white flex items-center justify-center"
-        onMouseDown={(e) => handleMouseDownResize(e, "right")}
+        className={`w-5 h-full bg-opacity-80 bg-black ${
+          disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+        } rounded-r-lg text-white flex items-center justify-center`}
+        onMouseDown={(e) => !disableDrag && handleMouseDownResize(e, "right")}
       >
         <MdDragHandle className="rotate-90" />
       </div>

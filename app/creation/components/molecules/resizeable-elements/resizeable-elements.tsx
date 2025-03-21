@@ -20,6 +20,7 @@ interface OutletType {
   icon: StaticImageData;
   color: string;
   bg: string;
+  channelName: string
 }
 
 const ResizeableElements = () => {
@@ -87,7 +88,7 @@ const ResizeableElements = () => {
           platformsByStage[funnel_stage] = [];
         }
 
-        const processPlatforms = (platforms: any[]) => {
+        const processPlatforms = (platforms: any[], channelName:string) => {
           platforms.forEach((platform: any) => {
             const icon = getPlatformIcon(platform?.platform_name);
             if (icon) {
@@ -105,6 +106,7 @@ const ResizeableElements = () => {
                 icon,
                 color: style.color,
                 bg: style.bg,
+                channelName
               });
             }
           });
@@ -112,17 +114,17 @@ const ResizeableElements = () => {
 
         // Process search engines
         if (Array.isArray(search_engines)) {
-          processPlatforms(search_engines);
+          processPlatforms(search_engines, "search_engines");
         }
 
         // Process display networks
         if (Array.isArray(display_networks)) {
-          processPlatforms(display_networks);
+          processPlatforms(display_networks, "display_networks");
         }
 
         // Process social media
         if (Array.isArray(social_media)) {
-          processPlatforms(social_media);
+          processPlatforms(social_media, "social_media");
         }
       });
     }

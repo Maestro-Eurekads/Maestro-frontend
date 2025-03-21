@@ -20,7 +20,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const { active, setActive, subStep, setSubStep } = useActive();
   const { selectedObjectives } = useObjectives();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
-  const [setupyournewcampaignError, SetupyournewcampaignError] = useState(false);
+  const [setupyournewcampaignError, SetupyournewcampaignError] =
+    useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
   const [selectedDatesError, setSelectedDateslError] = useState(false);
   const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
@@ -37,6 +38,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     campaignFormData,
     cId,
     getActiveCampaign,
+    copy
   } = useCampaigns();
 
   // Hide alerts after a few seconds
@@ -105,7 +107,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
       const filledFields = requiredFields.filter((field) => field);
 
-      if (filledFields.length > 0 && filledFields.length < requiredFields.length) {
+      if (
+        filledFields.length > 0 &&
+        filledFields.length < requiredFields.length
+      ) {
         setIncompleteFieldsError(true);
         setLoading(false);
         return;
@@ -147,9 +152,15 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       const hasValidatedFormats = campaignFormData?.channel_mix?.some(
         (stage) =>
           stage.isValidated &&
-          (stage.social_media?.some((platform) => platform.format?.length > 0) ||
-            stage.display_networks?.some((platform) => platform.format?.length > 0) ||
-            stage.search_engines?.some((platform) => platform.format?.length > 0))
+          (stage.social_media?.some(
+            (platform) => platform.format?.length > 0
+          ) ||
+            stage.display_networks?.some(
+              (platform) => platform.format?.length > 0
+            ) ||
+            stage.search_engines?.some(
+              (platform) => platform.format?.length > 0
+            ))
       );
       if (!hasValidatedFormats) {
         setTriggerFormatError(true);
@@ -158,7 +169,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
 
     // ✅ Step Seven Validation - Ensure dates are selected
-    if (active === 7 && selectedDates?.to?.day === undefined) {
+    if (active === 7 && selectedDates?.to?.day === undefined && subStep <1) {
       setSelectedDateslError(true);
       hasError = true;
     }
@@ -232,24 +243,43 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       if (!campaignData) return;
       await updateCampaignData({
         ...cleanData,
-        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, ["id", "isValidated"]),
+        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+          "id",
+          "isValidated",
+        ]),
       });
     };
 
     const handleStepFour = async () => {
       if (!campaignData) return;
 
-      await updateCampaignData({
-        ...cleanData,
-        funnel_stages: campaignFormData?.funnel_stages,
-        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
-          "id", "isValidated",
-        ]),
-        campaign_budget: removeKeysRecursively(
-          campaignFormData?.campaign_budget,
-          ["id"]
-        ),
-      });
+      if (active === 7 && subStep === 1) {
+        await updateCampaignData({
+          ...cleanData,
+          funnel_stages: copy?.funnel_stages,
+          channel_mix: removeKeysRecursively(copy?.channel_mix, [
+            "id",
+            "isValidated",
+          ]),
+          campaign_budget: removeKeysRecursively(
+            copy?.campaign_budget,
+            ["id"]
+          ),
+        });
+      } else {
+        await updateCampaignData({
+          ...cleanData,
+          funnel_stages: campaignFormData?.funnel_stages,
+          channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+            "id",
+            "isValidated",
+          ]),
+          campaign_budget: removeKeysRecursively(
+            campaignFormData?.campaign_budget,
+            ["id"]
+          ),
+        });
+      }
     };
 
     if (active === 0) {
@@ -260,7 +290,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       await handleStepTwo();
     } else if (active > 2 && subStep < 1) {
       await handleStepThree();
-    } else if (active > 2 && subStep > 1) {
+    } else if (active > 2 && subStep > 0) {
       await handleStepFour();
     }
 

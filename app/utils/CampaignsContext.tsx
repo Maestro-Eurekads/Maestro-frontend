@@ -64,6 +64,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const query = useSearchParams();
   const cId = query.get("campaignId");
   const { loadingClients, allClients } = useCampaignHook();
+  const [copy, setCopy] = useState(campaignFormData)
 
   const getActiveCampaign = async (docId?: string) => {
     await axios
@@ -187,7 +188,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         setClientCampaignData,
         loading,
         setLoading,
-        setCampaignData
+        setCampaignData,
+        copy,
+        setCopy
       }}
     >
       {children}

@@ -1,6 +1,6 @@
 "use client";
-import React, { useState } from "react";
-import Image from "next/image";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import Image, { StaticImageData } from "next/image";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 import { BsFillMegaphoneFill } from "react-icons/bs";
 import youtube from "../../../../public/youtube.svg";
@@ -9,185 +9,234 @@ import TheTradeDesk from "../../../../public/TheTradeDesk.svg";
 import instagram from "../../../../public/ig.svg";
 import { TbZoomFilled, TbCreditCardFilled } from "react-icons/tb";
 import { CgInfo } from "react-icons/cg";
+import { funnels, getPlatformIcon, platformStyles } from "components/data";
+import { useCampaigns } from "app/utils/CampaignsContext";
+import DraggableChannel from "components/DraggableChannel";
+import { useFunnelContext } from "app/utils/FunnelContextType";
+import { useDateRange } from "src/date-range-context";
+import ResizableChannels from "../molecules/resizeable-elements/ResizableChannels";
 
-const EstablishedGoalsTimeline = ({ dateList, funnels }) => {
-	// Manage state separately for each funnel, section, and platform
-	const [expanded, setExpanded] = useState({});
-	const [openSections, setOpenSections] = useState({});
+interface OutletType {
+  name: string;
+  icon: StaticImageData;
+  color: string;
+  bg: string;
+  channelName: string;
+}
 
-	// Function to toggle campaign dropdown
-	const toggleShow = (index, section, platform) => {
-		const key = `${index}-${section}-${platform}`;
-		setExpanded((prev) => ({
-			...prev,
-			[key]: !prev[key],
-		}));
-	};
+const EstablishedGoalsTimeline = ({ dateList }) => {
+  // Manage state separately for each funnel, section, and platform
+  const [expanded, setExpanded] = useState({});
+  const [openSections, setOpenSections] = useState({});
+  const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({}); // Track open state per channel
+  const [isOpen, setIsOpen] = useState(false);
+  const { campaignFormData } = useCampaigns();
+  const { range } = useDateRange();
+  const [platforms, setPlatforms] = useState({});
 
-	// Function to toggle Awareness/Consideration/Conversion dropdowns
-	const toggleOpen = (index, section) => {
-		setOpenSections((prev) => ({
-			...prev,
-			[`${index}-${section}`]: !prev[`${index}-${section}`],
-		}));
-	};
+  const gridRef = useRef(null);
 
-	return (
-		<div
-			className="w-full min-h-[494px] relative pb-5"
-			style={{
-				backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-				backgroundSize: `calc(100% / ${dateList.length}) 100%`,
-			}}
-		>
-			{/* Loop through funnels */}
-			{funnels.map(({ startWeek, endWeek, label }, index) => (
-				<div
-					key={index}
-					style={{
-						display: "grid",
-						gridTemplateColumns: `repeat(${dateList.length}, 1fr)`,
-					}}
-				>
-					<div
-						className="mt-6"
-						style={{
-							gridColumnStart: startWeek,
-							gridColumnEnd: endWeek + 1,
-						}}
-					>
-						{/* Expanded section */}
-						<div>
-							{["Awareness", "Consideration", "Conversion"].map((section) => (
-								<div key={section}
-									style={{
-										display: 'grid',
-										gridTemplateColumns: `repeat(${(endWeek + 1) - startWeek}, 1fr)`
-									}}>
-									<button
-										onClick={() => toggleOpen(index, section)}
-										className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${section === "Awareness"
-											? "bg-[#3175FF]"
-											: section === "Consideration"
-												? "bg-[#34A853]"
-												: "bg-[#ff9037]"
-											} text-white`}
-										style={{
-											gridColumnStart: 1,
-											gridColumnEnd: ((endWeek + 1) - startWeek) + 1
-										}}
-									>
-										<div className="flex items-center justify-center gap-3 flex-1">
-											<span>
-												{section === "Awareness"
-													? <BsFillMegaphoneFill />
-													: section === "Consideration"
-														? <TbZoomFilled />
-														: <TbCreditCardFilled />}
-											</span>
-											<span>{section}</span>
-											<span>
-												{openSections[`${index}-${section}`] ? <FiChevronUp size={15} /> : <FiChevronDown size={15} />}
-											</span>
-										</div>
-										<button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
-											{section === "Awareness"
-												? "6,000 €"
-												: section === "Consideration"
-													? "6,000 €"
-													: "5,250 €"}
-										</button>
-									</button>
+  // Function to toggle campaign dropdown
+  const toggleShow = (index, section, platform) => {
+    const key = `${index}-${section}-${platform}`;
+    setExpanded((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
-									{openSections[`${index}-${section}`] && (
-										<div style={{ gridColumnStart: 2, gridColumnEnd: ((endWeek + 1) - startWeek) + 1 }}>
-											{[
-												{ platform: "Facebook", image: facebook, amount: "1,800 €", bg: "bg-[#0866FF33]", color: "#3175FF", acolor: "#E4EDFF" },
-												{ platform: "Instagram", image: instagram, amount: "1,800 €", bg: "bg-[#FEF1F8]", color: "#E01389", acolor: "#FCE6F2" },
-												{ platform: "Youtube", image: youtube, amount: "1,200 €", bg: "bg-[#FFF0F0]", color: "#FF0302", acolor: "#FFE4E4" },
-												{ platform: "TheTradeDesk", image: TheTradeDesk, amount: "900 €", bg: "bg-[#F0F9FF]", color: "#0099FA", acolor: "#E4F4FE" },
-											].map(({ platform, image, amount, bg, color, acolor }) => {
-												const key = `${index}-${section}-${platform}`;
-												return (
-													<div key={platform} style={{
-														display: 'grid',
-														gridTemplateColumns: `repeat(${(((endWeek + 1) - startWeek) + 1) - 2}, 1fr)`
-													}}>
-														<div className={`p-1 ${bg} text-[15px] font-[500] my-5 w-full rounded-[10px] flex items-center justify-between`}
-															style={{
-																gridColumnStart: 1,
-																gridColumnEnd: (((((endWeek + 1) - startWeek) + 1) - 1) + 1) - 1,
-																border: `0.5px solid ${color}`
-															}}
-														>
-															<div />
-															<span className="flex items-center gap-3">
-																<Image src={image} alt={platform} width={20} />
-																<span style={{ color: color }}>{platform}</span>
-																<button onClick={() => toggleShow(index, section, platform)}>
-																	{expanded[key] ? <FiChevronUp /> : <FiChevronDown />}
-																</button>
-															</span>
-															<button
-																className={`py-2 px-[10px] rounded-[5px]`}
-																style={{ backgroundColor: acolor }}>
-																{amount}
-															</button>
-														</div>
-														{/* Child content */}
-														{expanded[key] && (
-															<div className="budgetImpressions" style={{
-																gridColumnStart: 1,
-																gridColumnEnd: (((endWeek + 1) - startWeek) + 1)
-															}}>
-																<div className="flex flex-col gap-2">
-																	<h6 className="reach-btn-text">Budget</h6>
-																	<p className="budget_number ">1,800 €</p>
-																</div>
-																<div className="flex flex-col gap-2">
-																	<h6 className="reach-btn-text">CPM</h6>
-																	<p className="budget_number_btn">CPM</p>
-																</div>
-																<div className="flex flex-col gap-2">
-																	<div className="flex items-center gap-1">
-																		<h6 className="reach-btn-text">Impressions</h6>
-																		<CgInfo size={10} className="mt-[0.5]" />
-																	</div>
+  const toggleChannel = (id: string) => {
+    setOpenChannels((prev) => ({
+      ...prev,
+      [id]: !prev[id], // Toggle only the clicked channel
+    }));
+  };
 
-																	<p className=" ">280,000</p>
-																</div>
-																<div className="flex flex-col gap-2">
-																	<h6 className="reach-btn-text">Frequency</h6>
-																	<p className="budget_number_btn">Frequency</p>
-																</div>
-																<div className="flex flex-col gap-2">
-																	<div className="flex items-center gap-1">
-																		<h6 className="reach-btn-text">Reach</h6>
-																		<CgInfo size={10} className="mt-[0.5]" />
-																	</div>
-																	<p className=" ">320 000</p>
-																</div>
-																<div className="flex flex-col gap-2">
-																	<button className="reach-btn">+</button>
-																	<p className=" "></p>
-																</div>
+  // Function to toggle Awareness/Consideration/Conversion dropdowns
+  const toggleOpen = (index, section) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [`${index}-${section}`]: !prev[`${index}-${section}`],
+    }));
+  };
 
-															</div>
-														)}
-													</div>
-												);
-											})}
-										</div>
-									)}
-								</div>
-							))}
-						</div>
+  const getPlatformsFromStage = useCallback(() => {
+    const platformsByStage: Record<string, OutletType[]> = {};
+    const channelMix = campaignFormData?.channel_mix || [];
 
-					</div>
-				</div>
-			))}
-		</div>
-	);
+    if (channelMix && channelMix?.length > 0) {
+      channelMix.forEach((stage: any) => {
+        const { funnel_stage, search_engines, display_networks, social_media } =
+          stage;
+
+        if (!platformsByStage[funnel_stage]) {
+          platformsByStage[funnel_stage] = [];
+        }
+
+        const processPlatforms = (platforms: any[], channelName: string) => {
+          platforms.forEach((platform: any) => {
+            const icon = getPlatformIcon(platform?.platform_name);
+            if (icon) {
+              // Find a matching style or get a random one from platformStyles
+              const style =
+                platformStyles.find(
+                  (style) => style.name === platform.platform_name
+                ) ||
+                platformStyles[
+                  Math.floor(Math.random() * platformStyles.length)
+                ];
+
+              platformsByStage[funnel_stage].push({
+                name: platform.platform_name,
+                icon,
+                color: style.color,
+                bg: style.bg,
+                channelName,
+              });
+            }
+          });
+        };
+
+        // Process search engines
+        if (Array.isArray(search_engines)) {
+          processPlatforms(search_engines, "search_engines");
+        }
+
+        // Process display networks
+        if (Array.isArray(display_networks)) {
+          processPlatforms(display_networks, "display_networks");
+        }
+
+        // Process social media
+        if (Array.isArray(social_media)) {
+          processPlatforms(social_media, "social_media");
+        }
+      });
+    }
+
+    return platformsByStage;
+  }, [campaignFormData]);
+
+  useEffect(() => {
+    if (campaignFormData) {
+      if (campaignFormData?.channel_mix) {
+        const data = getPlatformsFromStage();
+        setPlatforms(data);
+      }
+    }
+  }, [campaignFormData, getPlatformsFromStage]);
+
+  return (
+    <div
+      className="w-full min-h-[494px] relative pb-5 px-[10px]"
+      style={{
+        backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+        backgroundSize: `calc(100% / ${dateList.length}) 100%`,
+      }}
+    >
+      {/* Loop through funnels */}
+      {campaignFormData?.funnel_stages?.map((stageName, index) => {
+       const stage = funnels.find((s) => s.description === stageName);
+	   if (!stage) return null;
+	   
+	   const isOpen = openChannels[stage?.description] || false; // Get open state by ID
+	   
+	   
+	   // Function to safely parse "yyyy-mm-dd" to timestamp, defaulting to grid range
+	   const parseDate = (dateString, defaultValue) => {
+		 if (!dateString) return defaultValue;
+     const [year, month, day] = typeof dateString === 'string' ? dateString.split("-").map(Number) : [null, null, null];
+		 return Date.UTC(year, month - 1, day); // Ensure correct month indexing
+	   };
+	   
+	   // Get grid start and end timestamps
+	   const gridStart = parseDate(dateList[0], null);
+	   const gridEnd = parseDate(dateList[dateList.length - 1], null);
+	   
+	   // If gridStart or gridEnd is still null, return (avoid errors)
+	   if (!gridStart || !gridEnd) return null;
+
+	//    Budget
+	   const budget = campaignFormData?.channel_mix?.find((ch)=>ch?.funnel_stage === stage.description)?.stage_budget?.fixed_value
+	   
+	   // Find stage-specific start & end dates, defaulting to gridStart/gridEnd if missing
+	   const funnel_start_date = campaignFormData?.channel_mix?.find(
+		 (ch) => ch?.funnel_stage === stage.description
+	   )?.funnel_stage_timeline_start_date;
+	   
+	   const funnel_end_date = campaignFormData?.channel_mix?.find(
+		 (ch) => ch?.funnel_stage === stage.description
+	   )?.funnel_stage_timeline_end_date;
+	   
+	   // Use provided dates or fallback to full grid range
+	   const stageStart = parseDate(funnel_start_date, gridStart);
+	   const stageEnd = parseDate(funnel_end_date, gridEnd);
+	   
+	   const totalDuration = gridEnd - gridStart; // Total grid time range
+	   const eventDuration = stageEnd - stageStart; // Stage duration
+	   
+	   // Calculate `parentWidth` (scaled to grid width)
+	   const gridWidth = 800; // Example grid width, update dynamically
+	   const parentWidth = (eventDuration / totalDuration) * gridWidth;
+	   const parentLeft = ((stageStart - gridStart) / totalDuration) * gridWidth;
+	   
+        return (
+          <div
+            key={index}
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${dateList.length}, 1fr)`,
+            }}
+          >
+            <div
+              className="mt-6"
+              style={{
+                gridColumnStart: 1,
+                gridColumnEnd: 8,
+              }}
+            >
+              {/* Expanded section */}
+
+              <DraggableChannel
+                id={stage?.description} // Use description as ID
+                openChannel={isOpen} // Pass specific open state
+                bg={stage?.bg}
+                description={stage?.description}
+                setIsOpen={setIsOpen}
+                setOpenChannel={() => toggleChannel(stage?.description)} // Toggle only this channel
+                Icon={stage?.Icon}
+                dateList={range}
+                dragConstraints={gridRef}
+                disableDrag={true}
+                parentWidth={parentWidth} // Use channel-specific width
+                // setParentWidth={(width) =>
+                //   updateChannelWidth(stage?.description, width)
+                // }
+                parentLeft={parentLeft}
+                // setParentLeft={(left) =>
+                //   updateChannelPosition(stage?.description, left)
+                // }
+				budget={budget}
+              />
+              {isOpen && ( // Only show this if the specific channel is open
+                <div>
+                  <ResizableChannels
+                    channels={platforms[stage.description]}
+                    parentId={stage?.description}
+                    parentWidth={parentWidth} // Use channel-specific width
+                    parentLeft={parentLeft} // Pass parent's left position
+                    setIsOpen={setIsOpen}
+                    dateList={range}
+                    disableDrag={true}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 };
 
 export default EstablishedGoalsTimeline;
