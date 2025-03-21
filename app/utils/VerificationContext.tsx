@@ -44,19 +44,24 @@ interface VerificationContextType {
 
 const VerificationContext = createContext<VerificationContextType | undefined>(undefined);
 
+// Load stored verification state from local storage
+const loadStoredState = () => {
+	if (typeof window !== "undefined") {
+		try {
+			const storedState = localStorage.getItem("verifybeforeMove");
+			const parsedState = storedState ? JSON.parse(storedState) : {};
+			return typeof parsedState === "object" && parsedState !== null ? parsedState : {};
+		} catch (error) {
+			console.error("Error parsing verifybeforeMove from localStorage:", error);
+			return {};
+		}
+	}
+	return {};
+};
+
 // Provider Component
 export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [verificationState, setVerificationState] = useState<VerificationState>({});
-
-	// Load stored verification state from local storage
-	const loadStoredState = () => {
-		if (typeof window !== "undefined") {
-			const storedState = localStorage.getItem("verifybeforeMove");
-			return storedState ? JSON.parse(storedState) : {};
-		}
-		return {};
-	};
-
 	const [verifybeforeMove, setverifybeforeMove] = useState<VerifyBeforeMoveState>(loadStoredState);
 
 	// Persist state in local storage whenever verifybeforeMove updates

@@ -20,7 +20,6 @@ const Dropdown = ({
   setHasChanges: (value: boolean) => void; // <-- Add type for function prop
 }) => {
   const { setverifybeforeMove } = useVerification();
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { campaignFormData, setCampaignFormData, loadingClients } =
@@ -38,9 +37,17 @@ const Dropdown = ({
         value,
       },
     }));
-    setverifybeforeMove((prev: any) =>
-      prev.map((step: any) => (step.hasOwnProperty("step0") ? { ...step, step0: false } : step))
-    );
+    setverifybeforeMove((prev: any) => {
+      if (!Array.isArray(prev)) {
+        console.error("setverifybeforeMove: Expected an array, got", prev);
+        return prev; // Return as is if it's not an array
+      }
+
+      return prev.map((step: any) =>
+        step.hasOwnProperty("step0") ? { ...step, step0: false } : step
+      );
+    });
+
     setHasChanges(true); // <-- Set hasChanges to true when a value is selected
     setIsOpen(false);
   };
