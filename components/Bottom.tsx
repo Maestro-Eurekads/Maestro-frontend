@@ -72,37 +72,48 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     setLoading(true);
     let hasError = false;
 
-    // Step 0 validation
-    if (active === 0) {
-      const isStep0Validated = verifybeforeMove?.step0 === false;
-      const requiredFields = [
-        campaignFormData?.client_selection?.value,
-        campaignFormData?.media_plan,
-        campaignFormData?.approver,
-        campaignFormData?.budget_details_currency?.id,
-        campaignFormData?.budget_details_fee_type?.id,
-        campaignFormData?.budget_details_value,
-      ];
+    console.log('verifybeforeMove?.step0', verifybeforeMove[0]?.step0)
 
-      if (!isStep0Validated) {
+    // Step 0 validation
+    if (active === 0) { // 
+      const isStep0Validated = verifybeforeMove[0]?.step0 === false;
+      // const requiredFields = [
+      //   campaignFormData?.client_selection?.value,
+      //   campaignFormData?.media_plan,
+      //   campaignFormData?.approver,
+      //   campaignFormData?.budget_details_currency?.id,
+      //   campaignFormData?.budget_details_fee_type?.id,
+      //   campaignFormData?.budget_details_value,
+      // ];
+
+      if (isStep0Validated) {
         SetupyournewcampaignError(true);
         setAlert({
           variant: "error",
-          message: "Please validate before proceeding!",
+          message: "Please set up your new campaign!",
           position: "bottom-right",
         });
         hasError = true;
       }
 
-      if (!requiredFields.every((field) => field)) {
-        setIncompleteFieldsError(true);
-        setAlert({
-          variant: "error",
-          message: "Please complete all required fields before proceeding!",
-          position: "bottom-right",
-        });
-        hasError = true;
-      }
+      // if (!requiredFields.every((field) => field)) {
+      //   setIncompleteFieldsError(true);
+      //   setAlert({
+      //     variant: "error",
+      //     message: "Please complete all required fields before proceeding!",
+      //     position: "bottom-right",
+      //   });
+      //   hasError = true;
+      // }
+      // if (!requiredFields.every((field) => field)) {
+      //   setIncompleteFieldsError(true);
+      //   setAlert({
+      //     variant: "error",
+      //     message: "Please complete all required fields before proceeding!",
+      //     position: "bottom-right",
+      //   });
+      //   hasError = true;
+      // }
     }
 
     // Step 1: Ensure at least one objective is selected

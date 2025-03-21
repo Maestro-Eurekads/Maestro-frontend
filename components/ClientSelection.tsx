@@ -10,11 +10,13 @@ const Dropdown = ({
   options,
   isEditing,
   formId,
+  setHasChanges, // <-- Pass setHasChanges as a prop
 }: {
   label: string;
   options: { id?: string; value: string; label: string }[];
   isEditing: boolean;
   formId: string;
+  setHasChanges: (value: boolean) => void; // <-- Add type for function prop
 }) => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -34,6 +36,7 @@ const Dropdown = ({
         value,
       },
     }));
+    setHasChanges(true); // <-- Set hasChanges to true when a value is selected
     setIsOpen(false);
   };
 
@@ -104,11 +107,13 @@ const ClientSelection = ({
   label,
   isEditing,
   formId,
+  setHasChanges, // <-- Accept setHasChanges here too
 }: {
   options: { value: string; label: string }[];
   label: string;
   isEditing: boolean;
   formId?: string;
+  setHasChanges: (value: boolean) => void; // <-- Function prop
 }) => {
   return (
     <div className="flex items-center gap-4 mt-[20px]">
@@ -117,6 +122,7 @@ const ClientSelection = ({
         options={options}
         isEditing={isEditing}
         formId={formId}
+        setHasChanges={setHasChanges} // <-- Pass it down to Dropdown
       />
     </div>
   );

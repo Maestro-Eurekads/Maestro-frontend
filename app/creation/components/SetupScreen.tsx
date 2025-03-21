@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Title } from "../../../components/Title";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import ClientSelection from "../../../components/ClientSelection";
@@ -33,21 +33,19 @@ export const SetupScreen = () => {
   const [level2Options, setlevel2Options] = useState([]);
   const [level3Options, setlevel3Options] = useState([]);
   const [requiredFields, setRequiredFields] = useState<string[]>([]);
+  const [hasChanges, setHasChanges] = useState(false);
 
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const { verifyStep, verifybeforeMove, setverifybeforeMove } = useVerification();
 
-
-
-  console.log('verifybeforeMove', verifybeforeMove)
-
+  console.log('verifybeforeMove-verifybeforeMove', verifybeforeMove)
 
   useEffect(() => {
     const isValid = validationRules["step0"](campaignData);
     if (isValid !== previousValidationState) {
-      verifyStep("step0", isValid);
+      verifyStep("step0", isValid, cId);
       setPreviousValidationState(isValid);
     }
   }, [campaignData, previousValidationState, verifyStep]);
@@ -70,36 +68,17 @@ export const SetupScreen = () => {
     localStorage.setItem("verifybeforeMove", JSON.stringify(verifybeforeMove));
   }, [verifybeforeMove]);
 
+
   useEffect(() => {
-    let fields = [
-      campaignFormData?.client_selection?.id,
-      campaignFormData?.level_1?.id,
-      campaignFormData?.level_2?.id,
-      campaignFormData?.media_plan,
-      campaignFormData?.approver,
-    ];
+    const resetChanges = () => {
+      setHasChanges(false);
+    };
 
-    const isValid = fields.every((field) => field !== undefined && field !== "");
-    setRequiredFields(fields);
-    setIsStepZeroValid(isValid);
-
-    setverifybeforeMove((prev: any) => {
-      // Ensure `prev` is an array
-      if (!Array.isArray(prev)) return [{ step0: true }];
-
-      return prev.map((step) => ({ ...step, step0: true })); // Force step0 to be true
-    });
-  }, [campaignFormData]); // Trigger on campaignFormData changes
-
-
-
-
-
-
-
-
-
-
+    window.addEventListener("focus", resetChanges);
+    return () => {
+      window.removeEventListener("focus", resetChanges);
+    };
+  }, []);
   //  Automatically reset alert after showing
   useEffect(() => {
     if (alert) {
@@ -246,8 +225,8 @@ export const SetupScreen = () => {
         return;
       }
 
+      // Perform API operations
       if (cId && campaignData) {
-        // Updating an existing campaign
         await updateCampaign({
           ...removeKeysRecursively(campaignData, ["id", "documentId", "createdAt", "publishedAt", "updatedAt"]),
           client: campaignFormData?.client_selection?.id,
@@ -270,8 +249,12 @@ export const SetupScreen = () => {
         });
 
         setAlert({ variant: "success", message: "Campaign updated successfully!", position: "bottom-right" });
+        // After verification, set step0 to false
+        setverifybeforeMove((prev: any) =>
+          prev.map((step: any) => (step.hasOwnProperty("step0") ? { ...step, step0: true } : step))
+        );
+        setHasChanges(false); // Reset changes tracking
       } else {
-        // Creating a new campaign
         const res = await createCampaign();
         const url = new URL(window.location.href);
         url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
@@ -279,11 +262,13 @@ export const SetupScreen = () => {
         await getActiveCampaign(res?.data?.data.documentId);
         setAlert({ variant: "success", message: "Campaign created successfully!", position: "bottom-right" });
       }
-
-      //   After validation, set step0 to false
+      setHasChanges(false); // Reset changes tracking
+      // After verification, set step0 to false
       setverifybeforeMove((prev: any) =>
-        prev.map((step: any) => (step.hasOwnProperty("step0") ? { ...step, step0: false } : step))
+        prev.map((step: any) => (step.hasOwnProperty("step0") ? { ...step, step0: true } : step))
       );
+
+
     } catch (error) {
       console.error("Error in handleStepZero:", error);
       setAlert({ variant: "error", message: "Something went wrong. Please try again.", position: "bottom-right" });
@@ -291,6 +276,7 @@ export const SetupScreen = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div>
@@ -321,6 +307,7 @@ export const SetupScreen = () => {
             label={"Select Client"}
             isEditing={isEditing}
             formId="client_selection"
+            setHasChanges={setHasChanges}
           />
         </div>
         <div className="flex items-center flex-wrap gap-4 pb-12">
@@ -329,6 +316,7 @@ export const SetupScreen = () => {
             label={"Parameter Level 1"}
             isEditing={isEditing}
             formId="level_1"
+            setHasChanges={setHasChanges}
           />
 
           <ClientSelection
@@ -336,12 +324,14 @@ export const SetupScreen = () => {
             label={"Parameter Level 2"}
             isEditing={isEditing}
             formId="level_2"
+            setHasChanges={setHasChanges}
           />
           <ClientSelection
             options={level3Options}
             label={"Parameter Level 3"}
             isEditing={isEditing}
             formId="level_3"
+            setHasChanges={setHasChanges}
           />
         </div>
         <div className=" pb-12">
@@ -372,12 +362,14 @@ export const SetupScreen = () => {
               label={"Select currency"}
               isEditing={isEditing}
               formId="budget_details_currency"
+              setHasChanges={setHasChanges}
             />
             <ClientSelection
               options={mediaBudgetPercentage}
               label={"% of media budget"}
               isEditing={isEditing}
               formId="budget_details_fee_type"
+              setHasChanges={setHasChanges}
             />
             {campaignFormData?.budget_details_fee_type?.id === "Tooling" && (
               <div className="flex gap-6 mt-[20px]">
@@ -420,15 +412,17 @@ export const SetupScreen = () => {
       </div>
       {/*   BUTTON - Enabled only when required fields are filled */}
 
-      {verifybeforeMove?.[0]?.step0 && (
+      {hasChanges && (
         <div className="flex justify-end pr-6 mt-[20px]">
           <button
             onClick={handleStepZero}
             className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg text-white font-semibold text-base leading-6 transition-colors bg-[#3175FF] hover:bg-[#2557D6]"
           >
-            {loading ? <SVGLoader width="30px" height="30px" color="#FFF" /> : "Validate"}
+            {loading ? <SVGLoader width="30px" height="30px" color="#FFF" /> : "Verify"}
           </button>
-        </div>)}
+        </div>
+      )}
+
 
     </div>
   );
