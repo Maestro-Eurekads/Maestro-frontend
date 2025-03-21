@@ -4,6 +4,7 @@ import down from "../public/down.svg";
 import Image from "next/image";
 import { useCampaigns } from "../app/utils/CampaignsContext";
 import { BiLoader } from "react-icons/bi";
+import { useVerification } from "app/utils/VerificationContext";
 
 const Dropdown = ({
   label,
@@ -18,6 +19,7 @@ const Dropdown = ({
   formId: string;
   setHasChanges: (value: boolean) => void; // <-- Add type for function prop
 }) => {
+  const { setverifybeforeMove } = useVerification();
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -36,6 +38,9 @@ const Dropdown = ({
         value,
       },
     }));
+    setverifybeforeMove((prev: any) =>
+      prev.map((step: any) => (step.hasOwnProperty("step0") ? { ...step, step0: false } : step))
+    );
     setHasChanges(true); // <-- Set hasChanges to true when a value is selected
     setIsOpen(false);
   };
