@@ -22,8 +22,7 @@ interface DraggableChannelProps {
   setParentWidth?: any;
   parentLeft?: any;
   setParentLeft?: any;
-  disableDrag?:boolean;
-  budget?:string
+  disableDrag?:boolean
 }
 
 const DraggableChannel: React.FC<DraggableChannelProps> = ({
@@ -41,7 +40,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   parentLeft,
   setParentLeft,
   disableDrag = false, // Default to false
-  budget
 }) => {
   const { funnelWidths, setFunnelWidth } = useFunnelContext();
   const [position, setPosition] = useState(0);
@@ -206,13 +204,13 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   return (
     <div
       className={`relative w-full h-14 flex select-none ${disableDrag ? "rounded-[10px]" : "rounded-none"}`}
-      style={{ transform: `translateX(${position}px)`, left: parentLeft ? `${parentLeft}px` : "" }}
+      style={{ transform: `translateX(${position}px)` }}
     >
       {/* Left Resize Handle */}
       <div
         className={`w-5 h-full bg-opacity-80 bg-black ${
-          disableDrag ? "cursor-default hidden rounded-[10px]" : "cursor-ew-resize rounded-l-lg"
-        }  text-white flex items-center justify-center`}
+          disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+        } rounded-l-lg text-white flex items-center justify-center`}
         onMouseDown={(e) => !disableDrag && handleMouseDownResize(e, "left")}
       >
         <MdDragHandle className="rotate-90" />
@@ -220,8 +218,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
       {/* Draggable Content */}
       <div
-        className={`h-full flex justify-between items-center text-white px-4 gap-2  shadow-md min-w-[150px] ${
-          disableDrag ? "cursor-default rounded-[10px]" : "cursor-move border"
+        className={`h-full flex justify-between items-center text-white px-4 gap-2 border shadow-md min-w-[150px] ${
+          disableDrag ? "cursor-default" : "cursor-move"
         }`}
         style={{ width: parentWidth, backgroundColor: bg }}
         onMouseDown={handleMouseDownDrag}
@@ -236,7 +234,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           <MdOutlineKeyboardArrowDown />
         </button>
 
-        {!disableDrag && parentWidth >= 350 ? (
+        {parentWidth >= 350 ? (
           <button className="channel-btn" onClick={() => setIsOpen?.(true)}>
             <Image src={icroundadd} alt="icroundadd" />
             <p className="whitespace-nowrap">Add new channel</p>

@@ -11,10 +11,6 @@ import { useCampaigns } from '../../utils/CampaignsContext';
 const OverviewofyourCampaign = () => {
 	const [show, setShow] = useState(false);
 	const { range } = useDateRange();
-	const dateList = eachDayOfInterval({
-		start: range.startDate,
-		end: range.endDate,
-	});
 
 	const {
 		updateCampaign,
@@ -76,7 +72,7 @@ const OverviewofyourCampaign = () => {
 					<DateComponent useDate={false} />
 				</div>
 
-				<OverviewOfYourCampaigntimeline dateList={dateList} funnels={funnelsData} />
+				<OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} />
 			</div>
 
 		</div>
