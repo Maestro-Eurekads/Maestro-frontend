@@ -7,9 +7,15 @@ import { useDateRange } from '../../../src/date-range-context';
 import { format, eachDayOfInterval } from "date-fns";
 import { parseApiDate } from '../../../components/Options';
 import { useCampaigns } from '../../utils/CampaignsContext';
+import CommentsDrawer from 'components/Drawer/CommentsDrawer';
+import Message from 'components/Drawer/Message';
 
 const OverviewofyourCampaign = () => {
+	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 	const [show, setShow] = useState(false);
+	const [message, setMessage] = useState(false);
+	const [addComment, setAddComment] = useState(false);
+	const [addmessage, setAddMessage] = useState(false);
 	const { range } = useDateRange();
 
 	const {
@@ -45,11 +51,21 @@ const OverviewofyourCampaign = () => {
 					t1="Campaign summary"
 					t2="Final review of your campaign's budget allocation across phases and channels."
 				/>
-
+				<CommentsDrawer
+					isOpen={isDrawerOpen}
+					onClose={setIsDrawerOpen}
+					setIsDrawerOpen={setIsDrawerOpen}
+					setAddComment={setAddComment}
+					addComment={addComment}
+					message={message}
+				/>
 				<div >
-					<button className="overview-budget-conponent mt-8"
-						onClick={() => setShow(!show)}>{!show ? "See" : "Hide"} budget overview</button>
-
+					<div className='flex gap-5'>
+						<button className="overview-budget-conponent mt-8"
+							onClick={() => setShow(!show)}>{!show ? "See" : "Hide"}budget overview</button>
+						<button className="overview-budget-conponent mt-8"
+							onClick={() => setIsDrawerOpen(!isDrawerOpen)}>View Comments</button>
+					</div>
 					<ConfigureBudgetComponet show={show} t1={"Your budget by campaign phase"} t2={undefined} />
 				</div>
 
@@ -71,7 +87,7 @@ const OverviewofyourCampaign = () => {
 				<div className='mt-[30px]'>
 					<DateComponent useDate={false} />
 				</div>
-
+				<Message message={message} setAddMessage={setAddMessage} addComment={addComment} isOpen={isDrawerOpen} setMessage={setMessage} />
 				<OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} />
 			</div>
 

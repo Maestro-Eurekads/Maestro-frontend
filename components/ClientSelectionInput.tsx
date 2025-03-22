@@ -14,15 +14,13 @@ const TextInput = ({
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   return (
     <div className="relative max-w-xs">
-      {/* Input Field */}
       <input
         type="text"
         placeholder={label}
-        className={`dropdown_button_width px-4 py-2 h-[45px] bg-white border-2 border-[#EFEFEF] rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-100 placeholder-[#061237] ${
-          isEditing ? "cursor-text" : "cursor-not-allowed"
-        }`}
+        className={`dropdown_button_width px-4 py-2 h-[45px] bg-white border-2 border-[#EFEFEF] rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-100 placeholder-[#061237] ${isEditing ? "cursor-text" : "cursor-not-allowed"
+          }`}
         disabled={!isEditing}
-		value={campaignFormData[formId]}
+        value={campaignFormData[formId]}
         onChange={(e) =>
           setCampaignFormData((prev) => ({ ...prev, [formId]: e.target.value }))
         }

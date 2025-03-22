@@ -4,19 +4,22 @@ import down from "../public/down.svg";
 import Image from "next/image";
 import { useCampaigns } from "../app/utils/CampaignsContext";
 import { BiLoader } from "react-icons/bi";
+import { useVerification } from "app/utils/VerificationContext";
 
 const Dropdown = ({
   label,
   options,
   isEditing,
   formId,
+  setHasChanges,
 }: {
   label: string;
   options: { id?: string; value: string; label: string }[];
   isEditing: boolean;
   formId: string;
+  setHasChanges: (value: boolean) => void;
 }) => {
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const { setverifybeforeMove } = useVerification();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { campaignFormData, setCampaignFormData, loadingClients } =
@@ -34,6 +37,18 @@ const Dropdown = ({
         value,
       },
     }));
+    setverifybeforeMove((prev: any) => {
+      if (!Array.isArray(prev)) {
+        console.error("setverifybeforeMove: Expected an array, got", prev);
+        return prev; // Return as is if it's not an array
+      }
+
+      return prev.map((step: any) =>
+        step.hasOwnProperty("step0") ? { ...step, step0: false } : step
+      );
+    });
+
+    setHasChanges(true); // <-- Set hasChanges to true when a value is selected
     setIsOpen(false);
   };
 
@@ -81,8 +96,8 @@ const Dropdown = ({
           label === "Business level 3")
           ? campaignFormData["client_selection"]?.value
           : true) && (
-          <div className="absolute w-full bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-1 z-10 max-h-[300px] overflow-y-scroll">
-            {options.map((option) => (
+          <div className="absolute w-full bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-1 z-10 max-h-[300px] overflow-y-auto">
+            {options?.map((option) => (
               <div
                 key={option.value}
                 className="px-4 py-2 cursor-pointer hover:bg-gray-100"
@@ -104,11 +119,13 @@ const ClientSelection = ({
   label,
   isEditing,
   formId,
+  setHasChanges,
 }: {
   options: { value: string; label: string }[];
   label: string;
   isEditing: boolean;
   formId?: string;
+  setHasChanges: (value: boolean) => void;
 }) => {
   return (
     <div className="flex items-center gap-4 mt-[20px]">
@@ -117,6 +134,7 @@ const ClientSelection = ({
         options={options}
         isEditing={isEditing}
         formId={formId}
+        setHasChanges={setHasChanges}
       />
     </div>
   );

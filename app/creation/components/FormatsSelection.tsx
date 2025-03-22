@@ -18,7 +18,7 @@ import yahoo from '../../../public/yahoo.svg';
 import bing from '../../../public/bing.svg';
 import orangecredit from '../../../public/orangecredit-card.svg';
 import tablerzoomfilled from '../../../public/tabler_zoom-filled.svg';
-import { Platforms } from './FormatSelection';
+import FormatSelection from './FormatSelection';
 
 const funnelStages = [
 	{
@@ -87,24 +87,19 @@ const FormatsSelection = () => {
 															{platform.name}
 														</p>
 													</div>
-											
-													
 												</div>
 											))}
-											
 										</div>
 									</div>
-									
 								))}
-								 <div className="card-body">
-                                 <Platforms stageName={stage?.name} />
-                               </div>
+								<div className="card-body">
+									<FormatSelection />
+								</div>
 							</div>
 						)}
 					</div>
 				))}
 			</div>
-
 		</div>
 	);
 };

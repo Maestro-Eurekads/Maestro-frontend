@@ -1,0 +1,67 @@
+ 
+
+ .drawer-container {
+  position: fixed;
+  top: 0;
+  right: -25%;  
+    width:25%; 
+  height: 100%;
+  background-color: var(--accent-white);
+  box-shadow: -2px 0px 5px rgba(0, 0, 0, 0.2);
+  transition: right 0.3s ease-in-out;
+  z-index: 1000;
+}
+
+
+
+@media screen and (max-width: 1300px) {
+   .drawer-container {
+    right: -40%;  
+  width: 40%; 
+   }
+}
+@media screen and (max-width: 1080px) {
+   .drawer-container {
+    right: -50%;  
+  width: 50%; 
+   }
+}
+@media screen and (max-width: 780px) {
+   .drawer-container {
+    right: -70%;  
+  width: 70%; 
+   }
+}
+@media screen and (max-width: 480px) {
+   .drawer-container {
+    right: -100%;  
+  width: 100%; 
+   }
+}
+
+.drawer-open {
+  right: 0;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.drawer-content {
+  padding: 20px;
+}
+
+
+ 
+ 
+
+.edit-container svg {
+  color: var(--black);
+}
+ 

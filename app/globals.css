@@ -1,4 +1,3 @@
- 
 @import url(../css/homepage.css);
 @import url(../css/header.css);
 @import url(../css/button.css);
@@ -8,6 +7,7 @@
 @import url(../css/creationFlow.css);
 @import url(../css/Checkbox.css);
 @import url(../css/Impressions.css);
+@import url(../css/CommentsDrawer.css);
 
 
 @tailwind base;
