@@ -23,6 +23,7 @@ interface DraggableChannelProps {
   parentLeft?: any;
   setParentLeft?: any;
   disableDrag?:boolean
+  budget?: number|string;
 }
 
 const DraggableChannel: React.FC<DraggableChannelProps> = ({
@@ -40,6 +41,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   parentLeft,
   setParentLeft,
   disableDrag = false, // Default to false
+  budget
 }) => {
   const { funnelWidths, setFunnelWidth } = useFunnelContext();
   const [position, setPosition] = useState(0);
@@ -100,7 +102,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     // Get container boundaries
     const containerRect = gridContainer.getBoundingClientRect();
     const minX = 0;
-    const maxX = containerRect.width;
+    const maxX = containerRect.width -45;
 
     if (direction === "left") {
       newWidth = Math.max(150, startWidth - (e.clientX - startX));

@@ -85,20 +85,26 @@ const ResizableChannels = ({
     );
 
     const calculatedDate = new Date(startDate);
+    console.log("🚀 ~ pixelToDate ~ calculatedDate:", calculatedDate);
     calculatedDate.setDate(startDate?.getDate() + dayIndex);
 
     // Convert the result back to "yyyy-mm-dd" format
-    return calculatedDate?.toISOString()?.split("T")[0];
+    return calculatedDate ? calculatedDate.toISOString().split("T")[0] : null;
   };
 
   const handleDragStart = (index) => (event) => {
-    console.log("bfjdfd", index);
+    console.log(
+      "bfjdfd",
+      index,
+      event.clientX,
+      channelState[index]?.left || parentLeft
+    );
     if (disableDrag) return;
     event.preventDefault();
     setDraggingPosition({
       index,
       startX: event.clientX,
-      startLeft: channelState[index].left,
+      startLeft: channelState[index]?.left || parentLeft,
     });
   };
   useEffect(() => {
@@ -109,6 +115,7 @@ const ResizableChannels = ({
     const handleDragMove = (event: MouseEvent) => {
       event.preventDefault();
       const { index, startX, startLeft } = draggingPosition;
+      console.log("🚀 ~ handleDragMove ~ draggingPosition:", draggingPosition);
       const deltaX = event.clientX - startX;
 
       let newLeft = startLeft + deltaX;
@@ -127,10 +134,10 @@ const ResizableChannels = ({
       // Store campaign date updates in ref to prevent re-renders
       const startPixel = newLeft - parentLeft;
       const endPixel = startPixel + channelState[index]?.width;
-      const startDate = pixelToDate(startPixel, parentWidth, Math.floor);
-      const endDate = pixelToDate(endPixel, parentWidth, Math.ceil);
+      // const startDate = pixelToDate(startPixel, parentWidth, Math.floor);
+      // const endDate = pixelToDate(endPixel, parentWidth, Math.ceil);
 
-      draggingDataRef.current = { index, startDate, endDate };
+      draggingDataRef.current = { index };
     };
 
     const handleDragEnd = () => {
@@ -227,13 +234,23 @@ const ResizableChannels = ({
     if (initialChannels && initialChannels.length > 0) {
       setChannels(initialChannels);
       // Initialize new channels with parent's position
-      setChannelState((prev) =>
-        prev.map((state) => ({
-          ...state,
-          left: parentLeft,
-          width: Math.min(state.width, parentWidth), // Adjust width if it exceeds parent
-        }))
-      );
+      setChannelState((prev) => {
+        const newState = initialChannels.map((channel, index) => {
+          // Check if this channel already exists in prev
+          const existingState = prev[index];
+          return existingState
+            ? {
+                ...existingState,
+                // Update left position to match parent when it moves
+                left: parentLeft,
+              }
+            : {
+                left: parentLeft,
+                width: Math.min(150, parentWidth), // Default width for new channels
+              };
+        });
+        return newState;
+      });
     }
   }, [initialChannels, parentLeft, parentWidth]);
 
@@ -245,7 +262,7 @@ const ResizableChannels = ({
     const handleMouseMove = (event) => {
       event.preventDefault();
       const { index, direction, startX } = dragging;
-      let deltaX = event.clientX - startX;
+      const deltaX = event.clientX - startX;
 
       setChannelState((prev) =>
         prev.map((state, i) => {
@@ -286,32 +303,32 @@ const ResizableChannels = ({
           const endPixel = startPixel + newWidth;
 
           // Convert pixel positions to dates
-          const startDate = pixelToDate(startPixel, parentWidth);
-          const endDate = pixelToDate(
-            endPixel - parentWidth / totalDays,
-            parentWidth
-          );
+          // const startDate = pixelToDate(startPixel, parentWidth);
+          // const endDate = pixelToDate(
+          //   endPixel - parentWidth / totalDays,
+          //   parentWidth
+          // );
 
-          const updatedCampaignFormData = { ...campaignFormData };
+          // const updatedCampaignFormData = { ...campaignFormData };
 
-          const channelMix = updatedCampaignFormData.channel_mix.find(
-            (ch) => ch.funnel_stage === parentId
-          );
+          // const channelMix = updatedCampaignFormData.channel_mix.find(
+          //   (ch) => ch.funnel_stage === parentId
+          // );
 
-          if (channelMix) {
-            const platform = channelMix[channels[index].channelName]?.find(
-              (platform) => platform.platform_name === channels[index].name
-            );
+          // if (channelMix) {
+          //   const platform = channelMix[channels[index].channelName]?.find(
+          //     (platform) => platform.platform_name === channels[index].name
+          //   );
 
-            if (platform) {
-              platform.campaign_start_date = startDate;
-              platform.campaign_end_date = endDate;
-            }
-          }
+          //   if (platform) {
+          //     platform.campaign_start_date = startDate;
+          //     platform.campaign_end_date = endDate;
+          //   }
+          // }
 
-          setCopy(updatedCampaignFormData);
+          // setCopy(updatedCampaignFormData);
 
-          console.log("Start Date:", startDate, "End Date:", endDate);
+          // console.log("Start Date:", startDate, "End Date:", endDate);
 
           return { ...state, left: newLeft, width: newWidth };
         })
@@ -342,7 +359,7 @@ const ResizableChannels = ({
             setIsOpen(true);
           }}
           style={{
-            left: `${channelState[0]?.left || parentLeft}px`,
+            left: `${parentLeft}px`,
           }}
         >
           <Image src={whiteplus || "/placeholder.svg"} alt="whiteplus" />
@@ -355,7 +372,7 @@ const ResizableChannels = ({
             className="absolute top-0 h-full flex justify-center items-center text-white px-4 gap-2 border shadow-md min-w-[150px] cursor-move"
             style={{
               left: `${channelState[index]?.left || parentLeft}px`,
-              width: `${channelState[index]?.width || 150}px`,
+              width: `${channelState[index]?.width +30 || 150}px`,
               backgroundColor: channel.bg,
               color: channel.color,
               borderColor: channel.color,
@@ -375,7 +392,9 @@ const ResizableChannels = ({
           </div>
 
           <div
-            className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${disableDrag && "hidden"}`}
+            className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
+              disableDrag && "hidden"
+            }`}
             style={{
               left: `${channelState[index]?.left || parentLeft}px`,
               backgroundColor: channel.color,
@@ -388,12 +407,13 @@ const ResizableChannels = ({
           </div>
 
           <div
-            className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${disableDrag && "hidden"}`}
+            className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
+              disableDrag && "hidden"
+            }`}
             style={{
               left: `${
                 (channelState[index]?.left || parentLeft) +
-                (channelState[index]?.width || 150) -
-                5
+                (channelState[index]?.width + 22 || 150)
               }px`,
               backgroundColor: channel.color,
             }}

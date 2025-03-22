@@ -189,7 +189,7 @@ const ResizeableElements = () => {
             }}
           >
             <div
-              className="flex flex-col mt-6 rounded-[10px] p-4 pl-0 justify-between w-fit"
+              className="flex flex-col mt-6 rounded-[10px] p-4 px-0 justify-between w-fit"
               style={{
                 gridColumnStart: 1,
                 gridColumnEnd: 8,
@@ -232,7 +232,7 @@ const ResizeableElements = () => {
           </div>
         );
       })}
-      <AddNewChennelsModel isOpen={isOpen} setIsOpen={setIsOpen} />
+      <AddNewChennelsModel isOpen={isOpen} setIsOpen={setIsOpen} setPlatforms={setPlatforms}/>
     </div>
   );
 };

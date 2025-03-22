@@ -1,14 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import FunnelStage from "../../app/creation/components/SelectChannelMix";
-import { funnelStages } from "../data";
+import { funnelStages, getPlatformIcon, platformStyles } from "../data";
 import Image from "next/image";
 import up from "../../public/arrow-down.svg";
 import down2 from "../../public/arrow-down-2.svg";
 import checkmark from "../../public/mingcute_check-fill.svg";
 import { useCampaigns } from "app/utils/CampaignsContext";
 
-const AddNewChennelsModel = ({ isOpen, setIsOpen }) => {
+const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
   // Controls expanded/collapsed state for each stage
   const [openItems, setOpenItems] = useState({ Awareness: true });
   // Tracks selected platforms per stage (per category)
@@ -78,6 +78,28 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen }) => {
           ...stageSelection,
           [category]: newCategorySelection,
         },
+      };
+    });
+
+    const style =
+      platformStyles.find((style) => style.name === platformName) ||
+      platformStyles[Math.floor(Math.random() * platformStyles.length)];
+    setPlatforms((prev) => {
+      let stageSelection = prev[stageName] || {};
+      stageSelection = [
+        ...stageSelection,
+        {
+          name: platformName,
+          icon: getPlatformIcon(platformName),
+          channel_name: category,
+          color: style?.color,
+          bg: style?.bg,
+        },
+      ];
+
+      return {
+        ...prev,
+        [stageName]: stageSelection,
       };
     });
 

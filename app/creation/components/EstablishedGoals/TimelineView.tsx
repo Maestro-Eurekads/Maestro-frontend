@@ -73,7 +73,7 @@ const TimelineView = () => {
 				<DateComponent useDate={undefined} />
 			</div>
 
-			<EstablishedGoalsTimeline dateList={range} />
+			<EstablishedGoalsTimeline/>
 		</div>
 	)
 }

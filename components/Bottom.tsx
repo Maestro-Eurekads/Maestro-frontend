@@ -194,7 +194,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     // ✅ Step Seven Validation - Ensure dates are selected
     if (active === 7 && (!selectedDates?.to?.day || !selectedDates?.from?.day) && subStep <1) {
-      setSelectedDateslError(true);
+      setSelectedDatesError(true);
       hasError = true;
     }
 
