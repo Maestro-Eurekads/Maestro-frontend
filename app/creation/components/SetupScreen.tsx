@@ -102,7 +102,7 @@ export const SetupScreen = () => {
   }, [allClients]);
 
   useEffect(() => {
-    const client = allClients.find((c) => c.documentId === client_selection?.id);
+    const client = allClients.find((c) => c?.documentId === client_selection?.id);
     setlevel1Options(() => {
       const options = client?.level_1?.map((l) => ({
         value: l,
@@ -308,20 +308,20 @@ export const SetupScreen = () => {
         <div className="flex items-center flex-wrap gap-4 pb-12">
           <ClientSelection
             options={level1Options}
-            label={"Parameter Level 1"}
+            label={"Business Level 1"}
             formId="level_1"
             setHasChanges={setHasChanges}
           />
 
           <ClientSelection
             options={level2Options}
-            label={"Parameter Level 2"}
+            label={"Business Level 2"}
             formId="level_2"
             setHasChanges={setHasChanges}
           />
           <ClientSelection
             options={level3Options}
-            label={"Parameter Level 3"}
+            label={"Business Level 3"}
             formId="level_3"
             setHasChanges={setHasChanges}
           />

@@ -15,7 +15,6 @@ import { ToastContainer } from "react-toastify";
 import { VerificationProvider } from "./utils/VerificationContext";
 
 
-
 // Load Roboto font
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -27,7 +26,7 @@ const roboto = Roboto({
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"], // Adjust weights as needed
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {

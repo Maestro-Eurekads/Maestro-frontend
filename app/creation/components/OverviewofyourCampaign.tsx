@@ -88,7 +88,9 @@ const OverviewofyourCampaign = () => {
 				<div className='mt-[30px]'>
 					<DateComponent useDate={false} />
 				</div>
+				{/* <Draggable> */}
 				<Message message={message} setAddMessage={setAddMessage} addComment={addComment} isOpen={isDrawerOpen} setMessage={setMessage} />
+				{/* </Draggable> */}
 				<OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} />
 			</div>
 

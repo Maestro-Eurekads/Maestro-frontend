@@ -34,7 +34,7 @@ const ConversionEdit = ({ onDelete }) => {
 
   const [selectedValues, setSelectedValues] = useState({
     traffic1: "Traffic",
-    traffic2: "Traffic", 
+    traffic2: "Traffic",
     videoView1: "Video view",
     videoView2: "Video view",
     cpm1: "CPM",
@@ -97,7 +97,7 @@ const ConversionEdit = ({ onDelete }) => {
   if (isDeleted) {
     return (
       <div className="w-full flex justify-center py-8">
-        <button 
+        <button
           onClick={handleAddBack}
           className="bg-[#3175FF] text-white px-6 py-3 rounded-lg hover:bg-[#2861db]"
         >
@@ -147,9 +147,9 @@ const ConversionEdit = ({ onDelete }) => {
             </button>
 
             {/* second row */}
-             
+
             <div className="relative">
-              <button 
+              <button
                 onClick={() => toggleDropdown('traffic1')}
                 className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
               >
@@ -159,7 +159,7 @@ const ConversionEdit = ({ onDelete }) => {
               {showDropdowns.traffic1 && (
                 <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
                   {objectives.map((objective) => (
-                    <div 
+                    <div
                       key={objective}
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                       onClick={() => handleSelect('traffic1', objective)}
@@ -172,7 +172,7 @@ const ConversionEdit = ({ onDelete }) => {
             </div>
 
             <div className="relative">
-              <button 
+              <button
                 onClick={() => toggleDropdown('traffic2')}
                 className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
               >
@@ -182,7 +182,7 @@ const ConversionEdit = ({ onDelete }) => {
               {showDropdowns.traffic2 && (
                 <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
                   {objectives.map((objective) => (
-                    <div 
+                    <div
                       key={objective}
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                       onClick={() => handleSelect('traffic2', objective)}
@@ -196,7 +196,7 @@ const ConversionEdit = ({ onDelete }) => {
 
             {/* Third rows */}
             <div className="relative">
-              <button 
+              <button
                 onClick={() => toggleDropdown('cpm1')}
                 className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
               >
@@ -206,7 +206,7 @@ const ConversionEdit = ({ onDelete }) => {
               {showDropdowns.cpm1 && (
                 <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
                   {buyTypes.map((type) => (
-                    <div 
+                    <div
                       key={type}
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                       onClick={() => handleSelect('cpm1', type)}
@@ -219,7 +219,7 @@ const ConversionEdit = ({ onDelete }) => {
             </div>
 
             <div className="relative">
-              <button 
+              <button
                 onClick={() => toggleDropdown('cpm2')}
                 className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
               >
@@ -229,7 +229,7 @@ const ConversionEdit = ({ onDelete }) => {
               {showDropdowns.cpm2 && (
                 <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
                   {buyTypes.map((type) => (
-                    <div 
+                    <div
                       key={type}
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                       onClick={() => handleSelect('cpm2', type)}
@@ -275,7 +275,7 @@ const ConversionEdit = ({ onDelete }) => {
 
               {/* second row */}
               <div className="relative">
-                <button 
+                <button
                   onClick={() => toggleDropdown('videoView1')}
                   className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
                 >
@@ -285,7 +285,7 @@ const ConversionEdit = ({ onDelete }) => {
                 {showDropdowns.videoView1 && (
                   <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
                     {objectives.map((objective) => (
-                      <div 
+                      <div
                         key={objective}
                         className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                         onClick={() => handleSelect('videoView1', objective)}
@@ -298,7 +298,7 @@ const ConversionEdit = ({ onDelete }) => {
               </div>
 
               <div className="relative">
-                <button 
+                <button
                   onClick={() => toggleDropdown('videoView2')}
                   className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
                 >
@@ -308,7 +308,7 @@ const ConversionEdit = ({ onDelete }) => {
                 {showDropdowns.videoView2 && (
                   <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
                     {objectives.map((objective) => (
-                      <div 
+                      <div
                         key={objective}
                         className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                         onClick={() => handleSelect('videoView2', objective)}
@@ -322,7 +322,7 @@ const ConversionEdit = ({ onDelete }) => {
 
               {/* Third rows */}
               <div className="relative">
-                <button 
+                <button
                   onClick={() => toggleDropdown('cpv1')}
                   className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
                 >
@@ -332,7 +332,7 @@ const ConversionEdit = ({ onDelete }) => {
                 {showDropdowns.cpv1 && (
                   <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
                     {buyTypes.map((type) => (
-                      <div 
+                      <div
                         key={type}
                         className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                         onClick={() => handleSelect('cpv1', type)}
@@ -345,7 +345,7 @@ const ConversionEdit = ({ onDelete }) => {
               </div>
 
               <div className="relative">
-                <button 
+                <button
                   onClick={() => toggleDropdown('cpv2')}
                   className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
                 >
@@ -355,7 +355,7 @@ const ConversionEdit = ({ onDelete }) => {
                 {showDropdowns.cpv2 && (
                   <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
                     {buyTypes.map((type) => (
-                      <div 
+                      <div
                         key={type}
                         className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                         onClick={() => handleSelect('cpv2', type)}
@@ -388,7 +388,7 @@ const ConversionEdit = ({ onDelete }) => {
               </button>
 
               <div className="relative">
-                <button 
+                <button
                   onClick={() => toggleDropdown('searchTraffic')}
                   className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
                 >
@@ -398,7 +398,7 @@ const ConversionEdit = ({ onDelete }) => {
                 {showDropdowns.searchTraffic && (
                   <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
                     {objectives.map((objective) => (
-                      <div 
+                      <div
                         key={objective}
                         className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                         onClick={() => handleSelect('searchTraffic', objective)}
@@ -411,7 +411,7 @@ const ConversionEdit = ({ onDelete }) => {
               </div>
 
               <div className="relative">
-                <button 
+                <button
                   onClick={() => toggleDropdown('searchBuyType')}
                   className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
                 >
@@ -421,7 +421,7 @@ const ConversionEdit = ({ onDelete }) => {
                 {showDropdowns.searchBuyType && (
                   <div className="absolute top-full left-0 w-full bg-white border rounded-md shadow-lg z-10">
                     {buyTypes.map((type) => (
-                      <div 
+                      <div
                         key={type}
                         className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                         onClick={() => handleSelect('searchBuyType', type)}
