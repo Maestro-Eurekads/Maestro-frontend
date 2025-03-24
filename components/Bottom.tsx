@@ -190,13 +190,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-<<<<<<< HEAD
-    // Step 7: Ensure dates are selected
-    if (active === 7 && (!campaignData?.campaign_timeline_end_date && !campaignData?.campaign_timeline_start_date)) {
-=======
     // ✅ Step Seven Validation - Ensure dates are selected
-    if (active === 7 && (!selectedDates?.to?.day || !selectedDates?.from?.day) && subStep <1) {
->>>>>>> b013bd844346fa1a60b4bc40f318b8b2a3e3a1d1
+    if (active === 7 && (!selectedDates?.to?.day || !selectedDates?.from?.day) && subStep < 1) {
       setSelectedDatesError(true);
       hasError = true;
     }
@@ -213,20 +208,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     };
 
     const cleanData = removeKeysRecursively(campaignData, ["id", "documentId", "createdAt", "publishedAt", "updatedAt"]);
-<<<<<<< HEAD
-    const stepHandlers = {
-      0: async () => {
-        await updateCampaignData({
-          ...cleanData,
-          client: campaignFormData?.client_selection?.id,
-        });
-      },
-      1: async () => {
-=======
 
-     const handleStepZero = async () => {
+    const handleStepZero = async () => {
       if (cId && campaignData) {
->>>>>>> b013bd844346fa1a60b4bc40f318b8b2a3e3a1d1
         await updateCampaignData({
           ...cleanData,
           client: campaignFormData?.client_selection?.id,

@@ -63,12 +63,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(false);
   const query = useSearchParams();
   const cId = query.get("campaignId");
-<<<<<<< HEAD
-  const { loadingClients, allClients, fetchAllClients } = useCampaignHook();
-=======
   const { loadingClients, allClients } = useCampaignHook();
   const [copy, setCopy] = useState(campaignFormData)
->>>>>>> b013bd844346fa1a60b4bc40f318b8b2a3e3a1d1
 
   const getActiveCampaign = async (docId?: string) => {
     await axios
@@ -157,7 +153,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       );
 
       // Fetch all clients after a successful campaign creation
-      await fetchAllClients();
+
 
       return response; // Return API response in case the calling function needs it
     } catch (error) {

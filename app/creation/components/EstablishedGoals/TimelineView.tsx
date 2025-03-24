@@ -34,60 +34,15 @@ const TimelineView = () => {
 	// 	}
 	// }, [campaignId]);
 
-<<<<<<< HEAD
-	 
-=======
->>>>>>> b013bd844346fa1a60b4bc40f318b8b2a3e3a1d1
 
 
 	// const fromDate = parseApiDate(campaignData?.campaign_timeline_start_date);
-	// const toDate = parseApiDate(campaignData?.campaign_timeline_end_date);
 
-
-<<<<<<< HEAD
-					return [
-						{
-							title: "Social media",
-							platforms: stage.social_media?.map((platform) => ({
-								name: platform.platform_name,
-								icon: getPlatformIcon(platform.platform_name),
-							})),
-							style: "max-w-[150px] w-full h-[52px]",
-						},
-						{
-							title: "Display Networks",
-							platforms: stage.display_networks?.map((platform) => ({
-								name: platform.platform_name,
-								icon: getPlatformIcon(platform.platform_name),
-							})),
-							style: "max-w-[200px] w-full",
-						},
-						{
-							title: "Search Engines",
-							platforms: stage.search_engines?.map((platform) => ({
-								name: platform.platform_name,
-								icon: getPlatformIcon(platform.platform_name),
-							})),
-							style: "max-w-[180px] w-full",
-						},
-					];
-				})
-				.flat()
-				.filter(Boolean); // Flatten array and remove null values
-
-			// **Fix: Prevent re-render loop**
-			if (JSON.stringify(channels) !== JSON.stringify(newChannels)) {
-				setChannels(newChannels);
-			}
-		}
-	}, [campaignFormData]);
-=======
 	// const funnelsData = [
 	// 	{ startWeek: fromDate?.day, endWeek: toDate?.day, label: "Campaign 1" },
 	// 	// { startWeek: 3, endWeek: 5, label: "Campaign 2" },
-	// 	// { startWeek: 3, endWeek: 5, label: "Campaign 2" },
 	// ];
->>>>>>> b013bd844346fa1a60b4bc40f318b8b2a3e3a1d1
+
 
 	const mapCampaignsToFunnels = (campaigns: any[]) => {
 		return campaigns.map((campaign, index) => {
@@ -116,7 +71,7 @@ const TimelineView = () => {
 				<DateComponent useDate={undefined} />
 			</div>
 
-			<EstablishedGoalsTimeline/>
+			<EstablishedGoalsTimeline />
 		</div>
 	)
 }
