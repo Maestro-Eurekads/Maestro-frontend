@@ -25,6 +25,7 @@ import { useDateRange } from "../../../src/date-range-context";
 import { processCampaignData } from "components/processCampaignData";
 import ChannelDistributionChatTwo from "components/ChannelDistribution/ChannelDistributionChatTwo";
 import { getCurrencySymbol } from "components/data";
+import { differenceInCalendarWeeks, max, min, parseISO } from "date-fns";
 
 const Dashboard = () => {
   const [selected, setSelected] = useState([]);
@@ -153,7 +154,53 @@ const Dashboard = () => {
     });
   };
 
-  const funnelsData = mapCampaignsToFunnels(clientCampaignData);
+  const startDates = clientCampaignData?.map(
+    (ch) =>
+      ch?.campaign_timeline_start_date !== null &&
+      parseISO(ch?.campaign_timeline_start_date)
+  );
+  const endDates = clientCampaignData?.map(
+    (ch) =>
+      ch?.campaign_timeline_end_date !== null &&
+      parseISO(ch?.campaign_timeline_end_date)
+  );
+
+  console.log({ startDates, endDates });
+
+  // Find the earliest startDate and latest endDate
+  const earliestStartDate = min(startDates);
+  const latestEndDate = max(endDates);
+  console.log(
+    `Earliest Start Date: ${earliestStartDate.toISOString().split("T")[0]}`
+  );
+  console.log(`Latest End Date: ${latestEndDate.toISOString().split("T")[0]}`);
+  // Calculate the week difference
+  const weekDifference = differenceInCalendarWeeks(
+    latestEndDate,
+    earliestStartDate
+  );
+  console.log("🚀 ~ weekDifference:", weekDifference);
+
+  const funnelsData = clientCampaignData?.map((ch) => {
+    const start = parseISO(ch?.campaign_timeline_start_date);
+    const end = parseISO(ch?.campaign_timeline_end_date);
+    const startWeek = differenceInCalendarWeeks(start, earliestStartDate) + 1;
+    const endWeek = differenceInCalendarWeeks(end, earliestStartDate) + 1;
+    const funnels = ch?.funnel_stages;
+    return {
+      startWeek,
+      endWeek,
+      label: ch?.media_plan_details?.plan_name,
+      stages: ch?.channel_mix?.map((d) => ({
+        name: d?.funnel_stage,
+        budget: d?.stage_budget?.fixed_value,
+      })),
+      budget: `${ch?.campaign_budget?.amount} ${getCurrencySymbol(
+        ch?.campaign_budget?.currency
+      )}`,
+    };
+  });
+  console.log("🚀 ~ funnelsData:", funnelsData);
 
   const processedCampaigns = processCampaignData(
     clientCampaignData,
@@ -171,7 +218,9 @@ const Dashboard = () => {
           (channelType) => {
             stage[channelType].forEach((platform) => {
               const platformName = platform.platform_name;
-              const platformBudget = parseFloat(platform.budget?.fixed_value || 0);
+              const platformBudget = parseFloat(
+                platform.budget?.fixed_value || 0
+              );
               const percentage = (platformBudget / stageBudget) * 100 || 0;
               const existingPlatform = platforms.find(
                 (p) => p.platform_name === platformName
@@ -197,7 +246,7 @@ const Dashboard = () => {
           }
         );
       });
-    return platforms
+    return platforms;
   }
 
   return (
@@ -211,13 +260,12 @@ const Dashboard = () => {
         {loading ? <TableLoader isLoading={loading} /> : ""}
       </div>
       <div className="box-border w-full min-h-[519px] bg-white border-b-2">
-        <WeekInterval weeksCount={weeksCount} />
-        <WeekTimeline weeksCount={weeksCount} funnels={funnelsData} />
+        <WeekInterval weeksCount={weekDifference} />
+        <WeekTimeline weeksCount={weekDifference} funnels={funnelsData} />
       </div>
-      ;
       {processedCampaigns?.map((campaign, index) => {
-		const channelD = extractPlatforms(campaign)
-        console.log("🚀 ~ {processedCampaigns?.map ~ channelD:", channelD)
+        const channelD = extractPlatforms(campaign);
+        console.log("🚀 ~ {processedCampaigns?.map ~ channelD:", channelD);
         return (
           <div
             key={index}
@@ -255,7 +303,9 @@ const Dashboard = () => {
                   {/* Doughnut Chat */}
                   <DoughnutChat
                     data={campaign?.channel_mix?.map((ch) =>
-                      Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0)
+                      Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(
+                        0
+                      )
                     )}
                     color={campaign?.channel_mix?.map((ch) =>
                       ch?.funnel_stage === "Awareness"
@@ -310,7 +360,12 @@ const Dashboard = () => {
                   </h3>
                 </div>
 
-                <ChannelDistributionChatTwo channelData={channelD} currency={getCurrencySymbol(campaign?.campaign_budget?.currency)} />
+                <ChannelDistributionChatTwo
+                  channelData={channelD}
+                  currency={getCurrencySymbol(
+                    campaign?.campaign_budget?.currency
+                  )}
+                />
               </div>
             </div>
           </div>
