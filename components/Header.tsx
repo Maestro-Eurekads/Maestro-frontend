@@ -10,30 +10,47 @@ import { FiLoader } from "react-icons/fi";
 import useCampaignHook from "../app/utils/useCampaignHook";
 import { useEffect, useState } from "react";
 import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
+import { useAppDispatch, useAppSelector } from "store/useStore";
+import { client } from '../types/types';
+import AlertMain from "./Alert/AlertMain";
+import { getCreateClient, reset } from "features/Client/clientSlice";
 
 const Header = ({ setIsOpen }) => {
+  const { getCreateClientData, getCreateClientIsLoading, getCreateClientIsError, getCreateClientMessage } = useAppSelector((state) => state.client);
   const { loadingClients, allClients, setClientCampaignData, setLoading } = useCampaigns();
   const [selected, setSelected] = useState("");
-  const { fetchClientCampaign, refresh, fetchAllClients, setRefresh } = useCampaignHook();
+  const { fetchClientCampaign, fetchAllClients } = useCampaignHook();
+  const dispatch = useAppDispatch();
+  const [alert, setAlert] = useState(null);
+  const [IsError, setIsError] = useState(getCreateClientIsError);
+  const clients: any = getCreateClientData
 
 
-  useEffect(() => {
-    fetchAllClients();
+  // useEffect(() => {
+  //   if (getCreateClientIsError) {
+  //     setAlert({ variant: "error", message: getCreateClientMessage, position: "bottom-right" });
+  //   }
+
+  //   dispatch(reset());
+  // }, [dispatch, getCreateClientIsError]);
+
+  useEffect(() => { //@ts-ignore
+    dispatch(getCreateClient());
     const timer = setTimeout(() => {
-      setRefresh(false);
-    }, 3000);
+      setAlert(false);
+    }, 5000);
     return () => clearTimeout(timer);
-  }, [refresh]);
+  }, [alert, dispatch]);
 
 
 
-  useEffect(() => {
-    if (!allClients || allClients.length === 0) return; // Ensure allClients exists and is not empty
+  useEffect(() => { //@ts-ignore
+    if (!clients?.data || clients?.data?.length === 0) return; // Ensure allClients exists and is not empty
 
     setLoading(true);
     let isMounted = true; // Prevent setting state after unmount
 
-    const clientId = selected || allClients[0]?.id; // Use selected client ID or default to the first client
+    const clientId = selected || clients?.data[0]?.id; // Use selected client ID or default to the first client
     if (!clientId) return setLoading(false); // If no valid client ID, stop loading
 
     fetchClientCampaign(clientId)
@@ -48,27 +65,36 @@ const Header = ({ setIsOpen }) => {
     return () => {
       isMounted = false; // Cleanup function to avoid memory leaks
     };
-  }, [selected, allClients]);
+  }, [selected]);
+
+
 
 
   return (
     <div id="header">
       <div className="flex items-center">
-        {loadingClients && (
+        {getCreateClientIsLoading === true ? (
           <div className="flex items-center gap-2">
-            {" "}
             <FiLoader className="animate-spin" />
             <p>Loading clients...</p>
           </div>
+        ) : (
+          <AllClientsCustomDropdown
+            setSelected={setSelected}
+            selected={selected}
+            allClients={clients?.data}
+            loadingClients={getCreateClientIsLoading}
+          />
         )}
 
-        <AllClientsCustomDropdown setSelected={setSelected} selected={selected} allClients={allClients} loadingClients={loadingClients} />
+
+
         <button className="client_btn_text whitespace-nowrap" onClick={() => setIsOpen(true)}>
           <Image src={plus} alt="plus" />
           New Client
         </button>
       </div>
-
+      {alert && <AlertMain alert={alert} />}
       <div className="profiledropdown_container_main">
         <div className="profiledropdown_container">
           <Link href={`/creation`}>

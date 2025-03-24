@@ -71,7 +71,7 @@ const TimelineView = () => {
 	const { range } = useDateRange();
 
 
-	console.log('channels-channels', campaignFormData)
+	 
 
 	const dateList = eachDayOfInterval({
 		start: range.startDate,
@@ -128,7 +128,7 @@ const TimelineView = () => {
 				setChannels(newChannels);
 			}
 		}
-	}, [campaignFormData]); // 🚨 Removed `channels` from dependencies
+	}, [campaignFormData]);
 
 	const mapCampaignsToFunnels = (campaigns: any[]) => {
 		return campaigns.map((campaign, index) => {

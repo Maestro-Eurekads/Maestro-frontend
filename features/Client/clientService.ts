@@ -25,7 +25,7 @@ const createClient = async (inputs: any) => {
           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
         },
    })  
-   console.log('allClientsIsLoading',data)
+  
   return data
 }
     

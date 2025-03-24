@@ -14,9 +14,11 @@ import { SVGLoader } from "../../components/SVGLoader";
 import AlertMain from "../../components/Alert/AlertMain";
 import { MdOutlineCancel } from "react-icons/md";
 import { addNewClient } from "./functions/clients";
-import useCampaignHook from "app/utils/useCampaignHook";
+import { getCreateClient } from "features/Client/clientSlice";
+import { useAppDispatch } from "store/useStore";
 
 const TableModel = ({ isOpen, setIsOpen }) => {
+  const dispatch = useAppDispatch();
   const [inputs, setInputs] = useState({
     name: "",
     email: "",
@@ -28,11 +30,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     feeType: "",
   });
   const [emailList, setEmailList] = useState([]);
-  const { fetchAllClients, setRefresh } = useCampaignHook();
-
-  // const [sportList, setSportList] = useState<any>([{ id: 1, text: "" }]);
-  // const [businessUnit, setBusinessUnit] = useState([]);
-  // const [categoryList, setCategoryList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
 
@@ -123,10 +120,10 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         fee_type: inputs.feeType,
       });
 
-      // Fetch clients after successfully adding a new one
-      await setRefresh(true);
-      await fetchAllClients();
 
+      // Fetch clients after successfully adding a new one
+      //@ts-ignore
+      dispatch(getCreateClient());
       // Reset form state
       setInputs({
         name: "",
@@ -141,7 +138,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
       setIsOpen(false);
     } catch (error) {
-      console.error("Error adding client:", error);
+      const errors: any = error.response?.data?.error?.details?.errors || error.response?.data?.error?.message || error.message || [];
+      setAlert({ variant: "error", message: errors, position: "bottom-right" });
     } finally {
       setLoading(false);
     }

@@ -9,6 +9,7 @@ import { parseApiDate } from '../../../components/Options';
 import { useCampaigns } from '../../utils/CampaignsContext';
 import CommentsDrawer from 'components/Drawer/CommentsDrawer';
 import Message from 'components/Drawer/Message';
+// import Draggable from 'react-draggable';
 
 const OverviewofyourCampaign = () => {
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -91,7 +92,11 @@ const OverviewofyourCampaign = () => {
 				<div className='mt-[30px]'>
 					<DateComponent useDate={false} />
 				</div>
-				<Message message={message} setAddMessage={setAddMessage} addComment={addComment} isOpen={isDrawerOpen} setMessage={setMessage} />
+				<div>
+
+					<Message message={message} setAddMessage={setAddMessage} addComment={addComment} isOpen={isDrawerOpen} setMessage={setMessage} />
+
+				</div>
 				<OverviewOfYourCampaigntimeline dateList={dateList} funnels={funnelsData} />
 			</div>
 

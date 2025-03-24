@@ -14,7 +14,7 @@ const Table = () => {
   const { setSelectedCampaignId } = useCampaignSelection(); // ✅ Use context
   const router = useRouter();
 
-  console.log('clientCampaignData', clientCampaignData)
+
 
   return (
     <div className="table-container mt-[20px] rounded-[8px] overflow-x-scroll">
