@@ -49,6 +49,25 @@ const platformIcons: Record<string, StaticImageData> = {
 	return platformIcons[platformName] || null
   }
 
+  export const getCurrencySymbol = (currencyCode) => {
+    switch (currencyCode) {
+      case "EUR":
+        return "€";
+      case "USD":
+        return "$";
+      case "GBP":
+        return "£";
+      case "NGN":
+        return "₦";
+      case "JPY":
+        return "¥";
+      case "CAD":
+        return "$";
+      default:
+        return "€";
+    }
+  };
+
 export const funnels = [
 	{
 		startWeek: 3,

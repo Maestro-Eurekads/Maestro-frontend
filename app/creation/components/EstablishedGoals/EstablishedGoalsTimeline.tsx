@@ -29,7 +29,6 @@ const EstablishedGoalsTimeline = ({}) => {
   const { campaignFormData } = useCampaigns();
   const { range } = useDateRange();
 
-
   // Refs
   const gridRef = useRef(null);
 
@@ -138,52 +137,44 @@ const EstablishedGoalsTimeline = ({}) => {
         const budget = stageData?.stage_budget?.fixed_value;
 
         // Get stage timeline dates
-        const funnel_start_date = new Date(stageData?.funnel_stage_timeline_start_date ?? campaignFormData?.campaign_timeline_start_date);
-        const funnel_end_date = new Date(stageData?.funnel_stage_timeline_end_date ?? campaignFormData?.campaign_timeline_start_date);
-		const differenceInDays = Math.ceil(
-			(funnel_end_date?.getTime() - funnel_start_date?.getTime()) / (1000 * 60 * 60 * 24)
-		  );
+        const funnel_start_date = new Date(
+          stageData?.funnel_stage_timeline_start_date ??
+            campaignFormData?.campaign_timeline_start_date
+        );
+        const funnel_end_date = new Date(
+          stageData?.funnel_stage_timeline_end_date ??
+            campaignFormData?.campaign_timeline_start_date
+        );
+        const differenceInDays = Math.ceil(
+          (funnel_end_date?.getTime() - funnel_start_date?.getTime()) /
+            (1000 * 60 * 60 * 24)
+        );
 
-		const dateList = eachDayOfInterval({
-			start:
-			  new Date(funnel_start_date) ||
-			  new Date(),
-			end:
-			  addDays(
-				new Date(funnel_end_date),
-				differenceInDays
-			  ) || addDays(new Date(), 13),
-		  });
+        const getColumnIndex = (date) =>
+          range.findIndex((d) => d.toISOString().split("T")[0] === date);
 
-        console.log({ funnel_start_date, funnel_end_date });
+        const startColumn = getColumnIndex(stageData?.funnel_stage_timeline_start_date);
+        const endColumn = getColumnIndex(stageData?.funnel_stage_timeline_end_date) + 1; // +1 to include the end date
 
-        // Calculate position and width
-        const stageStart = parseDate(funnel_start_date, gridStart);
-        const stageEnd = parseDate(funnel_end_date, gridEnd);
-
-		console.log({ stageStart, stageEnd });
-
-        if (!gridStart || !gridEnd || !stageStart || !stageEnd) return null;
-
-        const eventDuration = stageEnd - stageStart;
-        const gridWidth = 800; // Example grid width, should be dynamic in production
+        const eventDuration = endColumn - startColumn;
+        const gridWidth = gridRef.current ? gridRef.current.offsetWidth : 800; // Dynamic grid width based on the user's screen
         const parentWidth = (eventDuration / totalDuration) * gridWidth;
         const parentLeft =
-          ((stageStart - gridStart) / totalDuration) * gridWidth;
+          ((startColumn) / totalDuration) * gridWidth;
 
         return (
           <div
             key={index}
             style={{
               display: "grid",
-              gridTemplateColumns: `repeat(${dateList.length}, 1fr)`,
+              gridTemplateColumns: `repeat(${range.length}, 1fr)`,
             }}
           >
             <div
               className="mt-6"
               style={{
-                gridColumnStart: 1,
-                gridColumnEnd: 8,
+                gridColumnStart: startColumn || 1,
+                gridColumnEnd: endColumn || 8,
               }}
             >
               <DraggableChannel
@@ -194,7 +185,7 @@ const EstablishedGoalsTimeline = ({}) => {
                 setIsOpen={setIsOpen}
                 setOpenChannel={() => toggleChannel(stage.description)}
                 Icon={stage.Icon}
-                dateList={dateList}
+                dateList={range}
                 dragConstraints={gridRef}
                 disableDrag={true}
                 parentWidth={parentWidth}
@@ -210,7 +201,7 @@ const EstablishedGoalsTimeline = ({}) => {
                     parentWidth={parentWidth}
                     parentLeft={parentLeft}
                     setIsOpen={setIsOpen}
-                    dateList={dateList}
+                    dateList={range}
                     disableDrag={true}
                   />
                 </div>

@@ -32,9 +32,11 @@ const DoughnutChart = ({
 }) => {
   const chartRef = useRef(null);
 
+  console.log("data", data)
+
 
   //@ts-ignore
-  const funnelStageColors = data?.funnel_stages?.map((funnel) => funnel?.color);
+  // const funnelStageColors = data?.funnel_stages?.map((funnel) => funnel?.color);
 
 
   // Custom plugin to add text in the center
@@ -72,8 +74,8 @@ const DoughnutChart = ({
     datasets: [
       {
         label: "Phase",
-        data: [28, 40, 30],
-        backgroundColor: funnelStageColors,
+        data: data,
+        backgroundColor: color,
         cutout: "70%", // Controls thickness of the ring
         borderRadius: 7, // Softens the edges
         hoverOffset: 7, // Enhances hover effect

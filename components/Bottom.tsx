@@ -341,8 +341,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       if (active === 7 && subStep === 1) {
         await updateCampaignData({
           ...cleanData,
-          funnel_stages: copy?.funnel_stages,
-          channel_mix: removeKeysRecursively(copy?.channel_mix, [
+          funnel_stages: campaignFormData?.funnel_stages,
+          channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
             "id",
             "isValidated",
           ]),
