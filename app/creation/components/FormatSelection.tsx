@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { FaCheck } from "react-icons/fa";
-import PageHeaderWrapper from "../../../components/PageHeaderWapper";
-import { funnelStages } from "../../../components/data";
-import { useCampaigns } from "../../utils/CampaignsContext";
-import UploadModal from "../../../components/UploadModal/UploadModal";
+// import PageHeaderWrapper from "../../.components/PageHeaderWrapper"; // Adjust path
+import { funnelStages } from "../../../components/data"; // Adjust path
+import { useCampaigns } from "../../utils/CampaignsContext"; // Adjust path
+import UploadModal from "../../../components/UploadModal/UploadModal"; // Adjust path
 
+// Import SVG icons
 import speaker from "../../../public/mdi_megaphone.svg";
 import down from "../../../public/arrow-down-2.svg";
 import up from "../../../public/arrow-down.svg";
@@ -26,6 +27,7 @@ import video_format from "../../../public/video_format.svg";
 import image_format from "../../../public/Image_format.svg";
 import collection_format from "../../../public/collection_format.svg";
 import slideshow_format from "../../../public/slideshow_format.svg";
+import PageHeaderWrapper from "components/PageHeaderWapper";
 
 // Types
 type IPlatform = {
@@ -83,59 +85,59 @@ const FormatSelection = () => {
     QuantCast: Quantcast,
   };
 
-  const getPlatformIcon = (platformName: string | number) => platformIcons[platformName] || null;
+  const getPlatformIcon = (platformName: string) => platformIcons[platformName] || google; // Fallback to google icon
 
   // Initialize openTabs and validatedStages
   useEffect(() => {
-    if (campaignFormData?.funnel_stages?.length > 0) {
-      const initialOpenTabs = campaignFormData.funnel_stages.reduce((acc, stage) => {
-        if (!validatedStages[stage]) acc.push(stage); // Open unvalidated stages
-        return acc;
-      }, []);
-      setOpenTabs(initialOpenTabs);
+    if (!campaignFormData?.funnel_stages?.length) return;
 
-      if (campaignFormData?.validatedStages) {
-        setValidatedStages(campaignFormData.validatedStages);
-      }
+    const initialOpenTabs = campaignFormData.funnel_stages.reduce((acc, stage) => {
+      if (!validatedStages[stage]) acc.push(stage); // Open unvalidated stages by default
+      return acc;
+    }, [] as string[]);
+    setOpenTabs(initialOpenTabs);
+
+    if (campaignFormData?.validatedStages) {
+      setValidatedStages(campaignFormData.validatedStages);
     }
   }, [campaignFormData?.funnel_stages, campaignFormData?.validatedStages]);
 
   // Transform channel data for Platforms
   useEffect(() => {
-    if (campaignFormData?.channel_mix) {
-      campaignFormData.funnel_stages.forEach((stageName) => {
-        const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName);
-        if (stage) {
-          const transformedData = [
-            {
-              title: "Social media",
-              platforms: stage?.social_media?.map((platform) => ({
-                name: platform.platform_name,
-                icon: getPlatformIcon(platform.platform_name),
-              })),
-              style: "max-w-[150px] w-full h-[52px]",
-            },
-            {
-              title: "Display Networks",
-              platforms: stage?.display_networks?.map((platform) => ({
-                name: platform.platform_name,
-                icon: getPlatformIcon(platform.platform_name),
-              })),
-              style: "max-w-[200px] w-full",
-            },
-            {
-              title: "Search Engines",
-              platforms: stage?.search_engines?.map((platform) => ({
-                name: platform.platform_name,
-                icon: getPlatformIcon(platform.platform_name),
-              })),
-              style: "max-w-[180px] w-full",
-            },
-          ];
-          setChannels(transformedData);
-        }
-      });
-    }
+    if (!campaignFormData?.channel_mix?.length) return;
+
+    campaignFormData.funnel_stages.forEach((stageName) => {
+      const stage = campaignFormData.channel_mix.find((chan) => chan?.funnel_stage === stageName);
+      if (stage) {
+        const transformedData: IChannel[] = [
+          {
+            title: "Social Media",
+            platforms: stage.social_media?.map((platform) => ({
+              name: platform.platform_name,
+              icon: getPlatformIcon(platform.platform_name),
+            })) || [],
+            style: "max-w-[150px] w-full h-[52px]",
+          },
+          {
+            title: "Display Networks",
+            platforms: stage.display_networks?.map((platform) => ({
+              name: platform.platform_name,
+              icon: getPlatformIcon(platform.platform_name),
+            })) || [],
+            style: "max-w-[200px] w-full",
+          },
+          {
+            title: "Search Engines",
+            platforms: stage.search_engines?.map((platform) => ({
+              name: platform.platform_name,
+              icon: getPlatformIcon(platform.platform_name),
+            })) || [],
+            style: "max-w-[180px] w-full",
+          },
+        ].filter((channel) => channel.platforms.length > 0); // Only include channels with platforms
+        setChannels(transformedData);
+      }
+    });
   }, [campaignFormData?.channel_mix]);
 
   // Toggle tab for each stage
@@ -182,11 +184,12 @@ const FormatSelection = () => {
     platformName: string,
     stageName: string
   ) => {
-    const copy = [...campaignFormData?.channel_mix];
+    const copy = [...campaignFormData.channel_mix];
     const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName);
     if (stageIndex === -1) return;
 
-    const channel = copy[stageIndex][channelName?.toLowerCase()?.replace(" ", "_")];
+    const channelKey = channelName.toLowerCase().replace(" ", "_");
+    const channel = copy[stageIndex][channelKey];
     const platformIndex = channel?.findIndex((item) => item?.platform_name === platformName);
     if (platformIndex === -1) return;
 
@@ -225,7 +228,7 @@ const FormatSelection = () => {
       },
     }));
 
-    const copy = [...campaignFormData?.channel_mix];
+    const copy = [...campaignFormData.channel_mix];
     const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName);
     if (stageIndex === -1) return;
 
@@ -233,9 +236,7 @@ const FormatSelection = () => {
       const channel = copy[stageIndex][channelType];
       if (!channel) return;
 
-      const platformIndex = channel.findIndex(
-        (item) => item?.platform_name === platformName
-      );
+      const platformIndex = channel.findIndex((item) => item.platform_name === platformName);
       if (platformIndex === -1) return;
 
       const platform = channel[platformIndex];
@@ -256,7 +257,7 @@ const FormatSelection = () => {
     const stage = campaignFormData?.channel_mix?.find(
       (chan) => chan?.funnel_stage === stageName
     );
-    const channel = stage?.[channelName?.toLowerCase()?.replaceAll(" ", "_")];
+    const channel = stage?.[channelName.toLowerCase().replace(" ", "_")];
     const platform = channel?.find((pl) => pl?.platform_name === platformName);
     return platform?.format?.length > 0;
   };
@@ -279,25 +280,11 @@ const FormatSelection = () => {
     if (isStageValid(stageName)) {
       const updatedValidatedStages = { ...validatedStages, [stageName]: true };
       setValidatedStages(updatedValidatedStages);
-      
-      // Keep the current stage open after validation
-      setOpenTabs((prev) => [...prev]);
-      
+      setOpenTabs((prev) => [...prev.filter((tab) => tab !== stageName), stageName]); // Keep stage open
       setCampaignFormData((prev) => ({
         ...prev,
         validatedStages: updatedValidatedStages,
       }));
-
-      // Preserve expanded platforms state
-      setExpandedPlatforms((prev) => {
-        const newState = { ...prev };
-        Object.keys(prev).forEach((key) => {
-          if (key.startsWith(`${stageName}-`)) {
-            newState[key] = prev[key];
-          }
-        });
-        return newState;
-      });
     }
   };
 
@@ -305,7 +292,7 @@ const FormatSelection = () => {
   const handleEdit = (stageName: string) => {
     const updatedValidatedStages = { ...validatedStages, [stageName]: false };
     setValidatedStages(updatedValidatedStages);
-    setOpenTabs((prev) => [...prev, stageName]);
+    setOpenTabs((prev) => [...prev, stageName]); // Ensure stage is open
     setCampaignFormData((prev) => ({
       ...prev,
       validatedStages: updatedValidatedStages,
@@ -316,14 +303,25 @@ const FormatSelection = () => {
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
+  // Fallback if no data
+  if (!campaignFormData?.funnel_stages?.length) {
+    return (
+      <div className="p-6 text-center">
+        <p className="text-lg text-gray-600">
+          No funnel stages available. Please set up your campaign first.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div>
+    <div className="p-6">
       <PageHeaderWrapper
-        t1="Select formats for each channel"
+        t1="Select Formats for Each Channel"
         t2="Select the creative formats you want to use for your campaign. Specify the number of visuals for each format. Multiple formats can be selected per channel."
       />
-      <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
-        {campaignFormData?.funnel_stages.map((stageName, index) => {
+      <div className="mt-8 flex flex-col gap-6">
+        {campaignFormData.funnel_stages.map((stageName, index) => {
           const stage = funnelStages.find((s) => s.name === stageName);
           if (!stage) return null;
 
@@ -331,20 +329,21 @@ const FormatSelection = () => {
           const isValidated = validatedStages[stageName];
 
           return (
-            <div key={index}>
+            <div key={index} className="max-w-[950px]">
               <div
-                className={`flex justify-between items-center p-6 gap-3 max-w-[950px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-                  ${openTabs.includes(stage.name) ? "rounded-t-[10px]" : "rounded-[10px]"}`}
+                className={`flex justify-between items-center p-6 gap-3 bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${
+                  openTabs.includes(stage.name) ? "rounded-t-[10px]" : "rounded-[10px]"
+                }`}
                 onClick={() => toggleTab(stage.name)}
               >
                 <div className="flex items-center gap-2">
-                  <Image src={stage.icon} alt={stage.name} />
-                  <p className="w-[119px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
+                  <Image src={stage.icon} alt={stage.name} width={24} height={24} />
+                  <p className="font-[General Sans] font-semibold text-[18px] text-[#061237]">
                     {stage.name}
                   </p>
                 </div>
                 <p
-                  className={`font-general-sans font-semibold text-[16px] leading-[22px] ${
+                  className={`font-[General Sans] font-semibold text-[16px] ${
                     status === "Completed"
                       ? "text-green-500"
                       : status === "In Progress"
@@ -357,17 +356,18 @@ const FormatSelection = () => {
                 <Image
                   src={openTabs.includes(stage.name) ? up : down}
                   alt={openTabs.includes(stage.name) ? "up" : "down"}
+                  width={16}
+                  height={16}
                 />
               </div>
               {openTabs.includes(stage.name) && (
-                <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg max-w-[950px]">
-                  {/* Platforms Section */}
-                  <div className="text-[16px] overflow-x-hidden w-full">
-                    {channels?.map((channel, channelIndex) => (
+                <div className="flex flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
+                  <div className="text-[16px] w-full">
+                    {channels.map((channel, channelIndex) => (
                       <React.Fragment key={channelIndex}>
-                        <h3 className="font-[600] my-[24px]">{channel?.title}</h3>
-                        <div className="flex flex-col gap-[24px]">
-                          {channel?.platforms?.map((platform, platformIndex) => {
+                        <h3 className="font-semibold my-6">{channel.title}</h3>
+                        <div className="flex flex-col gap-6">
+                          {channel.platforms.map((platform, platformIndex) => {
                             const hasSelectedFormats = hasPlatformSelectedFormats(
                               platform.name,
                               channel.title,
@@ -378,8 +378,13 @@ const FormatSelection = () => {
                             return (
                               <div key={platformIndex}>
                                 <div className="flex items-center gap-6">
-                                  <div className="flex items-center gap-[12px] font-[500] border p-5 rounded-[10px] min-w-[150px]">
-                                    <Image src={platform.icon} alt={platform.name} />
+                                  <div className="flex items-center gap-3 font-medium border p-5 rounded-[10px] min-w-[150px]">
+                                    <Image
+                                      src={platform.icon}
+                                      alt={platform.name}
+                                      width={24}
+                                      height={24}
+                                    />
                                     <p>{platform.name}</p>
                                   </div>
                                   {(!isValidated || (isValidated && hasSelectedFormats)) && (
@@ -392,20 +397,18 @@ const FormatSelection = () => {
                                       {isExpanded ? (
                                         <button className="text-gray-500 text-[14px]">
                                           {isValidated
-                                            ? "Choose the number of visuals for this format"
+                                            ? "Choose the number of visuals"
                                             : "Select your format"}
                                         </button>
                                       ) : (
                                         <>
-                                          <div>
-                                            <svg width="13" height="12" viewBox="0 0 13 12" fill="none">
-                                              <path
-                                                d="M5.87891 5.16675V0.166748H7.54557V5.16675H12.5456V6.83342H7.54557V11.8334H5.87891V6.83342H0.878906V5.16675H5.87891Z"
-                                                fill="#3175FF"
-                                              />
-                                            </svg>
-                                          </div>
-                                          <button className="font-semibold text-[14px] text-[#3175FF]">
+                                          <svg width="13" height="12" viewBox="0 0 13 12" fill="none">
+                                            <path
+                                              d="M5.87891 5.16675V0.166748H7.54557V5.16675H12.5456V6.83342H7.54557V11.8334H5.87891V6.83342H0.878906V5.16675H5.87891Z"
+                                              fill="#3175FF"
+                                            />
+                                          </svg>
+                                          <button className="text-[#3175FF] text-[14px]">
                                             Add format
                                           </button>
                                         </>
@@ -414,105 +417,98 @@ const FormatSelection = () => {
                                   )}
                                 </div>
                                 {((isExpanded && !isValidated) || (isValidated && hasSelectedFormats)) && (
-                                  <div className="py-6">
-                                    {/* Media Selection Section */}
-                                    <div className="flex gap-4">
-                                      {defaultMediaOptions?.map((option, index) => {
-                                        const existsInDB =
-                                          campaignFormData?.channel_mix
-                                            ?.find((ch) => ch?.funnel_stage === stageName)
-                                            ?.[channel.title?.toLowerCase()?.replaceAll(" ", "_")]
-                                            ?.find((pl) => pl?.platform_name === platform.name)
-                                            ?.format?.some((ty) => ty?.format_type === option?.name);
+                                  <div className="py-6 flex flex-wrap gap-6">
+                                    {defaultMediaOptions.map((option, index) => {
+                                      const existsInDB =
+                                        campaignFormData.channel_mix
+                                          ?.find((ch) => ch.funnel_stage === stageName)
+                                          ?.[channel.title.toLowerCase().replace(" ", "_")]
+                                          ?.find((pl) => pl.platform_name === platform.name)
+                                          ?.format?.some((ty) => ty.format_type === option.name);
 
-                                        if (isValidated && !existsInDB) return null;
+                                      if (isValidated && !existsInDB) return null;
 
-                                        return (
-                                          <div key={index} className="flex justify-center gap-6">
-                                            <div className="flex flex-col items-center">
-                                              <div
-                                                onClick={() =>
-                                                  !isValidated &&
-                                                  handleFormatSelection(
-                                                    channel.title,
-                                                    index,
-                                                    platform.name,
-                                                    stageName
-                                                  )
-                                                }
-                                                className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
-                                                  existsInDB
-                                                    ? "border-blue-500 shadow-lg"
-                                                    : "border-gray-300"
-                                                } ${isValidated ? "cursor-default" : "cursor-pointer"}`}
-                                              >
-                                                <Image
-                                                  src={option.icon}
-                                                  width={168}
-                                                  height={132}
-                                                  alt={option.name}
-                                                />
-                                                <p className="text-sm font-medium text-gray-700 mt-2">
-                                                  {option.name}
-                                                </p>
-                                                {existsInDB && (
-                                                  <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                                                    <FaCheck />
-                                                  </div>
-                                                )}
-                                              </div>
-                                              {isValidated && existsInDB && (
-                                                <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
-                                                  <button
-                                                    className="px-2 py-1 text-[#000000] text-lg font-semibold"
-                                                    onClick={() =>
-                                                      handleQuantityChange(platform.name, index, -1, stageName)
-                                                    }
-                                                  >
-                                                    -
-                                                  </button>
-                                                  <span className="px-2">
-                                                    {quantities[`${stageName}-${platform.name}`]?.[index] || 1}
-                                                  </span>
-                                                  <button
-                                                    className="px-2 py-1 text-[#000000] text-lg font-semibold"
-                                                    onClick={() =>
-                                                      handleQuantityChange(platform.name, index, 1, stageName)
-                                                    }
-                                                  >
-                                                    +
-                                                  </button>
-                                                </div>
-                                              )}
-                                            </div>
-                                            {isValidated && (
-                                              <div
-                                                onClick={openModal}
-                                                className="w-[225px] h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
-                                              >
-                                                <div className="flex flex-col items-center gap-2 text-center">
-                                                  <svg
-                                                    width="16"
-                                                    height="17"
-                                                    viewBox="0 0 16 17"
-                                                    fill="none"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                  >
-                                                    <path
-                                                      d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
-                                                      fill="#3175FF"
-                                                    />
-                                                  </svg>
-                                                  <p className="text-md font-lighter text-black mt-2">
-                                                    Upload your previews
-                                                  </p>
-                                                </div>
+                                      return (
+                                        <div key={index} className="flex flex-col items-center gap-4">
+                                          <div
+                                            onClick={() =>
+                                              !isValidated &&
+                                              handleFormatSelection(
+                                                channel.title,
+                                                index,
+                                                platform.name,
+                                                stageName
+                                              )
+                                            }
+                                            className={`relative p-4 rounded-lg border transition ${
+                                              existsInDB
+                                                ? "border-blue-500 shadow-lg"
+                                                : "border-gray-300"
+                                            } ${isValidated ? "cursor-default" : "cursor-pointer"}`}
+                                          >
+                                            <Image
+                                              src={option.icon}
+                                              width={120}
+                                              height={100}
+                                              alt={option.name}
+                                            />
+                                            <p className="text-sm font-medium text-gray-700 mt-2 text-center">
+                                              {option.name}
+                                            </p>
+                                            {existsInDB && (
+                                              <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center">
+                                                <FaCheck size={12} />
                                               </div>
                                             )}
                                           </div>
-                                        );
-                                      })}
-                                    </div>
+                                          {isValidated && existsInDB && (
+                                            <div className="flex items-center bg-[#F6F6F6] gap-2 border rounded-[8px]">
+                                              <button
+                                                className="px-2 py-1 text-lg font-semibold"
+                                                onClick={() =>
+                                                  handleQuantityChange(platform.name, index, -1, stageName)
+                                                }
+                                              >
+                                                -
+                                              </button>
+                                              <span className="px-2">
+                                                {quantities[`${stageName}-${platform.name}`]?.[index] || 1}
+                                              </span>
+                                              <button
+                                                className="px-2 py-1 text-lg font-semibold"
+                                                onClick={() =>
+                                                  handleQuantityChange(platform.name, index, 1, stageName)
+                                                }
+                                              >
+                                                +
+                                              </button>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                    {isValidated && hasSelectedFormats && (
+                                      <div
+                                        onClick={openModal}
+                                        className="w-[225px] h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
+                                      >
+                                        <div className="flex flex-col items-center gap-2 text-center">
+                                          <svg
+                                            width="16"
+                                            height="17"
+                                            viewBox="0 0 16 17"
+                                            fill="none"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                          >
+                                            <path
+                                              d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
+                                              fill="#3175FF"
+                                            />
+                                          </svg>
+                                          <p className="text-md text-black">Upload your previews</p>
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -521,9 +517,9 @@ const FormatSelection = () => {
                         </div>
                       </React.Fragment>
                     ))}
-                    <div className="w-full flex items-center justify-end mt-9">
+                    <div className="flex justify-end mt-9">
                       <button
-                        className={`px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
+                        className={`px-10 py-4 rounded-lg text-white font-semibold text-[16px] ${
                           isStageValid(stageName)
                             ? "bg-[#3175FF] hover:bg-[#2563eb]"
                             : "bg-[#3175FF] opacity-50 cursor-not-allowed"
@@ -541,9 +537,7 @@ const FormatSelection = () => {
           );
         })}
       </div>
-      <div className="bg-opacity-50 flex items-center justify-center">
-        <UploadModal isOpen={isModalOpen} onClose={closeModal} />
-      </div>
+      <UploadModal isOpen={isModalOpen} onClose={closeModal} />
     </div>
   );
 };
