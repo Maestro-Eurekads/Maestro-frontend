@@ -1,7 +1,9 @@
 "use client";
+import { useCampaigns } from "app/utils/CampaignsContext";
 import React from "react";
 
 const WeekInterval = ({ weeksCount }) => {
+  const {campaignFormData} = useCampaigns()
   return (
     <div className="w-full overflow-x-auto border-y py-5">
       <div

@@ -8,6 +8,7 @@ import whiteplus from "../../../../../public/white-plus.svg";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { eachDayOfInterval } from "date-fns";
 import moment from "moment";
+import { getCurrencySymbol } from "components/data";
 
 interface Channel {
   name: string;
@@ -440,7 +441,7 @@ const ResizableChannels = ({
             }}
           >
             <div
-              className={`absolute top-0 h-full flex ${disableDrag ? "justify-between" : "justify-center cursor-move"}  items-center text-white px-4 gap-2 border shadow-md min-w-[150px] `}
+              className={`absolute top-0 h-full flex ${disableDrag ? "justify-between" : "justify-center cursor-move"}  items-center text-white px-4 gap-2 border shadow-md min-w-[150px] overflow-x-hidden `}
               style={{
                 left: `${channelState[index]?.left || parentLeft}px`,
                 width: disableDrag
@@ -463,11 +464,10 @@ const ResizableChannels = ({
                 </span>
               </div>
               {disableDrag && (
-                <div className="rounded-[5px] py-[10px] px-[12px] font-medium bg-opacity-10 text-[15px]" style={{
-                  backgroundColor: channel?.bg,
+                <div className="rounded-[5px] py-[10px] px-[12px] font-medium bg-opacity-15 text-[15px]" style={{
                   color: "#061237"
                 }}>
-                  6,000
+                  {Number(budget)?.toFixed(0)}{Number(budget) > 0 && getCurrencySymbol(campaignFormData?.campaign_budget?.amount)}
                 </div>
               )}
             </div>
