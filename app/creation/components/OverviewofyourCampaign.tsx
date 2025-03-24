@@ -18,10 +18,6 @@ const OverviewofyourCampaign = () => {
 	const [addComment, setAddComment] = useState(false);
 	const [addmessage, setAddMessage] = useState(false);
 	const { range } = useDateRange();
-	const dateList = eachDayOfInterval({
-		start: range.startDate,
-		end: range.endDate,
-	});
 
 	const {
 		updateCampaign,
@@ -92,12 +88,17 @@ const OverviewofyourCampaign = () => {
 				<div className='mt-[30px]'>
 					<DateComponent useDate={false} />
 				</div>
+<<<<<<< HEAD
 				<div>
 
 					<Message message={message} setAddMessage={setAddMessage} addComment={addComment} isOpen={isDrawerOpen} setMessage={setMessage} />
 
 				</div>
 				<OverviewOfYourCampaigntimeline dateList={dateList} funnels={funnelsData} />
+=======
+				<Message message={message} setAddMessage={setAddMessage} addComment={addComment} isOpen={isDrawerOpen} setMessage={setMessage} />
+				<OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} />
+>>>>>>> b013bd844346fa1a60b4bc40f318b8b2a3e3a1d1
 			</div>
 
 		</div>

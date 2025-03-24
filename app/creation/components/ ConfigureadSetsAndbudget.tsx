@@ -41,12 +41,12 @@ const ConfigureAdSetsAndBudget = () => {
     const platforms = [];
     data.channel_mix.forEach((stage) => {
       const stageName = stage.funnel_stage;
-      const stageBudget = parseFloat(stage.stage_budget.fixed_value);
+      const stageBudget = parseFloat(stage.stage_budget?.fixed_value);
       ["search_engines", "display_networks", "social_media"].forEach(
         (channelType) => {
           stage[channelType].forEach((platform) => {
             const platformName = platform.platform_name;
-            const platformBudget = parseFloat(platform.budget.fixed_value);
+            const platformBudget = parseFloat(platform.budget?.fixed_value);
             const percentage = (platformBudget / stageBudget) * 100;
             const existingPlatform = platforms.find(
               (p) => p.platform_name === platformName
