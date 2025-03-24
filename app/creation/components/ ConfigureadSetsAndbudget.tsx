@@ -142,15 +142,16 @@ const ConfigureAdSetsAndBudget = () => {
                         ch?.funnel_stage === "Awareness"
                           ? "#3175FF"
                           : ch?.funnel_stage === "Consideration"
-                            ? "#00A36C"
-                            : ch?.funnel_stage === "Conversion"
-                              ? "#FF9037"
-                              : "#F05406"
+                          ? "#00A36C"
+                          : ch?.funnel_stage === "Conversion"
+                          ? "#FF9037"
+                          : "#F05406"
                       )}
-                      insideText={`${campaignFormData?.campaign_budget?.amount
-                        } ${getCurrencySymbol(
-                          campaignFormData?.campaign_budget?.currency
-                        )}`}
+                      insideText={`${
+                        campaignFormData?.campaign_budget?.amount
+                      } ${getCurrencySymbol(
+                        campaignFormData?.campaign_budget?.currency
+                      )}`}
                     />
                   </div>
 
@@ -165,10 +166,10 @@ const ConfigureAdSetsAndBudget = () => {
                           ch?.funnel_stage === "Awareness"
                             ? "#3175FF"
                             : ch?.funnel_stage === "Consideration"
-                              ? "#00A36C"
-                              : ch?.funnel_stage === "Conversion"
-                                ? "#FF9037"
-                                : "#F05406",
+                            ? "#00A36C"
+                            : ch?.funnel_stage === "Conversion"
+                            ? "#FF9037"
+                            : "#F05406",
                       })
                     )}
                   />
@@ -210,7 +211,12 @@ const ConfigureAdSetsAndBudget = () => {
                     {channelData?.length} channels
                   </h3>
                 </div>
-                <ChannelDistributionChatTwo channelData={channelData} />
+                <ChannelDistributionChatTwo
+                  channelData={channelData}
+                  currency={getCurrencySymbol(
+                    campaignFormData?.campaign_budget?.currency
+                  )}
+                />
                 {/* <PlatformSpending /> */}
               </div>
             </div>
