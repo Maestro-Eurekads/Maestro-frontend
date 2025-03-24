@@ -455,8 +455,7 @@ const BuyingObjective = () => {
             setUpdatedData={setUpdatedData}
             handleLoyaltyButtonClick={handleLoyaltyButtonClick}
             handlePlatformSelect={handlePlatformSelect}
-            handleDropDownSelection={handleDropDownSelection}
-          />
+            handleDropDownSelection={handleDropDownSelection} onDelete={undefined} />
         );
       })}
     </div>
