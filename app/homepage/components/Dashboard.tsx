@@ -22,7 +22,6 @@ import tictok from "../../../public/tictok.svg";
 import facebook from "../../../public/facebook.svg";
 import youtube from "../../../public/youtube.svg";
 import { useDateRange } from '../../../src/date-range-context';
-import AllClientsCampaignDropdown from 'components/AllClientsCampaignDropdown'
 import { processCampaignData } from 'components/processCampaignData'
 
 const Dashboard = () => {
@@ -189,9 +188,7 @@ const Dashboard = () => {
 			</div>;
 
 
-			{/* <div className='flex justify-center '>
-				<AllClientsCampaignDropdown loadingClients={false} clientCampaignData={clientCampaignData} setSelected={setSelected} selected={selected} />
-			</div> */}
+
 			{processedCampaigns?.map((campaign, index) => (
 				<div key={index} className='flex justify-center gap-[48px] mt-[100px]'>
 					<div className="box-border flex flex-row items-start p-6 gap-[72px] w-[493px] h-[402.73px] bg-[#F9FAFB] rounded-lg">
