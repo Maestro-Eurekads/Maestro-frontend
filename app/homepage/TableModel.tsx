@@ -14,8 +14,11 @@ import { SVGLoader } from "../../components/SVGLoader";
 import AlertMain from "../../components/Alert/AlertMain";
 import { MdOutlineCancel } from "react-icons/md";
 import { addNewClient } from "./functions/clients";
+import { getCreateClient } from "features/Client/clientSlice";
+import { useAppDispatch } from "store/useStore";
 
 const TableModel = ({ isOpen, setIsOpen }) => {
+  const dispatch = useAppDispatch();
   const [inputs, setInputs] = useState({
     name: "",
     email: "",
@@ -27,9 +30,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     feeType: "",
   });
   const [emailList, setEmailList] = useState([]);
-  const [sportList, setSportList] = useState<any>([{ id: 1, text: "" }]);
-  const [businessUnit, setBusinessUnit] = useState([]);
-  const [categoryList, setCategoryList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
 
@@ -107,36 +107,45 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
   const handleSubmit = async () => {
     setLoading(true);
-    await addNewClient({
-      client_name: inputs.name,
-      client_emails: emailList,
-      responsible: inputs.responsiblePerson,
-      approver: inputs.approver,
-      level_1: inputs.sports,
-      level_2: inputs.businessUnits,
-      level_3: inputs.categories,
-      fee_type: inputs.feeType,
-    })
-      .then(() => {
-        setInputs({
-          name: "",
-          email: "",
-          responsiblePerson: "",
-          approver: "",
-          sports: [],
-          categories: [],
-          businessUnits: [],
-          feeType: "",
-        });
-        setSportList([])
-        setBusinessUnit([])
-        setCategoryList([])
-        setIsOpen(false)
-      })
-      .finally(() => {
-        setLoading(false);
+
+    try {
+      await addNewClient({
+        client_name: inputs.name,
+        client_emails: emailList,
+        responsible: inputs.responsiblePerson,
+        approver: inputs.approver,
+        level_1: inputs.sports,
+        level_2: inputs.businessUnits,
+        level_3: inputs.categories,
+        fee_type: inputs.feeType,
       });
+
+
+      // Fetch clients after successfully adding a new one
+      //@ts-ignore
+      dispatch(getCreateClient());
+      // Reset form state
+      setInputs({
+        name: "",
+        email: "",
+        responsiblePerson: "",
+        approver: "",
+        sports: [],
+        categories: [],
+        businessUnits: [],
+        feeType: "",
+      });
+
+      setIsOpen(false);
+    } catch (error) {
+      const errors: any = error.response?.data?.error?.details?.errors || error.response?.data?.error?.message || error.message || [];
+      setAlert({ variant: "error", message: errors, position: "bottom-right" });
+    } finally {
+      setLoading(false);
+    }
   };
+
+
   return (
     <div className="z-50">
       {/* Show Alert */}
@@ -205,12 +214,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                           onClick={() => handleRemoveEmail(email)}
                           className="cursor-pointer"
                         />
-                        {/* <p
-                          className="text-red-500 cursor-pointer"
-                          onClick={() => handleRemoveEmail(email)}
-                        >
-                          x
-                        </p> */}
                       </div>
                     ))}
                   </div>

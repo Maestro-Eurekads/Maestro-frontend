@@ -22,8 +22,8 @@ const AllClientsCustomDropdown = ({
 	};
 
 	const handleSelect = (option: { id: string; client_name: string }) => {
-		setSelected(option.id);
-		localStorage.setItem("selectedClient", option.id); // ✅ Persist selection
+		setSelected(option?.id);
+		localStorage.setItem("selectedClient", option?.id);  // Persist selection
 		setIsOpen(false);
 	};
 
@@ -46,7 +46,7 @@ const AllClientsCustomDropdown = ({
 				onClick={toggleDropdown}
 			>
 				<span className="text-gray-600">
-					{selected ? options.find((opt) => opt.id === selected)?.client_name : "Select Client"}
+					{selected ? options?.find((opt) => opt?.id === selected)?.client_name : "Select Client"}
 				</span>
 				<span className="ml-auto text-gray-500">
 					<Image src={down} alt="down" />
@@ -56,14 +56,14 @@ const AllClientsCustomDropdown = ({
 			{/* Dropdown List */}
 			{isOpen && (
 				<div className="absolute w-full bg-[#F7F7F7] border border-[#EFEFEF] rounded-md shadow-lg mt-2 max-h-[400px] overflow-y-scroll z-40">
-					{options.map((option) => (
+					{options?.map((option) => (
 						<div
 							key={option.id}
 							className={`px-4 py-2 cursor-pointer hover:bg-gray-100 
-								${selected === option.id ? "bg-gray-300 font-bold" : ""}`} // Highlight selected item
+								${selected === option?.id ? "bg-gray-300 font-bold" : ""}`} // Highlight selected item
 							onClick={() => handleSelect(option)}
 						>
-							{option.client_name}
+							{option?.client_name}
 						</div>
 					))}
 				</div>
@@ -105,31 +105,30 @@ export default function YourComponent({
 	setSelected: (value: string) => void;
 	selected: string;
 }) {
-	// ✅ Load the previously selected client from localStorage
+	// Load the previously selected client from localStorage
 	useEffect(() => {
 		const storedClientId = localStorage.getItem("selectedClient");
 
 		// Check if the stored ID exists in the current options
-		const isValidClient = allClients.some((client) => client.id === storedClientId);
+		const isValidClient = allClients?.some((client) => client?.id === storedClientId);
 
 		if (storedClientId && isValidClient) {
 			setSelected(storedClientId);
-		} else if (!selected && allClients.length > 0) {
+		} else if (!selected && allClients?.length > 0) {
 			// If no valid stored selection, default to the first client
 			setSelected(allClients[0].id);
-			localStorage.setItem("selectedClient", allClients[0].id); // ✅ Persist initial selection
+			localStorage.setItem("selectedClient", allClients[0]?.id); // Persist initial selection
 		}
 	}, [allClients, selected, setSelected]);
 
 	return (
 		<>
-			{!loadingClients && (
-				<Dropdowns
-					allClients={allClients?.filter((c) => c?.client_name) || []}
-					setSelected={setSelected}
-					selected={selected}
-				/>
-			)}
+
+			<Dropdowns
+				allClients={allClients?.filter((c) => c?.client_name) || []}
+				setSelected={setSelected}
+				selected={selected}
+			/>
 		</>
 	);
 }

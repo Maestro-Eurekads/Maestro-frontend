@@ -37,14 +37,12 @@ const TimelineView = () => {
 
 
 	// const fromDate = parseApiDate(campaignData?.campaign_timeline_start_date);
-	// const toDate = parseApiDate(campaignData?.campaign_timeline_end_date);
-
 
 	// const funnelsData = [
 	// 	{ startWeek: fromDate?.day, endWeek: toDate?.day, label: "Campaign 1" },
 	// 	// { startWeek: 3, endWeek: 5, label: "Campaign 2" },
-	// 	// { startWeek: 3, endWeek: 5, label: "Campaign 2" },
 	// ];
+
 
 	const mapCampaignsToFunnels = (campaigns: any[]) => {
 		return campaigns.map((campaign, index) => {
@@ -73,7 +71,7 @@ const TimelineView = () => {
 				<DateComponent useDate={undefined} />
 			</div>
 
-			<EstablishedGoalsTimeline/>
+			<EstablishedGoalsTimeline />
 		</div>
 	)
 }

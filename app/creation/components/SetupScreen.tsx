@@ -24,7 +24,7 @@ export const SetupScreen = () => {
     setCampaignFormData,
   } = useCampaigns();
   const { client_selection } = campaignFormData;
-  const [isEditing, setIsEditing] = useState(true);
+  // const [isEditing, setIsEditing] = useState(true);
   const [selectedOption, setSelectedOption] = useState("percentage");
   const [previousValidationState, setPreviousValidationState] = useState(null);
   const [isStepZeroValid, setIsStepZeroValid] = useState(false); //   Track form validity
@@ -157,17 +157,10 @@ export const SetupScreen = () => {
     { value: "Tooling", label: "Tooling" },
     { value: "Fix budget fee", label: "Fix budget fee" },
   ];
-  const updateCampaignData = async (data: any) => {
-    await updateCampaign(data);
-    await getActiveCampaign(data);
-  };
-  const cleanData = removeKeysRecursively(campaignData, [
-    "id",
-    "documentId",
-    "createdAt",
-    "publishedAt",
-    "updatedAt",
-  ]);
+  // const updateCampaignData = async (data: any) => {
+  //   await updateCampaign(data);
+  //   await getActiveCampaign(data);
+  // };
 
 
   useEffect(() => {
@@ -194,11 +187,12 @@ export const SetupScreen = () => {
     } else {
       //   Creating a new campaign
       fields = [
-        campaignFormData?.client_selection?.id,
-        campaignFormData?.level_1?.id,
-        campaignFormData?.level_2?.id,
+        campaignFormData?.client_selection?.value,
         campaignFormData?.media_plan,
         campaignFormData?.approver,
+        campaignFormData?.budget_details_currency?.id,
+        campaignFormData?.budget_details_fee_type?.id,
+        campaignFormData?.budget_details_value,
       ];
     }
 
@@ -252,7 +246,6 @@ export const SetupScreen = () => {
         // After verification, set step0 to false
         setverifybeforeMove((prev: any) => {
           if (!Array.isArray(prev)) {
-            console.error("setverifybeforeMove: Expected an array, got", prev);
             return prev; // Return as is if it's not an array
           }
 
@@ -273,7 +266,6 @@ export const SetupScreen = () => {
       // After verification, set step0 to false
       setverifybeforeMove((prev: any) => {
         if (!Array.isArray(prev)) {
-          console.error("setverifybeforeMove: Expected an array, got", prev);
           return prev; // Return as is if it's not an array
         }
 
@@ -284,7 +276,7 @@ export const SetupScreen = () => {
 
 
     } catch (error) {
-      console.error("Error in handleStepZero:", error);
+      // console.error("Error in handleStepZero:", error);
       setAlert({ variant: "error", message: "Something went wrong. Please try again.", position: "bottom-right" });
     } finally {
       setLoading(false);
@@ -300,17 +292,7 @@ export const SetupScreen = () => {
         t2={"Fill in the following information to define the foundation of your media plan."}
         t3={"This information helps structure your campaign strategy and align with business goals."}
       />
-      {/* {isEditing ? (
-          ""
-        ) : (
-          <button
-            className="model_button_blue"
-            onClick={() => setIsEditing(!isEditing)}
-          >
-            {isEditing ? "Disable Edit" : "Edit"}
-          </button>
-        )} */}
-      {/* </div> */}
+
       {/* Show Alert */}
       {alert && <AlertMain alert={alert} />}
       <div className="mt-[42px]">
@@ -319,7 +301,6 @@ export const SetupScreen = () => {
           <ClientSelection
             options={clientOptions}
             label={"Select Client"}
-            isEditing={isEditing}
             formId="client_selection"
             setHasChanges={setHasChanges}
           />
@@ -328,7 +309,6 @@ export const SetupScreen = () => {
           <ClientSelection
             options={level1Options}
             label={"Parameter Level 1"}
-            isEditing={isEditing}
             formId="level_1"
             setHasChanges={setHasChanges}
           />
@@ -336,14 +316,12 @@ export const SetupScreen = () => {
           <ClientSelection
             options={level2Options}
             label={"Parameter Level 2"}
-            isEditing={isEditing}
             formId="level_2"
             setHasChanges={setHasChanges}
           />
           <ClientSelection
             options={level3Options}
             label={"Parameter Level 3"}
-            isEditing={isEditing}
             formId="level_3"
             setHasChanges={setHasChanges}
           />
@@ -353,19 +331,12 @@ export const SetupScreen = () => {
           <div className="client_selection_flow flex flex-wrap gap-4 ">
             <ClientSelectionInput
               label={"Enter media plan name"}
-              isEditing={isEditing}
               formId="media_plan"
             />
             <ClientSelectionInput
               label={"Internal Approver"}
-              isEditing={isEditing}
               formId="approver"
             />
-            {/* <ClientSelection
-              options={internalApprover}
-              label={"Select internal approver"}
-              isEditing={isEditing}
-            /> */}
           </div>
         </div>
         <div className="pb-1">
@@ -374,14 +345,12 @@ export const SetupScreen = () => {
             <ClientSelection
               options={selectCurrency}
               label={"Select currency"}
-              isEditing={isEditing}
               formId="budget_details_currency"
               setHasChanges={setHasChanges}
             />
             <ClientSelection
               options={mediaBudgetPercentage}
               label={"% of media budget"}
-              isEditing={isEditing}
               formId="budget_details_fee_type"
               setHasChanges={setHasChanges}
             />
@@ -390,7 +359,6 @@ export const SetupScreen = () => {
                 <div className="flex items-center gap-3">
                   <Checkbox
                     id="fix-amount"
-                    isEditing={isEditing}
                     selectedOption={selectedOption}
                     setSelectedOption={setSelectedOption}
                     formId="budget_details_sub_fee_type"
@@ -402,7 +370,6 @@ export const SetupScreen = () => {
                 <div className="flex items-center gap-3">
                   <Checkbox
                     id="percentage"
-                    isEditing={isEditing}
                     selectedOption={selectedOption}
                     setSelectedOption={setSelectedOption}
                     formId="budget_details_sub_fee_type"
@@ -417,7 +384,6 @@ export const SetupScreen = () => {
             <div className="w-full">
               <ClientSelectionInput
                 label={getInputValue()}
-                isEditing={isEditing}
                 formId="budget_details_value"
               />
             </div>
@@ -432,7 +398,7 @@ export const SetupScreen = () => {
             onClick={handleStepZero}
             className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg text-white font-semibold text-base leading-6 transition-colors bg-[#3175FF] hover:bg-[#2557D6]"
           >
-            {loading ? <SVGLoader width="30px" height="30px" color="#FFF" /> : "Verify"}
+            {loading ? <SVGLoader width="30px" height="30px" color="#FFF" /> : "Validate"}
           </button>
         </div>
       )}

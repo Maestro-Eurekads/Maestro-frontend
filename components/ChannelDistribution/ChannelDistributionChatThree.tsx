@@ -8,36 +8,32 @@ import tradedesk from "../../public/tradedesk.svg";
 import Image from 'next/image'
 import ThreeValuesProgress from "../ThreeValuesProgress";
 
-const platforms = [
-	{ img: <Image src={facebook} alt='facebook' />, name: "Facebook", amount: "4,200 €", values: [37, 23, 40] },
-	{ img: <Image src={ig} alt='facebook' />, name: "Instagram", amount: "3,500 €", values: [40, 30, 30] },
-	{ img: <Image src={tradedesk} alt='quantcast' />, name: "TheTradeDesk", amount: "2,800 €", values: [0, 35, 30] },
-	{ img: <Image src={Google} alt='Google' />, name: "Google", amount: "6,100 €", values: [100, 0, 0] },
-];
 
-const ChannelDistributionChatThree = () => {
+const ChannelDistributionChatThree = ({ campaign }) => {
+
+	const platforms = [
+		{ img: <Image src={facebook} alt='facebook' />, name: "Facebook", amount: "4,200 €", values: [37, 23, 40] },
+		{ img: <Image src={ig} alt='facebook' />, name: "Instagram", amount: "3,500 €", values: [40, 30, 30] },
+		{ img: <Image src={tradedesk} alt='quantcast' />, name: "TheTradeDesk", amount: "2,800 €", values: [0, 35, 30] },
+		{ img: <Image src={Google} alt='Google' />, name: "Google", amount: "6,100 €", values: [100, 0, 0] },
+	];
+
+
 	return (
 		<div className="flex flex-col gap-[20px] w-full">
 			{/* Legend */}
 			<div className="flex gap-[24px] items-center mt-[10px] flex-wrap">
-				<div className="flex items-center gap-2">
-					<div className="w-[14px] h-[14px] bg-[#3175FF] rounded-[4px]"></div>
-					<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-						Awareness
-					</p>
-				</div>
-				<div className="flex items-center gap-2">
-					<div className="w-[14px] h-[14px] bg-[#00A36C] rounded-[4px]"></div>
-					<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-						Consideration
-					</p>
-				</div>
-				<div className="flex items-center gap-2">
-					<div className="w-[14px] h-[14px] bg-[#FF9037] rounded-[4px]"></div>
-					<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-						Conversion
-					</p>
-				</div>
+				{campaign?.funnel_stages?.map((funnel, index) => (
+					<div key={index} className="flex items-center gap-2">
+						<div
+							className="w-[14px] h-[14px] rounded-[4px]"
+							style={{ backgroundColor: funnel?.color || "#000000" }}
+						></div>
+						<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
+							{funnel?.name}
+						</p>
+					</div>
+				))}
 			</div>
 			{platforms.map((platform, index) => (
 				<div key={index} className="flex flex-col gap-[10px]">

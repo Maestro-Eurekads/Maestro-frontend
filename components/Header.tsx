@@ -10,79 +10,91 @@ import { FiLoader } from "react-icons/fi";
 import useCampaignHook from "../app/utils/useCampaignHook";
 import { useEffect, useState } from "react";
 import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
+import { useAppDispatch, useAppSelector } from "store/useStore";
+import { client } from '../types/types';
+import AlertMain from "./Alert/AlertMain";
+import { getCreateClient, reset } from "features/Client/clientSlice";
 
 const Header = ({ setIsOpen }) => {
+  const { getCreateClientData, getCreateClientIsLoading, getCreateClientIsError, getCreateClientMessage } = useAppSelector((state) => state.client);
   const { loadingClients, allClients, setClientCampaignData, setLoading } = useCampaigns();
   const [selected, setSelected] = useState("");
-  const { fetchClientCampaign } = useCampaignHook();
+  const { fetchClientCampaign, fetchAllClients } = useCampaignHook();
+  const dispatch = useAppDispatch();
+  const [alert, setAlert] = useState(null);
+  const [IsError, setIsError] = useState(getCreateClientIsError);
+  const clients: any = getCreateClientData
 
-  useEffect(() => {
-    if (allClients) {
-      setLoading(true);
-      if (selected === "") {
-        fetchClientCampaign(allClients[0]?.id)
-          .then((res) => {
-            setClientCampaignData(res?.data?.data);
-          })
-          .catch((err)=>{
-            console.log("err", err)
-          })
-          .finally(() => {
-            setLoading(false);
-          });
-      } else {
-        fetchClientCampaign(selected)
-          .then((res) => {
-            setClientCampaignData(res?.data?.data);
-          })
-          .catch((err)=>{
-            console.log("err", err)
-          })
-          .finally(() => {
-            setLoading(false);
-          });
-      }
-    }
-  }, [selected, allClients]);
+
+  // useEffect(() => {
+  //   if (getCreateClientIsError) {
+  //     setAlert({ variant: "error", message: getCreateClientMessage, position: "bottom-right" });
+  //   }
+
+  //   dispatch(reset());
+  // }, [dispatch, getCreateClientIsError]);
+
+  useEffect(() => { //@ts-ignore
+    dispatch(getCreateClient());
+    const timer = setTimeout(() => {
+      setAlert(false);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [alert, dispatch]);
+
+
+
+  useEffect(() => { //@ts-ignore
+    if (!clients?.data || clients?.data?.length === 0) return; // Ensure allClients exists and is not empty
+
+    setLoading(true);
+    let isMounted = true; // Prevent setting state after unmount
+
+    const clientId = selected || clients?.data[0]?.id; // Use selected client ID or default to the first client
+    if (!clientId) return setLoading(false); // If no valid client ID, stop loading
+
+    fetchClientCampaign(clientId)
+      .then((res) => {
+        if (isMounted) setClientCampaignData(res?.data?.data);
+      })
+      .catch((err) => console.error("Error fetching client campaigns:", err))
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false; // Cleanup function to avoid memory leaks
+    };
+  }, [selected]);
+
+
+
 
   return (
     <div id="header">
       <div className="flex items-center">
-        {loadingClients && (
+        {getCreateClientIsLoading === true ? (
           <div className="flex items-center gap-2">
-            {" "}
             <FiLoader className="animate-spin" />
             <p>Loading clients...</p>
           </div>
+        ) : (
+          <AllClientsCustomDropdown
+            setSelected={setSelected}
+            selected={selected}
+            allClients={clients?.data}
+            loadingClients={getCreateClientIsLoading}
+          />
         )}
-        {/* {!loadingClients && (
-          <select
-            name=""
-            id=""
-            className="bg-[#F7F7F7] border border-[#EFEFEF] rounded-[8px] py-[8px] px-[16px] outline-none text-[#061237] font-semibold text-[16px] min-w-[60px]"
-            onChange={(e) => {
-              setSelected(e.target.value);
-            }}
-          >
-            {!loadingClients &&
-              allClients &&
-              allClients
-                ?.filter((c) => c?.client_name)
-                ?.map((cl) => (
-                  <option key={cl?.id} value={cl?.id}>
-                    {cl?.client_name}
-                  </option>
-                ))}
-          </select>
-        )} */}
-        <AllClientsCustomDropdown setSelected={setSelected} selected={selected} allClients={allClients} loadingClients={loadingClients} />
+
+
+
         <button className="client_btn_text whitespace-nowrap" onClick={() => setIsOpen(true)}>
-          {" "}
           <Image src={plus} alt="plus" />
           New Client
         </button>
       </div>
-
+      {alert && <AlertMain alert={alert} />}
       <div className="profiledropdown_container_main">
         <div className="profiledropdown_container">
           <Link href={`/creation`}>
