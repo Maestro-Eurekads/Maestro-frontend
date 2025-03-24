@@ -33,7 +33,7 @@ const DoughnutChart = ({
   const chartRef = useRef(null);
 
 
-
+  //@ts-ignore
   const funnelStageColors = data?.funnel_stages?.map((funnel) => funnel?.color);
 
 
