@@ -1,5 +1,5 @@
 const ThreeValuesProgress = ({ values, color, showpercent }: { values: number[]; showpercent: boolean, color?: string[] }) => {
-	console.log("color", color)
+
 	const total = values?.reduce((acc, val) => acc + val, 0);
 	const percentages = total > 0 ? values?.map((val) => (val / total) * 100) : [0, 0, 0];
 
@@ -10,7 +10,6 @@ const ThreeValuesProgress = ({ values, color, showpercent }: { values: number[];
 	return (
 		<div className="w-full h-[24px] flex overflow-hidden rounded-[4px] bg-gray-200">
 			{percentages && percentages?.map((percent, index) => {
-				console.log(percent)
 				const bgColors = ["bg-[#3175FF]", "bg-[#00A36C]", "bg-[#FF9037]"];
 				const borderRadiusStyles = [
 					"4px 0 0 4px",

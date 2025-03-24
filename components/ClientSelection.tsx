@@ -4,29 +4,28 @@ import down from "../public/down.svg";
 import Image from "next/image";
 import { useCampaigns } from "../app/utils/CampaignsContext";
 import { BiLoader } from "react-icons/bi";
-import { useVerification } from "app/utils/VerificationContext";
 
 const Dropdown = ({
   label,
   options,
-  isEditing,
   formId,
   setHasChanges,
 }: {
   label: string;
   options: { id?: string; value: string; label: string }[];
-  isEditing: boolean;
   formId: string;
-  setHasChanges: (value: boolean) => void;
+  setHasChanges: (hasChanged: boolean) => void;
 }) => {
-  const { setverifybeforeMove } = useVerification();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { campaignFormData, setCampaignFormData, loadingClients } =
-    useCampaigns();
+  const { campaignFormData, setCampaignFormData, loadingClients } = useCampaigns();
+
+
+
+
 
   const toggleDropdown = () => {
-    if (isEditing) setIsOpen(!isOpen);
+    setIsOpen(!isOpen);
   };
 
   const handleSelect = (id, value: string) => {
@@ -37,26 +36,12 @@ const Dropdown = ({
         value,
       },
     }));
-    setverifybeforeMove((prev: any) => {
-      if (!Array.isArray(prev)) {
-        console.error("setverifybeforeMove: Expected an array, got", prev);
-        return prev; // Return as is if it's not an array
-      }
-
-      return prev.map((step: any) =>
-        step.hasOwnProperty("step0") ? { ...step, step0: false } : step
-      );
-    });
-
-    setHasChanges(true); // <-- Set hasChanges to true when a value is selected
+    setHasChanges(true); // Mark form as changed
     setIsOpen(false);
   };
 
   const handleClickOutside = (event: MouseEvent) => {
-    if (
-      dropdownRef.current &&
-      !dropdownRef.current.contains(event.target as Node)
-    ) {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
       setIsOpen(false);
     }
   };
@@ -70,8 +55,7 @@ const Dropdown = ({
     <div className="relative" ref={dropdownRef}>
       {/* Dropdown Button */}
       <div
-        className={`dropdown_button_width flex items-center px-4 py-2 h-[45px] bg-white max-w-xs border-2 border-[#EFEFEF] rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 
-          ${isEditing ? "cursor-pointer" : "cursor-not-allowed"}`}
+        className="dropdown_button_width flex items-center px-4 py-2 h-[45px] bg-white max-w-xs border-2 border-[#EFEFEF] rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 cursor-pointer"
         onClick={toggleDropdown}
       >
         <span className="text-[#061237]">
@@ -89,8 +73,7 @@ const Dropdown = ({
           <p>Loading clients...</p>
         </div>
       )}
-      {isEditing &&
-        isOpen &&
+      {isOpen &&
         ((label === "Business level 1" ||
           label === "Business level 2" ||
           label === "Business level 3")
@@ -117,25 +100,17 @@ const Dropdown = ({
 const ClientSelection = ({
   options,
   label,
-  isEditing,
   formId,
   setHasChanges,
 }: {
   options: { value: string; label: string }[];
   label: string;
-  isEditing: boolean;
-  formId?: string;
-  setHasChanges: (value: boolean) => void;
+  formId: string;
+  setHasChanges: (hasChanged: boolean) => void;
 }) => {
   return (
     <div className="flex items-center gap-4 mt-[20px]">
-      <Dropdown
-        label={label}
-        options={options}
-        isEditing={isEditing}
-        formId={formId}
-        setHasChanges={setHasChanges}
-      />
+      <Dropdown label={label} options={options} formId={formId} setHasChanges={setHasChanges} />
     </div>
   );
 };

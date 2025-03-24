@@ -157,24 +157,24 @@ const BuyingObjective = () => {
       setSelectedStage(stageName);
       const updatedFunnels = updatedData?.funnel_stages?.includes(stageName)
         ? {
-            ...updatedData,
-            funnel_stages: updatedData?.funnel_stages?.filter(
-              (name: string) => name !== stageName
-            ),
-          }
+          ...updatedData,
+          funnel_stages: updatedData?.funnel_stages?.filter(
+            (name: string) => name !== stageName
+          ),
+        }
         : {
-            ...updatedData,
-            funnel_stages: [...updatedData?.funnel_stages, stageName],
-            channel_mix: [
-              ...updatedData?.channel_mix,
-              {
-                funnel_stage: stageName,
-                social_media: [],
-                display_networks: [],
-                search_engines: [],
-              },
-            ],
-          };
+          ...updatedData,
+          funnel_stages: [...updatedData?.funnel_stages, stageName],
+          channel_mix: [
+            ...updatedData?.channel_mix,
+            {
+              funnel_stage: stageName,
+              social_media: [],
+              display_networks: [],
+              search_engines: [],
+            },
+          ],
+        };
       setUpdatedData(updatedFunnels);
     }
     setSelectedStage(stageName);
@@ -234,7 +234,6 @@ const BuyingObjective = () => {
                 [dropDownName]: option,
               };
             }
-            console.log(platform);
             return platform;
           });
         } else if (category === "Display networks") {
@@ -356,17 +355,16 @@ const BuyingObjective = () => {
                 {/* Loyalty Button */}
                 <div>
                   <div
-                    className={` ${
-                      stageName?.name === "Conversion"
-                        ? "bg-[#FF9037] cursor-pointer"
-                        : stageName?.name === "Loyalty"
+                    className={` ${stageName?.name === "Conversion"
+                      ? "bg-[#FF9037] cursor-pointer"
+                      : stageName?.name === "Loyalty"
                         ? "bg-[#EF5407] cursor-pointer"
                         : stageName?.name === "Awareness"
-                        ? "bg-[#0866FF]"
-                        : stageName?.name === "Consideration"
-                        ? "bg-[#00A36C]"
-                        : ""
-                    } rounded-[10px] `}
+                          ? "bg-[#0866FF]"
+                          : stageName?.name === "Consideration"
+                            ? "bg-[#00A36C]"
+                            : ""
+                      } rounded-[10px] `}
                     onClick={() => handleLoyaltyButtonClick(stageName?.name)}
                   >
                     <div className="flex items-center justify-center gap-[16px] p-[24px]">
@@ -452,7 +450,6 @@ const BuyingObjective = () => {
           <StageComponent
             edit={edit}
             setEdit={setEdit}
-            onDelete={() => console.log("")}
             stageName={stageName}
             updatedData={updatedData}
             setUpdatedData={setUpdatedData}

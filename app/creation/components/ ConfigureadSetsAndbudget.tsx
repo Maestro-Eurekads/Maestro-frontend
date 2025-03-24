@@ -16,7 +16,6 @@ const ConfigureAdSetsAndBudget = () => {
   ];
 
   const [channelData, setChannelData] = useState(null);
-  console.log("channelData", channelData);
   const { campaignFormData } = useCampaigns();
 
   const getCurrencySymbol = (currencyCode) => {
@@ -39,7 +38,6 @@ const ConfigureAdSetsAndBudget = () => {
   };
 
   function extractPlatforms(data) {
-    console.log("called");
     const platforms = [];
     data.channel_mix.forEach((stage) => {
       const stageName = stage.funnel_stage;
@@ -144,16 +142,15 @@ const ConfigureAdSetsAndBudget = () => {
                         ch?.funnel_stage === "Awareness"
                           ? "#3175FF"
                           : ch?.funnel_stage === "Consideration"
-                          ? "#00A36C"
-                          : ch?.funnel_stage === "Conversion"
-                          ? "#FF9037"
-                          : "#F05406"
+                            ? "#00A36C"
+                            : ch?.funnel_stage === "Conversion"
+                              ? "#FF9037"
+                              : "#F05406"
                       )}
-                      insideText={`${
-                        campaignFormData?.campaign_budget?.amount
-                      } ${getCurrencySymbol(
-                        campaignFormData?.campaign_budget?.currency
-                      )}`}
+                      insideText={`${campaignFormData?.campaign_budget?.amount
+                        } ${getCurrencySymbol(
+                          campaignFormData?.campaign_budget?.currency
+                        )}`}
                     />
                   </div>
 
@@ -168,10 +165,10 @@ const ConfigureAdSetsAndBudget = () => {
                           ch?.funnel_stage === "Awareness"
                             ? "#3175FF"
                             : ch?.funnel_stage === "Consideration"
-                            ? "#00A36C"
-                            : ch?.funnel_stage === "Conversion"
-                            ? "#FF9037"
-                            : "#F05406",
+                              ? "#00A36C"
+                              : ch?.funnel_stage === "Conversion"
+                                ? "#FF9037"
+                                : "#F05406",
                       })
                     )}
                   />

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 const useCampaignHook = () => {
   // Loading States
@@ -9,43 +9,51 @@ const useCampaignHook = () => {
   const [error, setError] = useState(null);
   const [allClients, setAllClients] = useState([]);
 
-  const fetchAllClients = async () => {
+ 
+  // Fetch all clients
+  const fetchAllClients = useCallback(async () => {
     setLoadingClients(true);
-    await axios
-      .get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/clients`, {
+    try {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/clients`, {
         headers: {
           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
         },
-      })
-      .then((res) => {
-        setAllClients(res?.data?.data);
-      })
-      .catch((err) => {
-        console.log("An error occured", err);
-      })
-      .finally(() => {
-        setLoadingClients(false);
       });
-  };
+      setAllClients(res?.data?.data);
+    } catch (err) {
+      console.error("An error occurred while fetching clients:", err);
+    } finally {
+      setLoadingClients(false);
+    }
+  }, []); // useCallback prevents unnecessary re-renders
 
+  // Fetch client campaigns
   const fetchClientCampaign = async (clientID) => {
-    // console.log("🚀 ~ fetchClientCampaign ~ clientID:", clientID)
-    return await axios
-      .get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns?filters[client][$eq]=${clientID}&populate=*`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-          },
-        }
-      )
+    return await axios.get(
+      `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns?filters[client][$eq]=${clientID}&populate=*`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+        },
+      }
+    );
   };
 
+  
+
+  // Initial fetch on mount
   useEffect(() => {
     fetchAllClients();
-  }, []);
+  }, [fetchAllClients]);
 
-  return { loadingClients, allClients, fetchClientCampaign };
+ 
+
+  return { 
+    loadingClients, 
+    allClients, 
+    fetchClientCampaign, 
+    fetchAllClients
+  };
 };
 
 export default useCampaignHook;

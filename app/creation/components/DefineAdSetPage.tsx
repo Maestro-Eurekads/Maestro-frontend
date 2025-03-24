@@ -19,7 +19,7 @@ const DefineAdSetPage = () => {
   const [openItems, setOpenItems] = useState({});
   const { campaignFormData } = useCampaigns();
 
-  // console.log(JSON.stringify(campaignFormData))
+
 
   const toggleItem = (stage: string) => {
     setOpenItems((prev) => ({

@@ -1,6 +1,6 @@
+"use client";
 
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import speaker from "../../../public/mdi_megaphone.svg";
 import zoom from "../../../public/tabler_zoom-filled.svg";
@@ -13,32 +13,107 @@ import addPlusWhite from "../../../public/addPlusWhite.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { useObjectives } from "../../utils/useObjectives";
 import { useCampaigns } from "../../utils/CampaignsContext";
+import { removeKeysRecursively } from "utils/removeID";
+import { useVerification, validationRules } from "app/utils/VerificationContext";
+import { SVGLoader } from "components/SVGLoader";
+import AlertMain from "components/Alert/AlertMain";
 
 const MapFunnelStages = () => {
-  const { selectedFunnels, setSelectedFunnels } = useObjectives();
+  const {
+    updateCampaign,
+    campaignData,
+    campaignFormData,
+    cId,
+    setCampaignFormData,
+  } = useCampaigns();
+  const [previousValidationState, setPreviousValidationState] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
   const [hovered, setHovered] = React.useState<number | null>(null);
-  const selectedFunnel: any = selectedFunnels;
-  const { setCampaignFormData, campaignFormData } = useCampaigns();
+  const [alert, setAlert] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const { verifyStep, verifybeforeMove, setverifybeforeMove } = useVerification();
+
+  useEffect(() => {
+    const isValid = Array.isArray(campaignData?.funnel_stages) && campaignData.funnel_stages.length > 0;
+    if (isValid !== previousValidationState) {
+      verifyStep("step2", isValid, cId);
+      setPreviousValidationState(isValid);
+    }
+  }, [campaignData, cId, verifyStep]);
+
+  //   Auto-hide alert after 3 seconds
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
 
 
 
-  // Toggle selection logic
+
   const handleSelect = (id: string) => {
-    if (!isEditing) return; // Prevent selection if not editing
-
-    const updatedFunnels = campaignFormData?.funnel_stages?.includes(id)
+    if (!isEditing) return;
+    setHasChanges(true);
+    const updatedFunnels = campaignFormData?.funnel_stages.includes(id)
       ? {
         ...campaignFormData,
-        funnel_stages: campaignFormData?.funnel_stages?.filter(
-          (name: string) => name !== id
-        ),
+        funnel_stages: campaignFormData.funnel_stages.filter((name: string) => name !== id),
       }
       : {
         ...campaignFormData,
-        funnel_stages: [...campaignFormData?.funnel_stages, id],
+        funnel_stages: [...campaignFormData.funnel_stages, id],
       };
     setCampaignFormData(updatedFunnels);
+  };
+
+  const handleStepTwo = async () => {
+    setLoading(true);
+    try {
+      if (!Array.isArray(campaignFormData?.funnel_stages) || campaignFormData.funnel_stages.length === 0) {
+        setAlert({
+          variant: "error",
+          message: "Please select at least one funnel stage before proceeding.",
+          position: "bottom-right",
+        });
+        setLoading(false);
+        return;
+      }
+
+      const cleanData = removeKeysRecursively(campaignData, [
+        "id",
+        "documentId",
+        "createdAt",
+        "publishedAt",
+        "updatedAt",
+      ]);
+      if (cId && campaignData) {
+        await updateCampaign({
+          ...cleanData,
+          funnel_stages: campaignFormData?.funnel_stages,
+        });
+
+        setAlert({ variant: "success", message: "Funnel Stages updated successfully!", position: "bottom-right" });
+      } else {
+        const url = new URL(window.location.href);
+        window.history.pushState({}, "", url.toString());
+        setAlert({ variant: "success", message: "Funnel Stages created successfully!", position: "bottom-right" });
+      }
+      setHasChanges(false);
+      setIsEditing(false);
+      setverifybeforeMove((prev: any) =>
+        Array.isArray(prev)
+          ? prev.map((step: any) => (step.hasOwnProperty("step2") ? { ...step, step2: true } : step))
+          : prev
+      );
+    } catch (error) {
+      const errors: any = error.response?.data?.error?.details?.errors || error.response?.data?.error?.message || error.message || [];
+      console.error("Error in handleStepTwo:", error);
+      setAlert({ variant: "error", message: errors, position: "bottom-right" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -62,29 +137,36 @@ const MapFunnelStages = () => {
           </button>
         )}
       </div>
-
+      {alert && <AlertMain alert={alert} />}
       <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
         {/* Awareness */}
         <button
           className={`cursor-pointer awareness_card_one 
-						${campaignFormData["funnel_stages"]?.includes("Awareness")
-              ? "awareness_card_one_active"
-              : ""
-            } 
-						${isEditing ? "" : "cursor-not-allowed"}`}
-          onClick={() => handleSelect("Awareness")}
+    ${campaignFormData["funnel_stages"]?.includes("Awareness") ? "awareness_card_one_active" : ""} 
+    ${!isEditing ? "" : "cursor-not-allowed"}`}
+          onClick={() => {
+            if (!isEditing) {
+              setAlert({
+                variant: "info",
+                message: "Please click on Edit!",
+                position: "bottom-right",
+              });
+              return; // Prevent selection if not editing
+            }
+            handleSelect("Awareness");
+          }}
           onMouseEnter={() => setHovered(1)}
           onMouseLeave={() => setHovered(null)}
           disabled={!isEditing}
         >
-          {campaignFormData["funnel_stages"]?.includes("Awareness") ||
-            hovered === 1 ? (
+          {campaignFormData["funnel_stages"]?.includes("Awareness") || hovered === 1 ? (
             <Image src={speakerWhite} alt="speakerWhite" />
           ) : (
             <Image src={speaker} alt="speaker" />
           )}
           <p>Awareness</p>
         </button>
+
 
         {/* Consideration */}
         <button
@@ -154,16 +236,20 @@ const MapFunnelStages = () => {
       </div>
 
       <div className="flex justify-end pr-6 mt-[50px]">
-        {isEditing && (
-          <button
-            // disabled={selectedFunnel.length === 0}
-            onClick={() => setIsEditing(false)}
-            className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg bg-[#3175FF] text-white font-semibold text-base leading-6 disabled:opacity-50 hover:bg-[#2557D6] transition-colors"
-          >
-            Validate
-          </button>
+        {hasChanges && (
+          <div className="flex justify-end pr-6 mt-[50px]">
+            <button
+              disabled={campaignFormData?.funnel_stages?.length === 0 || loading}
+              onClick={handleStepTwo}
+              className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg text-white font-semibold text-base leading-6 transition-colors bg-[#3175FF] hover:bg-[#2557D6]"
+            >
+              {loading ? <SVGLoader width="30px" height="30px" color="#FFF" /> : "Validate"}
+            </button>
+          </div>
         )}
       </div>
+
+
     </div>
   );
 };

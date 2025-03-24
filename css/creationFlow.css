@@ -435,23 +435,23 @@ background: var(--accent-blue);
 }
 .vl_done {
   border-left: 4px solid var(--accent-green);
-  height: 35px;  
+  height: 32px;  
 background: var(--accent-green); 
 }
 .vls {
   border-left: 4px solid #D9D9D9;
-  height: 35px;  
+  height: 32px;  
 background: #DCDCDC; 
 margin-left: 8px;
 }
 .vl_actives {
   border-left: 4px solid var(--accent-blue);
-  height: 35px;  
+  height: 32px;  
 background: var(--accent-blue); 
 }
 .vl_dones {
   border-left: 4px solid var(--accent-green);
-  height: 35px;  
+  height: 32px;  
 background: var(--accent-green); 
 }
 

@@ -5,6 +5,7 @@ import AddAsInternalcomment from './AddAsInternalcomment';
 
 const Message = ({ message, setAddMessage, addComment, isOpen, setMessage }) => {
 	return (
+
 		<div>
 			{isOpen && <div className="absolute left-[30%] bottom-[30%] z-50">
 				{message ? (
