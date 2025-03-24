@@ -22,7 +22,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const { active, setActive, subStep, setSubStep } = useActive();
   const { selectedObjectives } = useObjectives();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
-  const [setupyournewcampaignError, SetupyournewcampaignError] = useState(false);
+  const [setupyournewcampaignError, SetupyournewcampaignError] =
+    useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
   const [selectedDatesError, setSelectedDatesError] = useState(false);
   const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
@@ -39,6 +40,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     campaignFormData,
     cId,
     getActiveCampaign,
+    copy
   } = useCampaigns();
 
 
@@ -190,8 +192,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    // Step 7: Ensure dates are selected
-    if (active === 7 && (!selectedDates?.to?.day || !selectedDates?.from?.day)) {
+    // ✅ Step Seven Validation - Ensure dates are selected
+    if (active === 7 && (!selectedDates?.to?.day || !selectedDates?.from?.day) && subStep <1) {
       setSelectedDatesError(true);
       hasError = true;
     }
@@ -209,40 +211,108 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const cleanData = removeKeysRecursively(campaignData, ["id", "documentId", "createdAt", "publishedAt", "updatedAt"]);
 
-    const stepHandlers = {
-      1: async () => {
+     const handleStepZero = async () => {
+      if (cId && campaignData) {
         await updateCampaignData({
           ...cleanData,
-          campaign_objective: campaignFormData?.campaign_objectives,
+          client: campaignFormData?.client_selection?.id,
+          client_selection: {
+            client: campaignFormData?.client_selection?.value,
+            level_1: campaignFormData?.level_1?.id,
+            level_2: campaignFormData?.level_2?.id,
+            level_3: campaignFormData?.level_3?.id,
+          },
+          media_plan_details: {
+            plan_name: campaignFormData?.media_plan,
+            internal_approver: campaignFormData?.approver,
+          },
+          budget_details: {
+            currency: campaignFormData?.budget_details_currency?.id,
+            fee_type: campaignFormData?.budget_details_fee_type?.id,
+            sub_fee_type: campaignFormData?.budget_details_sub_fee_type,
+            value: campaignFormData?.budget_details_value,
+          },
         });
-      },
-      2: async () => {
-        await updateCampaignData({
-          ...cleanData,
-          funnel_stages: campaignFormData?.funnel_stages,
-        });
-      },
-      3: async () => {
-        await updateCampaignData({
-          ...cleanData,
-          channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, ["id", "isValidated"]),
-        });
-      },
-      default: async () => {
-        await updateCampaignData({
-          ...cleanData,
-          funnel_stages: campaignFormData?.funnel_stages,
-          channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, ["id", "isValidated"]),
-          campaign_budget: removeKeysRecursively(campaignFormData?.campaign_budget, ["id"]),
-        });
-      },
+      } else {
+        const res = await createCampaign();
+        const url = new URL(window.location.href);
+        url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
+        window.history.pushState({}, "", url.toString());
+        await getActiveCampaign(res?.data?.data.documentId);
+      }
     };
 
-    if (stepHandlers[active]) {
-      await stepHandlers[active]();
-    } else if (active > 2) {
-      await stepHandlers.default();
+    const handleStepOne = async () => {
+      if (!campaignData) return;
+      await updateCampaignData({
+        ...cleanData,
+        campaign_objective: campaignFormData?.campaign_objectives,
+      });
+    };
+
+    const handleStepTwo = async () => {
+      if (!campaignData) return;
+      await updateCampaignData({
+        ...cleanData,
+        funnel_stages: campaignFormData?.funnel_stages,
+      });
+    };
+
+    const handleStepThree = async () => {
+      if (!campaignData) return;
+      await updateCampaignData({
+        ...cleanData,
+        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+          "id",
+          "isValidated",
+        ]),
+      });
+    };
+
+    const handleStepFour = async () => {
+      if (!campaignData) return;
+
+      if (active === 7 && subStep === 1) {
+        await updateCampaignData({
+          ...cleanData,
+          funnel_stages: copy?.funnel_stages,
+          channel_mix: removeKeysRecursively(copy?.channel_mix, [
+            "id",
+            "isValidated",
+          ]),
+          campaign_budget: removeKeysRecursively(
+            copy?.campaign_budget,
+            ["id"]
+          ),
+        });
+      } else {
+        await updateCampaignData({
+          ...cleanData,
+          funnel_stages: campaignFormData?.funnel_stages,
+          channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+            "id",
+            "isValidated",
+          ]),
+          campaign_budget: removeKeysRecursively(
+            campaignFormData?.campaign_budget,
+            ["id"]
+          ),
+        });
+      }
+    };
+
+    if (active === 0) {
+      await handleStepZero();
+    } else if (active === 1) {
+      await handleStepOne();
+    } else if (active === 2) {
+      await handleStepTwo();
+    } else if (active > 2 && subStep < 1) {
+      await handleStepThree();
+    } else if (active > 2 && subStep > 0) {
+      await handleStepFour();
     }
+
 
     // Proceed to the next step
     if (active === 7) {

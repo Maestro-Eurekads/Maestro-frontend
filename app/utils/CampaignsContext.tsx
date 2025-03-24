@@ -64,6 +64,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const query = useSearchParams();
   const cId = query.get("campaignId");
   const { loadingClients, allClients } = useCampaignHook();
+  const [copy, setCopy] = useState(campaignFormData)
 
   const getActiveCampaign = async (docId?: string) => {
     await axios
@@ -113,7 +114,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           funnel_stages: data?.funnel_stages || [],
           channel_mix: data?.channel_mix || [],
           campaign_timeline_start_date: data?.campaign_timeline_start_date,
-          campaign_timeline_end_date: data?.campaign_timeline_start_date,
+          campaign_timeline_end_date: data?.campaign_timeline_end_date,
           campaign_budget: data?.campaign_budget || {}
         }));
       });
@@ -187,7 +188,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         setClientCampaignData,
         loading,
         setLoading,
-        setCampaignData
+        setCampaignData,
+        copy,
+        setCopy
       }}
     >
       {children}
