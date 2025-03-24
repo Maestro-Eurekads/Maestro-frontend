@@ -16,7 +16,6 @@ const ConfigureAdSetsAndBudget = () => {
   ];
 
   const [channelData, setChannelData] = useState(null);
-  console.log("channelData", channelData);
   const { campaignFormData } = useCampaigns();
 
   const getCurrencySymbol = (currencyCode) => {
@@ -39,16 +38,15 @@ const ConfigureAdSetsAndBudget = () => {
   };
 
   function extractPlatforms(data) {
-    console.log("called");
     const platforms = [];
     data.channel_mix.forEach((stage) => {
       const stageName = stage.funnel_stage;
-      const stageBudget = parseFloat(stage.stage_budget.fixed_value);
+      const stageBudget = parseFloat(stage.stage_budget?.fixed_value);
       ["search_engines", "display_networks", "social_media"].forEach(
         (channelType) => {
           stage[channelType].forEach((platform) => {
             const platformName = platform.platform_name;
-            const platformBudget = parseFloat(platform.budget.fixed_value);
+            const platformBudget = parseFloat(platform.budget?.fixed_value);
             const percentage = (platformBudget / stageBudget) * 100;
             const existingPlatform = platforms.find(
               (p) => p.platform_name === platformName
@@ -144,16 +142,15 @@ const ConfigureAdSetsAndBudget = () => {
                         ch?.funnel_stage === "Awareness"
                           ? "#3175FF"
                           : ch?.funnel_stage === "Consideration"
-                          ? "#00A36C"
-                          : ch?.funnel_stage === "Conversion"
-                          ? "#FF9037"
-                          : "#F05406"
+                            ? "#00A36C"
+                            : ch?.funnel_stage === "Conversion"
+                              ? "#FF9037"
+                              : "#F05406"
                       )}
-                      insideText={`${
-                        campaignFormData?.campaign_budget?.amount
-                      } ${getCurrencySymbol(
-                        campaignFormData?.campaign_budget?.currency
-                      )}`}
+                      insideText={`${campaignFormData?.campaign_budget?.amount
+                        } ${getCurrencySymbol(
+                          campaignFormData?.campaign_budget?.currency
+                        )}`}
                     />
                   </div>
 
@@ -168,10 +165,10 @@ const ConfigureAdSetsAndBudget = () => {
                           ch?.funnel_stage === "Awareness"
                             ? "#3175FF"
                             : ch?.funnel_stage === "Consideration"
-                            ? "#00A36C"
-                            : ch?.funnel_stage === "Conversion"
-                            ? "#FF9037"
-                            : "#F05406",
+                              ? "#00A36C"
+                              : ch?.funnel_stage === "Conversion"
+                                ? "#FF9037"
+                                : "#F05406",
                       })
                     )}
                   />

@@ -64,6 +64,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const query = useSearchParams();
   const cId = query.get("campaignId");
   const { loadingClients, allClients } = useCampaignHook();
+  const [copy, setCopy] = useState(campaignFormData)
 
   const getActiveCampaign = async (docId?: string) => {
     await axios
@@ -113,44 +114,54 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           funnel_stages: data?.funnel_stages || [],
           channel_mix: data?.channel_mix || [],
           campaign_timeline_start_date: data?.campaign_timeline_start_date,
-          campaign_timeline_end_date: data?.campaign_timeline_start_date,
+          campaign_timeline_end_date: data?.campaign_timeline_end_date,
           campaign_budget: data?.campaign_budget || {}
         }));
       });
   };
 
   const createCampaign = async () => {
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`,
+        {
+          data: {
+            client: campaignFormData?.client_selection?.id,
+            client_selection: {
+              client: campaignFormData?.client_selection?.value,
+              level_1: campaignFormData?.level_1?.id,
+              level_2: campaignFormData?.level_2?.id,
+              level_3: campaignFormData?.level_3?.id,
+            },
+            media_plan_details: {
+              plan_name: campaignFormData?.media_plan,
+              internal_approver: campaignFormData?.approver,
+            },
+            budget_details: {
+              currency: campaignFormData?.budget_details_currency?.id,
+              fee_type: campaignFormData?.budget_details_fee_type?.id,
+              sub_fee_type: campaignFormData?.budget_details_sub_fee_type,
+              value: campaignFormData?.budget_details_value,
+            },
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+        }
+      );
 
-    return await axios.post(
-      `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`,
-      {
-        data: {
-          client: campaignFormData?.client_selection?.id,
-          client_selection: {
-            client: campaignFormData?.client_selection?.value,
-            level_1: campaignFormData?.level_1?.id,
-            level_2: campaignFormData?.level_2?.id,
-            level_3: campaignFormData?.level_3?.id,
-          },
-          media_plan_details: {
-            plan_name: campaignFormData?.media_plan,
-            internal_approver: campaignFormData?.approver,
-          },
-          budget_details: {
-            currency: campaignFormData?.budget_details_currency?.id,
-            fee_type: campaignFormData?.budget_details_fee_type?.id,
-            sub_fee_type: campaignFormData?.budget_details_sub_fee_type,
-            value: campaignFormData?.budget_details_value,
-          },
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-        },
-      }
-    );
+      // Fetch all clients after a successful campaign creation
+
+
+      return response; // Return API response in case the calling function needs it
+    } catch (error) {
+      console.error("Error creating campaign:", error);
+      throw error; // Re-throw to handle errors in calling functions
+    }
   };
+
 
   const updateCampaign = async (data) => {
     return await axios.put(
@@ -187,7 +198,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         setClientCampaignData,
         loading,
         setLoading,
-        setCampaignData
+        setCampaignData,
+        copy,
+        setCopy
       }}
     >
       {children}

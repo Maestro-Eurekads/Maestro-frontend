@@ -35,7 +35,7 @@ const PlanCampaignSchedule: React.FC = () => {
 		}
 	}, [campaignId]);
 
-	// ✅ Auto-hide alert after 3 seconds
+	//   Auto-hide alert after 3 seconds
 	useEffect(() => {
 		if (alert) {
 			const timer = setTimeout(() => setAlert(null), 3000);
