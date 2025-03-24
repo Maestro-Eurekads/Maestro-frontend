@@ -25,7 +25,7 @@ const ThreeValuesProgress = ({ values, color, showpercent }: { values: number[];
 					>
 						{showpercent && percent > 0 && (
 							<p className="font-semibold text-[13px] leading-[18px] flex items-center justify-center text-white">
-								{formatPercentage(percent)}%
+								{formatPercentage(percent || 0)}%
 							</p>
 						)}
 					</div>

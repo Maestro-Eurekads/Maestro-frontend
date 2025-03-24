@@ -4,7 +4,7 @@ const CampaignPhases = ({ campaignPhases }) => {
 	// const funnelStageColors = CampaignPhases?.funnel_stages?.map((funnel) => funnel.co)
 	return (
 		<div className="campaign_phases_container_two flex flex-col gap-[28px]">
-			{campaignPhases?.funnel_stages?.map((phase, index) => (
+			{campaignPhases?.map((phase, index) => (
 				<div key={index} className="flex items-center gap-2">
 					<div
 						className="w-[12px] h-[12px] rounded-[4px]"
@@ -15,7 +15,7 @@ const CampaignPhases = ({ campaignPhases }) => {
 							{phase?.name}
 						</p>
 						<span className="font-semibold text-[16px] leading-[22px] flex items-center text-[#061237]">
-							({phase?.percentage}%)
+							({phase?.percentage || 0}%)
 						</span>
 					</div>
 				</div>
