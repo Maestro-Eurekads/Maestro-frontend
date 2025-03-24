@@ -217,7 +217,6 @@ const ConfigureAdSetsAndBudget = () => {
                     campaignFormData?.campaign_budget?.currency
                   )}
                 />
-                {/* <PlatformSpending /> */}
               </div>
             </div>
           </div>
