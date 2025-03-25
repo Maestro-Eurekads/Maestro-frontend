@@ -319,16 +319,24 @@ const TableView = ({ channels }) => {
                   name: platformName,
                   color: style?.color,
                   audience: platform.audience,
-                  startDate: moment(platform.campaign_start_date).format("DD/MM/YYYY"),
-                  endDate: moment(platform.campaign_end_date).format("DD/MM/YYYY"),
+                  startDate: moment(platform.campaign_start_date).format(
+                    "DD/MM/YYYY"
+                  ),
+                  endDate: moment(platform.campaign_end_date).format(
+                    "DD/MM/YYYY"
+                  ),
                   audienceSize: platform.audienceSize,
                   budgetSize:
                     Number(platform?.budget?.fixed_value) > 0
-                      ? `${Number(platform?.budget?.fixed_value)} ${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}`
+                      ? `${Number(
+                          platform?.budget?.fixed_value
+                        )} ${getCurrencySymbol(
+                          campaignFormData?.campaign_budget?.currency
+                        )}`
                       : 0,
                   impressions: platform.impressions,
                   reach: platform.reach,
-				  ad_sets: platform?.ad_sets
+                  ad_sets: platform?.ad_sets,
                 });
               }
             });
@@ -370,9 +378,13 @@ const TableView = ({ channels }) => {
                       <th className="py-4 px-6">Audience Size</th>
                       <th className="py-4 px-6">Budget Size</th>
                       <th className="py-4 px-6">CPM</th>
-                      {/* <th className="py-4 px-6">Audience</th>
-                      <th className="py-4 px-6">Frequency</th>
-                      <th className="py-4 px-6">Reach</th> */}
+                      {campaignFormData?.goal_level === "Adset level" && (
+                        <>
+                          <th className="py-4 px-6">Impression</th>
+                          <th className="py-4 px-6">Frequency</th>
+                          <th className="py-4 px-6">Reach</th>
+                        </>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="whitespace-nowrap">
@@ -392,31 +404,33 @@ const TableView = ({ channels }) => {
                                   color: channel?.color,
                                 }}
                               >
-                                {channel?.ad_sets?.length >0 && (
-                                  <span>
-                                    <svg
-                                      width="17"
-                                      height="16"
-                                      viewBox="0 0 17 16"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                      <path
-                                        d="M5.38021 6.66667L8.71354 10L12.0469 6.66667"
-                                        stroke="#061237"
-                                        strokeOpacity="0.8"
-                                        strokeWidth="1.33333"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        transform={
-                                          expandedRows[index]
-                                            ? "rotate(180 8.5 8)"
-                                            : ""
-                                        }
-                                      />
-                                    </svg>
-                                  </span>
-                                )}
+                                {campaignFormData?.goal_level ===
+                                  "Adset level" &&
+                                  channel?.ad_sets?.length > 0 && (
+                                    <span>
+                                      <svg
+                                        width="17"
+                                        height="16"
+                                        viewBox="0 0 17 16"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                      >
+                                        <path
+                                          d="M5.38021 6.66667L8.71354 10L12.0469 6.66667"
+                                          stroke="#061237"
+                                          strokeOpacity="0.8"
+                                          strokeWidth="1.33333"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          transform={
+                                            expandedRows[index]
+                                              ? "rotate(180 8.5 8)"
+                                              : ""
+                                          }
+                                        />
+                                      </svg>
+                                    </span>
+                                  )}
                                 <span className="relative w-[16px] h-[16px]">
                                   <Image
                                     src={channel.icon}
@@ -427,63 +441,84 @@ const TableView = ({ channels }) => {
                                 <span>{channel.name}</span>
                               </span>
                             </td>
-                            <td className="py-6 px-6">{channel.audience ? channel.audience : "-"}</td>
-                            <td className="py-6 px-6">{channel.startDate === "Invalid date" ? "-" : channel?.startDate}</td>
-                            <td className="py-6 px-6">{channel.endDate === "Invalid date" ? "-" : channel?.endDate}</td>
                             <td className="py-6 px-6">
-                              {channel.audienceSize ? channel.audienceSize : "-"}
+                              {channel.audience ? channel.audience : "-"}
+                            </td>
+                            <td className="py-6 px-6">
+                              {channel.startDate === "Invalid date"
+                                ? "-"
+                                : channel?.startDate}
+                            </td>
+                            <td className="py-6 px-6">
+                              {channel.endDate === "Invalid date"
+                                ? "-"
+                                : channel?.endDate}
+                            </td>
+                            <td className="py-6 px-6">
+                              {channel.audienceSize
+                                ? channel.audienceSize
+                                : "-"}
                             </td>
                             <td className="py-6 px-6">{channel.budgetSize}</td>
                             <td className="py-6 px-6">
-                              <div className="cpm_bg">CPM</div>
-                            </td>
-                            {/* <td className="py-6 px-6">{channel.audience}</td>
-                            <td className="py-6 px-6">
                               <input
                                 type="text"
-                                placeholder="Enter Frequency"
-                                className="bg-transparent border-none outline-none w-full"
+                                placeholder="CPM"
+                                className="cpm-bg border-none outline-none w-full"
                               />
                             </td>
-                            <td className="py-6 px-6">{channel.reach}</td> */}
+                            {campaignFormData?.goal_level === "Adset level" && (
+                              <>
+                                <td className="py-6 px-6">
+                                  {channel.audience}
+                                </td>
+                                <td className="py-6 px-6">
+                                  <input
+                                    type="text"
+                                    placeholder="Enter Frequency"
+                                    className="bg-transparent border-none outline-none w-full"
+                                  />
+                                </td>
+                                <td className="py-6 px-6">{channel.reach}</td>
+                              </>
+                            )}
                           </tr>
 
                           {/* Sub-table (Expanded Rows) */}
                           {expandedRows[index] && (
                             <>
-                              {channel?.ad_sets?.map(
-                                (awareness, index) => (
-                                  <tr key={index} className="bg-white">
-                                    <td className="py-6 px-6 border-none">
-                                      <div className="flex gap-2">
-                                        <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
-                                          {index + 1}.
-                                        </span>
-                                        <span>{awareness?.name}</span>
-                                      </div>
-                                    </td>
-                                    <td className="!py-0 px-6 border-none">
-                                      {awareness?.audience_type}{" "}
-                                    </td>
-                                    <td className="!py-0 px-6 border-none">
-                                      {channel.startDate}{" "}
-                                    </td>
-                                    <td className="!py-0 px-6 border-none">
-                                      {channel.endDate}{" "}
-                                    </td>
-                                    <td className="!py-0 px-6 border-none">
-                                      {awareness?.size}{" "}
-                                    </td>
-                                    <td className="!py-0 px-6 border-none">
-                                      {awareness.budget}{" "}
-                                    </td>
-                                    <td className="!py-0 px-6 border-none">
-                                      <div className="cpm_bg">
-                                        {" "}
-                                        {awareness.cpm}
-                                      </div>{" "}
-                                    </td>
-                                    {/* <td className="!py-0 px-6 border-none">
+                              {channel?.ad_sets?.map((awareness, index) => (
+                                <tr key={index} className="bg-white">
+                                  <td className="py-6 px-6 border-none">
+                                    <div className="flex gap-2">
+                                      <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
+                                        {index + 1}.
+                                      </span>
+                                      <span>{awareness?.name}</span>
+                                    </div>
+                                  </td>
+                                  <td className="!py-0 px-6 border-none">
+                                    {awareness?.audience_type}{" "}
+                                  </td>
+                                  <td className="!py-0 px-6 border-none">
+                                    {channel.startDate}{" "}
+                                  </td>
+                                  <td className="!py-0 px-6 border-none">
+                                    {channel.endDate}{" "}
+                                  </td>
+                                  <td className="!py-0 px-6 border-none">
+                                    {awareness?.size}{" "}
+                                  </td>
+                                  <td className="!py-0 px-6 border-none">
+                                    {awareness.budget}{" "}
+                                  </td>
+                                  <td className="!py-0 px-6 border-none">
+                                    <div className="cpm_bg">
+                                      {" "}
+                                      {awareness.cpm}
+                                    </div>{" "}
+                                  </td>
+                                  {/* <td className="!py-0 px-6 border-none">
                                       {awareness.audience}{" "}
                                     </td>
                                     <td className="!py-0 px-6 border-none">
@@ -492,9 +527,8 @@ const TableView = ({ channels }) => {
                                     <td className="!py-0 px-6 border-none">
                                       {awareness.reach}
                                     </td> */}
-                                  </tr>
-                                )
-                              )}
+                                </tr>
+                              ))}
                             </>
                           )}
                         </React.Fragment>

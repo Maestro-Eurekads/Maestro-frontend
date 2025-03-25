@@ -30,6 +30,7 @@ const DefineCampaignObjective = () => {
   const [alert, setAlert] = useState(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [previousValidationState, setPreviousValidationState] = useState<boolean | null>(null);
+  const [tempSelectedObjective, setTempSelectedObjective] = useState<{id: number, title: string}[]>([]);
 
   //   Auto-hide alert after 3 seconds
   useEffect(() => {
@@ -48,31 +49,6 @@ const DefineCampaignObjective = () => {
     }
   }, [campaignData, cId, previousValidationState, verifyStep]);
 
-  // Load initial campaign data
-  useEffect(() => {
-    if (campaignId) {
-      getActiveCampaign(campaignId);
-    }
-  }, [campaignId]);
-
-  // Load saved objective on mount
-  useEffect(() => {
-    if (campaignData?.campaign_objective) {
-      const matchingObjective = campaignObjectives.find(
-        obj => obj.title === campaignData.campaign_objective
-      );
-      if (matchingObjective) {
-        setSelectedObjectives([{
-          id: matchingObjective.id,
-          title: matchingObjective.title
-        }]);
-        setCampaignFormData(prev => ({
-          ...prev,
-          campaign_objectives: matchingObjective.title
-        }));
-      }
-    }
-  }, [campaignData, setCampaignFormData, setSelectedObjectives]);
 
   const handleStepOne = async () => {
     if (!validateStep("step1", campaignFormData, cId)) {
@@ -108,6 +84,9 @@ const DefineCampaignObjective = () => {
       });
       await getActiveCampaign(cleanData);
 
+      // Update the actual selected objectives after validation
+      setSelectedObjectives(tempSelectedObjective);
+      
       setAlert({ variant: "success", message: "Campaign Objective successfully updated!", position: "bottom-right" });
       setIsEditing(false);
       setHasChanges(false);
@@ -125,7 +104,7 @@ const DefineCampaignObjective = () => {
   };
 
   const handleSelect = (id: number, title: string) => {
-    setSelectedObjectives((prev) => {
+    setTempSelectedObjective((prev) => {
       const alreadySelected = prev.some((obj) => obj.id === id);
 
       if (alreadySelected) {
@@ -140,6 +119,19 @@ const DefineCampaignObjective = () => {
     setHasChanges(true);
   };
 
+  const handleEditClick = () => {
+    setIsEditing(true);
+    // Initialize temp selection with current selection
+    setTempSelectedObjective([...selectedObjectives]);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setHasChanges(false);
+    // Reset temp selection to match the actual selection
+    setTempSelectedObjective([...selectedObjectives]);
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -149,11 +141,16 @@ const DefineCampaignObjective = () => {
         />
 
         {isEditing ? (
-          ""
+          <button
+            className="model_button_gray mr-2"
+            onClick={handleCancelEdit}
+          >
+            Cancel
+          </button>
         ) : (
           <button
             className="model_button_blue"
-            onClick={() => setIsEditing(true)}
+            onClick={handleEditClick}
           >
             Edit
           </button>
@@ -163,7 +160,9 @@ const DefineCampaignObjective = () => {
       {/* Alert Notification */}
       <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-[80px] mt-[50px] place-items-center">
         {campaignObjectives.map(item => {
-          const isSelected = selectedObjectives.some(obj => obj.id === item.id);
+          const isSelected = isEditing 
+            ? tempSelectedObjective.some(obj => obj.id === item.id)
+            : selectedObjectives.some(obj => obj.id === item.id);
           return (
             <div key={item.id} className={`relative p-4 rounded-lg transition-all duration-300 ${isSelected ? "creation_card_active shadow-lg" : "creation_card"} ${isEditing ? "cursor-pointer" : "cursor-not-allowed"}`} onClick={() => isEditing ? handleSelect(item.id, item.title) : setAlert({ variant: 'info', message: 'Please click on Edit!', position: 'bottom-right' })}>
               {isSelected && <div className="absolute right-4 top-4"><Image src={Mark} alt="Selected" /></div>}
@@ -180,7 +179,7 @@ const DefineCampaignObjective = () => {
       {hasChanges && (
         <div className="flex justify-end pr-6 mt-[50px]">
           <button
-            disabled={selectedObjectives.length === 0}
+            disabled={tempSelectedObjective.length === 0}
             onClick={handleStepOne}
             className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg text-white font-semibold text-base leading-6 transition-colors bg-[#3175FF] hover:bg-[#2557D6]"
           >
