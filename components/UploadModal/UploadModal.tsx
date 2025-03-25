@@ -5,7 +5,7 @@ import upload from "../../public/Featured icon.svg"
 import icon from "../../public/Icon.svg"
 
 // Make the modal controlled by passing isOpen and onClose props
-const UploadModal = ({ isOpen, onClose }) => {
+const UploadModal = ({ isOpen, onClose, platform, channel, format }) => {
   const handleCancel = () => {
     // Add cancel logic here
     alert("Cancel clicked")
