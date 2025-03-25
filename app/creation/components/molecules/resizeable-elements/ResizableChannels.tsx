@@ -454,7 +454,7 @@ const ResizableChannels = ({
           >
             <div>
               <div
-                className={` top-0 h-full flex ${
+                className={` ${disableDrag ? "relative" : "absolute"} top-0 h-full flex ${
                   disableDrag ? "justify-between" : "justify-center cursor-move"
                 }  items-center text-white px-4 gap-2 border shadow-md min-w-[150px] overflow-x-hidden `}
                 style={{
@@ -494,7 +494,7 @@ const ResizableChannels = ({
                 )}
               </div>
               {/* Ad sets */}
-              {disableDrag && channel?.ad_sets?.length > 0 && (
+              {campaignFormData?.goal_level === "Adset level" && disableDrag && channel?.ad_sets?.length > 0 && (
                 <>
                   <div
                     className="bg-[#EBFEF4] py-[10px] px-[12px] w-fit mt-[5px] border border-[#00A36C1A] rounded-[8px] flex items-center cursor-pointer"
