@@ -49,6 +49,35 @@ const DefineCampaignObjective = () => {
     }
   }, [campaignData, cId, previousValidationState, verifyStep]);
 
+  // Load initial campaign data
+  useEffect(() => {
+    if (campaignId) {
+      getActiveCampaign(campaignId);
+    }
+  }, [campaignId]);
+
+  // Load saved objective on mount
+  useEffect(() => {
+    if (campaignData?.campaign_objective) {
+      const matchingObjective = campaignObjectives.find(
+        obj => obj.title === campaignData.campaign_objective
+      );
+      if (matchingObjective) {
+        setSelectedObjectives([{
+          id: matchingObjective.id,
+          title: matchingObjective.title
+        }]);
+        setTempSelectedObjective([{
+          id: matchingObjective.id,
+          title: matchingObjective.title
+        }]);
+        setCampaignFormData(prev => ({
+          ...prev,
+          campaign_objectives: matchingObjective.title
+        }));
+      }
+    }
+  }, [campaignData, setCampaignFormData, setSelectedObjectives]);
 
   const handleStepOne = async () => {
     if (!validateStep("step1", campaignFormData, cId)) {
