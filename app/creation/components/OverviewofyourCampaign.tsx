@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import PageHeaderWrapper from '../../../components/PageHeaderWapper'
 import DateComponent from './molecules/date-component/date-component';
 import ConfigureBudgetComponet from './ConfigureAdSetsAndBudget/ConfigureBudgetComponet';
@@ -9,9 +9,13 @@ import { parseApiDate } from '../../../components/Options';
 import { useCampaigns } from '../../utils/CampaignsContext';
 import CommentsDrawer from 'components/Drawer/CommentsDrawer';
 import Message from 'components/Drawer/Message';
+import dynamic from 'next/dynamic';
+// import Draggable from 'react-draggable';
 // import Draggable from 'react-draggable';
 
+const Draggable = dynamic(() => import("react-draggable"), { ssr: false });
 const OverviewofyourCampaign = () => {
+	const dragRef = useRef(null);
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 	const [show, setShow] = useState(false);
 	const [message, setMessage] = useState(false);
@@ -88,9 +92,15 @@ const OverviewofyourCampaign = () => {
 				<div className='mt-[30px]'>
 					<DateComponent useDate={false} />
 				</div>
-				{/* <Draggable> */}
-				<Message message={message} setAddMessage={setAddMessage} addComment={addComment} isOpen={isDrawerOpen} setMessage={setMessage} />
-				{/* </Draggable> */}
+
+				<Message
+					message={message}
+					setAddMessage={setAddMessage}
+					addComment={addComment}
+					isOpen={isDrawerOpen}
+					setMessage={setMessage}
+				/>
+
 				<OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} />
 			</div>
 

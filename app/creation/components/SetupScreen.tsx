@@ -11,6 +11,7 @@ import { removeKeysRecursively } from "utils/removeID";
 import AlertMain from "components/Alert/AlertMain";
 import { SVGLoader } from "components/SVGLoader";
 import { useVerification, validationRules } from "app/utils/VerificationContext";
+import ClientSelectionInputbudget from "components/ClientSelectionInputbudget";
 
 export const SetupScreen = () => {
   const {
@@ -133,13 +134,19 @@ export const SetupScreen = () => {
 
 
   const getInputValue = () => {
+    if (campaignFormData?.budget_details_fee_type?.id !== "Tooling") {
+      return "€10";
+    }
+
     if (selectedOption === "fix-amount") {
       return "€10";
     } else if (selectedOption === "percentage") {
       return "15%";
     }
+
     return "";
   };
+
 
 
 
@@ -382,7 +389,7 @@ export const SetupScreen = () => {
             )}
             {/* Display the selected value */}
             <div className="w-full">
-              <ClientSelectionInput
+              <ClientSelectionInputbudget
                 label={getInputValue()}
                 formId="budget_details_value"
               />
