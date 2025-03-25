@@ -1,155 +1,35 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Button from "./button";
 import Awareness from "./Awareness";
-import Consideration from "./Consideration";
-import Conversion from "./Conversion";
-import { Plus, Trash, UserRoundSearch, X, ChevronDown } from "lucide-react";
-import YoutubeIcon from "../../../../public/youtube.svg";
-import LinkedinIcon from "../../../../public/linkedin.svg";
-import TiktokIcon from "../../../../public/tictok.svg";
-import TwitterIcon from "../../../../public/x.svg";
+import { Plus, Trash } from "lucide-react";
 import creditWhite from "../../../../public/mdi_credit-cardwhite.svg";
 import zoomWhite from "../../../../public/tabler_zoom-filledwhite.svg";
 import speakerWhite from "../../../../public/mdi_megaphonewhite.svg";
 import addPlusWhite from "../../../../public/addPlusWhite.svg";
-import Select, { components } from "react-select";
 import Image from "next/image";
 import { useCampaigns } from "../../../utils/CampaignsContext";
 import { funnelStages } from "../../../../components/data";
 import { ChannelSelector } from "./ChannelSelector";
 
-const buyObjectiveOptions = [
-  { value: "awareness", label: "Awareness" },
-  { value: "traffic", label: "Traffic" },
-  { value: "purchase", label: "Purchase" },
-];
 
-const buyTypeOptions = [
-  { value: "CPM", label: "CPM" },
-  { value: "CPV", label: "CPV" },
-];
 
-// Updated ChannelSelector with react‑select and icons
-const options = [
-  {
-    value: "TikTok",
-    label: "TikTok",
-    icon: (
-      <Image
-        src={TiktokIcon}
-        alt="TikTok"
-        width={16}
-        height={16}
-        className="cursor-pointer font-bold size-5"
-      />
-    ),
-  },
-  {
-    value: "YouTube",
-    label: "YouYube",
-    icon: (
-      <Image
-        src={YoutubeIcon}
-        alt="Youtube"
-        width={16}
-        height={16}
-        className="font-bold size-5"
-      />
-    ),
-  },
-  {
-    value: "Twitter/X",
-    label: "Twitter/X",
-    icon: (
-      <Image
-        src={TwitterIcon}
-        alt="Twitter"
-        width={16}
-        height={16}
-        className="cursor-pointer font-bold size-5"
-      />
-    ),
-  },
-  {
-    value: "LinkedIn",
-    label: "LinkedIn",
-    icon: (
-      <Image
-        src={LinkedinIcon}
-        alt="LinkedIn"
-        width={16}
-        height={16}
-        className="cursor-pointer font-bold size-5"
-      />
-    ),
-  },
-];
 
-const IconOption = (props) => (
-  <components.Option {...props}>
-    <div style={{ display: "flex", alignItems: "center" }}>
-      {props.data.icon && (
-        <span style={{ marginRight: 8 }}>{props.data.icon}</span>
-      )}
-      <span>{props.data.label}</span>
-    </div>
-  </components.Option>
-);
 
-const CustomControl = (props) => {
-  const { hasValue, selectProps, innerProps, innerRef, children } = props;
 
-  if (hasValue) {
-    const selectedValue = selectProps.value;
-    return (
-      <div
-        className="flex items-center justify-between p-2 bg-white border-2 border-[#D1D5DB] rounded-[0.8rem] cursor-pointer min-w-[200px]"
-        ref={innerRef}
-        {...innerProps}
-      >
-        <div className="flex items-center flex-1">
-          <div className="flex-shrink-0">{selectedValue.icon}</div>
-          <span className="ml-2 truncate">{selectedValue.label}</span>
-        </div>
-        <div className="flex-shrink-0 ml-2">
-          <X
-            size={14}
-            className="text-white rounded-full bg-black cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation();
-              selectProps.onChange(null);
-              selectProps.onMenuClose();
-            }}
-          />
-        </div>
-      </div>
-    );
-  }
 
-  return (
-    <components.Control {...props}>
-      <div className="flex items-center justify-between w-full">
-        {children}
-        <ChevronDown size={20} />
-      </div>
-    </components.Control>
-  );
-};
-
-const stageComponents = {
-  Awareness,
-  Consideration,
-  Conversion,
-};
 
 const BuyingObjective = () => {
   const [edit, setEdit] = useState(false);
   const [selectedStage, setSelectedStage] = useState("");
   const { campaignFormData, setCampaignFormData } = useCampaigns();
-  const [updatedData, setUpdatedData] = useState(null);
+  const [updatedData, setUpdatedData] = useState(campaignFormData || {});
   // State for the two-step Loyalty flow
   const [isLoyalty, setIsLoyalty] = useState(false);
   const [showLoyaltyField, setShowLoyaltyField] = useState(false);
+
+  useEffect(() => {
+    setUpdatedData(campaignFormData);
+  }, [campaignFormData]);
 
   // Loyalty button handler
   const handleLoyaltyButtonClick = (stageName?: string) => {
@@ -270,10 +150,31 @@ const BuyingObjective = () => {
   };
 
   // Delete the loyalty stage
+  // const handleDeleteLoyaltyStage = () => {
+  //   setIsLoyalty(false);
+  //   setShowLoyaltyField(false);
+  // };
   const handleDeleteLoyaltyStage = () => {
     setIsLoyalty(false);
     setShowLoyaltyField(false);
+
+    // if (updatedData) {
+    //   const filteredStages = updatedData.funnel_stages?.filter(
+    //     (stage: string) => stage !== "Loyalty"
+    //   );
+
+    //   const filteredChannelMix = updatedData.channel_mix?.filter(
+    //     (channel: { funnel_stage: string; }) => channel.funnel_stage !== "Loyalty"
+    //   );
+
+    //   setUpdatedData({
+    //     ...updatedData,
+    //     funnel_stages: filteredStages,
+    //     channel_mix: filteredChannelMix,
+    //   });
+    // }
   };
+
 
   return (
     <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full">
@@ -423,27 +324,11 @@ const BuyingObjective = () => {
         </div>
       )}
 
-      {/* Additional Stage Buttons (Only in Edit Mode) */}
-      {/* {edit && (
-        <div className="flex flex-wrap gap-2 mb-4">
-          {["Awareness", "Consideration", "Conversion"].map(
-            (stage) =>
-              !stages.includes(stage) && (
-                <Button
-                  key={stage}
-                  text={`Add ${stage}`}
-                  icon={Plus}
-                  variant="primary"
-                  onClick={() => addStage(stage)}
-                />
-              )
-          )}
-        </div>
-      )} */}
+
 
       {/* Render Each Stage */}
-      {campaignFormData?.funnel_stages.map((stageName, index) => {
-        const stage = funnelStages.find((s) => s.name === stageName);
+      {campaignFormData?.funnel_stages?.map((stageName, index) => {
+        const stage = funnelStages?.find((s) => s?.name === stageName);
         if (!stage) return null;
         const StageComponent = Awareness;
         return (

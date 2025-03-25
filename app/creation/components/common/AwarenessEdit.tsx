@@ -206,24 +206,33 @@ const AwarenessEdit = ({
       }));
 
       // Reset the select dropdown
-      setShowChannelSelect(prev => ({...prev, [category]: false}));
+      setShowChannelSelect(prev => ({ ...prev, [category]: false }));
     }
   };
 
   const handleRemoveStage = (stageName) => {
-    const updatedFunnelStages = updatedData?.funnel_stages?.filter(
+    if (!updatedData || !updatedData?.funnel_stages || !updatedData?.channel_mix) {
+      return;
+    }
+
+    // Remove the stage from funnel_stages
+    const updatedFunnelStages = updatedData?.funnel_stages.filter(
       (stage) => stage !== stageName
     );
-    const updatedChannelMix = updatedData.channel_mix.filter(
-      (stage) => stage.funnel_stage !== stageName
+
+    // Remove all channel data associated with the stage
+    const updatedChannelMix = updatedData?.channel_mix.filter(
+      (stage) => stage?.funnel_stage !== stageName
     );
 
+    // Update state safely
     setUpdatedData((prev) => ({
       ...prev,
       funnel_stages: updatedFunnelStages,
       channel_mix: updatedChannelMix,
     }));
   };
+
 
   const handleRemovePlatform = (
     platformName: string,
@@ -407,7 +416,7 @@ const AwarenessEdit = ({
                 />
               ) : (
                 <button
-                  onClick={() => setShowChannelSelect(prev => ({...prev, "Social media": true}))}
+                  onClick={() => setShowChannelSelect(prev => ({ ...prev, "Social media": true }))}
                   className="px-6 py-3 bg-[#3175FF] text-white rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap h-[52px]"
                 >
                   Add Channel
@@ -511,7 +520,7 @@ const AwarenessEdit = ({
                 />
               ) : (
                 <button
-                  onClick={() => setShowChannelSelect(prev => ({...prev, "Display networks": true}))}
+                  onClick={() => setShowChannelSelect(prev => ({ ...prev, "Display networks": true }))}
                   className="px-6 py-3 bg-[#3175FF] text-white rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap h-[52px]"
                 >
                   Add Channel
@@ -615,7 +624,7 @@ const AwarenessEdit = ({
                 />
               ) : (
                 <button
-                  onClick={() => setShowChannelSelect(prev => ({...prev, "Search engines": true}))}
+                  onClick={() => setShowChannelSelect(prev => ({ ...prev, "Search engines": true }))}
                   className="px-6 py-3 bg-[#3175FF] text-white rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap h-[52px]"
                 >
                   Add Channel

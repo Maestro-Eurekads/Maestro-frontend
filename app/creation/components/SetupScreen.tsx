@@ -11,6 +11,7 @@ import { removeKeysRecursively } from "utils/removeID";
 import AlertMain from "components/Alert/AlertMain";
 import { SVGLoader } from "components/SVGLoader";
 import { useVerification, validationRules } from "app/utils/VerificationContext";
+import ClientSelectionInputbudget from "components/ClientSelectionInputbudget";
 
 export const SetupScreen = () => {
   const {
@@ -102,7 +103,7 @@ export const SetupScreen = () => {
   }, [allClients]);
 
   useEffect(() => {
-    const client = allClients.find((c) => c.documentId === client_selection?.id);
+    const client = allClients.find((c) => c?.documentId === client_selection?.id);
     setlevel1Options(() => {
       const options = client?.level_1?.map((l) => ({
         value: l,
@@ -133,13 +134,19 @@ export const SetupScreen = () => {
 
 
   const getInputValue = () => {
+    if (campaignFormData?.budget_details_fee_type?.id !== "Tooling") {
+      return "€10";
+    }
+
     if (selectedOption === "fix-amount") {
       return "€10";
     } else if (selectedOption === "percentage") {
       return "15%";
     }
+
     return "";
   };
+
 
 
 
@@ -308,20 +315,20 @@ export const SetupScreen = () => {
         <div className="flex items-center flex-wrap gap-4 pb-12">
           <ClientSelection
             options={level1Options}
-            label={"Parameter Level 1"}
+            label={"Business Level 1"}
             formId="level_1"
             setHasChanges={setHasChanges}
           />
 
           <ClientSelection
             options={level2Options}
-            label={"Parameter Level 2"}
+            label={"Business Level 2"}
             formId="level_2"
             setHasChanges={setHasChanges}
           />
           <ClientSelection
             options={level3Options}
-            label={"Parameter Level 3"}
+            label={"Business Level 3"}
             formId="level_3"
             setHasChanges={setHasChanges}
           />
@@ -382,7 +389,7 @@ export const SetupScreen = () => {
             )}
             {/* Display the selected value */}
             <div className="w-full">
-              <ClientSelectionInput
+              <ClientSelectionInputbudget
                 label={getInputValue()}
                 formId="budget_details_value"
               />

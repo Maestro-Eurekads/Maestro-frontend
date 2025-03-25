@@ -8,9 +8,6 @@ import CommentReply from './CommentReply';
 
 
 
-
-
-
 const CommentsDrawer = ({ isOpen, onClose, setAddComment, addComment, message, setMessage }: any) => {
 	const drawerclassNameName = `drawer-container ${isOpen ? 'drawer-open' : ''}`;
 
@@ -32,34 +29,38 @@ const CommentsDrawer = ({ isOpen, onClose, setAddComment, addComment, message, s
 
 
 	return (
-		<div className={drawerclassNameName} >
-			<div className='flex w-full justify-between p-3'>
+		<div className={`${drawerclassNameName} overflow-y-auto max-h-screen`}>
+			<div className="flex w-full justify-between p-3">
 				<div>
-					<h3 className="font-[500] text-[24px] leading-[32px] text-[#292929]">Comments For</h3>
-					<p className="font-[500] text-[16px] leading-[22px] text-[#292929]"> Spring Sale Awareness</p>
+					<h3 className="font-[500] text-[24px] leading-[32px] text-[#292929]">
+						Comments For
+					</h3>
+					<p className="font-[500] text-[16px] leading-[22px] text-[#292929]">
+						Spring Sale Awareness
+					</p>
 				</div>
-
-				<button onClick={() => { onClose(false); setMessage(false) }}>
+				<button
+					onClick={() => {
+						onClose(false);
+						setMessage(false);
+					}}
+				>
 					<Image src={closecircle} alt={"closecircle"} />
 				</button>
 			</div>
 
-
-
-			<div className="faq-container p-5">
-
-				{message ? <div className="flex flex-col justify-between items-start p-5 gap-4 w-full min-h-[203px] bg-white shadow-[0px_4px_14px_rgba(0,38,116,0.15)] rounded-[12px] border-box">
-
-					<Comments setAddComment={setAddComment} addComment={addComment} />
-
-					{addComment &&
-						<CommentReply />}
-					<AddCommentReply setAddComment={setAddComment} addComment={addComment} />
-				</div> :
-
-					<div className='w-full justify-center mt-5'>
-						<div className='w-full flex flex-col justify-center items-center gap-5'>
-							<button >
+			{/* Scrollable Content */}
+			<div className="faq-container p-5 overflow-y-auto max-h-[calc(100vh-100px)]">
+				{message ? (
+					<div className="flex flex-col justify-between items-start p-5 gap-4 w-full min-h-[203px] bg-white shadow-[0px_4px_14px_rgba(0,38,116,0.15)] rounded-[12px] border-box">
+						<Comments />
+						{addComment && <CommentReply />}
+						<AddCommentReply setAddComment={setAddComment} addComment={addComment} />
+					</div>
+				) : (
+					<div className="w-full justify-center mt-5">
+						<div className="w-full flex flex-col justify-center items-center gap-5">
+							<button>
 								<Image src={Mmessages} alt="closecircle" />
 							</button>
 							<h6 className="w-[286px] h-[54px] font-medium text-[20px] leading-[27px] text-center text-black">
@@ -67,13 +68,16 @@ const CommentsDrawer = ({ isOpen, onClose, setAddComment, addComment, message, s
 							</h6>
 						</div>
 					</div>
+				)}
+			</div>
+		</div>
+	);
 
-				}
+}
 
+export default CommentsDrawer;
 
-
-
-				{/* {faqs?.map((item: any, index: any) => (
+{/* {faqs?.map((item: any, index: any) => (
 					<div key={index} className={`faq ${item?.active ? 'active' : ''}`}>
 
 
@@ -82,10 +86,3 @@ const CommentsDrawer = ({ isOpen, onClose, setAddComment, addComment, message, s
 						</span>
 					</div>
 				))} */}
-			</div>
-		</div>
-	);
-}
-
-export default CommentsDrawer;
-
