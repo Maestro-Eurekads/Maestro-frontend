@@ -45,6 +45,8 @@ const Message = ({ message, setAddMessage, addComment, isOpen, setMessage }) => 
 		};
 	}, [dragging]);
 
+
+
 	return (
 		<div>
 			{isOpen && (
