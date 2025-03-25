@@ -154,12 +154,12 @@ const Dashboard = () => {
     });
   };
 
-  const startDates = clientCampaignData?.map(
+  const startDates = clientCampaignData?.filter((c)=>c?.campaign_timeline_start_date)?.map(
     (ch) =>
       ch?.campaign_timeline_start_date !== null &&
       parseISO(ch?.campaign_timeline_start_date)
   );
-  const endDates = clientCampaignData?.map(
+  const endDates = clientCampaignData?.filter((c)=>c?.campaign_timeline_end_date)?.map(
     (ch) =>
       ch?.campaign_timeline_end_date !== null &&
       parseISO(ch?.campaign_timeline_end_date)
@@ -170,10 +170,6 @@ const Dashboard = () => {
   // Find the earliest startDate and latest endDate
   const earliestStartDate = min(startDates);
   const latestEndDate = max(endDates);
-  console.log(
-    `Earliest Start Date: ${earliestStartDate.toISOString().split("T")[0]}`
-  );
-  console.log(`Latest End Date: ${latestEndDate.toISOString().split("T")[0]}`);
   // Calculate the week difference
   const weekDifference = differenceInCalendarWeeks(
     latestEndDate,
@@ -182,8 +178,12 @@ const Dashboard = () => {
   console.log("🚀 ~ weekDifference:", weekDifference);
 
   const funnelsData = clientCampaignData?.map((ch) => {
-    const start = parseISO(ch?.campaign_timeline_start_date);
-    const end = parseISO(ch?.campaign_timeline_end_date);
+    const start = ch?.campaign_timeline_start_date
+      ? parseISO(ch.campaign_timeline_start_date)
+      : null;
+    const end = ch?.campaign_timeline_end_date
+      ? parseISO(ch.campaign_timeline_end_date)
+      : null;
     const startWeek = differenceInCalendarWeeks(start, earliestStartDate) + 1;
     const endWeek = differenceInCalendarWeeks(end, earliestStartDate) + 1;
     const funnels = ch?.funnel_stages;
