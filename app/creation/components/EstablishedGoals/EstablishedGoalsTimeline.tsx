@@ -13,6 +13,7 @@ interface OutletType {
   color: string;
   bg: string;
   channelName: string;
+  ad_sets?: any[]
 }
 
 interface PlatformsByStage {
@@ -59,6 +60,7 @@ const EstablishedGoalsTimeline = ({}) => {
           if (!Array.isArray(platforms)) return;
 
           platforms.forEach((platform: any) => {
+            console.log("🚀 ~ platforms.forEach ~ platform:", platform)
             const icon = getPlatformIcon(platform?.platform_name);
             if (!icon) return;
 
@@ -75,6 +77,7 @@ const EstablishedGoalsTimeline = ({}) => {
               color: style.color,
               bg: style.bg,
               channelName,
+              ad_sets: platform?.ad_sets
             });
           });
         };

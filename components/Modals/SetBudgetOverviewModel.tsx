@@ -13,6 +13,7 @@ import Image from "next/image";
 
 const SetBudgetOverviewModel = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [step, setStep] = useState(1);
 
 	const channels = [
 		{
@@ -81,9 +82,9 @@ const SetBudgetOverviewModel = () => {
 			hasChildren: false,
 		},
 	];
+	
 
 
-	const [step, setStep] = useState(1);
 	const [view, setView] = useState<"Table" | "Timeline">("Table");
 
 	const handleOpenModal = () => {
@@ -98,7 +99,7 @@ const SetBudgetOverviewModel = () => {
 			<button
 				className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
 				style={{ border: "1px solid #3175FF" }}
-				onClick={handleOpenModal}
+				// onClick={handleOpenModal}
 			>
 				See budget overview
 			</button>

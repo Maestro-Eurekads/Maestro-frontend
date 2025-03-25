@@ -9,6 +9,8 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 import { eachDayOfInterval } from "date-fns";
 import moment from "moment";
 import { getCurrencySymbol } from "components/data";
+import arrowUp from "../../../../../public/arrow-g-up.svg";
+import arrowDown from "../../../../../public/arrow-g-down.svg";
 
 interface Channel {
   name: string;
@@ -16,6 +18,7 @@ interface Channel {
   icon: string;
   bg: string;
   color: string;
+  ad_sets?: any[];
 }
 
 interface ResizableChannelsProps {
@@ -45,6 +48,8 @@ const ResizableChannels = ({
 
   const [channels, setChannels] = useState(initialChannels);
 
+  const [openItems, setOpenItems] = useState(null);
+
   // Initialize child width based on available parent space and position
   const [channelState, setChannelState] = useState(
     channels?.map(() => ({
@@ -56,6 +61,13 @@ const ResizableChannels = ({
   const [dragging, setDragging] = useState(null);
 
   const [draggingPosition, setDraggingPosition] = useState(null);
+
+  const toggleChannel = (id) => {
+    setOpenItems((prev: Record<string, boolean>) => ({
+      ...prev,
+      [id]: !prev?.[id],
+    }));
+  };
 
   const startDate = campaignFormData?.channel_mix?.find(
     (ch) => ch?.funnel_stage === parentId
@@ -77,7 +89,7 @@ const ResizableChannels = ({
       )
     : campaignFormData?.campaign_time_end_date;
 
-  console.log({ startDate, endDate });
+  // console.log({ startDate, endDate });
 
   const dRange = eachDayOfInterval({
     start: startDate,
@@ -410,9 +422,9 @@ const ResizableChannels = ({
       {channels?.map((channel, index) => {
         const getColumnIndex = (date) =>
           dRange.findIndex((d) => d.toISOString().split("T")[0] === date);
-        console.log("drange", dRange);
+        // console.log("drange", dRange);
         const updatedCampaignFormData = { ...campaignFormData };
-
+        console.log(channel);
         const channelMix = updatedCampaignFormData.channel_mix.find(
           (ch) => ch.funnel_stage === parentId
         );
@@ -434,87 +446,149 @@ const ResizableChannels = ({
         return (
           <div
             key={channel.name}
-            className="relative w-full h-12"
+            className={`relative w-full ${!disableDrag ? "h-12" : ""}`}
             style={{
               gridColumnStart: startColumn < 1 ? 1 : startColumn,
               gridColumnEnd: endColumn < 1 ? 1 : endColumn,
             }}
           >
-            <div
-              className={`absolute top-0 h-full flex ${disableDrag ? "justify-between" : "justify-center cursor-move"}  items-center text-white px-4 gap-2 border shadow-md min-w-[150px] overflow-x-hidden `}
-              style={{
-                left: `${channelState[index]?.left || parentLeft}px`,
-                width: disableDrag
-                  ? "100%"
-                  : `${channelState[index]?.width + 30 || 150}px`,
-                backgroundColor: channel.bg,
-                color: channel.color,
-                borderColor: channel.color,
-                borderRadius: "10px",
-              }}
-              onMouseDown={disableDrag ? undefined : handleDragStart(index)}
-            >
-              <div className="flex items-center gap-3">
-                <Image
-                  src={channel.icon || "/placeholder.svg"}
-                  alt={channel.icon}
-                />
-                <span className="font-medium whitespace-nowrap">
-                  {channel.name}
-                </span>
-              </div>
-              {disableDrag && (
-                <div className="rounded-[5px] py-[10px] px-[12px] font-medium bg-opacity-15 text-[15px]" style={{
-                  color: "#061237"
-                }}>
-                  {Number(budget)?.toFixed(0)}{Number(budget) > 0 && getCurrencySymbol(campaignFormData?.campaign_budget?.amount)}
+            <div>
+              <div
+                className={` ${disableDrag ? "relative" : "absolute"} top-0 h-full flex ${
+                  disableDrag ? "justify-between" : "justify-center cursor-move"
+                }  items-center text-white px-4 gap-2 border shadow-md min-w-[150px] overflow-x-hidden `}
+                style={{
+                  left: `${channelState[index]?.left || parentLeft}px`,
+                  width: disableDrag
+                    ? "100%"
+                    : `${channelState[index]?.width + 30 || 150}px`,
+                  backgroundColor: channel.bg,
+                  color: channel.color,
+                  borderColor: channel.color,
+                  borderRadius: "10px",
+                }}
+                onMouseDown={disableDrag ? undefined : handleDragStart(index)}
+              >
+                <div className="flex items-center gap-3">
+                  <Image
+                    src={channel.icon || "/placeholder.svg"}
+                    alt={channel.icon}
+                  />
+                  <span className="font-medium whitespace-nowrap">
+                    {channel.name}
+                  </span>
                 </div>
+                {disableDrag && (
+                  <div
+                    className="rounded-[5px] py-[10px] px-[12px] font-medium bg-opacity-15 text-[15px]"
+                    style={{
+                      color: "#061237",
+                    }}
+                  >
+                    {Number(budget)?.toFixed(0)}
+                    {Number(budget) > 0 &&
+                      getCurrencySymbol(
+                        campaignFormData?.campaign_budget?.amount
+                      )}
+                  </div>
+                )}
+              </div>
+              {/* Ad sets */}
+              {campaignFormData?.goal_level === "Adset level" && disableDrag && channel?.ad_sets?.length > 0 && (
+                <>
+                  <div
+                    className="bg-[#EBFEF4] py-[10px] px-[12px] w-fit mt-[5px] border border-[#00A36C1A] rounded-[8px] flex items-center cursor-pointer"
+                    onClick={() => toggleChannel(`${channel?.name}${index}`)}
+                  >
+                    <p className="text-[14px] font-medium text-[#00A36C]">
+                      {channel?.ad_sets?.length} ad sets
+                    </p>
+                    <Image
+                      src={
+                        openItems && openItems[`${channel?.name}${index}`]
+                          ? arrowUp
+                          : arrowDown
+                      }
+                      alt=""
+                      width={24}
+                      height={24}
+                    />
+                  </div>
+                  {/* Adset_display */}
+                  {openItems && openItems[`${channel?.name}${index}`] && (
+                    <div className="ml-[20px] flex w-full">
+                      <div>
+                        {/* Headers */}
+                        <div className="flex text-[12px] text-[#061237B2] font-medium gap-[5px]">
+                          <p className="w-[30px]">#</p>
+                          <p className="w-[150px]">Type</p>
+                          <p className="w-[100px]">Name</p>
+                          <p className="w-[100px]">Audience size</p>
+                          <p className="w-[100px]">Budget</p>
+                        </div>
+                        {channel?.ad_sets?.map((set, index) => (
+                          <div className="flex gap-[5px] text-[14px] font-medium text-[#061237B2] mb-[10px]">
+                            <p className="w-[30px] text-[#3175FF] font-bold">{index + 1}.</p>
+                            <p className="w-[150px]">{set?.audience_type}</p>
+                            <p className="w-[100px]">{set?.name}</p>
+                            <p className="w-[100px]">{set?.size}</p>
+                            <p>{set?.budget}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div></div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
-
-            <div
-              className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
-                disableDrag && "hidden"
-              }`}
-              style={{
-                left: `${channelState[index]?.left || parentLeft}px`,
-                backgroundColor: channel.color,
-              }}
-              onMouseDown={
-                disableDrag ? undefined : handleMouseDown(index, "left")
-              }
-            >
-              <MdDragHandle className="rotate-90" />
-            </div>
-
-            <div
-              className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
-                disableDrag && "hidden"
-              }`}
-              style={{
-                left: `${
-                  (channelState[index]?.left || parentLeft) +
-                  (channelState[index]?.width + 22 || 150)
-                }px`,
-                backgroundColor: channel.color,
-              }}
-              onMouseDown={handleMouseDown(index, "right")}
-            >
-              <MdDragHandle className="rotate-90" />
-              {!disableDrag && (
-                <button
-                  className="delete-resizeableBar"
-                  onClick={() =>
-                    disableDrag ? undefined : handleDeleteChannel(index)
+            {/* Controls */}
+            {!disableDrag && (
+              <>
+                <div
+                  className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
+                    disableDrag && "hidden"
+                  }`}
+                  style={{
+                    left: `${channelState[index]?.left || parentLeft}px`,
+                    backgroundColor: channel.color,
+                  }}
+                  onMouseDown={
+                    disableDrag ? undefined : handleMouseDown(index, "left")
                   }
                 >
-                  <Image
-                    src={reddelete || "/placeholder.svg"}
-                    alt="reddelete"
-                  />
-                </button>
-              )}
-            </div>
+                  <MdDragHandle className="rotate-90" />
+                </div>
+                <div
+                  className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
+                    disableDrag && "hidden"
+                  }`}
+                  style={{
+                    left: `${
+                      (channelState[index]?.left || parentLeft) +
+                      (channelState[index]?.width + 22 || 150)
+                    }px`,
+                    backgroundColor: channel.color,
+                  }}
+                  onMouseDown={handleMouseDown(index, "right")}
+                >
+                  <MdDragHandle className="rotate-90" />
+                  {!disableDrag && (
+                    <button
+                      className="delete-resizeableBar"
+                      onClick={() =>
+                        disableDrag ? undefined : handleDeleteChannel(index)
+                      }
+                    >
+                      <Image
+                        src={reddelete || "/placeholder.svg"}
+                        alt="reddelete"
+                      />
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         );
       })}

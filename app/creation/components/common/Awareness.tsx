@@ -71,19 +71,22 @@ const Awareness = ({
           onDelete={onDelete}
           stageName={stageName}
           sm_data={
+            stageName &&
             updatedData?.channel_mix?.find(
-              (ch) => ch?.funnel_stage === stageName
-            )["social_media"]
+              (ch: { funnel_stage?: string }) => ch?.funnel_stage === stageName
+            )?.["social_media"]
           }
           dn_data={
+            stageName &&
             updatedData?.channel_mix?.find(
               (ch) => ch?.funnel_stage === stageName
-            )["display_networks"]
+            )?.["display_networks"]
           }
           se_data={
+            stageName &&
             updatedData?.channel_mix?.find(
               (ch) => ch?.funnel_stage === stageName
-            )["search_engines"]
+            )?.["search_engines"]
           }
           updatedData={updatedData}
           setUpdatedData={setUpdatedData}
@@ -101,7 +104,7 @@ const Awareness = ({
               <div className="flex items-center gap-4">
                 {campaignFormData?.channel_mix
                   ?.find((ch) => ch?.funnel_stage === stageName)
-                ["social_media"].map((item) => (
+                ["social_media"]?.map((item) => (
                   <a
                     key={item.platform_name}
                     // onClick={() => window.open(item.link, "_blank")}
