@@ -59,10 +59,6 @@ const OverviewofyourCampaign = () => {
 				<CommentsDrawer
 					isOpen={isDrawerOpen}
 					onClose={setIsDrawerOpen}
-					setIsDrawerOpen={setIsDrawerOpen}
-					setAddComment={setAddComment}
-					addComment={addComment}
-					message={message}
 				/>
 				<div >
 					<div className='flex gap-5'>
@@ -82,7 +78,7 @@ const OverviewofyourCampaign = () => {
 					</span>
 
 					<textarea
-						className="w-[600px] h-[128px] flex flex-col justify-center items-end p-4 pb-20 gap-12 bg-white border border-gray-300 shadow-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mt-[8px]"
+						className="w-[600px] h-[128px] flex flex-col justify-center items-end p-4 pb-[20px] gap-12 bg-white border border-gray-300 shadow-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mt-[8px]"
 						placeholder="Write your comment">
 					</textarea>
 				</div>

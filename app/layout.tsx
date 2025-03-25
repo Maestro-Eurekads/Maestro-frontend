@@ -13,6 +13,7 @@ import { CampaignSelectionProvider } from "./utils/CampaignSelectionContext";
 import NewProvider from "./provider";
 import { ToastContainer } from "react-toastify";
 import { VerificationProvider } from "./utils/VerificationContext";
+import { CommentProvider } from "./utils/CommentProvider";
 
 
 // Load Roboto font
@@ -50,26 +51,28 @@ export default function RootLayout({
       <body className={`${roboto.variable} ${inter.variable} antialiased`}>
         <NewProvider>
           <Suspense>
-            <VerificationProvider>
-              <CampaignSelectionProvider>
-                <CampaignProvider>
-                  <DateRangeProvider>
-                    <SelectedDatesProvider>
-                      <ActiveProvider>
-                        <EditingProvider>
-                          <ObjectivesProvider>
-                            <FunnelProvider>
-                              <ToastContainer />
-                              {children}
-                            </FunnelProvider>
-                          </ObjectivesProvider>
-                        </EditingProvider>
-                      </ActiveProvider>
-                    </SelectedDatesProvider>
-                  </DateRangeProvider>
-                </CampaignProvider>
-              </CampaignSelectionProvider>
-            </VerificationProvider>
+            <CommentProvider>
+              <VerificationProvider>
+                <CampaignSelectionProvider>
+                  <CampaignProvider>
+                    <DateRangeProvider>
+                      <SelectedDatesProvider>
+                        <ActiveProvider>
+                          <EditingProvider>
+                            <ObjectivesProvider>
+                              <FunnelProvider>
+                                <ToastContainer />
+                                {children}
+                              </FunnelProvider>
+                            </ObjectivesProvider>
+                          </EditingProvider>
+                        </ActiveProvider>
+                      </SelectedDatesProvider>
+                    </DateRangeProvider>
+                  </CampaignProvider>
+                </CampaignSelectionProvider>
+              </VerificationProvider>
+            </CommentProvider>
           </Suspense>
         </NewProvider>
       </body>
