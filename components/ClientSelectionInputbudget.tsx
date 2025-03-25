@@ -5,9 +5,11 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 const TextInput = ({
   label,
   formId,
+  currencySign,
 }: {
   label: string;
   formId: string;
+  currencySign: string;
 }) => {
   const { campaignFormData, setCampaignFormData } = useCampaigns();
 
@@ -23,9 +25,10 @@ const TextInput = ({
         type="text"
         placeholder={label}
         className="dropdown_button_width px-4 py-2 h-[45px] bg-white border-2 border-[#EFEFEF] rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-100 placeholder-[#061237] cursor-text"
-        value={campaignFormData[formId] || ""}
+        value={`${currencySign} ${campaignFormData[formId] || ""}`}
         onChange={handleChange}
       />
+
     </div>
   );
 };
@@ -33,13 +36,15 @@ const TextInput = ({
 const ClientSelectionInputbudget = ({
   label,
   formId,
+  currencySign
 }: {
   label: string;
   formId: string;
+  currencySign: string;
 }) => {
   return (
     <div className="flex items-center gap-4 mt-[20px]">
-      <TextInput label={label} formId={formId} />
+      <TextInput label={label} formId={formId} currencySign={currencySign} />
     </div>
   );
 };

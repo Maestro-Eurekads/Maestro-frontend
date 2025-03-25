@@ -35,6 +35,7 @@ export const SetupScreen = () => {
   const [level3Options, setlevel3Options] = useState([]);
   const [requiredFields, setRequiredFields] = useState<string[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
+  const [currencySign, setCurrencySign] = useState("");
 
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -152,13 +153,19 @@ export const SetupScreen = () => {
 
 
   const selectCurrency = [
-    { value: "US Dollar (USD)", label: "US Dollar (USD)" },
-    { value: "Euro (EUR)", label: "Euro (EUR)" },
-    { value: "British Pound (GBP)", label: "British Pound (GBP)" },
-    { value: "Nigerian Naira (NGN)", label: "Nigerian Naira (NGN)" },
-    { value: "Japanese Yen (JPY)", label: "Japanese Yen (JPY)" },
-    { value: "Canadian Dollar (CAD)", label: "Canadian Dollar (CAD)" },
+    { value: "US Dollar (USD)", label: "US Dollar (USD)", sign: "$" },
+    { value: "Euro (EUR)", label: "Euro (EUR)", sign: "€" },
+    { value: "British Pound (GBP)", label: "British Pound (GBP)", sign: "£" },
+    { value: "Nigerian Naira (NGN)", label: "Nigerian Naira (NGN)", sign: "₦" },
+    { value: "Japanese Yen (JPY)", label: "Japanese Yen (JPY)", sign: "¥" },
+    { value: "Canadian Dollar (CAD)", label: "Canadian Dollar (CAD)", sign: "C$" },
   ];
+
+  // Extract all currency signs into an array
+  const currencySigns = selectCurrency.map((currency) => currency.sign);
+
+
+  console.log('campaignFormData-campaignFormData', currencySign)
 
   const mediaBudgetPercentage = [
     { value: "Tooling", label: "Tooling" },
@@ -290,7 +297,17 @@ export const SetupScreen = () => {
     }
   };
 
+  useEffect(() => {
+    if (campaignFormData?.budget_details_currency?.id) {
+      // Find the matching currency object
+      const currency = selectCurrency.find(
+        (c) => c.value === campaignFormData.budget_details_currency.id
+      );
 
+      // Update state with the currency sign
+      setCurrencySign(currency ? currency.sign : "");
+    }
+  }, [campaignFormData?.budget_details_currency?.id]);
   return (
     <div>
       {/* <div className="flex w-full items-center justify-between"> */}
@@ -392,6 +409,7 @@ export const SetupScreen = () => {
               <ClientSelectionInputbudget
                 label={getInputValue()}
                 formId="budget_details_value"
+                currencySign={currencySign}
               />
             </div>
           </div>
