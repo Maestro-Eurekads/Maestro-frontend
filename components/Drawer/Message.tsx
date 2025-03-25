@@ -3,7 +3,7 @@ import Image from "next/image";
 import Mmessages from "../../public/message-2.svg";
 import AddAsInternalcomment from './AddAsInternalcomment';
 
-const Message = ({ message, setAddMessage, addComment, isOpen, setMessage }) => {
+const Message = ({ isOpen, setMessage }) => {
 	const [show, setShow] = useState(false);
 	const [position, setPosition] = useState({ x: 100, y: 100 });
 	const [dragging, setDragging] = useState(false);
@@ -25,7 +25,7 @@ const Message = ({ message, setAddMessage, addComment, isOpen, setMessage }) => 
 
 	const handlePointerMove = (e) => {
 		if (!dragging) return;
-		e.preventDefault(); // Prevent text selection while dragging
+		e.preventDefault();
 		setPosition({
 			x: e.clientX - offset.x,
 			y: e.clientY - offset.y,
