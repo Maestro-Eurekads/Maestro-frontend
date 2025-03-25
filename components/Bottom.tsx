@@ -360,6 +360,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             campaignFormData?.campaign_budget,
             ["id"]
           ),
+          goal_level: campaignFormData?.goal_level
         });
       }
     };

@@ -115,7 +115,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           channel_mix: data?.channel_mix || [],
           campaign_timeline_start_date: data?.campaign_timeline_start_date,
           campaign_timeline_end_date: data?.campaign_timeline_end_date,
-          campaign_budget: data?.campaign_budget || {}
+          campaign_budget: data?.campaign_budget || {},
+          goal_level:data?.goal_level
         }));
       });
   };
