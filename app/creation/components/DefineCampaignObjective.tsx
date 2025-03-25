@@ -48,15 +48,31 @@ const DefineCampaignObjective = () => {
     }
   }, [campaignData, cId, previousValidationState, verifyStep]);
 
-
-
-
-
+  // Load initial campaign data
   useEffect(() => {
     if (campaignId) {
       getActiveCampaign(campaignId);
     }
   }, [campaignId]);
+
+  // Load saved objective on mount
+  useEffect(() => {
+    if (campaignData?.campaign_objective) {
+      const matchingObjective = campaignObjectives.find(
+        obj => obj.title === campaignData.campaign_objective
+      );
+      if (matchingObjective) {
+        setSelectedObjectives([{
+          id: matchingObjective.id,
+          title: matchingObjective.title
+        }]);
+        setCampaignFormData(prev => ({
+          ...prev,
+          campaign_objectives: matchingObjective.title
+        }));
+      }
+    }
+  }, [campaignData, setCampaignFormData, setSelectedObjectives]);
 
   const handleStepOne = async () => {
     if (!validateStep("step1", campaignFormData, cId)) {
@@ -70,8 +86,6 @@ const DefineCampaignObjective = () => {
     }
 
     setLoading(true);
-
-
 
     if (!campaignFormData) {
       setAlert({ variant: "error", message: "Campaign data is missing.", position: "bottom-right" });
@@ -110,11 +124,7 @@ const DefineCampaignObjective = () => {
     setLoading(false);
   };
 
-
-
-
   const handleSelect = (id: number, title: string) => {
-
     setSelectedObjectives((prev) => {
       const alreadySelected = prev.some((obj) => obj.id === id);
 
@@ -129,7 +139,6 @@ const DefineCampaignObjective = () => {
     }));
     setHasChanges(true);
   };
-
 
   return (
     <div>
@@ -167,7 +176,6 @@ const DefineCampaignObjective = () => {
           );
         })}
       </div>
-
 
       {hasChanges && (
         <div className="flex justify-end pr-6 mt-[50px]">
