@@ -10,8 +10,7 @@ import { useCampaigns } from '../../utils/CampaignsContext';
 import CommentsDrawer from 'components/Drawer/CommentsDrawer';
 import Message from 'components/Drawer/Message';
 import dynamic from 'next/dynamic';
-// import Draggable from 'react-draggable';
-// import Draggable from 'react-draggable';
+// import Draggable from 'react-draggable'; 
 
 const Draggable = dynamic(() => import("react-draggable"), { ssr: false });
 const OverviewofyourCampaign = () => {
@@ -19,8 +18,6 @@ const OverviewofyourCampaign = () => {
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 	const [show, setShow] = useState(false);
 	const [message, setMessage] = useState(false);
-	const [addComment, setAddComment] = useState(false);
-	const [addmessage, setAddMessage] = useState(false);
 	const { range } = useDateRange();
 
 	const {
@@ -33,9 +30,9 @@ const OverviewofyourCampaign = () => {
 
 
 	const mapCampaignsToFunnels = (campaigns: any[]) => {
-		return campaigns.map((campaign, index) => {
-			const fromDate = parseApiDate(campaign.campaign_timeline_start_date);
-			const toDate = parseApiDate(campaign.campaign_timeline_end_date);
+		return campaigns?.map((campaign, index) => {
+			const fromDate = parseApiDate(campaign?.campaign_timeline_start_date);
+			const toDate = parseApiDate(campaign?.campaign_timeline_end_date);
 
 			return {
 				startWeek: fromDate?.day ?? 0, // Default to 0 if null
@@ -90,14 +87,11 @@ const OverviewofyourCampaign = () => {
 				</div>
 
 				<Message
-					message={message}
-					setAddMessage={setAddMessage}
-					addComment={addComment}
 					isOpen={isDrawerOpen}
 					setMessage={setMessage}
 				/>
 
-				<OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} />
+				<OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} setIsDrawerOpen={setIsDrawerOpen} openComments={isDrawerOpen} />
 			</div>
 
 		</div>

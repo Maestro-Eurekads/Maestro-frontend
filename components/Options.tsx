@@ -172,6 +172,19 @@ function TooltipPositioned2(words: any) {
     </>
   );
 }
+// Color Functions
+const getRandomColor = () => {
+  const colors = ['#00A36C', '#EE1514', '#00A52C', '#FF8C00', '#C67003', '#14539A', '#02393E', '#275D2B', '#660D33', '#6F4439'];
+  return colors[Math.floor(Math.random() * colors.length)];
+};
+
+const getContrastingColor = (color: string) => {
+  const r = parseInt(color.slice(1, 3), 16);
+  const g = parseInt(color.slice(3, 5), 16);
+  const b = parseInt(color.slice(5, 7), 16);
+  const invertedColor = `#${(0xFFFFFF ^ (r << 16 | g << 8 | b)).toString(16).padStart(6, '0')}`;
+  return invertedColor;
+};
 
 
 
@@ -224,5 +237,7 @@ export {
   SVGLoaderFetch,
   NoRecordFoundD,
   parseApiDate,
-  CapitalizeFirstLetter
+  CapitalizeFirstLetter,
+  getRandomColor,
+  getContrastingColor
 };
