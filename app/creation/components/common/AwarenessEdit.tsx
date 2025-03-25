@@ -231,6 +231,11 @@ const AwarenessEdit = ({
       funnel_stages: updatedFunnelStages,
       channel_mix: updatedChannelMix,
     }));
+    setCampaignFormData((prev) => ({
+      ...prev,
+      funnel_stages: updatedFunnelStages,
+      channel_mix: updatedChannelMix,
+    }));
   };
 
 
