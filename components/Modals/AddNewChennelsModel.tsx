@@ -9,7 +9,7 @@ import checkmark from "../../public/mingcute_check-fill.svg";
 import { useCampaigns } from "app/utils/CampaignsContext";
 
 const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
-  // Controls expanded/collapsed state for each stage
+  // Controls expanded/collapsed state for each stage, defaulting "Awareness" to open
   const [openItems, setOpenItems] = useState({ Awareness: true });
   // Tracks selected platforms per stage (per category)
   const [selected, setSelected] = useState({});
@@ -85,7 +85,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
       platformStyles.find((style) => style.name === platformName) ||
       platformStyles[Math.floor(Math.random() * platformStyles.length)];
     setPlatforms((prev) => {
-      let stageSelection = prev[stageName] || {};
+      let stageSelection = prev[stageName] || [];
       stageSelection = [
         ...stageSelection,
         {
@@ -141,17 +141,13 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
     });
   };
 
-  // A stage is valid if every required category has at least one selection
+  // A stage (including Awareness) is valid if at least one channel is selected in any category
   const isStageValid = (stageName) => {
     const stageSelections = selected[stageName] || {};
-    return (
-      stageSelections["Social media"] &&
-      stageSelections["Social media"].length > 0 &&
-      stageSelections["Display networks"] &&
-      stageSelections["Display networks"].length > 0 &&
-      stageSelections["Search engines"] &&
-      stageSelections["Search engines"].length > 0
-    );
+    const hasSocialMedia = stageSelections["Social media"]?.length > 0;
+    const hasDisplayNetworks = stageSelections["Display networks"]?.length > 0;
+    const hasSearchEngines = stageSelections["Search engines"]?.length > 0;
+    return hasSocialMedia || hasDisplayNetworks || hasSearchEngines;
   };
 
   const handleValidate = (stageName) => {
@@ -172,7 +168,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
     <div className="z-50">
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 w-full">
-          <div className="flex flex-col items-start p-6 gap-6    bg-white rounded-[10px]">
+          <div className="flex flex-col items-start p-6 gap-6 bg-white rounded-[10px]">
             <button className="self-end" onClick={() => setIsOpen(false)}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -190,8 +186,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
                 />
               </svg>
             </button>
-            <div className="card bg-base-100  overflow-y-auto max-h-[60vh]">
-              {/* <FunnelStage /> */}
+            <div className="card bg-base-100 overflow-y-auto max-h-[60vh]">
               <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
                 {campaignFormData?.funnel_stages?.map((stageName, index) => {
                   const stage = funnelStages.find((s) => s.name === stageName);
