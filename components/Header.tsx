@@ -22,7 +22,7 @@ const Header = ({ setIsOpen }) => {
     getCreateClientIsError,
     // Removed unused 'getCreateClientMessage'
   } = useAppSelector((state) => state.client);
-  const { setClientCampaignData, setLoading } =
+  const { setClientCampaignData, setLoading, setCampaignFormData } =
     useCampaigns();
   const [selected, setSelected] = useState("");
   const { fetchClientCampaign } = useCampaignHook(); // Removed unused 'fetchAllClients'
@@ -122,7 +122,7 @@ const Header = ({ setIsOpen }) => {
       {alert && <AlertMain alert={alert} />}
       <div className="profiledropdown_container_main">
         <div className="profiledropdown_container">
-          <Link href={`/creation`}>
+          <Link href={`/creation`} onClick={()=>setCampaignFormData({})}>
             <button className="new_plan_btn">
               <Image src={white} alt="white" />
               <p className="new_plan_btn_text">New media plan</p>
