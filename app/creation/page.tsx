@@ -5,7 +5,6 @@ import DefineCampaignObjective from "./components/DefineCampaignObjective";
 import MapFunnelStages from "./components/MapFunnelStages";
 import SelectChannelMix from "./components/SelectChannelMix";
 import { useActive } from "../utils/ActiveContext";
-// import FormatSelection from "./components/FormatSelection";
 import PlanCampaignScheduleSubStepComponent from "./components/PlanCampaignScheduleSubStepComponent";
 import SetBuyObjectivesAndTypes from "./components/SetBuyObjectivesAndTypes";
 import { SetupScreen } from "./components/SetupScreen";

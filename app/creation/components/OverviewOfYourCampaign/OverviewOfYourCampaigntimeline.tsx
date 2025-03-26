@@ -10,7 +10,7 @@ import instagram from "../../../../public/ig.svg";
 import arrowup from "../../../../public/iconamoon_arrow-up-2.svg";
 import { TbZoomFilled, TbCreditCardFilled } from "react-icons/tb";
 
-const OverviewOfYourCampaigntimeline = ({ dateList, funnels }) => {
+const OverviewOfYourCampaigntimeline = ({ dateList, funnels, setIsDrawerOpen, openComments }) => {
 	// Manage state separately for each funnel, section, and platform
 	const [expanded, setExpanded] = useState({});
 	const [openSections, setOpenSections] = useState({});
@@ -57,6 +57,15 @@ const OverviewOfYourCampaigntimeline = ({ dateList, funnels }) => {
 		}));
 	};
 
+	const toggleComment = (index) => {
+		setIsDrawerOpen((prev) => {
+			// If the same index is already open, close it; otherwise, open it
+			return prev[index] ? {} : { [index]: true };
+		});
+	};
+
+
+
 	return (
 		<div
 			className="w-full min-h-[494px] relative pb-5"
@@ -71,7 +80,7 @@ const OverviewOfYourCampaigntimeline = ({ dateList, funnels }) => {
 					key={index}
 					style={{
 						display: "grid",
-						gridTemplateColumns: `repeat(${dateList.length}, 1fr)`,
+						gridTemplateColumns: `repeat(${dateList?.length}, 1fr)`,
 					}}
 				>
 					<div
@@ -182,12 +191,13 @@ const OverviewOfYourCampaigntimeline = ({ dateList, funnels }) => {
 																				<th className="p-2 pr-3 border-b-0">Name</th>
 																				<th className="p-2 pr-3 border-b-0">Audience size</th>
 																				<th className="p-2 pr-3 border-b-0">Budget</th>
+																				<th className="p-2 pr-3 border-b-0"></th>
 																			</tr>
 																		</thead>
 																		<tbody className="border-none relative">
 																			{[
-																				{ id: 1, type: "Board", name: "Spring sale Awareness", audience: "50,000", budget: "350 €" },
-																				{ id: 2, type: "Board", name: "Spring sale Awareness", audience: "50,000", budget: "350 €" },
+																				{ id: 1, type: "Board", name: "Spring sale Awareness", audience: "50,000", budget: "350 €", view: "View Comment" },
+																				{ id: 2, type: "Board", name: "Spring sale Awareness", audience: "50,000", budget: "350 €", view: "View Comment" },
 																				// { id: 3, type: "Board", name: "Spring sale Awareness", audience: "50,000", budget: "350 €" },
 																				// { id: 4, type: "Board", name: "Spring sale Awareness", audience: "50,000", budget: "350 €" },
 																			].map((row, index) => (
@@ -202,6 +212,12 @@ const OverviewOfYourCampaigntimeline = ({ dateList, funnels }) => {
 																					<td className="p-2 pr-3 border-b-0">{row.name}</td>
 																					<td className="p-2 pr-3 border-b-0">{row.audience}</td>
 																					<td className="p-2 pr-3 border-b-0">{row.budget}</td>
+																					<td className="p-2 pr-3 border-b-0">
+																						<button onClick={() => toggleComment(index)}
+																							className=" font-medium text-[15px] leading-[20px] text-[#0866FF]">
+																							{openComments[index] ? "View Comment" : "View Comment"}
+																						</button>
+																					</td>
 																				</tr>
 																			))}
 																		</tbody>
