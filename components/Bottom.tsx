@@ -370,7 +370,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       });
     };
 
-    const handleStepFour = async () => {
+    const handleStepSeven = async () => {
       if (!campaignData) return;
 
       if (active === 7 && subStep === 1) {
@@ -413,6 +413,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         await handleStepFour();
       } else if (active === 5) {
         await handleStepFive();
+      } else if (active === 7) {
+        await handleStepSeven();
       } else if (active > 2 && subStep < 1) {
         await handleStepThree();
       } else if (active > 2 && subStep > 0) {
