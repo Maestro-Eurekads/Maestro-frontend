@@ -695,7 +695,7 @@ const AdsetSettings = memo(function AdsetSettings({
                 <span className={`border-l-2 border-[#0000001A] h-[78px] w-8 absolute -left-4 ${linePositionClass}`}></span>
                 <button
                   onClick={addNewAddset}
-                  className="flex gap-2 items-center text-white bg-[#3175FF] px-4 py-2 rounded-full text-sm font-bold z-50 relative"
+                  className="flex gap-2 items-center text-white bg-[#3175FF] px-4 py-2 rounded-full text-sm font-bold z-[] relative"
                 >
                   <MdAdd />
                   <span>New add set</span>

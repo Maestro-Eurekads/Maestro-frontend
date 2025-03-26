@@ -130,6 +130,11 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
         style: "max-w-[180px] w-full",
       };
       setChannels([transformedData, displayNetworkData, searchEnginesData]);
+      
+      // Set initial validation state
+      setIsValidated(!!stage?.social_media?.every(p => p.formatValidated) || 
+                    !!stage?.display_networks?.every(p => p.formatValidated) || 
+                    !!stage?.search_engines?.every(p => p.formatValidated));
     }
   }, [campaignFormData, stageName]);
 
@@ -217,6 +222,28 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
   const handleValidateOrEdit = () => {
     setIsValidated(!isValidated);
     setIsModalOpen(false); // Close modal when switching modes
+    
+    // Update campaignFormData with validation status
+    const updatedChannelMix = campaignFormData.channel_mix.map((mix) => {
+      if (mix.funnel_stage === stageName) {
+        return {
+          ...mix,
+          social_media: mix.social_media?.map(p => ({ ...p, formatValidated: !isValidated })),
+          display_networks: mix.display_networks?.map(p => ({ ...p, formatValidated: !isValidated })),
+          search_engines: mix.search_engines?.map(p => ({ ...p, formatValidated: !isValidated })),
+        };
+      }
+      return mix;
+    });
+    
+    setCampaignFormData({
+      ...campaignFormData,
+      channel_mix: updatedChannelMix,
+      validatedStages: {
+        ...campaignFormData.validatedStages,
+        [stageName]: !isValidated,
+      },
+    });
   };
 
   // Check if platform has selected formats
