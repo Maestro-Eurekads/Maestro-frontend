@@ -9,11 +9,8 @@ import checkmark from "../../public/mingcute_check-fill.svg";
 import { useCampaigns } from "app/utils/CampaignsContext";
 
 const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
-  // Controls expanded/collapsed state for each stage, defaulting "Awareness" to open
   const [openItems, setOpenItems] = useState({ Awareness: true });
-  // Tracks selected platforms per stage (per category)
   const [selected, setSelected] = useState({});
-  // Tracks whether a stage has been validated/submitted
   const [validatedStages, setValidatedStages] = useState({});
   const { campaignFormData, setCampaignFormData } = useCampaigns();
 
@@ -21,7 +18,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
     if (campaignFormData?.funnel_stages?.length > 0) {
       const initialOpenItems = campaignFormData.funnel_stages.reduce(
         (acc, stage) => {
-          acc[stage] = validatedStages[stage] ? false : true; // Keep validated closed, others open
+          acc[stage] = validatedStages[stage] ? false : true;
           return acc;
         },
         {}
@@ -49,6 +46,18 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
     if (campaignFormData?.validatedStages) {
       setValidatedStages(campaignFormData.validatedStages);
     }
+
+    // Ensure Awareness has an empty initial selection if not present
+    if (!selected["Awareness"]) {
+      setSelected(prev => ({
+        ...prev,
+        Awareness: {
+          "Social media": [],
+          "Display networks": [],
+          "Search engines": []
+        }
+      }));
+    }
   }, [
     campaignFormData?.funnel_stages,
     campaignFormData?.channel_mix,
@@ -71,6 +80,13 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
       const newCategorySelection = isAlreadySelected
         ? categorySelection.filter((p) => p !== platformName)
         : [...categorySelection, platformName];
+
+      console.log('Updated selection:', {
+        stageName,
+        category,
+        platformName,
+        newCategorySelection
+      });
 
       return {
         ...prev,
@@ -103,7 +119,6 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
       };
     });
 
-    // Update campaign form data without affecting openItems
     setCampaignFormData((prevFormData) => {
       const categoryKey = category.toLowerCase().replaceAll(" ", "_");
       const stageSelection = selected[stageName] || {};
@@ -141,12 +156,17 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
     });
   };
 
-  // A stage (including Awareness) is valid if at least one channel is selected in any category
   const isStageValid = (stageName) => {
     const stageSelections = selected[stageName] || {};
     const hasSocialMedia = stageSelections["Social media"]?.length > 0;
     const hasDisplayNetworks = stageSelections["Display networks"]?.length > 0;
     const hasSearchEngines = stageSelections["Search engines"]?.length > 0;
+    console.log(`Stage ${stageName} validity:`, {
+      hasSocialMedia,
+      hasDisplayNetworks,
+      hasSearchEngines,
+      selected: stageSelections
+    });
     return hasSocialMedia || hasDisplayNetworks || hasSearchEngines;
   };
 
