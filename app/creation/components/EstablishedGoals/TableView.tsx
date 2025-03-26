@@ -14,286 +14,7 @@ import moment from "moment";
 
 const TableView = ({ channels }) => {
   const [expandedRows, setExpandedRows] = useState({});
-  const { campaignFormData } = useCampaigns();
-
-  const campaignData = {
-    phases: {
-      awareness: {
-        channels: [
-          {
-            channel: "Broad",
-            audience: "Men 25+ Int. Sport",
-            startDate: "11/01/2025",
-            endDate: "15/01/2025",
-            audienceSize: 2500000,
-            budget: 1800, // €1,800
-            cpm: "CPM", // To be calculated or entered
-            impressions: "-", // To be calculated
-            frequency: "-", // "Enter frequency"
-            reach: 500000,
-            penetrationRate: 20.0, // 20.0%
-          },
-          {
-            channel: "Lookalike",
-            audience: "Broad",
-            campaignName: "Spring sale Awareness",
-            startDate: "-",
-            endDate: "-",
-            audienceSize: 50000,
-            budget: 700, // €700
-            cpm: "CPM", // "CPM" placeholder
-            impressions: "-",
-            frequency: 2,
-            reach: "-",
-            penetrationRate: "-",
-          },
-          {
-            channel: "Facebook",
-            audience: "Lookalike",
-            campaignName: "Facebook Awareness",
-            startDate: "-",
-            endDate: "-",
-            audienceSize: 235000,
-            budget: 1100, // €1,100
-            cpm: "CPM", // "CPM" placeholder
-            impressions: 2000000,
-            frequency: "-", // "Enter frequency"
-            reach: 200000,
-            penetrationRate: 16.7, // 16.7%
-          },
-          {
-            channel: "Facebook",
-            audience: "Lookalike Website Visitors 90D",
-            startDate: "-",
-            endDate: "-",
-            audienceSize: 200000,
-            budget: 900, // €900
-            cpm: "CPM", // "CPM" placeholder
-            impressions: "-",
-            frequency: "-", // "Enter frequency"
-            reach: 750000,
-            penetrationRate: 25.4, // 25.4%
-          },
-          {
-            channel: "Retargeting",
-            audience: "Retargeting Active Buyers 30D",
-            startDate: "-",
-            endDate: "-",
-            audienceSize: 300000,
-            budget: 1200, // €1,200
-            cpm: "CPM",
-            impressions: "-",
-            frequency: 5,
-            reach: "-",
-            penetrationRate: "-",
-          },
-          {
-            channel: "Facebook",
-            audience: "Lookalike Abandoned Carts 7D",
-            startDate: "-",
-            endDate: "-",
-            audienceSize: 150000,
-            budget: 500, // €500
-            cpm: "CPM", // "CPM" placeholder
-            impressions: 900000,
-            frequency: "-", // "Enter frequency"
-            reach: 369000,
-            penetrationRate: 33.3, // 33.3%
-          },
-          {
-            channel: "Instagram",
-            audience: "Lookalike Buyers 90D",
-            startDate: "08/01/2025",
-            endDate: "10/01/2025",
-            audienceSize: 1200000,
-            budget: 1500, // €1,500
-            cpm: "CPM",
-            impressions: 1250000,
-            frequency: "-", // "Enter frequency"
-            reach: 980000,
-            penetrationRate: 50.3, // 50.3%
-          },
-          {
-            channel: "Youtube",
-            audience: "Men 25+ Int. Sport",
-            startDate: "08/01/2025",
-            endDate: "10/01/2025",
-            audienceSize: 3000000,
-            budget: 1200, // €1,200
-            cpm: "CPM",
-            impressions: 875000,
-            frequency: "-",
-            reach: "-",
-            penetrationRate: "-",
-          },
-          {
-            channel: "TheTradeDesk",
-            audience: "Lookalike Buyers 90D",
-            startDate: "08/01/2025",
-            endDate: "10/01/2025",
-            audienceSize: 1500000,
-            budget: 900, // €900
-            cpm: "CPM",
-            impressions: 1250000,
-            frequency: "-",
-            reach: "-",
-            penetrationRate: "-",
-          },
-          {
-            channel: "Quantcast",
-            audience: "Men 25+ Int. Sport",
-            startDate: "08/01/2025",
-            endDate: "10/01/2025",
-            audienceSize: 2000000,
-            budget: 600, // €600
-            cpm: "CPM",
-            impressions: "-",
-            frequency: "-",
-            reach: "-",
-            penetrationRate: "-",
-          },
-        ],
-      },
-      consideration: {
-        channels: [
-          {
-            channel: "Facebook",
-            audience: "Men 25+ Int. Sport",
-            startDate: "11/01/2025",
-            endDate: "15/01/2025",
-            audienceSize: 2500000,
-            budget: 2100, // €2,100
-            cpm: "CPM", // "Enter CPM"
-            impressions: 2000000,
-            frequency: "-", // "Enter frequency"
-            reach: 500000,
-            penetrationRate: 20.0, // 20.0%
-          },
-          {
-            channel: "Instagram",
-            audience: "Lookalike Buyers 90D",
-            startDate: "08/01/2025",
-            endDate: "10/01/2025",
-            audienceSize: 1200000,
-            budget: "1,800 €", // "Enter budget"
-            cpm: "CPM", // "Enter CPM"
-            impressions: 900000,
-            frequency: "-", // "Enter frequency"
-            reach: 200000,
-            penetrationRate: 16.7, // 16.7%
-          },
-          {
-            channel: "Youtube",
-            audience: "Men 25+ Int. Sport",
-            startDate: "08/01/2025",
-            endDate: "10/01/2025",
-            audienceSize: 3000000,
-            budget: "1,800 €", // "Enter budget"
-            cpm: "CPM", // "Enter CPM"
-            impressions: 1250000,
-            frequency: "-", // "Enter frequency"
-            reach: 750000,
-            penetrationRate: 25.4, // 25.4%
-          },
-          {
-            channel: "TheTradeDesk",
-            audience: "Lookalike Buyers 90D",
-            startDate: "08/01/2025",
-            endDate: "10/01/2025",
-            audienceSize: 1500000,
-            budget: "1,800 €", // "Enter budget"
-            cpm: "CPM", // "Enter CPM"
-            impressions: 875000,
-            frequency: "-", // "Enter frequency"
-            reach: 369000,
-            penetrationRate: 33.3, // 33.3%
-          },
-          {
-            channel: "Quantcast",
-            audience: "Men 25+ Int. Sport",
-            startDate: "08/01/2025",
-            endDate: "10/01/2025",
-            audienceSize: 2000000,
-            budget: "1,800 €", // "Enter budget"
-            cpm: "CPM", // "Enter CPM"
-            impressions: 1250000,
-            frequency: "-", // "Enter frequency"
-            reach: 980000,
-            penetrationRate: 50.3, // 50.3%
-          },
-        ],
-      },
-      conversion: {
-        channels: [
-          {
-            channel: "Facebook",
-            audience: "Men 25+ Int. Sport",
-            startDate: "11/01/2025",
-            endDate: "15/01/2025",
-            audienceSize: 2500000,
-            budget: "1,800 €", // "Enter budget"
-            cpm: "CPM", // "Enter CPM"
-            impressions: 2000000,
-            frequency: "-", // "Enter frequency"
-            reach: 500000,
-            penetrationRate: 20.0, // 20.0%
-          },
-          {
-            channel: "Instagram",
-            audience: "Lookalike Buyers 90D",
-            startDate: "08/01/2025",
-            endDate: "10/01/2025",
-            audienceSize: 1200000,
-            budget: "1,800 €", // "Enter budget"
-            cpm: "CPM", // "Enter CPM"
-            impressions: 900000,
-            frequency: "-", // "Enter frequency"
-            reach: 200000,
-            penetrationRate: 16.7, // 16.7%
-          },
-          {
-            channel: "Youtube",
-            audience: "Men 25+ Int. Sport",
-            startDate: "08/01/2025",
-            endDate: "10/01/2025",
-            audienceSize: 3000000,
-            budget: "1,800 €", // "Enter budget"
-            cpm: "CPM", // "Enter CPM"
-            impressions: 1250000,
-            frequency: "-", // "Enter frequency"
-            reach: 750000,
-            penetrationRate: 25.4, // 25.4%
-          },
-          {
-            channel: "TheTradeDesk",
-            audience: "Lookalike Buyers 90D",
-            startDate: "08/01/2025",
-            endDate: "10/01/2025",
-            audienceSize: 1500000,
-            budget: "1,800 €", // "Enter budget"
-            cpm: "CPM", // "Enter CPM"
-            impressions: 875000,
-            frequency: "-", // "Enter frequency"
-            reach: 369000,
-            penetrationRate: 33.3, // 33.3%
-          },
-          {
-            channel: "Quantcast",
-            audience: "Men 25+ Int. Sport",
-            startDate: "08/01/2025",
-            endDate: "10/01/2025",
-            audienceSize: 2000000,
-            budget: "1,800 €", // "Enter budget"
-            cpm: "CPM", // "Enter CPM"
-            impressions: 1250000,
-            frequency: "-", // "Enter frequency"
-            reach: 980000,
-            penetrationRate: 50.3, // 50.3%
-          },
-        ],
-      },
-    },
-  };
+  const { campaignFormData, setCampaignFormData } = useCampaigns();
 
   function extractPlatforms(data) {
     const platforms = {};
@@ -337,6 +58,7 @@ const TableView = ({ channels }) => {
                   impressions: platform.impressions,
                   reach: platform.reach,
                   ad_sets: platform?.ad_sets,
+                  channelName: channelType,
                 });
               }
             });
@@ -345,6 +67,34 @@ const TableView = ({ channels }) => {
       });
     return platforms;
   }
+
+  const handleEditInfo = (
+    stageName,
+    channelName,
+    platformName,
+    fieldName,
+    value
+  ) => {
+    setCampaignFormData((prevData) => {
+      const updatedData = { ...prevData };
+
+      const channelMix = updatedData.channel_mix?.find(
+        (ch) => ch.funnel_stage === stageName
+      );
+
+      if (channelMix) {
+        const platform = channelMix[channelName]?.find(
+          (platform) => platform.platform_name === platformName
+        );
+
+        if (platform) {
+          platform[fieldName] = value;
+        }
+      }
+
+      return updatedData;
+    });
+  };
 
   const toggleRow = (index) => {
     setExpandedRows((prev) => ({
@@ -399,7 +149,11 @@ const TableView = ({ channels }) => {
                             <td className="py-6 px-6 text-[15px]">
                               <span
                                 className="flex items-center gap-2 cursor-pointer"
-                                onClick={() => toggleRow(index)}
+                                onClick={() =>
+                                  campaignFormData?.goal_level ===
+                                    "Adset level" &&
+                                  toggleRow(`${stage.name}${index}`)
+                                }
                                 style={{
                                   color: channel?.color,
                                 }}
@@ -407,7 +161,7 @@ const TableView = ({ channels }) => {
                                 {campaignFormData?.goal_level ===
                                   "Adset level" &&
                                   channel?.ad_sets?.length > 0 && (
-                                    <span>
+                                    <span className="shrink-0">
                                       <svg
                                         width="17"
                                         height="16"
@@ -431,7 +185,7 @@ const TableView = ({ channels }) => {
                                       </svg>
                                     </span>
                                   )}
-                                <span className="relative w-[16px] h-[16px]">
+                                <span className="relative w-[16px] h-[16px] shrink-0">
                                   <Image
                                     src={channel.icon}
                                     fill
@@ -442,7 +196,7 @@ const TableView = ({ channels }) => {
                               </span>
                             </td>
                             <td className="py-6 px-6">
-                              {channel.audience ? channel.audience : "-"}
+                              {channel.ad_sets?.length > 0 ? channel?.ad_sets[0]?.audience_type : "-"}
                             </td>
                             <td className="py-6 px-6">
                               {channel.startDate === "Invalid date"
@@ -455,16 +209,35 @@ const TableView = ({ channels }) => {
                                 : channel?.endDate}
                             </td>
                             <td className="py-6 px-6">
-                              {channel.audienceSize
-                                ? channel.audienceSize
-                                : "-"}
+                            {channel.ad_sets?.reduce(
+                              (total, adSet) => total + (Number(adSet.size) || 0),
+                              0
+                            )}
                             </td>
                             <td className="py-6 px-6">{channel.budgetSize}</td>
-                            <td className="py-6 px-6">
+                            <td className="py-6 px-3">
                               <input
                                 type="text"
                                 placeholder="CPM"
-                                className="cpm-bg border-none outline-none w-full"
+                                className="cpm-bg border-none outline-none w-full p-1"
+                                value={
+                                  campaignFormData?.channel_mix
+                                    ?.find(
+                                      (ch) => ch?.funnel_stage === stage.name
+                                    )
+                                    [channel?.channelName]?.find(
+                                      (c) => c?.platform_name === channel?.name
+                                    )?.cpm || ""
+                                }
+                                onChange={(e) =>
+                                  handleEditInfo(
+                                    stage.name,
+                                    channel?.channelName,
+                                    channel?.name,
+                                    "cpm",
+                                    e.target.value
+                                  )
+                                }
                               />
                             </td>
                             {campaignFormData?.goal_level === "Adset level" && (
@@ -477,6 +250,26 @@ const TableView = ({ channels }) => {
                                     type="text"
                                     placeholder="Enter Frequency"
                                     className="bg-transparent border-none outline-none w-full"
+                                    value={
+                                      campaignFormData?.channel_mix
+                                        ?.find(
+                                          (ch) =>
+                                            ch?.funnel_stage === stage.name
+                                        )
+                                        [channel?.channelName]?.find(
+                                          (c) =>
+                                            c?.platform_name === channel?.name
+                                        )?.frequency || ""
+                                    }
+                                    onChange={(e) =>
+                                      handleEditInfo(
+                                        stage.name,
+                                        channel?.channelName,
+                                        channel?.name,
+                                        "frequency",
+                                        e.target.value
+                                      )
+                                    }
                                   />
                                 </td>
                                 <td className="py-6 px-6">{channel.reach}</td>
@@ -485,7 +278,7 @@ const TableView = ({ channels }) => {
                           </tr>
 
                           {/* Sub-table (Expanded Rows) */}
-                          {expandedRows[index] && (
+                          {expandedRows[`${stage.name}${index}`] && (
                             <>
                               {channel?.ad_sets?.map((awareness, index) => (
                                 <tr key={index} className="bg-white">
@@ -494,39 +287,79 @@ const TableView = ({ channels }) => {
                                       <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
                                         {index + 1}.
                                       </span>
-                                      <span>{awareness?.name}</span>
+                                      <span>
+                                        {awareness?.name
+                                          ? awareness?.name
+                                          : "-"}
+                                      </span>
                                     </div>
                                   </td>
                                   <td className="!py-0 px-6 border-none">
-                                    {awareness?.audience_type}{" "}
+                                    {awareness?.audience_type
+                                      ? awareness?.audience_type
+                                      : "-"}
                                   </td>
                                   <td className="!py-0 px-6 border-none">
-                                    {channel.startDate}{" "}
+                                    {channel.startDate
+                                      ? channel.startDate
+                                      : "-"}
                                   </td>
                                   <td className="!py-0 px-6 border-none">
-                                    {channel.endDate}{" "}
+                                    {channel.endDate ? channel.endDate : "-"}
                                   </td>
                                   <td className="!py-0 px-6 border-none">
-                                    {awareness?.size}{" "}
+                                    {awareness?.size ? awareness?.size : "-"}
                                   </td>
                                   <td className="!py-0 px-6 border-none">
-                                    {awareness.budget}{" "}
+                                    {awareness.budget ? awareness.budget : "-"}
                                   </td>
-                                  <td className="!py-0 px-6 border-none">
-                                    <div className="cpm_bg">
-                                      {" "}
-                                      {awareness.cpm}
-                                    </div>{" "}
+                                  <td className="!py-0 px-3 border-none">
+                                    <input
+                                      type="text"
+                                      placeholder="CPM"
+                                      className="cpm-bg border-none outline-none w-full p-1"
+                                      value={
+                                        campaignFormData?.channel_mix
+                                          ?.find(
+                                            (ch) =>
+                                              ch?.funnel_stage === stage.name
+                                          )
+                                          [channel?.channelName]?.find(
+                                            (c) =>
+                                              c?.platform_name === channel?.name
+                                          )?.cpm || ""
+                                      }
+                                      onChange={(e) =>
+                                        handleEditInfo(
+                                          stage.name,
+                                          channel?.channelName,
+                                          channel?.name,
+                                          "cpm",
+                                          e.target.value
+                                        )
+                                      }
+                                    />
                                   </td>
-                                  {/* <td className="!py-0 px-6 border-none">
-                                      {awareness.audience}{" "}
-                                    </td>
-                                    <td className="!py-0 px-6 border-none">
-                                      {awareness.frequency}{" "}
-                                    </td>
-                                    <td className="!py-0 px-6 border-none">
-                                      {awareness.reach}
-                                    </td> */}
+                                  {campaignFormData?.goal_level ===
+                                    "Adset level" && (
+                                    <>
+                                      <td className="!py-0 px-6 border-none">
+                                        {awareness.audience
+                                          ? awareness.audience
+                                          : "-"}
+                                      </td>
+                                      <td className="!py-0 px-6 border-none">
+                                        {awareness.frequency
+                                          ? awareness.frequency
+                                          : "-"}
+                                      </td>
+                                      <td className="!py-0 px-6 border-none">
+                                        {awareness.reach
+                                          ? awareness.reach
+                                          : "-"}
+                                      </td>
+                                    </>
+                                  )}
                                 </tr>
                               ))}
                             </>
