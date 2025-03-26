@@ -28,7 +28,6 @@ const DefineCampaignObjective = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
-  const [hasChanges, setHasChanges] = useState(false);
   const [previousValidationState, setPreviousValidationState] = useState<boolean | null>(null);
   const [tempSelectedObjective, setTempSelectedObjective] = useState<{id: number, title: string}[]>([]);
 
@@ -118,7 +117,6 @@ const DefineCampaignObjective = () => {
       
       setAlert({ variant: "success", message: "Campaign Objective successfully updated!", position: "bottom-right" });
       setIsEditing(false);
-      setHasChanges(false);
       // Mark step1 as verified
       setverifybeforeMove((prev) => ({
         ...prev,
@@ -145,19 +143,11 @@ const DefineCampaignObjective = () => {
       ...prev,
       campaign_objectives: title,
     }));
-    setHasChanges(true);
   };
 
   const handleEditClick = () => {
     setIsEditing(true);
     // Initialize temp selection with current selection
-    setTempSelectedObjective([...selectedObjectives]);
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setHasChanges(false);
-    // Reset temp selection to match the actual selection
     setTempSelectedObjective([...selectedObjectives]);
   };
 
@@ -169,14 +159,7 @@ const DefineCampaignObjective = () => {
           t2={"Please select only one objective."}
         />
 
-        {isEditing ? (
-          <button
-            className="model_button_gray mr-2"
-            onClick={handleCancelEdit}
-          >
-            Cancel
-          </button>
-        ) : (
+        {!isEditing && (
           <button
             className="model_button_blue"
             onClick={handleEditClick}
@@ -205,7 +188,7 @@ const DefineCampaignObjective = () => {
         })}
       </div>
 
-      {hasChanges && (
+      {isEditing && (
         <div className="flex justify-end pr-6 mt-[50px]">
           <button
             disabled={tempSelectedObjective.length === 0}

@@ -17,11 +17,10 @@ interface BottomProps {
 }
 
 const Bottom = ({ setIsOpen }: BottomProps) => {
-  const { validateStep, verifybeforeMove } = useVerification();
+  const { validateStep, verifybeforeMove = {}, setverifybeforeMove } = useVerification();
   const { active, setActive, subStep, setSubStep } = useActive();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
-  const [setupyournewcampaignError, SetupyournewcampaignError] =
-    useState(false);
+  const [setupyournewcampaignError, SetupyournewcampaignError] = useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
   const [selectedDatesError, setSelectedDatesError] = useState(false);
   const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
@@ -91,7 +90,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     // Step 0 validation
     if (active === 0) {
-      const isStep0Validated = verifybeforeMove[0]?.step0 === false;
       const requiredFields = [
         campaignFormData?.client_selection?.value,
         campaignFormData?.media_plan,
@@ -100,16 +98,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         campaignFormData?.budget_details_fee_type?.id,
         campaignFormData?.budget_details_value,
       ];
-
-      if (isStep0Validated) {
-        SetupyournewcampaignError(true);
-        setAlert({
-          variant: "error",
-          message: "Please set up your new campaign!",
-          position: "bottom-right",
-        });
-        hasError = true;
-      }
 
       if (!requiredFields.every((field) => field)) {
         setIncompleteFieldsError(true);
@@ -122,15 +110,20 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    // Step 1: Ensure at least one objective is selected
-    if (active === 1 && campaignData?.campaign_objective?.length === 0) {
-      setTriggerObjectiveError(true);
-      setAlert({
-        variant: "error",
-        message: "Please define a campaign objective before proceeding!",
-        position: "bottom-right",
-      });
-      hasError = true;
+    // Step 1: Campaign Objective validation
+    if (active === 1) {
+      const campaignVerification = verifybeforeMove[cId] || {};
+      const isStep1Verified = campaignVerification.step1 === true;
+      
+      if (!cId || !isStep1Verified) {
+        setTriggerObjectiveError(true);
+        setAlert({
+          variant: "error",
+          message: "Please select and validate a campaign objective before proceeding!",
+          position: "bottom-right",
+        });
+        hasError = true;
+      }
     }
 
     // Step 2: Ensure at least one funnel stage is selected
@@ -162,6 +155,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
       if (hasUnvalidatedSelectedStage || !Object.values(validatedStages).some(Boolean)) {
         setTriggerChannelMixError(true);
+        setAlert({
+          variant: "error",
+          message: "Please select and validate at least one channel!",
+          position: "bottom-right",
+        });
         hasError = true;
       }
     }
@@ -233,6 +231,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     // Step 7: Ensure dates are selected
     if (active === 7 && (!selectedDates?.to?.day || !selectedDates?.from?.day) && subStep < 1) {
       setSelectedDatesError(true);
+      setAlert({
+        variant: "error",
+        message: "Choose your start and end date!",
+        position: "bottom-right",
+      });
       hasError = true;
     }
 
@@ -241,19 +244,27 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       return;
     }
 
-    // Update campaign data functions remain the same
     const updateCampaignData = async (data) => {
-      await updateCampaign(data);
-      await getActiveCampaign(data);
+      try {
+        await updateCampaign(data);
+        await getActiveCampaign(data);
+      } catch (error) {
+        setAlert({
+          variant: "error",
+          message: "Failed to update campaign data",
+          position: "bottom-right",
+        });
+        throw error;
+      }
     };
 
-    const cleanData = removeKeysRecursively(campaignData, [
+    const cleanData = campaignData ? removeKeysRecursively(campaignData, [
       "id",
       "documentId",
       "createdAt",
       "publishedAt",
       "updatedAt",
-    ]);
+    ]) : {};
 
     const handleStepZero = async () => {
       if (cId && campaignData) {
@@ -278,16 +289,25 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           },
         });
       } else {
-        const res = await createCampaign();
-        const url = new URL(window.location.href);
-        url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
-        window.history.pushState({}, "", url.toString());
-        await getActiveCampaign(res?.data?.data.documentId);
+        try {
+          const res = await createCampaign();
+          const url = new URL(window.location.href);
+          url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
+          window.history.pushState({}, "", url.toString());
+          await getActiveCampaign(res?.data?.data.documentId);
+        } catch (error) {
+          setAlert({
+            variant: "error",
+            message: "Failed to create campaign",
+            position: "bottom-right",
+          });
+          throw error;
+        }
       }
     };
 
     const handleStepOne = async () => {
-      if (!campaignData) return;
+      if (!campaignData || !cId) return;
       await updateCampaignData({
         ...cleanData,
         campaign_objective: campaignFormData?.campaign_objectives,
@@ -295,7 +315,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     };
 
     const handleStepTwo = async () => {
-      if (!campaignData) return;
+      if (!campaignData || !cId) return;
       await updateCampaignData({
         ...cleanData,
         funnel_stages: campaignFormData?.funnel_stages,
@@ -303,7 +323,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     };
 
     const handleStepThree = async () => {
-      if (!campaignData) return;
+      if (!campaignData || !cId) return;
       await updateCampaignData({
         ...cleanData,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
@@ -314,7 +334,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     };
 
     const handleStepFour = async () => {
-      if (!campaignData) return;
+      if (!campaignData || !cId) return;
       await updateCampaignData({
         ...cleanData,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
@@ -326,7 +346,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     };
 
     const handleStepFive = async () => {
-      if (!campaignData) return;
+      if (!campaignData || !cId) return;
       await updateCampaignData({
         ...cleanData,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
@@ -336,37 +356,40 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       });
     };
 
-    if (active === 0) {
-      await handleStepZero();
-    } else if (active === 1) {
-      await handleStepOne();
-    } else if (active === 2) {
-      await handleStepTwo();
-    } else if (active === 3) {
-      await handleStepThree();
-    } else if (active === 4) {
-      await handleStepFour();
-    } else if (active === 5) {
-      await handleStepFive();
-    } else if (active > 2 && subStep < 1) {
-      await handleStepThree();
-    } else if (active > 2 && subStep > 0) {
-      await handleStepFour();
-    }
+    try {
+      if (active === 0) {
+        await handleStepZero();
+      } else if (active === 1) {
+        await handleStepOne();
+      } else if (active === 2) {
+        await handleStepTwo();
+      } else if (active === 3) {
+        await handleStepThree();
+      } else if (active === 4) {
+        await handleStepFour();
+      } else if (active === 5) {
+        await handleStepFive();
+      } else if (active > 2 && subStep < 1) {
+        await handleStepThree();
+      } else if (active > 2 && subStep > 0) {
+        await handleStepFour();
+      }
 
-    // Proceed to the next step
-    if (active === 7) {
-      subStep < 1 ? setSubStep((prev) => prev + 1) : setActive((prev) => prev + 1);
-    } else if (active === 8) {
-      subStep < 2 ? setSubStep((prev) => prev + 1) : setActive((prev) => prev + 1);
-    } else {
-      setActive((prev) => Math.min(10, prev + 1));
+      // Proceed to the next step only if no errors
+      if (active === 7) {
+        subStep < 1 ? setSubStep((prev) => prev + 1) : setActive((prev) => prev + 1);
+      } else if (active === 8) {
+        subStep < 2 ? setSubStep((prev) => prev + 1) : setActive((prev) => prev + 1);
+      } else {
+        setActive((prev) => Math.min(10, prev + 1));
+      }
+    } catch (error) {
+      console.error("Error in handleContinue:", error);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
-  // Rest of the component (return statement) remains unchanged
   return (
     <footer id="footer" className="w-full">
       {alert && <AlertMain alert={alert} />}
@@ -392,7 +415,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         <AlertMain
           alert={{
             variant: "error",
-            message: "Please select at least one campaign objective!",
+            message: "Please select and validate a campaign objective!",
             position: "bottom-right",
           }}
         />
