@@ -50,8 +50,6 @@ const initialState = {
   campaign_timeline_end_date: "",
 };
 
-
-
 // 🎯 Create Context
 const CampaignContext = createContext<any>(null);
 
@@ -59,17 +57,19 @@ const CampaignContext = createContext<any>(null);
 export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [campaignFormData, setCampaignFormData] = useState(initialState);
   const [campaignData, setCampaignData] = useState(null);
-  const [clientCampaignData, setClientCampaignData] = useState([])
+  const [clientCampaignData, setClientCampaignData] = useState([]);
   const [loading, setLoading] = useState(false);
   const query = useSearchParams();
   const cId = query.get("campaignId");
   const { loadingClients, allClients } = useCampaignHook();
-  const [copy, setCopy] = useState(campaignFormData)
+  const [copy, setCopy] = useState(campaignFormData);
 
   const getActiveCampaign = async (docId?: string) => {
     await axios
       .get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}?populate[0]=media_plan_details&populate[1]=budget_details&populate[2]=channel_mix&populate[3]=channel_mix.social_media&populate[4]=channel_mix.display_networks&populate[5]=channel_mix.search_engines&populate[6]=channel_mix.social_media.format&populate[7]=channel_mix.display_networks.format&populate[8]=channel_mix.search_engines.format&populate[9]=client_selection&populate[10]=client&populate[11]=channel_mix.social_media.ad_sets&populate[12]=channel_mix.display_networks.ad_sets&populate[13]=channel_mix.search_engines.ad_sets&populate[14]=channel_mix.social_media.budget&populate[15]=channel_mix.display_networks.budget&populate[16]=channel_mix.search_engines.budget&populate[17]=channel_mix.stage_budget&populate[18]=campaign_budget`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${
+          cId || docId
+        }?populate[0]=media_plan_details&populate[1]=budget_details&populate[2]=channel_mix&populate[3]=channel_mix.social_media&populate[4]=channel_mix.display_networks&populate[5]=channel_mix.search_engines&populate[6]=channel_mix.social_media.format&populate[7]=channel_mix.display_networks.format&populate[8]=channel_mix.search_engines.format&populate[9]=client_selection&populate[10]=client&populate[11]=channel_mix.social_media.ad_sets&populate[12]=channel_mix.display_networks.ad_sets&populate[13]=channel_mix.search_engines.ad_sets&populate[14]=channel_mix.social_media.budget&populate[15]=channel_mix.display_networks.budget&populate[16]=channel_mix.search_engines.budget&populate[17]=channel_mix.stage_budget&populate[18]=campaign_budget&populate[19]=channel_mix.social_media.kpi&populate[20]=channel_mix.display_networks.kpi&populate[21]=channel_mix.search_engines.kpi&populate[22]=channel_mix.social_media.ad_sets.kpi&populate[23]=channel_mix.display_networks.ad_sets.kpi&populate[24]=channel_mix.search_engines.ad_sets.kpi`,
         {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
@@ -78,7 +78,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       )
       .then((res) => {
         const data = res?.data?.data;
-        setCampaignData(data)
+        setCampaignData(data);
         setCampaignFormData((prev) => ({
           ...prev,
           client_selection: {
@@ -107,8 +107,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             id: data?.budget_details?.fee_type,
             value: data?.budget_details?.fee_type,
           },
-          budget_details_sub_fee_type:
-            data?.budget_details?.sub_fee_type,
+          budget_details_sub_fee_type: data?.budget_details?.sub_fee_type,
           budget_details_value: data?.budget_details?.value,
           campaign_objectives: data?.campaign_objective,
           funnel_stages: data?.funnel_stages || [],
@@ -116,7 +115,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           campaign_timeline_start_date: data?.campaign_timeline_start_date,
           campaign_timeline_end_date: data?.campaign_timeline_end_date,
           campaign_budget: data?.campaign_budget || {},
-          goal_level:data?.goal_level
+          goal_level: data?.goal_level,
         }));
       });
   };
@@ -155,7 +154,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
       // Fetch all clients after a successful campaign creation
 
-
       return response; // Return API response in case the calling function needs it
     } catch (error) {
       console.error("Error creating campaign:", error);
@@ -163,17 +161,17 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-
   const updateCampaign = async (data) => {
     return await axios.put(
       `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
       {
         data: { ...data },
-      }, {
-      headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+        },
       }
-    }
     );
   };
 
@@ -201,7 +199,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         setLoading,
         setCampaignData,
         copy,
-        setCopy
+        setCopy,
       }}
     >
       {children}
