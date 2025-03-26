@@ -55,7 +55,7 @@ const AllClientsCustomDropdown = ({
 
 			{/* Dropdown List */}
 			{isOpen && (
-				<div className="absolute w-full bg-[#F7F7F7] border border-[#EFEFEF] rounded-md shadow-lg mt-2 max-h-[400px] overflow-y-scroll z-40">
+				<div className="absolute w-full bg-[#F7F7F7] border border-[#EFEFEF] rounded-md shadow-lg mt-2 max-h-[400px] overflow-y-auto z-40">
 					{options?.map((option) => (
 						<div
 							key={option.id}

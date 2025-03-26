@@ -41,6 +41,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     copy,
   } = useCampaigns();
 
+  // Auto-hide errors after 3 seconds
   useEffect(() => {
     if (
       triggerObjectiveError ||
@@ -217,11 +218,24 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         return isSelected && !validatedStages[stage];
       });
 
-      if (hasUnvalidatedSelectedStage || !Object.values(validatedStages).some(Boolean)) {
+      if (hasUnvalidatedSelectedStage) {
         setTriggerBuyObjectiveError(true);
         setAlert({
           variant: "error",
           message: "Please validate all selected stages before proceeding!",
+          position: "bottom-right",
+        });
+        hasError = true;
+      }
+
+      const hasAnyValidatedBUObjective = Object.values(validatedStages).some(
+        (isValidated) => isValidated === true
+      );
+      if (!hasAnyValidatedBUObjective) {
+        setTriggerBuyObjectiveError(true);
+        setAlert({
+          variant: "error",
+          message: "Please validate at least one stage before proceeding!",
           position: "bottom-right",
         });
         hasError = true;
@@ -356,6 +370,36 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       });
     };
 
+    const handleStepFour = async () => {
+      if (!campaignData) return;
+
+      if (active === 7 && subStep === 1) {
+        await updateCampaignData({
+          ...cleanData,
+          funnel_stages: campaignFormData?.funnel_stages,
+          channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+            "id",
+            "isValidated",
+          ]),
+          campaign_budget: removeKeysRecursively(copy?.campaign_budget, ["id"]),
+        });
+      } else {
+        await updateCampaignData({
+          ...cleanData,
+          funnel_stages: campaignFormData?.funnel_stages,
+          channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+            "id",
+            "isValidated",
+          ]),
+          campaign_budget: removeKeysRecursively(
+            campaignFormData?.campaign_budget,
+            ["id"]
+          ),
+          goal_level: campaignFormData?.goal_level
+        });
+      }
+    };
+
     try {
       if (active === 0) {
         await handleStepZero();
@@ -451,7 +495,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         <AlertMain
           alert={{
             variant: "error",
-            message: "Please select and validate at least one format before proceeding!",
+            message: "Please select and validate at least one format!",
             position: "bottom-right",
           }}
         />

@@ -3,7 +3,7 @@ import Image from "next/image";
 import Mmessages from "../../public/message-2.svg";
 import AddAsInternalcomment from './AddAsInternalcomment';
 
-const Message = ({ message, setAddMessage, addComment, isOpen, setMessage }) => {
+const Message = ({ isOpen, setMessage }) => {
 	const [show, setShow] = useState(false);
 
 	return (
