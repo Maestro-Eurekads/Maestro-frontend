@@ -9,11 +9,8 @@ import checkmark from "../../public/mingcute_check-fill.svg";
 import { useCampaigns } from "app/utils/CampaignsContext";
 
 const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
-  // Controls expanded/collapsed state for each stage
   const [openItems, setOpenItems] = useState({ Awareness: true });
-  // Tracks selected platforms per stage (per category)
   const [selected, setSelected] = useState({});
-  // Tracks whether a stage has been validated/submitted
   const [validatedStages, setValidatedStages] = useState({});
   const { campaignFormData, setCampaignFormData } = useCampaigns();
 
@@ -21,7 +18,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
     if (campaignFormData?.funnel_stages?.length > 0) {
       const initialOpenItems = campaignFormData.funnel_stages.reduce(
         (acc, stage) => {
-          acc[stage] = validatedStages[stage] ? false : true; // Keep validated closed, others open
+          acc[stage] = validatedStages[stage] ? false : true;
           return acc;
         },
         {}
@@ -49,6 +46,18 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
     if (campaignFormData?.validatedStages) {
       setValidatedStages(campaignFormData.validatedStages);
     }
+
+    // Ensure Awareness has an empty initial selection if not present
+    if (!selected["Awareness"]) {
+      setSelected(prev => ({
+        ...prev,
+        Awareness: {
+          "Social media": [],
+          "Display networks": [],
+          "Search engines": []
+        }
+      }));
+    }
   }, [
     campaignFormData?.funnel_stages,
     campaignFormData?.channel_mix,
@@ -72,6 +81,13 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
         ? categorySelection.filter((p) => p !== platformName)
         : [...categorySelection, platformName];
 
+      console.log('Updated selection:', {
+        stageName,
+        category,
+        platformName,
+        newCategorySelection
+      });
+
       return {
         ...prev,
         [stageName]: {
@@ -85,7 +101,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
       platformStyles.find((style) => style.name === platformName) ||
       platformStyles[Math.floor(Math.random() * platformStyles.length)];
     setPlatforms((prev) => {
-      let stageSelection = prev[stageName] || {};
+      let stageSelection = prev[stageName] || [];
       stageSelection = [
         ...stageSelection,
         {
@@ -103,7 +119,6 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
       };
     });
 
-    // Update campaign form data without affecting openItems
     setCampaignFormData((prevFormData) => {
       const categoryKey = category.toLowerCase().replaceAll(" ", "_");
       const stageSelection = selected[stageName] || {};
@@ -141,17 +156,18 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
     });
   };
 
-  // A stage is valid if every required category has at least one selection
   const isStageValid = (stageName) => {
     const stageSelections = selected[stageName] || {};
-    return (
-      stageSelections["Social media"] &&
-      stageSelections["Social media"].length > 0 &&
-      stageSelections["Display networks"] &&
-      stageSelections["Display networks"].length > 0 &&
-      stageSelections["Search engines"] &&
-      stageSelections["Search engines"].length > 0
-    );
+    const hasSocialMedia = stageSelections["Social media"]?.length > 0;
+    const hasDisplayNetworks = stageSelections["Display networks"]?.length > 0;
+    const hasSearchEngines = stageSelections["Search engines"]?.length > 0;
+    console.log(`Stage ${stageName} validity:`, {
+      hasSocialMedia,
+      hasDisplayNetworks,
+      hasSearchEngines,
+      selected: stageSelections
+    });
+    return hasSocialMedia || hasDisplayNetworks || hasSearchEngines;
   };
 
   const handleValidate = (stageName) => {
@@ -172,7 +188,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
     <div className="z-50">
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 w-full">
-          <div className="flex flex-col items-start p-6 gap-6    bg-white rounded-[10px]">
+          <div className="flex flex-col items-start p-6 gap-6 bg-white rounded-[10px]">
             <button className="self-end" onClick={() => setIsOpen(false)}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -190,8 +206,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
                 />
               </svg>
             </button>
-            <div className="card bg-base-100  overflow-y-auto max-h-[60vh]">
-              {/* <FunnelStage /> */}
+            <div className="card bg-base-100 overflow-y-auto max-h-[60vh]">
               <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
                 {campaignFormData?.funnel_stages?.map((stageName, index) => {
                   const stage = funnelStages.find((s) => s.name === stageName);

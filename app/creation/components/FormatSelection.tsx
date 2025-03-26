@@ -80,6 +80,14 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
 
   const getPlatformIcon = (platformName) => platformIcons[platformName] || null;
 
+  // Load validation state from localStorage on mount
+  useEffect(() => {
+    const savedValidationState = localStorage.getItem(`formatValidation_${stageName}`);
+    if (savedValidationState) {
+      setIsValidated(JSON.parse(savedValidationState));
+    }
+  }, [stageName]);
+
   // Toggle platform expansion
   const togglePlatformExpansion = (platformName: string) => {
     if (!isValidated) {
@@ -99,7 +107,10 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
         stage.display_networks?.some((platform) => platform.format?.length > 0) ||
         stage.search_engines?.some((platform) => platform.format?.length > 0));
     setIsValidateEnabled(hasMediaOptionsSelected);
-  }, [campaignFormData, stageName]);
+
+    // Save validation state to localStorage
+    localStorage.setItem(`formatValidation_${stageName}`, JSON.stringify(isValidated));
+  }, [campaignFormData, stageName, isValidated]);
 
   // Transform channel data from campaignFormData
   useEffect(() => {
@@ -131,16 +142,24 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       };
       setChannels([transformedData, displayNetworkData, searchEnginesData]);
       
-      // Set initial validation state
-      setIsValidated(!!stage?.social_media?.every(p => p.formatValidated) || 
-                    !!stage?.display_networks?.every(p => p.formatValidated) || 
-                    !!stage?.search_engines?.every(p => p.formatValidated));
+      // Set initial validation state from localStorage or campaignFormData
+      const savedValidationState = localStorage.getItem(`formatValidation_${stageName}`);
+      if (savedValidationState !== null) {
+        setIsValidated(JSON.parse(savedValidationState));
+      } else {
+        setIsValidated(!!stage?.social_media?.every(p => p.formatValidated) || 
+                      !!stage?.display_networks?.every(p => p.formatValidated) || 
+                      !!stage?.search_engines?.every(p => p.formatValidated));
+      }
     }
   }, [campaignFormData, stageName]);
 
-  // Initialize quantities from campaignFormData
+  // Initialize quantities from campaignFormData and localStorage
   useEffect(() => {
-    if (campaignFormData?.channel_mix) {
+    const savedQuantities = localStorage.getItem(`quantities_${stageName}`);
+    if (savedQuantities) {
+      setQuantities(JSON.parse(savedQuantities));
+    } else if (campaignFormData?.channel_mix) {
       const stage = campaignFormData.channel_mix.find((chan) => chan.funnel_stage === stageName);
       if (stage) {
         const initialQuantities = {};
@@ -155,12 +174,15 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
           });
         });
         setQuantities(initialQuantities);
+        localStorage.setItem(`quantities_${stageName}`, JSON.stringify(initialQuantities));
       }
     }
   }, [campaignFormData, stageName]);
 
   // Handle format selection
   const handleFormatSelection = (channelName: string, index: number, platformName: string) => {
+    if (isValidated) return; // Prevent selection when validated
+
     const copy = [...campaignFormData?.channel_mix];
     const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName);
     if (stageIndex === -1) return;
@@ -185,15 +207,17 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     setCampaignFormData({ ...campaignFormData, channel_mix: copy });
   };
 
-  // Handle quantity changes and sync with campaignFormData
+  // Handle quantity changes and sync with campaignFormData and localStorage
   const handleQuantityChange = (platformName: string, formatName: string, change: number) => {
-    setQuantities((prev) => ({
-      ...prev,
+    const newQuantities = {
+      ...quantities,
       [platformName]: {
-        ...prev[platformName],
-        [formatName]: Math.max(1, (prev[platformName]?.[formatName] || 1) + change),
+        ...quantities[platformName],
+        [formatName]: Math.max(1, (quantities[platformName]?.[formatName] || 1) + change),
       },
-    }));
+    };
+    setQuantities(newQuantities);
+    localStorage.setItem(`quantities_${stageName}`, JSON.stringify(newQuantities));
 
     const copy = [...campaignFormData.channel_mix];
     const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName);
@@ -220,17 +244,26 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
 
   // Handle validation or editing
   const handleValidateOrEdit = () => {
-    setIsValidated(!isValidated);
-    setIsModalOpen(false); // Close modal when switching modes
+    if (!isValidateEnabled) {
+      alert("Please select at least one format before validating");
+      return;
+    }
+    
+    const newValidationState = !isValidated;
+    setIsValidated(newValidationState);
+    setIsModalOpen(false);
+    
+    // Save validation state to localStorage
+    localStorage.setItem(`formatValidation_${stageName}`, JSON.stringify(newValidationState));
     
     // Update campaignFormData with validation status
     const updatedChannelMix = campaignFormData.channel_mix.map((mix) => {
       if (mix.funnel_stage === stageName) {
         return {
           ...mix,
-          social_media: mix.social_media?.map(p => ({ ...p, formatValidated: !isValidated })),
-          display_networks: mix.display_networks?.map(p => ({ ...p, formatValidated: !isValidated })),
-          search_engines: mix.search_engines?.map(p => ({ ...p, formatValidated: !isValidated })),
+          social_media: mix.social_media?.map(p => ({ ...p, formatValidated: newValidationState })),
+          display_networks: mix.display_networks?.map(p => ({ ...p, formatValidated: newValidationState })),
+          search_engines: mix.search_engines?.map(p => ({ ...p, formatValidated: newValidationState })),
         };
       }
       return mix;
@@ -241,7 +274,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       channel_mix: updatedChannelMix,
       validatedStages: {
         ...campaignFormData.validatedStages,
-        [stageName]: !isValidated,
+        [stageName]: newValidationState,
       },
     });
   };
@@ -361,17 +394,24 @@ export const FormatSelection = () => {
   const { campaignFormData } = useCampaigns();
 
   useEffect(() => {
-    if (campaignFormData?.channel_mix) {
-      setOpenTabs([campaignFormData?.channel_mix[0]?.funnel_stage]);
+    // Load open tabs from localStorage
+    const savedOpenTabs = localStorage.getItem('formatSelectionOpenTabs');
+    if (savedOpenTabs) {
+      setOpenTabs(JSON.parse(savedOpenTabs));
+    } else if (campaignFormData?.channel_mix) {
+      const initialTab = [campaignFormData?.channel_mix[0]?.funnel_stage];
+      setOpenTabs(initialTab);
+      localStorage.setItem('formatSelectionOpenTabs', JSON.stringify(initialTab));
     }
   }, [campaignFormData]);
 
   const toggleTab = (stageName: string) => {
-    setOpenTabs((prevOpenTabs) =>
-      prevOpenTabs.includes(stageName)
-        ? prevOpenTabs.filter((tab) => tab !== stageName)
-        : [...prevOpenTabs, stageName]
-    );
+    const newOpenTabs = openTabs.includes(stageName)
+      ? openTabs.filter((tab) => tab !== stageName)
+      : [...openTabs, stageName];
+    
+    setOpenTabs(newOpenTabs);
+    localStorage.setItem('formatSelectionOpenTabs', JSON.stringify(newOpenTabs));
   };
 
   return (

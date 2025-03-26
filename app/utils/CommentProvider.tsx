@@ -48,8 +48,7 @@ export const CommentProvider = ({ children }) => {
 		setComments((prev) => [...prev, newComment]);
 	};
 
-	// Function to add a reply to a comment
-	// Modify CommentProvider.js
+	// Function to add a reply to a comment 
 	const addReply = (commentId, newReply) => {
 		setComments((prev) =>
 			prev.map((comment) =>
@@ -66,7 +65,6 @@ export const CommentProvider = ({ children }) => {
 
 	return (
 		<CommentContext.Provider value={{ comments, addComment, addReply, addInternalComment }}>
-
 			{children}
 		</CommentContext.Provider>
 	);
