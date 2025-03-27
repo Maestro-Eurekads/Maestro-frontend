@@ -181,9 +181,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    // Step 4: Updated validation for FormatSelection
+    // Step 4: Enhanced validation for FormatSelection
     if (active === 4) {
       const selectedStages = campaignFormData?.funnel_stages || [];
+      const validatedStages = campaignFormData?.validatedStages || {};
       let hasValidFormat = false;
 
       for (const stage of selectedStages) {
@@ -201,7 +202,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             platform.format.some(f => f.format_type && f.num_of_visuals)
           );
 
-          const isStageValidated = campaignFormData?.validatedStages?.[stage];
+          const isStageValidated = validatedStages[stage];
 
           if (hasFormatSelected && isStageValidated) {
             hasValidFormat = true;
@@ -214,7 +215,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setTriggerFormatError(true);
         setAlert({
           variant: "error",
-          message: "Please select and validate at least one format for a funnel stage!",
+          message: "Please select and validate at least one media format for a funnel stage before proceeding!",
           position: "bottom-right",
         });
         hasError = true;

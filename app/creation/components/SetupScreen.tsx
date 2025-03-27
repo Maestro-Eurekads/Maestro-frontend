@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Title } from "../../../components/Title";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import ClientSelection from "../../../components/ClientSelection";
@@ -46,7 +46,7 @@ export const SetupScreen = () => {
       verifyStep("step0", isValid, cId);
       setPreviousValidationState(isValid);
     }
-  }, [campaignData, previousValidationState, verifyStep]);
+  }, [campaignData, previousValidationState, verifyStep, cId]);
 
   useEffect(() => {
     if (alert) {
@@ -78,21 +78,12 @@ export const SetupScreen = () => {
   }, []);
 
   useEffect(() => {
-    if (alert) {
-      const timer = setTimeout(() => setAlert(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [alert]);
-
-  useEffect(() => {
     if (allClients) {
-      const options = allClients.map(
-        (c: { documentId: string; client_name: string }) => ({
-          id: c?.documentId,
-          value: c?.client_name,
-          label: c?.client_name,
-        })
-      );
+      const options = allClients.map((c) => ({
+        id: c?.documentId,
+        value: c?.client_name,
+        label: c?.client_name,
+      }));
       setClientOptions(options);
     }
   }, [allClients]);
@@ -104,27 +95,27 @@ export const SetupScreen = () => {
         value: l,
         label: l,
       }));
-      return options;
+      return options || [];
     });
     setlevel2Options(() => {
       const options = client?.level_2?.map((l) => ({
         value: l,
         label: l,
       }));
-      return options;
+      return options || [];
     });
     setlevel3Options(() => {
       const options = client?.level_3?.map((l) => ({
         value: l,
         label: l,
       }));
-      return options;
+      return options || [];
     });
     setCampaignFormData((prev) => ({
       ...prev,
       approver: client?.approver,
     }));
-  }, [client_selection]);
+  }, [client_selection, allClients, setCampaignFormData]);
 
   const getInputValue = () => {
     if (campaignFormData?.budget_details_fee_type?.id === "Fix budget fee") {
@@ -172,12 +163,12 @@ export const SetupScreen = () => {
       const budgetDetails = {
         currency: campaignFormData?.budget_details_currency?.id,
         fee_type: campaignFormData?.budget_details_fee_type?.id,
-        sub_fee_type: selectedOption, // Save the selected option type
+        sub_fee_type: selectedOption,
         value: campaignFormData?.budget_details_value,
       };
 
       if (cId && campaignData) {
-        await updateCampaign({
+        const updatedData = {
           ...removeKeysRecursively(campaignData, ["id", "documentId", "createdAt", "publishedAt", "updatedAt"]),
           client: campaignFormData?.client_selection?.id,
           client_selection: {
@@ -191,7 +182,18 @@ export const SetupScreen = () => {
             internal_approver: campaignFormData?.approver,
           },
           budget_details: budgetDetails,
-        });
+        };
+
+        await updateCampaign(updatedData);
+
+        setCampaignFormData((prev) => ({
+          ...prev,
+          budget_details_currency: {
+            id: budgetDetails.currency,
+            value: budgetDetails.currency,
+            label: selectCurrency.find((c) => c.value === budgetDetails.currency)?.label || budgetDetails.currency,
+          },
+        }));
 
         setAlert({ variant: "success", message: "Campaign updated successfully!", position: "bottom-right" });
 
@@ -201,10 +203,19 @@ export const SetupScreen = () => {
         url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
         window.history.pushState({}, "", url.toString());
         await getActiveCampaign(res?.data?.data.documentId);
+
+        setCampaignFormData((prev) => ({
+          ...prev,
+          budget_details_currency: {
+            id: budgetDetails.currency,
+            value: budgetDetails.currency,
+            label: selectCurrency.find((c) => c.value === budgetDetails.currency)?.label || budgetDetails.currency,
+          },
+        }));
+
         setAlert({ variant: "success", message: "Campaign created successfully!", position: "bottom-right" });
       }
       setHasChanges(false);
-
     } catch (error) {
       setAlert({ variant: "error", message: "Something went wrong. Please try again.", position: "bottom-right" });
     } finally {
@@ -224,9 +235,8 @@ export const SetupScreen = () => {
   }, [campaignFormData?.budget_details_currency?.id]);
 
   useEffect(() => {
-    setIsStepZeroValid(prev => !prev);
-    setTimeout(() => setIsStepZeroValid(requiredFields.every(field => field)), 0);
-  }, [campaignFormData, cId]);
+    setIsStepZeroValid(requiredFields.every((field) => field));
+  }, [requiredFields]);
 
   useEffect(() => {
     let fields = [];
@@ -252,7 +262,6 @@ export const SetupScreen = () => {
     }
 
     setRequiredFields(fields);
-    setIsStepZeroValid(fields.some((field) => field !== undefined && field !== ""));
   }, [campaignFormData, cId]);
 
   return (
@@ -281,7 +290,6 @@ export const SetupScreen = () => {
             formId="level_1"
             setHasChanges={setHasChanges}
           />
-
           <ClientSelection
             options={level2Options}
             label={"Business Level 2"}
@@ -295,9 +303,9 @@ export const SetupScreen = () => {
             setHasChanges={setHasChanges}
           />
         </div>
-        <div className=" pb-12">
+        <div className="pb-12">
           <Title>Media Plan details</Title>
-          <div className="client_selection_flow flex flex-wrap gap-4 ">
+          <div className="client_selection_flow flex flex-wrap gap-4">
             <ClientSelectionInput
               label={"Enter media plan name"}
               formId="media_plan"
@@ -353,7 +361,8 @@ export const SetupScreen = () => {
               <ClientSelectionInputbudget
                 label={getInputValue()}
                 formId="budget_details_value"
-                currencySign={currencySign}
+                currencySign={selectedOption === "percentage" ? "%" : currencySign}
+                isSuffix={selectedOption === "percentage"} // Controls whether sign is suffix or prefix
               />
             </div>
           </div>
