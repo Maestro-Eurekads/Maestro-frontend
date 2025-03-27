@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Title } from "../../../components/Title";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import ClientSelection from "../../../components/ClientSelection";
@@ -25,24 +25,20 @@ export const SetupScreen = () => {
     setCampaignFormData,
   } = useCampaigns();
   const { client_selection } = campaignFormData;
-  // const [isEditing, setIsEditing] = useState(true);
   const [selectedOption, setSelectedOption] = useState("percentage");
   const [previousValidationState, setPreviousValidationState] = useState(null);
-  const [isStepZeroValid, setIsStepZeroValid] = useState(false); //   Track form validity
+  const [isStepZeroValid, setIsStepZeroValid] = useState(false);
   const [clientOptions, setClientOptions] = useState([]);
   const [level1Options, setlevel1Options] = useState([]);
   const [level2Options, setlevel2Options] = useState([]);
   const [level3Options, setlevel3Options] = useState([]);
-  const [requiredFields, setRequiredFields] = useState<string[]>([]);
-  const [hasChanges, setHasChanges] = useState(false);
+  const [requiredFields, setRequiredFields] = useState([]);
   const [currencySign, setCurrencySign] = useState("");
 
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const { verifyStep, verifybeforeMove, setverifybeforeMove } = useVerification();
-
-
+  const { verifyStep, verifybeforeMove, setverifybeforeMove, setHasChanges, hasChanges } = useVerification();
 
   useEffect(() => {
     const isValid = validationRules["step0"](campaignData);
@@ -50,7 +46,7 @@ export const SetupScreen = () => {
       verifyStep("step0", isValid, cId);
       setPreviousValidationState(isValid);
     }
-  }, [campaignData, previousValidationState, verifyStep]);
+  }, [campaignData, previousValidationState, verifyStep, cId]);
 
   useEffect(() => {
     if (alert) {
@@ -70,7 +66,6 @@ export const SetupScreen = () => {
     localStorage.setItem("verifybeforeMove", JSON.stringify(verifybeforeMove));
   }, [verifybeforeMove]);
 
-
   useEffect(() => {
     const resetChanges = () => {
       setHasChanges(false);
@@ -80,25 +75,15 @@ export const SetupScreen = () => {
     return () => {
       window.removeEventListener("focus", resetChanges);
     };
-  }, []);
-  //  Automatically reset alert after showing
-  useEffect(() => {
-    if (alert) {
-      const timer = setTimeout(() => setAlert(null), 3000); // Reset after 3 seconds
-      return () => clearTimeout(timer);
-    }
-  }, [alert]);
-
+  }, [setHasChanges]);
 
   useEffect(() => {
     if (allClients) {
-      const options = allClients.map(
-        (c: { documentId: string; client_name: string }) => ({
-          id: c?.documentId,
-          value: c?.client_name,
-          label: c?.client_name,
-        })
-      );
+      const options = allClients.map((c) => ({
+        id: c?.documentId,
+        value: c?.client_name,
+        label: c?.client_name,
+      }));
       setClientOptions(options);
     }
   }, [allClients]);
@@ -110,47 +95,43 @@ export const SetupScreen = () => {
         value: l,
         label: l,
       }));
-      return options;
+      return options || [];
     });
     setlevel2Options(() => {
       const options = client?.level_2?.map((l) => ({
         value: l,
         label: l,
       }));
-      return options;
+      return options || [];
     });
     setlevel3Options(() => {
       const options = client?.level_3?.map((l) => ({
         value: l,
         label: l,
       }));
-      return options;
+      return options || [];
     });
     setCampaignFormData((prev) => ({
       ...prev,
       approver: client?.approver,
     }));
-  }, [client_selection]);
-
-
+  }, [client_selection, allClients, setCampaignFormData]);
 
   const getInputValue = () => {
-    if (campaignFormData?.budget_details_fee_type?.id !== "Tooling") {
-      return "€10";
+    if (campaignFormData?.budget_details_fee_type?.id === "Fix budget fee") {
+      return "Enter amount";
     }
 
-    if (selectedOption === "fix-amount") {
-      return "€10";
-    } else if (selectedOption === "percentage") {
-      return "15%";
+    if (campaignFormData?.budget_details_fee_type?.id === "Tooling") {
+      if (selectedOption === "fix-amount") {
+        return "Enter amount";
+      } else if (selectedOption === "percentage") {
+        return "Enter percentage";
+      }
     }
 
     return "";
   };
-
-
-
-
 
   const selectCurrency = [
     { value: "US Dollar (USD)", label: "US Dollar (USD)", sign: "$" },
@@ -161,64 +142,30 @@ export const SetupScreen = () => {
     { value: "Canadian Dollar (CAD)", label: "Canadian Dollar (CAD)", sign: "C$" },
   ];
 
-  // Extract all currency signs into an array
-  const currencySigns = selectCurrency.map((currency) => currency.sign);
-
-
-  console.log('campaignFormData-campaignFormData', currencySign)
-
   const mediaBudgetPercentage = [
     { value: "Tooling", label: "Tooling" },
     { value: "Fix budget fee", label: "Fix budget fee" },
   ];
-  // const updateCampaignData = async (data: any) => {
-  //   await updateCampaign(data);
-  //   await getActiveCampaign(data);
-  // };
 
-
+  // Updated useEffect to handle currencySign dynamically
   useEffect(() => {
-    setIsStepZeroValid(prev => !prev);  // Toggle state
-    setTimeout(() => setIsStepZeroValid(requiredFields.every(field => field)), 0);
-  }, [campaignFormData, cId]);
-
-
-
-
-  useEffect(() => {
-    let fields = [];
-
-    if (cId) {
-      //   Editing an existing campaign
-      fields = [
-        campaignFormData?.client_selection?.value,
-        campaignFormData?.media_plan,
-        campaignFormData?.approver,
-        campaignFormData?.budget_details_currency?.id,
-        campaignFormData?.budget_details_fee_type?.id,
-        campaignFormData?.budget_details_value,
-      ];
-    } else {
-      //   Creating a new campaign
-      fields = [
-        campaignFormData?.client_selection?.value,
-        campaignFormData?.media_plan,
-        campaignFormData?.approver,
-        campaignFormData?.budget_details_currency?.id,
-        campaignFormData?.budget_details_fee_type?.id,
-        campaignFormData?.budget_details_value,
-      ];
+    if (campaignFormData?.budget_details_currency?.id) {
+      const currency = selectCurrency.find(
+        (c) => c.value === campaignFormData.budget_details_currency.id
+      );
+      if (currency) {
+        if (campaignFormData?.budget_details_fee_type?.id === "Fix budget fee") {
+          setCurrencySign(currency.sign); // Currency symbol for Fix budget fee
+        } else if (campaignFormData?.budget_details_fee_type?.id === "Tooling") {
+          setCurrencySign(selectedOption === "percentage" ? "%" : currency.sign); // % for percentage, currency for fix-amount
+        }
+      }
     }
-
-    //   Store fields for reference
-    setRequiredFields(fields);
-
-    //   Enable button if ANY field is changed (not necessarily filled)
-    setIsStepZeroValid(fields.some((field) => field !== undefined && field !== ""));
-  }, [campaignFormData, cId]); //   Re-run only when form data changes
-
-
-
+  }, [
+    campaignFormData?.budget_details_currency?.id,
+    campaignFormData?.budget_details_fee_type?.id,
+    selectedOption,
+  ]);
 
   const handleStepZero = async () => {
     setLoading(true);
@@ -233,9 +180,15 @@ export const SetupScreen = () => {
         return;
       }
 
-      // Perform API operations
+      const budgetDetails = {
+        currency: campaignFormData?.budget_details_currency?.id,
+        fee_type: campaignFormData?.budget_details_fee_type?.id,
+        sub_fee_type: selectedOption,
+        value: campaignFormData?.budget_details_value,
+      };
+
       if (cId && campaignData) {
-        await updateCampaign({
+        const updatedData = {
           ...removeKeysRecursively(campaignData, ["id", "documentId", "createdAt", "publishedAt", "updatedAt"]),
           client: campaignFormData?.client_selection?.id,
           client_selection: {
@@ -248,49 +201,41 @@ export const SetupScreen = () => {
             plan_name: campaignFormData?.media_plan,
             internal_approver: campaignFormData?.approver,
           },
-          budget_details: {
-            currency: campaignFormData?.budget_details_currency?.id,
-            fee_type: campaignFormData?.budget_details_fee_type?.id,
-            sub_fee_type: campaignFormData?.budget_details_sub_fee_type,
-            value: campaignFormData?.budget_details_value,
+          budget_details: budgetDetails,
+        };
+
+        await updateCampaign(updatedData);
+
+        setCampaignFormData((prev) => ({
+          ...prev,
+          budget_details_currency: {
+            id: budgetDetails.currency,
+            value: budgetDetails.currency,
+            label: selectCurrency.find((c) => c.value === budgetDetails.currency)?.label || budgetDetails.currency,
           },
-        });
+        }));
 
         setAlert({ variant: "success", message: "Campaign updated successfully!", position: "bottom-right" });
-        // After verification, set step0 to false
-        setverifybeforeMove((prev: any) => {
-          if (!Array.isArray(prev)) {
-            return prev; // Return as is if it's not an array
-          }
-
-          return prev.map((step: any) =>
-            step.hasOwnProperty("step0") ? { ...step, step0: true } : step
-          );
-        });
-        setHasChanges(false); // Reset changes tracking
       } else {
         const res = await createCampaign();
         const url = new URL(window.location.href);
         url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
         window.history.pushState({}, "", url.toString());
         await getActiveCampaign(res?.data?.data.documentId);
+
+        setCampaignFormData((prev) => ({
+          ...prev,
+          budget_details_currency: {
+            id: budgetDetails.currency,
+            value: budgetDetails.currency,
+            label: selectCurrency.find((c) => c.value === budgetDetails.currency)?.label || budgetDetails.currency,
+          },
+        }));
+
         setAlert({ variant: "success", message: "Campaign created successfully!", position: "bottom-right" });
       }
-      setHasChanges(false); // Reset changes tracking
-      // After verification, set step0 to false
-      setverifybeforeMove((prev: any) => {
-        if (!Array.isArray(prev)) {
-          return prev; // Return as is if it's not an array
-        }
-
-        return prev.map((step: any) =>
-          step.hasOwnProperty("step0") ? { ...step, step0: true } : step
-        );
-      });
-
-
+      setHasChanges(false);
     } catch (error) {
-      // console.error("Error in handleStepZero:", error);
       setAlert({ variant: "error", message: "Something went wrong. Please try again.", position: "bottom-right" });
     } finally {
       setLoading(false);
@@ -298,26 +243,43 @@ export const SetupScreen = () => {
   };
 
   useEffect(() => {
-    if (campaignFormData?.budget_details_currency?.id) {
-      // Find the matching currency object
-      const currency = selectCurrency.find(
-        (c) => c.value === campaignFormData.budget_details_currency.id
-      );
+    setIsStepZeroValid(requiredFields.every((field) => field));
+  }, [requiredFields]);
 
-      // Update state with the currency sign
-      setCurrencySign(currency ? currency.sign : "");
+  useEffect(() => {
+    let fields = [];
+
+    if (cId) {
+      fields = [
+        campaignFormData?.client_selection?.value,
+        campaignFormData?.media_plan,
+        campaignFormData?.approver,
+        campaignFormData?.budget_details_currency?.id,
+        campaignFormData?.budget_details_fee_type?.id,
+        campaignFormData?.budget_details_value,
+      ];
+    } else {
+      fields = [
+        campaignFormData?.client_selection?.value,
+        campaignFormData?.media_plan,
+        campaignFormData?.approver,
+        campaignFormData?.budget_details_currency?.id,
+        campaignFormData?.budget_details_fee_type?.id,
+        campaignFormData?.budget_details_value,
+      ];
     }
-  }, [campaignFormData?.budget_details_currency?.id]);
+
+    setRequiredFields(fields);
+  }, [campaignFormData, cId]);
+
   return (
     <div>
-      {/* <div className="flex w-full items-center justify-between"> */}
       <PageHeaderWrapper
         t1={"Set up your new campaign"}
         t2={"Fill in the following information to define the foundation of your media plan."}
         t3={"This information helps structure your campaign strategy and align with business goals."}
       />
 
-      {/* Show Alert */}
       {alert && <AlertMain alert={alert} />}
       <div className="mt-[42px]">
         <Title>Client selection</Title>
@@ -336,7 +298,6 @@ export const SetupScreen = () => {
             formId="level_1"
             setHasChanges={setHasChanges}
           />
-
           <ClientSelection
             options={level2Options}
             label={"Business Level 2"}
@@ -350,9 +311,9 @@ export const SetupScreen = () => {
             setHasChanges={setHasChanges}
           />
         </div>
-        <div className=" pb-12">
+        <div className="pb-12">
           <Title>Media Plan details</Title>
-          <div className="client_selection_flow flex flex-wrap gap-4 ">
+          <div className="client_selection_flow flex flex-wrap gap-4">
             <ClientSelectionInput
               label={"Enter media plan name"}
               formId="media_plan"
@@ -404,18 +365,20 @@ export const SetupScreen = () => {
                 </div>
               </div>
             )}
-            {/* Display the selected value */}
             <div className="w-full">
               <ClientSelectionInputbudget
                 label={getInputValue()}
                 formId="budget_details_value"
                 currencySign={currencySign}
+                isSuffix={
+                  campaignFormData?.budget_details_fee_type?.id === "Tooling" &&
+                  selectedOption === "percentage"
+                }
               />
             </div>
           </div>
         </div>
       </div>
-      {/*   BUTTON - Enabled only when required fields are filled */}
 
       {hasChanges && (
         <div className="flex justify-end pr-6 mt-[20px]">
@@ -427,10 +390,6 @@ export const SetupScreen = () => {
           </button>
         </div>
       )}
-
-
     </div>
   );
 };
-
-

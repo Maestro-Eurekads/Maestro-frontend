@@ -11,7 +11,6 @@ import { removeKeysRecursively } from "utils/removeID";
 import { SVGLoader } from "components/SVGLoader";
 import { useSearchParams } from "next/navigation";
 
-
 const DefineCampaignObjective = () => {
   const {
     campaignData,
@@ -23,15 +22,26 @@ const DefineCampaignObjective = () => {
   } = useCampaigns();
   const searchParams = useSearchParams();
   const { selectedObjectives, setSelectedObjectives } = useObjectives();
-  const { verifyStep, validateStep, verifybeforeMove, setverifybeforeMove } = useVerification();
+  const { verifyStep, validateStep, setHasChanges, hasChanges } = useVerification();
   const campaignId = searchParams.get("campaignId");
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const [previousValidationState, setPreviousValidationState] = useState<boolean | null>(null);
-  const [tempSelectedObjective, setTempSelectedObjective] = useState<{id: number, title: string}[]>([]);
+  const [tempSelectedObjective, setTempSelectedObjective] = useState<{ id: number, title: string }[]>([]);
 
-  //   Auto-hide alert after 3 seconds
+  // Load initial campaign data and validation state from localStorage
+  useEffect(() => {
+    if (campaignId) {
+      getActiveCampaign(campaignId);
+      const savedValidationState = localStorage.getItem(`step1_validated_${campaignId}`);
+      if (savedValidationState) {
+        setPreviousValidationState(JSON.parse(savedValidationState));
+      }
+    }
+  }, [campaignId]);
+
+  // Auto-hide alert after 3 seconds
   useEffect(() => {
     if (alert) {
       const timer = setTimeout(() => setAlert(null), 3000);
@@ -39,21 +49,15 @@ const DefineCampaignObjective = () => {
     }
   }, [alert]);
 
-  // Validate step on mount & when form data changes
+  // Validate step and persist validation state
   useEffect(() => {
     const isValid = validationRules["step1"](campaignData);
-    if (isValid !== previousValidationState) {
+    if (isValid !== previousValidationState && campaignId) {
       verifyStep("step1", isValid, cId);
       setPreviousValidationState(isValid);
+      localStorage.setItem(`step1_validated_${campaignId}`, JSON.stringify(isValid));
     }
-  }, [campaignData, cId, previousValidationState, verifyStep]);
-
-  // Load initial campaign data
-  useEffect(() => {
-    if (campaignId) {
-      getActiveCampaign(campaignId);
-    }
-  }, [campaignId]);
+  }, [campaignData, cId, previousValidationState, verifyStep, campaignId]);
 
   // Load saved objective on mount
   useEffect(() => {
@@ -79,7 +83,7 @@ const DefineCampaignObjective = () => {
   }, [campaignData, setCampaignFormData, setSelectedObjectives]);
 
   const handleStepOne = async () => {
-    if (!validateStep("step1", campaignFormData, cId)) {
+    if (tempSelectedObjective?.length === 0) {
       setAlert({
         variant: "error",
         message: "Please select at least one campaign objective!",
@@ -114,14 +118,16 @@ const DefineCampaignObjective = () => {
 
       // Update the actual selected objectives after validation
       setSelectedObjectives(tempSelectedObjective);
-      
+
       setAlert({ variant: "success", message: "Campaign Objective successfully updated!", position: "bottom-right" });
       setIsEditing(false);
-      // Mark step1 as verified
-      setverifybeforeMove((prev) => ({
-        ...prev,
-        [cId]: { ...(prev[cId] || {}), step1: true },
-      }));
+      setHasChanges(false);
+
+      // Save validation state after successful update
+      if (campaignId) {
+        localStorage.setItem(`step1_validated_${campaignId}`, JSON.stringify(true));
+      }
+
     } catch (error) {
       const errors: any = error.response?.data?.error?.details?.errors || error.response?.data?.error?.message || error.message || [];
       setAlert({ variant: "error", message: errors, position: "bottom-right" });
@@ -147,6 +153,7 @@ const DefineCampaignObjective = () => {
 
   const handleEditClick = () => {
     setIsEditing(true);
+    setHasChanges(true)
     // Initialize temp selection with current selection
     setTempSelectedObjective([...selectedObjectives]);
   };
@@ -172,7 +179,7 @@ const DefineCampaignObjective = () => {
       {/* Alert Notification */}
       <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-[80px] mt-[50px] place-items-center">
         {campaignObjectives.map(item => {
-          const isSelected = isEditing 
+          const isSelected = isEditing
             ? tempSelectedObjective.some(obj => obj.id === item.id)
             : selectedObjectives.some(obj => obj.id === item.id);
           return (
@@ -191,7 +198,6 @@ const DefineCampaignObjective = () => {
       {isEditing && (
         <div className="flex justify-end pr-6 mt-[50px]">
           <button
-            disabled={tempSelectedObjective.length === 0}
             onClick={handleStepOne}
             className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg text-white font-semibold text-base leading-6 transition-colors bg-[#3175FF] hover:bg-[#2557D6]"
           >

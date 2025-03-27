@@ -18,7 +18,7 @@ import checkfill from "../public/mingcute_check-fill.svg";
 import Calender from "../public/Calender.svg";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import Skeleton from "react-loading-skeleton";
-import { CapitalizeFirstLetter } from "./Options";
+
 
 
 const SideNav: React.FC = () => {
