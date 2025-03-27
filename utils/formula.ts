@@ -31,8 +31,8 @@ export const calculateEngagements: FormulaFunction = (impression, engRate) => {
   return impression * engRate;
 };
 
-const calculateCPE: FormulaFunction = (budget, engagements) => {
-  return budget / engagements;
+export const calculateCPE: FormulaFunction = (budget, engagements) => {
+  return Math.round(budget / engagements);
 };
 
 export const calculateLinkClicks: FormulaFunction = (impression, ctr) => {
@@ -67,7 +67,7 @@ const calculateCostPerLead: FormulaFunction = (budget, leadVisits) => {
   return budget / leadVisits;
 };
 
-const calculateConversion: FormulaFunction = (leadVisits, cvr) => {
+export const calculateConversion: FormulaFunction = (leadVisits, cvr) => {
   return leadVisits * cvr;
 };
 

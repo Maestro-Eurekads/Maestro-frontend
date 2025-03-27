@@ -47,7 +47,7 @@ export const tableHeaders = {
       showInput: true,
     },
     {
-      name: "Engagemnets",
+      name: "Engagements",
       showInput: false,
     },
     {
@@ -254,7 +254,7 @@ export const tableHeaders = {
       showInput: false,
     },
     {
-      name: "Cosy / conversion",
+      name: "Cost / conversion",
       showInput: false,
     },
     {

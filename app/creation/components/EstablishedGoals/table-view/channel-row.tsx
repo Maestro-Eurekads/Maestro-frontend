@@ -3,10 +3,13 @@
 import React from "react";
 import {
   calculateCompletedView,
+  calculateConversion,
   calculateCPC,
   calculateCPCV,
+  calculateCPE,
   calculateCPL,
   calculateCPV,
+  calculateEngagements,
   calculateImpression,
   calculateLands,
   calculateLinkClicks,
@@ -73,7 +76,31 @@ export const ChannelRow = ({
     cpi: calculateCPL(
       Number(chData["budget"]?.["fixed_value"]),
       Number(chData["kpi"]?.["installs"])
-    )
+    ),
+    engagements: calculateEngagements(
+      Number(chData["kpi"]?.["impressions"]),
+      Number(chData["kpi"]?.["eng_rate"])
+    ),
+    cpe: calculateCPE(
+      Number(chData["budget"]?.["fixed_value"]),
+      Number(chData["kpi"]?.["engagements"])
+    ),
+    app_open: calculateLands(
+      Number(chData["kpi"]?.["link_clicks"]),
+      Number(chData["kpi"]?.["open_rate"])
+    ),
+    cost__app_open: calculateCPL(
+      Number(chData["budget"]?.["fixed_value"]),
+      Number(chData["kpi"]?.["app_open"])
+    ),
+    conversion: calculateConversion(
+      Number(chData["kpi"]?.["app_open"]),
+      Number(chData["kpi"]?.["cvr"])
+    ),
+    cost__conversion: calculateCPL(
+      Number(chData["budget"]?.["fixed_value"]),
+      Number(chData["kpi"]?.["conversion"])
+    ),
   };
 
   // Save calculated values to state when dependencies change
@@ -208,6 +235,84 @@ export const ChannelRow = ({
         ""
       );
     }
+    if (
+      !isNaN(calculatedValues.engagements) &&
+      isFinite(calculatedValues.engagements)
+    ) {
+      handleEditInfo(
+        stage.name,
+        channel?.channel_name,
+        channel?.name,
+        "engagements",
+        calculatedValues.engagements,
+        ""
+      );
+    }
+    if (
+      !isNaN(calculatedValues.cpe) &&
+      isFinite(calculatedValues.cpe)
+    ) {
+      handleEditInfo(
+        stage.name,
+        channel?.channel_name,
+        channel?.name,
+        "cpe",
+        calculatedValues.cpe,
+        ""
+      );
+    }
+    if (
+      !isNaN(calculatedValues.app_open) &&
+      isFinite(calculatedValues.app_open)
+    ) {
+      handleEditInfo(
+        stage.name,
+        channel?.channel_name,
+        channel?.name,
+        "app_open",
+        calculatedValues.app_open,
+        ""
+      );
+    }
+    if (
+      !isNaN(calculatedValues.cost__app_open) &&
+      isFinite(calculatedValues.cost__app_open)
+    ) {
+      handleEditInfo(
+        stage.name,
+        channel?.channel_name,
+        channel?.name,
+        "cost__app_open",
+        calculatedValues.cost__app_open,
+        ""
+      );
+    }
+    if (
+      !isNaN(calculatedValues.conversion) &&
+      isFinite(calculatedValues.conversion)
+    ) {
+      handleEditInfo(
+        stage.name,
+        channel?.channel_name,
+        channel?.name,
+        "conversion",
+        calculatedValues.conversion,
+        ""
+      );
+    }
+    if (
+      !isNaN(calculatedValues.cost__conversion) &&
+      isFinite(calculatedValues.cost__conversion)
+    ) {
+      handleEditInfo(
+        stage.name,
+        channel?.channel_name,
+        channel?.name,
+        "cost__conversion",
+        calculatedValues.cost__conversion,
+        ""
+      );
+    }
   }, [
     chData?.kpi?.cpm,
     chData?.kpi?.frequency,
@@ -215,6 +320,9 @@ export const ChannelRow = ({
     chData?.kpi?.completion_rate,
     chData?.kpi?.ctr,
     chData?.kpi?.install_rate,
+    chData?.kpi?.eng_rate,
+    chData?.kpi?.open_rate,
+    chData?.kpi?.cvr,
     // We don't include impressions in the dependency array when calculating reach
     // to avoid circular dependencies
   ]);

@@ -113,6 +113,36 @@ export const CellRenderer = ({
     return isNaN(value) || !isFinite(value) ? "-" : value;
   }
 
+  if (body === "engagements") {
+    const value = calculatedValues.engagements;
+    return isNaN(value) || !isFinite(value) ? "-" : value;
+  }
+
+  if (body === "cpe") {
+    const value = calculatedValues.cpe;
+    return isNaN(value) || !isFinite(value) ? "-" : value;
+  }
+
+  if(body === "app_open"){
+    const value = calculatedValues.app_open;
+    return isNaN(value) || !isFinite(value) ? "-" : value;
+  }
+
+  if(body === "cost__app_open"){
+    const value = calculatedValues.cost__app_open;
+    return isNaN(value) || !isFinite(value) ? "-" : value;
+  }
+
+  if(body === "conversion"){
+    const value = calculatedValues.conversion;
+    return isNaN(value) || !isFinite(value) ? "-" : value;
+  }
+
+  if(body === "cost__conversion"){
+    const value = calculatedValues.cost__conversion;
+    return isNaN(value) || !isFinite(value) ? "-" : value;
+  }
+
   // Handle input fields and static values
   const showInput = tableHeaders[bodyIndex]?.showInput;
 
