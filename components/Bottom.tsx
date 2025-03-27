@@ -24,7 +24,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
   const [selectedDatesError, setSelectedDatesError] = useState(false);
   const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
-  const [triggerFormatError, setTriggerFormatError] = useState(false);
+  const [triggerFormatError, setTriggerFormatError] = useState(false); // Default to false
   const [validateStep, setValidateStep] = useState(false);
   const { selectedDates } = useSelectedDates();
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
@@ -42,7 +42,24 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     copy,
   } = useCampaigns();
 
-  // Auto-hide errors after 3 seconds
+  // Load triggerFormatError from localStorage on mount (client-side only)
+  useEffect(() => {
+    if (typeof window !== "undefined" && cId) {
+      const storedValue = localStorage.getItem(`triggerFormatError_${cId}`);
+      setTriggerFormatError(storedValue === "true");
+      console.log(`Loaded triggerFormatError_${cId} from localStorage: ${storedValue}`);
+    }
+  }, [cId]);
+
+  // Persist triggerFormatError in localStorage when it changes
+  useEffect(() => {
+    if (typeof window !== "undefined" && cId) {
+      localStorage.setItem(`triggerFormatError_${cId}`, triggerFormatError.toString());
+      console.log(`Persisted triggerFormatError_${cId}: ${triggerFormatError}`);
+    }
+  }, [triggerFormatError, cId]);
+
+  // Auto-hide other errors after 3 seconds
   useEffect(() => {
     if (
       triggerObjectiveError ||
@@ -51,7 +68,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       setupyournewcampaignError ||
       triggerChannelMixError ||
       incompleteFieldsError ||
-      triggerFormatError ||
       triggerBuyObjectiveError ||
       validateStep
     ) {
@@ -62,9 +78,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         SetupyournewcampaignError(false);
         setTriggerChannelMixError(false);
         setIncompleteFieldsError(false);
-        setTriggerFormatError(false);
         setTriggerBuyObjectiveError(false);
         setValidateStep(false);
+        setAlert(null);
       }, 3000);
       return () => clearTimeout(timer);
     }
@@ -75,10 +91,43 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     setupyournewcampaignError,
     triggerChannelMixError,
     incompleteFieldsError,
-    triggerFormatError,
     triggerBuyObjectiveError,
-    validateStep
+    validateStep,
   ]);
+
+  // Validation function for Format Selection
+  const validateFormatSelection = () => {
+    const selectedStages = campaignFormData?.funnel_stages || [];
+    const validatedStages = campaignFormData?.validatedStages || {};
+    let hasValidFormat = false;
+
+    for (const stage of selectedStages) {
+      const stageData = campaignFormData?.channel_mix?.find(
+        (mix) => mix.funnel_stage === stage
+      );
+
+      if (stageData) {
+        const hasFormatSelected = [
+          ...(stageData.social_media || []),
+          ...(stageData.display_networks || []),
+          ...(stageData.search_engines || []),
+        ].some((platform) =>
+          platform.format?.length > 0 &&
+          platform.format.some((f) => f.format_type && f.num_of_visuals)
+        );
+
+        const isStageValidated = validatedStages[stage];
+
+        if (hasFormatSelected && isStageValidated) {
+          hasValidFormat = true;
+          break;
+        }
+      }
+    }
+
+    console.log("Format Validation Result:", hasValidFormat);
+    return hasValidFormat;
+  };
 
   const handleBack = () => {
     if (subStep > 0) {
@@ -89,14 +138,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
   };
 
-
-
   const handleContinue = async () => {
     setLoading(true);
     let hasError = false;
-
-
-
 
     // Step 0 validation
     if (active === 0) {
@@ -119,7 +163,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         hasError = true;
       }
 
-
       if (hasChanges) {
         setValidateStep(true);
         hasError = true;
@@ -136,15 +179,16 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     // Step 2: Ensure at least one funnel stage is selected
     if (active === 2) {
-      if (!campaignFormData?.funnel_stages || campaignFormData.funnel_stages.length === 0) {
+      if (
+        !campaignFormData?.funnel_stages ||
+        campaignFormData.funnel_stages.length === 0
+      ) {
         setTriggerFunnelError(true);
-
         setAlert({
           variant: "error",
           message: "Please select at least one funnel stage before continuing!",
           position: "bottom-right",
         });
-
         hasError = true;
       }
 
@@ -152,10 +196,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setValidateStep(true);
         hasError = true;
       }
-
-
     }
-
 
     // Step 3: Ensure at least one channel is validated
     if (active === 3) {
@@ -163,14 +204,20 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       const validatedStages = campaignFormData?.validatedStages || {};
 
       const hasUnvalidatedSelectedStage = selectedStages.some((stage) => {
-        const isSelected = campaignFormData?.channel_mix?.some((mix) =>
-          mix.funnel_stage === stage &&
-          (mix.social_media?.length > 0 || mix.display_networks?.length > 0 || mix.search_engines?.length > 0)
+        const isSelected = campaignFormData?.channel_mix?.some(
+          (mix) =>
+            mix.funnel_stage === stage &&
+            (mix.social_media?.length > 0 ||
+              mix.display_networks?.length > 0 ||
+              mix.search_engines?.length > 0)
         );
         return isSelected && !validatedStages[stage];
       });
 
-      if (hasUnvalidatedSelectedStage || !Object.values(validatedStages).some(Boolean)) {
+      if (
+        hasUnvalidatedSelectedStage ||
+        !Object.values(validatedStages).some(Boolean)
+      ) {
         setTriggerChannelMixError(true);
         setAlert({
           variant: "error",
@@ -181,44 +228,24 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    // Step 4: Enhanced validation for FormatSelection
+    // Step 4: Format Selection validation
     if (active === 4) {
-      const selectedStages = campaignFormData?.funnel_stages || [];
-      const validatedStages = campaignFormData?.validatedStages || {};
-      let hasValidFormat = false;
+      const isValidFormat = validateFormatSelection();
 
-      for (const stage of selectedStages) {
-        const stageData = campaignFormData?.channel_mix?.find(
-          (mix) => mix.funnel_stage === stage
-        );
-
-        if (stageData) {
-          const hasFormatSelected = [
-            ...(stageData.social_media || []),
-            ...(stageData.display_networks || []),
-            ...(stageData.search_engines || [])
-          ].some(platform =>
-            platform.format?.length > 0 &&
-            platform.format.some(f => f.format_type && f.num_of_visuals)
-          );
-
-          const isStageValidated = validatedStages[stage];
-
-          if (hasFormatSelected && isStageValidated) {
-            hasValidFormat = true;
-            break;
-          }
-        }
-      }
-
-      if (!hasValidFormat) {
+      if (!isValidFormat) {
         setTriggerFormatError(true);
         setAlert({
           variant: "error",
-          message: "Please select and validate at least one media format for a funnel stage before proceeding!",
+          message:
+            "Please select and validate at least one media format for a funnel stage before proceeding!",
           position: "bottom-right",
         });
         hasError = true;
+        console.log("Format validation failed, error set to true");
+      } else if (isValidFormat && triggerFormatError) {
+        setTriggerFormatError(false);
+        setAlert(null);
+        console.log("Format validation passed, error cleared");
       }
     }
 
@@ -228,9 +255,12 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       const validatedStages = campaignFormData?.validatedStages || {};
 
       const hasUnvalidatedSelectedStage = selectedStages.some((stage) => {
-        const isSelected = campaignFormData?.channel_mix?.some((mix) =>
-          mix.funnel_stage === stage &&
-          (mix.social_media?.length > 0 || mix.display_networks?.length > 0 || mix.search_engines?.length > 0)
+        const isSelected = campaignFormData?.channel_mix?.some(
+          (mix) =>
+            mix.funnel_stage === stage &&
+            (mix.social_media?.length > 0 ||
+              mix.display_networks?.length > 0 ||
+              mix.search_engines?.length > 0)
         );
         return isSelected && !validatedStages[stage];
       });
@@ -277,7 +307,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-
     if (hasError) {
       setLoading(false);
       return;
@@ -297,13 +326,15 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     };
 
-    const cleanData = campaignData ? removeKeysRecursively(campaignData, [
-      "id",
-      "documentId",
-      "createdAt",
-      "publishedAt",
-      "updatedAt",
-    ]) : {};
+    const cleanData = campaignData
+      ? removeKeysRecursively(campaignData, [
+          "id",
+          "documentId",
+          "createdAt",
+          "publishedAt",
+          "updatedAt",
+        ])
+      : {};
 
     const handleStepZero = async () => {
       if (cId && campaignData) {
@@ -379,7 +410,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
           "isValidated",
-          "formatValidated"
+          "formatValidated",
         ]),
       });
     };
@@ -420,7 +451,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             campaignFormData?.campaign_budget,
             ["id"]
           ),
-          goal_level: campaignFormData?.goal_level
+          goal_level: campaignFormData?.goal_level,
         });
       }
     };
@@ -527,7 +558,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-      {triggerFormatError && (
+      {triggerFormatError && active === 4 && (
         <AlertMain
           alert={{
             variant: "error",
@@ -593,8 +624,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                   {active === 0
                     ? "Start Creating"
                     : isHovered
-                      ? "Next Step"
-                      : "Continue"}
+                    ? "Next Step"
+                    : "Continue"}
                 </p>
                 <Image src={Continue} alt="Continue" />
               </>

@@ -32,7 +32,7 @@ export const SetupScreen = () => {
   const [level1Options, setlevel1Options] = useState([]);
   const [level2Options, setlevel2Options] = useState([]);
   const [level3Options, setlevel3Options] = useState([]);
-  const [requiredFields, setRequiredFields] = useState<string[]>([]);
+  const [requiredFields, setRequiredFields] = useState([]);
   const [currencySign, setCurrencySign] = useState("");
 
   const [alert, setAlert] = useState(null);
@@ -75,7 +75,7 @@ export const SetupScreen = () => {
     return () => {
       window.removeEventListener("focus", resetChanges);
     };
-  }, []);
+  }, [setHasChanges]);
 
   useEffect(() => {
     if (allClients) {
@@ -147,6 +147,26 @@ export const SetupScreen = () => {
     { value: "Fix budget fee", label: "Fix budget fee" },
   ];
 
+  // Updated useEffect to handle currencySign dynamically
+  useEffect(() => {
+    if (campaignFormData?.budget_details_currency?.id) {
+      const currency = selectCurrency.find(
+        (c) => c.value === campaignFormData.budget_details_currency.id
+      );
+      if (currency) {
+        if (campaignFormData?.budget_details_fee_type?.id === "Fix budget fee") {
+          setCurrencySign(currency.sign); // Currency symbol for Fix budget fee
+        } else if (campaignFormData?.budget_details_fee_type?.id === "Tooling") {
+          setCurrencySign(selectedOption === "percentage" ? "%" : currency.sign); // % for percentage, currency for fix-amount
+        }
+      }
+    }
+  }, [
+    campaignFormData?.budget_details_currency?.id,
+    campaignFormData?.budget_details_fee_type?.id,
+    selectedOption,
+  ]);
+
   const handleStepZero = async () => {
     setLoading(true);
     try {
@@ -196,7 +216,6 @@ export const SetupScreen = () => {
         }));
 
         setAlert({ variant: "success", message: "Campaign updated successfully!", position: "bottom-right" });
-
       } else {
         const res = await createCampaign();
         const url = new URL(window.location.href);
@@ -222,17 +241,6 @@ export const SetupScreen = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (campaignFormData?.budget_details_currency?.id) {
-      const currency = selectCurrency.find(
-        (c) => c.value === campaignFormData.budget_details_currency.id
-      );
-      if (currency) {
-        setCurrencySign(currency.sign);
-      }
-    }
-  }, [campaignFormData?.budget_details_currency?.id]);
 
   useEffect(() => {
     setIsStepZeroValid(requiredFields.every((field) => field));
@@ -361,8 +369,11 @@ export const SetupScreen = () => {
               <ClientSelectionInputbudget
                 label={getInputValue()}
                 formId="budget_details_value"
-                currencySign={selectedOption === "percentage" ? "%" : currencySign}
-                isSuffix={selectedOption === "percentage"} // Controls whether sign is suffix or prefix
+                currencySign={currencySign}
+                isSuffix={
+                  campaignFormData?.budget_details_fee_type?.id === "Tooling" &&
+                  selectedOption === "percentage"
+                }
               />
             </div>
           </div>
