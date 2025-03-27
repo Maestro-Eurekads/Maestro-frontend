@@ -17,16 +17,14 @@ interface BottomProps {
 }
 
 const Bottom = ({ setIsOpen }: BottomProps) => {
-  const { verifybeforeMove, hasChanges } = useVerification();
+  const { validateStep, verifybeforeMove = {}, setverifybeforeMove } = useVerification();
   const { active, setActive, subStep, setSubStep } = useActive();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
-  const [setupyournewcampaignError, setSetupyournewcampaignError] = useState(false);
+  const [setupyournewcampaignError, SetupyournewcampaignError] = useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
   const [selectedDatesError, setSelectedDatesError] = useState(false);
   const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
   const [triggerFormatError, setTriggerFormatError] = useState(false);
-  const [triggerFormatErrorCount, setTriggerFormatErrorCount] = useState(0); // New counter to force re-render
-  const [validateStep, setValidateStep] = useState(false);
   const { selectedDates } = useSelectedDates();
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
   const [triggerBuyObjectiveError, setTriggerBuyObjectiveError] = useState(false);
@@ -43,19 +41,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     copy,
   } = useCampaigns();
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && cId) {
-      const storedValue = localStorage.getItem(`triggerFormatError_${cId}`);
-      setTriggerFormatError(storedValue === "true");
-    }
-  }, [cId]);
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && cId) {
-      localStorage.setItem(`triggerFormatError_${cId}`, triggerFormatError.toString());
-    }
-  }, [triggerFormatError, cId]);
-
+  // Auto-hide errors after 3 seconds
   useEffect(() => {
     if (
       triggerObjectiveError ||
@@ -64,19 +50,18 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       setupyournewcampaignError ||
       triggerChannelMixError ||
       incompleteFieldsError ||
-      triggerBuyObjectiveError ||
-      validateStep
+      triggerFormatError ||
+      triggerBuyObjectiveError
     ) {
       const timer = setTimeout(() => {
         setTriggerObjectiveError(false);
         setTriggerFunnelError(false);
         setSelectedDatesError(false);
-        setSetupyournewcampaignError(false);
+        SetupyournewcampaignError(false);
         setTriggerChannelMixError(false);
         setIncompleteFieldsError(false);
+        setTriggerFormatError(false);
         setTriggerBuyObjectiveError(false);
-        setValidateStep(false);
-        setAlert(null);
       }, 3000);
       return () => clearTimeout(timer);
     }
@@ -87,70 +72,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     setupyournewcampaignError,
     triggerChannelMixError,
     incompleteFieldsError,
+    triggerFormatError,
     triggerBuyObjectiveError,
-    validateStep,
   ]);
-
-  const validateFormatSelection = () => {
-    const selectedStages = campaignFormData?.funnel_stages || [];
-    const validatedStages = campaignFormData?.validatedStages || {};
-    let hasValidFormat = false;
-
-    for (const stage of selectedStages) {
-      const stageData = campaignFormData?.channel_mix?.find(
-        (mix) => mix.funnel_stage === stage
-      );
-
-      if (stageData) {
-        const hasFormatSelected = [
-          ...(stageData.social_media || []),
-          ...(stageData.display_networks || []),
-          ...(stageData.search_engines || []),
-        ].some((platform) =>
-          platform.format?.length > 0 &&
-          platform.format.some((f) => f.format_type && f.num_of_visuals)
-        );
-
-        const isStageValidated = validatedStages[stage];
-
-        if (hasFormatSelected && isStageValidated) {
-          hasValidFormat = true;
-          break;
-        }
-      }
-    }
-    return hasValidFormat;
-  };
-
-  const validateBuyObjectiveSelection = () => {
-    const selectedStages = campaignFormData?.funnel_stages || [];
-    const validatedStages = campaignFormData?.validatedStages || {};
-
-    if (!selectedStages.length || !campaignFormData?.channel_mix) {
-      return false;
-    }
-
-    for (const stage of selectedStages) {
-      const stageData = campaignFormData.channel_mix.find(
-        (mix) => mix.funnel_stage === stage
-      );
-
-      if (stageData && validatedStages[stage]) {
-        const hasValidChannel = [
-          ...(stageData.social_media || []),
-          ...(stageData.display_networks || []),
-          ...(stageData.search_engines || []),
-        ].some(
-          (platform) => platform.buy_type && platform.objective_type
-        );
-
-        if (hasValidChannel) {
-          return true;
-        }
-      }
-    }
-    return false;
-  };
 
   const handleBack = () => {
     if (subStep > 0) {
@@ -165,6 +89,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     setLoading(true);
     let hasError = false;
 
+    // Step 0 validation
     if (active === 0) {
       const requiredFields = [
         campaignFormData?.client_selection?.value,
@@ -184,59 +109,52 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         });
         hasError = true;
       }
-
-      if (hasChanges) {
-        setValidateStep(true);
-        hasError = true;
-      }
     }
 
+    // Step 1: Campaign Objective validation
     if (active === 1) {
-      if (hasChanges) {
-        setValidateStep(true);
-        hasError = true;
-      }
-    }
-
-    if (active === 2) {
-      if (
-        !campaignFormData?.funnel_stages ||
-        campaignFormData.funnel_stages.length === 0
-      ) {
-        setTriggerFunnelError(true);
+      const campaignVerification = verifybeforeMove[cId] || {};
+      const isStep1Verified = campaignVerification.step1 === true;
+      
+      if (!cId || !isStep1Verified) {
+        setTriggerObjectiveError(true);
         setAlert({
           variant: "error",
-          message: "Please select at least one funnel stage before continuing!",
+          message: "Please select and validate a campaign objective before proceeding!",
           position: "bottom-right",
         });
         hasError = true;
       }
-
-      if (hasChanges) {
-        setValidateStep(true);
-        hasError = true;
-      }
     }
 
+    // Step 2: Ensure at least one funnel stage is selected
+    if (
+      active === 2 &&
+      (!campaignFormData?.funnel_stages || campaignFormData?.funnel_stages?.length === 0)
+    ) {
+      setTriggerFunnelError(true);
+      setAlert({
+        variant: "error",
+        message: "Please select at least one funnel stage before continuing!",
+        position: "bottom-right",
+      });
+      hasError = true;
+    }
+
+    // Step 3: Ensure at least one channel is validated
     if (active === 3) {
       const selectedStages = campaignFormData?.funnel_stages || [];
       const validatedStages = campaignFormData?.validatedStages || {};
 
       const hasUnvalidatedSelectedStage = selectedStages.some((stage) => {
-        const isSelected = campaignFormData?.channel_mix?.some(
-          (mix) =>
-            mix.funnel_stage === stage &&
-            (mix.social_media?.length > 0 ||
-              mix.display_networks?.length > 0 ||
-              mix.search_engines?.length > 0)
+        const isSelected = campaignFormData?.channel_mix?.some((mix) =>
+          mix.funnel_stage === stage &&
+          (mix.social_media?.length > 0 || mix.display_networks?.length > 0 || mix.search_engines?.length > 0)
         );
         return isSelected && !validatedStages[stage];
       });
 
-      if (
-        hasUnvalidatedSelectedStage ||
-        !Object.values(validatedStages).some(Boolean)
-      ) {
+      if (hasUnvalidatedSelectedStage || !Object.values(validatedStages).some(Boolean)) {
         setTriggerChannelMixError(true);
         setAlert({
           variant: "error",
@@ -247,50 +165,93 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
+    // Step 4: Enhanced validation for FormatSelection
     if (active === 4) {
-      const isValidFormat = validateFormatSelection();
-      if (!isValidFormat) {
+      const selectedStages = campaignFormData?.funnel_stages || [];
+      const validatedStages = campaignFormData?.validatedStages || {};
+      let hasValidFormat = false;
+
+      for (const stage of selectedStages) {
+        const stageData = campaignFormData?.channel_mix?.find(
+          (mix) => mix.funnel_stage === stage
+        );
+        
+        if (stageData) {
+          const hasFormatSelected = [
+            ...(stageData.social_media || []),
+            ...(stageData.display_networks || []),
+            ...(stageData.search_engines || [])
+          ].some(platform => 
+            platform.format?.length > 0 && 
+            platform.format.some(f => f.format_type && f.num_of_visuals)
+          );
+
+          const isStageValidated = validatedStages[stage];
+
+          if (hasFormatSelected && isStageValidated) {
+            hasValidFormat = true;
+            break;
+          }
+        }
+      }
+
+      if (!hasValidFormat) {
         setTriggerFormatError(true);
-        setTriggerFormatErrorCount((prev) => prev + 1); // Increment counter to force re-render
+        setAlert({
+          variant: "error",
+          message: "Please select and validate at least one media format for a funnel stage before proceeding!",
+          position: "bottom-right",
+        });
         hasError = true;
-      } else {
-        setTriggerFormatError(false);
-        setTriggerFormatErrorCount(0); // Reset counter when valid
       }
     }
 
+    // Step 5: Ensure Buy and objectives are validated
     if (active === 5) {
-      const isValidBuyObjective = validateBuyObjectiveSelection();
-      if (!isValidBuyObjective) {
+      const selectedStages = campaignFormData?.funnel_stages || [];
+      const validatedStages = campaignFormData?.validatedStages || {};
+
+      const hasUnvalidatedSelectedStage = selectedStages.some((stage) => {
+        const isSelected = campaignFormData?.channel_mix?.some((mix) =>
+          mix.funnel_stage === stage &&
+          (mix.social_media?.length > 0 || mix.display_networks?.length > 0 || mix.search_engines?.length > 0)
+        );
+        return isSelected && !validatedStages[stage];
+      });
+
+      if (hasUnvalidatedSelectedStage) {
         setTriggerBuyObjectiveError(true);
         setAlert({
           variant: "error",
-          message:
-            "Please select and validate at least one channel with buy type and objective before proceeding!",
+          message: "Please validate all selected stages before proceeding!",
           position: "bottom-right",
         });
         hasError = true;
-      } else {
-        setTriggerBuyObjectiveError(false);
-        setAlert(null);
+      }
+
+      const hasAnyValidatedBUObjective = Object.values(validatedStages).some(
+        (isValidated) => isValidated === true
+      );
+      if (!hasAnyValidatedBUObjective) {
+        setTriggerBuyObjectiveError(true);
+        setAlert({
+          variant: "error",
+          message: "Please validate at least one stage before proceeding!",
+          position: "bottom-right",
+        });
+        hasError = true;
       }
     }
 
-    if (active === 7) {
-      if ((!selectedDates?.to?.day || !selectedDates?.from?.day) && subStep < 1) {
-        setSelectedDatesError(true);
-        setAlert({
-          variant: "error",
-          message: "Choose your start and end date!",
-          position: "bottom-right",
-        });
-        hasError = true;
-      }
-
-      if (hasChanges) {
-        setValidateStep(true);
-        hasError = true;
-      }
+    // Step 7: Ensure dates are selected
+    if (active === 7 && (!selectedDates?.to?.day || !selectedDates?.from?.day) && subStep < 1) {
+      setSelectedDatesError(true);
+      setAlert({
+        variant: "error",
+        message: "Choose your start and end date!",
+        position: "bottom-right",
+      });
+      hasError = true;
     }
 
     if (hasError) {
@@ -312,15 +273,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     };
 
-    const cleanData = campaignData
-      ? removeKeysRecursively(campaignData, [
-          "id",
-          "documentId",
-          "createdAt",
-          "publishedAt",
-          "updatedAt",
-        ])
-      : {};
+    const cleanData = campaignData ? removeKeysRecursively(campaignData, [
+      "id",
+      "documentId",
+      "createdAt",
+      "publishedAt",
+      "updatedAt",
+    ]) : {};
 
     const handleStepZero = async () => {
       if (cId && campaignData) {
@@ -396,7 +355,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
           "isValidated",
-          "formatValidated",
+          "formatValidated"
         ]),
       });
     };
@@ -437,7 +396,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             campaignFormData?.campaign_budget,
             ["id"]
           ),
-          goal_level: campaignFormData?.goal_level,
+          goal_level: campaignFormData?.goal_level
         });
       }
     };
@@ -463,6 +422,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         await handleStepFour();
       }
 
+      // Proceed to the next step only if no errors
       if (active === 7) {
         subStep < 1 ? setSubStep((prev) => prev + 1) : setActive((prev) => prev + 1);
       } else if (active === 8) {
@@ -480,15 +440,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   return (
     <footer id="footer" className="w-full">
       {alert && <AlertMain alert={alert} />}
-      {validateStep && (
-        <AlertMain
-          alert={{
-            variant: "error",
-            message: "Please validate before proceeding!",
-            position: "bottom-right",
-          }}
-        />
-      )}
       {setupyournewcampaignError && (
         <AlertMain
           alert={{
@@ -543,10 +494,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-      {/* Use key to force re-mount of AlertMain on every error trigger */}
-      {triggerFormatError && active === 4 && (
+      {triggerFormatError && (
         <AlertMain
-          key={`format-error-${triggerFormatErrorCount}`} // Unique key to force re-render
           alert={{
             variant: "error",
             message: "Please select and validate at least one format!",
@@ -554,12 +503,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-      {triggerBuyObjectiveError && active === 5 && (
+      {triggerBuyObjectiveError && (
         <AlertMain
           alert={{
             variant: "error",
-            message:
-              "Please select and validate at least one channel with buy type and objective!",
+            message: "Please validate all selected stages before proceeding!",
             position: "bottom-right",
           }}
         />
