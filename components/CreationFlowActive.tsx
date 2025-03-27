@@ -10,7 +10,12 @@ const CreationFlowActive = ({ steps, close }) => {
   const [hydrated, setHydrated] = useState(false);
   const query = useSearchParams();
   const cId = query.get("campaignId");
-
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
   // Ensure component is mounted before rendering
   useEffect(() => {
     setHydrated(true);
@@ -23,12 +28,7 @@ const CreationFlowActive = ({ steps, close }) => {
     setActive(stepNumber);
   };
 
-  useEffect(() => {
-    if (alert) {
-      const timer = setTimeout(() => setAlert(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [alert]);
+
 
   return (
     <div id={close ? "Sidenavbar_active" : "Sidenavbar"}>
@@ -40,14 +40,14 @@ const CreationFlowActive = ({ steps, close }) => {
           const stepColor = isActive
             ? "bg-blue-500 text-white" // Active step (blue)
             : isCompleted
-            ? "bg-green-500 text-white" // Completed step (green)
-            : "bg-gray-300 text-gray-700"; // Inactive step (gray)
+              ? "bg-green-500 text-white" // Completed step (green)
+              : "bg-gray-300 text-gray-700"; // Inactive step (gray)
 
           const stepColors = isActive
             ? "SideBar_state_text_active"
             : isCompleted
-            ? "SideBar_state_text_done"
-            : "SideBar_state_text";
+              ? "SideBar_state_text_done"
+              : "SideBar_state_text";
 
           return (
             <div
@@ -56,10 +56,10 @@ const CreationFlowActive = ({ steps, close }) => {
               onClick={() =>
                 !cId
                   ? setAlert({
-                      variant: "warning",
-                      message: "Please complete client selection step first",
-                      position: "bottom-right",
-                    })
+                    variant: "warning",
+                    message: "Please complete client selection step first",
+                    position: "bottom-right",
+                  })
                   : handleStepClick(stepNumber)
               } // Handle step click
             >
@@ -73,13 +73,12 @@ const CreationFlowActive = ({ steps, close }) => {
                 {/* Line Connector (Not for last item) */}
                 {stepNumber !== steps.length && (
                   <div
-                    className={`${step.vl} ${
-                      active > stepNumber + 1
+                    className={`${step.vl} ${active > stepNumber + 1
                         ? `${step.vl_done}`
                         : active === stepNumber + 1
-                        ? `${step.vl_active}`
-                        : ""
-                    }`}
+                          ? `${step.vl_active}`
+                          : ""
+                      }`}
                   />
                 )}
               </div>
