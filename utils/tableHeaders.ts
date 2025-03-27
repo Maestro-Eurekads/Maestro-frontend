@@ -17,7 +17,7 @@ export const tableHeaders = {
     ...defaultHeaders,
     {
       name: "VTR",
-      showInput: false,
+      showInput: true,
     },
     {
       name: "Video Views",

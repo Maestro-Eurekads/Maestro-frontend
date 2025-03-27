@@ -2,66 +2,38 @@
 import { useCampaigns } from "app/utils/CampaignsContext";
 import Image from "next/image";
 
-export const CellRenderer = ({
+export const AdSetCellRenderer = ({
   body,
   channel,
   calculatedValues,
   tableHeaders,
   bodyIndex,
-  goalLevel,
   stage,
-  index,
-  expandedRows,
-  toggleRow,
+  adSetIndex,
+  adSet,
   handleEditInfo,
 }) => {
   const { campaignFormData } = useCampaigns();
   // Handle channel cell with icon and name
   if (body === "channel") {
     return (
-      <span
-        className="flex items-center gap-2 cursor-pointer"
-        onClick={() =>
-          goalLevel === "Adset level" &&
-          channel?.ad_sets?.length > 0 &&
-          toggleRow(`${stage.name}${index}`)
-        }
-        style={{
-          color: channel?.color,
-        }}
-      >
-        {goalLevel === "Adset level" && channel?.ad_sets?.length > 0 && (
-          <span className="shrink-0">
-            <svg
-              width="17"
-              height="16"
-              viewBox="0 0 17 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M5.38021 6.66667L8.71354 10L12.0469 6.66667"
-                stroke="#061237"
-                strokeOpacity="0.8"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                transform={expandedRows[index] ? "rotate(180 8.5 8)" : ""}
-              />
-            </svg>
-          </span>
-        )}
-        <span className="relative w-[16px] h-[16px] shrink-0">
-          <Image
-            src={channel.icon || "/placeholder.svg"}
-            fill
-            alt={`${channel.name} Icon`}
-          />
+      <div className="flex gap-2">
+        <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
+          {adSetIndex + 1}.
         </span>
-        <span>{channel.name}</span>
-      </span>
+        <span>{adSet?.name ? adSet?.name : "-"}</span>
+      </div>
     );
   }
+
+  if (body === "audience") {
+    return !adSet?.audience_type ? "-" : adSet?.audience_type;
+  }
+
+  if (body === "audience_size") {
+    return !adSet?.size ? "-" : adSet?.size;
+  }
+
   // Handle calculated fields
   if (body === "impressions") {
     const value = calculatedValues.impressions;
@@ -97,7 +69,7 @@ export const CellRenderer = ({
     const value = calculatedValues.link_clicks;
     return isNaN(value) || !isFinite(value) ? "-" : value;
   }
-  
+
   if (body === "cpc") {
     const value = calculatedValues.cpc;
     return isNaN(value) || !isFinite(value) ? "-" : value;
@@ -127,7 +99,7 @@ export const CellRenderer = ({
           ?.find((ch) => ch?.funnel_stage === stage.name)
           [channel?.channel_name]?.find(
             (c) => c?.platform_name === channel?.name
-          )?.kpi?.[body] || ""
+          )?.ad_sets[adSetIndex]?.kpi?.[body] || ""
       }
       onChange={(e) =>
         handleEditInfo(
@@ -136,11 +108,11 @@ export const CellRenderer = ({
           channel?.name,
           body,
           e.target.value,
-          ""
+          adSetIndex
         )
       }
       className="cpm-bg border-none outline-none w-[100px] p-1"
-      placeholder={body ?body?.toUpperCase() : "Insert value"}
+      placeholder={body ? body?.toUpperCase() : "Insert value"}
     />
   );
 };

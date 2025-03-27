@@ -1,7 +1,7 @@
-import React from "react"
-import Image from "next/image"
-import { ChannelRow } from "./channel-row"
-import { AdSetRow } from "./ad-set-row"
+import React from "react";
+import Image from "next/image";
+import { ChannelRow } from "./channel-row";
+import { AdSetRow } from "./ad-set-row";
 
 export const FunnelStageTable = ({
   stage,
@@ -16,10 +16,17 @@ export const FunnelStageTable = ({
 }) => {
   return (
     <section className="mb-[30px]">
-      <h1 className="text-[#061237] text-[18px] font-[600] mb-5 flex gap-2">
-        <Image src={stage?.icon || "/placeholder.svg"} width={30} height={30} alt="" />
-        {stage?.name}
-      </h1>
+      <div className="flex items-center justify-between mb-5 ">
+        <h1 className="text-[#061237] text-[18px] font-[600] flex gap-2">
+          <Image
+            src={stage?.icon || "/placeholder.svg"}
+            width={30}
+            height={30}
+            alt=""
+          />
+          {stage?.name}
+        </h1>
+      </div>
       <div className="rounded-xl border border-[#E5E5E5]">
         <div className="rounded-xl overflow-x-auto">
           <table className="w-full border-collapse">
@@ -57,7 +64,10 @@ export const FunnelStageTable = ({
                         adSetIndex={adSetIndex}
                         channel={channel}
                         stage={stage}
+                        tableBody={tableBody}
+                        tableHeaders={tableHeaders}
                         handleEditInfo={handleEditInfo}
+
                       />
                     ))}
                 </React.Fragment>
@@ -67,6 +77,5 @@ export const FunnelStageTable = ({
         </div>
       </div>
     </section>
-  )
-}
-
+  );
+};

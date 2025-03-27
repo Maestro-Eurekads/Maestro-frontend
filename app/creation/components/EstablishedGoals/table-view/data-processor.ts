@@ -53,10 +53,14 @@ function createPlatformObject(platformName, style, platform, channelType, rowDat
     icon: getPlatformIcon(platformName),
     name: platformName,
     color: style?.color,
-    audience: platform.audience,
+    audience: platform?.ad_sets[0]?.audience_type,
     start_date: moment(platform.campaign_start_date).format("DD/MM/YYYY"),
     end_date: moment(platform.campaign_end_date).format("DD/MM/YYYY"),
-    audience_size: platform.audienceSize,
+    audience_size: platform?.ad_sets?.reduce(
+      (total, adSet) =>
+        total + (Number(adSet.size) || 0),
+      0
+    ),
     budget_size: Number(platform?.budget?.fixed_value) > 0 ? `${Number(platform?.budget?.fixed_value)}` : 0,
     impressions: platform.impressions,
     reach: platform.reach,

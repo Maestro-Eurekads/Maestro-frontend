@@ -8,22 +8,22 @@ export const calculateReach: FormulaFunction = (impression, freq) => {
   return impression / freq;
 };
 
-const calculateVideoViews: FormulaFunction = (impression, VTR) => {
+export const calculateVideoViews: FormulaFunction = (impression, VTR) => {
   return impression * VTR;
 };
 
-const calculateCPV: FormulaFunction = (budget, videoViews) => {
+export const calculateCPV: FormulaFunction = (budget, videoViews) => {
   return budget / videoViews;
 };
 
-const calculateCompletedView: FormulaFunction = (
+export const calculateCompletedView: FormulaFunction = (
   videoViews,
   completionRate
 ) => {
   return videoViews * completionRate;
 };
 
-const calculateCPCV: FormulaFunction = (budget, completedViews) => {
+export const calculateCPCV: FormulaFunction = (budget, completedViews) => {
   return budget / completedViews;
 };
 
@@ -35,20 +35,20 @@ const calculateCPE: FormulaFunction = (budget, engagements) => {
   return budget / engagements;
 };
 
-const calculateLinkClicks: FormulaFunction = (impression, ctr) => {
+export const calculateLinkClicks: FormulaFunction = (impression, ctr) => {
   return impression * ctr;
 };
 
-const calculateCPC: FormulaFunction = (budget, linkClicks) => {
-  return budget / linkClicks;
+export const calculateCPC: FormulaFunction = (budget, linkClicks) => {
+  return Math.round(budget / linkClicks);
 };
 
-const calculateLands: FormulaFunction = (linkClicks, clr) => {
+export const calculateLands: FormulaFunction = (linkClicks, clr) => {
   return linkClicks * clr;
 };
 
-const calculateCPL: FormulaFunction = (budget, lands) => {
-  return budget / lands;
+export const calculateCPL: FormulaFunction = (budget, lands) => {
+  return Math.round(budget / lands);
 };
 
 const calculateBouncedVisits: FormulaFunction = (lands, br) => {
