@@ -44,45 +44,32 @@ const initialState = {
   budget_details_value: "",
   campaign_objectives: "",
   funnel_stages: [],
-  channel_mix: {}
+  channel_mix: {},
+
+  campaign_timeline_start_date: "",
+  campaign_timeline_end_date: "",
 };
 
-// 🎯 Reducer Function
-const campaignReducer = (state: any, action: any) => {
-  switch (action.type) {
-    case "UPDATE_CAMPAIGN":
-      return {
-        ...state,
-        campaigns: {
-          ...state.campaigns,
-          mediaplan: {
-            ...state.campaigns.mediaplan,
-            [action.payload.step]: action.payload.data, // Update specific step
-          },
-        },
-      };
-    default:
-      return state;
-  }
-};
+
 
 // 🎯 Create Context
 const CampaignContext = createContext<any>(null);
 
 // 🎯 Provider Component
 export const CampaignProvider = ({ children }: { children: ReactNode }) => {
-  const [state, dispatch] = useReducer(campaignReducer, initialState);
   const [campaignFormData, setCampaignFormData] = useState(initialState);
   const [campaignData, setCampaignData] = useState(null);
-
+  const [clientCampaignData, setClientCampaignData] = useState([])
+  const [loading, setLoading] = useState(false);
   const query = useSearchParams();
   const cId = query.get("campaignId");
   const { loadingClients, allClients } = useCampaignHook();
+  const [copy, setCopy] = useState(campaignFormData)
 
-  const getActiveCampaign = async (docId?:string) => {
+  const getActiveCampaign = async (docId?: string) => {
     await axios
       .get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}?populate=*`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}?populate[0]=media_plan_details&populate[1]=budget_details&populate[2]=channel_mix&populate[3]=channel_mix.social_media&populate[4]=channel_mix.display_networks&populate[5]=channel_mix.search_engines&populate[6]=channel_mix.social_media.format&populate[7]=channel_mix.display_networks.format&populate[8]=channel_mix.search_engines.format&populate[9]=client_selection&populate[10]=client&populate[11]=channel_mix.social_media.ad_sets&populate[12]=channel_mix.display_networks.ad_sets&populate[13]=channel_mix.search_engines.ad_sets&populate[14]=channel_mix.social_media.budget&populate[15]=channel_mix.display_networks.budget&populate[16]=channel_mix.search_engines.budget&populate[17]=channel_mix.stage_budget&populate[18]=campaign_budget`,
         {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
@@ -124,54 +111,69 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             data?.budget_details?.sub_fee_type,
           budget_details_value: data?.budget_details?.value,
           campaign_objectives: data?.campaign_objective,
-          funnel_stages: data?.funnel_stages || []
+          funnel_stages: data?.funnel_stages || [],
+          channel_mix: data?.channel_mix || [],
+          campaign_timeline_start_date: data?.campaign_timeline_start_date,
+          campaign_timeline_end_date: data?.campaign_timeline_end_date,
+          campaign_budget: data?.campaign_budget || {},
+          goal_level:data?.goal_level
         }));
       });
   };
 
   const createCampaign = async () => {
-    console.log("here");
-    return await axios.post(
-      `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`,
-      {
-        data: {
-          client: campaignFormData?.client_selection?.id,
-          client_selection: {
-            client: campaignFormData?.client_selection?.value,
-            level_1: campaignFormData?.level_1?.id,
-            level_2: campaignFormData?.level_2?.id,
-            level_3: campaignFormData?.level_3?.id,
-          },
-          media_plan_details: {
-            plan_name: campaignFormData?.media_plan,
-            internal_approver: campaignFormData?.approver,
-          },
-          budget_details: {
-            currency: campaignFormData?.budget_details_currency?.id,
-            fee_type: campaignFormData?.budget_details_fee_type?.id,
-            sub_fee_type: campaignFormData?.budget_details_sub_fee_type,
-            value: campaignFormData?.budget_details_value,
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`,
+        {
+          data: {
+            client: campaignFormData?.client_selection?.id,
+            client_selection: {
+              client: campaignFormData?.client_selection?.value,
+              level_1: campaignFormData?.level_1?.id,
+              level_2: campaignFormData?.level_2?.id,
+              level_3: campaignFormData?.level_3?.id,
+            },
+            media_plan_details: {
+              plan_name: campaignFormData?.media_plan,
+              internal_approver: campaignFormData?.approver,
+            },
+            budget_details: {
+              currency: campaignFormData?.budget_details_currency?.id,
+              fee_type: campaignFormData?.budget_details_fee_type?.id,
+              sub_fee_type: campaignFormData?.budget_details_sub_fee_type,
+              value: campaignFormData?.budget_details_value,
+            },
           },
         },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-        },
-      }
-    );
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+        }
+      );
+
+      // Fetch all clients after a successful campaign creation
+
+
+      return response; // Return API response in case the calling function needs it
+    } catch (error) {
+      console.error("Error creating campaign:", error);
+      throw error; // Re-throw to handle errors in calling functions
+    }
   };
+
 
   const updateCampaign = async (data) => {
     return await axios.put(
       `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
       {
-        data: {...data},
+        data: { ...data },
       }, {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-        }
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
       }
+    }
     );
   };
 
@@ -179,13 +181,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     if (cId) {
       getActiveCampaign();
     }
-  }, []);
+  }, [cId]);
 
   return (
     <CampaignContext.Provider
       value={{
-        state,
-        dispatch,
         loadingClients,
         allClients,
         campaignFormData,
@@ -194,7 +194,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         updateCampaign,
         campaignData,
         cId,
-        getActiveCampaign
+        getActiveCampaign,
+        clientCampaignData,
+        setClientCampaignData,
+        loading,
+        setLoading,
+        setCampaignData,
+        copy,
+        setCopy
       }}
     >
       {children}

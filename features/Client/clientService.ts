@@ -19,12 +19,16 @@ const createClient = async (inputs: any) => {
 }
  
  //  Get Created Client 
- const getCreateClient = async (input: void ) => { 
-   const { data } = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/auth/local/register`,input)  
+ const getCreateClient = async () => { 
+   const { data } = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/clients`,{
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+        },
+   })  
+  
   return data
 }
- 
-  
+    
 
 
 const  clientService = { createClient , getCreateClient}

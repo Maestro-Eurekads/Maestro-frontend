@@ -5,11 +5,16 @@ import { ActiveProvider } from "./utils/ActiveContext";
 import { DateRangeProvider } from "../src/date-range-context";
 import { FunnelProvider } from "./utils/FunnelContextType";
 import { ObjectivesProvider } from "./utils/useObjectives";
-import ReduxProvider from "./provider";
 import { CampaignProvider } from "./utils/CampaignsContext";
 import { EditingProvider } from "./utils/EditingContext";
 import { Suspense } from "react";
 import { SelectedDatesProvider } from "./utils/SelectedDatesContext";
+import { CampaignSelectionProvider } from "./utils/CampaignSelectionContext";
+import NewProvider from "./provider";
+import { ToastContainer } from "react-toastify";
+import { VerificationProvider } from "./utils/VerificationContext";
+import { CommentProvider } from "./utils/CommentProvider";
+
 
 // Load Roboto font
 const roboto = Roboto({
@@ -22,7 +27,7 @@ const roboto = Roboto({
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"], // Adjust weights as needed
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -36,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html data-theme="light" lang="en">
+    <html data-theme="light" lang="en" suppressHydrationWarning={true}>
       <head>
         <meta
           name="viewport"
@@ -44,26 +49,33 @@ export default function RootLayout({
         />
       </head>
       <body className={`${roboto.variable} ${inter.variable} antialiased`}>
-        <ReduxProvider>
+        <NewProvider>
           <Suspense>
-            <CampaignProvider>
-              <DateRangeProvider>
-                <SelectedDatesProvider>
-                  <ActiveProvider>
-                    <EditingProvider>
-                      <ObjectivesProvider>
-                        <FunnelProvider>
-                          {children}
-                        </FunnelProvider>
-                      </ObjectivesProvider>
-                    </EditingProvider>
-                  </ActiveProvider>
-                </SelectedDatesProvider>
-              </DateRangeProvider>
-            </CampaignProvider>
+            <CommentProvider>
+              <VerificationProvider>
+                <CampaignSelectionProvider>
+                  <CampaignProvider>
+                    <DateRangeProvider>
+                      <SelectedDatesProvider>
+                        <ActiveProvider>
+                          <EditingProvider>
+                            <ObjectivesProvider>
+                              <FunnelProvider>
+                                <ToastContainer />
+                                {children}
+                              </FunnelProvider>
+                            </ObjectivesProvider>
+                          </EditingProvider>
+                        </ActiveProvider>
+                      </SelectedDatesProvider>
+                    </DateRangeProvider>
+                  </CampaignProvider>
+                </CampaignSelectionProvider>
+              </VerificationProvider>
+            </CommentProvider>
           </Suspense>
-        </ReduxProvider>
+        </NewProvider>
       </body>
-    </html>
+    </html >
   );
 }

@@ -1,108 +1,206 @@
-import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
-import Mark from '../../../public/Mark.svg';
-import PageHeaderWrapper from '../../../components/PageHeaderWapper';
-import { campaignObjectives } from '../../../components/data';
-import AlertMain from '../../../components/Alert/AlertMain';
-import { useObjectives } from '../../utils/useObjectives';
-import { useCampaigns } from '../../utils/CampaignsContext';
+import React, { useEffect, useState } from "react";
+import Image from "next/image";
+import Mark from "../../../public/Mark.svg";
+import PageHeaderWrapper from "../../../components/PageHeaderWapper";
+import { campaignObjectives } from "../../../components/data";
+import AlertMain from "../../../components/Alert/AlertMain";
+import { useObjectives } from "../../utils/useObjectives";
+import { useCampaigns } from "../../utils/CampaignsContext";
+import { useVerification, validationRules } from "app/utils/VerificationContext";
+import { removeKeysRecursively } from "utils/removeID";
+import { SVGLoader } from "components/SVGLoader";
+import { useSearchParams } from "next/navigation";
+
 
 const DefineCampaignObjective = () => {
-	const { selectedObjectives, setSelectedObjectives } = useObjectives();
-	const [isEditing, setIsEditing] = useState(false);
-	const [alert, setIsAlert] = useState(false);
-	const {setCampaignFormData, campaignFormData} = useCampaigns()
+  const {
+    campaignData,
+    campaignFormData,
+    updateCampaign,
+    setCampaignFormData,
+    getActiveCampaign,
+    cId,
+  } = useCampaigns();
+  const searchParams = useSearchParams();
+  const { selectedObjectives, setSelectedObjectives } = useObjectives();
+  const { verifyStep, validateStep, verifybeforeMove, setverifybeforeMove } = useVerification();
+  const campaignId = searchParams.get("campaignId");
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const [previousValidationState, setPreviousValidationState] = useState<boolean | null>(null);
+  const [tempSelectedObjective, setTempSelectedObjective] = useState<{id: number, title: string}[]>([]);
 
+  //   Auto-hide alert after 3 seconds
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
 
-	const handleSelect = (id: number, title: string) => {
-		setSelectedObjectives((prev) => {
-			const alreadySelected = prev.some((obj) => obj.id === id);
+  // Validate step on mount & when form data changes
+  useEffect(() => {
+    const isValid = validationRules["step1"](campaignData);
+    if (isValid !== previousValidationState) {
+      verifyStep("step1", isValid, cId);
+      setPreviousValidationState(isValid);
+    }
+  }, [campaignData, cId, previousValidationState, verifyStep]);
 
-			if (alreadySelected) {
-				return []; // Deselect if already selected
-			}
-			return [{ id, title }]; // Store both ID & Title
-		});
-		setCampaignFormData((prev)=>({
-			...prev,
-			campaign_objectives: title
-		}))
-	};
+  // Load initial campaign data
+  useEffect(() => {
+    if (campaignId) {
+      getActiveCampaign(campaignId);
+    }
+  }, [campaignId]);
 
-	const handleAlert = () => {
-		setIsAlert(true);
-		setTimeout(() => {
-			setIsAlert(false);
-		}, 3000);
-	};
+  // Load saved objective on mount
+  useEffect(() => {
+    if (campaignData?.campaign_objective) {
+      const matchingObjective = campaignObjectives.find(
+        obj => obj.title === campaignData.campaign_objective
+      );
+      if (matchingObjective) {
+        setSelectedObjectives([{
+          id: matchingObjective.id,
+          title: matchingObjective.title
+        }]);
+        setTempSelectedObjective([{
+          id: matchingObjective.id,
+          title: matchingObjective.title
+        }]);
+        setCampaignFormData(prev => ({
+          ...prev,
+          campaign_objectives: matchingObjective.title
+        }));
+      }
+    }
+  }, [campaignData, setCampaignFormData, setSelectedObjectives]);
 
-	return (
-		<div>
-			<div className="flex items-center justify-between">
-				<PageHeaderWrapper
-					t1={'What is the main objective of your campaign ?'}
-					t2={'Please select only one objective.'}
-				/>
+  const handleStepOne = async () => {
+    if (!validateStep("step1", campaignFormData, cId)) {
+      setAlert({
+        variant: "error",
+        message: "Please select at least one campaign objective!",
+        position: "bottom-right",
+      });
+      setLoading(false);
+      return;
+    }
 
-				{isEditing ? (
-					''
-				) : (
-					<button className="model_button_blue" onClick={() => setIsEditing(true)}>
-						Edit
-					</button>
-				)}
-			</div>
-			{/* Alert Notification */}
-			{/* {alert && (
-				<AlertMain
-					alert={{
-						variant: 'info',
-						message: 'Please click on Edit!',
-						position: 'bottom-right',
-					}}
-				/>
-			)} */}
-			<div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-[80px] mt-[50px] place-items-center">
-				{campaignObjectives.map((item) => {
-					const isSelected = selectedObjectives.some((obj) => obj.id === item.id);
+    setLoading(true);
 
-					return (
-						<div
-							key={item.id}
-							className={`relative p-4 rounded-lg transition-all duration-300 ${isSelected ? 'creation_card_active shadow-lg' : 'creation_card'
-								} ${isEditing ? 'cursor-pointer' : 'cursor-not-allowed'}`}
-							onClick={() => (isEditing ? handleSelect(item.id, item.title) : handleAlert())}
-						>
-							{isSelected && (
-								<div className="absolute right-4 top-4">
-									<Image src={Mark} alt="Selected" />
-								</div>
-							)}
-							<div className="flex items-center gap-2">
-								<Image src={item.icon} alt={item.title} />
-								<h6 className="text-[18px] font-semibold text-[#061237]">{item.title}</h6>
-							</div>
-							<p className="text-[15px] font-medium text-[#061237] leading-[175%]">
-								{item.description}
-							</p>
-						</div>
-					);
-				})}
-			</div>
+    if (!campaignFormData) {
+      setAlert({ variant: "error", message: "Campaign data is missing.", position: "bottom-right" });
+      setLoading(false);
+      return;
+    }
 
-			<div className="flex justify-end mt-[30px]">
-				{isEditing && (
-					<button
-						disabled={selectedObjectives.length === 0}
-						onClick={() => setIsEditing(false)}
-						className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 rounded-lg bg-[#3175FF] text-white font-semibold text-base leading-6 disabled:opacity-50 hover:bg-[#2557D6] transition-colors"
-					>
-						Validate
-					</button>
-				)}
-			</div>
-		</div>
-	);
+    const cleanData = removeKeysRecursively(campaignData, [
+      "id",
+      "documentId",
+      "createdAt",
+      "publishedAt",
+      "updatedAt",
+    ]);
+
+    try {
+      await updateCampaign({
+        ...cleanData,
+        campaign_objective: campaignFormData?.campaign_objectives,
+      });
+      await getActiveCampaign(cleanData);
+
+      // Update the actual selected objectives after validation
+      setSelectedObjectives(tempSelectedObjective);
+      
+      setAlert({ variant: "success", message: "Campaign Objective successfully updated!", position: "bottom-right" });
+      setIsEditing(false);
+      // Mark step1 as verified
+      setverifybeforeMove((prev) => ({
+        ...prev,
+        [cId]: { ...(prev[cId] || {}), step1: true },
+      }));
+    } catch (error) {
+      const errors: any = error.response?.data?.error?.details?.errors || error.response?.data?.error?.message || error.message || [];
+      setAlert({ variant: "error", message: errors, position: "bottom-right" });
+    }
+
+    setLoading(false);
+  };
+
+  const handleSelect = (id: number, title: string) => {
+    setTempSelectedObjective((prev) => {
+      const alreadySelected = prev.some((obj) => obj.id === id);
+
+      if (alreadySelected) {
+        return []; // Deselect if already selected
+      }
+      return [{ id, title }]; // Store both ID & Title
+    });
+    setCampaignFormData((prev) => ({
+      ...prev,
+      campaign_objectives: title,
+    }));
+  };
+
+  const handleEditClick = () => {
+    setIsEditing(true);
+    // Initialize temp selection with current selection
+    setTempSelectedObjective([...selectedObjectives]);
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <PageHeaderWrapper
+          t1={"What is the main objective of your campaign ?"}
+          t2={"Please select only one objective."}
+        />
+
+        {!isEditing && (
+          <button
+            className="model_button_blue"
+            onClick={handleEditClick}
+          >
+            Edit
+          </button>
+        )}
+      </div>
+      {alert && <AlertMain alert={alert} />}
+      {/* Alert Notification */}
+      <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-[80px] mt-[50px] place-items-center">
+        {campaignObjectives.map(item => {
+          const isSelected = isEditing 
+            ? tempSelectedObjective.some(obj => obj.id === item.id)
+            : selectedObjectives.some(obj => obj.id === item.id);
+          return (
+            <div key={item.id} className={`relative p-4 rounded-lg transition-all duration-300 ${isSelected ? "creation_card_active shadow-lg" : "creation_card"} ${isEditing ? "cursor-pointer" : "cursor-not-allowed"}`} onClick={() => isEditing ? handleSelect(item.id, item.title) : setAlert({ variant: 'info', message: 'Please click on Edit!', position: 'bottom-right' })}>
+              {isSelected && <div className="absolute right-4 top-4"><Image src={Mark} alt="Selected" /></div>}
+              <div className="flex items-center gap-2">
+                <Image src={item.icon} alt={item.title} />
+                <h6 className="text-[18px] font-semibold text-[#061237]">{item.title}</h6>
+              </div>
+              <p className="text-[15px] font-medium text-[#061237] leading-[175%]">{item.description}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {isEditing && (
+        <div className="flex justify-end pr-6 mt-[50px]">
+          <button
+            disabled={tempSelectedObjective.length === 0}
+            onClick={handleStepOne}
+            className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg text-white font-semibold text-base leading-6 transition-colors bg-[#3175FF] hover:bg-[#2557D6]"
+          >
+            {loading ? <SVGLoader width="30px" height="30px" color="#FFF" /> : "Validate"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default DefineCampaignObjective;

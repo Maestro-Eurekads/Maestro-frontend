@@ -1,11 +1,11 @@
+"use client";
 import Image from "next/image";
 import left_arrow from "../public/blue_back_arrow.svg";
 import CreationFlow from "./CreationFlow";
-import nike from "../public/nike.svg";
 import closeicon from "../public/layout-left-line.svg";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useActive } from "../app/utils/ActiveContext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CreationFlowActive from "./CreationFlowActive";
 import symbol from "../public/material-symbols_campaign-rounded.svg";
 import funnel from "../public/ant-design_funnel-plot-filled.svg";
@@ -16,18 +16,40 @@ import click from "../public/fluent_cursor-click-24-filled.svg";
 import workbench from "../public/icon-park-solid_workbench.svg";
 import checkfill from "../public/mingcute_check-fill.svg";
 import Calender from "../public/Calender.svg";
-import { useObjectives } from "../app/utils/useObjectives";
+import { useCampaigns } from "app/utils/CampaignsContext";
+import Skeleton from "react-loading-skeleton";
+import { CapitalizeFirstLetter } from "./Options";
 
 
 const SideNav: React.FC = () => {
-  const { selectedObjectives, selectedFunnels } = useObjectives();
   const [close, setClose] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Add isLoading state
   const router = useRouter();
   const { setActive, setSubStep } = useActive();
+  const searchParams = useSearchParams();
+  const campaignId = searchParams.get("campaignId");
+  const {
+    campaignData,
+    getActiveCampaign,
+    setCampaignData
+  } = useCampaigns();
+
+
+
+  useEffect(() => {
+    if (campaignId) {
+      setIsLoading(true); // Start loading
+      getActiveCampaign(campaignId)
+        .finally(() => setIsLoading(false)); // Stop loading
+    }
+  }, [campaignId]);
+
+
 
 
 
   const handleBackClick = () => {
+    setCampaignData(null)
     setActive(0); // Reset state
     setSubStep(0);
     router.push("/"); // Navigate to home
@@ -41,7 +63,7 @@ const SideNav: React.FC = () => {
       state_text: "SideBar_Menu_state",
       sidecircle: "SideBar_Menu_active",
       title: "Define campaign objective",
-      objective: !selectedObjectives[0]?.title ? "" : `Main objective: ${selectedObjectives[0]?.title}`,
+      objective: !campaignData?.campaign_objective ? "" : `Main objective: ${campaignData?.campaign_objective}`,
       img: <Image src={symbol} alt="symbol" />
     },
     {
@@ -51,10 +73,10 @@ const SideNav: React.FC = () => {
       state_text: "SideBar_Menu_state",
       sidecircle: "SideBar_Menu_active",
       title: "Map funnel stages",
-      objective: selectedFunnels.length > 0
-        ? selectedFunnels.length > 3
-          ? selectedFunnels.slice(0, 3).join(" · ") + " ..."
-          : selectedFunnels.join(" · ")
+      objective: campaignData?.funnel_stages?.length > 0
+        ? campaignData?.funnel_stages?.length > 3
+          ? campaignData?.funnel_stages?.slice(0, 3).join(" · ") + " ..."
+          : campaignData?.funnel_stages?.join(" · ")
         : "",
 
       img: <Image src={funnel} alt="funnel" />
@@ -137,12 +159,12 @@ const SideNav: React.FC = () => {
     <div id={close ? "side-nav-active" : "side-nav"} className="!flex !flex-col !h-full">
       {/* Fixed Top Section */}
       <div className="flex flex-col">
-        <div className={`flex ${close ? 'justify-center mb-[30px]' : 'justify-end'} w-full`}>
+        <div className={`flex ${close ? "justify-center mb-[30px]" : "justify-end"} w-full`}>
           <button onClick={() => setClose(!close)}>
-            <Image src={closeicon} alt={"closeicon"} />
+            <Image src={closeicon} alt="closeicon" />
           </button>
         </div>
-        {close === false && (
+        {!close && (
           <div className="flex flex-col items-start mb-8">
             <button
               onClick={handleBackClick}
@@ -151,19 +173,43 @@ const SideNav: React.FC = () => {
               <Image src={left_arrow} alt="menu" />
               <p>Back to Dashboard</p>
             </button>
-            <div>
-              <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
-                Let’s create your
-              </h6>
-              <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
-                new campaign :
-              </h6>
+            {isLoading ? (
+              <Skeleton height={20} width={200} />
+            ) : !campaignData?.client?.client_name || campaignData?.media_plan_details?.plan_name === "Plan name" ? (
+              <div>
+                <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
+                  Let’s create your
+                </h6>
+                <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
+                  new campaign :
+                </h6>
+              </div>
+            ) : (
+              <div>
+                <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
+                  {campaignData?.media_plan_details?.plan_name
+                    ? campaignData?.media_plan_details?.plan_name.charAt(0).toUpperCase() +
+                    campaignData?.media_plan_details?.plan_name.slice(1)
+                    : ""}
+                </h6>
+              </div>
+            )}
 
-            </div>
             <div className="flex items-center gap-[8px]">
-              <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic">
-                Follow the steps to set up an effective and successful campaign strategy.
-              </p>
+              {isLoading ? (
+                <Skeleton height={20} width={150} />
+              ) : !campaignData?.client?.client_name || campaignData?.media_plan_details?.plan_name === "Plan name" ? (
+                <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic">
+                  Follow the steps to set up an effective and successful campaign strategy.
+                </p>
+              ) : (
+                <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic">
+                  {campaignData?.client?.client_name
+                    ? campaignData?.client?.client_name.charAt(0).toUpperCase() +
+                    campaignData?.client?.client_name.slice(1)
+                    : ""}
+                </p>
+              )}
             </div>
           </div>
         )}

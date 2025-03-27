@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import toast, { Toaster } from "react-hot-toast";
 import speaker from "../../../public/mdi_megaphone.svg";
@@ -11,371 +11,552 @@ import ig from "../../../public/ig.svg";
 import youtube from "../../../public/youtube.svg";
 import TheTradeDesk from "../../../public/TheTradeDesk.svg";
 import Quantcast from "../../../public/quantcast.svg";
-import orangecredit from "../../../public/orangecredit-card.svg";
-import tablerzoomfilled from "../../../public/tabler_zoom-filled.svg";
+import google from "../../../public/social/google.svg";
+import x from "../../../public/x.svg";
+import linkedin from "../../../public/linkedin.svg";
+import Display from "../../../public/Display.svg";
+import yahoo from "../../../public/yahoo.svg";
+import bing from "../../../public/bing.svg";
+import tictok from "../../../public/tictok.svg";
 import Button from "./common/button";
+import { useCampaigns } from "../../utils/CampaignsContext";
+import { funnelStages } from "../../../components/data";
 
-const platformData = {
- "Social media": [
-  { name: "Facebook", icon: facebook },
-  { name: "Buy type" },
-  { name: "Buy objective" },
-  { name: "Instagram", icon: ig },
-  { name: "Buy type" },
-  { name: "Buy objective" },
-  { name: "Youtube", icon: youtube },
-  { name: "Buy type" },
-  { name: "Buy objective" },
- ],
- "Display networks": [
-  { name: "TheTradeDesk", icon: TheTradeDesk },
-  { name: "Buy type" },
-  { name: "Buy objective" },
-  { name: "Quantcast", icon: Quantcast },
-  { name: "Buy type" },
-  { name: "Buy objective" },
- ],
+const platformIcons = {
+  Facebook: facebook,
+  Instagram: ig,
+  YouTube: youtube,
+  TheTradeDesk: TheTradeDesk,
+  Quantcast: Quantcast,
+  Google: google,
+  "Twitter/X": x,
+  LinkedIn: linkedin,
+  TikTok: tictok,
+  "Display & Video": Display,
+  Yahoo: yahoo,
+  Bing: bing,
+  "Apple Search": google,
+  "The Trade Desk": TheTradeDesk,
+  QuantCast: Quantcast,
 };
 
-const funnelStages = [
- {
-  name: "Awareness",
-  icon: speaker,
-  status: "In progress",
-  statusIsActive: true,
-  platforms: platformData,
- },
- {
-  name: "Consideration",
-  icon: tablerzoomfilled,
-  status: "Not started",
-  statusIsActive: false,
-  platforms: platformData,
- },
- {
-  name: "Conversion",
-  icon: orangecredit,
-  status: "Not started",
-  statusIsActive: false,
-  platforms: platformData,
- },
-];
-
 const ObjectiveSelection = () => {
- const [openItems, setOpenItems] = useState({ Awareness: true });
- const [statuses, setStatuses] = useState(funnelStages.map((stage) => stage.status));
- const [dropdownOpen, setDropdownOpen] = useState<{ [key: string]: boolean }>({});
- const [selectedOptions, setSelectedOptions] = useState<{ [key: string]: string }>({});
- const [isEditable, setIsEditable] = useState<{ [key: string]: boolean }>({});
- const [previousSelectedOptions, setPreviousSelectedOptions] = useState<{ [key: string]: string }>({});
- const [selectedNetworks, setSelectedNetworks] = useState<{ [key: string]: Set<string> }>({
-  Awareness: new Set(),
-  Consideration: new Set(),
-  Conversion: new Set()
- });
- const [selectedPlatforms, setSelectedPlatforms] = useState<{ [key: string]: Set<string> }>({
-  Awareness: new Set(),
-  Consideration: new Set(),
-  Conversion: new Set()
- });
- const [validatedPlatforms, setValidatedPlatforms] = useState<{ [key: string]: Set<string> }>({
-  Awareness: new Set(),
-  Consideration: new Set(),
-  Conversion: new Set()
- });
+  const [openItems, setOpenItems] = useState({ Awareness: true });
+  const [statuses, setStatuses] = useState(
+    funnelStages.map((stage) => stage.status)
+  );
 
- // Toggle expand/collapse for a stage
- const toggleItem = (stage: string) => {
-  setOpenItems((prev) => ({
-   ...prev,
-   [stage]: !prev[stage],
-  }));
- };
-
- // Toggle the dropdown for dropdown items (only active when not completed)
- const toggleDropdown = (platformKey: string) => {
-  setDropdownOpen({ [platformKey]: !dropdownOpen[platformKey] });
- };
-
- // Handle selecting an option from the dropdown
- const handleSelectOption = (platformKey: string, option: string, category: string, stageName: string) => {
-  setSelectedOptions((prev) => ({
-   ...prev,
-   [platformKey]: option,
-  }));
-
-  // Extract platform name from the key
-  const platformIndex = parseInt(platformKey.split('-')[2]);
-  const platform = funnelStages[0].platforms[category][Math.floor(platformIndex / 3) * 3];
-
-  if (platform && platform.name) {
-   setSelectedPlatforms(prev => ({
-    ...prev,
-    [stageName]: new Set([...prev[stageName], platform.name])
-   }));
-  }
-
-  setSelectedNetworks(prev => ({
-   ...prev,
-   [stageName]: new Set([...prev[stageName], category])
-  }));
-
-  setDropdownOpen((prev) => ({
-   ...prev,
-   [platformKey]: false,
-  }));
- };
-
- // Mark the stage as validated/completed
- const handleValidate = (index: number) => {
-  const stageName = funnelStages[index].name;
-  const updatedStatuses = [...statuses];
-  updatedStatuses[index] = "Completed";
-  setStatuses(updatedStatuses);
-  setIsEditable((prev) => ({ ...prev, [stageName]: true }));
-
-  // Store validated platforms
-  const validatedPlatformsSet = new Set<string>();
-  Object.entries(selectedOptions).forEach(([key]) => {
-   const [stage, category, platformIndex] = key.split('-');
-   if (stage === stageName) {
-    const platform = funnelStages[0].platforms[category][Math.floor(parseInt(platformIndex) / 3) * 3];
-    if (platform && platform.name && hasCompletePlatformSelection(platform.name, category, stageName)) {
-     validatedPlatformsSet.add(platform.name);
-    }
-   }
+  const [selectedOptions, setSelectedOptions] = useState<{
+    [key: string]: string;
+  }>({});
+  const [isEditable, setIsEditable] = useState<{ [key: string]: boolean }>({});
+  const [previousSelectedOptions, setPreviousSelectedOptions] = useState<{
+    [key: string]: string;
+  }>({});
+  const [selectedNetworks, setSelectedNetworks] = useState<{
+    [key: string]: Set<string>;
+  }>({
+    Awareness: new Set(),
+    Consideration: new Set(),
+    Conversion: new Set(),
+  });
+  const [validatedPlatforms, setValidatedPlatforms] = useState<{
+    [key: string]: Set<string>;
+  }>({
+    Awareness: new Set(),
+    Consideration: new Set(),
+    Conversion: new Set(),
   });
 
-  setValidatedPlatforms(prev => ({
-   ...prev,
-   [stageName]: validatedPlatformsSet
-  }));
+  const { campaignFormData, setCampaignFormData } = useCampaigns();
 
-  // Store the current selected options before validation
-  setPreviousSelectedOptions(selectedOptions);
-
-  toast.success("Stage completed successfully! 🎉");
-
-  if (navigator.vibrate) {
-   navigator.vibrate(300);
-  }
- };
-
- // Check if a platform has both buy type and objective selected
- const hasCompletePlatformSelection = (platformName: string, category: string, stageName: string) => {
-  const platforms = funnelStages[0].platforms[category];
-  const platformIndex = platforms.findIndex(p => p.name === platformName);
-  if (platformIndex === -1) return false;
-
-  const baseIndex = platformIndex;
-  const buyTypeKey = `${stageName}-${category}-${baseIndex + 1}`;
-  const buyObjectiveKey = `${stageName}-${category}-${baseIndex + 2}`;
-
-  return selectedOptions[buyTypeKey] && selectedOptions[buyObjectiveKey];
- };
-
- // Check if at least one platform has both selections
- const hasMinimumBuySelections = (stageName: string) => {
-  if (!selectedNetworks[stageName] || selectedNetworks[stageName].size === 0) return false;
-
-  for (const network of selectedNetworks[stageName]) {
-   const platforms = funnelStages[0].platforms[network];
-   for (let i = 0; i < platforms.length; i += 3) {
-    const platform = platforms[i];
-    if (platform.icon && hasCompletePlatformSelection(platform.name, network, stageName)) {
-     return true;
+  useEffect(() => {
+    if (campaignFormData?.funnel_stages) {
+      const value = campaignFormData?.funnel_stages?.reduce(
+        (acc, stage, index) => {
+          acc[stage] = index === 0;
+          return acc;
+        },
+        {}
+      );
+      setOpenItems(value);
     }
-   }
-  }
-  return false;
- };
+    const ch_mix = campaignFormData?.channel_mix;
+    if (Array.isArray(ch_mix)) {
+      const updatedNetworks = ch_mix.reduce((acc, ch) => {
+        acc[ch.funnel_stage] = new Set([
+          ...(ch?.social_media?.map((sm) => sm?.platform_name) || []),
+          ...(ch?.display_networks?.map((dn) => dn?.platform_name) || []),
+          ...(ch?.search_engines?.map((se) => se?.platform_name) || []),
+        ]);
+        return acc;
+      }, {});
+      setSelectedNetworks((prev) => ({
+        ...prev,
+        ...updatedNetworks,
+      }));
+    }
+  }, [campaignFormData?.funnel_stages, campaignFormData?.channel_mix]);
 
- // Return dropdown options based on field name
- const getDropdownOptions = (platform: { name: string }) => {
-  if (platform.name === "Buy type") {
-   return ["CPM", "CPV"];
-  }
-  if (platform.name === "Buy objective") {
-   return ["Awareness", "Video views", "Traffic"];
-  }
-  return [];
- };
+  const toggleItem = (stage: string) => {
+    setOpenItems((prev) => ({
+      ...prev,
+      [stage]: !prev[stage],
+    }));
+  };
+  const [dropdownOpen, setDropdownOpen] = useState<{ [key: string]: boolean }>(
+    {}
+  );
 
- const renderCompletedPlatform = (platform: any, idx: number, category: string, stageName: string) => {
-  const baseIndex = idx * 3;
-  const buyTypeKey = `${stageName}-${category}-${baseIndex + 1}`;
-  const buyObjectiveKey = `${stageName}-${category}-${baseIndex + 2}`;
+  const toggleDropdown = (key: string) => {
+    setDropdownOpen((prevState) => {
+      const newState: { [key: string]: boolean } = {};
+      newState[key] = !prevState[key];
+      return newState;
+    });
+  };
 
-  if (!validatedPlatforms[stageName].has(platform.name)) {
-   return null;
-  }
+  const handleSelectOption = (
+    platformName: string,
+    option: string,
+    category: string,
+    stageName: string,
+    dropDownName: string
+  ) => {
+    const key = `${stageName}-${category}-${platformName}-${dropDownName}`;
+    const dropdownKey =
+      dropDownName === "objective_type"
+        ? `${stageName}-${category}-${platformName}obj`
+        : `${stageName}-${category}-${platformName}`;
+
+    setSelectedOptions((prev) => ({
+      ...prev,
+      [key]: option,
+    }));
+
+    const updatedChannelMix = campaignFormData.channel_mix.map((stage) => {
+      if (stage.funnel_stage === stageName) {
+        const updatedStage = { ...stage };
+        if (category === "Social media") {
+          updatedStage.social_media = stage.social_media.map((platform) => {
+            if (platform.platform_name === platformName) {
+              return {
+                ...platform,
+                [dropDownName]: option,
+              };
+            }
+            return platform;
+          });
+        } else if (category === "Display networks") {
+          updatedStage.display_networks = stage.display_networks.map(
+            (platform) => {
+              if (platform.platform_name === platformName) {
+                return {
+                  ...platform,
+                  [dropDownName]: option,
+                };
+              }
+              return platform;
+            }
+          );
+        } else if (category === "Search engines") {
+          updatedStage.search_engines = stage.search_engines.map((platform) => {
+            if (platform.platform_name === platformName) {
+              return {
+                ...platform,
+                [dropDownName]: option,
+              };
+            }
+            return platform;
+          });
+        }
+        return updatedStage;
+      }
+      return stage;
+    });
+
+    setCampaignFormData((prev) => ({
+      ...prev,
+      channel_mix: updatedChannelMix,
+    }));
+
+    setDropdownOpen((prev) => ({
+      ...prev,
+      [dropdownKey]: false,
+    }));
+  };
+
+  const handleValidate = (index: number) => {
+    const stageName = funnelStages[index].name;
+    const updatedStatuses = [...statuses];
+    updatedStatuses[index] = "Completed";
+    setStatuses(updatedStatuses);
+    setIsEditable((prev) => ({ ...prev, [stageName]: true }));
+
+    const validatedPlatformsSet = new Set<string>();
+    Array.from(selectedNetworks[stageName] || []).forEach((platformName) => {
+      if (
+        hasCompletePlatformSelection(platformName, "Social media", stageName) ||
+        hasCompletePlatformSelection(
+          platformName,
+          "Display networks",
+          stageName
+        ) ||
+        hasCompletePlatformSelection(platformName, "Search engines", stageName)
+      ) {
+        validatedPlatformsSet.add(platformName);
+      }
+    });
+
+    setValidatedPlatforms((prev) => ({
+      ...prev,
+      [stageName]: validatedPlatformsSet,
+    }));
+
+    // Update campaignFormData.validatedStages
+    setCampaignFormData((prev) => ({
+      ...prev,
+      validatedStages: {
+        ...prev.validatedStages,
+        [stageName]: true, // Mark this stage as validated
+      },
+    }));
+
+    setPreviousSelectedOptions(selectedOptions);
+    toast.success("Stage completed successfully! 🎉");
+
+    if (navigator.vibrate) {
+      navigator.vibrate(300);
+    }
+  };
+
+  const hasCompletePlatformSelection = (
+    platformName: string,
+    category: string,
+    stageName: string
+  ) => {
+    const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`;
+    const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`;
+    return !!selectedOptions[buyTypeKey] && !!selectedOptions[buyObjectiveKey];
+  };
+
+  const hasMinimumBuySelections = (stageName: string) => {
+    if (!selectedNetworks[stageName] || selectedNetworks[stageName].size === 0)
+      return false;
+
+    for (const platformName of selectedNetworks[stageName]) {
+      if (
+        hasCompletePlatformSelection(platformName, "Social media", stageName) ||
+        hasCompletePlatformSelection(
+          platformName,
+          "Display networks",
+          stageName
+        ) ||
+        hasCompletePlatformSelection(platformName, "Search engines", stageName)
+      ) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const getPlatformIcon = (platformName) => {
+    return platformIcons[platformName] || null;
+  };
+
+  const renderCompletedPlatform = (
+    platformName: string,
+    category: string,
+    stageName: string
+  ) => {
+    const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`;
+    const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`;
+
+    if (!validatedPlatforms[stageName].has(platformName)) {
+      return null;
+    }
+
+    return (
+      <div
+        key={platformName}
+        className="flex flex-col gap-4 min-w-[150px] max-w-[200px]"
+      >
+        <div className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg">
+          <Image
+            src={getPlatformIcon(platformName)}
+            className="size-4"
+            alt={platformName}
+          />
+          <p className="text-sm font-medium text-[#061237] truncate">
+            {platformName}
+          </p>
+        </div>
+        <div className="flex flex-col gap-2">
+          <div className="px-4 py-2 bg-white border text-center truncate border-gray-300 rounded-lg">
+            {selectedOptions[buyTypeKey] || "Buy type"}
+          </div>
+          <div className="px-4 py-2 bg-white border text-center truncate border-gray-300 rounded-lg">
+            {selectedOptions[buyObjectiveKey] || "Buy objective"}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
-   <div key={idx} className="flex flex-col gap-4">
-    <div className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg">
-     <Image src={platform.icon} className="size-4" alt={platform.name} />
-     <p className="text-sm font-medium text-[#061237] ">{platform.name}</p>
-    </div>
-    <div className="flex flex-col gap-2">
-     <div className="px-4 py-2 bg-white border text-center whitespace-nowrap border-gray-300 rounded-lg">
-      {selectedOptions[buyTypeKey] || "Buy type"}
-     </div>
-     <div className="px-4 py-2 bg-white whitespace-nowrap border text-center border-gray-300 rounded-lg">
-      {selectedOptions[buyObjectiveKey] || "Buy objective"}
-     </div>
-    </div>
-   </div>
-  );
- };
-
- return (
-  <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
-   <Toaster position="top-right" reverseOrder={false} />
-   {funnelStages.map((stage, stageIndex) => (
-    <div key={stageIndex} className="w-full">
-     {/* Stage Header */}
-     <div
-      className="flex items-center justify-between px-6 py-4 w-full bg-[#FCFCFC] border border-gray-300 rounded-lg cursor-pointer"
-      onClick={() => toggleItem(stage.name)}
-     >
-      <div className="flex items-center gap-4">
-       <Image src={stage.icon} className="size-4" alt={stage.name} />
-       <p className="text-sm font-semibold text-[#061237] whitespace-nowrap">{stage.name}</p>
-      </div>
-      <div className="flex items-center gap-2">
-       {statuses[stageIndex] === "Completed" ? (
-        <>
-         <Image
-          className="w-5 h-5 rounded-full p-1 bg-green-500"
-          src={checkmark}
-          alt="Completed"
-         />
-         <p className="text-green-500 font-semibold text-base">Completed</p>
-        </>
-       ) : stage.statusIsActive ? (
-        <p className="text-[#3175FF] font-semibold text-base whitespace-nowrap">{statuses[stageIndex]}</p>
-       ) : (
-        <p className="text-[#061237] opacity-50 text-base whitespace-nowrap">Not started</p>
-       )}
-      </div>
-      <div>
-       {openItems[stage.name] ? (
-        <Image src={up} alt="collapse" />
-       ) : (
-        <Image src={down2} alt="expand" />
-       )}
-      </div>
-     </div>
-
-     {/* Expanded Content */}
-     {openItems[stage.name] && (
-      <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
-       {statuses[stageIndex] === "Completed" ? (
-        <div className="flex flex-col md:flex-row w-full gap-12">
-         {Array.from(selectedNetworks[stage.name] || []).map(network => (
-          <div key={network} className="flex-1">
-           <h3 className="text-xl font-semibold text-[#061237] mb-6">{network}</h3>
-           <div className="flex flex-row gap-8">
-            {stage.platforms[network]
-             .filter((p) => p.icon)
-             .map((platform, idx) => renderCompletedPlatform(platform, idx, network, stage.name))}
-           </div>
-          </div>
-         ))}
-        </div>
-       ) : (
-        // Original grid layout for non-completed state
-        Object.entries(stage.platforms).map(([category, platforms]) => (
-         <div key={category} className="w-full md:flex flex-col items-start gap-6 md:w-3/5">
-          <h3 className="text-xl font-semibold text-[#061237]">{category}</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-8 w-full">
-           {platforms.map((platform, pIndex) => {
-            const platformKey = `${stage.name}-${category}-${pIndex}`;
-            if (platform.name === "Buy type" || platform.name === "Buy objective") {
-             return (
-              <div key={pIndex} className="relative w-full">
-               <div
-                className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
-                onClick={() => toggleDropdown(platformKey)}
-               >
-                <p className="text-sm font-medium text-[#061237]">
-                 {selectedOptions[platformKey] || platform.name}
+    <div className="mt-$mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
+      <Toaster position="top-right" reverseOrder={false} />
+      {campaignFormData?.funnel_stages?.map((stageName, stageIndex) => {
+        const stage = funnelStages?.find((s) => s?.name === stageName);
+        if (!stage) return null;
+        return (
+          <div key={stageIndex} className="w-full">
+            <div
+              className={`flex justify-between items-center p-6 gap-3 max-w-[950px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
+                rounded-t-[10px] ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"
+                }`}
+              onClick={() => toggleItem(stage.name)}
+            >
+              <div className="flex items-center gap-4">
+                <Image src={stage.icon} className="size-4" alt={stage.name} />
+                <p className="text-sm font-semibold text-[#061237] whitespace-nowrap">
+                  {stage.name}
                 </p>
-                <Image src={down2} alt="dropdown" />
-               </div>
-               {dropdownOpen[platformKey] && (
-                <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg transition-transform transform hover:scale-105 z-10">
-                 <ul>
-                  {getDropdownOptions(platform).map((option, i) => (
-                   <li
-                    key={i}
-                    className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                    onClick={() => handleSelectOption(platformKey, option, category, stage.name)}
-                   >
-                    {option}
-                   </li>
-                  ))}
-                 </ul>
-                </div>
-               )}
               </div>
-             );
-            } else {
-             return (
-              <div
-               key={pIndex}
-               className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg"
-              >
-               {platform.icon && (
-                <Image src={platform.icon} className="size-4" alt={platform.name} />
-               )}
-               <p className="text-base font-medium text-[#061237]">
-                {platform.name}
-               </p>
+              <div className="flex items-center gap-2">
+                {statuses[stageIndex] === "Completed" ? (
+                  <>
+                    <Image
+                      className="w-5 h-5 rounded-full p-1 bg-green-500"
+                      src={checkmark}
+                      alt="Completed"
+                    />
+                    <p className="text-green-500 font-semibold text-base">
+                      Completed
+                    </p>
+                  </>
+                ) : stage.statusIsActive ? (
+                  <p className="text-[#3175FF] font-semibold text-base whitespace-nowrap">
+                    {statuses[stageIndex]}
+                  </p>
+                ) : (
+                  <p className="text-[#061237] opacity-50 text-base whitespace-nowrap">
+                    Not started
+                  </p>
+                )}
               </div>
-             );
-            }
-           })}
+              <div>
+                {openItems[stage.name] ? (
+                  <Image src={up} alt="collapse" />
+                ) : (
+                  <Image src={down2} alt="expand" />
+                )}
+              </div>
+            </div>
+
+            {openItems[stage.name] && (
+              <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
+                {statuses[stageIndex] === "Completed" ? (
+                  <div className="flex flex-col w-full gap-12">
+                    {["Social media", "Display networks", "Search engines"].map(
+                      (category) => (
+                        <div key={category} className="w-full">
+                          <h3 className="text-xl font-semibold text-[#061237] mb-6">
+                            {category}
+                          </h3>
+                          <div className="flex flex-wrap gap-8">
+                            {Array.from(selectedNetworks[stage.name] || [])
+                              .filter((platform) =>
+                                campaignFormData?.channel_mix
+                                  ?.find((ch) => ch.funnel_stage === stageName)
+                                  ?.[category.toLowerCase().replaceAll(" ", "_")]
+                                  ?.some((p) => p.platform_name === platform)
+                              )
+                              .map((platform) =>
+                                renderCompletedPlatform(
+                                  platform,
+                                  category,
+                                  stage.name
+                                )
+                              )}
+                          </div>
+                        </div>
+                      )
+                    )}
+                  </div>
+                ) : (
+                  ["Social media", "Display networks", "Search engines"].map(
+                    (category) => (
+                      <div
+                        key={category}
+                        className="w-full md:flex flex-col items-start gap-6 md:w-4/5"
+                      >
+                        <h3 className="text-xl font-semibold text-[#061237]">
+                          {category}
+                        </h3>
+
+                        <div className="flex flex-col gap-8 ">
+                          {Array.from(selectedNetworks[stageName] || [])
+                            .filter((platform) =>
+                              campaignFormData?.channel_mix
+                                ?.find((ch) => ch.funnel_stage === stageName)
+                                ?.[category.toLowerCase().replaceAll(" ", "_")]
+                                ?.some((p) => p.platform_name === platform)
+                            )
+                            .map((platform) => {
+                              const platformKey = `${stage.name}-${category}-${platform}`;
+                              const selectedObj = campaignFormData?.channel_mix
+                                ?.find((ch) => ch?.funnel_stage === stageName)
+                                ?.[category.toLowerCase().replaceAll(" ", "_")]
+                                ?.find((pl) => pl?.platform_name === platform)
+                                ?.objective_type;
+                              const selectedBuy = campaignFormData?.channel_mix
+                                ?.find((ch) => ch?.funnel_stage === stageName)
+                                ?.[category.toLowerCase().replaceAll(" ", "_")]
+                                ?.find((pl) => pl?.platform_name === platform)
+                                ?.buy_type;
+
+                              return (
+                                <div
+                                  key={platformKey}
+                                  className="flex items-center gap-8"
+                                >
+                                  <div className="w-[180px]">
+                                    <div className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg shrink-0 w-fit min-w-[150px]">
+                                      <Image
+                                        src={getPlatformIcon(platform)}
+                                        className="size-4"
+                                        alt={platform}
+                                      />
+                                      <p className="text-base font-medium text-[#061237]">
+                                        {platform}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Buy Objective Dropdown */}
+                                  <div className="relative min-w-[150px]">
+                                    <div
+                                      className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
+                                      onClick={() =>
+                                        toggleDropdown(platformKey + "obj")
+                                      }
+                                    >
+                                      <p className="text-sm font-medium text-[#061237]">
+                                        {selectedObj || "Buy Objective"}
+                                      </p>
+                                      <Image src={down2} alt="dropdown" />
+                                    </div>
+                                    {dropdownOpen[platformKey + "obj"] && (
+                                      <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg transition-transform transform hover:scale-105 z-10">
+                                        <ul>
+                                          {[
+                                            "Awareness",
+                                            "Video views",
+                                            "Traffic",
+                                          ].map((option, i) => (
+                                            <li
+                                              key={`${platformKey}-objective-${i}`}
+                                              className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+                                              onClick={() =>
+                                                handleSelectOption(
+                                                  platform,
+                                                  option,
+                                                  category,
+                                                  stage.name,
+                                                  "objective_type"
+                                                )
+                                              }
+                                            >
+                                              {option}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Buy Type Dropdown */}
+                                  <div className="relative min-w-[150px]">
+                                    <div
+                                      className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
+                                      onClick={() => toggleDropdown(platformKey)}
+                                    >
+                                      <p className="text-sm font-medium text-[#061237]">
+                                        {selectedBuy || "Buy Type"}
+                                      </p>
+                                      <Image src={down2} alt="dropdown" />
+                                    </div>
+                                    {dropdownOpen[platformKey] && (
+                                      <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg transition-transform transform hover:scale-105 z-10">
+                                        <ul>
+                                          {["CPM", "CPV"].map((option, i) => (
+                                            <li
+                                              key={`${platformKey}-type-${i}`}
+                                              className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+                                              onClick={() =>
+                                                handleSelectOption(
+                                                  platform,
+                                                  option,
+                                                  category,
+                                                  stage.name,
+                                                  "buy_type"
+                                                )
+                                              }
+                                            >
+                                              {option}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    )
+                  )
+                )}
+                {statuses[stageIndex] !== "Completed" && (
+                  <div className="flex justify-end mt-6 w-full">
+                    <Button
+                      text="Validate"
+                      variant="primary"
+                      onClick={() => handleValidate(stageIndex)}
+                      disabled={!hasMinimumBuySelections(stage.name)}
+                    />
+                  </div>
+                )}
+                {statuses[stageIndex] === "Completed" && (
+                  <div className="flex justify-end mt-2 w-full">
+                    <Button
+                      text="Edit"
+                      variant="primary"
+                      className="bg-blue-500"
+                      onClick={() => {
+                        setIsEditable((prev) => ({
+                          ...prev,
+                          [stage.name]: false,
+                        }));
+                        setSelectedOptions(previousSelectedOptions);
+                        setStatuses((prev) => {
+                          const updated = [...prev];
+                          updated[stageIndex] = "In progress";
+                          return updated;
+                        });
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-         </div>
-        ))
-       )}
-       {/* Validate Button (Only when not completed) */}
-       {statuses[stageIndex] !== "Completed" && (
-        <div className="flex justify-end mt-6 w-full">
-         <Button
-          text="Validate"
-          variant="primary"
-          onClick={() => handleValidate(stageIndex)}
-          disabled={!hasMinimumBuySelections(stage.name)}
-         />
-        </div>
-       )}
-       {/* Edit Button (Only when completed) */}
-       {statuses[stageIndex] === "Completed" && (
-        <div className="flex justify-end mt-2 w-full">
-         <Button
-          text="Edit"
-          variant="primary"
-          className="bg-blue-500"
-          onClick={() => {
-           setIsEditable((prev) => ({ ...prev, [stage.name]: false }));
-           setSelectedOptions(previousSelectedOptions); // Restore previous selections
-           setStatuses((prev) => {
-            const updated = [...prev];
-            updated[stageIndex] = "In progress"; // Set status back to "In progress"
-            return updated;
-           });
-          }}
-         />
-        </div>
-       )}
-      </div>
-     )}
+        );
+      })}
     </div>
-   ))}
-  </div>
- );
+  );
 };
 
 export default ObjectiveSelection;

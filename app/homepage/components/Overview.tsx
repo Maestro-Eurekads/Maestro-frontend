@@ -4,8 +4,12 @@ import blueBtn from '../../../public/blueBtn.svg';
 import Image from 'next/image'
 import Table from '../../../components/Table';
 import Dropdowns from '../Dropdowns';
+import { useCampaigns } from '../../utils/CampaignsContext';
 
 const Overview = () => {
+	const { loading, clientCampaignData } = useCampaigns()
+
+
 	return (
 		<div className='px-[72px]'>
 

@@ -10,20 +10,15 @@ import FeeDropdowns from "./FeeDropdowns";
 import CategoryDropdown from "./components/CategoryDropdown";
 import SportDropdown from "./components/SportDropdown";
 import BusinessUnit from "./components/BusinessUnit";
-import { useDispatch } from "react-redux";
-import { createClient, reset } from "../../features/Client/clientSlice";
-import { useAppSelector } from "../../store/useStore";
-import { RootState } from "../../store/store";
 import { SVGLoader } from "../../components/SVGLoader";
 import AlertMain from "../../components/Alert/AlertMain";
 import { MdOutlineCancel } from "react-icons/md";
 import { addNewClient } from "./functions/clients";
+import { getCreateClient } from "features/Client/clientSlice";
+import { useAppDispatch } from "store/useStore";
 
 const TableModel = ({ isOpen, setIsOpen }) => {
-  const { isLoading, isSuccess, isError, message } = useAppSelector(
-    (state: RootState) => state.client
-  );
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const [inputs, setInputs] = useState({
     name: "",
     email: "",
@@ -35,15 +30,12 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     feeType: "",
   });
   const [emailList, setEmailList] = useState([]);
-  const [sportList, setSportList] = useState<any>([{ id: 1, text: "" }]);
-  const [businessUnit, setBusinessUnit] = useState([]);
-  const [categoryList, setCategoryList] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState(null); // ✅ State for alerts
+  const [alert, setAlert] = useState(null);
 
-  // console.log('businessUnit-businessUnit', categoryList, businessUnit, sportList)
 
-  // ✅ Automatically reset alert after showing
+
+  //  Automatically reset alert after showing
   useEffect(() => {
     if (alert) {
       const timer = setTimeout(() => setAlert(null), 3000); // Reset after 3 seconds
@@ -53,7 +45,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   const handleAddEmail = () => {
     const trimmedEmail = inputs.email.trim();
 
-    // ✅ Email validation regex
+    //  Email validation regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!trimmedEmail) {
@@ -83,29 +75,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     }));
   };
 
-  // useEffect(() => {
-  //   if (isError) {
-  //     setTimeout(() => {
-  //       dispatch(reset());
-  //     }, 3000);
-  //   } else if (isSuccess) {
-  //     setIsOpen(false);
-  //     setInputs({
-  //       name: "",
-  //       email: "",
-  //       responsiblePerson: "",
-  //       approver: "",
-  //       sports: "",
-  //       categories: [],
-  //       businessUnits: [],
-  //       feeType: "",
-  //     });
-  //     setTimeout(() => {
-  //       dispatch(reset());
-  //     }, 3000);
-  //   }
-  // }, [isError, isSuccess]);
-  // console.log('inputs-inputs', inputs)
+
+
 
 
   const handleRemoveEmail = (email) => {
@@ -132,64 +103,53 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
 
 
-  console.log('emailList-emailList', inputs)
+
 
   const handleSubmit = async () => {
     setLoading(true);
-    await addNewClient({
-      client_name: inputs.name,
-      client_emails: emailList,
-      responsible: inputs.responsiblePerson,
-      approver: inputs.approver,
-      level_1: inputs.sports,
-      level_2: inputs.businessUnits,
-      level_3: inputs.categories,
-      fee_type: inputs.feeType,
-    })
-      .then(() => {
-        setInputs({
-          name: "",
-          email: "",
-          responsiblePerson: "",
-          approver: "",
-          sports: [],
-          categories: [],
-          businessUnits: [],
-          feeType: "",
-        });
-        setSportList([])
-        setBusinessUnit([])
-        setCategoryList([])
-        setIsOpen(false)
-      })
-      .finally(() => {
-        setLoading(false);
+
+    try {
+      await addNewClient({
+        client_name: inputs.name,
+        client_emails: emailList,
+        responsible: inputs.responsiblePerson,
+        approver: inputs.approver,
+        level_1: inputs.sports,
+        level_2: inputs.businessUnits,
+        level_3: inputs.categories,
+        fee_type: inputs.feeType,
       });
+
+
+      // Fetch clients after successfully adding a new one
+      //@ts-ignore
+      dispatch(getCreateClient());
+      // Reset form state
+      setInputs({
+        name: "",
+        email: "",
+        responsiblePerson: "",
+        approver: "",
+        sports: [],
+        categories: [],
+        businessUnits: [],
+        feeType: "",
+      });
+
+      setIsOpen(false);
+    } catch (error) {
+      const errors: any = error.response?.data?.error?.details?.errors || error.response?.data?.error?.message || error.message || [];
+      setAlert({ variant: "error", message: errors, position: "bottom-right" });
+    } finally {
+      setLoading(false);
+    }
   };
+
+
   return (
     <div className="z-50">
-      {/* ✅ Show Alert */}
+      {/* Show Alert */}
       {alert && <AlertMain alert={alert} />}
-      {/* Show alert only when needed */}
-      {/* {isSuccess && (
-        <AlertMain
-          alert={{
-            variant: "success",
-            message: "Client created successfully!",
-            position: "bottom-right",
-          }}
-        />
-      )} */}
-      {/* {isError && (
-        <AlertMain
-          alert={{
-            variant: "error",
-            message: message,
-            position: "bottom-right",
-          }}
-        />
-      )} */}
-
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           {/* Modal container */}
@@ -254,12 +214,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                           onClick={() => handleRemoveEmail(email)}
                           className="cursor-pointer"
                         />
-                        {/* <p
-                          className="text-red-500 cursor-pointer"
-                          onClick={() => handleRemoveEmail(email)}
-                        >
-                          x
-                        </p> */}
                       </div>
                     ))}
                   </div>
@@ -299,7 +253,9 @@ const TableModel = ({ isOpen, setIsOpen }) => {
             {/* Footer  */}
             <div className="p-6 border-t bg-white sticky bottom-0 z-10 flex justify-end rounded-b-[32px]">
               <div className="flex items-center gap-5">
-                <button className="btn_model_outline">Cancel</button>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="btn_model_outline">Cancel</button>
                 <button
                   className="btn_model_active whitespace-nowrap"
                   onClick={handleSubmit}

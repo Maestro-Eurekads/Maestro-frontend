@@ -5,16 +5,11 @@ import { eachDayOfInterval } from "date-fns";
 
 
 const MainSection = () => {
-  const { range } = useDateRange();
-  const dateList = eachDayOfInterval({
-    start: range.startDate,
-    end: range.endDate,
-  });
 
   return (
     <div className="mt-[32px]">
       <DateComponent useDate={true} />
-      <ResizeableElements dateList={dateList} />
+      <ResizeableElements />
     </div>
   );
 };

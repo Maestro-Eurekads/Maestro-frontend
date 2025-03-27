@@ -1,4 +1,3 @@
- 
 @import url(../css/homepage.css);
 @import url(../css/header.css);
 @import url(../css/button.css);
@@ -8,6 +7,7 @@
 @import url(../css/creationFlow.css);
 @import url(../css/Checkbox.css);
 @import url(../css/Impressions.css);
+@import url(../css/CommentsDrawer.css);
 
 
 @tailwind base;
@@ -38,6 +38,7 @@
   --accent-profile: #f8c993;
   --border-color: #e5e4e9;
   --border: #34495d;
+   --gray-light: #8F8F8F;
 }
 
 html,
@@ -183,4 +184,77 @@ main {
   display: none; /* WebKit */
 }
 
+ .entries-perpage-container{
+  color: #5c5c5c;
+  display: flex;
+  align-items: center;
+  /* white-space: nowrap ; */
+}
+
+.entries-perpage-container select { 
+  color: #5c5c5c ;
+  margin-left: 5px ;
+  margin-right: 5px ;
+  background-color: var(--white) ;
+  padding: 5px ;
+  border-radius: 3px ;
+  outline: none ;
+  border: 0 ;
+  border: 1px solid #cfcfcf ;
+  transition: all 0.3s ease-out ;
+  -webkit-transition: all 0.3s ease-out ;
+  white-space: nowrap ;
  
+}
+.entries-perpage {
+  color: var(--text); 
+  display: flex;
+  align-items: center;  
+}
+  .entries-perpage select { 
+ color: var(--text) ; 
+  background-color: var(--white) ;
+  padding: 5px ;
+  border-radius: 3px ;
+  outline: none ;
+  border: 0 ;
+  border: 1px solid var(--form-border);
+  transition: all 0.3s ease-out ;
+  -webkit-transition: all 0.3s ease-out ; 
+}  
+.entries-perpage select:focus {
+  border: 1px solid var(--accent-blue);
+  box-sizing: 0 0 3px var(--black);
+  transition: all 0.3s ease-out;
+  -webkit-transition: all 0.3s ease-out;
+}
+
+@media only screen and (max-width: 1220px) { 
+
+.entries-perpage {
+  color: var(--gray-light); 
+  white-space: nowrap ; 
+  justify-content: center;
+}
+
+}
+
+
+
+#table-loader { 
+  color: var(--gray-light); 
+  padding-top: 5rem  ;
+  padding-bottom: 5rem ;   
+}
+#table-loader p {
+  color: var(--gray-light);
+}
+
+
+.center-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;  
+}

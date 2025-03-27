@@ -23,8 +23,50 @@ import State12 from '../public/State12.svg';
 import roundget from '../public/ic_round-get-app.svg';
 import mingcute_basket from '../public/mingcute_basket-fill.svg';
 import mdi_leads from '../public/mdi_leads.svg';
+import { StaticImageData } from "next/image";
 
+const platformIcons: Record<string, StaticImageData> = {
+	Facebook: facebook,
+	Instagram: ig,
+	YouTube: youtube,
+	Youtube: youtube,
+	TheTradeDesk: TheTradeDesk,
+	Quantcast: Quantcast,
+	Google: google,
+	"Twitter/X": x,
+	LinkedIn: linkedin,
+	Linkedin: linkedin,
+	TikTok: tictok,
+	"Display & Video": Display,
+	Yahoo: yahoo,
+	Bing: bing,
+	"Apple Search": google,
+	"The Trade Desk": TheTradeDesk,
+	QuantCast: Quantcast,
+  }
+  
+  export const getPlatformIcon = (platformName: string): StaticImageData | null => {
+	return platformIcons[platformName] || null
+  }
 
+  export const getCurrencySymbol = (currencyCode) => {
+    switch (currencyCode) {
+      case "EUR":
+        return "€";
+      case "USD":
+        return "$";
+      case "GBP":
+        return "£";
+      case "NGN":
+        return "₦";
+      case "JPY":
+        return "¥";
+      case "CAD":
+        return "$";
+      default:
+        return "€";
+    }
+  };
 
 export const funnels = [
 	{
@@ -49,6 +91,14 @@ export const funnels = [
 		label: "Campaign 2",
 		bg: "#ff9037",
 		description: "Conversion",
+		Icon: <TbCreditCardFilled />
+	},
+	{
+		startWeek: 2,
+		endWeek: 9,
+		label: "Campaign 2",
+		bg: "#F05406",
+		description: "Loyalty",
 		Icon: <TbCreditCardFilled />
 	},
 ];
@@ -162,7 +212,7 @@ export const funnelStages = [
 			// ],
 			"Search engines": [
 				{ name: "Google", icon: Google },
-				{ name: "Apple Search", icon: Google },
+				// { name: "Apple Search", icon: Google },
 				{ name: "Yahoo", icon: yahoo },
 				{ name: "Bing", icon: bing },
 				// { name: "Baidu", icon: bing },
@@ -333,3 +383,84 @@ export const campaignObjectives = [
 		description: "Boost the number of views on your video content to increase engagement."
 	}
 ];
+
+
+export const platformStyles = [
+	{ name: "Facebook", color: "#0866FF", bg: "#F0F6FF" },
+	{ name: "Instagram", color: "#C13584", bg: "#FEF1F8" },
+	{ name: "TikTok", color: "#000000", bg: "#F8F8F8" },
+	{ name: "YouTube", color: "#FF0000", bg: "#FFF0F0" },
+	{ name: "Twitter/X", color: "#000000", bg: "#F5F5F5" },
+	{ name: "LinkedIn", color: "#0A66C2", bg: "#EDF4FA" },
+	{ name: "Snapchat", color: "#FFFC00", bg: "#FFFCE1" },
+	{ name: "Pinterest", color: "#E60023", bg: "#FFF0F2" },
+	{ name: "Reddit", color: "#FF4500", bg: "#FFF3EF" },
+	{ name: "Quora", color: "#B92B27", bg: "#FAF2F0" },
+	{ name: "WeChat", color: "#07C160", bg: "#E6F8EC" },
+	{ name: "Weibo", color: "#E6162D", bg: "#FFF0F1" },
+	{ name: "Vkontakte", color: "#0077FF", bg: "#EAF3FF" },
+	{ name: "Line", color: "#00C300", bg: "#E9FAE9" },
+	{ name: "Kakao", color: "#FFCD00", bg: "#FFF9E6" },
+	{ name: "Tumblr", color: "#001935", bg: "#E6E9ED" },
+	{ name: "The Trade Desk", color: "#0099FA", bg: "#F0F9FF" },
+	{ name: "Quantcast", color: "#000000", bg: "#F7F7F7" },
+	{ name: "Display & Video", color: "#34A853", bg: "#E6F4EA" },
+	{ name: "DV360", color: "#1E8E3E", bg: "#E6F7E9" },
+	{ name: "MediaMath", color: "#E6007A", bg: "#FFF0F8" },
+	{ name: "Xandr", color: "#FF3E59", bg: "#FFF4F6" },
+	{ name: "Verizon Media", color: "#DA291C", bg: "#FFECEC" },
+	{ name: "Amazon", color: "#FF9900", bg: "#FFF7E6" },
+	{ name: "Adroll", color: "#0033CC", bg: "#E6ECFF" },
+	{ name: "Criteo", color: "#F47C00", bg: "#FFF4E6" },
+	{ name: "RTB House", color: "#EC1C24", bg: "#FFF0F0" },
+	{ name: "SmartyAds", color: "#FF5722", bg: "#FFF3ED" },
+	{ name: "Adsterra", color: "#FF4500", bg: "#FFF3EF" },
+	{ name: "PopAds", color: "#F5A623", bg: "#FFF8E6" },
+	{ name: "Smaato", color: "#0071BC", bg: "#E6F2FF" },
+	{ name: "Pubmatic", color: "#00AEEF", bg: "#E6F7FF" },
+	{ name: "Magnite", color: "#E6001F", bg: "#FFF0F1" },
+	{ name: "OpenX", color: "#FFA500", bg: "#FFF8E6" },
+	{ name: "Index Exchange", color: "#0097D7", bg: "#E6F7FF" },
+	{ name: "Stackadapt", color: "#1C1C1C", bg: "#F5F5F5" },
+	{ name: "Choozle", color: "#4EAF4E", bg: "#E6F7E6" },
+	{ name: "Teads", color: "#002244", bg: "#E6E9ED" },
+	{ name: "LiveIntent", color: "#FF6600", bg: "#FFF3E6" },
+	{ name: "Epom", color: "#0088CC", bg: "#E6F7FF" },
+	{ name: "QuantCast", color: "#000000", bg: "#F7F7F7" },
+	{ name: "Taboola", color: "#1F76C2", bg: "#E6F2FF" },
+	{ name: "Outbrain", color: "#FF6600", bg: "#FFF3E6" },
+	{ name: "MGID", color: "#EC1C24", bg: "#FFF0F0" },
+	{ name: "Revcontent", color: "#0083C1", bg: "#E6F7FF" },
+	{ name: "Plista", color: "#6D6E71", bg: "#F5F5F5" },
+	{ name: "Zemanta", color: "#E95A0C", bg: "#FFF3E6" },
+	{ name: "Nativo", color: "#0074C1", bg: "#E6F7FF" },
+	{ name: "TripleLift", color: "#FF6600", bg: "#FFF3E6" },
+	{ name: "Sharethrough", color: "#00A37E", bg: "#E6F7F2" },
+	{ name: "Microsoft Audience", color: "#0066B8", bg: "#E6F2FF" },
+	{ name: "BuySell", color: "#FF5722", bg: "#FFF3ED" },
+	{ name: "Mozilla Tiles", color: "#C13832", bg: "#FAF2F2" },
+	{ name: "Telegram", color: "#0088CC", bg: "#E6F7FF" },
+	{ name: "WhatsApp", color: "#25D366", bg: "#E6F9E9" },
+	{ name: "Twitch", color: "#9146FF", bg: "#F4EFFF" },
+	{ name: "eBay", color: "#E53238", bg: "#FFF0F0" },
+	{ name: "Walmart", color: "#0071CE", bg: "#E6F2FF" },
+	{ name: "Etsy", color: "#D5641C", bg: "#FAEFE6" },
+	{ name: "Alibaba", color: "#FF6A00", bg: "#FFF3E6" },
+	{ name: "Rakuten", color: "#BF0000", bg: "#FFE6E6" },
+	{ name: "Newegg", color: "#F47B00", bg: "#FFF3E6" },
+	{ name: "Mercado Libre", color: "#FFE600", bg: "#FFFCE6" },
+	{ name: "Flipkart", color: "#2874F0", bg: "#E6F0FF" },
+	{ name: "JD", color: "#C7000B", bg: "#FFF0F1" },
+	{ name: "Lazada", color: "#F36C21", bg: "#FFF4E6" },
+	{ name: "Shopee", color: "#FF5722", bg: "#FFF3ED" },
+	{ name: "Spotify", color: "#1DB954", bg: "#E6F8EC" },
+	{ name: "Pandora", color: "#0057FF", bg: "#E6F2FF" },
+	{ name: "SoundCloud", color: "#FF5500", bg: "#FFF3E6" },
+	{ name: "Hulu", color: "#1CE783", bg: "#E6F8EC" },
+	{ name: "Dailymotion", color: "#0066DC", bg: "#E6F2FF" },
+	{ name: "Google", color: "#4285F4", bg: "#F1F6FE" },
+	{ name: "Apple Search", color: "#000000", bg: "#F5F5F5" },
+	{ name: "Yahoo", color: "#6001D2", bg: "#F3E8FF" },
+	{ name: "Bing", color: "#008373", bg: "#E6F7F3" }
+  ];
+  

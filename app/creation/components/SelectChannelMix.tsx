@@ -2,113 +2,160 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import up from "../../../public/arrow-down.svg";
-import down2 from "../../../public/arrow-down-2.svg"; 
+import down2 from "../../../public/arrow-down-2.svg";
 import checkmark from "../../../public/mingcute_check-fill.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { funnelStages } from "../../../components/data";
 import { useCampaigns } from "../../utils/CampaignsContext";
 
-// SelectChannelMix component allows users to select marketing platforms for different funnel stages
 const SelectChannelMix = () => {
-  // State management
-  const [openItems, setOpenItems] = useState({ Awareness: true }); // Tracks which funnel stages are expanded
-  const [selected, setSelected] = useState({}); // Stores selected platforms for each stage
-  const [validatedStages, setValidatedStages] = useState({}); // Tracks which stages are validated
-  const { campaignFormData, setCampaignFormData } = useCampaigns(); // Campaign context
+  const [openItems, setOpenItems] = useState({});
+  const [selected, setSelected] = useState({});
+  const [validatedStages, setValidatedStages] = useState({});
+  const { campaignFormData, setCampaignFormData } = useCampaigns();
 
-  // Toggle expansion of a funnel stage section
-  const toggleItem = (stage: string) => {
-    setOpenItems((prev) => ({
-      ...prev,
-      [stage]: !prev[stage],
-    }));
-  };
-
-  // Initialize openItems state when funnel stages change
   useEffect(() => {
-    if (campaignFormData?.funnel_stages) {
-      const value = campaignFormData?.funnel_stages?.reduce(
-        (acc, stage, index) => {
-          acc[stage] = index === 0;
+    if (campaignFormData?.funnel_stages?.length > 0) {
+      const initialOpenItems = campaignFormData.funnel_stages.reduce(
+        (acc, stage) => {
+          acc[stage] = validatedStages[stage] ? false : true; // Keep validated closed, others open
           return acc;
         },
         {}
       );
-      setOpenItems(value);
+      setOpenItems(initialOpenItems);
     }
-  }, [campaignFormData?.funnel_stages]);
 
-  // Handle selection/deselection of platforms
-  const togglePlatform = (
-    stageName: string,
-    category: string,
-    platformName: string
-  ) => {
-    const prev = { ...selected };
-    const stageSelection = prev[stageName] || {};
-    const categorySelection = stageSelection[category] || [];
-    const isAlreadySelected = categorySelection.includes(platformName);
+    if (campaignFormData?.channel_mix?.length > 0) {
+      const initialSelected = {};
+      campaignFormData.channel_mix.forEach(channelMixItem => {
+        const stageName = channelMixItem.funnel_stage;
+        initialSelected[stageName] = {
+          "Social media": channelMixItem?.social_media?.map(sm => sm.platform_name) || [],
+          "Display networks": channelMixItem?.display_networks?.map(dn => dn.platform_name) || [],
+          "Search engines": channelMixItem?.search_engines?.map(se => se.platform_name) || []
+        };
+      });
+      setSelected(initialSelected);
+    }
 
-    // Update local state
-    const newCategorySelection = isAlreadySelected
-      ? categorySelection.filter((p) => p !== platformName)
-      : [...categorySelection, platformName];
-    setSelected((prev) => ({
+    if (campaignFormData?.validatedStages) {
+      setValidatedStages(campaignFormData.validatedStages);
+    }
+  }, [campaignFormData?.funnel_stages, campaignFormData?.channel_mix, campaignFormData?.validatedStages]);
+
+  const toggleItem = (stage) => {
+    setOpenItems(prev => ({
       ...prev,
-      [stageName]: {
-        ...stageSelection,
-        [category]: newCategorySelection,
-      },
+      [stage]: !prev[stage]
     }));
+  };
 
-    // Update campaign form data context
-    setCampaignFormData((prev1: any) => {
-      const updatedCategorySelection = isAlreadySelected
-        ? categorySelection.filter((p) => p !== platformName)
+  const togglePlatform = (stageName, category, platformName) => {
+    setSelected(prev => {
+      const stageSelection = prev[stageName] || {};
+      const categorySelection = stageSelection[category] || [];
+      const isAlreadySelected = categorySelection.includes(platformName);
+
+      const newCategorySelection = isAlreadySelected
+        ? categorySelection.filter(p => p !== platformName)
         : [...categorySelection, platformName];
+
       return {
-        ...prev1,
-        channel_mix: {
-          ...prev1.channel_mix,
-          [stageName]: {
-            ...prev1.channel_mix[stageName],
-            funnel_stage: stageName,
-            [category.toLowerCase().replaceAll(" ", "_")]: updatedCategorySelection.map(
-              (cat: any) => ({
-                platform_name: cat,
-              })
-            ),
-          },
-        },
+        ...prev,
+        [stageName]: {
+          ...stageSelection,
+          [category]: newCategorySelection
+        }
+      };
+    });
+
+    // Update campaign form data without affecting openItems
+    setCampaignFormData(prevFormData => {
+      const categoryKey = category.toLowerCase().replaceAll(" ", "_");
+      const stageSelection = selected[stageName] || {};
+      const categorySelection = stageSelection[category] || [];
+      const isAlreadySelected = categorySelection.includes(platformName);
+      const newCategorySelection = isAlreadySelected
+        ? categorySelection.filter(p => p !== platformName)
+        : [...categorySelection, platformName];
+      const platformObjects = newCategorySelection.map(name => ({
+        platform_name: name
+      }));
+
+      const existingChannelMixIndex = prevFormData.channel_mix?.findIndex(
+        item => item.funnel_stage === stageName
+      );
+      
+      let updatedChannelMix = [...(prevFormData.channel_mix || [])];
+      
+      if (existingChannelMixIndex >= 0) {
+        updatedChannelMix[existingChannelMixIndex] = {
+          ...updatedChannelMix[existingChannelMixIndex],
+          [categoryKey]: platformObjects
+        };
+      } else {
+        updatedChannelMix.push({
+          funnel_stage: stageName,
+          [categoryKey]: platformObjects
+        });
+      }
+      
+      return {
+        ...prevFormData,
+        channel_mix: updatedChannelMix
       };
     });
   };
 
-  // Check if a stage has at least one platform selected
-  const isStageValid = (stageName: string) => {
+  const isStageValid = (stageName) => {
     const stageSelections = selected[stageName] || {};
     return Object.values(stageSelections).some(
-      (categorySelection) =>
-        Array.isArray(categorySelection) && categorySelection.length > 0
+      categorySelection => Array.isArray(categorySelection) && categorySelection.length > 0
     );
   };
 
-  // Mark a stage as validated
-  const handleValidate = (stageName: string) => {
+  const handleValidate = (stageName) => {
     if (isStageValid(stageName)) {
-      setValidatedStages((prev) => ({
+      const updatedValidatedStages = {
+        ...validatedStages,
+        [stageName]: true
+      };
+      
+      setValidatedStages(updatedValidatedStages);
+      setOpenItems(prev => ({
         ...prev,
-        [stageName]: true,
+        [stageName]: false
+      }));
+      
+      setCampaignFormData(prev => ({
+        ...prev,
+        validatedStages: updatedValidatedStages
       }));
     }
   };
 
-  // Enable editing for a specific stage
   const handleEdit = (stageName) => {
-    setValidatedStages((prev) => ({
+    const updatedValidatedStages = {
+      ...validatedStages,
+      [stageName]: false
+    };
+    
+    setValidatedStages(updatedValidatedStages);
+    setOpenItems(prev => ({
       ...prev,
-      [stageName]: false,
+      [stageName]: true
     }));
+    
+    setCampaignFormData(prev => ({
+      ...prev,
+      validatedStages: updatedValidatedStages
+    }));
+  };
+
+  const handlePlatformClick = (e, stageName, category, platformName) => {
+    e.stopPropagation();
+    togglePlatform(stageName, category, platformName);
   };
 
   return (
@@ -122,13 +169,12 @@ const SelectChannelMix = () => {
       </div>
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
-        {campaignFormData?.funnel_stages.map((stageName, index) => {
-          const stage = funnelStages.find((s) => s.name === stageName);
+        {campaignFormData?.funnel_stages?.map((stageName, index) => {
+          const stage = funnelStages.find(s => s.name === stageName);
           if (!stage) return null;
 
           return (
             <div key={index}>
-              {/* Stage Header */}
               <div
                 className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
                   ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
@@ -140,7 +186,6 @@ const SelectChannelMix = () => {
                     {stage.name}
                   </p>
                 </div>
-                {/* Stage Status Display */}
                 {validatedStages[stage.name] ? (
                   <div className="flex items-center gap-2">
                     <Image
@@ -164,11 +209,9 @@ const SelectChannelMix = () => {
                 </div>
               </div>
 
-              {/* Stage Content */}
               {openItems[stage.name] && (
                 <div className="card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px]">
                   {validatedStages[stage.name] ? (
-                    // Validated Stage View
                     <div className="mt-8 px-6">
                       {Object.entries(selected[stage.name] || {}).map(
                         ([category, platformNames]) => {
@@ -180,7 +223,7 @@ const SelectChannelMix = () => {
                               <div className="card_bucket_container flex flex-wrap gap-6">
                                 {platformNames.map((platformName, idx) => {
                                   const platformData = stage.platforms[category].find(
-                                    (p) => p.name === platformName
+                                    p => p.name === platformName
                                   );
                                   if (!platformData) return null;
                                   return (
@@ -204,7 +247,10 @@ const SelectChannelMix = () => {
                       )}
                       <div className="flex justify-end pr-[24px] mt-4">
                         <button
-                          onClick={() => handleEdit(stage.name)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(stage.name);
+                          }}
                           className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] bg-blue-500"
                         >
                           Edit
@@ -212,16 +258,13 @@ const SelectChannelMix = () => {
                       </div>
                     </div>
                   ) : (
-                    // Editing Stage View
                     <>
                       {Object.entries(stage.platforms).map(([category, platforms]) => (
                         <div key={category} className="card_bucket_container_main">
                           <h2 className="font-bold">{category}</h2>
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                             {platforms.map((platform, pIndex) => {
-                              const isSelected = selected[stage.name]?.[category]?.includes(
-                                platform.name
-                              );
+                              const isSelected = selected[stage.name]?.[category]?.includes(platform.name);
                               return (
                                 <div
                                   key={pIndex}
@@ -231,7 +274,7 @@ const SelectChannelMix = () => {
                                       ? "border-[#3175FF]"
                                       : "border-[rgba(0,0,0,0.1)]"
                                   }`}
-                                  onClick={() => togglePlatform(stage.name, category, platform.name)}
+                                  onClick={(e) => handlePlatformClick(e, stage.name, category, platform.name)}
                                 >
                                   <div className="flex items-center gap-2">
                                     <Image src={platform.icon} alt={platform.name} />
@@ -267,7 +310,8 @@ const SelectChannelMix = () => {
                       <div className="flex justify-end pr-[24px] mt-4">
                         <button
                           disabled={!isStageValid(stage.name)}
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             handleValidate(stage.name);
                           }}
                           className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${

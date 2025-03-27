@@ -1,122 +1,599 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MdDragHandle } from "react-icons/md";
-import reddelete from '../../../../../public/red-delete.svg';
+import reddelete from "../../../../../public/red-delete.svg";
 import Image from "next/image";
 import { useFunnelContext } from "../../../../utils/FunnelContextType";
+import whiteplus from "../../../../../public/white-plus.svg";
+import { useCampaigns } from "app/utils/CampaignsContext";
+import { eachDayOfInterval } from "date-fns";
+import moment from "moment";
+import { getCurrencySymbol } from "components/data";
+import arrowUp from "../../../../../public/arrow-g-up.svg";
+import arrowDown from "../../../../../public/arrow-g-down.svg";
 
-const ResizableChannels = ({ channels, parentId }) => {
-	const { funnelWidths } = useFunnelContext(); // Get parent widths
-	const parentWidth = funnelWidths[parentId] || 400; // Default to 400px if not found
+interface Channel {
+  name: string;
+  channelName: string;
+  icon: string;
+  bg: string;
+  color: string;
+  ad_sets?: any[];
+}
 
-	// Initialize child width based on available parent space
-	const [channelState, setChannelState] = useState(
-		channels.map(() => ({ left: 0, width: Math.min(150, parentWidth) })) // Ensure initial width fits
-	);
+interface ResizableChannelsProps {
+  channels: Channel[];
+  parentId: string;
+  parentWidth?: number;
+  parentLeft?: number;
+  setIsOpen: (isOpen: boolean) => void;
+  dateList: Date[];
+  disableDrag?: boolean;
+}
 
-	const [dragging, setDragging] = useState(null);
+const ResizableChannels = ({
+  channels: initialChannels,
+  parentId,
+  parentWidth,
+  parentLeft,
+  setIsOpen,
+  dateList,
+  disableDrag = false,
+}: ResizableChannelsProps) => {
+  console.log("🚀 parentWidth:", parentWidth);
+  const { campaignFormData, setCampaignFormData, setCopy } = useCampaigns();
+  const { funnelWidths } = useFunnelContext(); // Get parent widths
+  const draggingDataRef = useRef(null);
+  const isDraggingRef = useRef(false);
 
-	const handleMouseDown = (index, direction) => (event) => {
-		event.preventDefault();
-		setDragging({ index, direction, startX: event.clientX });
-	};
+  const [channels, setChannels] = useState(initialChannels);
 
-	// Ensure child width does not exceed parent when the parent resizes
-	useEffect(() => {
-		setChannelState((prev) =>
-			prev.map((state) => ({
-				...state,
-				width: Math.min(state.width, parentWidth), // Adjust width if it exceeds parent
-			}))
-		);
-	}, [parentWidth]); // React to parent width changes
+  const [openItems, setOpenItems] = useState(null);
 
-	useEffect(() => {
-		if (!dragging) return;
+  // Initialize child width based on available parent space and position
+  const [channelState, setChannelState] = useState(
+    channels?.map(() => ({
+      left: parentLeft, // Start at parent's left position
+      width: Math.min(150, parentWidth),
+    }))
+  );
 
-		const handleMouseMove = (event) => {
-			event.preventDefault();
-			const { index, direction, startX } = dragging;
-			const deltaX = event.clientX - startX;
+  const [dragging, setDragging] = useState(null);
 
-			setChannelState((prev) =>
-				prev.map((state, i) => {
-					if (i !== index) return state;
+  const [draggingPosition, setDraggingPosition] = useState(null);
 
-					let newWidth =
-						direction === "left"
-							? Math.max(150, Math.min(state.width - deltaX, parentWidth)) // Ensure it stays within parent width
-							: Math.max(150, Math.min(state.width + deltaX, parentWidth));
+  const toggleChannel = (id) => {
+    setOpenItems((prev: Record<string, boolean>) => ({
+      ...prev,
+      [id]: !prev?.[id],
+    }));
+  };
 
-					return { ...state, width: newWidth };
-				})
-			);
+  const startDate = campaignFormData?.channel_mix?.find(
+    (ch) => ch?.funnel_stage === parentId
+  )?.funnel_stage_timeline_start_date
+    ? new Date(
+        campaignFormData?.channel_mix?.find(
+          (ch) => ch?.funnel_stage === parentId
+        )?.funnel_stage_timeline_start_date
+      )
+    : campaignFormData?.campaign_time_start_date;
 
-			setDragging((prev) => ({ ...prev, startX: event.clientX }));
-		};
+  const endDate = campaignFormData?.channel_mix?.find(
+    (ch) => ch?.funnel_stage === parentId
+  )?.funnel_stage_timeline_end_date
+    ? new Date(
+        campaignFormData?.channel_mix?.find(
+          (ch) => ch?.funnel_stage === parentId
+        )?.funnel_stage_timeline_end_date
+      )
+    : campaignFormData?.campaign_time_end_date;
 
-		const handleMouseUp = () => {
-			setDragging(null);
-		};
+  // console.log({ startDate, endDate });
 
-		document.addEventListener("mousemove", handleMouseMove);
-		document.addEventListener("mouseup", handleMouseUp);
+  const dRange = eachDayOfInterval({
+    start: startDate,
+    end: endDate,
+  });
 
-		return () => {
-			document.removeEventListener("mousemove", handleMouseMove);
-			document.removeEventListener("mouseup", handleMouseUp);
-		};
-	}, [dragging, parentWidth]); // React when parent width changes
+  const pixelToDate = (pixel, containerWidth, index, fieldName) => {
+    console.log({ dRange });
 
-	return (
-		<div className="open_channel_btn_container">
-			{channels.map((channel, index) => (
-				<div key={channel.name} className="relative w-full h-12">
-					<div
-						className="absolute top-0 h-full flex justify-center items-center text-white px-4 gap-2 border shadow-md min-w-[150px]"
-						style={{
-							left: `${channelState[index]?.left || 0}px`,
-							width: `${channelState[index]?.width || 150}px`,
-							backgroundColor: channel.bg,
-							color: channel.color,
-							borderColor: channel.color,
-							borderRadius: "10px",
-						}}
-					>
-						<div className="flex items-center gap-3">
-							<Image src={channel.icon} alt={channel.icon} />
-							<span className="font-medium">{channel.name}</span>
-						</div>
-					</div>
+    const totalDays = dRange?.length - 1;
+    console.log("🚀 ~ pixelToDate ~ totalDays:", totalDays);
+    const dayIndex = Math.min(
+      totalDays,
+      Math.max(0, Math.round((pixel / containerWidth) * totalDays))
+    );
+    console.log("🚀 ~ pixelToDate ~ dayIndex:", dayIndex);
 
-					<div
-						className="absolute top-0 w-5 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center"
-						style={{
-							left: `${channelState[index]?.left || 0}px`,
-							backgroundColor: channel.color,
-						}}
-						onMouseDown={handleMouseDown(index, "left")}
-					>
-						<MdDragHandle className="rotate-90" />
-					</div>
+    const calculatedDate = new Date(startDate);
+    calculatedDate.setDate(startDate.getDate() + dayIndex);
+    console.log("🚀 ~ pixelToDate ~ calculatedDate:", calculatedDate);
 
-					<div
-						className="absolute top-0 w-5 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center"
-						style={{
-							left: `${(channelState[index]?.left || 0) + (channelState[index]?.width || 150) - 5}px`,
-							backgroundColor: channel.color,
-						}}
-						onMouseDown={handleMouseDown(index, "right")}
-					>
-						<MdDragHandle className="rotate-90" />
-						<button className="delete-resizeableBar">
-							<Image src={reddelete} alt="reddelete" />
-						</button>
-					</div>
-				</div>
-			))}
-		</div>
-	);
+    const updatedCampaignFormData = { ...campaignFormData };
+
+    const channelMix = updatedCampaignFormData.channel_mix.find(
+      (ch) => ch.funnel_stage === parentId
+    );
+
+    if (channelMix) {
+      const platform = channelMix[channels[index].channelName]?.find(
+        (platform) => platform.platform_name === channels[index].name
+      );
+
+      if (platform) {
+        if (fieldName === "startDate") {
+          platform.campaign_start_date = calculatedDate
+            ? moment(calculatedDate).format("YYYY-MM-DD")
+            : null;
+        } else {
+          platform.campaign_end_date = calculatedDate
+            ? moment(calculatedDate).format("YYYY-MM-DD")
+            : null;
+        }
+      }
+    }
+
+    // Convert the result back to "yyyy-mm-dd" format
+    return calculatedDate ? moment(calculatedDate).format("YYYY-MM-DD") : null;
+  };
+
+  const handleDragStart = (index) => (event) => {
+    console.log(
+      "bfjdfd",
+      index,
+      event.clientX,
+      channelState[index]?.left || parentLeft
+    );
+    if (disableDrag) return;
+    event.preventDefault();
+    setDraggingPosition({
+      index,
+      startX: event.clientX,
+      startLeft: channelState[index]?.left || parentLeft,
+    });
+  };
+  useEffect(() => {
+    if (disableDrag || draggingPosition === null) return;
+
+    isDraggingRef.current = true; // Set dragging to true
+
+    const handleDragMove = (event: MouseEvent) => {
+      event.preventDefault();
+      const { index, startX, startLeft } = draggingPosition;
+      // console.log("🚀 ~ handleDragMove ~ draggingPosition:", draggingPosition);
+      const deltaX = event.clientX - startX;
+
+      let newLeft = startLeft + deltaX;
+
+      // Restrict movement within parent boundaries
+      const maxLeft = parentLeft + parentWidth - channelState[index]?.width;
+      newLeft = Math.max(parentLeft, Math.min(newLeft, maxLeft));
+
+      // Update state using functional update to prevent stale values
+      setChannelState((prev) =>
+        prev.map((state, i) =>
+          i === index ? { ...state, left: newLeft } : state
+        )
+      );
+
+      // Store campaign date updates in ref to prevent re-renders
+      const startPixel = newLeft - parentLeft;
+      const endPixel = startPixel + channelState[index]?.width;
+      const startDate = pixelToDate(
+        startPixel,
+        parentWidth,
+        index,
+        "startDate"
+      );
+      const endDate = pixelToDate(endPixel, parentWidth, index, "endDate");
+      console.log("handleDragMove", {
+        startPixel,
+        endPixel,
+        startDate,
+        endDate,
+      });
+
+      draggingDataRef.current = { index };
+    };
+
+    const handleDragEnd = () => {
+      if (draggingDataRef.current) {
+        const { index, startDate, endDate } = draggingDataRef.current;
+
+        setCopy(() => {
+          const updatedData = JSON.parse(JSON.stringify(campaignFormData)); // Deep copy
+
+          const channelMix = updatedData.channel_mix.find(
+            (ch) => ch.funnel_stage === parentId
+          );
+
+          if (channelMix) {
+            const channelGroup = channelMix[channels[index].channelName];
+
+            if (Array.isArray(channelGroup)) {
+              const platform = channelGroup.find(
+                (platform) => platform.platform_name === channels[index].name
+              );
+
+              if (platform) {
+                platform.campaign_start_date = startDate;
+                platform.campaign_end_date = endDate;
+              }
+            }
+          }
+
+          return updatedData;
+        });
+
+        draggingDataRef.current = null; // Clear ref after update
+      }
+
+      isDraggingRef.current = false; // Reset dragging state
+      setDraggingPosition(null);
+    };
+
+    document.addEventListener("mousemove", handleDragMove);
+    document.addEventListener("mouseup", handleDragEnd);
+
+    return () => {
+      document.removeEventListener("mousemove", handleDragMove);
+      document.removeEventListener("mouseup", handleDragEnd);
+    };
+  }, [draggingPosition, parentLeft, parentWidth]); //
+
+  const handleMouseDown = (index, direction) => (event) => {
+    event.preventDefault();
+    setDragging({ index, direction, startX: event.clientX });
+  };
+
+  const handleDeleteChannel = (indexToDelete) => {
+    setChannels(channels.filter((_, index) => index !== indexToDelete));
+    setChannelState(channelState.filter((_, index) => index !== indexToDelete));
+    setCampaignFormData((prev) => {
+      const updatedData = JSON.parse(JSON.stringify(prev)); // Deep copy
+
+      const channelMix = updatedData.channel_mix.find(
+        (ch) => ch.funnel_stage === parentId
+      );
+
+      if (channelMix) {
+        const channelGroup = channelMix[channels[indexToDelete].channelName];
+
+        if (Array.isArray(channelGroup)) {
+          const platformIndex = channelGroup.findIndex(
+            (platform) =>
+              platform.platform_name === channels[indexToDelete].name
+          );
+
+          if (platformIndex !== -1) {
+            channelGroup.splice(platformIndex, 1); // Remove the platform
+          }
+        }
+      }
+
+      return updatedData;
+    });
+  };
+
+  // Update channel positions when parent position changes
+  useEffect(() => {
+    setChannelState((prev) =>
+      prev?.map((state) => ({
+        ...state,
+        width: Math.min(state?.width, parentWidth), // Adjust width if it exceeds parent
+      }))
+    );
+  }, [parentWidth]);
+
+  // Update channel state when initialChannels changes
+  useEffect(() => {
+    if (initialChannels && initialChannels.length > 0) {
+      setChannels(initialChannels);
+      // Initialize new channels with parent's position
+      setChannelState((prev) => {
+        const newState = initialChannels.map((channel, index) => {
+          // Check if this channel already exists in prev
+          const existingState = prev[index];
+          return existingState
+            ? {
+                ...existingState,
+                // Update left position to match parent when it moves
+                left: parentLeft,
+              }
+            : {
+                left: parentLeft,
+                width: Math.min(150, parentWidth), // Default width for new channels
+              };
+        });
+        return newState;
+      });
+    }
+  }, [initialChannels, parentLeft, parentWidth]);
+
+  useEffect(() => {
+    if (!dragging) return;
+
+    const totalDays = dateList.length - 1; // Define totalDays within the scope
+
+    const handleMouseMove = (event) => {
+      event.preventDefault();
+      const { index, direction, startX } = dragging;
+      const deltaX = event.clientX - startX;
+
+      setChannelState((prev) =>
+        prev.map((state, i) => {
+          if (i !== index) return state;
+
+          let newWidth,
+            newLeft = state.left;
+
+          if (direction === "left") {
+            // Move the left side while keeping the right side fixed
+            newWidth = Math.max(
+              150,
+              Math.min(
+                state.width - deltaX,
+                parentWidth - (state.left - parentLeft)
+              )
+            );
+            newLeft = state.left + deltaX; // Move the left boundary
+          } else {
+            // Move the right side, increasing width
+            newWidth = Math.max(
+              150,
+              Math.min(
+                state.width + deltaX,
+                parentWidth - (state.left - parentLeft)
+              )
+            );
+          }
+
+          // Prevent movement out of bounds
+          newLeft = Math.max(
+            parentLeft,
+            Math.min(newLeft, parentLeft + parentWidth - newWidth)
+          );
+
+          // Calculate start and end pixel positions
+          const startPixel = newLeft - parentLeft; // Adjusted to be relative
+          const endPixel = startPixel - 1 + newWidth;
+          console.log("handleMouseMove", { startPixel, endPixel, newWidth });
+
+          // Convert pixel positions to dates
+          const startDate = pixelToDate(
+            startPixel,
+            parentWidth,
+            index,
+            "startDate"
+          );
+          const endDate = pixelToDate(
+            endPixel - parentWidth / totalDays,
+            parentWidth,
+            index,
+            "endDate"
+          );
+          console.log("Start Date:", startDate, "End Date:", endDate);
+
+          // setCopy(updatedCampaignFormData);
+
+          return { ...state, left: newLeft, width: newWidth };
+        })
+      );
+
+      setDragging((prev) => ({ ...prev, startX: event.clientX }));
+    };
+
+    const handleMouseUp = () => {
+      setDragging(null);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [dragging, parentWidth]); // React when parent width changes
+
+  return (
+    <div
+      className={`open_channel_btn_container ${disableDrag && "grid"}`}
+      style={{
+        gridTemplateColumns: `repeat(${dRange.length}, 1fr)`,
+      }}
+    >
+      {!disableDrag && parentWidth < 350 && (
+        <button
+          className="channel-btn-blue mt-[12px] mb-[12px] relative w-fit"
+          onClick={() => {
+            setIsOpen(true);
+          }}
+          style={{
+            left: `${parentLeft}px`,
+          }}
+        >
+          <Image src={whiteplus || "/placeholder.svg"} alt="whiteplus" />
+          <p className="whitespace-nowrap">Add new channel</p>
+        </button>
+      )}
+      {channels?.map((channel, index) => {
+        const getColumnIndex = (date) =>
+          dRange.findIndex((d) => d.toISOString().split("T")[0] === date);
+        // console.log("drange", dRange);
+        const updatedCampaignFormData = { ...campaignFormData };
+        console.log(channel);
+        const channelMix = updatedCampaignFormData.channel_mix.find(
+          (ch) => ch.funnel_stage === parentId
+        );
+        let startColumn = 1;
+        let endColumn = 3;
+        let budget;
+        if (channelMix) {
+          const platform = channelMix[channels[index].channelName]?.find(
+            (platform) => platform.platform_name === channels[index].name
+          );
+
+          if (platform) {
+            startColumn = getColumnIndex(platform?.campaign_start_date);
+            endColumn = getColumnIndex(platform?.campaign_end_date) + 1;
+            budget = platform?.budget?.fixed_value;
+          }
+        }
+
+        return (
+          <div
+            key={channel.name}
+            className={`relative w-full ${!disableDrag ? "h-12" : ""}`}
+            style={{
+              gridColumnStart: startColumn < 1 ? 1 : startColumn,
+              gridColumnEnd: endColumn < 1 ? 1 : endColumn,
+            }}
+          >
+            <div>
+              <div
+                className={` ${disableDrag ? "relative" : "absolute"} top-0 h-full flex ${
+                  disableDrag ? "justify-between" : "justify-center cursor-move"
+                }  items-center text-white px-4 gap-2 border shadow-md min-w-[150px] overflow-x-hidden `}
+                style={{
+                  left: `${channelState[index]?.left || parentLeft}px`,
+                  width: disableDrag
+                    ? "100%"
+                    : `${channelState[index]?.width + 30 || 150}px`,
+                  backgroundColor: channel.bg,
+                  color: channel.color,
+                  borderColor: channel.color,
+                  borderRadius: "10px",
+                }}
+                onMouseDown={disableDrag ? undefined : handleDragStart(index)}
+              >
+                <div className="flex items-center gap-3">
+                  <Image
+                    src={channel.icon || "/placeholder.svg"}
+                    alt={channel.icon}
+                  />
+                  <span className="font-medium whitespace-nowrap">
+                    {channel.name}
+                  </span>
+                </div>
+                {disableDrag && (
+                  <div
+                    className="rounded-[5px] py-[10px] px-[12px] font-medium bg-opacity-15 text-[15px]"
+                    style={{
+                      color: "#061237",
+                    }}
+                  >
+                    {Number(budget)?.toFixed(0)}
+                    {Number(budget) > 0 &&
+                      getCurrencySymbol(
+                        campaignFormData?.campaign_budget?.amount
+                      )}
+                  </div>
+                )}
+              </div>
+              {/* Ad sets */}
+              {campaignFormData?.goal_level === "Adset level" && disableDrag && channel?.ad_sets?.length > 0 && (
+                <>
+                  <div
+                    className="bg-[#EBFEF4] py-[10px] px-[12px] w-fit mt-[5px] border border-[#00A36C1A] rounded-[8px] flex items-center cursor-pointer"
+                    onClick={() => toggleChannel(`${channel?.name}${index}`)}
+                  >
+                    <p className="text-[14px] font-medium text-[#00A36C]">
+                      {channel?.ad_sets?.length} ad sets
+                    </p>
+                    <Image
+                      src={
+                        openItems && openItems[`${channel?.name}${index}`]
+                          ? arrowUp
+                          : arrowDown
+                      }
+                      alt=""
+                      width={24}
+                      height={24}
+                    />
+                  </div>
+                  {/* Adset_display */}
+                  {openItems && openItems[`${channel?.name}${index}`] && (
+                    <div className="ml-[20px] flex w-full">
+                      <div>
+                        {/* Headers */}
+                        <div className="flex text-[12px] text-[#061237B2] font-medium gap-[5px]">
+                          <p className="w-[30px]">#</p>
+                          <p className="w-[150px]">Type</p>
+                          <p className="w-[100px]">Name</p>
+                          <p className="w-[100px]">Audience size</p>
+                          <p className="w-[100px]">Budget</p>
+                        </div>
+                        {channel?.ad_sets?.map((set, index) => (
+                          <div className="flex gap-[5px] text-[14px] font-medium text-[#061237B2] mb-[10px]">
+                            <p className="w-[30px] text-[#3175FF] font-bold">{index + 1}.</p>
+                            <p className="w-[150px]">{set?.audience_type}</p>
+                            <p className="w-[100px]">{set?.name}</p>
+                            <p className="w-[100px]">{set?.size}</p>
+                            <p>{set?.budget}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div></div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            {/* Controls */}
+            {!disableDrag && (
+              <>
+                <div
+                  className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
+                    disableDrag && "hidden"
+                  }`}
+                  style={{
+                    left: `${channelState[index]?.left || parentLeft}px`,
+                    backgroundColor: channel.color,
+                  }}
+                  onMouseDown={
+                    disableDrag ? undefined : handleMouseDown(index, "left")
+                  }
+                >
+                  <MdDragHandle className="rotate-90" />
+                </div>
+                <div
+                  className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
+                    disableDrag && "hidden"
+                  }`}
+                  style={{
+                    left: `${
+                      (channelState[index]?.left || parentLeft) +
+                      (channelState[index]?.width + 22 || 150)
+                    }px`,
+                    backgroundColor: channel.color,
+                  }}
+                  onMouseDown={handleMouseDown(index, "right")}
+                >
+                  <MdDragHandle className="rotate-90" />
+                  {!disableDrag && (
+                    <button
+                      className="delete-resizeableBar"
+                      onClick={() =>
+                        disableDrag ? undefined : handleDeleteChannel(index)
+                      }
+                    >
+                      <Image
+                        src={reddelete || "/placeholder.svg"}
+                        alt="reddelete"
+                      />
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 };
 
 export default ResizableChannels;

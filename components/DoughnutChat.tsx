@@ -21,8 +21,23 @@ ChartJS.register(
   Legend
 );
 
-const DoughnutChart = ({ data }) => {
+const DoughnutChart = ({
+  data,
+  insideText,
+  color,
+}: {
+  data?: number[];
+  insideText?: string;
+  color?: string[];
+}) => {
   const chartRef = useRef(null);
+
+  console.log("data", data)
+
+
+  //@ts-ignore
+  // const funnelStageColors = data?.funnel_stages?.map((funnel) => funnel?.color);
+
 
   // Custom plugin to add text in the center
   const centerTextPlugin = {
@@ -33,7 +48,7 @@ const DoughnutChart = ({ data }) => {
 
       // Define text content
       const textTop = "Total spending";
-      const textBottom = "9,800 €";
+      const textBottom = insideText;
 
       // Positioning
       const centerX = width / 2;
@@ -58,9 +73,9 @@ const DoughnutChart = ({ data }) => {
   const doughnutData = {
     datasets: [
       {
-        label: "Tickets",
+        label: "Phase",
         data: data,
-        backgroundColor: ["#3175FF", "#00A36C", "#FF9037"],
+        backgroundColor: color,
         cutout: "70%", // Controls thickness of the ring
         borderRadius: 7, // Softens the edges
         hoverOffset: 7, // Enhances hover effect
@@ -81,7 +96,12 @@ const DoughnutChart = ({ data }) => {
 
   return (
     <div className="doughnut_chart_settings">
-      <Doughnut ref={chartRef} data={doughnutData} options={chartOptions} plugins={[centerTextPlugin]} />
+      <Doughnut
+        ref={chartRef}
+        data={doughnutData}
+        options={chartOptions}
+        plugins={[centerTextPlugin]}
+      />
     </div>
   );
 };

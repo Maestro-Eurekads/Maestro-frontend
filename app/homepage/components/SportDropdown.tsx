@@ -18,7 +18,6 @@ const EditInput = ({
 
   // Sync fields with global state
   useEffect(() => {
-    console.log('sports')
     setInputs((prev) => ({
       ...prev,
       sports: fields.map((item) => item.text),
@@ -72,7 +71,7 @@ const EditInput = ({
     <div className="relative w-full">
       <div className="mb-4">
         <label className="font-medium text-[15px] leading-5 text-gray-600">
-          {label || placeholder}
+          {label}
         </label>
         {fields.map((field, index) => (
           <div
@@ -82,23 +81,24 @@ const EditInput = ({
             <input
               type="text"
               className="w-full bg-transparent outline-none text-gray-600"
-              placeholder={placeholder}
+              placeholder={index === 0 ? "Business Level 1" : `Parameter ${index}`}
               value={field.text}
               onChange={(e) => handleInputChange(index, e.target.value)}
             />
             <span className="ml-auto text-gray-500 cursor-pointer">
               <Image src={mdEdit} alt="edit" />
             </span>
-            {fields.length > 1 &&
+            {fields.length > 1 && (
               <MdOutlineCancel
                 size={18}
                 color="red"
                 onClick={() => handleRemoveField(index)}
                 className="cursor-pointer"
-              />}
-
+              />
+            )}
           </div>
         ))}
+
 
         <div className="flex items-center gap-2 mt-[8px]">
           {/* Add button */}
