@@ -27,7 +27,7 @@ export const calculateCPCV: FormulaFunction = (budget, completedViews) => {
   return budget / completedViews;
 };
 
-const calculateEngagements: FormulaFunction = (impression, engRate) => {
+export const calculateEngagements: FormulaFunction = (impression, engRate) => {
   return impression * engRate;
 };
 

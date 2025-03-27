@@ -32,7 +32,6 @@ export const ChannelRow = ({
   const chData = campaignFormData?.channel_mix
     ?.find((ch) => ch?.funnel_stage === stage.name)
     [channel?.channel_name]?.find((c) => c?.platform_name === channel?.name);
-  console.log("🚀 ~ chData:", chData);
   // Pre-calculate derived values
   const calculatedValues = {
     impressions: calculateImpression(
