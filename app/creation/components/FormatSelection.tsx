@@ -441,7 +441,7 @@ export const FormatSelection = () => {
                 <Image src={openTabs.includes(stage.name) ? up : down} alt={openTabs.includes(stage.name) ? "up" : "down"} />
               </div>
               {openTabs.includes(stage.name) && (
-                <div className="card-body">
+                <div className="card-body bg-white border border-[#E5E5E5]">
                   <Platforms stageName={stage?.name} />
                 </div>
               )}
