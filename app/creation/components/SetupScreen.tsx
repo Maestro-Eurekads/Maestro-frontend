@@ -33,13 +33,12 @@ export const SetupScreen = () => {
   const [level2Options, setlevel2Options] = useState([]);
   const [level3Options, setlevel3Options] = useState([]);
   const [requiredFields, setRequiredFields] = useState<string[]>([]);
-  const [hasChanges, setHasChanges] = useState(false);
   const [currencySign, setCurrencySign] = useState("");
 
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const { verifyStep, verifybeforeMove, setverifybeforeMove } = useVerification();
+  const { verifyStep, verifybeforeMove, setverifybeforeMove, setHasChanges, hasChanges } = useVerification();
 
   useEffect(() => {
     const isValid = validationRules["step0"](campaignData);
@@ -195,12 +194,7 @@ export const SetupScreen = () => {
         });
 
         setAlert({ variant: "success", message: "Campaign updated successfully!", position: "bottom-right" });
-        setverifybeforeMove((prev: any) => {
-          if (!Array.isArray(prev)) return prev;
-          return prev.map((step: any) =>
-            step.hasOwnProperty("step0") ? { ...step, step0: true } : step
-          );
-        });
+
       } else {
         const res = await createCampaign();
         const url = new URL(window.location.href);
