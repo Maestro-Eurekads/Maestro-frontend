@@ -31,10 +31,16 @@ const SelectChannelMix = () => {
       campaignFormData.channel_mix.forEach(channelMixItem => {
         const stageName = channelMixItem.funnel_stage;
         initialSelected[stageName] = {
-          "Social media": channelMixItem?.social_media?.map(sm => sm.platform_name) || [],
-          "Display networks": channelMixItem?.display_networks?.map(dn => dn.platform_name) || [],
-          "Search engines": channelMixItem?.search_engines?.map(se => se.platform_name) || []
+          "Social media": (channelMixItem?.social_media || []).filter(sm => sm?.platform_name).map(sm => sm.platform_name),
+          "Display networks": (channelMixItem?.display_networks || []).filter(dn => dn?.platform_name).map(dn => dn.platform_name),
+          "Search engines": (channelMixItem?.search_engines || []).filter(se => se?.platform_name).map(se => se.platform_name)
         };
+        // Remove categories with no selections
+        Object.keys(initialSelected[stageName]).forEach(category => {
+          if (initialSelected[stageName][category].length === 0) {
+            delete initialSelected[stageName][category];
+          }
+        });
       });
       setSelected(initialSelected);
     }
@@ -214,18 +220,22 @@ const SelectChannelMix = () => {
                     <div className="mt-8 px-6">
                       {Object.entries(selected[stage.name] || {}).map(
                         ([category, platformNames]) => {
-                          // Only show categories with selected platforms
-                          if (!Array.isArray(platformNames) || platformNames.length === 0)
-                            return null;
+                          if (stage.name === "Awareness") {
+                            console.log(`Awareness - ${category}:`, platformNames);
+                            console.log(`Awareness - stage.platforms[${category}]:`, stage.platforms[category]);
+                          }
+                          if (!Array.isArray(platformNames) || platformNames.length === 0) return null;
+                          const validPlatformNames = platformNames.filter(pn =>
+                            stage.platforms[category]?.some(p => p.name === pn)
+                          );
+                          if (validPlatformNames.length === 0) return null;
+
                           return (
                             <div key={category} className="mb-8">
                               <h2 className="mb-4 font-bold text-lg">{category}</h2>
                               <div className="card_bucket_container flex flex-wrap gap-6">
-                                {platformNames.map((platformName, idx) => {
-                                  // Find platform data only for selected platforms
-                                  const platformData = stage.platforms[category]?.find(
-                                    p => p.name === platformName
-                                  );
+                                {validPlatformNames.map((platformName, idx) => {
+                                  const platformData = stage.platforms[category].find(p => p.name === platformName);
                                   if (!platformData) return null;
                                   return (
                                     <div
