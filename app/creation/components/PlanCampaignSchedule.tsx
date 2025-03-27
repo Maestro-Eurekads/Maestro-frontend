@@ -11,6 +11,7 @@ import AlertMain from "../../../components/Alert/AlertMain";
 import { SVGLoader } from "../../../components/SVGLoader";
 import { useRouter } from "next/router";
 import { useSearchParams } from "next/navigation";
+import { useVerification } from "app/utils/VerificationContext";
 
 const PlanCampaignSchedule: React.FC = () => {
 	const searchParams = useSearchParams();
@@ -25,9 +26,18 @@ const PlanCampaignSchedule: React.FC = () => {
 		campaignData,
 		getActiveCampaign,
 	} = useCampaigns();
+	const { setHasChanges, hasChanges } = useVerification();
 
+	useEffect(() => {
+		const resetChanges = () => {
+			setHasChanges(false);
+		};
 
-
+		window.addEventListener("focus", resetChanges);
+		return () => {
+			window.removeEventListener("focus", resetChanges);
+		};
+	}, []);
 
 	useEffect(() => {
 		if (campaignId) {
@@ -80,7 +90,7 @@ const PlanCampaignSchedule: React.FC = () => {
 				campaign_timeline_end_date,
 			});
 			await getActiveCampaign(cleanData);
-
+			setHasChanges(false);
 			setAlert({ variant: "success", message: "Date successfully updated!", position: "bottom-right" });
 		} catch (error) {
 			setAlert({ variant: "error", message: "Failed to update date.", position: "bottom-right" });
@@ -88,6 +98,7 @@ const PlanCampaignSchedule: React.FC = () => {
 
 		setLoading(false);
 		setIsEditing(false);
+
 	};
 
 	return (
@@ -100,7 +111,7 @@ const PlanCampaignSchedule: React.FC = () => {
 					t4="Choose your start and end date for the campaign"
 				/>
 				{!isEditing && (
-					<button className="model_button_blue" onClick={() => setIsEditing(true)}>
+					<button className="model_button_blue" onClick={() => { setIsEditing(true); setHasChanges(true) }}>
 						Edit
 					</button>
 				)}

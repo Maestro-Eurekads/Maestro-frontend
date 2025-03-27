@@ -17,7 +17,7 @@ interface BottomProps {
 }
 
 const Bottom = ({ setIsOpen }: BottomProps) => {
-  const { validateStep, verifybeforeMove = {}, setverifybeforeMove } = useVerification();
+  const { verifybeforeMove, hasChanges } = useVerification();
   const { active, setActive, subStep, setSubStep } = useActive();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
   const [setupyournewcampaignError, SetupyournewcampaignError] = useState(false);
@@ -25,6 +25,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [selectedDatesError, setSelectedDatesError] = useState(false);
   const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
   const [triggerFormatError, setTriggerFormatError] = useState(false);
+  const [validateStep, setValidateStep] = useState(false);
   const { selectedDates } = useSelectedDates();
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
   const [triggerBuyObjectiveError, setTriggerBuyObjectiveError] = useState(false);
@@ -51,7 +52,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       triggerChannelMixError ||
       incompleteFieldsError ||
       triggerFormatError ||
-      triggerBuyObjectiveError
+      triggerBuyObjectiveError ||
+      validateStep
     ) {
       const timer = setTimeout(() => {
         setTriggerObjectiveError(false);
@@ -62,6 +64,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setIncompleteFieldsError(false);
         setTriggerFormatError(false);
         setTriggerBuyObjectiveError(false);
+        setValidateStep(false);
       }, 3000);
       return () => clearTimeout(timer);
     }
@@ -74,6 +77,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     incompleteFieldsError,
     triggerFormatError,
     triggerBuyObjectiveError,
+    validateStep
   ]);
 
   const handleBack = () => {
@@ -85,9 +89,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
   };
 
+
+
   const handleContinue = async () => {
     setLoading(true);
     let hasError = false;
+
+
+
 
     // Step 0 validation
     if (active === 0) {
@@ -109,37 +118,44 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         });
         hasError = true;
       }
+
+
+      if (hasChanges) {
+        setValidateStep(true);
+        hasError = true;
+      }
     }
 
     // Step 1: Campaign Objective validation
     if (active === 1) {
-      const campaignVerification = verifybeforeMove[cId] || {};
-      const isStep1Verified = campaignVerification.step1 === true;
-      
-      if (!cId || !isStep1Verified) {
-        setTriggerObjectiveError(true);
-        setAlert({
-          variant: "error",
-          message: "Please select and validate a campaign objective before proceeding!",
-          position: "bottom-right",
-        });
+      if (hasChanges) {
+        setValidateStep(true);
         hasError = true;
       }
     }
 
     // Step 2: Ensure at least one funnel stage is selected
-    if (
-      active === 2 &&
-      (!campaignFormData?.funnel_stages || campaignFormData?.funnel_stages?.length === 0)
-    ) {
-      setTriggerFunnelError(true);
-      setAlert({
-        variant: "error",
-        message: "Please select at least one funnel stage before continuing!",
-        position: "bottom-right",
-      });
-      hasError = true;
+    if (active === 2) {
+      if (!campaignFormData?.funnel_stages || campaignFormData.funnel_stages.length === 0) {
+        setTriggerFunnelError(true);
+
+        setAlert({
+          variant: "error",
+          message: "Please select at least one funnel stage before continuing!",
+          position: "bottom-right",
+        });
+
+        hasError = true;
+      }
+
+      if (hasChanges) {
+        setValidateStep(true);
+        hasError = true;
+      }
+
+
     }
+
 
     // Step 3: Ensure at least one channel is validated
     if (active === 3) {
@@ -175,14 +191,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         const stageData = campaignFormData?.channel_mix?.find(
           (mix) => mix.funnel_stage === stage
         );
-        
+
         if (stageData) {
           const hasFormatSelected = [
             ...(stageData.social_media || []),
             ...(stageData.display_networks || []),
             ...(stageData.search_engines || [])
-          ].some(platform => 
-            platform.format?.length > 0 && 
+          ].some(platform =>
+            platform.format?.length > 0 &&
             platform.format.some(f => f.format_type && f.num_of_visuals)
           );
 
@@ -244,15 +260,23 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
 
     // Step 7: Ensure dates are selected
-    if (active === 7 && (!selectedDates?.to?.day || !selectedDates?.from?.day) && subStep < 1) {
-      setSelectedDatesError(true);
-      setAlert({
-        variant: "error",
-        message: "Choose your start and end date!",
-        position: "bottom-right",
-      });
-      hasError = true;
+    if (active === 7) {
+      if ((!selectedDates?.to?.day || !selectedDates?.from?.day) && subStep < 1) {
+        setSelectedDatesError(true);
+        setAlert({
+          variant: "error",
+          message: "Choose your start and end date!",
+          position: "bottom-right",
+        });
+        hasError = true;
+      }
+
+      if (hasChanges) {
+        setValidateStep(true);
+        hasError = true;
+      }
     }
+
 
     if (hasError) {
       setLoading(false);
@@ -440,6 +464,15 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   return (
     <footer id="footer" className="w-full">
       {alert && <AlertMain alert={alert} />}
+      {validateStep && (
+        <AlertMain
+          alert={{
+            variant: "error",
+            message: "Please validate before proceeding!",
+            position: "bottom-right",
+          }}
+        />
+      )}
       {setupyournewcampaignError && (
         <AlertMain
           alert={{
@@ -560,8 +593,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                   {active === 0
                     ? "Start Creating"
                     : isHovered
-                    ? "Next Step"
-                    : "Continue"}
+                      ? "Next Step"
+                      : "Continue"}
                 </p>
                 <Image src={Continue} alt="Continue" />
               </>
