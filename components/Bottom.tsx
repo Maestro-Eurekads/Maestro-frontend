@@ -375,6 +375,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       await updateCampaignData({
         ...cleanData,
         funnel_stages: campaignFormData?.funnel_stages,
+        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+          "id",
+          "isValidated",
+        ]),
       });
     };
 
