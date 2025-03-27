@@ -78,7 +78,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
 
   const getPlatformIcon = (platformName) => platformIcons[platformName] || null;
 
-  // Load persisted states from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedValidationState = localStorage.getItem(`formatValidation_${stageName}`);
@@ -96,14 +95,12 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     }
   }, [stageName]);
 
-  // Persist expanded platforms
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem(`expandedPlatforms_${stageName}`, JSON.stringify(expandedPlatforms));
     }
   }, [expandedPlatforms, stageName]);
 
-  // Toggle platform expansion
   const togglePlatformExpansion = (platformName: string) => {
     if (!isValidated) {
       setExpandedPlatforms((prev) => ({
@@ -113,7 +110,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     }
   };
 
-  // Check if validation is enabled
   useEffect(() => {
     const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName);
     const hasMediaOptionsSelected =
@@ -124,7 +120,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     setIsValidateEnabled(hasMediaOptionsSelected);
   }, [campaignFormData, stageName]);
 
-  // Transform channel data
   useEffect(() => {
     if (campaignFormData?.channel_mix && stageName) {
       const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName);
@@ -156,7 +151,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     }
   }, [campaignFormData, stageName]);
 
-  // Initialize quantities
   useEffect(() => {
     const stage = campaignFormData?.channel_mix?.find((chan) => chan.funnel_stage === stageName);
     if (stage && !Object.keys(quantities).length) {
@@ -178,7 +172,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     }
   }, [campaignFormData, stageName, quantities]);
 
-  // Handle format selection
   const handleFormatSelection = (channelName: string, index: number, platformName: string) => {
     if (isValidated) return;
 
@@ -206,7 +199,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     setCampaignFormData({ ...campaignFormData, channel_mix: copy });
   };
 
-  // Handle quantity changes
   const handleQuantityChange = (platformName: string, formatName: string, change: number) => {
     const newQuantities = {
       ...quantities,
@@ -241,7 +233,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     setCampaignFormData({ ...campaignFormData, channel_mix: copy });
   };
 
-  // Handle validation or editing
   const handleValidateOrEdit = () => {
     if (!isValidateEnabled && !isValidated) {
       alert("Please select at least one format before validating");
@@ -300,6 +291,9 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
               const hasSelectedFormats = hasPlatformSelectedFormats(platform.name, channel.title);
               const isExpanded = expandedPlatforms[platform.name];
 
+              // Only show platforms with selected formats when validated
+              if (isValidated && !hasSelectedFormats) return null;
+
               return (
                 <div key={platformIndex}>
                   <div className="flex items-center gap-6">
@@ -309,7 +303,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
                       <Image src={platform.icon} alt={platform.name} />
                       <p>{platform.name}</p>
                     </div>
-                    {(!isValidated || (isValidated && hasSelectedFormats)) && (
+                    {(!isValidated || hasSelectedFormats) && (
                       <div
                         className="flex gap-3 items-center font-semibold cursor-pointer"
                         onClick={() => togglePlatformExpansion(platform.name)}
@@ -334,7 +328,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
                       </div>
                     )}
                   </div>
-                  {((isExpanded && !isValidated) || (isValidated && hasSelectedFormats)) && (
+                  {(isExpanded || (isValidated && hasSelectedFormats)) && (
                     <div className="py-6">
                       <MediaSelection
                         handleFormatSelection={(index) =>
@@ -359,16 +353,18 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
           </div>
         </React.Fragment>
       ))}
-      <div className="w-full flex items-center justify-end mt-9">
-        <button
-          className={`px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-            isValidateEnabled || isValidated ? "bg-[#3175FF] hover:bg-[#2563eb]" : "bg-[#3175FF] opacity-50 cursor-not-allowed"
-          }`}
-          onClick={handleValidateOrEdit}
-        >
-          {isValidated ? "Edit" : "Validate"}
-        </button>
-      </div>
+      {channels.some(channel => channel.platforms?.length > 0) && (
+        <div className="w-full flex items-center justify-end mt-9">
+          <button
+            className={`px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
+              isValidateEnabled || isValidated ? "bg-[#3175FF] hover:bg-[#2563eb]" : "bg-[#3175FF] opacity-50 cursor-not-allowed"
+            }`}
+            onClick={handleValidateOrEdit}
+          >
+            {isValidated ? "Edit" : "Validate"}
+          </button>
+        </div>
+      )}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <UploadModal
@@ -423,10 +419,19 @@ export const FormatSelection = () => {
           const stage = funnelStages.find((s) => s.name === stageName);
           if (!stage) return null;
 
+          const isValidated = campaignFormData?.validatedStages?.[stageName];
+          const hasSelectedFormats = campaignFormData?.channel_mix
+            ?.find(ch => ch.funnel_stage === stageName)
+            ?.[["social_media", "display_networks", "search_engines"]
+              .find(key => campaignFormData.channel_mix
+                .find(ch => ch.funnel_stage === stageName)?.[key]
+                ?.some(p => p.format?.length > 0))];
+
           return (
             <div key={index}>
               <div
-                className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] rounded-t-[10px]`}
+                className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
+                  ${openTabs.includes(stage.name) ? "rounded-t-[10px]" : "rounded-[10px]"}`}
                 onClick={() => toggleTab(stage.name)}
               >
                 <div className="flex items-center gap-2">
@@ -435,9 +440,20 @@ export const FormatSelection = () => {
                     {stage.name}
                   </p>
                 </div>
-                <p className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF]">
-                  {stage.status}
-                </p>
+                {isValidated && hasSelectedFormats ? (
+                  <div className="flex items-center gap-2">
+                    <Image
+                      className="w-5 h-5 rounded-full p-1 bg-green-500"
+                      src={up} // Assuming this should be a checkmark
+                      alt="Completed"
+                    />
+                    <p className="text-green-500 font-semibold">Completed</p>
+                  </div>
+                ) : (
+                  <p className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF]">
+                    {stage.status}
+                  </p>
+                )}
                 <Image src={openTabs.includes(stage.name) ? up : down} alt={openTabs.includes(stage.name) ? "up" : "down"} />
               </div>
               {openTabs.includes(stage.name) && (

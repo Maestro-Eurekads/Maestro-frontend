@@ -22,8 +22,8 @@ const initialState = {
   channel_mix: {},
   campaign_timeline_start_date: "",
   campaign_timeline_end_date: "",
-  campaign_budget: {}, // Added with default empty object
-  goal_level: "",     // Added with default empty string
+  campaign_budget: {},
+  goal_level: "",
 };
 
 // 🎯 Create Context
@@ -40,6 +40,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const { loadingClients, allClients } = useCampaignHook();
   const [copy, setCopy] = useState(campaignFormData);
 
+  // Assume useCampaignHook provides business level options based on client
+  const [businessLevelOptions, setBusinessLevelOptions] = useState({
+    level1: [],
+    level2: [],
+    level3: [],
+  });
+
+  // Fetch active campaign data
   const getActiveCampaign = async (docId?: string) => {
     try {
       const res = await axios.get(
@@ -88,14 +96,15 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         channel_mix: data?.channel_mix || prev.channel_mix,
         campaign_timeline_start_date: data?.campaign_timeline_start_date || prev.campaign_timeline_start_date,
         campaign_timeline_end_date: data?.campaign_timeline_end_date || prev.campaign_timeline_end_date,
-        campaign_budget: data?.campaign_budget || prev.campaign_budget, // Line 89
-        goal_level: data?.goal_level || prev.goal_level,              // Line 90
+        campaign_budget: data?.campaign_budget || prev.campaign_budget,
+        goal_level: data?.goal_level || prev.goal_level,
       }));
     } catch (error) {
       console.error("Error fetching active campaign:", error);
     }
   };
 
+  // Create a new campaign
   const createCampaign = async () => {
     try {
       const response = await axios.post(
@@ -128,7 +137,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
 
-      // Sync campaignFormData with the API response
       const data = response?.data?.data;
       setCampaignFormData((prev) => ({
         ...prev,
@@ -146,6 +154,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Update an existing campaign
   const updateCampaign = async (data) => {
     try {
       const response = await axios.put(
@@ -158,7 +167,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
 
-      // Sync campaignFormData with the API response
       const responseData = response?.data?.data;
       setCampaignFormData((prev) => ({
         ...prev,
@@ -176,6 +184,49 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Fetch business level options based on selected client
+  const fetchBusinessLevelOptions = async (clientId: string) => {
+    try {
+      // Placeholder: Replace with actual API call or logic to fetch business levels
+      // This assumes your backend or useCampaignHook provides this data
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}/business-levels`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+        }
+      );
+      const data = response?.data?.data || {};
+      setBusinessLevelOptions({
+        level1: data.level1 || [],
+        level2: data.level2 || [],
+        level3: data.level3 || [],
+      });
+    } catch (error) {
+      console.error("Error fetching business level options:", error);
+      setBusinessLevelOptions({ level1: [], level2: [], level3: [] });
+    }
+  };
+
+  // Reset business levels when client_selection changes
+  useEffect(() => {
+    const clientId = campaignFormData.client_selection?.id;
+    if (clientId) {
+      // Fetch new business level options
+      fetchBusinessLevelOptions(clientId);
+
+      // Reset business levels to initial state
+      setCampaignFormData((prev) => ({
+        ...prev,
+        level_1: { id: "", value: "" },
+        level_2: { id: "", value: "" },
+        level_3: { id: "", value: "" },
+      }));
+    }
+  }, [campaignFormData.client_selection?.id]);
+
+  // Fetch active campaign when campaignId changes
   useEffect(() => {
     if (cId) {
       getActiveCampaign();
@@ -201,6 +252,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         setCampaignData,
         copy,
         setCopy,
+        businessLevelOptions, // Expose business level options to consumers
       }}
     >
       {children}
