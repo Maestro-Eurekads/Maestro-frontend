@@ -64,15 +64,27 @@ const MapFunnelStages = () => {
   const handleSelect = (id: string) => {
     if (!isEditing) return;
     setHasChanges(true);
+
     const updatedFunnels = campaignFormData?.funnel_stages.includes(id)
       ? {
-        ...campaignFormData,
-        funnel_stages: campaignFormData.funnel_stages.filter((name: string) => name !== id),
-      }
+          ...campaignFormData,
+          funnel_stages: campaignFormData.funnel_stages.filter(
+            (name: string) => name !== id
+          ),
+          channel_mix: campaignFormData?.channel_mix?.filter(
+            (ch) => ch?.funnel_stage !== id
+          ),
+        }
       : {
-        ...campaignFormData,
-        funnel_stages: [...campaignFormData.funnel_stages, id],
-      };
+          ...campaignFormData,
+          funnel_stages: [...campaignFormData.funnel_stages, id],
+          channel_mix: [
+            ...campaignFormData?.channel_mix,
+            {
+              funnel_stage: id,
+            },
+          ],
+        };
     setCampaignFormData(updatedFunnels);
   };
 
