@@ -11,7 +11,6 @@ import { removeKeysRecursively } from "utils/removeID";
 import { SVGLoader } from "components/SVGLoader";
 import { useSearchParams } from "next/navigation";
 
-
 const DefineCampaignObjective = () => {
   const {
     campaignData,
@@ -31,23 +30,18 @@ const DefineCampaignObjective = () => {
   const [previousValidationState, setPreviousValidationState] = useState<boolean | null>(null);
   const [tempSelectedObjective, setTempSelectedObjective] = useState<{ id: number, title: string }[]>([]);
 
-
-
-
-
+  // Load initial campaign data and validation state from localStorage
   useEffect(() => {
-    const resetChanges = () => {
-      setHasChanges(false);
-    };
+    if (campaignId) {
+      getActiveCampaign(campaignId);
+      const savedValidationState = localStorage.getItem(`step1_validated_${campaignId}`);
+      if (savedValidationState) {
+        setPreviousValidationState(JSON.parse(savedValidationState));
+      }
+    }
+  }, [campaignId]);
 
-    window.addEventListener("focus", resetChanges);
-    return () => {
-      window.removeEventListener("focus", resetChanges);
-    };
-  }, []);
-
-
-  //   Auto-hide alert after 3 seconds
+  // Auto-hide alert after 3 seconds
   useEffect(() => {
     if (alert) {
       const timer = setTimeout(() => setAlert(null), 3000);
@@ -55,21 +49,15 @@ const DefineCampaignObjective = () => {
     }
   }, [alert]);
 
-  // Validate step on mount & when form data changes
+  // Validate step and persist validation state
   useEffect(() => {
     const isValid = validationRules["step1"](campaignData);
-    if (isValid !== previousValidationState) {
+    if (isValid !== previousValidationState && campaignId) {
       verifyStep("step1", isValid, cId);
       setPreviousValidationState(isValid);
+      localStorage.setItem(`step1_validated_${campaignId}`, JSON.stringify(isValid));
     }
-  }, [campaignData, cId, previousValidationState, verifyStep]);
-
-  // Load initial campaign data
-  useEffect(() => {
-    if (campaignId) {
-      getActiveCampaign(campaignId);
-    }
-  }, [campaignId]);
+  }, [campaignData, cId, previousValidationState, verifyStep, campaignId]);
 
   // Load saved objective on mount
   useEffect(() => {
@@ -134,6 +122,11 @@ const DefineCampaignObjective = () => {
       setAlert({ variant: "success", message: "Campaign Objective successfully updated!", position: "bottom-right" });
       setIsEditing(false);
       setHasChanges(false);
+
+      // Save validation state after successful update
+      if (campaignId) {
+        localStorage.setItem(`step1_validated_${campaignId}`, JSON.stringify(true));
+      }
 
     } catch (error) {
       const errors: any = error.response?.data?.error?.details?.errors || error.response?.data?.error?.message || error.message || [];
