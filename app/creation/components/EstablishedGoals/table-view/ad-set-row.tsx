@@ -1,14 +1,25 @@
 "use client";
 
 import {
+  calculateAdReturn,
+  calculateBouncedVisits,
   calculateCompletedView,
+  calculateConversion,
+  calculateCostPerBounce,
+  calculateCostPerLead,
   calculateCPC,
   calculateCPCV,
+  calculateCPE,
   calculateCPL,
+  calculateCPP,
   calculateCPV,
+  calculateEngagements,
   calculateImpression,
   calculateLands,
+  calculateLeadVisits,
   calculateLinkClicks,
+  calculatePaymentInfo,
+  calculatePurchases,
   calculateReach,
   calculateVideoViews,
 } from "utils/formula";
@@ -27,171 +38,163 @@ export const AdSetRow = ({
 }) => {
   const { campaignFormData } = useCampaigns();
   const chData = campaignFormData?.channel_mix
-    ?.find((ch) => ch?.funnel_stage === stage.name)
-    [channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)
-    ?.ad_sets[adSetIndex];
-  const calculatedValues = {
-    impressions: calculateImpression(
-      Number(channel["budget_size"]),
-      Number(chData["kpi"]?.["cpm"])
-    ),
-    reach: calculateReach(
-      Number(chData["kpi"]?.["impressions"]),
-      Number(chData["kpi"]?.["frequency"])
-    ),
-    video_views: calculateVideoViews(
-      Number(chData["kpi"]?.["impressions"]),
-      Number(chData["kpi"]?.["vtr"])
-    ),
-    cpv: calculateCPV(
-      Number(channel["budget_size"]),
-      Number(chData["kpi"]?.["video_views"])
-    ),
-    completed_view: calculateCompletedView(
-      Number(chData["kpi"]?.["video_views"]),
-      Number(chData["kpi"]?.["completion_rate"])
-    ),
-    cpcv: calculateCPCV(
-      Number(channel["budget_size"]),
-      Number(chData["kpi"]?.["completed_view"])
-    ),
-    link_clicks: calculateLinkClicks(
-      Number(chData["kpi"]?.["impressions"]),
-      Number(chData["kpi"]?.["ctr"])
-    ),
-    cpc: calculateCPC(
-      Number(channel["budget_size"]),
-      Number(chData["kpi"]?.["link_clicks"])
-    ),
-    installs: calculateLands(
-      Number(chData["kpi"]?.["link_clicks"]),
-      Number(chData["kpi"]?.["install_rate"])
-    ),
-    cpi: calculateCPL(
-      Number(channel["budget_size"]),
-      Number(chData["kpi"]?.["installs"])
-    ),
+  ?.find((ch) => ch?.funnel_stage === stage.name)
+  [channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)
+  ?.ad_sets[adSetIndex];
+  console.log("🚀 ~ chData:", chData)
+  const obj = campaignFormData?.campaign_objectives;
+
+  const formulas = {
+    impressions: [calculateImpression, "budget.fixed_value", "kpi.cpm"],
+    reach: [calculateReach, "kpi.impressions", "kpi.frequency"],
+    video_views: [calculateVideoViews, "kpi.impressions", "kpi.vtr"],
+    cpv: [calculateCPV, "budget.fixed_value", "kpi.video_views"],
+    completed_view: [
+      calculateCompletedView,
+      "kpi.video_views",
+      "kpi.completion_rate",
+    ],
+    cpcv: [calculateCPCV, "budget.fixed_value", "kpi.completed_view"],
+    link_clicks: [calculateLinkClicks, "kpi.impressions", "kpi.ctr"],
+    cpc: [calculateCPC, "budget.fixed_value", "kpi.link_clicks"],
+    installs: [calculateLands, "kpi.link_clicks", "kpi.install_rate"],
+    cpi: [calculateCPL, "budget.fixed_value", "kpi.installs"],
+    engagements: [calculateEngagements, "kpi.impressions", "kpi.eng_rate"],
+    cpe: [calculateCPE, "budget.fixed_value", "kpi.engagements"],
+    app_open: [calculateLands, "kpi.link_clicks", "kpi.open_rate"],
+    cost__app_open: [calculateCPL, "budget.fixed_value", "kpi.app_open"],
+    conversion: [calculateConversion, "kpi.app_open", "kpi.cvr"],
+    cost__conversion: [calculateCPL, "budget.fixed_value", "kpi.conversion"],
+    forms_open: [calculateLinkClicks, "kpi.impressions", "kpi.ctr"],
+    cost__opened_form: [calculateCPC, "budget.fixed_value", "kpi.forms_open"],
+    leads: [calculateLands, "kpi.forms_open", "kpi.cvr"],
+    cost__lead: [
+      calculateCPL,
+      "budget.fixed_value",
+      ["kpi.leads", "kpi.lead_visits"],
+    ],
+    lands: [calculateLands, "kpi.link_clicks", "kpi.click_to_land_rate"],
+    cpl: [calculateCPL, "budget.fixed_value", "kpi.lands"],
+    bounced_visits: [calculateBouncedVisits, "kpi.lands", "kpi.bounce_rate"],
+    costbounce: [
+      calculateCostPerBounce,
+      "budget.fixed_value",
+      "kpi.bounced_visits",
+    ],
+    lead_visits: [calculateLeadVisits, "kpi.lands", "kpi.lead_rate"],
+    costlead: [calculateCPL, "budget.fixed_value", "kpi.lead_visits"],
+    off_funnel_visits: [
+      calculateLeadVisits,
+      "kpi.lands",
+      "kpi.off_funnel_rate",
+    ],
+    cost__off_funnel: [
+      calculateCPL,
+      "budget.fixed_value",
+      "kpi.off_funnel_visits",
+    ],
+    conversions: [calculateConversion, "kpi.lead_visits", "kpi.cvr"],
+    costconversion: [calculateCPL, "budget.fixed_value", "kpi.conversions"],
+    generated_revenue: [
+      calculateConversion,
+      obj === "Purchase (Pro)" ? "kpi.add_to_carts" : "kpi.conversions",
+      "kpi.clv_of_associated_product",
+    ],
+    return_on_ad_spent: [
+      calculateAdReturn,
+      "kpi.generated_revenue",
+      "budget.fixed_value",
+    ],
+    add_to_carts: [
+      calculateLeadVisits,
+      "kpi.lead_visits",
+      "kpi.add_to_cart_rate",
+    ],
+    cpatc: [calculateCostPerLead, "budget.fixed_value", "kpi.add_to_carts"],
+    payment_infos: [
+      calculatePaymentInfo,
+      "kpi.add_to_carts",
+      "kpi.payment_info_rate",
+    ],
+    cppi: [calculateCostPerLead, "budget.fixed_value", "kpi.payment_infos"],
+    purchases: [calculatePurchases, "kpi.payment_infos", "kpi.purchase_rate"],
+    cpp: [calculateCPP, "budget.fixed_value", "kpi.purchases"],
   };
 
-  useEffect(() => {
-    // Only save valid calculated values
-    if (
-      !isNaN(calculatedValues.impressions) &&
-      isFinite(calculatedValues.impressions)
-    ) {
-      console.log("calling here");
-      handleEditInfo(
-        stage.name,
-        channel?.channel_name,
-        channel?.name,
-        "impressions",
-        calculatedValues.impressions,
-        adSetIndex
-      );
-    }
+  // Helper function to check if a field is a percentage type
+  const isPercentageField = (fieldName, headerGroup) => {
+    // Extract the field name from the path (e.g., "kpi.ctr" -> "ctr")
+    const field = fieldName.split(".").pop();
 
-    if (!isNaN(calculatedValues.reach) && isFinite(calculatedValues.reach)) {
-      handleEditInfo(
-        stage.name,
-        channel?.channel_name,
-        channel?.name,
-        "reach",
-        calculatedValues.reach,
-        adSetIndex
-      );
+    // Find the corresponding header in tableHeaders
+    if (Array.isArray(headerGroup)) {
+      for (const header of headerGroup) {
+        if (typeof header === "object" && header.name) {
+          const headerKey = header.name
+            .toLowerCase()
+            .replace(/ /g, "_")
+            .replace(/\//g, "")
+            .replace(/-/g, "_");
+          if (headerKey === field && header.type === "percent") {
+            return true;
+          }
+        }
+      }
     }
-    if (
-      !isNaN(calculatedValues.video_views) &&
-      isFinite(calculatedValues.video_views)
-    ) {
-      handleEditInfo(
-        stage.name,
-        channel?.channel_name,
-        channel?.name,
-        "video_views",
-        calculatedValues.video_views,
-        adSetIndex
-      );
+    return false;
+  };
+
+  const getNestedValue = (obj, ...paths) => {
+    for (const path of paths) {
+      let value = path.split(".").reduce((acc, key) => acc?.[key], obj);
+      if (value !== undefined) {
+        // Check if this is a percentage field
+        if (isPercentageField(path, tableHeaders)) {
+          // Remove % if present
+          if (typeof value === "string") {
+            value = value.replace(/%/g, "");
+          }
+
+          // Convert to decimal for calculations
+          if (!isNaN(Number.parseFloat(value))) {
+            value = Number.parseFloat(value) / 100;
+          }
+        }
+        return value;
+      }
     }
-    if (!isNaN(calculatedValues.cpv) && isFinite(calculatedValues.cpv)) {
-      handleEditInfo(
-        stage.name,
-        channel?.channel_name,
-        channel?.name,
-        "cpv",
-        calculatedValues.cpv,
-        adSetIndex
-      );
-    }
-    if (
-      !isNaN(calculatedValues.completed_view) &&
-      isFinite(calculatedValues.completed_view)
-    ) {
-      handleEditInfo(
-        stage.name,
-        channel?.channel_name,
-        channel?.name,
-        "completed_view",
-        calculatedValues.completed_view,
-        adSetIndex
-      );
-    }
-    if (!isNaN(calculatedValues.cpcv) && isFinite(calculatedValues.cpcv)) {
-      handleEditInfo(
-        stage.name,
-        channel?.channel_name,
-        channel?.name,
-        "cpcv",
-        calculatedValues.cpcv,
-        adSetIndex
-      );
-    }
-    if (
-      !isNaN(calculatedValues.link_clicks) &&
-      isFinite(calculatedValues.link_clicks)
-    ) {
-      handleEditInfo(
-        stage.name,
-        channel?.channel_name,
-        channel?.name,
-        "link_clicks",
-        calculatedValues.link_clicks,
-        adSetIndex
-      );
-    }
-    if (!isNaN(calculatedValues.cpc) && isFinite(calculatedValues.cpc)) {
-      handleEditInfo(
-        stage.name,
-        channel?.channel_name,
-        channel?.name,
-        "cpc",
-        calculatedValues.cpc,
-        adSetIndex
-      );
-    }
-    if (
-      !isNaN(calculatedValues.installs) &&
-      isFinite(calculatedValues.installs)
-    ) {
-      handleEditInfo(
-        stage.name,
-        channel?.channel_name,
-        channel?.name,
-        "installs",
-        calculatedValues.installs,
-        adSetIndex
-      );
-    }
-    if (!isNaN(calculatedValues.cpi) && isFinite(calculatedValues.cpi)) {
-      handleEditInfo(
-        stage.name,
-        channel?.channel_name,
-        channel?.name,
-        "cpi",
-        calculatedValues.cpi,
-        adSetIndex
-      );
-    }
+    return undefined;
+  };
+
+  const calculatedValues = Object.fromEntries(
+    Object.entries(formulas).map(([key, [fn, ...args]]) => [
+      key,
+      typeof fn === "function"
+        ? fn.apply(
+            null,
+            args.map((arg) =>
+              Array.isArray(arg)
+                ? Number(getNestedValue(chData, ...arg))
+                : Number(getNestedValue(chData, arg))
+            )
+          )
+        : null,
+    ])
+  );
+
+  useEffect(() => {
+    Object.entries(calculatedValues).forEach(([key, value]) => {
+      if (!isNaN(value) && isFinite(value)) {
+        handleEditInfo(
+          stage.name,
+          channel?.channel_name,
+          channel?.name,
+          key,
+          value,
+          adSetIndex
+        );
+      }
+    });
   }, [
     chData?.kpi?.cpm,
     chData?.kpi?.frequency,
@@ -199,8 +202,23 @@ export const AdSetRow = ({
     chData?.kpi?.completion_rate,
     chData?.kpi?.ctr,
     chData?.kpi?.install_rate,
-    // We don't include impressions in the dependency array when calculating reach
-    // to avoid circular dependencies
+    chData?.kpi?.eng_rate,
+    chData?.kpi?.open_rate,
+    chData?.kpi?.cvr,
+    chData?.kpi?.lands,
+    chData?.kpi?.click_to_land_rate,
+    chData?.kpi?.bounced_visits,
+    chData?.kpi?.bounce_rate,
+    chData?.kpi?.lead_rate,
+    chData?.kpi?.lead_visits,
+    chData?.kpi?.off_funnel_rate,
+    chData?.kpi?.clv_of_associated_product,
+    chData?.kpi?.add_to_cart_rate,
+    chData?.kpi?.add_to_carts,
+    chData?.kpi?.payment_infos,
+    chData?.kpi?.payment_info_rate,
+    chData?.kpi?.cppi,
+    chData?.kpi?.purchase_rate,
   ]);
   return (
     <tr key={`${stage.name}${adSetIndex}`} className="bg-white">

@@ -14,6 +14,35 @@ export const AdSetCellRenderer = ({
   handleEditInfo,
 }) => {
   const { campaignFormData } = useCampaigns();
+
+  const exemptFields = [
+    "channel",
+    "audience",
+    "start_date",
+    "end_date",
+    "audience_size",
+    "budget_size",
+    "cpm",
+    "impressions",
+    "frequency",
+    "reach",
+  ];
+
+  // Helper function to safely get calculated values
+  const getCalculatedValue = (key) => {
+    const value = calculatedValues[key];
+
+    return isNaN(value) || !isFinite(value)
+      ? "-"
+      : parseFloat(value).toFixed(2);
+  };
+
+  // Helper function to format numbers with commas
+  const formatNumber = (num) => {
+    if (isNaN(num) || num === null || num === undefined) return "-";
+    return new Intl.NumberFormat("en-US").format(num);
+  };
+
   // Handle channel cell with icon and name
   if (body === "channel") {
     return (
@@ -34,83 +63,127 @@ export const AdSetCellRenderer = ({
     return !adSet?.size ? "-" : adSet?.size;
   }
 
-  // Handle calculated fields
-  if (body === "impressions") {
-    const value = calculatedValues.impressions;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
+  if (body === "budget_size") {
+    return !adSet?.budget ? "-" : adSet?.budget?.fixed_value;
   }
 
-  if (body === "reach") {
-    const value = calculatedValues.reach;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
+  const calculatedFields = [
+    "impressions",
+    "reach",
+    "video_views",
+    "cpv",
+    "completed_view",
+    "cpcv",
+    "link_clicks",
+    "cpc",
+    "installs",
+    "cpi",
+    "engagements",
+    "cpe",
+    "app_open",
+    "cost__app_open",
+    "conversion",
+    "cost__conversion",
+    "forms_open",
+    "cost__opened_form",
+    "leads",
+    "cost__lead",
+    "lands",
+    "cpl",
+    "bounced_visits",
+    "costbounce",
+    "lead_visits",
+    "costlead",
+    "off_funnel_visits",
+    "cost__off_funnel",
+    "conversions",
+    "costconversion",
+    "generated_revenue",
+    "return_on_ad_spent",
+    "add_to_carts",
+    "cpatc",
+    "payment_infos",
+    "cppi",
+    "purchases",
+    "cpp",
+  ];
 
-  if (body === "video_views") {
-    const value = calculatedValues.video_views;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if (body === "cpv") {
-    const value = calculatedValues.cpv;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if (body === "completed_view") {
-    const value = calculatedValues.completed_view;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if (body === "cpcv") {
-    const value = calculatedValues.cpcv;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if (body === "link_clicks") {
-    const value = calculatedValues.link_clicks;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if (body === "cpc") {
-    const value = calculatedValues.cpc;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if (body === "installs") {
-    const value = calculatedValues.installs;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if (body === "cpi") {
-    const value = calculatedValues.cpi;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
+  if (calculatedFields.includes(body)) {
+    return getCalculatedValue(body);
   }
 
   // Handle input fields and static values
   const showInput = tableHeaders[bodyIndex]?.showInput;
-
   if (!showInput) {
-    return channel?.[body] === "Invalid date" ? "-" : channel?.[body];
+    const value = channel?.[body];
+    if (exemptFields.includes(body)) {
+      return value === "Invalid date" ? "-" : value;
+    }
+    return value === "Invalid date"
+      ? "-"
+      : formatNumber(parseFloat(value)?.toFixed(2));
+  }
+
+  const isPercentType = tableHeaders[bodyIndex]?.type === "percent";
+
+  // Get the raw value from the form data
+  const kpiValue =
+    campaignFormData?.channel_mix
+      ?.find((ch) => ch?.funnel_stage === stage.name)
+      [channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)
+      ?.ad_sets[adSetIndex]?.kpi?.[body] || "";
+
+  // Format display value for percentage fields - keep the raw input value for UI
+  let displayValue = kpiValue;
+  if (isPercentType && displayValue) {
+    // If it's a number (already converted to decimal), convert back to percentage for display
+    if (
+      !isNaN(Number.parseFloat(displayValue)) &&
+      !displayValue.toString().includes("%")
+    ) {
+      // Check if it's likely a decimal value (less than 1)
+      if (Number.parseFloat(displayValue) < 1) {
+        displayValue = `${(Number.parseFloat(displayValue) * 100).toFixed(2)}%`;
+      } else {
+        // It's already a percentage value (like 10, 20, etc.)
+        displayValue = `${displayValue}%`;
+      }
+    } else if (!displayValue.toString().includes("%")) {
+      // It's a string without % - add it
+      displayValue = `${displayValue}%`;
+    }
   }
 
   return (
     <input
-      value={
-        campaignFormData?.channel_mix
-          ?.find((ch) => ch?.funnel_stage === stage.name)
-          [channel?.channel_name]?.find(
-            (c) => c?.platform_name === channel?.name
-          )?.ad_sets[adSetIndex]?.kpi?.[body] || ""
-      }
-      onChange={(e) =>
+      value={displayValue}
+      onChange={(e) => {
+        let newValue = e.target.value;
+
+        // Allow only valid characters: numbers, '.', ',', ':', and '%'
+        newValue = newValue.replace(/[^0-9.,:%]/g, "");
+        if (isPercentType) {
+          // Remove % if present
+          newValue = newValue.replace(/%/g, "");
+          handleEditInfo(
+            stage.name,
+            channel?.channel_name,
+            channel?.name,
+            body,
+            newValue,
+            adSetIndex
+          );
+          return;
+        }
         handleEditInfo(
           stage.name,
           channel?.channel_name,
           channel?.name,
           body,
-          e.target.value,
+          newValue,
           adSetIndex
-        )
-      }
+        );
+      }}
       className="cpm-bg border-none outline-none w-[100px] p-1"
       placeholder={body ? body?.toUpperCase() : "Insert value"}
     />

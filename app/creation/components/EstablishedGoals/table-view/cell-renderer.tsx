@@ -16,7 +16,37 @@ export const CellRenderer = ({
   handleEditInfo,
 }) => {
   const { campaignFormData } = useCampaigns();
-  // Handle channel cell with icon and name
+
+  // Fields to exempt from toFixed(2) logic
+  const exemptFields = [
+    "channel",
+    "audience",
+    "start_date",
+    "end_date",
+    "audience_size",
+    "budget_size",
+    "cpm",
+    "impressions",
+    "frequency",
+    "reach",
+  ];
+
+  // Helper function to safely get calculated values
+  const getCalculatedValue = (key) => {
+    const value = calculatedValues[key];
+
+    return isNaN(value) || !isFinite(value)
+      ? "-"
+      : parseFloat(value).toFixed(2);
+  };
+
+  // Helper function to format numbers with commas
+  const formatNumber = (num) => {
+    if (isNaN(num) || num === null || num === undefined) return "-";
+    return new Intl.NumberFormat("en-US").format(num);
+  };
+
+  // Channel cell rendering
   if (body === "channel") {
     return (
       <span
@@ -26,9 +56,7 @@ export const CellRenderer = ({
           channel?.ad_sets?.length > 0 &&
           toggleRow(`${stage.name}${index}`)
         }
-        style={{
-          color: channel?.color,
-        }}
+        style={{ color: channel?.color }}
       >
         {goalLevel === "Adset level" && channel?.ad_sets?.length > 0 && (
           <span className="shrink-0">
@@ -40,7 +68,7 @@ export const CellRenderer = ({
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                d="M5.38021 6.66667L8.71354 10L12.0469 6.66667"
+                d="M5.38021 6.66667L8.71354 10L12.0469 6.66667 6.66667"
                 stroke="#061237"
                 strokeOpacity="0.8"
                 strokeWidth="1.33333"
@@ -62,115 +90,133 @@ export const CellRenderer = ({
       </span>
     );
   }
+
   // Handle calculated fields
-  if (body === "impressions") {
-    const value = calculatedValues.impressions;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
+  const calculatedFields = [
+    "impressions",
+    "reach",
+    "video_views",
+    "cpv",
+    "completed_view",
+    "cpcv",
+    "link_clicks",
+    "cpc",
+    "installs",
+    "cpi",
+    "engagements",
+    "cpe",
+    "app_open",
+    "cost__app_open",
+    "conversion",
+    "cost__conversion",
+    "forms_open",
+    "cost__opened_form",
+    "leads",
+    "cost__lead",
+    "lands",
+    "cpl",
+    "bounced_visits",
+    "costbounce",
+    "lead_visits",
+    "costlead",
+    "off_funnel_visits",
+    "cost__off_funnel",
+    "conversions",
+    "costconversion",
+    "generated_revenue",
+    "return_on_ad_spent",
+    "add_to_carts",
+    "cpatc",
+    "payment_infos",
+    "cppi",
+    "purchases",
+    "cpp"
+  ];
 
-  if (body === "reach") {
-    const value = calculatedValues.reach;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if (body === "video_views") {
-    const value = calculatedValues.video_views;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if (body === "cpv") {
-    const value = calculatedValues.cpv;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if (body === "completed_view") {
-    const value = calculatedValues.completed_view;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if (body === "cpcv") {
-    const value = calculatedValues.cpcv;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if (body === "link_clicks") {
-    const value = calculatedValues.link_clicks;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-  
-  if (body === "cpc") {
-    const value = calculatedValues.cpc;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if (body === "installs") {
-    const value = calculatedValues.installs;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if (body === "cpi") {
-    const value = calculatedValues.cpi;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if (body === "engagements") {
-    const value = calculatedValues.engagements;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if (body === "cpe") {
-    const value = calculatedValues.cpe;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if(body === "app_open"){
-    const value = calculatedValues.app_open;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if(body === "cost__app_open"){
-    const value = calculatedValues.cost__app_open;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if(body === "conversion"){
-    const value = calculatedValues.conversion;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
-  }
-
-  if(body === "cost__conversion"){
-    const value = calculatedValues.cost__conversion;
-    return isNaN(value) || !isFinite(value) ? "-" : value;
+  if (calculatedFields.includes(body)) {
+    return getCalculatedValue(body);
   }
 
   // Handle input fields and static values
   const showInput = tableHeaders[bodyIndex]?.showInput;
-
   if (!showInput) {
-    return channel?.[body] === "Invalid date" ? "-" : channel?.[body];
+    const value = channel?.[body];
+    if (exemptFields.includes(body)) {
+      return value === "Invalid date" ? "-" : (value);
+    }
+    return value === "Invalid date"
+      ? "-"
+      : formatNumber(parseFloat(value)?.toFixed(2));
+  }
+
+  const isPercentType = tableHeaders[bodyIndex]?.type === "percent";
+
+  // Get the raw value from the form data
+  const kpiValue =
+    campaignFormData?.channel_mix
+      ?.find((ch) => ch?.funnel_stage === stage.name)
+      ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)
+      ?.kpi?.[body] || "";
+
+  // Format display value for percentage fields - keep the raw input value for UI
+  let displayValue = kpiValue;
+  if (isPercentType && displayValue) {
+    // If it's a number (already converted to decimal), convert back to percentage for display
+    if (
+      !isNaN(Number.parseFloat(displayValue)) &&
+      !displayValue.toString().includes("%")
+    ) {
+      // Check if it's likely a decimal value (less than 1)
+      if (Number.parseFloat(displayValue) < 1) {
+        displayValue = `${(Number.parseFloat(displayValue) * 100).toFixed(2)}%`;
+      } else {
+        // It's already a percentage value (like 10, 20, etc.)
+        displayValue = `${displayValue}%`;
+      }
+    } else if (!displayValue.toString().includes("%")) {
+      // It's a string without % - add it
+      displayValue = `${displayValue}%`;
+    }
   }
 
   return (
     <input
-      value={
-        campaignFormData?.channel_mix
-          ?.find((ch) => ch?.funnel_stage === stage.name)
-          [channel?.channel_name]?.find(
-            (c) => c?.platform_name === channel?.name
-          )?.kpi?.[body] || ""
-      }
-      onChange={(e) =>
+      value={displayValue}
+      onChange={(e) => {
+        let newValue = e.target.value;
+
+        // Allow only valid characters: numbers, '.', ',', ':', and '%'
+        newValue = newValue.replace(/[^0-9.,:%]/g, "");
+
+        // Handle percentage input
+        if (isPercentType) {
+          // Remove % if present
+          newValue = newValue.replace(/%/g, "");
+
+          // Store the raw percentage value (not converted to decimal)
+          handleEditInfo(
+            stage.name,
+            channel?.channel_name,
+            channel?.name,
+            body,
+            newValue,
+            ""
+          );
+          return;
+        }
+
+        // Handle non-percentage input normally
         handleEditInfo(
           stage.name,
           channel?.channel_name,
           channel?.name,
           body,
-          e.target.value,
+          newValue,
           ""
-        )
-      }
+        );
+      }}
       className="cpm-bg border-none outline-none w-[100px] p-1"
-      placeholder={body ?body?.toUpperCase() : "Insert value"}
+      placeholder={body ? body?.toUpperCase() : "Insert value"}
     />
   );
 };

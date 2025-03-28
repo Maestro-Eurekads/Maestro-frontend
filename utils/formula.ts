@@ -32,7 +32,7 @@ export const calculateEngagements: FormulaFunction = (impression, engRate) => {
 };
 
 export const calculateCPE: FormulaFunction = (budget, engagements) => {
-  return Math.round(budget / engagements);
+  return budget / engagements;
 };
 
 export const calculateLinkClicks: FormulaFunction = (impression, ctr) => {
@@ -40,30 +40,30 @@ export const calculateLinkClicks: FormulaFunction = (impression, ctr) => {
 };
 
 export const calculateCPC: FormulaFunction = (budget, linkClicks) => {
-  return Math.round(budget / linkClicks);
+  return parseFloat((budget / linkClicks).toFixed(2));
 };
 
 export const calculateLands: FormulaFunction = (linkClicks, clr) => {
-  return linkClicks * clr;
+  return parseFloat((linkClicks * clr).toFixed(2));
 };
 
 export const calculateCPL: FormulaFunction = (budget, lands) => {
-  return Math.round(budget / lands);
+  return budget / lands
 };
 
-const calculateBouncedVisits: FormulaFunction = (lands, br) => {
+export const calculateBouncedVisits: FormulaFunction = (lands, br) => {
   return lands * br;
 };
 
-const calculateCostPerBounce: FormulaFunction = (budget, bouncedVisits) => {
+export const calculateCostPerBounce: FormulaFunction = (budget, bouncedVisits) => {
   return budget / bouncedVisits;
 };
 
-const calculateLeadVisits: FormulaFunction = (lands, lr) => {
+export const calculateLeadVisits: FormulaFunction = (lands, lr) => {
   return lands * lr;
 };
 
-const calculateCostPerLead: FormulaFunction = (budget, leadVisits) => {
+export const calculateCostPerLead: FormulaFunction = (budget, leadVisits) => {
   return budget / leadVisits;
 };
 
@@ -75,7 +75,7 @@ const calculateCostPerConversion: FormulaFunction = (budget, conversion) => {
   return budget / conversion;
 };
 
-const calculatePaymentInfo: FormulaFunction = (atc, pir) => {
+export const calculatePaymentInfo: FormulaFunction = (atc, pir) => {
   return atc * pir;
 };
 
@@ -83,12 +83,16 @@ const calculateCPPI: FormulaFunction = (budg, pinfo) => {
   return budg / pinfo;
 };
 
-const calculatePurchases: FormulaFunction = (pinfo, pr) => {
+export const calculatePurchases: FormulaFunction = (pinfo, pr) => {
   return pinfo * pr;
 };
 
-const calculateCPP:FormulaFunction = (budg, purchases)=>{
+export const calculateCPP:FormulaFunction = (budg, purchases)=>{
     return budg / purchases
+}
+
+export const calculateAdReturn: FormulaFunction=(revenue, budget)=>{
+  return revenue / budget
 }
 
 

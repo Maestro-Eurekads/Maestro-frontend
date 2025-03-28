@@ -1,54 +1,78 @@
-import moment from "moment"
-import { getPlatformIcon, platformStyles } from "components/data"
-import { tableHeaders } from "utils/tableHeaders"
+import moment from "moment";
+import { getPlatformIcon, platformStyles } from "components/data";
+import { tableHeaders } from "utils/tableHeaders";
 
 export function extractPlatforms(data) {
-  const platforms = {}
-  const headers = tableHeaders[data?.campaign_objectives] || []
+  const platforms = {};
+  const headers = tableHeaders[data?.campaign_objectives] || [];
 
   data?.channel_mix?.length > 0 &&
     data.channel_mix.forEach((stage) => {
-      const stageName = stage.funnel_stage
-      platforms[stageName] = platforms[stageName] || []
-      ;["search_engines", "display_networks", "social_media"].forEach((channelType) => {
-        stage[channelType].forEach((platform) => {
-          const platformName = platform.platform_name
-          const existingPlatform = platforms[stageName].find((p) => p.name === platformName)
+      const stageName = stage.funnel_stage;
+      platforms[stageName] = platforms[stageName] || [];
+      ["search_engines", "display_networks", "social_media"].forEach(
+        (channelType) => {
+          stage[channelType].forEach((platform) => {
+            const platformName = platform.platform_name;
+            const existingPlatform = platforms[stageName].find(
+              (p) => p.name === platformName
+            );
 
-          if (!existingPlatform) {
-            // Find platform style or use random one
-            const style =
-              platformStyles.find((style) => style.name === platformName) ||
-              platformStyles[Math.floor(Math.random() * platformStyles.length)]
+            if (!existingPlatform) {
+              // Find platform style or use random one
+              const style =
+                platformStyles.find((style) => style.name === platformName) ||
+                platformStyles[
+                  Math.floor(Math.random() * platformStyles.length)
+                ];
 
-            // Map headers to values
-            const rowData = mapHeadersToValues(headers, platform)
+              // Map headers to values
+              const rowData = mapHeadersToValues(headers, platform);
 
-            // Create platform object with all necessary data
-            platforms[stageName].push(createPlatformObject(platformName, style, platform, channelType, rowData))
-          }
-        })
-      })
-    })
+              // Create platform object with all necessary data
+              platforms[stageName].push(
+                createPlatformObject(
+                  platformName,
+                  style,
+                  platform,
+                  channelType,
+                  rowData
+                )
+              );
+            }
+          });
+        }
+      );
+    });
 
-  return platforms
+  return platforms;
 }
 
 function mapHeadersToValues(headers, platform) {
   return headers
     ?.filter((h) => h?.showInput)
     .reduce((acc, header) => {
-      const key = formatHeaderKey(header.name)
-      acc[key] = platform?.["kpi"]?.[key] || (header.showInput ? "" : "-")
-      return acc
-    }, {})
+      const key = formatHeaderKey(header.name);
+      acc[key] = platform?.["kpi"]?.[key] || (header.showInput ? "" : "-");
+      return acc;
+    }, {});
 }
 
 function formatHeaderKey(headerName) {
-  return headerName.replace(/ /g, "_").replace(/\//g, "").replace(/-/g, "_").toLowerCase()
+  return headerName
+    .replace(/ /g, "_")
+    .replace(/\//g, "")
+    .replace(/-/g, "_")
+    .toLowerCase();
 }
 
-function createPlatformObject(platformName, style, platform, channelType, rowData) {
+function createPlatformObject(
+  platformName,
+  style,
+  platform,
+  channelType,
+  rowData
+) {
   return {
     icon: getPlatformIcon(platformName),
     name: platformName,
@@ -57,16 +81,23 @@ function createPlatformObject(platformName, style, platform, channelType, rowDat
     start_date: moment(platform.campaign_start_date).format("DD/MM/YYYY"),
     end_date: moment(platform.campaign_end_date).format("DD/MM/YYYY"),
     audience_size: platform?.ad_sets?.reduce(
-      (total, adSet) =>
-        total + (Number(adSet.size) || 0),
+      (total, adSet) => total + (Number(adSet.size) || 0),
       0
     ),
-    budget_size: Number(platform?.budget?.fixed_value) > 0 ? `${Number(platform?.budget?.fixed_value)}` : 0,
+    budget_size:
+      Number(platform?.budget?.fixed_value) > 0
+        ? `${Number(platform?.budget?.fixed_value)}`
+        : 0,
     impressions: platform.impressions,
     reach: platform.reach,
-    ad_sets: platform?.ad_sets,
+    ad_sets: platform?.ad_sets?.map((ad) => ({
+      ...ad,
+      budget:
+        ad?.budget === null || ad?.budget === undefined
+          ? { fixed_value: platform?.budget?.fixed_value }
+          : ad?.budget,
+    })),
     channel_name: channelType,
     ...rowData,
-  }
+  };
 }
-
