@@ -41,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html data-theme="light" lang="en" suppressHydrationWarning={true}>
+    <html data-theme="light" lang="en" suppressHydrationWarning>
       <head>
         <meta
           name="viewport"

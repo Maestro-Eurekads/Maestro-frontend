@@ -1,29 +1,21 @@
-import React, { useRef, useState } from 'react'
+import React, { useState } from 'react'
 import PageHeaderWrapper from '../../../components/PageHeaderWapper'
 import DateComponent from './molecules/date-component/date-component';
 import ConfigureBudgetComponet from './ConfigureAdSetsAndBudget/ConfigureBudgetComponet';
 import OverviewOfYourCampaigntimeline from './OverviewOfYourCampaign/OverviewOfYourCampaigntimeline';
 import { useDateRange } from '../../../src/date-range-context';
-import { format, eachDayOfInterval } from "date-fns";
 import { parseApiDate } from '../../../components/Options';
 import { useCampaigns } from '../../utils/CampaignsContext';
 import CommentsDrawer from 'components/Drawer/CommentsDrawer';
-import Message from 'components/Drawer/Message';
-import dynamic from 'next/dynamic';
-// import Draggable from 'react-draggable'; 
-
-const Draggable = dynamic(() => import("react-draggable"), { ssr: false });
+import { useDraggable } from "@dnd-kit/core";
+import MessageContainer from 'components/Drawer/MessageContainer';
+import { useComments } from 'app/utils/CommentProvider';
 const OverviewofyourCampaign = () => {
-	const dragRef = useRef(null);
-	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+	const { isDrawerOpen, setIsDrawerOpen } = useComments();
 	const [show, setShow] = useState(false);
-	const [message, setMessage] = useState(false);
 	const { range } = useDateRange();
 
 	const {
-		updateCampaign,
-		campaignData,
-		getActiveCampaign,
 		clientCampaignData
 	} = useCampaigns();
 
@@ -43,6 +35,17 @@ const OverviewofyourCampaign = () => {
 	};
 
 	const funnelsData = mapCampaignsToFunnels(clientCampaignData);
+
+	const { attributes, listeners, setNodeRef, transform } = useDraggable({
+		id: "draggable-message",
+	});
+
+	const style = {
+		transform: transform
+			? `translate3d(${transform.x}px, ${transform.y}px, 0)`
+			: "none",
+	};
+
 
 
 
@@ -86,11 +89,7 @@ const OverviewofyourCampaign = () => {
 					<DateComponent useDate={false} />
 				</div>
 
-				<Message
-					isOpen={isDrawerOpen}
-					setMessage={setMessage}
-				/>
-
+				<MessageContainer isOpen={isDrawerOpen} />
 				<OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} setIsDrawerOpen={setIsDrawerOpen} openComments={isDrawerOpen} />
 			</div>
 
@@ -99,3 +98,7 @@ const OverviewofyourCampaign = () => {
 }
 
 export default OverviewofyourCampaign
+
+
+
+// < DraggableMessage setMessage = { setMessage } />
