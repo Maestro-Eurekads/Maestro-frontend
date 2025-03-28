@@ -52,11 +52,13 @@ const ObjectiveSelection = () => {
     Awareness: new Set(),
     Consideration: new Set(),
     Conversion: new Set(),
+    Loyalty: new Set(), // Added Loyalty for completeness
   });
   const [validatedPlatforms, setValidatedPlatforms] = useState({
     Awareness: new Set(),
     Consideration: new Set(),
     Conversion: new Set(),
+    Loyalty: new Set(), // Added Loyalty for completeness
   });
   const [dropdownOpen, setDropdownOpen] = useState({});
 
@@ -99,10 +101,10 @@ const ObjectiveSelection = () => {
   // Initialize openItems and selectedNetworks from campaignFormData
   useEffect(() => {
     if (campaignFormData?.funnel_stages) {
-      const value = campaignFormData.funnel_stages.reduce((acc, stage, index) => {
-        acc[stage] = index === 0;
+      const value = campaignFormData.funnel_stages.reduce((acc, stage) => {
+        acc[stage] = acc[stage] !== undefined ? acc[stage] : stage === "Awareness"; // Preserve existing state, default to Awareness open
         return acc;
-      }, {});
+      }, { ...openItems });
       setOpenItems(value);
     }
     const ch_mix = Array.isArray(campaignFormData?.channel_mix)
@@ -151,11 +153,13 @@ const ObjectiveSelection = () => {
         ? `${stageName}-${category}-${platformName}obj`
         : `${stageName}-${category}-${platformName}`;
 
+    // Update selected options
     setSelectedOptions((prev) => ({
       ...prev,
       [key]: option,
     }));
 
+    // Update campaignFormData
     const channelMix = Array.isArray(campaignFormData?.channel_mix)
       ? campaignFormData.channel_mix
       : [];
@@ -198,9 +202,16 @@ const ObjectiveSelection = () => {
       channel_mix: updatedChannelMix,
     }));
 
+    // Close only the specific dropdown
     setDropdownOpen((prev) => ({
       ...prev,
       [dropdownKey]: false,
+    }));
+
+    // Ensure the current stage remains open
+    setOpenItems((prev) => ({
+      ...prev,
+      [stageName]: true,
     }));
   };
 
@@ -476,7 +487,7 @@ const ObjectiveSelection = () => {
                                       <Image src={down2} alt="dropdown" />
                                     </div>
                                     {dropdownOpen[platformKey + "obj"] && (
-                                      <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg transition-transform transform hover:scale-105 z-10">
+                                      <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10">
                                         <ul>
                                           {["Awareness", "Video views", "Traffic"].map(
                                             (option, i) => (
@@ -512,7 +523,7 @@ const ObjectiveSelection = () => {
                                       <Image src={down2} alt="dropdown" />
                                     </div>
                                     {dropdownOpen[platformKey] && (
-                                      <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg transition-transform transform hover:scale-105 z-10">
+                                      <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10">
                                         <ul>
                                           {["CPM", "CPV"].map((option, i) => (
                                             <li
