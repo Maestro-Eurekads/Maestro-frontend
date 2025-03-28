@@ -63,7 +63,7 @@ const OverviewofyourCampaign = () => {
 				<div >
 					<div className='flex gap-5'>
 						<button className="overview-budget-conponent mt-8"
-							onClick={() => setShow(!show)}>{!show ? "See" : "Hide"}budget overview</button>
+							onClick={() => setShow(!show)}>{!show ? "See" : "Hide"} budget overview</button>
 						<button className="overview-budget-conponent mt-8"
 							onClick={() => setIsDrawerOpen(!isDrawerOpen)}>View Comments</button>
 					</div>

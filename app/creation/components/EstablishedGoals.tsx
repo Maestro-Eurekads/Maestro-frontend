@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import facebook from "../../../public/facebook.svg";
 import instagram from "../../../public/instagram.svg";
 import youtube from "../../../public/youtube.svg";
@@ -86,10 +86,10 @@ const channels = [
 
 export const EstablishedGoals = () => {
   const [active, setActive] = useState("Timeline View");
-  const [isModalOpen, setIsModalOpen] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [step, setStep] = useState(1);
-//   const [selectedGoal, setSelectedGoal] = useState("");
-  const { setCampaignFormData } = useCampaigns();
+  //   const [selectedGoal, setSelectedGoal] = useState("");
+  const { setCampaignFormData, campaignFormData } = useCampaigns();
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -98,6 +98,17 @@ export const EstablishedGoals = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
+
+  useEffect(()=>{
+	if(campaignFormData){
+		if(campaignFormData?.goal_level){
+			setIsModalOpen(false)
+		} else {
+			setIsModalOpen(true)
+		}
+	}
+
+  }, [campaignFormData])
 
   return (
     <div>
@@ -121,7 +132,10 @@ export const EstablishedGoals = () => {
         </div>
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      >
         {step === 1 && (
           <div className="card bg-base-100 w-[418px]">
             <form method="dialog" className="flex justify-between p-6 !pb-0">
@@ -349,10 +363,10 @@ export const EstablishedGoals = () => {
                       <button
                         className="btn btn-primary w-full text-sm bg-[#3175FF]"
                         onClick={() => {
-						  setCampaignFormData((prev)=>({
-							...prev,
-							goal_level: item.label
-						  }))
+                          setCampaignFormData((prev) => ({
+                            ...prev,
+                            goal_level: item.label,
+                          }));
                           handleCloseModal();
                         }}
                       >
@@ -367,11 +381,7 @@ export const EstablishedGoals = () => {
         )}
       </Modal>
 
-      {active === "Timeline View" ? (
-        <TimelineView />
-      ) : (
-        <TableView channels={channels} />
-      )}
+      {<TableView channels={channels} />}
     </div>
   );
 };

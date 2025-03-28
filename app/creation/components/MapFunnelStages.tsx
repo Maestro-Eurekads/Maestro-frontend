@@ -28,11 +28,10 @@ const MapFunnelStages = () => {
   } = useCampaigns();
   const [previousValidationState, setPreviousValidationState] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
   const [hovered, setHovered] = React.useState<number | null>(null);
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { verifyStep, verifybeforeMove, setverifybeforeMove } = useVerification();
+  const { verifyStep, setHasChanges, hasChanges, setverifybeforeMove } = useVerification();
 
   useEffect(() => {
     const isValid = Array.isArray(campaignData?.funnel_stages) && campaignData.funnel_stages.length > 0;
@@ -51,20 +50,41 @@ const MapFunnelStages = () => {
   }, [alert]);
 
 
+  useEffect(() => {
+    const resetChanges = () => {
+      setHasChanges(false);
+    };
 
+    window.addEventListener("focus", resetChanges);
+    return () => {
+      window.removeEventListener("focus", resetChanges);
+    };
+  }, []);
 
   const handleSelect = (id: string) => {
     if (!isEditing) return;
     setHasChanges(true);
+
     const updatedFunnels = campaignFormData?.funnel_stages.includes(id)
       ? {
-        ...campaignFormData,
-        funnel_stages: campaignFormData.funnel_stages.filter((name: string) => name !== id),
-      }
+          ...campaignFormData,
+          funnel_stages: campaignFormData.funnel_stages.filter(
+            (name: string) => name !== id
+          ),
+          channel_mix: campaignFormData?.channel_mix?.filter(
+            (ch) => ch?.funnel_stage !== id
+          ),
+        }
       : {
-        ...campaignFormData,
-        funnel_stages: [...campaignFormData.funnel_stages, id],
-      };
+          ...campaignFormData,
+          funnel_stages: [...campaignFormData.funnel_stages, id],
+          channel_mix: [
+            ...campaignFormData?.channel_mix,
+            {
+              funnel_stage: id,
+            },
+          ],
+        };
     setCampaignFormData(updatedFunnels);
   };
 
@@ -116,6 +136,11 @@ const MapFunnelStages = () => {
     }
   };
 
+  const handleEditing = () => {
+    setIsEditing(true)
+    setHasChanges(true)
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -131,7 +156,7 @@ const MapFunnelStages = () => {
         {isEditing ? null : (
           <button
             className="model_button_blue"
-            onClick={() => setIsEditing(true)}
+            onClick={handleEditing}
           >
             Edit
           </button>
@@ -239,7 +264,7 @@ const MapFunnelStages = () => {
         {hasChanges && (
           <div className="flex justify-end pr-6 mt-[50px]">
             <button
-              disabled={campaignFormData?.funnel_stages?.length === 0 || loading}
+              disabled={loading}
               onClick={handleStepTwo}
               className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg text-white font-semibold text-base leading-6 transition-colors bg-[#3175FF] hover:bg-[#2557D6]"
             >

@@ -40,6 +40,8 @@ interface VerificationContextType {
 	validateStep: (step: string, data: any, docId: string) => boolean;
 	verifybeforeMove: VerifyBeforeMoveState;
 	setverifybeforeMove: React.Dispatch<React.SetStateAction<VerifyBeforeMoveState>>;
+	hasChanges: boolean;
+	setHasChanges: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const VerificationContext = createContext<VerificationContextType | undefined>(undefined);
@@ -63,6 +65,7 @@ const loadStoredState = () => {
 export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [verificationState, setVerificationState] = useState<VerificationState>({});
 	const [verifybeforeMove, setverifybeforeMove] = useState<VerifyBeforeMoveState>(loadStoredState);
+	const [hasChanges, setHasChanges] = useState(false);
 
 	// Persist state in local storage whenever verifybeforeMove updates
 	useEffect(() => {
@@ -101,7 +104,7 @@ export const VerificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
 	return (
 		<VerificationContext.Provider
-			value={{ verificationState, verifyStep, isStepVerified, resetStep, validateStep, verifybeforeMove, setverifybeforeMove }}
+			value={{ verificationState, verifyStep, isStepVerified, resetStep, validateStep, verifybeforeMove, setverifybeforeMove, setHasChanges, hasChanges }}
 		>
 			{children}
 		</VerificationContext.Provider>

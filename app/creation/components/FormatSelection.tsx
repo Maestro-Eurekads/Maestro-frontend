@@ -26,7 +26,6 @@ import { funnelStages } from "../../../components/data";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import UploadModal from "../../../components/UploadModal/UploadModal";
 
-// Types for platforms and channels
 type IPlatform = {
   name: string;
   icon: any;
@@ -51,7 +50,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContext, setModalContext] = useState<{ platform: string; channel: string; format: string } | null>(null);
 
-  // Default media format options
   const defaultMediaOptions = [
     { name: "Carousel", icon: carousel },
     { name: "Image", icon: image_format },
@@ -80,6 +78,31 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
 
   const getPlatformIcon = (platformName) => platformIcons[platformName] || null;
 
+  // Load persisted states from localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedValidationState = localStorage.getItem(`formatValidation_${stageName}`);
+      setIsValidated(savedValidationState ? JSON.parse(savedValidationState) : false);
+
+      const savedQuantities = localStorage.getItem(`quantities_${stageName}`);
+      if (savedQuantities) {
+        setQuantities(JSON.parse(savedQuantities));
+      }
+
+      const savedExpanded = localStorage.getItem(`expandedPlatforms_${stageName}`);
+      if (savedExpanded) {
+        setExpandedPlatforms(JSON.parse(savedExpanded));
+      }
+    }
+  }, [stageName]);
+
+  // Persist expanded platforms
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`expandedPlatforms_${stageName}`, JSON.stringify(expandedPlatforms));
+    }
+  }, [expandedPlatforms, stageName]);
+
   // Toggle platform expansion
   const togglePlatformExpansion = (platformName: string) => {
     if (!isValidated) {
@@ -90,7 +113,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     }
   };
 
-  // Enable validate button when formats are selected
+  // Check if validation is enabled
   useEffect(() => {
     const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName);
     const hasMediaOptionsSelected =
@@ -101,7 +124,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     setIsValidateEnabled(hasMediaOptionsSelected);
   }, [campaignFormData, stageName]);
 
-  // Transform channel data from campaignFormData
+  // Transform channel data
   useEffect(() => {
     if (campaignFormData?.channel_mix && stageName) {
       const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName);
@@ -130,37 +153,35 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
         style: "max-w-[180px] w-full",
       };
       setChannels([transformedData, displayNetworkData, searchEnginesData]);
-      
-      // Set initial validation state
-      setIsValidated(!!stage?.social_media?.every(p => p.formatValidated) || 
-                    !!stage?.display_networks?.every(p => p.formatValidated) || 
-                    !!stage?.search_engines?.every(p => p.formatValidated));
     }
   }, [campaignFormData, stageName]);
 
-  // Initialize quantities from campaignFormData
+  // Initialize quantities
   useEffect(() => {
-    if (campaignFormData?.channel_mix) {
-      const stage = campaignFormData.channel_mix.find((chan) => chan.funnel_stage === stageName);
-      if (stage) {
-        const initialQuantities = {};
-        ["social_media", "display_networks", "search_engines"].forEach((channel) => {
-          stage[channel]?.forEach((platform) => {
-            if (platform.format) {
-              initialQuantities[platform.platform_name] = {};
-              platform.format.forEach((f) => {
-                initialQuantities[platform.platform_name][f.format_type] = parseInt(f.num_of_visuals || "1");
-              });
-            }
-          });
+    const stage = campaignFormData?.channel_mix?.find((chan) => chan.funnel_stage === stageName);
+    if (stage && !Object.keys(quantities).length) {
+      const initialQuantities = {};
+      ["social_media", "display_networks", "search_engines"].forEach((channel) => {
+        stage[channel]?.forEach((platform) => {
+          if (platform.format) {
+            initialQuantities[platform.platform_name] = {};
+            platform.format.forEach((f) => {
+              initialQuantities[platform.platform_name][f.format_type] = parseInt(f.num_of_visuals || "1");
+            });
+          }
         });
-        setQuantities(initialQuantities);
+      });
+      setQuantities(initialQuantities);
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`quantities_${stageName}`, JSON.stringify(initialQuantities));
       }
     }
-  }, [campaignFormData, stageName]);
+  }, [campaignFormData, stageName, quantities]);
 
   // Handle format selection
   const handleFormatSelection = (channelName: string, index: number, platformName: string) => {
+    if (isValidated) return;
+
     const copy = [...campaignFormData?.channel_mix];
     const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName);
     if (stageIndex === -1) return;
@@ -185,15 +206,19 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     setCampaignFormData({ ...campaignFormData, channel_mix: copy });
   };
 
-  // Handle quantity changes and sync with campaignFormData
+  // Handle quantity changes
   const handleQuantityChange = (platformName: string, formatName: string, change: number) => {
-    setQuantities((prev) => ({
-      ...prev,
+    const newQuantities = {
+      ...quantities,
       [platformName]: {
-        ...prev[platformName],
-        [formatName]: Math.max(1, (prev[platformName]?.[formatName] || 1) + change),
+        ...quantities[platformName],
+        [formatName]: Math.max(1, (quantities[platformName]?.[formatName] || 1) + change),
       },
-    }));
+    };
+    setQuantities(newQuantities);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`quantities_${stageName}`, JSON.stringify(newQuantities));
+    }
 
     const copy = [...campaignFormData.channel_mix];
     const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName);
@@ -207,9 +232,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
         if (platform && platform.format) {
           const format = platform.format.find((f) => f.format_type === formatName);
           if (format) {
-            const currentQuantity = parseInt(format.num_of_visuals || "1");
-            const newQuantity = Math.max(1, currentQuantity + change);
-            format.num_of_visuals = newQuantity.toString();
+            format.num_of_visuals = newQuantities[platformName][formatName].toString();
             break;
           }
         }
@@ -220,33 +243,41 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
 
   // Handle validation or editing
   const handleValidateOrEdit = () => {
-    setIsValidated(!isValidated);
-    setIsModalOpen(false); // Close modal when switching modes
-    
-    // Update campaignFormData with validation status
+    if (!isValidateEnabled && !isValidated) {
+      alert("Please select at least one format before validating");
+      return;
+    }
+
+    const newValidationState = !isValidated;
+    setIsValidated(newValidationState);
+    setIsModalOpen(false);
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`formatValidation_${stageName}`, JSON.stringify(newValidationState));
+    }
+
     const updatedChannelMix = campaignFormData.channel_mix.map((mix) => {
       if (mix.funnel_stage === stageName) {
         return {
           ...mix,
-          social_media: mix.social_media?.map(p => ({ ...p, formatValidated: !isValidated })),
-          display_networks: mix.display_networks?.map(p => ({ ...p, formatValidated: !isValidated })),
-          search_engines: mix.search_engines?.map(p => ({ ...p, formatValidated: !isValidated })),
+          social_media: mix.social_media?.map(p => ({ ...p, formatValidated: newValidationState })),
+          display_networks: mix.display_networks?.map(p => ({ ...p, formatValidated: newValidationState })),
+          search_engines: mix.search_engines?.map(p => ({ ...p, formatValidated: newValidationState })),
         };
       }
       return mix;
     });
-    
+
     setCampaignFormData({
       ...campaignFormData,
       channel_mix: updatedChannelMix,
       validatedStages: {
         ...campaignFormData.validatedStages,
-        [stageName]: !isValidated,
+        [stageName]: newValidationState,
       },
     });
   };
 
-  // Check if platform has selected formats
   const hasPlatformSelectedFormats = (platformName: string, channelName: string) => {
     const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName);
     const channel = stage?.[channelName?.toLowerCase()?.replaceAll(" ", "_")];
@@ -254,7 +285,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     return platform?.format?.length > 0;
   };
 
-  // Open modal with context
   const openModal = (platform: string, channel: string, format: string) => {
     setModalContext({ platform, channel, format });
     setIsModalOpen(true);
@@ -332,9 +362,8 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       <div className="w-full flex items-center justify-end mt-9">
         <button
           className={`px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-            isValidateEnabled ? "bg-[#3175FF] hover:bg-[#2563eb]" : "bg-[#3175FF] opacity-50 cursor-not-allowed"
+            isValidateEnabled || isValidated ? "bg-[#3175FF] hover:bg-[#2563eb]" : "bg-[#3175FF] opacity-50 cursor-not-allowed"
           }`}
-          disabled={!isValidateEnabled}
           onClick={handleValidateOrEdit}
         >
           {isValidated ? "Edit" : "Validate"}
@@ -355,23 +384,32 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
   );
 };
 
-// Main FormatSelection component
 export const FormatSelection = () => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
   const { campaignFormData } = useCampaigns();
 
   useEffect(() => {
-    if (campaignFormData?.channel_mix) {
-      setOpenTabs([campaignFormData?.channel_mix[0]?.funnel_stage]);
+    if (typeof window !== "undefined") {
+      const savedOpenTabs = localStorage.getItem('formatSelectionOpenTabs');
+      if (savedOpenTabs) {
+        setOpenTabs(JSON.parse(savedOpenTabs));
+      } else if (campaignFormData?.channel_mix) {
+        const initialTab = [campaignFormData?.channel_mix[0]?.funnel_stage];
+        setOpenTabs(initialTab);
+        localStorage.setItem('formatSelectionOpenTabs', JSON.stringify(initialTab));
+      }
     }
   }, [campaignFormData]);
 
   const toggleTab = (stageName: string) => {
-    setOpenTabs((prevOpenTabs) =>
-      prevOpenTabs.includes(stageName)
-        ? prevOpenTabs.filter((tab) => tab !== stageName)
-        : [...prevOpenTabs, stageName]
-    );
+    const newOpenTabs = openTabs.includes(stageName)
+      ? openTabs.filter((tab) => tab !== stageName)
+      : [...openTabs, stageName];
+    
+    setOpenTabs(newOpenTabs);
+    if (typeof window !== "undefined") {
+      localStorage.setItem('formatSelectionOpenTabs', JSON.stringify(newOpenTabs));
+    }
   };
 
   return (
@@ -403,7 +441,7 @@ export const FormatSelection = () => {
                 <Image src={openTabs.includes(stage.name) ? up : down} alt={openTabs.includes(stage.name) ? "up" : "down"} />
               </div>
               {openTabs.includes(stage.name) && (
-                <div className="card-body">
+                <div className="card-body bg-white border border-[#E5E5E5]">
                   <Platforms stageName={stage?.name} />
                 </div>
               )}
