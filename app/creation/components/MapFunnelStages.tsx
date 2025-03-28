@@ -50,16 +50,7 @@ const MapFunnelStages = () => {
   }, [alert]);
 
 
-  useEffect(() => {
-    const resetChanges = () => {
-      setHasChanges(false);
-    };
 
-    window.addEventListener("focus", resetChanges);
-    return () => {
-      window.removeEventListener("focus", resetChanges);
-    };
-  }, []);
 
   const handleSelect = (id: string) => {
     if (!isEditing) return;
@@ -67,24 +58,24 @@ const MapFunnelStages = () => {
 
     const updatedFunnels = campaignFormData?.funnel_stages.includes(id)
       ? {
-          ...campaignFormData,
-          funnel_stages: campaignFormData.funnel_stages.filter(
-            (name: string) => name !== id
-          ),
-          channel_mix: campaignFormData?.channel_mix?.filter(
-            (ch) => ch?.funnel_stage !== id
-          ),
-        }
+        ...campaignFormData,
+        funnel_stages: campaignFormData.funnel_stages.filter(
+          (name: string) => name !== id
+        ),
+        channel_mix: campaignFormData?.channel_mix?.filter(
+          (ch) => ch?.funnel_stage !== id
+        ),
+      }
       : {
-          ...campaignFormData,
-          funnel_stages: [...campaignFormData.funnel_stages, id],
-          channel_mix: [
-            ...campaignFormData?.channel_mix,
-            {
-              funnel_stage: id,
-            },
-          ],
-        };
+        ...campaignFormData,
+        funnel_stages: [...campaignFormData.funnel_stages, id],
+        channel_mix: [
+          ...campaignFormData?.channel_mix,
+          {
+            funnel_stage: id,
+          },
+        ],
+      };
     setCampaignFormData(updatedFunnels);
   };
 

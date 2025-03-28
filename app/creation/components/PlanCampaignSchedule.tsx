@@ -28,16 +28,7 @@ const PlanCampaignSchedule: React.FC = () => {
 	} = useCampaigns();
 	const { setHasChanges, hasChanges } = useVerification();
 
-	useEffect(() => {
-		const resetChanges = () => {
-			setHasChanges(false);
-		};
-
-		window.addEventListener("focus", resetChanges);
-		return () => {
-			window.removeEventListener("focus", resetChanges);
-		};
-	}, []);
+ 
 
 	useEffect(() => {
 		if (campaignId) {
