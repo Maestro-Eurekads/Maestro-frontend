@@ -4,8 +4,8 @@ import React, { createContext, useContext, ReactNode, useState, useEffect } from
 import useCampaignHook from "./useCampaignHook";
 import axios from "axios";
 import { useSearchParams } from "next/navigation";
+import { useSelector } from "react-redux";
 
-// 🎯 Initial Campaign State
 const initialState = {
   client_selection: { id: "", value: "" },
   level_1: { id: "", value: "" },
@@ -26,10 +26,8 @@ const initialState = {
   goal_level: "",
 };
 
-// 🎯 Create Context
 const CampaignContext = createContext<any>(null);
 
-// 🎯 Provider Component
 export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [campaignFormData, setCampaignFormData] = useState(initialState);
   const [campaignData, setCampaignData] = useState(null);
@@ -37,17 +35,25 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(false);
   const query = useSearchParams();
   const cId = query.get("campaignId");
-  const { loadingClients, allClients } = useCampaignHook();
-  const [copy, setCopy] = useState(campaignFormData);
+  const { loadingClients: hookLoadingClients, allClients: hookAllClients } = useCampaignHook();
 
-  // Assume useCampaignHook provides business level options based on client
+  const reduxClients = useSelector((state: any) => state.client?.clients || []);
+  const reduxLoadingClients = useSelector((state: any) => state.client?.getCreateClientIsLoading || false);
+
+  const allClients = (reduxClients && reduxClients.length > 0) ? reduxClients : hookAllClients;
+  const loadingClients = reduxLoadingClients || hookLoadingClients;
+
+  useEffect(() => {
+    console.log("CampaignProvider: allClients updated", allClients);
+  }, [allClients]);
+
+  const [copy, setCopy] = useState(campaignFormData);
   const [businessLevelOptions, setBusinessLevelOptions] = useState({
     level1: [],
     level2: [],
     level3: [],
   });
 
-  // Fetch active campaign data
   const getActiveCampaign = async (docId?: string) => {
     try {
       const res = await axios.get(
@@ -104,7 +110,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Create a new campaign
   const createCampaign = async () => {
     try {
       const response = await axios.post(
@@ -136,7 +141,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-
       const data = response?.data?.data;
       setCampaignFormData((prev) => ({
         ...prev,
@@ -146,7 +150,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           label: data?.budget_details?.currency || prev.budget_details_currency.label,
         },
       }));
-
       return response;
     } catch (error) {
       console.error("Error creating campaign:", error);
@@ -154,7 +157,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Update an existing campaign
   const updateCampaign = async (data) => {
     try {
       const response = await axios.put(
@@ -166,7 +168,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-
       const responseData = response?.data?.data;
       setCampaignFormData((prev) => ({
         ...prev,
@@ -176,7 +177,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           label: responseData?.budget_details?.currency || prev.budget_details_currency.label,
         },
       }));
-
       return response;
     } catch (error) {
       console.error("Error updating campaign:", error);
@@ -184,13 +184,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Fetch business level options based on selected client
   const fetchBusinessLevelOptions = async (clientId: string) => {
     try {
-      // Placeholder: Replace with actual API call or logic to fetch business levels
-      // This assumes your backend or useCampaignHook provides this data
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}/business-levels`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}?populate=*`,
         {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
@@ -199,9 +196,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       );
       const data = response?.data?.data || {};
       setBusinessLevelOptions({
-        level1: data.level1 || [],
-        level2: data.level2 || [],
-        level3: data.level3 || [],
+        level1: data?.level_1?.map((item: string) => ({ id: item, value: item, label: item })) || [],
+        level2: data?.level_2?.map((item: string) => ({ id: item, value: item, label: item })) || [],
+        level3: data?.level_3?.map((item: string) => ({ id: item, value: item, label: item })) || [],
       });
     } catch (error) {
       console.error("Error fetching business level options:", error);
@@ -209,14 +206,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Reset business levels when client_selection changes
   useEffect(() => {
     const clientId = campaignFormData.client_selection?.id;
     if (clientId) {
-      // Fetch new business level options
       fetchBusinessLevelOptions(clientId);
-
-      // Reset business levels to initial state
       setCampaignFormData((prev) => ({
         ...prev,
         level_1: { id: "", value: "" },
@@ -226,7 +219,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [campaignFormData.client_selection?.id]);
 
-  // Fetch active campaign when campaignId changes
   useEffect(() => {
     if (cId) {
       getActiveCampaign();
@@ -252,7 +244,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         setCampaignData,
         copy,
         setCopy,
-        businessLevelOptions, // Expose business level options to consumers
+        businessLevelOptions,
       }}
     >
       {children}
@@ -260,7 +252,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// 🎯 Custom Hook for easy access
 export const useCampaigns = () => {
   const context = useContext(CampaignContext);
   if (!context) throw new Error("useCampaigns must be used within a CampaignProvider");
