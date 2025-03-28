@@ -66,16 +66,7 @@ export const SetupScreen = () => {
     localStorage.setItem("verifybeforeMove", JSON.stringify(verifybeforeMove));
   }, [verifybeforeMove]);
 
-  useEffect(() => {
-    const resetChanges = () => {
-      setHasChanges(false);
-    };
 
-    window.addEventListener("focus", resetChanges);
-    return () => {
-      window.removeEventListener("focus", resetChanges);
-    };
-  }, [setHasChanges]);
 
   useEffect(() => {
     if (allClients) {
