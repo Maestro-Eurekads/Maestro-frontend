@@ -50,34 +50,52 @@ const MapFunnelStages = () => {
   }, [alert]);
 
 
-
-
   const handleSelect = (id: string) => {
     if (!isEditing) return;
     setHasChanges(true);
 
-    const updatedFunnels = campaignFormData?.funnel_stages.includes(id)
-      ? {
-        ...campaignFormData,
-        funnel_stages: campaignFormData.funnel_stages.filter(
-          (name: string) => name !== id
-        ),
-        channel_mix: campaignFormData?.channel_mix?.filter(
-          (ch) => ch?.funnel_stage !== id
-        ),
-      }
-      : {
-        ...campaignFormData,
-        funnel_stages: [...campaignFormData.funnel_stages, id],
-        channel_mix: [
-          ...campaignFormData?.channel_mix,
-          {
-            funnel_stage: id,
-          },
-        ],
-      };
+    const updatedFunnels = {
+      ...campaignFormData,
+      funnel_stages: campaignFormData?.funnel_stages
+        ? campaignFormData.funnel_stages.includes(id)
+          ? campaignFormData.funnel_stages.filter((name: string) => name !== id)
+          : [...campaignFormData.funnel_stages, id]
+        : [id], // If undefined, initialize with selected id
+      channel_mix: campaignFormData?.channel_mix
+        ? [...campaignFormData.channel_mix, { funnel_stage: id }]
+        : [{ funnel_stage: id }],
+    };
+
     setCampaignFormData(updatedFunnels);
   };
+
+
+  // const handleSelect = (id: string) => {
+  //   if (!isEditing) return;
+  //   setHasChanges(true);
+
+  //   const updatedFunnels = campaignFormData?.funnel_stages.includes(id)
+  //     ? {
+  //       ...campaignFormData,
+  //       funnel_stages: campaignFormData.funnel_stages.filter(
+  //         (name: string) => name !== id
+  //       ),
+  //       channel_mix: campaignFormData?.channel_mix?.filter(
+  //         (ch) => ch?.funnel_stage !== id
+  //       ),
+  //     }
+  //     : {
+  //       ...campaignFormData,
+  //       funnel_stages: [...campaignFormData.funnel_stages, id],
+  //       channel_mix: [
+  //         ...campaignFormData?.channel_mix,
+  //         {
+  //           funnel_stage: id,
+  //         },
+  //       ],
+  //     };
+  //   setCampaignFormData(updatedFunnels);
+  // };
 
   const handleStepTwo = async () => {
     setLoading(true);
@@ -113,14 +131,9 @@ const MapFunnelStages = () => {
       }
       setHasChanges(false);
       setIsEditing(false);
-      setverifybeforeMove((prev: any) =>
-        Array.isArray(prev)
-          ? prev.map((step: any) => (step.hasOwnProperty("step2") ? { ...step, step2: true } : step))
-          : prev
-      );
+
     } catch (error) {
       const errors: any = error.response?.data?.error?.details?.errors || error.response?.data?.error?.message || error.message || [];
-      console.error("Error in handleStepTwo:", error);
       setAlert({ variant: "error", message: errors, position: "bottom-right" });
     } finally {
       setLoading(false);
