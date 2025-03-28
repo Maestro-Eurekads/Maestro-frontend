@@ -8,56 +8,87 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 import { getContrastingColor, getRandomColor } from "components/Options";
 
 const CommentsDrawer = ({ isOpen, onClose }) => {
-	const { comments } = useComments(); // Get comments from context
-	const {
-		campaignData
-	} = useCampaigns();
+	const { comments, opportunities, setViewcommentsId, viewcommentsId, addCommentOpportunity, clearCommentsAndOpportunities } = useComments();
+	const { campaignData } = useCampaigns();
 
+	// Function to create a new Comment Opportunity
+	const createCommentOpportunity = () => {
+		const newOpportunity = {
+			id: Date.now(),
+			text: "New Comment Opportunity",
+			position: { x: 150, y: 150 },
+		};
+		addCommentOpportunity(newOpportunity);
+	};
+
+	const handleClose = () => {
+		clearCommentsAndOpportunities();
+		onClose(false);
+		setViewcommentsId(false);
+	};
 
 	return (
 		<div className={`drawer-container ${isOpen ? "drawer-open" : ""} overflow-y-auto max-h-screen`}>
 			<div className="flex w-full justify-between p-3">
 				<div>
-					<h3 className="font-[500] text-[24px] leading-[32px] text-[#292929]">Comments For</h3>
-					<p className="font-[500] text-[16px] leading-[22px] text-[#292929]">
+					<h3 className="font-medium text-2xl text-[#292929]">Comments For</h3>
+					<p className="font-medium text-lg text-[#292929]">
 						{campaignData?.media_plan_details?.plan_name
 							? campaignData?.media_plan_details?.plan_name.charAt(0).toUpperCase() +
 							campaignData?.media_plan_details?.plan_name.slice(1)
-							: ""} Awareness
+							: ""}{" "}
+						Awareness
 					</p>
 				</div>
-				<button onClick={() => onClose(false)}>
-					<Image src={closecircle} alt="closecircle" />
+				<button onClick={handleClose}>
+					<Image src={closecircle} alt="Close" />
 				</button>
 			</div>
 
 			{/* Comments Section */}
 			<div className="faq-container p-5 overflow-y-auto max-h-[calc(100vh-100px)]">
-				{comments.length > 0 ? (
+				{viewcommentsId ? ( // 🔥 If viewcommentsId exists, show only the selected comment
+					comments
+						.filter((comment) => comment.id === viewcommentsId)
+						.map((comment) => {
+							const randomColor = getRandomColor();
+							const contrastingColor = getContrastingColor(randomColor);
+							return (
+								<div
+									key={comment.id}
+									className="flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-md rounded-lg border-box mb-5"
+								>
+									<Comments comment={comment} contrastingColor={contrastingColor} />
+									<AddCommentReply commentId={comment.id} contrastingColor={contrastingColor} />
+								</div>
+							);
+						})
+				) : opportunities.length > 0 ? (
 					comments.map((comment) => {
 						const randomColor = getRandomColor();
 						const contrastingColor = getContrastingColor(randomColor);
 						return (
-							<div key={comment.id} className="flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-[0px_4px_14px_rgba(0,38,116,0.15)] rounded-[12px] border-box mb-5">
+							<div
+								key={comment.id}
+								className="flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-md rounded-lg border-box mb-5"
+							>
 								<Comments comment={comment} contrastingColor={contrastingColor} />
 								<AddCommentReply commentId={comment.id} contrastingColor={contrastingColor} />
 							</div>
 						);
 					})
-				) : (
-					<div className="w-full justify-center mt-5">
-						<div className="flex flex-col justify-center items-center gap-5">
-							<button>
-								<Image src={Mmessages} alt="messages" />
-							</button>
-							<h6 className="w-[286px] text-[20px] text-center text-black">
-								Add a comment, your comments will appear here!
-							</h6>
-						</div>
+				) : isOpen && (
+					<div className="w-full flex flex-col justify-center items-center gap-5 mt-5">
+						<button onClick={createCommentOpportunity}>
+							<Image src={Mmessages} alt="Add Comment Opportunity" />
+						</button>
+						<h6 className="w-72 text-xl text-center text-black">
+							Add a comment, your comments will appear here!
+						</h6>
 					</div>
 				)}
-
 			</div>
+
 		</div>
 	);
 };
