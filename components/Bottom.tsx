@@ -192,6 +192,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
 
     if (active === 1) {
+      if (campaignFormData?.campaign_objectives?.length === 0) {
+        setAlert({
+          variant: "error",
+          message: "Please define a campaign objective before proceeding!",
+          position: "bottom-right",
+        });
+        hasError = true;
+      }
       if (hasChanges) {
         setValidateStep(true);
         hasError = true;
@@ -314,12 +322,12 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const cleanData = campaignData
       ? removeKeysRecursively(campaignData, [
-          "id",
-          "documentId",
-          "createdAt",
-          "publishedAt",
-          "updatedAt",
-        ])
+        "id",
+        "documentId",
+        "createdAt",
+        "publishedAt",
+        "updatedAt",
+      ])
       : {};
 
     const handleStepZero = async () => {
@@ -616,8 +624,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                   {active === 0
                     ? "Start Creating"
                     : isHovered
-                    ? "Next Step"
-                    : "Continue"}
+                      ? "Next Step"
+                      : "Continue"}
                 </p>
                 <Image src={Continue} alt="Continue" />
               </>
