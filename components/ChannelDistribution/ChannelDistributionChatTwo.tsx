@@ -62,7 +62,7 @@ const ChannelDistributionChatTwo = ({ channelData, currency }) => {
             </div>
             <div className="w-[72px] h-[29px] flex flex-row justify-center items-center p-[5px] px-[12px] gap-[8px] bg-[#E8F6FF] border border-[rgba(49,117,255,0.1)] rounded-[50px]">
               <p className="font-semibold text-[14px] leading-[19px] text-[#3175FF] whitespace-nowrap">
-                {platform.platform_budegt ?? 0} {" "} {platform?.platform_budegt > 0 && currency}
+                {platform.platform_budegt || 0} {" "} {platform?.platform_budegt > 0 && currency}
               </p>
             </div>
           </div>
@@ -70,7 +70,7 @@ const ChannelDistributionChatTwo = ({ channelData, currency }) => {
           {/* Progress Bar */}
           <div>
             <ThreeValuesProgress
-              values={platform?.stages_it_was_found?.map(
+              values={platform?.stages_it_was_found?.filter((c)=>Number(c?.percentage) > 0)?.map(
                 (st) => st?.percentage ?? 0
               )}
               color={platform?.stages_it_was_found?.map((ch) =>
@@ -88,7 +88,7 @@ const ChannelDistributionChatTwo = ({ channelData, currency }) => {
 
           {/* Legend */}
           <div className="flex  gap-[16px] items-center mt-[10px] flex-wrap">
-            {platform?.stages_it_was_found?.map((platform, index) => (
+            {platform?.stages_it_was_found?.filter((c)=>Number(c?.percentage) > 0)?.map((platform, index) => (
               <div key={index} className="flex items-center gap-2">
                 <div
                   className="w-[12px] h-[12px] rounded-[4px]"
