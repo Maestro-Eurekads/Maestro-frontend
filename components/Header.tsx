@@ -14,6 +14,7 @@ import { useAppDispatch, useAppSelector } from "store/useStore";
 // Removed unused import 'client'
 import AlertMain from "./Alert/AlertMain";
 import { getCreateClient } from "features/Client/clientSlice"; // Removed unused 'reset'
+// import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 const Header = ({ setIsOpen }) => {
   const {
@@ -87,7 +88,7 @@ const Header = ({ setIsOpen }) => {
             <FiLoader className="animate-spin" />
             <p>Loading clients...</p>
           </div>
-        ) : (
+        ) : (<>
           <select
             className="flex items-center px-4 py-2 w-full h-[40px] bg-[#F7F7F7] border border-[#EFEFEF] rounded-[10px] cursor-pointer text-[16px] focus:outline-none focus:ring-0 active:outline-none active:ring-0"
             value={selectedId || selected || ""}
@@ -103,12 +104,13 @@ const Header = ({ setIsOpen }) => {
               </option>
             ))}
           </select>
-          // <AllClientsCustomDropdown
-          //   setSelected={setSelected}
-          //   selected={selected}
-          //   allClients={clients?.data}
-          //   loadingClients={getCreateClientIsLoading}
-          // />
+          {/* <AllClientsCustomDropdown
+            setSelected={setSelected}
+            selected={selected}
+            allClients={clients?.data}
+            loadingClients={getCreateClientIsLoading}
+          /> */}
+        </>
         )}
 
         <button
@@ -122,7 +124,7 @@ const Header = ({ setIsOpen }) => {
       {alert && <AlertMain alert={alert} />}
       <div className="profiledropdown_container_main">
         <div className="profiledropdown_container">
-          <Link href={`/creation`} onClick={()=>setCampaignFormData({})}>
+          <Link href={`/creation`} onClick={() => setCampaignFormData({})}>
             <button className="new_plan_btn">
               <Image src={white} alt="white" />
               <p className="new_plan_btn_text">New media plan</p>

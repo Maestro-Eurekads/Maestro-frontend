@@ -106,20 +106,20 @@ export default function YourComponent({
 	selected: string;
 }) {
 	// Load the previously selected client from localStorage
-	useEffect(() => {
-		const storedClientId = localStorage.getItem("selectedClient");
+	// useEffect(() => {
+	// 	const storedClientId = localStorage.getItem("selectedClient");
 
-		// Check if the stored ID exists in the current options
-		const isValidClient = allClients?.some((client) => client?.id === storedClientId);
+	// 	// Check if the stored ID exists in the current options
+	// 	const isValidClient = allClients?.some((client) => client?.id === storedClientId);
 
-		if (storedClientId && isValidClient) {
-			setSelected(storedClientId);
-		} else if (!selected && allClients?.length > 0) {
-			// If no valid stored selection, default to the first client
-			setSelected(allClients[0].id);
-			localStorage.setItem("selectedClient", allClients[0]?.id); // Persist initial selection
-		}
-	}, [allClients, selected, setSelected]);
+	// 	if (storedClientId && isValidClient) {
+	// 		setSelected(storedClientId);
+	// 	} else if (!selected && allClients?.length > 0) {
+	// 		// If no valid stored selection, default to the first client
+	// 		setSelected(allClients[0].id);
+	// 		localStorage.setItem("selectedClient", allClients[0]?.id); // Persist initial selection
+	// 	}
+	// }, [allClients, selected, setSelected]);
 
 	return (
 		<>

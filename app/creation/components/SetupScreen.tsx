@@ -66,16 +66,7 @@ export const SetupScreen = () => {
     localStorage.setItem("verifybeforeMove", JSON.stringify(verifybeforeMove));
   }, [verifybeforeMove]);
 
-  useEffect(() => {
-    const resetChanges = () => {
-      setHasChanges(false);
-    };
 
-    window.addEventListener("focus", resetChanges);
-    return () => {
-      window.removeEventListener("focus", resetChanges);
-    };
-  }, [setHasChanges]);
 
   useEffect(() => {
     if (allClients) {
@@ -317,11 +308,11 @@ export const SetupScreen = () => {
             <ClientSelectionInput
               label={"Enter media plan name"}
               formId="media_plan"
+              setHasChanges={setHasChanges}
             />
             <ClientSelectionInput
               label={"Internal Approver"}
-              formId="approver"
-            />
+              formId="approver" setHasChanges={setHasChanges} />
           </div>
         </div>
         <div className="pb-1">
@@ -367,6 +358,7 @@ export const SetupScreen = () => {
             )}
             <div className="w-full">
               <ClientSelectionInputbudget
+                setHasChanges={setHasChanges}
                 label={getInputValue()}
                 formId="budget_details_value"
                 currencySign={currencySign}

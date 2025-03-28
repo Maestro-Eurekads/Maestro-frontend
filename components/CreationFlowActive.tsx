@@ -74,10 +74,10 @@ const CreationFlowActive = ({ steps, close }) => {
                 {stepNumber !== steps.length && (
                   <div
                     className={`${step.vl} ${active > stepNumber + 1
-                        ? `${step.vl_done}`
-                        : active === stepNumber + 1
-                          ? `${step.vl_active}`
-                          : ""
+                      ? `${step.vl_done}`
+                      : active === stepNumber + 1
+                        ? `${step.vl_active}`
+                        : ""
                       }`}
                   />
                 )}

@@ -45,44 +45,72 @@ const ObjectiveSelection = () => {
   const [statuses, setStatuses] = useState(
     funnelStages.map((stage) => stage.status)
   );
-
-  const [selectedOptions, setSelectedOptions] = useState<{
-    [key: string]: string;
-  }>({});
-  const [isEditable, setIsEditable] = useState<{ [key: string]: boolean }>({});
-  const [previousSelectedOptions, setPreviousSelectedOptions] = useState<{
-    [key: string]: string;
-  }>({});
-  const [selectedNetworks, setSelectedNetworks] = useState<{
-    [key: string]: Set<string>;
-  }>({
+  const [selectedOptions, setSelectedOptions] = useState({});
+  const [isEditable, setIsEditable] = useState({});
+  const [previousSelectedOptions, setPreviousSelectedOptions] = useState({});
+  const [selectedNetworks, setSelectedNetworks] = useState({
     Awareness: new Set(),
     Consideration: new Set(),
     Conversion: new Set(),
+    Loyalty: new Set(), // Added Loyalty for completeness
   });
-  const [validatedPlatforms, setValidatedPlatforms] = useState<{
-    [key: string]: Set<string>;
-  }>({
+  const [validatedPlatforms, setValidatedPlatforms] = useState({
     Awareness: new Set(),
     Consideration: new Set(),
     Conversion: new Set(),
+    Loyalty: new Set(), // Added Loyalty for completeness
   });
+  const [dropdownOpen, setDropdownOpen] = useState({});
 
   const { campaignFormData, setCampaignFormData } = useCampaigns();
 
+  // Sync selectedOptions with campaignFormData on mount or update
+  useEffect(() => {
+    const initialSelectedOptions = {};
+    const channelMix = Array.isArray(campaignFormData?.channel_mix)
+      ? campaignFormData.channel_mix
+      : [];
+    channelMix.forEach((stage) => {
+      const stageName = stage.funnel_stage;
+      ["social_media", "display_networks", "search_engines"].forEach(
+        (category) => {
+          const platforms = Array.isArray(stage[category]) ? stage[category] : [];
+          platforms.forEach((platform) => {
+            const platformName = platform.platform_name;
+            const buyTypeKey = `${stageName}-${category.replace(
+              "_",
+              " "
+            )}-${platformName}-buy_type`;
+            const buyObjectiveKey = `${stageName}-${category.replace(
+              "_",
+              " "
+            )}-${platformName}-objective_type`;
+            if (platform.buy_type) {
+              initialSelectedOptions[buyTypeKey] = platform.buy_type;
+            }
+            if (platform.objective_type) {
+              initialSelectedOptions[buyObjectiveKey] = platform.objective_type;
+            }
+          });
+        }
+      );
+    });
+    setSelectedOptions((prev) => ({ ...prev, ...initialSelectedOptions }));
+  }, [campaignFormData?.channel_mix]);
+
+  // Initialize openItems and selectedNetworks from campaignFormData
   useEffect(() => {
     if (campaignFormData?.funnel_stages) {
-      const value = campaignFormData?.funnel_stages?.reduce(
-        (acc, stage, index) => {
-          acc[stage] = index === 0;
-          return acc;
-        },
-        {}
-      );
+      const value = campaignFormData.funnel_stages.reduce((acc, stage) => {
+        acc[stage] = acc[stage] !== undefined ? acc[stage] : stage === "Awareness"; // Preserve existing state, default to Awareness open
+        return acc;
+      }, { ...openItems });
       setOpenItems(value);
     }
-    const ch_mix = campaignFormData?.channel_mix;
-    if (Array.isArray(ch_mix)) {
+    const ch_mix = Array.isArray(campaignFormData?.channel_mix)
+      ? campaignFormData.channel_mix
+      : [];
+    if (ch_mix.length > 0) {
       const updatedNetworks = ch_mix.reduce((acc, ch) => {
         acc[ch.funnel_stage] = new Set([
           ...(ch?.social_media?.map((sm) => sm?.platform_name) || []),
@@ -98,30 +126,26 @@ const ObjectiveSelection = () => {
     }
   }, [campaignFormData?.funnel_stages, campaignFormData?.channel_mix]);
 
-  const toggleItem = (stage: string) => {
+  const toggleItem = (stage) => {
     setOpenItems((prev) => ({
       ...prev,
       [stage]: !prev[stage],
     }));
   };
-  const [dropdownOpen, setDropdownOpen] = useState<{ [key: string]: boolean }>(
-    {}
-  );
 
-  const toggleDropdown = (key: string) => {
-    setDropdownOpen((prevState) => {
-      const newState: { [key: string]: boolean } = {};
-      newState[key] = !prevState[key];
-      return newState;
-    });
+  const toggleDropdown = (key) => {
+    setDropdownOpen((prevState) => ({
+      ...prevState,
+      [key]: !prevState[key],
+    }));
   };
 
   const handleSelectOption = (
-    platformName: string,
-    option: string,
-    category: string,
-    stageName: string,
-    dropDownName: string
+    platformName,
+    option,
+    category,
+    stageName,
+    dropDownName
   ) => {
     const key = `${stageName}-${category}-${platformName}-${dropDownName}`;
     const dropdownKey =
@@ -129,46 +153,44 @@ const ObjectiveSelection = () => {
         ? `${stageName}-${category}-${platformName}obj`
         : `${stageName}-${category}-${platformName}`;
 
+    // Update selected options
     setSelectedOptions((prev) => ({
       ...prev,
       [key]: option,
     }));
 
-    const updatedChannelMix = campaignFormData.channel_mix.map((stage) => {
+    // Update campaignFormData
+    const channelMix = Array.isArray(campaignFormData?.channel_mix)
+      ? campaignFormData.channel_mix
+      : [];
+    const updatedChannelMix = channelMix.map((stage) => {
       if (stage.funnel_stage === stageName) {
         const updatedStage = { ...stage };
         if (category === "Social media") {
-          updatedStage.social_media = stage.social_media.map((platform) => {
+          updatedStage.social_media = (stage.social_media || []).map((platform) => {
             if (platform.platform_name === platformName) {
-              return {
-                ...platform,
-                [dropDownName]: option,
-              };
+              return { ...platform, [dropDownName]: option };
             }
             return platform;
           });
         } else if (category === "Display networks") {
-          updatedStage.display_networks = stage.display_networks.map(
+          updatedStage.display_networks = (stage.display_networks || []).map(
             (platform) => {
               if (platform.platform_name === platformName) {
-                return {
-                  ...platform,
-                  [dropDownName]: option,
-                };
+                return { ...platform, [dropDownName]: option };
               }
               return platform;
             }
           );
         } else if (category === "Search engines") {
-          updatedStage.search_engines = stage.search_engines.map((platform) => {
-            if (platform.platform_name === platformName) {
-              return {
-                ...platform,
-                [dropDownName]: option,
-              };
+          updatedStage.search_engines = (stage.search_engines || []).map(
+            (platform) => {
+              if (platform.platform_name === platformName) {
+                return { ...platform, [dropDownName]: option };
+              }
+              return platform;
             }
-            return platform;
-          });
+          );
         }
         return updatedStage;
       }
@@ -180,28 +202,31 @@ const ObjectiveSelection = () => {
       channel_mix: updatedChannelMix,
     }));
 
+    // Close only the specific dropdown
     setDropdownOpen((prev) => ({
       ...prev,
       [dropdownKey]: false,
     }));
+
+    // Ensure the current stage remains open
+    setOpenItems((prev) => ({
+      ...prev,
+      [stageName]: true,
+    }));
   };
 
-  const handleValidate = (index: number) => {
+  const handleValidate = (index) => {
     const stageName = funnelStages[index].name;
     const updatedStatuses = [...statuses];
     updatedStatuses[index] = "Completed";
     setStatuses(updatedStatuses);
     setIsEditable((prev) => ({ ...prev, [stageName]: true }));
 
-    const validatedPlatformsSet = new Set<string>();
+    const validatedPlatformsSet = new Set();
     Array.from(selectedNetworks[stageName] || []).forEach((platformName) => {
       if (
         hasCompletePlatformSelection(platformName, "Social media", stageName) ||
-        hasCompletePlatformSelection(
-          platformName,
-          "Display networks",
-          stageName
-        ) ||
+        hasCompletePlatformSelection(platformName, "Display networks", stageName) ||
         hasCompletePlatformSelection(platformName, "Search engines", stageName)
       ) {
         validatedPlatformsSet.add(platformName);
@@ -213,12 +238,11 @@ const ObjectiveSelection = () => {
       [stageName]: validatedPlatformsSet,
     }));
 
-    // Update campaignFormData.validatedStages
     setCampaignFormData((prev) => ({
       ...prev,
       validatedStages: {
         ...prev.validatedStages,
-        [stageName]: true, // Mark this stage as validated
+        [stageName]: true,
       },
     }));
 
@@ -230,28 +254,20 @@ const ObjectiveSelection = () => {
     }
   };
 
-  const hasCompletePlatformSelection = (
-    platformName: string,
-    category: string,
-    stageName: string
-  ) => {
+  const hasCompletePlatformSelection = (platformName, category, stageName) => {
     const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`;
     const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`;
     return !!selectedOptions[buyTypeKey] && !!selectedOptions[buyObjectiveKey];
   };
 
-  const hasMinimumBuySelections = (stageName: string) => {
+  const hasMinimumBuySelections = (stageName) => {
     if (!selectedNetworks[stageName] || selectedNetworks[stageName].size === 0)
       return false;
 
     for (const platformName of selectedNetworks[stageName]) {
       if (
         hasCompletePlatformSelection(platformName, "Social media", stageName) ||
-        hasCompletePlatformSelection(
-          platformName,
-          "Display networks",
-          stageName
-        ) ||
+        hasCompletePlatformSelection(platformName, "Display networks", stageName) ||
         hasCompletePlatformSelection(platformName, "Search engines", stageName)
       ) {
         return true;
@@ -264,15 +280,16 @@ const ObjectiveSelection = () => {
     return platformIcons[platformName] || null;
   };
 
-  const renderCompletedPlatform = (
-    platformName: string,
-    category: string,
-    stageName: string
-  ) => {
-    const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`;
-    const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`;
+  const renderCompletedPlatform = (platformName, category, stageName) => {
+    const normalizedCategory = category.toLowerCase().replaceAll(" ", "_");
+    const channelMix = Array.isArray(campaignFormData?.channel_mix)
+      ? campaignFormData.channel_mix
+      : [];
+    const platformData = channelMix
+      .find((ch) => ch.funnel_stage === stageName)
+      ?.[normalizedCategory]?.find((p) => p.platform_name === platformName);
 
-    if (!validatedPlatforms[stageName].has(platformName)) {
+    if (!validatedPlatforms[stageName].has(platformName) || !platformData) {
       return null;
     }
 
@@ -293,18 +310,31 @@ const ObjectiveSelection = () => {
         </div>
         <div className="flex flex-col gap-2">
           <div className="px-4 py-2 bg-white border text-center truncate border-gray-300 rounded-lg">
-            {selectedOptions[buyTypeKey] || "Buy type"}
+            {platformData.buy_type || "Buy type"}
           </div>
           <div className="px-4 py-2 bg-white border text-center truncate border-gray-300 rounded-lg">
-            {selectedOptions[buyObjectiveKey] || "Buy objective"}
+            {platformData.objective_type || "Buy objective"}
           </div>
         </div>
       </div>
     );
   };
 
+  const hasValidatedPlatformsForCategory = (category, stageName) => {
+    const normalizedCategory = category.toLowerCase().replaceAll(" ", "_");
+    const channelMix = Array.isArray(campaignFormData?.channel_mix)
+      ? campaignFormData.channel_mix
+      : [];
+    const platformsInCategory = channelMix
+      .find((ch) => ch.funnel_stage === stageName)
+      ?.[normalizedCategory]?.map((p) => p.platform_name) || [];
+    return platformsInCategory.some((platform) =>
+      validatedPlatforms[stageName].has(platform)
+    );
+  };
+
   return (
-    <div className="mt-$mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
+    <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
       <Toaster position="top-right" reverseOrder={false} />
       {campaignFormData?.funnel_stages?.map((stageName, stageIndex) => {
         const stage = funnelStages?.find((s) => s?.name === stageName);
@@ -313,8 +343,7 @@ const ObjectiveSelection = () => {
           <div key={stageIndex} className="w-full">
             <div
               className={`flex justify-between items-center p-6 gap-3 max-w-[950px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-                rounded-t-[10px] ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"
-                }`}
+                rounded-t-[10px] ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
               onClick={() => toggleItem(stage.name)}
             >
               <div className="flex items-center gap-4">
@@ -358,31 +387,34 @@ const ObjectiveSelection = () => {
               <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
                 {statuses[stageIndex] === "Completed" ? (
                   <div className="flex flex-col w-full gap-12">
-                    {["Social media", "Display networks", "Search engines"].map(
-                      (category) => (
+                    {["Social media", "Display networks", "Search engines"]
+                      .filter((category) =>
+                        hasValidatedPlatformsForCategory(category, stage.name)
+                      )
+                      .map((category) => (
                         <div key={category} className="w-full">
                           <h3 className="text-xl font-semibold text-[#061237] mb-6">
                             {category}
                           </h3>
                           <div className="flex flex-wrap gap-8">
                             {Array.from(selectedNetworks[stage.name] || [])
-                              .filter((platform) =>
-                                campaignFormData?.channel_mix
-                                  ?.find((ch) => ch.funnel_stage === stageName)
-                                  ?.[category.toLowerCase().replaceAll(" ", "_")]
-                                  ?.some((p) => p.platform_name === platform)
-                              )
-                              .map((platform) =>
-                                renderCompletedPlatform(
-                                  platform,
-                                  category,
-                                  stage.name
+                              .filter((platform) => {
+                                const channelMix = Array.isArray(
+                                  campaignFormData?.channel_mix
                                 )
+                                  ? campaignFormData.channel_mix
+                                  : [];
+                                return channelMix
+                                  .find((ch) => ch.funnel_stage === stageName)
+                                  ?.[category.toLowerCase().replaceAll(" ", "_")]
+                                  ?.some((p) => p.platform_name === platform);
+                              })
+                              .map((platform) =>
+                                renderCompletedPlatform(platform, category, stage.name)
                               )}
                           </div>
                         </div>
-                      )
-                    )}
+                      ))}
                   </div>
                 ) : (
                   ["Social media", "Display networks", "Search engines"].map(
@@ -394,24 +426,33 @@ const ObjectiveSelection = () => {
                         <h3 className="text-xl font-semibold text-[#061237]">
                           {category}
                         </h3>
-
-                        <div className="flex flex-col gap-8 ">
+                        <div className="flex flex-col gap-8">
                           {Array.from(selectedNetworks[stageName] || [])
-                            .filter((platform) =>
-                              campaignFormData?.channel_mix
-                                ?.find((ch) => ch.funnel_stage === stageName)
+                            .filter((platform) => {
+                              const channelMix = Array.isArray(
+                                campaignFormData?.channel_mix
+                              )
+                                ? campaignFormData.channel_mix
+                                : [];
+                              return channelMix
+                                .find((ch) => ch.funnel_stage === stageName)
                                 ?.[category.toLowerCase().replaceAll(" ", "_")]
-                                ?.some((p) => p.platform_name === platform)
-                            )
+                                ?.some((p) => p.platform_name === platform);
+                            })
                             .map((platform) => {
+                              const channelMix = Array.isArray(
+                                campaignFormData?.channel_mix
+                              )
+                                ? campaignFormData.channel_mix
+                                : [];
                               const platformKey = `${stage.name}-${category}-${platform}`;
-                              const selectedObj = campaignFormData?.channel_mix
-                                ?.find((ch) => ch?.funnel_stage === stageName)
+                              const selectedObj = channelMix
+                                .find((ch) => ch?.funnel_stage === stageName)
                                 ?.[category.toLowerCase().replaceAll(" ", "_")]
                                 ?.find((pl) => pl?.platform_name === platform)
                                 ?.objective_type;
-                              const selectedBuy = campaignFormData?.channel_mix
-                                ?.find((ch) => ch?.funnel_stage === stageName)
+                              const selectedBuy = channelMix
+                                .find((ch) => ch?.funnel_stage === stageName)
                                 ?.[category.toLowerCase().replaceAll(" ", "_")]
                                 ?.find((pl) => pl?.platform_name === platform)
                                 ?.buy_type;
@@ -426,15 +467,13 @@ const ObjectiveSelection = () => {
                                       <Image
                                         src={getPlatformIcon(platform)}
                                         className="size-4"
-                                        alt={platform}
+                                        alt={platform as string}
                                       />
                                       <p className="text-base font-medium text-[#061237]">
-                                        {platform}
+                                        {platform as string}
                                       </p>
                                     </div>
                                   </div>
-
-                                  {/* Buy Objective Dropdown */}
                                   <div className="relative min-w-[150px]">
                                     <div
                                       className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
@@ -448,35 +487,31 @@ const ObjectiveSelection = () => {
                                       <Image src={down2} alt="dropdown" />
                                     </div>
                                     {dropdownOpen[platformKey + "obj"] && (
-                                      <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg transition-transform transform hover:scale-105 z-10">
+                                      <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10">
                                         <ul>
-                                          {[
-                                            "Awareness",
-                                            "Video views",
-                                            "Traffic",
-                                          ].map((option, i) => (
-                                            <li
-                                              key={`${platformKey}-objective-${i}`}
-                                              className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                                              onClick={() =>
-                                                handleSelectOption(
-                                                  platform,
-                                                  option,
-                                                  category,
-                                                  stage.name,
-                                                  "objective_type"
-                                                )
-                                              }
-                                            >
-                                              {option}
-                                            </li>
-                                          ))}
+                                          {["Awareness", "Video views", "Traffic"].map(
+                                            (option, i) => (
+                                              <li
+                                                key={`${platformKey}-objective-${i}`}
+                                                className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+                                                onClick={() =>
+                                                  handleSelectOption(
+                                                    platform,
+                                                    option,
+                                                    category,
+                                                    stage.name,
+                                                    "objective_type"
+                                                  )
+                                                }
+                                              >
+                                                {option}
+                                              </li>
+                                            )
+                                          )}
                                         </ul>
                                       </div>
                                     )}
                                   </div>
-
-                                  {/* Buy Type Dropdown */}
                                   <div className="relative min-w-[150px]">
                                     <div
                                       className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
@@ -488,7 +523,7 @@ const ObjectiveSelection = () => {
                                       <Image src={down2} alt="dropdown" />
                                     </div>
                                     {dropdownOpen[platformKey] && (
-                                      <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg transition-transform transform hover:scale-105 z-10">
+                                      <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10">
                                         <ul>
                                           {["CPM", "CPV"].map((option, i) => (
                                             <li
