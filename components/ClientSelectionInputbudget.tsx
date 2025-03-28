@@ -7,16 +7,19 @@ const TextInput = ({
   formId,
   currencySign,
   isSuffix = false,
+  setHasChanges
 }: {
   label: string;
   formId: string;
   currencySign: string;
   isSuffix?: boolean;
+  setHasChanges: (hasChanged: boolean) => void;
 }) => {
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   const inputRef = useRef<HTMLInputElement>(null); // Ref to access the input DOM element
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setHasChanges(true);
     const value = e.target.value.replace(/\D/g, ""); // Remove non-numeric characters
     setCampaignFormData((prev) => ({ ...prev, [formId]: value }));
 
@@ -62,7 +65,9 @@ const ClientSelectionInputbudget = ({
   formId,
   currencySign,
   isSuffix = false,
+  setHasChanges
 }: {
+  setHasChanges: (hasChanged: boolean) => void;
   label: string;
   formId: string;
   currencySign: string;
@@ -71,6 +76,7 @@ const ClientSelectionInputbudget = ({
   return (
     <div className="flex items-center gap-4 mt-[20px]">
       <TextInput
+        setHasChanges={setHasChanges}
         label={label}
         formId={formId}
         currencySign={currencySign}
