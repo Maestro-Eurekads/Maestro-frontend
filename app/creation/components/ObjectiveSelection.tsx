@@ -43,7 +43,7 @@ const platformIcons = {
 const ObjectiveSelection = () => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
   const [statuses, setStatuses] = useState(
-    funnelStages.map((stage) => stage.status)
+    funnelStages.map(() => "Not started") // Default to "Not started"
   );
   const [selectedOptions, setSelectedOptions] = useState({});
   const [isEditable, setIsEditable] = useState({});
@@ -52,19 +52,19 @@ const ObjectiveSelection = () => {
     Awareness: new Set(),
     Consideration: new Set(),
     Conversion: new Set(),
-    Loyalty: new Set(), // Added Loyalty for completeness
+    Loyalty: new Set(),
   });
   const [validatedPlatforms, setValidatedPlatforms] = useState({
     Awareness: new Set(),
     Consideration: new Set(),
     Conversion: new Set(),
-    Loyalty: new Set(), // Added Loyalty for completeness
+    Loyalty: new Set(),
   });
   const [dropdownOpen, setDropdownOpen] = useState({});
 
   const { campaignFormData, setCampaignFormData } = useCampaigns();
 
-  // Sync selectedOptions with campaignFormData on mount or update
+  // Sync selectedOptions and statuses with campaignFormData on mount or update
   useEffect(() => {
     const initialSelectedOptions = {};
     const channelMix = Array.isArray(campaignFormData?.channel_mix)
@@ -96,13 +96,32 @@ const ObjectiveSelection = () => {
       );
     });
     setSelectedOptions((prev) => ({ ...prev, ...initialSelectedOptions }));
-  }, [campaignFormData?.channel_mix]);
+
+    // Update statuses based on initial campaignFormData
+    const updatedStatuses = funnelStages.map((stage, index) => {
+      const stageData = channelMix.find((ch) => ch.funnel_stage === stage.name);
+      if (!stageData) return "Not started";
+      const hasSelections = ["social_media", "display_networks", "search_engines"].some(
+        (cat) => stageData[cat]?.some((p) => p.buy_type || p.objective_type)
+      );
+      const hasCompleteSelection = ["social_media", "display_networks", "search_engines"].some(
+        (cat) => stageData[cat]?.some((p) => p.buy_type && p.objective_type)
+      );
+      if (hasCompleteSelection && campaignFormData?.validatedStages?.[stage.name]) {
+        return "Completed";
+      } else if (hasSelections) {
+        return "In progress";
+      }
+      return "Not started";
+    });
+    setStatuses(updatedStatuses);
+  }, [campaignFormData?.channel_mix, campaignFormData?.validatedStages]);
 
   // Initialize openItems and selectedNetworks from campaignFormData
   useEffect(() => {
     if (campaignFormData?.funnel_stages) {
       const value = campaignFormData.funnel_stages.reduce((acc, stage) => {
-        acc[stage] = acc[stage] !== undefined ? acc[stage] : stage === "Awareness"; // Preserve existing state, default to Awareness open
+        acc[stage] = acc[stage] !== undefined ? acc[stage] : stage === "Awareness";
         return acc;
       }, { ...openItems });
       setOpenItems(value);
@@ -163,34 +182,63 @@ const ObjectiveSelection = () => {
     const channelMix = Array.isArray(campaignFormData?.channel_mix)
       ? campaignFormData.channel_mix
       : [];
-    const updatedChannelMix = channelMix.map((stage) => {
+    let updatedChannelMix = [...channelMix];
+    const stageIndex = updatedChannelMix.findIndex(
+      (stage) => stage.funnel_stage === stageName
+    );
+    if (stageIndex === -1) {
+      updatedChannelMix.push({
+        funnel_stage: stageName,
+        social_media: [],
+        display_networks: [],
+        search_engines: [],
+      });
+    }
+    updatedChannelMix = updatedChannelMix.map((stage) => {
       if (stage.funnel_stage === stageName) {
         const updatedStage = { ...stage };
         if (category === "Social media") {
-          updatedStage.social_media = (stage.social_media || []).map((platform) => {
-            if (platform.platform_name === platformName) {
-              return { ...platform, [dropDownName]: option };
-            }
-            return platform;
-          });
+          const platforms = updatedStage.social_media || [];
+          const platformIndex = platforms.findIndex(
+            (p) => p.platform_name === platformName
+          );
+          if (platformIndex === -1) {
+            platforms.push({ platform_name: platformName, [dropDownName]: option });
+          } else {
+            platforms[platformIndex] = {
+              ...platforms[platformIndex],
+              [dropDownName]: option,
+            };
+          }
+          updatedStage.social_media = platforms;
         } else if (category === "Display networks") {
-          updatedStage.display_networks = (stage.display_networks || []).map(
-            (platform) => {
-              if (platform.platform_name === platformName) {
-                return { ...platform, [dropDownName]: option };
-              }
-              return platform;
-            }
+          const platforms = updatedStage.display_networks || [];
+          const platformIndex = platforms.findIndex(
+            (p) => p.platform_name === platformName
           );
+          if (platformIndex === -1) {
+            platforms.push({ platform_name: platformName, [dropDownName]: option });
+          } else {
+            platforms[platformIndex] = {
+              ...platforms[platformIndex],
+              [dropDownName]: option,
+            };
+          }
+          updatedStage.display_networks = platforms;
         } else if (category === "Search engines") {
-          updatedStage.search_engines = (stage.search_engines || []).map(
-            (platform) => {
-              if (platform.platform_name === platformName) {
-                return { ...platform, [dropDownName]: option };
-              }
-              return platform;
-            }
+          const platforms = updatedStage.search_engines || [];
+          const platformIndex = platforms.findIndex(
+            (p) => p.platform_name === platformName
           );
+          if (platformIndex === -1) {
+            platforms.push({ platform_name: platformName, [dropDownName]: option });
+          } else {
+            platforms[platformIndex] = {
+              ...platforms[platformIndex],
+              [dropDownName]: option,
+            };
+          }
+          updatedStage.search_engines = platforms;
         }
         return updatedStage;
       }
@@ -202,7 +250,7 @@ const ObjectiveSelection = () => {
       channel_mix: updatedChannelMix,
     }));
 
-    // Close only the specific dropdown
+    // Close the specific dropdown
     setDropdownOpen((prev) => ({
       ...prev,
       [dropdownKey]: false,
@@ -213,12 +261,22 @@ const ObjectiveSelection = () => {
       ...prev,
       [stageName]: true,
     }));
+
+    // Update status to "In progress" if it was "Not started"
+    const funnelStageIndex = funnelStages.findIndex((s) => s.name === stageName);
+    setStatuses((prev) => {
+      const updated = [...prev];
+      if (updated[funnelStageIndex] === "Not started") {
+        updated[funnelStageIndex] = "In progress";
+      }
+      return updated;
+    });
   };
 
   const handleValidate = (index) => {
     const stageName = funnelStages[index].name;
     const updatedStatuses = [...statuses];
-    updatedStatuses[index] = "Completed";
+    updatedStatuses[index] = "Completed"; // Set to "Completed" on validation
     setStatuses(updatedStatuses);
     setIsEditable((prev) => ({ ...prev, [stageName]: true }));
 
@@ -364,9 +422,9 @@ const ObjectiveSelection = () => {
                       Completed
                     </p>
                   </>
-                ) : stage.statusIsActive ? (
+                ) : statuses[stageIndex] === "In progress" ? (
                   <p className="text-[#3175FF] font-semibold text-base whitespace-nowrap">
-                    {statuses[stageIndex]}
+                    In progress
                   </p>
                 ) : (
                   <p className="text-[#061237] opacity-50 text-base whitespace-nowrap">
