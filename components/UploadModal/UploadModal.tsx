@@ -15,14 +15,10 @@ interface UploadModalProps {
 // Make the modal controlled by passing isOpen and onClose props, plus additional props
 const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, platform, channel, format }) => {
   const handleCancel = () => {
-    // Add cancel logic here
-    alert('Cancel clicked');
     onClose();
   };
 
   const handleConfirm = () => {
-    // Add confirm logic here
-    alert('Confirm clicked');
     onClose();
   };
 

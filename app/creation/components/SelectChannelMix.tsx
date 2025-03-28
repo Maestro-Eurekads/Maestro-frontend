@@ -18,7 +18,7 @@ const SelectChannelMix = () => {
     if (campaignFormData?.funnel_stages?.length > 0) {
       const initialOpenItems = campaignFormData.funnel_stages.reduce(
         (acc, stage) => {
-          acc[stage] = validatedStages[stage] ? false : true; // Keep validated closed, others open
+          acc[stage] = validatedStages[stage] ? false : true;
           return acc;
         },
         {}
@@ -31,10 +31,15 @@ const SelectChannelMix = () => {
       campaignFormData.channel_mix.forEach(channelMixItem => {
         const stageName = channelMixItem.funnel_stage;
         initialSelected[stageName] = {
-          "Social media": channelMixItem?.social_media?.map(sm => sm.platform_name) || [],
-          "Display networks": channelMixItem?.display_networks?.map(dn => dn.platform_name) || [],
-          "Search engines": channelMixItem?.search_engines?.map(se => se.platform_name) || []
+          "Social media": (channelMixItem?.social_media || []).filter(sm => sm?.platform_name).map(sm => sm.platform_name),
+          "Display networks": (channelMixItem?.display_networks || []).filter(dn => dn?.platform_name).map(dn => dn.platform_name),
+          "Search engines": (channelMixItem?.search_engines || []).filter(se => se?.platform_name).map(se => se.platform_name)
         };
+        Object.keys(initialSelected[stageName]).forEach(category => {
+          if (initialSelected[stageName][category].length === 0) {
+            delete initialSelected[stageName][category];
+          }
+        });
       });
       setSelected(initialSelected);
     }
@@ -70,7 +75,6 @@ const SelectChannelMix = () => {
       };
     });
 
-    // Update campaign form data without affecting openItems
     setCampaignFormData(prevFormData => {
       const categoryKey = category.toLowerCase().replaceAll(" ", "_");
       const stageSelection = selected[stageName] || {};
@@ -127,11 +131,27 @@ const SelectChannelMix = () => {
         ...prev,
         [stageName]: false
       }));
-      
-      setCampaignFormData(prev => ({
-        ...prev,
-        validatedStages: updatedValidatedStages
-      }));
+
+      setCampaignFormData(prev => {
+        const updatedChannelMix = prev.channel_mix.map(mix => {
+          if (mix.funnel_stage === stageName) {
+            const selectedPlatforms = selected[stageName] || {};
+            return {
+              ...mix,
+              social_media: selectedPlatforms["Social media"]?.map(name => ({ platform_name: name })) || [],
+              display_networks: selectedPlatforms["Display networks"]?.map(name => ({ platform_name: name })) || [],
+              search_engines: selectedPlatforms["Search engines"]?.map(name => ({ platform_name: name })) || []
+            };
+          }
+          return mix;
+        });
+
+        return {
+          ...prev,
+          channel_mix: updatedChannelMix,
+          validatedStages: updatedValidatedStages
+        };
+      });
     }
   };
 
@@ -215,16 +235,18 @@ const SelectChannelMix = () => {
                     <div className="mt-8 px-6">
                       {Object.entries(selected[stage.name] || {}).map(
                         ([category, platformNames]) => {
-                          if (!Array.isArray(platformNames) || platformNames.length === 0)
-                            return null;
+                          if (!Array.isArray(platformNames) || platformNames.length === 0) return null;
+                          const validPlatformNames = platformNames.filter(pn =>
+                            stage.platforms[category]?.some(p => p.name === pn)
+                          );
+                          if (validPlatformNames.length === 0) return null;
+
                           return (
                             <div key={category} className="mb-8">
                               <h2 className="mb-4 font-bold text-lg">{category}</h2>
                               <div className="card_bucket_container flex flex-wrap gap-6">
-                                {platformNames.map((platformName, idx) => {
-                                  const platformData = stage.platforms[category].find(
-                                    p => p.name === platformName
-                                  );
+                                {validPlatformNames.map((platformName, idx) => {
+                                  const platformData = stage.platforms[category].find(p => p.name === platformName);
                                   if (!platformData) return null;
                                   return (
                                     <div
@@ -245,17 +267,21 @@ const SelectChannelMix = () => {
                           );
                         }
                       )}
-                      <div className="flex justify-end pr-[24px] mt-4">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEdit(stage.name);
-                          }}
-                          className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] bg-blue-500"
-                        >
-                          Edit
-                        </button>
-                      </div>
+                      {Object.keys(selected[stage.name] || {}).some(
+                        category => selected[stage.name][category]?.length > 0
+                      ) && (
+                        <div className="flex justify-end pr-[24px] mt-4">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(stage.name);
+                            }}
+                            className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] bg-blue-500"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <>
