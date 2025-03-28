@@ -8,81 +8,15 @@ import adset from "../../../public/adset_level.svg";
 import channel from "../../../public/channel_level.svg";
 
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
-import TableView from "./EstablishedGoals/TableView";
+// import TableView from "./EstablishedGoals/TableView";
 import ToggleSwitch from "./EstablishedGoals/ToggleSwitch";
 import SetBudgetOverviewModel from "../../../components/Modals/SetBudgetOverviewModel";
 import TimelineView from "./EstablishedGoals/TimelineView";
 import Modal from "components/Modals/Modal";
 import Image from "next/image";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import TableView from "./EstablishedGoals/table-view/table-view";
 
-const channels = [
-  {
-    icon: facebook,
-    name: "Facebook",
-    color: "#0866FF",
-    audience: "Men 25+ Int. Sport",
-    startDate: "01/02/2024",
-    endDate: "01/03/2024",
-    audienceSize: 50000,
-    budgetSize: "1,800 €",
-    impressions: 2000000,
-    reach: 2000000,
-    hasChildren: true,
-  },
-  {
-    icon: instagram,
-    name: "Instagram",
-    color: "#E01389",
-    audience: "Lookalike Buyers 90D",
-    startDate: "01/02/2024",
-    endDate: "01/03/2024",
-    audienceSize: 40000,
-    budgetSize: 8000,
-    impressions: 2000000,
-    reach: 2000000,
-    hasChildren: true,
-  },
-  {
-    icon: youtube,
-    name: "Youtube",
-    color: "#FF0302",
-    audience: "Men 25+ Int. Sport",
-    startDate: "01/02/2024",
-    endDate: "01/03/2024",
-    audienceSize: 60000,
-    budgetSize: 12000,
-    impressions: 2000000,
-    reach: 2000000,
-    hasChildren: false,
-  },
-  {
-    icon: tradedesk,
-    name: "TheTradeDesk",
-    color: "#0099FA",
-    audience: "Lookalike Buyers 90D",
-    startDate: "01/02/2024",
-    endDate: "01/03/2024",
-    audienceSize: 60000,
-    budgetSize: 12000,
-    impressions: 2000000,
-    reach: 2000000,
-    hasChildren: false,
-  },
-  {
-    icon: quantcast,
-    name: "Quantcast",
-    color: "#061237",
-    audience: "Men 25+ Int. Sport",
-    startDate: "01/02/2024",
-    endDate: "01/03/2024",
-    audienceSize: 60000,
-    budgetSize: 12000,
-    impressions: 2000000,
-    reach: 2000000,
-    hasChildren: false,
-  },
-];
 
 export const EstablishedGoals = () => {
   const [active, setActive] = useState("Timeline View");
@@ -381,7 +315,7 @@ export const EstablishedGoals = () => {
         )}
       </Modal>
 
-      {<TableView channels={channels} />}
+      {<TableView />}
     </div>
   );
 };
