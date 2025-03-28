@@ -63,12 +63,12 @@ const DefineCampaignObjective = () => {
   useEffect(() => {
     if (campaignData?.campaign_objective) {
       const matchingObjective = campaignObjectives.find(
-        obj => obj.title === campaignData.campaign_objective
+        obj => obj?.title === campaignData?.campaign_objective
       );
       if (matchingObjective) {
         setSelectedObjectives([{
-          id: matchingObjective.id,
-          title: matchingObjective.title
+          id: matchingObjective?.id,
+          title: matchingObjective?.title
         }]);
         setTempSelectedObjective([{
           id: matchingObjective.id,
@@ -76,7 +76,7 @@ const DefineCampaignObjective = () => {
         }]);
         setCampaignFormData(prev => ({
           ...prev,
-          campaign_objectives: matchingObjective.title
+          campaign_objectives: matchingObjective?.title
         }));
       }
     }
