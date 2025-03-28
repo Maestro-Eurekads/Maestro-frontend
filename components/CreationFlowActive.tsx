@@ -10,10 +10,6 @@ const CreationFlowActive = ({ steps, close }) => {
   const [hydrated, setHydrated] = useState(false);
   const query = useSearchParams();
   const cId = query.get("campaignId");
-<<<<<<< HEAD
-
-=======
->>>>>>> be70d8b916f8dfb8d2d21730eb513b571a3852a0
   useEffect(() => {
     if (alert) {
       const timer = setTimeout(() => setAlert(null), 3000);
@@ -78,10 +74,10 @@ const CreationFlowActive = ({ steps, close }) => {
                 {stepNumber !== steps.length && (
                   <div
                     className={`${step.vl} ${active > stepNumber + 1
-                        ? `${step.vl_done}`
-                        : active === stepNumber + 1
-                          ? `${step.vl_active}`
-                          : ""
+                      ? `${step.vl_done}`
+                      : active === stepNumber + 1
+                        ? `${step.vl_active}`
+                        : ""
                       }`}
                   />
                 )}
