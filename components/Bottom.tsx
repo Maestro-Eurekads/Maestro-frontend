@@ -25,7 +25,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [selectedDatesError, setSelectedDatesError] = useState(false);
   const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
   const [triggerFormatError, setTriggerFormatError] = useState(false);
-  const [triggerFormatErrorCount, setTriggerFormatErrorCount] = useState(0); // New counter to force re-render
+  const [triggerFormatErrorCount, setTriggerFormatErrorCount] = useState(0);
   const [validateStep, setValidateStep] = useState(false);
   const { selectedDates } = useSelectedDates();
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
@@ -251,11 +251,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       const isValidFormat = validateFormatSelection();
       if (!isValidFormat) {
         setTriggerFormatError(true);
-        setTriggerFormatErrorCount((prev) => prev + 1); // Increment counter to force re-render
+        setTriggerFormatErrorCount((prev) => prev + 1);
         hasError = true;
       } else {
         setTriggerFormatError(false);
-        setTriggerFormatErrorCount(0); // Reset counter when valid
+        setTriggerFormatErrorCount(0);
       }
     }
 
@@ -547,10 +547,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-      {/* Use key to force re-mount of AlertMain on every error trigger */}
       {triggerFormatError && active === 4 && (
         <AlertMain
-          key={`format-error-${triggerFormatErrorCount}`} // Unique key to force re-render
+          key={`format-error-${triggerFormatErrorCount}`}
           alert={{
             variant: "error",
             message: "Please select and validate at least one format!",

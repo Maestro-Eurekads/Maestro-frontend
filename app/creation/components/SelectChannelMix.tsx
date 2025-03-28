@@ -35,7 +35,6 @@ const SelectChannelMix = () => {
           "Display networks": (channelMixItem?.display_networks || []).filter(dn => dn?.platform_name).map(dn => dn.platform_name),
           "Search engines": (channelMixItem?.search_engines || []).filter(se => se?.platform_name).map(se => se.platform_name)
         };
-        // Remove categories with no selections
         Object.keys(initialSelected[stageName]).forEach(category => {
           if (initialSelected[stageName][category].length === 0) {
             delete initialSelected[stageName][category];
@@ -132,11 +131,27 @@ const SelectChannelMix = () => {
         ...prev,
         [stageName]: false
       }));
-      
-      setCampaignFormData(prev => ({
-        ...prev,
-        validatedStages: updatedValidatedStages
-      }));
+
+      setCampaignFormData(prev => {
+        const updatedChannelMix = prev.channel_mix.map(mix => {
+          if (mix.funnel_stage === stageName) {
+            const selectedPlatforms = selected[stageName] || {};
+            return {
+              ...mix,
+              social_media: selectedPlatforms["Social media"]?.map(name => ({ platform_name: name })) || [],
+              display_networks: selectedPlatforms["Display networks"]?.map(name => ({ platform_name: name })) || [],
+              search_engines: selectedPlatforms["Search engines"]?.map(name => ({ platform_name: name })) || []
+            };
+          }
+          return mix;
+        });
+
+        return {
+          ...prev,
+          channel_mix: updatedChannelMix,
+          validatedStages: updatedValidatedStages
+        };
+      });
     }
   };
 
@@ -220,10 +235,6 @@ const SelectChannelMix = () => {
                     <div className="mt-8 px-6">
                       {Object.entries(selected[stage.name] || {}).map(
                         ([category, platformNames]) => {
-                          if (stage.name === "Awareness") {
-                            console.log(`Awareness - ${category}:`, platformNames);
-                            console.log(`Awareness - stage.platforms[${category}]:`, stage.platforms[category]);
-                          }
                           if (!Array.isArray(platformNames) || platformNames.length === 0) return null;
                           const validPlatformNames = platformNames.filter(pn =>
                             stage.platforms[category]?.some(p => p.name === pn)
