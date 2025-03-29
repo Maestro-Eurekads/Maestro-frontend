@@ -8,7 +8,7 @@ const AddCommentReply = ({ commentId, contrastingColor }) => {
 	const [show, setShow] = useState(false);
 
 	// Find the comment by ID and get its replies
-	const comment = comments.find((c) => c.id === commentId);
+	const comment = comments.find((c) => c.commentId === commentId);
 	const replies = comment ? comment.replies : [];
 
 	// Handle new reply submission

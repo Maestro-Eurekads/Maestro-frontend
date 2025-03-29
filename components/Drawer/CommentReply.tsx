@@ -9,7 +9,7 @@ const CommentReply = ({ commentId, contrastingColor }) => {
 	const [replies, setReplies] = useState([]);
 
 	useEffect(() => {
-		const comment = comments.find((c) => c.id === commentId);
+		const comment = comments.find((c) => c.commentId === commentId);
 		setReplies(comment?.replies || []); // Ensure it's always an array
 	}, [comments, commentId]);
 
@@ -34,7 +34,7 @@ const CommentReply = ({ commentId, contrastingColor }) => {
 			{/* Replies List */}
 			<div className="w-full mt-5 px-8 pt-4">
 				{replies.map((reply) => (
-					<div key={reply.id} className="mb-5">
+					<div key={reply.commentId} className="mb-5">
 						{/* User Info */}
 						<div className="flex justify-between items-center gap-3">
 							<div className="flex items-center gap-2">

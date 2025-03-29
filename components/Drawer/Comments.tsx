@@ -66,13 +66,13 @@ const Comments = ({ comment, author = "Daniel Silva", contrastingColor }) => {
 	// Toggle approval state
 	const handleApproval = () => {
 		const updatedComments = comments.map((c) =>
-			c.id === comment.id ? { ...c, approved: !approved } : c
+			c.commentId === comment.commentId ? { ...c, approved: !approved } : c
 		);
 		// setComments(updatedComments); // Update global state
 		setApproved(!approved);
 	};
 
-	console.log('comment-comment', approved)
+	console.log('comment-comment', comment)
 
 	return (
 		<div >
@@ -90,10 +90,10 @@ const Comments = ({ comment, author = "Daniel Silva", contrastingColor }) => {
 				{/* Approval Button */}
 				<div className="flex items-center gap-2 cursor-pointer whitespace-nowrap" onClick={handleApproval}>
 					<button className="cursor-pointer">
-						<Image src={approved ? tickcircles : tickcircle} alt={"tickcircle"} />
+						<Image src={approved ? tickcircles : tickcircle} alt={"tickcircle"} className="w-5" />
 					</button>
-					<p className={`w-[116px] font-semibold text-[14px] ${approved ? "text-[#00A36C]" : "text-[#292D32]"}`}>
-						{approved ? "Approved" : "Mark as approved"}
+					<p className={`w-[116px] font-semibold text-[13px] ${approved ? "text-[#00A36C]" : "text-[#292D32]"}`}>
+						{approved ? "Marked as approved" : "Mark as approved"}
 					</p>
 				</div>
 			</div>

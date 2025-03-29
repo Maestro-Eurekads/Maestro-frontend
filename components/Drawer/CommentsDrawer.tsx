@@ -14,7 +14,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 	// Function to create a new Comment Opportunity
 	const createCommentOpportunity = () => {
 		const newOpportunity = {
-			id: Date.now(),
+			commentId: Date.now(),
 			text: "New Comment Opportunity",
 			position: { x: 150, y: 150 },
 		};
@@ -36,7 +36,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 						{campaignData?.media_plan_details?.plan_name
 							? campaignData?.media_plan_details?.plan_name.charAt(0).toUpperCase() +
 							campaignData?.media_plan_details?.plan_name.slice(1)
-							: ""}{" "}
+							: ""}
 						Awareness
 					</p>
 				</div>
@@ -47,19 +47,19 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 
 			{/* Comments Section */}
 			<div className="faq-container p-5 overflow-y-auto max-h-[calc(100vh-100px)]">
-				{viewcommentsId ? ( // 🔥 If viewcommentsId exists, show only the selected comment
+				{viewcommentsId ? ( // If viewcommentsId exists, show only the selected comment
 					comments
-						.filter((comment) => comment.id === viewcommentsId)
+						.filter((comment) => comment.commentId === viewcommentsId)
 						.map((comment) => {
 							const randomColor = getRandomColor();
 							const contrastingColor = getContrastingColor(randomColor);
 							return (
 								<div
-									key={comment.id}
+									key={comment.commentId}
 									className="flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-md rounded-lg border-box mb-5"
 								>
 									<Comments comment={comment} contrastingColor={contrastingColor} />
-									<AddCommentReply commentId={comment.id} contrastingColor={contrastingColor} />
+									<AddCommentReply commentId={comment.commentId} contrastingColor={contrastingColor} />
 								</div>
 							);
 						})
@@ -69,11 +69,11 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 						const contrastingColor = getContrastingColor(randomColor);
 						return (
 							<div
-								key={comment.id}
+								key={comment.commentId}
 								className="flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-md rounded-lg border-box mb-5"
 							>
 								<Comments comment={comment} contrastingColor={contrastingColor} />
-								<AddCommentReply commentId={comment.id} contrastingColor={contrastingColor} />
+								<AddCommentReply commentId={comment.commentId} contrastingColor={contrastingColor} />
 							</div>
 						);
 					})

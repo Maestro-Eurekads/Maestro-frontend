@@ -173,7 +173,7 @@ const DraggableComment = ({ opportunity }) => {
 
 	const handleStop = (e, data) => {
 		const newPosition = { x: data.x, y: data.y };
-		updateOpportunityPosition(opportunity.id, newPosition);
+		updateOpportunityPosition(opportunity.commentId, newPosition);
 	};
 
 	return (
@@ -189,7 +189,7 @@ const DraggableComment = ({ opportunity }) => {
 					<AddAsInternalcomment position={opportunity.position} setShow={setShow} />
 				</div>
 			) : (
-				<div ref={commentRef} className="absolute cursor-move drag-handle z-50">
+				<div ref={commentRef} className="absolute cursor-move drag-handle z-20">
 					<button onClick={() => setShow(true)} className="flex flex-row justify-center items-center w-[38px] h-[31px] bg-[#3175FF] rounded-md">
 						<HiOutlinePlus size={23} color="#fff" />
 					</button>
@@ -202,12 +202,11 @@ const DraggableComment = ({ opportunity }) => {
 const DraggableMessage = () => {
 	const { opportunities } = useComments(); // Use opportunities instead of comments
 
-	console.log('opportunities-opportunities', opportunities)
 
 	return (
 		<NoSSR>
 			{opportunities.map((opportunity) => (
-				<DraggableComment key={opportunity.id} opportunity={opportunity} />
+				<DraggableComment key={opportunity.commentId} opportunity={opportunity} />
 			))}
 		</NoSSR>
 	);
