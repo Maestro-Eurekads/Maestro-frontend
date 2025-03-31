@@ -14,24 +14,21 @@ import { useAppDispatch, useAppSelector } from "store/useStore";
 // Removed unused import 'client'
 import AlertMain from "./Alert/AlertMain";
 import { getCreateClient } from "features/Client/clientSlice"; // Removed unused 'reset'
-import { LogOut } from "lucide-react";
-import { signOut } from "next-auth/react";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 const Header = ({ setIsOpen }) => {
   const {
     getCreateClientData,
     getCreateClientIsLoading,
-    // Removed unused 'getCreateClientIsError'
+    getCreateClientIsError,
     // Removed unused 'getCreateClientMessage'
   } = useAppSelector((state) => state.client);
-  const { setClientCampaignData, setLoading, setCampaignFormData, isLoggedIn } =
+  const { setClientCampaignData, setLoading, setCampaignFormData } =
     useCampaigns();
   const [selected, setSelected] = useState("");
   const { fetchClientCampaign } = useCampaignHook(); // Removed unused 'fetchAllClients'
   const dispatch = useAppDispatch();
   const [alert, setAlert] = useState(null);
-  const [show, setShow] = useState(false);
   // Removed unused 'IsError' and 'setIsError'
   const clients: any = getCreateClientData;
 
@@ -51,10 +48,7 @@ const Header = ({ setIsOpen }) => {
     return () => clearTimeout(timer);
   }, [dispatch]);
 
-  const selectedId =
-    typeof window !== "undefined"
-      ? localStorage.getItem("selectedClient") || ""
-      : ""; // Ensure a default value
+  const selectedId = localStorage.getItem("selectedClient") || ""; // Ensure a default value
   // console.log("🚀 ~ useEffect ~ selectedId:", selectedId);
 
   useEffect(() => {
@@ -94,32 +88,29 @@ const Header = ({ setIsOpen }) => {
             <FiLoader className="animate-spin" />
             <p>Loading clients...</p>
           </div>
-        ) : (
-          <>
-            <select
-              className="flex items-center px-4 py-2 w-full h-[40px] bg-[#F7F7F7] border border-[#EFEFEF] rounded-[10px] cursor-pointer text-[16px] focus:outline-none focus:ring-0 active:outline-none active:ring-0"
-              value={selectedId || selected || ""}
-              onChange={(e) => {
-                localStorage.setItem("selectedClient", e.target.value);
-                setSelected(e.target.value);
-              }}
-            >
-              <option disabled={true}>Select a client</option>
-              {clients?.data?.map(
-                (client: { id: string; client_name: string }, ind: number) => (
-                  <option key={ind} value={client?.id}>
-                    {client?.client_name}
-                  </option>
-                )
-              )}
-            </select>
-            {/* <AllClientsCustomDropdown
+        ) : (<>
+          <select
+            className="flex items-center px-4 py-2 w-full h-[40px] bg-[#F7F7F7] border border-[#EFEFEF] rounded-[10px] cursor-pointer text-[16px] focus:outline-none focus:ring-0 active:outline-none active:ring-0"
+            value={selectedId || selected || ""}
+            onChange={(e) => {
+              localStorage.setItem("selectedClient", e.target.value);
+              setSelected(e.target.value);
+            }}
+          >
+            <option disabled={true}>Select a client</option>
+            {clients?.data?.map((client: { id: string; client_name: string }, ind: number) => (
+              <option key={ind} value={client?.id}>
+                {client?.client_name}
+              </option>
+            ))}
+          </select>
+          {/* <AllClientsCustomDropdown
             setSelected={setSelected}
             selected={selected}
             allClients={clients?.data}
             loadingClients={getCreateClientIsLoading}
           /> */}
-          </>
+        </>
         )}
 
         <button
@@ -139,22 +130,7 @@ const Header = ({ setIsOpen }) => {
               <p className="new_plan_btn_text">New media plan</p>
             </button>
           </Link>
-          <div
-            className="profile_container"
-            onClick={() => setShow((prev) => !prev)}
-          >
-            MD
-            {show && (
-              <div className="absolute bg-white border shadow-md rounded-[10px] top-[50px]">
-                <div className="flex items-center gap-2 cursor-pointer p-2" onClick={async()=>await signOut({
-                  callbackUrl: "/"
-                })}>
-                  <LogOut color="#3175FF" />
-                  <p>Logout</p>
-                </div>
-              </div>
-            )}
-          </div>
+          <div className="profile_container">MD</div>
         </div>
       </div>
     </div>
