@@ -476,7 +476,12 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
 
       if (active === 7) {
-        subStep < 1 ? setSubStep((prev) => prev + 1) : setActive((prev) => prev + 1);
+        if(subStep < 1){
+          setSubStep((prev) => prev + 1)
+        } else {
+          setActive((prev) => prev + 1)
+          setSubStep(0)
+        }
       } else if (active === 8) {
         subStep < 2 ? setSubStep((prev) => prev + 1) : setActive((prev) => prev + 1);
       } else {
