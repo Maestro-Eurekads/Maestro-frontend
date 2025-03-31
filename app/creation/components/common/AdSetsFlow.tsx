@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import Image, { type StaticImageData } from "next/image"
-import { FaAngleRight } from "react-icons/fa"
-import { MdDelete, MdAdd } from "react-icons/md"
-import { useState, useCallback, memo, useMemo, useEffect, useRef, createContext, useContext } from "react"
+import React, { memo, useState, useCallback, useEffect, useRef, createContext, useContext } from "react";
+import Image, { type StaticImageData } from "next/image";
+import { FaAngleRight } from "react-icons/fa";
+import { MdDelete, MdAdd } from "react-icons/md";
+import { useEditing } from "../../../utils/EditingContext";
+import { useCampaigns } from "../../../utils/CampaignsContext";
 
 // Import platform icons
 import facebook from "../../../../public/facebook.svg";
@@ -13,7 +13,6 @@ import ig from "../../../../public/ig.svg";
 import youtube from "../../../../public/youtube.svg";
 import TheTradeDesk from "../../../../public/TheTradeDesk.svg";
 import Quantcast from "../../../../public/quantcast.svg";
-import speaker from "../../../../public/mdi_megaphone.svg";
 import google from "../../../../public/social/google.svg";
 import x from "../../../../public/x.svg";
 import linkedin from "../../../../public/linkedin.svg";
@@ -21,59 +20,59 @@ import Display from "../../../../public/Display.svg";
 import yahoo from "../../../../public/yahoo.svg";
 import bing from "../../../../public/bing.svg";
 import tictok from "../../../../public/tictok.svg";
-import { useEditing } from "../../../utils/EditingContext"
-import { useCampaigns } from "../../../utils/CampaignsContext"
 
 // Types
 interface AdSetType {
-  id: number
-  addsetNumber: number
+  id: number;
+  addsetNumber: number;
 }
 
 interface OutletType {
-  id: number
-  outlet: string
-  icon: StaticImageData
+  id: number;
+  outlet: string;
+  icon: StaticImageData;
 }
 
 interface AdSetFlowProps {
-  stageName: string
+  stageName: string;
+  onInteraction: () => void;
+  onValidate: () => void;
+  isValidateDisabled: boolean;
+  onEditStart: () => void;
 }
 
-// Add these new types at the top of the file, after the existing interfaces
-
 interface AdSetData {
-  id?: number
-  name: string
-  audience_type: string
-  size?: string
+  id?: number;
+  name: string;
+  audience_type: string;
+  size?: string;
 }
 
 interface Format {
-  id: number
-  format_type: string
-  num_of_visuals: string
+  id: number;
+  format_type: string;
+  num_of_visuals: string;
 }
 
 interface Platform {
-  id: number
-  platform_name: string
-  buy_type: string | null
-  objective_type: string | null
-  campaign_start_date: string | null
-  campaign_end_date: string | null
-  format: Format[]
-  ad_sets: AdSetData[]
+  id: number;
+  platform_name: string;
+  buy_type: string | null;
+  objective_type: string | null;
+  campaign_start_date: string | null;
+  campaign_end_date: string | null;
+  format: Format[];
+  ad_sets: AdSetData[];
 }
 
 interface FunnelStage {
-  id: number
-  funnel_stage: string
-  funnel_stage_timeline_start_date: string | null
-  funnel_stage_timeline_end_date: string | null
-  search_engines: Platform[]
-  display_networks: Platform[]
-  social_media: Platform[]
+  id: number;
+  funnel_stage: string;
+  funnel_stage_timeline_start_date: string | null;
+  funnel_stage_timeline_end_date: string | null;
+  search_engines: Platform[];
+  display_networks: Platform[];
+  social_media: Platform[];
 }
 
 // Platform icons mapping
@@ -95,175 +94,13 @@ const platformIcons: Record<string, StaticImageData> = {
   "Apple Search": google,
   "The Trade Desk": TheTradeDesk,
   QuantCast: Quantcast,
-}
+};
 
 const getPlatformIcon = (platformName: string): StaticImageData | null => {
-  return platformIcons[platformName] || null
-}
+  return platformIcons[platformName] || null;
+};
 
-/**
- * Finds a platform in the campaign data
- * @param campaignData - The campaign data containing funnel stages
- * @param stageName - The funnel stage name (e.g., "Awareness", "Consideration")
- * @param platformName - The platform name (e.g., "Google", "Instagram")
- * @returns The platform object and its channel type, or null if not found
- */
-const findPlatform = (
-  campaignData: FunnelStage[],
-  stageName: string,
-  platformName: string,
-): { platform: Platform; channelType: string } | null => {
-  // Find the stage
-  const stage = campaignData.find((stage) => stage.funnel_stage === stageName)
-  if (!stage) return null
-
-  // Check each channel type to find the platform
-  const channelTypes = ["search_engines", "display_networks", "social_media"] as const
-
-  for (const channelType of channelTypes) {
-    const platform = stage[channelType].find((p) => p.platform_name === platformName)
-    if (platform) {
-      return { platform, channelType }
-    }
-  }
-
-  return null
-}
-
-/**
- * Updates an ad set in the campaign data
- * @param campaignData - The campaign data containing funnel stages
- * @param stageName - The funnel stage name (e.g., "Awareness", "Consideration")
- * @param platformName - The platform name (e.g., "Google", "Instagram")
- * @param adSetIndex - The index of the ad set to update
- * @param adSetData - The new ad set data
- * @returns The updated campaign data
- */
-const updateAdSet = (
-  campaignData: FunnelStage[],
-  stageName: string,
-  platformName: string,
-  adSetIndex: number,
-  adSetData: AdSetData,
-): FunnelStage[] => {
-  // Create a deep copy of the campaign data to avoid mutating the original
-  const updatedCampaignData = JSON.parse(JSON.stringify(campaignData))
-
-  // Find the stage
-  const stageIndex = updatedCampaignData.findIndex((stage: FunnelStage) => stage.funnel_stage === stageName)
-
-  if (stageIndex === -1) {
-    console.error(`Stage "${stageName}" not found`)
-    return campaignData
-  }
-
-  const stage = updatedCampaignData[stageIndex]
-
-  // Check each channel type to find the platform
-  const channelTypes = ["search_engines", "display_networks", "social_media"] as const
-  let platformFound = false
-
-  for (const channelType of channelTypes) {
-    const platformIndex = stage[channelType].findIndex((platform: Platform) => platform.platform_name === platformName)
-
-    if (platformIndex !== -1) {
-      // Platform found in this channel
-      const platform = stage[channelType][platformIndex]
-
-      // Initialize ad_sets array if it doesn't exist
-      if (!platform.ad_sets) {
-        platform.ad_sets = []
-      }
-
-      // Update existing ad set or add a new one
-      if (adSetIndex < platform.ad_sets.length) {
-        // Update existing ad set
-        platform.ad_sets[adSetIndex] = {
-          ...platform.ad_sets[adSetIndex],
-          ...adSetData,
-        }
-      } else if (adSetIndex === platform.ad_sets.length) {
-        // Add new ad set
-        platform.ad_sets.push({
-          id: Date.now(), // Generate a temporary ID
-          ...adSetData,
-        })
-      } else {
-        console.error(`Ad set index ${adSetIndex} is out of bounds`)
-        return campaignData
-      }
-
-      platformFound = true
-      break
-    }
-  }
-
-  if (!platformFound) {
-    console.error(`Platform "${platformName}" not found in stage "${stageName}"`)
-    return campaignData
-  }
-
-  return updatedCampaignData
-}
-
-/**
- * Updates multiple ad sets in the campaign data
- * @param campaignData - The campaign data containing funnel stages
- * @param stageName - The funnel stage name (e.g., "Awareness", "Consideration")
- * @param platformName - The platform name (e.g., "Google", "Instagram")
- * @param adSets - Array of ad set data to update or add
- * @returns The updated campaign data
- */
-const updateMultipleAdSets = (
-  campaignData: FunnelStage[],
-  stageName: string,
-  platformName: string,
-  adSets: AdSetData[],
-): FunnelStage[] => {
-  // Create a deep copy of the campaign data to avoid mutating the original
-  const updatedCampaignData = JSON.parse(JSON.stringify(campaignData))
-
-  // Find the stage
-  const stageIndex = updatedCampaignData.findIndex((stage: FunnelStage) => stage.funnel_stage === stageName)
-
-  if (stageIndex === -1) {
-    console.error(`Stage "${stageName}" not found`)
-    return campaignData
-  }
-
-  const stage = updatedCampaignData[stageIndex]
-
-  // Check each channel type to find the platform
-  const channelTypes = ["search_engines", "display_networks", "social_media"] as const
-  let platformFound = false
-
-  for (const channelType of channelTypes) {
-    const platformIndex = stage[channelType].findIndex((platform: Platform) => platform.platform_name === platformName)
-
-    if (platformIndex !== -1) {
-      // Platform found in this channel
-      const platform = stage[channelType][platformIndex]
-
-      // Replace the entire ad_sets array
-      platform.ad_sets = adSets.map((adSet) => ({
-        id: adSet.id || Date.now(),
-        ...adSet,
-      }))
-
-      platformFound = true
-      break
-    }
-  }
-
-  if (!platformFound) {
-    console.error(`Platform "${platformName}" not found in stage "${stageName}"`)
-    return campaignData
-  }
-
-  return updatedCampaignData
-}
-
-// Create a context to manage which dropdown is currently open
+// Context for dropdown management
 const DropdownContext = createContext<{
   openDropdownId: number | null;
   setOpenDropdownId: (id: number | null) => void;
@@ -272,7 +109,62 @@ const DropdownContext = createContext<{
   setOpenDropdownId: () => {},
 });
 
-// Update the AdSet component to include the update functionality
+// Utility functions
+const findPlatform = (
+  campaignData: FunnelStage[],
+  stageName: string,
+  platformName: string,
+): { platform: Platform; channelType: string } | null => {
+  const stage = campaignData.find((stage) => stage.funnel_stage === stageName);
+  if (!stage) return null;
+
+  const channelTypes = ["search_engines", "display_networks", "social_media"] as const;
+  for (const channelType of channelTypes) {
+    const platform = stage[channelType].find((p) => p.platform_name === platformName);
+    if (platform) return { platform, channelType };
+  }
+  return null;
+};
+
+const updateMultipleAdSets = (
+  campaignData: FunnelStage[],
+  stageName: string,
+  platformName: string,
+  adSets: AdSetData[],
+): FunnelStage[] => {
+  const updatedCampaignData = JSON.parse(JSON.stringify(campaignData));
+  const stageIndex = updatedCampaignData.findIndex((stage: FunnelStage) => stage.funnel_stage === stageName);
+
+  if (stageIndex === -1) {
+    console.error(`Stage "${stageName}" not found`);
+    return campaignData;
+  }
+
+  const stage = updatedCampaignData[stageIndex];
+  const channelTypes = ["search_engines", "display_networks", "social_media"] as const;
+  let platformFound = false;
+
+  for (const channelType of channelTypes) {
+    const platformIndex = stage[channelType].findIndex((platform: Platform) => platform.platform_name === platformName);
+    if (platformIndex !== -1) {
+      const platform = stage[channelType][platformIndex];
+      platform.ad_sets = adSets.map((adSet) => ({
+        id: adSet.id || Date.now(),
+        ...adSet,
+      }));
+      platformFound = true;
+      break;
+    }
+  }
+
+  if (!platformFound) {
+    console.error(`Platform "${platformName}" not found in stage "${stageName}"`);
+    return campaignData;
+  }
+  return updatedCampaignData;
+};
+
+// AdSet Component
 const AdSet = memo(function AdSet({
   adset,
   index,
@@ -282,64 +174,64 @@ const AdSet = memo(function AdSet({
   audienceType,
   adSetName,
   adSetSize,
+  onInteraction,
 }: {
-  adset: AdSetType
-  index: number
-  isEditing: boolean
-  onDelete: (id: number) => void
-  onUpdate: (id: number, data: Partial<AdSetData>) => void
-  audienceType?: string
-  adSetName?: string
-  adSetSize?: string
+  adset: AdSetType;
+  index: number;
+  isEditing: boolean;
+  onDelete: (id: number) => void;
+  onUpdate: (id: number, data: Partial<AdSetData>) => void;
+  audienceType?: string;
+  adSetName?: string;
+  adSetSize?: string;
+  onInteraction: () => void;
 }) {
-  const [audience, setAudience] = useState<string>(audienceType || "")
-  const [name, setName] = useState<string>(adSetName || "")
-  const [size, setSize] = useState<string>(adSetSize || "")
+  const [audience, setAudience] = useState<string>(audienceType || "");
+  const [name, setName] = useState<string>(adSetName || "");
+  const [size, setSize] = useState<string>(adSetSize || "");
 
-  // Update local state when props change
   useEffect(() => {
-    if (audienceType !== undefined) setAudience(audienceType)
-    if (adSetName !== undefined) setName(adSetName)
-    if (adSetSize !== undefined) setSize(adSetSize)
-  }, [audienceType, adSetName, adSetSize])
+    if (audienceType !== undefined) setAudience(audienceType);
+    if (adSetName !== undefined) setName(adSetName);
+    if (adSetSize !== undefined) setSize(adSetSize);
+  }, [audienceType, adSetName, adSetSize]);
 
-  const positionClass = index === 0 ? "top-1/2 -translate-y-1/2" : index === 1 ? "top-0" : "bottom-0"
-
+  const positionClass = index === 0 ? "top-1/2 -translate-y-1/2" : index === 1 ? "top-0" : "bottom-0";
   const lineClass =
     index === 0
       ? "hidden"
       : index === 1
         ? "top-1/2 rounded-tl-[10px] border-t-2"
-        : "bottom-1/2 rounded-bl-[10px] border-b-2"
+        : "bottom-1/2 rounded-bl-[10px] border-b-2";
 
-  // Handle audience selection from the dropdown
   const handleAudienceSelect = useCallback(
     (selectedAudience: string) => {
-      setAudience(selectedAudience)
-      onUpdate(adset.id, { audience_type: selectedAudience })
+      setAudience(selectedAudience);
+      onUpdate(adset.id, { audience_type: selectedAudience });
+      onInteraction();
     },
-    [adset.id, onUpdate],
-  )
+    [adset.id, onUpdate, onInteraction],
+  );
 
-  // Handle name change
   const handleNameChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newName = e.target.value
-      setName(newName)
-      onUpdate(adset.id, { name: newName })
+      const newName = e.target.value;
+      setName(newName);
+      onUpdate(adset.id, { name: newName });
+      onInteraction();
     },
-    [adset.id, onUpdate],
-  )
+    [adset.id, onUpdate, onInteraction],
+  );
 
-  // Handle size change
   const handleSizeChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newSize = e.target.value
-      setSize(newSize)
-      onUpdate(adset.id, { size: newSize })
+      const newSize = e.target.value;
+      setSize(newSize);
+      onUpdate(adset.id, { size: newSize });
+      onInteraction();
     },
-    [adset.id, onUpdate],
-  )
+    [adset.id, onUpdate, onInteraction],
+  );
 
   return (
     <div className={`absolute ${positionClass}`}>
@@ -351,13 +243,11 @@ const AdSet = memo(function AdSet({
           </p>
           <hr className="border border-[#0000001A] w-[50px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" />
         </div>
-
-        <AudienceDropdownWithCallback 
-          onSelect={handleAudienceSelect} 
-          initialValue={audience} 
+        <AudienceDropdownWithCallback
+          onSelect={handleAudienceSelect}
+          initialValue={audience}
           dropdownId={adset.id}
         />
-
         <input
           type="text"
           placeholder="Enter ad set name"
@@ -389,55 +279,42 @@ const AdSet = memo(function AdSet({
         </button>
       </div>
     </div>
-  )
-})
+  );
+});
 
-
-
-// Create a new AudienceDropdown component that accepts a callback
+// AudienceDropdownWithCallback Component
 const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback({
   onSelect,
   initialValue,
   dropdownId,
 }: {
-  onSelect: (option: string) => void
-  initialValue?: string
-  dropdownId: number
+  onSelect: (option: string) => void;
+  initialValue?: string;
+  dropdownId: number;
 }) {
   const { openDropdownId, setOpenDropdownId } = useContext(DropdownContext);
-  const [selected, setSelected] = useState<string>(initialValue || "")
+  const [selected, setSelected] = useState<string>(initialValue || "");
   const isOpen = openDropdownId === dropdownId;
 
-  // Update selected when initialValue changes
   useEffect(() => {
-    if (initialValue) {
-      setSelected(initialValue)
-    }
-  }, [initialValue])
+    if (initialValue) setSelected(initialValue);
+  }, [initialValue]);
 
-  const options = useMemo(
-    () => ["Lookalike audience", "Retargeting audience", "Broad audience", "Behavioral audience"],
-    [],
-  )
+  const options = ["Lookalike audience", "Retargeting audience", "Broad audience", "Behavioral audience"];
 
   const handleSelect = useCallback(
     (option: string) => {
-      setSelected(option)
-      setOpenDropdownId(null)
-      onSelect(option)
+      setSelected(option);
+      setOpenDropdownId(null);
+      onSelect(option);
     },
     [onSelect, setOpenDropdownId],
-  )
+  );
 
   const toggleOpen = useCallback(() => {
-    if (isOpen) {
-      setOpenDropdownId(null);
-    } else {
-      setOpenDropdownId(dropdownId);
-    }
-  }, [isOpen, setOpenDropdownId, dropdownId])
+    setOpenDropdownId(isOpen ? null : dropdownId);
+  }, [isOpen, setOpenDropdownId, dropdownId]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -445,11 +322,8 @@ const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback(
         setOpenDropdownId(null);
       }
     };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen, dropdownId, setOpenDropdownId]);
 
   return (
@@ -483,23 +357,23 @@ const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback(
         </ul>
       )}
     </div>
-  )
-})
+  );
+});
 
-
-
-
-
+// NonFacebookOutlet Component
 const NonFacebookOutlet = memo(function NonFacebookOutlet({
   outlet,
   setSelected,
+  onInteraction,
 }: {
-  outlet: OutletType
-  setSelected: React.Dispatch<React.SetStateAction<string[]>>
+  outlet: OutletType;
+  setSelected: React.Dispatch<React.SetStateAction<string[]>>;
+  onInteraction: () => void;
 }) {
   const handleSelect = useCallback(() => {
-    setSelected((prev) => [...prev, outlet.outlet])
-  }, [outlet.outlet, setSelected])
+    setSelected((prev) => [...prev, outlet.outlet]);
+    onInteraction();
+  }, [outlet.outlet, setSelected, onInteraction]);
 
   return (
     <div className="flex items-center gap-4">
@@ -511,171 +385,145 @@ const NonFacebookOutlet = memo(function NonFacebookOutlet({
         </button>
       </div>
     </div>
-  )
-})
+  );
+});
 
-
-
+// AdsetSettings Component
 const AdsetSettings = memo(function AdsetSettings({
   outlet,
   stageName,
+  onInteraction,
 }: {
-  outlet: OutletType
-  stageName: string
+  outlet: OutletType;
+  stageName: string;
+  onInteraction: () => void;
 }) {
-  const { isEditing } = useEditing()
-  const { campaignFormData, setCampaignFormData } = useCampaigns()
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
-  const [adsets, setAdSets] = useState<AdSetType[]>([])
-  const [adSetDataMap, setAdSetDataMap] = useState<Record<number, AdSetData>>({})
-  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null)
-  const initialized = useRef(false)
+  const { isEditing } = useEditing();
+  const { campaignFormData, setCampaignFormData } = useCampaigns();
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [adsets, setAdSets] = useState<AdSetType[]>([]);
+  const [adSetDataMap, setAdSetDataMap] = useState<Record<number, AdSetData>>({});
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+  const initialized = useRef(false);
 
-  // Load existing ad sets from campaignFormData when platform is selected
   useEffect(() => {
-    if (!campaignFormData?.channel_mix || !selectedPlatforms.includes(outlet.outlet)) return
+    if (!campaignFormData?.channel_mix || !selectedPlatforms.includes(outlet.outlet)) return;
+    if (initialized.current) return;
+    initialized.current = true;
 
-    if (initialized.current) return
-    initialized.current = true
+    const result = findPlatform(campaignFormData.channel_mix, stageName, outlet.outlet);
+    // Handle null case explicitly
+    if (!result) {
+      console.warn(`No platform found for ${outlet.outlet} in stage ${stageName}`);
+      const newAdSetId = Date.now();
+      setAdSets([{ id: newAdSetId, addsetNumber: 1 }]);
+      setAdSetDataMap({
+        [newAdSetId]: { name: "", audience_type: "", size: "" },
+      });
+      return;
+    }
 
-    const result = findPlatform(campaignFormData.channel_mix, stageName, outlet.outlet)
-    if (!result) return
-
-    const { platform } = result
-
+    const { platform } = result;
     if (platform.ad_sets && platform.ad_sets.length > 0) {
       const newAdSets = platform.ad_sets.map((adSet, index) => ({
         id: adSet.id || Date.now() + index,
         addsetNumber: index + 1,
-      }))
-
-      const newAdSetDataMap: Record<number, AdSetData> = {}
+      }));
+      const newAdSetDataMap: Record<number, AdSetData> = {};
       platform.ad_sets.forEach((adSet, index) => {
-        const id = newAdSets[index].id
+        const id = newAdSets[index].id;
         newAdSetDataMap[id] = {
           name: adSet.name || "",
           audience_type: adSet.audience_type || "",
           size: adSet.size || "",
-        }
-      })
-
-      setAdSets(newAdSets)
-      setAdSetDataMap(newAdSetDataMap)
+        };
+      });
+      setAdSets(newAdSets);
+      setAdSetDataMap(newAdSetDataMap);
     } else {
-      const newAdSetId = Date.now()
-      setAdSets([
-        {
-          id: newAdSetId,
-          addsetNumber: 1,
-        },
-      ])
+      const newAdSetId = Date.now();
+      setAdSets([{ id: newAdSetId, addsetNumber: 1 }]);
       setAdSetDataMap({
-        [newAdSetId]: {
-          name: "",
-          audience_type: "",
-          size: "",
-        },
-      })
+        [newAdSetId]: { name: "", audience_type: "", size: "" },
+      });
     }
-  }, [campaignFormData, stageName, outlet.outlet, selectedPlatforms])
+  }, [campaignFormData, stageName, outlet.outlet, selectedPlatforms]);
 
   const addNewAddset = useCallback(() => {
-    const newAdSetId = Date.now()
-    setAdSets((prev) => [
-      ...prev,
-      {
-        id: newAdSetId,
-        addsetNumber: prev.length + 1,
-      },
-    ])
-
+    const newAdSetId = Date.now();
+    setAdSets((prev) => [...prev, { id: newAdSetId, addsetNumber: prev.length + 1 }]);
     setAdSetDataMap((prev) => ({
       ...prev,
-      [newAdSetId]: {
-        name: "",
-        audience_type: "",
-        size: "",
-      },
-    }))
-  }, [])
+      [newAdSetId]: { name: "", audience_type: "", size: "" },
+    }));
+    onInteraction();
+  }, [onInteraction]);
 
   const deleteAdSet = useCallback((id: number) => {
     setAdSets((prev) => {
-      const newAdSets = prev.filter((adset) => adset.id !== id)
-      // If no ad sets remain, reset selectedPlatforms
+      const newAdSets = prev.filter((adset) => adset.id !== id);
       if (newAdSets.length === 0) {
-        setSelectedPlatforms([])
-        setAdSetDataMap({})
-        initialized.current = false // Reset initialization so it reloads on next selection
+        setSelectedPlatforms([]);
+        setAdSetDataMap({});
+        initialized.current = false;
       }
-      return newAdSets
-    })
-
+      return newAdSets;
+    });
     setAdSetDataMap((prev) => {
-      const newMap = { ...prev }
-      delete newMap[id]
-      return newMap
-    })
-  }, [])
+      const newMap = { ...prev };
+      delete newMap[id];
+      return newMap;
+    });
+  }, []);
 
-  const updateAdSetData = useCallback((id: number, data: Partial<AdSetData>) => {
-    setAdSetDataMap((prev) => ({
-      ...prev,
-      [id]: {
-        ...prev[id],
-        ...data,
-      },
-    }))
-  }, [])
+  const updateAdSetData = useCallback(
+    (id: number, data: Partial<AdSetData>) => {
+      setAdSetDataMap((prev) => ({
+        ...prev,
+        [id]: { ...prev[id], ...data },
+      }));
+      onInteraction();
+    },
+    [onInteraction],
+  );
 
   const saveChangesToCampaign = useCallback(() => {
-    if (!campaignFormData?.channel_mix) return
-
+    if (!campaignFormData?.channel_mix) return;
     const adSetsToSave = adsets
       .map((adset) => {
-        const data = adSetDataMap[adset.id] || { name: "", audience_type: "" }
-        return {
-          id: adset.id,
-          name: data.name,
-          audience_type: data.audience_type,
-          size: data.size,
-        }
+        const data = adSetDataMap[adset.id] || { name: "", audience_type: "" };
+        return { id: adset.id, name: data.name, audience_type: data.audience_type, size: data.size };
       })
-      .filter((data) => data.name || data.audience_type)
+      .filter((data) => data.name || data.audience_type);
+    if (adSetsToSave.length === 0) return;
 
-    if (adSetsToSave.length === 0) return
-
-    const updatedChannelMix = updateMultipleAdSets(campaignFormData.channel_mix, stageName, outlet.outlet, adSetsToSave)
-
-    setCampaignFormData((prevData) => ({
-      ...prevData,
-      channel_mix: updatedChannelMix,
-    }))
-  }, [adsets, adSetDataMap, campaignFormData, stageName, outlet.outlet, setCampaignFormData])
+    const updatedChannelMix = updateMultipleAdSets(campaignFormData.channel_mix, stageName, outlet.outlet, adSetsToSave);
+    setCampaignFormData((prevData) => ({ ...prevData, channel_mix: updatedChannelMix }));
+  }, [adsets, adSetDataMap, campaignFormData, stageName, outlet.outlet, setCampaignFormData]);
 
   useEffect(() => {
     if (!isEditing && selectedPlatforms.includes(outlet.outlet)) {
-      saveChangesToCampaign()
+      saveChangesToCampaign();
     }
-  }, [isEditing, selectedPlatforms, outlet.outlet, saveChangesToCampaign])
+  }, [isEditing, selectedPlatforms, outlet.outlet, saveChangesToCampaign]);
 
   const handleSelectOutlet = useCallback(() => {
-    setSelectedPlatforms((prev) => [...prev, outlet.outlet])
-  }, [outlet.outlet])
+    setSelectedPlatforms((prev) => [...prev, outlet.outlet]);
+    onInteraction();
+  }, [outlet.outlet, onInteraction]);
 
-  // If not selected or no ad sets after deletion, show the initial platform button
   if (!selectedPlatforms.includes(outlet.outlet)) {
-    return <NonFacebookOutlet outlet={outlet} setSelected={setSelectedPlatforms} />
+    return <NonFacebookOutlet outlet={outlet} setSelected={setSelectedPlatforms} onInteraction={onInteraction} />;
   }
 
-  const adsetAmount = adsets.length
-  const buttonPositionClass = adsetAmount === 1 ? "top-0" : adsetAmount === 2 ? "bottom-0" : "hidden"
+  const adsetAmount = adsets.length;
+  const buttonPositionClass = adsetAmount === 1 ? "top-0" : adsetAmount === 2 ? "bottom-0" : "hidden";
   const linePositionClass =
     adsetAmount === 1
       ? "top-1/2 rounded-tl-[10px] border-t-2"
       : adsetAmount === 2
         ? "bottom-1/2 rounded-bl-[10px] border-b-2"
-        : ""
+        : "";
 
   return (
     <div className="flex items-center gap-8 w-full max-w-[1024px]">
@@ -698,11 +546,11 @@ const AdsetSettings = memo(function AdsetSettings({
                   className="flex gap-2 items-center text-white bg-[#3175FF] px-4 py-2 rounded-full text-sm font-bold z-[] relative"
                 >
                   <MdAdd />
-                  <span>New add set</span>
+                  <span>New ad set</span>
                 </button>
               </div>
               {adsets.map((adset, index) => {
-                const adSetData = adSetDataMap[adset.id] || { name: "", audience_type: "", size: "" }
+                const adSetData = adSetDataMap[adset.id] || { name: "", audience_type: "", size: "" };
                 return (
                   <AdSet
                     key={adset.id}
@@ -714,110 +562,107 @@ const AdsetSettings = memo(function AdsetSettings({
                     audienceType={adSetData.audience_type}
                     adSetName={adSetData.name}
                     adSetSize={adSetData.size}
+                    onInteraction={onInteraction}
                   />
-                )
+                );
               })}
             </>
           )}
         </div>
       </DropdownContext.Provider>
     </div>
-  )
-})
+  );
+});
 
-
-
-// Update the AdSetFlow component to include the campaign data update functionality
-const AdSetFlow = memo(function AdSetFlow({ stageName }: AdSetFlowProps) {
-  const { isEditing, setIsEditing } = useEditing()
-  const { campaignFormData } = useCampaigns()
-  const [platforms, setPlatforms] = useState<Record<string, OutletType[]>>({})
+// Main AdSetFlow Component
+const AdSetFlow = memo(function AdSetFlow({
+  stageName,
+  onInteraction,
+  onValidate,
+  isValidateDisabled,
+  onEditStart,
+}: AdSetFlowProps) {
+  const { isEditing, setIsEditing } = useEditing();
+  const { campaignFormData } = useCampaigns();
+  const [platforms, setPlatforms] = useState<Record<string, OutletType[]>>({});
+  const [hasInteraction, setHasInteraction] = useState(false);
 
   const getPlatformsFromStage = useCallback(() => {
-    const platformsByStage: Record<string, OutletType[]> = {}
-    const channelMix = campaignFormData?.channel_mix || []
+    const platformsByStage: Record<string, OutletType[]> = {};
+    const channelMix = campaignFormData?.channel_mix || [];
 
     channelMix.forEach((stage: any) => {
-      const { funnel_stage, search_engines, display_networks, social_media } = stage
+      const { funnel_stage, search_engines, display_networks, social_media } = stage;
+      if (!platformsByStage[funnel_stage]) platformsByStage[funnel_stage] = [];
 
-      if (!platformsByStage[funnel_stage]) {
-        platformsByStage[funnel_stage] = []
-      }
-
-      // Process search engines
-      if (Array.isArray(search_engines)) {
-        search_engines.forEach((platform: any) => {
-          const icon = getPlatformIcon(platform?.platform_name)
-          if (icon) {
-            platformsByStage[funnel_stage].push({
-              id: Math.floor(Math.random() * 1000000),
-              outlet: platform.platform_name,
-              icon,
-            })
-          }
-        })
-      }
-
-      // Process display networks
-      if (Array.isArray(display_networks)) {
-        display_networks.forEach((platform: any) => {
-          const icon = getPlatformIcon(platform?.platform_name)
-          if (icon) {
-            platformsByStage[funnel_stage].push({
-              id: Math.floor(Math.random() * 1000000),
-              outlet: platform.platform_name,
-              icon,
-            })
-          }
-        })
-      }
-
-      // Process social media
-      if (Array.isArray(social_media)) {
-        social_media.forEach((platform: any) => {
-          const icon = getPlatformIcon(platform?.platform_name)
-          if (icon) {
-            platformsByStage[funnel_stage].push({
-              id: Math.floor(Math.random() * 1000000),
-              outlet: platform.platform_name,
-              icon,
-            })
-          }
-        })
-      }
-    })
-
-    return platformsByStage
-  }, [campaignFormData])
+      [search_engines, display_networks, social_media].forEach((platforms) => {
+        if (Array.isArray(platforms)) {
+          platforms.forEach((platform: any) => {
+            const icon = getPlatformIcon(platform?.platform_name);
+            if (icon) {
+              platformsByStage[funnel_stage].push({
+                id: Math.floor(Math.random() * 1000000),
+                outlet: platform.platform_name,
+                icon,
+              });
+            }
+          });
+        }
+      });
+    });
+    return platformsByStage;
+  }, [campaignFormData]);
 
   useEffect(() => {
     if (campaignFormData) {
-      const data = getPlatformsFromStage()
-      setPlatforms(data)
+      const data = getPlatformsFromStage();
+      setPlatforms(data);
     }
-  }, [campaignFormData, getPlatformsFromStage])
+  }, [campaignFormData, getPlatformsFromStage]);
+
+  const handleInteraction = useCallback(() => {
+    setHasInteraction(true);
+    onInteraction();
+  }, [onInteraction]);
 
   const handleValidate = useCallback(() => {
-    setIsEditing(false)
-    // Don't update state here, let the useEffect in AdsetSettings handle it
-  }, [setIsEditing])
+    setIsEditing(false);
+    onValidate();
+  }, [setIsEditing, onValidate]);
+
+  useEffect(() => {
+    if (isEditing) {
+      onEditStart();
+    }
+  }, [isEditing, onEditStart]);
 
   return (
     <div className="w-full space-y-4 p-4">
       {platforms[stageName]?.map((outlet) => (
-        <AdsetSettings key={outlet.id} outlet={outlet} stageName={stageName} />
+        <AdsetSettings
+          key={outlet.id}
+          outlet={outlet}
+          stageName={stageName}
+          onInteraction={handleInteraction}
+        />
       ))}
       {isEditing && (
         <div className="flex justify-end gap-2 w-full">
           <button
             onClick={handleValidate}
-            className="bg-[#3175FF] w-[142px] h-[52px] text-white px-6 py-3 rounded-md text-sm font-bold"
+            disabled={!hasInteraction}
+            className={`w-[142px] h-[52px] text-white px-6 py-3 rounded-md text-sm font-bold ${
+              !hasInteraction
+                ? "bg-blue-300 cursor-not-allowed"
+                : "bg-[#3175FF] hover:bg-blue-600"
+            }`}
           >
             <span>Validate</span>
           </button>
         </div>
       )}
     </div>
-  )
-})
-export default AdSetFlow
+  );
+});
+
+export default AdSetFlow;

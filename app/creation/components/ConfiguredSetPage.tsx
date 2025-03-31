@@ -4,7 +4,6 @@ import Image, { type StaticImageData } from "next/image";
 import Button from "./common/button";
 import up from "../../../public/arrow-down.svg";
 import down2 from "../../../public/arrow-down-2.svg";
-
 import facebook from "../../../public/facebook.svg";
 import ig from "../../../public/ig.svg";
 import youtube from "../../../public/youtube.svg";
@@ -17,7 +16,6 @@ import Display from "../../../public/Display.svg";
 import yahoo from "../../../public/yahoo.svg";
 import bing from "../../../public/bing.svg";
 import tictok from "../../../public/tictok.svg";
-
 import { funnelStages, getPlatformIcon } from "components/data";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { toast } from "react-toastify";
@@ -54,7 +52,6 @@ const ConfiguredSetPage = () => {
           platformsByStage[funnel_stage] = [];
         }
 
-        // Process search engines
         if (Array.isArray(search_engines)) {
           search_engines.forEach((platform: any) => {
             const icon = getPlatformIcon(platform?.platform_name);
@@ -70,7 +67,6 @@ const ConfiguredSetPage = () => {
           });
         }
 
-        // Process display networks
         if (Array.isArray(display_networks)) {
           display_networks.forEach((platform: any) => {
             const icon = getPlatformIcon(platform?.platform_name);
@@ -86,7 +82,6 @@ const ConfiguredSetPage = () => {
           });
         }
 
-        // Process social media
         if (Array.isArray(social_media)) {
           social_media.forEach((platform: any) => {
             const icon = getPlatformIcon(platform?.platform_name);
@@ -108,76 +103,11 @@ const ConfiguredSetPage = () => {
   };
 
   useEffect(() => {
-    if (campaignFormData) {
-      if (campaignFormData?.channel_mix) {
-        const data = getPlatformsFromStage(campaignFormData?.channel_mix);
-        setPlatforms(data);
-      }
+    if (campaignFormData?.channel_mix) {
+      const data = getPlatformsFromStage(campaignFormData.channel_mix);
+      setPlatforms(data);
     }
   }, [campaignFormData]);
-  // Individual currency states for each section and stage
-  const [currencies, setCurrencies] = useState({
-    Awareness: {
-      top: "EUR",
-      facebook: "EUR",
-      instagram: "EUR",
-      youtube: "EUR",
-      tradeDesk: "EUR",
-      quantcast: "EUR",
-    },
-    Consideration: {
-      top: "EUR",
-      facebook: "EUR",
-      instagram: "EUR",
-      youtube: "EUR",
-      tradeDesk: "EUR",
-      quantcast: "EUR",
-    },
-    Conversion: {
-      top: "EUR",
-      facebook: "EUR",
-      instagram: "EUR",
-      youtube: "EUR",
-      tradeDesk: "EUR",
-      quantcast: "EUR",
-    },
-  });
-
-  // Budget states for each section and stage
-  const [budgets, setBudgets] = useState({
-    Awareness: {
-      top: "",
-      facebook: "",
-      instagram: "",
-      youtube: "",
-      tradeDesk: "",
-      quantcast: "",
-    },
-    Consideration: {
-      top: "",
-      facebook: "",
-      instagram: "",
-      youtube: "",
-      tradeDesk: "",
-      quantcast: "",
-    },
-    Conversion: {
-      top: "",
-      facebook: "",
-      instagram: "",
-      youtube: "",
-      tradeDesk: "",
-      quantcast: "",
-    },
-    Loyalty: {
-      top: "",
-      facebook: "",
-      instagram: "",
-      youtube: "",
-      tradeDesk: "",
-      quantcast: "",
-    },
-  });
 
   const [validatedStages, setValidatedStages] = useState({
     Awareness: false,
@@ -215,45 +145,73 @@ const ConfiguredSetPage = () => {
   };
 
   const isButtonEnabled = (stage) => {
-    const stageBudgets = budgets[stage];
-    return Object.values(stageBudgets).some((budget) => budget);
+    const stageData = campaignFormData?.channel_mix?.find(
+      (ch) => ch?.funnel_stage === stage
+    );
+    
+    if (stageData?.stage_budget?.fixed_value) {
+      return true;
+    }
+
+    const channelTypes = ["search_engines", "display_networks", "social_media"];
+    const hasPlatformBudget = channelTypes.some((type) =>
+      stageData?.[type]?.some((platform) =>
+        platform?.budget?.fixed_value && Number(platform.budget.fixed_value) > 0
+      )
+    );
+    
+    const hasAdSetBudget = channelTypes.some((type) =>
+      stageData?.[type]?.some((platform) =>
+        platform?.ad_sets?.some((adSet) =>
+          adSet?.budget?.fixed_value && Number(adSet.budget.fixed_value) > 0
+        )
+      )
+    );
+
+    return hasPlatformBudget || hasAdSetBudget;
   };
 
   const handleValidateClick = (stage) => {
     setValidatedStages((prev) => ({ ...prev, [stage]: true }));
 
-    const newResults = [
-      {
+    const stageData = campaignFormData?.channel_mix?.find(
+      (ch) => ch?.funnel_stage === stage
+    );
+    
+    const newResults = [];
+    
+    // Add stage budget
+    if (stageData?.stage_budget?.fixed_value) {
+      newResults.push({
         platform: "Top",
-        budget: budgets[stage].top,
-        currency: currencies[stage].top,
-      },
-      {
-        platform: "Facebook",
-        budget: budgets[stage].facebook,
-        currency: currencies[stage].facebook,
-      },
-      {
-        platform: "Instagram",
-        budget: budgets[stage].instagram,
-        currency: currencies[stage].instagram,
-      },
-      {
-        platform: "YouTube",
-        budget: budgets[stage].youtube,
-        currency: currencies[stage].youtube,
-      },
-      {
-        platform: "TradeDesk",
-        budget: budgets[stage].tradeDesk,
-        currency: currencies[stage].tradeDesk,
-      },
-      {
-        platform: "Quantcast",
-        budget: budgets[stage].quantcast,
-        currency: currencies[stage].quantcast,
-      },
-    ].filter((item) => item.budget);
+        budget: stageData.stage_budget.fixed_value,
+        currency: campaignFormData?.campaign_budget?.currency,
+      });
+    }
+
+    // Add platform budgets
+    const channelTypes = ["search_engines", "display_networks", "social_media"];
+    channelTypes.forEach((type) => {
+      stageData?.[type]?.forEach((platform) => {
+        if (platform?.budget?.fixed_value) {
+          newResults.push({
+            platform: platform.platform_name,
+            budget: platform.budget.fixed_value,
+            currency: campaignFormData?.campaign_budget?.currency,
+          });
+        }
+        // Add ad set budgets
+        platform?.ad_sets?.forEach((adSet) => {
+          if (adSet?.budget?.fixed_value) {
+            newResults.push({
+              platform: `${platform.platform_name} - ${adSet.name}`,
+              budget: adSet.budget.fixed_value,
+              currency: campaignFormData?.campaign_budget?.currency,
+            });
+          }
+        });
+      });
+    });
 
     setResults((prev) => ({ ...prev, [stage]: newResults }));
   };
@@ -309,7 +267,6 @@ const ConfiguredSetPage = () => {
                 <div className="pt-4 bg-[#FCFCFC] rounded-lg cursor-pointer border px-6 border-[rgba(6,18,55,0.1)]">
                   <div className="flex mt-6 flex-col items-start gap-8">
                     <div className="flex mb-8 justify-center gap-6">
-                      {/* top budget */}
                       <div className="flex flex-col gap-4">
                         <h2 className="text-center font-bold">
                           What is your budget for this phase ?
@@ -398,7 +355,6 @@ const ConfiguredSetPage = () => {
                               <span> %</span>
                             </div>
                           </div>
-
                           <p className="tracking-tight">of total budget</p>
                         </div>
                       </div>
@@ -406,7 +362,6 @@ const ConfiguredSetPage = () => {
 
                     <hr className="text-gray-200 w-full p-1" />
 
-                    {/* Second row */}
                     {platforms[stage.name].map((platform, index) => {
                       const stage = campaignFormData?.channel_mix?.find(
                         (stage) => stage.funnel_stage === stageName
@@ -441,7 +396,6 @@ const ConfiguredSetPage = () => {
                           className="w-full"
                         >
                           <div className="flex mb-8 items-end justify- gap-3">
-                            {/* facebook */}
                             <div className="flex items-start flex-col gap-2">
                               {platform?.ad_sets?.length > 0 && (
                                 <div className="flex rounded-[50px] bg-[#00A36C1A] border border-[#00A36C1A] w-[82px] h-[29px] items-center gap-2">
@@ -450,7 +404,6 @@ const ConfiguredSetPage = () => {
                                   </span>
                                 </div>
                               )}
-
                               <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[200px] h-[50px] rounded-[10px] items-center gap-2">
                                 <div className="flex justify-between w-full px-4 items-center">
                                   <div className="flex items-center gap-2">
@@ -594,12 +547,9 @@ const ConfiguredSetPage = () => {
                                     <span> %</span>
                                   </div>
                                 </div>
-
                                 <p className="whitespace-nowrap tracking-tight">
                                   of {stage.name} budget
                                 </p>
-
-                                {/* switch */}
                                 {stageName?.funnel_stage === stage.name &&
                                   platform?.ad_sets?.length > 0 && (
                                     <div
@@ -615,8 +565,6 @@ const ConfiguredSetPage = () => {
                                           const totalStageBudget = Number(
                                             stageData.stage_budget.fixed_value
                                           );
-
-                                          // Count total ad sets across all platforms in this stage
                                           const totalAdSetCount = platforms[
                                             stage.funnel_stage
                                           ]?.reduce((acc, platform) => {
@@ -625,8 +573,6 @@ const ConfiguredSetPage = () => {
                                               (platform.ad_sets?.length || 1)
                                             );
                                           }, 0);
-
-                                          // Calculate even budget split per ad set
                                           const splitBudget = (
                                             totalStageBudget / totalAdSetCount
                                           ).toFixed(2);
@@ -643,7 +589,6 @@ const ConfiguredSetPage = () => {
                                                       if (ch[type]) {
                                                         ch[type] = ch[type].map(
                                                           (p) => {
-                                                            // Calculate platform budget based on number of ad sets
                                                             const platformAdSetCount =
                                                               p.ad_sets
                                                                 ?.length || 1;
@@ -654,8 +599,6 @@ const ConfiguredSetPage = () => {
                                                                   splitBudget
                                                                 )
                                                               ).toFixed(2);
-
-                                                            // Update platform budget
                                                             const updatedPlatform =
                                                               {
                                                                 ...p,
@@ -665,8 +608,6 @@ const ConfiguredSetPage = () => {
                                                                     platformBudget,
                                                                 },
                                                               };
-
-                                                            // Update individual ad set budgets if they exist
                                                             if (
                                                               p.ad_sets &&
                                                               p.ad_sets.length >
@@ -695,7 +636,6 @@ const ConfiguredSetPage = () => {
                                                                   })
                                                                 );
                                                             }
-
                                                             return updatedPlatform;
                                                           }
                                                         );
@@ -707,7 +647,6 @@ const ConfiguredSetPage = () => {
                                                 return ch;
                                               }
                                             );
-
                                           setCampaignFormData({
                                             ...campaignFormData,
                                             channel_mix: updatedChannelMix,
@@ -724,7 +663,6 @@ const ConfiguredSetPage = () => {
                                           id={`${stage.name}AcceptConditions`}
                                           className="peer sr-only"
                                         />
-
                                         <span className="absolute inset-y-0 left-0 w-6 h-6 rounded-full bg-white transition-transform duration-200 transform peer-checked:translate-x-6"></span>
                                       </label>
                                       <p className="text-[#061237] text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap tracking-tighter">
@@ -741,7 +679,7 @@ const ConfiguredSetPage = () => {
                                 return (
                                   adSet?.budget?.fixed_value ||
                                   (platform?.budget?.fixed_value &&
-                                  platform.ad_sets?.length
+                                  platform.ad_sets?.  platform.ad_sets?.length
                                     ? (
                                         Number(platform.budget.fixed_value) /
                                         platform.ad_sets.length
@@ -778,7 +716,7 @@ const ConfiguredSetPage = () => {
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fir h-[50px] rounded-[10px] items-center gap-2">
+                                  <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[50px] rounded-[10px] items-center gap-2">
                                     <div className="flex justify-between w-full px-4 items-center">
                                       <div className="flex items-center gap-2">
                                         <span>{ad_set?.size}</span>
@@ -827,7 +765,6 @@ const ConfiguredSetPage = () => {
                                                           p.platform_name ===
                                                           platform.outlet
                                                         ) {
-                                                          // Find the specific ad set and update its budget
                                                           const updatedAdSets =
                                                             p.ad_sets?.map(
                                                               (adSet, idx) => {
@@ -863,7 +800,6 @@ const ConfiguredSetPage = () => {
                                                               }
                                                             );
 
-                                                          // Calculate the sum of all ad set budgets
                                                           const totalAdSetBudget =
                                                             updatedAdSets?.reduce(
                                                               (sum, adSet) =>
@@ -876,7 +812,6 @@ const ConfiguredSetPage = () => {
                                                               0
                                                             );
 
-                                                          // Check if total ad set budget exceeds platform budget
                                                           if (
                                                             totalAdSetBudget >
                                                             Number(
@@ -935,7 +870,6 @@ const ConfiguredSetPage = () => {
                                           <span> %</span>
                                         </div>
                                       </div>
-
                                       <p className="whitespace-nowrap tracking-tight">
                                         of {platform?.outlet} budget
                                       </p>
@@ -961,9 +895,9 @@ const ConfiguredSetPage = () => {
                                 ...prev,
                                 [stage.name]: false,
                               }))
-                          : () => handleValidateClick(stage?.name)
+                          : () => handleValidateClick(stage.name)
                       }
-                      disabled={!isButtonEnabled(stage?.name)}
+                      disabled={!isButtonEnabled(stage.name)}
                       variant="primary"
                       className="h-[52px] rounded-md px-6 py-2"
                     />
