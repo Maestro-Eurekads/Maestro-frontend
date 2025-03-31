@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import AlertMain from "./Alert/AlertMain";
 
 const CreationFlowActive = ({ steps, close }) => {
-  const { active, setActive } = useActive();
+  const { active, setActive, setSubStep } = useActive();
   const [alert, setAlert] = useState(null);
   const [hydrated, setHydrated] = useState(false);
   const query = useSearchParams();
@@ -25,6 +25,9 @@ const CreationFlowActive = ({ steps, close }) => {
   if (!hydrated) return null;
 
   const handleStepClick = (stepNumber: SetStateAction<number>) => {
+    if(stepNumber === 7 || stepNumber === 8){
+      setSubStep(0)
+    }
     setActive(stepNumber);
   };
 
