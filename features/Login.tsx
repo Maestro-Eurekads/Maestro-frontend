@@ -58,7 +58,7 @@ function Login() {
               <input
                 type={visible ? "text" : "password"}
                 className="p-[10px] rounded-[8px] border w-full outline-none"
-                placeholder="*********"
+                placeholder="**********"
                 required
                 value={pwd}
                 onChange={(e) => setPwd(e.target.value)}

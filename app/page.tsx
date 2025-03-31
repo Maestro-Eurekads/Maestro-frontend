@@ -6,10 +6,7 @@ import ClientView from "features/ClientView";
 
 export default async function Home() {
   const token = await getServerSession(authOptions);
-  console.log("🚀 ~ Home ~ token:", token);
-  if (!token) {
-    return <Login />;
-  }
+
   // @ts-ignore
   return token?.user?.data?.user?.user_type === "admin" ? (
     <Homepage />
