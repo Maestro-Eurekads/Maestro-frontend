@@ -42,9 +42,7 @@ const platformIcons = {
 
 const ObjectiveSelection = () => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
-  const [statuses, setStatuses] = useState(
-    funnelStages.map((stage) => stage.status)
-  );
+  const [statuses, setStatuses] = useState({});
   const [selectedOptions, setSelectedOptions] = useState({});
   const [isEditable, setIsEditable] = useState({});
   const [previousSelectedOptions, setPreviousSelectedOptions] = useState({});
@@ -52,17 +50,28 @@ const ObjectiveSelection = () => {
     Awareness: new Set(),
     Consideration: new Set(),
     Conversion: new Set(),
-    Loyalty: new Set(), // Added Loyalty for completeness
+    Loyalty: new Set(),
   });
   const [validatedPlatforms, setValidatedPlatforms] = useState({
     Awareness: new Set(),
     Consideration: new Set(),
     Conversion: new Set(),
-    Loyalty: new Set(), // Added Loyalty for completeness
+    Loyalty: new Set(),
   });
   const [dropdownOpen, setDropdownOpen] = useState({});
 
   const { campaignFormData, setCampaignFormData } = useCampaigns();
+
+  // Initialize statuses when campaign form data changes
+  useEffect(() => {
+    if (campaignFormData?.funnel_stages) {
+      const initialStatuses = {};
+      campaignFormData.funnel_stages.forEach(stage => {
+        initialStatuses[stage] = "Not Started";
+      });
+      setStatuses(initialStatuses);
+    }
+  }, [campaignFormData?.funnel_stages]);
 
   // Sync selectedOptions with campaignFormData on mount or update
   useEffect(() => {
@@ -102,7 +111,7 @@ const ObjectiveSelection = () => {
   useEffect(() => {
     if (campaignFormData?.funnel_stages) {
       const value = campaignFormData.funnel_stages.reduce((acc, stage) => {
-        acc[stage] = acc[stage] !== undefined ? acc[stage] : stage === "Awareness"; // Preserve existing state, default to Awareness open
+        acc[stage] = acc[stage] !== undefined ? acc[stage] : stage === "Awareness";
         return acc;
       }, { ...openItems });
       setOpenItems(value);
@@ -157,6 +166,12 @@ const ObjectiveSelection = () => {
     setSelectedOptions((prev) => ({
       ...prev,
       [key]: option,
+    }));
+
+    // Update status to "In progress" only when an option is selected
+    setStatuses(prev => ({
+      ...prev,
+      [stageName]: "In progress"
     }));
 
     // Update campaignFormData
@@ -215,11 +230,13 @@ const ObjectiveSelection = () => {
     }));
   };
 
-  const handleValidate = (index) => {
-    const stageName = funnelStages[index].name;
-    const updatedStatuses = [...statuses];
-    updatedStatuses[index] = "Completed";
-    setStatuses(updatedStatuses);
+  const handleValidate = (stageName) => {
+    // Update status to "Completed"
+    setStatuses(prev => ({
+      ...prev,
+      [stageName]: "Completed"
+    }));
+    
     setIsEditable((prev) => ({ ...prev, [stageName]: true }));
 
     const validatedPlatformsSet = new Set();
@@ -336,11 +353,11 @@ const ObjectiveSelection = () => {
   return (
     <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
       <Toaster position="top-right" reverseOrder={false} />
-      {campaignFormData?.funnel_stages?.map((stageName, stageIndex) => {
+      {campaignFormData?.funnel_stages?.map((stageName) => {
         const stage = funnelStages?.find((s) => s?.name === stageName);
         if (!stage) return null;
         return (
-          <div key={stageIndex} className="w-full">
+          <div key={stageName} className="w-full">
             <div
               className={`flex justify-between items-center p-6 gap-3 max-w-[950px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
                 rounded-t-[10px] ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
@@ -353,7 +370,7 @@ const ObjectiveSelection = () => {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                {statuses[stageIndex] === "Completed" ? (
+                {statuses[stageName] === "Completed" ? (
                   <>
                     <Image
                       className="w-5 h-5 rounded-full p-1 bg-green-500"
@@ -364,13 +381,13 @@ const ObjectiveSelection = () => {
                       Completed
                     </p>
                   </>
-                ) : stage.statusIsActive ? (
+                ) : statuses[stageName] === "In progress" ? (
                   <p className="text-[#3175FF] font-semibold text-base whitespace-nowrap">
-                    {statuses[stageIndex]}
+                    In progress
                   </p>
                 ) : (
                   <p className="text-[#061237] opacity-50 text-base whitespace-nowrap">
-                    Not started
+                    Not Started
                   </p>
                 )}
               </div>
@@ -385,7 +402,7 @@ const ObjectiveSelection = () => {
 
             {openItems[stage.name] && (
               <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
-                {statuses[stageIndex] === "Completed" ? (
+                {statuses[stageName] === "Completed" ? (
                   <div className="flex flex-col w-full gap-12">
                     {["Social media", "Display networks", "Search engines"]
                       .filter((category) =>
@@ -554,17 +571,17 @@ const ObjectiveSelection = () => {
                     )
                   )
                 )}
-                {statuses[stageIndex] !== "Completed" && (
+                {statuses[stageName] !== "Completed" && (
                   <div className="flex justify-end mt-6 w-full">
                     <Button
                       text="Validate"
                       variant="primary"
-                      onClick={() => handleValidate(stageIndex)}
+                      onClick={() => handleValidate(stageName)}
                       disabled={!hasMinimumBuySelections(stage.name)}
                     />
                   </div>
                 )}
-                {statuses[stageIndex] === "Completed" && (
+                {statuses[stageName] === "Completed" && (
                   <div className="flex justify-end mt-2 w-full">
                     <Button
                       text="Edit"
@@ -576,11 +593,10 @@ const ObjectiveSelection = () => {
                           [stage.name]: false,
                         }));
                         setSelectedOptions(previousSelectedOptions);
-                        setStatuses((prev) => {
-                          const updated = [...prev];
-                          updated[stageIndex] = "In progress";
-                          return updated;
-                        });
+                        setStatuses(prev => ({
+                          ...prev,
+                          [stageName]: "Not Started"
+                        }));
                       }}
                     />
                   </div>
