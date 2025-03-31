@@ -75,7 +75,7 @@ function Login() {
             className="rounded-[8px] w-full p-[10px] h-[40px] bg-[#3175FF] text-white text-[16px] font-semibold flex justify-center items-center"
             disabled={loading}
           >
-            {loading ? <FaSpinner className="animate-spin" /> : "Log in"}
+            {loading ? <FaSpinner className="animate-spin" /> : "Login"}
           </button>
         </form>
       </div>
