@@ -452,7 +452,7 @@ export const FormatSelection = () => {
 
           const isValidated = campaignFormData?.validatedStages?.[stageName] || false;
           const hasFormats = hasSelectedFormatsForStage(stageName);
-          const isCompleted = isValidated && hasFormats;
+          const isCompleted = isValidated;
 
           console.log(`[${stageName}] Render - hasFormats: ${hasFormats}, isValidated: ${isValidated}, isCompleted: ${isCompleted}`);
 
