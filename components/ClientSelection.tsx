@@ -4,6 +4,8 @@ import down from "../public/down.svg";
 import Image from "next/image";
 import { useCampaigns } from "../app/utils/CampaignsContext";
 import { BiLoader } from "react-icons/bi";
+import { useAppDispatch } from "../store/useStore";
+import { getCreateClient } from "../features/Client/clientSlice";
 
 const Dropdown = ({
   label,
@@ -19,12 +21,13 @@ const Dropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { campaignFormData, setCampaignFormData, loadingClients } = useCampaigns();
+  const dispatch = useAppDispatch();
 
-
-
-
-
+  // Fetch clients when dropdown is opened
   const toggleDropdown = () => {
+    if (!isOpen && label === "Select Client") {
+      dispatch(getCreateClient());
+    }
     setIsOpen(!isOpen);
   };
 

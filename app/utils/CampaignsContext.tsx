@@ -37,10 +37,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const cId = query.get("campaignId");
   const { loadingClients: hookLoadingClients, allClients: hookAllClients } = useCampaignHook();
 
-  const reduxClients = useSelector((state: any) => state.client?.clients || []);
+  const reduxClients = useSelector((state: any) => state.client?.getCreateClientData?.data || []);
   const reduxLoadingClients = useSelector((state: any) => state.client?.getCreateClientIsLoading || false);
 
-  const allClients = (reduxClients && reduxClients.length > 0) ? reduxClients : hookAllClients;
+  const allClients = reduxClients.length > 0 ? reduxClients : hookAllClients;
   const loadingClients = reduxLoadingClients || hookLoadingClients;
 
   useEffect(() => {
