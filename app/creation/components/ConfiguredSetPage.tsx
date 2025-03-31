@@ -19,6 +19,7 @@ import tictok from "../../../public/tictok.svg";
 import { funnelStages, getPlatformIcon } from "components/data";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { toast } from "react-toastify";
+import { FaCheckCircle } from "react-icons/fa";
 
 interface OutletType {
   id: number;
@@ -36,6 +37,12 @@ const ConfiguredSetPage = () => {
     Awareness: false,
     Consideration: false,
     Conversion: false,
+  });
+
+  const [stageStatus, setStageStatus] = useState({
+    Awareness: "Not started",
+    Consideration: "Not started", 
+    Conversion: "Not started"
   });
 
   const { campaignFormData, setCampaignFormData } = useCampaigns();
@@ -171,8 +178,30 @@ const ConfiguredSetPage = () => {
     return hasPlatformBudget || hasAdSetBudget;
   };
 
+  useEffect(() => {
+    // Update status when budget changes
+    campaignFormData?.funnel_stages.forEach(stageName => {
+      const stageData = campaignFormData?.channel_mix?.find(
+        ch => ch?.funnel_stage === stageName
+      );
+      
+      if (stageData?.stage_budget?.fixed_value > 0) {
+        setStageStatus(prev => ({
+          ...prev,
+          [stageName]: validatedStages[stageName] ? "Completed" : "In progress"
+        }));
+      } else {
+        setStageStatus(prev => ({
+          ...prev,
+          [stageName]: "Not started"
+        }));
+      }
+    });
+  }, [campaignFormData, validatedStages]);
+
   const handleValidateClick = (stage) => {
     setValidatedStages((prev) => ({ ...prev, [stage]: true }));
+    setStageStatus(prev => ({ ...prev, [stage]: "Completed" }));
 
     const stageData = campaignFormData?.channel_mix?.find(
       (ch) => ch?.funnel_stage === stage
@@ -245,12 +274,15 @@ const ConfiguredSetPage = () => {
               <div className="flex items-center gap-2">
                 <p
                   className={`font-semibold text-base ${
-                    stage.statusIsActive
+                    stageStatus[stage.name] === "Completed" 
+                      ? "text-green-500 flex items-center gap-2"
+                      : stageStatus[stage.name] === "In progress"
                       ? "text-[#3175FF]"
                       : "text-[#061237] opacity-50"
                   }`}
                 >
-                  {stage.status}
+                  {stageStatus[stage.name]}
+                  {stageStatus[stage.name] === "Completed" && <FaCheckCircle />}
                 </p>
               </div>
               <div>
