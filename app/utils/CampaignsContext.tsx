@@ -53,6 +53,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     level2: [],
     level3: [],
   });
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   const getActiveCampaign = async (docId?: string) => {
     try {
@@ -208,7 +209,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const clientId = campaignFormData.client_selection?.id;
-    if (clientId) {
+    if (clientId ) {
       fetchBusinessLevelOptions(clientId);
       setCampaignFormData((prev) => ({
         ...prev,
@@ -220,7 +221,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   }, [campaignFormData.client_selection?.id]);
 
   useEffect(() => {
-    if (cId) {
+    if (cId ) {
       getActiveCampaign();
     }
   }, [cId]);
@@ -245,6 +246,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         copy,
         setCopy,
         businessLevelOptions,
+        isLoggedIn,
+        setIsLoggedIn
       }}
     >
       {children}
