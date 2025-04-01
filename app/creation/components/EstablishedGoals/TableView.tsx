@@ -74,15 +74,7 @@ const TableView = () => {
                   audience_size: platform.audienceSize,
                   budget_size:
                     Number(platform?.budget?.fixed_value) > 0
-<<<<<<< HEAD
-                      ? `${Number(
-                        platform?.budget?.fixed_value
-                      )} ${getCurrencySymbol(
-                        campaignFormData?.campaign_budget?.currency
-                      )}`
-=======
                       ? `${Number(platform?.budget?.fixed_value)}`
->>>>>>> 1c9e5d9a724b52bc1bc35f40260d26d0184f41b4
                       : 0,
                   impressions: platform.impressions,
                   reach: platform.reach,
@@ -186,30 +178,6 @@ const TableView = () => {
                             key={index}
                             className="border-t bg-white hover:bg-gray-100"
                           >
-<<<<<<< HEAD
-                            <td className="py-6 px-6 text-[15px]">
-                              <span
-                                className="flex items-center gap-2 cursor-pointer"
-                                onClick={() =>
-                                  campaignFormData?.goal_level ===
-                                  "Adset level" &&
-                                  toggleRow(`${stage.name}${index}`)
-                                }
-                                style={{
-                                  color: channel?.color,
-                                }}
-                              >
-                                {campaignFormData?.goal_level ===
-                                  "Adset level" &&
-                                  channel?.ad_sets?.length > 0 && (
-                                    <span className="shrink-0">
-                                      <svg
-                                        width="17"
-                                        height="16"
-                                        viewBox="0 0 17 16"
-                                        fill="none"
-                                        xmlns="http://www.w3.org/2000/svg"
-=======
                             {tableBody[
                               campaignFormData?.campaign_objectives
                             ]?.map((body, bodyIndex) => {
@@ -225,13 +193,12 @@ const TableView = () => {
                                         className="flex items-center gap-2 cursor-pointer"
                                         onClick={() =>
                                           campaignFormData?.goal_level ===
-                                            "Adset level" &&
+                                          "Adset level" &&
                                           toggleRow(`${stage.name}${index}`)
                                         }
                                         style={{
                                           color: channel?.color,
                                         }}
->>>>>>> 1c9e5d9a724b52bc1bc35f40260d26d0184f41b4
                                       >
                                         {campaignFormData?.goal_level ===
                                           "Adset level" &&
@@ -278,17 +245,17 @@ const TableView = () => {
                                           Number(channel["cpm"])
                                         )
                                       ) ||
-                                      !isFinite(
-                                        calculateImpression(
-                                          Number(channel["budget_size"]),
-                                          Number(channel["cpm"])
-                                        )
-                                      )
-                                        ? "-"
-                                        : calculateImpression(
+                                        !isFinite(
+                                          calculateImpression(
                                             Number(channel["budget_size"]),
                                             Number(channel["cpm"])
-                                          )}
+                                          )
+                                        )
+                                        ? "-"
+                                        : calculateImpression(
+                                          Number(channel["budget_size"]),
+                                          Number(channel["cpm"])
+                                        )}
                                     </>
                                   ) : body === "reach" ? (
                                     <>
@@ -298,17 +265,17 @@ const TableView = () => {
                                           Number(channel["frequency"])
                                         )
                                       ) ||
-                                      !isFinite(
-                                        calculateReach(
-                                          Number(channel["impressions"]),
-                                          Number(channel["frequency"])
-                                        )
-                                      )
-                                        ? "-"
-                                        : calculateReach(
+                                        !isFinite(
+                                          calculateReach(
                                             Number(channel["impressions"]),
                                             Number(channel["frequency"])
-                                          )}
+                                          )
+                                        )
+                                        ? "-"
+                                        : calculateReach(
+                                          Number(channel["impressions"]),
+                                          Number(channel["frequency"])
+                                        )}
                                     </>
                                   ) : (
                                     <>
@@ -349,12 +316,8 @@ const TableView = () => {
                             </td>
                             <td className="py-6 px-6">
                               {channel.ad_sets?.reduce(
-<<<<<<< HEAD
-                                (total, adSet) => total + (Number(adSet.size) || 0),
-=======
                                 (total, adSet) =>
                                   total + (Number(adSet.size) || 0),
->>>>>>> 1c9e5d9a724b52bc1bc35f40260d26d0184f41b4
                                 0
                               )}
                             </td>
@@ -385,43 +348,6 @@ const TableView = () => {
                                 }
                               />
                             </td>
-<<<<<<< HEAD
-                            {campaignFormData?.goal_level === "Adset level" && (
-                              <>
-                                <td className="py-6 px-6">
-                                  {channel.audience}
-                                </td>
-                                <td className="py-6 px-6">
-                                  <input
-                                    type="text"
-                                    placeholder="Enter Frequency"
-                                    className="bg-transparent border-none outline-none w-full"
-                                    value={
-                                      campaignFormData?.channel_mix
-                                        ?.find(
-                                          (ch) =>
-                                            ch?.funnel_stage === stage.name
-                                        )
-                                      [channel?.channelName]?.find(
-                                        (c) =>
-                                          c?.platform_name === channel?.name
-                                      )?.frequency || ""
-                                    }
-                                    onChange={(e) =>
-                                      handleEditInfo(
-                                        stage.name,
-                                        channel?.channelName,
-                                        channel?.name,
-                                        "frequency",
-                                        e.target.value
-                                      )
-                                    }
-                                  />
-                                </td>
-                                <td className="py-6 px-6">{channel.reach}</td>
-                              </>
-                            )}
-=======
                             <td className="py-6 px-6">{channel.audience}</td>
                             <td className="py-6 px-6">
                               <input
@@ -450,7 +376,6 @@ const TableView = () => {
                               />
                             </td>
                             <td className="py-6 px-6">{channel.reach}</td> */}
->>>>>>> 1c9e5d9a724b52bc1bc35f40260d26d0184f41b4
                           </tr>
 
                           {/* Sub-table (Expanded Rows) */}
@@ -500,17 +425,10 @@ const TableView = () => {
                                             (ch) =>
                                               ch?.funnel_stage === stage.name
                                           )
-<<<<<<< HEAD
                                         [channel?.channelName]?.find(
                                           (c) =>
                                             c?.platform_name === channel?.name
-                                        )?.cpm || ""
-=======
-                                          [channel?.channelName]?.find(
-                                            (c) =>
-                                              c?.platform_name === channel?.name
-                                          )?.ad_sets[Aindex]?.cpm || ""
->>>>>>> 1c9e5d9a724b52bc1bc35f40260d26d0184f41b4
+                                        )?.ad_sets[Aindex]?.cpm || ""
                                       }
                                       onChange={(e) =>
                                         handleEditInfo(
@@ -524,28 +442,6 @@ const TableView = () => {
                                       }
                                     />
                                   </td>
-<<<<<<< HEAD
-                                  {campaignFormData?.goal_level ===
-                                    "Adset level" && (
-                                      <>
-                                        <td className="!py-0 px-6 border-none">
-                                          {awareness.audience
-                                            ? awareness.audience
-                                            : "-"}
-                                        </td>
-                                        <td className="!py-0 px-6 border-none">
-                                          {awareness.frequency
-                                            ? awareness.frequency
-                                            : "-"}
-                                        </td>
-                                        <td className="!py-0 px-6 border-none">
-                                          {awareness.reach
-                                            ? awareness.reach
-                                            : "-"}
-                                        </td>
-                                      </>
-                                    )}
-=======
 
                                   <>
                                     <td className="!py-0 px-6 border-none">
@@ -564,11 +460,11 @@ const TableView = () => {
                                               (ch) =>
                                                 ch?.funnel_stage === stage.name
                                             )
-                                            [channel?.channelName]?.find(
-                                              (c) =>
-                                                c?.platform_name ===
-                                                channel?.name
-                                            )?.ad_sets[Aindex]?.frequency || ""
+                                          [channel?.channelName]?.find(
+                                            (c) =>
+                                              c?.platform_name ===
+                                              channel?.name
+                                          )?.ad_sets[Aindex]?.frequency || ""
                                         }
                                         onChange={(e) =>
                                           handleEditInfo(
@@ -586,21 +482,20 @@ const TableView = () => {
                                       {awareness.reach ? awareness.reach : "-"}
                                     </td>
                                   </>
->>>>>>> 1c9e5d9a724b52bc1bc35f40260d26d0184f41b4
-                                </tr>
+                                </tr >
                               ))}
                             </>
                           )}
-                        </React.Fragment>
+                        </React.Fragment >
                       ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </section>
+                  </tbody >
+                </table >
+              </div >
+            </div >
+          </section >
         );
       })}
-    </div>
+    </div >
   );
 };
 
