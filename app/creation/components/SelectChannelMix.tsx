@@ -42,7 +42,7 @@ const SelectChannelMix = () => {
             delete initialSelected[stageName][category];
           }
         });
-        
+
         // Set initial status based on selection
         if (Object.values(initialSelected[stageName] || {}).some(arr => Array.isArray(arr) && arr.length > 0)) {
           initialStatuses[stageName] = validatedStages[stageName] ? "Completed" : "In progress";
@@ -56,7 +56,7 @@ const SelectChannelMix = () => {
 
     if (campaignFormData?.validatedStages) {
       setValidatedStages(campaignFormData.validatedStages);
-      
+
       // Update statuses for validated stages
       if (campaignFormData?.funnel_stages?.length > 0) {
         const updatedStatuses = { ...stageStatuses };
@@ -86,17 +86,17 @@ const SelectChannelMix = () => {
       const newCategorySelection = isAlreadySelected
         ? categorySelection.filter(p => p !== platformName)
         : [...categorySelection, platformName];
-      
+
       const newStageSelection = {
         ...stageSelection,
         [category]: newCategorySelection
       };
-      
+
       // Update status to "In progress" if any platform is selected
       const hasSelections = Object.values(newStageSelection).some(
         arr => Array.isArray(arr) && arr.length > 0
       );
-      
+
       if (hasSelections && stageStatuses[stageName] !== "Completed") {
         setStageStatuses(prev => ({
           ...prev,
@@ -176,12 +176,6 @@ const SelectChannelMix = () => {
         [stageName]: false
       }));
 
-<<<<<<< HEAD
-      setCampaignFormData(prev => ({
-        ...prev,
-        validatedStages: updatedValidatedStages
-      }));
-=======
       setCampaignFormData(prev => {
         const updatedChannelMix = prev.channel_mix.map(mix => {
           if (mix.funnel_stage === stageName) {
@@ -202,7 +196,6 @@ const SelectChannelMix = () => {
           validatedStages: updatedValidatedStages
         };
       });
->>>>>>> 1c9e5d9a724b52bc1bc35f40260d26d0184f41b4
     }
   };
 
@@ -290,12 +283,6 @@ const SelectChannelMix = () => {
                     <div className="mt-8 px-6">
                       {Object.entries(selected[stage.name] || {}).map(
                         ([category, platformNames]) => {
-<<<<<<< HEAD
-                          if (stage.name === "Awareness") {
-                            console.log(`Awareness - ${category}:`, platformNames);
-                          }
-=======
->>>>>>> 1c9e5d9a724b52bc1bc35f40260d26d0184f41b4
                           if (!Array.isArray(platformNames) || platformNames.length === 0) return null;
                           const validPlatformNames = platformNames.filter(pn =>
                             stage.platforms[category]?.some(p => p.name === pn)
@@ -370,8 +357,8 @@ const SelectChannelMix = () => {
                                   </div>
                                   <div
                                     className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${isSelected
-                                        ? "bg-[#3175FF]"
-                                        : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
+                                      ? "bg-[#3175FF]"
+                                      : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
                                       }`}
                                   >
                                     {isSelected && (
@@ -400,8 +387,8 @@ const SelectChannelMix = () => {
                             handleValidate(stage.name);
                           }}
                           className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isStageValid(stage.name)
-                              ? "bg-[#3175FF] hover:bg-[#2563eb]"
-                              : "bg-[#3175FF] opacity-50 cursor-not-allowed"
+                            ? "bg-[#3175FF] hover:bg-[#2563eb]"
+                            : "bg-[#3175FF] opacity-50 cursor-not-allowed"
                             }`}
                         >
                           Validate

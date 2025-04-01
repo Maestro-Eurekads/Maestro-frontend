@@ -44,22 +44,21 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const token = await getServerSession(authOptions);
-  console.log("🚀 ~ Home ~ token:", token);
   if (!token) {
     return (
       <html data-theme="light" lang="en" suppressHydrationWarning>
         <head>
-        <meta
-          name="viewport"
-          content="width=device-width, maximum-scale=1.0, user-scalable=no, initial-scale=1, shrink-to-fit=no"
-        />
-      </head>
+          <meta
+            name="viewport"
+            content="width=device-width, maximum-scale=1.0, user-scalable=no, initial-scale=1, shrink-to-fit=no"
+          />
+        </head>
         <body>
-          
-        <Login />
+
+          <Login />
         </body>
       </html>
-  );
+    );
   }
   return (
     <html data-theme="light" lang="en" suppressHydrationWarning>
