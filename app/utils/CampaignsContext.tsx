@@ -42,7 +42,7 @@ interface CampaignFormData {
   budget_details_value: string
   campaign_objective: string
   funnel_stages: any[]
-  channel_mix: Record<string, any>
+  channel_mix: any[]
   campaign_timeline_start_date: string
   campaign_timeline_end_date: string
   campaign_budget: Record<string, any>
@@ -96,7 +96,7 @@ const initialState: CampaignFormData = {
   budget_details_value: "",
   campaign_objective: "",
   funnel_stages: [],
-  channel_mix: {},
+  channel_mix: [],
   campaign_timeline_start_date: "",
   campaign_timeline_end_date: "",
   campaign_budget: {},
