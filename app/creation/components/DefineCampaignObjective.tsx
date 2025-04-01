@@ -10,6 +10,7 @@ import { useVerification, validationRules } from "app/utils/VerificationContext"
 import { removeKeysRecursively } from "utils/removeID";
 import { SVGLoader } from "components/SVGLoader";
 import { useSearchParams } from "next/navigation";
+import { FaSpinner } from "react-icons/fa";
 
 const DefineCampaignObjective = () => {
   const {
@@ -22,6 +23,7 @@ const DefineCampaignObjective = () => {
   } = useCampaigns();
   const searchParams = useSearchParams();
   const { selectedObjectives, setSelectedObjectives } = useObjectives();
+  const {loadingObj, objectives} = useCampaigns()
   const { verifyStep, validateStep, setHasChanges, hasChanges } = useVerification();
   const campaignId = searchParams.get("campaignId");
   const [isEditing, setIsEditing] = useState(false);
@@ -76,7 +78,7 @@ const DefineCampaignObjective = () => {
         }]);
         setCampaignFormData(prev => ({
           ...prev,
-          campaign_objectives: matchingObjective?.title
+          campaign_objective: matchingObjective?.title
         }));
       }
     }
@@ -112,7 +114,7 @@ const DefineCampaignObjective = () => {
     try {
       await updateCampaign({
         ...cleanData,
-        campaign_objective: campaignFormData?.campaign_objectives,
+        campaign_objective: campaignFormData?.campaign_objective,
       });
       await getActiveCampaign(cleanData);
 
@@ -147,7 +149,7 @@ const DefineCampaignObjective = () => {
     });
     setCampaignFormData((prev) => ({
       ...prev,
-      campaign_objectives: title,
+      campaign_objective: title,
     }));
   };
 
@@ -157,6 +159,10 @@ const DefineCampaignObjective = () => {
     // Initialize temp selection with current selection
     setTempSelectedObjective([...selectedObjectives]);
   };
+
+  if(loadingObj){
+    return <center><FaSpinner size={40} color="#3175FF" className="animate-spin"/></center>
+  }
 
   return (
     <div>
@@ -178,15 +184,15 @@ const DefineCampaignObjective = () => {
       {alert && <AlertMain alert={alert} />}
       {/* Alert Notification */}
       <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-[80px] mt-[50px] place-items-center">
-        {campaignObjectives.map(item => {
+        {objectives?.map(item => {
           const isSelected = isEditing
-            ? tempSelectedObjective.some(obj => obj.id === item.id)
-            : selectedObjectives.some(obj => obj.id === item.id);
+            ? tempSelectedObjective.some(obj => obj.title === item.title)
+            : selectedObjectives.some(obj => obj.title === item.title);
           return (
             <div key={item.id} className={`relative p-4 rounded-lg transition-all duration-300 ${isSelected ? "creation_card_active shadow-lg" : "creation_card"} ${isEditing ? "cursor-pointer" : "cursor-not-allowed"}`} onClick={() => isEditing ? handleSelect(item.id, item.title) : setAlert({ variant: 'info', message: 'Please click on Edit!', position: 'bottom-right' })}>
               {isSelected && <div className="absolute right-4 top-4"><Image src={Mark} alt="Selected" /></div>}
               <div className="flex items-center gap-2">
-                <Image src={item.icon} alt={item.title} />
+                <Image src={item.icon} alt={item.title} className="w-[24px] h-[24px]" width={24} height={24} />
                 <h6 className="text-[18px] font-semibold text-[#061237]">{item.title}</h6>
               </div>
               <p className="text-[15px] font-medium text-[#061237] leading-[175%]">{item.description}</p>

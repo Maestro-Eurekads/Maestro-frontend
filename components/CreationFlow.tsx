@@ -82,7 +82,7 @@ const CreationFlow = ({ steps }) => {
                 {step?.title}
               </span>
               {isCompleted && step?.objective && (
-             <div className="objective_step_text whitespace-nowrap">
+             <div className="objective_step_text whitespace-wrap break-words">
                   {step?.objective}
                 </div>
               )}

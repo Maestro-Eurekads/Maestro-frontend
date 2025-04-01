@@ -19,10 +19,10 @@ const TableView = () => {
   // Initialize merged headers and body when campaign objectives change
   useEffect(() => {
     const existingHeaderNames = new Set(
-      tableHeaders[campaignFormData?.campaign_objectives]?.map((header) => header.name) || [],
+      tableHeaders[campaignFormData?.campaign_objective]?.map((header) => header.name) || [],
     )
-    const newHeaders = [...(tableHeaders[campaignFormData?.campaign_objectives] || [])]
-    const newBody = [...(tableBody[campaignFormData?.campaign_objectives] || [])]
+    const newHeaders = [...(tableHeaders[campaignFormData?.campaign_objective] || [])]
+    const newBody = [...(tableBody[campaignFormData?.campaign_objective] || [])]
 
     selectedMetrics.forEach((metric) => {
       if (!existingHeaderNames.has(metric.name)) {
@@ -38,7 +38,7 @@ const TableView = () => {
 
     setMergedTableHeaders(newHeaders)
     setMergedTableBody(newBody)
-  }, [selectedMetrics, campaignFormData?.campaign_objectives])
+  }, [selectedMetrics, campaignFormData?.campaign_objective])
 
   const toggleRow = (index) => {
     setExpandedRows((prev) => ({
@@ -131,7 +131,7 @@ const TableView = () => {
             key={index}
             stage={stage}
             stageData={stageData}
-            campaignObjectives={campaignFormData?.campaign_objectives}
+            campaignObjectives={campaignFormData?.campaign_objective}
             goalLevel={campaignFormData?.goal_level}
             expandedRows={expandedRows}
             toggleRow={toggleRow}
@@ -147,7 +147,7 @@ const TableView = () => {
           <p>Add specific metrics to your existing table</p>
           <div className="mt-4 max-h-[400px] overflow-y-auto">
             {Object.keys(tableHeaders)
-              .filter((header) => header !== campaignFormData?.campaign_objectives && header !== "Brand Awareness")
+              .filter((header) => header !== campaignFormData?.campaign_objective && header !== "Brand Awareness")
               .map((kpiCategory, index) => (
                 <div key={index} className="mb-4">
                   <p className="font-medium text-[16px] mb-2">{kpiCategory}</p>
@@ -156,7 +156,7 @@ const TableView = () => {
                       .filter(
                         (header) =>
                           // Filter out headers that are already in the current campaign objective
-                          !tableHeaders[campaignFormData?.campaign_objectives]?.some(
+                          !tableHeaders[campaignFormData?.campaign_objective]?.some(
                             (existingHeader) => existingHeader.name === header.name,
                           ),
                       )

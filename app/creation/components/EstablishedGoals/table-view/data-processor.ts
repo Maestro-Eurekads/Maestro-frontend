@@ -4,7 +4,7 @@ import { tableHeaders } from "utils/tableHeaders";
 
 export function extractPlatforms(data) {
   const platforms = {};
-  const headers = tableHeaders[data?.campaign_objectives] || [];
+  const headers = tableHeaders[data?.campaign_objective] || [];
 
   data?.channel_mix?.length > 0 &&
     data.channel_mix.forEach((stage) => {

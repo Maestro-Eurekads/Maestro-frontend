@@ -192,7 +192,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
 
     if (active === 1) {
-      if (campaignFormData?.campaign_objectives?.length === 0) {
+      if (campaignFormData?.campaign_objective?.length === 0) {
         setAlert({
           variant: "error",
           message: "Please define a campaign objective before proceeding!",
@@ -374,7 +374,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       if (!campaignData || !cId) return;
       await updateCampaignData({
         ...cleanData,
-        campaign_objective: campaignFormData?.campaign_objectives,
+        campaign_objective: campaignFormData?.campaign_objective,
       });
     };
 
@@ -457,9 +457,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     try {
       if (active === 0) {
         await handleStepZero();
-      } else if (active === 1) {
-        await handleStepOne();
-      } else if (active === 2) {
+      }  else if (active === 2) {
         await handleStepTwo();
       } else if (active === 3) {
         await handleStepThree();
