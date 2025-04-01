@@ -11,9 +11,23 @@ import { useCampaigns } from "../../utils/CampaignsContext";
 const SelectChannelMix = () => {
   const [openItems, setOpenItems] = useState({});
   const [selected, setSelected] = useState({});
-  const [validatedStages, setValidatedStages] = useState({});
+  const [validatedStages, setValidatedStages] = useState(() => {
+    // Initialize from localStorage if available
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('validatedStages');
+      return saved ? JSON.parse(saved) : {};
+    }
+    return {};
+  });
   const [stageStatuses, setStageStatuses] = useState({});
   const { campaignFormData, setCampaignFormData } = useCampaigns();
+
+  // Save validatedStages to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('validatedStages', JSON.stringify(validatedStages));
+    }
+  }, [validatedStages]);
 
   useEffect(() => {
     if (campaignFormData?.funnel_stages?.length > 0) {
@@ -55,7 +69,10 @@ const SelectChannelMix = () => {
     }
 
     if (campaignFormData?.validatedStages) {
-      setValidatedStages(campaignFormData.validatedStages);
+      setValidatedStages(prevValidated => ({
+        ...prevValidated,
+        ...campaignFormData.validatedStages
+      }));
       
       // Update statuses for validated stages
       if (campaignFormData?.funnel_stages?.length > 0) {

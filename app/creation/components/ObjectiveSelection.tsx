@@ -42,7 +42,11 @@ const platformIcons = {
 
 const ObjectiveSelection = () => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
-  const [statuses, setStatuses] = useState({});
+  const [statuses, setStatuses] = useState(() => {
+    // Initialize from localStorage if available
+    const savedStatuses = localStorage.getItem('funnelStageStatuses');
+    return savedStatuses ? JSON.parse(savedStatuses) : {};
+  });
   const [selectedOptions, setSelectedOptions] = useState({});
   const [isEditable, setIsEditable] = useState({});
   const [previousSelectedOptions, setPreviousSelectedOptions] = useState({});
@@ -52,11 +56,22 @@ const ObjectiveSelection = () => {
     Conversion: new Set(),
     Loyalty: new Set(),
   });
-  const [validatedPlatforms, setValidatedPlatforms] = useState({
-    Awareness: new Set(),
-    Consideration: new Set(),
-    Conversion: new Set(),
-    Loyalty: new Set(),
+  const [validatedPlatforms, setValidatedPlatforms] = useState(() => {
+    // Initialize from localStorage if available
+    const savedPlatforms = localStorage.getItem('validatedPlatforms');
+    return savedPlatforms ? JSON.parse(savedPlatforms, (key, value) => {
+      if (typeof value === 'object' && value !== null) {
+        if (value.dataType === 'Set') {
+          return new Set(value.value);
+        }
+      }
+      return value;
+    }) : {
+      Awareness: new Set(),
+      Consideration: new Set(),
+      Conversion: new Set(),
+      Loyalty: new Set(),
+    };
   });
   const [dropdownOpen, setDropdownOpen] = useState({});
 
@@ -65,13 +80,39 @@ const ObjectiveSelection = () => {
   // Initialize statuses when campaign form data changes
   useEffect(() => {
     if (campaignFormData?.funnel_stages) {
-      const initialStatuses = {};
+      const savedStatuses = localStorage.getItem('funnelStageStatuses');
+      const initialStatuses = savedStatuses ? JSON.parse(savedStatuses) : {};
+      
+      // Only initialize stages that don't have a saved status
       campaignFormData.funnel_stages.forEach(stage => {
-        initialStatuses[stage] = "Not Started";
+        if (!initialStatuses[stage]) {
+          initialStatuses[stage] = "Not Started";
+        }
       });
+      
       setStatuses(initialStatuses);
+      localStorage.setItem('funnelStageStatuses', JSON.stringify(initialStatuses));
     }
   }, [campaignFormData?.funnel_stages]);
+
+  // Save validatedPlatforms to localStorage whenever they change
+  useEffect(() => {
+    const serializedPlatforms = JSON.stringify(validatedPlatforms, (key, value) => {
+      if (value instanceof Set) {
+        return {
+          dataType: 'Set',
+          value: Array.from(value)
+        };
+      }
+      return value;
+    });
+    localStorage.setItem('validatedPlatforms', serializedPlatforms);
+  }, [validatedPlatforms]);
+
+  // Save statuses to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('funnelStageStatuses', JSON.stringify(statuses));
+  }, [statuses]);
 
   // Sync selectedOptions with campaignFormData on mount or update
   useEffect(() => {
@@ -169,10 +210,14 @@ const ObjectiveSelection = () => {
     }));
 
     // Update status to "In progress" only when an option is selected
-    setStatuses(prev => ({
-      ...prev,
-      [stageName]: "In progress"
-    }));
+    setStatuses(prev => {
+      const newStatuses = {
+        ...prev,
+        [stageName]: "In progress"
+      };
+      localStorage.setItem('funnelStageStatuses', JSON.stringify(newStatuses));
+      return newStatuses;
+    });
 
     // Update campaignFormData
     const channelMix = Array.isArray(campaignFormData?.channel_mix)
@@ -232,10 +277,14 @@ const ObjectiveSelection = () => {
 
   const handleValidate = (stageName) => {
     // Update status to "Completed"
-    setStatuses(prev => ({
-      ...prev,
-      [stageName]: "Completed"
-    }));
+    setStatuses(prev => {
+      const newStatuses = {
+        ...prev,
+        [stageName]: "Completed"
+      };
+      localStorage.setItem('funnelStageStatuses', JSON.stringify(newStatuses));
+      return newStatuses;
+    });
     
     setIsEditable((prev) => ({ ...prev, [stageName]: true }));
 
@@ -250,10 +299,26 @@ const ObjectiveSelection = () => {
       }
     });
 
-    setValidatedPlatforms((prev) => ({
-      ...prev,
-      [stageName]: validatedPlatformsSet,
-    }));
+    setValidatedPlatforms((prev) => {
+      const newValidatedPlatforms = {
+        ...prev,
+        [stageName]: validatedPlatformsSet,
+      };
+      
+      // Save to localStorage with proper Set serialization
+      const serializedPlatforms = JSON.stringify(newValidatedPlatforms, (key, value) => {
+        if (value instanceof Set) {
+          return {
+            dataType: 'Set',
+            value: Array.from(value)
+          };
+        }
+        return value;
+      });
+      localStorage.setItem('validatedPlatforms', serializedPlatforms);
+      
+      return newValidatedPlatforms;
+    });
 
     setCampaignFormData((prev) => ({
       ...prev,
@@ -306,7 +371,7 @@ const ObjectiveSelection = () => {
       .find((ch) => ch.funnel_stage === stageName)
       ?.[normalizedCategory]?.find((p) => p.platform_name === platformName);
 
-    if (!validatedPlatforms[stageName].has(platformName) || !platformData) {
+    if (!validatedPlatforms[stageName]?.has(platformName) || !platformData) {
       return null;
     }
 
@@ -346,7 +411,7 @@ const ObjectiveSelection = () => {
       .find((ch) => ch.funnel_stage === stageName)
       ?.[normalizedCategory]?.map((p) => p.platform_name) || [];
     return platformsInCategory.some((platform) =>
-      validatedPlatforms[stageName].has(platform)
+      validatedPlatforms[stageName]?.has(platform)
     );
   };
 
@@ -593,10 +658,32 @@ const ObjectiveSelection = () => {
                           [stage.name]: false,
                         }));
                         setSelectedOptions(previousSelectedOptions);
-                        setStatuses(prev => ({
-                          ...prev,
-                          [stageName]: "Not Started"
-                        }));
+                        setStatuses(prev => {
+                          const newStatuses = {
+                            ...prev,
+                            [stageName]: "Not Started"
+                          };
+                          localStorage.setItem('funnelStageStatuses', JSON.stringify(newStatuses));
+                          return newStatuses;
+                        });
+                        // Clear validated platforms for this stage
+                        setValidatedPlatforms(prev => {
+                          const newValidatedPlatforms = {
+                            ...prev,
+                            [stageName]: new Set()
+                          };
+                          const serializedPlatforms = JSON.stringify(newValidatedPlatforms, (key, value) => {
+                            if (value instanceof Set) {
+                              return {
+                                dataType: 'Set',
+                                value: Array.from(value)
+                              };
+                            }
+                            return value;
+                          });
+                          localStorage.setItem('validatedPlatforms', serializedPlatforms);
+                          return newValidatedPlatforms;
+                        });
                       }}
                     />
                   </div>
