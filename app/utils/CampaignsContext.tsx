@@ -59,8 +59,8 @@ interface BusinessLevelOptions {
 interface CampaignContextType {
   loadingClients: boolean
   allClients: any[]
-  campaignFormData: CampaignFormData
-  setCampaignFormData: React.Dispatch<React.SetStateAction<CampaignFormData>>
+  campaignFormData: any
+  setCampaignFormData: any
   createCampaign: () => Promise<any>
   updateCampaign: (data: any) => Promise<any>
   campaignData: any
@@ -117,7 +117,7 @@ const apiClient = axios.create({
 
 export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   // State management
-  const [campaignFormData, setCampaignFormData] = useState<CampaignFormData>(initialState)
+  const [campaignFormData, setCampaignFormData] = useState<any>(initialState)
   const [campaignData, setCampaignData] = useState<any>(null)
   const [clientCampaignData, setClientCampaignData] = useState<any[]>([])
   const [loading, setLoading] = useState<boolean>(false)
