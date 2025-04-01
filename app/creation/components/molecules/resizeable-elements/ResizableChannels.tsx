@@ -40,7 +40,6 @@ const ResizableChannels = ({
   dateList,
   disableDrag = false,
 }: ResizableChannelsProps) => {
-  console.log("🚀 parentWidth:", parentWidth);
   const { campaignFormData, setCampaignFormData, setCopy } = useCampaigns();
   const { funnelWidths } = useFunnelContext(); // Get parent widths
   const draggingDataRef = useRef(null);
@@ -73,23 +72,23 @@ const ResizableChannels = ({
     (ch) => ch?.funnel_stage === parentId
   )?.funnel_stage_timeline_start_date
     ? new Date(
-        campaignFormData?.channel_mix?.find(
-          (ch) => ch?.funnel_stage === parentId
-        )?.funnel_stage_timeline_start_date
-      )
+      campaignFormData?.channel_mix?.find(
+        (ch) => ch?.funnel_stage === parentId
+      )?.funnel_stage_timeline_start_date
+    )
     : campaignFormData?.campaign_time_start_date;
 
   const endDate = campaignFormData?.channel_mix?.find(
     (ch) => ch?.funnel_stage === parentId
   )?.funnel_stage_timeline_end_date
     ? new Date(
-        campaignFormData?.channel_mix?.find(
-          (ch) => ch?.funnel_stage === parentId
-        )?.funnel_stage_timeline_end_date
-      )
+      campaignFormData?.channel_mix?.find(
+        (ch) => ch?.funnel_stage === parentId
+      )?.funnel_stage_timeline_end_date
+    )
     : campaignFormData?.campaign_time_end_date;
 
-  // console.log({ startDate, endDate });
+
 
   const dRange = eachDayOfInterval({
     start: startDate,
@@ -97,19 +96,19 @@ const ResizableChannels = ({
   });
 
   const pixelToDate = (pixel, containerWidth, index, fieldName) => {
-    console.log({ dRange });
+
 
     const totalDays = dRange?.length - 1;
-    console.log("🚀 ~ pixelToDate ~ totalDays:", totalDays);
+
     const dayIndex = Math.min(
       totalDays,
       Math.max(0, Math.round((pixel / containerWidth) * totalDays))
     );
-    console.log("🚀 ~ pixelToDate ~ dayIndex:", dayIndex);
+
 
     const calculatedDate = new Date(startDate);
     calculatedDate.setDate(startDate.getDate() + dayIndex);
-    console.log("🚀 ~ pixelToDate ~ calculatedDate:", calculatedDate);
+
 
     const updatedCampaignFormData = { ...campaignFormData };
 
@@ -140,12 +139,7 @@ const ResizableChannels = ({
   };
 
   const handleDragStart = (index) => (event) => {
-    console.log(
-      "bfjdfd",
-      index,
-      event.clientX,
-      channelState[index]?.left || parentLeft
-    );
+
     if (disableDrag) return;
     event.preventDefault();
     setDraggingPosition({
@@ -162,7 +156,7 @@ const ResizableChannels = ({
     const handleDragMove = (event: MouseEvent) => {
       event.preventDefault();
       const { index, startX, startLeft } = draggingPosition;
-      // console.log("🚀 ~ handleDragMove ~ draggingPosition:", draggingPosition);
+
       const deltaX = event.clientX - startX;
 
       let newLeft = startLeft + deltaX;
@@ -188,12 +182,7 @@ const ResizableChannels = ({
         "startDate"
       );
       const endDate = pixelToDate(endPixel, parentWidth, index, "endDate");
-      console.log("handleDragMove", {
-        startPixel,
-        endPixel,
-        startDate,
-        endDate,
-      });
+
 
       draggingDataRef.current = { index };
     };
@@ -298,14 +287,14 @@ const ResizableChannels = ({
           const existingState = prev[index];
           return existingState
             ? {
-                ...existingState,
-                // Update left position to match parent when it moves
-                left: parentLeft,
-              }
+              ...existingState,
+              // Update left position to match parent when it moves
+              left: parentLeft,
+            }
             : {
-                left: parentLeft,
-                width: Math.min(150, parentWidth), // Default width for new channels
-              };
+              left: parentLeft,
+              width: Math.min(150, parentWidth), // Default width for new channels
+            };
         });
         return newState;
       });
@@ -359,7 +348,7 @@ const ResizableChannels = ({
           // Calculate start and end pixel positions
           const startPixel = newLeft - parentLeft; // Adjusted to be relative
           const endPixel = startPixel - 1 + newWidth;
-          console.log("handleMouseMove", { startPixel, endPixel, newWidth });
+
 
           // Convert pixel positions to dates
           const startDate = pixelToDate(
@@ -374,7 +363,7 @@ const ResizableChannels = ({
             index,
             "endDate"
           );
-          console.log("Start Date:", startDate, "End Date:", endDate);
+
 
           // setCopy(updatedCampaignFormData);
 
@@ -422,9 +411,8 @@ const ResizableChannels = ({
       {channels?.map((channel, index) => {
         const getColumnIndex = (date) =>
           dRange.findIndex((d) => d.toISOString().split("T")[0] === date);
-        // console.log("drange", dRange);
+
         const updatedCampaignFormData = { ...campaignFormData };
-        console.log(channel);
         const channelMix = updatedCampaignFormData.channel_mix.find(
           (ch) => ch.funnel_stage === parentId
         );
@@ -454,9 +442,8 @@ const ResizableChannels = ({
           >
             <div>
               <div
-                className={` ${disableDrag ? "relative" : "absolute"} top-0 h-full flex ${
-                  disableDrag ? "justify-between" : "justify-center cursor-move"
-                }  items-center text-white px-4 gap-2 border shadow-md min-w-[150px] overflow-x-hidden `}
+                className={` ${disableDrag ? "relative" : "absolute"} top-0 h-full flex ${disableDrag ? "justify-between" : "justify-center cursor-move"
+                  }  items-center text-white px-4 gap-2 border shadow-md min-w-[150px] overflow-x-hidden `}
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
                   width: disableDrag
@@ -546,9 +533,8 @@ const ResizableChannels = ({
             {!disableDrag && (
               <>
                 <div
-                  className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
-                    disableDrag && "hidden"
-                  }`}
+                  className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${disableDrag && "hidden"
+                    }`}
                   style={{
                     left: `${channelState[index]?.left || parentLeft}px`,
                     backgroundColor: channel.color,
@@ -560,14 +546,12 @@ const ResizableChannels = ({
                   <MdDragHandle className="rotate-90" />
                 </div>
                 <div
-                  className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
-                    disableDrag && "hidden"
-                  }`}
+                  className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${disableDrag && "hidden"
+                    }`}
                   style={{
-                    left: `${
-                      (channelState[index]?.left || parentLeft) +
+                    left: `${(channelState[index]?.left || parentLeft) +
                       (channelState[index]?.width + 22 || 150)
-                    }px`,
+                      }px`,
                     backgroundColor: channel.color,
                   }}
                   onMouseDown={handleMouseDown(index, "right")}

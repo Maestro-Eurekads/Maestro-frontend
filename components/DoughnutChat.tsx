@@ -32,7 +32,6 @@ const DoughnutChart = ({
 }) => {
   const chartRef = useRef(null);
 
-  console.log("data", data)
 
 
   //@ts-ignore

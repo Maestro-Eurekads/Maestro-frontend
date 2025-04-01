@@ -20,7 +20,7 @@ interface PlatformsByStage {
   [key: string]: OutletType[];
 }
 
-const EstablishedGoalsTimeline = ({}) => {
+const EstablishedGoalsTimeline = ({ }) => {
   // State management
   const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({});
   const [isOpen, setIsOpen] = useState(false);
@@ -60,7 +60,7 @@ const EstablishedGoalsTimeline = ({}) => {
           if (!Array.isArray(platforms)) return;
 
           platforms.forEach((platform: any) => {
-            console.log("🚀 ~ platforms.forEach ~ platform:", platform)
+
             const icon = getPlatformIcon(platform?.platform_name);
             if (!icon) return;
 
@@ -142,15 +142,15 @@ const EstablishedGoalsTimeline = ({}) => {
         // Get stage timeline dates
         const funnel_start_date = new Date(
           stageData?.funnel_stage_timeline_start_date ??
-            campaignFormData?.campaign_timeline_start_date
+          campaignFormData?.campaign_timeline_start_date
         );
         const funnel_end_date = new Date(
           stageData?.funnel_stage_timeline_end_date ??
-            campaignFormData?.campaign_timeline_start_date
+          campaignFormData?.campaign_timeline_start_date
         );
         const differenceInDays = Math.ceil(
           (funnel_end_date?.getTime() - funnel_start_date?.getTime()) /
-            (1000 * 60 * 60 * 24)
+          (1000 * 60 * 60 * 24)
         );
 
         const getColumnIndex = (date) =>

@@ -1,42 +1,161 @@
-import React, { useState } from "react";
+// import React, { useRef, useState } from "react";
+// import Image from "next/image";
+// import NoSSR from "./no-ssr";
+// import { useComments } from "app/utils/CommentProvider"; // Import context
+// import Mmessages from "../../public/messageOnplus.svg";
+// import Showcomment from "./Showcomment";
+// import Draggable from "react-draggable";
+// import { useAppSelector } from "store/useStore";
+
+// const DraggableComment = ({ comment }) => {
+
+// 	const { updateCommentsPosition, updatePosition } = useComments();
+// 	const [activeComment, setActiveComment] = useState(null);
+// 	const commentRef = useRef(null);
+
+// 	// const handleStop = (e, data) => {
+// 	// 	const newPosition = { x: data.x, y: data.y };
+// 	// 	updateCommentsPosition(comment?.documentId, newPosition);
+// 	// };
+
+// 	let positionTimeout: any = 5000; // Declare timeout variable outside to track it
+
+// 	const handleStop = (e, data) => {
+// 		const newPosition = { x: data?.x, y: data?.y };
+// 		// Update comment position immediately
+// 		updateCommentsPosition(comment?.documentId, newPosition);
+// 		// Clear any previous timeout to prevent multiple executions
+// 		if (positionTimeout) {
+// 			clearTimeout(positionTimeout);
+// 		}
+// 		// Set a new timeout to update position after 5 seconds
+// 		positionTimeout = setTimeout(() => {
+// 			updatePosition(comment?.documentId, newPosition);
+// 		}, 5000);
+// 	};
+
+// 	console.log("comment", comment);
+// 	console.log("comment", comment?.documentId);
+// 	console.log("comment", comment?.position.x);
+// 	console.log("comment", comment?.position.y);
+
+
+// 	return (
+// 		<Draggable
+// 			handle=".drag-handle"
+// 			nodeRef={commentRef}
+// 			defaultPosition={comment?.position}
+// 			onStop={handleStop}
+// 		>
+// 			{activeComment === comment?.documentId ? (
+// 				<div ref={commentRef} className="absolute cursor-move drag-handle z-50">
+// 					<Showcomment comment={comment} setActiveComment={setActiveComment} />
+// 				</div>
+// 			) : (
+// 				<div ref={commentRef} className="absolute cursor-move drag-handle z-20">
+// 					<button onClick={() => setActiveComment(comment?.documentId)} className="flex flex-row justify-center items-center w-[38px] h-[31px] bg-[#3175FF] rounded-md">
+// 					</button>
+// 					{/* <button onClick={() => setActiveComment(comment?.id)} >
+// 						<Image src={Mmessages} alt="message icon" />
+// 					</button> */}
+// 				</div>
+// 			)}
+// 		</Draggable>
+// 	);
+// };
+
+// const Message = () => {
+// 	const { data: comments } = useAppSelector((state) => state.comment);
+
+
+
+// 	return (
+// 		<NoSSR>
+// 			{comments?.map((comment) => (
+// 				<DraggableComment key={comment?.documentId} comment={comment} />
+// 			))}
+// 		</NoSSR>
+// 	);
+// };
+
+// export default Message;
+
+import React, { useRef, useState } from "react";
 import Image from "next/image";
+import NoSSR from "./no-ssr";
 import { useComments } from "app/utils/CommentProvider"; // Import context
 import Mmessages from "../../public/messageOnplus.svg";
 import Showcomment from "./Showcomment";
+import Draggable from "react-draggable";
+import { useAppSelector } from "store/useStore";
 
-const Message = () => {
-	const { comments, viewcommentsId } = useComments();
+const DraggableComment = ({ comment }) => {
+	const { updateCommentsPosition, updatePosition } = useComments();
 	const [activeComment, setActiveComment] = useState(null);
+	const commentRef = useRef(null);
 
-	console.log("comments-comments", viewcommentsId);
+	// const handleStop = (e, data) => {
+	// 	const newPosition = { x: data?.x, y: data?.y };
+	// 	updateCommentsPosition(comment?.documentId, newPosition);
+	// };
+	let positionTimeout: any = 5000; // Declare timeout variable outside to track it
+
+	const handleStop = (e, data) => {
+		const newPosition = { x: data?.x, y: data?.y };
+		// Update comment position immediately
+		updateCommentsPosition(comment?.documentId, newPosition);
+		// Clear any previous timeout to prevent multiple executions
+		if (positionTimeout) {
+			clearTimeout(positionTimeout);
+		}
+		// Set a new timeout to update position after 5 seconds
+		positionTimeout = setTimeout(() => {
+			updatePosition(comment?.documentId, newPosition);
+		}, 5000);
+	};
+
 
 	return (
-		<div className="relative w-full h-full z-50">
-			{comments.map((comment) => (
-				<div
-					key={comment.id}
-					className="absolute"
-					style={{
-						top: `${comment.position?.y || 0}px`,
-						left: `${comment.position?.x || 0}px`,
-					}}
-					onMouseEnter={() => setActiveComment(comment.id)}
-					onMouseLeave={() => setActiveComment(null)}
-				>
-					{activeComment === comment.id ? (
-						<Showcomment comment={comment} setShow={setActiveComment} />
-					) : (
-						<button>
-							<Image src={Mmessages} alt="message icon" />
-						</button>
-					)}
+		<Draggable
+			handle=".drag-handle"
+			nodeRef={commentRef}
+			defaultPosition={comment?.position}
+			onStop={handleStop}
+		>
+			{activeComment === comment?.documentId ? (
+				<div ref={commentRef} className="absolute cursor-move drag-handle z-50">
+					<Showcomment comment={comment} setActiveComment={setActiveComment} />
 				</div>
+			) : (
+				<div ref={commentRef} className="absolute cursor-move drag-handle z-20">
+					<button onClick={() => setActiveComment(comment?.documentId)} className="flex flex-row justify-center items-center w-[38px] h-[31px] bg-[#3175FF] rounded-md">
+					</button>
+					{/* <button onClick={() => setActiveComment(comment?.id)} >
+						<Image src={Mmessages} alt="message icon" />
+					</button> */}
+				</div>
+			)}
+		</Draggable>
+	);
+};
+
+const Message = () => {
+	const { data: comments } = useAppSelector((state) => state.comment);
+
+	console.log("comments--comments", comments);
+
+	return (
+		<NoSSR>
+			{comments.map((comment) => (
+				<DraggableComment key={comment?.documentId} comment={comment} />
 			))}
-		</div>
+		</NoSSR>
 	);
 };
 
 export default Message;
 
 
-// className="absolute left-[30%] bottom-[30%] z-50 cursor-grab active:cursor-grabbing"
+
+
+

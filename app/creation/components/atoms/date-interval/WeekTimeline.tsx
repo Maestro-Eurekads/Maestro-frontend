@@ -51,7 +51,7 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                 const style =
                   platformStyles.find((style) => style.name === platformName) ||
                   platformStyles[
-                    Math.floor(Math.random() * platformStyles.length)
+                  Math.floor(Math.random() * platformStyles.length)
                   ];
                 platforms.push({
                   platform_name: platformName,
@@ -94,11 +94,10 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
               }}
             >
               <div
-                className={`${
-                  expanded[index]
+                className={`${expanded[index]
                     ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4    h-[77px] bg-[#F9FAFB]  "'
                     : "flex justify-between items-center p-4"
-                } `}
+                  } `}
               >
                 <div>
                   <h3 className="text-[#061237] font-semibold text-[16px] leading-[22px]  ">
@@ -122,30 +121,29 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
               {expanded[index] && (
                 <div className="p-4">
                   {stages?.map((section, zIndex) => {
-                    console.log("🚀 ~ {stages?.map ~ section:", section)
+
                     const channels = extractPlatforms(
                       clientCampaignData[index]
                     );
-                    console.log("🚀 ~ {funnels.map ~ channels:", channels);
+
                     return (
                       <div
                         key={section?.name}
-                        // style={{
-                        // 	display: 'grid',
-                        // 	gridTemplateColumns: `repeat(${(endWeek + 1) - startWeek}, 1fr)`
-                        // }}
+                      // style={{
+                      // 	display: 'grid',
+                      // 	gridTemplateColumns: `repeat(${(endWeek + 1) - startWeek}, 1fr)`
+                      // }}
                       >
                         <div
                           onClick={() => toggleOpen(index, section?.name)}
-                          className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${
-                            section?.name === "Awareness"
+                          className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${section?.name === "Awareness"
                               ? "bg-[#3175FF]"
                               : section?.name === "Consideration"
-                              ? "bg-[#34A853]"
-                              : section?.name === "Conversion"
-                              ? "bg-[#ff9037]"
-                              : "bg-[#F05406]"
-                          } text-white`}
+                                ? "bg-[#34A853]"
+                                : section?.name === "Conversion"
+                                  ? "bg-[#ff9037]"
+                                  : "bg-[#F05406]"
+                            } text-white`}
                           style={{
                             gridColumnStart: startWeek,
                             gridColumnEnd: endWeek + 1 - startWeek + 1,
@@ -185,9 +183,8 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                                   key={platform_name}
                                   style={{
                                     display: "grid",
-                                    gridTemplateColumns: `repeat(${
-                                      endWeek + 1 - startWeek + 1 - 2
-                                    }, 1fr)`,
+                                    gridTemplateColumns: `repeat(${endWeek + 1 - startWeek + 1 - 2
+                                      }, 1fr)`,
                                   }}
                                 >
                                   <div

@@ -11,7 +11,7 @@ import { useCampaignSelection } from "../app/utils/CampaignSelectionContext";
 
 const Table = () => {
   const { clientCampaignData, loading } = useCampaigns();
-  const { setSelectedCampaignId } = useCampaignSelection(); // ✅ Use context
+  const { setSelectedCampaignId } = useCampaignSelection();
   const router = useRouter();
 
 
