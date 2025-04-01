@@ -75,7 +75,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 		dispatch(getComment());
 	}, [dispatch]);
 
-	console.log("setViewcommentsId", viewcommentsId);
+
 
 	return (
 		<div className={`drawer-container ${isOpen ? "drawer-open" : ""} overflow-y-auto max-h-screen`}>
