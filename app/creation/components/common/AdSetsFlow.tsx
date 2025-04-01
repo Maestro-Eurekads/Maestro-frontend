@@ -3,6 +3,7 @@
 import React, { memo, useState, useCallback, useEffect, useRef, createContext, useContext } from "react";
 import Image, { type StaticImageData } from "next/image";
 import { FaAngleRight } from "react-icons/fa";
+
 import { MdDelete, MdAdd } from "react-icons/md";
 import { useEditing } from "../../../utils/EditingContext";
 import { useCampaigns } from "../../../utils/CampaignsContext";

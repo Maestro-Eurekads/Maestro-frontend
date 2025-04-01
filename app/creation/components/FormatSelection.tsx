@@ -81,9 +81,8 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedValidationState = localStorage.getItem(`formatValidation_${stageName}`);
-      const initialValidation = savedValidationState ? JSON.parse(savedValidationState) : false;
-      setIsValidated(initialValidation);
+      const savedValidationState = campaignFormData?.validatedStages?.[stageName] || false;
+      setIsValidated(savedValidationState);
 
       const savedQuantities = localStorage.getItem(`quantities_${stageName}`);
       if (savedQuantities) {
@@ -95,7 +94,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
         setExpandedPlatforms(JSON.parse(savedExpanded));
       }
     }
-  }, [stageName]);
+  }, [stageName, campaignFormData?.validatedStages]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -262,10 +261,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     setIsValidated(newValidationState);
     setIsModalOpen(false);
 
-    if (typeof window !== "undefined") {
-      localStorage.setItem(`formatValidation_${stageName}`, JSON.stringify(newValidationState));
-    }
-
     const updatedChannelMix = campaignFormData.channel_mix.map((mix) => {
       if (mix.funnel_stage === stageName) {
         return {
@@ -278,6 +273,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       return mix;
     });
 
+    // Update both local state and context
     setCampaignFormData(prev => ({
       ...prev,
       channel_mix: updatedChannelMix,
@@ -286,6 +282,15 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
         [stageName]: newValidationState,
       },
     }));
+
+    // Store validation state in localStorage
+    if (typeof window !== "undefined") {
+      const validatedStages = {
+        ...campaignFormData.validatedStages,
+        [stageName]: newValidationState,
+      };
+      localStorage.setItem('validatedStages', JSON.stringify(validatedStages));
+    }
   };
 
   const hasPlatformSelectedFormats = (platformName: string, channelName: string) => {
@@ -415,8 +420,21 @@ export const FormatSelection = () => {
         setOpenTabs(initialTab);
         localStorage.setItem('formatSelectionOpenTabs', JSON.stringify(initialTab));
       }
+
+      // Load validated stages from localStorage
+      const savedValidatedStages = localStorage.getItem('validatedStages');
+      if (savedValidatedStages && campaignFormData) {
+        const parsedValidatedStages = JSON.parse(savedValidatedStages);
+        setCampaignFormData(prev => ({
+          ...prev,
+          validatedStages: {
+            ...prev.validatedStages,
+            ...parsedValidatedStages
+          }
+        }));
+      }
     }
-  }, [campaignFormData]);
+  }, [campaignFormData?.channel_mix]);
 
   const toggleTab = (stageName: string) => {
     const newOpenTabs = openTabs.includes(stageName)

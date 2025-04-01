@@ -41,8 +41,8 @@ const DefineAdSetPage = () => {
   const toggleItem = (stage: string) => {
     setOpenItems((prev) => {
       const newOpenItems = { ...prev, [stage]: !prev[stage] };
-      // If opening and status is "Completed" but no interaction has occurred yet, reset to "Not started"
-      if (newOpenItems[stage] && stageStatuses[stage] === "Completed" && !hasInteracted[stage]) {
+      // Reset status to "Not started" when opening, regardless of previous state
+      if (newOpenItems[stage] && !hasInteracted[stage]) {
         setStageStatuses((prev) => ({ ...prev, [stage]: "Not started" }));
       }
       return newOpenItems;
@@ -50,9 +50,8 @@ const DefineAdSetPage = () => {
   };
 
   const handleInteraction = (stageName: string) => {
-    if (stageStatuses[stageName] !== "Completed") {
-      setStageStatuses((prev) => ({ ...prev, [stageName]: "In progress" }));
-    }
+    // Only update status to "In progress" when user has actually interacted
+    setStageStatuses((prev) => ({ ...prev, [stageName]: "In progress" }));
     setHasInteracted((prev) => ({ ...prev, [stageName]: true }));
   };
 
@@ -63,6 +62,7 @@ const DefineAdSetPage = () => {
 
   const resetInteraction = (stageName: string) => {
     setHasInteracted((prev) => ({ ...prev, [stageName]: false }));
+    setStageStatuses((prev) => ({ ...prev, [stageName]: "Not started" }));
   };
 
   return (
