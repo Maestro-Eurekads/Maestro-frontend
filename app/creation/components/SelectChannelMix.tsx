@@ -11,14 +11,7 @@ import { useCampaigns } from "../../utils/CampaignsContext";
 const SelectChannelMix = () => {
   const [openItems, setOpenItems] = useState({});
   const [selected, setSelected] = useState({});
-  const [validatedStages, setValidatedStages] = useState(() => {
-    // Initialize from localStorage if available
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("validatedStages");
-      return saved ? JSON.parse(saved) : {};
-    }
-    return {};
-  });
+  const [validatedStages, setValidatedStages] = useState({});
   const [stageStatuses, setStageStatuses] = useState({});
   const { campaignFormData, setCampaignFormData, platformList } =
     useCampaigns();
@@ -66,7 +59,7 @@ const SelectChannelMix = () => {
             delete initialSelected[stageName][category];
           }
         });
-
+        
         // Set initial status based on selection
         if (
           Object.values(initialSelected[stageName] || {}).some(
@@ -123,17 +116,17 @@ const SelectChannelMix = () => {
       const newCategorySelection = isAlreadySelected
         ? categorySelection.filter((p) => p !== platformName)
         : [...categorySelection, platformName];
-
+      
       const newStageSelection = {
         ...stageSelection,
         [category]: newCategorySelection,
       };
-
+      
       // Update status to "In progress" if any platform is selected
       const hasSelections = Object.values(newStageSelection).some(
         (arr) => Array.isArray(arr) && arr.length > 0
       );
-
+      
       if (hasSelections && stageStatuses[stageName] !== "Completed") {
         setStageStatuses((prev) => ({
           ...prev,
@@ -181,7 +174,7 @@ const SelectChannelMix = () => {
           [categoryKey]: platformObjects,
         });
       }
-
+      
       return {
         ...prevFormData,
         channel_mix: updatedChannelMix,
@@ -203,7 +196,7 @@ const SelectChannelMix = () => {
         ...validatedStages,
         [stageName]: true,
       };
-
+      
       setValidatedStages(updatedValidatedStages);
       setStageStatuses((prev) => ({
         ...prev,
@@ -251,7 +244,7 @@ const SelectChannelMix = () => {
       ...validatedStages,
       [stageName]: false,
     };
-
+    
     setValidatedStages(updatedValidatedStages);
     setStageStatuses((prev) => ({
       ...prev,
@@ -569,10 +562,11 @@ const SelectChannelMix = () => {
                                 <div
                                   key={pIndex}
                                   className={`cursor-pointer flex flex-row justify-between items-center p-4 gap-2 w-[230px] h-[62px] bg-white 
-                                  border rounded-[10px] ${isSelected
+                                  border rounded-[10px] ${
+                                    isSelected
                                       ? "border-[#3175FF]"
                                       : "border-[rgba(0,0,0,0.1)]"
-                                    }`}
+                                  }`}
                                   onClick={(e) => handlePlatformClick(e, stage.name, category, platform.name)}
                                 >
                                   <div className="flex items-center gap-2">
@@ -582,10 +576,11 @@ const SelectChannelMix = () => {
                                     </p>
                                   </div>
                                   <div
-                                    className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${isSelected
-                                      ? "bg-[#3175FF]"
-                                      : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
-                                      }`}
+                                    className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${
+                                      isSelected
+                                        ? "bg-[#3175FF]"
+                                        : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
+                                    }`}
                                   >
                                     {isSelected && (
                                       <Image
@@ -612,10 +607,11 @@ const SelectChannelMix = () => {
                             e.stopPropagation();
                             handleValidate(stage.name);
                           }}
-                          className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isStageValid(stage.name)
-                            ? "bg-[#3175FF] hover:bg-[#2563eb]"
-                            : "bg-[#3175FF] opacity-50 cursor-not-allowed"
-                            }`}
+                          className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
+                            isStageValid(stage.name)
+                              ? "bg-[#3175FF] hover:bg-[#2563eb]"
+                              : "bg-[#3175FF] opacity-50 cursor-not-allowed"
+                          }`}
                         >
                           Validate
                         </button>
