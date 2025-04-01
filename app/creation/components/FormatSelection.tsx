@@ -2,7 +2,6 @@
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { FaCheck } from "react-icons/fa";
-import speaker from "../../../public/mdi_megaphone.svg";
 import down from "../../../public/arrow-down-2.svg";
 import up from "../../../public/arrow-down.svg";
 import facebook from "../../../public/facebook.svg";
@@ -85,7 +84,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       const savedValidationState = localStorage.getItem(`formatValidation_${stageName}`);
       const initialValidation = savedValidationState ? JSON.parse(savedValidationState) : false;
       setIsValidated(initialValidation);
-      console.log(`[${stageName}] Initial isValidated from localStorage: ${initialValidation}`);
 
       const savedQuantities = localStorage.getItem(`quantities_${stageName}`);
       if (savedQuantities) {
@@ -113,7 +111,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
         stage.display_networks?.some((platform) => platform.format?.length > 0) ||
         stage.search_engines?.some((platform) => platform.format?.length > 0));
     setIsValidateEnabled(hasMediaOptionsSelected);
-    console.log(`[${stageName}] hasMediaOptionsSelected: ${hasMediaOptionsSelected}`);
   }, [campaignFormData, stageName]);
 
   useEffect(() => {
@@ -208,8 +205,17 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
         previews: null,
       });
     }
-    setCampaignFormData({ ...campaignFormData, channel_mix: copy });
-    console.log(`[${stageName}] Format selected for ${platformName}:`, copy[stageIndex]);
+
+    // Reset validation state when a new format is selected
+    setIsValidated(false);
+    setCampaignFormData(prev => ({
+      ...prev,
+      channel_mix: copy,
+      validatedStages: {
+        ...prev.validatedStages,
+        [stageName]: false, // Reset global validation for this stage
+      },
+    }));
   };
 
   const handleQuantityChange = (platformName: string, formatName: string, change: number) => {
@@ -272,18 +278,14 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       return mix;
     });
 
-    setCampaignFormData(prev => {
-      const newValidatedStages = {
+    setCampaignFormData(prev => ({
+      ...prev,
+      channel_mix: updatedChannelMix,
+      validatedStages: {
         ...prev.validatedStages,
         [stageName]: newValidationState,
-      };
-      console.log(`[${stageName}] handleValidateOrEdit - New validatedStages:`, newValidatedStages);
-      return {
-        ...prev,
-        channel_mix: updatedChannelMix,
-        validatedStages: newValidatedStages,
-      };
-    });
+      },
+    }));
   };
 
   const hasPlatformSelectedFormats = (platformName: string, channelName: string) => {
@@ -414,7 +416,6 @@ export const FormatSelection = () => {
         localStorage.setItem('formatSelectionOpenTabs', JSON.stringify(initialTab));
       }
     }
-    console.log("[FormatSelection] campaignFormData:", campaignFormData);
   }, [campaignFormData]);
 
   const toggleTab = (stageName: string) => {
@@ -430,13 +431,24 @@ export const FormatSelection = () => {
 
   const hasSelectedFormatsForStage = (stageName: string) => {
     const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName);
-    const hasFormats = stage && (
+    return stage && (
       stage.social_media?.some((platform) => platform.format?.length > 0) ||
       stage.display_networks?.some((platform) => platform.format?.length > 0) ||
       stage.search_engines?.some((platform) => platform.format?.length > 0)
     );
-    console.log(`[${stageName}] hasSelectedFormatsForStage: ${hasFormats}`);
-    return hasFormats || false;
+  };
+
+  const getStageStatus = (stageName: string) => {
+    const hasFormats = hasSelectedFormatsForStage(stageName);
+    const isValidated = campaignFormData?.validatedStages?.[stageName] || false;
+
+    if (hasFormats && isValidated) {
+      return "Completed";
+    } else if (hasFormats) {
+      return "In progress";
+    } else {
+      return "Not started";
+    }
   };
 
   return (
@@ -450,17 +462,14 @@ export const FormatSelection = () => {
           const stage = funnelStages.find((s) => s.name === stageName);
           if (!stage) return null;
 
-          const isValidated = campaignFormData?.validatedStages?.[stageName] || false;
-          const hasFormats = hasSelectedFormatsForStage(stageName);
-          const isCompleted = isValidated;
-
-          console.log(`[${stageName}] Render - hasFormats: ${hasFormats}, isValidated: ${isValidated}, isCompleted: ${isCompleted}`);
+          const status = getStageStatus(stageName);
+          const isOpen = openTabs.includes(stage.name);
 
           return (
             <div key={index}>
               <div
                 className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${
-                  openTabs.includes(stage.name) ? "rounded-t-[10px]" : "rounded-[10px]"
+                  isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
                 }`}
                 onClick={() => toggleTab(stage.name)}
               >
@@ -470,7 +479,7 @@ export const FormatSelection = () => {
                     {stage.name}
                   </p>
                 </div>
-                {isCompleted ? (
+                {status === "Completed" ? (
                   <div className="flex items-center gap-2">
                     <Image
                       className="w-5 h-5 rounded-full p-1 bg-green-500"
@@ -479,7 +488,7 @@ export const FormatSelection = () => {
                     />
                     <p className="text-green-500 font-semibold">Completed</p>
                   </div>
-                ) : hasFormats ? (
+                ) : status === "In progress" ? (
                   <p className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF]">
                     In Progress
                   </p>
@@ -488,9 +497,9 @@ export const FormatSelection = () => {
                     Not started
                   </p>
                 )}
-                <Image src={openTabs.includes(stage.name) ? up : down} alt={openTabs.includes(stage.name) ? "up" : "down"} />
+                <Image src={isOpen ? up : down} alt={isOpen ? "up" : "down"} />
               </div>
-              {openTabs.includes(stage.name) && (
+              {isOpen && (
                 <div className="card-body bg-white border border-[#E5E5E5]">
                   <Platforms stageName={stage?.name} />
                 </div>
