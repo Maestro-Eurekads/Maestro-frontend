@@ -34,18 +34,18 @@ interface CampaignFormData {
   level_1: BusinessLevel
   level_2: BusinessLevel
   level_3: BusinessLevel
-  media_plan: string
+  media_plan: any
   approver: string
   budget_details_currency: CurrencyOption
   budget_details_fee_type: FeeType
-  budget_details_sub_fee_type: string
-  budget_details_value: string
+  budget_details_sub_fee_type: any
+  budget_details_value: any
   campaign_objective: string
   funnel_stages: any[]
   channel_mix: any[]
-  campaign_timeline_start_date: string
-  campaign_timeline_end_date: string
-  campaign_budget: Record<string, any>
+  campaign_timeline_start_date: any
+  campaign_timeline_end_date: any
+  campaign_budget: any
   goal_level: string
   validatedStages:any
 }
