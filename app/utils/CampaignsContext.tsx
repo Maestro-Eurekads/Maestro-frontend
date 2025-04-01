@@ -71,8 +71,8 @@ interface CampaignContextType {
   loading: boolean
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
   setCampaignData: React.Dispatch<React.SetStateAction<any>>
-  copy: CampaignFormData
-  setCopy: React.Dispatch<React.SetStateAction<CampaignFormData>>
+  copy: any
+  setCopy: React.Dispatch<React.SetStateAction<any>>
   businessLevelOptions: BusinessLevelOptions
   isLoggedIn: boolean
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>
