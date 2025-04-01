@@ -5,14 +5,13 @@ import { HiOutlinePlus } from "react-icons/hi";
 import AddAsInternalcomment from "./AddAsInternalcomment";
 import { useComments } from "app/utils/CommentProvider";
 
-const DraggableComment = ({ comment, setMessage }) => {
+const DraggableComment = ({ comment }) => {
 	const { updateCommentPosition } = useComments();
-	const [show, setShow] = useState(false);
 	const commentRef = useRef(null);
 
 	const handleStop = (e, data) => {
 		const newPosition = { x: data.x, y: data.y };
-		updateCommentPosition(comment.id, newPosition);
+		updateCommentPosition(comment.documentId, newPosition);
 	};
 
 

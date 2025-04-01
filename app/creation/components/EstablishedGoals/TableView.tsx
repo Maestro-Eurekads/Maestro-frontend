@@ -36,7 +36,7 @@ const TableView = () => {
                 const style =
                   platformStyles.find((style) => style.name === platformName) ||
                   platformStyles[
-                    Math.floor(Math.random() * platformStyles.length)
+                  Math.floor(Math.random() * platformStyles.length)
                   ];
                 // Dynamically map headers to values
                 const rowData = headers
@@ -137,7 +137,7 @@ const TableView = () => {
         const stage = funnelStages.find((s) => s.name === stageName);
         if (!stage) return null;
         const chh = extractPlatforms(campaignFormData);
-        console.log("🚀 ~ {campaignFormData?.funnel_stages?.map ~ chh:", chh);
+
         return (
           <section className="mb-[30px]" key={index}>
             <h1 className="text-[#061237] text-[18px] font-[600] mb-5 flex gap-2">
@@ -193,7 +193,7 @@ const TableView = () => {
                                         className="flex items-center gap-2 cursor-pointer"
                                         onClick={() =>
                                           campaignFormData?.goal_level ===
-                                            "Adset level" &&
+                                          "Adset level" &&
                                           toggleRow(`${stage.name}${index}`)
                                         }
                                         style={{
@@ -245,17 +245,17 @@ const TableView = () => {
                                           Number(channel["cpm"])
                                         )
                                       ) ||
-                                      !isFinite(
-                                        calculateImpression(
-                                          Number(channel["budget_size"]),
-                                          Number(channel["cpm"])
-                                        )
-                                      )
-                                        ? "-"
-                                        : calculateImpression(
+                                        !isFinite(
+                                          calculateImpression(
                                             Number(channel["budget_size"]),
                                             Number(channel["cpm"])
-                                          )}
+                                          )
+                                        )
+                                        ? "-"
+                                        : calculateImpression(
+                                          Number(channel["budget_size"]),
+                                          Number(channel["cpm"])
+                                        )}
                                     </>
                                   ) : body === "reach" ? (
                                     <>
@@ -265,17 +265,17 @@ const TableView = () => {
                                           Number(channel["frequency"])
                                         )
                                       ) ||
-                                      !isFinite(
-                                        calculateReach(
-                                          Number(channel["impressions"]),
-                                          Number(channel["frequency"])
-                                        )
-                                      )
-                                        ? "-"
-                                        : calculateReach(
+                                        !isFinite(
+                                          calculateReach(
                                             Number(channel["impressions"]),
                                             Number(channel["frequency"])
-                                          )}
+                                          )
+                                        )
+                                        ? "-"
+                                        : calculateReach(
+                                          Number(channel["impressions"]),
+                                          Number(channel["frequency"])
+                                        )}
                                     </>
                                   ) : (
                                     <>
@@ -332,9 +332,9 @@ const TableView = () => {
                                     ?.find(
                                       (ch) => ch?.funnel_stage === stage.name
                                     )
-                                    [channel?.channelName]?.find(
-                                      (c) => c?.platform_name === channel?.name
-                                    )?.cpm || ""
+                                  [channel?.channelName]?.find(
+                                    (c) => c?.platform_name === channel?.name
+                                  )?.cpm || ""
                                 }
                                 onChange={(e) =>
                                   handleEditInfo(
@@ -425,10 +425,10 @@ const TableView = () => {
                                             (ch) =>
                                               ch?.funnel_stage === stage.name
                                           )
-                                          [channel?.channelName]?.find(
-                                            (c) =>
-                                              c?.platform_name === channel?.name
-                                          )?.ad_sets[Aindex]?.cpm || ""
+                                        [channel?.channelName]?.find(
+                                          (c) =>
+                                            c?.platform_name === channel?.name
+                                        )?.ad_sets[Aindex]?.cpm || ""
                                       }
                                       onChange={(e) =>
                                         handleEditInfo(
@@ -460,11 +460,11 @@ const TableView = () => {
                                               (ch) =>
                                                 ch?.funnel_stage === stage.name
                                             )
-                                            [channel?.channelName]?.find(
-                                              (c) =>
-                                                c?.platform_name ===
-                                                channel?.name
-                                            )?.ad_sets[Aindex]?.frequency || ""
+                                          [channel?.channelName]?.find(
+                                            (c) =>
+                                              c?.platform_name ===
+                                              channel?.name
+                                          )?.ad_sets[Aindex]?.frequency || ""
                                         }
                                         onChange={(e) =>
                                           handleEditInfo(
@@ -482,20 +482,20 @@ const TableView = () => {
                                       {awareness.reach ? awareness.reach : "-"}
                                     </td>
                                   </>
-                                </tr>
+                                </tr >
                               ))}
                             </>
                           )}
-                        </React.Fragment>
+                        </React.Fragment >
                       ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </section>
+                  </tbody >
+                </table >
+              </div >
+            </div >
+          </section >
         );
       })}
-    </div>
+    </div >
   );
 };
 

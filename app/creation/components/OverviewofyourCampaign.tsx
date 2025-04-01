@@ -7,17 +7,17 @@ import { useDateRange } from '../../../src/date-range-context';
 import { parseApiDate } from '../../../components/Options';
 import { useCampaigns } from '../../utils/CampaignsContext';
 import CommentsDrawer from 'components/Drawer/CommentsDrawer';
-import { useDraggable } from "@dnd-kit/core";
 import MessageContainer from 'components/Drawer/MessageContainer';
 import { useComments } from 'app/utils/CommentProvider';
+import { useAppDispatch } from 'store/useStore';
+import { getComment } from 'features/Comment/commentSlice';
+
 const OverviewofyourCampaign = () => {
 	const { isDrawerOpen, setIsDrawerOpen } = useComments();
 	const [show, setShow] = useState(false);
 	const { range } = useDateRange();
-
-	const {
-		clientCampaignData
-	} = useCampaigns();
+	const { clientCampaignData } = useCampaigns();
+	const dispatch = useAppDispatch();
 
 
 
@@ -36,18 +36,11 @@ const OverviewofyourCampaign = () => {
 
 	const funnelsData = mapCampaignsToFunnels(clientCampaignData);
 
-	const { attributes, listeners, setNodeRef, transform } = useDraggable({
-		id: "draggable-message",
-	});
 
-	const style = {
-		transform: transform
-			? `translate3d(${transform.x}px, ${transform.y}px, 0)`
-			: "none",
-	};
-
-
-
+	const handleDrawerOpen = () => {
+		setIsDrawerOpen(true);
+		dispatch(getComment());
+	}
 
 	return (
 		<div>
@@ -65,7 +58,7 @@ const OverviewofyourCampaign = () => {
 						<button className="overview-budget-conponent mt-8"
 							onClick={() => setShow(!show)}>{!show ? "See" : "Hide"} budget overview</button>
 						<button className="overview-budget-conponent mt-8"
-							onClick={() => setIsDrawerOpen(!isDrawerOpen)}>View Comments</button>
+							onClick={handleDrawerOpen}>View Comments</button>
 					</div>
 					<ConfigureBudgetComponet show={show} t1={"Your budget by campaign phase"} t2={undefined} />
 				</div>
@@ -101,4 +94,4 @@ export default OverviewofyourCampaign
 
 
 
-// < DraggableMessage setMessage = { setMessage } />
+

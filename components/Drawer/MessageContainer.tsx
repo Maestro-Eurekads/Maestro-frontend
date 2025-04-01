@@ -7,8 +7,8 @@ const MessageContainer = ({ isOpen }) => {
 		<div>
 			{isOpen &&
 				<DraggableMessage />}
-
-			<Message />
+			{isOpen &&
+				<Message />}
 
 		</div>
 	)
