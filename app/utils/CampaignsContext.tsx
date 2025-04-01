@@ -66,8 +66,8 @@ interface CampaignContextType {
   campaignData: any
   cId: string | null
   getActiveCampaign: (docId?: string) => Promise<void>
-  clientCampaignData: any[]
-  setClientCampaignData: React.Dispatch<React.SetStateAction<any[]>>
+  clientCampaignData: any
+  setClientCampaignData: any
   loading: boolean
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
   setCampaignData: React.Dispatch<React.SetStateAction<any>>
@@ -124,7 +124,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [loadingObj, setLoadingObj] = useState<boolean>(false)
   const [objectives, setObjectives] = useState<any[]>([])
   const [buyObj, setBuyObj] = useState<any[]>([])
-  const [copy, setCopy] = useState<CampaignFormData>(campaignFormData)
+  const [copy, setCopy] = useState<any>(campaignFormData)
   const [businessLevelOptions, setBusinessLevelOptions] = useState<BusinessLevelOptions>({
     level1: [],
     level2: [],
