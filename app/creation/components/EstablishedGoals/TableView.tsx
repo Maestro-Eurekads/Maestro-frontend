@@ -20,7 +20,7 @@ const TableView = () => {
 
   function extractPlatforms(data) {
     const platforms = {};
-    const headers = tableHeaders[campaignFormData?.campaign_objectives] || []; // Get dynamic headers for this stage
+    const headers = tableHeaders[campaignFormData?.campaign_objective] || []; // Get dynamic headers for this stage
     data?.channel_mix?.length > 0 &&
       data.channel_mix.forEach((stage) => {
         const stageName = stage.funnel_stage;
@@ -160,7 +160,7 @@ const TableView = () => {
                       <th className="py-4 px-6">Impression</th>
                       <th className="py-4 px-6">Frequency</th>
                       <th className="py-4 px-6">Reach</th> */}
-                      {tableHeaders[campaignFormData?.campaign_objectives]?.map(
+                      {tableHeaders[campaignFormData?.campaign_objective]?.map(
                         (header, hIndex) => (
                           <th key={hIndex} className="py-4 px-6">
                             {header?.name}
@@ -179,7 +179,7 @@ const TableView = () => {
                             className="border-t bg-white hover:bg-gray-100"
                           >
                             {tableBody[
-                              campaignFormData?.campaign_objectives
+                              campaignFormData?.campaign_objective
                             ]?.map((body, bodyIndex) => {
                               console.log({ body });
                               return (
@@ -280,7 +280,7 @@ const TableView = () => {
                                   ) : (
                                     <>
                                       {!tableHeaders[
-                                        campaignFormData?.campaign_objectives
+                                        campaignFormData?.campaign_objective
                                       ][bodyIndex]?.showInput ? (
                                         channel?.[body] === "Invalid date" ? (
                                           "-"

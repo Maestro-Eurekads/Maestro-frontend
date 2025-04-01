@@ -12,7 +12,7 @@ export const validationRules = {
 		data?.budget_details_fee_type?.id &&
 		data?.budget_details_value,
 
-	step1: (data) => !!data?.campaign_objectives?.length,
+	step1: (data) => !!data?.campaign_objective?.length,
 	step2: (data) => !!data?.funnel_stages?.length,
 	step3: (data) => !!data?.channel_mix && Object.keys(data.channel_mix).length > 0,
 	step4: (data) => !!data?.formats?.length,

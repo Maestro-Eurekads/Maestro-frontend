@@ -78,7 +78,7 @@ const DefineCampaignObjective = () => {
         }]);
         setCampaignFormData(prev => ({
           ...prev,
-          campaign_objectives: matchingObjective?.title
+          campaign_objective: matchingObjective?.title
         }));
       }
     }
@@ -114,7 +114,7 @@ const DefineCampaignObjective = () => {
     try {
       await updateCampaign({
         ...cleanData,
-        campaign_objective: campaignFormData?.campaign_objectives,
+        campaign_objective: campaignFormData?.campaign_objective,
       });
       await getActiveCampaign(cleanData);
 
@@ -149,7 +149,7 @@ const DefineCampaignObjective = () => {
     });
     setCampaignFormData((prev) => ({
       ...prev,
-      campaign_objectives: title,
+      campaign_objective: title,
     }));
   };
 
@@ -186,8 +186,8 @@ const DefineCampaignObjective = () => {
       <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-[80px] mt-[50px] place-items-center">
         {objectives?.map(item => {
           const isSelected = isEditing
-            ? tempSelectedObjective.some(obj => obj.id === item.id)
-            : selectedObjectives.some(obj => obj.id === item.id);
+            ? tempSelectedObjective.some(obj => obj.title === item.title)
+            : selectedObjectives.some(obj => obj.title === item.title);
           return (
             <div key={item.id} className={`relative p-4 rounded-lg transition-all duration-300 ${isSelected ? "creation_card_active shadow-lg" : "creation_card"} ${isEditing ? "cursor-pointer" : "cursor-not-allowed"}`} onClick={() => isEditing ? handleSelect(item.id, item.title) : setAlert({ variant: 'info', message: 'Please click on Edit!', position: 'bottom-right' })}>
               {isSelected && <div className="absolute right-4 top-4"><Image src={Mark} alt="Selected" /></div>}

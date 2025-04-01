@@ -40,13 +40,14 @@ interface CampaignFormData {
   budget_details_fee_type: FeeType
   budget_details_sub_fee_type: string
   budget_details_value: string
-  campaign_objectives: string
+  campaign_objective: string
   funnel_stages: any[]
   channel_mix: Record<string, any>
   campaign_timeline_start_date: string
   campaign_timeline_end_date: string
   campaign_budget: Record<string, any>
   goal_level: string
+  validatedStages:any
 }
 
 interface BusinessLevelOptions {
@@ -78,6 +79,7 @@ interface CampaignContextType {
   loadingObj: boolean
   objectives: any[]
   buyObj: any[]
+  validatedStages?: any;
 }
 
 // Initial state
@@ -92,13 +94,14 @@ const initialState: CampaignFormData = {
   budget_details_fee_type: { id: "", value: "" },
   budget_details_sub_fee_type: "",
   budget_details_value: "",
-  campaign_objectives: "",
+  campaign_objective: "",
   funnel_stages: [],
   channel_mix: {},
   campaign_timeline_start_date: "",
   campaign_timeline_end_date: "",
   campaign_budget: {},
   goal_level: "",
+  validatedStages: []
 }
 
 // Create context
@@ -223,7 +226,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       },
       budget_details_sub_fee_type: data?.budget_details?.sub_fee_type || prev.budget_details_sub_fee_type,
       budget_details_value: data?.budget_details?.value || prev.budget_details_value,
-      campaign_objectives: data?.campaign_objective || prev.campaign_objectives,
+      campaign_objective: data?.campaign_objective || prev.campaign_objective,
       funnel_stages: data?.funnel_stages || prev.funnel_stages,
       channel_mix: data?.channel_mix || prev.channel_mix,
       campaign_timeline_start_date: data?.campaign_timeline_start_date || prev.campaign_timeline_start_date,
