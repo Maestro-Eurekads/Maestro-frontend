@@ -70,7 +70,7 @@ const ObjectiveSelection = () => {
   });
   const [dropdownOpen, setDropdownOpen] = useState({});
 
-  const { campaignFormData, setCampaignFormData, buyObj } = useCampaigns();
+  const { campaignFormData, setCampaignFormData, buyObj,  buyType } = useCampaigns();
 
   // Sync statuses and selectedNetworks with campaignFormData
   useEffect(() => {
@@ -401,21 +401,21 @@ const ObjectiveSelection = () => {
                                   {dropdownOpen[platformKey] && (
                                     <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10">
                                       <ul>
-                                        {["CPM", "CPV"].map((option, i) => (
+                                        {buyType.map((option, i) => (
                                           <li
                                             key={`${platformKey}-type-${i}`}
                                             className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
                                             onClick={() =>
                                               handleSelectOption(
                                                 platform.platform_name,
-                                                option,
+                                                option?.text,
                                                 category,
                                                 stage.name,
                                                 "buy_type"
                                               )
                                             }
                                           >
-                                            {option}
+                                            {option?.text}
                                           </li>
                                         ))}
                                       </ul>

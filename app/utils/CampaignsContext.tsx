@@ -47,6 +47,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [platformList, setPlatformList] = useState({});
   const [objectives, setObjectives] = useState([]);
   const [buyObj, setBuyObj] = useState([]);
+  const [buyType, setBuyType] = useState([]);
 
   const reduxClients = useSelector(
     (state: any) => state.client?.getCreateClientData?.data || []
@@ -336,6 +337,26 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const fetchBuyTypes = async () => {
+    setLoadingObj(true);
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/buy-types?populate=*`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+        }
+      );
+      const data = res?.data?.data;
+      setBuyType(data);
+    } catch (err) {
+      console.error("Error fetching buy objectives:", err);
+    } finally {
+      setLoadingObj(false);
+    }
+  };
+
   function organizeAdvertisingPlatforms(data) {
     // Initialize the result structure
     const result = {
@@ -439,6 +460,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     fetchBuyObjectives();
     fetchObjectives();
     fetchPlatformLists();
+    fetchBuyTypes();
   }, [cId]);
 
   return (
@@ -467,6 +489,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         loadingObj,
         buyObj,
         objectives,
+        buyType
       }}
     >
       {children}

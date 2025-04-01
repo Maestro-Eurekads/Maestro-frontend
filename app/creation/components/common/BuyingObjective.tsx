@@ -99,7 +99,7 @@ const BuyingObjective = () => {
     dropDownName,
     option
   ) => {
-    const updatedChannelMix = updatedData?.channel_mix?.map((stage) => {
+    const updatedChannelMix = updatedData?.channel_mix?.map((stage, chIndex) => {
       if (stage.funnel_stage === stageName) {
         const updatedStage = { ...stage };
         if (category === "Social media") {
@@ -173,7 +173,7 @@ const BuyingObjective = () => {
 
 
   return (
-    <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full">
+    <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full" >
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
@@ -248,7 +248,7 @@ const BuyingObjective = () => {
             );
             if (!stage) return null;
             return (
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex justify-between items-center mb-4" key={stageIndex}>
                 {/* Loyalty Button */}
                 <div>
                   <div

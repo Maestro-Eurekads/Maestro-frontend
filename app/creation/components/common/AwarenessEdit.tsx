@@ -47,12 +47,24 @@ const AwarenessEdit = ({
   const [isDeleted, setIsDeleted] = useState(false);
   const [dropdowns, setDropdowns] = useState({});
   const [values, setValues] = useState({});
-  const { campaignFormData, setCampaignFormData } = useCampaigns();
+  const { campaignFormData, setCampaignFormData, buyObj, buyType } =
+    useCampaigns();
   const [showChannelSelect, setShowChannelSelect] = useState({
     "Social media": false,
     "Display networks": false,
-    "Search engines": false
+    "Search engines": false,
   });
+  const buyObjectiveOptions =
+    buyObj?.map((obj) => ({
+      label: obj?.text,
+      value: obj?.text,
+    })) || [];
+
+  const buyTypeOptions =
+    buyType?.map((obj) => ({
+      label: obj?.text,
+      value: obj?.text,
+    })) || [];
 
   const channelOptions = {
     "Social media": [
@@ -61,18 +73,18 @@ const AwarenessEdit = ({
       { value: "TikTok", label: "TikTok", icon: tictok },
       { value: "YouTube", label: "YouTube", icon: youtube },
       { value: "Twitter/X", label: "Twitter/X", icon: x },
-      { value: "LinkedIn", label: "LinkedIn", icon: linkedin }
+      { value: "LinkedIn", label: "LinkedIn", icon: linkedin },
     ],
     "Display networks": [
       { value: "The Trade Desk", label: "The Trade Desk", icon: TheTradeDesk },
       { value: "Quantcast", label: "Quantcast", icon: Quantcast },
-      { value: "Display & Video", label: "Display & Video", icon: Display }
+      { value: "Display & Video", label: "Display & Video", icon: Display },
     ],
     "Search engines": [
       { value: "Google", label: "Google", icon: google },
       { value: "Yahoo", label: "Yahoo", icon: yahoo },
-      { value: "Bing", label: "Bing", icon: bing }
-    ]
+      { value: "Bing", label: "Bing", icon: bing },
+    ],
   };
 
   const handleAddBack = () => {
@@ -90,16 +102,11 @@ const AwarenessEdit = ({
     );
   }
 
-  const buyObjectiveOptions = [
-    { value: "Awareness", label: "Awareness" },
-    { value: "Traffic", label: "Traffic" },
-    { value: "Purchase", label: "Purchase" },
-  ];
-
-  const buyTypeOptions = [
-    { value: "CPM", label: "CPM" },
-    { value: "CPV", label: "CPV" },
-  ];
+  // const buyObjectiveOptions = [
+  //   { value: "Awareness", label: "Awareness" },
+  //   { value: "Traffic", label: "Traffic" },
+  //   { value: "Purchase", label: "Purchase" },
+  // ];
 
   const platformIcons = {
     Facebook: facebook,
@@ -181,7 +188,7 @@ const AwarenessEdit = ({
       const newPlatform = {
         platform_name: selectedOption.value,
         objective_type: "",
-        buy_type: ""
+        buy_type: "",
       };
 
       // Update the channel mix with the new platform
@@ -189,11 +196,20 @@ const AwarenessEdit = ({
         if (stage.funnel_stage === stageName) {
           const updatedStage = { ...stage };
           if (category === "Social media") {
-            updatedStage.social_media = [...(stage.social_media || []), newPlatform];
+            updatedStage.social_media = [
+              ...(stage.social_media || []),
+              newPlatform,
+            ];
           } else if (category === "Display networks") {
-            updatedStage.display_networks = [...(stage.display_networks || []), newPlatform];
+            updatedStage.display_networks = [
+              ...(stage.display_networks || []),
+              newPlatform,
+            ];
           } else if (category === "Search engines") {
-            updatedStage.search_engines = [...(stage.search_engines || []), newPlatform];
+            updatedStage.search_engines = [
+              ...(stage.search_engines || []),
+              newPlatform,
+            ];
           }
           return updatedStage;
         }
@@ -206,12 +222,16 @@ const AwarenessEdit = ({
       }));
 
       // Reset the select dropdown
-      setShowChannelSelect(prev => ({ ...prev, [category]: false }));
+      setShowChannelSelect((prev) => ({ ...prev, [category]: false }));
     }
   };
 
   const handleRemoveStage = (stageName) => {
-    if (!updatedData || !updatedData?.funnel_stages || !updatedData?.channel_mix) {
+    if (
+      !updatedData ||
+      !updatedData?.funnel_stages ||
+      !updatedData?.channel_mix
+    ) {
       return;
     }
 
@@ -237,7 +257,6 @@ const AwarenessEdit = ({
       channel_mix: updatedChannelMix,
     }));
   };
-
 
   const handleRemovePlatform = (
     platformName: string,
@@ -294,15 +313,15 @@ const AwarenessEdit = ({
     }),
     option: (provided, state) => ({
       ...provided,
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      padding: '8px 12px',
+      display: "flex",
+      alignItems: "center",
+      gap: "8px",
+      padding: "8px 12px",
     }),
   };
 
   const formatOptionLabel = ({ value, label, icon }) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
       <Image src={icon} alt={label} width={16} height={16} />
       <span>{label}</span>
     </div>
@@ -335,7 +354,10 @@ const AwarenessEdit = ({
           <div className="flex justify-between gap-4 w-full">
             <div className="flex gap-4 items-start overflow-x-auto pb-4">
               {sm_data?.map((sm: any, index: number) => (
-                <div key={`${stageName}-sm-${index}`} className="shrink-0 flex flex-col gap-4">
+                <div
+                  key={`${stageName}-sm-${index}`}
+                  className="shrink-0 flex flex-col gap-4"
+                >
                   <div className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit">
                     <div className="flex items-center gap-2">
                       <Image
@@ -363,7 +385,7 @@ const AwarenessEdit = ({
                   <div className="flex gap-4 items-center">
                     <Select
                       options={buyObjectiveOptions}
-                      value={buyObjectiveOptions.find(
+                      value={buyObjectiveOptions?.find(
                         (option) => option.value === sm?.objective_type
                       )}
                       onChange={(selectedOption) =>
@@ -385,7 +407,7 @@ const AwarenessEdit = ({
                   <div className="flex gap-4 items-center">
                     <Select
                       options={buyTypeOptions}
-                      value={buyTypeOptions.find(
+                      value={buyTypeOptions?.find(
                         (option) => option.value === sm?.buy_type
                       )}
                       onChange={(selectedOption) =>
@@ -411,7 +433,9 @@ const AwarenessEdit = ({
               {showChannelSelect["Social media"] ? (
                 <Select
                   options={channelOptions["Social media"]}
-                  onChange={(option) => handleChannelSelect(option, "Social media")}
+                  onChange={(option) =>
+                    handleChannelSelect(option, "Social media")
+                  }
                   placeholder="Select Channel"
                   styles={customSelectStyles}
                   formatOptionLabel={formatOptionLabel}
@@ -421,7 +445,12 @@ const AwarenessEdit = ({
                 />
               ) : (
                 <button
-                  onClick={() => setShowChannelSelect(prev => ({ ...prev, "Social media": true }))}
+                  onClick={() =>
+                    setShowChannelSelect((prev) => ({
+                      ...prev,
+                      "Social media": true,
+                    }))
+                  }
                   className="px-6 py-3 bg-[#3175FF] text-white rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap h-[52px]"
                 >
                   Add Channel
@@ -439,7 +468,10 @@ const AwarenessEdit = ({
           <div className="flex justify-between gap-4 w-full">
             <div className="flex gap-4 items-start overflow-x-auto pb-4">
               {dn_data?.map((dn, index) => (
-                <div key={`${stageName}-dn-${index}`} className="shrink-0 flex flex-col gap-4">
+                <div
+                  key={`${stageName}-dn-${index}`}
+                  className="shrink-0 flex flex-col gap-4"
+                >
                   <div className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit">
                     <div className="flex items-center gap-2">
                       <Image
@@ -515,7 +547,9 @@ const AwarenessEdit = ({
               {showChannelSelect["Display networks"] ? (
                 <Select
                   options={channelOptions["Display networks"]}
-                  onChange={(option) => handleChannelSelect(option, "Display networks")}
+                  onChange={(option) =>
+                    handleChannelSelect(option, "Display networks")
+                  }
                   placeholder="Select Channel"
                   styles={customSelectStyles}
                   formatOptionLabel={formatOptionLabel}
@@ -525,7 +559,12 @@ const AwarenessEdit = ({
                 />
               ) : (
                 <button
-                  onClick={() => setShowChannelSelect(prev => ({ ...prev, "Display networks": true }))}
+                  onClick={() =>
+                    setShowChannelSelect((prev) => ({
+                      ...prev,
+                      "Display networks": true,
+                    }))
+                  }
                   className="px-6 py-3 bg-[#3175FF] text-white rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap h-[52px]"
                 >
                   Add Channel
@@ -543,7 +582,10 @@ const AwarenessEdit = ({
           <div className="flex justify-between gap-4 w-full">
             <div className="flex gap-4 items-start overflow-x-auto pb-4">
               {se_data?.map((se, index) => (
-                <div key={`${stageName}-se-${index}`} className="shrink-0 flex flex-col gap-4">
+                <div
+                  key={`${stageName}-se-${index}`}
+                  className="shrink-0 flex flex-col gap-4"
+                >
                   <div className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit">
                     <div className="flex items-center gap-2">
                       <Image
@@ -619,7 +661,9 @@ const AwarenessEdit = ({
               {showChannelSelect["Search engines"] ? (
                 <Select
                   options={channelOptions["Search engines"]}
-                  onChange={(option) => handleChannelSelect(option, "Search engines")}
+                  onChange={(option) =>
+                    handleChannelSelect(option, "Search engines")
+                  }
                   placeholder="Select Channel"
                   styles={customSelectStyles}
                   formatOptionLabel={formatOptionLabel}
@@ -629,7 +673,12 @@ const AwarenessEdit = ({
                 />
               ) : (
                 <button
-                  onClick={() => setShowChannelSelect(prev => ({ ...prev, "Search engines": true }))}
+                  onClick={() =>
+                    setShowChannelSelect((prev) => ({
+                      ...prev,
+                      "Search engines": true,
+                    }))
+                  }
                   className="px-6 py-3 bg-[#3175FF] text-white rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap h-[52px]"
                 >
                   Add Channel
