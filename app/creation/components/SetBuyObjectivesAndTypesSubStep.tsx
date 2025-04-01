@@ -9,7 +9,7 @@ const SetBuyObjectivesAndTypesSubStep = () => {
   const { campaignFormData } = useCampaigns();
   useEffect(() => {
     if (campaignFormData) {
-      setObj(campaignFormData?.campaign_objectives);
+      setObj(campaignFormData?.campaign_objective);
     }
   }, [campaignFormData]);
 

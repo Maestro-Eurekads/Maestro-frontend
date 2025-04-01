@@ -34,19 +34,20 @@ interface CampaignFormData {
   level_1: BusinessLevel
   level_2: BusinessLevel
   level_3: BusinessLevel
-  media_plan: string
+  media_plan: any
   approver: string
   budget_details_currency: CurrencyOption
   budget_details_fee_type: FeeType
-  budget_details_sub_fee_type: string
-  budget_details_value: string
-  campaign_objectives: string
+  budget_details_sub_fee_type: any
+  budget_details_value: any
+  campaign_objective: string
   funnel_stages: any[]
-  channel_mix: Record<string, any>
-  campaign_timeline_start_date: string
-  campaign_timeline_end_date: string
-  campaign_budget: Record<string, any>
+  channel_mix: any[]
+  campaign_timeline_start_date: any
+  campaign_timeline_end_date: any
+  campaign_budget: any
   goal_level: string
+  validatedStages:any
 }
 
 interface BusinessLevelOptions {
@@ -58,26 +59,27 @@ interface BusinessLevelOptions {
 interface CampaignContextType {
   loadingClients: boolean
   allClients: any[]
-  campaignFormData: CampaignFormData
-  setCampaignFormData: React.Dispatch<React.SetStateAction<CampaignFormData>>
+  campaignFormData: any
+  setCampaignFormData: any
   createCampaign: () => Promise<any>
   updateCampaign: (data: any) => Promise<any>
   campaignData: any
   cId: string | null
   getActiveCampaign: (docId?: string) => Promise<void>
-  clientCampaignData: any[]
-  setClientCampaignData: React.Dispatch<React.SetStateAction<any[]>>
+  clientCampaignData: any
+  setClientCampaignData: any
   loading: boolean
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
   setCampaignData: React.Dispatch<React.SetStateAction<any>>
-  copy: CampaignFormData
-  setCopy: React.Dispatch<React.SetStateAction<CampaignFormData>>
+  copy: any
+  setCopy: React.Dispatch<React.SetStateAction<any>>
   businessLevelOptions: BusinessLevelOptions
   isLoggedIn: boolean
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>
   loadingObj: boolean
   objectives: any[]
   buyObj: any[]
+  validatedStages?: any;
 }
 
 // Initial state
@@ -92,13 +94,14 @@ const initialState: CampaignFormData = {
   budget_details_fee_type: { id: "", value: "" },
   budget_details_sub_fee_type: "",
   budget_details_value: "",
-  campaign_objectives: "",
+  campaign_objective: "",
   funnel_stages: [],
-  channel_mix: {},
+  channel_mix: [],
   campaign_timeline_start_date: "",
   campaign_timeline_end_date: "",
   campaign_budget: {},
   goal_level: "",
+  validatedStages: []
 }
 
 // Create context
@@ -114,14 +117,14 @@ const apiClient = axios.create({
 
 export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   // State management
-  const [campaignFormData, setCampaignFormData] = useState<CampaignFormData>(initialState)
+  const [campaignFormData, setCampaignFormData] = useState<any>(initialState)
   const [campaignData, setCampaignData] = useState<any>(null)
   const [clientCampaignData, setClientCampaignData] = useState<any[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [loadingObj, setLoadingObj] = useState<boolean>(false)
   const [objectives, setObjectives] = useState<any[]>([])
   const [buyObj, setBuyObj] = useState<any[]>([])
-  const [copy, setCopy] = useState<CampaignFormData>(campaignFormData)
+  const [copy, setCopy] = useState<any>(campaignFormData)
   const [businessLevelOptions, setBusinessLevelOptions] = useState<BusinessLevelOptions>({
     level1: [],
     level2: [],
@@ -223,7 +226,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       },
       budget_details_sub_fee_type: data?.budget_details?.sub_fee_type || prev.budget_details_sub_fee_type,
       budget_details_value: data?.budget_details?.value || prev.budget_details_value,
-      campaign_objectives: data?.campaign_objective || prev.campaign_objectives,
+      campaign_objective: data?.campaign_objective || prev.campaign_objective,
       funnel_stages: data?.funnel_stages || prev.funnel_stages,
       channel_mix: data?.channel_mix || prev.channel_mix,
       campaign_timeline_start_date: data?.campaign_timeline_start_date || prev.campaign_timeline_start_date,

@@ -45,7 +45,7 @@ export const ChannelRow = ({
     ?.find((ch) => ch?.funnel_stage === stage.name)
     ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)
 
-  const obj = campaignFormData?.campaign_objectives
+  const obj = campaignFormData?.campaign_objective
 
   const formulas = {
     impressions: [calculateImpression, "budget.fixed_value", "kpi.cpm"],
