@@ -12,6 +12,7 @@ const SelectChannelMix = () => {
   const [openItems, setOpenItems] = useState({});
   const [selected, setSelected] = useState({});
   const [validatedStages, setValidatedStages] = useState({});
+  const [stageStatuses, setStageStatuses] = useState({});
   const { campaignFormData, setCampaignFormData } = useCampaigns();
 
   useEffect(() => {
@@ -28,6 +29,7 @@ const SelectChannelMix = () => {
 
     if (campaignFormData?.channel_mix?.length > 0) {
       const initialSelected = {};
+      const initialStatuses = {};
       campaignFormData.channel_mix.forEach(channelMixItem => {
         const stageName = channelMixItem.funnel_stage;
         initialSelected[stageName] = {
@@ -35,18 +37,36 @@ const SelectChannelMix = () => {
           "Display networks": (channelMixItem?.display_networks || []).filter(dn => dn?.platform_name).map(dn => dn.platform_name),
           "Search engines": (channelMixItem?.search_engines || []).filter(se => se?.platform_name).map(se => se.platform_name)
         };
-        // Remove categories with no selections
         Object.keys(initialSelected[stageName]).forEach(category => {
           if (initialSelected[stageName][category].length === 0) {
             delete initialSelected[stageName][category];
           }
         });
+        
+        // Set initial status based on selection
+        if (Object.values(initialSelected[stageName] || {}).some(arr => Array.isArray(arr) && arr.length > 0)) {
+          initialStatuses[stageName] = validatedStages[stageName] ? "Completed" : "In progress";
+        } else {
+          initialStatuses[stageName] = "Not started";
+        }
       });
       setSelected(initialSelected);
+      setStageStatuses(initialStatuses);
     }
 
     if (campaignFormData?.validatedStages) {
       setValidatedStages(campaignFormData.validatedStages);
+      
+      // Update statuses for validated stages
+      if (campaignFormData?.funnel_stages?.length > 0) {
+        const updatedStatuses = { ...stageStatuses };
+        campaignFormData.funnel_stages.forEach(stage => {
+          if (campaignFormData.validatedStages[stage]) {
+            updatedStatuses[stage] = "Completed";
+          }
+        });
+        setStageStatuses(updatedStatuses);
+      }
     }
   }, [campaignFormData?.funnel_stages, campaignFormData?.channel_mix, campaignFormData?.validatedStages]);
 
@@ -66,13 +86,32 @@ const SelectChannelMix = () => {
       const newCategorySelection = isAlreadySelected
         ? categorySelection.filter(p => p !== platformName)
         : [...categorySelection, platformName];
+      
+      const newStageSelection = {
+        ...stageSelection,
+        [category]: newCategorySelection
+      };
+      
+      // Update status to "In progress" if any platform is selected
+      const hasSelections = Object.values(newStageSelection).some(
+        arr => Array.isArray(arr) && arr.length > 0
+      );
+      
+      if (hasSelections && stageStatuses[stageName] !== "Completed") {
+        setStageStatuses(prev => ({
+          ...prev,
+          [stageName]: "In progress"
+        }));
+      } else if (!hasSelections) {
+        setStageStatuses(prev => ({
+          ...prev,
+          [stageName]: "Not started"
+        }));
+      }
 
       return {
         ...prev,
-        [stageName]: {
-          ...stageSelection,
-          [category]: newCategorySelection
-        }
+        [stageName]: newStageSelection
       };
     });
 
@@ -128,15 +167,42 @@ const SelectChannelMix = () => {
       };
 
       setValidatedStages(updatedValidatedStages);
+      setStageStatuses(prev => ({
+        ...prev,
+        [stageName]: "Completed"
+      }));
       setOpenItems(prev => ({
         ...prev,
         [stageName]: false
       }));
 
+<<<<<<< HEAD
       setCampaignFormData(prev => ({
         ...prev,
         validatedStages: updatedValidatedStages
       }));
+=======
+      setCampaignFormData(prev => {
+        const updatedChannelMix = prev.channel_mix.map(mix => {
+          if (mix.funnel_stage === stageName) {
+            const selectedPlatforms = selected[stageName] || {};
+            return {
+              ...mix,
+              social_media: selectedPlatforms["Social media"]?.map(name => ({ platform_name: name })) || [],
+              display_networks: selectedPlatforms["Display networks"]?.map(name => ({ platform_name: name })) || [],
+              search_engines: selectedPlatforms["Search engines"]?.map(name => ({ platform_name: name })) || []
+            };
+          }
+          return mix;
+        });
+
+        return {
+          ...prev,
+          channel_mix: updatedChannelMix,
+          validatedStages: updatedValidatedStages
+        };
+      });
+>>>>>>> 1c9e5d9a724b52bc1bc35f40260d26d0184f41b4
     }
   };
 
@@ -147,6 +213,10 @@ const SelectChannelMix = () => {
     };
 
     setValidatedStages(updatedValidatedStages);
+    setStageStatuses(prev => ({
+      ...prev,
+      [stageName]: "In progress"
+    }));
     setOpenItems(prev => ({
       ...prev,
       [stageName]: true
@@ -200,9 +270,9 @@ const SelectChannelMix = () => {
                     />
                     <p className="text-green-500 font-semibold">Completed</p>
                   </div>
-                ) : stage.statusIsActive ? (
+                ) : stageStatuses[stage.name] === "In progress" ? (
                   <p className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF]">
-                    {stage.status}
+                    In progress
                   </p>
                 ) : (
                   <p className="mx-auto w-[86px] h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] opacity-50">
@@ -220,9 +290,12 @@ const SelectChannelMix = () => {
                     <div className="mt-8 px-6">
                       {Object.entries(selected[stage.name] || {}).map(
                         ([category, platformNames]) => {
+<<<<<<< HEAD
                           if (stage.name === "Awareness") {
                             console.log(`Awareness - ${category}:`, platformNames);
                           }
+=======
+>>>>>>> 1c9e5d9a724b52bc1bc35f40260d26d0184f41b4
                           if (!Array.isArray(platformNames) || platformNames.length === 0) return null;
                           const validPlatformNames = platformNames.filter(pn =>
                             stage.platforms[category]?.some(p => p.name === pn)

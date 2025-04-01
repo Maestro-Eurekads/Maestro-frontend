@@ -135,7 +135,7 @@ const ConfigureAdSetsAndBudget = () => {
                 <div className="campaign_phases_container mt-[24px]">
                   <div className="campaign_phases_container_one">
                     <DoughnutChat
-                      data={campaignFormData?.channel_mix?.map((ch) =>
+                      data={campaignFormData?.channel_mix?.filter((c)=>Number(c?.stage_budget?.percentage_value) > 0)?.map((ch) =>
                         Number(ch?.stage_budget?.percentage_value)?.toFixed(0)
                       )}
                       color={campaignFormData?.channel_mix?.map((ch) =>
@@ -156,7 +156,7 @@ const ConfigureAdSetsAndBudget = () => {
                   </div>
 
                   <CampaignPhases
-                    campaignPhases={campaignFormData?.channel_mix?.map(
+                    campaignPhases={campaignFormData?.channel_mix?.filter((c)=>Number(c?.stage_budget?.percentage_value) > 0)?.map(
                       (ch) => ({
                         name: ch?.funnel_stage,
                         percentage: Number(

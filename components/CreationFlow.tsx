@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import AlertMain from "./Alert/AlertMain";
 
 const CreationFlow = ({ steps }) => {
-  const { active, setActive } = useActive();
+  const { active, setActive, setSubStep } = useActive();
   const [hydrated, setHydrated] = useState(false);
   const [alert, setAlert] = useState(null);
   const query = useSearchParams();
@@ -45,15 +45,20 @@ const CreationFlow = ({ steps }) => {
           <div
             className="SideBar__SideBar cursor-pointer"
             key={stepNumber}
-            onClick={() =>
-              !cId
-                ? setAlert({
-                    variant: "warning",
-                    message: "Please complete client selection step first",
-                    position: "bottom-right",
-                  })
-                : setActive(stepNumber)
-            }
+            onClick={() => {
+              if (!cId) {
+              setAlert({
+                variant: "warning",
+                message: "Please complete client selection step first",
+                position: "bottom-right",
+              });
+              } else {
+                if(stepNumber === 7 || stepNumber === 8){
+                  setSubStep(0)
+                }
+              setActive(stepNumber);
+              }
+            }}
           >
             {alert && <AlertMain alert={alert} />}
             <div className="SideBar__state__container">
@@ -77,7 +82,7 @@ const CreationFlow = ({ steps }) => {
                 {step?.title}
               </span>
               {isCompleted && step?.objective && (
-                <div className="objective_step_text whitespace-nowrap">
+             <div className="objective_step_text whitespace-nowrap">
                   {step?.objective}
                 </div>
               )}

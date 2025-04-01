@@ -1,7 +1,7 @@
+"use client";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { FaCheck } from "react-icons/fa";
-import speaker from "../../../public/mdi_megaphone.svg";
 import down from "../../../public/arrow-down-2.svg";
 import up from "../../../public/arrow-down.svg";
 import facebook from "../../../public/facebook.svg";
@@ -25,6 +25,7 @@ import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { funnelStages } from "../../../components/data";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import UploadModal from "../../../components/UploadModal/UploadModal";
+import checkmark from "../../../public/mingcute_check-fill.svg";
 
 type IPlatform = {
   name: string;
@@ -78,11 +79,11 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
 
   const getPlatformIcon = (platformName) => platformIcons[platformName] || null;
 
-  // Load persisted states from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedValidationState = localStorage.getItem(`formatValidation_${stageName}`);
-      setIsValidated(savedValidationState ? JSON.parse(savedValidationState) : false);
+      const initialValidation = savedValidationState ? JSON.parse(savedValidationState) : false;
+      setIsValidated(initialValidation);
 
       const savedQuantities = localStorage.getItem(`quantities_${stageName}`);
       if (savedQuantities) {
@@ -96,24 +97,12 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     }
   }, [stageName]);
 
-  // Persist expanded platforms
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem(`expandedPlatforms_${stageName}`, JSON.stringify(expandedPlatforms));
     }
   }, [expandedPlatforms, stageName]);
 
-  // Toggle platform expansion
-  const togglePlatformExpansion = (platformName: string) => {
-    if (!isValidated) {
-      setExpandedPlatforms((prev) => ({
-        ...prev,
-        [platformName]: !prev[platformName],
-      }));
-    }
-  };
-
-  // Check if validation is enabled
   useEffect(() => {
     const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName);
     const hasMediaOptionsSelected =
@@ -124,39 +113,53 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     setIsValidateEnabled(hasMediaOptionsSelected);
   }, [campaignFormData, stageName]);
 
-  // Transform channel data
   useEffect(() => {
     if (campaignFormData?.channel_mix && stageName) {
       const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName);
+      if (!stage) {
+        setChannels([]);
+        return;
+      }
+
       const transformedData = {
         title: "Social media",
-        platforms: stage?.social_media?.map((platform) => ({
-          name: platform.platform_name,
-          icon: getPlatformIcon(platform.platform_name),
-        })),
+        platforms: stage.social_media
+          ?.filter(platform => platform.platform_name)
+          .map((platform) => ({
+            name: platform.platform_name,
+            icon: getPlatformIcon(platform.platform_name),
+          })) || [],
         style: "max-w-[150px] w-full h-[52px]",
       };
       const displayNetworkData = {
         title: "Display Networks",
-        platforms: stage?.display_networks?.map((platform) => ({
-          name: platform.platform_name,
-          icon: getPlatformIcon(platform.platform_name),
-        })),
+        platforms: stage.display_networks
+          ?.filter(platform => platform.platform_name)
+          .map((platform) => ({
+            name: platform.platform_name,
+            icon: getPlatformIcon(platform.platform_name),
+          })) || [],
         style: "max-w-[200px] w-full",
       };
       const searchEnginesData = {
         title: "Search Engines",
-        platforms: stage?.search_engines?.map((platform) => ({
-          name: platform.platform_name,
-          icon: getPlatformIcon(platform.platform_name),
-        })),
+        platforms: stage.search_engines
+          ?.filter(platform => platform.platform_name)
+          .map((platform) => ({
+            name: platform.platform_name,
+            icon: getPlatformIcon(platform.platform_name),
+          })) || [],
         style: "max-w-[180px] w-full",
       };
-      setChannels([transformedData, displayNetworkData, searchEnginesData]);
+
+      setChannels(
+        [transformedData, displayNetworkData, searchEnginesData].filter(
+          channel => channel.platforms.length > 0
+        )
+      );
     }
   }, [campaignFormData, stageName]);
 
-  // Initialize quantities
   useEffect(() => {
     const stage = campaignFormData?.channel_mix?.find((chan) => chan.funnel_stage === stageName);
     if (stage && !Object.keys(quantities).length) {
@@ -178,7 +181,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     }
   }, [campaignFormData, stageName, quantities]);
 
-  // Handle format selection
   const handleFormatSelection = (channelName: string, index: number, platformName: string) => {
     if (isValidated) return;
 
@@ -203,10 +205,19 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
         previews: null,
       });
     }
-    setCampaignFormData({ ...campaignFormData, channel_mix: copy });
+
+    // Reset validation state when a new format is selected
+    setIsValidated(false);
+    setCampaignFormData(prev => ({
+      ...prev,
+      channel_mix: copy,
+      validatedStages: {
+        ...prev.validatedStages,
+        [stageName]: false, // Reset global validation for this stage
+      },
+    }));
   };
 
-  // Handle quantity changes
   const handleQuantityChange = (platformName: string, formatName: string, change: number) => {
     const newQuantities = {
       ...quantities,
@@ -241,7 +252,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     setCampaignFormData({ ...campaignFormData, channel_mix: copy });
   };
 
-  // Handle validation or editing
   const handleValidateOrEdit = () => {
     if (!isValidateEnabled && !isValidated) {
       alert("Please select at least one format before validating");
@@ -268,14 +278,14 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       return mix;
     });
 
-    setCampaignFormData({
-      ...campaignFormData,
+    setCampaignFormData(prev => ({
+      ...prev,
       channel_mix: updatedChannelMix,
       validatedStages: {
-        ...campaignFormData.validatedStages,
+        ...prev.validatedStages,
         [stageName]: newValidationState,
       },
-    });
+    }));
   };
 
   const hasPlatformSelectedFormats = (platformName: string, channelName: string) => {
@@ -283,6 +293,15 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     const channel = stage?.[channelName?.toLowerCase()?.replaceAll(" ", "_")];
     const platform = channel?.find((pl) => pl?.platform_name === platformName);
     return platform?.format?.length > 0;
+  };
+
+  const togglePlatformExpansion = (platformName: string) => {
+    if (!isValidated || (isValidated && hasPlatformSelectedFormats(platformName, channels.find(chan => chan.platforms.some(p => p.name === platformName))?.title || ""))) {
+      setExpandedPlatforms((prev) => ({
+        ...prev,
+        [platformName]: !prev[platformName],
+      }));
+    }
   };
 
   const openModal = (platform: string, channel: string, format: string) => {
@@ -309,32 +328,30 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
                       <Image src={platform.icon} alt={platform.name} />
                       <p>{platform.name}</p>
                     </div>
-                    {(!isValidated || (isValidated && hasSelectedFormats)) && (
-                      <div
-                        className="flex gap-3 items-center font-semibold cursor-pointer"
-                        onClick={() => togglePlatformExpansion(platform.name)}
-                      >
-                        {isExpanded ? (
-                          <span className="text-gray-500">
-                            {isValidated ? "Choose the number of visuals for this format" : "Select your format"}
-                          </span>
-                        ) : (
-                          <>
-                            <p className="font-bold text-[18px] text-[#3175FF]">
-                              <svg width="13" height="12" viewBox="0 0 13 12" fill="none">
-                                <path
-                                  d="M5.87891 5.16675V0.166748H7.54557V5.16675H12.5456V6.83342H7.54557V11.8334H5.87891V6.83342H0.878906V5.16675H5.87891Z"
-                                  fill="#3175FF"
-                                />
-                              </svg>
-                            </p>
-                            <h3 className="text-[#3175FF]">Add format</h3>
-                          </>
-                        )}
-                      </div>
-                    )}
+                    <div
+                      className="flex gap-3 items-center font-semibold cursor-pointer"
+                      onClick={() => togglePlatformExpansion(platform.name)}
+                    >
+                      {isExpanded ? (
+                        <span className="text-gray-500">
+                          {isValidated ? "Choose the number of visuals for this format" : "Select your format"}
+                        </span>
+                      ) : (
+                        <>
+                          <p className="font-bold text-[18px] text-[#3175FF]">
+                            <svg width="13" height="12" viewBox="0 0 13 12" fill="none">
+                              <path
+                                d="M5.87891 5.16675V0.166748H7.54557V5.16675H12.5456V6.83342H7.54557V11.8334H5.87891V6.83342H0.878906V5.16675H5.87891Z"
+                                fill="#3175FF"
+                              />
+                            </svg>
+                          </p>
+                          <h3 className="text-[#3175FF]">Add format</h3>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  {((isExpanded && !isValidated) || (isValidated && hasSelectedFormats)) && (
+                  {((isExpanded && !isValidated) || (isValidated && hasSelectedFormats && isExpanded)) && (
                     <div className="py-6">
                       <MediaSelection
                         handleFormatSelection={(index) =>
@@ -386,7 +403,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
 
 export const FormatSelection = () => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
-  const { campaignFormData } = useCampaigns();
+  const { campaignFormData, setCampaignFormData } = useCampaigns();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -412,6 +429,28 @@ export const FormatSelection = () => {
     }
   };
 
+  const hasSelectedFormatsForStage = (stageName: string) => {
+    const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName);
+    return stage && (
+      stage.social_media?.some((platform) => platform.format?.length > 0) ||
+      stage.display_networks?.some((platform) => platform.format?.length > 0) ||
+      stage.search_engines?.some((platform) => platform.format?.length > 0)
+    );
+  };
+
+  const getStageStatus = (stageName: string) => {
+    const hasFormats = hasSelectedFormatsForStage(stageName);
+    const isValidated = campaignFormData?.validatedStages?.[stageName] || false;
+
+    if (hasFormats && isValidated) {
+      return "Completed";
+    } else if (hasFormats) {
+      return "In progress";
+    } else {
+      return "Not started";
+    }
+  };
+
   return (
     <div>
       <PageHeaderWrapper
@@ -423,10 +462,15 @@ export const FormatSelection = () => {
           const stage = funnelStages.find((s) => s.name === stageName);
           if (!stage) return null;
 
+          const status = getStageStatus(stageName);
+          const isOpen = openTabs.includes(stage.name);
+
           return (
             <div key={index}>
               <div
-                className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] rounded-t-[10px]`}
+                className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${
+                  isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
+                }`}
                 onClick={() => toggleTab(stage.name)}
               >
                 <div className="flex items-center gap-2">
@@ -435,12 +479,27 @@ export const FormatSelection = () => {
                     {stage.name}
                   </p>
                 </div>
-                <p className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF]">
-                  {stage.status}
-                </p>
-                <Image src={openTabs.includes(stage.name) ? up : down} alt={openTabs.includes(stage.name) ? "up" : "down"} />
+                {status === "Completed" ? (
+                  <div className="flex items-center gap-2">
+                    <Image
+                      className="w-5 h-5 rounded-full p-1 bg-green-500"
+                      src={checkmark}
+                      alt="Completed"
+                    />
+                    <p className="text-green-500 font-semibold">Completed</p>
+                  </div>
+                ) : status === "In progress" ? (
+                  <p className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF]">
+                    In Progress
+                  </p>
+                ) : (
+                  <p className="font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] opacity-50">
+                    Not started
+                  </p>
+                )}
+                <Image src={isOpen ? up : down} alt={isOpen ? "up" : "down"} />
               </div>
-              {openTabs.includes(stage.name) && (
+              {isOpen && (
                 <div className="card-body bg-white border border-[#E5E5E5]">
                   <Platforms stageName={stage?.name} />
                 </div>

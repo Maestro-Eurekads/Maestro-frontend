@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from "react";
 import Button from "./button";
 import Awareness from "./Awareness";
 import { Plus, Trash } from "lucide-react";
@@ -10,6 +9,7 @@ import Image from "next/image";
 import { useCampaigns } from "../../../utils/CampaignsContext";
 import { funnelStages } from "../../../../components/data";
 import { ChannelSelector } from "./ChannelSelector";
+import { useEffect, useState } from "react";
 
 
 

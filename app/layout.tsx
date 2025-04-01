@@ -14,6 +14,9 @@ import NewProvider from "./provider";
 import { ToastContainer } from "react-toastify";
 import { VerificationProvider } from "./utils/VerificationContext";
 import { CommentProvider } from "./utils/CommentProvider";
+import { getServerSession } from "next-auth";
+import { authOptions } from "utils/auth";
+import Login from "features/Login";
 
 
 // Load Roboto font
@@ -35,11 +38,29 @@ export const metadata: Metadata = {
   description: "Julien web",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const token = await getServerSession(authOptions);
+  console.log("🚀 ~ Home ~ token:", token);
+  if (!token) {
+    return (
+      <html data-theme="light" lang="en" suppressHydrationWarning>
+        <head>
+        <meta
+          name="viewport"
+          content="width=device-width, maximum-scale=1.0, user-scalable=no, initial-scale=1, shrink-to-fit=no"
+        />
+      </head>
+        <body>
+          
+        <Login />
+        </body>
+      </html>
+  );
+  }
   return (
     <html data-theme="light" lang="en" suppressHydrationWarning>
       <head>
