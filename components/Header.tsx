@@ -48,8 +48,7 @@ const Header = ({ setIsOpen }) => {
     return () => clearTimeout(timer);
   }, [dispatch]);
 
-  const selectedId = localStorage.getItem("selectedClient") || ""; // Ensure a default value
-  // console.log("🚀 ~ useEffect ~ selectedId:", selectedId);
+  const selectedId = localStorage.getItem("selectedClient") || ""; // Ensure a default value 
 
   useEffect(() => {
     if (!clients?.data || clients.data.length === 0) {

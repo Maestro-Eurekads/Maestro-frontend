@@ -87,7 +87,7 @@ const Dashboard = () => {
   const getPlatformIcon = (platformName: string | number) => {
     return platformIcons[platformName] || null;
   };
-  console.log("clientCampaignData-clientCampaignData", clientCampaignData);
+
   const mapCampaignsToFunnels = (campaigns: any[]) => {
     useEffect(() => {
       if (clientCampaignData?.channel_mix) {
@@ -154,18 +154,18 @@ const Dashboard = () => {
     });
   };
 
-  const startDates = clientCampaignData?.filter((c)=>c?.campaign_timeline_start_date)?.map(
+  const startDates = clientCampaignData?.filter((c) => c?.campaign_timeline_start_date)?.map(
     (ch) =>
       ch?.campaign_timeline_start_date !== null &&
       parseISO(ch?.campaign_timeline_start_date)
   );
-  const endDates = clientCampaignData?.filter((c)=>c?.campaign_timeline_end_date)?.map(
+  const endDates = clientCampaignData?.filter((c) => c?.campaign_timeline_end_date)?.map(
     (ch) =>
       ch?.campaign_timeline_end_date !== null &&
       parseISO(ch?.campaign_timeline_end_date)
   );
 
-  console.log({ startDates, endDates });
+
 
   // Find the earliest startDate and latest endDate
   const earliestStartDate = min(startDates);
@@ -175,7 +175,7 @@ const Dashboard = () => {
     latestEndDate,
     earliestStartDate
   );
-  console.log("🚀 ~ weekDifference:", weekDifference);
+
 
   const funnelsData = clientCampaignData?.map((ch) => {
     const start = ch?.campaign_timeline_start_date
@@ -200,13 +200,12 @@ const Dashboard = () => {
       )}`,
     };
   });
-  console.log("🚀 ~ funnelsData:", funnelsData);
+
 
   const processedCampaigns = processCampaignData(
     clientCampaignData,
     platformIcons
   );
-  console.log("processedCampaigns-processedCampaigns", processedCampaigns);
 
   function extractPlatforms(data) {
     const platforms = [];
@@ -265,7 +264,7 @@ const Dashboard = () => {
       </div>
       {processedCampaigns?.map((campaign, index) => {
         const channelD = extractPlatforms(campaign);
-        console.log("🚀 ~ {processedCampaigns?.map ~ channelD:", channelD);
+
         return (
           <div
             key={index}
@@ -311,16 +310,15 @@ const Dashboard = () => {
                       ch?.funnel_stage === "Awareness"
                         ? "#3175FF"
                         : ch?.funnel_stage === "Consideration"
-                        ? "#00A36C"
-                        : ch?.funnel_stage === "Conversion"
-                        ? "#FF9037"
-                        : "#F05406"
+                          ? "#00A36C"
+                          : ch?.funnel_stage === "Conversion"
+                            ? "#FF9037"
+                            : "#F05406"
                     )}
-                    insideText={`${campaign?.campaign_budget?.amount || 0} ${
-                      campaign?.campaign_budget?.currency
-                        ? getCurrencySymbol(campaign?.campaign_budget?.currency)
-                        : ""
-                    }`}
+                    insideText={`${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency
+                      ? getCurrencySymbol(campaign?.campaign_budget?.currency)
+                      : ""
+                      }`}
                   />
                   {/* Campaign Phases */}
                   <CampaignPhases
@@ -333,10 +331,10 @@ const Dashboard = () => {
                         ch?.funnel_stage === "Awareness"
                           ? "#3175FF"
                           : ch?.funnel_stage === "Consideration"
-                          ? "#00A36C"
-                          : ch?.funnel_stage === "Conversion"
-                          ? "#FF9037"
-                          : "#F05406",
+                            ? "#00A36C"
+                            : ch?.funnel_stage === "Conversion"
+                              ? "#FF9037"
+                              : "#F05406",
                     }))}
                   />
                 </div>

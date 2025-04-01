@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import tickcircle from "../../public/tick-circle.svg";
 import send from "../../public/send.svg";
 import closecircle from "../../public/close-circle.svg";
@@ -8,26 +8,32 @@ import CommentHeaderwithClose from './CommentHeaderwithClose';
 import InternalDropdowns from 'components/InternalDropdowns';
 import { useCampaigns } from 'app/utils/CampaignsContext';
 import { SVGLoader } from 'components/SVGLoader';
+import { useAppDispatch, useAppSelector } from 'store/useStore';
+import AlertMain from 'components/Alert/AlertMain';
 
 const AddAsInternalcomment = ({ author = "John Doe", position, setShow }) => {
-	const { clientCampaignData } = useCampaigns();
-	const { addComment, loading } = useComments();
-	const [comment, setComment] = useState(""); // State for comment text 
+	const { campaignData } = useCampaigns();
+	const { addComment, isLoading, createCommentsError, comment, setComment } = useComments();
+	const [alert, setAlert] = useState(null);
 	const [selectedOption, setSelectedOption] = useState("Add as Internal");
 	const addcomment_as = selectedOption === "Add as Internal" ? "Internal" : "Client";
-	console.log('clientCampaignData', clientCampaignData)
-	const commentId = "tu7mhiio4aivd78xo0vowimb"
-	// Handle adding a new comment
-	const handleAddComment = () => {
-		if (comment.trim() === "") return; // Prevent empty comm  
-		addComment(comment, position, addcomment_as);
-		setComment(""); // Reset input 
+	const commentId = campaignData?.documentId
+
+	const handleAddComment = async () => {
+		if (comment.trim() === "") return;
+		try {
+			await addComment(commentId, comment, position, addcomment_as);
+		} catch (error) {
+		}
 	};
+
+
 
 
 
 	return (
 		<div className='cursor-move z-50'>
+			{alert && <AlertMain alert={alert} />}
 			<div className="w-[395px] flex flex-col items-start p-[10px_20px] bg-white border border-black rounded-[8px]">
 				<div className="flex justify-between items-center gap-3 w-full">
 					<div className="flex items-center gap-2">
@@ -55,16 +61,13 @@ const AddAsInternalcomment = ({ author = "John Doe", position, setShow }) => {
 				{/* Buttons */}
 				<div className="flex items-center w-full justify-between">
 					<InternalDropdowns setSelectedOption={setSelectedOption} selectedOption={selectedOption} />
-					{/* <button onClick={handleAddComment}>
-						<h3 className="font-semibold text-[15px] leading-[20px] text-[#00A36C]">Add as internal</h3>
-					</button> */}
 					<div>
 						<button
 							onClick={handleAddComment}
-							className="flex flex-row justify-center items-center px-[28px] py-[10px] gap-[8px] w-[135px] h-[40px] bg-[#3175FF] rounded-[8px] font-semibold text-[15px] leading-[20px] text-white cursor-pointer z-40"
+							className="flex flex-row justify-center items-center px-[28px] py-[10px] gap-[8px] w-[135px] h-[40px] bg-[#3175FF] rounded-[8px] font-semibold text-[15px] leading-[20px] text-white cursor-pointer z-40 "
 						>
 							{/* Comment */}
-							{loading ? (
+							{isLoading ? (
 								<SVGLoader width={"25px"} height={"25px"} color={"#FFF"} />
 							) : (
 								"Comment"

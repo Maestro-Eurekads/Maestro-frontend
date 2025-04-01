@@ -91,9 +91,9 @@ const SelectChannelMix = () => {
       const existingChannelMixIndex = prevFormData.channel_mix?.findIndex(
         item => item.funnel_stage === stageName
       );
-      
+
       let updatedChannelMix = [...(prevFormData.channel_mix || [])];
-      
+
       if (existingChannelMixIndex >= 0) {
         updatedChannelMix[existingChannelMixIndex] = {
           ...updatedChannelMix[existingChannelMixIndex],
@@ -105,7 +105,7 @@ const SelectChannelMix = () => {
           [categoryKey]: platformObjects
         });
       }
-      
+
       return {
         ...prevFormData,
         channel_mix: updatedChannelMix
@@ -126,13 +126,13 @@ const SelectChannelMix = () => {
         ...validatedStages,
         [stageName]: true
       };
-      
+
       setValidatedStages(updatedValidatedStages);
       setOpenItems(prev => ({
         ...prev,
         [stageName]: false
       }));
-      
+
       setCampaignFormData(prev => ({
         ...prev,
         validatedStages: updatedValidatedStages
@@ -145,13 +145,13 @@ const SelectChannelMix = () => {
       ...validatedStages,
       [stageName]: false
     };
-    
+
     setValidatedStages(updatedValidatedStages);
     setOpenItems(prev => ({
       ...prev,
       [stageName]: true
     }));
-    
+
     setCampaignFormData(prev => ({
       ...prev,
       validatedStages: updatedValidatedStages
@@ -222,7 +222,6 @@ const SelectChannelMix = () => {
                         ([category, platformNames]) => {
                           if (stage.name === "Awareness") {
                             console.log(`Awareness - ${category}:`, platformNames);
-                            console.log(`Awareness - stage.platforms[${category}]:`, stage.platforms[category]);
                           }
                           if (!Array.isArray(platformNames) || platformNames.length === 0) return null;
                           const validPlatformNames = platformNames.filter(pn =>
@@ -259,18 +258,18 @@ const SelectChannelMix = () => {
                       {Object.keys(selected[stage.name] || {}).some(
                         category => selected[stage.name][category]?.length > 0
                       ) && (
-                        <div className="flex justify-end pr-[24px] mt-4">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEdit(stage.name);
-                            }}
-                            className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] bg-blue-500"
-                          >
-                            Edit
-                          </button>
-                        </div>
-                      )}
+                          <div className="flex justify-end pr-[24px] mt-4">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(stage.name);
+                              }}
+                              className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] bg-blue-500"
+                            >
+                              Edit
+                            </button>
+                          </div>
+                        )}
                     </div>
                   ) : (
                     <>
@@ -284,11 +283,10 @@ const SelectChannelMix = () => {
                                 <div
                                   key={pIndex}
                                   className={`cursor-pointer flex flex-row justify-between items-center p-4 gap-2 w-[230px] h-[62px] bg-white 
-                                  border rounded-[10px] ${
-                                    isSelected
+                                  border rounded-[10px] ${isSelected
                                       ? "border-[#3175FF]"
                                       : "border-[rgba(0,0,0,0.1)]"
-                                  }`}
+                                    }`}
                                   onClick={(e) => handlePlatformClick(e, stage.name, category, platform.name)}
                                 >
                                   <div className="flex items-center gap-2">
@@ -298,11 +296,10 @@ const SelectChannelMix = () => {
                                     </p>
                                   </div>
                                   <div
-                                    className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${
-                                      isSelected
+                                    className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${isSelected
                                         ? "bg-[#3175FF]"
                                         : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
-                                    }`}
+                                      }`}
                                   >
                                     {isSelected && (
                                       <Image
@@ -329,11 +326,10 @@ const SelectChannelMix = () => {
                             e.stopPropagation();
                             handleValidate(stage.name);
                           }}
-                          className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-                            isStageValid(stage.name)
+                          className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isStageValid(stage.name)
                               ? "bg-[#3175FF] hover:bg-[#2563eb]"
                               : "bg-[#3175FF] opacity-50 cursor-not-allowed"
-                          }`}
+                            }`}
                         >
                           Validate
                         </button>

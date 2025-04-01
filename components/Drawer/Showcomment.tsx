@@ -1,26 +1,17 @@
-import React, { useState } from 'react';
-import tickcircle from "../../public/tick-circle.svg";
+import React from 'react';
 import send from "../../public/send.svg";
 import closecircle from "../../public/close-circle.svg";
 import Image from "next/image";
 import { useComments } from 'app/utils/CommentProvider';
 import CommentHeaderwithClose from './CommentHeaderwithClose';
-import InternalDropdowns from 'components/InternalDropdowns';
 
 
 const Showcomment = ({ author = "John Doe", comment, setActiveComment }) => {
-	const { addComment, setViewcommentsId, isDrawerOpen, setIsDrawerOpen } = useComments(); // Context for adding a comment
-	const [text, setText] = useState(""); // State for comment input
+	const { setViewcommentsId, setIsDrawerOpen } = useComments();
 
-	// Handle adding a new comment
-	const handleAddComment = () => {
-		if (text.trim() === "") return; // Prevent empty comments
-		addComment({ commentId: Date.now(), text, position: comment.position }); // Store at the correct position
-		setText(""); // Reset input
-	};
+
 
 	return (
-
 		<div className='cursor-move'>
 			<div className="w-[395px] flex flex-col items-start p-[10px_20px] bg-white border border-black rounded-[8px]">
 				<div className="flex justify-between items-center gap-3 w-full">
@@ -41,20 +32,19 @@ const Showcomment = ({ author = "John Doe", comment, setActiveComment }) => {
 				<textarea
 					className="w-full   font-medium text-[16px] text-[#292929] py-3 px-4 rounded-md resize-none overflow-hidden focus:outline-none"
 					rows={4}
-					defaultValue={comment.text}
-					onChange={handleAddComment}
+					defaultValue={comment?.text}
 					placeholder="Write your comment..."
 				/>
 
 				{/* Buttons */}
 				<div className="flex w-full justify-between">
-					{/* <InternalDropdowns /> */}
-					<button onClick={handleAddComment}>
-						<h3 className="font-semibold text-[15px] leading-[20px] text-[#00A36C]">Add as internal</h3>
-					</button>
+					<div>
+						<h3 className={`font-semibold text-[15px] leading-[20px] text-[#00A36C] ${comment?.addcomment_as === "Internal" ? "text-green-500" : "text-red-500"}`}>
+							{comment?.addcomment_as === "Internal" ? "Internal" : "Client"}</h3>
+					</div>
 					<div>
 						<button
-							onClick={() => { setViewcommentsId(comment.commentId); setIsDrawerOpen(true) }}
+							onClick={() => { setIsDrawerOpen(true) }}
 							className="flex flex-row justify-center items-center px-[28px] py-[10px] gap-[8px] w-[135px] h-[40px] bg-[#3175FF] rounded-[8px] font-semibold text-[15px] leading-[20px] text-white cursor-pointer"
 						>
 							Comment

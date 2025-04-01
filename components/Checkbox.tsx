@@ -22,7 +22,7 @@ const Checkbox: React.FC<CheckboxProps> = ({
 	const handleChange = () => {
 		if (!isEditing) return; // Ensure editing is allowed
 
-		console.log(`Checkbox clicked: ${id}`);
+
 		setSelectedOption(id); // Update local state
 		setCampaignFormData((prev) => ({
 			...prev,

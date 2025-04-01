@@ -2,14 +2,16 @@ import React, { useState } from "react";
 import { useComments } from "app/utils/CommentProvider";
 import AddReplytothisComment from "./AddReplytothisComment";
 import CommentReply from "./CommentReply";
+import { useAppSelector } from "store/useStore";
 
 const AddCommentReply = ({ commentId, contrastingColor }) => {
-	const { comments, addReply } = useComments();
+	const { addReply } = useComments();
+	const { data: comments } = useAppSelector((state) => state.comment);
 	const [show, setShow] = useState(false);
 
 	// Find the comment by ID and get its replies
-	const comment = comments.find((c) => c.commentId === commentId);
-	const replies = comment ? comment.replies : [];
+	const comment = comments?.find((c) => c?.documentId === commentId);
+	const replies = comment ? comment?.replies : [];
 
 	// Handle new reply submission
 	const handleReplySubmit = (newReplyText) => {
@@ -19,7 +21,7 @@ const AddCommentReply = ({ commentId, contrastingColor }) => {
 	return (
 		<div className="w-full">
 			{/* Display Submitted Replies */}
-			{replies.length > 0 && <CommentReply commentId={commentId} contrastingColor={contrastingColor} />}
+			{replies?.length > 0 && <CommentReply commentId={commentId} contrastingColor={contrastingColor} />}
 
 			{/* Show Add Reply Input */}
 			{show && <AddReplytothisComment onReplySubmit={handleReplySubmit} />}

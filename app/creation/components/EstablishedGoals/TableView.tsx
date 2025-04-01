@@ -33,7 +33,7 @@ const TableView = ({ channels }) => {
                 const style =
                   platformStyles.find((style) => style.name === platformName) ||
                   platformStyles[
-                    Math.floor(Math.random() * platformStyles.length)
+                  Math.floor(Math.random() * platformStyles.length)
                   ];
                 platforms[stageName].push({
                   icon: getPlatformIcon(platformName),
@@ -50,10 +50,10 @@ const TableView = ({ channels }) => {
                   budgetSize:
                     Number(platform?.budget?.fixed_value) > 0
                       ? `${Number(
-                          platform?.budget?.fixed_value
-                        )} ${getCurrencySymbol(
-                          campaignFormData?.campaign_budget?.currency
-                        )}`
+                        platform?.budget?.fixed_value
+                      )} ${getCurrencySymbol(
+                        campaignFormData?.campaign_budget?.currency
+                      )}`
                       : 0,
                   impressions: platform.impressions,
                   reach: platform.reach,
@@ -108,7 +108,7 @@ const TableView = ({ channels }) => {
         const stage = funnelStages.find((s) => s.name === stageName);
         if (!stage) return null;
         const chh = extractPlatforms(campaignFormData);
-        console.log("🚀 ~ {campaignFormData?.funnel_stages?.map ~ chh:", chh);
+
         return (
           <section className="mb-[30px]" key={index}>
             <h1 className="text-[#061237] text-[18px] font-[600] mb-5 flex gap-2">
@@ -151,7 +151,7 @@ const TableView = ({ channels }) => {
                                 className="flex items-center gap-2 cursor-pointer"
                                 onClick={() =>
                                   campaignFormData?.goal_level ===
-                                    "Adset level" &&
+                                  "Adset level" &&
                                   toggleRow(`${stage.name}${index}`)
                                 }
                                 style={{
@@ -209,10 +209,10 @@ const TableView = ({ channels }) => {
                                 : channel?.endDate}
                             </td>
                             <td className="py-6 px-6">
-                            {channel.ad_sets?.reduce(
-                              (total, adSet) => total + (Number(adSet.size) || 0),
-                              0
-                            )}
+                              {channel.ad_sets?.reduce(
+                                (total, adSet) => total + (Number(adSet.size) || 0),
+                                0
+                              )}
                             </td>
                             <td className="py-6 px-6">{channel.budgetSize}</td>
                             <td className="py-6 px-3">
@@ -225,9 +225,9 @@ const TableView = ({ channels }) => {
                                     ?.find(
                                       (ch) => ch?.funnel_stage === stage.name
                                     )
-                                    [channel?.channelName]?.find(
-                                      (c) => c?.platform_name === channel?.name
-                                    )?.cpm || ""
+                                  [channel?.channelName]?.find(
+                                    (c) => c?.platform_name === channel?.name
+                                  )?.cpm || ""
                                 }
                                 onChange={(e) =>
                                   handleEditInfo(
@@ -256,10 +256,10 @@ const TableView = ({ channels }) => {
                                           (ch) =>
                                             ch?.funnel_stage === stage.name
                                         )
-                                        [channel?.channelName]?.find(
-                                          (c) =>
-                                            c?.platform_name === channel?.name
-                                        )?.frequency || ""
+                                      [channel?.channelName]?.find(
+                                        (c) =>
+                                          c?.platform_name === channel?.name
+                                      )?.frequency || ""
                                     }
                                     onChange={(e) =>
                                       handleEditInfo(
@@ -324,10 +324,10 @@ const TableView = ({ channels }) => {
                                             (ch) =>
                                               ch?.funnel_stage === stage.name
                                           )
-                                          [channel?.channelName]?.find(
-                                            (c) =>
-                                              c?.platform_name === channel?.name
-                                          )?.cpm || ""
+                                        [channel?.channelName]?.find(
+                                          (c) =>
+                                            c?.platform_name === channel?.name
+                                        )?.cpm || ""
                                       }
                                       onChange={(e) =>
                                         handleEditInfo(
@@ -342,24 +342,24 @@ const TableView = ({ channels }) => {
                                   </td>
                                   {campaignFormData?.goal_level ===
                                     "Adset level" && (
-                                    <>
-                                      <td className="!py-0 px-6 border-none">
-                                        {awareness.audience
-                                          ? awareness.audience
-                                          : "-"}
-                                      </td>
-                                      <td className="!py-0 px-6 border-none">
-                                        {awareness.frequency
-                                          ? awareness.frequency
-                                          : "-"}
-                                      </td>
-                                      <td className="!py-0 px-6 border-none">
-                                        {awareness.reach
-                                          ? awareness.reach
-                                          : "-"}
-                                      </td>
-                                    </>
-                                  )}
+                                      <>
+                                        <td className="!py-0 px-6 border-none">
+                                          {awareness.audience
+                                            ? awareness.audience
+                                            : "-"}
+                                        </td>
+                                        <td className="!py-0 px-6 border-none">
+                                          {awareness.frequency
+                                            ? awareness.frequency
+                                            : "-"}
+                                        </td>
+                                        <td className="!py-0 px-6 border-none">
+                                          {awareness.reach
+                                            ? awareness.reach
+                                            : "-"}
+                                        </td>
+                                      </>
+                                    )}
                                 </tr>
                               ))}
                             </>

@@ -57,7 +57,7 @@ const TimelineView = () => {
 		});
 	};
 	const funnelsData = mapCampaignsToFunnels(clientCampaignData);
-	console.log("🚀 ~ TimelineView ~ funnelsData:", funnelsData)
+
 
 	return (
 		<div

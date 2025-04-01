@@ -136,7 +136,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       }));
     }
 
-    console.log({ startDate, endDate });
+
 
     setParentWidth(newWidth);
     setParentLeft(newPos);
@@ -198,23 +198,21 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       }));
     }
 
-    console.log({ startDate, endDate });
+
     setParentLeft(newPosition);
     setPosition(newPosition);
   };
 
   return (
     <div
-      className={`relative w-full h-14 flex select-none ${
-        disableDrag ? "rounded-[10px]" : "rounded-none"
-      }`}
+      className={`relative w-full h-14 flex select-none ${disableDrag ? "rounded-[10px]" : "rounded-none"
+        }`}
       style={{ transform: `translateX(${position}px)` }}
     >
       {/* Left Resize Handle */}
       <div
-        className={`w-5 h-full bg-opacity-80 bg-black ${
-          disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-        } rounded-l-lg text-white flex items-center justify-center`}
+        className={`w-5 h-full bg-opacity-80 bg-black ${disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+          } rounded-l-lg text-white flex items-center justify-center`}
         onMouseDown={(e) => !disableDrag && handleMouseDownResize(e, "left")}
       >
         <MdDragHandle className="rotate-90" />
@@ -222,9 +220,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
       {/* Draggable Content */}
       <div
-        className={`h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[150px] ${
-          disableDrag ? "cursor-default rounded-[10px] relative" : "cursor-move"
-        }`}
+        className={`h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[150px] ${disableDrag ? "cursor-default rounded-[10px] relative" : "cursor-move"
+          }`}
         style={{
           width: disableDrag ? "100%" : parentWidth,
           backgroundColor: bg,
@@ -259,9 +256,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
       {/* Right Resize Handle */}
       <div
-        className={`w-5 h-full bg-opacity-80 bg-black ${
-          disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-        } rounded-r-lg text-white flex items-center justify-center`}
+        className={`w-5 h-full bg-opacity-80 bg-black ${disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+          } rounded-r-lg text-white flex items-center justify-center`}
         onMouseDown={(e) => !disableDrag && handleMouseDownResize(e, "right")}
       >
         <MdDragHandle className="rotate-90" />

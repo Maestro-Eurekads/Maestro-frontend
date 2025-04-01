@@ -81,12 +81,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
         ? categorySelection.filter((p) => p !== platformName)
         : [...categorySelection, platformName];
 
-      console.log('Updated selection:', {
-        stageName,
-        category,
-        platformName,
-        newCategorySelection
-      });
+
 
       return {
         ...prev,
@@ -161,12 +156,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
     const hasSocialMedia = stageSelections["Social media"]?.length > 0;
     const hasDisplayNetworks = stageSelections["Display networks"]?.length > 0;
     const hasSearchEngines = stageSelections["Search engines"]?.length > 0;
-    console.log(`Stage ${stageName} validity:`, {
-      hasSocialMedia,
-      hasDisplayNetworks,
-      hasSearchEngines,
-      selected: stageSelections
-    });
+
     return hasSocialMedia || hasDisplayNetworks || hasSearchEngines;
   };
 
@@ -216,11 +206,10 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
                     <div key={index}>
                       <div
                         className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-                  ${
-                    openItems[stage.name]
-                      ? "rounded-t-[10px]"
-                      : "rounded-[10px]"
-                  }`}
+                  ${openItems[stage.name]
+                            ? "rounded-t-[10px]"
+                            : "rounded-[10px]"
+                          }`}
                         onClick={() => toggleItem(stage.name)}
                       >
                         <div className="flex items-center gap-2">
@@ -323,11 +312,10 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
                                           <div
                                             key={pIndex}
                                             className={`cursor-pointer flex flex-row justify-between items-center p-4 gap-2 w-[230px] h-[62px] bg-white 
-                                  border rounded-[10px] ${
-                                    isSelected
-                                      ? "border-[#3175FF]"
-                                      : "border-[rgba(0,0,0,0.1)]"
-                                  }`}
+                                  border rounded-[10px] ${isSelected
+                                                ? "border-[#3175FF]"
+                                                : "border-[rgba(0,0,0,0.1)]"
+                                              }`}
                                             onClick={(e) =>
                                               handlePlatformClick(
                                                 e,
@@ -347,11 +335,10 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
                                               </p>
                                             </div>
                                             <div
-                                              className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${
-                                                isSelected
-                                                  ? "bg-[#3175FF]"
-                                                  : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
-                                              }`}
+                                              className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${isSelected
+                                                ? "bg-[#3175FF]"
+                                                : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
+                                                }`}
                                             >
                                               {isSelected && (
                                                 <Image
@@ -379,11 +366,10 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
                                     e.stopPropagation();
                                     handleValidate(stage.name);
                                   }}
-                                  className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-                                    isStageValid(stage.name)
-                                      ? "bg-[#3175FF] hover:bg-[#2563eb]"
-                                      : "bg-[#3175FF] opacity-50 cursor-not-allowed"
-                                  }`}
+                                  className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isStageValid(stage.name)
+                                    ? "bg-[#3175FF] hover:bg-[#2563eb]"
+                                    : "bg-[#3175FF] opacity-50 cursor-not-allowed"
+                                    }`}
                                 >
                                   Validate
                                 </button>

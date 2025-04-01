@@ -51,10 +51,10 @@ const CustomInput = ({ options, selectedOption, setSelectedOption }) => {
 
 			{isOpen && (
 				<div className="absolute w-full bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-2 z-10">
-					{options.map((option) => (
+					{options?.map((option) => (
 						<div
 							key={option}
-							className={`px-4 py-2 cursor-pointer font-semibold text-[15px] hover:bg-gray-100 ${option === "Add as Internal" ? "text-green-700" : "text-red-700"}`}
+							className={`px-4 py-2 cursor-pointer font-semibold text-[15px] hover:bg-gray-100 ${option === "Add as Internal" ? "text-green-500" : "text-red-500"}`}
 							onClick={() => handleSelect(option)}
 						>
 							{option}

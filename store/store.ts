@@ -1,13 +1,15 @@
  
 import { configureStore } from "@reduxjs/toolkit";
 import authSlice from "../features/Auth/authSlice";   
-import clientSlice  from "../features/Client/clientSlice";
+import clientSlice  from "../features/Client/clientSlice"; 
+import commentSlice from "features/Comment/commentSlice";
  
 
 export const store = configureStore({
   reducer: {
     auth: authSlice,
     client:  clientSlice,
+    comment:  commentSlice,
   },
 });
 

@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import Image from "next/image";
 import tickcircle from "../../public/tick-circle.svg";
 import send from "../../public/send.svg";
+import { useComments } from 'app/utils/CommentProvider';
+import { SVGLoader } from 'components/SVGLoader';
 
 const AddReplytothisComment = ({ onReplySubmit }) => {
-	const [replyText, setReplyText] = useState("");
+	const { isLoadingReply, setReplyText, replyText } = useComments();
+
 
 	const handleReplySubmit = () => {
 		if (!replyText.trim()) return;
@@ -16,8 +19,7 @@ const AddReplytothisComment = ({ onReplySubmit }) => {
 			message: replyText,
 		};
 
-		onReplySubmit(newReply); // Pass reply back to parent component
-		setReplyText(""); // Clear the textarea after submission
+		onReplySubmit(newReply); // Pass reply back to parent component 
 	};
 
 	return (
@@ -57,7 +59,13 @@ const AddReplytothisComment = ({ onReplySubmit }) => {
 							<button
 								onClick={handleReplySubmit}
 								className="flex flex-row justify-center items-center px-[28px] py-[10px] gap-[8px] w-[135px] h-[40px] bg-[#3175FF] rounded-[8px] font-semibold text-[15px] leading-[20px] text-white">
-								Comment
+
+								{/* Comment */}
+								{isLoadingReply ? (
+									<SVGLoader width={"25px"} height={"25px"} color={"#FFF"} />
+								) : (
+									"Comment"
+								)}
 								<Image src={send} alt="send" />
 							</button>
 						</div>

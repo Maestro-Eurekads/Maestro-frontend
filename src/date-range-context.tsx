@@ -34,17 +34,17 @@ export const DateRangeProvider = ({
       campaignFormData?.campaign_timeline_start_date &&
       campaignFormData?.campaign_timeline_end_date
     ) {
-      console.log("🚀 ~ useEffect ~ campaignFormData:", campaignFormData);
+
       const startDate = new Date(
         campaignFormData?.campaign_timeline_start_date
       );
-      console.log("🚀 ~ useEffect ~ startDate:", startDate);
+
       const endDate = new Date(campaignFormData?.campaign_timeline_end_date);
-      console.log("🚀 ~ useEffect ~ endDate:", endDate);
+
       const differenceInDays = Math.ceil(
         (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
       );
-      console.log("Difference in days:", differenceInDays);
+
       const dateList = eachDayOfInterval({
         start:
           new Date(campaignFormData?.campaign_timeline_start_date) ||
