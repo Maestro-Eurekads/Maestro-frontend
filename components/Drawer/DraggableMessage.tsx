@@ -15,6 +15,7 @@ const DraggableComment = ({ opportunity }) => {
 
 	const handleStop = (data) => {
 		const newPosition = { x: data.x, y: data.y };
+		console.log("data-newPosition", data);
 		setNewPosition(newPosition)
 		updateOpportunityPosition(opportunity?.commentId, newPosition);
 	};
