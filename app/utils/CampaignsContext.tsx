@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, ReactNode, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  ReactNode,
+  useState,
+  useEffect,
+} from "react";
 import useCampaignHook from "./useCampaignHook";
 import axios from "axios";
 import { useSearchParams } from "next/navigation";
@@ -24,6 +30,7 @@ const initialState = {
   campaign_timeline_end_date: "",
   campaign_budget: {},
   goal_level: "",
+  validatedStages: {},
 };
 
 const CampaignContext = createContext<any>(null);
@@ -35,10 +42,20 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true); // Start with loading true
   const query = useSearchParams();
   const cId = query.get("campaignId");
-  const { loadingClients: hookLoadingClients, allClients: hookAllClients } = useCampaignHook();
+  const { loadingClients: hookLoadingClients, allClients: hookAllClients } =
+    useCampaignHook();
+  const [loadingObj, setLoadingObj] = useState(false);
+  const [platformList, setPlatformList] = useState({});
+  const [objectives, setObjectives] = useState([]);
+  const [buyObj, setBuyObj] = useState([]);
+  const [buyType, setBuyType] = useState([]);
 
-  const reduxClients = useSelector((state: any) => state.client?.getCreateClientData?.data || []);
-  const reduxLoadingClients = useSelector((state: any) => state.client?.getCreateClientIsLoading || false);
+  const reduxClients = useSelector(
+    (state: any) => state.client?.getCreateClientData?.data || []
+  );
+  const reduxLoadingClients = useSelector(
+    (state: any) => state.client?.getCreateClientIsLoading || false
+  );
 
   const allClients = reduxClients.length > 0 ? reduxClients : hookAllClients;
   const loadingClients = reduxLoadingClients || hookLoadingClients;
@@ -67,13 +84,15 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     level2: [],
     level3: [],
   });
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const getActiveCampaign = async (docId?: string) => {
     try {
       setLoading(true);
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}?populate[0]=media_plan_details&populate[1]=budget_details&populate[2]=channel_mix&populate[3]=channel_mix.social_media&populate[4]=channel_mix.display_networks&populate[5]=channel_mix.search_engines&populate[6]=channel_mix.social_media.format&populate[7]=channel_mix.display_networks.format&populate[8]=channel_mix.search_engines.format&populate[9]=client_selection&populate[10]=client&populate[11]=channel_mix.social_media.ad_sets&populate[12]=channel_mix.display_networks.ad_sets&populate[13]=channel_mix.search_engines.ad_sets&populate[14]=channel_mix.social_media.budget&populate[15]=channel_mix.display_networks.budget&populate[16]=channel_mix.search_engines.budget&populate[17]=channel_mix.stage_budget&populate[18]=campaign_budget&populate[19]=channel_mix.social_media.kpi&populate[20]=channel_mix.display_networks.kpi&populate[21]=channel_mix.search_engines.kpi&populate[22]=channel_mix.social_media.ad_sets.kpi&populate[23]=channel_mix.display_networks.ad_sets.kpi&populate[24]=channel_mix.search_engines.ad_sets.kpi&populate[25]=channel_mix.social_media.ad_sets.budget&populate[26]=channel_mix.display_networks.ad_sets.budget&populate[27]=channel_mix.search_engines.ad_sets.budget`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${
+          cId || docId
+        }?populate[0]=media_plan_details&populate[1]=budget_details&populate[2]=channel_mix&populate[3]=channel_mix.social_media&populate[4]=channel_mix.display_networks&populate[5]=channel_mix.search_engines&populate[6]=channel_mix.social_media.format&populate[7]=channel_mix.display_networks.format&populate[8]=channel_mix.search_engines.format&populate[9]=client_selection&populate[10]=client&populate[11]=channel_mix.social_media.ad_sets&populate[12]=channel_mix.display_networks.ad_sets&populate[13]=channel_mix.search_engines.ad_sets&populate[14]=channel_mix.social_media.budget&populate[15]=channel_mix.display_networks.budget&populate[16]=channel_mix.search_engines.budget&populate[17]=channel_mix.stage_budget&populate[18]=campaign_budget&populate[19]=channel_mix.social_media.kpi&populate[20]=channel_mix.display_networks.kpi&populate[21]=channel_mix.search_engines.kpi&populate[22]=channel_mix.social_media.ad_sets.kpi&populate[23]=channel_mix.display_networks.ad_sets.kpi&populate[24]=channel_mix.search_engines.ad_sets.kpi&populate[25]=channel_mix.social_media.ad_sets.budget&populate[26]=channel_mix.display_networks.ad_sets.budget&populate[27]=channel_mix.search_engines.ad_sets.budget`,
         {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
@@ -104,20 +123,33 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         approver: data?.media_plan_details?.internal_approver || prev.approver,
         budget_details_currency: {
           id: data?.budget_details?.currency || prev.budget_details_currency.id,
-          value: data?.budget_details?.currency || prev.budget_details_currency.value,
-          label: data?.budget_details?.currency || prev.budget_details_currency.label,
+          value:
+            data?.budget_details?.currency ||
+            prev.budget_details_currency.value,
+          label:
+            data?.budget_details?.currency ||
+            prev.budget_details_currency.label,
         },
         budget_details_fee_type: {
           id: data?.budget_details?.fee_type || prev.budget_details_fee_type.id,
-          value: data?.budget_details?.fee_type || prev.budget_details_fee_type.value,
+          value:
+            data?.budget_details?.fee_type ||
+            prev.budget_details_fee_type.value,
         },
-        budget_details_sub_fee_type: data?.budget_details?.sub_fee_type || prev.budget_details_sub_fee_type,
-        budget_details_value: data?.budget_details?.value || prev.budget_details_value,
-        campaign_objectives: data?.campaign_objective || prev.campaign_objectives,
+        budget_details_sub_fee_type:
+          data?.budget_details?.sub_fee_type ||
+          prev.budget_details_sub_fee_type,
+        budget_details_value:
+          data?.budget_details?.value || prev.budget_details_value,
+        campaign_objectives:
+          data?.campaign_objective || prev.campaign_objectives,
         funnel_stages: data?.funnel_stages || prev.funnel_stages,
         channel_mix: data?.channel_mix || prev.channel_mix,
-        campaign_timeline_start_date: data?.campaign_timeline_start_date || prev.campaign_timeline_start_date,
-        campaign_timeline_end_date: data?.campaign_timeline_end_date || prev.campaign_timeline_end_date,
+        campaign_timeline_start_date:
+          data?.campaign_timeline_start_date ||
+          prev.campaign_timeline_start_date,
+        campaign_timeline_end_date:
+          data?.campaign_timeline_end_date || prev.campaign_timeline_end_date,
         campaign_budget: data?.campaign_budget || prev.campaign_budget,
         goal_level: data?.goal_level || prev.goal_level,
       }));
@@ -165,8 +197,12 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         ...prev,
         budget_details_currency: {
           id: data?.budget_details?.currency || prev.budget_details_currency.id,
-          value: data?.budget_details?.currency || prev.budget_details_currency.value,
-          label: data?.budget_details?.currency || prev.budget_details_currency.label,
+          value:
+            data?.budget_details?.currency ||
+            prev.budget_details_currency.value,
+          label:
+            data?.budget_details?.currency ||
+            prev.budget_details_currency.label,
         },
       }));
       return response;
@@ -194,9 +230,15 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setCampaignFormData((prev) => ({
         ...prev,
         budget_details_currency: {
-          id: responseData?.budget_details?.currency || prev.budget_details_currency.id,
-          value: responseData?.budget_details?.currency || prev.budget_details_currency.value,
-          label: responseData?.budget_details?.currency || prev.budget_details_currency.label,
+          id:
+            responseData?.budget_details?.currency ||
+            prev.budget_details_currency.id,
+          value:
+            responseData?.budget_details?.currency ||
+            prev.budget_details_currency.value,
+          label:
+            responseData?.budget_details?.currency ||
+            prev.budget_details_currency.label,
         },
       }));
       return response;
@@ -221,15 +263,181 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       );
       const data = response?.data?.data || {};
       setBusinessLevelOptions({
-        level1: data?.level_1?.map((item: string) => ({ id: item, value: item, label: item })) || [],
-        level2: data?.level_2?.map((item: string) => ({ id: item, value: item, label: item })) || [],
-        level3: data?.level_3?.map((item: string) => ({ id: item, value: item, label: item })) || [],
+        level1:
+          data?.level_1?.map((item: string) => ({
+            id: item,
+            value: item,
+            label: item,
+          })) || [],
+        level2:
+          data?.level_2?.map((item: string) => ({
+            id: item,
+            value: item,
+            label: item,
+          })) || [],
+        level3:
+          data?.level_3?.map((item: string) => ({
+            id: item,
+            value: item,
+            label: item,
+          })) || [],
       });
     } catch (error) {
       console.error("Error fetching business level options:", error);
       setBusinessLevelOptions({ level1: [], level2: [], level3: [] });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchObjectives = async () => {
+    setLoadingObj(true);
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign-objectives?populate=*`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+        }
+      );
+      const data = res?.data?.data;
+
+      const formattedData = data?.map((d: any) => ({
+        id: d?.id,
+        title: d?.title,
+        description: d?.subtitle,
+        icon: d?.icon?.url,
+      }));
+
+      setObjectives(formattedData);
+    } catch (err) {
+      console.error("Error fetching objectives:", err);
+    } finally {
+      setLoadingObj(false);
+    }
+  };
+
+  const fetchBuyObjectives = async () => {
+    setLoadingObj(true);
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/buy-objectives?populate=*`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+        }
+      );
+      const data = res?.data?.data;
+      setBuyObj(data);
+    } catch (err) {
+      console.error("Error fetching buy objectives:", err);
+    } finally {
+      setLoadingObj(false);
+    }
+  };
+
+  const fetchBuyTypes = async () => {
+    setLoadingObj(true);
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/buy-types?populate=*`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+        }
+      );
+      const data = res?.data?.data;
+      setBuyType(data);
+    } catch (err) {
+      console.error("Error fetching buy objectives:", err);
+    } finally {
+      setLoadingObj(false);
+    }
+  };
+
+  function organizeAdvertisingPlatforms(data) {
+    // Initialize the result structure
+    const result = {
+      online: {
+        social_media: [],
+        display_networks: [],
+        search_engines: [],
+        e_commerce: [],
+        streaming: [],
+        mobile: [],
+        ooh: [],
+        print: [],
+        broadcast: [],
+        messaging: [],
+        in_game: [],
+      },
+      offline: {
+        social_media: [],
+        display_networks: [],
+        search_engines: [],
+        e_commerce: [],
+        streaming: [],
+        mobile: [],
+        ooh: [],
+        print: [],
+        broadcast: [],
+        messaging: [],
+        in_game: [],
+      },
+    };
+
+    // Loop through each platform in the data
+    data.forEach((platform) => {
+      // Determine the type category (lowercase)
+      const typeCategory = platform.type.toLowerCase();
+
+      // Convert channel_type to the expected format in the result object
+      // e.g., "Search engines" -> "search_engines"
+      let channelType = platform.channel_type
+        .toLowerCase()
+        .replace(/\s+/g, "_");
+
+      // Handle special case for "In-Game" -> "in_game"
+      if (channelType === "in-game") {
+        channelType = "in_game";
+      }
+
+      // Check if the type category and channel type exist in our result structure
+      if (result[typeCategory] && result[typeCategory][channelType]) {
+        // Add the platform to the appropriate array
+        result[typeCategory][channelType].push({
+          id: platform.id,
+          documentId: platform.documentId,
+          platform_name: platform.platform_name,
+          description: platform.description,
+        });
+      }
+    });
+
+    return result;
+  }
+
+  const fetchPlatformLists = async () => {
+    setLoadingObj(true);
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/platform-lists?pagination[pageSize]=200`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+        }
+      );
+      const data = res?.data?.data;
+      const organizedPlatforms = organizeAdvertisingPlatforms(data);
+      setPlatformList(organizedPlatforms);
+    } catch (err) {
+      console.error("Error fetching buy objectives:", err);
+    } finally {
+      setLoadingObj(false);
     }
   };
 
@@ -250,6 +458,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     if (cId) {
       getActiveCampaign();
     }
+    fetchBuyObjectives();
+    fetchObjectives();
+    fetchPlatformLists();
+    fetchBuyTypes();
   }, [cId]);
 
   return (
@@ -273,7 +485,12 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         setCopy,
         businessLevelOptions,
         isLoggedIn,
-        setIsLoggedIn
+        setIsLoggedIn,
+        platformList,
+        loadingObj,
+        buyObj,
+        objectives,
+        buyType,
       }}
     >
       {children}
@@ -283,6 +500,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
 export const useCampaigns = () => {
   const context = useContext(CampaignContext);
-  if (!context) throw new Error("useCampaigns must be used within a CampaignProvider");
+  if (!context)
+    throw new Error("useCampaigns must be used within a CampaignProvider");
   return context;
 };
