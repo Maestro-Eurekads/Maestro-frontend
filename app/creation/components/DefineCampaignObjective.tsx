@@ -64,7 +64,7 @@ const DefineCampaignObjective = () => {
   // Load saved objective on mount
   useEffect(() => {
     if (campaignData?.campaign_objective) {
-      const matchingObjective = campaignObjectives.find(
+      const matchingObjective = objectives?.find(
         obj => obj?.title === campaignData?.campaign_objective
       );
       if (matchingObjective) {
