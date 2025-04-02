@@ -13,17 +13,13 @@ const initialState = {
   message: '',
   error: '',
 
-  // getCreateClientData: null,
-  // getCreateClientIsError: false,
-  // getCreateClientIsSuccess: false,
-  // getCreateClientIsLoading: false,
-  // getCreateClientMessage: '', 
+ 
 };
 
 // Create Comment
-export const getComment = createAsyncThunk('comment/getComment', async (inputs, thunkAPI) => { 
+export const getComment:any = createAsyncThunk('comment/getComment', async (commentId, thunkAPI) => { 
   try {
-    const response = await commentService.getComment(inputs);
+    const response = await commentService.getComment(commentId);
     return response; 
 		} catch (error: unknown) { 
 			 if (typeof error === 'object' && error !== null && 'response' in error) {
@@ -36,16 +32,7 @@ export const getComment = createAsyncThunk('comment/getComment', async (inputs, 
 });
 
 // Sign-up user
-// export const getCreateClient = createAsyncThunk('client/getCreateClient', async (data, thunkAPI) => {
-//   try {
-//     const response = await commentService.getCreateClient();
-//     return response;
-//   } catch (error) { 
-//       const errors = error.response?.data?.error?.details?.errors || error.response?.data?.error?.message || error.message || []; 
-	 
-//     return thunkAPI.rejectWithValue( errors);
-//   }
-// });
+ 
 
 // Slice
 export const clientSlice = createSlice({
@@ -58,10 +45,8 @@ export const clientSlice = createSlice({
       state.isError = false;
       state.message = '';
 
-      // state.getCreateClientIsLoading = false;
-      // state.getCreateClientIsSuccess = false;
-      // state.getCreateClientIsError = false;
-      // state.getCreateClientMessage = '';
+    
+     
     },
   },
  // Extra Reducers
@@ -85,21 +70,7 @@ extraReducers: (builder) => {
       state.data = null;
     })
 
-    // Get Create Client
-    // .addCase(getCreateClient.pending, (state) => {
-    //   state.getCreateClientIsLoading = true;
-    // })
-    // .addCase(getCreateClient.fulfilled, (state, action: any) => {
-    //   state.getCreateClientIsLoading = false;
-    //   state.getCreateClientIsSuccess = true;
-    //   state.getCreateClientData = action.payload
-    // })
-    // .addCase(getCreateClient.rejected, (state, action:any) => {
-    //   state.getCreateClientIsLoading = false;
-    //    state.getCreateClientIsSuccess = false;
-    //   state.getCreateClientIsError = true;
-    //   state.getCreateClientMessage = action.payload 
-    // });
+    
 },
 
 });

@@ -13,7 +13,7 @@ import { SVGLoader } from "components/SVGLoader";
 import AlertMain from "components/Alert/AlertMain";
 
 const CommentsDrawer = ({ isOpen, onClose }) => {
-	const { opportunities, setViewcommentsId, viewcommentsId, addCommentOpportunity, clearCommentsAndOpportunities, createCommentsError, createCommentsSuccess, approvedError, replyError } = useComments();
+	const { opportunities, setViewcommentsId, viewcommentsId, addCommentOpportunity, setOpportunities, createCommentsError, createCommentsSuccess, approvedError, replyError, setIsCreateOpen } = useComments();
 	const {
 		data: comments,
 		isLoading,
@@ -22,7 +22,24 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 	const dispatch = useAppDispatch();
 	const { campaignData } = useCampaigns();
 	const [alert, setAlert] = useState(null);
+	const [commentColors, setCommentColors] = useState({});
+	const commentId = campaignData?.documentId
 
+
+
+	useEffect(() => {
+		const newColors = {};
+		comments?.forEach((comment) => {
+			if (!commentColors[comment.documentId]) {
+				const randomColor = getRandomColor();
+				newColors[comment.documentId] = {
+					color: randomColor,
+					contrastingColor: getContrastingColor(randomColor),
+				};
+			}
+		});
+		setCommentColors((prevColors) => ({ ...prevColors, ...newColors }));
+	}, [comments]);
 
 	// Function to create a new Comment Opportunity
 	const createCommentOpportunity = () => {
@@ -31,11 +48,19 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 			text: "New Comment Opportunity",
 			position: { x: 150, y: 150 },
 		};
-		addCommentOpportunity(newOpportunity);
+
+		// Add only if there are 0  
+		if (opportunities.length === 0) {
+			setIsCreateOpen(true);
+			addCommentOpportunity(newOpportunity);
+		}
 	};
 
+
+
+
 	const handleClose = () => {
-		clearCommentsAndOpportunities();
+		setOpportunities([]);
 		onClose(false);
 		setViewcommentsId(false);
 	};
@@ -72,13 +97,15 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 	}, [createCommentsError, replyError]);
 
 	useEffect(() => {
-		dispatch(getComment());
+		dispatch(getComment(commentId));
 	}, [dispatch]);
 
 
+	console.log('viewcommentsId', viewcommentsId)
+
 
 	return (
-		<div className={`drawer-container ${isOpen ? "drawer-open" : ""} overflow-y-auto max-h-screen`}>
+		<div className={`drawer-container ${isOpen ? "drawer-open" : ""}   max-h-screen`}>
 
 			{alert && <AlertMain alert={alert} />}
 			<div className="flex w-full justify-between p-3">
@@ -102,53 +129,49 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 				</button>
 			</div>
 
-
+			<div className="w-full flex flex-col justify-center items-center gap-5 mt-1 mb-4">
+				<button onClick={createCommentOpportunity}>
+					<Image src={Mmessages} alt="Add Comment Opportunity" />
+				</button>
+				<h6 className="w-80 text-xl text-center text-black">
+					Add a comment, your comments will appear here!
+				</h6>
+			</div>
 
 			{/* Comments Section */}
-			<div className="faq-container p-5 overflow-y-auto max-h-[calc(100vh-100px)]">
+			<div className="faq-container p-5 overflow-y-auto max-h-[calc(88vh-100px)]">
 				{isLoading ? (
 					<div className="w-full h-full flex justify-center items-center py-5">
 						<SVGLoader width={"35px"} height={"35px"} color={"#00A36C"} />
 					</div>
-				) : viewcommentsId ? ( // If viewcommentsId exists, show only the selected comment
+				) : viewcommentsId ? (
 					comments
 						.filter((comment) => comment?.documentId === viewcommentsId)
 						.map((comment) => {
-							const randomColor = getRandomColor();
-							const contrastingColor = getContrastingColor(randomColor);
+							const { color, contrastingColor } = commentColors[comment?.documentId] || {};
 							return (
 								<div
 									key={comment?.documentId}
 									className="flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-md rounded-lg border-box mb-5"
 								>
 									<Comments comment={comment} contrastingColor={contrastingColor} />
-									<AddCommentReply commentId={comment?.documentId} contrastingColor={contrastingColor} />
+									<AddCommentReply documentId={comment?.documentId} contrastingColor={contrastingColor} commentId={comment?.commentId} />
 								</div>
 							);
 						})
-				) : opportunities?.length > 0 ? (
+				) : (
 					comments?.map((comment) => {
-						const randomColor = getRandomColor();
-						const contrastingColor = getContrastingColor(randomColor);
+						const { color, contrastingColor } = commentColors[comment?.documentId] || {};
 						return (
 							<div
 								key={comment?.documentId}
 								className="flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-md rounded-lg border-box mb-5"
 							>
 								<Comments comment={comment} contrastingColor={contrastingColor} />
-								<AddCommentReply commentId={comment?.documentId} contrastingColor={contrastingColor} />
+								<AddCommentReply documentId={comment?.documentId} contrastingColor={contrastingColor} commentId={comment?.commentId} />
 							</div>
 						);
 					})
-				) : isOpen && (
-					<div className="w-full flex flex-col justify-center items-center gap-5 mt-5">
-						<button onClick={createCommentOpportunity}>
-							<Image src={Mmessages} alt="Add Comment Opportunity" />
-						</button>
-						<h6 className="w-72 text-xl text-center text-black">
-							Add a comment, your comments will appear here!
-						</h6>
-					</div>
 				)}
 			</div>
 

@@ -13,12 +13,12 @@ import { useAppDispatch } from 'store/useStore';
 import { getComment } from 'features/Comment/commentSlice';
 
 const OverviewofyourCampaign = () => {
-	const { isDrawerOpen, setIsDrawerOpen } = useComments();
+	const { isDrawerOpen, setIsDrawerOpen, isCreateOpen } = useComments();
 	const [show, setShow] = useState(false);
 	const { range } = useDateRange();
-	const { clientCampaignData } = useCampaigns();
+	const { clientCampaignData, campaignData } = useCampaigns();
 	const dispatch = useAppDispatch();
-
+	const commentId = campaignData?.documentId
 
 
 	const mapCampaignsToFunnels = (campaigns: any[]) => {
@@ -39,7 +39,7 @@ const OverviewofyourCampaign = () => {
 
 	const handleDrawerOpen = () => {
 		setIsDrawerOpen(true);
-		dispatch(getComment());
+		dispatch(getComment(commentId));
 	}
 
 	return (
@@ -82,7 +82,7 @@ const OverviewofyourCampaign = () => {
 					<DateComponent useDate={false} />
 				</div>
 
-				<MessageContainer isOpen={isDrawerOpen} />
+				<MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
 				<OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} setIsDrawerOpen={setIsDrawerOpen} openComments={isDrawerOpen} />
 			</div>
 
