@@ -2,10 +2,14 @@ import React from 'react'
 import DraggableMessage from './DraggableMessage'
 import Message from './Message'
 
-const MessageContainer = ({ isOpen }) => {
+const MessageContainer = ({ isOpen, isCreateOpen }) => {
+
+
+
+
 	return (
 		<div>
-			{isOpen &&
+			{isCreateOpen &&
 				<DraggableMessage />}
 			{isOpen &&
 				<Message />}

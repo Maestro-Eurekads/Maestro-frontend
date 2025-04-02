@@ -89,9 +89,9 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedValidationState =
-        campaignFormData?.validatedStages?.[stageName] || false;
-      setIsValidated(savedValidationState);
+      const savedValidationState = localStorage.getItem(`formatValidation_${stageName}`);
+      const initialValidation = savedValidationState ? JSON.parse(savedValidationState) : false;
+      setIsValidated(initialValidation);
 
       const savedQuantities = localStorage.getItem(`quantities_${stageName}`);
       if (savedQuantities) {
@@ -104,8 +104,21 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       if (savedExpanded) {
         setExpandedPlatforms(JSON.parse(savedExpanded));
       }
+
+      // Load validation status from localStorage
+      const savedValidatedStages = localStorage.getItem('validatedStages');
+      if (savedValidatedStages) {
+        const parsedStages = JSON.parse(savedValidatedStages);
+        setCampaignFormData(prev => ({
+          ...prev,
+          validatedStages: {
+            ...prev.validatedStages,
+            ...parsedStages
+          }
+        }));
+      }
     }
-  }, [stageName, campaignFormData?.validatedStages]);
+  }, [stageName]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -230,14 +243,25 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
 
     // Reset validation state when a new format is selected
     setIsValidated(false);
-    setCampaignFormData((prev) => ({
-      ...prev,
+    const updatedCampaignData = {
+      ...campaignFormData,
       channel_mix: copy,
       validatedStages: {
-        ...prev.validatedStages,
-        [stageName]: false, // Reset global validation for this stage
-      },
-    }));
+        ...campaignFormData.validatedStages,
+        [stageName]: false,
+      }
+    };
+    setCampaignFormData(updatedCampaignData);
+
+    // Update localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem('campaignFormData', JSON.stringify(updatedCampaignData));
+      localStorage.setItem(`formatValidation_${stageName}`, 'false');
+      localStorage.setItem('validatedStages', JSON.stringify({
+        ...campaignFormData.validatedStages,
+        [stageName]: false
+      }));
+    }
   };
 
   const handleQuantityChange = (
@@ -289,8 +313,14 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       platform.format[formatIndex].num_of_visuals =
         newQuantities[platformName][formatName].toString();
     }
-
-    setCampaignFormData({ ...campaignFormData, channel_mix: copy });
+    
+    const updatedCampaignData = { ...campaignFormData, channel_mix: copy };
+    setCampaignFormData(updatedCampaignData);
+    
+    // Update localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem('campaignFormData', JSON.stringify(updatedCampaignData));
+    }
   };
 
   const handleValidateOrEdit = () => {
@@ -302,6 +332,10 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     const newValidationState = !isValidated;
     setIsValidated(newValidationState);
     setIsModalOpen(false);
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`formatValidation_${stageName}`, JSON.stringify(newValidationState));
+    }
 
     const updatedChannelMix = campaignFormData.channel_mix.map((mix) => {
       if (mix.funnel_stage === stageName) {
@@ -317,23 +351,24 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     });
     console.log("updatedChannelMix", updatedChannelMix);
 
-    // Update both local state and context
-    setCampaignFormData((prev) => ({
-      ...prev,
+    const updatedCampaignData = {
+      ...campaignFormData,
       channel_mix: updatedChannelMix,
       validatedStages: {
-        ...prev.validatedStages,
-        [stageName]: newValidationState,
-      },
-    }));
-
-    // Store validation state in localStorage
-    if (typeof window !== "undefined") {
-      const validatedStages = {
         ...campaignFormData.validatedStages,
         [stageName]: newValidationState,
-      };
-      localStorage.setItem("validatedStages", JSON.stringify(validatedStages));
+      }
+    };
+    
+    setCampaignFormData(updatedCampaignData);
+
+    // Update localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem('campaignFormData', JSON.stringify(updatedCampaignData));
+      localStorage.setItem('validatedStages', JSON.stringify({
+        ...campaignFormData.validatedStages,
+        [stageName]: newValidationState
+      }));
     }
   };
 
@@ -506,20 +541,13 @@ export const FormatSelection = () => {
         );
       }
 
-      // Load validated stages from localStorage
-      const savedValidatedStages = localStorage.getItem("validatedStages");
-      if (savedValidatedStages && campaignFormData) {
-        const parsedValidatedStages = JSON.parse(savedValidatedStages);
-        setCampaignFormData((prev) => ({
-          ...prev,
-          validatedStages: {
-            ...prev.validatedStages,
-            ...parsedValidatedStages,
-          },
-        }));
+      // Load campaign data from localStorage
+      const savedCampaignData = localStorage.getItem('campaignFormData');
+      if (savedCampaignData) {
+        setCampaignFormData(JSON.parse(savedCampaignData));
       }
     }
-  }, [campaignFormData?.channel_mix]);
+  }, [campaignFormData]);
 
   const toggleTab = (stageName: string) => {
     const newOpenTabs = openTabs.includes(stageName)
@@ -647,7 +675,7 @@ export default function MediaSelection({
   const { campaignFormData } = useCampaigns();
 
   return (
-    <div className="flex gap-4">
+    <div className="flex flex-wrap gap-4 overflow-x-auto">
       {mediaOptions.map((option, index) => {
         const existsInDB = campaignFormData?.channel_mix
           ?.find((ch) => ch?.funnel_stage === stageName)
@@ -658,7 +686,7 @@ export default function MediaSelection({
           console.log({ isValidated, existsInDB });
         if (isValidated && !existsInDB) return null;
         return (
-          <div key={index} className="flex justify-center gap-6">
+          <div key={index} className="flex justify-center gap-6 min-w-fit">
             <div className="flex flex-col items-center">
               <div
                 onClick={() => !isValidated && handleFormatSelection(index)}

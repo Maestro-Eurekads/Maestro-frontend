@@ -88,8 +88,9 @@ import Mmessages from "../../public/messageOnplus.svg";
 import Showcomment from "./Showcomment";
 import Draggable from "react-draggable";
 import { useAppSelector } from "store/useStore";
+import tickcircles from "../../public/tick-circle-green.svg";
 
-const DraggableComment = ({ comment }) => {
+const DraggableComment = ({ comment, commentId }) => {
 	const { updateCommentsPosition, updatePosition } = useComments();
 	const [activeComment, setActiveComment] = useState(null);
 	const commentRef = useRef(null);
@@ -110,7 +111,7 @@ const DraggableComment = ({ comment }) => {
 		}
 		// Set a new timeout to update position after 5 seconds
 		positionTimeout = setTimeout(() => {
-			updatePosition(comment?.documentId, newPosition);
+			updatePosition(comment?.documentId, newPosition, commentId);
 		}, 5000);
 	};
 
@@ -127,12 +128,17 @@ const DraggableComment = ({ comment }) => {
 					<Showcomment comment={comment} setActiveComment={setActiveComment} />
 				</div>
 			) : (
-				<div ref={commentRef} className="absolute cursor-move drag-handle z-20">
-					<button onClick={() => setActiveComment(comment?.documentId)} className="flex flex-row justify-center items-center w-[38px] h-[31px] bg-[#3175FF] rounded-md">
+				<div ref={commentRef} className="absolute cursor-move drag-handle z-20 flex	flex-col justify-center items-center">
+					{comment?.approved && <Image src={tickcircles} alt="tickcircle" className="w-5" />}
+					<button
+						onClick={() => setActiveComment(comment?.documentId)}
+						className="drag-handle flex items-center justify-center p-[-2px] bg-transparent border-none" >
+						<Image
+							src={Mmessages}
+							alt="message icon"
+							className="pointer-events-none"
+						/>
 					</button>
-					{/* <button onClick={() => setActiveComment(comment?.id)} >
-						<Image src={Mmessages} alt="message icon" />
-					</button> */}
 				</div>
 			)}
 		</Draggable>
@@ -140,14 +146,15 @@ const DraggableComment = ({ comment }) => {
 };
 
 const Message = () => {
-	const { data: comments } = useAppSelector((state) => state.comment);
+	const { comments } = useComments();
+	// const { data: comments } = useAppSelector((state) => state.comment);
 
 	console.log("comments--comments", comments);
 
 	return (
 		<NoSSR>
 			{comments.map((comment) => (
-				<DraggableComment key={comment?.documentId} comment={comment} />
+				<DraggableComment key={comment?.documentId} comment={comment} commentId={comment?.commentId} />
 			))}
 		</NoSSR>
 	);

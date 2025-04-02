@@ -5,15 +5,16 @@ import { useAppSelector } from "store/useStore";
 
 
 
-const CommentReply = ({ commentId, contrastingColor }) => {
-	const { data: comments } = useAppSelector((state) => state.comment);
+const CommentReply = ({ documentId, contrastingColor }) => {
+	// const { data: comments } = useAppSelector((state) => state.comment);
+	const { comments } = useComments();
 	// const { comments } = useComments();
 	const [replies, setReplies] = useState([]);
 
 	useEffect(() => {
-		const comment = comments?.find((c) => c?.documentId === commentId);
+		const comment = comments?.find((c) => c?.documentId === documentId);
 		setReplies(comment?.replies || []); // Ensure it's always an array
-	}, [comments, commentId]);
+	}, [comments, documentId]);
 
 
 

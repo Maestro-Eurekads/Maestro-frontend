@@ -1,8 +1,8 @@
 "use client";
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { getComment } from "features/Comment/commentSlice";
-import { useAppDispatch } from "store/useStore";
+import { useAppDispatch, useAppSelector } from "store/useStore";
 const CommentContext = createContext(null);
 
 export const useComments = () => {
@@ -12,6 +12,7 @@ export const useComments = () => {
 export const CommentProvider = ({ children }) => {
 	const [comments, setComments] = useState([]);
 	const [comment, setComment] = useState("");
+	const [isCreateOpen, setIsCreateOpen] = useState(false);
 	const [approvedIsLoading, setapprovedIsLoading] = useState(false);
 	const [positionIsLoading, setPositionIsLoading] = useState(false);
 	const [viewcommentsId, setViewcommentsId] = useState(null);
@@ -26,6 +27,33 @@ export const CommentProvider = ({ children }) => {
 	const [isLoadingReply, setIsLoadingReply] = useState(false);
 	const [replyText, setReplyText] = useState("");
 	const dispatch = useAppDispatch();
+	const { data } = useAppSelector((state) => state.comment);
+
+
+
+	// Load comments from local storage on mount
+	useEffect(() => {
+		const storedComments = JSON.parse(localStorage.getItem("comments")) || [];
+		const storedOpportunities = JSON.parse(localStorage.getItem("opportunities")) || [];
+		setComments(storedComments);
+		setOpportunities(storedOpportunities);
+	}, []);
+
+	// Save comments & opportunities to local storage whenever they change
+	useEffect(() => {
+		localStorage.setItem("comments", JSON.stringify(comments));
+		// localStorage.setItem("opportunities", JSON.stringify(opportunities));
+	}, [comments, opportunities]);
+
+
+
+	// Sync local state with Redux when comments change
+	useEffect(() => {
+		if (data) {
+			setComments(data); // Update local state
+			setShowAdd(data[data.length - 1]?.documentId); // Show latest comment
+		}
+	}, [data]);
 
 
 	const addComment = async (commentId, text, position, addcomment_as) => {
@@ -46,9 +74,11 @@ export const CommentProvider = ({ children }) => {
 					Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
 				},
 			});
-			// setComments((prev) => [...prev, response.data.data]);
+			setOpportunities([])
+			localStorage.setItem("opportunities", JSON.stringify(null));
+			setComments((prev) => [...prev, response?.data?.data]);
 			setShowAdd(response.data.data.commentId);
-			dispatch(getComment());
+			dispatch(getComment(commentId));
 			setComment("");
 			setIsLoading(false);
 			setCreateCommentsSuccess(true);
@@ -61,7 +91,7 @@ export const CommentProvider = ({ children }) => {
 
 
 
-	const addReply = async (documentId, newReply) => {
+	const addReply = async (documentId, newReply, commentId) => {
 		setIsLoadingReply(true);
 		try {
 			// Fetch the existing comment using documentId
@@ -93,7 +123,7 @@ export const CommentProvider = ({ children }) => {
 			);
 			setReplyText("");
 			setIsLoadingReply(false);
-			dispatch(getComment());
+			dispatch(getComment(commentId));
 		} catch (error) {
 			setIsLoadingReply(false);
 			setReplyError(error);
@@ -101,7 +131,7 @@ export const CommentProvider = ({ children }) => {
 	};
 
 
-	const approval = async (documentId, approveds) => {
+	const approval = async (documentId, approveds, commentId) => {
 		setapprovedIsLoading(true);
 
 		try {
@@ -124,14 +154,14 @@ export const CommentProvider = ({ children }) => {
 			);
 
 			setapprovedIsLoading(false);
-			dispatch(getComment());
+			dispatch(getComment(commentId));
 		} catch (error) {
 			setapprovedIsLoading(false);
 			setApprovedError(error);
 		}
 	};
 
-	const updatePosition = async (documentId, position) => {
+	const updatePosition = async (documentId, position, commentId) => {
 		setPositionIsLoading(true);
 
 		try {
@@ -154,22 +184,15 @@ export const CommentProvider = ({ children }) => {
 			);
 
 			setPositionIsLoading(false);
-			// dispatch(getComment());
+			// dispatch(getComment(commentId));
 		} catch (error) {
 			setPositionIsLoading(false);
 			setApprovedError(error);
 		}
 	};
 
-	// Function to create a new comment opportunity
-	const createCommentOpportunity = () => {
-		const newOpportunity = {
-			commentId: Date.now(),
-			text: "New Comment Opportunity",
-			position: { x: 150, y: 150 },
-		};
-		setOpportunities((prev) => [...prev, newOpportunity]); // Update opportunities state
-	};
+
+
 
 
 	const updateOpportunityPosition = (id: any, newPosition: any) => {
@@ -195,9 +218,7 @@ export const CommentProvider = ({ children }) => {
 	};
 
 	// Function to clear all comments & opportunities
-	const clearCommentsAndOpportunities = () => {
-		setOpportunities([]);
-	};
+
 
 	return (
 		<CommentContext.Provider
@@ -205,14 +226,13 @@ export const CommentProvider = ({ children }) => {
 				comments,
 				opportunities,
 				addComment,
-				createCommentOpportunity,
+				setOpportunities,
 				updateOpportunityPosition,
 				addCommentOpportunity,
 				updateCommentsPosition,
 				showAdd,
 				setShowAdd,
 				addReply,
-				clearCommentsAndOpportunities,
 				setViewcommentsId,
 				viewcommentsId,
 				isDrawerOpen,
@@ -230,7 +250,9 @@ export const CommentProvider = ({ children }) => {
 				approval,
 				approvedError,
 				updatePosition,
-				positionIsLoading
+				positionIsLoading,
+				setIsCreateOpen,
+				isCreateOpen
 			}}
 		>
 			{children}

@@ -102,6 +102,18 @@ const ObjectiveSelection = () => {
         ...prev,
         ...updatedNetworks,
       }));
+
+      // Update statuses based on selections
+      const updatedStatuses = { ...initialStatuses };
+      campaignFormData.funnel_stages.forEach((stage) => {
+        if (hasMinimumBuySelections(stage)) {
+          updatedStatuses[stage] = "In progress";
+        } else {
+          updatedStatuses[stage] = "Not Started";
+        }
+      });
+      setStatuses(updatedStatuses);
+      localStorage.setItem("funnelStageStatuses", JSON.stringify(updatedStatuses));
     }
   }, [campaignFormData?.funnel_stages, campaignFormData?.channel_mix]);
 
@@ -129,7 +141,7 @@ const ObjectiveSelection = () => {
       ["social_media", "display_networks", "search_engines"].forEach((category) => {
         const platforms = Array.isArray(stage[category]) ? stage[category] : [];
         platforms.forEach((platform) => {
-          if (platform.format?.length > 0) { // Only include platforms with formats
+          if (platform.format?.length > 0) {
             const platformName = platform.platform_name;
             const buyTypeKey = `${stageName}-${category.replace("_", " ")}-${platformName}-buy_type`;
             const buyObjectiveKey = `${stageName}-${category.replace("_", " ")}-${platformName}-objective_type`;
@@ -156,7 +168,12 @@ const ObjectiveSelection = () => {
 
     setSelectedOptions((prev) => ({ ...prev, [key]: option }));
     setStatuses((prev) => {
-      const newStatuses = { ...prev, [stageName]: "In progress" };
+      const newStatuses = { ...prev };
+      if (hasMinimumBuySelections(stageName)) {
+        newStatuses[stageName] = "In progress";
+      } else {
+        newStatuses[stageName] = "Not Started";
+      }
       localStorage.setItem("funnelStageStatuses", JSON.stringify(newStatuses));
       return newStatuses;
     });
