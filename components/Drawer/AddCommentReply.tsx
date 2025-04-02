@@ -4,24 +4,25 @@ import AddReplytothisComment from "./AddReplytothisComment";
 import CommentReply from "./CommentReply";
 import { useAppSelector } from "store/useStore";
 
-const AddCommentReply = ({ commentId, contrastingColor }) => {
+const AddCommentReply = ({ documentId, commentId, contrastingColor }) => {
 	const { addReply } = useComments();
-	const { data: comments } = useAppSelector((state) => state.comment);
+	const { comments } = useComments();
+	// const { data: comments } = useAppSelector((state) => state.comment);
 	const [show, setShow] = useState(false);
 
 	// Find the comment by ID and get its replies
-	const comment = comments?.find((c) => c?.documentId === commentId);
+	const comment = comments?.find((c) => c?.documentId === documentId);
 	const replies = comment ? comment?.replies : [];
 
 	// Handle new reply submission
 	const handleReplySubmit = (newReplyText) => {
-		addReply(commentId, newReplyText);
+		addReply(documentId, newReplyText, commentId);
 	};
 
 	return (
 		<div className="w-full">
 			{/* Display Submitted Replies */}
-			{replies?.length > 0 && <CommentReply commentId={commentId} contrastingColor={contrastingColor} />}
+			{replies?.length > 0 && <CommentReply documentId={documentId} contrastingColor={contrastingColor} />}
 
 			{/* Show Add Reply Input */}
 			{show && <AddReplytothisComment onReplySubmit={handleReplySubmit} />}

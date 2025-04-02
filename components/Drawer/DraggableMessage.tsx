@@ -3,9 +3,10 @@
 import { useRef, useState } from "react";
 import Draggable from "react-draggable";
 import NoSSR from "./no-ssr";
-import { HiOutlinePlus } from "react-icons/hi";
 import { useComments } from "app/utils/CommentProvider";
 import AddAsInternalcomment from "./AddAsInternalcomment";
+import Image from "next/image";
+import Mmessages from "../../public/message-2.svg";
 
 const DraggableComment = ({ opportunity }) => {
 	const { updateOpportunityPosition } = useComments();
@@ -15,11 +16,14 @@ const DraggableComment = ({ opportunity }) => {
 
 	const handleStop = (data) => {
 		const newPosition = { x: data.x, y: data.y };
-		console.log("data-newPosition", data);
 		setNewPosition(newPosition)
 		updateOpportunityPosition(opportunity?.commentId, newPosition);
 	};
-	console.log("newPosition-newPosition", newPosition);
+
+
+
+
+
 	return (
 		<Draggable
 			handle=".drag-handle"
@@ -34,8 +38,15 @@ const DraggableComment = ({ opportunity }) => {
 				</div>
 			) : (
 				<div ref={commentRef} className="absolute cursor-move drag-handle z-20">
-					<button onClick={() => setShow(true)} className="flex flex-row justify-center items-center w-[38px] h-[31px] bg-[#3175FF] rounded-md border border-[#f8f9fa]">
-						<HiOutlinePlus size={23} color="#fff" />
+					<button
+						onClick={() => setShow(true)}
+						className="drag-handle flex items-center justify-center p-[-2px] bg-transparent border-none"
+					>
+						<Image
+							src={Mmessages}
+							alt="message icon"
+							className="pointer-events-none"
+						/>
 					</button>
 				</div>
 			)}

@@ -5,14 +5,14 @@ import tickcircle from "../../public/tick-circle.svg";
 import tickcircles from "../../public/tick-circle-green.svg";
 import { SVGLoader } from "components/SVGLoader";
 
-const Approved = ({ comment }) => {
+const Approved = ({ comment, commentId }) => {
 	const { approval, approvedIsLoading } = useComments();
 
 
 	// Toggle approval state
 	const handleApproval = () => {
 		if (comment?.approved === false) {
-			approval(comment?.documentId, true);
+			approval(comment?.documentId, true, commentId);
 		}
 	};
 

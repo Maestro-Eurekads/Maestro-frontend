@@ -10,6 +10,10 @@ const Showcomment = ({ author = "John Doe", comment, setActiveComment }) => {
 	const { setViewcommentsId, setIsDrawerOpen } = useComments();
 
 
+	const handleViewComment = (documentId) => {
+		setIsDrawerOpen(true);
+		setViewcommentsId(documentId);
+	};
 
 	return (
 		<div className='cursor-move'>
@@ -44,9 +48,8 @@ const Showcomment = ({ author = "John Doe", comment, setActiveComment }) => {
 					</div>
 					<div>
 						<button
-							onClick={() => { setIsDrawerOpen(true) }}
-							className="flex flex-row justify-center items-center px-[28px] py-[10px] gap-[8px] w-[135px] h-[40px] bg-[#3175FF] rounded-[8px] font-semibold text-[15px] leading-[20px] text-white cursor-pointer"
-						>
+							onClick={() => handleViewComment(comment?.documentId)}
+							className="flex flex-row justify-center items-center px-[28px] py-[10px] gap-[8px] w-[135px] h-[40px] bg-[#3175FF] rounded-[8px] font-semibold text-[15px] leading-[20px] text-white cursor-pointer" >
 							Comment
 							<Image src={send} alt="send" />
 						</button>
