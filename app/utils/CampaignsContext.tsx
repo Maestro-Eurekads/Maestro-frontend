@@ -90,15 +90,15 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${
-          cId || docId
-        }?populate[0]=media_plan_details&populate[1]=budget_details&populate[2]=channel_mix&populate[3]=channel_mix.social_media&populate[4]=channel_mix.display_networks&populate[5]=channel_mix.search_engines&populate[6]=channel_mix.social_media.format&populate[7]=channel_mix.display_networks.format&populate[8]=channel_mix.search_engines.format&populate[9]=client_selection&populate[10]=client&populate[11]=channel_mix.social_media.ad_sets&populate[12]=channel_mix.display_networks.ad_sets&populate[13]=channel_mix.search_engines.ad_sets&populate[14]=channel_mix.social_media.budget&populate[15]=channel_mix.display_networks.budget&populate[16]=channel_mix.search_engines.budget&populate[17]=channel_mix.stage_budget&populate[18]=campaign_budget&populate[19]=channel_mix.social_media.kpi&populate[20]=channel_mix.display_networks.kpi&populate[21]=channel_mix.search_engines.kpi&populate[22]=channel_mix.social_media.ad_sets.kpi&populate[23]=channel_mix.display_networks.ad_sets.kpi&populate[24]=channel_mix.search_engines.ad_sets.kpi&populate[25]=channel_mix.social_media.ad_sets.budget&populate[26]=channel_mix.display_networks.ad_sets.budget&populate[27]=channel_mix.search_engines.ad_sets.budget`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}?populate[media_plan_details]=*&populate[budget_details]=*&populate[client_selection]=*&populate[campaign_budget]=*&populate[channel_mix][populate][social_media][populate]=*&populate[channel_mix][populate][display_networks][populate]=*&populate[channel_mix][populate][search_engines][populate]=*&populate[channel_mix][populate][streaming][populate]=*&populate[channel_mix][populate][ooh][populate]=*&populate[channel_mix][populate][broadcast][populate]=*&populate[channel_mix][populate][messaging][populate]=*&populate[channel_mix][populate][print][populate]=*&populate[channel_mix][populate][e_commerce][populate]=*&populate[channel_mix][populate][in_game][populate]=*&populate[channel_mix][populate][mobile][populate]=*`,
         {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
           },
         }
       );
+      
+      
       const data = res?.data?.data;
       setCampaignData(data);
       setCampaignFormData((prev) => ({
@@ -403,6 +403,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       // Handle special case for "In-Game" -> "in_game"
       if (channelType === "in-game") {
         channelType = "in_game";
+      }
+
+      if(channelType === "e-commerce"){
+        channelType = "e_commerce"
       }
 
       // Check if the type category and channel type exist in our result structure

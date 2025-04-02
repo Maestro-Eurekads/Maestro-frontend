@@ -70,7 +70,7 @@ const ObjectiveSelection = () => {
   });
   const [dropdownOpen, setDropdownOpen] = useState({});
 
-  const { campaignFormData, setCampaignFormData } = useCampaigns();
+  const { campaignFormData, setCampaignFormData, buyObj,  buyType } = useCampaigns();
 
   // Sync statuses and selectedNetworks with campaignFormData
   useEffect(() => {
@@ -375,7 +375,7 @@ const ObjectiveSelection = () => {
                                     <p className="text-base font-medium text-[#061237]">{platform.platform_name}</p>
                                   </div>
                                 </div>
-                                <div className="relative min-w-[150px]">
+                                <div className="relative min-w-[200px]">
                                   <div
                                     className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
                                     onClick={() => toggleDropdown(platformKey + "obj")}
@@ -386,21 +386,21 @@ const ObjectiveSelection = () => {
                                   {dropdownOpen[platformKey + "obj"] && (
                                     <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10">
                                       <ul>
-                                        {["Awareness", "Video views", "Traffic"].map((option, i) => (
+                                        {buyObj?.map((option, i) => (
                                           <li
                                             key={`${platformKey}-objective-${i}`}
                                             className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
                                             onClick={() =>
                                               handleSelectOption(
                                                 platform.platform_name,
-                                                option,
+                                                option?.text,
                                                 category,
                                                 stage.name,
                                                 "objective_type"
                                               )
                                             }
                                           >
-                                            {option}
+                                            {option?.text}
                                           </li>
                                         ))}
                                       </ul>
@@ -418,21 +418,21 @@ const ObjectiveSelection = () => {
                                   {dropdownOpen[platformKey] && (
                                     <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10">
                                       <ul>
-                                        {["CPM", "CPV"].map((option, i) => (
+                                        {buyType.map((option, i) => (
                                           <li
                                             key={`${platformKey}-type-${i}`}
                                             className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
                                             onClick={() =>
                                               handleSelectOption(
                                                 platform.platform_name,
-                                                option,
+                                                option?.text,
                                                 category,
                                                 stage.name,
                                                 "buy_type"
                                               )
                                             }
                                           >
-                                            {option}
+                                            {option?.text}
                                           </li>
                                         ))}
                                       </ul>

@@ -135,7 +135,7 @@ const BuyingObjective = () => {
     dropDownName,
     option
   ) => {
-    const updatedChannelMix = updatedData?.channel_mix?.map((stage) => {
+    const updatedChannelMix = updatedData?.channel_mix?.map((stage, chIndex) => {
       if (stage.funnel_stage === stageName) {
         const updatedStage = { ...stage };
         if (category === "Social media") {
