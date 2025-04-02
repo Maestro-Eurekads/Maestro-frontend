@@ -24,7 +24,7 @@ export const SetupScreen = () => {
     getActiveCampaign,
     setCampaignFormData,
   } = useCampaigns();
-  const { client_selection } = campaignFormData || {};
+  const { client_selection } = campaignFormData || {}; // Add default empty object
   const [selectedOption, setSelectedOption] = useState("percentage");
   const [previousValidationState, setPreviousValidationState] = useState(null);
   const [isStepZeroValid, setIsStepZeroValid] = useState(false);
@@ -41,41 +41,23 @@ export const SetupScreen = () => {
 
   const { verifyStep, verifybeforeMove, setverifybeforeMove, setHasChanges, hasChanges } = useVerification();
 
-  // Initialize default form data
-  const defaultFormData = {
-    client_selection: {},
-    media_plan: "",
-    approver: "",
-    budget_details_currency: {},
-    budget_details_fee_type: {},
-    budget_details_value: "",
-    level_1: {},
-    level_2: {},
-    level_3: {},
-  };
-
-  // Initialize campaignFormData on mount
+  // Initialize campaignFormData if empty
   useEffect(() => {
-    if (!campaignFormData) {
-      setCampaignFormData(defaultFormData);
+    if (!campaignFormData && !isInitialized) {
+      setCampaignFormData({
+        client_selection: {},
+        media_plan: "",
+        approver: "",
+        budget_details_currency: {},
+        budget_details_fee_type: {},
+        budget_details_value: "",
+        level_1: {},
+        level_2: {},
+        level_3: {},
+      });
       setIsInitialized(true);
     }
-  }, []);
-
-  // Load saved data from localStorage on mount
-  useEffect(() => {
-    const savedFormData = localStorage.getItem('campaignFormData');
-    if (savedFormData && !campaignFormData) {
-      setCampaignFormData(JSON.parse(savedFormData));
-    }
-  }, []);
-
-  // Save form data to localStorage whenever it changes
-  useEffect(() => {
-    if (campaignFormData) {
-      localStorage.setItem('campaignFormData', JSON.stringify(campaignFormData));
-    }
-  }, [campaignFormData]);
+  }, [campaignFormData, setCampaignFormData, isInitialized]);
 
   useEffect(() => {
     const isValid = validationRules["step0"](campaignData);
@@ -175,6 +157,7 @@ export const SetupScreen = () => {
     { value: "Fix budget fee", label: "Fix budget fee" },
   ];
 
+  // Updated useEffect to handle currencySign dynamically
   useEffect(() => {
     if (campaignFormData?.budget_details_currency?.id) {
       const currency = selectCurrency.find(
@@ -182,9 +165,9 @@ export const SetupScreen = () => {
       );
       if (currency) {
         if (campaignFormData?.budget_details_fee_type?.id === "Fix budget fee") {
-          setCurrencySign(currency.sign);
+          setCurrencySign(currency.sign); // Currency symbol for Fix budget fee
         } else if (campaignFormData?.budget_details_fee_type?.id === "Tooling") {
-          setCurrencySign(selectedOption === "percentage" ? "%" : currency.sign);
+          setCurrencySign(selectedOption === "percentage" ? "%" : currency.sign); // % for percentage, currency for fix-amount
         }
       }
     }
@@ -299,8 +282,7 @@ export const SetupScreen = () => {
     setRequiredFields(fields);
   }, [campaignFormData, cId]);
 
-  // Show loading state while initializing
-  if (!campaignFormData && !isInitialized) {
+  if (!campaignFormData) {
     return <div>Loading...</div>;
   }
 
