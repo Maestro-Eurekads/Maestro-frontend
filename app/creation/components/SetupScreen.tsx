@@ -24,7 +24,7 @@ export const SetupScreen = () => {
     getActiveCampaign,
     setCampaignFormData,
   } = useCampaigns();
-  const { client_selection } = campaignFormData;
+  const { client_selection } = campaignFormData || {}; // Add default empty object
   const [selectedOption, setSelectedOption] = useState("percentage");
   const [previousValidationState, setPreviousValidationState] = useState(null);
   const [isStepZeroValid, setIsStepZeroValid] = useState(false);
@@ -37,8 +37,27 @@ export const SetupScreen = () => {
 
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const { verifyStep, verifybeforeMove, setverifybeforeMove, setHasChanges, hasChanges } = useVerification();
+
+  // Initialize campaignFormData if empty
+  useEffect(() => {
+    if (!campaignFormData && !isInitialized) {
+      setCampaignFormData({
+        client_selection: {},
+        media_plan: "",
+        approver: "",
+        budget_details_currency: {},
+        budget_details_fee_type: {},
+        budget_details_value: "",
+        level_1: {},
+        level_2: {},
+        level_3: {},
+      });
+      setIsInitialized(true);
+    }
+  }, [campaignFormData, setCampaignFormData, isInitialized]);
 
   useEffect(() => {
     const isValid = validationRules["step0"](campaignData);
@@ -66,8 +85,6 @@ export const SetupScreen = () => {
     localStorage.setItem("verifybeforeMove", JSON.stringify(verifybeforeMove));
   }, [verifybeforeMove]);
 
-
-
   useEffect(() => {
     if (allClients) {
       const options = allClients.map((c) => ({
@@ -80,6 +97,8 @@ export const SetupScreen = () => {
   }, [allClients]);
 
   useEffect(() => {
+    if (!allClients || !client_selection) return;
+
     const client = allClients.find((c) => c?.documentId === client_selection?.id);
     setlevel1Options(() => {
       const options = client?.level_1?.map((l) => ({
@@ -262,6 +281,10 @@ export const SetupScreen = () => {
 
     setRequiredFields(fields);
   }, [campaignFormData, cId]);
+
+  if (!campaignFormData) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>

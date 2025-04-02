@@ -26,7 +26,7 @@ const DoughnutChart = ({
   insideText,
   color,
 }: {
-  data?: number[];
+  data?: any[];
   insideText?: string;
   color?: string[];
 }) => {

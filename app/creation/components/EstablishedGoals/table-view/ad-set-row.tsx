@@ -42,7 +42,7 @@ export const AdSetRow = ({
   [channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)
   ?.ad_sets[adSetIndex];
   console.log("🚀 ~ chData:", chData)
-  const obj = campaignFormData?.campaign_objectives;
+  const obj = campaignFormData?.campaign_objective;
 
   const formulas = {
     impressions: [calculateImpression, "budget.fixed_value", "kpi.cpm"],
