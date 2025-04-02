@@ -11,31 +11,9 @@ import { useCampaigns } from "../../utils/CampaignsContext";
 const SelectChannelMix = () => {
   const [openItems, setOpenItems] = useState({});
   const [selected, setSelected] = useState({});
-  const [validatedStages, setValidatedStages] = useState(() => {
-    // Initialize from localStorage if available
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('validatedStages');
-      return saved ? JSON.parse(saved) : {};
-    }
-    return {};
-  });
-  const [stageStatuses, setStageStatuses] = useState(() => {
-    // Initialize from localStorage if available
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('stageStatuses');
-      return saved ? JSON.parse(saved) : {};
-    }
-    return {};
-  });
+  const [validatedStages, setValidatedStages] = useState({});
+  const [stageStatuses, setStageStatuses] = useState({});
   const { campaignFormData, setCampaignFormData } = useCampaigns();
-
-  // Save validatedStages and stageStatuses to localStorage whenever they change
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('validatedStages', JSON.stringify(validatedStages));
-      localStorage.setItem('stageStatuses', JSON.stringify(stageStatuses));
-    }
-  }, [validatedStages, stageStatuses]);
 
   useEffect(() => {
     if (campaignFormData?.funnel_stages?.length > 0) {
@@ -51,8 +29,7 @@ const SelectChannelMix = () => {
 
     if (campaignFormData?.channel_mix?.length > 0) {
       const initialSelected = {};
-      const initialStatuses = {...stageStatuses}; // Preserve existing statuses
-      
+      const initialStatuses = {};
       campaignFormData.channel_mix.forEach(channelMixItem => {
         const stageName = channelMixItem.funnel_stage;
         initialSelected[stageName] = {
@@ -65,14 +42,12 @@ const SelectChannelMix = () => {
             delete initialSelected[stageName][category];
           }
         });
-
-        // Only set status if it's not already "Completed"
-        if (!initialStatuses[stageName] || initialStatuses[stageName] !== "Completed") {
-          if (Object.values(initialSelected[stageName] || {}).some(arr => Array.isArray(arr) && arr.length > 0)) {
-            initialStatuses[stageName] = validatedStages[stageName] ? "Completed" : "In progress";
-          } else {
-            initialStatuses[stageName] = "Not started";
-          }
+        
+        // Set initial status based on selection
+        if (Object.values(initialSelected[stageName] || {}).some(arr => Array.isArray(arr) && arr.length > 0)) {
+          initialStatuses[stageName] = validatedStages[stageName] ? "Completed" : "In progress";
+        } else {
+          initialStatuses[stageName] = "Not started";
         }
       });
       setSelected(initialSelected);
@@ -82,11 +57,11 @@ const SelectChannelMix = () => {
     if (campaignFormData?.validatedStages) {
       setValidatedStages(campaignFormData.validatedStages);
       
-      // Update statuses for validated stages while preserving "Completed" status
+      // Update statuses for validated stages
       if (campaignFormData?.funnel_stages?.length > 0) {
         const updatedStatuses = { ...stageStatuses };
         campaignFormData.funnel_stages.forEach(stage => {
-          if (campaignFormData.validatedStages[stage] && !updatedStatuses[stage]) {
+          if (campaignFormData.validatedStages[stage]) {
             updatedStatuses[stage] = "Completed";
           }
         });
@@ -116,16 +91,21 @@ const SelectChannelMix = () => {
         ...stageSelection,
         [category]: newCategorySelection
       };
-
-      // Only update status if not already "Completed"
-      if (stageStatuses[stageName] !== "Completed") {
-        const hasSelections = Object.values(newStageSelection).some(
-          arr => Array.isArray(arr) && arr.length > 0
-        );
-
+      
+      // Update status to "In progress" if any platform is selected
+      const hasSelections = Object.values(newStageSelection).some(
+        arr => Array.isArray(arr) && arr.length > 0
+      );
+      
+      if (hasSelections && stageStatuses[stageName] !== "Completed") {
         setStageStatuses(prev => ({
           ...prev,
-          [stageName]: hasSelections ? "In progress" : "Not started"
+          [stageName]: "In progress"
+        }));
+      } else if (!hasSelections) {
+        setStageStatuses(prev => ({
+          ...prev,
+          [stageName]: "Not started"
         }));
       }
 
