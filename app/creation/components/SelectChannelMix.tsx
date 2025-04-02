@@ -8,6 +8,7 @@ import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { funnelStages, getPlatformIcon } from "../../../components/data";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import { removeKeysRecursively } from "utils/removeID";
+import { SVGLoader } from "components/SVGLoader";
 
 const SelectChannelMix = () => {
   const [openItems, setOpenItems] = useState({});
@@ -25,9 +26,9 @@ const SelectChannelMix = () => {
 
   const [showMoreMap, setShowMoreMap] = useState({});
   const [openChannelTypes, setOpenChannelTypes] = useState({});
+  const [loading, setLoading] = useState(false);
   const ITEMS_TO_SHOW = 6;
 
-  // Save validatedStages to localStorage whenever it changes
   useEffect(() => {
     const initializeSelectedState = () => {
       if (campaignFormData?.channel_mix?.length > 0) {
@@ -38,39 +39,48 @@ const SelectChannelMix = () => {
           if (!initialSelected[stageName]) {
             initialSelected[stageName] = {};
           }
-
-          stage.channels?.forEach((channel) => {
-            const channelName = channel.channel_name;
-            if (!initialSelected[stageName][channelName]) {
-              initialSelected[stageName][channelName] = [];
+          [
+            "social_media",
+            "display_networks",
+            "search_engines",
+            "streaming",
+            "mobile",
+            "messaging",
+            "in_game",
+            "e_commerce",
+            "broadcast",
+            "print",
+            "ooh",
+          ]?.forEach((channel) => {
+            if (!initialSelected[stageName][channel]) {
+              initialSelected[stageName][channel] = [];
             }
-
-            channel.channel_data?.forEach((platform) => {
-              initialSelected[stageName][channelName].push(
-                platform.platform_name
-              );
+            console.log("stage", stage);
+            const ch = stage[channel];
+            ch?.forEach((platform) => {
+              initialSelected[stageName][channel].push(platform.platform_name);
             });
           });
         });
         console.log("ini", initialSelected);
-        campaignFormData.channel_mix.forEach((stage) => {
-          const stageName = stage.funnel_stage;
-          const isStageValid = () => {
-            const stageSelections = initialSelected[stageName] || {};
-            return Object.values(stageSelections).some(
-              (categorySelection) =>
-                Array.isArray(categorySelection) && categorySelection.length > 0
-            );
-          };
-          setValidatedStages((prev) => ({
-            ...prev,
-            [stageName]: isStageValid(),
-          }));
-        });
         setSelected(initialSelected);
       }
     };
     initializeSelectedState();
+    // campaignFormData.channel_mix.forEach((stage) => {
+    //   const stageName = stage.funnel_stage;
+    //   const isStageValid = () => {
+    //     const stageSelections = initialSelected[stageName] || {};
+    //     return Object.values(stageSelections).some(
+    //       (categorySelection) =>
+    //         Array.isArray(categorySelection) && categorySelection.length > 0
+    //     );
+    //   };
+    //   setValidatedStages((prev) => ({
+    //     ...prev,
+    //     [stageName]: isStageValid(),
+    //   }));
+    // });
   }, [campaignFormData?.channel_mix]);
 
   useEffect(() => {
@@ -133,10 +143,13 @@ const SelectChannelMix = () => {
 
   const togglePlatform = (stageName, category, platformName, type) => {
     // First update the selected state for UI
+    console.log({ stageName, category, platformName });
     const prevSelected = { ...selected };
-    setSelected(() => {
+    setSelected((prevSelected) => {
       const stageSelection = prevSelected[stageName] || {};
+      console.log("🚀 ~ setSelected ~ stageSelection:", stageSelection);
       const categorySelection = stageSelection[category] || [];
+      console.log("🚀 ~ setSelected ~ categorySelection:", categorySelection);
       const isAlreadySelected = categorySelection.includes(platformName);
 
       const newCategorySelection = isAlreadySelected
@@ -156,77 +169,32 @@ const SelectChannelMix = () => {
 
     // Update the campaignFormData
     setCampaignFormData((prevFormData) => {
-      // Create a deep copy of the channel_mix array to avoid mutation issues
-      const updatedChannelMix = JSON.parse(
-        JSON.stringify(prevFormData.channel_mix || [])
-      );
+      const categoryKey = category.toLowerCase().replaceAll(" ", "_");
+      const stageSelection = selected[stageName] || {};
+      const categorySelection = stageSelection[category] || [];
+      const isAlreadySelected = categorySelection.includes(platformName);
+      const newCategorySelection = isAlreadySelected
+        ? categorySelection.filter((p) => p !== platformName)
+        : [...categorySelection, platformName];
+      const platformObjects = newCategorySelection.map((name) => ({
+        platform_name: name,
+      }));
 
-      // Find the stage in channel_mix
-      const stageIndex = updatedChannelMix.findIndex(
+      const existingChannelMixIndex = prevFormData.channel_mix?.findIndex(
         (item) => item.funnel_stage === stageName
       );
 
-      if (stageIndex >= 0) {
-        // Stage exists, find or create the channel
-        const stageData = updatedChannelMix[stageIndex];
+      let updatedChannelMix = [...(prevFormData.channel_mix || [])];
 
-        // Make sure channels array exists
-        if (!stageData.channels) {
-          stageData.channels = [];
-        }
-
-        // Find the channel
-        const channelIndex = stageData.channels.findIndex(
-          (channel) => channel.channel_name === category
-        );
-
-        if (channelIndex >= 0) {
-          // Channel exists, find the platform
-          const channelData = stageData.channels[channelIndex];
-
-          // Make sure channel_data array exists
-          if (!channelData.channel_data) {
-            channelData.channel_data = [];
-          }
-
-          const platformIndex = channelData.channel_data.findIndex(
-            (platform) => platform.platform_name === platformName
-          );
-
-          if (platformIndex >= 0) {
-            // Platform exists, remove it
-            channelData.channel_data.splice(platformIndex, 1);
-          } else {
-            // Platform doesn't exist, add it
-            channelData.channel_data.push({ platform_name: platformName });
-          }
-
-          // If channel_data is empty, remove the channel
-          if (channelData.channel_data.length === 0) {
-            stageData.channels.splice(channelIndex, 1);
-          }
-        } else {
-          // Channel doesn't exist, add it with the platform
-          stageData.channels.push({
-            channel_name: category,
-            channel_data: [{ platform_name: platformName }],
-          });
-        }
-
-        // If channels is empty, remove the stage
-        if (stageData.channels.length === 0) {
-          updatedChannelMix.splice(stageIndex, 1);
-        }
+      if (existingChannelMixIndex >= 0) {
+        updatedChannelMix[existingChannelMixIndex] = {
+          ...updatedChannelMix[existingChannelMixIndex],
+          [categoryKey]: platformObjects,
+        };
       } else {
-        // Stage doesn't exist, add it with the channel and platform
         updatedChannelMix.push({
           funnel_stage: stageName,
-          channels: [
-            {
-              channel_name: category,
-              channel_data: [{ platform_name: platformName }],
-            },
-          ],
+          [categoryKey]: platformObjects,
         });
       }
 
@@ -279,10 +247,15 @@ const SelectChannelMix = () => {
     : {};
 
   const updateCampaignData = async (data) => {
+    setLoading(true);
     try {
+      true;
       await updateCampaign(data);
       await getActiveCampaign(data);
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleValidate = async (stageName) => {
@@ -298,10 +271,7 @@ const SelectChannelMix = () => {
           ...validatedStages,
           [stageName]: true,
         };
-        setValidatedStages((prev)=>({
-          ...prev,
-          [stageName]: true,
-        }));
+        setValidatedStages(updatedValidatedStages);
         setStageStatuses((prev) => ({
           ...prev,
           [stageName]: "Completed",
@@ -565,7 +535,10 @@ const SelectChannelMix = () => {
                                                 handlePlatformClick(
                                                   e,
                                                   stage.name,
-                                                  channelName,
+                                                  channelName
+                                                    ?.replace(" ", "")
+                                                    ?.replace("-", "")
+                                                    ?.toLowerCase(),
                                                   platform.platform_name,
                                                   type
                                                 )
@@ -724,7 +697,15 @@ const SelectChannelMix = () => {
                               : "bg-[#3175FF] opacity-50 cursor-not-allowed"
                           }`}
                         >
-                          Validate
+                          {loading ? (
+                            <SVGLoader
+                              width="30px"
+                              height="30px"
+                              color="#FFF"
+                            />
+                          ) : (
+                            "Validate"
+                          )}
                         </button>
                       </div>
                     </>
