@@ -66,11 +66,18 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       if (cId) {
         await getActiveCampaign();
       }
+      // Initialize other data even if no campaign ID
+      await Promise.all([
+        fetchBuyObjectives(),
+        fetchObjectives(), 
+        fetchPlatformLists(),
+        fetchBuyTypes()
+      ]);
       setLoading(false);
     };
 
     initializeData();
-  }, []);
+  }, []); // Empty dependency array to run only on mount
 
   useEffect(() => {
     if (!loadingClients && allClients?.length > 0) {
@@ -454,15 +461,16 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [campaignFormData.client_selection?.id]);
 
-  useEffect(() => {
-    if (cId) {
-      getActiveCampaign();
-    }
-    fetchBuyObjectives();
-    fetchObjectives();
-    fetchPlatformLists();
-    fetchBuyTypes();
-  }, [cId]);
+  // Remove this useEffect since we're handling initialization in the first useEffect
+  // useEffect(() => {
+  //   if (cId) {
+  //     getActiveCampaign();
+  //   }
+  //   fetchBuyObjectives();
+  //   fetchObjectives();
+  //   fetchPlatformLists();
+  //   fetchBuyTypes();
+  // }, [cId]);
 
   return (
     <CampaignContext.Provider
