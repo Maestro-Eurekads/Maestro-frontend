@@ -94,6 +94,19 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       if (savedExpanded) {
         setExpandedPlatforms(JSON.parse(savedExpanded));
       }
+
+      // Load validation status from localStorage
+      const savedValidatedStages = localStorage.getItem('validatedStages');
+      if (savedValidatedStages) {
+        const parsedStages = JSON.parse(savedValidatedStages);
+        setCampaignFormData(prev => ({
+          ...prev,
+          validatedStages: {
+            ...prev.validatedStages,
+            ...parsedStages
+          }
+        }));
+      }
     }
   }, [stageName]);
 
@@ -208,14 +221,25 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
 
     // Reset validation state when a new format is selected
     setIsValidated(false);
-    setCampaignFormData(prev => ({
-      ...prev,
+    const updatedCampaignData = {
+      ...campaignFormData,
       channel_mix: copy,
       validatedStages: {
-        ...prev.validatedStages,
-        [stageName]: false, // Reset global validation for this stage
-      },
-    }));
+        ...campaignFormData.validatedStages,
+        [stageName]: false,
+      }
+    };
+    setCampaignFormData(updatedCampaignData);
+
+    // Update localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem('campaignFormData', JSON.stringify(updatedCampaignData));
+      localStorage.setItem(`formatValidation_${stageName}`, 'false');
+      localStorage.setItem('validatedStages', JSON.stringify({
+        ...campaignFormData.validatedStages,
+        [stageName]: false
+      }));
+    }
   };
 
   const handleQuantityChange = (platformName: string, formatName: string, change: number) => {
@@ -249,7 +273,14 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
         }
       }
     }
-    setCampaignFormData({ ...campaignFormData, channel_mix: copy });
+    
+    const updatedCampaignData = { ...campaignFormData, channel_mix: copy };
+    setCampaignFormData(updatedCampaignData);
+    
+    // Update localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem('campaignFormData', JSON.stringify(updatedCampaignData));
+    }
   };
 
   const handleValidateOrEdit = () => {
@@ -278,14 +309,25 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       return mix;
     });
 
-    setCampaignFormData(prev => ({
-      ...prev,
+    const updatedCampaignData = {
+      ...campaignFormData,
       channel_mix: updatedChannelMix,
       validatedStages: {
-        ...prev.validatedStages,
+        ...campaignFormData.validatedStages,
         [stageName]: newValidationState,
-      },
-    }));
+      }
+    };
+    
+    setCampaignFormData(updatedCampaignData);
+
+    // Update localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem('campaignFormData', JSON.stringify(updatedCampaignData));
+      localStorage.setItem('validatedStages', JSON.stringify({
+        ...campaignFormData.validatedStages,
+        [stageName]: newValidationState
+      }));
+    }
   };
 
   const hasPlatformSelectedFormats = (platformName: string, channelName: string) => {
@@ -414,6 +456,12 @@ export const FormatSelection = () => {
         const initialTab = [campaignFormData?.channel_mix[0]?.funnel_stage];
         setOpenTabs(initialTab);
         localStorage.setItem('formatSelectionOpenTabs', JSON.stringify(initialTab));
+      }
+
+      // Load campaign data from localStorage
+      const savedCampaignData = localStorage.getItem('campaignFormData');
+      if (savedCampaignData) {
+        setCampaignFormData(JSON.parse(savedCampaignData));
       }
     }
   }, [campaignFormData]);
