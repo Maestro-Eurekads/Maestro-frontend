@@ -536,7 +536,7 @@ export default function MediaSelection({
   const { campaignFormData } = useCampaigns();
 
   return (
-    <div className="flex gap-4">
+    <div className="flex flex-wrap gap-4 overflow-x-auto">
       {mediaOptions.map((option, index) => {
         const existsInDB =
           campaignFormData?.channel_mix
@@ -548,7 +548,7 @@ export default function MediaSelection({
         if (isValidated && !existsInDB) return null;
 
         return (
-          <div key={index} className="flex justify-center gap-6">
+          <div key={index} className="flex justify-center gap-6 min-w-fit">
             <div className="flex flex-col items-center">
               <div
                 onClick={() => !isValidated && handleFormatSelection(index)}

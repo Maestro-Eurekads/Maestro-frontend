@@ -18,6 +18,7 @@ const SelectChannelMix = () => {
   useEffect(() => {
     if (campaignFormData?.funnel_stages?.length > 0) {
       const initialOpenItems = campaignFormData.funnel_stages.reduce(
+        
         (acc, stage) => {
           acc[stage] = validatedStages[stage] ? false : true;
           return acc;
