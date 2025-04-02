@@ -30,7 +30,7 @@ const useCampaignHook = () => {
   // Fetch client campaigns
   const fetchClientCampaign = async (clientID) => {
     return await axios.get(
-      `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns?filters[client][$eq]=${clientID}&populate[0]=media_plan_details&populate[1]=budget_details&populate[2]=channel_mix&populate[3]=channel_mix.social_media&populate[4]=channel_mix.display_networks&populate[5]=channel_mix.search_engines&populate[6]=channel_mix.social_media.format&populate[7]=channel_mix.display_networks.format&populate[8]=channel_mix.search_engines.format&populate[9]=client_selection&populate[10]=client&populate[11]=channel_mix.social_media.ad_sets&populate[12]=channel_mix.display_networks.ad_sets&populate[13]=channel_mix.search_engines.ad_sets&populate[14]=channel_mix.social_media.budget&populate[15]=channel_mix.display_networks.budget&populate[16]=channel_mix.search_engines.budget&populate[17]=channel_mix.stage_budget&populate[18]=campaign_budget`,
+      `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns?populate[0]=media_plan_details&populate[1]=budget_details&populate[2]=channel_mix.channels&populate[3]=channel_mix.channels.channel_data.format&populate[4]=client_selection&populate[5]=client&populate[6]=channel_mix.channels.channel_data.ad_sets&populate[7]=channel_mix.channels.channel_data.budget&populate[8]=channel_mix.stage_budget&populate[9]=campaign_budget&populate[10]=channel_mix.channels.channel_data.kpi&populate[11]=channel_mix.channels.channel_data.ad_sets.kpi&populate[12]=channel_mix.channels.channel_data.ad_sets.budget`,
       {
         headers: {
           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
