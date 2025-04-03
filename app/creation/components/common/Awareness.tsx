@@ -110,10 +110,10 @@ const Awareness = ({
                     // onClick={() => window.open(item.link, "_blank")}
                     className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2 shrink-0 w-[150px]"
                   >
-                    {item.platform_name && (
+                    {getPlatformIcon(item.platform_name) && (
                       <Image
                         src={getPlatformIcon(item.platform_name)}
-                        alt={item.name}
+                        alt={item.platform_name}
                         className="size-4"
                       />
                     )}
@@ -171,10 +171,10 @@ const Awareness = ({
                     // onClick={() => window.open(item.link, "_blank")}
                     className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2 shrink-0 w-[180px]"
                   >
-                    {item.platform_name && (
+                   {getPlatformIcon(item.platform_name) && (
                       <Image
                         src={getPlatformIcon(item.platform_name)}
-                        alt={item.name}
+                        alt={item.platform_name}
                         className="size-4"
                       />
                     )}
@@ -227,22 +227,22 @@ const Awareness = ({
                 {campaignFormData?.channel_mix
                   ?.find((ch) => ch?.funnel_stage === stageName)
                 ["search_engines"].map((item) => (
-                  <a
+                  <div
                     key={item.platform_name}
                     // onClick={() => window.open(item.link, "_blank")}
                     className="flex bg-white px-4 py-3 whitespace-nowrap rounded-md border border-gray-200 items-center gap-2 shrink-0 w-[180px]"
                   >
-                    {item.platform_name && (
+                   {getPlatformIcon(item.platform_name) && (
                       <Image
                         src={getPlatformIcon(item.platform_name)}
-                        alt={item.name}
+                        alt={item.platform_name}
                         className="size-4"
                       />
                     )}
                     <p className="text-black text-center text-md">
                       {item.platform_name}
                     </p>
-                  </a>
+                  </div>
                 ))}
               </div>
               <div className="flex items-center gap-4">

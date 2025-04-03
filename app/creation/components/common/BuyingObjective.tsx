@@ -36,7 +36,7 @@ const BuyingObjective = () => {
     const filtered = getFilteredChannelMix(campaignFormData.channel_mix);
     console.log("Initial filteredChannelMix:", filtered); // Debug filtered data
     setFilteredChannelMix(filtered);
-  }, [campaignFormData]);
+  }, [rawCampaignFormData]);
 
   useEffect(() => {
     if (updatedData && isMounted) {
