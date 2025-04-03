@@ -264,6 +264,7 @@ const SelectChannelMix = () => {
       channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
         "id",
         "isValidated",
+        "formatValidated"
       ]),
     }).then(() => {
       if (isStageValid(stageName)) {
@@ -279,6 +280,10 @@ const SelectChannelMix = () => {
         setOpenItems((prev) => ({
           ...prev,
           [stageName]: false,
+        }));
+        setCampaignFormData((prev) => ({
+          ...prev,
+          validatedStages: updatedValidatedStages,
         }));
       }
     });
@@ -425,7 +430,7 @@ const SelectChannelMix = () => {
                                   return (
                                     <div
                                       key={idx}
-                                      className="flex flex-row justify-between items-center px-4 py-2 gap-4 w-[230px] h-[62px] bg-white border border-[rgba(0,0,0,0.1)] rounded-[10px]"
+                                      className="flex flex-row justify-between items-center px-4 py-2 gap-4 w-[200px] h-[62px] bg-white border border-[rgba(0,0,0,0.1)] rounded-[10px]"
                                     >
                                       <div className="flex items-center gap-3">
                                         {getPlatformIcon(platformName) ? (
@@ -525,7 +530,7 @@ const SelectChannelMix = () => {
                                           return (
                                             <div
                                               key={pIndex}
-                                              className={`cursor-pointer flex flex-row justify-between items-center p-4 gap-2 w-[300px] h-[62px] bg-white 
+                                              className={`cursor-pointer flex flex-row justify-between items-center p-4 gap-2 w-[250px] min-h-[62px] bg-white 
                                   border rounded-[10px] ${
                                     isSelected
                                       ? "border-[#3175FF]"
@@ -559,7 +564,7 @@ const SelectChannelMix = () => {
                                                     height={20}
                                                   />
                                                 ) : null}
-                                                <p className="h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]">
+                                                <p className="min-h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]">
                                                   {platform.platform_name}
                                                 </p>
                                               </div>

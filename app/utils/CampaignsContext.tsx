@@ -495,6 +495,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         buyObj,
         objectives,
         buyType,
+        setBuyObj,
+        setBuyType
       }}
     >
       {children}
