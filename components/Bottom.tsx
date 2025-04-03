@@ -322,7 +322,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
 
     const updateCampaignData = async (data) => {
-      const calcPercent = Math.round((active / 9) * 100);
+      const calcPercent = Math.ceil((active / 9) * 100);
       try {
         await updateCampaign({
           ...data,
