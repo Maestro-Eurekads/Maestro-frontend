@@ -198,14 +198,8 @@ const ObjectiveSelection = () => {
           platforms.forEach((platform) => {
             if (platform.format?.length > 0) {
               const platformName = platform.platform_name;
-              const buyTypeKey = `${stageName}-${category.replace(
-                "_",
-                " "
-              )}-${platformName}-buy_type`;
-              const buyObjectiveKey = `${stageName}-${category.replace(
-                "_",
-                " "
-              )}-${platformName}-objective_type`;
+              const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`;
+              const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`;
               if (platform.buy_type)
                 initialSelectedOptions[buyTypeKey] = platform.buy_type;
               if (platform.objective_type)
@@ -224,7 +218,7 @@ const ObjectiveSelection = () => {
   };
 
   const toggleDropdown = (key) => {
-    setDropdownOpen((prevState) => ({ ...prevState, [key]: !prevState[key] }));
+    setDropdownOpen((prev) => (prev === key ? "" : key));
   };
 
   const handleSelectOption = (
@@ -235,6 +229,7 @@ const ObjectiveSelection = () => {
     dropDownName
   ) => {
     const key = `${stageName}-${category}-${platformName}-${dropDownName}`;
+    // console.log("🚀 ~ ObjectiveSelection ~ key:", key)
     const dropdownKey =
       dropDownName === "objective_type"
         ? `${stageName}-${category}-${platformName}obj`
@@ -276,7 +271,7 @@ const ObjectiveSelection = () => {
       ...prev,
       channel_mix: updatedChannelMix,
     }));
-    setDropdownOpen((prev) => ({ ...prev, [dropdownKey]: false }));
+    setDropdownOpen("");
     setOpenItems((prev) => ({ ...prev, [stageName]: true }));
   };
 
@@ -327,13 +322,7 @@ const ObjectiveSelection = () => {
       return false;
     for (const platformName of selectedNetworks[stageName]) {
       if (
-        hasCompletePlatformSelection(platformName, "Social media", stageName) ||
-        hasCompletePlatformSelection(
-          platformName,
-          "Display networks",
-          stageName
-        ) ||
-        hasCompletePlatformSelection(platformName, "Search engines", stageName)
+        hasCompletePlatformSelection(platformName, "social_media", stageName)
       ) {
         return true;
       }
@@ -383,14 +372,13 @@ const ObjectiveSelection = () => {
   };
 
   const hasValidatedPlatformsForCategory = (category, stageName) => {
-    const normalizedCategory = category.toLowerCase().replaceAll(" ", "_");
     const channelMix = Array.isArray(campaignFormData?.channel_mix)
       ? campaignFormData.channel_mix
       : [];
     const platformsInCategory =
       channelMix
         .find((ch) => ch.funnel_stage === stageName)
-        ?.[normalizedCategory]?.filter((p) => p.format?.length > 0)
+        ?.[category]?.filter((p) => p.format?.length > 0)
         .map((p) => p.platform_name) || [];
     return platformsInCategory.some((platform) =>
       validatedPlatforms[stageName]?.has(platform)
@@ -444,7 +432,7 @@ const ObjectiveSelection = () => {
             >
               <div className="flex items-center gap-4">
                 <Image src={stage.icon} className="size-4" alt={stage.name} />
-                <p className="text-sm font-semibold text-[#061237] whitespace-nowrap">
+                <p className="font-semibold text-[#061237] whitespace-nowrap">
                   {stage.name}
                 </p>
               </div>
@@ -592,7 +580,7 @@ const ObjectiveSelection = () => {
                                     </p>
                                     <Image src={down2} alt="dropdown" />
                                   </div>
-                                  {dropdownOpen[platformKey + "obj"] && (
+                                  {dropdownOpen === platformKey + "obj" && (
                                     <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10">
                                       <ul>
                                         {buyObj?.map((option, i) => (
@@ -670,7 +658,7 @@ const ObjectiveSelection = () => {
                                     </p>
                                     <Image src={down2} alt="dropdown" />
                                   </div>
-                                  {dropdownOpen[platformKey] && (
+                                  {dropdownOpen === platformKey && (
                                     <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10">
                                       <ul>
                                         {buyType.map((option, i) => (
@@ -690,7 +678,7 @@ const ObjectiveSelection = () => {
                                             {option?.text}
                                           </li>
                                         ))}
-                                         {showInput !==
+                                        {showInput !==
                                         `${platformKey}+custom+buy` ? (
                                           <li
                                             className="px-4 py-2 hover:bg-gray-200 cursor-pointer"

@@ -26,7 +26,10 @@ import Display from "../../../../public/Display.svg";
 import yahoo from "../../../../public/yahoo.svg";
 import bing from "../../../../public/bing.svg";
 import tictok from "../../../../public/tictok.svg";
-import { campaignObjectives } from "../../../../components/data";
+import {
+  campaignObjectives,
+  getPlatformIcon,
+} from "../../../../components/data";
 import Select from "react-select";
 import { useCampaigns } from "../../../utils/CampaignsContext";
 import { ChannelSelector } from "./ChannelSelector";
@@ -107,26 +110,6 @@ const AwarenessEdit = ({
   //   { value: "Traffic", label: "Traffic" },
   //   { value: "Purchase", label: "Purchase" },
   // ];
-
-  const platformIcons = {
-    Facebook: facebook,
-    Instagram: ig,
-    YouTube: youtube,
-    TheTradeDesk: TheTradeDesk,
-    Quantcast: Quantcast,
-    Google: google,
-    "Twitter/X": x,
-    LinkedIn: linkedin,
-    TikTok: tictok,
-    "Display & Video": Display,
-    Yahoo: yahoo,
-    Bing: bing,
-    "The Trade Desk": TheTradeDesk,
-  };
-
-  const getPlatformIcon = (platformName) => {
-    return platformIcons[platformName] || null;
-  };
 
   const handleSelectOption = (
     platformName: string,
@@ -360,11 +343,13 @@ const AwarenessEdit = ({
                 >
                   <div className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] h-[52px] px-4 gap-[20px] shrink-0 w-fit">
                     <div className="flex items-center gap-2">
-                      <Image
-                        src={getPlatformIcon(sm?.platform_name)}
-                        className="size-4"
-                        alt="platform"
-                      />
+                      {getPlatformIcon(sm?.platform_name) && (
+                        <Image
+                          src={getPlatformIcon(sm?.platform_name)}
+                          className="size-4"
+                          alt="platform"
+                        />
+                      )}
                       <span className="text-[#061237] font-semibold whitespace-nowrap">
                         {sm?.platform_name}
                       </span>
