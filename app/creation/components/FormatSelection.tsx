@@ -476,8 +476,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
                             change
                           )
                         }
-                        onOpenModal={openModal
-                        }
+                        onOpenModal={openModal}
                       />
                     </div>
                   )}
@@ -636,6 +635,116 @@ export const FormatSelection = () => {
   );
 };
 
+// export default function MediaSelection({
+//   handleFormatSelection,
+//   mediaOptions,
+//   isValidated = false,
+//   platformName,
+//   quantities = {},
+//   onQuantityChange = () => {},
+//   channelName,
+//   stageName,
+//   onOpenModal,
+// }: {
+//   mediaOptions: any[];
+//   handleFormatSelection: (index: number) => void;
+//   isValidated?: boolean;
+//   platformName?: string;
+//   channelName?: string;
+//   quantities?: { [key: string]: number };
+//   onQuantityChange?: (formatName: string, change: number) => void;
+//   stageName: string;
+//   onOpenModal: (platform: string, channel: string, format: string) => void;
+// }) {
+//   const { campaignFormData } = useCampaigns();
+
+//   return (
+//     <div className="flex flex-wrap gap-4 overflow-x-auto">
+//       {mediaOptions.map((option, index) => {
+//         const existsInDB = campaignFormData?.channel_mix
+//           ?.find((ch) => ch?.funnel_stage === stageName)
+//           ?.[channelName?.toLowerCase()?.replaceAll(" ", "_")]?.find(
+//             (pl) => pl?.platform_name === platformName
+//           )
+//           ?.format?.some((ty) => ty?.format_type === option?.name);
+
+//         if (isValidated && !existsInDB) return null;
+
+//         return (
+//           <div key={index} className="flex justify-center gap-6 min-w-fit">
+//             <div className="flex flex-col items-center">
+//               <div
+//                 onClick={() => !isValidated && handleFormatSelection(index)}
+//                 className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
+//                   existsInDB ? "border-blue-500 shadow-lg" : "border-gray-300"
+//                 } ${isValidated ? "cursor-default" : "cursor-pointer"}`}
+//               >
+//                 <Image
+//                   src={option.icon}
+//                   width={168}
+//                   height={132}
+//                   alt={option.name}
+//                 />
+//                 <p className="text-sm font-medium text-gray-700 mt-2">
+//                   {option.name}
+//                 </p>
+//                 {existsInDB && (
+//                   <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+//                     <FaCheck />
+//                   </div>
+//                 )}
+//               </div>
+//               {isValidated && existsInDB && (
+//                 <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
+//                   <button
+//                     className="px-2 py-1 text-[#000000] text-lg font-semibold"
+//                     onClick={() => onQuantityChange(option.name, -1)}
+//                   >
+//                     -
+//                   </button>
+//                   <span className="px-2">{quantities[option.name] || 1}</span>
+//                   <button
+//                     className="px-2 py-1 text-[#000000] text-lg font-semibold"
+//                     onClick={() => onQuantityChange(option.name, 1)}
+//                   >
+//                     +
+//                   </button>
+//                 </div>
+//               )}
+//             </div>
+//             {isValidated && existsInDB && (
+//               <div
+//                 onClick={() =>
+//                   onOpenModal(platformName, channelName, option.name)
+//                 }
+//                 className="w-[225px] h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
+//               >
+//                 <div className="flex flex-col items-center gap-2 text-center">
+//                   <svg
+//                     width="16"
+//                     height="17"
+//                     viewBox="0 0 16 17"
+//                     fill="none"
+//                     xmlns="http://www.w3.org/2000/svg"
+//                   >
+//                     <path
+//                       d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
+//                       fill="#3175FF"
+//                     />
+//                   </svg>
+//                   <p className="text-md font-lighter text-black mt-2">
+//                     Upload your previews
+//                   </p>
+//                 </div>
+//               </div>
+//             )}
+//           </div>
+//         );
+//       })}
+//     </div>
+//   );
+// }
+
 export default function MediaSelection({
   handleFormatSelection,
   mediaOptions,
@@ -660,88 +769,90 @@ export default function MediaSelection({
   const { campaignFormData } = useCampaigns();
 
   return (
-    <div className="flex flex-wrap gap-4 overflow-x-auto">
-      {mediaOptions.map((option, index) => {
-        const existsInDB = campaignFormData?.channel_mix
-          ?.find((ch) => ch?.funnel_stage === stageName)
-          ?.[channelName?.toLowerCase()?.replaceAll(" ", "_")]?.find(
-            (pl) => pl?.platform_name === platformName
-          )
-          ?.format?.some((ty) => ty?.format_type === option?.name);
+    <div className="w-full overflow-x-auto">
+      <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
+        {mediaOptions.map((option, index) => {
+          const existsInDB = campaignFormData?.channel_mix
+            ?.find((ch) => ch?.funnel_stage === stageName)
+            ?.[channelName?.toLowerCase()?.replaceAll(" ", "_")]?.find(
+              (pl) => pl?.platform_name === platformName
+            )
+            ?.format?.some((ty) => ty?.format_type === option?.name);
 
-        if (isValidated && !existsInDB) return null;
+          if (isValidated && !existsInDB) return null;
 
-        return (
-          <div key={index} className="flex justify-center gap-6 min-w-fit">
-            <div className="flex flex-col items-center">
-              <div
-                onClick={() => !isValidated && handleFormatSelection(index)}
-                className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
-                  existsInDB ? "border-blue-500 shadow-lg" : "border-gray-300"
-                } ${isValidated ? "cursor-default" : "cursor-pointer"}`}
-              >
-                <Image
-                  src={option.icon}
-                  width={168}
-                  height={132}
-                  alt={option.name}
-                />
-                <p className="text-sm font-medium text-gray-700 mt-2">
-                  {option.name}
-                </p>
-                {existsInDB && (
-                  <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                    <FaCheck />
+          return (
+            <div key={index} className="flex justify-center gap-6 min-w-fit">
+              <div className="flex flex-col items-center">
+                <div
+                  onClick={() => !isValidated && handleFormatSelection(index)}
+                  className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
+                    existsInDB ? "border-blue-500 shadow-lg" : "border-gray-300"
+                  } ${isValidated ? "cursor-default" : "cursor-pointer"}`}
+                >
+                  <Image
+                    src={option.icon}
+                    width={168}
+                    height={132}
+                    alt={option.name}
+                  />
+                  <p className="text-sm font-medium text-gray-700 mt-2">
+                    {option.name}
+                  </p>
+                  {existsInDB && (
+                    <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                      <FaCheck />
+                    </div>
+                  )}
+                </div>
+                {isValidated && existsInDB && (
+                  <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
+                    <button
+                      className="px-2 py-1 text-[#000000] text-lg font-semibold"
+                      onClick={() => onQuantityChange(option.name, -1)}
+                    >
+                      -
+                    </button>
+                    <span className="px-2">{quantities[option.name] || 1}</span>
+                    <button
+                      className="px-2 py-1 text-[#000000] text-lg font-semibold"
+                      onClick={() => onQuantityChange(option.name, 1)}
+                    >
+                      +
+                    </button>
                   </div>
                 )}
               </div>
               {isValidated && existsInDB && (
-                <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
-                  <button
-                    className="px-2 py-1 text-[#000000] text-lg font-semibold"
-                    onClick={() => onQuantityChange(option.name, -1)}
-                  >
-                    -
-                  </button>
-                  <span className="px-2">{quantities[option.name] || 1}</span>
-                  <button
-                    className="px-2 py-1 text-[#000000] text-lg font-semibold"
-                    onClick={() => onQuantityChange(option.name, 1)}
-                  >
-                    +
-                  </button>
+                <div
+                  onClick={() =>
+                    onOpenModal(platformName, channelName, option.name)
+                  }
+                  className="w-[225px] h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
+                >
+                  <div className="flex flex-col items-center gap-2 text-center">
+                    <svg
+                      width="16"
+                      height="17"
+                      viewBox="0 0 16 17"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
+                        fill="#3175FF"
+                      />
+                    </svg>
+                    <p className="text-md font-lighter text-black mt-2">
+                      Upload your previews
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
-            {isValidated && existsInDB && (
-              <div
-                onClick={() =>
-                  onOpenModal(platformName, channelName, option.name)
-                }
-                className="w-[225px] h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
-              >
-                <div className="flex flex-col items-center gap-2 text-center">
-                  <svg
-                    width="16"
-                    height="17"
-                    viewBox="0 0 16 17"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
-                      fill="#3175FF"
-                    />
-                  </svg>
-                  <p className="text-md font-lighter text-black mt-2">
-                    Upload your previews
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
