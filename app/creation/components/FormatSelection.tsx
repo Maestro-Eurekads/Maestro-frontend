@@ -476,7 +476,8 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
                             change
                           )
                         }
-                        onOpenModal={openModal}
+                        onOpenModal={openModal
+                        }
                       />
                     </div>
                   )}
