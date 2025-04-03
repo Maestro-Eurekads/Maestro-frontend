@@ -22,7 +22,7 @@ import image_format from "../../../public/Image_format.svg";
 import collection_format from "../../../public/collection_format.svg";
 import slideshow_format from "../../../public/slideshow_format.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
-import { funnelStages, getPlatformIcon } from "../../../components/data";
+import { funnelStages } from "../../../components/data";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import UploadModal from "../../../components/UploadModal/UploadModal";
 import checkmark from "../../../public/mingcute_check-fill.svg";
@@ -67,6 +67,25 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     { name: "Collection", icon: collection_format },
   ];
 
+  const platformIcons = {
+    Facebook: facebook,
+    Instagram: ig,
+    YouTube: youtube,
+    TheTradeDesk: TheTradeDesk,
+    Quantcast: Quantcast,
+    Google: google,
+    "Twitter/X": x,
+    LinkedIn: linkedin,
+    TikTok: tictok,
+    "Display & Video": Display,
+    Yahoo: yahoo,
+    Bing: bing,
+    "Apple Search": google,
+    "The Trade Desk": TheTradeDesk,
+    QuantCast: Quantcast,
+  };
+
+  const getPlatformIcon = (platformName) => platformIcons[platformName] || null;
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -158,98 +177,9 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
             })) || [],
         style: "max-w-[180px] w-full",
       };
-      const streaming = {
-        title: "Streaming",
-        platforms:
-          stage.streaming
-            ?.filter((platform) => platform.platform_name)
-            .map((platform) => ({
-              name: platform.platform_name,
-              icon: getPlatformIcon(platform.platform_name),
-            })) || [],
-        style: "max-w-[180px] w-full",
-      };
-      
-      const print = {
-        title: "Print",
-        platforms:
-          stage.print
-            ?.filter((platform) => platform.platform_name)
-            .map((platform) => ({
-              name: platform.platform_name,
-              icon: getPlatformIcon(platform.platform_name),
-            })) || [],
-        style: "max-w-[180px] w-full",
-      };
-      const In_Game = {
-        title: "In Game",
-        platforms:
-          stage.in_game
-            ?.filter((platform) => platform.platform_name)
-            .map((platform) => ({
-              name: platform.platform_name,
-              icon: getPlatformIcon(platform.platform_name),
-            })) || [],
-        style: "max-w-[180px] w-full",
-      };
-      const e_commerce = {
-        title: "E commerce",
-        platforms:
-          stage.e_commerce
-            ?.filter((platform) => platform.platform_name)
-            .map((platform) => ({
-              name: platform.platform_name,
-              icon: getPlatformIcon(platform.platform_name),
-            })) || [],
-        style: "max-w-[180px] w-full",
-      };
-      const broadcast = {
-        title: "Boradcast",
-        platforms:
-          stage.broadcast
-            ?.filter((platform) => platform.platform_name)
-            .map((platform) => ({
-              name: platform.platform_name,
-              icon: getPlatformIcon(platform.platform_name),
-            })) || [],
-        style: "max-w-[180px] w-full",
-      };
-      const ooh = {
-        title: "OOH",
-        platforms:
-          stage.ooh
-            ?.filter((platform) => platform.platform_name)
-            .map((platform) => ({
-              name: platform.platform_name,
-              icon: getPlatformIcon(platform.platform_name),
-            })) || [],
-        style: "max-w-[180px] w-full",
-      };
-      const mobile = {
-        title: "Mobile",
-        platforms:
-          stage.mobile
-            ?.filter((platform) => platform.platform_name)
-            .map((platform) => ({
-              name: platform.platform_name,
-              icon: getPlatformIcon(platform.platform_name),
-            })) || [],
-        style: "max-w-[180px] w-full",
-      };
-      const messaging = {
-        title: "Messaging",
-        platforms:
-          stage.messaging
-            ?.filter((platform) => platform.platform_name)
-            .map((platform) => ({
-              name: platform.platform_name,
-              icon: getPlatformIcon(platform.platform_name),
-            })) || [],
-        style: "max-w-[180px] w-full",
-      };
 
       setChannels(
-        [transformedData, displayNetworkData, searchEnginesData, streaming, print, In_Game, mobile, messaging, ooh, broadcast, e_commerce].filter(
+        [transformedData, displayNetworkData, searchEnginesData].filter(
           (channel) => channel.platforms.length > 0
         )
       );
@@ -262,19 +192,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     );
     if (stage && !Object.keys(quantities).length) {
       const initialQuantities = {};
-      [
-        "social_media",
-        "display_networks",
-        "search_engines",
-        "streaming",
-        "mobile",
-        "messaging",
-        "in_game",
-        "e_commerce",
-        "broadcast",
-        "print",
-        "ooh",
-      ].forEach(
+      ["social_media", "display_networks", "search_engines"].forEach(
         (channel) => {
           stage[channel]?.forEach((platform) => {
             if (platform.format) {
@@ -374,19 +292,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     );
     if (stageIndex === -1) return;
 
-    const channels =  [
-      "social_media",
-      "display_networks",
-      "search_engines",
-      "streaming",
-      "mobile",
-      "messaging",
-      "in_game",
-      "e_commerce",
-      "broadcast",
-      "print",
-      "ooh",
-    ];
+    const channels = ["social_media", "display_networks", "search_engines"];
     for (const channel of channels) {
       const platforms = copy[stageIndex][channel];
       if (platforms) {
@@ -438,38 +344,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
             formatValidated: newValidationState,
           })),
           search_engines: mix.search_engines?.map((p) => ({
-            ...p,
-            formatValidated: newValidationState,
-          })),
-          streaming: mix.streaming?.map((p) => ({
-            ...p,
-            formatValidated: newValidationState,
-          })),
-          in_game: mix.in_game?.map((p) => ({
-            ...p,
-            formatValidated: newValidationState,
-          })),
-          broadcast: mix.broadcast?.map((p) => ({
-            ...p,
-            formatValidated: newValidationState,
-          })),
-          e_commerce: mix.e_commerce?.map((p) => ({
-            ...p,
-            formatValidated: newValidationState,
-          })),
-          print: mix.print?.map((p) => ({
-            ...p,
-            formatValidated: newValidationState,
-          })),
-          ooh: mix.ooh?.map((p) => ({
-            ...p,
-            formatValidated: newValidationState,
-          })),
-          mobile: mix.mobile?.map((p) => ({
-            ...p,
-            formatValidated: newValidationState,
-          })),
-          messaging: mix.messaging?.map((p) => ({
             ...p,
             formatValidated: newValidationState,
           })),
