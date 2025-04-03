@@ -67,7 +67,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     { name: "Collection", icon: collection_format },
   ];
 
-
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedValidationState = localStorage.getItem(
@@ -169,7 +168,6 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
             })) || [],
         style: "max-w-[180px] w-full",
       };
-      
       const print = {
         title: "Print",
         platforms:
@@ -204,7 +202,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
         style: "max-w-[180px] w-full",
       };
       const broadcast = {
-        title: "Boradcast",
+        title: "Broadcast",
         platforms:
           stage.broadcast
             ?.filter((platform) => platform.platform_name)
@@ -249,9 +247,19 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       };
 
       setChannels(
-        [transformedData, displayNetworkData, searchEnginesData, streaming, print, In_Game, mobile, messaging, ooh, broadcast, e_commerce].filter(
-          (channel) => channel.platforms.length > 0
-        )
+        [
+          transformedData,
+          displayNetworkData,
+          searchEnginesData,
+          streaming,
+          print,
+          In_Game,
+          mobile,
+          messaging,
+          ooh,
+          broadcast,
+          e_commerce,
+        ].filter((channel) => channel.platforms.length > 0)
       );
     }
   }, [campaignFormData, stageName]);
@@ -274,19 +282,17 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
         "broadcast",
         "print",
         "ooh",
-      ].forEach(
-        (channel) => {
-          stage[channel]?.forEach((platform) => {
-            if (platform.format) {
-              initialQuantities[platform.platform_name] = {};
-              platform.format.forEach((f) => {
-                initialQuantities[platform.platform_name][f.format_type] =
-                  parseInt(f.num_of_visuals || "1");
-              });
-            }
-          });
-        }
-      );
+      ].forEach((channel) => {
+        stage[channel]?.forEach((platform) => {
+          if (platform.format) {
+            initialQuantities[platform.platform_name] = {};
+            platform.format.forEach((f) => {
+              initialQuantities[platform.platform_name][f.format_type] =
+                parseInt(f.num_of_visuals || "1");
+            });
+          }
+        });
+      });
       setQuantities(initialQuantities);
       if (typeof window !== "undefined") {
         localStorage.setItem(
@@ -333,14 +339,13 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       });
     }
 
-    // Reset validation state when a new format is selected
     setIsValidated(false);
     setCampaignFormData((prev) => ({
       ...prev,
       channel_mix: copy,
       validatedStages: {
         ...prev.validatedStages,
-        [stageName]: false, // Reset global validation for this stage
+        [stageName]: false,
       },
     }));
   };
@@ -374,7 +379,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     );
     if (stageIndex === -1) return;
 
-    const channels =  [
+    const channels = [
       "social_media",
       "display_networks",
       "search_engines",
@@ -524,7 +529,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
   };
 
   return (
-    <div className="text-[16px] overflow-x-hidden">
+    <div className="text-[16px] w-full">
       {channels?.map((channel, channelIndex) => (
         <React.Fragment key={channelIndex}>
           <h3 className="font-[600] my-[24px]">{channel?.title}</h3>
@@ -537,15 +542,14 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
               const isExpanded = expandedPlatforms[platform.name];
 
               return (
-                <div key={platformIndex}>
-                  <div className="flex items-center gap-6">
+                <div key={platformIndex} className="w-full">
+                  <div className="flex items-center gap-6 flex-wrap">
                     <div
                       className={`flex items-center gap-[12px] font-[500] border p-5 rounded-[10px] ${channel?.style}`}
                     >
                       {getPlatformIcon(platform?.name) ? (
                         <Image src={platform.icon} alt={platform.name} />
                       ) : null}
-
                       <p>{platform.name}</p>
                     </div>
                     <div
@@ -580,7 +584,7 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
                   </div>
                   {((isExpanded && !isValidated) ||
                     (isValidated && hasSelectedFormats && isExpanded)) && (
-                    <div className="py-6">
+                    <div className="py-6 w-full">
                       <MediaSelection
                         handleFormatSelection={(index) =>
                           handleFormatSelection(
@@ -701,7 +705,7 @@ export const FormatSelection = () => {
   };
 
   return (
-    <div>
+    <div className="w-full">
       <PageHeaderWrapper
         t1="Select formats for each channel"
         t2="Select the creative formats you want to use for your campaign. Specify the number of visuals for each format. Multiple formats can be selected per channel."
@@ -715,7 +719,7 @@ export const FormatSelection = () => {
           const isOpen = openTabs.includes(stage.name);
 
           return (
-            <div key={index}>
+            <div key={index} className="w-full">
               <div
                 className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${
                   isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
@@ -749,7 +753,7 @@ export const FormatSelection = () => {
                 <Image src={isOpen ? up : down} alt={isOpen ? "up" : "down"} />
               </div>
               {isOpen && (
-                <div className="card-body bg-white border border-[#E5E5E5]">
+                <div className="card-body bg-white border border-[#E5E5E5] w-full">
                   <Platforms stageName={stage?.name} />
                 </div>
               )}
@@ -784,32 +788,39 @@ export default function MediaSelection({
 }) {
   const { campaignFormData } = useCampaigns();
 
+  const getFormatExists = (optionName: string) => {
+    return campaignFormData?.channel_mix
+      ?.find((ch) => ch?.funnel_stage === stageName)
+      ?.[channelName?.toLowerCase()?.replaceAll(" ", "_")]
+      ?.find((pl) => pl?.platform_name === platformName)
+      ?.format?.some((ty) => ty?.format_type === optionName);
+  };
+
   return (
-    <div className="flex flex-wrap gap-4 overflow-x-auto">
-      {mediaOptions.map((option, index) => {
-        const existsInDB = campaignFormData?.channel_mix
-          ?.find((ch) => ch?.funnel_stage === stageName)
-          ?.[channelName?.toLowerCase()?.replaceAll(" ", "_")]?.find(
-            (pl) => pl?.platform_name === platformName
-          )
-          ?.format?.some((ty) => ty?.format_type === option?.name);
+    <div className="w-full">
+      <div className="flex flex-nowrap gap-6 overflow-x-auto pb-4">
+        {mediaOptions.map((option, index) => {
+          const existsInDB = getFormatExists(option.name);
+          if (isValidated && !existsInDB) return null;
 
-        if (isValidated && !existsInDB) return null;
-
-        return (
-          <div key={index} className="flex justify-center gap-6 min-w-fit">
-            <div className="flex flex-col items-center">
+          return (
+            <div
+              key={index}
+              className="flex flex-col items-center gap-4 min-w-[180px] max-w-[400px] flex-shrink-0"
+            >
+              {/* Media Option Card */}
               <div
                 onClick={() => !isValidated && handleFormatSelection(index)}
-                className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
+                className={`relative text-center cursor-pointer p-2 rounded-lg border transition w-[168px] h-[168px] flex flex-col items-center justify-between ${
                   existsInDB ? "border-blue-500 shadow-lg" : "border-gray-300"
-                } ${isValidated ? "cursor-default" : "cursor-pointer"}`}
+                } ${isValidated ? "cursor-default" : "hover:border-gray-400"}`}
               >
                 <Image
                   src={option.icon}
-                  width={168}
-                  height={132}
+                  width={120}
+                  height={100}
                   alt={option.name}
+                  className="object-contain"
                 />
                 <p className="text-sm font-medium text-gray-700 mt-2">
                   {option.name}
@@ -820,53 +831,57 @@ export default function MediaSelection({
                   </div>
                 )}
               </div>
+
+              {/* Quantity and Upload Section (Visible when Validated) */}
               {isValidated && existsInDB && (
-                <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
-                  <button
-                    className="px-2 py-1 text-[#000000] text-lg font-semibold"
-                    onClick={() => onQuantityChange(option.name, -1)}
+                <div className="flex flex-col items-center gap-2 w-full">
+                  <div className="flex items-center bg-[#F6F6F6] gap-2 border rounded-[8px] px-2 py-1">
+                    <button
+                      className="px-2 py-1 text-[#000000] text-lg font-semibold hover:text-gray-700"
+                      onClick={() => onQuantityChange(option.name, -1)}
+                    >
+                      -
+                    </button>
+                    <span className="px-2 text-sm font-medium">
+                      {quantities[option.name] || 1}
+                    </span>
+                    <button
+                      className="px-2 py-1 text-[#000000] text-lg font-semibold hover:text-gray-700"
+                      onClick={() => onQuantityChange(option.name, 1)}
+                    >
+                      +
+                    </button>
+                  </div>
+                  <div
+                    onClick={() =>
+                      onOpenModal(platformName, channelName, option.name)
+                    }
+                    className="w-[168px] h-[100px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
                   >
-                    -
-                  </button>
-                  <span className="px-2">{quantities[option.name] || 1}</span>
-                  <button
-                    className="px-2 py-1 text-[#000000] text-lg font-semibold"
-                    onClick={() => onQuantityChange(option.name, 1)}
-                  >
-                    +
-                  </button>
+                    <div className="flex flex-col items-center gap-2 text-center">
+                      <svg
+                        width="16"
+                        height="17"
+                        viewBox="0 0 16 17"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
+                          fill="#3175FF"
+                        />
+                      </svg>
+                      <p className="text-sm font-light text-black">
+                        Upload your previews
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
-            {isValidated && existsInDB && (
-              <div
-                onClick={() =>
-                  onOpenModal(platformName, channelName, option.name)
-                }
-                className="w-[225px] h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
-              >
-                <div className="flex flex-col items-center gap-2 text-center">
-                  <svg
-                    width="16"
-                    height="17"
-                    viewBox="0 0 16 17"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
-                      fill="#3175FF"
-                    />
-                  </svg>
-                  <p className="text-md font-lighter text-black mt-2">
-                    Upload your previews
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
