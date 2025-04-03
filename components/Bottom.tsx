@@ -366,13 +366,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           media_plan_details: {
             plan_name: campaignFormData?.media_plan,
             internal_approver: campaignFormData?.approver,
-          },
-          budget_details: {
-            currency: campaignFormData?.budget_details_currency?.id,
-            fee_type: campaignFormData?.budget_details_fee_type?.id,
-            sub_fee_type: campaignFormData?.budget_details_sub_fee_type,
-            value: campaignFormData?.budget_details_value,
-          },
+          }
         });
       } else {
         try {
@@ -651,7 +645,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
               <>
                 <p>
                   {active === 0
-                    ? "Start Creating"
+                    ? "Start"
                     : isHovered
                     ? "Next Step"
                     : "Continue"}
