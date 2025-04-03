@@ -233,10 +233,20 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       const hasUnvalidatedSelectedStage = selectedStages.some((stage) => {
         const isSelected = campaignFormData?.channel_mix?.some(
           (mix) =>
-            mix.funnel_stage === stage &&
-            (mix.social_media?.length > 0 ||
-              mix.display_networks?.length > 0 ||
-              mix.search_engines?.length > 0)
+        mix.funnel_stage === stage &&
+        (
+          mix.social_media?.length > 0 ||
+          mix.display_networks?.length > 0 ||
+          mix.search_engines?.length > 0 ||
+          mix.streaming?.length > 0 ||
+          mix.mobile?.length > 0 ||
+          mix.messaging?.length > 0 ||
+          mix.in_game?.length > 0 ||
+          mix.e_commerce?.length > 0 ||
+          mix.broadcast?.length > 0 ||
+          mix.print?.length > 0 ||
+          mix.ooh?.length > 0
+        )
         );
         return isSelected && !validatedStages[stage];
       });
@@ -386,6 +396,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
           "isValidated",
+          "formatValidated"
         ]),
       });
     };
@@ -459,17 +470,15 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         await handleStepZero();
       }  else if (active === 2) {
         await handleStepTwo();
-      } else if (active === 3) {
-        await handleStepThree();
       } else if (active === 4) {
         await handleStepFour();
       } else if (active === 5) {
         await handleStepFive();
       } else if (active === 7) {
         await handleStepSeven();
-      } else if (active > 2 && subStep < 1) {
+      } else if (active > 3 && subStep < 1) {
         await handleStepThree();
-      } else if (active > 2 && subStep > 0) {
+      } else if (active > 3 && subStep > 0) {
         await handleStepFour();
       }
 
