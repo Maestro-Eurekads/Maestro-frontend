@@ -49,10 +49,10 @@ const SideNav: React.FC = () => {
 
 
   const handleBackClick = () => {
+    router.push("/"); // Navigate to home
     setCampaignData(null)
     setActive(0); // Reset state
     setSubStep(0);
-    router.push("/"); // Navigate to home
   };
 
   const steps = [

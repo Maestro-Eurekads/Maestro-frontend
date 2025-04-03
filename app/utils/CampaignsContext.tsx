@@ -90,7 +90,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}?populate[media_plan_details]=*&populate[budget_details]=*&populate[client_selection]=*&populate[campaign_budget]=*&populate[channel_mix][populate][social_media][populate]=*&populate[channel_mix][populate][display_networks][populate]=*&populate[channel_mix][populate][search_engines][populate]=*&populate[channel_mix][populate][streaming][populate]=*&populate[channel_mix][populate][ooh][populate]=*&populate[channel_mix][populate][broadcast][populate]=*&populate[channel_mix][populate][messaging][populate]=*&populate[channel_mix][populate][print][populate]=*&populate[channel_mix][populate][e_commerce][populate]=*&populate[channel_mix][populate][in_game][populate]=*&populate[channel_mix][populate][mobile][populate]=*`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}?populate=client&populate[media_plan_details]=*&populate[budget_details]=*&populate[client_selection]=*&populate[campaign_budget]=*&populate[channel_mix][populate][social_media][populate]=*&populate[channel_mix][populate][display_networks][populate]=*&populate[channel_mix][populate][search_engines][populate]=*&populate[channel_mix][populate][streaming][populate]=*&populate[channel_mix][populate][ooh][populate]=*&populate[channel_mix][populate][broadcast][populate]=*&populate[channel_mix][populate][messaging][populate]=*&populate[channel_mix][populate][print][populate]=*&populate[channel_mix][populate][e_commerce][populate]=*&populate[channel_mix][populate][in_game][populate]=*&populate[channel_mix][populate][mobile][populate]=*`,
         {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
@@ -152,6 +152,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           data?.campaign_timeline_end_date || prev.campaign_timeline_end_date,
         campaign_budget: data?.campaign_budget || prev.campaign_budget,
         goal_level: data?.goal_level || prev.goal_level,
+        progress_percent: data?.progress_percent
       }));
     } catch (error) {
       console.error("Error fetching active campaign:", error);

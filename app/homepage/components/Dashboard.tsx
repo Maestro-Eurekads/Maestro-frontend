@@ -24,7 +24,7 @@ import youtube from "../../../public/youtube.svg";
 import { useDateRange } from "../../../src/date-range-context";
 import { processCampaignData } from "components/processCampaignData";
 import ChannelDistributionChatTwo from "components/ChannelDistribution/ChannelDistributionChatTwo";
-import { getCurrencySymbol } from "components/data";
+import { getCurrencySymbol, getPlatformIcon, platformIcons } from "components/data";
 import { differenceInCalendarWeeks, max, min, parseISO } from "date-fns";
 
 const Dashboard = () => {
@@ -66,27 +66,7 @@ const Dashboard = () => {
     platforms: IPlatform[];
     style?: string;
   };
-  const platformIcons = {
-    Facebook: facebook,
-    Instagram: ig,
-    YouTube: youtube,
-    TheTradeDesk: TheTradeDesk,
-    Quantcast: Quantcast,
-    Google: google,
-    "Twitter/X": x,
-    LinkedIn: linkedin,
-    TikTok: tictok,
-    "Display & Video": Display,
-    Yahoo: yahoo,
-    Bing: bing,
-    "Apple Search": google,
-    "The Trade Desk": TheTradeDesk,
-    QuantCast: Quantcast,
-  };
 
-  const getPlatformIcon = (platformName: string | number) => {
-    return platformIcons[platformName] || null;
-  };
 
   const mapCampaignsToFunnels = (campaigns: any[]) => {
     useEffect(() => {

@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Table from '../../../components/Table';
 import Dropdowns from '../Dropdowns';
 import { useCampaigns } from '../../utils/CampaignsContext';
+import FiltersDropdowns from './FiltersDropdowns';
 
 const Overview = () => {
 	const { loading, clientCampaignData } = useCampaigns()
@@ -19,7 +20,9 @@ const Overview = () => {
 					<Image src={blueBtn} alt='menu' />
 				</button>
 			</div>
-			<Dropdowns />
+			<div className='mt-[20px]'>
+			<FiltersDropdowns hideTitle={true}/>
+			</div>
 			<Table />
 		</div>
 	)

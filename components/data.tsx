@@ -25,7 +25,7 @@ import mingcute_basket from '../public/mingcute_basket-fill.svg';
 import mdi_leads from '../public/mdi_leads.svg';
 import { StaticImageData } from "next/image";
 
-const platformIcons: Record<string, StaticImageData> = {
+export const platformIcons: Record<string, StaticImageData> = {
 	Facebook: facebook,
 	Instagram: ig,
 	YouTube: youtube,
