@@ -20,7 +20,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const { verifybeforeMove, hasChanges } = useVerification();
   const { active, setActive, subStep, setSubStep } = useActive();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
-  const [setupyournewcampaignError, setSetupyournewcampaignError] = useState(false);
+  const [setupyournewcampaignError, setSetupyournewcampaignError] =
+    useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
   const [selectedDatesError, setSelectedDatesError] = useState(false);
   const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
@@ -29,7 +30,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [validateStep, setValidateStep] = useState(false);
   const { selectedDates } = useSelectedDates();
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
-  const [triggerBuyObjectiveError, setTriggerBuyObjectiveError] = useState(false);
+  const [triggerBuyObjectiveError, setTriggerBuyObjectiveError] =
+    useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
@@ -52,7 +54,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   useEffect(() => {
     if (typeof window !== "undefined" && cId) {
-      localStorage.setItem(`triggerFormatError_${cId}`, triggerFormatError.toString());
+      localStorage.setItem(
+        `triggerFormatError_${cId}`,
+        triggerFormatError.toString()
+      );
     }
   }, [triggerFormatError, cId]);
 
@@ -106,9 +111,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           ...(stageData.social_media || []),
           ...(stageData.display_networks || []),
           ...(stageData.search_engines || []),
-        ].some((platform) =>
-          platform.format?.length > 0 &&
-          platform.format.some((f) => f.format_type && f.num_of_visuals)
+        ].some(
+          (platform) =>
+            platform.format?.length > 0 &&
+            platform.format.some((f) => f.format_type && f.num_of_visuals)
         );
 
         const isStageValidated = validatedStages[stage];
@@ -140,9 +146,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           ...(stageData.social_media || []),
           ...(stageData.display_networks || []),
           ...(stageData.search_engines || []),
-        ].some(
-          (platform) => platform.buy_type && platform.objective_type
-        );
+        ].some((platform) => platform.buy_type && platform.objective_type);
 
         if (hasValidChannel) {
           return true;
@@ -236,7 +240,15 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             mix.funnel_stage === stage &&
             (mix.social_media?.length > 0 ||
               mix.display_networks?.length > 0 ||
-              mix.search_engines?.length > 0)
+              mix.search_engines?.length > 0 ||
+              mix.streaming?.length > 0 ||
+              mix.mobile?.length > 0 ||
+              mix.messaging?.length > 0 ||
+              mix.in_game?.length > 0 ||
+              mix.e_commerce?.length > 0 ||
+              mix.broadcast?.length > 0 ||
+              mix.print?.length > 0 ||
+              mix.ooh?.length > 0)
         );
         return isSelected && !validatedStages[stage];
       });
@@ -285,7 +297,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
 
     if (active === 7) {
-      if ((!selectedDates?.to?.day || !selectedDates?.from?.day) && subStep < 1) {
+      if (
+        (!selectedDates?.to?.day || !selectedDates?.from?.day) &&
+        subStep < 1
+      ) {
         setSelectedDatesError(true);
         setAlert({
           variant: "error",
@@ -307,8 +322,15 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
 
     const updateCampaignData = async (data) => {
+      const calcPercent = Math.ceil((active / 9) * 100);
       try {
-        await updateCampaign(data);
+        await updateCampaign({
+          ...data,
+          progress_percent:
+            campaignFormData?.progress_percent > calcPercent
+              ? campaignFormData?.progress_percent
+              : calcPercent,
+        });
         await getActiveCampaign(data);
       } catch (error) {
         setAlert({
@@ -322,12 +344,12 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const cleanData = campaignData
       ? removeKeysRecursively(campaignData, [
-        "id",
-        "documentId",
-        "createdAt",
-        "publishedAt",
-        "updatedAt",
-      ])
+          "id",
+          "documentId",
+          "createdAt",
+          "publishedAt",
+          "updatedAt",
+        ])
       : {};
 
     const handleStepZero = async () => {
@@ -344,13 +366,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           media_plan_details: {
             plan_name: campaignFormData?.media_plan,
             internal_approver: campaignFormData?.approver,
-          },
-          budget_details: {
-            currency: campaignFormData?.budget_details_currency?.id,
-            fee_type: campaignFormData?.budget_details_fee_type?.id,
-            sub_fee_type: campaignFormData?.budget_details_sub_fee_type,
-            value: campaignFormData?.budget_details_value,
-          },
+          }
         });
       } else {
         try {
@@ -386,6 +402,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
           "isValidated",
+          "formatValidated",
         ]),
       });
     };
@@ -457,7 +474,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     try {
       if (active === 0) {
         await handleStepZero();
-      }  else if (active === 2) {
+      } else if (active === 1) {
+        await handleStepOne();
+      } else if (active === 2) {
         await handleStepTwo();
       } else if (active === 3) {
         await handleStepThree();
@@ -467,21 +486,23 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         await handleStepFive();
       } else if (active === 7) {
         await handleStepSeven();
-      } else if (active > 2 && subStep < 1) {
+      } else if (active > 3 && subStep < 1) {
         await handleStepThree();
-      } else if (active > 2 && subStep > 0) {
+      } else if (active > 3 && subStep > 0) {
         await handleStepFour();
       }
 
       if (active === 7) {
-        if(subStep < 1){
-          setSubStep((prev) => prev + 1)
+        if (subStep < 1) {
+          setSubStep((prev) => prev + 1);
         } else {
-          setActive((prev) => prev + 1)
-          setSubStep(0)
+          setActive((prev) => prev + 1);
+          setSubStep(0);
         }
       } else if (active === 8) {
-        subStep < 2 ? setSubStep((prev) => prev + 1) : setActive((prev) => prev + 1);
+        subStep < 2
+          ? setSubStep((prev) => prev + 1)
+          : setActive((prev) => prev + 1);
       } else {
         setActive((prev) => Math.min(10, prev + 1));
       }
@@ -624,10 +645,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
               <>
                 <p>
                   {active === 0
-                    ? "Start Creating"
+                    ? "Start"
                     : isHovered
-                      ? "Next Step"
-                      : "Continue"}
+                    ? "Next Step"
+                    : "Continue"}
                 </p>
                 <Image src={Continue} alt="Continue" />
               </>

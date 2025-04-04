@@ -50,10 +50,10 @@ const SideNav: React.FC = () => {
 
 
   const handleBackClick = () => {
+    router.push("/"); // Navigate to home
     setCampaignData(null)
     setActive(0); // Reset state
     setSubStep(0);
-    router.push("/"); // Navigate to home
   };
 
   const steps = [
@@ -177,14 +177,7 @@ const SideNav: React.FC = () => {
             {isLoading ? (
               <Skeleton height={20} width={200} />
             ) : !campaignData?.client?.client_name || campaignData?.media_plan_details?.plan_name === "Plan name" ? (
-              <div>
-                <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
-                  Let’s create your
-                </h6>
-                <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
-                  new campaign :
-                </h6>
-              </div>
+              null
             ) : (
               <div>
                 <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
@@ -200,7 +193,7 @@ const SideNav: React.FC = () => {
               {isLoading ? (
                 <Skeleton height={20} width={150} />
               ) : !campaignData?.client?.client_name || campaignData?.media_plan_details?.plan_name === "Plan name" ? (
-                <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic">
+                <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic mt-3">
                   Follow the steps to set up an effective and successful campaign strategy.
                 </p>
               ) : (
