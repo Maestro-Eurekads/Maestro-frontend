@@ -23,7 +23,7 @@ const DefineCampaignObjective = () => {
   } = useCampaigns();
   const searchParams = useSearchParams();
   const { selectedObjectives, setSelectedObjectives } = useObjectives();
-  const {loadingObj, objectives} = useCampaigns()
+  const { loadingObj, objectives } = useCampaigns()
   const { verifyStep, validateStep, setHasChanges, hasChanges } = useVerification();
   const campaignId = searchParams.get("campaignId");
   const [isEditing, setIsEditing] = useState(false);
@@ -160,8 +160,8 @@ const DefineCampaignObjective = () => {
     setTempSelectedObjective([...selectedObjectives]);
   };
 
-  if(loadingObj){
-    return <center><FaSpinner size={40} color="#3175FF" className="animate-spin"/></center>
+  if (loadingObj) {
+    return <center><FaSpinner size={40} color="#3175FF" className="animate-spin" /></center>
   }
 
   return (
@@ -201,7 +201,7 @@ const DefineCampaignObjective = () => {
         })}
       </div>
 
-      {isEditing && (
+      {hasChanges && (
         <div className="flex justify-end pr-6 mt-[50px]">
           <button
             onClick={handleStepOne}

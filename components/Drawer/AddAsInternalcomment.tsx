@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import tickcircle from "../../public/tick-circle.svg";
+"use client";
+import React, { useState } from 'react';
 import send from "../../public/send.svg";
 import closecircle from "../../public/close-circle.svg";
 import Image from "next/image";
@@ -8,26 +8,29 @@ import CommentHeaderwithClose from './CommentHeaderwithClose';
 import InternalDropdowns from 'components/InternalDropdowns';
 import { useCampaigns } from 'app/utils/CampaignsContext';
 import { SVGLoader } from 'components/SVGLoader';
-import { useAppDispatch, useAppSelector } from 'store/useStore';
 import AlertMain from 'components/Alert/AlertMain';
+import { useSession } from "next-auth/react";
 
-const AddAsInternalcomment = ({ author = "John Doe", position, setShow }) => {
+const AddAsInternalcomment = ({ position, setShow }) => {
 	const { campaignData } = useCampaigns();
+	const { data: session }: any = useSession();
 	const { addComment, isLoading, createCommentsError, comment, setComment } = useComments();
 	const [alert, setAlert] = useState(null);
 	const [selectedOption, setSelectedOption] = useState("Add as Internal");
 	const addcomment_as = selectedOption === "Add as Internal" ? "Internal" : "Client";
 	const commentId = campaignData?.documentId
+	const creator = {
+		id: session?.user?.id,
+		name: session?.user?.name,
+	}
 
 	const handleAddComment = async () => {
 		if (comment.trim() === "") return;
 		try {
-			await addComment(commentId, comment, position, addcomment_as);
+			await addComment(commentId, comment, position, addcomment_as, creator);
 		} catch (error) {
 		}
 	};
-
-
 
 
 
@@ -38,9 +41,9 @@ const AddAsInternalcomment = ({ author = "John Doe", position, setShow }) => {
 				<div className="flex justify-between items-center gap-3 w-full">
 					<div className="flex items-center gap-2">
 						<div className="flex flex-col justify-center items-center p-[10px] gap-[10px] w-[40px] h-[40px] bg-[#00A36C] rounded-full text-[20px] leading-[27px] text-center text-white">
-							{author[0]}
+							{session?.user?.name[0]}
 						</div>
-						<CommentHeaderwithClose author={author} timestamp={new Date().toLocaleString()} />
+						<CommentHeaderwithClose author={session?.user?.name} timestamp={new Date().toLocaleString()} />
 					</div>
 
 					{/* Mark as Approved Button */}

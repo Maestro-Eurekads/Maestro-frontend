@@ -1,20 +1,17 @@
  
 
  .drawer-container {
-  position: fixed;
-  top: 0;
-  right: -25%;  
-    width:25%; 
-  height: 100%;
-  background-color: var(--accent-white);
-  box-shadow: -2px 0px 5px rgba(0, 0, 0, 0.2);
+  grid-area: drawer; 
+    width:0px;  
+  background-color: var(--accent-white); 
   transition: right 0.3s ease-in-out;
-  z-index: 1000;
+  border-left: 1px solid rgba(28, 28, 28, 0.1);
+   overflow: hidden;  
 }
 
 
 
-@media screen and (max-width: 1300px) {
+/* @media screen and (max-width: 1300px) {
    .drawer-container {
     right: -40%;  
   width: 40%; 
@@ -37,10 +34,10 @@
     right: -100%;  
   width: 100%; 
    }
-}
+} */
 
 .drawer-open {
-  right: 0;
+  width: 420px
 }
 
 .close-button {
