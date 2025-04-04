@@ -151,9 +151,20 @@ main {
   grid-template-columns: max-content 1fr;
   grid-template-rows: 40px 1fr;
   grid-template-areas:
-    'sidenav header-flow'
-    'sidenav main'
-    'sidenav footer';
+    'sidenav header-flow drawer'
+    'sidenav main drawer'
+    'sidenav footer drawer';
+}
+#page-wrapper-client {
+  display: grid;
+  position: relative;
+  height: 100dvh;
+  grid-template-columns: max-content 1fr;
+  grid-template-rows: 70px 1fr;
+  grid-template-areas:
+    'sidenav client_header drawer'
+    'sidenav main drawer'
+    'sidenav footer drawer';
 }
 
  

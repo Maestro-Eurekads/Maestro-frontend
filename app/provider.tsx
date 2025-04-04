@@ -1,14 +1,14 @@
 'use client';
-import React from 'react'
-import { store } from '../store/store'
-import { Provider } from 'react-redux'
+import React from 'react';
+import { Provider } from 'react-redux';
+import { SessionProvider } from 'next-auth/react';
+import { store } from '../store/store';
 import { ProgressProvider } from '@bprogress/next/dist/app';
 import "react-loading-skeleton/dist/skeleton.css";
 
-const NewProvider = ({ children }: React.PropsWithChildren) => {
-
+const NewProvider = ({ children, session }: React.PropsWithChildren<{ session: any }>) => {
 	return (
-		<div>
+		<SessionProvider session={session}>
 			<ProgressProvider
 				height="4px"
 				color="#0866FF"
@@ -18,12 +18,8 @@ const NewProvider = ({ children }: React.PropsWithChildren) => {
 					{children}
 				</Provider>
 			</ProgressProvider>
-		</div>
-	)
+		</SessionProvider>
+	);
 }
 
-export default NewProvider
-
-
-
-
+export default NewProvider;

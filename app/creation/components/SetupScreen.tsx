@@ -290,8 +290,6 @@ export const SetupScreen = () => {
     <div>
       <PageHeaderWrapper
         t1={"Set up your new campaign"}
-        t2={"Fill in the following information to define the foundation of your media plan."}
-        t3={"This information helps structure your campaign strategy and align with business goals."}
       />
 
       {alert && <AlertMain alert={alert} />}
@@ -338,7 +336,7 @@ export const SetupScreen = () => {
               formId="approver" setHasChanges={setHasChanges} />
           </div>
         </div>
-        <div className="pb-1">
+        {/* <div className="pb-1">
           <Title className="mb-1">Budget details</Title>
           <div className="flex items-center flex-wrap gap-4">
             <ClientSelection
@@ -392,7 +390,7 @@ export const SetupScreen = () => {
               />
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {hasChanges && (

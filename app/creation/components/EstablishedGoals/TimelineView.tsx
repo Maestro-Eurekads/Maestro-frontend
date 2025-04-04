@@ -68,7 +68,7 @@ const TimelineView = () => {
 			}}
 		>
 			<div className="bg-white">
-				<DateComponent useDate={undefined} />
+				<DateComponent useDate={false} />
 			</div>
 
 			<EstablishedGoalsTimeline />

@@ -179,17 +179,16 @@ const DefineCampaignObjective = () => {
           return (
             <div
               key={item.id}
-              className={`relative p-4 rounded-lg transition-all duration-300 ${
-                isSelected ? "creation_card_active shadow-lg" : "creation_card"
-              } ${isEditing ? "cursor-pointer" : "cursor-not-allowed"}`}
+              className={`relative p-4 rounded-lg transition-all duration-300 ${isSelected ? "creation_card_active shadow-lg" : "creation_card"
+                } ${isEditing ? "cursor-pointer" : "cursor-not-allowed"}`}
               onClick={() =>
                 isEditing
                   ? handleSelect(item.id, item.title)
                   : setAlert({
-                      variant: "info",
-                      message: "Please click on Edit!",
-                      position: "bottom-right",
-                    })
+                    variant: "info",
+                    message: "Please click on Edit!",
+                    position: "bottom-right",
+                  })
               }
             >
               {isSelected && (
@@ -216,7 +215,7 @@ const DefineCampaignObjective = () => {
         })}
       </div>
 
-      {isEditing && (
+      {hasChanges && (
         <div className="flex justify-end pr-6 mt-[50px]">
           <button
             onClick={handleStepOne}
