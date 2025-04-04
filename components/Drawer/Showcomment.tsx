@@ -6,7 +6,7 @@ import { useComments } from 'app/utils/CommentProvider';
 import CommentHeaderwithClose from './CommentHeaderwithClose';
 
 
-const Showcomment = ({ author = "John Doe", comment, setActiveComment }) => {
+const Showcomment = ({ comment, setActiveComment }) => {
 	const { setViewcommentsId, setIsDrawerOpen } = useComments();
 
 
@@ -21,9 +21,9 @@ const Showcomment = ({ author = "John Doe", comment, setActiveComment }) => {
 				<div className="flex justify-between items-center gap-3 w-full">
 					<div className="flex items-center gap-2">
 						<div className="flex flex-col justify-center items-center p-[10px] gap-[10px] w-[40px] h-[40px] bg-[#00A36C] rounded-full text-[20px] leading-[27px] text-center text-white">
-							{author[0] || "John Doe"}
+							{comment?.creator?.name[0] || "?"}
 						</div>
-						<CommentHeaderwithClose author={author} timestamp={new Date().toLocaleString()} />
+						<CommentHeaderwithClose author={comment?.creator?.name} timestamp={new Date().toLocaleString()} />
 					</div>
 
 					{/* Mark as Approved Button */}

@@ -74,7 +74,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (!loadingClients && allClients?.length > 0) {
-      console.log("CampaignProvider: allClients updated", allClients);
     }
   }, [allClients, loadingClients]);
 
@@ -97,8 +96,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-      
-      
+
+
       const data = res?.data?.data;
       setCampaignData(data);
       setCampaignFormData((prev) => ({
@@ -406,7 +405,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         channelType = "in_game";
       }
 
-      if(channelType === "e-commerce"){
+      if (channelType === "e-commerce") {
         channelType = "e_commerce"
       }
 

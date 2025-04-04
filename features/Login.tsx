@@ -4,7 +4,8 @@ import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import React, { useState } from "react";
 import { FaSpinner } from "react-icons/fa";
-import {signIn} from "next-auth/react"
+import { signIn } from "next-auth/react"
+
 
 function Login() {
   const [visible, setVisible] = useState(false);
@@ -21,7 +22,7 @@ function Login() {
           identifier: email,
           password: pwd,
         })
-        .then(async() => {
+        .then(async () => {
           await signIn("credentials", {
             email: email,
             password: pwd,
@@ -65,8 +66,7 @@ function Login() {
               />
               <div
                 className="absolute right-2 top-4 cursor-pointer"
-                onClick={() => setVisible(!visible)}
-              >
+                onClick={() => setVisible(!visible)}>
                 {!visible ? <Eye size={17} /> : <EyeOff size={17} />}
               </div>
             </div>

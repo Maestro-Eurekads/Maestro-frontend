@@ -2,7 +2,7 @@ import React from "react";
 import CommentHeader from "./CommentHeader";
 import Approved from "./Approved";
 
-const Comments = ({ comment, author = "Daniel Silva", contrastingColor }) => {
+const Comments = ({ comment, contrastingColor }) => {
 
 
 
@@ -14,9 +14,9 @@ const Comments = ({ comment, author = "Daniel Silva", contrastingColor }) => {
 						className="flex flex-col justify-center items-center p-2 w-10 h-10 rounded-full text-white"
 						style={{ backgroundColor: contrastingColor }}
 					>
-						{author[0] || "?"}
+						{comment?.creator?.name[0] || "?"}
 					</div>
-					<CommentHeader timestamp={new Date().toLocaleString()} />
+					<CommentHeader comment={comment} timestamp={new Date().toLocaleString()} />
 				</div>
 				{/* Approval Button */}
 				<Approved comment={comment} commentId={comment?.commentId} />

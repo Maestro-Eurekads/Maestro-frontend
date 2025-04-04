@@ -43,11 +43,11 @@ const CommentReply = ({ documentId, contrastingColor }) => {
 							<div className="flex items-center gap-2">
 								<div className="flex flex-col justify-center items-center p-[10px] gap-[10px] w-[40px] h-[40px]   rounded-full text-[20px] leading-[27px] text-center text-white"
 									style={{ backgroundColor: contrastingColor }}>
-									{reply?.author ? reply?.author[0] : "U"}
+									{reply?.name ? reply?.name[0] : "?"}
 								</div>
 								<div>
 									<h3 className="font-[500] text-[16px] leading-[24px] text-[#292929]">
-										{reply?.name || "Unknown User"}
+										{reply?.name || "?"}
 									</h3>
 									<div className="flex items-center gap-2">
 										<p className="font-[400] text-[12px] leading-[16px] text-[#292929]">

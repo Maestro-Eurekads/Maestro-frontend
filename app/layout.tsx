@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Roboto, Inter } from "next/font/google"; // Import Inter font
+import { Roboto, Inter } from "next/font/google";
 import "./globals.css";
 import { ActiveProvider } from "./utils/ActiveContext";
 import { DateRangeProvider } from "../src/date-range-context";
@@ -18,15 +18,13 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "utils/auth";
 import Login from "features/Login";
 
-
-// Load Roboto font
+// Load fonts
 const roboto = Roboto({
   variable: "--font-roboto",
   subsets: ["latin"],
   weight: "400",
 });
 
-// Load Inter font
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -40,11 +38,10 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  const token = await getServerSession(authOptions);
-  if (!token) {
+}: Readonly<{ children: React.ReactNode }>) {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
     return (
       <html data-theme="light" lang="en" suppressHydrationWarning>
         <head>
@@ -54,12 +51,12 @@ export default async function RootLayout({
           />
         </head>
         <body>
-
           <Login />
         </body>
       </html>
     );
   }
+
   return (
     <html data-theme="light" lang="en" suppressHydrationWarning>
       <head>
@@ -69,7 +66,7 @@ export default async function RootLayout({
         />
       </head>
       <body className={`${roboto.variable} ${inter.variable} antialiased`}>
-        <NewProvider>
+        <NewProvider session={session}>
           <Suspense>
             <CommentProvider>
               <VerificationProvider>
@@ -96,6 +93,6 @@ export default async function RootLayout({
           </Suspense>
         </NewProvider>
       </body>
-    </html >
+    </html>
   );
 }

@@ -13,7 +13,7 @@ import { useAppDispatch } from 'store/useStore';
 import { getComment } from 'features/Comment/commentSlice';
 
 const OverviewofyourCampaign = () => {
-	const { isDrawerOpen, setIsDrawerOpen, isCreateOpen } = useComments();
+	const { isDrawerOpen, setIsDrawerOpen, isCreateOpen, setClose, close } = useComments();
 	const [show, setShow] = useState(false);
 	const { range } = useDateRange();
 	const { clientCampaignData, campaignData } = useCampaigns();
@@ -40,6 +40,7 @@ const OverviewofyourCampaign = () => {
 	const handleDrawerOpen = () => {
 		setIsDrawerOpen(true);
 		dispatch(getComment(commentId));
+		setClose(true)
 	}
 
 	return (
@@ -49,10 +50,10 @@ const OverviewofyourCampaign = () => {
 					t1="Campaign summary"
 					t2="Final review of your campaign's budget allocation across phases and channels."
 				/>
-				<CommentsDrawer
+				{/* <CommentsDrawer
 					isOpen={isDrawerOpen}
 					onClose={setIsDrawerOpen}
-				/>
+				/> */}
 				<div >
 					<div className='flex gap-5'>
 						<button className="overview-budget-conponent mt-8"

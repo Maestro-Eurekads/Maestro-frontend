@@ -13,7 +13,7 @@ import { SVGLoader } from "components/SVGLoader";
 import AlertMain from "components/Alert/AlertMain";
 
 const CommentsDrawer = ({ isOpen, onClose }) => {
-	const { opportunities, setViewcommentsId, viewcommentsId, addCommentOpportunity, setOpportunities, createCommentsError, createCommentsSuccess, approvedError, replyError, setIsCreateOpen } = useComments();
+	const { opportunities, setViewcommentsId, viewcommentsId, addCommentOpportunity, setOpportunities, createCommentsError, createCommentsSuccess, approvedError, replyError, setIsCreateOpen, setClose } = useComments();
 	const {
 		data: comments,
 		isLoading,
@@ -30,9 +30,9 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 	useEffect(() => {
 		const newColors = {};
 		comments?.forEach((comment) => {
-			if (!commentColors[comment.documentId]) {
+			if (!commentColors[comment?.documentId]) {
 				const randomColor = getRandomColor();
-				newColors[comment.documentId] = {
+				newColors[comment?.documentId] = {
 					color: randomColor,
 					contrastingColor: getContrastingColor(randomColor),
 				};
@@ -63,6 +63,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 		setOpportunities([]);
 		onClose(false);
 		setViewcommentsId(false);
+		setClose(false)
 	};
 
 	useEffect(() => {
@@ -101,7 +102,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 	}, [dispatch]);
 
 
-	console.log('viewcommentsId', viewcommentsId)
+
 
 
 	return (
@@ -129,11 +130,11 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 				</button>
 			</div>
 
-			<div className="w-full flex flex-col justify-center items-center gap-5 mt-1 mb-4">
+			<div className="w-full flex flex-col justify-center items-center gap-5 mt-[-10px] mb-4">
 				<button onClick={createCommentOpportunity}>
 					<Image src={Mmessages} alt="Add Comment Opportunity" />
 				</button>
-				<h6 className="w-80 text-xl text-center text-black">
+				<h6 className="w-[70%] text-center text-black text-[16px]">
 					Add a comment, your comments will appear here!
 				</h6>
 			</div>
@@ -152,7 +153,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 							return (
 								<div
 									key={comment?.documentId}
-									className="flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-md rounded-lg border-box mb-5"
+									className="flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-[0px_4px_10px_rgba(0,0,0,0.1)] rounded-lg border-box mb-5"
 								>
 									<Comments comment={comment} contrastingColor={contrastingColor} />
 									<AddCommentReply documentId={comment?.documentId} contrastingColor={contrastingColor} commentId={comment?.commentId} />
@@ -165,7 +166,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 						return (
 							<div
 								key={comment?.documentId}
-								className="flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-md rounded-lg border-box mb-5"
+								className="flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-[0px_4px_10px_rgba(0,0,0,0.1)] rounded-lg border-box mb-5"
 							>
 								<Comments comment={comment} contrastingColor={contrastingColor} />
 								<AddCommentReply documentId={comment?.documentId} contrastingColor={contrastingColor} commentId={comment?.commentId} />

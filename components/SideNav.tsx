@@ -18,11 +18,12 @@ import checkfill from "../public/mingcute_check-fill.svg";
 import Calender from "../public/Calender.svg";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import Skeleton from "react-loading-skeleton";
+import { useComments } from "app/utils/CommentProvider";
 
 
 
 const SideNav: React.FC = () => {
-  const [close, setClose] = useState(false);
+  const { setClose, close } = useComments();
   const [isLoading, setIsLoading] = useState(false); // Add isLoading state
   const router = useRouter();
   const { setActive, setSubStep } = useActive();

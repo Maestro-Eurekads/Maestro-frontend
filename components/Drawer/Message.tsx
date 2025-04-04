@@ -88,7 +88,8 @@ import Mmessages from "../../public/messageOnplus.svg";
 import Showcomment from "./Showcomment";
 import Draggable from "react-draggable";
 import { useAppSelector } from "store/useStore";
-import tickcircles from "../../public/tick-circle-green.svg";
+import tickcircles from "../../public/solid_circle-check.svg";
+import { IoMdCheckmarkCircle } from "react-icons/io";
 
 const DraggableComment = ({ comment, commentId }) => {
 	const { updateCommentsPosition, updatePosition } = useComments();
@@ -129,10 +130,10 @@ const DraggableComment = ({ comment, commentId }) => {
 				</div>
 			) : (
 				<div ref={commentRef} className="absolute cursor-move drag-handle z-20 flex	flex-col justify-center items-center">
-					{comment?.approved && <Image src={tickcircles} alt="tickcircle" className="w-5" />}
 					<button
 						onClick={() => setActiveComment(comment?.documentId)}
-						className="drag-handle flex items-center justify-center p-[-2px] bg-transparent border-none" >
+						className="drag-handle flex items-center justify-center p-[-2px] bg-transparent border-none relative" >
+						{comment?.approved && <Image src={tickcircles} alt="tickcircle" className="w-[23px] absolute top-[10px] pointer-events-none" />}
 						<Image
 							src={Mmessages}
 							alt="message icon"

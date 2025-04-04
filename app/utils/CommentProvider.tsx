@@ -10,6 +10,7 @@ export const useComments = () => {
 };
 
 export const CommentProvider = ({ children }) => {
+	const [close, setClose] = useState(false);
 	const [comments, setComments] = useState([]);
 	const [comment, setComment] = useState("");
 	const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -56,7 +57,7 @@ export const CommentProvider = ({ children }) => {
 	}, [data]);
 
 
-	const addComment = async (commentId, text, position, addcomment_as) => {
+	const addComment = async (commentId, text, position, addcomment_as, creator) => {
 		setIsLoading(true);
 		try {
 			const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/comments`, {
@@ -67,6 +68,7 @@ export const CommentProvider = ({ children }) => {
 					replies: [],
 					approved: false,
 					addcomment_as,
+					creator
 				},
 			}, {
 				headers: {
@@ -252,7 +254,9 @@ export const CommentProvider = ({ children }) => {
 				updatePosition,
 				positionIsLoading,
 				setIsCreateOpen,
-				isCreateOpen
+				isCreateOpen,
+				setClose,
+				close
 			}}
 		>
 			{children}
