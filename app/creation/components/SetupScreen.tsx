@@ -264,18 +264,12 @@ export const SetupScreen = () => {
         campaignFormData?.client_selection?.value,
         campaignFormData?.media_plan,
         campaignFormData?.approver,
-        campaignFormData?.budget_details_currency?.id,
-        campaignFormData?.budget_details_fee_type?.id,
-        campaignFormData?.budget_details_value,
       ];
     } else {
       fields = [
         campaignFormData?.client_selection?.value,
         campaignFormData?.media_plan,
         campaignFormData?.approver,
-        campaignFormData?.budget_details_currency?.id,
-        campaignFormData?.budget_details_fee_type?.id,
-        campaignFormData?.budget_details_value,
       ];
     }
 
