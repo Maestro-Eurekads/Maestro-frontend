@@ -16,11 +16,10 @@
 }
 #client_header {
   grid-area: client_header;
-  background: var(--accent-white);
+  background: #F9FAFB;
   display: flex;
   justify-content: space-between;
-  align-items: center; 
-  padding: 2.8rem 200px; 
+  align-items: center;  
 }
 
 .setting_header_two{

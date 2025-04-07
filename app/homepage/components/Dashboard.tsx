@@ -24,7 +24,7 @@ import youtube from "../../../public/youtube.svg";
 import { useDateRange } from "../../../src/date-range-context";
 import { processCampaignData } from "components/processCampaignData";
 import ChannelDistributionChatTwo from "components/ChannelDistribution/ChannelDistributionChatTwo";
-import { getCurrencySymbol, getPlatformIcon, platformIcons } from "components/data";
+import { getCurrencySymbol } from "components/data";
 import { differenceInCalendarWeeks, max, min, parseISO } from "date-fns";
 
 const Dashboard = () => {
@@ -66,7 +66,27 @@ const Dashboard = () => {
     platforms: IPlatform[];
     style?: string;
   };
+  const platformIcons = {
+    Facebook: facebook,
+    Instagram: ig,
+    YouTube: youtube,
+    TheTradeDesk: TheTradeDesk,
+    Quantcast: Quantcast,
+    Google: google,
+    "Twitter/X": x,
+    LinkedIn: linkedin,
+    TikTok: tictok,
+    "Display & Video": Display,
+    Yahoo: yahoo,
+    Bing: bing,
+    "Apple Search": google,
+    "The Trade Desk": TheTradeDesk,
+    QuantCast: Quantcast,
+  };
 
+  const getPlatformIcon = (platformName: string | number) => {
+    return platformIcons[platformName] || null;
+  };
 
   const mapCampaignsToFunnels = (campaigns: any[]) => {
     useEffect(() => {
@@ -250,7 +270,7 @@ const Dashboard = () => {
             key={index}
             className="flex justify-center gap-[48px] mt-[100px]"
           >
-            <div className="box-border flex flex-row items-start p-6 gap-[72px] w-[493px] h-[402.73px] bg-[#F9FAFB] rounded-lg">
+            <div className="box-border flex flex-row items-start p-6 gap-[72px] w-[493px] h-[403px] bg-[#F9FAFB] rounded-lg">
               <div className="flex flex-col">
                 <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
                   Your budget by phase for{" "}
