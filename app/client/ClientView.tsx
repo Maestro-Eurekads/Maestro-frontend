@@ -103,7 +103,7 @@ const ClientView = () => {
 	const handleDrawerOpen = () => {
 		setIsDrawerOpen(true);
 		dispatch(getComment(commentId));
-		// setClose(true)
+		setClose(true)
 	}
 
 	return (
@@ -159,7 +159,7 @@ const ClientView = () => {
 						<div className=" md:px-[150px] xl:px-[200px]">
 							{active === "Table" && <ClientTableView channels={channels} />}
 						</div>
-						<MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
+
 					</div>
 				</main>
 				<ApproveModel isOpen={isOpen} setIsOpen={setIsOpen} />
