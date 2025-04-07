@@ -469,9 +469,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     };
 
     try {
-      if (active === 0) {
-        await handleStepZero();
-      } else if (active === 1) {
+      if (active === 1) {
         await handleStepOne();
       } else if (active === 2) {
         await handleStepTwo();

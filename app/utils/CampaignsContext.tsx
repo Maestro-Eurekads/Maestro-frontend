@@ -120,26 +120,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         },
         media_plan: data?.media_plan_details?.plan_name || prev.media_plan,
         approver: data?.media_plan_details?.internal_approver || prev.approver,
-        budget_details_currency: {
-          id: data?.budget_details?.currency || prev.budget_details_currency.id,
-          value:
-            data?.budget_details?.currency ||
-            prev.budget_details_currency.value,
-          label:
-            data?.budget_details?.currency ||
-            prev.budget_details_currency.label,
-        },
-        budget_details_fee_type: {
-          id: data?.budget_details?.fee_type || prev.budget_details_fee_type.id,
-          value:
-            data?.budget_details?.fee_type ||
-            prev.budget_details_fee_type.value,
-        },
-        budget_details_sub_fee_type:
-          data?.budget_details?.sub_fee_type ||
-          prev.budget_details_sub_fee_type,
-        budget_details_value:
-          data?.budget_details?.value || prev.budget_details_value,
         campaign_objectives:
           data?.campaign_objective || prev.campaign_objectives,
         funnel_stages: data?.funnel_stages || prev.funnel_stages,
@@ -178,12 +158,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
               plan_name: campaignFormData?.media_plan,
               internal_approver: campaignFormData?.approver,
             },
-            budget_details: {
-              currency: campaignFormData?.budget_details_currency?.id,
-              fee_type: campaignFormData?.budget_details_fee_type?.id,
-              sub_fee_type: campaignFormData?.budget_details_sub_fee_type,
-              value: campaignFormData?.budget_details_value,
-            },
           },
         },
         {
@@ -193,18 +167,18 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       const data = response?.data?.data;
-      setCampaignFormData((prev) => ({
-        ...prev,
-        budget_details_currency: {
-          id: data?.budget_details?.currency || prev.budget_details_currency.id,
-          value:
-            data?.budget_details?.currency ||
-            prev.budget_details_currency.value,
-          label:
-            data?.budget_details?.currency ||
-            prev.budget_details_currency.label,
-        },
-      }));
+      // setCampaignFormData((prev) => ({
+      //   ...prev,
+      //   budget_details_currency: {
+      //     id: data?.budget_details?.currency || prev.budget_details_currency.id,
+      //     value:
+      //       data?.budget_details?.currency ||
+      //       prev.budget_details_currency.value,
+      //     label:
+      //       data?.budget_details?.currency ||
+      //       prev.budget_details_currency.label,
+      //   },
+      // }));
       return response;
     } catch (error) {
       console.error("Error creating campaign:", error);
@@ -227,20 +201,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       const responseData = response?.data?.data;
-      setCampaignFormData((prev) => ({
-        ...prev,
-        budget_details_currency: {
-          id:
-            responseData?.budget_details?.currency ||
-            prev.budget_details_currency.id,
-          value:
-            responseData?.budget_details?.currency ||
-            prev.budget_details_currency.value,
-          label:
-            responseData?.budget_details?.currency ||
-            prev.budget_details_currency.label,
-        },
-      }));
       return response;
     } catch (error) {
       console.error("Error updating campaign:", error);
