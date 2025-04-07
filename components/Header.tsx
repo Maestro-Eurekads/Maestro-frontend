@@ -66,14 +66,14 @@ const Header = ({ setIsOpen }) => {
     }
 
     setLoading(true);
-    setSelected(selectedId);
     let isMounted = true; // Prevent setting state after unmount
     const clientId = selectedId || clients.data[0]?.id; // Use selected client ID or default to the first client
     if (!clientId) {
       setLoading(false); // If no valid client ID, stop loading
       return;
     }
-
+    
+    setSelected(selectedId ? selectedId : clients.data[0]?.id?.toString());
     fetchClientCampaign(clientId)
       .then((res) => {
         if (isMounted) setClientCampaignData(res?.data?.data || []); // Ensure data fallback
