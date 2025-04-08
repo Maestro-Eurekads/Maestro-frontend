@@ -34,7 +34,8 @@ const MapFunnelStages = () => {
   const [hovered, setHovered] = React.useState<number | null>(null);
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { verifyStep, setHasChanges, hasChanges, setverifybeforeMove } = useVerification();
+  const { verifyStep, setHasChanges, hasChanges, setverifybeforeMove } =
+    useVerification();
 
   useEffect(() => {
     const isValid =
@@ -54,7 +55,6 @@ const MapFunnelStages = () => {
     }
   }, [alert]);
 
-
   const handleSelect = (id: string) => {
     if (!isEditing) return;
     setHasChanges(true);
@@ -73,7 +73,6 @@ const MapFunnelStages = () => {
 
     setCampaignFormData(updatedFunnels);
   };
-
 
   // const handleSelect = (id: string) => {
   //   if (!isEditing) return;
@@ -168,9 +167,9 @@ const MapFunnelStages = () => {
   };
 
   const handleEditing = () => {
-    setIsEditing(true)
-    setHasChanges(true)
-  }
+    setIsEditing(true);
+    setHasChanges(true);
+  };
 
   return (
     <div>
@@ -180,22 +179,18 @@ const MapFunnelStages = () => {
           t1={
             "How many funnel stage(s) would you like to activate to achieve your objective ?"
           }
-          t2={`This option is available only if you've selected any of the following main objectives:`}
-          t3={"Traffic, Purchase, Lead Generation, or App Install."}
+          // t2={`This option is available only if you've selected any of the following main objectives:`}
+          // t3={"Traffic, Purchase, Lead Generation, or App Install."}
         />
 
-        {isEditing ? null : (
-          <button
-            className="model_button_blue"
-            onClick={handleEditing}
-          >
-            Edit
-          </button>
-        )}
       </div>
-      {alert && <AlertMain alert={alert} />}
-      <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
-        {/* Awareness */}
+      <div className="mt-[56px] grid grid-cols-3 gap-[32px]">
+        <div className="bg-blue-500 rounded-md p-[14px]">
+
+        </div>
+
+      </div>
+      {/* <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
         <button
           className={`cursor-pointer awareness_card_one 
     ${
@@ -228,7 +223,6 @@ const MapFunnelStages = () => {
           <p>Awareness</p>
         </button>
 
-        {/* Consideration */}
         <button
           className={`cursor-pointer awareness_card_two 
 						${
@@ -251,7 +245,6 @@ const MapFunnelStages = () => {
           <p>Consideration</p>
         </button>
 
-        {/* Conversion */}
         <button
           className={`cursor-pointer awareness_card_three 
 						${
@@ -274,7 +267,6 @@ const MapFunnelStages = () => {
           <p>Conversion</p>
         </button>
 
-        {/* Loyalty */}
         <button
           className={`cursor-pointer awareness_card_four 
 						${
@@ -296,25 +288,7 @@ const MapFunnelStages = () => {
           )}
           <p>Loyalty</p>
         </button>
-      </div>
-
-      <div className="flex justify-end pr-6 mt-[50px]">
-        {hasChanges && (
-          <div className="flex justify-end pr-6 mt-[50px]">
-            <button
-              disabled={loading}
-              onClick={handleStepTwo}
-              className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg text-white font-semibold text-base leading-6 transition-colors bg-[#3175FF] hover:bg-[#2557D6]"
-            >
-              {loading ? (
-                <SVGLoader width="30px" height="30px" color="#FFF" />
-              ) : (
-                "Validate"
-              )}
-            </button>
-          </div>
-        )}
-      </div>
+      </div> */}
     </div>
   );
 };
