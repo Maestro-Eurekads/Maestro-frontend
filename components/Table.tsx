@@ -18,7 +18,7 @@ import { useActive } from "app/utils/ActiveContext"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
 const Table = () => {
-  const { clientCampaignData, loading, setClientCampaignData } = useCampaigns()
+  const { clientCampaignData, loading, setClientCampaignData, allClients } = useCampaigns()
   const { setSelectedCampaignId } = useCampaignSelection()
   const router = useRouter()
   const [openModal, setOpenModal] = useState("")
@@ -46,7 +46,7 @@ const Table = () => {
     e.preventDefault()
     const clean_data = removeKeysRecursively(selected, ["id", "documentId", "createdAt", "publishedAt", "updatedAt"])
     const clientId = localStorage.getItem("selectedClient")
-    console.log(selected, "rerere")
+    console.log(allClients, "rerere")
     setLoading(true)
     await axios
       .post(
@@ -60,7 +60,7 @@ const Table = () => {
                 ? duplicateName
                 : `${clean_data?.media_plan_details?.plan_name}-copy-${selected?.copyCount + 1}`,
             },
-            client: selected?.client_selection?.id,
+            client: clientId ? clientId : allClients[0]?.id,
           },
         },
         {
