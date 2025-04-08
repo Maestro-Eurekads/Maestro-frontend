@@ -10,7 +10,7 @@ const Header = ({ setIsOpen }) => {
   return (
     <div
       id="client_header"
-      className={`py-[2.8rem] px-[50px] ${isDrawerOpen ? 'md:px-[100px]' : 'xl:px-[300px]'}`}
+      className={`py-[2.8rem] px-[50px] ${isDrawerOpen ? 'md:px-[100px]' : 'xl:px-[300px]'} relative`}
     >
       <div className="flex flex-col">
         <button
@@ -22,16 +22,6 @@ const Header = ({ setIsOpen }) => {
           Spring Collection Launch 2025
         </h1>
       </div>
-      {/* <div
-        className="text-[18px]"
-        onClick={async () =>
-          await signOut({
-            callbackUrl: "/",
-          })
-        }
-      >
-        Logout
-      </div> */}
       <div>
         <button
           className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
@@ -40,6 +30,17 @@ const Header = ({ setIsOpen }) => {
         >
           Approve & Sign Media plan
         </button>
+      </div>
+
+      <div
+        className="text-[18px] absolute right-[50px] top-[20px] cursor-pointer"
+        onClick={async () =>
+          await signOut({
+            callbackUrl: "/",
+          })
+        }
+      >
+        Logout
       </div>
     </div >
   );
