@@ -8,11 +8,31 @@
 @import url(../css/Checkbox.css);
 @import url(../css/Impressions.css);
 @import url(../css/CommentsDrawer.css);
+@import url(../css/client.css);
 
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+@keyframes slide-up {
+  0% { transform: translateY(100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-down {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out forwards;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.5s ease-out forwards;
+}
 
 *,
 ::before,

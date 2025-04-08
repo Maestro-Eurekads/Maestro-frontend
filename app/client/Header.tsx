@@ -1,13 +1,17 @@
 "use client";
+import { useComments } from "app/utils/CommentProvider";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
 
 
 const Header = ({ setIsOpen }) => {
-
+  const { isDrawerOpen } = useComments();
 
   return (
-    <div id="client_header" className=" py-[2.8rem] px-[50px] md:px-[100px] xl:px-[300px]">
+    <div
+      id="client_header"
+      className={`py-[2.8rem] px-[50px] ${isDrawerOpen ? 'md:px-[100px]' : 'xl:px-[300px]'}`}
+    >
       <div className="flex flex-col">
         <button
           className="w-[35px] h-[22px] font-semibold text-[16px] leading-[22px] text-[#061237] font-[General Sans]"  >
@@ -37,7 +41,7 @@ const Header = ({ setIsOpen }) => {
           Approve & Sign Media plan
         </button>
       </div>
-    </div>
+    </div >
   );
 };
 

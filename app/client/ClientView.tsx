@@ -22,6 +22,8 @@ import CommentsDrawer from 'components/Drawer/CommentsDrawer';
 import { useAppDispatch } from 'store/useStore';
 import { useCampaigns } from 'app/utils/CampaignsContext';
 import { getComment } from 'features/Comment/commentSlice';
+import Image from "next/image";
+import tickcircles from "../../public/solid_circle-check.svg";
 
 
 const channels = [
@@ -92,18 +94,19 @@ const channels = [
 	},
 ];
 const ClientView = () => {
-	const { isDrawerOpen, setIsDrawerOpen, isCreateOpen, setClose, close } = useComments();
+	const { isDrawerOpen, setIsDrawerOpen, isCreateOpen, setClose, close, comments } = useComments();
 	const [isOpen, setIsOpen] = useState(false);
 	const [generalComment, setGeneralComment] = useState(false);
 	const [active, setActive] = useState("Timeline view");
 	const { clientCampaignData, campaignData } = useCampaigns();
+	const allApproved = comments?.every(comment => comment?.approved === true);
 	const dispatch = useAppDispatch();
 	const commentId = campaignData?.documentId
 
 	const handleDrawerOpen = () => {
 		setIsDrawerOpen(true);
 		dispatch(getComment(commentId));
-		// setClose(true)
+		setClose(true)
 	}
 
 	return (
@@ -112,37 +115,36 @@ const ClientView = () => {
 				<Header setIsOpen={setIsOpen} />
 				<CommentsDrawer isOpen={isDrawerOpen} onClose={setIsDrawerOpen} />
 				<main className="!px-0 mt-[20px] bg-[#F9FAFB]">
-					<div className="px-[50px] md:px-[100px] xl:px-[300px]">
+					<div className={`px-[50px]  ${isDrawerOpen ? 'md:px-[100px]' : 'xl:px-[300px]'}`}>
+
 						<div className='flex	flex-col gap-[24px]'>
 							<ApproverContainer />
 
 							<General />
 
 							<BrandAwareness />
-
+							<MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
 							<div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
 								<ClientToggleSwitch active={active} setActive={setActive} />
 
-								<div className="flex   gap-[12px] md:flex-row">
+								<div className="flex gap-[12px] md:flex-row">
 									<button
 										className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
-										style={{ border: "1px solid #3175FF" }}
-									// onClick={handleOpenModal}
-									>
+										style={{ border: "1px solid #3175FF" }} >
 										See Budget Overview
 									</button>
 									<button
 										className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
 										style={{ border: "1px solid #3175FF" }}
-										onClick={() => setGeneralComment(!generalComment)}
-									>
+										onClick={() => setGeneralComment(!generalComment)}>
 										General Comment
 									</button>
 									<button
 										onClick={handleDrawerOpen}
 										className="bg-[#FAFDFF]  rounded-[10px] py-[14px] px-6 self-start flex items-center	gap-[4px]"
 										style={{ border: "1px solid #3175FF" }}>
-										<RxDotFilled size={20} color='#FF0302' />
+										{allApproved ? <Image src={tickcircles} alt="tickcircle" className="w-[18px] " /> : <RxDotFilled size={20} color='#FF0302' />}
+
 										<span className='text-[16px] font-[600] text-[#3175FF]'>See Focus Comments</span>
 									</button>
 								</div>
@@ -156,10 +158,10 @@ const ClientView = () => {
 					</div>
 					<div className='mt-[50px]'>
 						{active === "Timeline view" && <TimelineView />}
-						<div className=" md:px-[150px] xl:px-[200px]">
+						<div className="md:px-[150px] xl:px-[200px]">
 							{active === "Table" && <ClientTableView channels={channels} />}
 						</div>
-						<MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
+
 					</div>
 				</main>
 				<ApproveModel isOpen={isOpen} setIsOpen={setIsOpen} />
