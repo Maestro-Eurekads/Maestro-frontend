@@ -129,6 +129,41 @@ const DefineCampaignObjective = () => {
       setLoading(false);
       return;
     }
+
+    const cleanData = removeKeysRecursively(campaignData, [
+      "id",
+      "documentId",
+      "createdAt",
+      "publishedAt",
+      "updatedAt",
+    ]);
+
+    try {
+      await updateCampaign({
+        ...cleanData,
+        campaign_objective: campaignFormData?.campaign_objectives,
+      });
+      await getActiveCampaign(cleanData);
+
+      // Update the actual selected objectives after validation
+      setSelectedObjectives(tempSelectedObjective);
+
+      setAlert({ variant: "success", message: "Campaign Objective successfully updated!", position: "bottom-right" });
+      setIsEditing(false);
+      setHasChanges(false);
+
+      // Save validation state after successful update
+      if (campaignId) {
+        localStorage.setItem(`step1_validated_${campaignId}`, JSON.stringify(true));
+      }
+
+    } catch (error) {
+      const errors: any = error.response?.data?.error?.details?.errors || error.response?.data?.error?.message || error.message || [];
+      setAlert({ variant: "error", message: errors, position: "bottom-right" });
+    }
+
+    setHasChanges(false);
+    setLoading(false);
   };
 
   const handleSelect = (id: number, title: string) => {
