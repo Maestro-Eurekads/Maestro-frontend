@@ -586,7 +586,7 @@ export const FormatSelection = () => {
         t2="Select the creative formats you want to use for your campaign. Specify the number of visuals for each format. Multiple formats can be selected per channel."
       />
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
-        {campaignFormData?.funnel_stages.map((stageName, index) => {
+        {campaignFormData?.funnel_stages?.map((stageName, index) => {
           const stage = funnelStages.find((s) => s.name === stageName);
           if (!stage) return null;
 

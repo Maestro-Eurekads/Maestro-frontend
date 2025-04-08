@@ -30,7 +30,6 @@ const Table = () => {
     const clean_data = removeKeysRecursively(selected, [
       "id",
       "documentId",
-      "progress_percent",
       "createdAt",
       "publishedAt",
       "updatedAt",
@@ -121,7 +120,16 @@ const Table = () => {
               <tr
                 key={data?.id}
                 onClick={() => {
-                  setSelectedCampaignId(data?.documentId); // ✅ Store ID in context
+                  setSelectedCampaignId(data?.documentId);
+                  const activeStepFromPercentage = Math.ceil(
+                    (data?.progress_percent * 9) / 100
+                  );
+                  setActive(
+                    activeStepFromPercentage === 0
+                      ? 1
+                      : activeStepFromPercentage
+                  );
+                  router.push(`/creation?campaignId=${data?.documentId}`);
                 }}
                 className="cursor-pointer"
               >
@@ -156,11 +164,15 @@ const Table = () => {
                   </div>
                 </td>
                 <td className="py-[12px] px-[16px]">
-                  <div className="flex gap-4">
+                  <div
+                    className="flex gap-4"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Image
                       src={edit}
                       alt="menu"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         const activeStepFromPercentage = Math.ceil(
                           (data?.progress_percent * 9) / 100
                         );
@@ -172,11 +184,16 @@ const Table = () => {
                         router.push(`/creation?campaignId=${data?.documentId}`);
                       }}
                     />
-                    <Image src={share} alt="menu" />
+                    <Image
+                      src={share}
+                      alt="menu"
+                      onClick={(e) => e.stopPropagation()}
+                    />
                     <Image
                       src={line}
                       alt="menu"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setOpenModal("copy");
                         setSelected(data);
                       }}
