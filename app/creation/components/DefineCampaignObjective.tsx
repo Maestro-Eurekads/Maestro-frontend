@@ -14,6 +14,7 @@ import { removeKeysRecursively } from "utils/removeID";
 import { SVGLoader } from "components/SVGLoader";
 import { useSearchParams } from "next/navigation";
 import { FaSpinner } from "react-icons/fa";
+import { useComments } from "app/utils/CommentProvider";
 
 const DefineCampaignObjective = () => {
   const {
@@ -33,6 +34,11 @@ const DefineCampaignObjective = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
+  const { setIsDrawerOpen, setClose } = useComments();
+  useEffect(() => {
+    setIsDrawerOpen(false);
+    setClose(false);
+  }, []);
   const [previousValidationState, setPreviousValidationState] = useState<
     boolean | null
   >(null);
