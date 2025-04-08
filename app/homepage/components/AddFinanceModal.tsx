@@ -11,27 +11,28 @@ import { useAppSelector } from "store/useStore";
 import { FiLoader } from "react-icons/fi";
 import useCampaignHook from "app/utils/useCampaignHook";
 import { set } from "date-fns";
+import axios from "axios";
+import { FaSpinner } from "react-icons/fa";
+import toast, { Toaster } from "react-hot-toast";
 
 const AddFinanceModal = ({ isOpen, setIsOpen }) => {
   const [mediaPlans, setMediaPlans] = useState([]);
   const { fetchClientCampaign, fetchUserByType } = useCampaignHook();
   const [selected, setSelected] = useState("");
   const [selectedPlanBudget, setSelectedPlanBudget] = useState({});
-  // const [selectedPlan, setSelectedPlan] = useState("");
-  // const [selectedType, setSelectedType] = useState("");
   const [poForm, setPoForm] = useState({
     client: "",
     client_responsible: "",
     financial_responsible: "",
-    PO_number: "",
+    PO_number: 0,
     PO_currency: "",
-    PO_total_amount: "",
-    assigned_media_plan: [],
+    PO_total_amount: 0,
   });
   const [clientCampigns, setClientCampaigns] = useState([]);
   const [users, setUsers] = useState([]);
   const [loadingCam, setLoadingCam] = useState(false);
   const [loadingUser, setLoadingUser] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const { getCreateClientData, getCreateClientIsLoading } = useAppSelector(
     (state) => state.client
@@ -46,16 +47,12 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
   };
 
   const selectCurrency = [
-    { value: "US Dollar (USD)", label: "US Dollar (USD)", sign: "$" },
-    { value: "Euro (EUR)", label: "Euro (EUR)", sign: "€" },
-    { value: "British Pound (GBP)", label: "British Pound (GBP)", sign: "£" },
-    { value: "Nigerian Naira (NGN)", label: "Nigerian Naira (NGN)", sign: "₦" },
-    { value: "Japanese Yen (JPY)", label: "Japanese Yen (JPY)", sign: "¥" },
-    {
-      value: "Canadian Dollar (CAD)",
-      label: "Canadian Dollar (CAD)",
-      sign: "C$",
-    },
+    { value: "USD", label: "US Dollar (USD)", sign: "$" },
+    { value: "EUR", label: "Euro (EUR)", sign: "€" },
+    { value: "GBP", label: "British Pound (GBP)", sign: "£" },
+    { value: "NGN", label: "Nigerian Naira (NGN)", sign: "₦" },
+    { value: "JPY", label: "Japanese Yen (JPY)", sign: "¥" },
+    { value: "CAD", label: "Canadian Dollar (CAD)", sign: "C$" },
   ];
 
   const handleClose = () => {
@@ -63,10 +60,9 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
       client: "",
       client_responsible: "",
       financial_responsible: "",
-      PO_number: "",
+      PO_number: 0,
       PO_currency: "",
-      PO_total_amount: "",
-      assigned_media_plan: [],
+      PO_total_amount: 0,
     });
     setSelected("");
     setIsOpen(false);
@@ -120,8 +116,37 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
     fetchAgencyUsers();
   }, []);
 
+  const addPOToDB = async () => {
+    setUploading(true);
+    await axios
+      .post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders`, {
+        data: {
+          ...poForm,
+          assigned_media_plans: mediaPlans?.map((mp) => ({
+            campaign: mp?.name,
+            amount: Number(mp?.amount),
+            amount_type: mp?.type,
+          })),
+        },
+      }, {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`
+        }
+      })
+      .then((res) => {
+        handleClose();
+      })
+      .catch((err) => {
+        console.log("err", err);
+      })
+      .finally(() => {
+        setUploading(false);
+      });
+  };
+
   return (
     <div className="z-50">
+      <Toaster/>
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="flex flex-col w-[700px] bg-white rounded-[32px] max-h-[90vh]">
@@ -193,6 +218,16 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                       className="mt-2"
                       placeholder="Select responsible"
                       options={users}
+                      onChange={(
+                        value: { label: string; value: string } | null
+                      ) => {
+                        if (value) {
+                          setPoForm((prev) => ({
+                            ...prev,
+                            client_responsible: value.value,
+                          }));
+                        }
+                      }}
                     />
                   )}
                 </div>
@@ -209,6 +244,16 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                     className="mt-2"
                     placeholder="Select responsible"
                     options={users}
+                    onChange={(
+                      value: { label: string; value: string } | null
+                    ) => {
+                      if (value) {
+                        setPoForm((prev) => ({
+                          ...prev,
+                          financial_responsible: value.value,
+                        }));
+                      }
+                    }}
                   />
                 )}
               </div>
@@ -219,10 +264,13 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                     type="text"
                     placeholder="PO Number"
                     className="w-full border rounded-md p-[6px] mt-2 outline-none"
-                    value={poForm.PO_number}
+                    value={poForm.PO_number || ""}
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, "");
-                      setPoForm((prev) => ({ ...prev, PO_number: value }));
+                      setPoForm((prev) => ({
+                        ...prev,
+                        PO_number: Number(value),
+                      }));
                     }}
                   />
                 </div>
@@ -251,10 +299,13 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                   type="text"
                   placeholder="PO Total Amount"
                   className="w-full border rounded-md p-[6px] mt-2 outline-none"
-                  value={poForm.PO_total_amount}
+                  value={poForm.PO_total_amount > 0 && poForm.PO_total_amount?.toLocaleString() || ""}
                   onChange={(e) => {
                     const value = e.target.value.replace(/\D/g, "");
-                    setPoForm((prev) => ({ ...prev, PO_total_amount: value }));
+                    setPoForm((prev) => ({
+                      ...prev,
+                      PO_total_amount: Number(value),
+                    }));
                   }}
                   // readOnly={}
                 />
@@ -348,9 +399,9 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                                           setMediaPlans((prev) => {
                                             const newPlans = [...prev];
                                             newPlans[index].amount =
-                                            selectedPlanBudget[
-                                              Number(newPlans[index].name)
-                                            ];
+                                              selectedPlanBudget[
+                                                Number(newPlans[index].name)
+                                              ];
                                             newPlans[index].type = value.value;
                                             return newPlans;
                                           });
@@ -443,7 +494,18 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                 <div
                   className="bg-white w-fit flex items-center gap-2 cursor-pointer text-[14px] shadow-lg px-3 py-1 rounded-2xl mt-[20px]"
                   onClick={() => {
-                    setMediaPlans((prev) => [...prev, {}]);
+                    if(poForm?.PO_total_amount  > 0){
+                      setMediaPlans((prev) => [...prev, {}]);
+                    } else {
+                      toast("Please enter a valid PO total amount before assigning media plans.", {
+                        style: {
+                          background: "red",
+                          color: "white",
+                          textAlign: "center"
+                        },
+                        duration: 2000
+                      });
+                    }
                   }}
                 >
                   <Image src={blueBtn} alt="menu" width={14} height={14} />
@@ -457,8 +519,12 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                 <button className="btn_model_outline" onClick={handleClose}>
                   Cancel
                 </button>
-                <button className="btn_model_active whitespace-nowrap">
-                  Create PO
+                <button className="btn_model_active whitespace-nowrap" disabled={uploading} onClick={addPOToDB}>
+                  {uploading ? (
+                    <FaSpinner className="animate-spin" />
+                  ) : (
+                    "Create PO"
+                  )}
                 </button>
               </div>
             </div>

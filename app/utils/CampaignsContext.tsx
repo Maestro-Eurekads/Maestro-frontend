@@ -49,6 +49,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [objectives, setObjectives] = useState([]);
   const [buyObj, setBuyObj] = useState([]);
   const [buyType, setBuyType] = useState([]);
+  const [clientPOs, setClientPOs] = useState([])
+  const [fetchingPO, setFetchingPO] = useState(false)
 
   const reduxClients = useSelector(
     (state: any) => state.client?.getCreateClientData?.data || []
@@ -456,7 +458,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         objectives,
         buyType,
         setBuyObj,
-        setBuyType
+        setBuyType,
+        clientPOs,
+        setClientPOs,
+        fetchingPO,
+        setFetchingPO
       }}
     >
       {children}

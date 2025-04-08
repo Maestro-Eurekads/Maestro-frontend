@@ -1,14 +1,25 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { ChevronDown, ChevronUp, Edit, Trash, Eye } from "lucide-react"
+import { useState } from "react";
+import { ChevronDown, ChevronUp, Edit, Trash, Eye } from "lucide-react";
+import { useCampaigns } from "app/utils/CampaignsContext";
+import useCampaignHook from "app/utils/useCampaignHook";
+import { NoRecordFound, SVGLoaderFetch } from "components/Options";
+import { getCurrencySymbol } from "components/data";
 
 function FinanceTable() {
-    const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(false);
+  const { clientPOs, fetchingPO, clientCampaignData, loading } = useCampaigns();
+  const [expandedPO, setExpandedPO] = useState({});
 
-    const toggleExpand = () => {
-      setExpanded(!expanded)
+  const toggleExpand = (po) => {
+    setExpanded(!expanded);
+    if (expanded) {
+      setExpandedPO({});
+    } else {
+      setExpandedPO(po);
     }
+  };
   return (
     <table>
       <thead>
@@ -23,69 +34,112 @@ function FinanceTable() {
         </tr>
       </thead>
       <tbody>
-          <tr className="border-b bg-white">
-            <td className="py-[12px] px-[16px]">
-              <div className="flex items-center">
-                <span className="font-medium">PO 202341</span>
-                <button onClick={toggleExpand} className="ml-2 text-gray-500 hover:text-gray-700">
-                  {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                </button>
-              </div>
-            </td>
-            <td className="py-[12px] px-[16px]">$ 10,000.00</td>
-            <td className="py-[12px] px-[16px]">$ 5,500.00</td>
-            <td className="py-[12px] px-[16px]">
-              <div className="flex flex-wrap gap-2">
-                <span className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">Running Spring 2023</span>
-                <span className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">Football Series 2023</span>
-              </div>
-            </td>
-            <td className="py-[12px] px-[16px]">$ 4,500.00</td>
-            <td className="py-[12px] px-[16px]">
-              <span className="text-green-600">Open</span>
-            </td>
-            <td className="py-[12px] px-[16px]">
-              <div className="flex space-x-2">
-                <button className="text-gray-500 hover:text-gray-700">
-                  <Edit size={18} />
-                </button>
-                <button className="text-gray-500 hover:text-gray-700">
-                  <Eye size={18} />
-                </button>
-                <button className="text-gray-500 hover:text-gray-700">
-                  <Trash size={18} />
-                </button>
-              </div>
-            </td>
-          </tr>
+        {fetchingPO || loading ? (
+          <SVGLoaderFetch colSpan={8} text={"Loading client purchase orders"} />
+        ) : clientPOs?.length === 0 ? (
+          <NoRecordFound colSpan={8}>No Client Purchase Order!</NoRecordFound>
+        ) : (
+          clientPOs?.map((po, index) => {
+            const currencySymbol = getCurrencySymbol(po?.PO_currency);
+            return (
+              <tr key={index} className="border-b bg-white">
+                <td className="py-[12px] px-[16px]">
+                  <div className="flex items-center">
+                    <span className="font-medium">PO {po?.PO_number}</span>
+                    <button
+                      onClick={() => toggleExpand(po)}
+                      className="ml-2 text-gray-500 hover:text-gray-700"
+                    >
+                      {expanded ? (
+                        <ChevronUp size={16} />
+                      ) : (
+                        <ChevronDown size={16} />
+                      )}
+                    </button>
+                  </div>
+                </td>
+                <td className="py-[12px] px-[16px]">
+                  {currencySymbol}
+                  {Number(po?.PO_total_amount)?.toLocaleString()}
+                </td>
+                <td className="py-[12px] px-[16px]">
+                  {currencySymbol}10,000.00
+                </td>
+                <td className="py-[12px] px-[16px] w-fit">
+                  <div className="flex flex-wrap gap-2">
+                    {po?.assigned_media_plans?.map((mp) => {
+                      const m = clientCampaignData?.find(
+                        (mm) => mm?.id === mp?.campaign?.id
+                      );
+                      if (!m) return null;
+                      return (
+                        <span
+                          key={mp?.id}
+                          className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full"
+                        >
+                          {m?.media_plan_details?.plan_name}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </td>
+                <td className="py-[12px] px-[16px]">
+                  {currencySymbol}4,500.00
+                </td>
+                <td className="py-[12px] px-[16px]">
+                  <span className="text-green-600">Open</span>
+                </td>
+                <td className="py-[12px] px-[16px]">
+                  <div className="flex space-x-2">
+                    <button className="text-gray-500 hover:text-gray-700">
+                      <Edit size={18} />
+                    </button>
+                    <button className="text-gray-500 hover:text-gray-700">
+                      <Eye size={18} />
+                    </button>
+                    <button className="text-gray-500 hover:text-gray-700">
+                      <Trash size={18} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })
+        )}
+        {/* <tr className="border-b bg-white">
+            
+          </tr> */}
 
-          {expanded && (
-            <>
-              <tr className="bg-gray-50 border-b">
-                <td className="py-[12px] px-[16px]">
-                  <span className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">Running Spring 2023</span>
-                </td>
-                <td className="py-[12px] px-[16px]"></td>
-                <td className="py-[12px] px-[16px]">$ 2,500.00</td>
-                <td className="py-[12px] px-[16px]"></td>
-                <td className="py-[12px] px-[16px]"></td>
-                <td className="py-[12px] px-[16px]"></td>
-                <td className="py-[12px] px-[16px]"></td>
-              </tr>
-              <tr className="bg-gray-50 border-b">
-                <td className="py-[12px] px-[16px]">
-                  <span className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">Football Series 2023</span>
-                </td>
-                <td className="py-[12px] px-[16px]"></td>
-                <td className="py-[12px] px-[16px]">$ 3,000.00</td>
-                <td className="py-[12px] px-[16px]"></td>
-                <td className="py-[12px] px-[16px]"></td>
-                <td className="py-[12px] px-[16px]"></td>
-                <td className="py-[12px] px-[16px]"></td>
-              </tr>
-            </>
-          )}
-        </tbody>
+        {expanded && (
+          <>
+            {expandedPO?.assigned_media_plans?.map((mp, index) => {
+              const currencySymbol = getCurrencySymbol(expandedPO?.PO_currency);
+              const m = clientCampaignData?.find(
+                (mm) => mm?.id === mp?.campaign?.id
+              );
+              if (!m) return null;
+              return (
+                <tr key={index}>
+                  <td className="py-[12px] px-[16px]">
+                    <span className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">
+                      {m?.media_plan_details?.plan_name}
+                    </span>
+                  </td>
+                  <td className="py-[12px] px-[16px]"></td>
+                  <td className="py-[12px] px-[16px]">
+                    {currencySymbol}
+                    {Number(mp?.amount)?.toLocaleString()}
+                  </td>
+                  <td className="py-[12px] px-[16px]"></td>
+                  <td className="py-[12px] px-[16px]"></td>
+                  <td className="py-[12px] px-[16px]"></td>
+                  <td className="py-[12px] px-[16px]"></td>
+                </tr>
+              );
+            })}
+          </>
+        )}
+      </tbody>
     </table>
   );
 }
