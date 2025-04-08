@@ -30,7 +30,6 @@ const Table = () => {
     const clean_data = removeKeysRecursively(selected, [
       "id",
       "documentId",
-      "progress_percent",
       "createdAt",
       "publishedAt",
       "updatedAt",
