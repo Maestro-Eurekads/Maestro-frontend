@@ -16,7 +16,9 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
   const [mediaPlans, setMediaPlans] = useState([]);
   const { fetchClientCampaign, fetchUserByType } = useCampaignHook();
   const [selected, setSelected] = useState("");
-  const [selectedPlanBudget, setSelectedPlanBudget] = useState("");
+  const [selectedPlanBudget, setSelectedPlanBudget] = useState({});
+  // const [selectedPlan, setSelectedPlan] = useState("");
+  // const [selectedType, setSelectedType] = useState("");
   const [poForm, setPoForm] = useState({
     client: "",
     client_responsible: "",
@@ -69,6 +71,7 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
     setSelected("");
     setIsOpen(false);
     setClientCampaigns([]);
+    setMediaPlans([]);
   };
 
   useEffect(() => {
@@ -265,100 +268,174 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                       Media Plans Linked
                     </p> */}
                     <div className="space-y-3">
-                      {mediaPlans.map((plan, index) => (
-                        <div key={index} className="flex gap-3 items-center">
-                          {loadingCam ? (
-                            <div className="shrink-0 flex items-center gap-2">
-                              <FiLoader className="animate-spin" />
-                              <p>Loading client plans...</p>
-                            </div>
-                          ) : (
-                            <CustomSelect
-                              placeholder="Select media plan"
-                              className="rounded-3xl"
-                              options={clientCampigns}
-                              onChange={(
-                                value: {
-                                  label: string;
-                                  value: string;
-                                  budget: string;
-                                } | null
-                              ) => {
-                                if (value) {
-                                  setSelectedPlanBudget(value.budget);
-                                }
-                              }}
-                            />
-                          )}
-                          <CustomSelect
-                            placeholder="Select amount"
-                            className="rounded-3xl"
-                            options={[
-                              {
-                                label: "Total PO amount",
-                                value: "total_po_amount",
-                              },
-                              { label: "Fixed amount", value: "fixed_amount" },
-                              {
-                                label: "Percentage of PO total amount",
-                                value: "total_po_amount_percent",
-                              },
-                            ]}
-                            onChange={(
-                              value: { label: string; value: string } | null
-                            ) => {
-                              if (value) {
-                                if (value?.value === "total_po_amount") {
-                                  setMediaPlans((prev) => {
-                                    const newPlans = [...prev];
-                                    newPlans[index].amount = selectedPlanBudget;
-                                    newPlans[index].type = value.value;
-                                    return newPlans;
-                                  });
-                                } else {
-                                  setMediaPlans((prev) => {
-                                    const newPlans = [...prev];
-                                    newPlans[index].amount = "";
-                                    newPlans[index].type = value.value;
-                                    return newPlans;
-                                  });
-                                }
-                              }
-                            }}
-                          />
-                          <input
-                            type="text"
-                            placeholder={
-                              plan?.type === "total_po_amount_percent"
-                                ? "Enter percentage"
-                                : "Enter amount"
-                            }
-                            className="w-full border rounded-md p-[6px] outline-none"
-                            value={plan?.amount}
-                            disabled={
-                              plan?.type === "total_po_amount" ? true : false
-                            }
-                            onChange={(e) => {
-                              setMediaPlans((prev) => {
-                                const newPlans = [...prev];
-                                newPlans[index].amount = e.target.value;
-                                return newPlans;
-                              });
-                            }}
-                            max={
-                              plan?.type === "total_po_amount_percent"
-                                ? 100
-                                : ""
-                            }
-                          />
-                          <Trash2
-                            color="red"
-                            className="shrink-0 cursor-pointer"
-                            size={16}
-                            onClick={() => removeMP(index)}
-                          />
-                        </div>
-                      ))}
+                      {mediaPlans.map((plan, index) => {
+                        console.log("plan", plan);
+                        return (
+                          <div key={index} className="">
+                            {loadingCam ? (
+                              <div className="shrink-0 flex items-center gap-2">
+                                <FiLoader className="animate-spin" />
+                                <p>Loading client plans...</p>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="flex gap-3 items-center">
+                                  <CustomSelect
+                                    placeholder="Select media plan"
+                                    className="rounded-3xl"
+                                    options={clientCampigns}
+                                    onChange={(
+                                      value: {
+                                        label: string;
+                                        value: string;
+                                        budget: string;
+                                      } | null
+                                    ) => {
+                                      if (value) {
+                                        // setSelectedPlan(value.value);
+                                        setSelectedPlanBudget((prev) => ({
+                                          ...prev,
+                                          [value.value]: value.budget,
+                                        }));
+
+                                        setMediaPlans((prev) => {
+                                          const newPlans = [...prev];
+                                          newPlans[index] = {
+                                            ...newPlans[index],
+                                            name: value.value,
+                                          };
+
+                                          if (
+                                            plan?.type &&
+                                            plan?.type === "total_po_amount"
+                                          ) {
+                                            newPlans[index].type = plan.type;
+                                          }
+
+                                          return newPlans;
+                                        });
+                                      }
+                                    }}
+                                  />
+                                  <CustomSelect
+                                    placeholder="Select amount"
+                                    className="rounded-3xl"
+                                    options={[
+                                      {
+                                        label: "Total PO amount",
+                                        value: "total_po_amount",
+                                      },
+                                      {
+                                        label: "Fixed amount",
+                                        value: "fixed_amount",
+                                      },
+                                      {
+                                        label: "Percentage of PO total amount",
+                                        value: "total_po_amount_percent",
+                                      },
+                                    ]}
+                                    onChange={(
+                                      value: {
+                                        label: string;
+                                        value: string;
+                                      } | null
+                                    ) => {
+                                      if (value) {
+                                        // setSelectedType(value.value);
+                                        if (
+                                          value?.value === "total_po_amount"
+                                        ) {
+                                          setMediaPlans((prev) => {
+                                            const newPlans = [...prev];
+                                            newPlans[index].amount =
+                                            selectedPlanBudget[
+                                              Number(newPlans[index].name)
+                                            ];
+                                            newPlans[index].type = value.value;
+                                            return newPlans;
+                                          });
+                                        } else {
+                                          setMediaPlans((prev) => {
+                                            const newPlans = [...prev];
+                                            newPlans[index].amount = "";
+                                            newPlans[index].budget =
+                                              selectedPlanBudget[
+                                                Number(newPlans[index].name)
+                                              ];
+                                            newPlans[index].type = value.value;
+                                            return newPlans;
+                                          });
+                                        }
+                                      }
+                                    }}
+                                  />
+                                  <div className="relative shrink-0">
+                                    <input
+                                      type="text"
+                                      placeholder={
+                                        plan?.type === "total_po_amount_percent"
+                                          ? "Enter percentage"
+                                          : "Enter amount"
+                                      }
+                                      className="w-full border rounded-md p-[6px] outline-none"
+                                      value={plan?.amount || ""}
+                                      disabled={
+                                        plan?.type === "total_po_amount"
+                                          ? true
+                                          : false
+                                      }
+                                      onChange={(e) => {
+                                        setMediaPlans((prev) => {
+                                          const newPlans = [...prev];
+                                          if (
+                                            Number(e.target.value) <=
+                                            Number(plan?.budget)
+                                          ) {
+                                            newPlans[index].amount =
+                                              e.target.value;
+                                          }
+                                          return newPlans;
+                                        });
+                                      }}
+                                      max={
+                                        plan?.type === "total_po_amount_percent"
+                                          ? 100
+                                          : ""
+                                      }
+                                    />
+                                    {plan?.type ===
+                                      "total_po_amount_percent" && (
+                                      <p className="absolute right-2 top-2">
+                                        %
+                                      </p>
+                                    )}
+                                  </div>
+                                  <Trash2
+                                    color="red"
+                                    className="shrink-0 cursor-pointer"
+                                    size={16}
+                                    onClick={() => removeMP(index)}
+                                  />
+                                </div>
+                                {plan?.type &&
+                                  plan?.type !== "total_po_amount" && (
+                                    <div className="flex justify-end mr-7">
+                                      <p className="text-slate-500 text-[14px]">
+                                        Non-assigned Budget:{" "}
+                                        {plan?.type === "fixed_amount"
+                                          ? Number(plan?.budget) -
+                                            Number(plan?.amount)
+                                          : Number(plan?.budget) -
+                                            (Number(plan?.amount) / 100) *
+                                              Number(plan?.budget)}
+                                      </p>
+                                    </div>
+                                  )}
+                              </>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </>
                 )}
