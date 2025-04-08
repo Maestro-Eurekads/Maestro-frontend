@@ -60,12 +60,15 @@ export default function SignatureInput({ value, onChange }) {
 			?.getTrimmedCanvas()
 			.toDataURL("image/png");
 		onChange(dataURL);
+		console.log('sigCanvas-sigCanvas', dataURL)
 	};
 
 	const clearSignature = () => {
 		sigCanvas.current?.clear();
 		onChange("");
 	};
+
+
 
 	return (
 		<div className="w-full">
