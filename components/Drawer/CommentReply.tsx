@@ -6,9 +6,9 @@ import { useAppSelector } from "store/useStore";
 
 
 const CommentReply = ({ documentId, contrastingColor }) => {
-	// const { data: comments } = useAppSelector((state) => state.comment);
-	const { comments } = useComments();
-	// const { comments } = useComments();
+	const { data: comments } = useAppSelector((state) => state.comment);
+
+
 	const [replies, setReplies] = useState([]);
 
 	useEffect(() => {

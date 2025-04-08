@@ -1,18 +1,23 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import MainSection from './organisms/main-section/main-section'
 import PageHeaderWrapper from '../../../components/PageHeaderWapper'
 import { useCampaigns } from '../../utils/CampaignsContext';
 import { useSearchParams } from 'next/navigation';
+import { useComments } from 'app/utils/CommentProvider';
 
 const PlanCampaignScheduleSubStepComponent = () => {
 	const searchParams = useSearchParams();
+	const { setIsDrawerOpen, setClose } = useComments();
 	const campaignId = searchParams.get("campaignId");
 	const {
 		updateCampaign,
 		campaignData,
 		getActiveCampaign,
 	} = useCampaigns();
-
+	useEffect(() => {
+		setIsDrawerOpen(false);
+		setClose(false);
+	}, []);
 
 
 

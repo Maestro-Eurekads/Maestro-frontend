@@ -63,7 +63,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 	const handleClose = () => {
 		setOpportunities([]);
 		onClose(false);
-		setViewcommentsId(false);
+		setViewcommentsId('');
 		setClose(false)
 	};
 

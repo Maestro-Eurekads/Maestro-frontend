@@ -3,10 +3,18 @@ import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import ObjectiveCard from "./common/ObjectiveCard";
 import BuyingObjective from "./common/BuyingObjective";
 import { useCampaigns } from "../../utils/CampaignsContext";
+import { useComments } from "app/utils/CommentProvider";
 
 const SetBuyObjectivesAndTypesSubStep = () => {
   const [obj, setObj] = useState("");
   const { campaignFormData } = useCampaigns();
+  const { setIsDrawerOpen, setClose } = useComments();
+  useEffect(() => {
+    setIsDrawerOpen(false);
+    setClose(false);
+  }, []);
+
+
   useEffect(() => {
     if (campaignFormData) {
       setObj(campaignFormData?.campaign_objectives);

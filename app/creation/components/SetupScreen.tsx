@@ -12,6 +12,7 @@ import AlertMain from "components/Alert/AlertMain";
 import { SVGLoader } from "components/SVGLoader";
 import { useVerification, validationRules } from "app/utils/VerificationContext";
 import ClientSelectionInputbudget from "components/ClientSelectionInputbudget";
+import { useComments } from "app/utils/CommentProvider";
 
 export const SetupScreen = () => {
   const {
@@ -34,12 +35,16 @@ export const SetupScreen = () => {
   const [level3Options, setlevel3Options] = useState([]);
   const [requiredFields, setRequiredFields] = useState([]);
   const [currencySign, setCurrencySign] = useState("");
-
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-
+  const { setIsDrawerOpen, setClose } = useComments();
   const { verifyStep, verifybeforeMove, setverifybeforeMove, setHasChanges, hasChanges } = useVerification();
+
+  useEffect(() => {
+    setIsDrawerOpen(false);
+    setClose(false);
+  }, []);
 
   // Initialize campaignFormData if empty
   useEffect(() => {

@@ -1,10 +1,16 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import DefineAdSetPage from './DefineAdSetPage'
 import PageHeaderWrapper from '../../../components/PageHeaderWapper'
 import { useEditing } from '../../utils/EditingContext';
+import { useComments } from 'app/utils/CommentProvider';
 
 const DefineAdSet = () => {
   const { isEditing, setIsEditing } = useEditing();
+  const { setIsDrawerOpen, setClose } = useComments();
+  useEffect(() => {
+    setIsDrawerOpen(false);
+    setClose(false);
+  }, []);
   return (
     <div>
       <div className='flex items-center justify-between'>

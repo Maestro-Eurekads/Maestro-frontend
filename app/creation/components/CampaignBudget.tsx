@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import Topdown from "../../../public/Top-down.svg";
 import Selectstatus from "../../../public/Select-status.svg";
@@ -8,10 +8,16 @@ import Image from "next/image";
 import Input from "components/Input";
 import Select from "react-select";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import { useComments } from "app/utils/CommentProvider";
 
 const CampaignBudget = () => {
   const [active, setActive] = useState(null);
-  const [show, setShow] = useState(false);
+  const { setIsDrawerOpen, setClose } = useComments();
+  useEffect(() => {
+    setIsDrawerOpen(false);
+    setClose(false);
+  }, []);
+
   const [selectedOption, setSelectedOption] = useState({
     value: "EUR",
     label: "EUR",
@@ -89,11 +95,10 @@ const CampaignBudget = () => {
       <div className="mt-[24px] flex gap-5">
         {/* Top‑down Option */}
         <div
-          className={`relative ${
-            active === 1
-              ? "top_and_bottom_down_container_active"
-              : "top_and_bottom_down_container"
-          }`}
+          className={`relative ${active === 1
+            ? "top_and_bottom_down_container_active"
+            : "top_and_bottom_down_container"
+            }`}
           onClick={() => {
             handleTopDownClick();
             handleBudgetEdit("budget_type", "top_down");
@@ -131,11 +136,10 @@ const CampaignBudget = () => {
 
         {/* Bottom‑up Option */}
         <div
-          className={`relative ${
-            active === 2
-              ? "top_and_bottom_down_container_active"
-              : "top_and_bottom_down_container"
-          }`}
+          className={`relative ${active === 2
+            ? "top_and_bottom_down_container_active"
+            : "top_and_bottom_down_container"
+            }`}
           onClick={() => {
             handleBottomUpClick();
             handleBudgetEdit("budget_type", "bottom_up");
@@ -224,18 +228,17 @@ const CampaignBudget = () => {
           </div>
           <div>
             <p
-              className={`font-[600] text-[15px] leading-[20px] ${
-                Number(calculateRemainingBudget()) < 1
-                  ? "text-red-500"
-                  : "text-[#00A36C]"
-              }`}
+              className={`font-[600] text-[15px] leading-[20px] ${Number(calculateRemainingBudget()) < 1
+                ? "text-red-500"
+                : "text-[#00A36C]"
+                }`}
             >
               Remaining budget:{" "}
               {Number(campaignFormData?.campaign_budget?.amount) > 0
                 ? getCurrencySymbol(
-                    campaignFormData?.campaign_budget?.currency ||
-                      selectedOption?.value
-                  )
+                  campaignFormData?.campaign_budget?.currency ||
+                  selectedOption?.value
+                )
                 : ""}
               {Number(calculateRemainingBudget())?.toLocaleString()}
             </p>

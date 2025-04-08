@@ -1,10 +1,17 @@
 
-import React from 'react'
+import React, { useEffect } from 'react'
 
 import PageHeaderWrapper from '../../../components/PageHeaderWapper'
 import ObjectiveSelection from './ObjectiveSelection'
+import { useComments } from 'app/utils/CommentProvider';
 
 const SetBuyObjectivesAndTypes = () => {
+	const { setIsDrawerOpen, setClose } = useComments();
+	useEffect(() => {
+		setIsDrawerOpen(false);
+		setClose(false);
+	}, []);
+
 	return (
 		<div>
 			<PageHeaderWrapper

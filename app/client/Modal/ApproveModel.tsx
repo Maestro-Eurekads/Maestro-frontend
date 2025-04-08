@@ -9,23 +9,18 @@ import { getCreateClient } from "features/Client/clientSlice";
 import { useAppDispatch } from "store/useStore";
 import { SVGLoader } from "components/SVGLoader";
 import Input from "components/Input";
+import SignatureInput from "./SignatureInput";
 
 const ApproveModel = ({ isOpen, setIsOpen }) => {
   const dispatch = useAppDispatch();
   const [inputs, setInputs] = useState({
     name: "",
     email: "",
-    responsiblePerson: "",
-    approver: "",
-    sports: [],
-    categories: [],
-    businessUnits: [],
-    feeType: "",
+    signature: ""
   });
   const [emailList, setEmailList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
-
 
 
   //  Automatically reset alert after showing
@@ -133,7 +128,7 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
               <div className="flex items-start gap-3 mb-5">
                 <div className="flex flex-col w-full">
                   <label className="w-[124px] h-[19px]   text-[14px] leading-[19px] text-[#061237]  " htmlFor="custom-textarea">
-                   Enter Full Name
+                    Enter Full Name
                   </label>
                   <Input
                     type="text"
@@ -187,7 +182,7 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
 
               <div className="mb-5">
                 <div className="flex flex-col w-full">
-                  <label className="w-[124px] h-[19px]   text-[14px] leading-[19px] text-[#061237]  " htmlFor="custom-textarea">
+                  <label className="w-[124px] h-[19px] text-[14px] leading-[19px] text-[#061237]  " htmlFor="custom-textarea">
                     Enter Initials
                   </label>
                   <Input
@@ -203,6 +198,15 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
               <div className="shrink-0 flex items-center w-full gap-3 mb-5">
                 <div className="flex flex-col w-full">
                   <label className="w-[124px] h-[19px]   text-[14px] leading-[19px] text-[#061237]  " htmlFor="custom-textarea">
+                    Signature
+                  </label>
+                  <SignatureInput
+                    value={inputs.signature}
+                    onChange={(val) => setInputs({ ...inputs, signature: val })}
+                  />
+                </div>
+                {/* <div className="flex flex-col w-full">
+                  <label className="w-[124px] h-[19px]   text-[14px] leading-[19px] text-[#061237]  " htmlFor="custom-textarea">
                    Upload Signature
                   </label>
                   <Input
@@ -212,12 +216,12 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
                     label=""
                     placeholder=""
                   />
-                </div>
-                <button
+                </div> */}
+                {/* <button
                   className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px]   text-white mt-[12px]"
                   onClick={handleAddEmail}>
                   Add
-                </button>
+                </button> */}
               </div>
             </div>
 
