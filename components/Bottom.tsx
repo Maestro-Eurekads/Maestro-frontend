@@ -174,6 +174,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         campaignFormData?.client_selection?.value,
         campaignFormData?.media_plan,
         campaignFormData?.approver,
+        campaignFormData?.client_approver
       ];
 
       if (!requiredFields.every((field) => field)) {

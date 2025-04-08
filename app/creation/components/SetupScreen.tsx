@@ -48,6 +48,7 @@ export const SetupScreen = () => {
         client_selection: {},
         media_plan: "",
         approver: "",
+        client_approver: "",
         budget_details_currency: {},
         budget_details_fee_type: {},
         budget_details_value: "",
@@ -210,6 +211,7 @@ export const SetupScreen = () => {
           media_plan_details: {
             plan_name: campaignFormData?.media_plan,
             internal_approver: campaignFormData?.approver,
+            client_approver: campaignFormData?.client_approver
           },
           budget_details: budgetDetails,
         };
@@ -264,12 +266,14 @@ export const SetupScreen = () => {
         campaignFormData?.client_selection?.value,
         campaignFormData?.media_plan,
         campaignFormData?.approver,
+        campaignFormData?.client_approver
       ];
     } else {
       fields = [
         campaignFormData?.client_selection?.value,
         campaignFormData?.media_plan,
         campaignFormData?.approver,
+        campaignFormData?.client_approver
       ];
     }
 
@@ -328,6 +332,9 @@ export const SetupScreen = () => {
             <ClientSelectionInput
               label={"Internal Approver"}
               formId="approver" setHasChanges={setHasChanges} />
+            <ClientSelectionInput
+              label={"Client Approver"}
+              formId="client_approver" setHasChanges={setHasChanges} />
           </div>
         </div>
         {/* <div className="pb-1">
