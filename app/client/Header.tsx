@@ -14,7 +14,7 @@ const Header = ({ setIsOpen }) => {
     >
       <div className="flex flex-col">
         <button
-          className="w-[35px] h-[22px] font-semibold text-[16px] leading-[22px] text-[#061237] font-[General Sans]"  >
+          className="w-[35px] h-[22px] font-semibold text-[16px] leading-[22px] text-[#061237] font-[General Sans]">
           Nike
         </button>
         <h1 className="w-[348px] h-[32px] font-semibold text-[24px] leading-[32px] text-[#292929] font-[General Sans]"
@@ -33,7 +33,7 @@ const Header = ({ setIsOpen }) => {
       </div>
 
       <div
-        className="text-[18px] absolute right-[50px] top-[20px] cursor-pointer"
+        className="text-[18px] absolute right-[30px] top-[20px] cursor-pointer"
         onClick={async () =>
           await signOut({
             callbackUrl: "/",
