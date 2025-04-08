@@ -8,6 +8,7 @@
 @import url(../css/Checkbox.css);
 @import url(../css/Impressions.css);
 @import url(../css/CommentsDrawer.css);
+@import url(../css/client.css);
 
 
 @tailwind base;

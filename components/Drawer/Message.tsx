@@ -150,11 +150,11 @@ const Message = () => {
 	const { comments } = useComments();
 	// const { data: comments } = useAppSelector((state) => state.comment);
 
-	console.log("comments--comments", comments);
+	// console.log("comments--comments", comments);
 
 	return (
 		<NoSSR>
-			{comments.map((comment) => (
+			{comments?.map((comment) => (
 				<DraggableComment key={comment?.documentId} comment={comment} commentId={comment?.commentId} />
 			))}
 		</NoSSR>

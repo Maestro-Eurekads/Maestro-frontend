@@ -27,6 +27,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 
 
 
+
 	useEffect(() => {
 		const newColors = {};
 		comments?.forEach((comment) => {
