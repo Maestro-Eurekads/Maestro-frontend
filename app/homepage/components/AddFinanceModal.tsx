@@ -340,133 +340,138 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                               <>
                                 <div className="flex gap-3 items-center">
                                   <CustomSelect
-                                    placeholder="Select media plan"
-                                    className="rounded-3xl"
-                                    options={clientCampigns}
-                                    onChange={(
-                                      value: {
-                                        label: string;
-                                        value: string;
-                                        budget: string;
-                                      } | null
-                                    ) => {
-                                      if (value) {
-                                        setMediaPlans((prev) => {
-                                          const newPlans = [...prev];
-                                          newPlans[index] = {
-                                            ...newPlans[index],
-                                            name: value.value,
-                                          };
+                                  placeholder="Select media plan"
+                                  className="rounded-3xl"
+                                  options={clientCampigns.filter(
+                                    (campaign) =>
+                                    !mediaPlans.some(
+                                      (plan) => plan.name === campaign.value
+                                    )
+                                  )}
+                                  onChange={(
+                                    value: {
+                                    label: string;
+                                    value: string;
+                                    budget: string;
+                                    } | null
+                                  ) => {
+                                    if (value) {
+                                    setMediaPlans((prev) => {
+                                      const newPlans = [...prev];
+                                      newPlans[index] = {
+                                      ...newPlans[index],
+                                      name: value.value,
+                                      };
 
-                                          if (
-                                            plan?.type &&
-                                            plan?.type === "total_po_amount"
-                                          ) {
-                                            newPlans[index].type = plan.type;
-                                          }
-
-                                          return newPlans;
-                                        });
+                                      if (
+                                      plan?.type &&
+                                      plan?.type === "total_po_amount"
+                                      ) {
+                                      newPlans[index].type = plan.type;
                                       }
-                                    }}
+
+                                      return newPlans;
+                                    });
+                                    }
+                                  }}
                                   />
                                   <CustomSelect
-                                    placeholder="Select amount"
-                                    className="rounded-3xl"
-                                    options={[
-                                      {
-                                        label: "Total PO amount",
-                                        value: "total_po_amount",
-                                      },
-                                      {
-                                        label: "Fixed amount",
-                                        value: "fixed_amount",
-                                      },
-                                      {
-                                        label: "Percentage of PO total amount",
-                                        value: "total_po_amount_percent",
-                                      },
-                                    ]}
-                                    onChange={(
-                                      value: {
-                                        label: string;
-                                        value: string;
-                                      } | null
-                                    ) => {
-                                        if (value) {
-                                        if (
-                                          value?.value === "total_po_amount"
-                                        ) {
-                                          setMediaPlans(() => {
-                                          const newPlans = [];
-                                          newPlans[index] = {
-                                            ...mediaPlans[index],
-                                            amount: poForm?.PO_total_amount,
-                                            type: value.value,
-                                          };
-                                          return newPlans;
-                                          });
-                                        } else {
-                                          setMediaPlans((prev) => {
-                                          const newPlans = [...prev];
-                                          newPlans[index].amount = "";
-                                          newPlans[index].type = value.value;
-                                          return newPlans;
-                                          });
-                                        }
-                                        }
-                                      }}
-                                      />
-                                  <div className="relative shrink-0">
-                                    <input
-                                      type="text"
-                                      placeholder={
-                                        plan?.type === "total_po_amount_percent"
-                                          ? "Enter percentage"
-                                          : "Enter amount"
-                                      }
-                                      className="w-full border rounded-md p-[6px] outline-none"
-                                      value={
-                                        (plan?.amount > 0 &&
-                                          plan?.amount?.toLocaleString()) ||
-                                        ""
-                                      }
-                                      disabled={
-                                        plan?.type === "total_po_amount"
-                                          ? true
-                                          : false
-                                      }
-                                      onChange={(e) => {
-                                        setMediaPlans((prev) => {
-                                          const newPlans = [...prev];
-                                          if (
-                                            Number(e.target.value) <=
-                                            Number(poForm?.PO_total_amount)
-                                          ) {
-                                            newPlans[index].amount =
-                                              e.target.value;
-                                          }
-                                          return newPlans;
-                                        });
-                                      }}
-                                      max={
-                                        plan?.type === "total_po_amount_percent"
-                                          ? 100
-                                          : ""
-                                      }
+                                  placeholder="Select amount"
+                                  className="rounded-3xl"
+                                  options={[
+                                    {
+                                    label: "Total PO amount",
+                                    value: "total_po_amount",
+                                    },
+                                    {
+                                    label: "Fixed amount",
+                                    value: "fixed_amount",
+                                    },
+                                    {
+                                    label: "Percentage of PO total amount",
+                                    value: "total_po_amount_percent",
+                                    },
+                                  ]}
+                                  onChange={(
+                                    value: {
+                                    label: string;
+                                    value: string;
+                                    } | null
+                                  ) => {
+                                    if (value) {
+                                    if (
+                                      value?.value === "total_po_amount"
+                                    ) {
+                                      setMediaPlans(() => {
+                                      const newPlans = [];
+                                      newPlans[index] = {
+                                      ...mediaPlans[index],
+                                      amount: poForm?.PO_total_amount,
+                                      type: value.value,
+                                      };
+                                      return newPlans;
+                                      });
+                                    } else {
+                                      setMediaPlans((prev) => {
+                                      const newPlans = [...prev];
+                                      newPlans[index].amount = "";
+                                      newPlans[index].type = value.value;
+                                      return newPlans;
+                                      });
+                                    }
+                                    }
+                                    }}
                                     />
-                                    {plan?.type ===
-                                      "total_po_amount_percent" && (
-                                      <p className="absolute right-2 top-2">
-                                        %
-                                      </p>
-                                    )}
+                                  <div className="relative shrink-0">
+                                  <input
+                                    type="text"
+                                    placeholder={
+                                    plan?.type === "total_po_amount_percent"
+                                      ? "Enter percentage"
+                                      : "Enter amount"
+                                    }
+                                    className="w-full border rounded-md p-[6px] outline-none"
+                                    value={
+                                    (plan?.amount > 0 &&
+                                      plan?.amount?.toLocaleString()) ||
+                                    ""
+                                    }
+                                    disabled={
+                                    plan?.type === "total_po_amount"
+                                      ? true
+                                      : false
+                                    }
+                                    onChange={(e) => {
+                                    setMediaPlans((prev) => {
+                                      const newPlans = [...prev];
+                                      if (
+                                      Number(e.target.value) <=
+                                      Number(poForm?.PO_total_amount)
+                                      ) {
+                                      newPlans[index].amount =
+                                        e.target.value;
+                                      }
+                                      return newPlans;
+                                    });
+                                    }}
+                                    max={
+                                    plan?.type === "total_po_amount_percent"
+                                      ? 100
+                                      : ""
+                                    }
+                                  />
+                                  {plan?.type ===
+                                    "total_po_amount_percent" && (
+                                    <p className="absolute right-2 top-2">
+                                    %
+                                    </p>
+                                  )}
                                   </div>
                                   <Trash2
-                                    color="red"
-                                    className="shrink-0 cursor-pointer"
-                                    size={16}
-                                    onClick={() => removeMP(index)}
+                                  color="red"
+                                  className="shrink-0 cursor-pointer"
+                                  size={16}
+                                  onClick={() => removeMP(index)}
                                   />
                                 </div>
                               </>
