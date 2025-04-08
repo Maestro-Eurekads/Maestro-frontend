@@ -27,10 +27,15 @@ const Header = ({ setIsOpen }) => {
     // Removed unused 'getCreateClientIsError'
     // Removed unused 'getCreateClientMessage'
   } = useAppSelector((state) => state.client);
-  const { setClientCampaignData, setLoading, setCampaignFormData, isLoggedIn } =
-    useCampaigns();
+  const {
+    setClientCampaignData,
+    setLoading,
+    setCampaignFormData,
+    setClientPOs,
+    setFetchingPO,
+  } = useCampaigns();
   const [selected, setSelected] = useState("");
-  const { fetchClientCampaign } = useCampaignHook(); // Removed unused 'fetchAllClients'
+  const { fetchClientCampaign, fetchClientPOS } = useCampaignHook(); // Removed unused 'fetchAllClients'
   const dispatch = useAppDispatch();
   const [alert, setAlert] = useState(null);
   const [show, setShow] = useState(false);
@@ -72,17 +77,26 @@ const Header = ({ setIsOpen }) => {
       setLoading(false); // If no valid client ID, stop loading
       return;
     }
-    
+
     setSelected(selectedId ? selectedId : clients.data[0]?.id?.toString());
     fetchClientCampaign(clientId)
       .then((res) => {
         if (isMounted) setClientCampaignData(res?.data?.data || []); // Ensure data fallback
+        fetchClientPOS(clientId)
+      .then((res) => {
+        setClientPOs(res?.data?.data || []);
+      })
+      .catch((err) => console.error("Error fetching client POS:", err))
+      .finally(() => {
+        setFetchingPO(false);
+      });
       })
       .catch((err) => console.error("Error fetching client campaigns:", err))
       .finally(() => {
         if (isMounted) setLoading(false);
       });
-
+    setFetchingPO(true);
+    
     return () => {
       isMounted = false; // Cleanup function to avoid memory leaks
     };
@@ -96,23 +110,23 @@ const Header = ({ setIsOpen }) => {
             <FiLoader className="animate-spin" />
             <p>Loading clients...</p>
           </div>
-        ) : clients?.data && (
-          <>
-            <CustomSelect
-              options={clients?.data?.map((c) => ({
-                label: c?.client_name,
-                value: c?.id,
-              }))}
-              className="min-w-[150px] z-[20]"
-              placeholder="Select client"
-              onChange={(value: { label: string; value: string } | null) => {
-                if (value) {
-                  localStorage.setItem("selectedClient", value.value);
-                  setSelected(value.value);
-                }
-              }}
-              value={
-                clients?.data
+        ) : (
+          clients?.data && (
+            <>
+              <CustomSelect
+                options={clients?.data?.map((c) => ({
+                  label: c?.client_name,
+                  value: c?.id,
+                }))}
+                className="min-w-[150px] z-[20]"
+                placeholder="Select client"
+                onChange={(value: { label: string; value: string } | null) => {
+                  if (value) {
+                    localStorage.setItem("selectedClient", value.value);
+                    setSelected(value.value);
+                  }
+                }}
+                value={clients?.data
                   ?.map((c) => ({
                     label: c.client_name,
                     value: c.id?.toString(),
@@ -120,10 +134,10 @@ const Header = ({ setIsOpen }) => {
                   .find(
                     (option: { label: string; value: string }) =>
                       option.value === selectedId || option.value === selected
-                  )
-              }
-            />
-       </>
+                  )}
+              />
+            </>
+          )
         )}
 
         <button

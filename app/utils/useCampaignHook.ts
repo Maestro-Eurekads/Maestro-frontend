@@ -41,6 +41,17 @@ const useCampaignHook = () => {
     );
   };
 
+  const fetchClientPOS = async (clientID) => {
+    return await axios.get(
+      `${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders?filters[client][$eq]=${clientID}&populate[0]=assigned_media_plans.campaign`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+        },
+      }
+    );
+  };
+
   const fetchUserByType = (filters?: string) => {
     const url = `${process.env.NEXT_PUBLIC_STRAPI_URL}/users${
       filters ? `${filters}&` : `?`
@@ -63,6 +74,7 @@ const useCampaignHook = () => {
     fetchClientCampaign,
     fetchAllClients,
     fetchUserByType,
+    fetchClientPOS
   };
 };
 
