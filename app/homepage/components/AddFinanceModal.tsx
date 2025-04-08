@@ -119,20 +119,24 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
   const addPOToDB = async () => {
     setUploading(true);
     await axios
-      .post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders`, {
-        data: {
-          ...poForm,
-          assigned_media_plans: mediaPlans?.map((mp) => ({
-            campaign: mp?.name,
-            amount: Number(mp?.amount),
-            amount_type: mp?.type,
-          })),
+      .post(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders`,
+        {
+          data: {
+            ...poForm,
+            assigned_media_plans: mediaPlans?.map((mp) => ({
+              campaign: mp?.name,
+              amount: Number(mp?.amount),
+              amount_type: mp?.type,
+            })),
+          },
         },
-      }, {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
         }
-      })
+      )
       .then((res) => {
         handleClose();
       })
@@ -146,7 +150,7 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
 
   return (
     <div className="z-50">
-      <Toaster/>
+      <Toaster />
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="flex flex-col w-[700px] bg-white rounded-[32px] max-h-[90vh]">
@@ -299,7 +303,11 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                   type="text"
                   placeholder="PO Total Amount"
                   className="w-full border rounded-md p-[6px] mt-2 outline-none"
-                  value={poForm.PO_total_amount > 0 && poForm.PO_total_amount?.toLocaleString() || ""}
+                  value={
+                    (poForm.PO_total_amount > 0 &&
+                      poForm.PO_total_amount?.toLocaleString()) ||
+                    ""
+                  }
                   onChange={(e) => {
                     const value = e.target.value.replace(/\D/g, "");
                     setPoForm((prev) => ({
@@ -343,12 +351,6 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                                       } | null
                                     ) => {
                                       if (value) {
-                                        // setSelectedPlan(value.value);
-                                        setSelectedPlanBudget((prev) => ({
-                                          ...prev,
-                                          [value.value]: value.budget,
-                                        }));
-
                                         setMediaPlans((prev) => {
                                           const newPlans = [...prev];
                                           newPlans[index] = {
@@ -391,35 +393,30 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                                         value: string;
                                       } | null
                                     ) => {
-                                      if (value) {
-                                        // setSelectedType(value.value);
+                                        if (value) {
                                         if (
                                           value?.value === "total_po_amount"
                                         ) {
-                                          setMediaPlans((prev) => {
-                                            const newPlans = [...prev];
-                                            newPlans[index].amount =
-                                              selectedPlanBudget[
-                                                Number(newPlans[index].name)
-                                              ];
-                                            newPlans[index].type = value.value;
-                                            return newPlans;
+                                          setMediaPlans(() => {
+                                          const newPlans = [];
+                                          newPlans[index] = {
+                                            ...mediaPlans[index],
+                                            amount: poForm?.PO_total_amount,
+                                            type: value.value,
+                                          };
+                                          return newPlans;
                                           });
                                         } else {
                                           setMediaPlans((prev) => {
-                                            const newPlans = [...prev];
-                                            newPlans[index].amount = "";
-                                            newPlans[index].budget =
-                                              selectedPlanBudget[
-                                                Number(newPlans[index].name)
-                                              ];
-                                            newPlans[index].type = value.value;
-                                            return newPlans;
+                                          const newPlans = [...prev];
+                                          newPlans[index].amount = "";
+                                          newPlans[index].type = value.value;
+                                          return newPlans;
                                           });
                                         }
-                                      }
-                                    }}
-                                  />
+                                        }
+                                      }}
+                                      />
                                   <div className="relative shrink-0">
                                     <input
                                       type="text"
@@ -429,7 +426,11 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                                           : "Enter amount"
                                       }
                                       className="w-full border rounded-md p-[6px] outline-none"
-                                      value={plan?.amount || ""}
+                                      value={
+                                        (plan?.amount > 0 &&
+                                          plan?.amount?.toLocaleString()) ||
+                                        ""
+                                      }
                                       disabled={
                                         plan?.type === "total_po_amount"
                                           ? true
@@ -440,7 +441,7 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                                           const newPlans = [...prev];
                                           if (
                                             Number(e.target.value) <=
-                                            Number(plan?.budget)
+                                            Number(poForm?.PO_total_amount)
                                           ) {
                                             newPlans[index].amount =
                                               e.target.value;
@@ -468,25 +469,33 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                                     onClick={() => removeMP(index)}
                                   />
                                 </div>
-                                {plan?.type &&
-                                  plan?.type !== "total_po_amount" && (
-                                    <div className="flex justify-end mr-7">
-                                      <p className="text-slate-500 text-[14px]">
-                                        Non-assigned Budget:{" "}
-                                        {plan?.type === "fixed_amount"
-                                          ? Number(plan?.budget) -
-                                            Number(plan?.amount)
-                                          : Number(plan?.budget) -
-                                            (Number(plan?.amount) / 100) *
-                                              Number(plan?.budget)}
-                                      </p>
-                                    </div>
-                                  )}
                               </>
                             )}
                           </div>
                         );
                       })}
+                      <div className="flex justify-end mr-7">
+                        <p className="text-slate-500 text-[14px]">
+                          Non-assigned Budget:{" "}
+                          {poForm?.PO_total_amount -
+                          mediaPlans.reduce((acc, plan) => {
+                            if (plan?.amount > 0) {
+                            if (plan?.type !== "total_po_amount_percent") {
+                              return acc + Number(plan?.amount);
+                            } else if (
+                              plan?.type === "total_po_amount_percent"
+                            ) {
+                              return (
+                              acc +
+                              (Number(plan?.amount) / 100) *
+                                Number(poForm?.PO_total_amount)
+                              );
+                            }
+                            }
+                            return acc;
+                          }, 0)}
+                        </p>
+                      </div>
                     </div>
                   </>
                 )}
@@ -494,18 +503,64 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                 <div
                   className="bg-white w-fit flex items-center gap-2 cursor-pointer text-[14px] shadow-lg px-3 py-1 rounded-2xl mt-[20px]"
                   onClick={() => {
-                    if(poForm?.PO_total_amount  > 0){
-                      setMediaPlans((prev) => [...prev, {}]);
-                    } else {
-                      toast("Please enter a valid PO total amount before assigning media plans.", {
-                        style: {
-                          background: "red",
-                          color: "white",
-                          textAlign: "center"
-                        },
-                        duration: 2000
-                      });
+                  const totalAssignedAmount = mediaPlans.reduce((acc, plan) => {
+                    if (plan?.amount > 0) {
+                    if (plan?.type !== "total_po_amount_percent") {
+                      return acc + Number(plan?.amount);
+                    } else if (plan?.type === "total_po_amount_percent") {
+                      return (
+                      acc +
+                      (Number(plan?.amount) / 100) *
+                        Number(poForm?.PO_total_amount)
+                      );
                     }
+                    }
+                    return acc;
+                  }, 0);
+
+                  if (
+                    mediaPlans?.some((mp) => mp?.type === "total_po_amount")
+                  ) {
+                    toast(
+                    "You have a plan that is set to total PO amount, please remove it or change the amount type, before adding a new plan.",
+                    {
+                      style: {
+                      background: "red",
+                      color: "white",
+                      textAlign: "center",
+                      },
+                      duration: 2000,
+                    }
+                    );
+                  } else if (poForm?.PO_total_amount > 0) {
+                    if (totalAssignedAmount >= poForm?.PO_total_amount) {
+                    toast(
+                      "The total assigned amount cannot exceed the PO total amount.",
+                      {
+                      style: {
+                        background: "red",
+                        color: "white",
+                        textAlign: "center",
+                      },
+                      duration: 2000,
+                      }
+                    );
+                    } else {
+                    setMediaPlans((prev) => [...prev, {}]);
+                    }
+                  } else {
+                    toast(
+                    "Please enter a valid PO total amount before assigning media plans.",
+                    {
+                      style: {
+                      background: "red",
+                      color: "white",
+                      textAlign: "center",
+                      },
+                      duration: 2000,
+                    }
+                    );
+                  }
                   }}
                 >
                   <Image src={blueBtn} alt="menu" width={14} height={14} />
@@ -519,7 +574,11 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                 <button className="btn_model_outline" onClick={handleClose}>
                   Cancel
                 </button>
-                <button className="btn_model_active whitespace-nowrap" disabled={uploading} onClick={addPOToDB}>
+                <button
+                  className="btn_model_active whitespace-nowrap"
+                  disabled={uploading}
+                  onClick={addPOToDB}
+                >
                   {uploading ? (
                     <FaSpinner className="animate-spin" />
                   ) : (
