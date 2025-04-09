@@ -106,7 +106,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setCampaignFormData((prev) => ({
         ...prev,
         client_selection: {
-          id: data?.client?.documentId || prev.client_selection.id,
+          id: data?.client?.documentId || prev?.client_selection?.id,
           value: data?.client?.client_name || prev.client_selection.value,
         },
         level_1: {
