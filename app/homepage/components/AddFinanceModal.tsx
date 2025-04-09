@@ -575,51 +575,121 @@ const AddFinanceModal = ({
                                       }
                                     }}
                                   />
-                                  <div className="relative shrink-0">
+                                    <div className="relative shrink-0">
                                     <input
                                       type="text"
                                       placeholder={
-                                        plan?.type === "total_po_amount_percent"
-                                          ? "Enter percentage"
-                                          : "Enter amount"
+                                      plan?.type === "total_po_amount_percent"
+                                        ? "Enter percentage"
+                                        : "Enter amount"
                                       }
                                       className="w-full border rounded-md p-[6px] outline-none"
                                       value={
-                                        (plan?.amount > 0 &&
-                                          plan?.amount?.toLocaleString()) ||
-                                        ""
+                                      (plan?.amount > 0 &&
+                                        plan?.amount?.toLocaleString()) ||
+                                      ""
                                       }
                                       disabled={
-                                        plan?.type === "total_po_amount"
-                                          ? true
-                                          : false
+                                      plan?.type === "total_po_amount"
+                                        ? true
+                                        : false
                                       }
                                       onChange={(e) => {
+                                      const inputValue = Number(
+                                        e.target.value.replace(/\D/g, "")
+                                      );
+                                      const totalAssignedAmount =
+                                        mediaPlans.reduce((acc, p, i) => {
+                                        if (i !== index && p?.amount > 0) {
+                                          if (
+                                          p?.type !==
+                                          "total_po_amount_percent"
+                                          ) {
+                                          return acc + Number(p?.amount);
+                                          } else if (
+                                          p?.type ===
+                                          "total_po_amount_percent"
+                                          ) {
+                                          return (
+                                            acc +
+                                            (Number(p?.amount) / 100) *
+                                            Number(
+                                              poForm?.PO_total_amount
+                                            )
+                                          );
+                                          }
+                                        }
+                                        return acc;
+                                        }, 0);
+
+                                      if (
+                                        plan?.type ===
+                                        "total_po_amount_percent"
+                                      ) {
+                                        if (
+                                        (inputValue / 100) *
+                                          Number(poForm?.PO_total_amount) +
+                                          totalAssignedAmount <=
+                                        poForm?.PO_total_amount
+                                        ) {
                                         setMediaPlans((prev) => {
                                           const newPlans = [...prev];
-                                          if (
-                                            Number(e.target.value) <=
-                                            Number(poForm?.PO_total_amount)
-                                          ) {
-                                            newPlans[index].amount =
-                                              e.target.value;
-                                          }
+                                          newPlans[index].amount =
+                                          inputValue;
                                           return newPlans;
                                         });
+                                        } else {
+                                        toast(
+                                          "The total assigned amount cannot exceed the PO total amount.",
+                                          {
+                                          style: {
+                                            background: "red",
+                                            color: "white",
+                                            textAlign: "center",
+                                          },
+                                          duration: 3000,
+                                          }
+                                        );
+                                        }
+                                      } else {
+                                        if (
+                                        inputValue + totalAssignedAmount <=
+                                        poForm?.PO_total_amount
+                                        ) {
+                                        setMediaPlans((prev) => {
+                                          const newPlans = [...prev];
+                                          newPlans[index].amount =
+                                          inputValue;
+                                          return newPlans;
+                                        });
+                                        } else {
+                                        toast(
+                                          "The total assigned amount cannot exceed the PO total amount.",
+                                          {
+                                          style: {
+                                            background: "red",
+                                            color: "white",
+                                            textAlign: "center",
+                                          },
+                                          duration: 3000,
+                                          }
+                                        );
+                                        }
+                                      }
                                       }}
                                       max={
-                                        plan?.type === "total_po_amount_percent"
-                                          ? 100
-                                          : ""
+                                      plan?.type === "total_po_amount_percent"
+                                        ? 100
+                                        : ""
                                       }
                                     />
                                     {plan?.type ===
                                       "total_po_amount_percent" && (
                                       <p className="absolute right-2 top-2">
-                                        %
+                                      %
                                       </p>
                                     )}
-                                  </div>
+                                    </div>
                                   <Trash2
                                     color="red"
                                     className="shrink-0 cursor-pointer"
