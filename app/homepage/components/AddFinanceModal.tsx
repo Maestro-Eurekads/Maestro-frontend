@@ -42,6 +42,7 @@ const AddFinanceModal = ({
     PO_number: 0,
     PO_currency: "",
     PO_total_amount: 0,
+    PO_status: "open"
   });
   const [clientCampigns, setClientCampaigns] = useState([]);
   const [users, setUsers] = useState([]);
@@ -70,6 +71,13 @@ const AddFinanceModal = ({
     { value: "CAD", label: "Canadian Dollar (CAD)", sign: "C$" },
   ];
 
+  const statusOption = [
+    { value: "open", label: "Open" },
+    { label: "Reconcilled", value: "reconcilled" },
+    { label: "Partially paid", value: "partially_paid" },
+    { label: "Fully Paid", value: "fully_paid" },
+  ]
+
   const handleClose = () => {
     setPoForm({
       client: "",
@@ -78,6 +86,7 @@ const AddFinanceModal = ({
       PO_number: 0,
       PO_currency: "",
       PO_total_amount: 0,
+      PO_status: "open"
     });
     setSelected("");
     setIsOpen(false);
@@ -260,6 +269,7 @@ const AddFinanceModal = ({
         PO_number: selectedRow?.PO_number,
         PO_currency: selectedRow?.PO_currency,
         PO_total_amount: selectedRow?.PO_total_amount,
+        PO_status: selectedRow?.PO_status,
       });
 
       const mp = selectedRow?.assigned_media_plans?.map((mp) => ({
@@ -467,13 +477,18 @@ const AddFinanceModal = ({
                     <CustomSelect
                       className="mt-2"
                       placeholder="Select status"
-                      options={[
-                        { value: "open", label: "Open" },
-                        { label: "Reconcilled", value: "reconcilled" },
-                        { label: "Partially paid", value: "partially_paid" },
-                        { label: "Fully Paid", value: "fully_paid" },
-                      ]}
-                      defaultValue={{ value: "open", label: "Open" }}
+                      options={statusOption}
+                      value={statusOption?.find((opt)=>opt?.value === poForm?.PO_status)}
+                      onChange={(
+                        value: { label: string; value: string } | null
+                      ) => {
+                        if (value) {
+                          setPoForm((prev) => ({
+                            ...prev,
+                            PO_status: value.value,
+                          }));
+                        }
+                      }}
                     />
                   </div>
                 )}

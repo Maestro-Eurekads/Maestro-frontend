@@ -105,7 +105,7 @@ function FinanceTable({
                     {availableBudget?.toLocaleString()}
                   </td>
                   <td className="py-[12px] px-[16px]">
-                    <span className="text-green-600">Open</span>
+                    <span className="text-green-600 capitalize">{po?.PO_status?.replace("_", " ")}</span>
                   </td>
                   <td className="py-[12px] px-[16px]">
                     <div
