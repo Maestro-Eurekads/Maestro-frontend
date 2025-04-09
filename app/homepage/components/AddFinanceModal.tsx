@@ -16,9 +16,20 @@ import { FaSpinner } from "react-icons/fa";
 import toast, { Toaster } from "react-hot-toast";
 import { useCampaigns } from "app/utils/CampaignsContext";
 
-const AddFinanceModal = ({ isOpen, setIsOpen }) => {
+const AddFinanceModal = ({
+  isOpen,
+  setIsOpen,
+  mode,
+  selectedRow,
+}: {
+  isOpen: boolean;
+  setIsOpen: any;
+  mode?: string;
+  selectedRow?: any;
+}) => {
   const [mediaPlans, setMediaPlans] = useState([]);
-  const { fetchClientCampaign, fetchUserByType, fetchClientPOS } = useCampaignHook();
+  const { fetchClientCampaign, fetchUserByType, fetchClientPOS } =
+    useCampaignHook();
   const { setClientPOs, setFetchingPO } = useCampaigns();
   const [selected, setSelected] = useState("");
   const [selectedPlanBudget, setSelectedPlanBudget] = useState({});
@@ -73,9 +84,9 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
   };
 
   useEffect(() => {
-    if (selected) {
+    if (selected || selectedRow) {
       setLoadingCam(true);
-      fetchClientCampaign(selected)
+      fetchClientCampaign(selected || selectedRow?.client?.id)
         .then((res) => {
           const data = res?.data?.data;
           const newOption = data?.map((opt) => ({
@@ -91,7 +102,7 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
           setLoadingCam(false);
         });
     }
-  }, [selected]);
+  }, [selected, selectedRow]);
 
   useEffect(() => {
     const fetchAgencyUsers = async () => {
@@ -147,9 +158,16 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
         }
       )
       .then((res) => {
-        // setFetchingPO(true)
         handleClose();
-        // setClientPOs((prev) => [...prev, res?.data?.data]);
+        setFetchingPO(true);
+        fetchClientPOS(selected)
+          .then((res) => {
+            localStorage.setItem("selectedClient", selected)
+            setClientPOs(res?.data?.data || []);
+          })
+          .finally(() => {
+            setFetchingPO(false);
+          });
       })
       .catch((err) => {
         console.log("err", err);
@@ -159,8 +177,80 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
       });
   };
 
+  const updatePOInDB = async () => {
+    setUploading(true);
+    await axios
+      .put(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders/${selectedRow?.documentId}`,
+        {
+          data: {
+            ...poForm,
+            assigned_media_plans: mediaPlans?.map((mp) => ({
+              campaign: mp?.name,
+              amount:
+                mp?.type === "total_po_amount_percent"
+                  ? (Number(mp?.amount) / 100) * Number(poForm?.PO_total_amount)
+                  : Number(mp?.amount),
+              amount_type: mp?.type,
+              percentage:
+                mp?.type === "total_po_amount_percent"
+                  ? Number(mp?.amount)
+                  : null,
+            })),
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+        }
+      )
+      .then((res) => {
+        handleClose();
+        setFetchingPO(true)
+        fetchClientPOS(selectedRow?.client?.id)
+        .then((res) => {
+          localStorage.setItem("selectedClient", selectedRow?.client?.id)
+          setClientPOs(res?.data?.data || []);
+        })
+        .finally(() => {
+          setFetchingPO(false);
+        });
+      })
+      .catch((err) => {
+        console.log("err", err);
+      })
+      .finally(() => {
+        setUploading(false);
+      });
+  };
+
+  useEffect(() => {
+    if (selectedRow) {
+      setPoForm({
+        client: selectedRow?.client?.id,
+        client_responsible: selectedRow?.client_responsible?.id,
+        financial_responsible: selectedRow?.financial_responsible?.id,
+        PO_number: selectedRow?.PO_number,
+        PO_currency: selectedRow?.PO_currency,
+        PO_total_amount: selectedRow?.PO_total_amount,
+      });
+
+      const mp = selectedRow?.assigned_media_plans?.map((mp) => ({
+        name: mp?.campaign?.id?.toString(),
+        amount:
+          mp?.amount_type === "total_po_amount_percent"
+            ? mp?.percentage
+            : mp?.amount,
+        type: mp?.amount_type,
+        percentage: mp?.percentage,
+      }));
+      setMediaPlans(mp);
+    }
+  }, [selectedRow]);
+
   return (
-    <div className="z-50">
+    <div className="relative z-50">
       <Toaster />
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
@@ -173,7 +263,7 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                   <Image src={blueprofile} alt="menu" />
                 </div>
                 <div className="madel_profile_text_container">
-                  <h3>Add purchase order</h3>
+                  <h3>{mode === "edit" ? "Edit" : "Add"} purchase order</h3>
                 </div>
               </div>
               <button
@@ -205,6 +295,12 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                           }))}
                           className="min-w-[150px] z-[20]"
                           placeholder="Select client"
+                          value={clients?.data
+                            ?.map((c) => ({
+                              label: c?.client_name,
+                              value: c?.id,
+                            }))
+                            ?.find((op) => op?.value === poForm?.client)}
                           onChange={(
                             value: { label: string; value: string } | null
                           ) => {
@@ -233,6 +329,9 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                       className="mt-2"
                       placeholder="Select responsible"
                       options={users}
+                      value={users?.find(
+                        (uu) => uu?.value === poForm?.client_responsible
+                      )}
                       onChange={(
                         value: { label: string; value: string } | null
                       ) => {
@@ -259,6 +358,9 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                     className="mt-2"
                     placeholder="Select responsible"
                     options={users}
+                    value={users?.find(
+                      (uu) => uu?.value === poForm?.financial_responsible
+                    )}
                     onChange={(
                       value: { label: string; value: string } | null
                     ) => {
@@ -305,29 +407,50 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                         }));
                       }
                     }}
+                    value={selectCurrency?.find(
+                      (curr) => curr?.value === poForm?.PO_currency
+                    )}
                   />
                 </div>
               </div>
-              <div className="w-1/2 mt-3">
-                <label htmlFor="">PO Total Amount</label>
-                <input
-                  type="text"
-                  placeholder="PO Total Amount"
-                  className="w-full border rounded-md p-[6px] mt-2 outline-none"
-                  value={
-                    (poForm.PO_total_amount > 0 &&
-                      poForm.PO_total_amount?.toLocaleString()) ||
-                    ""
-                  }
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, "");
-                    setPoForm((prev) => ({
-                      ...prev,
-                      PO_total_amount: Number(value),
-                    }));
-                  }}
-                  // readOnly={}
-                />
+              <div className="flex items-start gap-3 w-full mt-3">
+                <div className="w-1/2 mt-3">
+                  <label htmlFor="">PO Total Amount</label>
+                  <input
+                    type="text"
+                    placeholder="PO Total Amount"
+                    className="w-full border rounded-md p-[6px] mt-2 outline-none"
+                    value={
+                      (poForm.PO_total_amount > 0 &&
+                        poForm.PO_total_amount?.toLocaleString()) ||
+                      ""
+                    }
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      setPoForm((prev) => ({
+                        ...prev,
+                        PO_total_amount: Number(value),
+                      }));
+                    }}
+                    // readOnly={}
+                  />
+                </div>
+                {mode === "edit" && (
+                  <div className="w-1/2 mt-3">
+                    <label htmlFor="">PO Status</label>
+                    <CustomSelect
+                      className="mt-2"
+                      placeholder="Select status"
+                      options={[
+                        { value: "open", label: "Open" },
+                        { label: "Reconcilled", value: "reconcilled" },
+                        { label: "Partially paid", value: "partially_paid" },
+                        { label: "Fully Paid", value: "fully_paid" },
+                      ]}
+                      defaultValue={{ value: "open", label: "Open" }}
+                    />
+                  </div>
+                )}
               </div>
               <div>
                 <p className="font-semibold my-3">Assigned Media Plan</p>
@@ -360,6 +483,12 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                                             plan?.name === campaign.value
                                         )
                                     )}
+                                    value={
+                                      clientCampigns?.find(
+                                        (cc) =>
+                                          cc.value == mediaPlans[index]?.name
+                                      ) || null
+                                    }
                                     onChange={(
                                       value: {
                                         label: string;
@@ -503,28 +632,39 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                           </div>
                         );
                       })}
-                      <div className="flex justify-end mr-7">
-                        <p className="text-slate-500 text-[14px]">
-                          Non-assigned Budget:{" "}
-                          {poForm?.PO_total_amount -
-                            mediaPlans.reduce((acc, plan) => {
-                              if (plan?.amount > 0) {
-                                if (plan?.type !== "total_po_amount_percent") {
-                                  return acc + Number(plan?.amount);
-                                } else if (
-                                  plan?.type === "total_po_amount_percent"
-                                ) {
-                                  return (
-                                    acc +
-                                    (Number(plan?.amount) / 100) *
-                                      Number(poForm?.PO_total_amount)
-                                  );
-                                }
-                              }
-                              return acc;
-                            }, 0)}
-                        </p>
-                      </div>
+                      {!loadingCam && (
+                        <div className="flex justify-end mr-7">
+                          <p className="text-slate-500 text-[14px]">
+                            Non-assigned Budget:{" "}
+                            {poForm?.PO_total_amount
+                              ? Math.max(
+                                  0,
+                                  poForm.PO_total_amount -
+                                    mediaPlans.reduce((acc, plan) => {
+                                      if (plan?.amount > 0) {
+                                        if (
+                                          plan?.type !==
+                                          "total_po_amount_percent"
+                                        ) {
+                                          return acc + Number(plan?.amount);
+                                        } else if (
+                                          plan?.type ===
+                                          "total_po_amount_percent"
+                                        ) {
+                                          return (
+                                            acc +
+                                            (Number(plan?.amount) / 100) *
+                                              Number(poForm?.PO_total_amount)
+                                          );
+                                        }
+                                      }
+                                      return acc;
+                                    }, 0)
+                                )
+                              : 0}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
@@ -626,12 +766,12 @@ const AddFinanceModal = ({ isOpen, setIsOpen }) => {
                 <button
                   className="btn_model_active whitespace-nowrap"
                   disabled={uploading}
-                  onClick={addPOToDB}
+                  onClick={mode === "edit" ? updatePOInDB : addPOToDB}
                 >
                   {uploading ? (
                     <FaSpinner className="animate-spin" />
                   ) : (
-                    "Create PO"
+                    `${mode === "edit" ? "Update" : "Create"} PO`
                   )}
                 </button>
               </div>
