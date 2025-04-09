@@ -18,6 +18,7 @@ import { LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
 import ClientSelection from "./ClientSelection";
 import { CustomSelect } from "app/homepage/components/CustomReactSelect";
+import { useActive } from "app/utils/ActiveContext";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 const Header = ({ setIsOpen }) => {
@@ -34,6 +35,7 @@ const Header = ({ setIsOpen }) => {
     setClientPOs,
     setFetchingPO,
   } = useCampaigns();
+  const {setActive, setSubStep} = useActive()
   const [selected, setSelected] = useState("");
   const { fetchClientCampaign, fetchClientPOS } = useCampaignHook(); // Removed unused 'fetchAllClients'
   const dispatch = useAppDispatch();
@@ -83,20 +85,20 @@ const Header = ({ setIsOpen }) => {
       .then((res) => {
         if (isMounted) setClientCampaignData(res?.data?.data || []); // Ensure data fallback
         fetchClientPOS(clientId)
-      .then((res) => {
-        setClientPOs(res?.data?.data || []);
-      })
-      .catch((err) => console.error("Error fetching client POS:", err))
-      .finally(() => {
-        setFetchingPO(false);
-      });
+          .then((res) => {
+            setClientPOs(res?.data?.data || []);
+          })
+          .catch((err) => console.error("Error fetching client POS:", err))
+          .finally(() => {
+            setFetchingPO(false);
+          });
       })
       .catch((err) => console.error("Error fetching client campaigns:", err))
       .finally(() => {
         if (isMounted) setLoading(false);
       });
     setFetchingPO(true);
-    
+
     return () => {
       isMounted = false; // Cleanup function to avoid memory leaks
     };
@@ -151,7 +153,14 @@ const Header = ({ setIsOpen }) => {
       {alert && <AlertMain alert={alert} />}
       <div className="profiledropdown_container_main">
         <div className="profiledropdown_container">
-          <Link href={`/creation`} onClick={() => setCampaignFormData({})}>
+          <Link
+            href={`/creation`}
+            onClick={() => {
+              setCampaignFormData({});
+              setActive(0)
+              setSubStep(0)
+            }}
+          >
             <button className="new_plan_btn">
               <Image src={white} alt="white" />
               <p className="new_plan_btn_text">New media plan</p>

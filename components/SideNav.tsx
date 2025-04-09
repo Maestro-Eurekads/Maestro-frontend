@@ -50,23 +50,23 @@ const SideNav: React.FC = () => {
 
 
   const handleBackClick = () => {
-    router.push("/"); // Navigate to home
+    router.back(); // Navigate to home
     setCampaignData(null)
     setActive(0); // Reset state
     setSubStep(0);
   };
 
   const steps = [
-    {
-      vl: "vl",
-      vl_done: "vl_done",
-      vl_active: "vl_active",
-      state_text: "SideBar_Menu_state",
-      sidecircle: "SideBar_Menu_active",
-      title: "Define campaign objective",
-      objective: !campaignData?.campaign_objective ? "" : `Main objective: ${campaignData?.campaign_objective}`,
-      img: <Image src={symbol} alt="symbol" />
-    },
+    // {
+    //   vl: "vl",
+    //   vl_done: "vl_done",
+    //   vl_active: "vl_active",
+    //   state_text: "SideBar_Menu_state",
+    //   sidecircle: "SideBar_Menu_active",
+    //   title: "Define campaign objective",
+    //   objective: !campaignData?.campaign_objective ? "" : `Main objective: ${campaignData?.campaign_objective}`,
+    //   img: <Image src={symbol} alt="symbol" />
+    // },
     {
       vl: "vl",
       vl_done: "vl_done",
