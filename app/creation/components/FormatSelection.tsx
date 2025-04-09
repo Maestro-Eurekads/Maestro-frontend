@@ -26,6 +26,7 @@ import { funnelStages } from "../../../components/data";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import UploadModal from "../../../components/UploadModal/UploadModal";
 import checkmark from "../../../public/mingcute_check-fill.svg";
+import { useComments } from "app/utils/CommentProvider";
 
 type IPlatform = {
   name: string;
@@ -454,32 +455,32 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
                   </div>
                   {((isExpanded && !isValidated) ||
                     (isValidated && hasSelectedFormats && isExpanded)) && (
-                    <div className="py-6">
-                      <MediaSelection
-                        handleFormatSelection={(index) =>
-                          handleFormatSelection(
-                            channel?.title,
-                            index,
-                            platform.name
-                          )
-                        }
-                        mediaOptions={defaultMediaOptions}
-                        channelName={channel?.title}
-                        platformName={platform.name}
-                        stageName={stageName}
-                        isValidated={isValidated}
-                        quantities={quantities[platform.name] || {}}
-                        onQuantityChange={(formatName, change) =>
-                          handleQuantityChange(
-                            platform.name,
-                            formatName,
-                            change
-                          )
-                        }
-                        onOpenModal={openModal}
-                      />
-                    </div>
-                  )}
+                      <div className="py-6">
+                        <MediaSelection
+                          handleFormatSelection={(index) =>
+                            handleFormatSelection(
+                              channel?.title,
+                              index,
+                              platform.name
+                            )
+                          }
+                          mediaOptions={defaultMediaOptions}
+                          channelName={channel?.title}
+                          platformName={platform.name}
+                          stageName={stageName}
+                          isValidated={isValidated}
+                          quantities={quantities[platform.name] || {}}
+                          onQuantityChange={(formatName, change) =>
+                            handleQuantityChange(
+                              platform.name,
+                              formatName,
+                              change
+                            )
+                          }
+                          onOpenModal={openModal}
+                        />
+                      </div>
+                    )}
                 </div>
               );
             })}
@@ -488,11 +489,10 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       ))}
       <div className="w-full flex items-center justify-end mt-9">
         <button
-          className={`px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-            isValidateEnabled || isValidated
-              ? "bg-[#3175FF] hover:bg-[#2563eb]"
-              : "bg-[#3175FF] opacity-50 cursor-not-allowed"
-          }`}
+          className={`px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isValidateEnabled || isValidated
+            ? "bg-[#3175FF] hover:bg-[#2563eb]"
+            : "bg-[#3175FF] opacity-50 cursor-not-allowed"
+            }`}
           onClick={handleValidateOrEdit}
         >
           {isValidated ? "Edit" : "Validate"}
@@ -516,6 +516,11 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
 export const FormatSelection = () => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
   const { campaignFormData, setCampaignFormData } = useCampaigns();
+  const { setIsDrawerOpen, setClose } = useComments();
+  useEffect(() => {
+    setIsDrawerOpen(false);
+    setClose(false);
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -591,9 +596,8 @@ export const FormatSelection = () => {
           return (
             <div key={index}>
               <div
-                className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${
-                  isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
-                }`}
+                className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
+                  }`}
                 onClick={() => toggleTab(stage.name)}
               >
                 <div className="flex items-center gap-2">
@@ -751,7 +755,7 @@ export default function MediaSelection({
   isValidated = false,
   platformName,
   quantities = {},
-  onQuantityChange = () => {},
+  onQuantityChange = () => { },
   channelName,
   stageName,
   onOpenModal,
@@ -786,9 +790,8 @@ export default function MediaSelection({
               <div className="flex flex-col items-center">
                 <div
                   onClick={() => !isValidated && handleFormatSelection(index)}
-                  className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
-                    existsInDB ? "border-blue-500 shadow-lg" : "border-gray-300"
-                  } ${isValidated ? "cursor-default" : "cursor-pointer"}`}
+                  className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${existsInDB ? "border-blue-500 shadow-lg" : "border-gray-300"
+                    } ${isValidated ? "cursor-default" : "cursor-pointer"}`}
                 >
                   <Image
                     src={option.icon}

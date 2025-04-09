@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ConfiguredSetPage from "./ConfiguredSetPage";
 import CampaignBudget from "./CampaignBudget";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
@@ -6,14 +6,16 @@ import DoughnutChat from "../../../components/DoughnutChat";
 import ChannelDistributionChatTwo from "../../../components/ChannelDistribution/ChannelDistributionChatTwo";
 import CampaignPhases from "./CampaignPhases";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import { useComments } from "app/utils/CommentProvider";
 
 const ConfigureAdSetsAndBudget = () => {
   const [show, setShow] = useState(false); // Start with budget shown
-  const campaignPhases = [
-    { name: "Awareness", percentage: 25, color: "#3175FF" },
-    { name: "Consideration", percentage: 50, color: "#00A36C" },
-    { name: "Conversion", percentage: 25, color: "#FF9037" },
-  ];
+  const { setIsDrawerOpen, setClose } = useComments();
+
+  useEffect(() => {
+    setIsDrawerOpen(false);
+    setClose(false);
+  }, []);
 
   const [channelData, setChannelData] = useState(null);
   const { campaignFormData } = useCampaigns();
@@ -135,28 +137,27 @@ const ConfigureAdSetsAndBudget = () => {
                 <div className="campaign_phases_container mt-[24px]">
                   <div className="campaign_phases_container_one">
                     <DoughnutChat
-                      data={campaignFormData?.channel_mix?.filter((c)=>Number(c?.stage_budget?.percentage_value) > 0)?.map((ch) =>
+                      data={campaignFormData?.channel_mix?.filter((c) => Number(c?.stage_budget?.percentage_value) > 0)?.map((ch) =>
                         Number(ch?.stage_budget?.percentage_value)?.toFixed(0)
                       )}
                       color={campaignFormData?.channel_mix?.map((ch) =>
                         ch?.funnel_stage === "Awareness"
                           ? "#3175FF"
                           : ch?.funnel_stage === "Consideration"
-                          ? "#00A36C"
-                          : ch?.funnel_stage === "Conversion"
-                          ? "#FF9037"
-                          : "#F05406"
+                            ? "#00A36C"
+                            : ch?.funnel_stage === "Conversion"
+                              ? "#FF9037"
+                              : "#F05406"
                       )}
-                      insideText={`${
-                        campaignFormData?.campaign_budget?.amount
-                      } ${getCurrencySymbol(
-                        campaignFormData?.campaign_budget?.currency
-                      )}`}
+                      insideText={`${campaignFormData?.campaign_budget?.amount
+                        } ${getCurrencySymbol(
+                          campaignFormData?.campaign_budget?.currency
+                        )}`}
                     />
                   </div>
 
                   <CampaignPhases
-                    campaignPhases={campaignFormData?.channel_mix?.filter((c)=>Number(c?.stage_budget?.percentage_value) > 0)?.map(
+                    campaignPhases={campaignFormData?.channel_mix?.filter((c) => Number(c?.stage_budget?.percentage_value) > 0)?.map(
                       (ch) => ({
                         name: ch?.funnel_stage,
                         percentage: Number(
@@ -166,10 +167,10 @@ const ConfigureAdSetsAndBudget = () => {
                           ch?.funnel_stage === "Awareness"
                             ? "#3175FF"
                             : ch?.funnel_stage === "Consideration"
-                            ? "#00A36C"
-                            : ch?.funnel_stage === "Conversion"
-                            ? "#FF9037"
-                            : "#F05406",
+                              ? "#00A36C"
+                              : ch?.funnel_stage === "Conversion"
+                                ? "#FF9037"
+                                : "#F05406",
                       })
                     )}
                   />

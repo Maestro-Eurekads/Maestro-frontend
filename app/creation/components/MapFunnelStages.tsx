@@ -20,6 +20,7 @@ import {
 } from "app/utils/VerificationContext";
 import { SVGLoader } from "components/SVGLoader";
 import AlertMain from "components/Alert/AlertMain";
+import { useComments } from "app/utils/CommentProvider";
 
 const MapFunnelStages = () => {
   const {
@@ -30,12 +31,18 @@ const MapFunnelStages = () => {
     setCampaignFormData,
   } = useCampaigns();
   const [previousValidationState, setPreviousValidationState] = useState(null);
+  const { setIsDrawerOpen, setClose } = useComments();
   const [isEditing, setIsEditing] = useState(false);
   const [hovered, setHovered] = React.useState<number | null>(null);
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
   const { verifyStep, setHasChanges, hasChanges, setverifybeforeMove } =
     useVerification();
+
+  useEffect(() => {
+    setIsDrawerOpen(false);
+    setClose(false);
+  }, []);
 
   useEffect(() => {
     const isValid =
@@ -149,8 +156,8 @@ const MapFunnelStages = () => {
       setverifybeforeMove((prev: any) =>
         Array.isArray(prev)
           ? prev.map((step: any) =>
-              step.hasOwnProperty("step2") ? { ...step, step2: true } : step
-            )
+            step.hasOwnProperty("step2") ? { ...step, step2: true } : step
+          )
           : prev
       );
     } catch (error) {
@@ -200,11 +207,10 @@ const MapFunnelStages = () => {
       {/* <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
         <button
           className={`cursor-pointer awareness_card_one 
-    ${
-      campaignFormData["funnel_stages"]?.includes("Awareness")
-        ? "awareness_card_one_active"
-        : ""
-    } 
+    ${campaignFormData["funnel_stages"]?.includes("Awareness")
+              ? "awareness_card_one_active"
+              : ""
+            } 
     ${!isEditing ? "" : "cursor-not-allowed"}`}
           onClick={() => {
             if (!isEditing) {
@@ -222,7 +228,7 @@ const MapFunnelStages = () => {
           disabled={!isEditing}
         >
           {campaignFormData["funnel_stages"]?.includes("Awareness") ||
-          hovered === 1 ? (
+            hovered === 1 ? (
             <Image src={speakerWhite} alt="speakerWhite" />
           ) : (
             <Image src={speaker} alt="speaker" />
@@ -232,10 +238,9 @@ const MapFunnelStages = () => {
 
         <button
           className={`cursor-pointer awareness_card_two 
-						${
-              campaignFormData["funnel_stages"]?.includes("Consideration")
-                ? "awareness_card_two_active"
-                : ""
+						${campaignFormData["funnel_stages"]?.includes("Consideration")
+              ? "awareness_card_two_active"
+              : ""
             } 
 						${isEditing ? "" : "cursor-not-allowed"}`}
           onClick={() => handleSelect("Consideration")}
@@ -244,7 +249,7 @@ const MapFunnelStages = () => {
           disabled={!isEditing}
         >
           {campaignFormData["funnel_stages"]?.includes("Consideration") ||
-          hovered === 2 ? (
+            hovered === 2 ? (
             <Image src={zoomWhite} alt="zoomWhite" />
           ) : (
             <Image src={zoom} alt="zoom" />
@@ -254,10 +259,9 @@ const MapFunnelStages = () => {
 
         <button
           className={`cursor-pointer awareness_card_three 
-						${
-              campaignFormData["funnel_stages"]?.includes("Conversion")
-                ? "awareness_card_three_active"
-                : ""
+						${campaignFormData["funnel_stages"]?.includes("Conversion")
+              ? "awareness_card_three_active"
+              : ""
             } 
 						${isEditing ? "" : "cursor-not-allowed"}`}
           onClick={() => handleSelect("Conversion")}
@@ -266,7 +270,7 @@ const MapFunnelStages = () => {
           disabled={!isEditing}
         >
           {campaignFormData["funnel_stages"]?.includes("Conversion") ||
-          hovered === 3 ? (
+            hovered === 3 ? (
             <Image src={creditWhite} alt="creditWhite" />
           ) : (
             <Image src={credit} alt="credit" />
@@ -276,10 +280,9 @@ const MapFunnelStages = () => {
 
         <button
           className={`cursor-pointer awareness_card_four 
-						${
-              campaignFormData["funnel_stages"]?.includes("Loyalty")
-                ? "awareness_card_four_active"
-                : ""
+						${campaignFormData["funnel_stages"]?.includes("Loyalty")
+              ? "awareness_card_four_active"
+              : ""
             } 
 						${isEditing ? "" : "cursor-not-allowed"}`}
           onClick={() => handleSelect("Loyalty")}
@@ -288,7 +291,7 @@ const MapFunnelStages = () => {
           disabled={!isEditing}
         >
           {campaignFormData["funnel_stages"]?.includes("Loyalty") ||
-          hovered === 4 ? (
+            hovered === 4 ? (
             <Image src={addPlusWhite} alt="addPlusWhite" />
           ) : (
             <Image src={addPlus} alt="addPlus" />

@@ -43,7 +43,7 @@ const useCampaignHook = () => {
 
   const fetchClientPOS = async (clientID) => {
     return await axios.get(
-      `${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders?filters[client][$eq]=${clientID}&populate[0]=assigned_media_plans.campaign`,
+      `${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders?filters[client][$eq]=${clientID}&populate[0]=assigned_media_plans.campaign&populate[1]=assigned_media_plans.campaign.media_plan_details&populate[2]=client_responsible&populate[3]=financial_responsible&populate[4]=client`,
       {
         headers: {
           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,

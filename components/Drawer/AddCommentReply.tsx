@@ -6,8 +6,7 @@ import { useAppSelector } from "store/useStore";
 
 const AddCommentReply = ({ documentId, commentId, contrastingColor }) => {
 	const { addReply } = useComments();
-	const { comments } = useComments();
-	// const { data: comments } = useAppSelector((state) => state.comment);
+	const { data: comments } = useAppSelector((state) => state.comment);
 	const [show, setShow] = useState(false);
 
 	// Find the comment by ID and get its replies

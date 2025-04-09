@@ -9,23 +9,22 @@ import { getCreateClient } from "features/Client/clientSlice";
 import { useAppDispatch } from "store/useStore";
 import { SVGLoader } from "components/SVGLoader";
 import Input from "components/Input";
+import SignatureInput from "./SignatureInput";
+import DatePickerInput from "components/DatePickerInput";
 
 const ApproveModel = ({ isOpen, setIsOpen }) => {
   const dispatch = useAppDispatch();
   const [inputs, setInputs] = useState({
     name: "",
-    email: "",
-    responsiblePerson: "",
-    approver: "",
-    sports: [],
-    categories: [],
-    businessUnits: [],
-    feeType: "",
+    date: "",
+    signature: "",
+    initials: ""
   });
   const [emailList, setEmailList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
 
+  console.log("inputs-inputs", inputs);
 
 
   //  Automatically reset alert after showing
@@ -35,38 +34,8 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
       return () => clearTimeout(timer);
     }
   }, [alert]);
-  const handleAddEmail = () => {
-    const trimmedEmail = inputs.email.trim();
 
-    //  Email validation regex
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!trimmedEmail) {
-      setAlert({ variant: "error", message: "Email cannot be empty", position: "bottom-right" });
-      return;
-    }
-
-    if (!emailRegex.test(trimmedEmail)) {
-      setAlert({ variant: "error", message: "Invalid email format", position: "bottom-right" });
-      return;
-    }
-
-    if (emailList.includes(trimmedEmail)) {
-      setAlert({ variant: "warning", message: "Email already exists", position: "bottom-right" });
-      return;
-    }
-
-    if (emailList.length >= 5) {
-      setAlert({ variant: "warning", message: "Maximum 5 emails allowed", position: "bottom-right" });
-      return;
-    }
-
-    setEmailList([...emailList, trimmedEmail]);
-    setInputs((prevState) => ({
-      ...prevState,
-      email: "",
-    }));
-  };
 
 
 
@@ -133,7 +102,7 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
               <div className="flex items-start gap-3 mb-5">
                 <div className="flex flex-col w-full">
                   <label className="w-[124px] h-[19px]   text-[14px] leading-[19px] text-[#061237]  " htmlFor="custom-textarea">
-                   Enter Full Name
+                    Enter Full Name
                   </label>
                   <Input
                     type="text"
@@ -149,10 +118,10 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
                       <label className="w-[124px] h-[19px]   text-[14px] leading-[19px] text-[#061237]  " htmlFor="custom-textarea">
                         Enter date
                       </label>
-                      <Input
-                        type="email"
-                        value={inputs.email}
-                        handleOnChange={(e) => handleOnChange("email", e.target.value)}
+                      <DatePickerInput
+                        type="date"
+                        value={inputs.date}
+                        handleOnChange={(e) => handleOnChange("date", e.target.value)}
                         label=""
                         placeholder=""
                       />
@@ -187,13 +156,13 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
 
               <div className="mb-5">
                 <div className="flex flex-col w-full">
-                  <label className="w-[124px] h-[19px]   text-[14px] leading-[19px] text-[#061237]  " htmlFor="custom-textarea">
+                  <label className="w-[124px] h-[19px] text-[14px] leading-[19px] text-[#061237]  " htmlFor="custom-textarea">
                     Enter Initials
                   </label>
                   <Input
-                    type="email"
-                    value={inputs.email}
-                    handleOnChange={(e) => handleOnChange("email", e.target.value)}
+                    type="initials"
+                    value={inputs.initials}
+                    handleOnChange={(e) => handleOnChange("initials", e.target.value)}
                     label=""
                     placeholder=""
                   />
@@ -202,6 +171,15 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
 
               <div className="shrink-0 flex items-center w-full gap-3 mb-5">
                 <div className="flex flex-col w-full">
+                  <label className="w-[124px] h-[19px] text-[14px] leading-[19px] text-[#061237]  " htmlFor="custom-textarea">
+                    Signature
+                  </label>
+                  <SignatureInput
+                    value={inputs.signature}
+                    onChange={(val) => setInputs({ ...inputs, signature: val })}
+                  />
+                </div>
+                {/* <div className="flex flex-col w-full">
                   <label className="w-[124px] h-[19px]   text-[14px] leading-[19px] text-[#061237]  " htmlFor="custom-textarea">
                    Upload Signature
                   </label>
@@ -212,15 +190,14 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
                     label=""
                     placeholder=""
                   />
-                </div>
-                <button
+                </div> */}
+                {/* <button
                   className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px]   text-white mt-[12px]"
                   onClick={handleAddEmail}>
                   Add
-                </button>
+                </button> */}
               </div>
             </div>
-
             {/* Footer  */}
             <div className="p-6 border-t bg-white sticky bottom-0 z-10 flex justify-end rounded-b-[32px]">
               <div className="flex items-center gap-5">

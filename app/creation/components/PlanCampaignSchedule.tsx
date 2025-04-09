@@ -12,11 +12,13 @@ import { SVGLoader } from "../../../components/SVGLoader";
 import { useRouter } from "next/router";
 import { useSearchParams } from "next/navigation";
 import { useVerification } from "app/utils/VerificationContext";
+import { useComments } from "app/utils/CommentProvider";
 
 const PlanCampaignSchedule: React.FC = () => {
 	const searchParams = useSearchParams();
 	const campaignId = searchParams.get("campaignId");
 	const [isEditing, setIsEditing] = useState(false);
+	const { setIsDrawerOpen, setClose } = useComments();
 	const [loading, setLoading] = useState(false);
 	const { selectedDates } = useSelectedDates();
 	const [alert, setAlert] = useState<{ variant: string; message: string; position: string } | null>(null);
@@ -27,8 +29,11 @@ const PlanCampaignSchedule: React.FC = () => {
 		getActiveCampaign,
 	} = useCampaigns();
 	const { setHasChanges, hasChanges } = useVerification();
+	useEffect(() => {
+		setIsDrawerOpen(false);
+		setClose(false);
+	}, []);
 
- 
 
 	useEffect(() => {
 		if (campaignId) {
