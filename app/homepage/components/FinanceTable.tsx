@@ -7,7 +7,16 @@ import useCampaignHook from "app/utils/useCampaignHook";
 import { NoRecordFound, SVGLoaderFetch } from "components/Options";
 import { getCurrencySymbol } from "components/data";
 
-function FinanceTable() {
+function FinanceTable({
+  selectedRow,
+  setSelectedRow,
+  openEdit,
+  setOpenEdit,
+  openDelete,
+  setOpenDelete,
+  openView,
+  setOpenView,
+}) {
   const [expanded, setExpanded] = useState("");
   const { clientPOs, fetchingPO, clientCampaignData, loading } = useCampaigns();
   const [expandedPO, setExpandedPO] = useState(null);
@@ -20,7 +29,7 @@ function FinanceTable() {
     <table>
       <thead>
         <tr>
-          <th className="py-[12px] px-[16px]">PO Name</th>
+          <th className="py-[12px] px-[16px]">PO Number</th>
           <th className="py-[12px] px-[16px]">Total Budget</th>
           <th className="py-[12px] px-[16px]">Assigned Budget</th>
           <th className="py-[12px] px-[16px]">Assigned Media Plan</th>
@@ -99,14 +108,20 @@ function FinanceTable() {
                     <span className="text-green-600">Open</span>
                   </td>
                   <td className="py-[12px] px-[16px]">
-                    <div className="flex space-x-2">
+                    <div
+                      className="flex space-x-2"
+                      onClick={() => setSelectedRow(po)}
+                    >
                       <button className="text-gray-500 hover:text-gray-700">
-                        <Edit size={18} />
+                        <Edit size={18} onClick={() => setOpenEdit(true)} />
                       </button>
                       <button className="text-gray-500 hover:text-gray-700">
                         <Eye size={18} />
                       </button>
-                      <button className="text-gray-500 hover:text-gray-700">
+                      <button
+                        className="text-gray-500 hover:text-gray-700"
+                        onClick={() => setOpenDelete(true)}
+                      >
                         <Trash size={18} />
                       </button>
                     </div>
