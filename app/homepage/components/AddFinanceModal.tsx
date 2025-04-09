@@ -348,6 +348,7 @@ const AddFinanceModal = ({
                               }));
                             }
                           }}
+                          isDisabled={mode === "edit"}
                         />
                       </>
                     )
@@ -425,6 +426,7 @@ const AddFinanceModal = ({
                         PO_number: Number(value),
                       }));
                     }}
+                    disabled={mode === "edit"}
                   />
                 </div>
                 <div className="w-1/2">
