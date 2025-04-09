@@ -182,13 +182,20 @@ const MapFunnelStages = () => {
           // t2={`This option is available only if you've selected any of the following main objectives:`}
           // t3={"Traffic, Purchase, Lead Generation, or App Install."}
         />
-
       </div>
       <div className="mt-[56px] grid grid-cols-3 gap-[32px]">
         <div className="bg-blue-500 rounded-md p-[14px]">
-
+          <p className="text-center text-white font-semibold mb-[20px]">Conversion Funnel</p>
+          <Image src="" alt="" className="w-full h-[100px]"/>
         </div>
-
+        <div className="bg-blue-500 rounded-md p-[14px]">
+          <p className="text-center text-white font-semibold mb-[20px]">Targeting - Retargeting</p>
+          <Image src="" alt="" className="w-full h-[100px]"/>
+        </div>
+        <div className="bg-blue-500 rounded-md p-[14px]">
+          <p className="text-center text-white font-semibold mb-[20px]">Custom</p>
+          <Image src="" alt="" className="w-full h-[100px]"/>
+        </div>
       </div>
       {/* <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
         <button
