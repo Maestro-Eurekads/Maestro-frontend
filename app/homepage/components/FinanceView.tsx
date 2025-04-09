@@ -78,6 +78,7 @@ function FinanceView({ setOpenModal }) {
         setIsOpen={setOpenEdit}
         mode="edit"
         selectedRow={selectedRow}
+        setSelectedRow={setSelectedRow}
       />
       <Modal isOpen={openDelete} onClose={() => setOpenDelete(false)}>
         <div className="bg-white shadow-md rounded-md p-4 w-[500px]">

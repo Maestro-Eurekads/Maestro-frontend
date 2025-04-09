@@ -21,11 +21,13 @@ const AddFinanceModal = ({
   setIsOpen,
   mode,
   selectedRow,
+  setSelectedRow
 }: {
   isOpen: boolean;
   setIsOpen: any;
   mode?: string;
   selectedRow?: any;
+  setSelectedRow?:any
 }) => {
   const [mediaPlans, setMediaPlans] = useState([]);
   const { fetchClientCampaign, fetchUserByType, fetchClientPOS } =
@@ -81,6 +83,7 @@ const AddFinanceModal = ({
     setIsOpen(false);
     setClientCampaigns([]);
     setMediaPlans([]);
+    setSelectedRow({})
   };
 
   useEffect(() => {
