@@ -134,15 +134,27 @@ const MapFunnelStages = () => {
 
   useEffect(() => {
     if (selectedOption) {
-      setCampaignFormData((prev) => ({
-        ...prev,
-        funnel_type: selectedOption,
-        // When switching to custom, ensure custom_funnels is set
-        ...(selectedOption === "custom" ? { custom_funnels: customFunnels } : {}),
-      }))
+      if (selectedOption === "targeting_retargeting") {
+        // Automatically set funnel stages to Targeting and Retargeting
+        setCampaignFormData((prev) => ({
+          ...prev,
+          funnel_type: selectedOption,
+          funnel_stages: ["Targeting", "Retargeting"],
+          // Update channel_mix to include both funnel stages
+          channel_mix: [{ funnel_stage: "Targeting" }, { funnel_stage: "Retargeting" }],
+        }))
+      } else {
+        // For custom option
+        setCampaignFormData((prev) => ({
+          ...prev,
+          funnel_type: selectedOption,
+          // When switching to custom, ensure custom_funnels is set
+          ...(selectedOption === "custom" ? { custom_funnels: customFunnels } : {}),
+        }))
+      }
       setHasChanges(true)
     }
-  }, [selectedOption])
+  }, [selectedOption, customFunnels])
 
   // Close modal when clicking outside
   const modalRef = React.useRef<HTMLDivElement>(null)
