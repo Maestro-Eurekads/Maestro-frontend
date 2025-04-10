@@ -10,7 +10,10 @@ import Checkbox from "../../../components/Checkbox";
 import { removeKeysRecursively } from "utils/removeID";
 import AlertMain from "components/Alert/AlertMain";
 import { SVGLoader } from "components/SVGLoader";
-import { useVerification, validationRules } from "app/utils/VerificationContext";
+import {
+  useVerification,
+  validationRules,
+} from "app/utils/VerificationContext";
 import ClientSelectionInputbudget from "components/ClientSelectionInputbudget";
 import { useComments } from "app/utils/CommentProvider";
 
@@ -39,7 +42,13 @@ export const SetupScreen = () => {
   const [loading, setLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const { setIsDrawerOpen, setClose } = useComments();
-  const { verifyStep, verifybeforeMove, setverifybeforeMove, setHasChanges, hasChanges } = useVerification();
+  const {
+    verifyStep,
+    verifybeforeMove,
+    setverifybeforeMove,
+    setHasChanges,
+    hasChanges,
+  } = useVerification();
 
   useEffect(() => {
     setIsDrawerOpen(false);
@@ -105,7 +114,9 @@ export const SetupScreen = () => {
   useEffect(() => {
     if (!allClients || !client_selection) return;
 
-    const client = allClients.find((c) => c?.documentId === client_selection?.id);
+    const client = allClients.find(
+      (c) => c?.documentId === client_selection?.id
+    );
     setlevel1Options(() => {
       const options = client?.level_1?.map((l) => ({
         value: l,
@@ -155,7 +166,11 @@ export const SetupScreen = () => {
     { value: "British Pound (GBP)", label: "British Pound (GBP)", sign: "£" },
     { value: "Nigerian Naira (NGN)", label: "Nigerian Naira (NGN)", sign: "₦" },
     { value: "Japanese Yen (JPY)", label: "Japanese Yen (JPY)", sign: "¥" },
-    { value: "Canadian Dollar (CAD)", label: "Canadian Dollar (CAD)", sign: "C$" },
+    {
+      value: "Canadian Dollar (CAD)",
+      label: "Canadian Dollar (CAD)",
+      sign: "C$",
+    },
   ];
 
   const mediaBudgetPercentage = [
@@ -170,10 +185,16 @@ export const SetupScreen = () => {
         (c) => c.value === campaignFormData.budget_details_currency.id
       );
       if (currency) {
-        if (campaignFormData?.budget_details_fee_type?.id === "Fix budget fee") {
+        if (
+          campaignFormData?.budget_details_fee_type?.id === "Fix budget fee"
+        ) {
           setCurrencySign(currency.sign); // Currency symbol for Fix budget fee
-        } else if (campaignFormData?.budget_details_fee_type?.id === "Tooling") {
-          setCurrencySign(selectedOption === "percentage" ? "%" : currency.sign); // % for percentage, currency for fix-amount
+        } else if (
+          campaignFormData?.budget_details_fee_type?.id === "Tooling"
+        ) {
+          setCurrencySign(
+            selectedOption === "percentage" ? "%" : currency.sign
+          ); // % for percentage, currency for fix-amount
         }
       }
     }
@@ -205,7 +226,13 @@ export const SetupScreen = () => {
 
       if (cId && campaignData) {
         const updatedData = {
-          ...removeKeysRecursively(campaignData, ["id", "documentId", "createdAt", "publishedAt", "updatedAt"]),
+          ...removeKeysRecursively(campaignData, [
+            "id",
+            "documentId",
+            "createdAt",
+            "publishedAt",
+            "updatedAt",
+          ]),
           client: campaignFormData?.client_selection?.id,
           client_selection: {
             client: campaignFormData?.client_selection?.value,
@@ -216,7 +243,7 @@ export const SetupScreen = () => {
           media_plan_details: {
             plan_name: campaignFormData?.media_plan,
             internal_approver: campaignFormData?.approver,
-            client_approver: campaignFormData?.client_approver
+            client_approver: campaignFormData?.client_approver,
           },
           budget_details: budgetDetails,
         };
@@ -228,11 +255,17 @@ export const SetupScreen = () => {
           budget_details_currency: {
             id: budgetDetails.currency,
             value: budgetDetails.currency,
-            label: selectCurrency.find((c) => c.value === budgetDetails.currency)?.label || budgetDetails.currency,
+            label:
+              selectCurrency.find((c) => c.value === budgetDetails.currency)
+                ?.label || budgetDetails.currency,
           },
         }));
 
-        setAlert({ variant: "success", message: "Campaign updated successfully!", position: "bottom-right" });
+        setAlert({
+          variant: "success",
+          message: "Campaign updated successfully!",
+          position: "bottom-right",
+        });
       } else {
         const res = await createCampaign();
         const url = new URL(window.location.href);
@@ -245,15 +278,25 @@ export const SetupScreen = () => {
           budget_details_currency: {
             id: budgetDetails.currency,
             value: budgetDetails.currency,
-            label: selectCurrency.find((c) => c.value === budgetDetails.currency)?.label || budgetDetails.currency,
+            label:
+              selectCurrency.find((c) => c.value === budgetDetails.currency)
+                ?.label || budgetDetails.currency,
           },
         }));
 
-        setAlert({ variant: "success", message: "Campaign created successfully!", position: "bottom-right" });
+        setAlert({
+          variant: "success",
+          message: "Campaign created successfully!",
+          position: "bottom-right",
+        });
       }
       setHasChanges(false);
     } catch (error) {
-      setAlert({ variant: "error", message: "Something went wrong. Please try again.", position: "bottom-right" });
+      setAlert({
+        variant: "error",
+        message: "Something went wrong. Please try again.",
+        position: "bottom-right",
+      });
     } finally {
       setLoading(false);
     }
@@ -271,14 +314,14 @@ export const SetupScreen = () => {
         campaignFormData?.client_selection?.value,
         campaignFormData?.media_plan,
         campaignFormData?.approver,
-        campaignFormData?.client_approver
+        campaignFormData?.client_approver,
       ];
     } else {
       fields = [
         campaignFormData?.client_selection?.value,
         campaignFormData?.media_plan,
         campaignFormData?.approver,
-        campaignFormData?.client_approver
+        campaignFormData?.client_approver,
       ];
     }
 
@@ -291,9 +334,7 @@ export const SetupScreen = () => {
 
   return (
     <div>
-      <PageHeaderWrapper
-        t1={"Set up your new campaign"}
-      />
+      <PageHeaderWrapper t1={"Set up your new campaign"} />
 
       {alert && <AlertMain alert={alert} />}
       <div className="mt-[42px]">
@@ -308,20 +349,26 @@ export const SetupScreen = () => {
         </div>
         <div className="flex items-center flex-wrap gap-4 pb-12">
           <ClientSelection
-            options={level1Options}
-            label={"Business Level 1"}
+            options={level1Options?.slice(1)}
+            label={
+              level1Options?.length > 0 ? level1Options[0]?.label : "Business Level 1"
+            }
             formId="level_1"
             setHasChanges={setHasChanges}
           />
           <ClientSelection
-            options={level2Options}
-            label={"Business Level 2"}
+            options={level2Options?.slice(1)}
+            label={
+              level2Options?.length > 0 ? level2Options[0]?.label : "Business Level 2"
+            }
             formId="level_2"
             setHasChanges={setHasChanges}
           />
           <ClientSelection
-            options={level3Options}
-            label={"Business Level 3"}
+            options={level3Options?.slice(1)}
+            label={
+              level3Options?.length > 0 ? level3Options[0]?.label : "Business Level 3"
+            }
             formId="level_3"
             setHasChanges={setHasChanges}
           />
@@ -336,10 +383,14 @@ export const SetupScreen = () => {
             />
             <ClientSelectionInput
               label={"Internal Approver"}
-              formId="approver" setHasChanges={setHasChanges} />
+              formId="approver"
+              setHasChanges={setHasChanges}
+            />
             <ClientSelectionInput
               label={"Client Approver"}
-              formId="client_approver" setHasChanges={setHasChanges} />
+              formId="client_approver"
+              setHasChanges={setHasChanges}
+            />
           </div>
         </div>
         {/* <div className="pb-1">
@@ -405,7 +456,11 @@ export const SetupScreen = () => {
             onClick={handleStepZero}
             className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg text-white font-semibold text-base leading-6 transition-colors bg-[#3175FF] hover:bg-[#2557D6]"
           >
-            {loading ? <SVGLoader width="30px" height="30px" color="#FFF" /> : "Validate"}
+            {loading ? (
+              <SVGLoader width="30px" height="30px" color="#FFF" />
+            ) : (
+              "Validate"
+            )}
           </button>
         </div>
       )}

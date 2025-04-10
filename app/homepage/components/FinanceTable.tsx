@@ -105,7 +105,7 @@ function FinanceTable({
                     {availableBudget?.toLocaleString()}
                   </td>
                   <td className="py-[12px] px-[16px]">
-                    <span className="text-green-600 capitalize">{po?.PO_status?.replace("_", " ")}</span>
+                    <span className={`${po?.PO_status === "open" ? "text-blue-400" : po?.PO_status === "partially_paid" ? "text-orange-400" : "text-green-400"} capitalize`}>{po?.PO_status?.replace("_", " ")}</span>
                   </td>
                   <td className="py-[12px] px-[16px]">
                     <div
@@ -115,9 +115,9 @@ function FinanceTable({
                       <button className="text-gray-500 hover:text-gray-700">
                         <Edit size={18} onClick={() => setOpenEdit(true)} />
                       </button>
-                      <button className="text-gray-500 hover:text-gray-700">
+                      {/* <button className="text-gray-500 hover:text-gray-700">
                         <Eye size={18} />
-                      </button>
+                      </button> */}
                       <button
                         className="text-gray-500 hover:text-gray-700"
                         onClick={() => setOpenDelete(true)}

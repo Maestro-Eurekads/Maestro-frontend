@@ -66,6 +66,7 @@ const MapFunnelStages = () => {
     }
   }, [alert]);
 
+
   const handleSelect = (id: string) => {
     if (!isEditing) return;
     setHasChanges(true);
@@ -84,6 +85,7 @@ const MapFunnelStages = () => {
 
     setCampaignFormData(updatedFunnels);
   };
+
 
   // const handleSelect = (id: string) => {
   //   if (!isEditing) return;
@@ -178,9 +180,9 @@ const MapFunnelStages = () => {
   };
 
   const handleEditing = () => {
-    setIsEditing(true);
-    setHasChanges(true);
-  };
+    setIsEditing(true)
+    setHasChanges(true)
+  }
 
   return (
     <div>
@@ -190,9 +192,18 @@ const MapFunnelStages = () => {
           t1={
             "How many funnel stage(s) would you like to activate to achieve your objective ?"
           }
-          // t2={`This option is available only if you've selected any of the following main objectives:`}
-          // t3={"Traffic, Purchase, Lead Generation, or App Install."}
+          t2={`This option is available only if you've selected any of the following main objectives:`}
+          t3={"Traffic, Purchase, Lead Generation, or App Install."}
         />
+
+        {isEditing ? null : (
+          <button
+            className="model_button_blue"
+            onClick={handleEditing}
+          >
+            Edit
+          </button>
+        )}
       </div>
       <div className="mt-[56px] flex  items-center gap-[32px]">
         {[
