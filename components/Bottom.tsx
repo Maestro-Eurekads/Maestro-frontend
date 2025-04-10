@@ -20,7 +20,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const { verifybeforeMove, hasChanges } = useVerification();
   const { active, setActive, subStep, setSubStep } = useActive();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
-  const [setupyournewcampaignError, setSetupyournewcampaignError] = useState(false);
+  const [setupyournewcampaignError, setSetupyournewcampaignError] =
+    useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
   const [selectedDatesError, setSelectedDatesError] = useState(false);
   const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
@@ -29,7 +30,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [validateStep, setValidateStep] = useState(false);
   const { selectedDates } = useSelectedDates();
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
-  const [triggerBuyObjectiveError, setTriggerBuyObjectiveError] = useState(false);
+  const [triggerBuyObjectiveError, setTriggerBuyObjectiveError] =
+    useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
@@ -52,7 +54,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   useEffect(() => {
     if (typeof window !== "undefined" && cId) {
-      localStorage.setItem(`triggerFormatError_${cId}`, triggerFormatError.toString());
+      localStorage.setItem(
+        `triggerFormatError_${cId}`,
+        triggerFormatError.toString()
+      );
     }
   }, [triggerFormatError, cId]);
 
@@ -169,7 +174,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         campaignFormData?.client_selection?.value,
         campaignFormData?.media_plan,
         campaignFormData?.approver,
-        campaignFormData?.client_approver,
+        campaignFormData?.client_approver
       ];
 
       if (!requiredFields.every((field) => field)) {
@@ -188,6 +193,21 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
+    // if (active === 1) {
+    //   if (campaignFormData?.campaign_objective?.length === 0) {
+    //     setAlert({
+    //       variant: "error",
+    //       message: "Please define a campaign objective before proceeding!",
+    //       position: "bottom-right",
+    //     });
+    //     hasError = true;
+    //   }
+    //   if (hasChanges) {
+    //     setValidateStep(true);
+    //     hasError = true;
+    //   }
+    // }
+
     if (active === 1) {
       if (
         !campaignFormData?.funnel_stages ||
@@ -201,6 +221,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         });
         hasError = true;
       }
+
+      // if (hasChanges) {
+      //   setValidateStep(true);
+      //   hasError = true;
+      // }
     }
 
     if (active === 2) {
@@ -326,51 +351,18 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       : {};
 
     const handleStepTwo = async () => {
-      if (!campaignData || !cId) {
-        setAlert({
-          variant: "error",
-          message: "Campaign data or ID is missing. Please try again.",
-          position: "bottom-right",
-        });
-        throw new Error("Missing campaignData or cId");
-      }
-
-      if (!campaignFormData?.funnel_stages || campaignFormData.funnel_stages.length === 0) {
-        setTriggerFunnelError(true);
-        setAlert({
-          variant: "error",
-          message: "No funnel stages selected. Please select at least one.",
-          position: "bottom-right",
-        });
-        throw new Error("Funnel stages are empty");
-      }
-
-      const dataToSave = {
+      if (!campaignData || !cId) return;
+      await updateCampaignData({
         ...cleanData,
-        funnel_stages: campaignFormData.funnel_stages,
-        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix || [], [
+        funnel_stages: campaignFormData?.funnel_stages,
+        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
           "isValidated",
           "formatValidated",
         ]),
-        custom_funnels: campaignFormData?.custom_funnels || [],
-        funnel_type: campaignFormData?.funnel_type || "targeting_retargeting",
-      };
-
-      console.log("handleStepTwo: Saving data:", JSON.stringify(dataToSave, null, 2));
-
-      try {
-        await updateCampaignData(dataToSave);
-        console.log("handleStepTwo: Campaign data saved successfully");
-      } catch (error) {
-        console.error("handleStepTwo: Failed to save campaign data:", error);
-        setAlert({
-          variant: "error",
-          message: "Failed to save funnel stages. Please check your connection and try again.",
-          position: "bottom-right",
-        });
-        throw error; // Re-throw to prevent navigation
-      }
+        custom_funnels: campaignFormData?.custom_funnels,
+        funnel_type: campaignFormData?.funnel_type,
+      });
     };
 
     const handleStepThree = async () => {
@@ -438,7 +430,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     };
 
     try {
-      console.log("handleContinue: Current active:", active);
       if (active === 1) {
         await handleStepTwo();
       } else if (active === 2) {
@@ -467,10 +458,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           ? setSubStep((prev) => prev + 1)
           : setActive((prev) => prev + 1);
       } else {
-        setActive((prev) => {
-          console.log("Setting active to:", prev + 1);
-          return Math.min(9, prev + 1);
-        });
+        setActive((prev) => Math.min(9, prev + 1));
       }
     } catch (error) {
       console.error("Error in handleContinue:", error);
