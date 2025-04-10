@@ -188,10 +188,11 @@ const Table = () => {
                     }}
                     className="cursor-pointer"
                   >
-                    <td className="whitespace-nowrap py-[12px] px-[16px]">
+                    <td className="whitespace-normal py-[12px] px-[16px] break-words w-[200px]">
                       {data?.media_plan_details?.plan_name} -{" "}
                       {data?.progress_percent < 100 ? "Running" : "Completed"}
                     </td>
+
                     <td className="py-[12px] px-[16px]">V9</td>
                     <td className="py-[12px] px-[16px]">
                       <ProgressBar progress={data?.progress_percent || 0} />
