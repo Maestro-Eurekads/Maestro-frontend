@@ -28,8 +28,8 @@ const Creation = () => {
         {/* {active === 1 && <DefineCampaignObjective />} */}
         {active === 1 && <MapFunnelStages />}
         {active === 2 && <SelectChannelMix />}
-        {active === 3 && <FormatSelection />}
-        {active === 4 && <SetBuyObjectivesAndTypes />}
+        {active === 3 && <SetBuyObjectivesAndTypes />}
+        {active === 4 && <FormatSelection />}
         {active === 5 && <SetBuyObjectivesAndTypesSubStep />}
 
 

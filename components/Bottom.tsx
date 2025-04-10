@@ -365,7 +365,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       });
     };
 
-    const handleStepThree = async () => {
+    const handleStepFour = async () => {
       if (!campaignData || !cId) return;
       await updateCampaignData({
         ...cleanData,
@@ -376,7 +376,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       });
     };
 
-    const handleStepFour = async () => {
+    const handleStepThree = async () => {
       if (!campaignData || !cId) return;
       await updateCampaignData({
         ...cleanData,

@@ -97,8 +97,8 @@ const SideNav: React.FC = () => {
       vl_active: "vl_active",
       state_text: "SideBar_Menu_state",
       sidecircle: "SideBar_Menu_active",
-      title: "Formats selection",
-      img: <Image src={devicefill} alt="devicefill" />
+      title: "Set buy objectives and types",
+      img: <Image src={basket} alt="basket" />
     },
     {
       vl: "vl",
@@ -106,8 +106,8 @@ const SideNav: React.FC = () => {
       vl_active: "vl_active",
       state_text: "SideBar_Menu_state",
       sidecircle: "SideBar_Menu_active",
-      title: "Set buy objectives and types",
-      img: <Image src={basket} alt="basket" />
+      title: "Formats selection",
+      img: <Image src={devicefill} alt="devicefill" />
     },
     {
       vl: "vls",
