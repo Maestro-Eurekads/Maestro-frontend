@@ -422,7 +422,7 @@ const MapFunnelStages = () => {
           </label>
         ))}
       </div>
-      {selectedOption === "targeting_retargeting" ? null : (
+      {selectedOption === "targeting_retargeting" ? null : selectedOption === "custom" && (
         <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
           {customFunnels.map((funnel, index) => (
             <div key={funnel.id} className="relative w-full max-w-[685px]">

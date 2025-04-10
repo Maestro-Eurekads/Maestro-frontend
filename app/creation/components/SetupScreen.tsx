@@ -315,6 +315,9 @@ export const SetupScreen = () => {
         campaignFormData?.media_plan,
         campaignFormData?.approver,
         campaignFormData?.client_approver,
+        campaignFormData?.level_1?.id,
+        campaignFormData?.level_2?.id,
+        campaignFormData?.level_3?.id
       ];
     } else {
       fields = [
@@ -322,6 +325,9 @@ export const SetupScreen = () => {
         campaignFormData?.media_plan,
         campaignFormData?.approver,
         campaignFormData?.client_approver,
+        campaignFormData?.level_1?.id,
+        campaignFormData?.level_2?.id,
+        campaignFormData?.level_3?.id
       ];
     }
 
