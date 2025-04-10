@@ -11,17 +11,11 @@ import zoomWhite from "../../../public/tabler_zoom-filledwhite.svg";
 import speakerWhite from "../../../public/mdi_megaphonewhite.svg";
 import addPlusWhite from "../../../public/addPlusWhite.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
-import { useObjectives } from "../../utils/useObjectives";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import { removeKeysRecursively } from "utils/removeID";
-import {
-  useVerification,
-  validationRules,
-} from "app/utils/VerificationContext";
-import { SVGLoader } from "components/SVGLoader";
-import AlertMain from "components/Alert/AlertMain";
+import { useVerification } from "app/utils/VerificationContext";
 import { useComments } from "app/utils/CommentProvider";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, Edit2, Trash2, X } from "lucide-react";
 
 const MapFunnelStages = () => {
   const {
@@ -42,6 +36,45 @@ const MapFunnelStages = () => {
   const [selectedOption, setSelectedOption] = useState<string | null>(
     "targeting_retargeting"
   );
+
+  // Add these state variables
+  const [customFunnels, setCustomFunnels] = useState([
+    {
+      id: "Awareness",
+      name: "Awareness",
+      icon: speaker,
+      activeIcon: speakerWhite,
+      color: "bg-blue-500",
+    },
+    {
+      id: "Consideration",
+      name: "Consideration",
+      icon: zoom,
+      activeIcon: zoomWhite,
+      color: "bg-green-500",
+    },
+    {
+      id: "Conversion",
+      name: "Conversion",
+      icon: credit,
+      activeIcon: creditWhite,
+      color: "bg-orange-500 border border-orange-500",
+    },
+    {
+      id: "Loyalty",
+      name: "Loyalty",
+      icon: addPlus,
+      activeIcon: addPlusWhite,
+      color: "bg-red-500 border border-red-500",
+    },
+  ]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"add" | "edit">("add");
+  const [currentFunnel, setCurrentFunnel] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [newFunnelName, setNewFunnelName] = useState("");
 
   useEffect(() => {
     setIsDrawerOpen(false);
@@ -66,9 +99,12 @@ const MapFunnelStages = () => {
     }
   }, [alert]);
 
+  useEffect(()=>{
+
+  })
 
   const handleSelect = (id: string) => {
-    if (!isEditing) return;
+    // if (!isEditing) return;
     setHasChanges(true);
 
     const updatedFunnels = {
@@ -87,102 +123,49 @@ const MapFunnelStages = () => {
   };
 
 
-  // const handleSelect = (id: string) => {
-  //   if (!isEditing) return;
-  //   setHasChanges(true);
 
-  //   const updatedFunnels = campaignFormData?.funnel_stages.includes(id)
-  //     ? {
-  //       ...campaignFormData,
-  //       funnel_stages: campaignFormData.funnel_stages.filter(
-  //         (name: string) => name !== id
-  //       ),
-  //       channel_mix: campaignFormData?.channel_mix?.filter(
-  //         (ch) => ch?.funnel_stage !== id
-  //       ),
-  //     }
-  //     : {
-  //       ...campaignFormData,
-  //       funnel_stages: [...campaignFormData.funnel_stages, id],
-  //       channel_mix: [
-  //         ...campaignFormData?.channel_mix,
-  //         {
-  //           funnel_stage: id,
-  //         },
-  //       ],
-  //     };
-  //   setCampaignFormData(updatedFunnels);
-  // };
+  useEffect(() => {
+    // Set initial selected option
+    setSelectedOption(campaignData?.funnel_type || "targeting_retargeting");
 
-  const handleStepTwo = async () => {
-    setLoading(true);
-    try {
-      if (
-        !Array.isArray(campaignFormData?.funnel_stages) ||
-        campaignFormData.funnel_stages.length === 0
-      ) {
-        setAlert({
-          variant: "error",
-          message: "Please select at least one funnel stage before proceeding.",
-          position: "bottom-right",
-        });
-        setLoading(false);
-        return;
-      }
-
-      const cleanData = removeKeysRecursively(campaignData, [
-        "id",
-        "documentId",
-        "createdAt",
-        "publishedAt",
-        "updatedAt",
-      ]);
-      if (cId && campaignData) {
-        await updateCampaign({
-          ...cleanData,
-          funnel_stages: campaignFormData?.funnel_stages,
-        });
-
-        setAlert({
-          variant: "success",
-          message: "Funnel Stages updated successfully!",
-          position: "bottom-right",
-        });
-      } else {
-        const url = new URL(window.location.href);
-        window.history.pushState({}, "", url.toString());
-        setAlert({
-          variant: "success",
-          message: "Funnel Stages created successfully!",
-          position: "bottom-right",
-        });
-      }
-      setHasChanges(false);
-      setIsEditing(false);
-      setverifybeforeMove((prev: any) =>
-        Array.isArray(prev)
-          ? prev.map((step: any) =>
-              step.hasOwnProperty("step2") ? { ...step, step2: true } : step
-            )
-          : prev
-      );
-    } catch (error) {
-      const errors: any =
-        error.response?.data?.error?.details?.errors ||
-        error.response?.data?.error?.message ||
-        error.message ||
-        [];
-      console.error("Error in handleStepTwo:", error);
-      setAlert({ variant: "error", message: errors, position: "bottom-right" });
-    } finally {
-      setLoading(false);
+    // Initialize custom funnels if they exist in campaignData
+    if (
+      campaignData?.custom_funnels &&
+      campaignData.custom_funnels.length > 0
+    ) {
+      setCustomFunnels(campaignData.custom_funnels);
     }
-  };
+  }, [campaignData]);
 
-  const handleEditing = () => {
-    setIsEditing(true)
-    setHasChanges(true)
-  }
+  useEffect(() => {
+    if (selectedOption) {
+      setCampaignFormData((prev) => ({
+        ...prev,
+        funnel_type: selectedOption,
+      }));
+      setHasChanges(true);
+    }
+  }, [selectedOption]);
+
+  // Close modal when clicking outside
+  const modalRef = React.useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
+        setIsModalOpen(false);
+      }
+    }
+
+    if (isModalOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isModalOpen]);
 
   return (
     <div>
@@ -195,15 +178,6 @@ const MapFunnelStages = () => {
           t2={`This option is available only if you've selected any of the following main objectives:`}
           t3={"Traffic, Purchase, Lead Generation, or App Install."}
         />
-
-        {isEditing ? null : (
-          <button
-            className="model_button_blue"
-            onClick={handleEditing}
-          >
-            Edit
-          </button>
-        )}
       </div>
       <div className="mt-[56px] flex  items-center gap-[32px]">
         {[
@@ -226,160 +200,212 @@ const MapFunnelStages = () => {
           </label>
         ))}
       </div>
-      {selectedOption === "targeting_retargeting" ? (
+      {selectedOption === "targeting_retargeting" ? null : (
         <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
-          <button
-            className={`cursor-pointer awareness_card_one ${
-              campaignFormData["funnel_stages"]?.includes("Targeting")
-                ? "awareness_card_one_active"
-                : ""
-            } `}
-            onClick={() => {
-              handleSelect("Targeting");
-            }}
-            onMouseEnter={() => setHovered(1)}
-            onMouseLeave={() => setHovered(null)}
-            disabled={!isEditing}
-          >
-            {campaignFormData["funnel_stages"]?.includes("Targeting") ||
-            hovered === 1 ? (
-              <Image src={speakerWhite} alt="speakerWhite" />
-            ) : (
-              <Image src={speaker} alt="speaker" />
-            )}
-            <p>Targeting</p>
-          </button>
-          <button
-            className={`cursor-pointer awareness_card_two 
-    ${
-      campaignFormData["funnel_stages"]?.includes("Retargeting")
-        ? "awareness_card_two_active"
-        : ""
-    } `}
-            onClick={() => {
-              handleSelect("Retargeting");
-            }}
-            onMouseEnter={() => setHovered(2)}
-            onMouseLeave={() => setHovered(null)}
-            disabled={!isEditing}
-          >
-            {campaignFormData["funnel_stages"]?.includes("Retargeting") ||
-            hovered === 2 ? (
-              <Image src={zoomWhite} alt="zoomWhite" />
-            ) : (
-              <Image src={zoom} alt="zoom" />
-            )}
-            <p>Retargeting</p>
-          </button>
-        </div>
-      ) : (
-        <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
-          <button
-            className={`cursor-pointer awareness_card_one 
-    ${
-      campaignFormData["funnel_stages"]?.includes("Awareness")
-        ? "awareness_card_one_active"
-        : ""
-    } 
-    ${!isEditing ? "" : "cursor-not-allowed"}`}
-            onClick={() => {
-              if (!isEditing) {
-                setAlert({
-                  variant: "info",
-                  message: "Please click on Edit!",
-                  position: "bottom-right",
-                });
-                return; // Prevent selection if not editing
-              }
-              handleSelect("Awareness");
-            }}
-            onMouseEnter={() => setHovered(1)}
-            onMouseLeave={() => setHovered(null)}
-            disabled={!isEditing}
-          >
-            {campaignFormData["funnel_stages"]?.includes("Awareness") ||
-            hovered === 1 ? (
-              <Image src={speakerWhite} alt="speakerWhite" />
-            ) : (
-              <Image src={speaker} alt="speaker" />
-            )}
-            <p>Awareness</p>
-          </button>
+          {customFunnels.map((funnel, index) => (
+            <div key={funnel.id} className="relative w-full max-w-[685px]">
+              <button
+                className={`cursor-pointer w-full ${
+                  campaignFormData["funnel_stages"]?.includes(funnel.id) ||
+                  hovered === index + 1
+                    ? funnel.color
+                    : ""
+                } text-black rounded-lg py-4 flex items-center justify-center gap-2
+                  ${
+                    campaignFormData["funnel_stages"]?.includes(funnel.id) ||
+                    hovered === index + 1
+                      ? "opacity-100 text-white"
+                      : "opacity-90 shadow-md"
+                  } 
+                  `}
+                onClick={() => {
+                  handleSelect(funnel.id);
+                }}
+                onMouseEnter={() => setHovered(index + 1)}
+                onMouseLeave={() => setHovered(null)}
+                // disabled={!isEditing}
+              >
+                {funnel.icon &&
+                  (campaignFormData["funnel_stages"]?.includes(funnel.id) ||
+                  hovered === index + 1 ? (
+                    <Image
+                      src={funnel.activeIcon || "/placeholder.svg"}
+                      alt={`${funnel.name} icon`}
+                    />
+                  ) : (
+                    <Image
+                      src={funnel.icon || "/placeholder.svg"}
+                      alt={`${funnel.name} icon`}
+                    />
+                  ))}
+                <p className="text-[16px]">{funnel.name}</p>
+              </button>
+
+              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
+                <button
+                  className="p-1 bg-white rounded-full shadow-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setModalMode("edit");
+                    setCurrentFunnel(funnel);
+                    setNewFunnelName(funnel.name);
+                    setIsModalOpen(true);
+                  }}
+                >
+                  <Edit2 size={16} className="text-gray-600" />
+                </button>
+                <button
+                  className="p-1 bg-white rounded-full shadow-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (customFunnels.length <= 1) {
+                      setAlert({
+                        variant: "error",
+                        message: "You must have at least one funnel stage",
+                        position: "bottom-right",
+                      });
+                      return;
+                    }
+
+                    // Remove the funnel
+                    setCustomFunnels((prev) =>
+                      prev.filter((f) => f.id !== funnel.id)
+                    );
+
+                    // Also remove from selected funnels if it was selected
+                    if (
+                      campaignFormData["funnel_stages"]?.includes(funnel.id)
+                    ) {
+                      const updatedFunnels = {
+                        ...campaignFormData,
+                        funnel_stages: campaignFormData.funnel_stages.filter(
+                          (name: string) => name !== funnel.id
+                        ),
+                        channel_mix: campaignFormData?.channel_mix?.filter(
+                          (ch) => ch?.funnel_stage !== funnel.id
+                        ),
+                      };
+                      setCampaignFormData(updatedFunnels);
+                    }
+
+                    setHasChanges(true);
+                  }}
+                >
+                  <Trash2 size={16} className="text-red-500" />
+                </button>
+              </div>
+            </div>
+          ))}
 
           <button
-            className={`cursor-pointer awareness_card_two 
-						${
-              campaignFormData["funnel_stages"]?.includes("Consideration")
-                ? "awareness_card_two_active"
-                : ""
-            } 
-						`}
-            onClick={() => handleSelect("Consideration")}
-            onMouseEnter={() => setHovered(2)}
-            onMouseLeave={() => setHovered(null)}
-            disabled={!isEditing}
+            className="flex items-center gap-2 text-blue-500 cursor-pointer text-[16px]"
+            onClick={() => {
+              setModalMode("add");
+              setCurrentFunnel(null);
+              setNewFunnelName("");
+              setIsModalOpen(true);
+            }}
           >
-            {campaignFormData["funnel_stages"]?.includes("Consideration") ||
-            hovered === 2 ? (
-              <Image src={zoomWhite} alt="zoomWhite" />
-            ) : (
-              <Image src={zoom} alt="zoom" />
-            )}
-            <p>Consideration</p>
-          </button>
-
-          <button
-            className={`cursor-pointer awareness_card_three 
-						${
-              campaignFormData["funnel_stages"]?.includes("Conversion")
-                ? "awareness_card_three_active"
-                : ""
-            } 
-						`}
-            onClick={() => handleSelect("Conversion")}
-            onMouseEnter={() => setHovered(3)}
-            onMouseLeave={() => setHovered(null)}
-            disabled={!isEditing}
-          >
-            {campaignFormData["funnel_stages"]?.includes("Conversion") ||
-            hovered === 3 ? (
-              <Image src={creditWhite} alt="creditWhite" />
-            ) : (
-              <Image src={credit} alt="credit" />
-            )}
-            <p>Conversion</p>
-          </button>
-
-          <button
-            className={`cursor-pointer awareness_card_four 
-						${
-              campaignFormData["funnel_stages"]?.includes("Loyalty")
-                ? "awareness_card_four_active"
-                : ""
-            } 
-						`}
-            onClick={() => handleSelect("Loyalty")}
-            onMouseEnter={() => setHovered(4)}
-            onMouseLeave={() => setHovered(null)}
-            disabled={!isEditing}
-          >
-            {campaignFormData["funnel_stages"]?.includes("Loyalty") ||
-            hovered === 4 ? (
-              <Image src={addPlusWhite} alt="addPlusWhite" />
-            ) : (
-              <Image src={addPlus} alt="addPlus" />
-            )}
-            <p>Loyalty</p>
-          </button>
-          <div className="flex items-center gap-2 cursor-pointer text-blue-500">
-            <PlusIcon
-              className="text-blue-500 cursor-pointer"
-              onClick={() => {
-                setIsEditing(true);
-                setHasChanges(true);
-              }}/>
+            <PlusIcon className="text-blue-500" />
             Add new funnel
-          </div>
+          </button>
+
+          {/* Custom Modal without shadcn */}
+          {isModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div
+                ref={modalRef}
+                className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl"
+              >
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">
+                    {modalMode === "add" ? "Add New Funnel" : "Edit Funnel"}
+                  </h3>
+                  <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <div className="mb-4">
+                  <label
+                    htmlFor="funnelName"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    id="funnelName"
+                    value={newFunnelName}
+                    onChange={(e) => setNewFunnelName(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter funnel name"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 mt-6">
+                  <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (!newFunnelName.trim()) {
+                        setAlert({
+                          variant: "error",
+                          message: "Funnel name cannot be empty",
+                          position: "bottom-right",
+                        });
+                        return;
+                      }
+
+                      if (modalMode === "add") {
+                        // Generate a unique ID
+                        const newId = `custom_${Date.now()}`;
+
+                        // Add new funnel
+                        setCustomFunnels((prev) => [
+                          ...prev,
+                          {
+                            id: newFunnelName,
+                            name: newFunnelName,
+                            // Cycle through some predefined colors
+                            color: `bg-${
+                              ["blue", "green", "purple", "pink", "orange"][
+                                prev.length % 5
+                              ]
+                            }-500`,
+                            icon: "",
+                            activeIcon: "",
+                          },
+                        ]);
+                      } else if (currentFunnel) {
+                        // Update existing funnel
+                        setCustomFunnels((prev) =>
+                          prev.map((f) =>
+                            f.id === currentFunnel.id
+                              ? { ...f, name: newFunnelName, id: newFunnelName }
+                              : f
+                          )
+                        );
+                      }
+
+                      setHasChanges(true);
+                      setIsModalOpen(false);
+                    }}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                  >
+                    {modalMode === "add" ? "Add" : "Save"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

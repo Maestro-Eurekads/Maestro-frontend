@@ -222,10 +222,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         hasError = true;
       }
 
-      if (hasChanges) {
-        setValidateStep(true);
-        hasError = true;
-      }
+      // if (hasChanges) {
+      //   setValidateStep(true);
+      //   hasError = true;
+      // }
     }
 
     if (active === 2) {
