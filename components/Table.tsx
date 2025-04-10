@@ -233,7 +233,7 @@ const Table = () => {
                           ))}
                         </div>
                       ) : (
-                        "-"
+                        <p className="text-center">-</p>
                       )}
                     </td>
                     <td className="py-[12px] px-[16px]">
