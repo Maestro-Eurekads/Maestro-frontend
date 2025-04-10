@@ -267,12 +267,12 @@ const SelectChannelMix = () => {
 
   const cleanData = campaignData
     ? removeKeysRecursively(campaignData, [
-      "id",
-      "documentId",
-      "createdAt",
-      "publishedAt",
-      "updatedAt",
-    ])
+        "id",
+        "documentId",
+        "createdAt",
+        "publishedAt",
+        "updatedAt",
+      ])
     : {};
 
   const updateCampaignData = async (data) => {
@@ -375,26 +375,31 @@ const SelectChannelMix = () => {
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
         {campaignFormData?.funnel_stages?.map((stageName, index) => {
-          const stage = funnelStages.find((s) => s.name === stageName);
+          const stage = campaignFormData?.custom_funnels?.find(
+            (s) => s.name === stageName
+          );
           if (!stage) return null;
 
           return (
             <div key={index}>
               <div
                 className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-                  ${openItems[stage.name]
-                    ? "rounded-t-[10px]"
-                    : "rounded-[10px]"
+                  ${
+                    openItems[stage.name]
+                      ? "rounded-t-[10px]"
+                      : "rounded-[10px]"
                   }`}
                 onClick={() => toggleItem(stage.name)}
               >
                 <div className="flex items-center gap-2">
-                  <Image
-                    src={stage.icon || "/placeholder.svg"}
-                    alt={stage.name}
-                    width={20}
-                    height={20}
-                  />
+                  {stage?.icon && (
+                    <Image
+                      src={stage.icon.src || "/placeholder.svg"}
+                      alt={stage.name}
+                      width={20}
+                      height={20}
+                    />
+                  )}
                   <p className="w-[119px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
                     {stage.name}
                   </p>
@@ -482,18 +487,18 @@ const SelectChannelMix = () => {
                       {Object.keys(selected[stage.name] || {}).some(
                         (category) => selected[stage.name][category]?.length > 0
                       ) && (
-                          <div className="flex justify-end pr-[24px] mt-4">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEdit(stage.name);
-                              }}
-                              className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] bg-blue-500"
-                            >
-                              Edit
-                            </button>
-                          </div>
-                        )}
+                        <div className="flex justify-end pr-[24px] mt-4">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(stage.name);
+                            }}
+                            className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] bg-blue-500"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <>
@@ -551,10 +556,11 @@ const SelectChannelMix = () => {
                                             <div
                                               key={pIndex}
                                               className={`cursor-pointer flex flex-row justify-between items-center p-4 gap-2 w-[250px] min-h-[62px] bg-white 
-                                  border rounded-[10px] ${isSelected
-                                                  ? "border-[#3175FF]"
-                                                  : "border-[rgba(0,0,0,0.1)]"
-                                                }`}
+                                  border rounded-[10px] ${
+                                    isSelected
+                                      ? "border-[#3175FF]"
+                                      : "border-[rgba(0,0,0,0.1)]"
+                                  }`}
                                               onClick={(e) =>
                                                 handlePlatformClick(
                                                   e,
@@ -588,10 +594,11 @@ const SelectChannelMix = () => {
                                                 </p>
                                               </div>
                                               <div
-                                                className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${isSelected
-                                                  ? "bg-[#3175FF]"
-                                                  : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
-                                                  }`}
+                                                className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${
+                                                  isSelected
+                                                    ? "bg-[#3175FF]"
+                                                    : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
+                                                }`}
                                               >
                                                 {isSelected && (
                                                   <Image
@@ -673,10 +680,11 @@ const SelectChannelMix = () => {
                             e.stopPropagation();
                             handleValidate(stage.name);
                           }}
-                          className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isStageValid(stage.name)
-                            ? "bg-[#3175FF] hover:bg-[#2563eb]"
-                            : "bg-[#3175FF] opacity-50 cursor-not-allowed"
-                            }`}
+                          className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
+                            isStageValid(stage.name)
+                              ? "bg-[#3175FF] hover:bg-[#2563eb]"
+                              : "bg-[#3175FF] opacity-50 cursor-not-allowed"
+                          }`}
                         >
                           {loading ? (
                             <SVGLoader
