@@ -25,7 +25,7 @@ const MapFunnelStages = () => {
   const [alert, setAlert] = useState(null)
   const [loading, setLoading] = useState(false)
   const { verifyStep, setHasChanges, hasChanges, setverifybeforeMove } = useVerification()
-  const [selectedOption, setSelectedOption] = useState<string | null>("targeting_retargeting")
+  const [selectedOption, setSelectedOption] = useState<string | null>("")
 
   // Store previous selections for each option type
   const [savedSelections, setSavedSelections] = useState({
@@ -105,7 +105,7 @@ const MapFunnelStages = () => {
   // Initialize from campaignData
   useEffect(() => {
     // Set initial selected option
-    const initialOption = campaignData?.funnel_type || "targeting_retargeting"
+    const initialOption = campaignData?.funnel_type || ""
     setSelectedOption(initialOption)
 
     // Initialize custom funnels if they exist in campaignData
@@ -421,7 +421,7 @@ const MapFunnelStages = () => {
           </label>
         ))}
       </div>
-      {selectedOption === "targeting_retargeting" ? null : (
+      {selectedOption === "targeting_retargeting" ? null : selectedOption === "custom" && (
         <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
           {customFunnels.map((funnel, index) => (
             <div key={funnel.id} className="relative w-full max-w-[685px]">
