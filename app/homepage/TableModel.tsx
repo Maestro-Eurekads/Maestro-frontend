@@ -22,6 +22,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   const [inputs, setInputs] = useState({
     name: "",
     email: "",
+    full_name: "",
     responsiblePerson: "",
     approver: "",
     sports: [],
@@ -42,9 +43,11 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   }, [alert]);
   const handleAddEmail = () => {
     const trimmedEmail = inputs.email.trim();
+    const fullName = inputs.full_name.trim();
 
     //  Email validation regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const fullNameRegex = /^[a-zA-Z]+ [a-zA-Z]+$/;
 
     if (!trimmedEmail) {
       setAlert({
@@ -59,6 +62,16 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       setAlert({
         variant: "error",
         message: "Invalid email format",
+        position: "bottom-right",
+      });
+      return;
+    }
+    const isValidFullName = fullNameRegex.test(fullName);
+
+    if (!isValidFullName) {
+      setAlert({
+        variant: "error",
+        message: "Full name must contain first and last name",
         position: "bottom-right",
       });
       return;
@@ -82,15 +95,16 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       return;
     }
 
-    setEmailList([...emailList, trimmedEmail]);
+    setEmailList([...emailList, { full_name: fullName, email: trimmedEmail }]);
     setInputs((prevState) => ({
       ...prevState,
       email: "",
+      full_name: "",
     }));
   };
 
   const handleRemoveEmail = (email) => {
-    const filteredEmails = emailList.filter((e) => e !== email);
+    const filteredEmails = emailList.filter((e) => e?.email !== email);
     setEmailList(filteredEmails);
   };
 
@@ -139,6 +153,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         categories: [],
         businessUnits: [],
         feeType: "",
+        full_name: "",
       });
 
       setIsOpen(false);
@@ -204,7 +219,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                       label="Client emails (add up to 5 emails)"
                       placeholder="Enter email address"
                     />
-                  
                   </div>
                   <div className="w-[78%]">
                     {emailList?.map((email) => (
@@ -212,11 +226,11 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                         key={email}
                         className="flex items-center justify-between"
                       >
-                        <p className="text-[14px]">{email}</p>
+                        <p className="text-[14px]">{email?.email}</p>
                         <MdOutlineCancel
                           size={18}
                           color="red"
-                          onClick={() => handleRemoveEmail(email)}
+                          onClick={() => handleRemoveEmail(email?.email)}
                           className="cursor-pointer"
                         />
                       </div>
@@ -226,19 +240,19 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                 <div className="shrink-0 w-[60%] flex items-end  gap-3 mb-2">
                   <Input
                     type="text"
-                    value={inputs.name}
+                    value={inputs.full_name}
                     handleOnChange={(e) =>
-                      handleOnChange("name", e.target.value)
+                      handleOnChange("full_name", e.target.value)
                     }
                     label="Full Name"
                     placeholder="Full Name"
                   />
-                    <button
-                      className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white mt-8"
-                      onClick={handleAddEmail}
-                    >
-                      Add
-                    </button>
+                  <button
+                    className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white mt-8"
+                    onClick={handleAddEmail}
+                  >
+                    Add
+                  </button>
                 </div>
               </div>
 
