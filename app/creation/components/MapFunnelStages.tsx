@@ -21,6 +21,7 @@ import {
 import { SVGLoader } from "components/SVGLoader";
 import AlertMain from "components/Alert/AlertMain";
 import { useComments } from "app/utils/CommentProvider";
+import { PlusIcon } from "lucide-react";
 
 const MapFunnelStages = () => {
   const {
@@ -38,6 +39,9 @@ const MapFunnelStages = () => {
   const [loading, setLoading] = useState(false);
   const { verifyStep, setHasChanges, hasChanges, setverifybeforeMove } =
     useVerification();
+  const [selectedOption, setSelectedOption] = useState<string | null>(
+    "targeting_retargeting"
+  );
 
   useEffect(() => {
     setIsDrawerOpen(false);
@@ -156,8 +160,8 @@ const MapFunnelStages = () => {
       setverifybeforeMove((prev: any) =>
         Array.isArray(prev)
           ? prev.map((step: any) =>
-            step.hasOwnProperty("step2") ? { ...step, step2: true } : step
-          )
+              step.hasOwnProperty("step2") ? { ...step, step2: true } : step
+            )
           : prev
       );
     } catch (error) {
@@ -190,115 +194,183 @@ const MapFunnelStages = () => {
           // t3={"Traffic, Purchase, Lead Generation, or App Install."}
         />
       </div>
-      <div className="mt-[56px] grid grid-cols-3 gap-[32px]">
-        <div className="bg-blue-500 rounded-md p-[14px]">
-          <p className="text-center text-white font-semibold mb-[20px]">Conversion Funnel</p>
-          <Image src="" alt="" className="w-full h-[100px]"/>
-        </div>
-        <div className="bg-blue-500 rounded-md p-[14px]">
-          <p className="text-center text-white font-semibold mb-[20px]">Targeting - Retargeting</p>
-          <Image src="" alt="" className="w-full h-[100px]"/>
-        </div>
-        <div className="bg-blue-500 rounded-md p-[14px]">
-          <p className="text-center text-white font-semibold mb-[20px]">Custom</p>
-          <Image src="" alt="" className="w-full h-[100px]"/>
-        </div>
+      <div className="mt-[56px] flex  items-center gap-[32px]">
+        {[
+          { id: "targeting_retargeting", label: "Targeting - Retargeting" },
+          { id: "custom", label: "Custom" },
+        ].map((option) => (
+          <label
+            key={option.id}
+            className="cursor-pointer flex items-center gap-3"
+          >
+            <input
+              type="radio"
+              name="funnel_selection"
+              value={selectedOption}
+              checked={selectedOption === option.id}
+              onChange={() => setSelectedOption(option.id)}
+              className="w-4 h-4"
+            />
+            <p className=" font-semibold">{option.label}</p>
+          </label>
+        ))}
       </div>
-      {/* <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
-        <button
-          className={`cursor-pointer awareness_card_one 
-    ${campaignFormData["funnel_stages"]?.includes("Awareness")
-              ? "awareness_card_one_active"
-              : ""
-            } 
-    ${!isEditing ? "" : "cursor-not-allowed"}`}
-          onClick={() => {
-            if (!isEditing) {
-              setAlert({
-                variant: "info",
-                message: "Please click on Edit!",
-                position: "bottom-right",
-              });
-              return; // Prevent selection if not editing
-            }
-            handleSelect("Awareness");
-          }}
-          onMouseEnter={() => setHovered(1)}
-          onMouseLeave={() => setHovered(null)}
-          disabled={!isEditing}
-        >
-          {campaignFormData["funnel_stages"]?.includes("Awareness") ||
+      {selectedOption === "targeting_retargeting" ? (
+        <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
+          <button
+            className={`cursor-pointer awareness_card_one ${
+              campaignFormData["funnel_stages"]?.includes("Targeting")
+                ? "awareness_card_one_active"
+                : ""
+            } `}
+            onClick={() => {
+              handleSelect("Targeting");
+            }}
+            onMouseEnter={() => setHovered(1)}
+            onMouseLeave={() => setHovered(null)}
+            disabled={!isEditing}
+          >
+            {campaignFormData["funnel_stages"]?.includes("Targeting") ||
             hovered === 1 ? (
-            <Image src={speakerWhite} alt="speakerWhite" />
-          ) : (
-            <Image src={speaker} alt="speaker" />
-          )}
-          <p>Awareness</p>
-        </button>
-
-        <button
-          className={`cursor-pointer awareness_card_two 
-						${campaignFormData["funnel_stages"]?.includes("Consideration")
-              ? "awareness_card_two_active"
-              : ""
-            } 
-						${isEditing ? "" : "cursor-not-allowed"}`}
-          onClick={() => handleSelect("Consideration")}
-          onMouseEnter={() => setHovered(2)}
-          onMouseLeave={() => setHovered(null)}
-          disabled={!isEditing}
-        >
-          {campaignFormData["funnel_stages"]?.includes("Consideration") ||
+              <Image src={speakerWhite} alt="speakerWhite" />
+            ) : (
+              <Image src={speaker} alt="speaker" />
+            )}
+            <p>Targeting</p>
+          </button>
+          <button
+            className={`cursor-pointer awareness_card_two 
+    ${
+      campaignFormData["funnel_stages"]?.includes("Retargeting")
+        ? "awareness_card_two_active"
+        : ""
+    } `}
+            onClick={() => {
+              handleSelect("Retargeting");
+            }}
+            onMouseEnter={() => setHovered(2)}
+            onMouseLeave={() => setHovered(null)}
+            disabled={!isEditing}
+          >
+            {campaignFormData["funnel_stages"]?.includes("Retargeting") ||
             hovered === 2 ? (
-            <Image src={zoomWhite} alt="zoomWhite" />
-          ) : (
-            <Image src={zoom} alt="zoom" />
-          )}
-          <p>Consideration</p>
-        </button>
+              <Image src={zoomWhite} alt="zoomWhite" />
+            ) : (
+              <Image src={zoom} alt="zoom" />
+            )}
+            <p>Retargeting</p>
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
+          <button
+            className={`cursor-pointer awareness_card_one 
+    ${
+      campaignFormData["funnel_stages"]?.includes("Awareness")
+        ? "awareness_card_one_active"
+        : ""
+    } 
+    ${!isEditing ? "" : "cursor-not-allowed"}`}
+            onClick={() => {
+              if (!isEditing) {
+                setAlert({
+                  variant: "info",
+                  message: "Please click on Edit!",
+                  position: "bottom-right",
+                });
+                return; // Prevent selection if not editing
+              }
+              handleSelect("Awareness");
+            }}
+            onMouseEnter={() => setHovered(1)}
+            onMouseLeave={() => setHovered(null)}
+            disabled={!isEditing}
+          >
+            {campaignFormData["funnel_stages"]?.includes("Awareness") ||
+            hovered === 1 ? (
+              <Image src={speakerWhite} alt="speakerWhite" />
+            ) : (
+              <Image src={speaker} alt="speaker" />
+            )}
+            <p>Awareness</p>
+          </button>
 
-        <button
-          className={`cursor-pointer awareness_card_three 
-						${campaignFormData["funnel_stages"]?.includes("Conversion")
-              ? "awareness_card_three_active"
-              : ""
+          <button
+            className={`cursor-pointer awareness_card_two 
+						${
+              campaignFormData["funnel_stages"]?.includes("Consideration")
+                ? "awareness_card_two_active"
+                : ""
             } 
-						${isEditing ? "" : "cursor-not-allowed"}`}
-          onClick={() => handleSelect("Conversion")}
-          onMouseEnter={() => setHovered(3)}
-          onMouseLeave={() => setHovered(null)}
-          disabled={!isEditing}
-        >
-          {campaignFormData["funnel_stages"]?.includes("Conversion") ||
+						`}
+            onClick={() => handleSelect("Consideration")}
+            onMouseEnter={() => setHovered(2)}
+            onMouseLeave={() => setHovered(null)}
+            disabled={!isEditing}
+          >
+            {campaignFormData["funnel_stages"]?.includes("Consideration") ||
+            hovered === 2 ? (
+              <Image src={zoomWhite} alt="zoomWhite" />
+            ) : (
+              <Image src={zoom} alt="zoom" />
+            )}
+            <p>Consideration</p>
+          </button>
+
+          <button
+            className={`cursor-pointer awareness_card_three 
+						${
+              campaignFormData["funnel_stages"]?.includes("Conversion")
+                ? "awareness_card_three_active"
+                : ""
+            } 
+						`}
+            onClick={() => handleSelect("Conversion")}
+            onMouseEnter={() => setHovered(3)}
+            onMouseLeave={() => setHovered(null)}
+            disabled={!isEditing}
+          >
+            {campaignFormData["funnel_stages"]?.includes("Conversion") ||
             hovered === 3 ? (
-            <Image src={creditWhite} alt="creditWhite" />
-          ) : (
-            <Image src={credit} alt="credit" />
-          )}
-          <p>Conversion</p>
-        </button>
+              <Image src={creditWhite} alt="creditWhite" />
+            ) : (
+              <Image src={credit} alt="credit" />
+            )}
+            <p>Conversion</p>
+          </button>
 
-        <button
-          className={`cursor-pointer awareness_card_four 
-						${campaignFormData["funnel_stages"]?.includes("Loyalty")
-              ? "awareness_card_four_active"
-              : ""
+          <button
+            className={`cursor-pointer awareness_card_four 
+						${
+              campaignFormData["funnel_stages"]?.includes("Loyalty")
+                ? "awareness_card_four_active"
+                : ""
             } 
-						${isEditing ? "" : "cursor-not-allowed"}`}
-          onClick={() => handleSelect("Loyalty")}
-          onMouseEnter={() => setHovered(4)}
-          onMouseLeave={() => setHovered(null)}
-          disabled={!isEditing}
-        >
-          {campaignFormData["funnel_stages"]?.includes("Loyalty") ||
+						`}
+            onClick={() => handleSelect("Loyalty")}
+            onMouseEnter={() => setHovered(4)}
+            onMouseLeave={() => setHovered(null)}
+            disabled={!isEditing}
+          >
+            {campaignFormData["funnel_stages"]?.includes("Loyalty") ||
             hovered === 4 ? (
-            <Image src={addPlusWhite} alt="addPlusWhite" />
-          ) : (
-            <Image src={addPlus} alt="addPlus" />
-          )}
-          <p>Loyalty</p>
-        </button>
-      </div> */}
+              <Image src={addPlusWhite} alt="addPlusWhite" />
+            ) : (
+              <Image src={addPlus} alt="addPlus" />
+            )}
+            <p>Loyalty</p>
+          </button>
+          <div className="flex items-center gap-2 cursor-pointer text-blue-500">
+            <PlusIcon
+              className="text-blue-500 cursor-pointer"
+              onClick={() => {
+                setIsEditing(true);
+                setHasChanges(true);
+              }}/>
+            Add new funnel
+          </div>
+        </div>
+      )}
     </div>
   );
 };

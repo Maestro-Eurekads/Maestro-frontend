@@ -33,8 +33,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
 
-
-
   //  Automatically reset alert after showing
   useEffect(() => {
     if (alert) {
@@ -49,22 +47,38 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!trimmedEmail) {
-      setAlert({ variant: "error", message: "Email cannot be empty", position: "bottom-right" });
+      setAlert({
+        variant: "error",
+        message: "Email cannot be empty",
+        position: "bottom-right",
+      });
       return;
     }
 
     if (!emailRegex.test(trimmedEmail)) {
-      setAlert({ variant: "error", message: "Invalid email format", position: "bottom-right" });
+      setAlert({
+        variant: "error",
+        message: "Invalid email format",
+        position: "bottom-right",
+      });
       return;
     }
 
     if (emailList.includes(trimmedEmail)) {
-      setAlert({ variant: "warning", message: "Email already exists", position: "bottom-right" });
+      setAlert({
+        variant: "warning",
+        message: "Email already exists",
+        position: "bottom-right",
+      });
       return;
     }
 
     if (emailList.length >= 5) {
-      setAlert({ variant: "warning", message: "Maximum 5 emails allowed", position: "bottom-right" });
+      setAlert({
+        variant: "warning",
+        message: "Maximum 5 emails allowed",
+        position: "bottom-right",
+      });
       return;
     }
 
@@ -74,10 +88,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       email: "",
     }));
   };
-
-
-
-
 
   const handleRemoveEmail = (email) => {
     const filteredEmails = emailList.filter((e) => e !== email);
@@ -101,10 +111,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     return () => document.body.classList.remove("overflow-hidden");
   }, [isOpen]);
 
-
-
-
-
   const handleSubmit = async () => {
     setLoading(true);
 
@@ -119,7 +125,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         level_3: inputs.categories,
         fee_type: inputs.feeType,
       });
-
 
       // Fetch clients after successfully adding a new one
       //@ts-ignore
@@ -138,13 +143,16 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
       setIsOpen(false);
     } catch (error) {
-      const errors: any = error.response?.data?.error?.details?.errors || error.response?.data?.error?.message || error.message || [];
+      const errors: any =
+        error.response?.data?.error?.details?.errors ||
+        error.response?.data?.error?.message ||
+        error.message ||
+        [];
       setAlert({ variant: "error", message: errors, position: "bottom-right" });
     } finally {
       setLoading(false);
     }
   };
-
 
   return (
     <div className="z-50">
@@ -177,29 +185,26 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
             {/* Scrollable Body */}
             <div className="p-6 overflow-y-auto max-h-[60vh]">
-              <div className="flex items-start gap-3">
-                <Input
-                  type="text"
-                  value={inputs.name}
-                  handleOnChange={(e) => handleOnChange("name", e.target.value)}
-                  label="Client Name"
-                  placeholder="Client Name"
-                />
-                <div className="w-[60%] shrink-0">
-                  <div className="shrink-0 flex items-center w-full gap-3 mb-2">
+              <Input
+                type="text"
+                value={inputs.name}
+                handleOnChange={(e) => handleOnChange("name", e.target.value)}
+                label="Client Name"
+                placeholder="Client Name"
+              />
+              <div className="flex items-start gap-3 mt-3 w-full">
+                <div className="shrink-0 w-[40%]">
+                  <div className="flex items-end  gap-3 mb-2">
                     <Input
                       type="email"
                       value={inputs.email}
-                      handleOnChange={(e) => handleOnChange("email", e.target.value)}
+                      handleOnChange={(e) =>
+                        handleOnChange("email", e.target.value)
+                      }
                       label="Client emails (add up to 5 emails)"
                       placeholder="Enter email address"
                     />
-                    <button
-                      className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white mt-8"
-                      onClick={handleAddEmail}
-                    >
-                      Add
-                    </button>
+                  
                   </div>
                   <div className="w-[78%]">
                     {emailList?.map((email) => (
@@ -218,6 +223,23 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                     ))}
                   </div>
                 </div>
+                <div className="shrink-0 w-[60%] flex items-end  gap-3 mb-2">
+                  <Input
+                    type="text"
+                    value={inputs.name}
+                    handleOnChange={(e) =>
+                      handleOnChange("name", e.target.value)
+                    }
+                    label="Full Name"
+                    placeholder="Full Name"
+                  />
+                    <button
+                      className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white mt-8"
+                      onClick={handleAddEmail}
+                    >
+                      Add
+                    </button>
+                </div>
               </div>
 
               <div className="w-full">
@@ -227,18 +249,9 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                 />
               </div>
               <div className="w-full flex items-start gap-3">
-                <SportDropdown
-                  setInputs={setInputs}
-                  setAlert={setAlert}
-                />
-                <BusinessUnit
-                  setInputs={setInputs}
-                  setAlert={setAlert}
-                />
-                <CategoryDropdown
-                  setInputs={setInputs}
-                  setAlert={setAlert}
-                />
+                <SportDropdown setInputs={setInputs} setAlert={setAlert} />
+                <BusinessUnit setInputs={setInputs} setAlert={setAlert} />
+                <CategoryDropdown setInputs={setInputs} setAlert={setAlert} />
               </div>
               <div className="w-[50%]">
                 <FeeDropdowns
@@ -255,7 +268,10 @@ const TableModel = ({ isOpen, setIsOpen }) => {
               <div className="flex items-center gap-5">
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="btn_model_outline">Cancel</button>
+                  className="btn_model_outline"
+                >
+                  Cancel
+                </button>
                 <button
                   className="btn_model_active whitespace-nowrap"
                   onClick={handleSubmit}
