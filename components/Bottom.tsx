@@ -360,6 +360,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "isValidated",
           "formatValidated",
         ]),
+        custom_funnels: campaignFormData?.custom_funnels,
+        funnel_type: campaignFormData?.funnel_type,
       });
     };
 

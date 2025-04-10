@@ -1,44 +1,34 @@
-"use client";
+"use client"
 
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
-import speaker from "../../../public/mdi_megaphone.svg";
-import zoom from "../../../public/tabler_zoom-filled.svg";
-import credit from "../../../public/mdi_credit-card.svg";
-import addPlus from "../../../public/addPlus.svg";
-import creditWhite from "../../../public/mdi_credit-cardwhite.svg";
-import zoomWhite from "../../../public/tabler_zoom-filledwhite.svg";
-import speakerWhite from "../../../public/mdi_megaphonewhite.svg";
-import addPlusWhite from "../../../public/addPlusWhite.svg";
-import PageHeaderWrapper from "../../../components/PageHeaderWapper";
-import { useCampaigns } from "../../utils/CampaignsContext";
-import { removeKeysRecursively } from "utils/removeID";
-import { useVerification } from "app/utils/VerificationContext";
-import { useComments } from "app/utils/CommentProvider";
-import { PlusIcon, Edit2, Trash2, X } from "lucide-react";
+import React, { useState, useEffect } from "react"
+import Image from "next/image"
+import speaker from "../../../public/mdi_megaphone.svg"
+import zoom from "../../../public/tabler_zoom-filled.svg"
+import credit from "../../../public/mdi_credit-card.svg"
+import addPlus from "../../../public/addPlus.svg"
+import creditWhite from "../../../public/mdi_credit-cardwhite.svg"
+import zoomWhite from "../../../public/tabler_zoom-filledwhite.svg"
+import speakerWhite from "../../../public/mdi_megaphonewhite.svg"
+import addPlusWhite from "../../../public/addPlusWhite.svg"
+import PageHeaderWrapper from "../../../components/PageHeaderWapper"
+import { useCampaigns } from "../../utils/CampaignsContext"
+import { useVerification } from "app/utils/VerificationContext"
+import { useComments } from "app/utils/CommentProvider"
+import { PlusIcon, Edit2, Trash2, X } from "lucide-react"
 
 const MapFunnelStages = () => {
-  const {
-    updateCampaign,
-    campaignData,
-    campaignFormData,
-    cId,
-    setCampaignFormData,
-  } = useCampaigns();
-  const [previousValidationState, setPreviousValidationState] = useState(null);
-  const { setIsDrawerOpen, setClose } = useComments();
-  const [isEditing, setIsEditing] = useState(false);
-  const [hovered, setHovered] = React.useState<number | null>(null);
-  const [alert, setAlert] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const { verifyStep, setHasChanges, hasChanges, setverifybeforeMove } =
-    useVerification();
-  const [selectedOption, setSelectedOption] = useState<string | null>(
-    "targeting_retargeting"
-  );
+  const { updateCampaign, campaignData, campaignFormData, cId, setCampaignFormData } = useCampaigns()
+  const [previousValidationState, setPreviousValidationState] = useState(null)
+  const { setIsDrawerOpen, setClose } = useComments()
+  const [isEditing, setIsEditing] = useState(false)
+  const [hovered, setHovered] = React.useState<number | null>(null)
+  const [alert, setAlert] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const { verifyStep, setHasChanges, hasChanges, setverifybeforeMove } = useVerification()
+  const [selectedOption, setSelectedOption] = useState<string | null>("")
 
-  // Add these state variables
-  const [customFunnels, setCustomFunnels] = useState([
+  // Default funnel stages
+  const defaultFunnels = [
     {
       id: "Awareness",
       name: "Awareness",
@@ -67,45 +57,65 @@ const MapFunnelStages = () => {
       activeIcon: addPlusWhite,
       color: "bg-red-500 border border-red-500",
     },
-  ]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<"add" | "edit">("add");
+  ]
+
+  // Add these state variables
+  const [customFunnels, setCustomFunnels] = useState(defaultFunnels)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [modalMode, setModalMode] = useState<"add" | "edit">("add")
   const [currentFunnel, setCurrentFunnel] = useState<{
-    id: string;
-    name: string;
-  } | null>(null);
-  const [newFunnelName, setNewFunnelName] = useState("");
+    id: string
+    name: string
+  } | null>(null)
+  const [newFunnelName, setNewFunnelName] = useState("")
 
   useEffect(() => {
-    setIsDrawerOpen(false);
-    setClose(false);
-  }, []);
+    setIsDrawerOpen(false)
+    setClose(false)
+  }, [])
 
   useEffect(() => {
-    const isValid =
-      Array.isArray(campaignData?.funnel_stages) &&
-      campaignData.funnel_stages.length > 0;
+    const isValid = Array.isArray(campaignData?.funnel_stages) && campaignData.funnel_stages.length > 0
     if (isValid !== previousValidationState) {
-      verifyStep("step2", isValid, cId);
-      setPreviousValidationState(isValid);
+      verifyStep("step2", isValid, cId)
+      setPreviousValidationState(isValid)
     }
-  }, [campaignData, cId, verifyStep]);
+  }, [campaignData, cId, verifyStep])
 
   //   Auto-hide alert after 3 seconds
   useEffect(() => {
     if (alert) {
-      const timer = setTimeout(() => setAlert(null), 3000);
-      return () => clearTimeout(timer);
+      const timer = setTimeout(() => setAlert(null), 3000)
+      return () => clearTimeout(timer)
     }
-  }, [alert]);
+  }, [alert])
 
-  useEffect(()=>{
+  // Initialize from campaignData
+  useEffect(() => {
+    // Set initial selected option
+    setSelectedOption(campaignData?.funnel_type || "")
 
-  })
+    // Initialize custom funnels if they exist in campaignData
+    if (campaignData?.custom_funnels && campaignData.custom_funnels.length > 0) {
+      setCustomFunnels(campaignData.custom_funnels)
+    } else {
+      setCustomFunnels(defaultFunnels)
+    }
+  }, [campaignData])
+
+  // Update campaignFormData when customFunnels change
+  useEffect(() => {
+    if (selectedOption === "custom") {
+      setCampaignFormData((prev) => ({
+        ...prev,
+        custom_funnels: customFunnels,
+      }))
+      setHasChanges(true)
+    }
+  }, [customFunnels, selectedOption, setCampaignFormData])
 
   const handleSelect = (id: string) => {
-    // if (!isEditing) return;
-    setHasChanges(true);
+    setHasChanges(true)
 
     const updatedFunnels = {
       ...campaignFormData,
@@ -117,64 +127,151 @@ const MapFunnelStages = () => {
       channel_mix: campaignFormData?.channel_mix
         ? [...campaignFormData.channel_mix, { funnel_stage: id }]
         : [{ funnel_stage: id }],
-    };
-
-    setCampaignFormData(updatedFunnels);
-  };
-
-
-
-  useEffect(() => {
-    // Set initial selected option
-    setSelectedOption(campaignData?.funnel_type || "targeting_retargeting");
-
-    // Initialize custom funnels if they exist in campaignData
-    if (
-      campaignData?.custom_funnels &&
-      campaignData.custom_funnels.length > 0
-    ) {
-      setCustomFunnels(campaignData.custom_funnels);
     }
-  }, [campaignData]);
+
+    setCampaignFormData(updatedFunnels)
+  }
 
   useEffect(() => {
     if (selectedOption) {
       setCampaignFormData((prev) => ({
         ...prev,
         funnel_type: selectedOption,
-      }));
-      setHasChanges(true);
+        // When switching to custom, ensure custom_funnels is set
+        ...(selectedOption === "custom" ? { custom_funnels: customFunnels } : {}),
+      }))
+      setHasChanges(true)
     }
-  }, [selectedOption]);
+  }, [selectedOption])
 
   // Close modal when clicking outside
-  const modalRef = React.useRef<HTMLDivElement>(null);
+  const modalRef = React.useRef<HTMLDivElement>(null)
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        modalRef.current &&
-        !modalRef.current.contains(event.target as Node)
-      ) {
-        setIsModalOpen(false);
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setIsModalOpen(false)
       }
     }
 
     if (isModalOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside)
     }
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isModalOpen]);
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [isModalOpen])
+
+  // Handle adding a new funnel
+  const handleAddFunnel = (name: string) => {
+    if (!name.trim()) {
+      setAlert({
+        variant: "error",
+        message: "Funnel name cannot be empty",
+        position: "bottom-right",
+      })
+      return
+    }
+
+    // Generate a unique ID
+    const newId = `custom_${Date.now()}`
+
+    // Create new funnel
+    const newFunnel = {
+      id: name,
+      name: name,
+      // Cycle through some predefined colors
+      color: `bg-${["blue", "green", "purple", "pink", "orange"][customFunnels.length % 5]}-500`,
+      icon: "",
+      activeIcon: "",
+    }
+
+    // Update customFunnels state
+    const updatedFunnels = [...customFunnels, newFunnel]
+    setCustomFunnels(updatedFunnels)
+
+    // Update campaignFormData
+    setCampaignFormData((prev) => ({
+      ...prev,
+      custom_funnels: updatedFunnels,
+    }))
+
+    setHasChanges(true)
+  }
+
+  // Handle editing a funnel
+  const handleEditFunnel = (oldId: string, newName: string) => {
+    if (!newName.trim()) {
+      setAlert({
+        variant: "error",
+        message: "Funnel name cannot be empty",
+        position: "bottom-right",
+      })
+      return
+    }
+
+    // Update customFunnels state
+    const updatedFunnels = customFunnels.map((f) => (f.id === oldId ? { ...f, name: newName, id: newName } : f))
+    setCustomFunnels(updatedFunnels)
+
+    // Update campaignFormData
+    setCampaignFormData((prev) => ({
+      ...prev,
+      custom_funnels: updatedFunnels,
+      // Update funnel_stages if this funnel was selected
+      funnel_stages: prev.funnel_stages?.map((stage: string) => (stage === oldId ? newName : stage)),
+      // Update channel_mix if this funnel was referenced
+      channel_mix: prev.channel_mix?.map((ch: any) =>
+        ch.funnel_stage === oldId ? { ...ch, funnel_stage: newName } : ch,
+      ),
+    }))
+
+    setHasChanges(true)
+  }
+
+  // Handle removing a funnel
+  const handleRemoveFunnel = (id: string) => {
+    if (customFunnels.length <= 1) {
+      setAlert({
+        variant: "error",
+        message: "You must have at least one funnel stage",
+        position: "bottom-right",
+      })
+      return
+    }
+
+    // Update customFunnels state
+    const updatedFunnels = customFunnels.filter((f) => f.id !== id)
+    setCustomFunnels(updatedFunnels)
+
+    // Update campaignFormData
+    setCampaignFormData((prev) => {
+      const updatedFormData = {
+        ...prev,
+        custom_funnels: updatedFunnels,
+      }
+
+      // Also remove from selected funnels if it was selected
+      if (prev.funnel_stages?.includes(id)) {
+        updatedFormData.funnel_stages = prev.funnel_stages.filter((name: string) => name !== id)
+        updatedFormData.channel_mix = prev.channel_mix?.filter((ch: any) => ch?.funnel_stage !== id)
+      }
+
+      return updatedFormData
+    })
+
+    setHasChanges(true)
+  }
+
+  const handleEditing = () => {
+    setIsEditing(!isEditing)
+  }
 
   return (
     <div>
       <div className="flex items-center justify-between">
         <PageHeaderWrapper
           className={"text-[22px]"}
-          t1={
-            "How many funnel stage(s) would you like to activate to achieve your objective ?"
-          }
+          t1={"How many funnel stage(s) would you like to activate to achieve your objective ?"}
           t2={`This option is available only if you've selected any of the following main objectives:`}
           t3={"Traffic, Purchase, Lead Generation, or App Install."}
         />
@@ -184,10 +281,7 @@ const MapFunnelStages = () => {
           { id: "targeting_retargeting", label: "Targeting - Retargeting" },
           { id: "custom", label: "Custom" },
         ].map((option) => (
-          <label
-            key={option.id}
-            className="cursor-pointer flex items-center gap-3"
-          >
+          <label key={option.id} className="cursor-pointer flex items-center gap-3">
             <input
               type="radio"
               name="funnel_selection"
@@ -200,43 +294,31 @@ const MapFunnelStages = () => {
           </label>
         ))}
       </div>
-      {selectedOption === "targeting_retargeting" ? null : (
+      {selectedOption && selectedOption === "targeting_retargeting" ? null : selectedOption === "custom" && (
         <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
           {customFunnels.map((funnel, index) => (
             <div key={funnel.id} className="relative w-full max-w-[685px]">
               <button
                 className={`cursor-pointer w-full ${
-                  campaignFormData["funnel_stages"]?.includes(funnel.id) ||
-                  hovered === index + 1
-                    ? funnel.color
-                    : ""
+                  campaignFormData["funnel_stages"]?.includes(funnel.id) || hovered === index + 1 ? funnel.color : ""
                 } text-black rounded-lg py-4 flex items-center justify-center gap-2
                   ${
-                    campaignFormData["funnel_stages"]?.includes(funnel.id) ||
-                    hovered === index + 1
+                    campaignFormData["funnel_stages"]?.includes(funnel.id) || hovered === index + 1
                       ? "opacity-100 text-white"
                       : "opacity-90 shadow-md"
                   } 
                   `}
                 onClick={() => {
-                  handleSelect(funnel.id);
+                  handleSelect(funnel.id)
                 }}
                 onMouseEnter={() => setHovered(index + 1)}
                 onMouseLeave={() => setHovered(null)}
-                // disabled={!isEditing}
               >
                 {funnel.icon &&
-                  (campaignFormData["funnel_stages"]?.includes(funnel.id) ||
-                  hovered === index + 1 ? (
-                    <Image
-                      src={funnel.activeIcon || "/placeholder.svg"}
-                      alt={`${funnel.name} icon`}
-                    />
+                  (campaignFormData["funnel_stages"]?.includes(funnel.id) || hovered === index + 1 ? (
+                    <Image src={funnel.activeIcon || "/placeholder.svg"} alt={`${funnel.name} icon`} />
                   ) : (
-                    <Image
-                      src={funnel.icon || "/placeholder.svg"}
-                      alt={`${funnel.name} icon`}
-                    />
+                    <Image src={funnel.icon || "/placeholder.svg"} alt={`${funnel.name} icon`} />
                   ))}
                 <p className="text-[16px]">{funnel.name}</p>
               </button>
@@ -245,11 +327,11 @@ const MapFunnelStages = () => {
                 <button
                   className="p-1 bg-white rounded-full shadow-sm"
                   onClick={(e) => {
-                    e.stopPropagation();
-                    setModalMode("edit");
-                    setCurrentFunnel(funnel);
-                    setNewFunnelName(funnel.name);
-                    setIsModalOpen(true);
+                    e.stopPropagation()
+                    setModalMode("edit")
+                    setCurrentFunnel(funnel)
+                    setNewFunnelName(funnel.name)
+                    setIsModalOpen(true)
                   }}
                 >
                   <Edit2 size={16} className="text-gray-600" />
@@ -257,38 +339,8 @@ const MapFunnelStages = () => {
                 <button
                   className="p-1 bg-white rounded-full shadow-sm"
                   onClick={(e) => {
-                    e.stopPropagation();
-                    if (customFunnels.length <= 1) {
-                      setAlert({
-                        variant: "error",
-                        message: "You must have at least one funnel stage",
-                        position: "bottom-right",
-                      });
-                      return;
-                    }
-
-                    // Remove the funnel
-                    setCustomFunnels((prev) =>
-                      prev.filter((f) => f.id !== funnel.id)
-                    );
-
-                    // Also remove from selected funnels if it was selected
-                    if (
-                      campaignFormData["funnel_stages"]?.includes(funnel.id)
-                    ) {
-                      const updatedFunnels = {
-                        ...campaignFormData,
-                        funnel_stages: campaignFormData.funnel_stages.filter(
-                          (name: string) => name !== funnel.id
-                        ),
-                        channel_mix: campaignFormData?.channel_mix?.filter(
-                          (ch) => ch?.funnel_stage !== funnel.id
-                        ),
-                      };
-                      setCampaignFormData(updatedFunnels);
-                    }
-
-                    setHasChanges(true);
+                    e.stopPropagation()
+                    handleRemoveFunnel(funnel.id)
                   }}
                 >
                   <Trash2 size={16} className="text-red-500" />
@@ -300,10 +352,10 @@ const MapFunnelStages = () => {
           <button
             className="flex items-center gap-2 text-blue-500 cursor-pointer text-[16px]"
             onClick={() => {
-              setModalMode("add");
-              setCurrentFunnel(null);
-              setNewFunnelName("");
-              setIsModalOpen(true);
+              setModalMode("add")
+              setCurrentFunnel(null)
+              setNewFunnelName("")
+              setIsModalOpen(true)
             }}
           >
             <PlusIcon className="text-blue-500" />
@@ -313,27 +365,16 @@ const MapFunnelStages = () => {
           {/* Custom Modal without shadcn */}
           {isModalOpen && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div
-                ref={modalRef}
-                className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl"
-              >
+              <div ref={modalRef} className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold">
-                    {modalMode === "add" ? "Add New Funnel" : "Edit Funnel"}
-                  </h3>
-                  <button
-                    onClick={() => setIsModalOpen(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
+                  <h3 className="text-lg font-semibold">{modalMode === "add" ? "Add New Funnel" : "Edit Funnel"}</h3>
+                  <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-gray-700">
                     <X size={20} />
                   </button>
                 </div>
 
                 <div className="mb-4">
-                  <label
-                    htmlFor="funnelName"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
+                  <label htmlFor="funnelName" className="block text-sm font-medium text-gray-700 mb-1">
                     Name
                   </label>
                   <input
@@ -355,48 +396,12 @@ const MapFunnelStages = () => {
                   </button>
                   <button
                     onClick={() => {
-                      if (!newFunnelName.trim()) {
-                        setAlert({
-                          variant: "error",
-                          message: "Funnel name cannot be empty",
-                          position: "bottom-right",
-                        });
-                        return;
-                      }
-
                       if (modalMode === "add") {
-                        // Generate a unique ID
-                        const newId = `custom_${Date.now()}`;
-
-                        // Add new funnel
-                        setCustomFunnels((prev) => [
-                          ...prev,
-                          {
-                            id: newFunnelName,
-                            name: newFunnelName,
-                            // Cycle through some predefined colors
-                            color: `bg-${
-                              ["blue", "green", "purple", "pink", "orange"][
-                                prev.length % 5
-                              ]
-                            }-500`,
-                            icon: "",
-                            activeIcon: "",
-                          },
-                        ]);
+                        handleAddFunnel(newFunnelName)
                       } else if (currentFunnel) {
-                        // Update existing funnel
-                        setCustomFunnels((prev) =>
-                          prev.map((f) =>
-                            f.id === currentFunnel.id
-                              ? { ...f, name: newFunnelName, id: newFunnelName }
-                              : f
-                          )
-                        );
+                        handleEditFunnel(currentFunnel.id, newFunnelName)
                       }
-
-                      setHasChanges(true);
-                      setIsModalOpen(false);
+                      setIsModalOpen(false)
                     }}
                     className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
                   >
@@ -409,7 +414,7 @@ const MapFunnelStages = () => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default MapFunnelStages;
+export default MapFunnelStages
