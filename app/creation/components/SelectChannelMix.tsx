@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import up from "../../../public/arrow-down.svg";
-import down2 from "../../../public/arrow-down-2.svg";
+import down2 from "../../../public/arrow-down-2.svg"; 
 import checkmark from "../../../public/mingcute_check-fill.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { funnelStages, getPlatformIcon } from "../../../components/data";
@@ -13,6 +13,7 @@ import { useComments } from "app/utils/CommentProvider";
 
 // Utility functions for localStorage
 const loadStateFromLocalStorage = (key, defaultValue) => {
+  if (typeof window === 'undefined') return defaultValue;
   try {
     const stored = localStorage.getItem(key);
     return stored ? JSON.parse(stored) : defaultValue;
@@ -23,6 +24,7 @@ const loadStateFromLocalStorage = (key, defaultValue) => {
 };
 
 const saveStateToLocalStorage = (key, state) => {
+  if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(key, JSON.stringify(state));
   } catch (e) {
@@ -32,39 +34,38 @@ const saveStateToLocalStorage = (key, state) => {
 
 const SelectChannelMix = () => {
   const { setIsDrawerOpen, setClose } = useComments();
-  useEffect(() => {
-    setIsDrawerOpen(false);
-    setClose(false);
-  }, []);
-  const [openItems, setOpenItems] = useState(() =>
-    loadStateFromLocalStorage("openItems", {})
-  );
-  const [selected, setSelected] = useState(() =>
-    loadStateFromLocalStorage("selected", {})
-  );
-  const [validatedStages, setValidatedStages] = useState(() =>
-    loadStateFromLocalStorage("validatedStages", {})
-  );
-  const [stageStatuses, setStageStatuses] = useState(() =>
-    loadStateFromLocalStorage("stageStatuses", {})
-  );
   const {
     campaignFormData,
     setCampaignFormData,
-    platformList,
+    platformList = {}, // Provide default empty object
     campaignData,
     updateCampaign,
     getActiveCampaign,
   } = useCampaigns();
 
-  const [showMoreMap, setShowMoreMap] = useState(() =>
-    loadStateFromLocalStorage("showMoreMap", {})
-  );
-  const [openChannelTypes, setOpenChannelTypes] = useState(() =>
-    loadStateFromLocalStorage("openChannelTypes", {})
-  );
+  useEffect(() => {
+    setIsDrawerOpen(false);
+    setClose(false);
+  }, []);
+
+  const [openItems, setOpenItems] = useState({});
+  const [selected, setSelected] = useState({});
+  const [validatedStages, setValidatedStages] = useState({});
+  const [stageStatuses, setStageStatuses] = useState({});
+  const [showMoreMap, setShowMoreMap] = useState({});
+  const [openChannelTypes, setOpenChannelTypes] = useState({});
   const [loading, setLoading] = useState(false);
   const ITEMS_TO_SHOW = 6;
+
+  // Initialize states after component mounts to avoid hydration issues
+  useEffect(() => {
+    setOpenItems(loadStateFromLocalStorage("openItems", {}));
+    setSelected(loadStateFromLocalStorage("selected", {}));
+    setValidatedStages(loadStateFromLocalStorage("validatedStages", {}));
+    setStageStatuses(loadStateFromLocalStorage("stageStatuses", {}));
+    setShowMoreMap(loadStateFromLocalStorage("showMoreMap", {}));
+    setOpenChannelTypes(loadStateFromLocalStorage("openChannelTypes", {}));
+  }, []);
 
   // Sync state to localStorage whenever it changes
   useEffect(() => {
@@ -101,9 +102,9 @@ const SelectChannelMix = () => {
           if (!initialSelected[stageName]) {
             initialSelected[stageName] = {};
           }
-          [
+          const channelTypes = [
             "social_media",
-            "display_networks",
+            "display_networks", 
             "search_engines",
             "streaming",
             "mobile",
@@ -112,18 +113,24 @@ const SelectChannelMix = () => {
             "e_commerce",
             "broadcast",
             "print",
-            "ooh",
-          ]?.forEach((channel) => {
+            "ooh"
+          ];
+          
+          channelTypes.forEach((channel) => {
             if (!initialSelected[stageName][channel]) {
               initialSelected[stageName][channel] = [];
             }
             const ch = stage[channel];
-            ch?.forEach((platform) => {
-              initialSelected[stageName][channel].push(platform.platform_name);
-            });
+            if (Array.isArray(ch)) {
+              ch.forEach((platform) => {
+                if (platform?.platform_name) {
+                  initialSelected[stageName][channel].push(platform.platform_name);
+                }
+              });
+            }
           });
         });
-        setSelected((prev) => ({ ...prev, ...initialSelected }));
+        setSelected(initialSelected);
       }
     };
     initializeSelectedState();
@@ -281,6 +288,7 @@ const SelectChannelMix = () => {
       await updateCampaign(data);
       await getActiveCampaign(data);
     } catch (error) {
+      console.error("Error updating campaign:", error);
     } finally {
       setLoading(false);
     }
@@ -358,6 +366,11 @@ const SelectChannelMix = () => {
       [`${stageName}-${type}`]: !prev[`${stageName}-${type}`],
     }));
   };
+
+  // Early return if no campaign form data
+  if (!campaignFormData?.funnel_stages?.length) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="overflow-hidden">
@@ -503,9 +516,9 @@ const SelectChannelMix = () => {
                   ) : (
                     <>
                       {Object.entries(platformList).map(([type, channels]) => (
-                        <div key={type} className="card_bucket_container_main">
+                        <div key={type} className="card_bucket_container_main p-6">
                           <div
-                            className="flex justify-between items-center cursor-pointer rounded-md"
+                            className="flex justify-between items-center cursor-pointer rounded-md mb-4"
                             onClick={(e) =>
                               toggleChannelType(e, stage.name, type)
                             }
@@ -532,8 +545,8 @@ const SelectChannelMix = () => {
                             Object.entries(channels).map(
                               ([channelName, platforms]) =>
                                 platforms?.length > 0 && (
-                                  <div key={channelName}>
-                                    <p className="capitalize font-semibold mb-2">
+                                  <div key={channelName} className="mb-6">
+                                    <p className="capitalize font-semibold mb-4">
                                       {channelName?.replace("_", " ")}
                                     </p>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
