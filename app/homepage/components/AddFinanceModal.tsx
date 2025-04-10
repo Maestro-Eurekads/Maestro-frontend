@@ -92,7 +92,7 @@ const AddFinanceModal = ({
     setIsOpen(false);
     setClientCampaigns([]);
     setMediaPlans([]);
-    setSelectedRow({})
+    setSelectedRow(null)
   };
 
   useEffect(() => {
