@@ -222,10 +222,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         hasError = true;
       }
 
-      if (hasChanges) {
-        setValidateStep(true);
-        hasError = true;
-      }
+      // if (hasChanges) {
+      //   setValidateStep(true);
+      //   hasError = true;
+      // }
     }
 
     if (active === 2) {
@@ -360,6 +360,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "isValidated",
           "formatValidated",
         ]),
+        custom_funnels: campaignFormData?.custom_funnels,
+        funnel_type: campaignFormData?.funnel_type,
       });
     };
 

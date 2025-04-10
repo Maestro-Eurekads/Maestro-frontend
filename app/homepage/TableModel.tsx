@@ -250,8 +250,11 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       setIsOpen(false)
     } catch (error) {
       const errors: any =
-        error.response?.data?.error?.details?.errors || error.response?.data?.error?.message || error.message || []
-      setAlert({ variant: "error", message: errors, position: "bottom-right" })
+        error.response?.data?.error?.details?.errors ||
+        error.response?.data?.error?.message ||
+        error.message ||
+        [];
+      setAlert({ variant: "error", message: errors, position: "bottom-right" });
     } finally {
       setLoading(false)
     }
@@ -326,6 +329,23 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                       Add
                     </button>
                   </div>
+                </div>
+                <div className="shrink-0 w-[60%] flex items-end  gap-3 mb-2">
+                  <Input
+                    type="text"
+                    value={inputs.full_name}
+                    handleOnChange={(e) =>
+                      handleOnChange("full_name", e.target.value)
+                    }
+                    label="Full Name"
+                    placeholder="Full Name"
+                  />
+                  <button
+                    className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white mt-8"
+                    onClick={handleAddEmail}
+                  >
+                    Add
+                  </button>
                 </div>
               </div>
               {/* Email List Display */}
