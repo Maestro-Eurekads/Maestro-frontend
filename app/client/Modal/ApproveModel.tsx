@@ -1,30 +1,34 @@
 "use client";
-import { useState, useEffect, SetStateAction } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import closefill from "../../../public/close-fill.svg";
-import blueprofile from "../../../public/blueprofile.svg";
-// import EditInputs from "../../components/EditInput"; 
-import { MdOutlineCancel } from "react-icons/md";
-import { getCreateClient } from "features/Client/clientSlice";
-import { useAppDispatch } from "store/useStore";
 import { SVGLoader } from "components/SVGLoader";
 import Input from "components/Input";
 import SignatureInput from "./SignatureInput";
 import DatePickerInput from "components/DatePickerInput";
+import { useComments } from "app/utils/CommentProvider";
+import { useSession } from "next-auth/react";
+import { useAppDispatch, useAppSelector } from "store/useStore";
+import { reset } from "features/Comment/commentSlice";
 
 const ApproveModel = ({ isOpen, setIsOpen }) => {
+  const { setIsLoadingApproval, isLoadingApproval, createAsignatureapproval, createApprovalSuccess } = useComments();
+
+  const { data: session }: any = useSession();
+  const [alert, setAlert] = useState(null);
   const dispatch = useAppDispatch();
+  const [sign, setSign] = useState('');
+  const id = session?.user?.id
   const [inputs, setInputs] = useState({
     name: "",
     date: "",
     signature: "",
     initials: ""
   });
-  const [emailList, setEmailList] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
 
-  console.log("inputs-inputs", inputs);
+
+
+
 
 
   //  Automatically reset alert after showing
@@ -36,15 +40,6 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
   }, [alert]);
 
 
-
-
-
-
-
-  const handleRemoveEmail = (email) => {
-    const filteredEmails = emailList.filter((e) => e !== email);
-    setEmailList(filteredEmails);
-  };
 
   const handleOnChange = (input: string, value: string) => {
     setInputs((prevState) => ({
@@ -65,11 +60,32 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
 
 
 
-
-
   const handleSubmit = async () => {
-    setLoading(true);
+    if (Object.values(inputs).some((value) => value.trim() === "")) return;
+    try {
+      await createAsignatureapproval(sign, inputs, id); // if createApproval takes arguments
+      setIsLoadingApproval(false)
+      setSign("");
+    } catch (error) {
+    }
   };
+
+
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
+
+  useEffect(() => {
+    if (createApprovalSuccess) {
+      setAlert({ variant: "success", message: "Aprroval is Successful!", position: "bottom-right" });
+    }
+
+
+  }, [createApprovalSuccess]);
+
 
 
   return (
@@ -86,7 +102,6 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
               <div className="flex items-center gap-5">
                 <div className="madel_profile_text_container">
                   <h3>Approve & Sign Media plan</h3>
-                  {/* <p>Define the client structure and initial setup.</p> */}
                 </div>
               </div>
               <button
@@ -126,29 +141,7 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
                         placeholder=""
                       />
                     </div>
-                    {/* <button
-                      className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white "
-                      onClick={handleAddEmail}
-                    >
-                      Add
-                    </button> */}
-                  </div>
 
-                  <div className="w-[78%]">
-                    {emailList?.map((email) => (
-                      <div
-                        key={email}
-                        className="flex items-center justify-between"
-                      >
-                        <p className="text-[14px]">{email}</p>
-                        <MdOutlineCancel
-                          size={18}
-                          color="red"
-                          onClick={() => handleRemoveEmail(email)}
-                          className="cursor-pointer"
-                        />
-                      </div>
-                    ))}
                   </div>
                 </div>
 
@@ -175,27 +168,12 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
                     Signature
                   </label>
                   <SignatureInput
+                    setSign={setSign}
                     value={inputs.signature}
                     onChange={(val) => setInputs({ ...inputs, signature: val })}
                   />
                 </div>
-                {/* <div className="flex flex-col w-full">
-                  <label className="w-[124px] h-[19px]   text-[14px] leading-[19px] text-[#061237]  " htmlFor="custom-textarea">
-                   Upload Signature
-                  </label>
-                  <Input
-                    type="email"
-                    value={inputs.email}
-                    handleOnChange={(e) => handleOnChange("email", e.target.value)}
-                    label=""
-                    placeholder=""
-                  />
-                </div> */}
-                {/* <button
-                  className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px]   text-white mt-[12px]"
-                  onClick={handleAddEmail}>
-                  Add
-                </button> */}
+
               </div>
             </div>
             {/* Footer  */}
@@ -208,7 +186,7 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
                   className="btn_model_active whitespace-nowrap"
                   onClick={handleSubmit}
                 >
-                  {loading ? (
+                  {isLoadingApproval ? (
                     <SVGLoader width={"30px"} height={"30px"} color={"#FFF"} />
                   ) : (
                     "Approve"
@@ -224,3 +202,5 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
 };
 
 export default ApproveModel;
+
+

@@ -6,16 +6,30 @@ import AddCommentReply from "./AddCommentReply";
 import { useComments } from "app/utils/CommentProvider";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { getContrastingColor, getRandomColor } from "components/Options";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "store/useStore";
 import { getComment } from "features/Comment/commentSlice";
 import { SVGLoader } from "components/SVGLoader";
 import AlertMain from "components/Alert/AlertMain";
 
+
+interface Comment {
+	documentId: string;
+	addcomment_as: string;
+	createdAt: string;
+	commentId?: string; // Added commentId property
+	replies?: {
+		replyId: string;
+		text: string;
+		createdAt: string;
+		author: string;
+	}[];
+}
+
 const CommentsDrawer = ({ isOpen, onClose }) => {
 	const { opportunities, setViewcommentsId, viewcommentsId, addCommentOpportunity, setOpportunities, createCommentsError, createCommentsSuccess, approvedError, replyError, setIsCreateOpen, setClose } = useComments();
 	const {
-		data: comments,
+		data,
 		isLoading,
 		isError,
 	} = useAppSelector((state) => state.comment);
@@ -26,7 +40,13 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 	const commentId = campaignData?.documentId
 
 
-
+	const comments: Comment[] = useMemo(() => {
+		if (!data) return [];
+		return [...data].sort(
+			(a: Comment, b: Comment) =>
+				new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime()
+		);
+	}, [data]);
 
 	useEffect(() => {
 		const newColors = {};

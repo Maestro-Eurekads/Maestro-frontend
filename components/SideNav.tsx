@@ -20,53 +20,32 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 import Skeleton from "react-loading-skeleton";
 import { useComments } from "app/utils/CommentProvider";
 
-
-
 const SideNav: React.FC = () => {
   const { setClose, close } = useComments();
-  const [isLoading, setIsLoading] = useState(false); // Add isLoading state
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { setActive, setSubStep } = useActive();
   const searchParams = useSearchParams();
   const campaignId = searchParams.get("campaignId");
-  const {
-    campaignData,
-    getActiveCampaign,
-    setCampaignData
-  } = useCampaigns();
-
-
+  const { campaignData, getActiveCampaign, setCampaignData } = useCampaigns();
 
   useEffect(() => {
     if (campaignId) {
-      setIsLoading(true); // Start loading
-      getActiveCampaign(campaignId)
-        .finally(() => setIsLoading(false)); // Stop loading
+      setIsLoading(true);
+      getActiveCampaign(campaignId).finally(() => setIsLoading(false));
     }
   }, [campaignId]);
 
-
-
-
-
-  const handleBackClick = () => {
-    router.back(); // Navigate to home
-    setCampaignData(null)
-    setActive(0); // Reset state
+  const handleBackClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCampaignData(null);
+    setActive(0);
     setSubStep(0);
+    router.push("/");
   };
 
   const steps = [
-    // {
-    //   vl: "vl",
-    //   vl_done: "vl_done",
-    //   vl_active: "vl_active",
-    //   state_text: "SideBar_Menu_state",
-    //   sidecircle: "SideBar_Menu_active",
-    //   title: "Define campaign objective",
-    //   objective: !campaignData?.campaign_objective ? "" : `Main objective: ${campaignData?.campaign_objective}`,
-    //   img: <Image src={symbol} alt="symbol" />
-    // },
     {
       vl: "vl",
       vl_done: "vl_done",
@@ -74,13 +53,13 @@ const SideNav: React.FC = () => {
       state_text: "SideBar_Menu_state",
       sidecircle: "SideBar_Menu_active",
       title: "Map funnel stages",
-      objective: campaignData?.funnel_stages?.length > 0
-        ? campaignData?.funnel_stages?.length > 3
-          ? campaignData?.funnel_stages?.slice(0, 3).join(" · ") + " ..."
-          : campaignData?.funnel_stages?.join(" · ")
-        : "",
-
-      img: <Image src={funnel} alt="funnel" />
+      objective:
+        campaignData?.funnel_stages?.length > 0
+          ? campaignData?.funnel_stages?.length > 3
+            ? campaignData?.funnel_stages?.slice(0, 3).join(" · ") + " ..."
+            : campaignData?.funnel_stages?.join(" · ")
+          : "",
+      img: <Image src={funnel} alt="funnel" />,
     },
     {
       vl: "vl",
@@ -89,7 +68,7 @@ const SideNav: React.FC = () => {
       state_text: "SideBar_Menu_state",
       sidecircle: "SideBar_Menu_active",
       title: "Select channel mix",
-      img: <Image src={channel} alt="channel" />
+      img: <Image src={channel} alt="channel" />,
     },
     {
       vl: "vl",
@@ -116,7 +95,6 @@ const SideNav: React.FC = () => {
       state_text: "SideBar_Menu_state_sub",
       sidecircle: "SideBar_Menu_active_sub",
       title: "Mid-recap",
-      // img: <Image src={basket} alt="basket" />
     },
     {
       vl: "vl",
@@ -125,7 +103,7 @@ const SideNav: React.FC = () => {
       state_text: "SideBar_Menu_state",
       sidecircle: "SideBar_Menu_active",
       title: "Plan campaign schedule",
-      img: <Image src={Calender} alt="click" />
+      img: <Image src={Calender} alt="click" />,
     },
     {
       vl: "vl",
@@ -134,7 +112,7 @@ const SideNav: React.FC = () => {
       state_text: "SideBar_Menu_state",
       sidecircle: "SideBar_Menu_active",
       title: "Configure ad sets and budget",
-      img: <Image src={click} alt="click" />
+      img: <Image src={click} alt="click" />,
     },
     {
       vl: "vl",
@@ -143,7 +121,7 @@ const SideNav: React.FC = () => {
       state_text: "SideBar_Menu_state",
       sidecircle: "SideBar_Menu_active",
       title: "Establish goals",
-      img: <Image src={workbench} alt="workbench" />
+      img: <Image src={workbench} alt="workbench" />,
     },
     {
       vl: "vl",
@@ -152,13 +130,12 @@ const SideNav: React.FC = () => {
       state_text: "SideBar_Menu_state",
       sidecircle: "SideBar_Menu_active",
       title: "Overview of your campaign",
-      img: <Image src={checkfill} alt="checkfill" />
+      img: <Image src={checkfill} alt="checkfill" />,
     },
   ];
 
   return (
     <div id={close ? "side-nav-active" : "side-nav"} className="!flex !flex-col !h-full">
-      {/* Fixed Top Section */}
       <div className="flex flex-col">
         <div className={`flex ${close ? "justify-center mb-[30px]" : "justify-end"} w-full`}>
           <button onClick={() => setClose(!close)}>
@@ -183,12 +160,11 @@ const SideNav: React.FC = () => {
                 <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
                   {campaignData?.media_plan_details?.plan_name
                     ? campaignData?.media_plan_details?.plan_name.charAt(0).toUpperCase() +
-                    campaignData?.media_plan_details?.plan_name.slice(1)
+                      campaignData?.media_plan_details?.plan_name.slice(1)
                     : ""}
                 </h6>
               </div>
             )}
-
             <div className="flex items-center gap-[8px]">
               {isLoading ? (
                 <Skeleton height={20} width={150} />
@@ -200,7 +176,7 @@ const SideNav: React.FC = () => {
                 <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic">
                   {campaignData?.client?.client_name
                     ? campaignData?.client?.client_name.charAt(0).toUpperCase() +
-                    campaignData?.client?.client_name.slice(1)
+                      campaignData?.client?.client_name.slice(1)
                     : ""}
                 </p>
               )}
@@ -208,12 +184,7 @@ const SideNav: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Scrollable Bottom Section */}
       {close ? <CreationFlowActive steps={steps} close={close} /> : <CreationFlow steps={steps} />}
-
-
-      {/* Footer */}
       {!close && (
         <p className="font-general-sans italic font-medium text-[12px] leading-[21px] text-[rgba(6,18,55,0.8)]">
           This screen, all the other ones, as well as the system they build together are protected by
@@ -223,8 +194,6 @@ const SideNav: React.FC = () => {
       )}
     </div>
   );
-
-
 };
 
 export default SideNav;

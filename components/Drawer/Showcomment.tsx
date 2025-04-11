@@ -42,10 +42,10 @@ const Showcomment = ({ comment, setActiveComment }) => {
 
 				{/* Buttons */}
 				<div className="flex w-full justify-between">
-					<div>
+					{comment?.client_commentID === null ? <div>
 						<h3 className={`font-semibold text-[15px] leading-[20px] text-[#00A36C] ${comment?.addcomment_as === "Internal" ? "text-green-500" : "text-red-500"}`}>
 							{comment?.addcomment_as === "Internal" ? "Internal" : "Client"}</h3>
-					</div>
+					</div> : ""}
 					<div>
 						<button
 							onClick={() => handleViewComment(comment?.documentId)}

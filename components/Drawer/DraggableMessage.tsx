@@ -13,13 +13,34 @@ const DraggableComment = ({ opportunity }) => {
 	const [show, setShow] = useState(false);
 	const [newPosition, setNewPosition] = useState(null);
 	const commentRef = useRef(null);
+	const [draggedRecently, setDraggedRecently] = useState(false);
 
-	const handleStop = (data) => {
-		const newPosition = { x: data.x, y: data.y };
-		setNewPosition(newPosition)
-		updateOpportunityPosition(opportunity?.commentId, newPosition);
+
+	const dragStartPos = useRef({ x: 0, y: 0 });
+
+	const handleStart = (e, data) => {
+		dragStartPos.current = { x: data.x, y: data.y };
 	};
 
+	const handleStop = (e, data) => {
+		const dx = Math.abs(data.x - dragStartPos.current.x);
+		const dy = Math.abs(data.y - dragStartPos.current.y);
+		const hasDragged = dx > 5 || dy > 5; // Only flag if actually moved
+
+		if (hasDragged) {
+			setDraggedRecently(true);
+			setTimeout(() => setDraggedRecently(false), 200); // Reset after short delay
+
+			const newPosition = { x: data.x, y: data.y };
+			updateOpportunityPosition(opportunity?.commentId, newPosition);
+		}
+	};
+
+	const handleClick = () => {
+		if (!draggedRecently) {
+			setShow(true);
+		}
+	};
 
 
 
@@ -29,6 +50,7 @@ const DraggableComment = ({ opportunity }) => {
 			handle=".drag-handle"
 			nodeRef={commentRef}
 			defaultPosition={opportunity?.position || { x: 100, y: 100 }}
+			onStart={handleStart}
 			onStop={handleStop}
 		>
 
@@ -39,7 +61,7 @@ const DraggableComment = ({ opportunity }) => {
 			) : (
 				<div ref={commentRef} className="absolute cursor-move drag-handle z-20">
 					<button
-						onClick={() => setShow(true)}
+						onClick={handleClick}
 						className="drag-handle flex items-center justify-center p-[-2px] bg-transparent border-none"
 					>
 						<Image

@@ -13,8 +13,16 @@ const initialState = {
   message: '',
   error: '',
 
+  dataApprove: null,
+  isErrorApprove: false,
+  isSuccessApprove: false,
+  isLoadingApprove: false,
+  messageApprove: '',
+  errorApprove: '',
  
 };
+
+ 
 
 // Create Comment
 export const getComment:any = createAsyncThunk('comment/getComment', async (commentId, thunkAPI) => { 
@@ -31,7 +39,20 @@ export const getComment:any = createAsyncThunk('comment/getComment', async (comm
     return thunkAPI.rejectWithValue(['An unknown error occurred']);
 });
 
-// Sign-up user
+// Create Comment
+export const getSignedApproval:any = createAsyncThunk('comment/getSignedApproval', async (id: string | number, thunkAPI) => { 
+  try {
+    const response = await commentService.getSignedApproval(id);
+    return response; 
+		} catch (error: unknown) { 
+			 if (typeof error === 'object' && error !== null && 'response' in error) {
+					const axiosError = error as { response?: { data?: { error?: { details?: { errors?: any[] }; message?: string } } } }; 
+      const errors:any = axiosError.response?.data?.error?.details?.errors || axiosError.response?.data?.error?.message || []; 
+      return thunkAPI.rejectWithValue(errors);  
+				}
+			 }
+    return thunkAPI.rejectWithValue(['An unknown error occurred']);
+});
  
 
 // Slice
@@ -45,7 +66,10 @@ export const clientSlice = createSlice({
       state.isError = false;
       state.message = '';
 
-    
+     state.isLoadingApprove = false;
+      state.isSuccessApprove = false;
+      state.isErrorApprove = false;
+      state.messageApprove = '';
      
     },
   },
@@ -70,7 +94,23 @@ extraReducers: (builder) => {
       state.data = null;
     })
 
-    
+    // Get Signed Approval
+     .addCase(getSignedApproval.pending, (state) => {
+      state.isLoadingApprove = true;
+    })
+    .addCase(getSignedApproval.fulfilled, (state, action) => {
+      state.isLoadingApprove = false;
+      state.isSuccessApprove = true;
+      state.dataApprove = action?.payload?.data;
+    })
+    .addCase(getSignedApproval.rejected, (state, action: any) => {
+      state.isLoadingApprove = false;
+      state.isErrorApprove = true;
+      state.messageApprove = Array.isArray(action.payload)
+        ? action.payload.join('\n')
+        : JSON.stringify(action.payload);
+      state.dataApprove = null;
+    })
 },
 
 });

@@ -25,8 +25,10 @@ const Comments = ({ comment, contrastingColor }) => {
 			{/* Comment Text */}
 			<p className="font-[500] text-[16px] leading-[22px] text-[#292929] py-5">{comment?.text}</p>
 			<div>
-				<h3 className={`font-semibold text-[15px] leading-[20px] text-[#00A36C] ${comment?.addcomment_as === "Internal" ? "text-green-500" : "text-red-500"}`}>
-					{comment?.addcomment_as === "Internal" ? "Internal" : "Client"}</h3>
+				{comment?.client_commentID === null ? <div>
+					<h3 className={`font-semibold text-[15px] leading-[20px] text-[#00A36C] ${comment?.addcomment_as === "Internal" ? "text-green-500" : "text-red-500"}`}>
+						{comment?.addcomment_as === "Internal" ? "Internal" : "Client"}</h3>
+				</div> : ""}
 			</div>
 		</div>
 	);
