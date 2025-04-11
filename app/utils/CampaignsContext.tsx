@@ -62,6 +62,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     made_by: [],
     approved_by: [],
   });
+  const [selectedFilters, setSelectedFilters] = useState({});
 
   const reduxClients = useSelector(
     (state: any) => state.client?.getCreateClientData?.data || []
@@ -478,6 +479,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         setFetchingPO,
         filterOptions,
         setFilterOptions,
+        selectedFilters,
+        setSelectedFilters
       }}
     >
       {children}

@@ -240,7 +240,7 @@ const Table = () => {
                     <td className="py-[12px] px-[16px]">
                       <div className="flex items-center whitespace-nowrap gap-3">
                         <div className="view_content_table">MD</div>
-                        {data?.responsible}
+                        {data?.media_plan_details?.client_approver}
                       </div>
                     </td>
                     <td className="py-[12px] px-[16px]">
