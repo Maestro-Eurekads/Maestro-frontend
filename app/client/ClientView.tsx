@@ -156,7 +156,7 @@ const ClientView = () => {
 				<Header setIsOpen={setIsOpen} />
 				<ClientCommentsDrawer isOpen={isDrawerOpen} onClose={setIsDrawerOpen} />
 				<main className="!px-0 mt-[20px] bg-[#F9FAFB]">
-					<div className={`px-[50px]  ${isDrawerOpen ? 'md:px-[100px]' : 'xl:px-[300px]'}`}>
+					<div className={`px-[50px]  ${isDrawerOpen ? 'md:px-[50px]' : 'xl:px-[150px]'}`}>
 
 						<div className='flex	flex-col gap-[24px]'>
 							<ApproverContainer />
