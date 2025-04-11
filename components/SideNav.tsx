@@ -36,11 +36,13 @@ const SideNav: React.FC = () => {
     }
   }, [campaignId]);
 
-  const handleBackClick = () => {
+  const handleBackClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     setCampaignData(null);
     setActive(0);
     setSubStep(0);
-    router.push("/"); 
+    router.push("/");
   };
 
   const steps = [
