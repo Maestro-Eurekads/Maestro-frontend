@@ -604,7 +604,7 @@ export const FormatSelection = () => {
                   {stage?.icon &&
                   <Image src={stage.icon} alt={stage.name} />
                   }
-                  <p className="w-[119px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
+                  <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
                     {stage.name}
                   </p>
                 </div>
