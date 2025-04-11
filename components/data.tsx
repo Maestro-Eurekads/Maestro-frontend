@@ -17,7 +17,7 @@ import flipkart from "../public/social/flipkart.png";
 import hulu from "../public/social/hulu.png";
 import indexchange from "../public/social/indexchange.png";
 import jd from "../public/social/jd.jpeg";
-import kakaologo from "../public/social/kakaologo.jpg";
+import Kakao_logo from "../public/social/Kakao_logo.jpg";
 import lazada from "../public/social/lazada.png";
 import line from "../public/social/line.svg";
 import liveintent from "../public/social/liveintent.png";
@@ -59,7 +59,7 @@ import vkontakte from "../public/social/vkontakte.svg";
 import walmart from "../public/social/walmart.png";
 import wechat from "../public/social/wechat.svg";
 import whatsapp from "../public/social/whatsapp.png";
-import xandr from "../public/social/xandr.png";
+import Xandr from "../public/social/Xandr.png";
 import zemanta from "../public/social/zemanta.png";
 
 
@@ -144,7 +144,7 @@ export const platformIcons: Record<string, StaticImageData> = {
 	Hulu: hulu,
 	IndexExchange: indexchange,
 	JD: jd,
-	Kakao: kakaologo,
+	Kakao: Kakao_logo,
 	Lazada: lazada,
 	Line: line,
 	LiveIntent: liveintent,
@@ -186,7 +186,7 @@ export const platformIcons: Record<string, StaticImageData> = {
 	Walmart: walmart,
 	WeChat: wechat,
 	WhatsApp: whatsapp,
-	Xandr: xandr,
+	Xandr: Xandr,
 	Zemanta: zemanta,
 	Pinterest: google, // Use Google as fallback until proper icon is provided
 	Tumblr: google, // Use Google as fallback until proper icon is provided
@@ -423,160 +423,81 @@ export const campaignObjectives = [
   },
 ];
 
-// export const platformStyles = [
-// 	{ name: "Facebook", color: "#0866FF", icon: facebook },
-// 	{ name: "Instagram", color: "#C13584", icon: ig },
-// 	{ name: "TikTok", color: "#000000", icon: tictok },
-// 	{ name: "YouTube", color: "#FF0000", icon: youtube },
-// 	{ name: "Twitter/X", color: "#000000", icon: x },
-// 	{ name: "LinkedIn", color: "#0A66C2", icon: linkedin },
-// 	{ name: "Snapchat", color: "#FFFC00", icon: snapchat },
-// 	{ name: "Pinterest", color: "#E60023", icon: google }, // Fallback
-// 	{ name: "Reddit", color: "#FF4500", icon: reddit },
-// 	{ name: "Quora", color: "#B92B27", icon: quora },
-// 	{ name: "WeChat", color: "#07C160", icon: wechat },
-// 	{ name: "Weibo", color: "#E6162D", icon: sinaweibo },
-// 	{ name: "Vkontakte", color: "#0077FF", icon: vkontakte },
-// 	{ name: "Line", color: "#00C300", icon: line },
-// 	{ name: "Kakao", color: "#FFCD00", icon: Kakao_logo },
-// 	{ name: "Tumblr", color: "#001935", icon: google }, // Fallback
-// 	{ name: "The Trade Desk", color: "#0099FA", icon: thetradedesk },
-// 	{ name: "Quantcast", color: "#000000", icon: quantcast },
-// 	{ name: "Display & Video", color: "#34A853", icon: Display },
-// 	{ name: "DV360", color: "#1E8E3E", icon: Display }, // Logical fit
-// 	{ name: "MediaMath", color: "#E6007A", icon: mediamath },
-// 	{ name: "Xandr", color: "#FF3E59", icon: Xandr },
-// 	{ name: "Verizon Media", color: "#DA291C", icon: verizon },
-// 	{ name: "Amazon", color: "#FF9900", icon: amazon },
-// 	{ name: "Adroll", color: "#0033CC", icon: adroll },
-// 	{ name: "Criteo", color: "#F47C00", icon: criteo },
-// 	{ name: "RTB House", color: "#EC1C24", icon: rtbhouse },
-// 	{ name: "SmartyAds", color: "#FF5722", icon: smartyads },
-// 	{ name: "Adsterra", color: "#FF4500", icon: adsterra },
-// 	{ name: "PopAds", color: "#F5A623", icon: popads },
-// 	{ name: "Smaato", color: "#0071BC", icon: smatoo },
-// 	{ name: "Pubmatic", color: "#00AEEF", icon: pubmatic },
-// 	{ name: "Magnite", color: "#E6001F", icon: magnite },
-// 	{ name: "OpenX", color: "#FFA500", icon: openx },
-// 	{ name: "Index Exchange", color: "#0097D7", icon: indexchange },
-// 	{ name: "Stackadapt", color: "#1C1C1C", icon: stackadapt },
-// 	{ name: "Choozle", color: "#4EAF4E", icon: choozle },
-// 	{ name: "Teads", color: "#002244", icon: teads },
-// 	{ name: "LiveIntent", color: "#FF6600", icon: liveintent },
-// 	{ name: "Epom", color: "#0088CC", icon: epom },
-// 	{ name: "QuantCast", color: "#000000", icon: quantcast },
-// 	{ name: "Taboola", color: "#1F76C2", icon: taboola },
-// 	{ name: "Outbrain", color: "#FF6600", icon: outbrain },
-// 	{ name: "MGID", color: "#EC1C24", icon: mgid },
-// 	{ name: "Revcontent", color: "#0083C1", icon: revcontent },
-// 	{ name: "Plista", color: "#6D6E71", icon: plista },
-// 	{ name: "Zemanta", color: "#E95A0C", icon: zemanta },
-// 	{ name: "Nativo", color: "#0074C1", icon: nativo },
-// 	{ name: "TripleLift", color: "#FF6600", icon: triplelift },
-// 	{ name: "Sharethrough", color: "#00A37E", icon: sharethrough },
-// 	{ name: "Microsoft Audience", color: "#0066B8", icon: microsoft },
-// 	{ name: "BuySell", color: "#FF5722", icon: buysell },
-// 	{ name: "Mozilla Tiles", color: "#C13832", icon: mozilla },
-// 	{ name: "Telegram", color: "#0088CC", icon: telegram },
-// 	{ name: "WhatsApp", color: "#25D366", icon: whatsapp },
-// 	{ name: "Twitch", color: "#9146FF", icon: twitch },
-// 	{ name: "eBay", color: "#E53238", icon: ebay },
-// 	{ name: "Walmart", color: "#0071CE", icon: walmart },
-// 	{ name: "Etsy", color: "#D5641C", icon: etsy },
-// 	{ name: "Alibaba", color: "#FF6A00", icon: alibaba },
-// 	{ name: "Rakuten", color: "#BF0000", icon: rakuten },
-// 	{ name: "Newegg", color: "#F47B00", icon: newegg },
-// 	{ name: "Mercado Libre", color: "#FFE600", icon: mercado },
-// 	{ name: "Flipkart", color: "#2874F0", icon: flipkart },
-// 	{ name: "JD", color: "#C7000B", icon: jd },
-// 	{ name: "Lazada", color: "#F36C21", icon: lazada },
-// 	{ name: "Shopee", color: "#FF5722", icon: shopee },
-// 	{ name: "Spotify", color: "#1DB954", icon: spotify },
-// 	{ name: "Pandora", color: "#0057FF", icon: pandora },
-// 	{ name: "SoundCloud", color: "#FF5500", icon: soundcloud },
-// 	{ name: "Hulu", color: "#1CE783", icon: hulu },
-// 	{ name: "Dailymotion", color: "#0066DC", icon: daily },
-// 	{ name: "Google", color: "#4285F4", icon: google },
-// 	{ name: "Apple Search", color: "#000000", icon: google },
-// 	{ name: "Yahoo", color: "#6001D2", icon: yahoo },
-// 	{ name: "Bing", color: "#008373", icon: bing },
-//   ];
-
 export const platformStyles = [
-	{ name: "Facebook", color: "#0866FF", icon: facebook, bg: "#F0F6FF" }, // From channels
-	{ name: "Instagram", color: "#C13584", icon: ig, bg: "#FEF1F8" }, // From channels
-	{ name: "TikTok", color: "#000000", icon: tictok, bg: "#F7F7F7" }, // Light gray for black
-	{ name: "YouTube", color: "#FF0000", icon: youtube, bg: "#FFF0F0" }, // From channels
-	{ name: "Twitter/X", color: "#000000", icon: x, bg: "#F7F7F7" }, // Light gray for black
-	{ name: "LinkedIn", color: "#0A66C2", icon: linkedin, bg: "#F0F5FF" }, // Light blue
-	{ name: "Snapchat", color: "#FFFC00", icon: snapchat, bg: "#FFFFF0" }, // Very light yellow
-	{ name: "Pinterest", color: "#E60023", icon: google, bg: "#FFF0F2" }, // Light red
-	{ name: "Reddit", color: "#FF4500", icon: reddit, bg: "#FFF2ED" }, // Light orange
-	{ name: "Quora", color: "#B92B27", icon: quora, bg: "#FEF0F0" }, // Light red
-	{ name: "WeChat", color: "#07C160", icon: wechat, bg: "#F0FAF5" }, // Light green
-	{ name: "Weibo", color: "#E6162D", icon: sinaweibo, bg: "#FFF0F3" }, // Light red
-	{ name: "Vkontakte", color: "#0077FF", icon: vkontakte, bg: "#F0F6FF" }, // Light blue
-	{ name: "Line", color: "#00C300", icon: line, bg: "#F0FAF0" }, // Light green
-	{ name: "Kakao", color: "#FFCD00", icon: kakaologo, bg: "#FFFDF0" }, // Light yellow
-	{ name: "Tumblr", color: "#001935", icon: google, bg: "#F0F3F5" }, // Light navy
-	{ name: "The Trade Desk", color: "#0099FA", icon: thetradedesk, bg: "#F0F9FF" }, // From channels
-	{ name: "Quantcast", color: "#000000", icon: quantcast, bg: "#F7F7F7" }, // From channels
-	{ name: "Display & Video", color: "#34A853", icon: Display, bg: "#F2FAF4" }, // Light green
-	{ name: "DV360", color: "#1E8E3E", icon: Display, bg: "#F0F8F3" }, // Light green
-	{ name: "MediaMath", color: "#E6007A", icon: mediamath, bg: "#FFF0F6" }, // Light magenta
-	{ name: "Xandr", color: "#FF3E59", icon: xandr, bg: "#FFF0F3" }, // Light pink
-	{ name: "Verizon Media", color: "#DA291C", icon: verizon, bg: "#FEF0EF" }, // Light red
-	{ name: "Amazon", color: "#FF9900", icon: amazon, bg: "#FFF8ED" }, // Light orange
-	{ name: "Adroll", color: "#0033CC", icon: adroll, bg: "#F0F2FF" }, // Light blue
-	{ name: "Criteo", color: "#F47C00", icon: criteo, bg: "#FFF5ED" }, // Light orange
-	{ name: "RTB House", color: "#EC1C24", icon: rtbhouse, bg: "#FFF0F1" }, // Light red
-	{ name: "SmartyAds", color: "#FF5722", icon: smartyads, bg: "#FFF2EE" }, // Light orange
-	{ name: "Adsterra", color: "#FF4500", icon: adsterra, bg: "#FFF2ED" }, // Light orange
-	{ name: "PopAds", color: "#F5A623", icon: popads, bg: "#FFF7EE" }, // Light orange
-	{ name: "Smaato", color: "#0071BC", icon: smatoo, bg: "#F0F5FF" }, // Light blue
-	{ name: "Pubmatic", color: "#00AEEF", icon: pubmatic, bg: "#F0F9FF" }, // Light cyan
-	{ name: "Magnite", color: "#E6001F", icon: magnite, bg: "#FFF0F1" }, // Light red
-	{ name: "OpenX", color: "#FFA500", icon: openx, bg: "#FFF8ED" }, // Light orange
-	{ name: "Index Exchange", color: "#0097D7", icon: indexchange, bg: "#F0F8FF" }, // Light blue
-	{ name: "Stackadapt", color: "#1C1C1C", icon: stackadapt, bg: "#F5F5F5" }, // Light gray
-	{ name: "Choozle", color: "#4EAF4E", icon: choozle, bg: "#F3FAF3" }, // Light green
-	{ name: "Teads", color: "#002244", icon: teads, bg: "#F0F3F6" }, // Light navy
-	{ name: "LiveIntent", color: "#FF6600", icon: liveintent, bg: "#FFF4ED" }, // Light orange
-	{ name: "Epom", color: "#0088CC", icon: epom, bg: "#F0F7FF" }, // Light blue
-	{ name: "QuantCast", color: "#000000", icon: quantcast, bg: "#F7F7F7" }, // Light gray
-	{ name: "Taboola", color: "#1F76C2", icon: taboola, bg: "#F0F5FF" }, // Light blue
-	{ name: "Outbrain", color: "#FF6600", icon: outbrain, bg: "#FFF4ED" }, // Light orange
-	{ name: "MGID", color: "#EC1C24", icon: mgid, bg: "#FFF0F1" }, // Light red
-	{ name: "Revcontent", color: "#0083C1", icon: revcontent, bg: "#F0F7FF" }, // Light blue
-	{ name: "Plista", color: "#6D6E71", icon: plista, bg: "#F5F6F6" }, // Light gray
-	{ name: "Zemanta", color: "#E95A0C", icon: zemanta, bg: "#FFF3ED" }, // Light orange
-	{ name: "Nativo", color: "#0074C1", icon: nativo, bg: "#F0F5FF" }, // Light blue
-	{ name: "TripleLift", color: "#FF6600", icon: triplelift, bg: "#FFF4ED" }, // Light orange
-	{ name: "Sharethrough", color: "#00A37E", icon: sharethrough, bg: "#F0FAF7" }, // Light teal
-	{ name: "Microsoft Audience", color: "#0066B8", icon: microsoft, bg: "#F0F5FF" }, // Light blue
-	{ name: "BuySell", color: "#FF5722", icon: buysell, bg: "#FFF2EE" }, // Light orange
-	{ name: "Mozilla Tiles", color: "#C13832", icon: mozilla, bg: "#FEF2F1" }, // Light red
-	{ name: "Telegram", color: "#0088CC", icon: telegram, bg: "#F0F7FF" }, // Light blue
-	{ name: "WhatsApp", color: "#25D366", icon: whatsapp, bg: "#F2FBF5" }, // Light green
-	{ name: "Twitch", color: "#9146FF", icon: twitch, bg: "#F7F2FF" }, // Light purple
-	{ name: "eBay", color: "#E53238", icon: ebay, bg: "#FFF0F2" }, // Light red
-	{ name: "Walmart", color: "#0071CE", icon: walmart, bg: "#F0F5FF" }, // Light blue
-	{ name: "Etsy", color: "#D5641C", icon: etsy, bg: "#FFF4EE" }, // Light orange
-	{ name: "Alibaba", color: "#FF6A00", icon: alibaba, bg: "#FFF4ED" }, // Light orange
-	{ name: "Rakuten", color: "#BF0000", icon: rakuten, bg: "#FEF0F0" }, // Light red
-	{ name: "Newegg", color: "#F47B00", icon: newegg, bg: "#FFF5ED" }, // Light orange
-	{ name: "Mercado Libre", color: "#FFE600", icon: mercado, bg: "#FFFFF0" }, // Very light yellow
-	{ name: "Flipkart", color: "#2874F0", icon: flipkart, bg: "#F2F6FF" }, // Light blue
-	{ name: "JD", color: "#C7000B", icon: jd, bg: "#FEF0F0" }, // Light red
-	{ name: "Lazada", color: "#F36C21", icon: lazada, bg: "#FFF4EE" }, // Light orange
-	{ name: "Shopee", color: "#FF5722", icon: shopee, bg: "#FFF2EE" }, // Light orange
-	{ name: "Spotify", color: "#1DB954", icon: spotify, bg: "#F2FAF5" }, // Light green
-	{ name: "Pandora", color: "#0057FF", icon: pandora, bg: "#F0F4FF" }, // Light blue
-	{ name: "SoundCloud", color: "#FF5500", icon: soundcloud, bg: "#FFF4ED" }, // Light orange
-	{ name: "Hulu", color: "#1CE783", icon: hulu, bg: "#F2FBF6" }, // Light green
-	{ name: "Dailymotion", color: "#0066DC", icon: daily, bg: "#F0F5FF" }, // Light blue
-	{ name: "Google", color: "#4285F4", icon: google, bg: "#F1F6FE" }, // From channels
-	{ name: "Apple Search", color: "#000000", icon: google, bg: "#F7F7F7" }, // Light gray
-	{ name: "Yahoo", color: "#6001D2", icon: yahoo, bg: "#F6F0FF" }, // Light purple
-	{ name: "Bing", color: "#008373", icon: bing, bg: "#F0F8F6" }, // Light teal
+	{ name: "Facebook", color: "#0866FF", icon: facebook },
+	{ name: "Instagram", color: "#C13584", icon: ig },
+	{ name: "TikTok", color: "#000000", icon: tictok },
+	{ name: "YouTube", color: "#FF0000", icon: youtube },
+	{ name: "Twitter/X", color: "#000000", icon: x },
+	{ name: "LinkedIn", color: "#0A66C2", icon: linkedin },
+	{ name: "Snapchat", color: "#FFFC00", icon: snapchat },
+	{ name: "Pinterest", color: "#E60023", icon: google }, // Fallback
+	{ name: "Reddit", color: "#FF4500", icon: reddit },
+	{ name: "Quora", color: "#B92B27", icon: quora },
+	{ name: "WeChat", color: "#07C160", icon: wechat },
+	{ name: "Weibo", color: "#E6162D", icon: sinaweibo },
+	{ name: "Vkontakte", color: "#0077FF", icon: vkontakte },
+	{ name: "Line", color: "#00C300", icon: line },
+	{ name: "Kakao", color: "#FFCD00", icon: Kakao_logo },
+	{ name: "Tumblr", color: "#001935", icon: google }, // Fallback
+	{ name: "The Trade Desk", color: "#0099FA", icon: thetradedesk },
+	{ name: "Quantcast", color: "#000000", icon: quantcast },
+	{ name: "Display & Video", color: "#34A853", icon: Display },
+	{ name: "DV360", color: "#1E8E3E", icon: Display }, // Logical fit
+	{ name: "MediaMath", color: "#E6007A", icon: mediamath },
+	{ name: "Xandr", color: "#FF3E59", icon: Xandr },
+	{ name: "Verizon Media", color: "#DA291C", icon: verizon },
+	{ name: "Amazon", color: "#FF9900", icon: amazon },
+	{ name: "Adroll", color: "#0033CC", icon: adroll },
+	{ name: "Criteo", color: "#F47C00", icon: criteo },
+	{ name: "RTB House", color: "#EC1C24", icon: rtbhouse },
+	{ name: "SmartyAds", color: "#FF5722", icon: smartyads },
+	{ name: "Adsterra", color: "#FF4500", icon: adsterra },
+	{ name: "PopAds", color: "#F5A623", icon: popads },
+	{ name: "Smaato", color: "#0071BC", icon: smatoo },
+	{ name: "Pubmatic", color: "#00AEEF", icon: pubmatic },
+	{ name: "Magnite", color: "#E6001F", icon: magnite },
+	{ name: "OpenX", color: "#FFA500", icon: openx },
+	{ name: "Index Exchange", color: "#0097D7", icon: indexchange },
+	{ name: "Stackadapt", color: "#1C1C1C", icon: stackadapt },
+	{ name: "Choozle", color: "#4EAF4E", icon: choozle },
+	{ name: "Teads", color: "#002244", icon: teads },
+	{ name: "LiveIntent", color: "#FF6600", icon: liveintent },
+	{ name: "Epom", color: "#0088CC", icon: epom },
+	{ name: "QuantCast", color: "#000000", icon: quantcast },
+	{ name: "Taboola", color: "#1F76C2", icon: taboola },
+	{ name: "Outbrain", color: "#FF6600", icon: outbrain },
+	{ name: "MGID", color: "#EC1C24", icon: mgid },
+	{ name: "Revcontent", color: "#0083C1", icon: revcontent },
+	{ name: "Plista", color: "#6D6E71", icon: plista },
+	{ name: "Zemanta", color: "#E95A0C", icon: zemanta },
+	{ name: "Nativo", color: "#0074C1", icon: nativo },
+	{ name: "TripleLift", color: "#FF6600", icon: triplelift },
+	{ name: "Sharethrough", color: "#00A37E", icon: sharethrough },
+	{ name: "Microsoft Audience", color: "#0066B8", icon: microsoft },
+	{ name: "BuySell", color: "#FF5722", icon: buysell },
+	{ name: "Mozilla Tiles", color: "#C13832", icon: mozilla },
+	{ name: "Telegram", color: "#0088CC", icon: telegram },
+	{ name: "WhatsApp", color: "#25D366", icon: whatsapp },
+	{ name: "Twitch", color: "#9146FF", icon: twitch },
+	{ name: "eBay", color: "#E53238", icon: ebay },
+	{ name: "Walmart", color: "#0071CE", icon: walmart },
+	{ name: "Etsy", color: "#D5641C", icon: etsy },
+	{ name: "Alibaba", color: "#FF6A00", icon: alibaba },
+	{ name: "Rakuten", color: "#BF0000", icon: rakuten },
+	{ name: "Newegg", color: "#F47B00", icon: newegg },
+	{ name: "Mercado Libre", color: "#FFE600", icon: mercado },
+	{ name: "Flipkart", color: "#2874F0", icon: flipkart },
+	{ name: "JD", color: "#C7000B", icon: jd },
+	{ name: "Lazada", color: "#F36C21", icon: lazada },
+	{ name: "Shopee", color: "#FF5722", icon: shopee },
+	{ name: "Spotify", color: "#1DB954", icon: spotify },
+	{ name: "Pandora", color: "#0057FF", icon: pandora },
+	{ name: "SoundCloud", color: "#FF5500", icon: soundcloud },
+	{ name: "Hulu", color: "#1CE783", icon: hulu },
+	{ name: "Dailymotion", color: "#0066DC", icon: daily },
+	{ name: "Google", color: "#4285F4", icon: google },
+	{ name: "Apple Search", color: "#000000", icon: google },
+	{ name: "Yahoo", color: "#6001D2", icon: yahoo },
+	{ name: "Bing", color: "#008373", icon: bing },
   ];
