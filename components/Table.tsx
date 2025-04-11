@@ -152,7 +152,7 @@ const Table = () => {
               <NoRecordFound colSpan={8}>No Client campaigns!</NoRecordFound>
             ) : (
               currentItems.map((data) => {
-                console.log("🚀 ~ currentItems.map ~ findPOs:", data);
+                // console.log("🚀 ~ currentItems.map ~ findPOs:", data);
 
                 let POs = [];
                 clientPOs?.forEach((po) => {
@@ -170,7 +170,7 @@ const Table = () => {
                     });
                   }
                 });
-                console.log("here's your PO", POs);
+                // console.log("here's your PO", POs);
                 return (
                   <tr
                     key={data?.id}
