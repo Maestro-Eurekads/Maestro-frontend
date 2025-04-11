@@ -78,7 +78,6 @@ const ClientCommentsDrawer = ({ isOpen, onClose }) => {
 
 
 
-
 	const handleClose = () => {
 		setOpportunities([]);
 		onClose(false);

@@ -1,6 +1,4 @@
 import React from "react";
-import CommentHeader from "./ClientCommentHeader";
-import Approved from "./ClientApproved";
 import ClientCommentHeader from "./ClientCommentHeader";
 import ClientApproved from "./ClientApproved";
 
