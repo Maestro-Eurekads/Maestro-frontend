@@ -1,38 +1,43 @@
 import Image from "next/image";
-import closecircle from "../../public/close-circle.svg";
-import Mmessages from "../../public/message-2.svg";
-import Comments from "./Comments";
-import AddCommentReply from "./AddCommentReply";
+import closecircle from "../../../../public/close-circle.svg";
+import Mmessages from "../../../../public/message-2.svg";
 import { useComments } from "app/utils/CommentProvider";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { getContrastingColor, getRandomColor } from "components/Options";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "store/useStore";
 import { getComment } from "features/Comment/commentSlice";
 import { SVGLoader } from "components/SVGLoader";
 import AlertMain from "components/Alert/AlertMain";
-
+import ClientComments from "./ClientComments";
+import ClientAddCommentReply from "./ClientAddCommentReply";
 
 interface Comment {
 	documentId: string;
 	addcomment_as: string;
 	createdAt: string;
-	commentId?: string; // Added commentId property
-	replies?: {
-		replyId: string;
-		text: string;
-		createdAt: string;
-		author: string;
-	}[];
+	commentId: string; // Added commentId property
+	replies?: Reply[];
 }
 
-const CommentsDrawer = ({ isOpen, onClose }) => {
+interface Reply {
+	documentId: string;
+	name?: string;
+	date?: string;
+	time?: string;
+	message?: string;
+}
+
+const ClientCommentsDrawer = ({ isOpen, onClose }) => {
 	const { opportunities, setViewcommentsId, viewcommentsId, addCommentOpportunity, setOpportunities, createCommentsError, createCommentsSuccess, approvedError, replyError, setIsCreateOpen, setClose } = useComments();
 	const {
 		data,
 		isLoading,
 		isError,
 	} = useAppSelector((state) => state.comment);
+	const comments: Comment[] = data
+		?.filter((comment: Comment) => comment?.addcomment_as !== "Internal")
+		.sort((a: Comment, b: Comment) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 	const dispatch = useAppDispatch();
 	const { campaignData } = useCampaigns();
 	const [alert, setAlert] = useState(null);
@@ -40,13 +45,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 	const commentId = campaignData?.documentId
 
 
-	const comments: Comment[] = useMemo(() => {
-		if (!data) return [];
-		return [...data].sort(
-			(a: Comment, b: Comment) =>
-				new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime()
-		);
-	}, [data]);
+
 
 	useEffect(() => {
 		const newColors = {};
@@ -60,7 +59,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 			}
 		});
 		setCommentColors((prevColors) => ({ ...prevColors, ...newColors }));
-	}, [comments]);
+	}, [data]);
 
 	// Function to create a new Comment Opportunity
 	const createCommentOpportunity = () => {
@@ -133,7 +132,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 			<div className="flex w-full justify-between p-3">
 				<div>
 					<h3 className="font-medium text-2xl text-[#292929]">Comments For</h3>
-					<div className="flex  items-center gap-2 w-full">
+					{/* <div className="flex  items-center gap-2 w-full">
 						<p className="font-medium text-lg text-[#292929]">
 							{campaignData?.media_plan_details?.plan_name
 								? campaignData?.media_plan_details?.plan_name.charAt(0).toUpperCase() +
@@ -143,7 +142,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 						<p className="font-medium text-lg text-[#292929]">
 							Awareness
 						</p>
-					</div>
+					</div> */}
 
 				</div>
 				<button onClick={handleClose}>
@@ -176,8 +175,8 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 									key={comment?.documentId}
 									className="flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-[0px_4px_10px_rgba(0,0,0,0.1)] rounded-lg border-box mb-5"
 								>
-									<Comments comment={comment} contrastingColor={contrastingColor} />
-									<AddCommentReply documentId={comment?.documentId} contrastingColor={contrastingColor} commentId={comment?.commentId} />
+									<ClientComments comment={comment} contrastingColor={contrastingColor} />
+									<ClientAddCommentReply documentId={comment?.documentId} contrastingColor={contrastingColor} commentId={comment?.commentId} />
 								</div>
 							);
 						})
@@ -189,8 +188,8 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 								key={comment?.documentId}
 								className="flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-[0px_4px_10px_rgba(0,0,0,0.1)] rounded-lg border-box mb-5"
 							>
-								<Comments comment={comment} contrastingColor={contrastingColor} />
-								<AddCommentReply documentId={comment?.documentId} contrastingColor={contrastingColor} commentId={comment?.commentId} />
+								<ClientComments comment={comment} contrastingColor={contrastingColor} />
+								<ClientAddCommentReply documentId={comment?.documentId} contrastingColor={contrastingColor} commentId={comment?.commentId} />
 							</div>
 						);
 					})
@@ -201,7 +200,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 	);
 };
 
-export default CommentsDrawer;
+export default ClientCommentsDrawer;
 
 
 

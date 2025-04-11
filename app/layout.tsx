@@ -17,6 +17,7 @@ import { CommentProvider } from "./utils/CommentProvider";
 import { getServerSession } from "next-auth";
 import { authOptions } from "utils/auth";
 import Login from "features/Login";
+import { ClientCampaignProvider } from "./client/ClientCampaignContext";
 
 // Load fonts
 const roboto = Roboto({
@@ -68,28 +69,30 @@ export default async function RootLayout({
       <body className={`${roboto.variable} ${inter.variable} antialiased`}>
         <NewProvider session={session}>
           <Suspense>
-            <CommentProvider>
-              <VerificationProvider>
-                <CampaignSelectionProvider>
-                  <CampaignProvider>
-                    <DateRangeProvider>
-                      <SelectedDatesProvider>
-                        <ActiveProvider>
-                          <EditingProvider>
-                            <ObjectivesProvider>
-                              <FunnelProvider>
-                                <ToastContainer />
-                                {children}
-                              </FunnelProvider>
-                            </ObjectivesProvider>
-                          </EditingProvider>
-                        </ActiveProvider>
-                      </SelectedDatesProvider>
-                    </DateRangeProvider>
-                  </CampaignProvider>
-                </CampaignSelectionProvider>
-              </VerificationProvider>
-            </CommentProvider>
+            <ClientCampaignProvider>
+              <CommentProvider>
+                <VerificationProvider>
+                  <CampaignSelectionProvider>
+                    <CampaignProvider>
+                      <DateRangeProvider>
+                        <SelectedDatesProvider>
+                          <ActiveProvider>
+                            <EditingProvider>
+                              <ObjectivesProvider>
+                                <FunnelProvider>
+                                  <ToastContainer />
+                                  {children}
+                                </FunnelProvider>
+                              </ObjectivesProvider>
+                            </EditingProvider>
+                          </ActiveProvider>
+                        </SelectedDatesProvider>
+                      </DateRangeProvider>
+                    </CampaignProvider>
+                  </CampaignSelectionProvider>
+                </VerificationProvider>
+              </CommentProvider>
+            </ClientCampaignProvider>
           </Suspense>
         </NewProvider>
       </body>

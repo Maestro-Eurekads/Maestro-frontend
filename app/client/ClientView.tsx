@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Header from './Header';
 import ClientToggleSwitch from './ClientToggleSwitch';
 import ClientTableView from './ClientTableView';
@@ -19,11 +19,17 @@ import { RxDotFilled } from "react-icons/rx";
 import { useComments } from 'app/utils/CommentProvider';
 import MessageContainer from 'components/Drawer/MessageContainer';
 import CommentsDrawer from 'components/Drawer/CommentsDrawer';
-import { useAppDispatch } from 'store/useStore';
+import { useAppDispatch, useAppSelector } from 'store/useStore';
 import { useCampaigns } from 'app/utils/CampaignsContext';
 import { getComment } from 'features/Comment/commentSlice';
 import Image from "next/image";
 import tickcircles from "../../public/solid_circle-check.svg";
+import { useSession } from 'next-auth/react';
+import SignatureModal from './Modal/SignatureModal';
+import { useClientCampaign } from './ClientCampaignContext';
+import TableLoader from 'app/creation/components/TableLoader';
+import ClientCommentsDrawer from './compoment/ClientDrawer/ClientCommentsDrawer';
+import ClientMessageContainer from './compoment/ClientDrawer/ClientMessageContainer';
 
 
 const channels = [
@@ -93,19 +99,54 @@ const channels = [
 		hasChildren: false,
 	},
 ];
+
+interface Comment {
+	documentId: string;
+	addcomment_as: string;
+	createdAt: string;
+	replies?: Reply[];
+	approved?: boolean; // Added the approved property
+}
+
+interface Reply {
+	documentId: string;
+	name?: string;
+	date?: string;
+	time?: string;
+	message?: string;
+}
 const ClientView = () => {
-	const { isDrawerOpen, setIsDrawerOpen, isCreateOpen, setClose, close, comments } = useComments();
+	const { isDrawerOpen, setIsDrawerOpen, isCreateOpen, setClose, modalOpen, setModalOpen } = useComments();
 	const [isOpen, setIsOpen] = useState(false);
 	const [generalComment, setGeneralComment] = useState(false);
 	const [active, setActive] = useState("Timeline view");
 	const { clientCampaignData, campaignData } = useCampaigns();
-	const allApproved = comments?.every(comment => comment?.approved === true);
+	const { data } = useAppSelector((state) => state.comment);
+	const comments: Comment[] = data
+		?.filter((comment: Comment) => comment?.addcomment_as !== "Internal")
+		.sort((a: Comment, b: Comment) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+	const allApproved = (comments?.length || 0) > 0 && comments.every((comment: Comment) => comment?.approved === true);
 	const dispatch = useAppDispatch();
 	const commentId = campaignData?.documentId
+	const { campaigns, loading, fetchCampaignsByClientId } = useClientCampaign();
+	const { data: session }: any = useSession();
+	const clientId = session?.user?.id;
+	const client_commentId = session?.user?.id;
+	// const campaign = campaigns[0];
+
+	// console.log("campaigns-campaigns", comments)
+	useEffect(() => {
+		if (clientId) {
+			fetchCampaignsByClientId(clientId);
+		}
+	}, [clientId]);
+
+
+	// console.log("campaigns-campaigns", campaign?.client?.documentId);
 
 	const handleDrawerOpen = () => {
 		setIsDrawerOpen(true);
-		dispatch(getComment(commentId));
+		dispatch(getComment(commentId, client_commentId));
 		setClose(true)
 	}
 
@@ -113,7 +154,7 @@ const ClientView = () => {
 		<>
 			<div id="page-wrapper-client">
 				<Header setIsOpen={setIsOpen} />
-				<CommentsDrawer isOpen={isDrawerOpen} onClose={setIsDrawerOpen} />
+				<ClientCommentsDrawer isOpen={isDrawerOpen} onClose={setIsDrawerOpen} />
 				<main className="!px-0 mt-[20px] bg-[#F9FAFB]">
 					<div className={`px-[50px]  ${isDrawerOpen ? 'md:px-[100px]' : 'xl:px-[300px]'}`}>
 
@@ -123,7 +164,7 @@ const ClientView = () => {
 							<General />
 
 							<BrandAwareness />
-							<MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
+							<ClientMessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
 							<div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
 								<ClientToggleSwitch active={active} setActive={setActive} />
 
@@ -156,7 +197,11 @@ const ClientView = () => {
 
 						</div>
 					</div>
+
 					<div className='mt-[50px]'>
+						{loading ? <TableLoader isLoading={loading} /> : ""}
+					</div>
+					<div >
 						{active === "Timeline view" && <TimelineView />}
 						<div className="md:px-[150px] xl:px-[200px]">
 							{active === "Table" && <ClientTableView channels={channels} />}
@@ -164,6 +209,10 @@ const ClientView = () => {
 
 					</div>
 				</main>
+				<SignatureModal
+					isOpen={modalOpen}
+					onClose={() => setModalOpen(false)}
+				/>
 				<ApproveModel isOpen={isOpen} setIsOpen={setIsOpen} />
 			</div>
 		</>

@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { getComment } from "features/Comment/commentSlice";
 import { useAppDispatch, useAppSelector } from "store/useStore";
+import { client } from '../../types/types';
 const CommentContext = createContext(null);
 
 export const useComments = () => {
@@ -24,7 +25,10 @@ export const CommentProvider = ({ children }) => {
 	const [replyError, setReplyError] = useState(null);
 	const [approvedError, setApprovedError] = useState(null);
 	const [createCommentsSuccess, setCreateCommentsSuccess] = useState(null);
+	const [createApprovalSuccess, setCreateApprovalSuccess] = useState(null);
 	const [isLoading, setIsLoading] = useState(false);
+	const [isLoadingApproval, setIsLoadingApproval] = useState(false);
+	const [modalOpen, setModalOpen] = useState(false);
 	const [isLoadingReply, setIsLoadingReply] = useState(false);
 	const [replyText, setReplyText] = useState("");
 	const dispatch = useAppDispatch();
@@ -57,11 +61,12 @@ export const CommentProvider = ({ children }) => {
 	}, [data]);
 
 
-	const addComment = async (commentId, text, position, addcomment_as, creator) => {
+	const addComment = async (commentId, text, position, addcomment_as, creator, client_commentID) => {
 		setIsLoading(true);
 		try {
 			const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/comments`, {
 				data: {
+					client_commentID,
 					commentId,
 					text,
 					position,
@@ -87,6 +92,32 @@ export const CommentProvider = ({ children }) => {
 		} catch (error) {
 			setCreateCommentsError(error);
 			setIsLoading(false);
+		}
+	};
+
+	const createAsignatureapproval = async (sign, inputs, id) => {
+		setIsLoadingApproval(true);
+		try {
+			const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/client-signature-approvals`, {
+				data: {
+					dateSigned: inputs.date,
+					initials: inputs.initials,
+					signature: sign,
+					fullname: inputs.name,
+					clientId: id,
+					isSignature: true,
+				},
+			}, {
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+				},
+			});
+			setIsLoadingApproval(false);
+			setCreateApprovalSuccess(true);
+		} catch (error) {
+			setCreateCommentsError(error);
+			setIsLoadingApproval(false);
 		}
 	};
 
@@ -256,7 +287,14 @@ export const CommentProvider = ({ children }) => {
 				setIsCreateOpen,
 				isCreateOpen,
 				setClose,
-				close
+				close,
+				modalOpen,
+				setModalOpen,
+				setIsLoadingApproval,
+				isLoadingApproval,
+				createAsignatureapproval,
+				createApprovalSuccess,
+				setCreateApprovalSuccess,
 			}}
 		>
 			{children}
