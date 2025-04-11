@@ -50,8 +50,19 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [objectives, setObjectives] = useState([]);
   const [buyObj, setBuyObj] = useState([]);
   const [buyType, setBuyType] = useState([]);
-  const [clientPOs, setClientPOs] = useState([])
-  const [fetchingPO, setFetchingPO] = useState(false)
+  const [clientPOs, setClientPOs] = useState([]);
+  const [fetchingPO, setFetchingPO] = useState(false);
+  const [filterOptions, setFilterOptions] = useState({
+    year: [],
+    quarter: [],
+    month: [],
+    category: [],
+    product: [],
+    select_plans: [],
+    made_by: [],
+    approved_by: [],
+  });
+  const [selectedFilters, setSelectedFilters] = useState({});
 
   const reduxClients = useSelector(
     (state: any) => state.client?.getCreateClientData?.data || []
@@ -92,14 +103,15 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}?populate=client&populate[media_plan_details]=*&populate[budget_details]=*&populate[client_selection]=*&populate[campaign_budget]=*&populate[channel_mix][populate][social_media][populate]=*&populate[channel_mix][populate][display_networks][populate]=*&populate[channel_mix][populate][search_engines][populate]=*&populate[channel_mix][populate][streaming][populate]=*&populate[channel_mix][populate][ooh][populate]=*&populate[channel_mix][populate][broadcast][populate]=*&populate[channel_mix][populate][messaging][populate]=*&populate[channel_mix][populate][print][populate]=*&populate[channel_mix][populate][e_commerce][populate]=*&populate[channel_mix][populate][in_game][populate]=*&populate[channel_mix][populate][mobile][populate]=*`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${
+          cId || docId
+        }?populate=client&populate[media_plan_details]=*&populate[budget_details]=*&populate[client_selection]=*&populate[campaign_budget]=*&populate[channel_mix][populate][social_media][populate]=*&populate[channel_mix][populate][display_networks][populate]=*&populate[channel_mix][populate][search_engines][populate]=*&populate[channel_mix][populate][streaming][populate]=*&populate[channel_mix][populate][ooh][populate]=*&populate[channel_mix][populate][broadcast][populate]=*&populate[channel_mix][populate][messaging][populate]=*&populate[channel_mix][populate][print][populate]=*&populate[channel_mix][populate][e_commerce][populate]=*&populate[channel_mix][populate][in_game][populate]=*&populate[channel_mix][populate][mobile][populate]=*`,
         {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
           },
         }
       );
-
 
       const data = res?.data?.data;
       setCampaignData(data);
@@ -134,7 +146,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           data?.campaign_timeline_end_date || prev.campaign_timeline_end_date,
         campaign_budget: data?.campaign_budget || prev.campaign_budget,
         goal_level: data?.goal_level || prev.goal_level,
-        progress_percent: data?.progress_percent
+        progress_percent: data?.progress_percent,
       }));
     } catch (error) {
       console.error("Error fetching active campaign:", error);
@@ -160,7 +172,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             media_plan_details: {
               plan_name: campaignFormData?.media_plan,
               internal_approver: campaignFormData?.approver,
-              client_approver: campaignFormData?.client_approver
+              client_approver: campaignFormData?.client_approver,
             },
           },
         },
@@ -370,7 +382,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (channelType === "e-commerce") {
-        channelType = "e_commerce"
+        channelType = "e_commerce";
       }
 
       // Check if the type category and channel type exist in our result structure
@@ -464,7 +476,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         clientPOs,
         setClientPOs,
         fetchingPO,
-        setFetchingPO
+        setFetchingPO,
+        filterOptions,
+        setFilterOptions,
+        selectedFilters,
+        setSelectedFilters
       }}
     >
       {children}

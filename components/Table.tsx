@@ -152,7 +152,7 @@ const Table = () => {
               <NoRecordFound colSpan={8}>No Client campaigns!</NoRecordFound>
             ) : (
               currentItems.map((data) => {
-                console.log("🚀 ~ currentItems.map ~ findPOs:", data);
+                // console.log("🚀 ~ currentItems.map ~ findPOs:", data);
 
                 let POs = [];
                 clientPOs?.forEach((po) => {
@@ -170,7 +170,7 @@ const Table = () => {
                     });
                   }
                 });
-                console.log("here's your PO", POs);
+                // console.log("here's your PO", POs);
                 return (
                   <tr
                     key={data?.id}
@@ -240,7 +240,7 @@ const Table = () => {
                     <td className="py-[12px] px-[16px]">
                       <div className="flex items-center whitespace-nowrap gap-3">
                         <div className="view_content_table">MD</div>
-                        {data?.responsible}
+                        {data?.media_plan_details?.client_approver}
                       </div>
                     </td>
                     <td className="py-[12px] px-[16px]">
