@@ -16,7 +16,6 @@ const ClientAddAsInternalcomment = ({ position, setShow }) => {
 	const { data: session }: any = useSession();
 	const { addComment, isLoading, createCommentsError, comment, setComment, updatePosition } = useComments();
 	const [alert, setAlert] = useState(null);
-	// const [selectedOption, setSelectedOption] = useState("Add as Internal");
 	const addcomment_as = ""
 	const client_commentID = session?.user?.id.toString()
 	const commentId = campaignData?.documentId
