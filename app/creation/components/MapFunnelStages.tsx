@@ -487,8 +487,7 @@ const MapFunnelStages = () => {
           t1={
             "How many funnel stage(s) would you like to activate to achieve your objective ?"
           }
-          t2={`This option is available only if you've selected any of the following main objectives:`}
-          t3={"Traffic, Purchase, Lead Generation, or App Install."}
+          
         />
       </div>
       <div className="mt-[56px] flex  items-center gap-[32px]">
