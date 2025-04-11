@@ -1,6 +1,20 @@
-import React from 'react'
+import { getSignedApproval } from 'features/Comment/commentSlice';
+import { useSession } from 'next-auth/react';
+import React, { useEffect } from 'react'
+import { useAppDispatch, useAppSelector } from 'store/useStore';
+
 
 const ApproverContainer = () => {
+	const { dataApprove, } = useAppSelector((state) => state.comment);
+	const { data: session }: any = useSession();
+	const dispatch = useAppDispatch();
+	const id = session?.user?.id || {};
+
+
+
+	useEffect(() => {
+		dispatch(getSignedApproval(id));
+	}, [dispatch, id]);
 
 	const items = [
 		{ label: "Agency", name: "Eurekads Pte. Ltd.", initials: null },
@@ -12,7 +26,7 @@ const ApproverContainer = () => {
 	return (
 		<div className='flex flex-col gap-[24px]'>
 			<div className="flex items-center justify-between">
-				{items.map((item, index) => (
+				{items?.map((item, index) => (
 					<div
 						key={index}
 						className="flex flex-col items-start p-5 gap-2 w-[235px] h-[95px] bg-white shadow-[0px_4px_14px_rgba(0,38,116,0.15)] rounded-[12px]"
