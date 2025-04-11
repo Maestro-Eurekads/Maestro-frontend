@@ -4,17 +4,16 @@ import { useRef, useState } from "react";
 import Draggable from "react-draggable";
 import NoSSR from "./no-ssr";
 import { useComments } from "app/utils/CommentProvider";
-import AddAsInternalcomment from "./AddAsInternalcomment";
 import Image from "next/image";
-import Mmessages from "../../public/message-2.svg";
+import Mmessages from "../../../../public/message-2.svg";
+import ClientAddAsInternalcomment from "./ClientAddAsInternalcomment";
 
-const DraggableComment = ({ opportunity }) => {
+
+const ClientDraggableComment = ({ opportunity }) => {
 	const { updateOpportunityPosition } = useComments();
 	const [show, setShow] = useState(false);
-	const [newPosition, setNewPosition] = useState(null);
-	const commentRef = useRef(null);
 	const [draggedRecently, setDraggedRecently] = useState(false);
-
+	const commentRef = useRef(null);
 
 	const dragStartPos = useRef({ x: 0, y: 0 });
 
@@ -44,19 +43,17 @@ const DraggableComment = ({ opportunity }) => {
 
 
 
-
 	return (
 		<Draggable
 			handle=".drag-handle"
 			nodeRef={commentRef}
-			defaultPosition={opportunity?.position || { x: 100, y: 100 }}
+			defaultPosition={opportunity?.position || { x: 300, y: 300 }}
 			onStart={handleStart}
 			onStop={handleStop}
 		>
-
 			{show ? (
 				<div ref={commentRef} className="absolute cursor-move drag-handle z-50">
-					<AddAsInternalcomment position={opportunity?.position} setShow={setShow} />
+					<ClientAddAsInternalcomment position={opportunity?.position} setShow={setShow} />
 				</div>
 			) : (
 				<div ref={commentRef} className="absolute cursor-move drag-handle z-20">
@@ -76,17 +73,18 @@ const DraggableComment = ({ opportunity }) => {
 	);
 };
 
-const DraggableMessage = () => {
+
+const ClientDraggableMessage = () => {
 	const { opportunities } = useComments(); // Use opportunities instead of comments
 
 
 	return (
 		<NoSSR>
 			{opportunities?.map((opportunity) => (
-				<DraggableComment key={opportunity?.commentId} opportunity={opportunity} />
+				<ClientDraggableComment key={opportunity?.commentId} opportunity={opportunity} />
 			))}
 		</NoSSR>
 	);
 };
 
-export default DraggableMessage;
+export default ClientDraggableMessage;

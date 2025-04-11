@@ -1,12 +1,12 @@
 import React from 'react';
-import send from "../../public/send.svg";
-import closecircle from "../../public/close-circle.svg";
+import send from "../../../../public/send.svg";
+import closecircle from "../../../../public/close-circle.svg";
 import Image from "next/image";
 import { useComments } from 'app/utils/CommentProvider';
-import CommentHeaderwithClose from './CommentHeaderwithClose';
+import CommentHeaderwithClose from './ClientCommentHeaderwithClose';
 
 
-const Showcomment = ({ comment, setActiveComment }) => {
+const ClientShowcomment = ({ comment, setActiveComment }) => {
 	const { setViewcommentsId, setIsDrawerOpen } = useComments();
 
 
@@ -46,6 +46,7 @@ const Showcomment = ({ comment, setActiveComment }) => {
 						<h3 className={`font-semibold text-[15px] leading-[20px] text-[#00A36C] ${comment?.addcomment_as === "Internal" ? "text-green-500" : "text-red-500"}`}>
 							{comment?.addcomment_as === "Internal" ? "Internal" : "Client"}</h3>
 					</div> : ""}
+
 					<div>
 						<button
 							onClick={() => handleViewComment(comment?.documentId)}
@@ -60,4 +61,4 @@ const Showcomment = ({ comment, setActiveComment }) => {
 	);
 };
 
-export default Showcomment;
+export default ClientShowcomment;

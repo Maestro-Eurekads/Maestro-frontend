@@ -1,8 +1,10 @@
 import React from "react";
-import CommentHeader from "./CommentHeader";
-import Approved from "./Approved";
+import CommentHeader from "./ClientCommentHeader";
+import Approved from "./ClientApproved";
+import ClientCommentHeader from "./ClientCommentHeader";
+import ClientApproved from "./ClientApproved";
 
-const Comments = ({ comment, contrastingColor }) => {
+const ClientClientComments = ({ comment, contrastingColor }) => {
 
 
 
@@ -16,10 +18,10 @@ const Comments = ({ comment, contrastingColor }) => {
 					>
 						{comment?.creator?.name[0] || "?"}
 					</div>
-					<CommentHeader comment={comment} timestamp={new Date().toLocaleString()} />
+					<ClientCommentHeader comment={comment} timestamp={new Date().toLocaleString()} />
 				</div>
 				{/* Approval Button */}
-				<Approved comment={comment} commentId={comment?.commentId} />
+				<ClientApproved comment={comment} commentId={comment?.commentId} />
 			</div>
 
 			{/* Comment Text */}
@@ -29,10 +31,11 @@ const Comments = ({ comment, contrastingColor }) => {
 					<h3 className={`font-semibold text-[15px] leading-[20px] text-[#00A36C] ${comment?.addcomment_as === "Internal" ? "text-green-500" : "text-red-500"}`}>
 						{comment?.addcomment_as === "Internal" ? "Internal" : "Client"}</h3>
 				</div> : ""}
+
 			</div>
 		</div>
 	);
 };
 
-export default Comments;
+export default ClientClientComments;
 
