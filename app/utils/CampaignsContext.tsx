@@ -53,16 +53,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [clientPOs, setClientPOs] = useState([]);
   const [fetchingPO, setFetchingPO] = useState(false);
   const [filterOptions, setFilterOptions] = useState({
-    years: [],
-    quater: [],
+    year: [],
+    quarter: [],
     month: [],
     category: [],
     product: [],
-    plans: [],
-    madeBy: [],
-    approvedBy: [],
-    channel: [],
-    pahse: [],
+    select_plans: [],
+    made_by: [],
+    approved_by: [],
   });
 
   const reduxClients = useSelector(

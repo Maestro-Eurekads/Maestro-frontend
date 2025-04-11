@@ -27,16 +27,16 @@ export function buildStrapiFilterQuery(clientID: string, filters: FilterState): 
     filterQuery += `&filters[product][$eq]=${filters.product}`
   }
 
-  if (filters.selectPlans) {
-    filterQuery += `&filters[plan][$eq]=${filters.selectPlans}`
+  if (filters.select_plans) {
+    filterQuery += `&filters[plan][$eq]=${filters.select_plans}`
   }
 
-  if (filters.madeBy) {
-    filterQuery += `&filters[created_by][$eq]=${filters.madeBy}`
+  if (filters.made_by) {
+    filterQuery += `&filters[created_by][$eq]=${filters.made_by}`
   }
 
-  if (filters.approvedBy) {
-    filterQuery += `&filters[approved_by][$eq]=${filters.approvedBy}`
+  if (filters.approved_by) {
+    filterQuery += `&filters[approved_by][$eq]=${filters.approved_by}`
   }
 
   if (filters.channel) {
@@ -56,9 +56,9 @@ export const CAMPAIGN_POPULATE_QUERY = `&populate[media_plan_details]=*&populate
 
 // Extract date-related filters from campaign data
 export function extractDateFilters(campaigns: any[]) {
-  const years = new Set<string>()
-  const quarters = new Set<string>()
-  const months = new Set<string>()
+  const year = new Set<string>()
+  const quarter = new Set<string>()
+  const month = new Set<string>()
 
   campaigns.forEach((campaign) => {
     const startDate = new Date(campaign.campaign_timeline_start_date)
@@ -67,17 +67,17 @@ export function extractDateFilters(campaigns: any[]) {
     // Extract year
     const startYear = startDate.getFullYear().toString()
     const endYear = endDate.getFullYear().toString()
-    years.add(startYear)
+    year.add(startYear)
     if (startYear !== endYear) {
-      years.add(endYear)
+      year.add(endYear)
     }
 
     // Extract quarter
     const startQuarter = `Q${Math.floor(startDate.getMonth() / 3) + 1}`
     const endQuarter = `Q${Math.floor(endDate.getMonth() / 3) + 1}`
-    quarters.add(startQuarter)
+    quarter.add(startQuarter)
     if (startQuarter !== endQuarter || startYear !== endYear) {
-      quarters.add(endQuarter)
+      quarter.add(endQuarter)
     }
 
     // Extract month
@@ -97,16 +97,16 @@ export function extractDateFilters(campaigns: any[]) {
     ]
     const startMonth = monthNames[startDate.getMonth()]
     const endMonth = monthNames[endDate.getMonth()]
-    months.add(startMonth)
+    month.add(startMonth)
     if (startMonth !== endMonth || startYear !== endYear) {
-      months.add(endMonth)
+      month.add(endMonth)
     }
   })
 
   return {
-    years: Array.from(years).sort(),
-    quarters: Array.from(quarters).sort(),
-    months: Array.from(months).sort((a, b) => {
+    year: Array.from(year).sort(),
+    quarter: Array.from(quarter).sort(),
+    month: Array.from(month).sort((a, b) => {
       const monthOrder = {
         January: 0,
         February: 1,
@@ -124,4 +124,23 @@ export function extractDateFilters(campaigns: any[]) {
       return monthOrder[a as keyof typeof monthOrder] - monthOrder[b as keyof typeof monthOrder]
     }),
   }
+}
+
+
+export function extractAprroverFilters(campaigns:any[]){
+    const made_by = new Set<string>()
+    const approved_by = new Set<string>()
+    const select_plans = new Set<string>()
+    
+    campaigns.forEach((campaign) => {
+        made_by.add(campaign?.media_plan_details?.internal_approver)
+        approved_by.add(campaign.media_plan_details?.client_approver)
+        select_plans.add(campaign?.media_plan_details?.plan_name)
+    })
+    
+    return {
+        made_by: Array.from(made_by).sort(),
+        approved_by: Array.from(approved_by).sort(),
+        select_plans: Array.from(select_plans).sort(),
+    }
 }

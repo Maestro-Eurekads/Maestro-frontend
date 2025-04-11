@@ -10,9 +10,9 @@ export type FilterState = {
   month: string | null
   category: string | null
   product: string | null
-  selectPlans: string | null
-  madeBy: string | null
-  approvedBy: string | null
+  select_plans: string | null
+  made_by: string | null
+  approved_by: string | null
   channel: string | null
   phase: string | null
   searchQuery: string
@@ -48,9 +48,9 @@ export function useCampaignFilters(clientID: string) {
     month: null,
     category: null,
     product: null,
-    selectPlans: null,
-    madeBy: null,
-    approvedBy: null,
+    select_plans: null,
+    made_by: null,
+    approved_by: null,
     channel: null,
     phase: null,
     searchQuery: "",
@@ -108,16 +108,16 @@ export function useCampaignFilters(clientID: string) {
       filterQuery += `&filters[product][$eq]=${filters.product}`
     }
 
-    if (filters.selectPlans) {
-      filterQuery += `&filters[plan][$eq]=${filters.selectPlans}`
+    if (filters.select_plans) {
+      filterQuery += `&filters[plan][$eq]=${filters.select_plans}`
     }
 
-    if (filters.madeBy) {
-      filterQuery += `&filters[created_by][$eq]=${filters.madeBy}`
+    if (filters.made_by) {
+      filterQuery += `&filters[created_by][$eq]=${filters.made_by}`
     }
 
-    if (filters.approvedBy) {
-      filterQuery += `&filters[approved_by][$eq]=${filters.approvedBy}`
+    if (filters.approved_by) {
+      filterQuery += `&filters[approved_by][$eq]=${filters.approved_by}`
     }
 
     if (filters.channel) {
@@ -204,9 +204,9 @@ export function useCampaignFilters(clientID: string) {
       month: null,
       category: null,
       product: null,
-      selectPlans: null,
-      madeBy: null,
-      approvedBy: null,
+      select_plans: null,
+      made_by: null,
+      approved_by: null,
       channel: null,
       phase: null,
       searchQuery: "",

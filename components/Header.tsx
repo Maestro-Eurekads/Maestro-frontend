@@ -19,7 +19,7 @@ import { signOut } from "next-auth/react";
 import ClientSelection from "./ClientSelection";
 import { CustomSelect } from "app/homepage/components/CustomReactSelect";
 import { useActive } from "app/utils/ActiveContext";
-import { extractDateFilters } from "app/utils/campaign-filter-utils";
+import { extractAprroverFilters, extractDateFilters } from "app/utils/campaign-filter-utils";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 const Header = ({ setIsOpen }) => {
@@ -87,7 +87,9 @@ const Header = ({ setIsOpen }) => {
       .then((res) => {
         if (isMounted) setClientCampaignData(res?.data?.data || []); // Ensure data fallback
         const dateData = extractDateFilters(res?.data?.data)
-        console.log("🚀 ~ .then ~ dateData:", dateData)
+        const mediaData = extractAprroverFilters(res?.data?.data)
+        setFilterOptions((prev)=>({...prev, ...dateData, ...mediaData}))
+        // console.log("🚀 ~ .then ~ dateData:", dateData)
         fetchClientPOS(clientId)
           .then((res) => {
             setClientPOs(res?.data?.data || []);

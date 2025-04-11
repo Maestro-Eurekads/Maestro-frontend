@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import down from "../../../public/down.svg";
 import Image from "next/image";
 import { BiX } from "react-icons/bi";
+import { useCampaigns } from "app/utils/CampaignsContext";
 
 type Props = {
   hideTitle?: boolean;
@@ -37,7 +38,7 @@ const Dropdown = ({ label, options, selectedFilters, handleSelect }) => {
         className="flex items-center gap-3 px-4 py-2 whitespace-nowrap h-[40px] border border-[#EFEFEF] rounded-[10px] cursor-pointer"
         onClick={toggleDropdown}
       >
-        <span className="text-gray-600">{selectedFilters[label] || label}</span>
+        <span className="text-gray-600 capitalize">{selectedFilters[label] || label?.replace("_", " ")}</span>
         <span className="ml-auto text-gray-500">
           <Image src={down} alt="dropdown" />
         </span>
@@ -61,8 +62,46 @@ const Dropdown = ({ label, options, selectedFilters, handleSelect }) => {
   );
 };
 
+const defaulFilters = [
+  { label: "Year", options: ["2022", "2023", "2024", "2025"] },
+  { label: "Quarter", options: ["Q1", "Q2", "Q3", "Q4"] },
+  {
+    label: "Month",
+    options: [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ],
+  },
+  {
+    label: "Category",
+    options: ["Electronics", "Fashion", "Home", "Sports"],
+  },
+  { label: "Product", options: ["Laptop", "T-Shirt", "Sofa", "Bicycle"] },
+  {
+    label: "Select Plans",
+    options: ["Plan A", "Plan B", "Plan C", "Plan D"],
+  },
+  { label: "Made By", options: ["User 1", "User 2", "User 3", "User 4"] },
+  {
+    label: "Approved By",
+    options: ["Manager 1", "Manager 2", "Manager 3", "Manager 4"],
+  },
+];
+
 const FiltersDropdowns = ({ hideTitle }: Props) => {
   const [selectedFilters, setSelectedFilters] = useState({});
+  const { filterOptions } = useCampaigns();
+  const [filters, setFilters] = useState(defaulFilters);
 
   const handleSelect = (label, value) => {
     setSelectedFilters((prev) => ({
@@ -71,41 +110,18 @@ const FiltersDropdowns = ({ hideTitle }: Props) => {
     }));
   };
 
-  const filters = [
-    { label: "Year", options: ["2022", "2023", "2024", "2025"] },
-    { label: "Quarter", options: ["Q1", "Q2", "Q3", "Q4"] },
-    {
-      label: "Month",
-      options: [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-      ],
-    },
-    {
-      label: "Category",
-      options: ["Electronics", "Fashion", "Home", "Sports"],
-    },
-    { label: "Product", options: ["Laptop", "T-Shirt", "Sofa", "Bicycle"] },
-    {
-      label: "Select Plans",
-      options: ["Plan A", "Plan B", "Plan C", "Plan D"],
-    },
-    { label: "Made By", options: ["User 1", "User 2", "User 3", "User 4"] },
-    {
-      label: "Approved By",
-      options: ["Manager 1", "Manager 2", "Manager 3", "Manager 4"],
-    },
-  ];
+  useEffect(() => {
+    if (filterOptions) {
+      let f = [];
+      Object.entries(filterOptions).forEach(([key, value]) => {
+        f.push({
+          label: key,
+          options: value,
+        });
+      });
+      setFilters((f))
+    }
+  }, [filterOptions]);
 
   return (
     <div>
