@@ -353,9 +353,9 @@ const ObjectiveSelection = () => {
               onClick={() => toggleItem(stage.name)}
             >
               <div className="flex items-center gap-4">
-                {stage?.icon &&
-                <Image src={stage.icon} className="size-4" alt={stage.name} />
-                }
+                {stage?.icon && (
+                  <Image src={stage.icon} className="size-4" alt={stage.name} />
+                )}
                 <p className="font-semibold text-[#061237] whitespace-nowrap">{stage.name}</p>
               </div>
               <div className="flex items-center gap-2">
@@ -468,7 +468,7 @@ const ObjectiveSelection = () => {
                                     <Image src={down2} alt="dropdown" />
                                   </div>
                                   {dropdownOpen === platformKey + "obj" && (
-                                    <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10">
+                                    <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
                                       <ul>
                                         {buyObj?.map((option, i) => (
                                           <li
@@ -533,7 +533,7 @@ const ObjectiveSelection = () => {
                                     <Image src={down2} alt="dropdown" />
                                   </div>
                                   {dropdownOpen === platformKey && (
-                                    <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10">
+                                    <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
                                       <ul>
                                         {buyType.map((option, i) => (
                                           <li

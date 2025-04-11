@@ -17,7 +17,7 @@ import flipkart from "../public/social/flipkart.png";
 import hulu from "../public/social/hulu.png";
 import indexchange from "../public/social/indexchange.png";
 import jd from "../public/social/jd.jpeg";
-import Kakao_logo from "../public/social/Kakao_logo.jpg";
+import kakaologo from "../public/social/kakaologo.jpg";
 import lazada from "../public/social/lazada.png";
 import line from "../public/social/line.svg";
 import liveintent from "../public/social/liveintent.png";
@@ -59,7 +59,7 @@ import vkontakte from "../public/social/vkontakte.svg";
 import walmart from "../public/social/walmart.png";
 import wechat from "../public/social/wechat.svg";
 import whatsapp from "../public/social/whatsapp.png";
-import Xandr from "../public/social/Xandr.png";
+import xandr from "../public/social/xandr.png";
 import zemanta from "../public/social/zemanta.png";
 
 
@@ -144,7 +144,7 @@ export const platformIcons: Record<string, StaticImageData> = {
 	Hulu: hulu,
 	IndexExchange: indexchange,
 	JD: jd,
-	Kakao: Kakao_logo,
+	Kakao: kakaologo,
 	Lazada: lazada,
 	Line: line,
 	LiveIntent: liveintent,
@@ -186,7 +186,7 @@ export const platformIcons: Record<string, StaticImageData> = {
 	Walmart: walmart,
 	WeChat: wechat,
 	WhatsApp: whatsapp,
-	Xandr: Xandr,
+	Xandr: xandr,
 	Zemanta: zemanta,
 	Pinterest: google, // Use Google as fallback until proper icon is provided
 	Tumblr: google, // Use Google as fallback until proper icon is provided
@@ -517,14 +517,14 @@ export const platformStyles = [
 	{ name: "Weibo", color: "#E6162D", icon: sinaweibo, bg: "#FFF0F3" }, // Light red
 	{ name: "Vkontakte", color: "#0077FF", icon: vkontakte, bg: "#F0F6FF" }, // Light blue
 	{ name: "Line", color: "#00C300", icon: line, bg: "#F0FAF0" }, // Light green
-	{ name: "Kakao", color: "#FFCD00", icon: Kakao_logo, bg: "#FFFDF0" }, // Light yellow
+	{ name: "Kakao", color: "#FFCD00", icon: kakaologo, bg: "#FFFDF0" }, // Light yellow
 	{ name: "Tumblr", color: "#001935", icon: google, bg: "#F0F3F5" }, // Light navy
 	{ name: "The Trade Desk", color: "#0099FA", icon: thetradedesk, bg: "#F0F9FF" }, // From channels
 	{ name: "Quantcast", color: "#000000", icon: quantcast, bg: "#F7F7F7" }, // From channels
 	{ name: "Display & Video", color: "#34A853", icon: Display, bg: "#F2FAF4" }, // Light green
 	{ name: "DV360", color: "#1E8E3E", icon: Display, bg: "#F0F8F3" }, // Light green
 	{ name: "MediaMath", color: "#E6007A", icon: mediamath, bg: "#FFF0F6" }, // Light magenta
-	{ name: "Xandr", color: "#FF3E59", icon: Xandr, bg: "#FFF0F3" }, // Light pink
+	{ name: "Xandr", color: "#FF3E59", icon: xandr, bg: "#FFF0F3" }, // Light pink
 	{ name: "Verizon Media", color: "#DA291C", icon: verizon, bg: "#FEF0EF" }, // Light red
 	{ name: "Amazon", color: "#FF9900", icon: amazon, bg: "#FFF8ED" }, // Light orange
 	{ name: "Adroll", color: "#0033CC", icon: adroll, bg: "#F0F2FF" }, // Light blue
