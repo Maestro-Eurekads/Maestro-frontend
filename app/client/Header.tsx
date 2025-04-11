@@ -37,7 +37,7 @@ const Header = ({ setIsOpen }) => {
   return (
     <div
       id="client_header"
-      className={`py-[2.8rem] px-[50px] ${isDrawerOpen ? 'md:px-[100px]' : 'xl:px-[300px]'} relative`}>
+      className={`py-[2.8rem] px-[50px] ${isDrawerOpen ? 'md:px-50px]' : 'xl:px-[150px]'} relative`}>
       <div className="flex flex-col">
         <button
           className="w-[35px] h-[22px] font-semibold text-[16px] leading-[22px] text-[#061237] font-[General Sans]">
