@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import up from "../../../public/arrow-down.svg";
-import down2 from "../../../public/arrow-down-2.svg";
+import down2 from "../../../public/arrow-down-2.svg"; 
 import checkmark from "../../../public/mingcute_check-fill.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { funnelStages, getPlatformIcon } from "../../../components/data";
@@ -13,6 +13,7 @@ import { useComments } from "app/utils/CommentProvider";
 
 // Utility functions for localStorage
 const loadStateFromLocalStorage = (key, defaultValue) => {
+  if (typeof window === 'undefined') return defaultValue;
   try {
     const stored = localStorage.getItem(key);
     return stored ? JSON.parse(stored) : defaultValue;
@@ -23,6 +24,7 @@ const loadStateFromLocalStorage = (key, defaultValue) => {
 };
 
 const saveStateToLocalStorage = (key, state) => {
+  if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(key, JSON.stringify(state));
   } catch (e) {
@@ -32,39 +34,38 @@ const saveStateToLocalStorage = (key, state) => {
 
 const SelectChannelMix = () => {
   const { setIsDrawerOpen, setClose } = useComments();
-  useEffect(() => {
-    setIsDrawerOpen(false);
-    setClose(false);
-  }, []);
-  const [openItems, setOpenItems] = useState(() =>
-    loadStateFromLocalStorage("openItems", {})
-  );
-  const [selected, setSelected] = useState(() =>
-    loadStateFromLocalStorage("selected", {})
-  );
-  const [validatedStages, setValidatedStages] = useState(() =>
-    loadStateFromLocalStorage("validatedStages", {})
-  );
-  const [stageStatuses, setStageStatuses] = useState(() =>
-    loadStateFromLocalStorage("stageStatuses", {})
-  );
   const {
     campaignFormData,
     setCampaignFormData,
-    platformList,
+    platformList = {}, // Provide default empty object
     campaignData,
     updateCampaign,
     getActiveCampaign,
   } = useCampaigns();
 
-  const [showMoreMap, setShowMoreMap] = useState(() =>
-    loadStateFromLocalStorage("showMoreMap", {})
-  );
-  const [openChannelTypes, setOpenChannelTypes] = useState(() =>
-    loadStateFromLocalStorage("openChannelTypes", {})
-  );
+  useEffect(() => {
+    setIsDrawerOpen(false);
+    setClose(false);
+  }, []);
+
+  const [openItems, setOpenItems] = useState({});
+  const [selected, setSelected] = useState({});
+  const [validatedStages, setValidatedStages] = useState({});
+  const [stageStatuses, setStageStatuses] = useState({});
+  const [showMoreMap, setShowMoreMap] = useState({});
+  const [openChannelTypes, setOpenChannelTypes] = useState({});
   const [loading, setLoading] = useState(false);
   const ITEMS_TO_SHOW = 6;
+
+  // Initialize states after component mounts to avoid hydration issues
+  useEffect(() => {
+    setOpenItems(loadStateFromLocalStorage("openItems", {}));
+    setSelected(loadStateFromLocalStorage("selected", {}));
+    setValidatedStages(loadStateFromLocalStorage("validatedStages", {}));
+    setStageStatuses(loadStateFromLocalStorage("stageStatuses", {}));
+    setShowMoreMap(loadStateFromLocalStorage("showMoreMap", {}));
+    setOpenChannelTypes(loadStateFromLocalStorage("openChannelTypes", {}));
+  }, []);
 
   // Sync state to localStorage whenever it changes
   useEffect(() => {
@@ -101,9 +102,9 @@ const SelectChannelMix = () => {
           if (!initialSelected[stageName]) {
             initialSelected[stageName] = {};
           }
-          [
+          const channelTypes = [
             "social_media",
-            "display_networks",
+            "display_networks", 
             "search_engines",
             "streaming",
             "mobile",
@@ -112,18 +113,24 @@ const SelectChannelMix = () => {
             "e_commerce",
             "broadcast",
             "print",
-            "ooh",
-          ]?.forEach((channel) => {
+            "ooh"
+          ];
+          
+          channelTypes.forEach((channel) => {
             if (!initialSelected[stageName][channel]) {
               initialSelected[stageName][channel] = [];
             }
             const ch = stage[channel];
-            ch?.forEach((platform) => {
-              initialSelected[stageName][channel].push(platform.platform_name);
-            });
+            if (Array.isArray(ch)) {
+              ch.forEach((platform) => {
+                if (platform?.platform_name) {
+                  initialSelected[stageName][channel].push(platform.platform_name);
+                }
+              });
+            }
           });
         });
-        setSelected((prev) => ({ ...prev, ...initialSelected }));
+        setSelected(initialSelected);
       }
     };
     initializeSelectedState();
@@ -267,12 +274,12 @@ const SelectChannelMix = () => {
 
   const cleanData = campaignData
     ? removeKeysRecursively(campaignData, [
-      "id",
-      "documentId",
-      "createdAt",
-      "publishedAt",
-      "updatedAt",
-    ])
+        "id",
+        "documentId",
+        "createdAt",
+        "publishedAt",
+        "updatedAt",
+      ])
     : {};
 
   const updateCampaignData = async (data) => {
@@ -281,6 +288,7 @@ const SelectChannelMix = () => {
       await updateCampaign(data);
       await getActiveCampaign(data);
     } catch (error) {
+      console.error("Error updating campaign:", error);
     } finally {
       setLoading(false);
     }
@@ -359,6 +367,11 @@ const SelectChannelMix = () => {
     }));
   };
 
+  // Early return if no campaign form data
+  if (!campaignFormData?.funnel_stages?.length) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="overflow-hidden">
       <div className="flex items-center justify-between">
@@ -375,26 +388,31 @@ const SelectChannelMix = () => {
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
         {campaignFormData?.funnel_stages?.map((stageName, index) => {
-          const stage = funnelStages.find((s) => s.name === stageName);
+          const stage = campaignFormData?.custom_funnels?.find(
+            (s) => s.name === stageName
+          );
           if (!stage) return null;
 
           return (
             <div key={index}>
               <div
                 className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-                  ${openItems[stage.name]
-                    ? "rounded-t-[10px]"
-                    : "rounded-[10px]"
+                  ${
+                    openItems[stage.name]
+                      ? "rounded-t-[10px]"
+                      : "rounded-[10px]"
                   }`}
                 onClick={() => toggleItem(stage.name)}
               >
                 <div className="flex items-center gap-2">
-                  <Image
-                    src={stage.icon || "/placeholder.svg"}
-                    alt={stage.name}
-                    width={20}
-                    height={20}
-                  />
+                  {stage?.icon && (
+                    <Image
+                      src={stage.icon.src || "/placeholder.svg"}
+                      alt={stage.name}
+                      width={20}
+                      height={20}
+                    />
+                  )}
                   <p className="w-[119px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
                     {stage.name}
                   </p>
@@ -482,25 +500,25 @@ const SelectChannelMix = () => {
                       {Object.keys(selected[stage.name] || {}).some(
                         (category) => selected[stage.name][category]?.length > 0
                       ) && (
-                          <div className="flex justify-end pr-[24px] mt-4">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEdit(stage.name);
-                              }}
-                              className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] bg-blue-500"
-                            >
-                              Edit
-                            </button>
-                          </div>
-                        )}
+                        <div className="flex justify-end pr-[24px] mt-4">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(stage.name);
+                            }}
+                            className="flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] bg-blue-500"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <>
                       {Object.entries(platformList).map(([type, channels]) => (
-                        <div key={type} className="card_bucket_container_main">
+                        <div key={type} className="card_bucket_container_main p-6">
                           <div
-                            className="flex justify-between items-center cursor-pointer rounded-md"
+                            className="flex justify-between items-center cursor-pointer rounded-md mb-4"
                             onClick={(e) =>
                               toggleChannelType(e, stage.name, type)
                             }
@@ -527,8 +545,8 @@ const SelectChannelMix = () => {
                             Object.entries(channels).map(
                               ([channelName, platforms]) =>
                                 platforms?.length > 0 && (
-                                  <div key={channelName}>
-                                    <p className="capitalize font-semibold mb-2">
+                                  <div key={channelName} className="mb-6">
+                                    <p className="capitalize font-semibold mb-4">
                                       {channelName?.replace("_", " ")}
                                     </p>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
@@ -551,10 +569,11 @@ const SelectChannelMix = () => {
                                             <div
                                               key={pIndex}
                                               className={`cursor-pointer flex flex-row justify-between items-center p-4 gap-2 w-[250px] min-h-[62px] bg-white 
-                                  border rounded-[10px] ${isSelected
-                                                  ? "border-[#3175FF]"
-                                                  : "border-[rgba(0,0,0,0.1)]"
-                                                }`}
+                                  border rounded-[10px] ${
+                                    isSelected
+                                      ? "border-[#3175FF]"
+                                      : "border-[rgba(0,0,0,0.1)]"
+                                  }`}
                                               onClick={(e) =>
                                                 handlePlatformClick(
                                                   e,
@@ -588,10 +607,11 @@ const SelectChannelMix = () => {
                                                 </p>
                                               </div>
                                               <div
-                                                className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${isSelected
-                                                  ? "bg-[#3175FF]"
-                                                  : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
-                                                  }`}
+                                                className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${
+                                                  isSelected
+                                                    ? "bg-[#3175FF]"
+                                                    : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
+                                                }`}
                                               >
                                                 {isSelected && (
                                                   <Image
@@ -673,10 +693,11 @@ const SelectChannelMix = () => {
                             e.stopPropagation();
                             handleValidate(stage.name);
                           }}
-                          className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isStageValid(stage.name)
-                            ? "bg-[#3175FF] hover:bg-[#2563eb]"
-                            : "bg-[#3175FF] opacity-50 cursor-not-allowed"
-                            }`}
+                          className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
+                            isStageValid(stage.name)
+                              ? "bg-[#3175FF] hover:bg-[#2563eb]"
+                              : "bg-[#3175FF] opacity-50 cursor-not-allowed"
+                          }`}
                         >
                           {loading ? (
                             <SVGLoader

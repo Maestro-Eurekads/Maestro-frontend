@@ -174,6 +174,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         campaignFormData?.client_selection?.value,
         campaignFormData?.media_plan,
         campaignFormData?.approver,
+        campaignFormData?.client_approver
       ];
 
       if (!requiredFields.every((field) => field)) {
@@ -192,22 +193,22 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    if (active === 1) {
-      if (campaignFormData?.campaign_objective?.length === 0) {
-        setAlert({
-          variant: "error",
-          message: "Please define a campaign objective before proceeding!",
-          position: "bottom-right",
-        });
-        hasError = true;
-      }
-      if (hasChanges) {
-        setValidateStep(true);
-        hasError = true;
-      }
-    }
+    // if (active === 1) {
+    //   if (campaignFormData?.campaign_objective?.length === 0) {
+    //     setAlert({
+    //       variant: "error",
+    //       message: "Please define a campaign objective before proceeding!",
+    //       position: "bottom-right",
+    //     });
+    //     hasError = true;
+    //   }
+    //   if (hasChanges) {
+    //     setValidateStep(true);
+    //     hasError = true;
+    //   }
+    // }
 
-    if (active === 2) {
+    if (active === 1) {
       if (
         !campaignFormData?.funnel_stages ||
         campaignFormData.funnel_stages.length === 0
@@ -221,13 +222,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         hasError = true;
       }
 
-      if (hasChanges) {
-        setValidateStep(true);
-        hasError = true;
-      }
+      // if (hasChanges) {
+      //   setValidateStep(true);
+      //   hasError = true;
+      // }
     }
 
-    if (active === 3) {
+    if (active === 2) {
       const selectedStages = campaignFormData?.funnel_stages || [];
       const validatedStages = campaignFormData?.validatedStages || {};
 
@@ -264,7 +265,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    if (active === 4) {
+    if (active === 3) {
       const isValidFormat = validateFormatSelection();
       if (!isValidFormat) {
         setTriggerFormatError(true);
@@ -276,7 +277,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    if (active === 5) {
+    if (active === 4) {
       const isValidBuyObjective = validateBuyObjectiveSelection();
       if (!isValidBuyObjective) {
         setTriggerBuyObjectiveError(true);
@@ -293,7 +294,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    if (active === 7) {
+    if (active === 6) {
       if (
         (!selectedDates?.to?.day || !selectedDates?.from?.day) &&
         subStep < 1
@@ -349,48 +350,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         ])
       : {};
 
-    const handleStepZero = async () => {
-      if (cId && campaignData) {
-        await updateCampaignData({
-          ...cleanData,
-          client: campaignFormData?.client_selection?.id,
-          client_selection: {
-            client: campaignFormData?.client_selection?.value,
-            level_1: campaignFormData?.level_1?.id,
-            level_2: campaignFormData?.level_2?.id,
-            level_3: campaignFormData?.level_3?.id,
-          },
-          media_plan_details: {
-            plan_name: campaignFormData?.media_plan,
-            internal_approver: campaignFormData?.approver,
-          }
-        });
-      } else {
-        try {
-          const res = await createCampaign();
-          const url = new URL(window.location.href);
-          url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
-          window.history.pushState({}, "", url.toString());
-          await getActiveCampaign(res?.data?.data.documentId);
-        } catch (error) {
-          setAlert({
-            variant: "error",
-            message: "Failed to create campaign",
-            position: "bottom-right",
-          });
-          throw error;
-        }
-      }
-    };
-
-    const handleStepOne = async () => {
-      if (!campaignData || !cId) return;
-      await updateCampaignData({
-        ...cleanData,
-        campaign_objective: campaignFormData?.campaign_objective,
-      });
-    };
-
     const handleStepTwo = async () => {
       if (!campaignData || !cId) return;
       await updateCampaignData({
@@ -401,6 +360,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "isValidated",
           "formatValidated",
         ]),
+        custom_funnels: campaignFormData?.custom_funnels,
+        funnel_type: campaignFormData?.funnel_type,
       });
     };
 
@@ -470,16 +431,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     try {
       if (active === 1) {
-        await handleStepOne();
-      } else if (active === 2) {
         await handleStepTwo();
-      } else if (active === 3) {
+      } else if (active === 2) {
         await handleStepThree();
-      } else if (active === 4) {
+      } else if (active === 3) {
         await handleStepFour();
-      } else if (active === 5) {
+      } else if (active === 4) {
         await handleStepFive();
-      } else if (active === 7) {
+      } else if (active === 6) {
         await handleStepSeven();
       } else if (active > 3 && subStep < 1) {
         await handleStepThree();
@@ -487,19 +446,19 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         await handleStepFour();
       }
 
-      if (active === 7) {
+      if (active === 6) {
         if (subStep < 1) {
           setSubStep((prev) => prev + 1);
         } else {
           setActive((prev) => prev + 1);
           setSubStep(0);
         }
-      } else if (active === 8) {
+      } else if (active === 7) {
         subStep < 2
           ? setSubStep((prev) => prev + 1)
           : setActive((prev) => prev + 1);
       } else {
-        setActive((prev) => Math.min(10, prev + 1));
+        setActive((prev) => Math.min(9, prev + 1));
       }
     } catch (error) {
       console.error("Error in handleContinue:", error);

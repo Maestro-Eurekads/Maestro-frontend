@@ -343,7 +343,7 @@ const ObjectiveSelection = () => {
     <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
       <Toaster position="top-right" reverseOrder={false} />
       {campaignFormData?.funnel_stages?.map((stageName) => {
-        const stage = funnelStages?.find((s) => s?.name === stageName);
+        const stage = campaignFormData?.custom_funnels?.find((s) => s?.name === stageName);
         if (!stage) return null;
         return (
           <div key={stageName} className="w-full">
@@ -353,7 +353,9 @@ const ObjectiveSelection = () => {
               onClick={() => toggleItem(stage.name)}
             >
               <div className="flex items-center gap-4">
+                {stage?.icon &&
                 <Image src={stage.icon} className="size-4" alt={stage.name} />
+                }
                 <p className="font-semibold text-[#061237] whitespace-nowrap">{stage.name}</p>
               </div>
               <div className="flex items-center gap-2">

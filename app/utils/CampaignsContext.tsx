@@ -19,6 +19,7 @@ const initialState = {
   level_3: { id: "", value: "" },
   media_plan: "",
   approver: "",
+  client_approver: "",
   budget_details_currency: { id: "", value: "", label: "" },
   budget_details_fee_type: { id: "", value: "" },
   budget_details_sub_fee_type: "",
@@ -105,7 +106,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setCampaignFormData((prev) => ({
         ...prev,
         client_selection: {
-          id: data?.client?.documentId || prev.client_selection.id,
+          id: data?.client?.documentId || prev?.client_selection?.id,
           value: data?.client?.client_name || prev.client_selection.value,
         },
         level_1: {
@@ -159,6 +160,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             media_plan_details: {
               plan_name: campaignFormData?.media_plan,
               internal_approver: campaignFormData?.approver,
+              client_approver: campaignFormData?.client_approver
             },
           },
         },
