@@ -266,15 +266,15 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
 
     if (active === 4) {
-      const isValidFormat = validateFormatSelection();
-      if (!isValidFormat) {
-        setTriggerFormatError(true);
-        setTriggerFormatErrorCount((prev) => prev + 1);
-        hasError = true;
-      } else {
-        setTriggerFormatError(false);
-        setTriggerFormatErrorCount(0);
-      }
+      // const isValidFormat = validateFormatSelection();
+      // if (!isValidFormat) {
+      //   setTriggerFormatError(true);
+      //   setTriggerFormatErrorCount((prev) => prev + 1);
+      //   hasError = true;
+      // } else {
+      //   setTriggerFormatError(false);
+      //   setTriggerFormatErrorCount(0);
+      // }
     }
 
     if (active === 5) {

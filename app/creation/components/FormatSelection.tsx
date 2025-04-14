@@ -588,6 +588,7 @@ export const FormatSelection = () => {
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
         {campaignFormData?.funnel_stages?.map((stageName, index) => {
           const stage = campaignFormData?.custom_funnels?.find((s) => s.name === stageName);
+          const funn = funnelStages?.find((ff)=>ff?.name === stageName)
           if (!stage) return null;
 
           const status = getStageStatus(stageName);
@@ -601,8 +602,8 @@ export const FormatSelection = () => {
                 onClick={() => toggleTab(stage.name)}
               >
                 <div className="flex items-center gap-2">
-                  {stage?.icon &&
-                  <Image src={stage.icon} alt={stage.name} />
+                  {funn?.icon &&
+                  <Image src={funn.icon} alt={stage.name} />
                   }
                   <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
                     {stage.name}
