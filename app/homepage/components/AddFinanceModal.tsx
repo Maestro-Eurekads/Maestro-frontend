@@ -168,6 +168,18 @@ const AddFinanceModal = ({
       return;
     }
 
+    if (!poForm.PO_number) {
+      toast("Please enter a PO number", {
+        style: {
+          background: "red",
+          color: "white",
+          textAlign: "center"
+        },
+        duration: 3000
+      });
+      return;
+    }
+
     setUploading(true);
     await axios
       .post(
@@ -254,6 +266,18 @@ const AddFinanceModal = ({
 
     if (!poForm.financial_responsible) {
       toast("Please select a Financial Responsible person", {
+        style: {
+          background: "red",
+          color: "white",
+          textAlign: "center"
+        },
+        duration: 3000
+      });
+      return;
+    }
+
+    if (!poForm.PO_number) {
+      toast("Please enter a PO number", {
         style: {
           background: "red",
           color: "white",
