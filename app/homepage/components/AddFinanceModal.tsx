@@ -97,6 +97,19 @@ const AddFinanceModal = ({
   };
 
   useEffect(() => {
+    if (!poForm.client && selected) {
+      toast("Please select a client", {
+        style: {
+          background: "red", 
+          color: "white",
+          textAlign: "center"
+        },
+        duration: 3000
+      });
+    }
+  }, [poForm.client, selected]);
+
+  useEffect(() => {
     if (selected || selectedRow) {
       setLoadingCam(true);
       fetchClientCampaign(selected || selectedRow?.client?.id)
@@ -107,7 +120,6 @@ const AddFinanceModal = ({
             value: opt?.id,
             budget: opt?.campaign_budget?.amount,
           }));
-          // console.log(newOption)
           setClientCampaigns(newOption);
         })
         .catch((err) => console.log(err))
@@ -125,7 +137,6 @@ const AddFinanceModal = ({
       )
         .then((res) => {
           const d = res?.data;
-          // console.log("🚀 ~ .then ~ d:", d);
           const newOpt = d?.map((opt) => ({
             label: opt?.username,
             value: opt?.id,
@@ -192,7 +203,7 @@ const AddFinanceModal = ({
     }
 
     if (!poForm.PO_currency) {
-      toast("Please select a currency", {
+      toast("Please select a currency from the dropdown list", {
         style: {
           background: "red",
           color: "white",
