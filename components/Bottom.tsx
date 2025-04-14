@@ -174,7 +174,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         campaignFormData?.client_selection?.value,
         campaignFormData?.media_plan,
         campaignFormData?.approver,
-        campaignFormData?.client_approver
+        campaignFormData?.client_approver,
       ];
 
       if (!requiredFields.every((field) => field)) {
@@ -265,7 +265,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    if (active === 3) {
+    if (active === 4) {
       const isValidFormat = validateFormatSelection();
       if (!isValidFormat) {
         setTriggerFormatError(true);
@@ -277,7 +277,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    if (active === 4) {
+    if (active === 5) {
       const isValidBuyObjective = validateBuyObjectiveSelection();
       if (!isValidBuyObjective) {
         setTriggerBuyObjectiveError(true);
@@ -294,7 +294,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    if (active === 6) {
+    if (active === 7) {
       if (
         (!selectedDates?.to?.day || !selectedDates?.from?.day) &&
         subStep < 1
@@ -435,14 +435,12 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       } else if (active === 2) {
         await handleStepThree();
       } else if (active === 3) {
-        await handleStepFour();
+        await handleStepSeven();
       } else if (active === 4) {
         await handleStepFive();
       } else if (active === 6) {
         await handleStepSeven();
       } else if (active > 3 && subStep < 1) {
-        await handleStepThree();
-      } else if (active > 3 && subStep > 0) {
         await handleStepFour();
       }
 
@@ -453,7 +451,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           setActive((prev) => prev + 1);
           setSubStep(0);
         }
-      } else if (active === 7) {
+      } else if (active === 3) {
         subStep < 2
           ? setSubStep((prev) => prev + 1)
           : setActive((prev) => prev + 1);
