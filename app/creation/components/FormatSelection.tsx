@@ -22,11 +22,12 @@ import image_format from "../../../public/Image_format.svg";
 import collection_format from "../../../public/collection_format.svg";
 import slideshow_format from "../../../public/slideshow_format.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
-import { funnelStages } from "../../../components/data";
+import { funnelStages, platformIcons } from "../../../components/data";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import UploadModal from "../../../components/UploadModal/UploadModal";
 import checkmark from "../../../public/mingcute_check-fill.svg";
 import { useComments } from "app/utils/CommentProvider";
+import Switch from "react-switch";
 
 type IPlatform = {
   name: string;
@@ -34,6 +35,7 @@ type IPlatform = {
   style?: string;
   mediaOptions?: any[];
   isExpanded?: boolean;
+  adsets: any[];
 };
 
 type IChannel = {
@@ -42,8 +44,17 @@ type IChannel = {
   style?: string;
 };
 
-export const Platforms = ({ stageName }: { stageName: string }) => {
+export const Platforms = ({
+  stageName,
+  view,
+}: {
+  stageName: string;
+  view?: string;
+}) => {
   const [expandedPlatforms, setExpandedPlatforms] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const [expandedAdset, setExpandedAdset] = useState<{
     [key: string]: boolean;
   }>({});
   const { campaignFormData, setCampaignFormData } = useCampaigns();
@@ -68,23 +79,25 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     { name: "Collection", icon: collection_format },
   ];
 
-  const platformIcons = {
-    Facebook: facebook,
-    Instagram: ig,
-    YouTube: youtube,
-    TheTradeDesk: TheTradeDesk,
-    Quantcast: Quantcast,
-    Google: google,
-    "Twitter/X": x,
-    LinkedIn: linkedin,
-    TikTok: tictok,
-    "Display & Video": Display,
-    Yahoo: yahoo,
-    Bing: bing,
-    "Apple Search": google,
-    "The Trade Desk": TheTradeDesk,
-    QuantCast: Quantcast,
-  };
+  console.log("fdfd", JSON.stringify(campaignFormData, null, 2))
+
+  // const platformIcons = {
+  //   Facebook: facebook,
+  //   Instagram: ig,
+  //   YouTube: youtube,
+  //   TheTradeDesk: TheTradeDesk,
+  //   Quantcast: Quantcast,
+  //   Google: google,
+  //   "Twitter/X": x,
+  //   LinkedIn: linkedin,
+  //   TikTok: tictok,
+  //   "Display & Video": Display,
+  //   Yahoo: yahoo,
+  //   Bing: bing,
+  //   "Apple Search": google,
+  //   "The Trade Desk": TheTradeDesk,
+  //   QuantCast: Quantcast,
+  // };
 
   const getPlatformIcon = (platformName) => platformIcons[platformName] || null;
 
@@ -112,14 +125,14 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     }
   }, [stageName]);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(
-        `expandedPlatforms_${stageName}`,
-        JSON.stringify(expandedPlatforms)
-      );
-    }
-  }, [expandedPlatforms, stageName]);
+  // useEffect(() => {
+  //   if (typeof window !== "undefined") {
+  //     localStorage.setItem(
+  //       `expandedPlatforms_${stageName}`,
+  //       JSON.stringify(expandedPlatforms)
+  //     );
+  //   }
+  // }, [expandedPlatforms, stageName]);
 
   useEffect(() => {
     const stage = campaignFormData?.channel_mix?.find(
@@ -153,8 +166,9 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
             .map((platform) => ({
               name: platform.platform_name,
               icon: getPlatformIcon(platform.platform_name),
+              adsets: platform.ad_sets,
             })) || [],
-        style: "max-w-[150px] w-full h-[52px]",
+        style: "max-w-[150px] w-full",
       };
       const displayNetworkData = {
         title: "Display Networks",
@@ -164,8 +178,9 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
             .map((platform) => ({
               name: platform.platform_name,
               icon: getPlatformIcon(platform.platform_name),
+              adsets: platform.ad_sets,
             })) || [],
-        style: "max-w-[200px] w-full",
+        style: "max-w-[150px] w-full",
       };
       const searchEnginesData = {
         title: "Search Engines",
@@ -175,8 +190,9 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
             .map((platform) => ({
               name: platform.platform_name,
               icon: getPlatformIcon(platform.platform_name),
+              adsets: platform.ad_sets,
             })) || [],
-        style: "max-w-[180px] w-full",
+        style: "max-w-[150px] w-full",
       };
 
       setChannels(
@@ -393,6 +409,13 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
     }
   };
 
+  const toggleAdsetExpansion = (platformName: string) => {
+    setExpandedAdset((prev) => ({
+      ...prev,
+      [platformName]: !prev[platformName],
+    }));
+  };
+
   const openModal = (platform: string, channel: string, format: string) => {
     setModalContext({ platform, channel, format });
     setIsModalOpen(true);
@@ -415,10 +438,15 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
                 <div key={platformIndex}>
                   <div className="flex items-center gap-6">
                     <div
-                      className={`flex items-center gap-[12px] font-[500] border p-5 rounded-[10px] ${channel?.style}`}
+                      className={`flex items-center gap-[8px] font-[500] border p-3 rounded-[10px] ${channel?.style}`}
                     >
                       {getPlatformIcon(platform?.name) ? (
-                        <Image src={platform.icon} alt={platform.name} />
+                        <Image
+                          src={platform.icon}
+                          alt={platform.name}
+                          width={20}
+                          height={20}
+                        />
                       ) : null}
 
                       <p>{platform.name}</p>
@@ -434,53 +462,126 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
                             : "Select your format"}
                         </span>
                       ) : (
-                        <>
-                          <p className="font-bold text-[18px] text-[#3175FF]">
-                            <svg
-                              width="13"
-                              height="12"
-                              viewBox="0 0 13 12"
-                              fill="none"
-                            >
-                              <path
-                                d="M5.87891 5.16675V0.166748H7.54557V5.16675H12.5456V6.83342H7.54557V11.8334H5.87891V6.83342H0.878906V5.16675H5.87891Z"
-                                fill="#3175FF"
-                              />
-                            </svg>
-                          </p>
-                          <h3 className="text-[#3175FF]">Add format</h3>
-                        </>
+                        (view === "channel" ||
+                          platform?.adsets?.length < 1) && (
+                          <>
+                            <p className="font-bold text-[18px] text-[#3175FF]">
+                              <svg
+                                width="13"
+                                height="12"
+                                viewBox="0 0 13 12"
+                                fill="none"
+                              >
+                                <path
+                                  d="M5.87891 5.16675V0.166748H7.54557V5.16675H12.5456V6.83342H7.54557V11.8334H5.87891V6.83342H0.878906V5.16675H5.87891Z"
+                                  fill="#3175FF"
+                                />
+                              </svg>
+                            </p>
+                            <h3 className="text-[#3175FF]">Add format</h3>
+                          </>
+                        )
                       )}
                     </div>
                   </div>
                   {((isExpanded && !isValidated) ||
                     (isValidated && hasSelectedFormats && isExpanded)) && (
-                      <div className="py-6">
-                        <MediaSelection
-                          handleFormatSelection={(index) =>
-                            handleFormatSelection(
-                              channel?.title,
-                              index,
-                              platform.name
-                            )
-                          }
-                          mediaOptions={defaultMediaOptions}
-                          channelName={channel?.title}
-                          platformName={platform.name}
-                          stageName={stageName}
-                          isValidated={isValidated}
-                          quantities={quantities[platform.name] || {}}
-                          onQuantityChange={(formatName, change) =>
-                            handleQuantityChange(
-                              platform.name,
-                              formatName,
-                              change
-                            )
-                          }
-                          onOpenModal={openModal}
-                        />
-                      </div>
-                    )}
+                    <div className="py-6">
+                      <MediaSelection
+                        handleFormatSelection={(index) =>
+                          handleFormatSelection(
+                            channel?.title,
+                            index,
+                            platform.name
+                          )
+                        }
+                        mediaOptions={defaultMediaOptions}
+                        channelName={channel?.title}
+                        platformName={platform.name}
+                        stageName={stageName}
+                        isValidated={isValidated}
+                        quantities={quantities[platform.name] || {}}
+                        onQuantityChange={(formatName, change) =>
+                          handleQuantityChange(
+                            platform.name,
+                            formatName,
+                            change
+                          )
+                        }
+                        onOpenModal={openModal}
+                      />
+                    </div>
+                  )}
+                  {view === "adset" &&
+                    platform?.adsets?.length > 0 &&
+                    platform?.adsets?.map((ads, index) => {
+                      const isAdsetExpanded =
+                        expandedAdset[`${ads.name}-${index}`];
+                      return (
+                        <>
+                          <div
+                            key={index}
+                            className="my-3 flex items-center gap-8"
+                          >
+                            <div className="p-3 border w-fit rounded-md">
+                              {ads?.audience_type}
+                            </div>
+                            <div
+                              className="flex items-center gap-2"
+                              onClick={() =>
+                                toggleAdsetExpansion(`${ads.name}-${index}`)
+                              }
+                            >
+                              <p className="font-bold text-[18px] text-[#3175FF]">
+                                <svg
+                                  width="13"
+                                  height="12"
+                                  viewBox="0 0 13 12"
+                                  fill="none"
+                                >
+                                  <path
+                                    d="M5.87891 5.16675V0.166748H7.54557V5.16675H12.5456V6.83342H7.54557V11.8334H5.87891V6.83342H0.878906V5.16675H5.87891Z"
+                                    fill="#3175FF"
+                                  />
+                                </svg>
+                              </p>
+                              <h3 className="text-[#3175FF] font-semibold">
+                                Add format
+                              </h3>
+                            </div>
+                          </div>
+                          {isAdsetExpanded && (
+                            <div className="py-6">
+                              <MediaSelection
+                                handleFormatSelection={(index) =>
+                                  handleFormatSelection(
+                                    channel?.title,
+                                    index,
+                                    platform.name
+                                  )
+                                }
+                                mediaOptions={defaultMediaOptions}
+                                channelName={channel?.title}
+                                platformName={platform.name}
+                                stageName={stageName}
+                                isValidated={isValidated}
+                                quantities={quantities[platform.name] || {}}
+                                onQuantityChange={(formatName, change) =>
+                                  handleQuantityChange(
+                                    platform.name,
+                                    formatName,
+                                    change
+                                  )
+                                }
+                                onOpenModal={openModal}
+                              />
+                            </div>
+                          )}
+                        </>
+                      );
+                    })}
+
+                  {}
                 </div>
               );
             })}
@@ -489,10 +590,11 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
       ))}
       <div className="w-full flex items-center justify-end mt-9">
         <button
-          className={`px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isValidateEnabled || isValidated
-            ? "bg-[#3175FF] hover:bg-[#2563eb]"
-            : "bg-[#3175FF] opacity-50 cursor-not-allowed"
-            }`}
+          className={`px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
+            isValidateEnabled || isValidated
+              ? "bg-[#3175FF] hover:bg-[#2563eb]"
+              : "bg-[#3175FF] opacity-50 cursor-not-allowed"
+          }`}
           onClick={handleValidateOrEdit}
         >
           {isValidated ? "Edit" : "Validate"}
@@ -515,6 +617,13 @@ export const Platforms = ({ stageName }: { stageName: string }) => {
 
 export const FormatSelection = () => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
+  const [isChecked, setIsChecked] = useState(false);
+  const [view, setView] = useState<"channel" | "adset">("channel");
+
+  const handleToggleChange = (checked: boolean) => {
+    const newView = checked ? "adset" : "channel";
+    setView(newView);
+  };
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   const { setIsDrawerOpen, setClose } = useComments();
   useEffect(() => {
@@ -586,9 +695,29 @@ export const FormatSelection = () => {
         t2="Select the creative formats you want to use for your campaign. Specify the number of visuals for each format. Multiple formats can be selected per channel."
       />
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
+        <div className="flex justify-center gap-3">
+          <p className="font-medium">Channel View</p>
+          <Switch
+            checked={view === "adset"}
+            onChange={handleToggleChange}
+            onColor="#5cd08b" // blue-600
+            offColor="#3175FF" // gray-200
+            handleDiameter={18}
+            uncheckedIcon={false}
+            checkedIcon={false}
+            height={24}
+            width={48}
+            borderRadius={24}
+            activeBoxShadow="0 0 2px 3px rgba(37, 99, 235, 0.2)"
+            className="react-switch"
+          />
+          <p className="font-medium">AdSet View</p>
+        </div>
         {campaignFormData?.funnel_stages?.map((stageName, index) => {
-          const stage = campaignFormData?.custom_funnels?.find((s) => s.name === stageName);
-          const funn = funnelStages?.find((ff)=>ff?.name === stageName)
+          const stage = campaignFormData?.custom_funnels?.find(
+            (s) => s.name === stageName
+          );
+          const funn = funnelStages?.find((ff) => ff?.name === stageName);
           if (!stage) return null;
 
           const status = getStageStatus(stageName);
@@ -597,15 +726,14 @@ export const FormatSelection = () => {
           return (
             <div key={index}>
               <div
-                className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
-                  }`}
+                className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${
+                  isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
+                }`}
                 onClick={() => toggleTab(stage.name)}
               >
                 <div className="flex items-center gap-2">
-                  {funn?.icon &&
-                  <Image src={funn.icon} alt={stage.name} />
-                  }
-                  <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
+                  {funn?.icon && <Image src={funn.icon} alt={stage.name} />}
+                  <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#06371a]">
                     {stage.name}
                   </p>
                 </div>
@@ -631,7 +759,7 @@ export const FormatSelection = () => {
               </div>
               {isOpen && (
                 <div className="card-body bg-white border border-[#E5E5E5]">
-                  <Platforms stageName={stage?.name} />
+                  <Platforms stageName={stage?.name} view={view} />
                 </div>
               )}
             </div>
@@ -758,7 +886,7 @@ export default function MediaSelection({
   isValidated = false,
   platformName,
   quantities = {},
-  onQuantityChange = () => { },
+  onQuantityChange = () => {},
   channelName,
   stageName,
   onOpenModal,
@@ -777,7 +905,7 @@ export default function MediaSelection({
 
   return (
     <div className="w-full overflow-x-auto">
-      <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
+      <div className="flex gap-4" style={{ minWidth: "max-content" }}>
         {mediaOptions.map((option, index) => {
           const existsInDB = campaignFormData?.channel_mix
             ?.find((ch) => ch?.funnel_stage === stageName)
@@ -793,8 +921,9 @@ export default function MediaSelection({
               <div className="flex flex-col items-center">
                 <div
                   onClick={() => !isValidated && handleFormatSelection(index)}
-                  className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${existsInDB ? "border-blue-500 shadow-lg" : "border-gray-300"
-                    } ${isValidated ? "cursor-default" : "cursor-pointer"}`}
+                  className={`relative text-center cursor-pointer p-2 rounded-lg border transition ${
+                    existsInDB ? "border-blue-500 shadow-lg" : "border-gray-300"
+                  } ${isValidated ? "cursor-default" : "cursor-pointer"}`}
                 >
                   <Image
                     src={option.icon}
