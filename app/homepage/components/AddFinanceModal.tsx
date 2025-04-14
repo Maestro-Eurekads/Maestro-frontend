@@ -143,6 +143,31 @@ const AddFinanceModal = ({
   }, []);
 
   const addPOToDB = async () => {
+    // Validate required fields
+    if (!poForm.client_responsible) {
+      toast("Please select a Client Responsible person", {
+        style: {
+          background: "red", 
+          color: "white",
+          textAlign: "center"
+        },
+        duration: 3000
+      });
+      return;
+    }
+
+    if (!poForm.financial_responsible) {
+      toast("Please select a Financial Responsible person", {
+        style: {
+          background: "red",
+          color: "white", 
+          textAlign: "center"
+        },
+        duration: 3000
+      });
+      return;
+    }
+
     setUploading(true);
     await axios
       .post(
@@ -214,6 +239,31 @@ const AddFinanceModal = ({
   };
 
   const updatePOInDB = async () => {
+    // Validate required fields
+    if (!poForm.client_responsible) {
+      toast("Please select a Client Responsible person", {
+        style: {
+          background: "red",
+          color: "white",
+          textAlign: "center"
+        },
+        duration: 3000
+      });
+      return;
+    }
+
+    if (!poForm.financial_responsible) {
+      toast("Please select a Financial Responsible person", {
+        style: {
+          background: "red",
+          color: "white",
+          textAlign: "center"
+        },
+        duration: 3000
+      });
+      return;
+    }
+
     setUploading(true);
     await axios
       .put(
