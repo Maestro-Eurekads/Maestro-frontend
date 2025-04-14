@@ -142,30 +142,41 @@ const AddFinanceModal = ({
     fetchAgencyUsers();
   }, []);
 
-  const addPOToDB = async () => {
-    // Validate required fields
-    if (!poForm.client_responsible) {
-      toast("Please select a Client Responsible person", {
+  const validateForm = () => {
+    if (!poForm.client) {
+      toast("Please select a client", {
         style: {
-          background: "red", 
+          background: "red",
           color: "white",
           textAlign: "center"
         },
         duration: 3000
       });
-      return;
+      return false;
+    }
+
+    if (!poForm.client_responsible) {
+      toast("Please select a Client Responsible person", {
+        style: {
+          background: "red",
+          color: "white",
+          textAlign: "center"
+        },
+        duration: 3000
+      });
+      return false;
     }
 
     if (!poForm.financial_responsible) {
       toast("Please select a Financial Responsible person", {
         style: {
           background: "red",
-          color: "white", 
+          color: "white",
           textAlign: "center"
         },
         duration: 3000
       });
-      return;
+      return false;
     }
 
     if (!poForm.PO_number) {
@@ -177,6 +188,39 @@ const AddFinanceModal = ({
         },
         duration: 3000
       });
+      return false;
+    }
+
+    if (!poForm.PO_currency) {
+      toast("Please select a currency", {
+        style: {
+          background: "red",
+          color: "white",
+          textAlign: "center"
+        },
+        duration: 3000
+      });
+      return false;
+    }
+
+    if (!poForm.PO_total_amount) {
+      toast("Please enter the total PO amount", {
+        style: {
+          background: "red",
+          color: "white",
+          textAlign: "center"
+        },
+        duration: 3000
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const addPOToDB = async () => {
+    // Validate all required fields
+    if (!validateForm()) {
       return;
     }
 
@@ -225,7 +269,7 @@ const AddFinanceModal = ({
           err?.response?.data?.error?.message ===
           "This attribute must be unique"
         ) {
-          toast("PO number already exist", {
+          toast("PO number already exists", {
             style: {
               background: "red",
               color: "white",
@@ -242,7 +286,6 @@ const AddFinanceModal = ({
             },
             duration: 3000,
           });
-          //
         }
       })
       .finally(() => {
@@ -251,40 +294,8 @@ const AddFinanceModal = ({
   };
 
   const updatePOInDB = async () => {
-    // Validate required fields
-    if (!poForm.client_responsible) {
-      toast("Please select a Client Responsible person", {
-        style: {
-          background: "red",
-          color: "white",
-          textAlign: "center"
-        },
-        duration: 3000
-      });
-      return;
-    }
-
-    if (!poForm.financial_responsible) {
-      toast("Please select a Financial Responsible person", {
-        style: {
-          background: "red",
-          color: "white",
-          textAlign: "center"
-        },
-        duration: 3000
-      });
-      return;
-    }
-
-    if (!poForm.PO_number) {
-      toast("Please enter a PO number", {
-        style: {
-          background: "red",
-          color: "white",
-          textAlign: "center"
-        },
-        duration: 3000
-      });
+    // Validate all required fields
+    if (!validateForm()) {
       return;
     }
 
