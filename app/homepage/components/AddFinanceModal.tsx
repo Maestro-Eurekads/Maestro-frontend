@@ -8,6 +8,7 @@ import { MdOutlineCancel } from "react-icons/md";
 import { CustomSelect } from "./CustomReactSelect";
 import { Trash2 } from "lucide-react";
 import { useAppSelector } from "store/useStore";
+
 import { FiLoader } from "react-icons/fi";
 import useCampaignHook from "app/utils/useCampaignHook";
 import { set } from "date-fns";
@@ -241,6 +242,14 @@ const AddFinanceModal = ({
         }
       )
       .then((res) => {
+        toast("Purchase Order updated successfully!", {
+          style: {
+            background: "green",
+            color: "white", 
+            textAlign: "center"
+          },
+          duration: 3000
+        });
         handleClose();
         setFetchingPO(true);
         fetchClientPOS(selectedRow?.client?.id)
@@ -254,6 +263,14 @@ const AddFinanceModal = ({
       })
       .catch((err) => {
         console.log("err", err);
+        toast("Error updating Purchase Order", {
+          style: {
+            background: "red",
+            color: "white",
+            textAlign: "center"
+          },
+          duration: 3000
+        });
       })
       .finally(() => {
         setUploading(false);
