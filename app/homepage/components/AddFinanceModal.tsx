@@ -8,10 +8,8 @@ import { MdOutlineCancel } from "react-icons/md";
 import { CustomSelect } from "./CustomReactSelect";
 import { Trash2 } from "lucide-react";
 import { useAppSelector } from "store/useStore";
-
 import { FiLoader } from "react-icons/fi";
 import useCampaignHook from "app/utils/useCampaignHook";
-import { set } from "date-fns";
 import axios from "axios";
 import { FaSpinner } from "react-icons/fa";
 import toast, { Toaster } from "react-hot-toast";
@@ -22,13 +20,13 @@ const AddFinanceModal = ({
   setIsOpen,
   mode,
   selectedRow,
-  setSelectedRow
+  setSelectedRow,
 }: {
   isOpen: boolean;
   setIsOpen: any;
   mode?: string;
   selectedRow?: any;
-  setSelectedRow?:any
+  setSelectedRow?: any;
 }) => {
   const [mediaPlans, setMediaPlans] = useState([]);
   const { fetchClientCampaign, fetchUserByType, fetchClientPOS } =
@@ -43,7 +41,7 @@ const AddFinanceModal = ({
     PO_number: 0,
     PO_currency: "",
     PO_total_amount: 0,
-    PO_status: "open"
+    PO_status: "open",
   });
   const [clientCampigns, setClientCampaigns] = useState([]);
   const [users, setUsers] = useState([]);
@@ -77,7 +75,7 @@ const AddFinanceModal = ({
     { label: "Reconcilled", value: "reconcilled" },
     { label: "Partially paid", value: "partially_paid" },
     { label: "Fully Paid", value: "fully_paid" },
-  ]
+  ];
 
   const handleClose = () => {
     setPoForm({
@@ -87,24 +85,24 @@ const AddFinanceModal = ({
       PO_number: 0,
       PO_currency: "",
       PO_total_amount: 0,
-      PO_status: "open"
+      PO_status: "open",
     });
     setSelected("");
     setIsOpen(false);
     setClientCampaigns([]);
     setMediaPlans([]);
-    setSelectedRow(null)
+    setSelectedRow(null);
   };
 
   useEffect(() => {
     if (!poForm.client && selected) {
       toast("Please select a client", {
         style: {
-          background: "red", 
+          background: "red",
           color: "white",
-          textAlign: "center"
+          textAlign: "center",
         },
-        duration: 3000
+        duration: 3000,
       });
     }
   }, [poForm.client, selected]);
@@ -159,9 +157,9 @@ const AddFinanceModal = ({
         style: {
           background: "red",
           color: "white",
-          textAlign: "center"
+          textAlign: "center",
         },
-        duration: 3000
+        duration: 3000,
       });
       return false;
     }
@@ -171,9 +169,9 @@ const AddFinanceModal = ({
         style: {
           background: "red",
           color: "white",
-          textAlign: "center"
+          textAlign: "center",
         },
-        duration: 3000
+        duration: 3000,
       });
       return false;
     }
@@ -183,21 +181,21 @@ const AddFinanceModal = ({
         style: {
           background: "red",
           color: "white",
-          textAlign: "center"
+          textAlign: "center",
         },
-        duration: 3000
+        duration: 3000,
       });
       return false;
     }
 
-    if (!poForm.PO_number) {
-      toast("Please enter a PO number", {
+    if (!poForm.PO_number || poForm.PO_number <= 0) {
+      toast("Please enter a valid PO number", {
         style: {
           background: "red",
           color: "white",
-          textAlign: "center"
+          textAlign: "center",
         },
-        duration: 3000
+        duration: 3000,
       });
       return false;
     }
@@ -207,26 +205,44 @@ const AddFinanceModal = ({
         style: {
           background: "red",
           color: "white",
-          textAlign: "center"
+          textAlign: "center",
         },
-        duration: 3000
+        duration: 3000,
       });
       return false;
     }
 
-    if (!poForm.PO_total_amount) {
-      toast("Please enter the total PO amount", {
+    if (!poForm.PO_total_amount || poForm.PO_total_amount <= 0) {
+      toast("Please enter a valid total PO amount", {
         style: {
           background: "red",
           color: "white",
-          textAlign: "center"
+          textAlign: "center",
         },
-        duration: 3000
+        duration: 3000,
       });
       return false;
     }
 
     return true;
+  };
+
+  // New function to check if PO_number already exists
+  const checkPONumberExists = async (poNumber: number) => {
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders?filters[PO_number][$eq]=${poNumber}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+        }
+      );
+      return response.data.data.length > 0;
+    } catch (err) {
+      console.error("Error checking PO number:", err);
+      return false;
+    }
   };
 
   const addPOToDB = async () => {
@@ -236,72 +252,92 @@ const AddFinanceModal = ({
     }
 
     setUploading(true);
-    await axios
-      .post(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders?populate[0]=assigned_media_plans.campaign`,
-        {
-          data: {
-            ...poForm,
-            assigned_media_plans: mediaPlans?.map((mp) => ({
-              campaign: mp?.name,
-              amount:
-                mp?.type === "total_po_amount_percent"
-                  ? (Number(mp?.amount) / 100) * Number(poForm?.PO_total_amount)
-                  : Number(mp?.amount),
-              amount_type: mp?.type,
-              percentage:
-                mp?.type === "total_po_amount_percent"
-                  ? Number(mp?.amount)
-                  : null,
-            })),
+    try {
+      // Check if PO_number already exists
+      const poExists = await checkPONumberExists(poForm.PO_number);
+      if (poExists) {
+        toast("PO number already exists. Please use a different number.", {
+          style: {
+            background: "red",
+            color: "white",
+            textAlign: "center",
           },
+          duration: 3000,
+        });
+        return;
+      }
+
+      // Log the payload for debugging
+      const payload = {
+        data: {
+          ...poForm,
+          assigned_media_plans: mediaPlans?.map((mp) => ({
+            campaign: mp?.name,
+            amount:
+              mp?.type === "total_po_amount_percent"
+                ? (Number(mp?.amount) / 100) * Number(poForm?.PO_total_amount)
+                : Number(mp?.amount),
+            amount_type: mp?.type,
+            percentage:
+              mp?.type === "total_po_amount_percent"
+                ? Number(mp?.amount)
+                : null,
+          })),
         },
+      };
+      console.log("Creating PO with payload:", payload);
+
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders?populate[0]=assigned_media_plans.campaign`,
+        payload,
         {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
           },
         }
-      )
-      .then((res) => {
-        handleClose();
-        setFetchingPO(true);
-        fetchClientPOS(selected)
-          .then((res) => {
-            localStorage.setItem("selectedClient", selected);
-            setClientPOs(res?.data?.data || []);
-          })
-          .finally(() => {
-            setFetchingPO(false);
-          });
-      })
-      .catch((err) => {
-        console.log("err", err);
-        if (
-          err?.response?.data?.error?.message ===
-          "This attribute must be unique"
-        ) {
-          toast("PO number already exists", {
-            style: {
-              background: "red",
-              color: "white",
-              textAlign: "center",
-            },
-            duration: 3000,
-          });
-        } else {
-          toast(`${err?.response?.data?.error?.message}`, {
-            style: {
-              background: "red",
-              color: "white",
-              textAlign: "center",
-            },
-            duration: 3000,
-          });
-        }
-      })
-      .finally(() => {
-        setUploading(false);
+      );
+
+      // Prepend the new PO to the existing clientPOs list
+      setClientPOs((prevPOs) => [response.data.data, ...(prevPOs || [])]);
+
+      // Show success message
+      toast("Purchase Order created successfully!", {
+        style: {
+          background: "green",
+          color: "white",
+          textAlign: "center",
+        },
+        duration: 3000,
       });
+
+      // Reset form and close modal
+      handleClose();
+    } catch (err) {
+      console.error("Error creating PO:", err);
+      const errorMessage =
+        err?.response?.data?.error?.message || "An unexpected error occurred";
+      if (errorMessage.includes("This attribute must be unique")) {
+        toast("PO number already exists. Please use a different number.", {
+          style: {
+            background: "red",
+            color: "white",
+            textAlign: "center",
+          },
+          duration: 3000,
+        });
+      } else {
+        toast(`Error: ${errorMessage}`, {
+          style: {
+            background: "red",
+            color: "white",
+            textAlign: "center",
+          },
+          duration: 3000,
+        });
+      }
+    } finally {
+      setUploading(false);
+    }
   };
 
   const updatePOInDB = async () => {
@@ -311,8 +347,8 @@ const AddFinanceModal = ({
     }
 
     setUploading(true);
-    await axios
-      .put(
+    try {
+      const response = await axios.put(
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders/${selectedRow?.documentId}`,
         {
           data: {
@@ -336,41 +372,39 @@ const AddFinanceModal = ({
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
           },
         }
-      )
-      .then((res) => {
-        toast("Purchase Order updated successfully!", {
-          style: {
-            background: "green",
-            color: "white", 
-            textAlign: "center"
-          },
-          duration: 3000
-        });
-        handleClose();
-        setFetchingPO(true);
-        fetchClientPOS(selectedRow?.client?.id)
-          .then((res) => {
-            localStorage.setItem("selectedClient", selectedRow?.client?.id);
-            setClientPOs(res?.data?.data || []);
-          })
-          .finally(() => {
-            setFetchingPO(false);
-          });
-      })
-      .catch((err) => {
-        console.log("err", err);
-        toast("Error updating Purchase Order", {
-          style: {
-            background: "red",
-            color: "white",
-            textAlign: "center"
-          },
-          duration: 3000
-        });
-      })
-      .finally(() => {
-        setUploading(false);
+      );
+
+      toast("Purchase Order updated successfully!", {
+        style: {
+          background: "green",
+          color: "white",
+          textAlign: "center",
+        },
+        duration: 3000,
       });
+      handleClose();
+      setFetchingPO(true);
+      fetchClientPOS(selectedRow?.client?.id)
+        .then((res) => {
+          localStorage.setItem("selectedClient", selectedRow?.client?.id);
+          setClientPOs(res?.data?.data || []);
+        })
+        .finally(() => {
+          setFetchingPO(false);
+        });
+    } catch (err) {
+      console.error("Error updating PO:", err);
+      toast("Error updating Purchase Order", {
+        style: {
+          background: "red",
+          color: "white",
+          textAlign: "center",
+        },
+        duration: 3000,
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   useEffect(() => {
@@ -536,7 +570,7 @@ const AddFinanceModal = ({
                       const value = e.target.value.replace(/\D/g, "");
                       setPoForm((prev) => ({
                         ...prev,
-                        PO_number: Number(value),
+                        PO_number: Number(value) || 0,
                       }));
                     }}
                     disabled={mode === "edit"}
@@ -580,10 +614,9 @@ const AddFinanceModal = ({
                       const value = e.target.value.replace(/\D/g, "");
                       setPoForm((prev) => ({
                         ...prev,
-                        PO_total_amount: Number(value),
+                        PO_total_amount: Number(value) || 0,
                       }));
                     }}
-                    // readOnly={}
                   />
                 </div>
                 {mode === "edit" && (
@@ -593,7 +626,9 @@ const AddFinanceModal = ({
                       className="mt-2"
                       placeholder="Select status"
                       options={statusOption}
-                      value={statusOption?.find((opt)=>opt?.value === poForm?.PO_status)}
+                      value={statusOption?.find(
+                        (opt) => opt?.value === poForm?.PO_status
+                      )}
                       onChange={(
                         value: { label: string; value: string } | null
                       ) => {
@@ -613,12 +648,8 @@ const AddFinanceModal = ({
 
                 {mediaPlans?.length > 0 && (
                   <>
-                    {/* <p className="mb-[20px] font-semibold">
-                      Media Plans Linked
-                    </p> */}
                     <div className="space-y-3">
                       {mediaPlans.map((plan, index) => {
-                        console.log("plan", plan);
                         return (
                           <div key={index} className="">
                             {loadingCam ? (
