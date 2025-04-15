@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Edit, Trash, Eye } from "lucide-react";
 import { useCampaigns } from "app/utils/CampaignsContext";
-import useCampaignHook from "app/utils/useCampaignHook";
 import { NoRecordFound, SVGLoaderFetch } from "components/Options";
 import { getCurrencySymbol } from "components/data";
 
 function FinanceTable({
+  data, // Paginated data from FinanceView
   selectedRow,
   setSelectedRow,
   openEdit,
@@ -18,33 +18,34 @@ function FinanceTable({
   setOpenView,
 }) {
   const [expanded, setExpanded] = useState("");
-  const { clientPOs, fetchingPO, clientCampaignData, loading } = useCampaigns();
+  const { fetchingPO, clientCampaignData, loading } = useCampaigns();
   const [expandedPO, setExpandedPO] = useState(null);
 
   const toggleExpand = (po) => {
     setExpanded((prev) => (prev === po?.id ? "" : po?.id));
     setExpandedPO(po);
   };
+
   return (
-    <table>
+    <table className="w-full">
       <thead>
         <tr>
-          <th className="py-[12px] px-[16px]">PO Number</th>
-          <th className="py-[12px] px-[16px]">Total Budget</th>
-          <th className="py-[12px] px-[16px]">Assigned Budget</th>
-          <th className="py-[12px] px-[16px]">Assigned Media Plan</th>
-          <th className="py-[12px] px-[16px]">Available Budget</th>
-          <th className="py-[12px] px-[16px] whitespace-nowrap">PO Status</th>
-          <th className="py-[12px] px-[16px]">Actions</th>
+          <th className="py-[12px] px-[16px] text-left">PO Number</th>
+          <th className="py-[12px] px-[16px] text-left">Total Budget</th>
+          <th className="py-[12px] px-[16px] text-left">Assigned Budget</th>
+          <th className="py-[12px] px-[16px] text-left">Assigned Media Plan</th>
+          <th className="py-[12px] px-[16px] text-left">Available Budget</th>
+          <th className="py-[12px] px-[16px] text-left whitespace-nowrap">PO Status</th>
+          <th className="py-[12px] px-[16px] text-left">Actions</th>
         </tr>
       </thead>
       <tbody>
         {fetchingPO || loading ? (
-          <SVGLoaderFetch colSpan={8} text={"Loading client purchase orders"} />
-        ) : clientPOs?.length === 0 ? (
-          <NoRecordFound colSpan={8}>No Client Purchase Order!</NoRecordFound>
+          <SVGLoaderFetch colSpan={7} text={"Loading client purchase orders"} />
+        ) : data?.length === 0 ? (
+          <NoRecordFound colSpan={7}>No Client Purchase Order!</NoRecordFound>
         ) : (
-          clientPOs?.map((po, index) => {
+          data?.map((po, index) => {
             const currencySymbol = getCurrencySymbol(po?.PO_currency);
             const getTotalAssignedBudget = (assignedMediaPlans) => {
               return assignedMediaPlans?.reduce(
@@ -58,7 +59,7 @@ function FinanceTable({
             const availableBudget = po?.PO_total_amount - totalAssignedBudget;
             return (
               <>
-                <tr key={index} className="border-b bg-white">
+                <tr key={po?.id || index} className="border-b bg-white">
                   <td className="py-[12px] px-[16px]">
                     <div className="flex items-center">
                       <span className="font-medium">PO {po?.PO_number}</span>
@@ -105,7 +106,17 @@ function FinanceTable({
                     {availableBudget?.toLocaleString()}
                   </td>
                   <td className="py-[12px] px-[16px]">
-                    <span className={`${po?.PO_status === "open" ? "text-blue-400" : po?.PO_status === "partially_paid" ? "text-orange-400" : "text-green-400"} capitalize`}>{po?.PO_status?.replace("_", " ")}</span>
+                    <span
+                      className={`${
+                        po?.PO_status === "open"
+                          ? "text-blue-400"
+                          : po?.PO_status === "partially_paid"
+                          ? "text-orange-400"
+                          : "text-green-400"
+                      } capitalize`}
+                    >
+                      {po?.PO_status?.replace("_", " ")}
+                    </span>
                   </td>
                   <td className="py-[12px] px-[16px]">
                     <div
@@ -115,9 +126,6 @@ function FinanceTable({
                       <button className="text-gray-500 hover:text-gray-700">
                         <Edit size={18} onClick={() => setOpenEdit(true)} />
                       </button>
-                      {/* <button className="text-gray-500 hover:text-gray-700">
-                        <Eye size={18} />
-                      </button> */}
                       <button
                         className="text-gray-500 hover:text-gray-700"
                         onClick={() => setOpenDelete(true)}
@@ -138,7 +146,7 @@ function FinanceTable({
                       );
                       if (!m) return null;
                       return (
-                        <tr key={index}>
+                        <tr key={`${po?.id}-mp-${index}`}>
                           <td className="py-[12px] px-[16px]">
                             <span className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">
                               {m?.media_plan_details?.plan_name}
