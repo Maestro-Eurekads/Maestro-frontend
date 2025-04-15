@@ -465,6 +465,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
   };
 
+  const handleSkip = ()=>{
+    setActive((prev) => Math.min(9, prev + 1));
+  }
+
   return (
     <footer id="footer" className="w-full">
       {alert && <AlertMain alert={alert} />}
@@ -578,34 +582,47 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             <Image src={Continue} alt="Continue" />
           </button>
         ) : (
-          <button
-            className={clsx(
-              "bottom_black_next_btn whitespace-nowrap",
-              active === 10 && "opacity-50 cursor-not-allowed",
-              active < 10 && "hover:bg-blue-500"
+          <div className="flex justify-center items-center gap-3">
+            {active === 4 && (
+              <button
+                className="p-3 text-[16px] rounded-md  w-[150px] font-semibold text-[#3175FF]"
+                style={{
+                  border: "2px solid #3175FF",
+                }}
+                onClick={handleSkip}
+              >
+                Skip
+              </button>
             )}
-            onClick={handleContinue}
-            disabled={active === 10}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-          >
-            {loading ? (
-              <center>
-                <BiLoader className="animate-spin" />
-              </center>
-            ) : (
-              <>
-                <p>
-                  {active === 0
-                    ? "Start"
-                    : isHovered
-                    ? "Next Step"
-                    : "Continue"}
-                </p>
-                <Image src={Continue} alt="Continue" />
-              </>
-            )}
-          </button>
+            <button
+              className={clsx(
+                "bottom_black_next_btn whitespace-nowrap",
+                active === 10 && "opacity-50 cursor-not-allowed",
+                active < 10 && "hover:bg-blue-500"
+              )}
+              onClick={handleContinue}
+              disabled={active === 10}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+            >
+              {loading ? (
+                <center>
+                  <BiLoader className="animate-spin" />
+                </center>
+              ) : (
+                <>
+                  <p>
+                    {active === 0
+                      ? "Start"
+                      : isHovered
+                      ? "Next Step"
+                      : "Continue"}
+                  </p>
+                  <Image src={Continue} alt="Continue" />
+                </>
+              )}
+            </button>
+          </div>
         )}
       </div>
     </footer>
