@@ -518,7 +518,7 @@ const AdsetSettings = memo(function AdsetSettings({
   }
 
   const adsetAmount = adsets.length;
-  const buttonPositionClass = adsetAmount === 1 ? "top-0" : adsetAmount === 2 ? "bottom-0" : "hidden";
+  const buttonPositionClass = adsetAmount === 1 ? "top-0" : adsetAmount > 1 ? "bottom-[50px]" : "";
   const linePositionClass =
     adsetAmount === 1
       ? "top-1/2 rounded-tl-[10px] border-t-2"

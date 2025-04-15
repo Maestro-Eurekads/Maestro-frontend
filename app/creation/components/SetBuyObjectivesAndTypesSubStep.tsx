@@ -33,12 +33,12 @@ const SetBuyObjectivesAndTypesSubStep = () => {
       />
 
       <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
-        <ObjectiveCard
+        {/* <ObjectiveCard
           title="The main objective of your campaign"
           span={1}
           subtitle={obj}
           description="You have chosen this objective"
-        />
+        /> */}
 
         <BuyingObjective />
       </div>

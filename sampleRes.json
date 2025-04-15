@@ -1,0 +1,267 @@
+{
+  "client_selection": { "id": "", "value": "" },
+  "level_1": { "id": "Sam Test 1", "value": "Sam Test 1" },
+  "level_2": { "id": "Sam Test 2", "value": "Sam Test 2" },
+  "level_3": { "id": "Sam Test 3", "value": "Sam Test 3" },
+  "media_plan": "",
+  "approver": "",
+  "client_approver": "",
+  "budget_details_currency": { "id": "", "value": "", "label": "" },
+  "budget_details_fee_type": { "id": "", "value": "" },
+  "budget_details_sub_fee_type": "",
+  "budget_details_value": "",
+  "campaign_objectives": "",
+  "funnel_stages": ["Awareness", "Consideration", "New Funnel"],
+  "channel_mix": [
+    {
+      "id": 8483,
+      "funnel_stage": "Awareness",
+      "funnel_stage_timeline_start_date": null,
+      "funnel_stage_timeline_end_date": null,
+      "social_media": [
+        {
+          "id": 32273,
+          "platform_name": "Facebook",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "ad_sets": [],
+          "budget": null,
+          "kpi": null
+        },
+        {
+          "id": 32274,
+          "platform_name": "TikTok",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "ad_sets": [],
+          "budget": null,
+          "kpi": null
+        },
+        {
+          "id": 32275,
+          "platform_name": "Instagram",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "ad_sets": [],
+          "budget": null,
+          "kpi": null
+        }
+      ],
+      "display_networks": [],
+      "search_engines": [
+        {
+          "id": 32280,
+          "platform_name": "Bing",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "ad_sets": [
+            {
+              "id": 634,
+              "audience_type": "Lookalike audience",
+              "name": "",
+              "size": ""
+            }
+          ],
+          "budget": null,
+          "kpi": null
+        },
+        {
+          "id": 32278,
+          "platform_name": "Google",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "ad_sets": [],
+          "budget": null,
+          "kpi": null
+        }
+      ],
+      "streaming": [],
+      "ooh": [],
+      "broadcast": [],
+      "messaging": [],
+      "print": [],
+      "e_commerce": [],
+      "in_game": [],
+      "mobile": []
+    },
+    {
+      "id": 8482,
+      "funnel_stage": "Consideration",
+      "funnel_stage_timeline_start_date": null,
+      "funnel_stage_timeline_end_date": null,
+      "social_media": [
+        {
+          "id": 32276,
+          "platform_name": "LinkedIn",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "ad_sets": [],
+          "budget": null,
+          "kpi": null
+        },
+        {
+          "id": 32277,
+          "platform_name": "Instagram",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "ad_sets": [],
+          "budget": null,
+          "kpi": null
+        }
+      ],
+      "display_networks": [],
+      "search_engines": [
+        {
+          "id": 32279,
+          "platform_name": "Yahoo",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "ad_sets": [],
+          "budget": null,
+          "kpi": null
+        }
+      ],
+      "streaming": [
+        {
+          "id": 32281,
+          "platform_name": "YouTube",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "ad_sets": [],
+          "budget": null,
+          "kpi": null
+        }
+      ],
+      "ooh": [],
+      "broadcast": [],
+      "messaging": [],
+      "print": [],
+      "e_commerce": [],
+      "in_game": [],
+      "mobile": []
+    },
+    {
+      "id": 8481,
+      "funnel_stage": "New Funnel",
+      "funnel_stage_timeline_start_date": null,
+      "funnel_stage_timeline_end_date": null,
+      "social_media": [],
+      "display_networks": [],
+      "search_engines": [],
+      "streaming": [],
+      "ooh": [],
+      "broadcast": [],
+      "messaging": [],
+      "print": [],
+      "e_commerce": [],
+      "in_game": [],
+      "mobile": []
+    }
+  ],
+  "campaign_timeline_start_date": "",
+  "campaign_timeline_end_date": "",
+  "campaign_budget": {
+    "id": 1283,
+    "budget_type": null,
+    "currency": null,
+    "amount": null
+  },
+  "goal_level": "",
+  "validatedStages": {},
+  "progress_percent": 34,
+  "custom_funnels": [
+    {
+      "icon": {
+        "src": "/_next/static/media/mdi_megaphone.ca3dce9e.svg",
+        "width": 24,
+        "height": 24,
+        "blurWidth": 0,
+        "blurHeight": 0,
+        "blurDataURL": null
+      },
+      "name": "Awareness",
+      "color": "bg-blue-500",
+      "activeIcon": {
+        "src": "/_next/static/media/mdi_megaphonewhite.cc75377b.svg",
+        "width": 24,
+        "height": 24,
+        "blurWidth": 0,
+        "blurHeight": 0,
+        "blurDataURL": null
+      }
+    },
+    {
+      "icon": {
+        "src": "/_next/static/media/tabler_zoom-filled.e1edfbe6.svg",
+        "width": 25,
+        "height": 25,
+        "blurWidth": 0,
+        "blurHeight": 0,
+        "blurDataURL": null
+      },
+      "name": "Consideration",
+      "color": "bg-green-500",
+      "activeIcon": {
+        "src": "/_next/static/media/tabler_zoom-filledwhite.828593c3.svg",
+        "width": 25,
+        "height": 25,
+        "blurWidth": 0,
+        "blurHeight": 0,
+        "blurDataURL": null
+      }
+    },
+    {
+      "icon": {
+        "src": "/_next/static/media/addPlus.b5ef835b.svg",
+        "width": 24,
+        "height": 25,
+        "blurWidth": 0,
+        "blurHeight": 0,
+        "blurDataURL": null
+      },
+      "name": "Loyalty",
+      "color": "bg-red-500 border border-red-500",
+      "activeIcon": {
+        "src": "/_next/static/media/addPlusWhite.37dfd97b.svg",
+        "width": 24,
+        "height": 25,
+        "blurWidth": 0,
+        "blurHeight": 0,
+        "blurDataURL": null
+      }
+    },
+    {
+      "icon": "",
+      "name": "New Funnel",
+      "color": "bg-orange-500",
+      "activeIcon": ""
+    }
+  ]
+}

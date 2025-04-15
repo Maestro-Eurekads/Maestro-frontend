@@ -147,6 +147,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         campaign_budget: data?.campaign_budget || prev.campaign_budget,
         goal_level: data?.goal_level || prev.goal_level,
         progress_percent: data?.progress_percent,
+        custom_funnels: data?.custom_funnels
       }));
     } catch (error) {
       console.error("Error fetching active campaign:", error);
