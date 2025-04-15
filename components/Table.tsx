@@ -149,10 +149,6 @@ const Table = () => {
               <NoRecordFound colSpan={9}>No Client campaigns!</NoRecordFound>
             ) : (
               currentItems.map((data) => {
-<<<<<<< HEAD
-
-=======
->>>>>>> cb4784df7d010e1ca11bd188b1f6a6d35c980237
                 let POs = [];
                 clientPOs?.forEach((po) => {
                   const matchedPlan = po?.assigned_media_plans?.find(

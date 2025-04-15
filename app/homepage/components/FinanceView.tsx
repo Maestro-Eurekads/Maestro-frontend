@@ -54,27 +54,6 @@ function FinanceView({ setOpenModal }) {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
           },
         }
-<<<<<<< HEAD
-      )
-      .then((res) => {
-        setOpenDelete(false);
-        setSelectedRow(null);
-        setFetchingPO(true);
-        fetchClientPOS(selectedRow?.client?.id)
-          .then((res) => {
-            localStorage.setItem("selectedClient", selectedRow?.client?.id)
-            setClientPOs(res?.data?.data || []);
-          })
-          .finally(() => {
-            setFetchingPO(false);
-          });
-      })
-      .catch((err) => {
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-=======
       );
       setOpenDelete(false);
       setSelectedRow(null);
@@ -102,7 +81,6 @@ function FinanceView({ setOpenModal }) {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
->>>>>>> cb4784df7d010e1ca11bd188b1f6a6d35c980237
   };
 
   return (
@@ -131,11 +109,10 @@ function FinanceView({ setOpenModal }) {
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-4 mt-4">
           <button
-            className={`p-2 rounded-md ${
-              currentPage === 1
+            className={`p-2 rounded-md ${currentPage === 1
                 ? "bg-gray-200 cursor-not-allowed"
                 : "bg-blue-500 text-white hover:bg-blue-600"
-            }`}
+              }`}
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
             aria-label="Previous page"
@@ -146,11 +123,10 @@ function FinanceView({ setOpenModal }) {
             Page {currentPage} of {totalPages}
           </span>
           <button
-            className={`p-2 rounded-md ${
-              currentPage === totalPages
+            className={`p-2 rounded-md ${currentPage === totalPages
                 ? "bg-gray-200 cursor-not-allowed"
                 : "bg-blue-500 text-white hover:bg-blue-600"
-            }`}
+              }`}
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
             aria-label="Next page"
