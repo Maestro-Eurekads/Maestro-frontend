@@ -29,6 +29,7 @@ type PlatformType = {
     audience_type: string
     name: string
     size: string
+    format?: FormatType[] // Add format array to adsets
   }>
   budget: string | null
   kpi: string | null
@@ -173,6 +174,7 @@ const MediaSelectionGrid = ({
   onFormatSelect,
   onQuantityChange,
   onOpenModal,
+  adSetIndex,
 }: {
   mediaOptions: MediaOptionType[]
   platformName: string
@@ -180,9 +182,10 @@ const MediaSelectionGrid = ({
   stageName: string
   isValidated: boolean
   quantities: { [key: string]: number }
-  onFormatSelect: (index: number) => void
+  onFormatSelect: (index: number, adSetIndex?: number) => void
   onQuantityChange: (formatName: string, change: number) => void
   onOpenModal: (platform: string, channel: string, format: string) => void
+  adSetIndex?: number
 }) => {
   const { campaignFormData } = useCampaigns()
   const channelKey = channelName.toLowerCase().replace(/\s+/g, "_")
@@ -191,11 +194,17 @@ const MediaSelectionGrid = ({
 
   const platform = stage?.[channelKey]?.find((pl) => pl?.platform_name === platformName)
 
+  // If adSetIndex is present, find that specific ad set
+  const adSet = adSetIndex !== undefined ? platform?.ad_sets?.[adSetIndex] : null
+
   return (
     <div className="w-full overflow-x-auto">
       <div className="flex gap-4" style={{ minWidth: "max-content" }}>
         {mediaOptions.map((option, index) => {
-          const isSelected = platform?.format?.some((f) => f.format_type === option.name)
+          // Check selection either from adSet or platform level
+          const isSelected = adSet
+            ? adSet.format?.some((f) => f.format_type === option.name)
+            : platform?.format?.some((f) => f.format_type === option.name)
 
           if (isValidated && !isSelected) return null
 
@@ -206,7 +215,7 @@ const MediaSelectionGrid = ({
               isSelected={!!isSelected}
               isValidated={isValidated}
               quantity={quantities[option.name] || 1}
-              onSelect={() => onFormatSelect(index)}
+              onSelect={() => onFormatSelect(index, adSetIndex)}
               onQuantityChange={(change) => onQuantityChange(option.name, change)}
               onOpenModal={() => onOpenModal(platformName, channelName, option.name)}
               platformName={platformName}
@@ -239,7 +248,9 @@ const PlatformItem = ({
   view: "channel" | "adset"
 }) => {
   const [isExpanded, setIsExpanded] = useState(false)
-  const [expandedAdsets, setExpandedAdsets] = useState<{ [key: string]: boolean }>({})
+  const [expandedAdsets, setExpandedAdsets] = useState<{
+    [key: string]: boolean
+  }>({})
   const { campaignFormData, setCampaignFormData } = useCampaigns()
 
   const hasSelectedFormats = platform.format?.length > 0
@@ -257,11 +268,12 @@ const PlatformItem = ({
     }))
   }
 
-  const handleFormatSelection = (index: number) => {
+  const handleFormatSelection = (index: number, adsetIndex?: number) => {
     if (isValidated) return
 
     const formatName = DEFAULT_MEDIA_OPTIONS[index].name
     const copy = [...campaignFormData.channel_mix]
+
     const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName)
     if (stageIndex === -1) return
 
@@ -271,17 +283,40 @@ const PlatformItem = ({
     if (platformIndex === -1) return
 
     const platformCopy = channel[platformIndex]
-    if (!platformCopy.format) platformCopy.format = []
 
-    const formatIndex = platformCopy.format.findIndex((f) => f.format_type === formatName)
-    if (formatIndex !== -1) {
-      platformCopy.format.splice(formatIndex, 1)
+    // Handle Ad Set if adsetIndex is provided
+    if (typeof adsetIndex === "number" && platformCopy.ad_sets?.length > 0) {
+      const adset = platformCopy.ad_sets[adsetIndex]
+      if (!adset) return
+
+      if (!adset.format) adset.format = []
+
+      const adsetFormatIndex = adset.format.findIndex((f) => f.format_type === formatName)
+
+      if (adsetFormatIndex !== -1) {
+        adset.format.splice(adsetFormatIndex, 1)
+      } else {
+        adset.format.push({
+          format_type: formatName,
+          num_of_visuals: "1",
+          previews: null,
+        })
+      }
     } else {
-      platformCopy.format.push({
-        format_type: formatName,
-        num_of_visuals: "1",
-        previews: null,
-      })
+      // Handle top-level platform format
+      if (!platformCopy.format) platformCopy.format = []
+
+      const formatIndex = platformCopy.format.findIndex((f) => f.format_type === formatName)
+
+      if (formatIndex !== -1) {
+        platformCopy.format.splice(formatIndex, 1)
+      } else {
+        platformCopy.format.push({
+          format_type: formatName,
+          num_of_visuals: "1",
+          previews: null,
+        })
+      }
     }
 
     setCampaignFormData((prev) => ({
@@ -387,6 +422,7 @@ const PlatformItem = ({
                         onQuantityChange(platform.platform_name, formatName, change)
                       }
                       onOpenModal={onOpenModal}
+                      adSetIndex={index}
                     />
                   </div>
                 )}
@@ -481,7 +517,7 @@ export const Platforms = ({
     setIsValidateEnabled(hasMediaOptionsSelected)
   }, [campaignFormData, stageName])
 
-  // Initialize quantities from campaign data
+  // Initialize quantities from campaign data - FIX: Added a check to prevent infinite loop
   useEffect(() => {
     const stage = campaignFormData?.channel_mix?.find((chan) => chan.funnel_stage === stageName)
 
@@ -496,15 +532,28 @@ export const Platforms = ({
               initialQuantities[platform.platform_name][f.format_type] = Number.parseInt(f.num_of_visuals || "1")
             })
           }
+
+          // Also check adsets for formats
+          platform.ad_sets?.forEach((adset, adsetIndex) => {
+            if (adset.format && adset.format.length > 0) {
+              const adsetKey = `${platform.platform_name}_adset_${adsetIndex}`
+              initialQuantities[adsetKey] = {}
+              adset.format.forEach((f) => {
+                initialQuantities[adsetKey][f.format_type] = Number.parseInt(f.num_of_visuals || "1")
+              })
+            }
+          })
         })
       })
 
-      setQuantities(initialQuantities)
-      setLocalStorageItem(`quantities_${stageName}`, initialQuantities)
+      if (Object.keys(initialQuantities).length > 0) {
+        setQuantities(initialQuantities)
+        setLocalStorageItem(`quantities_${stageName}`, initialQuantities)
+      }
     }
-  }, [campaignFormData, stageName, quantities])
+  }, [campaignFormData, stageName]) // Removed quantities from dependency array to prevent infinite loop
 
-  const handleQuantityChange = (platformName: string, formatName: string, change: number) => {
+  const handleQuantityChange = (platformName: string, formatName: string, change: number, adsetIndex?: number) => {
     // Update quantities state
     const newQuantities = {
       ...quantities,
@@ -522,17 +571,43 @@ export const Platforms = ({
     const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName)
     if (stageIndex === -1) return
 
-    // Find the platform in any channel type
-    for (const channelType of CHANNEL_TYPES) {
-      const platforms = copy[stageIndex][channelType.key]
-      if (!platforms) continue
+    // Check if this is an adset quantity
+    const isAdsetQuantity = platformName.includes("_adset_")
 
-      const platform = platforms.find((p) => p.platform_name === platformName)
-      if (platform && platform.format) {
-        const format = platform.format.find((f) => f.format_type === formatName)
-        if (format) {
-          format.num_of_visuals = newQuantities[platformName][formatName].toString()
-          break
+    if (isAdsetQuantity) {
+      const [actualPlatformName, _, adsetIndexStr] = platformName.split("_adset_")
+      const adsetIndex = Number.parseInt(adsetIndexStr)
+
+      // Find the platform in any channel type
+      for (const channelType of CHANNEL_TYPES) {
+        const platforms = copy[stageIndex][channelType.key]
+        if (!platforms) continue
+
+        const platform = platforms.find((p) => p.platform_name === actualPlatformName)
+        if (platform && platform.ad_sets && platform.ad_sets[adsetIndex]) {
+          const adset = platform.ad_sets[adsetIndex]
+          if (!adset.format) continue
+
+          const format = adset.format.find((f) => f.format_type === formatName)
+          if (format) {
+            format.num_of_visuals = newQuantities[platformName][formatName].toString()
+            break
+          }
+        }
+      }
+    } else {
+      // Find the platform in any channel type
+      for (const channelType of CHANNEL_TYPES) {
+        const platforms = copy[stageIndex][channelType.key]
+        if (!platforms) continue
+
+        const platform = platforms.find((p) => p.platform_name === platformName)
+        if (platform && platform.format) {
+          const format = platform.format.find((f) => f.format_type === formatName)
+          if (format) {
+            format.num_of_visuals = newQuantities[platformName][formatName].toString()
+            break
+          }
         }
       }
     }
@@ -637,6 +712,7 @@ export const Platforms = ({
             platform={modalContext.platform}
             channel={modalContext.channel}
             format={modalContext.format}
+            quantities={quantities}
           />
         </div>
       )}
@@ -745,7 +821,9 @@ export const FormatSelection = () => {
                 onClick={() => toggleTab(stage.name)}
               >
                 <div className="flex items-center gap-2">
-                  {funnelStage?.icon && <Image src={funnelStage.icon || "/placeholder.svg"} alt={stage.name} />}
+                  {funnelStage?.icon && (
+                    <Image src={funnelStage.icon || "/placeholder.svg"} alt={stage.name} width={24} height={24} />
+                  )}
                   <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#06371a]">
                     {stage.name}
                   </p>
