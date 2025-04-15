@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import info from "../../public/info-circle.svg";
-import downoffline from "../../public/arrow-down-outline.svg";
-import upfull from "../../public/arrow-up-full.svg";
-import downfull from "../../public/arrow-down-full.svg";
-import upoffline from "../../public/arrow-up-offline.svg";
+import info from "../../../public/info-circle.svg";
+import downoffline from "../../../public/arrow-down-outline.svg";
+import upfull from "../../../public/arrow-up-full.svg";
+import downfull from "../../../public/arrow-down-full.svg";
+import upoffline from "../../../public/arrow-up-offline.svg";
 
-const BrandAwareness = ({ campaign }) => {
+const BusinessBrandAwareness = ({ campaign }) => {
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [animationState, setAnimationState] = useState("");
 
@@ -208,4 +208,5 @@ const BrandAwareness = ({ campaign }) => {
 	);
 };
 
-export default BrandAwareness;
+export default BusinessBrandAwareness;
+

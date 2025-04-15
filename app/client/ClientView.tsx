@@ -21,7 +21,7 @@ import MessageContainer from 'components/Drawer/MessageContainer';
 import CommentsDrawer from 'components/Drawer/CommentsDrawer';
 import { useAppDispatch, useAppSelector } from 'store/useStore';
 import { useCampaigns } from 'app/utils/CampaignsContext';
-import { getComment } from 'features/Comment/commentSlice';
+import { getCampaignById, getComment, getGeneralComment } from 'features/Comment/commentSlice';
 import Image from "next/image";
 import tickcircles from "../../public/solid_circle-check.svg";
 import { useSession } from 'next-auth/react';
@@ -116,33 +116,41 @@ interface Reply {
 	message?: string;
 }
 const ClientView = () => {
-	const { isDrawerOpen, setIsDrawerOpen, isCreateOpen, setClose, modalOpen, setModalOpen } = useComments();
+	const { isDrawerOpen, setIsDrawerOpen, isCreateOpen, setClose, modalOpen, setModalOpen, selected } = useComments();
 	const [isOpen, setIsOpen] = useState(false);
 	const [generalComment, setGeneralComment] = useState(false);
 	const [active, setActive] = useState("Timeline view");
 	const { clientCampaignData, campaignData } = useCampaigns();
-	const { data } = useAppSelector((state) => state.comment);
+	const { data, campaignDetails, isLoadingCampaign } = useAppSelector((state) => state.comment);
 	const comments: Comment[] = data
 		?.filter((comment: Comment) => comment?.addcomment_as !== "Internal")
 		.sort((a: Comment, b: Comment) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 	const allApproved = (comments?.length || 0) > 0 && comments.every((comment: Comment) => comment?.approved === true);
 	const dispatch = useAppDispatch();
-	const commentId = campaignData?.documentId
+	// const commentId = campaignData?.documentId
 	const { campaigns, loading, fetchCampaignsByClientId } = useClientCampaign();
 	const { data: session }: any = useSession();
 	const clientId = session?.user?.id;
 	const client_commentId = session?.user?.id;
-	// const campaign = campaigns[0];
+	const campaign = !campaignDetails ? [] : campaignDetails[0];
+	const commentId = campaign?.documentId
+	console.log("commentId-commentId-commentId", client_commentId)
 
-	// console.log("campaigns-campaigns", comments)
 	useEffect(() => {
 		if (clientId) {
 			fetchCampaignsByClientId(clientId);
 		}
 	}, [clientId]);
 
+	useEffect(() => {
+		if (selected) {
+			// dispatch(getCampaignById(clientId, selected));
+			dispatch(getCampaignById({ clientId: clientId, campaignId: selected }));
+		}
+	}, [selected]);
 
-	// console.log("campaigns-campaigns", campaign?.client?.documentId);
+
+
 
 	const handleDrawerOpen = () => {
 		setIsDrawerOpen(true);
@@ -150,20 +158,25 @@ const ClientView = () => {
 		setClose(true)
 	}
 
+	const handleOpenComment = () => {
+		setGeneralComment(!generalComment)
+		dispatch(getGeneralComment(commentId));
+	}
+
 	return (
 		<>
 			<div id="page-wrapper-client">
-				<Header setIsOpen={setIsOpen} />
+				<Header setIsOpen={setIsOpen} campaigns={campaigns} />
 				<ClientCommentsDrawer isOpen={isDrawerOpen} onClose={setIsDrawerOpen} />
 				<main className="!px-0 mt-[20px] bg-[#F9FAFB]">
 					<div className={`px-[50px]  ${isDrawerOpen ? 'md:px-[50px]' : 'xl:px-[150px]'}`}>
 
 						<div className='flex	flex-col gap-[24px]'>
-							<ApproverContainer />
+							<ApproverContainer campaign={campaign} />
 
-							<General />
+							<General campaign={campaign} />
 
-							<BrandAwareness />
+							<BrandAwareness campaign={campaign} />
 							<ClientMessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
 							<div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
 								<ClientToggleSwitch active={active} setActive={setActive} />
@@ -177,7 +190,7 @@ const ClientView = () => {
 									<button
 										className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
 										style={{ border: "1px solid #3175FF" }}
-										onClick={() => setGeneralComment(!generalComment)}>
+										onClick={handleOpenComment}>
 										General Comment
 									</button>
 									<button
@@ -199,7 +212,7 @@ const ClientView = () => {
 					</div>
 
 					<div className='mt-[50px]'>
-						{loading ? <TableLoader isLoading={loading} /> : ""}
+						{isLoadingCampaign ? <TableLoader isLoading={isLoadingCampaign} /> : ""}
 					</div>
 					<div >
 						{active === "Timeline view" && <TimelineView />}

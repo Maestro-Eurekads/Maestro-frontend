@@ -19,7 +19,7 @@ import { signOut } from "next-auth/react";
 import ClientSelection from "./ClientSelection";
 import { CustomSelect } from "app/homepage/components/CustomReactSelect";
 import { useActive } from "app/utils/ActiveContext";
-// import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
+import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 const Header = ({ setIsOpen }) => {
   const {
@@ -35,7 +35,7 @@ const Header = ({ setIsOpen }) => {
     setClientPOs,
     setFetchingPO,
   } = useCampaigns();
-  const {setActive, setSubStep} = useActive()
+  const { setActive, setSubStep } = useActive()
   const [selected, setSelected] = useState("");
   const { fetchClientCampaign, fetchClientPOS } = useCampaignHook(); // Removed unused 'fetchAllClients'
   const dispatch = useAppDispatch();
@@ -63,8 +63,7 @@ const Header = ({ setIsOpen }) => {
   const selectedId =
     typeof window !== "undefined"
       ? localStorage.getItem("selectedClient") || ""
-      : ""; // Ensure a default value
-  // console.log("🚀 ~ useEffect ~ selectedId:", selectedId);
+      : ""; // Ensure a default value 
 
   useEffect(() => {
     if (!clients?.data || clients.data.length === 0) {

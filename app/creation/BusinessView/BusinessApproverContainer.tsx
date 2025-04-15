@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import React, { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "store/useStore";
 
-const ApproverContainer = ({ campaign }) => {
+const BusinessApproverContainer = ({ campaign }) => {
 	const { data: session }: any = useSession();
 	const dispatch = useAppDispatch();
 	const id = session?.user?.id || null;
@@ -69,4 +69,5 @@ const ApproverContainer = ({ campaign }) => {
 	);
 };
 
-export default ApproverContainer;
+export default BusinessApproverContainer;
+

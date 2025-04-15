@@ -45,7 +45,6 @@ function FinanceView({ setOpenModal }) {
           });
       })
       .catch((err) => {
-        console.log(err);
       })
       .finally(() => {
         setLoading(false);

@@ -1,8 +1,10 @@
+
+
 import React from "react";
 import Image from "next/image";
-import info from "../../public/info-circle.svg";
+import info from "../../../public/info-circle.svg";
 
-const General = ({ campaign }) => {
+const BusinessGeneral = ({ campaign }) => {
 	const budget = campaign?.campaign_budget?.amount || "0";
 	const currency = campaign?.budget_details?.currency || "USD";
 
@@ -75,5 +77,5 @@ const General = ({ campaign }) => {
 	);
 };
 
-export default General;
+export default BusinessGeneral;
 

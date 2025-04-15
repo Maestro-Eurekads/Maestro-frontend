@@ -50,8 +50,7 @@ const TableView = () => {
                         .replace(/ /g, "_")
                         .replace(/\//g, "")
                         .replace(/-/g, "_")
-                        .toLowerCase(); // Convert header to key format
-                      // console.log("🚀 ~ rowData ~ key:", key);
+                        .toLowerCase(); // Convert header to key format 
                       acc[key] =
                         platform?.["kpi"]?.[key] ||
                         (header.showInput ? "" : "-"); // Set default values
@@ -59,7 +58,6 @@ const TableView = () => {
                     },
                     {}
                   );
-                // console.log(`rowData-${platformName}`, rowData);
                 platforms[stageName].push({
                   icon: getPlatformIcon(platformName),
                   name: platformName,
@@ -99,7 +97,6 @@ const TableView = () => {
     value,
     adSetIndex
   ) => {
-    // console.log("ad set index", adSetIndex);
     setCampaignFormData((prevData) => {
       const updatedData = { ...prevData };
 
@@ -181,7 +178,6 @@ const TableView = () => {
                             {tableBody[
                               campaignFormData?.campaign_objective
                             ]?.map((body, bodyIndex) => {
-                              console.log({ body });
                               return (
                                 <td
                                   key={bodyIndex}
