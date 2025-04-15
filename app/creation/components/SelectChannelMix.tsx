@@ -294,6 +294,7 @@ const SelectChannelMix = () => {
           "id",
           "isValidated",
           "formatValidated",
+          "validatedStages"
         ]),
       });
     }
@@ -336,8 +337,8 @@ const SelectChannelMix = () => {
         "id",
         "isValidated",
         "formatValidated",
+        "validatedStages"
       ]),
-      validatedStages: { ...validatedStages, [stageName]: true },
     }).then(() => {
       if (isStageValid(stageName)) {
         const updatedValidatedStages = {

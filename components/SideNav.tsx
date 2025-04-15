@@ -70,14 +70,22 @@ const SideNav: React.FC = () => {
       title: "Select channel mix",
       img: <Image src={channel} alt="channel" />,
     },
-
     {
       vl: "vl",
       vl_done: "vl_done",
       vl_active: "vl_active",
       state_text: "SideBar_Menu_state",
       sidecircle: "SideBar_Menu_active",
-      title: "Configure ad sets and budget",
+      title: "Configure ad sets and audiences",
+      img: <Image src={click} alt="click" />,
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Allocate Campaign Budget",
       img: <Image src={click} alt="click" />,
     },
     {

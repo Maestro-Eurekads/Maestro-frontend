@@ -265,7 +265,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    if (active === 4) {
+    if (active === 5) {
       const isValidFormat = validateFormatSelection();
       if (!isValidFormat) {
         setTriggerFormatError(true);
@@ -277,7 +277,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    if (active === 5) {
+    if (active === 6) {
       const isValidBuyObjective = validateBuyObjectiveSelection();
       if (!isValidBuyObjective) {
         setTriggerBuyObjectiveError(true);
@@ -294,7 +294,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    if (active === 7) {
+    if (active === 8) {
       if (
         (!selectedDates?.to?.day || !selectedDates?.from?.day) &&
         subStep < 1
@@ -320,7 +320,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
 
     const updateCampaignData = async (data) => {
-      const calcPercent = Math.ceil((active / 9) * 100);
+      const calcPercent = Math.ceil((active / 10) * 100);
       try {
         await updateCampaign({
           ...data,
@@ -359,6 +359,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "id",
           "isValidated",
           "formatValidated",
+          "validatedStages"
         ]),
         custom_funnels: campaignFormData?.custom_funnels,
         funnel_type: campaignFormData?.funnel_type,
@@ -372,6 +373,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
           "isValidated",
+          "validatedStages"
         ]),
       });
     };
@@ -384,6 +386,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "id",
           "isValidated",
           "formatValidated",
+          "validatedStages"
         ]),
       });
     };
@@ -435,26 +438,22 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       } else if (active === 2) {
         await handleStepThree();
       } else if (active === 3) {
-        await handleStepSeven();
+        await handleStepThree();
       } else if (active === 4) {
-        await handleStepFive();
+        await handleStepSeven();
       } else if (active === 6) {
         await handleStepSeven();
       } else if (active > 3 && subStep < 1) {
         await handleStepFour();
       }
 
-      if (active === 6) {
+      if (active === 4 || active === 8) {
         if (subStep < 1) {
           setSubStep((prev) => prev + 1);
         } else {
           setActive((prev) => prev + 1);
           setSubStep(0);
         }
-      } else if (active === 3) {
-        subStep < 2
-          ? setSubStep((prev) => prev + 1)
-          : setActive((prev) => prev + 1);
       } else {
         setActive((prev) => Math.min(9, prev + 1));
       }
@@ -465,9 +464,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
   };
 
-  const handleSkip = ()=>{
+  const handleSkip = () => {
     setActive((prev) => Math.min(9, prev + 1));
-  }
+  };
 
   return (
     <footer id="footer" className="w-full">
@@ -583,7 +582,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           </button>
         ) : (
           <div className="flex justify-center items-center gap-3">
-            {active === 4 && (
+            {active === 5 && (
               <button
                 className="p-3 text-[16px] rounded-md  w-[150px] font-semibold text-[#3175FF]"
                 style={{
