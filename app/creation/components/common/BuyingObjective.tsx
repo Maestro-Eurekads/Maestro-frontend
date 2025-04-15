@@ -178,7 +178,7 @@ const BuyingObjective = () => {
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2">
             <div className="flex rounded-full bg-blue-500 justify-center items-center w-6 h-6">
-              <span className="text-white font-bold">2</span>
+              <span className="text-white font-bold">1</span>
             </div>
             <h1 className="text-blue-500 font-semibold text-base">
               Your buying objectives and types
@@ -204,7 +204,7 @@ const BuyingObjective = () => {
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
           <div className="flex rounded-full bg-blue-500 justify-center items-center w-6 h-6">
-            <span className="text-white font-bold">2</span>
+            <span className="text-white font-bold">1</span>
           </div>
           <h1 className="text-blue-500 font-semibold text-base">
             Your buying objectives and types

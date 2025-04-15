@@ -1,7 +1,5 @@
 import { BsFillMegaphoneFill } from "react-icons/bs";
 import { TbCreditCardFilled, TbZoomFilled } from "react-icons/tb";
-import placeholder from "../public/social/placeholder.svg"; // Add this import
-
 import adroll from "../public/social/adroll.svg";
 import adsterra from "../public/social/adsterra.png";
 import alibaba from "../public/social/alibaba.png";
@@ -27,6 +25,7 @@ import mercado from "../public/social/mercado.png";
 import mgid from "../public/social/mgid.png";
 import microsoft from "../public/social/microsoft.png";
 import mozilla from "../public/social/mozilla.png";
+import podcast from "../public/social/podcast.png";
 import nativo from "../public/social/nativo.png";
 import newegg from "../public/social/newegg.png";
 import openx from "../public/social/openx.png";
@@ -61,9 +60,34 @@ import wechat from "../public/social/wechat.svg";
 import whatsapp from "../public/social/whatsapp.png";
 import Xandr from "../public/social/Xandr.png";
 import zemanta from "../public/social/zemanta.png";
-
-
-
+import pinterest from "../public/social/pinterest.png";
+import Tumblr from "../public/social/Tumblr.svg";
+import naver from "../public/social/naver.png";
+import seznam from "../public/social/seznam.png";
+import yandex from "../public/social/yandex.png";
+import vevo from "../public/social/vevo.png";
+import inmobil from "../public/social/inmobil.png";
+import admob from "../public/social/admob.png";
+import ironsource from "../public/social/ironsource.png";
+import vungle from "../public/social/vungle.png";
+import mintegral from "../public/social/mintegral.jpeg";
+import mopub from "../public/social/mopub.png";
+import streetfurniture from "../public/social/streetfurniture.png";
+import transit from "../public/social/transit.png";
+import coupons from "../public/social/coupons.jpeg";
+import billboard from "../public/social/billboard.png";
+import elevator from "../public/social/elevator.png";
+import sponsor from "../public/social/sponsor.jpeg";
+import news from "../public/social/news.png";
+import magazine from "../public/social/magazine.jpeg";
+import circular from "../public/social/circular.png";
+import door from "../public/social/door.png";
+import directmail from "../public/social/directmail.jpeg";
+import brochure from "../public/social/brochure.jpeg";
+import cinema from "../public/social/cinema.png";
+import television from "../public/social/television.png";
+import radio from "../public/social/radio.png";
+import filmtv from "../public/social/filmtv.png";
 import facebook from "../public/social/facebook.svg";
 import youtube from "../public/social/youtube.svg";
 import thetradedesk from "../public/social/thetradedesk.svg";
@@ -87,128 +111,145 @@ import State12 from "../public/State12.svg";
 import roundget from "../public/ic_round-get-app.svg";
 import mingcute_basket from "../public/mingcute_basket-fill.svg";
 import mdi_leads from "../public/mdi_leads.svg";
+import apple from "../public/social/apple.jpeg";
 import { StaticImageData } from "next/image";
-import Image from "next/image";
-
-
-// export const platformIcons: Record<string, StaticImageData> = {
-//   Facebook: facebook,
-//   Instagram: ig,
-//   YouTube: youtube,
-//   Youtube: youtube,
-//   TheTradeDesk: TheTradeDesk,
-//   Quantcast: Quantcast,
-//   Google: google,
-//   "Twitter/X": x,
-//   LinkedIn: linkedin,
-//   Linkedin: linkedin,
-//   TikTok: tictok,
-//   "Display & Video": Display,
-//   Yahoo: yahoo,
-//   Bing: bing,
-//   "Apple Search": google,
-//   "The Trade Desk": TheTradeDesk,
-//   QuantCast: Quantcast,
-// };
 
 export const platformIcons: Record<string, StaticImageData> = {
-	Facebook: facebook,
-	Instagram: ig,
-	YouTube: youtube,
-	Youtube: youtube, // Case-insensitive matching
-	TheTradeDesk: TheTradeDesk,
-	Quantcast: Quantcast,
-	Google: google,
-	"Twitter/X": x,
-	LinkedIn: linkedin,
-	Linkedin: linkedin, // Case-insensitive matching
-	TikTok: tictok,
-	"Display & Video": Display,
-	Yahoo: yahoo,
-	Bing: bing,
-	"Apple Search": google, // Use Google icon as fallback (aligned with search engines)
-	"The Trade Desk": TheTradeDesk, // Consistency
-	QuantCast: Quantcast, // Case variation
-	Adroll: adroll,
-	Adsterra: adsterra,
-	Alibaba: alibaba,
-	Amazon: amazon,
-	BuySell: buysell,
-	Choozle: choozle,
-	Criteo: criteo,
-	Dailymotion: daily,
-	eBay: ebay,
-	Epom: epom,
-	Etsy: etsy,
-	Flipkart: flipkart,
-	Hulu: hulu,
-	IndexExchange: indexchange,
-	JD: jd,
-	Kakao: Kakao_logo,
-	Lazada: lazada,
-	Line: line,
-	LiveIntent: liveintent,
-	Magnite: magnite,
-	MediaMath: mediamath,
-	MercadoLibre: mercado,
-	MGID: mgid,
-	Microsoft: microsoft,
-	Mozilla: mozilla,
-	Nativo: nativo,
-	Newegg: newegg,
-	OpenX: openx,
-	Outbrain: outbrain,
-	Pandora: pandora,
-	Plista: plista,
-	PopAds: popads,
-	Pubmatic: pubmatic,
-	Quora: quora,
-	Rakuten: rakuten,
-	Reddit: reddit,
-	Revcontent: revcontent,
-	RTBHouse: rtbhouse,
-	Sharethrough: sharethrough,
-	Shopee: shopee,
-	Weibo: sinaweibo,
-	SmartyAds: smartyads,
-	Smaato: smatoo,
-	Snapchat: snapchat,
-	SoundCloud: soundcloud,
-	Spotify: spotify,
-	Stackadapt: stackadapt,
-	Taboola: taboola,
-	Teads: teads,
-	Telegram: telegram,
-	TripleLift: triplelift,
-	Twitch: twitch,
-	Verizon: verizon,
-	Vkontakte: vkontakte,
-	Walmart: walmart,
-	WeChat: wechat,
-	WhatsApp: whatsapp,
-	Xandr: Xandr,
-	Zemanta: zemanta,
-	Pinterest: google, // Use Google as fallback until proper icon is provided
-	Tumblr: google, // Use Google as fallback until proper icon is provided
-	DV360: Display, // Use Display icon (logical fit for display advertising)
-  };
+  Facebook: facebook,
+  Instagram: ig,
+  YouTube: youtube,
+  Youtube: youtube,
+  TheTradeDesk: TheTradeDesk,
+  Quantcast: Quantcast,
+  Google: google,
+  "Twitter/X": x,
+  LinkedIn: linkedin,
+  Linkedin: linkedin,
+  TikTok: tictok,
+  "Display & Video": Display,
+  Yahoo: yahoo,
+  Bing: bing,
+  "Apple Search": apple,
+  "The Trade Desk": TheTradeDesk,
+  Adroll: adroll,
+  Adsterra: adsterra,
+  Alibaba: alibaba,
+  Amazon: amazon,
+  BuySell: buysell,
+  Choozle: choozle,
+  Criteo: criteo,
+  Dailymotion: daily,
+  eBay: ebay,
+  Epom: epom,
+  Etsy: etsy,
+  Flipkart: flipkart,
+  Hulu: hulu,
+  IndexExchange: indexchange,
+  JD: jd,
+  Kakao: Kakao_logo,
+  Lazada: lazada,
+  Line: line,
+  LiveIntent: liveintent,
+  Magnite: magnite,
+  MediaMath: mediamath,
+  MercadoLibre: mercado,
+  MGID: mgid,
+  Microsoft: microsoft,
+  Mozilla: mozilla,
+  Nativo: nativo,
+  Newegg: newegg,
+  OpenX: openx,
+  Outbrain: outbrain,
+  Pandora: pandora,
+  Plista: plista,
+  PopAds: popads,
+  Pubmatic: pubmatic,
+  Quora: quora,
+  Rakuten: rakuten,
+  Reddit: reddit,
+  Revcontent: revcontent,
+  RTBHouse: rtbhouse,
+  Sharethrough: sharethrough,
+  Shopee: shopee,
+  Weibo: sinaweibo,
+  SmartyAds: smartyads,
+  Smaato: smatoo,
+  Snapchat: snapchat,
+  SoundCloud: soundcloud,
+  Spotify: spotify,
+  Stackadapt: stackadapt,
+  Taboola: taboola,
+  Teads: teads,
+  Telegram: telegram,
+  Twitter: x,
+  TripleLift: triplelift,
+  Twitch: twitch,
+  Verizon: verizon,
+  Vkontakte: vkontakte,
+  Walmart: walmart,
+  WeChat: wechat,
+  WhatsApp: whatsapp,
+  Xandr: Xandr,
+  Zemanta: zemanta,
+  Pinterest: pinterest,
+  Tumblr: Tumblr,
+  DV360: Display,
+  Naver: naver,
+  Seznam: seznam,
+  Yandex: yandex,
+  Podcast: podcast,
+  Vevo: vevo,
+  Inmobi: inmobil,
+  Admob: admob,
+  IronSource: ironsource,
+  Vungle: vungle,
+  Mintegral: mintegral,
+  Mopub: mopub,
+  StreetFurniture: streetfurniture,
+  Transit: transit,
+  Coupons: coupons,
+  Billboard: billboard,
+  Elevator: elevator,
+  Sponsor: sponsor,
+  News: news,
+  Magazine: magazine,
+  Circular: circular,
+  Door: door,
+  DirectMail: directmail,
+  Brochure: brochure, 
+  Cinema: cinema,
+  Television: television,
+  Radio: radio,
+  FilmTV: filmtv,
+};
 
+export const getPlatformIcon = (platformName: string): StaticImageData => {
+  if (!platformName) return google;
 
+  // Normalize the platform name
+  const normalizedName = platformName
+    .replace(/[\s-]/g, "") // Remove spaces and hyphens
+    .replace(/&/g, "and") // Replace & with "and"
+    .replace(/s$/, ""); // Remove trailing 's' for plural forms (e.g., Circulars -> Circular)
 
-  export const getPlatformIcon = (platformName: string): StaticImageData => {
-	if (!platformName) return google; // Default fallback
-	const normalizedName = platformName
-	  .replace(/[\s-]/g, "")
-	  .replace(/&/g, "and")
-	  .replace(/(.)([A-Z])/g, "$1$2");
-	return (
-	  platformIcons[platformName] ||
-	  platformIcons[normalizedName] ||
-	  platformIcons[platformName.toLowerCase()] ||
-	  platformIcons[platformName.charAt(0).toUpperCase() + platformName.slice(1).toLowerCase()] ||
-	  google // Final fallback
-	);
-  };
+  // Try different variations
+  const variations = [
+    platformName,
+    normalizedName,
+    platformName.toLowerCase(),
+    platformName.charAt(0).toUpperCase() + platformName.slice(1).toLowerCase(),
+    normalizedName.charAt(0).toUpperCase() + normalizedName.slice(1).toLowerCase(),
+  ];
+
+  for (const variation of variations) {
+    if (platformIcons[variation]) {
+      return platformIcons[variation];
+    }
+  }
+
+  // Fallback to Google icon
+  return google;
+};
 
 export const getCurrencySymbol = (currencyCode: string): string => {
   switch (currencyCode) {
@@ -423,160 +464,109 @@ export const campaignObjectives = [
   },
 ];
 
-// export const platformStyles = [
-// 	{ name: "Facebook", color: "#0866FF", icon: facebook },
-// 	{ name: "Instagram", color: "#C13584", icon: ig },
-// 	{ name: "TikTok", color: "#000000", icon: tictok },
-// 	{ name: "YouTube", color: "#FF0000", icon: youtube },
-// 	{ name: "Twitter/X", color: "#000000", icon: x },
-// 	{ name: "LinkedIn", color: "#0A66C2", icon: linkedin },
-// 	{ name: "Snapchat", color: "#FFFC00", icon: snapchat },
-// 	{ name: "Pinterest", color: "#E60023", icon: google }, // Fallback
-// 	{ name: "Reddit", color: "#FF4500", icon: reddit },
-// 	{ name: "Quora", color: "#B92B27", icon: quora },
-// 	{ name: "WeChat", color: "#07C160", icon: wechat },
-// 	{ name: "Weibo", color: "#E6162D", icon: sinaweibo },
-// 	{ name: "Vkontakte", color: "#0077FF", icon: vkontakte },
-// 	{ name: "Line", color: "#00C300", icon: line },
-// 	{ name: "Kakao", color: "#FFCD00", icon: Kakao_logo },
-// 	{ name: "Tumblr", color: "#001935", icon: google }, // Fallback
-// 	{ name: "The Trade Desk", color: "#0099FA", icon: thetradedesk },
-// 	{ name: "Quantcast", color: "#000000", icon: quantcast },
-// 	{ name: "Display & Video", color: "#34A853", icon: Display },
-// 	{ name: "DV360", color: "#1E8E3E", icon: Display }, // Logical fit
-// 	{ name: "MediaMath", color: "#E6007A", icon: mediamath },
-// 	{ name: "Xandr", color: "#FF3E59", icon: Xandr },
-// 	{ name: "Verizon Media", color: "#DA291C", icon: verizon },
-// 	{ name: "Amazon", color: "#FF9900", icon: amazon },
-// 	{ name: "Adroll", color: "#0033CC", icon: adroll },
-// 	{ name: "Criteo", color: "#F47C00", icon: criteo },
-// 	{ name: "RTB House", color: "#EC1C24", icon: rtbhouse },
-// 	{ name: "SmartyAds", color: "#FF5722", icon: smartyads },
-// 	{ name: "Adsterra", color: "#FF4500", icon: adsterra },
-// 	{ name: "PopAds", color: "#F5A623", icon: popads },
-// 	{ name: "Smaato", color: "#0071BC", icon: smatoo },
-// 	{ name: "Pubmatic", color: "#00AEEF", icon: pubmatic },
-// 	{ name: "Magnite", color: "#E6001F", icon: magnite },
-// 	{ name: "OpenX", color: "#FFA500", icon: openx },
-// 	{ name: "Index Exchange", color: "#0097D7", icon: indexchange },
-// 	{ name: "Stackadapt", color: "#1C1C1C", icon: stackadapt },
-// 	{ name: "Choozle", color: "#4EAF4E", icon: choozle },
-// 	{ name: "Teads", color: "#002244", icon: teads },
-// 	{ name: "LiveIntent", color: "#FF6600", icon: liveintent },
-// 	{ name: "Epom", color: "#0088CC", icon: epom },
-// 	{ name: "QuantCast", color: "#000000", icon: quantcast },
-// 	{ name: "Taboola", color: "#1F76C2", icon: taboola },
-// 	{ name: "Outbrain", color: "#FF6600", icon: outbrain },
-// 	{ name: "MGID", color: "#EC1C24", icon: mgid },
-// 	{ name: "Revcontent", color: "#0083C1", icon: revcontent },
-// 	{ name: "Plista", color: "#6D6E71", icon: plista },
-// 	{ name: "Zemanta", color: "#E95A0C", icon: zemanta },
-// 	{ name: "Nativo", color: "#0074C1", icon: nativo },
-// 	{ name: "TripleLift", color: "#FF6600", icon: triplelift },
-// 	{ name: "Sharethrough", color: "#00A37E", icon: sharethrough },
-// 	{ name: "Microsoft Audience", color: "#0066B8", icon: microsoft },
-// 	{ name: "BuySell", color: "#FF5722", icon: buysell },
-// 	{ name: "Mozilla Tiles", color: "#C13832", icon: mozilla },
-// 	{ name: "Telegram", color: "#0088CC", icon: telegram },
-// 	{ name: "WhatsApp", color: "#25D366", icon: whatsapp },
-// 	{ name: "Twitch", color: "#9146FF", icon: twitch },
-// 	{ name: "eBay", color: "#E53238", icon: ebay },
-// 	{ name: "Walmart", color: "#0071CE", icon: walmart },
-// 	{ name: "Etsy", color: "#D5641C", icon: etsy },
-// 	{ name: "Alibaba", color: "#FF6A00", icon: alibaba },
-// 	{ name: "Rakuten", color: "#BF0000", icon: rakuten },
-// 	{ name: "Newegg", color: "#F47B00", icon: newegg },
-// 	{ name: "Mercado Libre", color: "#FFE600", icon: mercado },
-// 	{ name: "Flipkart", color: "#2874F0", icon: flipkart },
-// 	{ name: "JD", color: "#C7000B", icon: jd },
-// 	{ name: "Lazada", color: "#F36C21", icon: lazada },
-// 	{ name: "Shopee", color: "#FF5722", icon: shopee },
-// 	{ name: "Spotify", color: "#1DB954", icon: spotify },
-// 	{ name: "Pandora", color: "#0057FF", icon: pandora },
-// 	{ name: "SoundCloud", color: "#FF5500", icon: soundcloud },
-// 	{ name: "Hulu", color: "#1CE783", icon: hulu },
-// 	{ name: "Dailymotion", color: "#0066DC", icon: daily },
-// 	{ name: "Google", color: "#4285F4", icon: google },
-// 	{ name: "Apple Search", color: "#000000", icon: google },
-// 	{ name: "Yahoo", color: "#6001D2", icon: yahoo },
-// 	{ name: "Bing", color: "#008373", icon: bing },
-//   ];
-
 export const platformStyles = [
-	{ name: "Facebook", color: "#0866FF", icon: facebook, bg: "#F0F6FF" }, // From channels
-	{ name: "Instagram", color: "#C13584", icon: ig, bg: "#FEF1F8" }, // From channels
-	{ name: "TikTok", color: "#000000", icon: tictok, bg: "#F7F7F7" }, // Light gray for black
-	{ name: "YouTube", color: "#FF0000", icon: youtube, bg: "#FFF0F0" }, // From channels
-	{ name: "Twitter/X", color: "#000000", icon: x, bg: "#F7F7F7" }, // Light gray for black
-	{ name: "LinkedIn", color: "#0A66C2", icon: linkedin, bg: "#F0F5FF" }, // Light blue
-	{ name: "Snapchat", color: "#FFFC00", icon: snapchat, bg: "#FFFFF0" }, // Very light yellow
-	{ name: "Pinterest", color: "#E60023", icon: google, bg: "#FFF0F2" }, // Light red
-	{ name: "Reddit", color: "#FF4500", icon: reddit, bg: "#FFF2ED" }, // Light orange
-	{ name: "Quora", color: "#B92B27", icon: quora, bg: "#FEF0F0" }, // Light red
-	{ name: "WeChat", color: "#07C160", icon: wechat, bg: "#F0FAF5" }, // Light green
-	{ name: "Weibo", color: "#E6162D", icon: sinaweibo, bg: "#FFF0F3" }, // Light red
-	{ name: "Vkontakte", color: "#0077FF", icon: vkontakte, bg: "#F0F6FF" }, // Light blue
-	{ name: "Line", color: "#00C300", icon: line, bg: "#F0FAF0" }, // Light green
-	{ name: "Kakao", color: "#FFCD00", icon: Kakao_logo, bg: "#FFFDF0" }, // Light yellow
-	{ name: "Tumblr", color: "#001935", icon: google, bg: "#F0F3F5" }, // Light navy
-	{ name: "The Trade Desk", color: "#0099FA", icon: thetradedesk, bg: "#F0F9FF" }, // From channels
-	{ name: "Quantcast", color: "#000000", icon: quantcast, bg: "#F7F7F7" }, // From channels
-	{ name: "Display & Video", color: "#34A853", icon: Display, bg: "#F2FAF4" }, // Light green
-	{ name: "DV360", color: "#1E8E3E", icon: Display, bg: "#F0F8F3" }, // Light green
-	{ name: "MediaMath", color: "#E6007A", icon: mediamath, bg: "#FFF0F6" }, // Light magenta
-	{ name: "Xandr", color: "#FF3E59", icon: Xandr, bg: "#FFF0F3" }, // Light pink
-	{ name: "Verizon Media", color: "#DA291C", icon: verizon, bg: "#FEF0EF" }, // Light red
-	{ name: "Amazon", color: "#FF9900", icon: amazon, bg: "#FFF8ED" }, // Light orange
-	{ name: "Adroll", color: "#0033CC", icon: adroll, bg: "#F0F2FF" }, // Light blue
-	{ name: "Criteo", color: "#F47C00", icon: criteo, bg: "#FFF5ED" }, // Light orange
-	{ name: "RTB House", color: "#EC1C24", icon: rtbhouse, bg: "#FFF0F1" }, // Light red
-	{ name: "SmartyAds", color: "#FF5722", icon: smartyads, bg: "#FFF2EE" }, // Light orange
-	{ name: "Adsterra", color: "#FF4500", icon: adsterra, bg: "#FFF2ED" }, // Light orange
-	{ name: "PopAds", color: "#F5A623", icon: popads, bg: "#FFF7EE" }, // Light orange
-	{ name: "Smaato", color: "#0071BC", icon: smatoo, bg: "#F0F5FF" }, // Light blue
-	{ name: "Pubmatic", color: "#00AEEF", icon: pubmatic, bg: "#F0F9FF" }, // Light cyan
-	{ name: "Magnite", color: "#E6001F", icon: magnite, bg: "#FFF0F1" }, // Light red
-	{ name: "OpenX", color: "#FFA500", icon: openx, bg: "#FFF8ED" }, // Light orange
-	{ name: "Index Exchange", color: "#0097D7", icon: indexchange, bg: "#F0F8FF" }, // Light blue
-	{ name: "Stackadapt", color: "#1C1C1C", icon: stackadapt, bg: "#F5F5F5" }, // Light gray
-	{ name: "Choozle", color: "#4EAF4E", icon: choozle, bg: "#F3FAF3" }, // Light green
-	{ name: "Teads", color: "#002244", icon: teads, bg: "#F0F3F6" }, // Light navy
-	{ name: "LiveIntent", color: "#FF6600", icon: liveintent, bg: "#FFF4ED" }, // Light orange
-	{ name: "Epom", color: "#0088CC", icon: epom, bg: "#F0F7FF" }, // Light blue
-	{ name: "QuantCast", color: "#000000", icon: quantcast, bg: "#F7F7F7" }, // Light gray
-	{ name: "Taboola", color: "#1F76C2", icon: taboola, bg: "#F0F5FF" }, // Light blue
-	{ name: "Outbrain", color: "#FF6600", icon: outbrain, bg: "#FFF4ED" }, // Light orange
-	{ name: "MGID", color: "#EC1C24", icon: mgid, bg: "#FFF0F1" }, // Light red
-	{ name: "Revcontent", color: "#0083C1", icon: revcontent, bg: "#F0F7FF" }, // Light blue
-	{ name: "Plista", color: "#6D6E71", icon: plista, bg: "#F5F6F6" }, // Light gray
-	{ name: "Zemanta", color: "#E95A0C", icon: zemanta, bg: "#FFF3ED" }, // Light orange
-	{ name: "Nativo", color: "#0074C1", icon: nativo, bg: "#F0F5FF" }, // Light blue
-	{ name: "TripleLift", color: "#FF6600", icon: triplelift, bg: "#FFF4ED" }, // Light orange
-	{ name: "Sharethrough", color: "#00A37E", icon: sharethrough, bg: "#F0FAF7" }, // Light teal
-	{ name: "Microsoft Audience", color: "#0066B8", icon: microsoft, bg: "#F0F5FF" }, // Light blue
-	{ name: "BuySell", color: "#FF5722", icon: buysell, bg: "#FFF2EE" }, // Light orange
-	{ name: "Mozilla Tiles", color: "#C13832", icon: mozilla, bg: "#FEF2F1" }, // Light red
-	{ name: "Telegram", color: "#0088CC", icon: telegram, bg: "#F0F7FF" }, // Light blue
-	{ name: "WhatsApp", color: "#25D366", icon: whatsapp, bg: "#F2FBF5" }, // Light green
-	{ name: "Twitch", color: "#9146FF", icon: twitch, bg: "#F7F2FF" }, // Light purple
-	{ name: "eBay", color: "#E53238", icon: ebay, bg: "#FFF0F2" }, // Light red
-	{ name: "Walmart", color: "#0071CE", icon: walmart, bg: "#F0F5FF" }, // Light blue
-	{ name: "Etsy", color: "#D5641C", icon: etsy, bg: "#FFF4EE" }, // Light orange
-	{ name: "Alibaba", color: "#FF6A00", icon: alibaba, bg: "#FFF4ED" }, // Light orange
-	{ name: "Rakuten", color: "#BF0000", icon: rakuten, bg: "#FEF0F0" }, // Light red
-	{ name: "Newegg", color: "#F47B00", icon: newegg, bg: "#FFF5ED" }, // Light orange
-	{ name: "Mercado Libre", color: "#FFE600", icon: mercado, bg: "#FFFFF0" }, // Very light yellow
-	{ name: "Flipkart", color: "#2874F0", icon: flipkart, bg: "#F2F6FF" }, // Light blue
-	{ name: "JD", color: "#C7000B", icon: jd, bg: "#FEF0F0" }, // Light red
-	{ name: "Lazada", color: "#F36C21", icon: lazada, bg: "#FFF4EE" }, // Light orange
-	{ name: "Shopee", color: "#FF5722", icon: shopee, bg: "#FFF2EE" }, // Light orange
-	{ name: "Spotify", color: "#1DB954", icon: spotify, bg: "#F2FAF5" }, // Light green
-	{ name: "Pandora", color: "#0057FF", icon: pandora, bg: "#F0F4FF" }, // Light blue
-	{ name: "SoundCloud", color: "#FF5500", icon: soundcloud, bg: "#FFF4ED" }, // Light orange
-	{ name: "Hulu", color: "#1CE783", icon: hulu, bg: "#F2FBF6" }, // Light green
-	{ name: "Dailymotion", color: "#0066DC", icon: daily, bg: "#F0F5FF" }, // Light blue
-	{ name: "Google", color: "#4285F4", icon: google, bg: "#F1F6FE" }, // From channels
-	{ name: "Apple Search", color: "#000000", icon: google, bg: "#F7F7F7" }, // Light gray
-	{ name: "Yahoo", color: "#6001D2", icon: yahoo, bg: "#F6F0FF" }, // Light purple
-	{ name: "Bing", color: "#008373", icon: bing, bg: "#F0F8F6" }, // Light teal
-  ];
+  { name: "Facebook", color: "#0866FF", icon: facebook, bg: "#F0F6FF" },
+  { name: "Instagram", color: "#C13584", icon: ig, bg: "#FEF1F8" },
+  { name: "TikTok", color: "#000000", icon: tictok, bg: "#F7F7F7" },
+  { name: "YouTube", color: "#FF0000", icon: youtube, bg: "#FFF0F0" },
+  { name: "Twitter/X", color: "#000000", icon: x, bg: "#F7F7F7" },
+  { name: "LinkedIn", color: "#0A66C2", icon: linkedin, bg: "#F0F5FF" },
+  { name: "Snapchat", color: "#FFFC00", icon: snapchat, bg: "#FFFFF0" },
+  { name: "Pinterest", color: "#E60023", icon: pinterest, bg: "#FFF0F2" },
+  { name: "Reddit", color: "#FF4500", icon: reddit, bg: "#FFF2ED" },
+  { name: "Quora", color: "#B92B27", icon: quora, bg: "#FEF0F0" },
+  { name: "WeChat", color: "#07C160", icon: wechat, bg: "#F0FAF5" },
+  { name: "Weibo", color: "#E6162D", icon: sinaweibo, bg: "#FFF0F3" },
+  { name: "Vkontakte", color: "#0077FF", icon: vkontakte, bg: "#F0F6FF" },
+  { name: "Line", color: "#00C300", icon: line, bg: "#F0FAF0" },
+  { name: "Kakao", color: "#FFCD00", icon: Kakao_logo, bg: "#FFFDF0" },
+  { name: "Tumblr", color: "#001935", icon: Tumblr, bg: "#F0F3F5" },
+  { name: "The Trade Desk", color: "#0099FA", icon: thetradedesk, bg: "#F0F9FF" },
+  { name: "Quantcast", color: "#000000", icon: quantcast, bg: "#F7F7F7" },
+  { name: "Display & Video", color: "#34A853", icon: Display, bg: "#F2FAF4" },
+  { name: "DV360", color: "#1E8E3E", icon: Display, bg: "#F0F8F3" },
+  { name: "MediaMath", color: "#E6007A", icon: mediamath, bg: "#FFF0F6" },
+  { name: "Xandr", color: "#FF3E59", icon: Xandr, bg: "#FFF0F3" },
+  { name: "Verizon Media", color: "#DA291C", icon: verizon, bg: "#FEF0EF" },
+  { name: "Amazon", color: "#FF9900", icon: amazon, bg: "#FFF8ED" },
+  { name: "Adroll", color: "#0033CC", icon: adroll, bg: "#F0F2FF" },
+  { name: "Criteo", color: "#F47C00", icon: criteo, bg: "#FFF5ED" },
+  { name: "RTB House", color: "#EC1C24", icon: rtbhouse, bg: "#FFF0F1" },
+  { name: "SmartyAds", color: "#FF5722", icon: smartyads, bg: "#FFF2EE" },
+  { name: "Adsterra", color: "#FF4500", icon: adsterra, bg: "#FFF2ED" },
+  { name: "PopAds", color: "#F5A623", icon: popads, bg: "#FFF7EE" },
+  { name: "Smaato", color: "#0071BC", icon: smatoo, bg: "#F0F5FF" },
+  { name: "Pubmatic", color: "#00AEEF", icon: pubmatic, bg: "#F0F9FF" },
+  { name: "Podcast", color: "#00AEEF", icon: podcast, bg: "#F0F9FF" },
+  { name: "Magnite", color: "#E6001F", icon: magnite, bg: "#FFF0F1" },
+  { name: "OpenX", color: "#FFA500", icon: openx, bg: "#FFF8ED" },
+  { name: "Index Exchange", color: "#0097D7", icon: indexchange, bg: "#F0F8FF" },
+  { name: "Stackadapt", color: "#1C1C1C", icon: stackadapt, bg: "#F5F5F5" },
+  { name: "Choozle", color: "#4EAF4E", icon: choozle, bg: "#F3FAF3" },
+  { name: "Teads", color: "#002244", icon: teads, bg: "#F0F3F6" },
+  { name: "LiveIntent", color: "#FF6600", icon: liveintent, bg: "#FFF4ED" },
+  { name: "Epom", color: "#0088CC", icon: epom, bg: "#F0F7FF" },
+  { name: "QuantCast", color: "#000000", icon: quantcast, bg: "#F7F7F7" },
+  { name: "Taboola", color: "#1F76C2", icon: taboola, bg: "#F0F5FF" },
+  { name: "Outbrain", color: "#FF6600", icon: outbrain, bg: "#FFF4ED" },
+  { name: "MGID", color: "#EC1C24", icon: mgid, bg: "#FFF0F1" },
+  { name: "Revcontent", color: "#0083C1", icon: revcontent, bg: "#F0F7FF" },
+  { name: "Plista", color: "#6D6E71", icon: plista, bg: "#F5F6F6" },
+  { name: "Zemanta", color: "#E95A0C", icon: zemanta, bg: "#FFF3ED" },
+  { name: "Nativo", color: "#0074C1", icon: nativo, bg: "#F0F5FF" },
+  { name: "TripleLift", color: "#FF6600", icon: triplelift, bg: "#FFF4ED" },
+  { name: "Sharethrough", color: "#00A37E", icon: sharethrough, bg: "#F0FAF7" },
+  { name: "Microsoft Audience", color: "#0066B8", icon: microsoft, bg: "#F0F5FF" },
+  { name: "BuySell", color: "#FF5722", icon: buysell, bg: "#FFF2EE" },
+  { name: "Mozilla Tiles", color: "#C13832", icon: mozilla, bg: "#FEF2F1" },
+  { name: "Telegram", color: "#0088CC", icon: telegram, bg: "#F0F7FF" },
+  { name: "WhatsApp", color: "#25D366", icon: whatsapp, bg: "#F2FBF5" },
+  { name: "Twitch", color: "#9146FF", icon: twitch, bg: "#F7F2FF" },
+  { name: "eBay", color: "#E53238", icon: ebay, bg: "#FFF0F2" },
+  { name: "Walmart", color: "#0071CE", icon: walmart, bg: "#F0F5FF" },
+  { name: "Etsy", color: "#D5641C", icon: etsy, bg: "#FFF4EE" },
+  { name: "Alibaba", color: "#FF6A00", icon: alibaba, bg: "#FFF4ED" },
+  { name: "Rakuten", color: "#BF0000", icon: rakuten, bg: "#FEF0F0" },
+  { name: "Newegg", color: "#F47B00", icon: newegg, bg: "#FFF5ED" },
+  { name: "Mercado Libre", color: "#FFE600", icon: mercado, bg: "#FFFFF0" },
+  { name: "Flipkart", color: "#2874F0", icon: flipkart, bg: "#F2F6FF" },
+  { name: "JD", color: "#C7000B", icon: jd, bg: "#FEF0F0" },
+  { name: "Lazada", color: "#F36C21", icon: lazada, bg: "#FFF4EE" },
+  { name: "Shopee", color: "#FF5722", icon: shopee, bg: "#FFF2EE" },
+  { name: "Spotify", color: "#1DB954", icon: spotify, bg: "#F2FAF5" },
+  { name: "Pandora", color: "#0057FF", icon: pandora, bg: "#F0F4FF" },
+  { name: "SoundCloud", color: "#FF5500", icon: soundcloud, bg: "#FFF4ED" },
+  { name: "Hulu", color: "#1CE783", icon: hulu, bg: "#F2FBF6" },
+  { name: "Dailymotion", color: "#0066DC", icon: daily, bg: "#F0F5FF" },
+  { name: "Google", color: "#4285F4", icon: google, bg: "#F1F6FE" },
+  { name: "Apple Search", color: "#000000", icon: apple, bg: "#F7F7F7" },
+  { name: "Yahoo", color: "#6001D2", icon: yahoo, bg: "#F6F0FF" },
+  { name: "Bing", color: "#008373", icon: bing, bg: "#F0F8F6" },
+  { name: "Naver", color: "#03C75A", icon: naver, bg: "#F0FAF4" },
+  { name: "Seznam", color: "#004B96", icon: seznam, bg: "#F0F5FF" },
+  { name: "Yandex", color: "#FF0000", icon: yandex, bg: "#FFF0F0" },
+  { name: "Podcast", color: "#7B2CBF", icon: podcast, bg: "#F6F0FF" },
+  { name: "Vevo", color: "#E20613", icon: vevo, bg: "#FFF0F1" },
+  { name: "Inmobi", color: "#00A1D6", icon: inmobil, bg: "#F0F8FF" },
+  { name: "Admob", color: "#4285F4", icon: admob, bg: "#F1F6FE" },
+  { name: "IronSource", color: "#FF5733", icon: ironsource, bg: "#FFF2EE" },
+  { name: "Vungle", color: "#FF9900", icon: vungle, bg: "#FFF8ED" },
+  { name: "Mintegral", color: "#007AFF", icon: mintegral, bg: "#F0F5FF" },
+  { name: "Mopub", color: "#00B7EB", icon: mopub, bg: "#F0F9FF" },
+  { name: "StreetFurniture", color: "#6B7280", icon: streetfurniture, bg: "#F5F6F6" },
+  { name: "Transit", color: "#3B82F6", icon: transit, bg: "#F0F6FF" },
+  { name: "Coupons", color: "#F59E0B", icon: coupons, bg: "#FFF8EE" },
+  { name: "Billboard", color: "#D946EF", icon: billboard, bg: "#FEF0FE" },
+  { name: "Elevator", color: "#4B5563", icon: elevator, bg: "#F5F6F6" },
+  { name: "Sponsor", color: "#10B981", icon: sponsor, bg: "#F0FAF5" },
+  { name: "News", color: "#374151", icon: news, bg: "#F5F6F6" },
+  { name: "Magazine", color: "#EC4899", icon: magazine, bg: "#FFF0F6" },
+  { name: "Circular", color: "#FBBF24", icon: circular, bg: "#FFF8ED" }, // Changed from "Circulars"
+  { name: "Door", color: "#EF4444", icon: door, bg: "#FFF0F0" },
+  { name: "DirectMail", color: "#6D28D9", icon: directmail, bg: "#F6F0FF" },
+  { name: "Brochure", color: "#059669", icon: brochure, bg: "#F0FAF5" }, // Corrected from "bronchure"
+  { name: "Cinema", color: "#8B5CF6", icon: cinema, bg: "#F6F2FF" },
+  { name: "Television", color: "#1E3A8A", icon: television, bg: "#F0F3F6" },
+  { name: "Radio", color: "#EA580C", icon: radio, bg: "#FFF3ED" },
+  { name: "FilmTV", color: "#7C3AED", icon: filmtv, bg: "#F6F0FF" },
+];

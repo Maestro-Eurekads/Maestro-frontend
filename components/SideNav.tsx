@@ -76,9 +76,28 @@ const SideNav: React.FC = () => {
       vl_active: "vl_active",
       state_text: "SideBar_Menu_state",
       sidecircle: "SideBar_Menu_active",
+      title: "Configure ad sets and audiences",
+      img: <Image src={click} alt="click" />,
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
+      title: "Allocate Campaign Budget",
+      img: <Image src={click} alt="click" />,
+    },
+    {
+      vl: "vl",
+      vl_done: "vl_done",
+      vl_active: "vl_active",
+      state_text: "SideBar_Menu_state",
+      sidecircle: "SideBar_Menu_active",
       title: "Formats selection",
       img: <Image src={devicefill} alt="devicefill" />,
     },
+
     {
       vl: "vl",
       vl_done: "vl_done",
@@ -111,15 +130,6 @@ const SideNav: React.FC = () => {
       vl_active: "vl_active",
       state_text: "SideBar_Menu_state",
       sidecircle: "SideBar_Menu_active",
-      title: "Configure ad sets and budget",
-      img: <Image src={click} alt="click" />,
-    },
-    {
-      vl: "vl",
-      vl_done: "vl_done",
-      vl_active: "vl_active",
-      state_text: "SideBar_Menu_state",
-      sidecircle: "SideBar_Menu_active",
       title: "Establish goals",
       img: <Image src={workbench} alt="workbench" />,
     },
@@ -135,9 +145,16 @@ const SideNav: React.FC = () => {
   ];
 
   return (
-    <div id={close ? "side-nav-active" : "side-nav"} className="!flex !flex-col !h-full">
+    <div
+      id={close ? "side-nav-active" : "side-nav"}
+      className="!flex !flex-col !h-full"
+    >
       <div className="flex flex-col">
-        <div className={`flex ${close ? "justify-center mb-[30px]" : "justify-end"} w-full`}>
+        <div
+          className={`flex ${
+            close ? "justify-center mb-[30px]" : "justify-end"
+          } w-full`}
+        >
           <button onClick={() => setClose(!close)}>
             <Image src={closeicon} alt="closeicon" />
           </button>
@@ -153,13 +170,15 @@ const SideNav: React.FC = () => {
             </button>
             {isLoading ? (
               <Skeleton height={20} width={200} />
-            ) : !campaignData?.client?.client_name || campaignData?.media_plan_details?.plan_name === "Plan name" ? (
-              null
-            ) : (
+            ) : !campaignData?.client?.client_name ||
+              campaignData?.media_plan_details?.plan_name ===
+                "Plan name" ? null : (
               <div>
                 <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
                   {campaignData?.media_plan_details?.plan_name
-                    ? campaignData?.media_plan_details?.plan_name.charAt(0).toUpperCase() +
+                    ? campaignData?.media_plan_details?.plan_name
+                        .charAt(0)
+                        .toUpperCase() +
                       campaignData?.media_plan_details?.plan_name.slice(1)
                     : ""}
                 </h6>
@@ -168,14 +187,18 @@ const SideNav: React.FC = () => {
             <div className="flex items-center gap-[8px]">
               {isLoading ? (
                 <Skeleton height={20} width={150} />
-              ) : !campaignData?.client?.client_name || campaignData?.media_plan_details?.plan_name === "Plan name" ? (
+              ) : !campaignData?.client?.client_name ||
+                campaignData?.media_plan_details?.plan_name === "Plan name" ? (
                 <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic mt-3">
-                  Follow the steps to set up an effective and successful campaign strategy.
+                  Follow the steps to set up an effective and successful
+                  campaign strategy.
                 </p>
               ) : (
                 <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic">
                   {campaignData?.client?.client_name
-                    ? campaignData?.client?.client_name.charAt(0).toUpperCase() +
+                    ? campaignData?.client?.client_name
+                        .charAt(0)
+                        .toUpperCase() +
                       campaignData?.client?.client_name.slice(1)
                     : ""}
                 </p>
@@ -184,12 +207,16 @@ const SideNav: React.FC = () => {
           </div>
         )}
       </div>
-      {close ? <CreationFlowActive steps={steps} close={close} /> : <CreationFlow steps={steps} />}
+      {close ? (
+        <CreationFlowActive steps={steps} close={close} />
+      ) : (
+        <CreationFlow steps={steps} />
+      )}
       {!close && (
         <p className="font-general-sans italic font-medium text-[12px] leading-[21px] text-[rgba(6,18,55,0.8)]">
-          This screen, all the other ones, as well as the system they build together are protected by
-          copyright © - all use, display, and any other rights are exclusively reserved to Eurekads
-          Pte. Ltd.
+          This screen, all the other ones, as well as the system they build
+          together are protected by copyright © - all use, display, and any
+          other rights are exclusively reserved to Eurekads Pte. Ltd.
         </p>
       )}
     </div>

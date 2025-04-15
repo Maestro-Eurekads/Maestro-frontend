@@ -11,15 +11,13 @@ import { SetupScreen } from "./components/SetupScreen";
 import { EstablishedGoals } from "./components/EstablishedGoals";
 import SetBuyObjectivesAndTypesSubStep from "./components/SetBuyObjectivesAndTypesSubStep";
 import OverviewofyourCampaign from "./components/OverviewofyourCampaign";
-import CampaignBudget from './components/CampaignBudget';
+import CampaignBudget from "./components/CampaignBudget";
 import ConfigureAdSetsAndBudget from "./components/ ConfigureadSetsAndbudget";
 import DefineAdSet from "./components/DefineAdSet";
 import { FormatSelection } from "./components/FormatSelection";
 
 const Creation = () => {
   const { active, subStep } = useActive();
-
-
 
   return (
     <div>
@@ -28,39 +26,29 @@ const Creation = () => {
         {/* {active === 1 && <DefineCampaignObjective />} */}
         {active === 1 && <MapFunnelStages />}
         {active === 2 && <SelectChannelMix />}
-        {active === 3 && <FormatSelection />}
-        {active === 4 && <SetBuyObjectivesAndTypes />}
-        {active === 5 && <SetBuyObjectivesAndTypesSubStep />}
-
+        {active === 3 && <DefineAdSet />}
+        {active === 4 && subStep === 0 ? (
+          <CampaignBudget />
+        ) : (
+          subStep === 1 && <ConfigureAdSetsAndBudget />
+        )}
+        {active === 5 && <FormatSelection />}
+        {active === 6 && <SetBuyObjectivesAndTypes />}
+        {active === 7 && <SetBuyObjectivesAndTypesSubStep />}
 
         {/* Step 8 (Tracks 2 subSteps) */}
-        {active === 7 &&
-          (subStep === 0 ? (
-            <DefineAdSet />
-          ) : subStep === 1 ? (
-            <CampaignBudget />
-          ) : (
-            subStep === 2 && <ConfigureAdSetsAndBudget />
-          ))}
-
       </div>
       {/* Step 7 (Tracks 1 subStep) */}
-      {active === 6 &&
+      {active === 8 &&
         (subStep === 0 ? (
           <PlanCampaignSchedule />
         ) : (
           subStep === 1 && <PlanCampaignScheduleSubStepComponent />
         ))}
-      {active === 8 && <EstablishedGoals />}
-      {active === 9 && <OverviewofyourCampaign />}
+      {active === 9 && <EstablishedGoals />}
+      {active === 10 && <OverviewofyourCampaign />}
     </div>
   );
 };
 
 export default Creation;
-
-
-
-
-
-

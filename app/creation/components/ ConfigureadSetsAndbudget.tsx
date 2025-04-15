@@ -7,10 +7,15 @@ import ChannelDistributionChatTwo from "../../../components/ChannelDistribution/
 import CampaignPhases from "./CampaignPhases";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { useComments } from "app/utils/CommentProvider";
+import Modal from "components/Modals/Modal";
+import adset from "../../../public/adset_level.svg";
+import channel from "../../../public/channel_level.svg";
+import Image from "next/image";
 
 const ConfigureAdSetsAndBudget = () => {
   const [show, setShow] = useState(false); // Start with budget shown
   const { setIsDrawerOpen, setClose } = useComments();
+  const [step, setStep] = useState(1);
 
   useEffect(() => {
     setIsDrawerOpen(false);
@@ -18,7 +23,26 @@ const ConfigureAdSetsAndBudget = () => {
   }, []);
 
   const [channelData, setChannelData] = useState(null);
-  const { campaignFormData } = useCampaigns();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { campaignFormData, setCampaignFormData } = useCampaigns();
+
+    const handleOpenModal = () => {
+      setIsModalOpen(true);
+    };
+  
+    const handleCloseModal = () => {
+      setIsModalOpen(false);
+    };
+  
+    useEffect(() => {
+      if (campaignFormData) {
+        if (campaignFormData?.goal_level) {
+          setIsModalOpen(false);
+        } else {
+          setIsModalOpen(true);
+        }
+      }
+    }, [campaignFormData]);
 
   const getCurrencySymbol = (currencyCode) => {
     switch (currencyCode) {

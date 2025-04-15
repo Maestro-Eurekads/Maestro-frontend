@@ -95,7 +95,10 @@ const ObjectiveSelection = () => {
         initialStatuses[stage] = statuses[stage] || "Not Started"; // Default to "Not Started"
       });
       setStatuses(initialStatuses);
-      localStorage.setItem("funnelStageStatuses", JSON.stringify(initialStatuses));
+      localStorage.setItem(
+        "funnelStageStatuses",
+        JSON.stringify(initialStatuses)
+      );
 
       // Sync selectedNetworks with channel_mix
       const channelMix = Array.isArray(campaignFormData?.channel_mix)
@@ -103,17 +106,39 @@ const ObjectiveSelection = () => {
         : [];
       const updatedNetworks = channelMix.reduce((acc, ch) => {
         const platformsWithFormats = [
-          ...(ch?.social_media?.filter((sm) => sm.format?.length > 0).map((sm) => sm?.platform_name) || []),
-          ...(ch?.display_networks?.filter((dn) => dn.format?.length > 0).map((dn) => dn?.platform_name) || []),
-          ...(ch?.search_engines?.filter((se) => se.format?.length > 0).map((se) => se?.platform_name) || []),
-          ...(ch?.streaming?.filter((st) => st.format?.length > 0).map((st) => st?.platform_name) || []),
-          ...(ch?.mobile?.filter((mb) => mb.format?.length > 0).map((mb) => mb?.platform_name) || []),
-          ...(ch?.messaging?.filter((ms) => ms.format?.length > 0).map((ms) => ms?.platform_name) || []),
-          ...(ch?.in_game?.filter((ig) => ig.format?.length > 0).map((ig) => ig?.platform_name) || []),
-          ...(ch?.e_commerce?.filter((ec) => ec.format?.length > 0).map((ec) => ec?.platform_name) || []),
-          ...(ch?.broadcast?.filter((bc) => bc.format?.length > 0).map((bc) => bc?.platform_name) || []),
-          ...(ch?.print?.filter((pr) => pr.format?.length > 0).map((pr) => pr?.platform_name) || []),
-          ...(ch?.ooh?.filter((oh) => oh.format?.length > 0).map((oh) => oh?.platform_name) || []),
+          ...(ch?.social_media
+            ?.filter((sm) => sm.format?.length > 0)
+            .map((sm) => sm?.platform_name) || []),
+          ...(ch?.display_networks
+            ?.filter((dn) => dn.format?.length > 0)
+            .map((dn) => dn?.platform_name) || []),
+          ...(ch?.search_engines
+            ?.filter((se) => se.format?.length > 0)
+            .map((se) => se?.platform_name) || []),
+          ...(ch?.streaming
+            ?.filter((st) => st.format?.length > 0)
+            .map((st) => st?.platform_name) || []),
+          ...(ch?.mobile
+            ?.filter((mb) => mb.format?.length > 0)
+            .map((mb) => mb?.platform_name) || []),
+          ...(ch?.messaging
+            ?.filter((ms) => ms.format?.length > 0)
+            .map((ms) => ms?.platform_name) || []),
+          ...(ch?.in_game
+            ?.filter((ig) => ig.format?.length > 0)
+            .map((ig) => ig?.platform_name) || []),
+          ...(ch?.e_commerce
+            ?.filter((ec) => ec.format?.length > 0)
+            .map((ec) => ec?.platform_name) || []),
+          ...(ch?.broadcast
+            ?.filter((bc) => bc.format?.length > 0)
+            .map((bc) => bc?.platform_name) || []),
+          ...(ch?.print
+            ?.filter((pr) => pr.format?.length > 0)
+            .map((pr) => pr?.platform_name) || []),
+          ...(ch?.ooh
+            ?.filter((oh) => oh.format?.length > 0)
+            .map((oh) => oh?.platform_name) || []),
         ];
         acc[ch.funnel_stage] = new Set(platformsWithFormats);
         return acc;
@@ -136,7 +161,10 @@ const ObjectiveSelection = () => {
         }
       });
       setStatuses(updatedStatuses);
-      localStorage.setItem("funnelStageStatuses", JSON.stringify(updatedStatuses));
+      localStorage.setItem(
+        "funnelStageStatuses",
+        JSON.stringify(updatedStatuses)
+      );
     }
   }, [selectedOptions, validatedPlatforms, campaignFormData?.funnel_stages]);
 
@@ -150,7 +178,9 @@ const ObjectiveSelection = () => {
     const serializedPlatforms = JSON.stringify(
       validatedPlatforms,
       (key, value) =>
-        value instanceof Set ? { dataType: "Set", value: Array.from(value) } : value
+        value instanceof Set
+          ? { dataType: "Set", value: Array.from(value) }
+          : value
     );
     localStorage.setItem("validatedPlatforms", serializedPlatforms);
   }, [validatedPlatforms]);
@@ -163,22 +193,30 @@ const ObjectiveSelection = () => {
       : [];
     channelMix.forEach((stage) => {
       const stageName = stage.funnel_stage;
-      ["social_media", "display_networks", "search_engines"].forEach((category) => {
-        const platforms = Array.isArray(stage[category]) ? stage[category] : [];
-        platforms.forEach((platform) => {
-          if (platform.format?.length > 0) {
-            const platformName = platform.platform_name;
-            const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`;
-            const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`;
-            if (platform.buy_type && !selectedOptions[buyTypeKey]) {
-              initialSelectedOptions[buyTypeKey] = platform.buy_type;
+      ["social_media", "display_networks", "search_engines"].forEach(
+        (category) => {
+          const platforms = Array.isArray(stage[category])
+            ? stage[category]
+            : [];
+          platforms.forEach((platform) => {
+            if (platform.format?.length > 0) {
+              const platformName = platform.platform_name;
+              const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`;
+              const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`;
+              if (platform.buy_type && !selectedOptions[buyTypeKey]) {
+                initialSelectedOptions[buyTypeKey] = platform.buy_type;
+              }
+              if (
+                platform.objective_type &&
+                !selectedOptions[buyObjectiveKey]
+              ) {
+                initialSelectedOptions[buyObjectiveKey] =
+                  platform.objective_type;
+              }
             }
-            if (platform.objective_type && !selectedOptions[buyObjectiveKey]) {
-              initialSelectedOptions[buyObjectiveKey] = platform.objective_type;
-            }
-          }
-        });
-      });
+          });
+        }
+      );
     });
     setSelectedOptions((prev) => ({ ...prev, ...initialSelectedOptions }));
   }, [campaignFormData?.channel_mix]);
@@ -191,7 +229,13 @@ const ObjectiveSelection = () => {
     setDropdownOpen((prev) => (prev === key ? "" : key));
   };
 
-  const handleSelectOption = (platformName, option, category, stageName, dropDownName) => {
+  const handleSelectOption = (
+    platformName,
+    option,
+    category,
+    stageName,
+    dropDownName
+  ) => {
     const key = `${stageName}-${category}-${platformName}-${dropDownName}`;
     setSelectedOptions((prev) => ({ ...prev, [key]: option }));
 
@@ -202,7 +246,9 @@ const ObjectiveSelection = () => {
       if (stage.funnel_stage === stageName) {
         const updatedStage = { ...stage };
         const normalizedCategory = category.toLowerCase().replace(" ", "_");
-        updatedStage[normalizedCategory] = (stage[normalizedCategory] || []).map((platform) => {
+        updatedStage[normalizedCategory] = (
+          stage[normalizedCategory] || []
+        ).map((platform) => {
           if (platform.platform_name === platformName) {
             return { ...platform, [dropDownName]: option };
           }
@@ -233,7 +279,11 @@ const ObjectiveSelection = () => {
     Array.from(selectedNetworks[stageName] || []).forEach((platformName) => {
       if (
         hasCompletePlatformSelection(platformName, "social_media", stageName) ||
-        hasCompletePlatformSelection(platformName, "display_networks", stageName) ||
+        hasCompletePlatformSelection(
+          platformName,
+          "display_networks",
+          stageName
+        ) ||
         hasCompletePlatformSelection(platformName, "search_engines", stageName)
       ) {
         validatedPlatformsSet.add(platformName);
@@ -260,11 +310,17 @@ const ObjectiveSelection = () => {
   };
 
   const hasCompleteSelection = (stageName) => {
-    if (!selectedNetworks[stageName] || selectedNetworks[stageName].size === 0) return false;
-    return Array.from(selectedNetworks[stageName]).some((platformName) =>
-      hasCompletePlatformSelection(platformName, "social_media", stageName) ||
-      hasCompletePlatformSelection(platformName, "display_networks", stageName) ||
-      hasCompletePlatformSelection(platformName, "search_engines", stageName)
+    if (!selectedNetworks[stageName] || selectedNetworks[stageName].size === 0)
+      return false;
+    return Array.from(selectedNetworks[stageName]).some(
+      (platformName) =>
+        hasCompletePlatformSelection(platformName, "social_media", stageName) ||
+        hasCompletePlatformSelection(
+          platformName,
+          "display_networks",
+          stageName
+        ) ||
+        hasCompletePlatformSelection(platformName, "search_engines", stageName)
     );
   };
 
@@ -279,13 +335,23 @@ const ObjectiveSelection = () => {
       .find((ch) => ch.funnel_stage === stageName)
       ?.[normalizedCategory]?.find((p) => p.platform_name === platformName);
 
-    if (!validatedPlatforms[stageName]?.has(platformName) || !platformData) return null;
+    if (!validatedPlatforms[stageName]?.has(platformName) || !platformData)
+      return null;
 
     return (
-      <div key={platformName} className="flex flex-col gap-4 min-w-[150px] max-w-[200px]">
+      <div
+        key={platformName}
+        className="flex flex-col gap-4 min-w-[150px] max-w-[200px]"
+      >
         <div className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg">
-          <Image src={getPlatformIcon(platformName)} className="size-4" alt={platformName} />
-          <p className="text-sm font-medium text-[#061237] truncate">{platformName}</p>
+          <Image
+            src={getPlatformIcon(platformName)}
+            className="size-4"
+            alt={platformName}
+          />
+          <p className="text-sm font-medium text-[#061237] truncate">
+            {platformName}
+          </p>
         </div>
         <div className="flex flex-col gap-2">
           <div className="px-4 py-2 bg-white border text-center truncate border-gray-300 rounded-lg">
@@ -308,7 +374,9 @@ const ObjectiveSelection = () => {
         .find((ch) => ch.funnel_stage === stageName)
         ?.[category]?.filter((p) => p.format?.length > 0)
         .map((p) => p.platform_name) || [];
-    return platformsInCategory.some((platform) => validatedPlatforms[stageName]?.has(platform));
+    return platformsInCategory.some((platform) =>
+      validatedPlatforms[stageName]?.has(platform)
+    );
   };
 
   const handleSaveCustomValue = async (field) => {
@@ -343,20 +411,27 @@ const ObjectiveSelection = () => {
     <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
       <Toaster position="top-right" reverseOrder={false} />
       {campaignFormData?.funnel_stages?.map((stageName) => {
-        const stage = campaignFormData?.custom_funnels?.find((s) => s?.name === stageName);
+        const stage = campaignFormData?.custom_funnels?.find(
+          (s) => s?.name === stageName
+        );
+        const funn = funnelStages?.find((ff) => ff?.name === stageName);
         if (!stage) return null;
         return (
           <div key={stageName} className="w-full">
             <div
               className={`flex justify-between items-center p-6 gap-3 max-w-[950px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-                rounded-t-[10px] ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
+                rounded-t-[10px] ${
+                  openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"
+                }`}
               onClick={() => toggleItem(stage.name)}
             >
               <div className="flex items-center gap-4">
-                {stage?.icon &&
-                <Image src={stage.icon} className="size-4" alt={stage.name} />
-                }
-                <p className="font-semibold text-[#061237] whitespace-nowrap">{stage.name}</p>
+                {funn?.icon && (
+                  <Image src={funn.icon} className="size-5" alt={stage.name} />
+                )}
+                <p className="font-semibold text-[#061237] whitespace-nowrap">
+                  {stage.name}
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 {statuses[stageName] === "Completed" ? (
@@ -366,16 +441,26 @@ const ObjectiveSelection = () => {
                       src={checkmark}
                       alt="Completed"
                     />
-                    <p className="text-green-500 font-semibold text-base">Completed</p>
+                    <p className="text-green-500 font-semibold text-base">
+                      Completed
+                    </p>
                   </>
                 ) : statuses[stageName] === "In Progress" ? (
-                  <p className="text-[#3175FF] font-semibold text-base whitespace-nowrap">In Progress</p>
+                  <p className="text-[#3175FF] font-semibold text-base whitespace-nowrap">
+                    In Progress
+                  </p>
                 ) : (
-                  <p className="text-[#061237] opacity-50 text-base whitespace-nowrap">Not Started</p>
+                  <p className="text-[#061237] opacity-50 text-base whitespace-nowrap">
+                    Not Started
+                  </p>
                 )}
               </div>
               <div>
-                {openItems[stage.name] ? <Image src={up} alt="collapse" /> : <Image src={down2} alt="expand" />}
+                {openItems[stage.name] ? (
+                  <Image src={up} alt="collapse" />
+                ) : (
+                  <Image src={down2} alt="expand" />
+                )}
               </div>
             </div>
 
@@ -396,13 +481,22 @@ const ObjectiveSelection = () => {
                       "print",
                       "ooh",
                     ]
-                      .filter((category) => hasValidatedPlatformsForCategory(category, stage.name))
+                      .filter((category) =>
+                        hasValidatedPlatformsForCategory(category, stage.name)
+                      )
                       .map((category) => (
                         <div key={category} className="w-full">
-                          <h3 className="text-xl font-semibold text-[#061237] mb-6">{category}</h3>
+                          <h3 className="text-xl font-semibold text-[#061237] mb-6">
+                            {category}
+                          </h3>
                           <div className="flex flex-wrap gap-8">
-                            {Array.from(selectedNetworks[stage.name] || []).map((platform) =>
-                              renderCompletedPlatform(platform, category, stage.name)
+                            {Array.from(selectedNetworks[stage.name] || []).map(
+                              (platform) =>
+                                renderCompletedPlatform(
+                                  platform,
+                                  category,
+                                  stage.name
+                                )
                             )}
                           </div>
                         </div>
@@ -422,32 +516,52 @@ const ObjectiveSelection = () => {
                     "print",
                     "ooh",
                   ].map((category) => {
-                    const normalizedCategory = category.toLowerCase().replaceAll(" ", "_");
-                    const platforms = Array.isArray(campaignFormData?.channel_mix)
+                    const normalizedCategory = category
+                      .toLowerCase()
+                      .replaceAll(" ", "_");
+                    const platforms = Array.isArray(
+                      campaignFormData?.channel_mix
+                    )
                       ? campaignFormData.channel_mix
                           .find((ch) => ch.funnel_stage === stageName)
-                          ?.[normalizedCategory]?.filter((p) => p.format?.length > 0) || []
+                          ?.[normalizedCategory]?.filter(
+                            (p) => p.format?.length > 0
+                          ) || []
                       : [];
                     if (platforms.length === 0) return null;
 
                     return (
-                      <div key={category} className="w-full md:flex flex-col items-start gap-6 md:w-4/5">
+                      <div
+                        key={category}
+                        className="w-full md:flex flex-col items-start gap-6 md:w-4/5"
+                      >
                         <h3 className="text-xl font-semibold text-[#061237] capitalize">
                           {category?.replace("_", " ")}
                         </h3>
                         <div className="flex flex-col gap-8">
                           {platforms.map((platform) => {
                             const platformKey = `${stage.name}-${category}-${platform.platform_name}`;
-                            const selectedObj = selectedOptions[`${stageName}-${category}-${platform.platform_name}-objective_type`];
-                            const selectedBuy = selectedOptions[`${stageName}-${category}-${platform.platform_name}-buy_type`];
+                            const selectedObj =
+                              selectedOptions[
+                                `${stageName}-${category}-${platform.platform_name}-objective_type`
+                              ];
+                            const selectedBuy =
+                              selectedOptions[
+                                `${stageName}-${category}-${platform.platform_name}-buy_type`
+                              ];
 
                             return (
-                              <div key={platformKey} className="flex items-center gap-8">
+                              <div
+                                key={platformKey}
+                                className="flex items-center gap-8"
+                              >
                                 <div className="w-[180px]">
                                   <div className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg shrink-0 w-fit min-w-[150px]">
                                     {getPlatformIcon(platform.platform_name) ? (
                                       <Image
-                                        src={getPlatformIcon(platform.platform_name)}
+                                        src={getPlatformIcon(
+                                          platform.platform_name
+                                        )}
                                         className="size-4"
                                         alt={platform.platform_name}
                                       />
@@ -460,7 +574,9 @@ const ObjectiveSelection = () => {
                                 <div className="relative min-w-[200px]">
                                   <div
                                     className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
-                                    onClick={() => toggleDropdown(platformKey + "obj")}
+                                    onClick={() =>
+                                      toggleDropdown(platformKey + "obj")
+                                    }
                                   >
                                     <p className="text-sm font-medium text-[#061237]">
                                       {selectedObj || "Buy Objective"}
@@ -468,7 +584,7 @@ const ObjectiveSelection = () => {
                                     <Image src={down2} alt="dropdown" />
                                   </div>
                                   {dropdownOpen === platformKey + "obj" && (
-                                    <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10">
+                                    <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
                                       <ul>
                                         {buyObj?.map((option, i) => (
                                           <li
@@ -487,10 +603,15 @@ const ObjectiveSelection = () => {
                                             {option?.text}
                                           </li>
                                         ))}
-                                        {showInput !== `${platformKey}+custom` ? (
+                                        {showInput !==
+                                        `${platformKey}+custom` ? (
                                           <li
                                             className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                                            onClick={() => setShowInput(`${platformKey}+custom`)}
+                                            onClick={() =>
+                                              setShowInput(
+                                                `${platformKey}+custom`
+                                              )
+                                            }
                                           >
                                             Add Custom
                                           </li>
@@ -499,7 +620,9 @@ const ObjectiveSelection = () => {
                                             <input
                                               className="w-full p-2 border rounded-[5px] outline-none"
                                               value={customValue}
-                                              onChange={(e) => setCustomValue(e.target.value)}
+                                              onChange={(e) =>
+                                                setCustomValue(e.target.value)
+                                              }
                                             />
                                             <div className="flex gap-[10px] w-full justify-between items-center my-[5px]">
                                               <button
@@ -510,10 +633,16 @@ const ObjectiveSelection = () => {
                                               </button>
                                               <button
                                                 className="w-full p-[5px] bg-blue-500 text-white rounded-[5px] flex justify-center items-center"
-                                                onClick={() => handleSaveCustomValue("obj")}
+                                                onClick={() =>
+                                                  handleSaveCustomValue("obj")
+                                                }
                                                 disabled={loading}
                                               >
-                                                {loading ? <FaSpinner className="animate-spin" /> : "Save"}
+                                                {loading ? (
+                                                  <FaSpinner className="animate-spin" />
+                                                ) : (
+                                                  "Save"
+                                                )}
                                               </button>
                                             </div>
                                           </div>
@@ -533,7 +662,7 @@ const ObjectiveSelection = () => {
                                     <Image src={down2} alt="dropdown" />
                                   </div>
                                   {dropdownOpen === platformKey && (
-                                    <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10">
+                                    <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
                                       <ul>
                                         {buyType.map((option, i) => (
                                           <li
@@ -552,10 +681,15 @@ const ObjectiveSelection = () => {
                                             {option?.text}
                                           </li>
                                         ))}
-                                        {showInput !== `${platformKey}+custom+buy` ? (
+                                        {showInput !==
+                                        `${platformKey}+custom+buy` ? (
                                           <li
                                             className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                                            onClick={() => setShowInput(`${platformKey}+custom+buy`)}
+                                            onClick={() =>
+                                              setShowInput(
+                                                `${platformKey}+custom+buy`
+                                              )
+                                            }
                                           >
                                             Add Custom
                                           </li>
@@ -564,7 +698,9 @@ const ObjectiveSelection = () => {
                                             <input
                                               className="w-full p-2 border rounded-[5px] outline-none"
                                               value={customValue}
-                                              onChange={(e) => setCustomValue(e.target.value)}
+                                              onChange={(e) =>
+                                                setCustomValue(e.target.value)
+                                              }
                                             />
                                             <div className="flex gap-[10px] w-full justify-between items-center my-[5px]">
                                               <button
@@ -575,10 +711,16 @@ const ObjectiveSelection = () => {
                                               </button>
                                               <button
                                                 className="w-full p-[5px] bg-blue-500 text-white rounded-[5px] flex justify-center items-center"
-                                                onClick={() => handleSaveCustomValue("buy")}
+                                                onClick={() =>
+                                                  handleSaveCustomValue("buy")
+                                                }
                                                 disabled={loading}
                                               >
-                                                {loading ? <FaSpinner className="animate-spin" /> : "Save"}
+                                                {loading ? (
+                                                  <FaSpinner className="animate-spin" />
+                                                ) : (
+                                                  "Save"
+                                                )}
                                               </button>
                                             </div>
                                           </div>
@@ -612,10 +754,19 @@ const ObjectiveSelection = () => {
                       variant="primary"
                       className="bg-blue-500"
                       onClick={() => {
-                        setIsEditable((prev) => ({ ...prev, [stage.name]: false }));
+                        setIsEditable((prev) => ({
+                          ...prev,
+                          [stage.name]: false,
+                        }));
                         setSelectedOptions(previousSelectedOptions);
-                        setStatuses((prev) => ({ ...prev, [stageName]: "In Progress" }));
-                        setValidatedPlatforms((prev) => ({ ...prev, [stageName]: new Set() }));
+                        setStatuses((prev) => ({
+                          ...prev,
+                          [stageName]: "In Progress",
+                        }));
+                        setValidatedPlatforms((prev) => ({
+                          ...prev,
+                          [stageName]: new Set(),
+                        }));
                       }}
                     />
                   </div>
