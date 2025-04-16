@@ -2,43 +2,68 @@
 
  .drawer-container {
   grid-area: drawer; 
-    width:0px;  
+  width:0px;  
   background-color: var(--accent-white); 
   transition: right 0.3s ease-in-out;
   border-left: 1px solid rgba(28, 28, 28, 0.1);
    overflow: hidden;  
 }
 
-
-
-/* @media screen and (max-width: 1300px) {
-   .drawer-container {
-    right: -40%;  
-  width: 40%; 
-   }
-}
-@media screen and (max-width: 1080px) {
-   .drawer-container {
-    right: -50%;  
-  width: 50%; 
-   }
-}
-@media screen and (max-width: 780px) {
-   .drawer-container {
-    right: -70%;  
-  width: 70%; 
-   }
-}
-@media screen and (max-width: 480px) {
-   .drawer-container {
-    right: -100%;  
-  width: 100%; 
-   }
-} */
-
-.drawer-open {
+/* .drawer-open {
   width: 420px
 }
+
+@media screen and (max-width: 1300px) {
+    .drawer-open {
+  width: 380px
+}
+}
+@media screen and (max-width: 1080px) {
+      .drawer-open {
+  width:360px
+}
+}
+@media screen and (max-width: 780px) {
+       .drawer-open {
+  width:340px
+}
+}
+@media screen and (max-width: 480px) {
+        .drawer-open {
+  width:320px
+}
+} */
+
+/* Drawer open state with responsive widths */
+.drawer-container.drawer-open {
+  width: 400px;
+}
+
+@media screen and (max-width: 1300px) {
+  .drawer-container.drawer-open {
+    width: 380px;
+  }
+}
+
+@media screen and (max-width: 1080px) {
+  .drawer-container.drawer-open {
+    width: 360px;
+  }
+}
+
+@media screen and (max-width: 780px) {
+  .drawer-container.drawer-open {
+    width: 340px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .drawer-container.drawer-open {
+    width: 320px;
+  }
+}
+
+
 
 .close-button {
   position: absolute;

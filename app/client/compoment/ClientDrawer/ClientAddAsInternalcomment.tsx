@@ -5,24 +5,23 @@ import closecircle from "../../../../public/close-circle.svg";
 import Image from "next/image";
 import { useComments } from 'app/utils/CommentProvider';
 import CommentHeaderwithClose from './ClientCommentHeaderwithClose';
-import InternalDropdowns from 'components/InternalDropdowns';
 import { useCampaigns } from 'app/utils/CampaignsContext';
 import { SVGLoader } from 'components/SVGLoader';
 import AlertMain from 'components/Alert/AlertMain';
 import { useSession } from "next-auth/react";
 
-const ClientAddAsInternalcomment = ({ position, setShow }) => {
-	const { campaignData } = useCampaigns();
+const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
 	const { data: session }: any = useSession();
 	const { addComment, isLoading, createCommentsError, comment, setComment, updatePosition } = useComments();
 	const [alert, setAlert] = useState(null);
 	const addcomment_as = ""
 	const client_commentID = session?.user?.id.toString()
-	const commentId = campaignData?.documentId
+	const commentId = campaign?.campaign?.documentId
 	const creator = {
 		id: session?.user?.id,
 		name: session?.user?.name,
 	}
+
 
 	const handleAddComment = async () => {
 		if (comment.trim() === "") return;

@@ -31,17 +31,14 @@ const BuyingObjective = () => {
 
   useEffect(() => {
     setIsMounted(true);
-    console.log("Initial campaignFormData:", campaignFormData); // Debug initial data
     setUpdatedData(campaignFormData);
     const filtered = getFilteredChannelMix(campaignFormData.channel_mix);
-    console.log("Initial filteredChannelMix:", filtered); // Debug filtered data
     setFilteredChannelMix(filtered);
   }, [rawCampaignFormData]);
 
   useEffect(() => {
     if (updatedData && isMounted) {
       const filtered = getFilteredChannelMix(updatedData.channel_mix);
-      console.log("Updated filteredChannelMix:", filtered); // Debug updated data
       setFilteredChannelMix(filtered);
     }
   }, [updatedData]);
@@ -78,22 +75,22 @@ const BuyingObjective = () => {
     setSelectedStage(stageName);
     const updatedFunnels = updatedData?.funnel_stages?.includes(stageName)
       ? {
-          ...updatedData,
-          funnel_stages: updatedData.funnel_stages.filter((name: string) => name !== stageName),
-        }
+        ...updatedData,
+        funnel_stages: updatedData.funnel_stages.filter((name: string) => name !== stageName),
+      }
       : {
-          ...updatedData,
-          funnel_stages: [...(updatedData?.funnel_stages || []), stageName],
-          channel_mix: [
-            ...(updatedData?.channel_mix || []),
-            {
-              funnel_stage: stageName,
-              social_media: [],
-              display_networks: [],
-              search_engines: [],
-            },
-          ],
-        };
+        ...updatedData,
+        funnel_stages: [...(updatedData?.funnel_stages || []), stageName],
+        channel_mix: [
+          ...(updatedData?.channel_mix || []),
+          {
+            funnel_stage: stageName,
+            social_media: [],
+            display_networks: [],
+            search_engines: [],
+          },
+        ],
+      };
     setUpdatedData(updatedFunnels);
   };
 
@@ -191,7 +188,7 @@ const BuyingObjective = () => {
             text="Edit"
             variant="primary"
             className="!w-[85px] !h-[40px]"
-            onClick={() => {}}
+            onClick={() => { }}
             disabled
           />
         </div>
@@ -275,17 +272,16 @@ const BuyingObjective = () => {
               <div key={stageIndex} className="flex justify-between items-center mb-4">
                 <div>
                   <div
-                    className={`${
-                      stageName?.name === "Conversion"
+                    className={`${stageName?.name === "Conversion"
                         ? "bg-[#FF9037] cursor-pointer"
                         : stageName?.name === "Loyalty"
-                        ? "bg-[#EF5407] cursor-pointer"
-                        : stageName?.name === "Awareness"
-                        ? "bg-[#0866FF]"
-                        : stageName?.name === "Consideration"
-                        ? "bg-[#00A36C]"
-                        : ""
-                    } rounded-[10px]`}
+                          ? "bg-[#EF5407] cursor-pointer"
+                          : stageName?.name === "Awareness"
+                            ? "bg-[#0866FF]"
+                            : stageName?.name === "Consideration"
+                              ? "bg-[#00A36C]"
+                              : ""
+                      } rounded-[10px]`}
                     onClick={() => handleLoyaltyButtonClick(stageName?.name)}
                   >
                     <div className="flex items-center justify-center gap-[16px] p-[24px]">

@@ -41,11 +41,47 @@ const getSignedApproval = async (id: any) => {
   return response.data
 }
  
+ //  get General Comment
+const getGeneralComment = async (commentId
+: any) => {  
+  const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/general-comments`,{
+      params: {
+        "filters[commentId][$eq]": commentId 
+      },
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+      },
+    })    
+  return response.data
+}
+ 
+ 
+const getCampaignById = async (clientId: string, campaignId: string) => {
+  const response = await axios.get(
+    `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns?filters[user][id][$eq]=${clientId}&filters[documentId][$eq]=${campaignId}&populate=*`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+      },
+    }
+  );
 
+  return response.data;
+};
+
+// const getCampaignById = async (campaignId: string) => {
+//   const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignId}&populate=*`, {
+//     headers: {
+//       Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+//     },
+//   });
+
+//   return response.data;
+// };
  
  
 
 
-const  clientService = { getComment ,getSignedApproval}
+const  clientService = { getComment ,getSignedApproval ,getGeneralComment ,getCampaignById}
 
 export default  clientService

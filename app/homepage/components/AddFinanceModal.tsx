@@ -142,7 +142,7 @@ const AddFinanceModal = ({
           setUsers(newOpt);
         })
         .catch((err) => {
-          console.log(err);
+          ;
         })
         .finally(() => {
           setLoadingUser(false);
@@ -230,7 +230,7 @@ const AddFinanceModal = ({
         if (!plan.name) {
           toast("Please select a media plan", {
             style: {
-              background: "red", 
+              background: "red",
               color: "white",
               textAlign: "center"
             },
@@ -238,12 +238,12 @@ const AddFinanceModal = ({
           });
           return false;
         }
-        
+
         if (!plan.type) {
           toast("Please select an amount type", {
             style: {
               background: "red",
-              color: "white", 
+              color: "white",
               textAlign: "center"
             },
             duration: 3000
@@ -256,7 +256,7 @@ const AddFinanceModal = ({
             style: {
               background: "red",
               color: "white",
-              textAlign: "center" 
+              textAlign: "center"
             },
             duration: 3000
           });
@@ -767,11 +767,11 @@ const AddFinanceModal = ({
                                         plan?.type === "total_po_amount"
                                           ? "Total PO amount"
                                           : plan?.type === "fixed_amount"
-                                          ? "Fixed amount"
-                                          : plan?.type ===
-                                            "total_po_amount_percent"
-                                          ? "Percentage of PO total amount"
-                                          : "",
+                                            ? "Fixed amount"
+                                            : plan?.type ===
+                                              "total_po_amount_percent"
+                                              ? "Percentage of PO total amount"
+                                              : "",
                                     }}
                                     onChange={(
                                       value: {
@@ -841,9 +841,9 @@ const AddFinanceModal = ({
                                                 return (
                                                   acc +
                                                   (Number(p?.amount) / 100) *
-                                                    Number(
-                                                      poForm?.PO_total_amount
-                                                    )
+                                                  Number(
+                                                    poForm?.PO_total_amount
+                                                  )
                                                 );
                                               }
                                             }
@@ -856,8 +856,8 @@ const AddFinanceModal = ({
                                         ) {
                                           if (
                                             (inputValue / 100) *
-                                              Number(poForm?.PO_total_amount) +
-                                              totalAssignedAmount <=
+                                            Number(poForm?.PO_total_amount) +
+                                            totalAssignedAmount <=
                                             poForm?.PO_total_amount
                                           ) {
                                             setMediaPlans((prev) => {
@@ -913,10 +913,10 @@ const AddFinanceModal = ({
                                     />
                                     {plan?.type ===
                                       "total_po_amount_percent" && (
-                                      <p className="absolute right-2 top-2">
-                                        %
-                                      </p>
-                                    )}
+                                        <p className="absolute right-2 top-2">
+                                          %
+                                        </p>
+                                      )}
                                   </div>
                                   <Trash2
                                     color="red"
@@ -936,29 +936,29 @@ const AddFinanceModal = ({
                             Non-assigned Budget:{" "}
                             {poForm?.PO_total_amount
                               ? Math.max(
-                                  0,
-                                  poForm.PO_total_amount -
-                                    mediaPlans.reduce((acc, plan) => {
-                                      if (plan?.amount > 0) {
-                                        if (
-                                          plan?.type !==
-                                          "total_po_amount_percent"
-                                        ) {
-                                          return acc + Number(plan?.amount);
-                                        } else if (
-                                          plan?.type ===
-                                          "total_po_amount_percent"
-                                        ) {
-                                          return (
-                                            acc +
-                                            (Number(plan?.amount) / 100) *
-                                              Number(poForm?.PO_total_amount)
-                                          );
-                                        }
-                                      }
-                                      return acc;
-                                    }, 0)
-                                )
+                                0,
+                                poForm.PO_total_amount -
+                                mediaPlans.reduce((acc, plan) => {
+                                  if (plan?.amount > 0) {
+                                    if (
+                                      plan?.type !==
+                                      "total_po_amount_percent"
+                                    ) {
+                                      return acc + Number(plan?.amount);
+                                    } else if (
+                                      plan?.type ===
+                                      "total_po_amount_percent"
+                                    ) {
+                                      return (
+                                        acc +
+                                        (Number(plan?.amount) / 100) *
+                                        Number(poForm?.PO_total_amount)
+                                      );
+                                    }
+                                  }
+                                  return acc;
+                                }, 0)
+                              )
                               : 0}
                           </p>
                         </div>
@@ -979,7 +979,7 @@ const AddFinanceModal = ({
                             return (
                               acc +
                               (Number(plan?.amount) / 100) *
-                                Number(poForm?.PO_total_amount)
+                              Number(poForm?.PO_total_amount)
                             );
                           }
                         }

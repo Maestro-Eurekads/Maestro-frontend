@@ -11,6 +11,7 @@ import { useAppDispatch, useAppSelector } from "store/useStore";
 import { getComment } from "features/Comment/commentSlice";
 import { SVGLoader } from "components/SVGLoader";
 import AlertMain from "components/Alert/AlertMain";
+import { useSearchParams } from "next/navigation";
 
 
 interface Comment {
@@ -37,16 +38,25 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 	const { campaignData } = useCampaigns();
 	const [alert, setAlert] = useState(null);
 	const [commentColors, setCommentColors] = useState({});
-	const commentId = campaignData?.documentId
+	// const commentId = campaignData?.documentId
+	const query = useSearchParams();
+	const commentId = query.get("campaignId");
 
-
-	const comments: Comment[] = useMemo(() => {
+	// Memoize filtered comments
+	const comment = useMemo(() => {
 		if (!data) return [];
-		return [...data].sort(
+		return data?.filter((comment) => comment?.client_commentID === null);
+	}, [data]);
+
+	// Memoize sorted comments
+	const comments: Comment[] = useMemo(() => {
+		return [...comment].sort(
 			(a: Comment, b: Comment) =>
 				new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime()
 		);
-	}, [data]);
+	}, [comment]);
+
+
 
 	useEffect(() => {
 		const newColors = {};
@@ -76,6 +86,8 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 			addCommentOpportunity(newOpportunity);
 		}
 	};
+
+
 
 
 
