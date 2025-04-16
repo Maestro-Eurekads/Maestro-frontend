@@ -122,34 +122,15 @@ const OverviewofyourCampaign = () => {
 				</div>
 			</div>
 			<div className="creation_continer">
-				{/* <PageHeaderWrapper
-					t1="Campaign summary"
-					t2="Final review of your campaign's budget allocation across phases and channels."
-				/> */}
-				{/* <CommentsDrawer
-					isOpen={isDrawerOpen}
-					onClose={setIsDrawerOpen}
-				/> */}
+
 				<div >
-					{/* <div className='flex gap-5'> 
-						<button className="overview-budget-conponent mt-8"
-							onClick={handleDrawerOpen}>View Comments</button>
-					</div> */}
+
 					<ConfigureBudgetComponet show={show} t1={"Your budget by campaign phase"} t2={undefined} />
 				</div>
 
 
 
-				{/* <div className='mt-[20px]'>
-				<span className="w-[68px] h-[19px] font-[600] text-[14px] leading-[19px] text-[#061237]">
-					Comment
-				</span>
 
-				<textarea
-					className="w-[600px] h-[128px] flex flex-col justify-center items-end p-4 pb-[20px] gap-12 bg-white border border-gray-300 shadow-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mt-[8px]"
-					placeholder="Write your comment">
-				</textarea>
-			</div> */}
 			</div>
 			<div>
 
