@@ -57,6 +57,7 @@ interface AdSetData {
   name: string;
   audience_type: string;
   size?: string;
+  extra_audiences?: string[]; // 👈 Add this
 }
 
 interface Format {
@@ -113,8 +114,8 @@ const getPlatformIcon = (platformName: string): StaticImageData | null => {
 
 // Context for dropdown management
 const DropdownContext = createContext<{
-  openDropdownId: number | null;
-  setOpenDropdownId: (id: number | null) => void;
+  openDropdownId: number | null | string;
+  setOpenDropdownId: (id: number | null | string) => void;
 }>({
   openDropdownId: null,
   setOpenDropdownId: () => {},
@@ -203,6 +204,8 @@ const AdSet = memo(function AdSet({
   adSetSize,
   onInteraction,
   adsets,
+  extraAudiences,
+  onUpdateExtraAudiences,
 }: {
   adset: AdSetType;
   index: number;
@@ -214,10 +217,19 @@ const AdSet = memo(function AdSet({
   adSetSize?: string;
   onInteraction: () => void;
   adsets: AdSetType[];
+  extraAudiences: string[];
+  onUpdateExtraAudiences: (audiences: string[]) => void;
 }) {
   const [audience, setAudience] = useState<string>(audienceType || "");
   const [name, setName] = useState<string>(adSetName || "");
   const [size, setSize] = useState<string>(adSetSize || "");
+  const [extraAudience, setExtraAudience] = useState<{ value?: string }[]>(
+    (extraAudiences || []).map((val) => ({ value: val }))
+  );
+
+  useEffect(() => {
+    setExtraAudience((extraAudiences || []).map((val) => ({ value: val })));
+  }, [extraAudiences]);
 
   useEffect(() => {
     if (audienceType !== undefined) setAudience(audienceType);
@@ -233,6 +245,14 @@ const AdSet = memo(function AdSet({
     },
     [adset.id, onUpdate, onInteraction]
   );
+
+  const handleExtraAudienceSelect = (selected: string, idx: number) => {
+    if (!selected) return;
+
+    const updated = [...extraAudience];
+    updated[idx] = { value: selected };
+    updateExtraAudienceMap(updated);
+  };
 
   const handleNameChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -254,19 +274,91 @@ const AdSet = memo(function AdSet({
     [adset.id, onUpdate, onInteraction]
   );
 
+  const isParentFilled =
+    name.trim() !== "" && audience.trim() !== "" && size.trim() !== "";
+
+  const canAddNewAudience =
+    isParentFilled &&
+    (extraAudience.length === 0 ||
+      (extraAudience.length > 0 &&
+        extraAudience[extraAudience.length - 1]?.value?.trim()));
+
+  const handleDeleteExtraAudience = (idx: number) => {
+    const updated = [...extraAudience];
+    updated.splice(idx, 1);
+    updateExtraAudienceMap(updated);
+  };
+
+  const updateExtraAudienceMap = (updatedList: { value?: string }[]) => {
+    setExtraAudience(updatedList);
+  
+    const cleaned = updatedList
+      .map((item) => item?.value?.trim())
+      .filter((val) => !!val) as string[];
+  
+    onUpdateExtraAudiences(cleaned);
+    onInteraction();
+  };
+  
+
   return (
     <div className="flex gap-2 items-start w-full px-4">
       <div className="relative">
         <p className="relative z-[1] text-[#3175FF] text-sm whitespace-nowrap font-bold flex gap-4 items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
           {`Ad set n°${adset.addsetNumber}`}
         </p>
-        {/* <hr className="border border-[#0000001A] w-[50px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" /> */}
       </div>
-      <AudienceDropdownWithCallback
-        onSelect={handleAudienceSelect}
-        initialValue={audience}
-        dropdownId={adset.id}
-      />
+      <div>
+        <AudienceDropdownWithCallback
+          onSelect={handleAudienceSelect}
+          initialValue={audience}
+          dropdownId={adset.id}
+          setExtraAudience={setExtraAudience}
+        />
+        <div className="mt-4 space-y-2">
+          <div>
+            {extraAudience?.map((audi, index) => (
+              <div
+                key={`${adset.id}-${index}`}
+                className="flex items-center justify-between gap-4 mb-2"
+              >
+                <AudienceDropdownWithCallback
+                  onSelect={(value: string) =>
+                    handleExtraAudienceSelect(value, index)
+                  }
+                  initialValue={audi?.value}
+                  dropdownId={`${adset.id}-${index}`}
+                />
+                <button
+                  disabled={!isEditing}
+                  onClick={() => handleDeleteExtraAudience(index)}
+                  className={` text-sm font-bold ${
+                    !isEditing ? "cursor-not-allowed" : ""
+                  }`}
+                >
+                  <MdDelete color="red" size={18} />
+                </button>
+              </div>
+            ))}
+          </div>
+          <div
+            className={`text-[14px] mt-2 font-semibold flex items-center gap-1 ${
+              canAddNewAudience
+                ? "text-[#3175FF] cursor-pointer"
+                : "text-gray-400 cursor-not-allowed"
+            }`}
+            onClick={() => {
+              if (canAddNewAudience) {
+                const updated = [...extraAudience, {}];
+                updateExtraAudienceMap(updated);
+              }
+            }}
+          >
+            <Plus size={14} />
+            <p>Add new audience</p>
+          </div>
+        </div>
+      </div>
       <input
         type="text"
         placeholder="Enter ad set name"
@@ -306,10 +398,12 @@ const AudienceDropdownWithCallback = memo(
     onSelect,
     initialValue,
     dropdownId,
+    setExtraAudience,
   }: {
     onSelect: (option: string) => void;
     initialValue?: string;
-    dropdownId: number;
+    dropdownId: number | string;
+    setExtraAudience?: any;
   }) {
     const { openDropdownId, setOpenDropdownId } = useContext(DropdownContext);
     const [selected, setSelected] = useState<string>(initialValue || "");
@@ -393,10 +487,6 @@ const AudienceDropdownWithCallback = memo(
             </ul>
           )}
         </div>
-        {/* <div className="text-[14px] mt-2 font-semibold text-[#3175FF] flex items-center gap-1">
-          <Plus size={14}/>
-          <p>Add new audience</p>
-        </div> */}
       </div>
     );
   }
@@ -456,7 +546,9 @@ const AdsetSettings = memo(function AdsetSettings({
   const [adSetDataMap, setAdSetDataMap] = useState<Record<number, AdSetData>>(
     {}
   );
-  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<number | string | null>(
+    null
+  );
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -716,6 +808,12 @@ const AdsetSettings = memo(function AdsetSettings({
                       audienceType={adSetData.audience_type}
                       adSetName={adSetData.name}
                       adSetSize={adSetData.size}
+                      extraAudiences={adSetData.extra_audiences || []}
+                      onUpdateExtraAudiences={(extraAudienceArray) =>
+                        updateAdSetData(adset.id, {
+                          extra_audiences: extraAudienceArray,
+                        })
+                      }
                       onInteraction={onInteraction}
                       adsets={adsets}
                     />
