@@ -1,8 +1,9 @@
 import React from "react";
 import Image from "next/image";
 import info from "../../public/info-circle.svg";
+import Skeleton from "react-loading-skeleton";
 
-const General = ({ campaign }) => {
+const General = ({ campaign, loading, isLoadingCampaign }) => {
 	const budget = campaign?.campaign_budget?.amount || "0";
 	const currency = campaign?.budget_details?.currency || "USD";
 
@@ -25,18 +26,20 @@ const General = ({ campaign }) => {
 			<div className="flex items-center justify-between">
 				{/* Total Budget */}
 				<div>
-					<div className="flex items-center gap-2">
-						<p className="font-medium text-[12px] leading-[16px] text-[#667085]">Total Budget</p>
-						<Image src={info} alt="info" />
-					</div>
-					<div className="flex items-end gap-2">
-						<div className="flex justify-center items-center p-[5px] w-[48px] h-[19px] bg-[#B8FFE6] rounded-full text-[12px] leading-[16px] text-[#00A331] mb-2">
-							{budgetChange}
-						</div>
-						<h1 className="font-medium text-[32px] leading-[49px] text-[#101828] whitespace-nowrap">
-							{currency} {formatNumber(budget)}
-						</h1>
-					</div>
+					{loading || isLoadingCampaign ? <Skeleton height={20} width={100} /> :
+						<div className="flex items-center gap-2">
+							<p className="font-medium text-[12px] leading-[16px] text-[#667085]">Total Budget</p>
+							<Image src={info} alt="info" />
+						</div>}
+					{loading || isLoadingCampaign ? <Skeleton height={20} width={200} /> :
+						<div className="flex items-end gap-2">
+							<div className="flex justify-center items-center p-[5px] w-[48px] h-[19px] bg-[#B8FFE6] rounded-full text-[12px] leading-[16px] text-[#00A331] mb-2">
+								{budgetChange}
+							</div>
+							<h1 className="font-medium text-[32px] leading-[49px] text-[#101828] whitespace-nowrap">
+								{currency} {formatNumber(budget)}
+							</h1>
+						</div>}
 				</div>
 
 				{/* Total Impressions */}
@@ -45,14 +48,15 @@ const General = ({ campaign }) => {
 						<p className="font-medium text-[12px] leading-[16px] text-[#667085]">Total Impressions</p>
 						<Image src={info} alt="info" />
 					</div>
-					<div className="flex items-end gap-2">
-						<div className="flex justify-center items-center p-[5px] w-[48px] h-[19px] bg-[#B8FFE6] rounded-full text-[12px] leading-[16px] text-[#00A331] mb-2">
-							{impressionsChange}
-						</div>
-						<h1 className="font-medium text-[32px] leading-[49px] text-[#101828] whitespace-nowrap">
-							{totalImpressions}
-						</h1>
-					</div>
+					{loading || isLoadingCampaign ? <Skeleton height={20} width={200} /> :
+						<div className="flex items-end gap-2">
+							<div className="flex justify-center items-center p-[5px] w-[48px] h-[19px] bg-[#B8FFE6] rounded-full text-[12px] leading-[16px] text-[#00A331] mb-2">
+								{impressionsChange}
+							</div>
+							<h1 className="font-medium text-[32px] leading-[49px] text-[#101828] whitespace-nowrap">
+								{totalImpressions}
+							</h1>
+						</div>}
 				</div>
 
 				{/* CPM */}
@@ -61,14 +65,15 @@ const General = ({ campaign }) => {
 						<p className="font-medium text-[12px] leading-[16px] text-[#667085]">CPM</p>
 						<Image src={info} alt="info" />
 					</div>
-					<div className="flex items-end gap-2">
-						<div className="flex justify-center items-center p-[5px] w-[48px] h-[19px] bg-[#FFE1E0] rounded-full text-[12px] leading-[16px] text-[#FF0302] mb-2">
-							{cpmChange}
-						</div>
-						<h1 className="font-medium text-[32px] leading-[49px] text-[#101828] whitespace-nowrap">
-							{currency} {cpm}
-						</h1>
-					</div>
+					{loading || isLoadingCampaign ? <Skeleton height={20} width={200} /> :
+						<div className="flex items-end gap-2">
+							<div className="flex justify-center items-center p-[5px] w-[48px] h-[19px] bg-[#FFE1E0] rounded-full text-[12px] leading-[16px] text-[#FF0302] mb-2">
+								{cpmChange}
+							</div>
+							<h1 className="font-medium text-[32px] leading-[49px] text-[#101828] whitespace-nowrap">
+								{currency} {cpm}
+							</h1>
+						</div>}
 				</div>
 			</div>
 		</div>

@@ -134,7 +134,7 @@ const ClientView = () => {
 	const client_commentId = session?.user?.id;
 	const campaign = !campaignDetails ? [] : campaignDetails[0];
 	const commentId = campaign?.documentId
-	console.log("commentId-commentId-commentId", client_commentId)
+
 
 	useEffect(() => {
 		if (clientId) {
@@ -146,8 +146,10 @@ const ClientView = () => {
 		if (selected) {
 			// dispatch(getCampaignById(clientId, selected));
 			dispatch(getCampaignById({ clientId: clientId, campaignId: selected }));
+			dispatch(getComment(commentId, client_commentId));
+			dispatch(getGeneralComment(commentId));
 		}
-	}, [selected]);
+	}, [selected, commentId, client_commentId, clientId]);
 
 
 
@@ -166,18 +168,18 @@ const ClientView = () => {
 	return (
 		<>
 			<div id="page-wrapper-client">
-				<Header setIsOpen={setIsOpen} campaigns={campaigns} />
-				<ClientCommentsDrawer isOpen={isDrawerOpen} onClose={setIsDrawerOpen} />
+				<Header setIsOpen={setIsOpen} campaigns={campaigns} loading={loading} />
+				<ClientCommentsDrawer isOpen={isDrawerOpen} onClose={setIsDrawerOpen} campaign={campaign} />
 				<main className="!px-0 mt-[20px] bg-[#F9FAFB]">
 					<div className={`px-[50px]  ${isDrawerOpen ? 'md:px-[50px]' : 'xl:px-[150px]'}`}>
 
 						<div className='flex	flex-col gap-[24px]'>
-							<ApproverContainer campaign={campaign} />
+							<ApproverContainer campaign={campaign} loading={loading} isLoadingCampaign={isLoadingCampaign} />
 
-							<General campaign={campaign} />
+							<General campaign={campaign} loading={loading} isLoadingCampaign={isLoadingCampaign} />
 
-							<BrandAwareness campaign={campaign} />
-							<ClientMessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
+							<BrandAwareness campaign={campaign} loading={loading} isLoadingCampaign={isLoadingCampaign} />
+							<ClientMessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} campaign={campaign} />
 							<div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
 								<ClientToggleSwitch active={active} setActive={setActive} />
 

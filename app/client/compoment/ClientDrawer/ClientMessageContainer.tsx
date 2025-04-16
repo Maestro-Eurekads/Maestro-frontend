@@ -2,7 +2,7 @@ import React from 'react'
 import ClientDraggableMessage from './ClientDraggableMessage'
 import ClientMessage from './ClientMessage'
 
-const ClientMessageContainer = ({ isOpen, isCreateOpen }) => {
+const ClientMessageContainer = ({ isOpen, isCreateOpen, campaign }) => {
 
 
 
@@ -10,7 +10,7 @@ const ClientMessageContainer = ({ isOpen, isCreateOpen }) => {
 	return (
 		<div>
 			{isCreateOpen &&
-				<ClientDraggableMessage />}
+				<ClientDraggableMessage campaign={campaign} />}
 			{isOpen &&
 				<ClientMessage />}
 

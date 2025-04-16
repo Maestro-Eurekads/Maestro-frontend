@@ -49,7 +49,8 @@ const DraggableComment = ({ opportunity }) => {
 		<Draggable
 			handle=".drag-handle"
 			nodeRef={commentRef}
-			defaultPosition={opportunity?.position || { x: 100, y: 100 }}
+			defaultPosition={{ x: 100, y: -50 }}
+			// defaultPosition={opportunity?.position || { x: 100, y: 100 }}
 			onStart={handleStart}
 			onStop={handleStop}
 		>

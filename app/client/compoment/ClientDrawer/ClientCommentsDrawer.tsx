@@ -28,7 +28,7 @@ interface Reply {
 	message?: string;
 }
 
-const ClientCommentsDrawer = ({ isOpen, onClose }) => {
+const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
 	const { opportunities, setViewcommentsId, viewcommentsId, addCommentOpportunity, setOpportunities, createCommentsError, createCommentsSuccess, approvedError, replyError, setIsCreateOpen, setClose } = useComments();
 	const {
 		data,
@@ -39,13 +39,12 @@ const ClientCommentsDrawer = ({ isOpen, onClose }) => {
 		?.filter((comment: Comment) => comment?.addcomment_as !== "Internal")
 		.sort((a: Comment, b: Comment) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 	const dispatch = useAppDispatch();
-	const { campaignData } = useCampaigns();
 	const [alert, setAlert] = useState(null);
 	const [commentColors, setCommentColors] = useState({});
-	const commentId = campaignData?.documentId
+	const commentId = campaign?.documentId
 
 
-
+	// console.log("campaign-campaign-campaign-2", campaign)
 
 	useEffect(() => {
 		const newColors = {};

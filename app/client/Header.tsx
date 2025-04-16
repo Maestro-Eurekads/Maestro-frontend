@@ -10,7 +10,7 @@ import tickcircles from "../../public/solid_circle-check.svg";
 import ClientsCampaignDropdown from "./compoment/ClientsCampaignDropdown";
 
 
-const Header = ({ setIsOpen, campaigns }) => {
+const Header = ({ setIsOpen, campaigns, loading }) => {
   const { isDrawerOpen, setModalOpen, createApprovalSuccess, setCreateApprovalSuccess, selected, setSelected } = useComments();
   const { dataApprove, isLoadingApprove } = useAppSelector((state) => state.comment);
   const { data: session }: any = useSession();
@@ -33,23 +33,24 @@ const Header = ({ setIsOpen, campaigns }) => {
 
   const isSignature = dataApprove?.[0]?.isSignature || false;
 
-  console.log('selected-selected-selected', selected)
+  // console.log('selected-selected-selected', selected)
   return (
     <div
       id="client_header"
       className={`py-[2.8rem] px-[50px] ${isDrawerOpen ? 'md:px-50px]' : 'xl:px-[150px]'} relative`}>
       <div className="flex items-end">
         <div className="flex flex-col">
-          <button
+          {/* <button
             className="w-[35px] h-[22px] font-semibold text-[16px] leading-[22px] text-[#061237] font-[General Sans]">
             Nike
-          </button>
+          </button> */}
           <h1 className="w-[348px] h-[32px] font-semibold text-[24px] leading-[32px] text-[#292929] font-[General Sans]"
           >
-            Spring Collection Launch 2025
+            Spring Collection
           </h1>
         </div>
-        <ClientsCampaignDropdown loadingClients={false} campaigns={campaigns} setSelected={setSelected} selected={selected} />
+        {loading ? <Skeleton height={20} width={200} /> :
+          <ClientsCampaignDropdown loadingClients={false} campaigns={campaigns} setSelected={setSelected} selected={selected} />}
       </div>
       <div>
         {isLoadingApprove ? <Skeleton height={20} width={200} /> :

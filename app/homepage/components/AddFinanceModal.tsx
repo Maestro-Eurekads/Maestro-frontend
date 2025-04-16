@@ -26,11 +26,7 @@ const AddFinanceModal = ({
   setIsOpen: any;
   mode?: string;
   selectedRow?: any;
-<<<<<<< HEAD
-  setSelectedRow?: any
-=======
   setSelectedRow?: any;
->>>>>>> cb4784df7d010e1ca11bd188b1f6a6d35c980237
 }) => {
   const [mediaPlans, setMediaPlans] = useState([]);
   const { fetchClientCampaign, fetchUserByType, fetchClientPOS } =
@@ -234,7 +230,7 @@ const AddFinanceModal = ({
         if (!plan.name) {
           toast("Please select a media plan", {
             style: {
-              background: "red", 
+              background: "red",
               color: "white",
               textAlign: "center"
             },
@@ -242,12 +238,12 @@ const AddFinanceModal = ({
           });
           return false;
         }
-        
+
         if (!plan.type) {
           toast("Please select an amount type", {
             style: {
               background: "red",
-              color: "white", 
+              color: "white",
               textAlign: "center"
             },
             duration: 3000
@@ -260,7 +256,7 @@ const AddFinanceModal = ({
             style: {
               background: "red",
               color: "white",
-              textAlign: "center" 
+              textAlign: "center"
             },
             duration: 3000
           });
@@ -282,44 +278,6 @@ const AddFinanceModal = ({
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
           },
         }
-<<<<<<< HEAD
-      )
-      .then((res) => {
-        handleClose();
-        setFetchingPO(true);
-        fetchClientPOS(selected)
-          .then((res) => {
-            localStorage.setItem("selectedClient", selected);
-            setClientPOs(res?.data?.data || []);
-          })
-          .finally(() => {
-            setFetchingPO(false);
-          });
-      })
-      .catch((err) => {
-        if (
-          err?.response?.data?.error?.message ===
-          "This attribute must be unique"
-        ) {
-          toast("PO number already exist", {
-            style: {
-              background: "red",
-              color: "white",
-              textAlign: "center",
-            },
-            duration: 3000,
-          });
-        } else {
-          toast(`${err?.response?.data?.error?.message}`, {
-            style: {
-              background: "red",
-              color: "white",
-              textAlign: "center",
-            },
-            duration: 3000,
-          });
-          //
-=======
       );
       return response.data.data.length > 0;
     } catch (err) {
@@ -377,7 +335,6 @@ const AddFinanceModal = ({
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
           },
->>>>>>> cb4784df7d010e1ca11bd188b1f6a6d35c980237
         }
       );
 
@@ -456,25 +413,6 @@ const AddFinanceModal = ({
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
           },
         }
-<<<<<<< HEAD
-      )
-      .then((res) => {
-        handleClose();
-        setFetchingPO(true);
-        fetchClientPOS(selectedRow?.client?.id)
-          .then((res) => {
-            localStorage.setItem("selectedClient", selectedRow?.client?.id);
-            setClientPOs(res?.data?.data || []);
-          })
-          .finally(() => {
-            setFetchingPO(false);
-          });
-      })
-      .catch((err) => {
-      })
-      .finally(() => {
-        setUploading(false);
-=======
       );
 
       toast("Purchase Order updated successfully!", {
@@ -484,7 +422,6 @@ const AddFinanceModal = ({
           textAlign: "center",
         },
         duration: 3000,
->>>>>>> cb4784df7d010e1ca11bd188b1f6a6d35c980237
       });
       handleClose();
       setFetchingPO(true);
@@ -721,10 +658,6 @@ const AddFinanceModal = ({
                         PO_total_amount: Number(value) || 0,
                       }));
                     }}
-<<<<<<< HEAD
-                  // readOnly={}
-=======
->>>>>>> cb4784df7d010e1ca11bd188b1f6a6d35c980237
                   />
                 </div>
                 {mode === "edit" && (
@@ -734,13 +667,9 @@ const AddFinanceModal = ({
                       className="mt-2"
                       placeholder="Select status"
                       options={statusOption}
-<<<<<<< HEAD
-                      value={statusOption?.find((opt) => opt?.value === poForm?.PO_status)}
-=======
                       value={statusOption?.find(
                         (opt) => opt?.value === poForm?.PO_status
                       )}
->>>>>>> cb4784df7d010e1ca11bd188b1f6a6d35c980237
                       onChange={(
                         value: { label: string; value: string } | null
                       ) => {

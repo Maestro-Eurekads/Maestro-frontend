@@ -18,6 +18,7 @@ import Image from "next/image";
 import BusinessGeneralComment from '../BusinessView/BusinessGeneralComment';
 import tickcircles from "../../../public/solid_circle-check.svg";
 import { RxDotFilled } from 'react-icons/rx';
+import { useSearchParams } from 'next/navigation';
 
 
 interface Comment {
@@ -43,11 +44,13 @@ const OverviewofyourCampaign = () => {
 	const { range } = useDateRange();
 	const { clientCampaignData, campaignData } = useCampaigns();
 	const dispatch = useAppDispatch();
-	const commentId = campaignData?.documentId
+	const query = useSearchParams();
+	const commentId = query.get("campaignId");
+	// const commentId = campaignData?.documentId
 	const comments: Comment[] = clientCampaignData
 		?.filter((comment: Comment) => comment?.addcomment_as !== "Internal")
 		.sort((a: Comment, b: Comment) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-	const allApproved = (comments?.length || 0) > 0 && comments.every((comment: Comment) => comment?.approved === true);
+	const allApproved = (comments?.length || 0) > 0 && comments?.every((comment: Comment) => comment?.approved === true);
 
 
 	const mapCampaignsToFunnels = (campaigns: any[]) => {

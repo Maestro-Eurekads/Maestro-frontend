@@ -9,9 +9,12 @@ import React, { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from 'store/useStore';
 import TableLoader from '../components/TableLoader';
 import AlertMain from 'components/Alert/AlertMain';
+import { useSearchParams } from 'next/navigation';
 
 const BusinessGeneralComment = () => {
 	const { campaignData } = useCampaigns();
+	const query = useSearchParams();
+	const commentId = query.get("campaignId");
 	const { data: session }: any = useSession();
 	const { generalComments, isLoadingGeneralComments } = useAppSelector((state) => state.comment);
 	const {
@@ -30,10 +33,8 @@ const BusinessGeneralComment = () => {
 	const [id, setid] = useState("");
 
 
-	console.log('generalComments-generalComments', generalComments,
-	)
 
-	const commentId = campaignData?.documentId;
+	// const commentId = campaignData?.documentId;
 	const author = {
 		id: session?.user?.id,
 		name: session?.user?.name,
@@ -87,7 +88,7 @@ const BusinessGeneralComment = () => {
 				message: "Comment created!",
 				position: "bottom-right",
 			});
-			dispatch(reset(commentId));
+			dispatch(reset());
 		}
 		if (generalError) {
 			setAlert({

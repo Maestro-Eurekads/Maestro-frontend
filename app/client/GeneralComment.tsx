@@ -5,7 +5,7 @@ import { useAppSelector } from 'store/useStore';
 const GeneralComment = () => {
 	const { generalComments, isLoadingGeneralComments } = useAppSelector((state) => state.comment);
 	const [generalComment, setGeneralComment] = useState("");
-	console.log("generalComments-generalComments", generalComments)
+	// console.log("generalComments-generalComments", generalComments)
 	useEffect(() => {
 		if (generalComments?.[0]?.generalComment) {
 			setGeneralComment(generalComments[0].generalComment);
