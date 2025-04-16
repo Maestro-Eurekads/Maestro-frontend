@@ -181,7 +181,7 @@ const CampaignBudget = () => {
               <input
                 className="text-center outline-none w-[145px]"
                 placeholder="Budget value"
-                value={Number(campaignFormData?.campaign_budget?.amount)?.toLocaleString() || ""}
+                value={Number(campaignFormData?.campaign_budget?.amount) || ""}
                 onChange={(e) => {
                   const value = e.target.value;
                   if (/^\d*\.?\d*$/.test(value)) {
