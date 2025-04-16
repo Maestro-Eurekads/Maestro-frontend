@@ -174,10 +174,8 @@ const updateMultipleAdSets = (
     );
     if (platformIndex !== -1) {
       const platform = stage[channelType][platformIndex];
-      platform.ad_sets = adSets.map((adSet) => ({
-        id: adSet.id || Date.now(),
-        ...adSet,
-      }));
+      platform.ad_sets = adSets;
+
       platformFound = true;
       break;
     }
@@ -205,7 +203,7 @@ const AdSet = memo(function AdSet({
   onInteraction,
   adsets,
   extraAudiences,
-  onUpdateExtraAudiences,
+  onUpdateExtraAudiences
 }: {
   adset: AdSetType;
   index: number;
@@ -224,18 +222,24 @@ const AdSet = memo(function AdSet({
   const [name, setName] = useState<string>(adSetName || "");
   const [size, setSize] = useState<string>(adSetSize || "");
   const [extraAudience, setExtraAudience] = useState<{ value?: string }[]>(
-    (extraAudiences || []).map((val) => ({ value: val }))
-  );
-
-  useEffect(() => {
-    setExtraAudience((extraAudiences || []).map((val) => ({ value: val })));
-  }, [extraAudiences]);
+    extraAudiences.map((val) => ({ value: val }))
+  );  
 
   useEffect(() => {
     if (audienceType !== undefined) setAudience(audienceType);
     if (adSetName !== undefined) setName(adSetName);
     if (adSetSize !== undefined) setSize(adSetSize);
   }, [audienceType, adSetName, adSetSize]);
+
+  const updateExtraAudienceMap = (updatedList: { value?: string }[]) => {
+    setExtraAudience(updatedList);
+    const cleaned = updatedList
+      .map((item) => item?.value?.trim())
+      .filter((val) => !!val) as string[];
+    onUpdateExtraAudiences(cleaned); // this updates adSetDataMap
+    onInteraction(); // notify form system
+  };
+  
 
   const handleAudienceSelect = useCallback(
     (selectedAudience: string) => {
@@ -248,9 +252,14 @@ const AdSet = memo(function AdSet({
 
   const handleExtraAudienceSelect = (selected: string, idx: number) => {
     if (!selected) return;
-
     const updated = [...extraAudience];
     updated[idx] = { value: selected };
+    updateExtraAudienceMap(updated);
+  };
+
+  const handleDeleteExtraAudience = (idx: number) => {
+    const updated = [...extraAudience];
+    updated.splice(idx, 1);
     updateExtraAudienceMap(updated);
   };
 
@@ -283,24 +292,6 @@ const AdSet = memo(function AdSet({
       (extraAudience.length > 0 &&
         extraAudience[extraAudience.length - 1]?.value?.trim()));
 
-  const handleDeleteExtraAudience = (idx: number) => {
-    const updated = [...extraAudience];
-    updated.splice(idx, 1);
-    updateExtraAudienceMap(updated);
-  };
-
-  const updateExtraAudienceMap = (updatedList: { value?: string }[]) => {
-    setExtraAudience(updatedList);
-  
-    const cleaned = updatedList
-      .map((item) => item?.value?.trim())
-      .filter((val) => !!val) as string[];
-  
-    onUpdateExtraAudiences(cleaned);
-    onInteraction();
-  };
-  
-
   return (
     <div className="flex gap-2 items-start w-full px-4">
       <div className="relative">
@@ -332,7 +323,7 @@ const AdSet = memo(function AdSet({
                 <button
                   disabled={!isEditing}
                   onClick={() => handleDeleteExtraAudience(index)}
-                  className={` text-sm font-bold ${
+                  className={`text-sm font-bold ${
                     !isEditing ? "cursor-not-allowed" : ""
                   }`}
                 >
@@ -391,6 +382,8 @@ const AdSet = memo(function AdSet({
     </div>
   );
 });
+
+
 
 // AudienceDropdownWithCallback Component
 const AudienceDropdownWithCallback = memo(
@@ -594,6 +587,7 @@ const AdsetSettings = memo(function AdsetSettings({
           name: adSet.name || "",
           audience_type: adSet.audience_type || "",
           size: adSet.size || "",
+          extra_audiences: adSet?.extra_audiences
         };
       });
       setAdSets(newAdSets);
@@ -691,8 +685,9 @@ const AdsetSettings = memo(function AdsetSettings({
   ]);
 
   useEffect(() => {
-    if (!isEditing && selectedPlatforms.includes(outlet.outlet)) {
+    if (isEditing && selectedPlatforms.includes(outlet.outlet)) {
       if (!campaignFormData?.channel_mix) return;
+  
       const adSetsToSave = adsets
         .map((adset) => {
           const data = adSetDataMap[adset.id] || {
@@ -704,23 +699,36 @@ const AdsetSettings = memo(function AdsetSettings({
             name: data.name,
             audience_type: data.audience_type,
             size: data.size,
+            extra_audiences: data.extra_audiences || [],
           };
         })
         .filter((data) => data.name || data.audience_type);
+  
       if (adSetsToSave.length === 0) return;
-
+  
       const updatedChannelMix = updateMultipleAdSets(
         campaignFormData.channel_mix,
         stageName,
         outlet.outlet,
         adSetsToSave
       );
+  
       setCampaignFormData((prevData) => ({
         ...prevData,
         channel_mix: updatedChannelMix,
       }));
     }
-  }, [isEditing, selectedPlatforms, outlet.outlet]);
+  }, [
+    isEditing,
+    selectedPlatforms,
+    outlet.outlet,
+    adsets,
+    adSetDataMap, // ✅ This was missing
+    campaignFormData,
+    setCampaignFormData,
+    stageName,
+  ]);
+  
 
   const handleSelectOutlet = useCallback(() => {
     setSelectedPlatforms((prev) => [...prev, outlet.outlet]);
@@ -872,7 +880,7 @@ const AdSetFlow = memo(function AdSetFlow({
       const data = getPlatformsFromStage();
       setPlatforms(data);
     }
-  }, [campaignFormData]);
+  }, []);
 
   const handleInteraction = useCallback(() => {
     setHasInteraction(true);
