@@ -15,6 +15,7 @@ import CampaignBudget from "./components/CampaignBudget";
 import ConfigureAdSetsAndBudget from "./components/ ConfigureadSetsAndbudget";
 import DefineAdSet from "./components/DefineAdSet";
 import { FormatSelection } from "./components/FormatSelection";
+import FeeSelectionStep from "./components/FeeSelectionStep";
 
 const Creation = () => {
   const { active, subStep } = useActive();
@@ -27,19 +28,23 @@ const Creation = () => {
         {active === 1 && <MapFunnelStages />}
         {active === 2 && <SelectChannelMix />}
         {active === 3 && <DefineAdSet />}
-        {active === 4 && subStep === 0 ? (
-          <CampaignBudget />
-        ) : (
-          subStep === 1 && <ConfigureAdSetsAndBudget />
-        )}
-        {active === 5 && <FormatSelection />}
-        {active === 6 && <SetBuyObjectivesAndTypes />}
-        {active === 7 && <SetBuyObjectivesAndTypesSubStep />}
+        {active === 8 &&
+          (subStep === 0 ? (
+            <CampaignBudget />
+          ) : subStep === 1 ? (
+            <FeeSelectionStep />
+          ) : subStep === 2 ? (
+            <ConfigureAdSetsAndBudget />
+          ) : null)}
+
+        {active === 4 && <FormatSelection />}
+        {active === 5 && <SetBuyObjectivesAndTypes />}
+        {active === 6 && <SetBuyObjectivesAndTypesSubStep />}
 
         {/* Step 8 (Tracks 2 subSteps) */}
       </div>
       {/* Step 7 (Tracks 1 subStep) */}
-      {active === 8 &&
+      {active === 7 &&
         (subStep === 0 ? (
           <PlanCampaignSchedule />
         ) : (

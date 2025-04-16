@@ -11,6 +11,7 @@ import { BiLoader } from "react-icons/bi";
 import { removeKeysRecursively } from "../utils/removeID";
 import { useSelectedDates } from "../app/utils/SelectedDatesContext";
 import { useVerification } from "app/utils/VerificationContext";
+import toast, { Toaster } from "react-hot-toast";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -94,6 +95,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     incompleteFieldsError,
     triggerBuyObjectiveError,
     validateStep,
+    campaignFormData,
   ]);
 
   const validateFormatSelection = () => {
@@ -265,7 +267,55 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    if (active === 5) {
+    if (active === 8) {
+      if (!campaignFormData?.campaign_budget?.budget_type) {
+        toast("Please select how to set your budget", {
+          style: {
+            background: "#FFEBEE",
+            color: "#F87171",
+            marginBottom: "70px",
+            padding: "16px",
+            borderRadius: "8px",
+            width: "320px",
+            border: "1px solid red",
+            borderLeft: "4px solid red"
+          },
+        });
+        setLoading(false);
+        return;
+      }
+      if (!campaignFormData?.campaign_budget?.amount) {
+        setAlert({
+          variant: "error",
+          message: "Please input a budget amount",
+          position: "bottom-right",
+        });
+        toast("Please input a budget amount", {
+          style: {
+            background: "#FFEBEE",
+            color: "red",
+            marginBottom: "70px",
+            padding: "16px",
+            borderRadius: "8px",
+            width: "320px",
+            border: "1px solid red",
+            borderLeft: "4px solid red"
+          },
+        });
+        setLoading(false);
+        return;
+      }
+      if (subStep > 0 && !campaignFormData?.campaign_budget?.sub_budget_type) {
+        setAlert({
+          variant: "error",
+          message: "Please select what type of budget you want",
+          position: "bottom-right",
+        });
+        setLoading(false);
+        return;
+      }
+    }
+    if (active === 4) {
       const isValidFormat = validateFormatSelection();
       if (!isValidFormat) {
         setTriggerFormatError(true);
@@ -277,7 +327,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    if (active === 6) {
+    if (active === 5) {
       const isValidBuyObjective = validateBuyObjectiveSelection();
       if (!isValidBuyObjective) {
         setTriggerBuyObjectiveError(true);
@@ -294,7 +344,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    if (active === 8) {
+    if (active === 7) {
       if (
         (!selectedDates?.to?.day || !selectedDates?.from?.day) &&
         subStep < 1
@@ -359,7 +409,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "id",
           "isValidated",
           "formatValidated",
-          "validatedStages"
+          "validatedStages",
         ]),
         custom_funnels: campaignFormData?.custom_funnels,
         funnel_type: campaignFormData?.funnel_type,
@@ -373,7 +423,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
           "isValidated",
-          "validatedStages"
+          "validatedStages",
         ]),
       });
     };
@@ -386,7 +436,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "id",
           "isValidated",
           "formatValidated",
-          "validatedStages"
+          "validatedStages",
         ]),
       });
     };
@@ -439,7 +489,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         await handleStepThree();
       } else if (active === 3) {
         await handleStepThree();
-      } else if (active === 4) {
+      } else if (active === 8) {
         await handleStepSeven();
       } else if (active === 6) {
         await handleStepSeven();
@@ -470,6 +520,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   return (
     <footer id="footer" className="w-full">
+      <Toaster position="bottom-right"/>
       {alert && <AlertMain alert={alert} />}
       {validateStep && (
         <AlertMain
