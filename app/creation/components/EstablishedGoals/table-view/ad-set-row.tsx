@@ -38,10 +38,9 @@ export const AdSetRow = ({
 }) => {
   const { campaignFormData } = useCampaigns();
   const chData = campaignFormData?.channel_mix
-  ?.find((ch) => ch?.funnel_stage === stage.name)
+    ?.find((ch) => ch?.funnel_stage === stage.name)
   [channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)
-  ?.ad_sets[adSetIndex];
-  console.log("🚀 ~ chData:", chData)
+    ?.ad_sets[adSetIndex];
   const obj = campaignFormData?.campaign_objective;
 
   const formulas = {
@@ -171,13 +170,13 @@ export const AdSetRow = ({
       key,
       typeof fn === "function"
         ? fn.apply(
-            null,
-            args.map((arg) =>
-              Array.isArray(arg)
-                ? Number(getNestedValue(chData, ...arg))
-                : Number(getNestedValue(chData, arg))
-            )
+          null,
+          args.map((arg) =>
+            Array.isArray(arg)
+              ? Number(getNestedValue(chData, ...arg))
+              : Number(getNestedValue(chData, arg))
           )
+        )
         : null,
     ])
   );

@@ -9,7 +9,7 @@ import Mmessages from "../../../../public/message-2.svg";
 import ClientAddAsInternalcomment from "./ClientAddAsInternalcomment";
 
 
-const ClientDraggableComment = ({ opportunity }) => {
+const ClientDraggableComment = ({ opportunity, campaign }) => {
 	const { updateOpportunityPosition } = useComments();
 	const [show, setShow] = useState(false);
 	const [draggedRecently, setDraggedRecently] = useState(false);
@@ -41,19 +41,22 @@ const ClientDraggableComment = ({ opportunity }) => {
 		}
 	};
 
+	console.log('opportunity?.position-opportunity?.position', opportunity?.position)
+
 
 
 	return (
 		<Draggable
 			handle=".drag-handle"
 			nodeRef={commentRef}
-			defaultPosition={opportunity?.position || { x: 300, y: 300 }}
+			defaultPosition={{ x: 100, y: -50 }}
+			// defaultPosition={opportunity?.position || { x: 150, y: 150 }}
 			onStart={handleStart}
 			onStop={handleStop}
 		>
 			{show ? (
 				<div ref={commentRef} className="absolute cursor-move drag-handle z-50">
-					<ClientAddAsInternalcomment position={opportunity?.position} setShow={setShow} />
+					<ClientAddAsInternalcomment position={opportunity?.position} setShow={setShow} campaign={campaign} />
 				</div>
 			) : (
 				<div ref={commentRef} className="absolute cursor-move drag-handle z-20">
@@ -74,14 +77,14 @@ const ClientDraggableComment = ({ opportunity }) => {
 };
 
 
-const ClientDraggableMessage = () => {
+const ClientDraggableMessage = (campaign) => {
 	const { opportunities } = useComments(); // Use opportunities instead of comments
 
 
 	return (
 		<NoSSR>
 			{opportunities?.map((opportunity) => (
-				<ClientDraggableComment key={opportunity?.commentId} opportunity={opportunity} />
+				<ClientDraggableComment key={opportunity?.commentId} opportunity={opportunity} campaign={campaign} />
 			))}
 		</NoSSR>
 	);

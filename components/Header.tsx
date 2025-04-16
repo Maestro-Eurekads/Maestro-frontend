@@ -37,7 +37,7 @@ const Header = ({ setIsOpen }) => {
     setFetchingPO,
     setFilterOptions
   } = useCampaigns();
-  const {setActive, setSubStep} = useActive()
+  const { setActive, setSubStep } = useActive()
   const [selected, setSelected] = useState("");
   const { fetchClientCampaign, fetchClientPOS } = useCampaignHook(); // Removed unused 'fetchAllClients'
   const dispatch = useAppDispatch();
@@ -65,8 +65,7 @@ const Header = ({ setIsOpen }) => {
   const selectedId =
     typeof window !== "undefined"
       ? localStorage.getItem("selectedClient") || ""
-      : ""; // Ensure a default value
-  // console.log("🚀 ~ useEffect ~ selectedId:", selectedId);
+      : ""; // Ensure a default value 
 
   useEffect(() => {
     if (!clients?.data || clients.data.length === 0) {
@@ -90,7 +89,7 @@ const Header = ({ setIsOpen }) => {
         const mediaData = extractAprroverFilters(res?.data?.data)
         const channelData = extractChannelAndPhase(res?.data?.data)
         console.log("🚀 ~ .then ~ channelData:", channelData)
-        setFilterOptions((prev)=>({...prev, ...dateData, ...mediaData, ...channelData}))
+        setFilterOptions((prev) => ({ ...prev, ...dateData, ...mediaData, ...channelData }))
         // console.log("🚀 ~ .then ~ dateData:", dateData)
         fetchClientPOS(clientId)
           .then((res) => {

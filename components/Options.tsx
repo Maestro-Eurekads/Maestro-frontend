@@ -215,7 +215,13 @@ const parseApiDate = (dateString: string | null): { day: number; month: number }
 
 
 
-
+const getInitials = (name: string | null | undefined) => {
+  if (!name) return null;
+  const parts = name.split(" ");
+  return parts.length >= 2
+    ? `${parts[0][0]}${parts[1][0]}`
+    : parts[0][0];
+};
 
 
 
@@ -239,5 +245,6 @@ export {
   parseApiDate,
   CapitalizeFirstLetter,
   getRandomColor,
-  getContrastingColor
+  getContrastingColor,
+  getInitials
 };

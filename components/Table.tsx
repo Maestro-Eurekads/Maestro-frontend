@@ -75,9 +75,8 @@ const Table = () => {
               ...clean_data?.media_plan_details,
               plan_name: duplicateName
                 ? duplicateName
-                : `${clean_data?.media_plan_details?.plan_name}-copy-${
-                    selected?.copyCount + 1
-                  }`,
+                : `${clean_data?.media_plan_details?.plan_name}-copy-${selected?.copyCount + 1
+                }`,
             },
             client: clientId ? clientId : allClients[0]?.id,
           },
@@ -99,7 +98,6 @@ const Table = () => {
         );
       })
       .catch((err) => {
-        console.log(err);
       })
       .finally(() => {
         setLoading(false);
@@ -134,7 +132,7 @@ const Table = () => {
               <th className="py-[12px] px-[16px]">Status</th>
               <th className="py-[12px] px-[16px]">Budget</th>
               <th className="py-[12px] px-[16px] whitespace-nowrap text-center">
-                Purchase Order <br />{" "}
+                Purchase Order <br />
                 <p className="text-center">(PO Number, Amount)</p>
               </th>
               <th className="py-[12px] px-[16px] whitespace-nowrap">Made by</th>
@@ -146,9 +144,9 @@ const Table = () => {
           </thead>
           <tbody className="data-table-content">
             {loading || fetchingPO ? (
-              <SVGLoaderFetch colSpan={8} text={"Loading client campaigns"} />
+              <SVGLoaderFetch colSpan={9} text={"Loading client campaigns"} />
             ) : clientCampaignData?.length === 0 ? (
-              <NoRecordFound colSpan={8}>No Client campaigns!</NoRecordFound>
+              <NoRecordFound colSpan={9}>No Client campaigns!</NoRecordFound>
             ) : (
               currentItems.map((data) => {
                 let POs = [];
@@ -199,7 +197,7 @@ const Table = () => {
                     <td className="py-[12px] px-[16px]">
                       {data?.budget_details?.value}{" "}
                       {!data?.budget_details?.currency?.includes("%") &&
-                      data?.budget_details?.currency?.includes("EUR")
+                        data?.budget_details?.currency?.includes("EUR")
                         ? "€"
                         : ""}
                     </td>
@@ -209,14 +207,13 @@ const Table = () => {
                           {POs?.map((p) => (
                             <div className="flex gap-2">
                               <p
-                                className={`${
-                                  p?.status === "fully_paid" ||
+                                className={`${p?.status === "fully_paid" ||
                                   p?.status === "reconcilled"
-                                    ? "bg-green-400"
-                                    : p?.status === "open"
+                                  ? "bg-green-400"
+                                  : p?.status === "open"
                                     ? "bg-blue-400"
                                     : "bg-orange-400"
-                                }  text-white text-xs px-3 py-1 rounded-full`}
+                                  }  text-white text-xs px-3 py-1 rounded-full`}
                                 title={p?.status
                                   ?.replace("_", " ")
                                   ?.toUpperCase()}
@@ -305,11 +302,10 @@ const Table = () => {
             <button
               onClick={prevPage}
               disabled={currentPage === 1}
-              className={`p-2 rounded-md ${
-                currentPage === 1
-                  ? "text-gray-400 cursor-not-allowed"
-                  : "text-blue-500 hover:bg-blue-50"
-              }`}
+              className={`p-2 rounded-md ${currentPage === 1
+                ? "text-gray-400 cursor-not-allowed"
+                : "text-blue-500 hover:bg-blue-50"
+                }`}
             >
               <ChevronLeft size={18} />
             </button>
@@ -319,11 +315,10 @@ const Table = () => {
                 <button
                   key={number}
                   onClick={() => paginate(number)}
-                  className={`w-8 h-8 flex items-center justify-center rounded-md ${
-                    currentPage === number
-                      ? "bg-blue-500 text-white"
-                      : "text-gray-700 hover:bg-blue-50"
-                  }`}
+                  className={`w-8 h-8 flex items-center justify-center rounded-md ${currentPage === number
+                    ? "bg-blue-500 text-white"
+                    : "text-gray-700 hover:bg-blue-50"
+                    }`}
                 >
                   {number}
                 </button>
@@ -333,11 +328,10 @@ const Table = () => {
             <button
               onClick={nextPage}
               disabled={currentPage === totalPages}
-              className={`p-2 rounded-md ${
-                currentPage === totalPages
-                  ? "text-gray-400 cursor-not-allowed"
-                  : "text-blue-500 hover:bg-blue-50"
-              }`}
+              className={`p-2 rounded-md ${currentPage === totalPages
+                ? "text-gray-400 cursor-not-allowed"
+                : "text-blue-500 hover:bg-blue-50"
+                }`}
             >
               <ChevronRight size={18} />
             </button>

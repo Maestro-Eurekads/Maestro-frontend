@@ -81,8 +81,10 @@ const DraggableComment = ({ comment, commentId }) => {
 };
 
 const Message = () => {
-	const { data: comments } = useAppSelector((state) => state.comment);
-
+	const { data } = useAppSelector((state) => state.comment);
+	const comments = data?.filter(
+		(comment) => comment?.client_commentID === null
+	);
 
 	return (
 		<NoSSR>

@@ -10,6 +10,7 @@ import { useCampaigns } from 'app/utils/CampaignsContext';
 import { SVGLoader } from 'components/SVGLoader';
 import AlertMain from 'components/Alert/AlertMain';
 import { useSession } from "next-auth/react";
+import { useSearchParams } from 'next/navigation';
 
 const AddAsInternalcomment = ({ position, setShow }) => {
 	const { campaignData } = useCampaigns();
@@ -18,7 +19,9 @@ const AddAsInternalcomment = ({ position, setShow }) => {
 	const [alert, setAlert] = useState(null);
 	const [selectedOption, setSelectedOption] = useState("Add as Internal");
 	const addcomment_as = selectedOption === "Add as Internal" ? "Internal" : "Client";
-	const commentId = campaignData?.documentId
+	// const commentId = campaignData?.documentId
+	const query = useSearchParams();
+	const commentId = query.get("campaignId");
 	const creator = {
 		id: session?.user?.id,
 		name: session?.user?.name,

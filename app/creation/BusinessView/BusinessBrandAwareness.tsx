@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import info from "../../public/info-circle.svg";
-import downoffline from "../../public/arrow-down-outline.svg";
-import upfull from "../../public/arrow-up-full.svg";
-import downfull from "../../public/arrow-down-full.svg";
-import upoffline from "../../public/arrow-up-offline.svg";
-import Skeleton from "react-loading-skeleton";
+import info from "../../../public/info-circle.svg";
+import downoffline from "../../../public/arrow-down-outline.svg";
+import upfull from "../../../public/arrow-up-full.svg";
+import downfull from "../../../public/arrow-down-full.svg";
+import upoffline from "../../../public/arrow-up-offline.svg";
 
-const BrandAwareness = ({ campaign, loading, isLoadingCampaign }) => {
+const BusinessBrandAwareness = ({ campaign }) => {
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [animationState, setAnimationState] = useState("");
 
@@ -17,8 +16,8 @@ const BrandAwareness = ({ campaign, loading, isLoadingCampaign }) => {
 				title: "Brand Awareness",
 				background: "#E5F2F7",
 				stats: [
-					{ label: "Reach", value: campaign?.brand_awareness?.reach || "0" },
-					{ label: "Frequency", value: campaign?.brand_awareness?.frequency || "0%" },
+					{ label: "Reach", value: campaign?.brand_awareness?.reach || "3,456,123" },
+					{ label: "Frequency", value: campaign?.brand_awareness?.frequency || "45.657%" },
 				],
 				indicators: ["#3175FF", "#C0C0C0", "#C0C0C0", "#C0C0C0", "#C0C0C0", "#C0C0C0"],
 				icons: { up: upfull, down: downoffline },
@@ -27,9 +26,9 @@ const BrandAwareness = ({ campaign, loading, isLoadingCampaign }) => {
 				title: "Traffic",
 				background: "#E6F4D5",
 				stats: [
-					{ label: "CTR", value: campaign?.traffic?.ctr || "0" },
-					{ label: "Total Clicks", value: campaign?.traffic?.total_clicks || "0%" },
-					{ label: "Bounce Rate", value: campaign?.traffic?.bounce_rate || "0%" },
+					{ label: "CTR", value: campaign?.traffic?.ctr || "7,892,345" },
+					{ label: "Total Clicks", value: campaign?.traffic?.total_clicks || "12.345%" },
+					{ label: "Bounce Rate", value: campaign?.traffic?.bounce_rate || "78.901%" },
 				],
 				indicators: ["#C0C0C0", "#3175FF", "#C0C0C0", "#C0C0C0", "#C0C0C0", "#C0C0C0"],
 				icons: { up: upfull, down: downfull },
@@ -38,9 +37,9 @@ const BrandAwareness = ({ campaign, loading, isLoadingCampaign }) => {
 				title: "Purchase",
 				background: "#FFE2C5",
 				stats: [
-					{ label: "CTR", value: campaign?.purchase?.ctr || "0" },
-					{ label: "Total Orders", value: campaign?.purchase?.total_orders || "0%" },
-					{ label: "Conversion Rate", value: campaign?.purchase?.conversion_rate || "0%" },
+					{ label: "CTR", value: campaign?.purchase?.ctr || "1,234,567" },
+					{ label: "Total Orders", value: campaign?.purchase?.total_orders || "56.789%" },
+					{ label: "Conversion Rate", value: campaign?.purchase?.conversion_rate || "34.567%" },
 				],
 				indicators: ["#C0C0C0", "#C0C0C0", "#3175FF", "#C0C0C0", "#C0C0C0", "#C0C0C0"],
 				icons: { up: upfull, down: downfull },
@@ -49,9 +48,9 @@ const BrandAwareness = ({ campaign, loading, isLoadingCampaign }) => {
 				title: "Lead Generation",
 				background: "#E5F2F7",
 				stats: [
-					{ label: "CVR", value: campaign?.leads?.cvr || "0" },
-					{ label: "Total Leads", value: campaign?.leads?.total || "0" },
-					{ label: "CPL", value: campaign?.leads?.cpl || "0%" },
+					{ label: "CVR", value: campaign?.leads?.cvr || "$9.12" },
+					{ label: "Total Leads", value: campaign?.leads?.total || "23456" },
+					{ label: "CPL", value: campaign?.leads?.cpl || "67.890%" },
 				],
 				indicators: ["#C0C0C0", "#C0C0C0", "#C0C0C0", "#3175FF", "#C0C0C0", "#C0C0C0"],
 				icons: { up: upfull, down: downfull },
@@ -60,9 +59,9 @@ const BrandAwareness = ({ campaign, loading, isLoadingCampaign }) => {
 				title: "App Installs",
 				background: "#E6F4D5",
 				stats: [
-					{ label: "CTR", value: campaign?.installs?.ctr || "0" },
-					{ label: "Total Installs", value: campaign?.installs?.total || "0%" },
-					{ label: "Install Rate", value: campaign?.installs?.rate || "0%" },
+					{ label: "CTR", value: campaign?.installs?.ctr || "7,892,345" },
+					{ label: "Total Installs", value: campaign?.installs?.total || "12.345%" },
+					{ label: "Install Rate", value: campaign?.installs?.rate || "78.901%" },
 				],
 				indicators: ["#C0C0C0", "#C0C0C0", "#C0C0C0", "#C0C0C0", "#3175FF", "#C0C0C0"],
 				icons: { up: upfull, down: downfull },
@@ -71,9 +70,9 @@ const BrandAwareness = ({ campaign, loading, isLoadingCampaign }) => {
 				title: "Video Views",
 				background: "#FFE2C5",
 				stats: [
-					{ label: "CTR", value: campaign?.video?.ctr || "0" },
-					{ label: "Total Views", value: campaign?.video?.views || "0%" },
-					{ label: "Watch Rate", value: campaign?.video?.watch_rate || "0%" },
+					{ label: "CTR", value: campaign?.video?.ctr || "1,234,567" },
+					{ label: "Total Views", value: campaign?.video?.views || "56.789%" },
+					{ label: "Watch Rate", value: campaign?.video?.watch_rate || "34.567%" },
 				],
 				indicators: ["#C0C0C0", "#C0C0C0", "#C0C0C0", "#C0C0C0", "#C0C0C0", "#3175FF"],
 				icons: { up: upoffline, down: downfull },
@@ -144,23 +143,21 @@ const BrandAwareness = ({ campaign, loading, isLoadingCampaign }) => {
 										: ""
 									}`}
 							>
-								{loading || isLoadingCampaign ? <Skeleton height={20} width={100} /> :
-									<p className="font-medium text-[12px] leading-[16px] text-[#667085]">
-										{stat.label}
-									</p>}
+								<p className="font-medium text-[12px] leading-[16px] text-[#667085]">
+									{stat.label}
+								</p>
 								<Image src={info} alt="info" />
 							</div>
-							{loading || isLoadingCampaign ? <Skeleton height={20} width={200} /> :
-								<h1
-									className={`font-medium text-[36px] leading-[49px] text-[#101828] whitespace-nowrap ${animationState === "in"
-										? "animate-slide-up"
-										: animationState === "out"
-											? "animate-slide-down"
-											: ""
-										}`}
-								>
-									{stat.value}
-								</h1>}
+							<h1
+								className={`font-medium text-[36px] leading-[49px] text-[#101828] whitespace-nowrap ${animationState === "in"
+									? "animate-slide-up"
+									: animationState === "out"
+										? "animate-slide-down"
+										: ""
+									}`}
+							>
+								{stat.value}
+							</h1>
 						</div>
 					))}
 				</div>
@@ -211,4 +208,5 @@ const BrandAwareness = ({ campaign, loading, isLoadingCampaign }) => {
 	);
 };
 
-export default BrandAwareness;
+export default BusinessBrandAwareness;
+
