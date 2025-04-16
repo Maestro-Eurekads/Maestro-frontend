@@ -41,8 +41,8 @@ const ConfiguredSetPage = () => {
 
   const [stageStatus, setStageStatus] = useState({
     Awareness: "Not started",
-    Consideration: "Not started", 
-    Conversion: "Not started"
+    Consideration: "Not started",
+    Conversion: "Not started",
   });
 
   const { campaignFormData, setCampaignFormData } = useCampaigns();
@@ -155,22 +155,25 @@ const ConfiguredSetPage = () => {
     const stageData = campaignFormData?.channel_mix?.find(
       (ch) => ch?.funnel_stage === stage
     );
-    
+
     if (stageData?.stage_budget?.fixed_value) {
       return true;
     }
 
     const channelTypes = ["search_engines", "display_networks", "social_media"];
     const hasPlatformBudget = channelTypes.some((type) =>
-      stageData?.[type]?.some((platform) =>
-        platform?.budget?.fixed_value && Number(platform.budget.fixed_value) > 0
+      stageData?.[type]?.some(
+        (platform) =>
+          platform?.budget?.fixed_value &&
+          Number(platform.budget.fixed_value) > 0
       )
     );
-    
+
     const hasAdSetBudget = channelTypes.some((type) =>
       stageData?.[type]?.some((platform) =>
-        platform?.ad_sets?.some((adSet) =>
-          adSet?.budget?.fixed_value && Number(adSet.budget.fixed_value) > 0
+        platform?.ad_sets?.some(
+          (adSet) =>
+            adSet?.budget?.fixed_value && Number(adSet.budget.fixed_value) > 0
         )
       )
     );
@@ -180,20 +183,20 @@ const ConfiguredSetPage = () => {
 
   useEffect(() => {
     // Update status when budget changes
-    campaignFormData?.funnel_stages.forEach(stageName => {
+    campaignFormData?.funnel_stages.forEach((stageName) => {
       const stageData = campaignFormData?.channel_mix?.find(
-        ch => ch?.funnel_stage === stageName
+        (ch) => ch?.funnel_stage === stageName
       );
-      
+
       if (stageData?.stage_budget?.fixed_value > 0) {
-        setStageStatus(prev => ({
+        setStageStatus((prev) => ({
           ...prev,
-          [stageName]: validatedStages[stageName] ? "Completed" : "In progress"
+          [stageName]: validatedStages[stageName] ? "Completed" : "In progress",
         }));
       } else {
-        setStageStatus(prev => ({
+        setStageStatus((prev) => ({
           ...prev,
-          [stageName]: "Not started"
+          [stageName]: "Not started",
         }));
       }
     });
@@ -201,14 +204,14 @@ const ConfiguredSetPage = () => {
 
   const handleValidateClick = (stage) => {
     setValidatedStages((prev) => ({ ...prev, [stage]: true }));
-    setStageStatus(prev => ({ ...prev, [stage]: "Completed" }));
+    setStageStatus((prev) => ({ ...prev, [stage]: "Completed" }));
 
     const stageData = campaignFormData?.channel_mix?.find(
       (ch) => ch?.funnel_stage === stage
     );
-    
+
     const newResults = [];
-    
+
     // Add stage budget
     if (stageData?.stage_budget?.fixed_value) {
       newResults.push({
@@ -274,7 +277,7 @@ const ConfiguredSetPage = () => {
               <div className="flex items-center gap-2">
                 <p
                   className={`font-semibold text-base ${
-                    stageStatus[stage.name] === "Completed" 
+                    stageStatus[stage.name] === "Completed"
                       ? "text-green-500 flex items-center gap-2"
                       : stageStatus[stage.name] === "In progress"
                       ? "text-[#3175FF]"
@@ -312,15 +315,7 @@ const ConfiguredSetPage = () => {
                           <input
                             type="text"
                             className="w-full px-4 focus:outline-none"
-                            value={
-                              Number(
-                                campaignFormData?.channel_mix
-                                  ?.find(
-                                    (ch) => ch?.funnel_stage === stage.name
-                                  )
-                                  ?.stage_budget?.fixed_value?.toLocaleString()
-                              ) || ""
-                            }
+                            value={stageBudget?.toLocaleString() || ""}
                             onChange={(e) => {
                               const newBudget = Number(e.target.value);
                               const currentTotal =
@@ -711,7 +706,7 @@ const ConfiguredSetPage = () => {
                                 return (
                                   adSet?.budget?.fixed_value ||
                                   (platform?.budget?.fixed_value &&
-                                  platform.ad_sets?.  platform.ad_sets?.length
+                                  platform.ad_sets?.platform.ad_sets?.length
                                     ? (
                                         Number(platform.budget.fixed_value) /
                                         platform.ad_sets.length

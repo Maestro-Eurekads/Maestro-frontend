@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import Topdown from "../../../public/Top-down.svg";
-import Selectstatus from "../../../public/Select-status.svg";
 import backdown from "../../../public/back-down.svg";
+import Selectstatus from "../../../public/Select-status.svg";
 import ecurrencyeur from "../../../public/e_currency-eur.svg";
 import Image from "next/image";
 import Input from "components/Input";
@@ -181,7 +181,7 @@ const CampaignBudget = () => {
               <input
                 className="text-center outline-none w-[145px]"
                 placeholder="Budget value"
-                value={campaignFormData?.campaign_budget?.amount || ""}
+                value={Number(campaignFormData?.campaign_budget?.amount)?.toLocaleString() || ""}
                 onChange={(e) => {
                   const value = e.target.value;
                   if (/^\d*\.?\d*$/.test(value)) {
