@@ -64,7 +64,6 @@ const Table = () => {
       "updatedAt",
     ]);
     const clientId = localStorage.getItem("selectedClient");
-    // console.log(allClients, "rerere");
     setLoading(true);
     await axios
       .post(
@@ -125,8 +124,8 @@ const Table = () => {
 
   return (
     <div className="flex flex-col">
-      <div className="table-container rounded-[8px] mt-[20px] overflow-x-scroll">
-        <table>
+      <div className="table-container rounded-[8px] mt-[20px] overflow-x-auto">
+        <table className="w-full min-w-[1200px]">
           <thead>
             <tr>
               <th className="py-[12px] px-[16px]">Name</th>
@@ -142,7 +141,7 @@ const Table = () => {
               <th className="py-[12px] px-[16px] whitespace-nowrap">
                 Approved by
               </th>
-              <th className="py-[12px] px-[16px]">Actions</th>
+              <th className="py-[12px] px-[16px] text-center w-[400px]">Actions</th>
             </tr>
           </thead>
           <tbody className="data-table-content">
@@ -152,8 +151,6 @@ const Table = () => {
               <NoRecordFound colSpan={8}>No Client campaigns!</NoRecordFound>
             ) : (
               currentItems.map((data) => {
-                // console.log("🚀 ~ currentItems.map ~ findPOs:", data);
-
                 let POs = [];
                 clientPOs?.forEach((po) => {
                   const matchedPlan = po?.assigned_media_plans?.find(
@@ -170,7 +167,6 @@ const Table = () => {
                     });
                   }
                 });
-                // console.log("here's your PO", POs);
                 return (
                   <tr
                     key={data?.id}
@@ -188,7 +184,7 @@ const Table = () => {
                     }}
                     className="cursor-pointer"
                   >
-                    <td className="whitespace-normal py-[12px] px-[16px] break-words w-[200px]">
+                    <td className="whitespace-normal py-[12px] px-[16px] break-words max-w-[200px]">
                       {data?.media_plan_details?.plan_name} -{" "}
                       {data?.progress_percent < 100 ? "Running" : "Completed"}
                     </td>
@@ -249,9 +245,9 @@ const Table = () => {
                         <p>{data?.media_plan_details?.internal_approver}</p>
                       </div>
                     </td>
-                    <td className="py-[12px] px-[16px]">
+                    <td className="py-[12px] px-[16px] w-[120px]">
                       <div
-                        className="flex gap-4"
+                        className="flex items-center justify-center gap-4"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <Image
@@ -353,7 +349,7 @@ const Table = () => {
               value={itemsPerPage}
               onChange={(e) => {
                 setItemsPerPage(Number(e.target.value));
-                setCurrentPage(1); // Reset to first page when changing items per page
+                setCurrentPage(1);
               }}
               className="border rounded-md p-1 text-sm"
             >

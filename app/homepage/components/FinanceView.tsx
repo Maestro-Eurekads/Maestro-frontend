@@ -1,15 +1,16 @@
+
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import FiltersDropdowns from "./FiltersDropdowns";
-import Table from "components/Table";
-import blueBtn from "../../../public/blueBtn.svg";
 import FinanceTable from "./FinanceTable";
 import AddFinanceModal from "./AddFinanceModal";
 import Modal from "components/Modals/Modal";
 import axios from "axios";
 import { FaSpinner } from "react-icons/fa";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import useCampaignHook from "app/utils/useCampaignHook";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import blueBtn from "../../../public/blueBtn.svg";
 
 function FinanceView({ setOpenModal }) {
   const [openEdit, setOpenEdit] = useState(false);
@@ -17,39 +18,69 @@ function FinanceView({ setOpenModal }) {
   const [openView, setOpenView] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10; // Number of items per page
   const { fetchClientPOS } = useCampaignHook();
-  const { setClientPOs, setFetchingPO } = useCampaigns();
+  const { clientPOs, setClientPOs, setFetchingPO } = useCampaigns();
+
+  // Calculate paginated data with safety checks
+  const totalItems = Array.isArray(clientPOs) ? clientPOs.length : 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedData = Array.isArray(clientPOs)
+    ? clientPOs.slice(startIndex, endIndex)
+    : [];
+
+  // Reset currentPage if it exceeds totalPages
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
 
   const handleDeletePO = async () => {
+    if (!selectedRow?.documentId) {
+      console.error("No documentId for deletion");
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    await axios
-      .delete(
+    try {
+      await axios.delete(
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders/${selectedRow?.documentId}`,
         {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
           },
         }
-      )
-      .then((res) => {
-        setOpenDelete(false);
-        setSelectedRow(null);
-        setFetchingPO(true);
-        fetchClientPOS(selectedRow?.client?.id)
-          .then((res) => {
-            localStorage.setItem("selectedClient", selectedRow?.client?.id)
-            setClientPOs(res?.data?.data || []);
-          })
-          .finally(() => {
-            setFetchingPO(false);
-          });
-      })
-      .catch((err) => {
-        console.log(err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      );
+      setOpenDelete(false);
+      setSelectedRow(null);
+      setFetchingPO(true);
+      try {
+        const res = await fetchClientPOS(selectedRow?.client?.id);
+        localStorage.setItem("selectedClient", selectedRow?.client?.id);
+        setClientPOs(Array.isArray(res?.data?.data) ? res.data.data : []);
+        setCurrentPage(1); // Reset to page 1 after deletion
+      } catch (fetchError) {
+        console.error("Error fetching POs:", fetchError);
+        setClientPOs([]);
+      } finally {
+        setFetchingPO(false);
+      }
+    } catch (error) {
+      console.error("Error deleting PO:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Pagination controls
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
   };
 
   return (
@@ -64,6 +95,7 @@ function FinanceView({ setOpenModal }) {
         {/* <FiltersDropdowns hideTitle={true}/> */}
       </div>
       <FinanceTable
+        data={paginatedData}
         selectedRow={selectedRow}
         setSelectedRow={setSelectedRow}
         openEdit={openEdit}
@@ -73,6 +105,38 @@ function FinanceView({ setOpenModal }) {
         openView={openView}
         setOpenView={setOpenView}
       />
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-4 mt-4">
+          <button
+            className={`p-2 rounded-md ${
+              currentPage === 1
+                ? "bg-gray-200 cursor-not-allowed"
+                : "bg-blue-500 text-white hover:bg-blue-600"
+            }`}
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            aria-label="Previous page"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <span className="text-gray-700">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            className={`p-2 rounded-md ${
+              currentPage === totalPages
+                ? "bg-gray-200 cursor-not-allowed"
+                : "bg-blue-500 text-white hover:bg-blue-600"
+            }`}
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            aria-label="Next page"
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
+      )}
       <AddFinanceModal
         isOpen={openEdit}
         setIsOpen={setOpenEdit}

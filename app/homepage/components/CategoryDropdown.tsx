@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import mdEdit from "../../../public/line-md_edit.svg";
 import blueSmallPlue from "../../../public/blueSmallPlue.svg";
 import Image from "next/image";
 import { MdOutlineCancel } from "react-icons/md";
@@ -71,9 +70,6 @@ const EditInput = ({
               value={field.text}
               onChange={(e) => handleInputChange(index, e.target.value)}
             />
-            <span className="ml-auto text-gray-500 cursor-pointer">
-              <Image src={mdEdit} alt="edit" />
-            </span>
             {fields.length > 1 && (
               <MdOutlineCancel
                 size={18}
@@ -113,4 +109,3 @@ const CategoryDropdown = ({ setInputs, setAlert }) => {
 };
 
 export default CategoryDropdown;
-

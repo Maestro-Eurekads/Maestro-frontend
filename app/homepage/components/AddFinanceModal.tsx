@@ -224,6 +224,47 @@ const AddFinanceModal = ({
       return false;
     }
 
+    // Validate media plans
+    if (mediaPlans.length > 0) {
+      for (const plan of mediaPlans) {
+        if (!plan.name) {
+          toast("Please select a media plan", {
+            style: {
+              background: "red", 
+              color: "white",
+              textAlign: "center"
+            },
+            duration: 3000
+          });
+          return false;
+        }
+        
+        if (!plan.type) {
+          toast("Please select an amount type", {
+            style: {
+              background: "red",
+              color: "white", 
+              textAlign: "center"
+            },
+            duration: 3000
+          });
+          return false;
+        }
+
+        if (!plan.amount && plan.amount !== 0) {
+          toast("Please enter an amount for the media plan", {
+            style: {
+              background: "red",
+              color: "white",
+              textAlign: "center" 
+            },
+            duration: 3000
+          });
+          return false;
+        }
+      }
+    }
+
     return true;
   };
 
