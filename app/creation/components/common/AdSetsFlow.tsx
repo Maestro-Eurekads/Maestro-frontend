@@ -30,6 +30,7 @@ import Display from "../../../../public/Display.svg";
 import yahoo from "../../../../public/yahoo.svg";
 import bing from "../../../../public/bing.svg";
 import tictok from "../../../../public/tictok.svg";
+import { Plus } from "lucide-react";
 
 // Types
 interface AdSetType {
@@ -254,7 +255,7 @@ const AdSet = memo(function AdSet({
   );
 
   return (
-    <div className="flex gap-2 items-center w-full px-4">
+    <div className="flex gap-2 items-start w-full px-4">
       <div className="relative">
         <p className="relative z-[1] text-[#3175FF] text-sm whitespace-nowrap font-bold flex gap-4 items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
           {`Ad set n°${adset.addsetNumber}`}
@@ -351,45 +352,51 @@ const AudienceDropdownWithCallback = memo(
     }, [isOpen, dropdownId, setOpenDropdownId]);
 
     return (
-      <div
-        className="relative border-2 border-[#0000001A] rounded-[10px]"
-        data-dropdown-id={dropdownId}
-      >
-        <button
-          onClick={toggleOpen}
-          className="relative z-10 w-[172px] bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
+      <div>
+        <div
+          className="relative border-2 border-[#0000001A] rounded-[10px]"
+          data-dropdown-id={dropdownId}
         >
-          <span className="truncate">{selected || "Your audience type"}</span>
-          <svg
-            className={`h-4 w-4 flex-shrink-0 transition-transform ${
-              isOpen ? "rotate-180" : ""
-            }`}
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+          <button
+            onClick={toggleOpen}
+            className="relative z-10 w-[172px] bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </button>
-        {isOpen && (
-          <ul className="absolute mt-1 top-full z-50 w-full bg-white border-2 border-[#0000001A] rounded-lg shadow-lg overflow-hidden">
-            {options.map((option, index) => (
-              <li
-                key={index}
-                onClick={() => handleSelect(option)}
-                className="p-4 cursor-pointer text-[#656565] text-sm text-center whitespace-nowrap hover:bg-gray-100"
-              >
-                {option}
-              </li>
-            ))}
-          </ul>
-        )}
+            <span className="truncate">{selected || "Your audience type"}</span>
+            <svg
+              className={`h-4 w-4 flex-shrink-0 transition-transform ${
+                isOpen ? "rotate-180" : ""
+              }`}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+          {isOpen && (
+            <ul className="absolute mt-1 top-full z-50 w-full bg-white border-2 border-[#0000001A] rounded-lg shadow-lg overflow-hidden">
+              {options.map((option, index) => (
+                <li
+                  key={index}
+                  onClick={() => handleSelect(option)}
+                  className="p-4 cursor-pointer text-[#656565] text-sm text-center whitespace-nowrap hover:bg-gray-100"
+                >
+                  {option}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        {/* <div className="text-[14px] mt-2 font-semibold text-[#3175FF] flex items-center gap-1">
+          <Plus size={14}/>
+          <p>Add new audience</p>
+        </div> */}
       </div>
     );
   }
@@ -557,7 +564,7 @@ const AdsetSettings = memo(function AdsetSettings({
   );
 
   const saveChangesToCampaign = useCallback(() => {
-    console.log("hrere")
+    console.log("hrere");
     if (!campaignFormData?.channel_mix) return;
     const adSetsToSave = adsets
       .map((adset) => {
@@ -596,7 +603,10 @@ const AdsetSettings = memo(function AdsetSettings({
       if (!campaignFormData?.channel_mix) return;
       const adSetsToSave = adsets
         .map((adset) => {
-          const data = adSetDataMap[adset.id] || { name: "", audience_type: "" };
+          const data = adSetDataMap[adset.id] || {
+            name: "",
+            audience_type: "",
+          };
           return {
             id: adset.id,
             name: data.name,
@@ -606,7 +616,7 @@ const AdsetSettings = memo(function AdsetSettings({
         })
         .filter((data) => data.name || data.audience_type);
       if (adSetsToSave.length === 0) return;
-  
+
       const updatedChannelMix = updateMultipleAdSets(
         campaignFormData.channel_mix,
         stageName,
@@ -619,7 +629,6 @@ const AdsetSettings = memo(function AdsetSettings({
       }));
     }
   }, [isEditing, selectedPlatforms, outlet.outlet]);
-  
 
   const handleSelectOutlet = useCallback(() => {
     setSelectedPlatforms((prev) => [...prev, outlet.outlet]);
