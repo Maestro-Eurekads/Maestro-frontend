@@ -28,7 +28,7 @@ const Creation = () => {
         {active === 1 && <MapFunnelStages />}
         {active === 2 && <SelectChannelMix />}
         {active === 3 && <DefineAdSet />}
-        {active === 4 &&
+        {active === 8 &&
           (subStep === 0 ? (
             <CampaignBudget />
           ) : subStep === 1 ? (
@@ -37,14 +37,14 @@ const Creation = () => {
             <ConfigureAdSetsAndBudget />
           ) : null)}
 
-        {active === 5 && <FormatSelection />}
-        {active === 6 && <SetBuyObjectivesAndTypes />}
-        {active === 7 && <SetBuyObjectivesAndTypesSubStep />}
+        {active === 4 && <FormatSelection />}
+        {active === 5 && <SetBuyObjectivesAndTypes />}
+        {active === 6 && <SetBuyObjectivesAndTypesSubStep />}
 
         {/* Step 8 (Tracks 2 subSteps) */}
       </div>
       {/* Step 7 (Tracks 1 subStep) */}
-      {active === 8 &&
+      {active === 7 &&
         (subStep === 0 ? (
           <PlanCampaignSchedule />
         ) : (

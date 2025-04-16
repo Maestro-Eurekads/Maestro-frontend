@@ -267,7 +267,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    if (active === 4) {
+    if (active === 8) {
       if (!campaignFormData?.campaign_budget?.budget_type) {
         toast("Please select how to set your budget", {
           style: {
@@ -315,7 +315,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         return;
       }
     }
-    if (active === 5) {
+    if (active === 4) {
       const isValidFormat = validateFormatSelection();
       if (!isValidFormat) {
         setTriggerFormatError(true);
@@ -327,7 +327,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    if (active === 6) {
+    if (active === 5) {
       const isValidBuyObjective = validateBuyObjectiveSelection();
       if (!isValidBuyObjective) {
         setTriggerBuyObjectiveError(true);
@@ -344,7 +344,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    if (active === 8) {
+    if (active === 7) {
       if (
         (!selectedDates?.to?.day || !selectedDates?.from?.day) &&
         subStep < 1
@@ -489,7 +489,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         await handleStepThree();
       } else if (active === 3) {
         await handleStepThree();
-      } else if (active === 4) {
+      } else if (active === 8) {
         await handleStepSeven();
       } else if (active === 6) {
         await handleStepSeven();
