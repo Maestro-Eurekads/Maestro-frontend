@@ -1,7 +1,7 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
-import { getComment } from "features/Comment/commentSlice";
+import { getComment, getGeneralComment } from "features/Comment/commentSlice";
 import { useAppDispatch, useAppSelector } from "store/useStore";
 import { client } from '../../types/types';
 const CommentContext = createContext(null);
@@ -24,13 +24,18 @@ export const CommentProvider = ({ children }) => {
 	const [createCommentsError, setCreateCommentsError] = useState(null);
 	const [replyError, setReplyError] = useState(null);
 	const [approvedError, setApprovedError] = useState(null);
+	const [generalError, setGeneralError] = useState(null);
 	const [createCommentsSuccess, setCreateCommentsSuccess] = useState(null);
+	const [generalcommentsSuccess, setGeneralcommentsSuccess] = useState(null);
 	const [createApprovalSuccess, setCreateApprovalSuccess] = useState(null);
 	const [isLoading, setIsLoading] = useState(false);
 	const [isLoadingApproval, setIsLoadingApproval] = useState(false);
+	const [isLoadingGeneral, setIsLoadingGeneral] = useState(false);
 	const [modalOpen, setModalOpen] = useState(false);
 	const [isLoadingReply, setIsLoadingReply] = useState(false);
 	const [replyText, setReplyText] = useState("");
+	const [generalComment, setGeneralComment] = useState("");
+	const [selected, setSelected] = useState(null);
 	const dispatch = useAppDispatch();
 	const { data } = useAppSelector((state) => state.comment);
 
@@ -60,6 +65,55 @@ export const CommentProvider = ({ children }) => {
 		}
 	}, [data]);
 
+	const addGeneralComment = async (commentId, generalComment, author) => {
+		setIsLoadingGeneral(true);
+		try {
+			await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/general-comments`, {
+				data: {
+					commentId,
+					generalComment,
+					author
+				},
+			}, {
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+				},
+			});
+			dispatch(getGeneralComment(commentId));
+			setGeneralComment("");
+			setIsLoadingGeneral(false);
+			setGeneralcommentsSuccess(true);
+		} catch (error) {
+			setGeneralError(error);
+			setIsLoadingGeneral(false);
+		}
+	};
+
+	const updateGeneralComment = async (commentId, generalComment, author, id) => {
+		setIsLoadingGeneral(true);
+		try {
+			await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/general-comments/${id}`, {
+				data: {
+					commentId,
+					generalComment,
+					author
+				},
+			}, {
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+				},
+			});
+			dispatch(getGeneralComment(commentId));
+			setGeneralComment("");
+			setIsLoadingGeneral(false);
+			setGeneralcommentsSuccess(true);
+		} catch (error) {
+			setGeneralError(error);
+			setIsLoadingGeneral(false);
+		}
+	};
 
 	const addComment = async (commentId, text, position, addcomment_as, creator, client_commentID) => {
 		setIsLoading(true);
@@ -98,7 +152,7 @@ export const CommentProvider = ({ children }) => {
 	const createAsignatureapproval = async (sign, inputs, id) => {
 		setIsLoadingApproval(true);
 		try {
-			const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/client-signature-approvals`, {
+			await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/client-signature-approvals`, {
 				data: {
 					dateSigned: inputs.date,
 					initials: inputs.initials,
@@ -136,7 +190,7 @@ export const CommentProvider = ({ children }) => {
 					},
 				}
 			);
-			const comment = data.data;
+			const comment = data?.data;
 			// Ensure replies array exists
 			const updatedReplies = [...(comment?.replies || []), newReply];
 
@@ -295,6 +349,15 @@ export const CommentProvider = ({ children }) => {
 				createAsignatureapproval,
 				createApprovalSuccess,
 				setCreateApprovalSuccess,
+				addGeneralComment,
+				generalcommentsSuccess,
+				isLoadingGeneral,
+				generalError,
+				generalComment,
+				setGeneralComment,
+				updateGeneralComment,
+				selected,
+				setSelected
 			}}
 		>
 			{children}

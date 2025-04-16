@@ -15,8 +15,7 @@ export const fetcher = async (url: any, options = {}) => {
         return;
       }
       return data;
-    } catch (error) {
-      console.log(error);
+    } catch (error) { 
     }
   };
   

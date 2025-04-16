@@ -80,14 +80,6 @@ const TableView = () => {
   }
 
   const handleEditInfo = (stageName, channelName, platformName, fieldName, value, adSetIndex) => {
-    console.log("Calling function", {
-      stageName,
-      channelName,
-      platformName,
-      fieldName,
-      value,
-      adSetIndex,
-    })
     setCampaignFormData((prevData) => {
       const updatedData = { ...prevData }
       const channelMix = updatedData.channel_mix?.find((ch) => ch.funnel_stage === stageName)
@@ -188,7 +180,7 @@ const TableView = () => {
             className="p-3 bg-[#3175FF] rounded-[10px] text-white w-fit ml-auto mt-4 flex justify-end font-medium cursor-pointer"
             onClick={mergeAdditionalKPIs}
           >
-            {selectedMetrics?.length < 1 ? "Close" :"Update Table"}
+            {selectedMetrics?.length < 1 ? "Close" : "Update Table"}
           </div>
         </div>
       </Modal>

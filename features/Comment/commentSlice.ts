@@ -19,6 +19,21 @@ const initialState = {
   isLoadingApprove: false,
   messageApprove: '',
   errorApprove: '',
+
+
+generalComments: null,
+isLoadingGeneralComments: false,
+isSuccessGeneralComments: false,
+isErrorGeneralComments: false,
+messageGeneralComments: '',
+
+
+campaignDetails: null,
+isLoadingCampaign: false,
+isSuccessCampaign: false,
+isErrorCampaign: false,
+messageCampaign: '',
+
  
 };
 
@@ -55,6 +70,65 @@ export const getSignedApproval:any = createAsyncThunk('comment/getSignedApproval
 });
  
 
+export const getGeneralComment: any = createAsyncThunk(
+  'comment/getGeneralComment',
+  async (commentId, thunkAPI) => {
+    try {
+      const response = await commentService.getGeneralComment(commentId);
+      return response;
+    } catch (error: unknown) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'response' in error
+      ) {
+        const axiosError = error as {
+          response?: {
+            data?: { error?: { details?: { errors?: any[] }; message?: string } };
+          };
+        };
+        const errors: any =
+          axiosError.response?.data?.error?.details?.errors ||
+          axiosError.response?.data?.error?.message ||
+          [];
+        return thunkAPI.rejectWithValue(errors);
+      }
+    }
+    return thunkAPI.rejectWithValue(['An unknown error occurred']);
+  }
+);
+
+// Get Campaign By ID
+export const getCampaignById: any = createAsyncThunk(
+  'comment/getCampaignById',
+  async ({ clientId, campaignId }: { clientId: string; campaignId: string }, thunkAPI) => {
+    try {
+      const response = await commentService.getCampaignById(clientId, campaignId);
+      return response;
+    } catch (error: unknown) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'response' in error
+      ) {
+        const axiosError = error as {
+          response?: {
+            data?: { error?: { details?: { errors?: any[] }; message?: string } };
+          };
+        };
+        const errors: any =
+          axiosError.response?.data?.error?.details?.errors ||
+          axiosError.response?.data?.error?.message ||
+          [];
+        return thunkAPI.rejectWithValue(errors);
+      }
+    }
+    return thunkAPI.rejectWithValue(['An unknown error occurred']);
+  }
+);
+
+
+
 // Slice
 export const clientSlice = createSlice({
   name: 'comment',
@@ -66,10 +140,22 @@ export const clientSlice = createSlice({
       state.isError = false;
       state.message = '';
 
-     state.isLoadingApprove = false;
+      state.isLoadingApprove = false;
       state.isSuccessApprove = false;
       state.isErrorApprove = false;
       state.messageApprove = '';
+
+      state.isLoadingGeneralComments = false;
+      state.isSuccessGeneralComments = false;
+      state.isErrorGeneralComments = false;
+      state.messageGeneralComments = '';
+
+      state.isLoadingCampaign = false;
+      state.isSuccessCampaign = false;
+      state.isErrorCampaign = false;
+      state.messageCampaign = '';
+      state.campaignDetails = null;
+
      
     },
   },
@@ -111,6 +197,46 @@ extraReducers: (builder) => {
         : JSON.stringify(action.payload);
       state.dataApprove = null;
     })
+
+  // Get General Comments
+.addCase(getGeneralComment.pending, (state) => {
+  state.isLoadingGeneralComments = true;
+})
+.addCase(getGeneralComment.fulfilled, (state, action) => {
+  state.isLoadingGeneralComments = false;
+  state.isSuccessGeneralComments = true;
+  state.generalComments = action?.payload?.data;
+})
+.addCase(getGeneralComment.rejected, (state, action: any) => {
+  state.isLoadingGeneralComments = false;
+  state.isErrorGeneralComments = true;
+  state.messageGeneralComments = Array.isArray(action.payload)
+    ? action.payload.join('\n')
+    : JSON.stringify(action.payload);
+  state.generalComments = null;
+})
+
+
+
+// Get Campaign by ID
+.addCase(getCampaignById.pending, (state) => {
+  state.isLoadingCampaign = true;
+})
+.addCase(getCampaignById.fulfilled, (state, action) => {
+  state.isLoadingCampaign = false;
+  state.isSuccessCampaign = true;
+  state.campaignDetails = action?.payload?.data;
+})
+.addCase(getCampaignById.rejected, (state, action: any) => {
+  state.isLoadingCampaign = false;
+  state.isErrorCampaign = true;
+  state.messageCampaign = Array.isArray(action.payload)
+    ? action.payload.join('\n')
+    : JSON.stringify(action.payload);
+  state.campaignDetails = null;
+})
+
+
 },
 
 });
