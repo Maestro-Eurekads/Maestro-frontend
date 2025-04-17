@@ -11,7 +11,7 @@ import {
   useContext,
 } from "react";
 import Image, { type StaticImageData } from "next/image";
-import { FaAngleRight } from "react-icons/fa";
+import { FaAngleRight, FaSpinner } from "react-icons/fa";
 
 import { MdDelete, MdAdd } from "react-icons/md";
 import { useEditing } from "../../../utils/EditingContext";
@@ -31,6 +31,9 @@ import yahoo from "../../../../public/yahoo.svg";
 import bing from "../../../../public/bing.svg";
 import tictok from "../../../../public/tictok.svg";
 import { Plus } from "lucide-react";
+import { useActive } from "app/utils/ActiveContext";
+import { removeKeysRecursively } from "utils/removeID";
+import { getPlatformIcon } from "components/data";
 
 // Types
 interface AdSetType {
@@ -57,6 +60,7 @@ interface AdSetData {
   name: string;
   audience_type: string;
   size?: string;
+  extra_audiences?: string[]; // 👈 Add this
 }
 
 interface Format {
@@ -107,14 +111,11 @@ const platformIcons: Record<string, StaticImageData> = {
   QuantCast: Quantcast,
 };
 
-const getPlatformIcon = (platformName: string): StaticImageData | null => {
-  return platformIcons[platformName] || null;
-};
 
 // Context for dropdown management
 const DropdownContext = createContext<{
-  openDropdownId: number | null;
-  setOpenDropdownId: (id: number | null) => void;
+  openDropdownId: number | null | string;
+  setOpenDropdownId: (id: number | null | string) => void;
 }>({
   openDropdownId: null,
   setOpenDropdownId: () => {},
@@ -173,10 +174,8 @@ const updateMultipleAdSets = (
     );
     if (platformIndex !== -1) {
       const platform = stage[channelType][platformIndex];
-      platform.ad_sets = adSets.map((adSet) => ({
-        id: adSet.id || Date.now(),
-        ...adSet,
-      }));
+      platform.ad_sets = adSets;
+
       platformFound = true;
       break;
     }
@@ -203,6 +202,8 @@ const AdSet = memo(function AdSet({
   adSetSize,
   onInteraction,
   adsets,
+  extraAudiences,
+  onUpdateExtraAudiences,
 }: {
   adset: AdSetType;
   index: number;
@@ -214,16 +215,30 @@ const AdSet = memo(function AdSet({
   adSetSize?: string;
   onInteraction: () => void;
   adsets: AdSetType[];
+  extraAudiences: string[];
+  onUpdateExtraAudiences: (audiences: string[]) => void;
 }) {
   const [audience, setAudience] = useState<string>(audienceType || "");
   const [name, setName] = useState<string>(adSetName || "");
   const [size, setSize] = useState<string>(adSetSize || "");
+  const [extraAudience, setExtraAudience] = useState<{ value?: string }[]>(
+    extraAudiences.map((val) => ({ value: val }))
+  );
 
   useEffect(() => {
     if (audienceType !== undefined) setAudience(audienceType);
     if (adSetName !== undefined) setName(adSetName);
     if (adSetSize !== undefined) setSize(adSetSize);
   }, [audienceType, adSetName, adSetSize]);
+
+  const updateExtraAudienceMap = (updatedList: { value?: string }[]) => {
+    setExtraAudience(updatedList);
+    const cleaned = updatedList
+      .map((item) => item?.value?.trim())
+      .filter((val) => !!val) as string[];
+    onUpdateExtraAudiences(cleaned); // this updates adSetDataMap
+    onInteraction(); // notify form system
+  };
 
   const handleAudienceSelect = useCallback(
     (selectedAudience: string) => {
@@ -233,6 +248,19 @@ const AdSet = memo(function AdSet({
     },
     [adset.id, onUpdate, onInteraction]
   );
+
+  const handleExtraAudienceSelect = (selected: string, idx: number) => {
+    if (!selected) return;
+    const updated = [...extraAudience];
+    updated[idx] = { value: selected };
+    updateExtraAudienceMap(updated);
+  };
+
+  const handleDeleteExtraAudience = (idx: number) => {
+    const updated = [...extraAudience];
+    updated.splice(idx, 1);
+    updateExtraAudienceMap(updated);
+  };
 
   const handleNameChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -254,19 +282,74 @@ const AdSet = memo(function AdSet({
     [adset.id, onUpdate, onInteraction]
   );
 
+  const isParentFilled =
+    name.trim() !== "" && audience.trim() !== "" && size.trim() !== "";
+
+  const canAddNewAudience =
+    isParentFilled &&
+    (extraAudience.length === 0 ||
+      (extraAudience.length > 0 &&
+        extraAudience[extraAudience.length - 1]?.value?.trim()));
+
   return (
     <div className="flex gap-2 items-start w-full px-4">
       <div className="relative">
         <p className="relative z-[1] text-[#3175FF] text-sm whitespace-nowrap font-bold flex gap-4 items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
           {`Ad set n°${adset.addsetNumber}`}
         </p>
-        {/* <hr className="border border-[#0000001A] w-[50px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" /> */}
       </div>
-      <AudienceDropdownWithCallback
-        onSelect={handleAudienceSelect}
-        initialValue={audience}
-        dropdownId={adset.id}
-      />
+      <div>
+        <AudienceDropdownWithCallback
+          onSelect={handleAudienceSelect}
+          initialValue={audience}
+          dropdownId={adset.id}
+          setExtraAudience={setExtraAudience}
+        />
+        <div className="mt-4 space-y-2">
+          <div>
+            {extraAudience?.map((audi, index) => (
+              <div
+                key={`${adset.id}-${index}`}
+                className="flex items-center justify-between gap-4 mb-2"
+              >
+                <AudienceDropdownWithCallback
+                  onSelect={(value: string) =>
+                    handleExtraAudienceSelect(value, index)
+                  }
+                  initialValue={audi?.value}
+                  dropdownId={`${adset.id}-${index}`}
+                />
+                <button
+                  disabled={!isEditing}
+                  onClick={() => handleDeleteExtraAudience(index)}
+                  className={`text-sm font-bold ${
+                    !isEditing ? "cursor-not-allowed" : ""
+                  }`}
+                >
+                  <MdDelete color="red" size={18} />
+                </button>
+              </div>
+            ))}
+          </div>
+          <button
+            className={`text-[14px] mt-2 font-semibold flex items-center gap-1 ${
+              canAddNewAudience && extraAudience?.length < 10
+                ? "text-[#3175FF] cursor-pointer"
+                : "text-gray-400 cursor-not-allowed"
+            }`}
+            onClick={() => {
+              if (canAddNewAudience) {
+                const updated = [...extraAudience, {}];
+                updateExtraAudienceMap(updated);
+              }
+            }}
+            disabled={extraAudience?.length >= 10}
+          >
+            <Plus size={14} />
+            <p>Add new audience</p>
+          </button>
+        </div>
+      </div>
       <input
         type="text"
         placeholder="Enter ad set name"
@@ -306,10 +389,12 @@ const AudienceDropdownWithCallback = memo(
     onSelect,
     initialValue,
     dropdownId,
+    setExtraAudience,
   }: {
     onSelect: (option: string) => void;
     initialValue?: string;
-    dropdownId: number;
+    dropdownId: number | string;
+    setExtraAudience?: any;
   }) {
     const { openDropdownId, setOpenDropdownId } = useContext(DropdownContext);
     const [selected, setSelected] = useState<string>(initialValue || "");
@@ -393,10 +478,6 @@ const AudienceDropdownWithCallback = memo(
             </ul>
           )}
         </div>
-        {/* <div className="text-[14px] mt-2 font-semibold text-[#3175FF] flex items-center gap-1">
-          <Plus size={14}/>
-          <p>Add new audience</p>
-        </div> */}
       </div>
     );
   }
@@ -423,7 +504,7 @@ const NonFacebookOutlet = memo(function NonFacebookOutlet({
         className="relative border border-[#0000001A] rounded-[10px]"
         onClick={handleSelect}
       >
-        <button className="relative w-[150px] z-20 flex gap-4 justify-between items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
+        <button className="relative min-w-[150px] w-fit max-w-[300px] z-20 flex gap-4 justify-between items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
           <Image
             src={outlet.icon || "/placeholder.svg"}
             alt={outlet.outlet}
@@ -456,7 +537,9 @@ const AdsetSettings = memo(function AdsetSettings({
   const [adSetDataMap, setAdSetDataMap] = useState<Record<number, AdSetData>>(
     {}
   );
-  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<number | string | null>(
+    null
+  );
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -502,6 +585,7 @@ const AdsetSettings = memo(function AdsetSettings({
           name: adSet.name || "",
           audience_type: adSet.audience_type || "",
           size: adSet.size || "",
+          extra_audiences: adSet?.extra_audiences,
         };
       });
       setAdSets(newAdSets);
@@ -599,8 +683,9 @@ const AdsetSettings = memo(function AdsetSettings({
   ]);
 
   useEffect(() => {
-    if (!isEditing && selectedPlatforms.includes(outlet.outlet)) {
+    if (isEditing && selectedPlatforms.includes(outlet.outlet)) {
       if (!campaignFormData?.channel_mix) return;
+
       const adSetsToSave = adsets
         .map((adset) => {
           const data = adSetDataMap[adset.id] || {
@@ -612,9 +697,11 @@ const AdsetSettings = memo(function AdsetSettings({
             name: data.name,
             audience_type: data.audience_type,
             size: data.size,
+            extra_audiences: data.extra_audiences || [],
           };
         })
         .filter((data) => data.name || data.audience_type);
+
       if (adSetsToSave.length === 0) return;
 
       const updatedChannelMix = updateMultipleAdSets(
@@ -623,12 +710,21 @@ const AdsetSettings = memo(function AdsetSettings({
         outlet.outlet,
         adSetsToSave
       );
+
       setCampaignFormData((prevData) => ({
         ...prevData,
         channel_mix: updatedChannelMix,
       }));
     }
-  }, [isEditing, selectedPlatforms, outlet.outlet]);
+  }, [
+    isEditing,
+    selectedPlatforms,
+    outlet.outlet,
+    adsets,
+    adSetDataMap, // ✅ This was missing
+    setCampaignFormData,
+    stageName,
+  ]);
 
   const handleSelectOutlet = useCallback(() => {
     setSelectedPlatforms((prev) => [...prev, outlet.outlet]);
@@ -657,7 +753,7 @@ const AdsetSettings = memo(function AdsetSettings({
   return (
     <div className="flex items-center gap-8 w-full max-w-[1024px]">
       <div className="relative">
-        <button className="relative w-[150px] z-20 flex gap-4 justify-between cursor-pointer items-center bg-[#F9FAFB] border border-[#0000001A] border-solid py-4 px-4 rounded-[10px]">
+        <button className="relative min-w-[150px] max-w-[300px] w-fit z-20 flex gap-4 justify-between cursor-pointer items-center bg-[#F9FAFB] border border-[#0000001A] border-solid py-4 px-4 rounded-[10px]">
           <Image
             src={outlet.icon || "/placeholder.svg"}
             alt={outlet.outlet}
@@ -716,6 +812,12 @@ const AdsetSettings = memo(function AdsetSettings({
                       audienceType={adSetData.audience_type}
                       adSetName={adSetData.name}
                       adSetSize={adSetData.size}
+                      extraAudiences={adSetData.extra_audiences || []}
+                      onUpdateExtraAudiences={(extraAudienceArray) =>
+                        updateAdSetData(adset.id, {
+                          extra_audiences: extraAudienceArray,
+                        })
+                      }
                       onInteraction={onInteraction}
                       adsets={adsets}
                     />
@@ -739,29 +841,54 @@ const AdSetFlow = memo(function AdSetFlow({
   onEditStart,
 }: AdSetFlowProps) {
   const { isEditing, setIsEditing } = useEditing();
-  const { campaignFormData } = useCampaigns();
+  const { active } = useActive();
+  const { campaignFormData, updateCampaign, getActiveCampaign, campaignData } =
+    useCampaigns();
   const [platforms, setPlatforms] = useState<Record<string, OutletType[]>>({});
   const [hasInteraction, setHasInteraction] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const getPlatformsFromStage = useCallback(() => {
     const platformsByStage: Record<string, OutletType[]> = {};
     const channelMix = campaignFormData?.channel_mix || [];
 
     channelMix.forEach((stage: any) => {
-      const { funnel_stage, search_engines, display_networks, social_media } =
-        stage;
+      const {
+        funnel_stage,
+        search_engines,
+        display_networks,
+        social_media,
+        streaming,
+        mobile,
+        ooh,
+        broadcast,
+        in_game,
+        e_commerce,
+        messaging,
+        print,
+      } = stage;
       if (!platformsByStage[funnel_stage]) platformsByStage[funnel_stage] = [];
-      [search_engines, display_networks, social_media].forEach((platforms) => {
+      [
+        search_engines,
+        display_networks,
+        social_media,
+        streaming,
+        mobile,
+        ooh,
+        broadcast,
+        in_game,
+        e_commerce,
+        messaging,
+        print,
+      ].forEach((platforms) => {
         if (Array.isArray(platforms)) {
           platforms.forEach((platform: any) => {
             const icon = getPlatformIcon(platform?.platform_name);
-            if (icon) {
-              platformsByStage[funnel_stage].push({
-                id: Math.floor(Math.random() * 1000000),
-                outlet: platform.platform_name,
-                icon,
-              });
-            }
+            platformsByStage[funnel_stage].push({
+              id: Math.floor(Math.random() * 1000000),
+              outlet: platform.platform_name,
+              icon: icon ,
+            });
           });
         }
       });
@@ -774,23 +901,71 @@ const AdSetFlow = memo(function AdSetFlow({
       const data = getPlatformsFromStage();
       setPlatforms(data);
     }
-  }, [campaignFormData]);
+  }, []);
 
   const handleInteraction = useCallback(() => {
     setHasInteraction(true);
     onInteraction();
   }, [onInteraction]);
 
+  const updateCampaignData = async (data) => {
+    const calcPercent = Math.ceil((active / 10) * 100);
+    try {
+      console.log("herer", data);
+      await updateCampaign({
+        ...data,
+        progress_percent:
+          campaignFormData?.progress_percent > calcPercent
+            ? campaignFormData?.progress_percent
+            : calcPercent,
+      });
+      await getActiveCampaign(data);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const cleanData = campaignData
+    ? removeKeysRecursively(campaignData, [
+        "id",
+        "documentId",
+        "createdAt",
+        "publishedAt",
+        "updatedAt",
+      ])
+    : {};
+
+  const handleStepThree = async () => {
+    await updateCampaignData({
+      ...cleanData,
+      channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+        "id",
+        "isValidated",
+        "validatedStages",
+      ]),
+    })
+      .then(() => {
+        setIsEditing(false);
+        onValidate();
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
   const handleValidate = useCallback(() => {
-    setIsEditing(false);
-    onValidate();
-  }, [setIsEditing, onValidate]);
+    // setLoading(true);
+    console.log("campaignFormData", campaignFormData)
+  }, [setIsEditing]);
 
   useEffect(() => {
     if (isEditing) {
       onEditStart();
     }
-  }, [isEditing, onEditStart]);
+  }, [isEditing]);
 
   return (
     <div className="w-full space-y-4 p-4">
@@ -806,14 +981,22 @@ const AdSetFlow = memo(function AdSetFlow({
         <div className="flex justify-end gap-2 w-full">
           <button
             onClick={handleValidate}
-            disabled={!hasInteraction}
+            disabled={!hasInteraction || loading}
             className={`w-[142px] h-[52px] text-white px-6 py-3 rounded-md text-sm font-bold ${
               !hasInteraction
                 ? "bg-blue-300 cursor-not-allowed"
                 : "bg-[#3175FF] hover:bg-blue-600"
             }`}
           >
-            <span>Validate</span>
+            <span>
+              {loading ? (
+                <center>
+                  <FaSpinner className="animate-spin" />
+                </center>
+              ) : (
+                "Validate"
+              )}
+            </span>
           </button>
         </div>
       )}

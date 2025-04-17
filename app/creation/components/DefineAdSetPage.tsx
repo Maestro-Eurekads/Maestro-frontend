@@ -13,19 +13,22 @@ import TheTradeDesk from "../../../public/TheTradeDesk.svg";
 import Quantcast from "../../../public/quantcast.svg";
 import AdSetsFlow from "./common/AdSetsFlow";
 import { useCampaigns } from "../../utils/CampaignsContext";
-import { funnelStages } from "components/data";
+import { funnels, funnelStages } from "components/data";
 import adset from "../../../public/adset_level.svg";
 import channel from "../../../public/channel_level.svg";
 import Modal from "components/Modals/Modal";
 
 const DefineAdSetPage = () => {
   const [openItems, setOpenItems] = useState({});
-  const [stageStatuses, setStageStatuses] = useState<Record<string, string>>({});
-  const [hasInteracted, setHasInteracted] = useState<Record<string, boolean>>({});
+  const [stageStatuses, setStageStatuses] = useState<Record<string, string>>(
+    {}
+  );
+  const [hasInteracted, setHasInteracted] = useState<Record<string, boolean>>(
+    {}
+  );
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   const [step, setStep] = useState(2);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -35,30 +38,35 @@ const DefineAdSetPage = () => {
     setIsModalOpen(false);
   };
 
-
-      useEffect(() => {
-        if (campaignFormData) {
-          if (campaignFormData?.goal_level) {
-            setIsModalOpen(false);
-          } else {
-            setIsModalOpen(true);
-          }
-        }
-      }, [campaignFormData]);
+  useEffect(() => {
+    if (campaignFormData) {
+      if (campaignFormData?.goal_level) {
+        setIsModalOpen(false);
+      } else {
+        setIsModalOpen(true);
+      }
+    }
+  }, []);
 
   // Initialize statuses and interaction tracking
   useEffect(() => {
     if (campaignFormData?.funnel_stages) {
-      const initialStatuses = campaignFormData.funnel_stages.reduce((acc, stageName) => {
-        acc[stageName] = "Not started";
-        return acc;
-      }, {} as Record<string, string>);
+      const initialStatuses = campaignFormData.funnel_stages.reduce(
+        (acc, stageName) => {
+          acc[stageName] = "Not started";
+          return acc;
+        },
+        {} as Record<string, string>
+      );
       setStageStatuses(initialStatuses);
 
-      const initialInteractions = campaignFormData.funnel_stages.reduce((acc, stageName) => {
-        acc[stageName] = false;
-        return acc;
-      }, {} as Record<string, boolean>);
+      const initialInteractions = campaignFormData.funnel_stages.reduce(
+        (acc, stageName) => {
+          acc[stageName] = false;
+          return acc;
+        },
+        {} as Record<string, boolean>
+      );
       setHasInteracted(initialInteractions);
     }
   }, [campaignFormData]);
@@ -92,8 +100,11 @@ const DefineAdSetPage = () => {
 
   return (
     <div className="mt-12 flex items-start flex-col cursor-pointer mx-auto gap-12 w-full">
-      {campaignFormData?.funnel_stages.map((stageName, index) => {
-        const stage = funnelStages.find((s) => s.name === stageName);
+      {campaignFormData?.funnel_stages?.map((stageName, index) => {
+        const stage = campaignFormData?.custom_funnels?.find(
+          (s) => s.name === stageName
+        );
+        const funn = funnelStages?.find((f) => f.name === stageName);
         if (!stage) return null;
 
         const currentStatus = stageStatuses[stageName] || "Not started";
@@ -104,12 +115,23 @@ const DefineAdSetPage = () => {
           <div key={index} className="w-full">
             <div
               className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-                ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
+                ${
+                  openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"
+                }`}
               onClick={() => toggleItem(stage.name)}
             >
               <div className="flex items-center gap-4">
-                <Image src={stage.icon} alt={stage.name} width={24} height={24} />
-                <p className="text-md font-semibold text-[#061237]">{stage.name}</p>
+                {funn?.icon &&
+                  <Image
+                    src={funn?.icon || "/placeholder.svg"}
+                    alt={stage.name}
+                    width={20}
+                    height={20}
+                  />
+                }
+                <p className="text-md font-semibold text-[#061237]">
+                  {stage.name}
+                </p>
               </div>
 
               <div className="flex items-center gap-2">
@@ -128,12 +150,18 @@ const DefineAdSetPage = () => {
                         d="M5 13l4 4L19 7"
                       />
                     </svg>
-                    <p className="text-green-500 font-semibold text-base">Completed</p>
+                    <p className="text-green-500 font-semibold text-base">
+                      Completed
+                    </p>
                   </div>
                 ) : isInProgress ? (
-                  <p className="text-[#3175FF] font-semibold text-base">In progress</p>
+                  <p className="text-[#3175FF] font-semibold text-base">
+                    In progress
+                  </p>
                 ) : (
-                  <p className="text-[#061237] opacity-50 text-base">Not started</p>
+                  <p className="text-[#061237] opacity-50 text-base">
+                    Not started
+                  </p>
                 )}
               </div>
 
@@ -163,7 +191,7 @@ const DefineAdSetPage = () => {
         );
       })}
 
-<Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
         {step === 1 && (
           <div className="card bg-base-100 w-[418px]">
             <form method="dialog" className="flex justify-between p-6 !pb-0">
