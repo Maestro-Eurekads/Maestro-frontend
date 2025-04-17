@@ -441,16 +441,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       });
     };
 
-    const handleStepFive = async () => {
-      if (!campaignData || !cId) return;
-      await updateCampaignData({
-        ...cleanData,
-        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
-          "id",
-          "isValidated",
-        ]),
-      });
-    };
+   
 
     const handleStepSeven = async () => {
       if (!campaignData) return;
