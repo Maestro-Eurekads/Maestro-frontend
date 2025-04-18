@@ -269,6 +269,9 @@ const ObjectiveSelection = () => {
   };
 
   const handleValidate = (stageName) => {
+    // Prevent duplicate validation
+    if (statuses[stageName] === "Completed") return;
+
     setStatuses((prev) => {
       const newStatuses = { ...prev, [stageName]: "Completed" };
       localStorage.setItem("funnelStageStatuses", JSON.stringify(newStatuses));
@@ -300,7 +303,7 @@ const ObjectiveSelection = () => {
       validatedStages: { ...prev.validatedStages, [stageName]: true },
     }));
     setPreviousSelectedOptions(selectedOptions);
-    toast.success("Stage completed successfully! 🎉");
+
     if (navigator.vibrate) navigator.vibrate(300);
   };
 
@@ -790,4 +793,4 @@ const ObjectiveSelection = () => {
   );
 };
 
-export default ObjectiveSelection;
+ export default ObjectiveSelection;
