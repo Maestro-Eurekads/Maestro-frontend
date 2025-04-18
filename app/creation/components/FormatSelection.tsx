@@ -788,7 +788,7 @@ export const FormatSelection = () => {
     <div>
       <PageHeaderWrapper
         t1="Select formats for each channel"
-        t2="Select the creative formats you want to use for your campaign. Specify the number of visuals for each format. Multiple formats can be selected per channel."
+        t2="Select the creative formats you want to use for your campaign. Specify the number of visuals for each format. Multiple formats can be selected per channel or Ad set"
       />
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
