@@ -1,7 +1,11 @@
 import Image from "next/image";
-import React from "react";
+import React, { useState } from "react";
 import upload from "../../public/Featured icon.svg";
 import icon from "../../public/Icon.svg";
+import toast from "react-hot-toast";
+import { Trash } from "lucide-react";
+import { FaSpinner } from "react-icons/fa";
+import { useCampaigns } from "app/utils/CampaignsContext";
 
 // Define the props interface for TypeScript
 interface UploadModalProps {
@@ -11,6 +15,7 @@ interface UploadModalProps {
   channel: string;
   format: string;
   quantities: any;
+  stageName: any;
 }
 
 // Make the modal controlled by passing isOpen and onClose props, plus additional props
@@ -21,18 +26,153 @@ const UploadModal: React.FC<UploadModalProps> = ({
   channel,
   format,
   quantities,
+  stageName,
 }) => {
   const handleCancel = () => {
     onClose();
   };
 
   const handleConfirm = () => {
-    onClose();
+    uploadFilesToStrapi();
   };
 
   const handleClose = () => {
     // Close the modal
     onClose();
+  };
+
+  const [uploads, setUploads] = useState([]);
+  const [uploadBlobs, setUploadBlobs] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const { campaignFormData, setCampaignFormData } = useCampaigns();
+
+  const handleFileChange = (e, index) => {
+    e.preventDefault();
+    const file = e.target.files[0];
+    console.log("here", file);
+    if (file) {
+      const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+      const maxSizeInMB = 10;
+      const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+
+      if (!allowedTypes.includes(file.type)) {
+        toast("Invalid file type. Please upload a JPEG, PNG, or SVG file.");
+        return;
+      }
+
+      if (file.size > maxSizeInBytes) {
+        toast(
+          `File size exceeds ${maxSizeInMB}MB. Please upload a smaller file.`
+        );
+        return;
+      }
+
+      // Let images me inserted at the position they come from
+      setUploads((prevUploads) => {
+        const updatedUploads = [...prevUploads];
+        updatedUploads[index] = file;
+        return updatedUploads;
+      });
+      // create an object URL blob so the user can preview the selected image
+      const objectUrl = URL.createObjectURL(file);
+      // Ensure the object URL is inserted at the correct index
+      setUploadBlobs((prevBlobs) => {
+        const updatedBlobs = [...prevBlobs];
+        updatedBlobs[index] = objectUrl;
+        return updatedBlobs;
+      });
+      e.target.files = null;
+    }
+  };
+
+  const handleDelete = (index: number) => {
+    setUploads((prevUploads) => {
+      const updatedUploads = [...prevUploads];
+      updatedUploads[index] = "";
+      return updatedUploads;
+    });
+
+    setUploadBlobs((prevBlobs) => {
+      const updatedBlobs = [...prevBlobs];
+      updatedBlobs[index] = "";
+      return updatedBlobs;
+    });
+  };
+
+  const updateGlobalState = (ids: string[]) => {
+    const updatedChannelMix = [...(campaignFormData?.channel_mix || [])];
+    const stage = updatedChannelMix?.find(
+      (ch: any) => ch?.funnel_stage === stageName
+    );
+    if (!stage) return;
+
+    const platformKey = channel?.toLowerCase()?.replace(" ", "_");
+    const platforms = stage[platformKey];
+    if (!platforms) return;
+
+    const targetPlatform = platforms?.find(
+      (pl: any) => pl?.platform_name === platform
+    );
+    console.log("🚀 ~ updateGlobalState ~ targetPlatform:", targetPlatform)
+    if (!targetPlatform) return;
+
+    const targetFormatIndex = targetPlatform?.format?.findIndex(
+      (fo: any) => fo?.format_type === format
+    );
+    console.log("🚀 ~ updateGlobalState ~ targetFormatIndex:", targetFormatIndex)
+    if (targetFormatIndex === -1 || targetFormatIndex === undefined) return;
+
+    targetPlatform.format[targetFormatIndex] = {
+      ...targetPlatform.format[targetFormatIndex],
+      previews: ids,
+    };
+    console.log(updatedChannelMix);
+    setCampaignFormData((prev: any) => ({
+      ...prev,
+      channel_mix: updatedChannelMix,
+    }));
+  };
+
+  // write a function that takes loops through all the uploads and upload them to strapi via strapi's upload API get the id of all the uploads then we use it to update another global state
+  const uploadFilesToStrapi = async () => {
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      uploads.forEach((file, index) => {
+        if (file) {
+          formData.append(`files`, file);
+        }
+      });
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`,
+        {
+          method: "POST",
+          body: formData,
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to upload files to Strapi");
+      }
+
+      const uploadedFiles = await response.json();
+      const uploadedFileIds = uploadedFiles.map((file) => file.id);
+      updateGlobalState(uploadedFileIds);
+      // Update global state or perform further actions with the uploaded file IDs
+      console.log("Uploaded file IDs:", uploadedFileIds);
+      toast.success("Files uploaded successfully!");
+      onClose();
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      toast.error("Failed to upload files. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Don't render anything if the modal is not open
@@ -72,12 +212,38 @@ const UploadModal: React.FC<UploadModalProps> = ({
             <div className="flex justify-center gap-6 flex-wrap">
               {Array.from({ length: quantities[platform]?.[format] }).map(
                 (_, index) => {
+                  if (uploadBlobs[index] && uploadBlobs[index] !== "") {
+                    return (
+                      <div
+                        key={index}
+                        className="relative w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
+                      >
+                        <Image
+                          src={uploadBlobs[index]}
+                          alt={`Image ${index}`}
+                          className="w-full h-full object-cover"
+                          width={225}
+                          height={225}
+                          objectFit="cover"
+                        />
+                        <div
+                          className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
+                          onClick={() => handleDelete(index)}
+                        >
+                          <Trash color="white" size={10} />
+                        </div>
+                      </div>
+                    );
+                  }
                   return (
                     <div
                       key={index}
                       className="w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
                     >
-                      <div className="flex flex-col items-center gap-2 text-center">
+                      <label
+                        className="flex flex-col items-center gap-2 text-center"
+                        htmlFor={`upload${index}`}
+                      >
                         <svg
                           width="16"
                           height="17"
@@ -93,118 +259,19 @@ const UploadModal: React.FC<UploadModalProps> = ({
                         <p className="text-md text-black font-lighter mt-2">
                           Upload visual {index + 1}
                         </p>
-                      </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          id={`upload${index}`}
+                          className="hidden"
+                          onChange={(e) => handleFileChange(e, index)}
+                        />
+                      </label>
                     </div>
                   );
                 }
               )}
-
-              {/* <div className="w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors">
-                <div className="flex flex-col items-center gap-2 text-center">
-                  <svg
-                    width="16"
-                    height="17"
-                    viewBox="0 0 16 17"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
-                      fill="#3175FF"
-                    />
-                  </svg>
-                  <p className="text-md font-lighter text-black mt-2">
-                    Upload visual 2
-                  </p>
-                </div>
-              </div> */}
             </div>
-
-            {/* Image 3 visuals in a row */}
-            {/* <div className="mt-6 flex justify-center gap-6">
-              <div className="w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors">
-                <div className="flex flex-col items-center gap-2 text-center">
-                  <svg
-                    width="16"
-                    height="17"
-                    viewBox="0 0 16 17"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
-                      fill="#3175FF"
-                    />
-                  </svg>
-                  <p className="text-md font-lighter text-black mt-2">
-                    Upload visual 3
-                  </p>
-                </div>
-              </div>
-
-              <div className="w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors">
-                <div className="flex flex-col items-center gap-2 text-center">
-                  <svg
-                    width="16"
-                    height="17"
-                    viewBox="0 0 16 17"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
-                      fill="#3175FF"
-                    />
-                  </svg>
-                  <p className="text-md font-lighter text-black mt-2">
-                    Upload visual 4
-                  </p>
-                </div>
-              </div>
-
-              <div className="w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors">
-                <div className="flex flex-col items-center gap-2 text-center">
-                  <svg
-                    width="16"
-                    height="17"
-                    viewBox="0 0 16 17"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
-                      fill="#3175FF"
-                    />
-                  </svg>
-                  <p className="text-md font-lighter text-black mt-2">
-                    Upload visual 5
-                  </p>
-                </div>
-              </div>
-            </div> */}
-
-            {/* Visual 6 */}
-            {/* <div className="flex justify-center gap-6 mt-4">
-              <div className="w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors">
-                <div className="flex flex-col items-center gap-2 text-center">
-                  <svg
-                    width="16"
-                    height="17"
-                    viewBox="0 0 16 17"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
-                      fill="#3175FF"
-                    />
-                  </svg>
-                  <p className="text-md font-lighter text-black mt-2">
-                    Upload visual 6
-                  </p>
-                </div>
-              </div>
-            </div> */}
           </div>
 
           {/* Buttons */}
@@ -218,8 +285,15 @@ const UploadModal: React.FC<UploadModalProps> = ({
             <button
               onClick={handleConfirm}
               className="px-4 py-2 w-full sm:w-1/2 h-[44px] font-bold bg-blue-600 rounded-[8px] text-white hover:bg-blue-700 transition-colors"
+              disabled={loading}
             >
-              Confirm
+              {loading ? (
+                <center>
+                  <FaSpinner className="animate-spin" />
+                </center>
+              ) : (
+                "Confirm"
+              )}
             </button>
           </div>
         </div>

@@ -104,6 +104,7 @@ const MediaOption = ({
   onOpenModal,
   platformName,
   channelName,
+  previews
 }: {
   option: MediaOptionType
   isSelected: boolean
@@ -114,6 +115,7 @@ const MediaOption = ({
   onOpenModal: () => void
   platformName: string
   channelName: string
+  previews: any[]
 }) => {
   return (
     <div className="flex justify-center gap-6 min-w-fit">
@@ -206,6 +208,10 @@ const MediaSelectionGrid = ({
             ? adSet.format?.some((f) => f.format_type === option.name)
             : platform?.format?.some((f) => f.format_type === option.name)
 
+            const previews = adSet
+            ? adSet.format?.map((f) => f.previews)
+            : platform.format?.map((f) => f.peviews)
+
           if (isValidated && !isSelected) return null
 
           return (
@@ -220,6 +226,7 @@ const MediaSelectionGrid = ({
               onOpenModal={() => onOpenModal(platformName, channelName, option.name)}
               platformName={platformName}
               channelName={channelName}
+              previews={previews}
             />
           )
         })}
@@ -713,6 +720,7 @@ export const Platforms = ({
             channel={modalContext.channel}
             format={modalContext.format}
             quantities={quantities}
+            stageName={stageName}
           />
         </div>
       )}
