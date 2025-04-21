@@ -1,11 +1,15 @@
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import upload from "../../public/Featured icon.svg";
 import icon from "../../public/Icon.svg";
 import toast from "react-hot-toast";
 import { Trash } from "lucide-react";
 import { FaSpinner } from "react-icons/fa";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import Link from "next/link";
+import axios from "axios";
+import { removeKeysRecursively } from "utils/removeID";
+import { ca } from "date-fns/locale";
 
 // Define the props interface for TypeScript
 interface UploadModalProps {
@@ -16,6 +20,7 @@ interface UploadModalProps {
   format: string;
   quantities: any;
   stageName: any;
+  previews: any[];
 }
 
 // Make the modal controlled by passing isOpen and onClose props, plus additional props
@@ -27,6 +32,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
   format,
   quantities,
   stageName,
+  previews,
 }) => {
   const handleCancel = () => {
     onClose();
@@ -45,7 +51,13 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const [uploadBlobs, setUploadBlobs] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const { campaignFormData, setCampaignFormData } = useCampaigns();
+  const {
+    campaignFormData,
+    setCampaignFormData,
+    updateCampaign,
+    campaignData,
+    getActiveCampaign,
+  } = useCampaigns();
 
   const handleFileChange = (e, index) => {
     e.preventDefault();
@@ -100,8 +112,24 @@ const UploadModal: React.FC<UploadModalProps> = ({
     });
   };
 
-  const updateGlobalState = (ids: string[]) => {
+  const updateGlobalState = async (ids: string[]) => {
     const updatedChannelMix = [...(campaignFormData?.channel_mix || [])];
+
+    // Restructure other previews in other platform's formats to their IDs
+    updatedChannelMix.forEach((ch: any) => {
+      Object.keys(ch).forEach((key) => {
+        if (Array.isArray(ch[key])) {
+          ch[key].forEach((platform: any) => {
+            platform.format = platform.format.map((fo: any) => ({
+              ...fo,
+              num_of_visuals: fo?.num_of_visuals?.toString(),
+              previews: fo?.previews?.map((p: { id: string }) => ({ id: p.id })),
+            }));
+          });
+        }
+      });
+    });
+
     const stage = updatedChannelMix?.find(
       (ch: any) => ch?.funnel_stage === stageName
     );
@@ -114,27 +142,76 @@ const UploadModal: React.FC<UploadModalProps> = ({
     const targetPlatform = platforms?.find(
       (pl: any) => pl?.platform_name === platform
     );
-    console.log("🚀 ~ updateGlobalState ~ targetPlatform:", targetPlatform)
+    console.log("🚀 ~ updateGlobalState ~ targetPlatform:", targetPlatform);
     if (!targetPlatform) return;
 
     const targetFormatIndex = targetPlatform?.format?.findIndex(
       (fo: any) => fo?.format_type === format
     );
-    console.log("🚀 ~ updateGlobalState ~ targetFormatIndex:", targetFormatIndex)
+    console.log(
+      "🚀 ~ updateGlobalState ~ targetFormatIndex:",
+      targetFormatIndex
+    );
     if (targetFormatIndex === -1 || targetFormatIndex === undefined) return;
 
+    if(!targetPlatform?.format[targetFormatIndex]?.previews) {
     targetPlatform.format[targetFormatIndex] = {
       ...targetPlatform.format[targetFormatIndex],
-      previews: ids,
+      previews: Array.from(
+      new Set([
+        ...ids,
+      ])
+      )?.map((id) => ({
+      id: id,
+      })),
     };
+  } else {
+    targetPlatform.format[targetFormatIndex] = {
+      ...targetPlatform.format[targetFormatIndex],
+      previews: Array.from(
+      new Set([
+        ...ids,
+        ...targetPlatform?.format[targetFormatIndex]?.previews?.map((p: { id: string }) => p.id),
+      ])
+      )?.map((id) => ({
+      id: id,
+      })),
+    };
+  }
     console.log(updatedChannelMix);
-    setCampaignFormData((prev: any) => ({
-      ...prev,
+    const updatedState = {
+      ...campaignFormData,
       channel_mix: updatedChannelMix,
-    }));
+    };
+    console.log("Updated State:", updatedState);
+    await uploadUpdatedCampaignToStrapi(updatedState);
   };
 
-  // write a function that takes loops through all the uploads and upload them to strapi via strapi's upload API get the id of all the uploads then we use it to update another global state
+  const uploadUpdatedCampaignToStrapi = async (data) => {
+    const cleanData = removeKeysRecursively(
+      campaignData,
+      ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
+      ["previews"]
+    );
+    await updateCampaign({
+      ...cleanData,
+      channel_mix: removeKeysRecursively(
+        data?.channel_mix,
+        [
+          "isValidated",
+          "formatValidated",
+          "validatedStages",
+          "documentId",
+          "id"
+        ],
+        ["previews"]
+      ),
+    });
+    await getActiveCampaign();
+    setLoading(false);
+    onClose();
+  };
+
   const uploadFilesToStrapi = async () => {
     setLoading(true);
     try {
@@ -162,18 +239,24 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
       const uploadedFiles = await response.json();
       const uploadedFileIds = uploadedFiles.map((file) => file.id);
-      updateGlobalState(uploadedFileIds);
+      await updateGlobalState(uploadedFileIds);
       // Update global state or perform further actions with the uploaded file IDs
       console.log("Uploaded file IDs:", uploadedFileIds);
       toast.success("Files uploaded successfully!");
-      onClose();
     } catch (error) {
       console.error("Error uploading files:", error);
       toast.error("Failed to upload files. Please try again.");
+      setLoading(false)
     } finally {
-      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (previews && previews.length > 0) {
+      const urls = previews.map((preview) => preview?.url);
+      setUploadBlobs(urls);
+    }
+  }, []);
 
   // Don't render anything if the modal is not open
   if (!isOpen) return null;
@@ -210,11 +293,13 @@ const UploadModal: React.FC<UploadModalProps> = ({
             </h2>
 
             <div className="flex justify-center gap-6 flex-wrap">
-              {Array.from({ length: quantities[platform]?.[format] }).map(
+              {Array.from({ length: quantities }).map(
                 (_, index) => {
                   if (uploadBlobs[index] && uploadBlobs[index] !== "") {
                     return (
-                      <div
+                      <Link
+                        href={uploadBlobs[index]}
+                        target="_blank"
                         key={index}
                         className="relative w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
                       >
@@ -226,13 +311,13 @@ const UploadModal: React.FC<UploadModalProps> = ({
                           height={225}
                           objectFit="cover"
                         />
-                        <div
+                        {/* <div
                           className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
                           onClick={() => handleDelete(index)}
                         >
                           <Trash color="white" size={10} />
-                        </div>
-                      </div>
+                        </div> */}
+                      </Link>
                     );
                   }
                   return (
@@ -240,10 +325,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
                       key={index}
                       className="w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
                     >
-                      <label
+                        <label
                         className="flex flex-col items-center gap-2 text-center"
                         htmlFor={`upload${index}`}
-                      >
+                        >
                         <svg
                           width="16"
                           height="17"
@@ -252,8 +337,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
                           xmlns="http://www.w3.org/2000/svg"
                         >
                           <path
-                            d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
-                            fill="#3175FF"
+                          d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
+                          fill="#3175FF"
                           />
                         </svg>
                         <p className="text-md text-black font-lighter mt-2">
@@ -261,12 +346,12 @@ const UploadModal: React.FC<UploadModalProps> = ({
                         </p>
                         <input
                           type="file"
-                          accept="image/*"
+                          accept="image/*,video/*"
                           id={`upload${index}`}
                           className="hidden"
                           onChange={(e) => handleFileChange(e, index)}
                         />
-                      </label>
+                        </label>
                     </div>
                   );
                 }

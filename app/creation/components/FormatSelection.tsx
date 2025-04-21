@@ -1,69 +1,72 @@
-"use client"
-import Image from "next/image"
-import { useState, useEffect } from "react"
-import { FaCheck } from "react-icons/fa"
-import Switch from "react-switch"
-import PageHeaderWrapper from "../../../components/PageHeaderWapper"
-import { funnelStages, platformIcons } from "../../../components/data"
-import { useCampaigns } from "../../utils/CampaignsContext"
-import UploadModal from "../../../components/UploadModal/UploadModal"
-import { useComments } from "app/utils/CommentProvider"
+"use client";
+import Image from "next/image";
+import { useState, useEffect } from "react";
+import { FaCheck, FaSpinner } from "react-icons/fa";
+import Switch from "react-switch";
+import PageHeaderWrapper from "../../../components/PageHeaderWapper";
+import { funnelStages, platformIcons } from "../../../components/data";
+import { useCampaigns } from "../../utils/CampaignsContext";
+import UploadModal from "../../../components/UploadModal/UploadModal";
+import { useComments } from "app/utils/CommentProvider";
+import { Trash } from "lucide-react";
+import Link from "next/link";
+import { removeKeysRecursively } from "utils/removeID";
 
 // Types
 type FormatType = {
-  format_type: string
-  num_of_visuals: string
-  previews: any
-}
+  format_type: string;
+  num_of_visuals: string;
+  previews: any;
+};
 
 type PlatformType = {
-  id: number
-  platform_name: string
-  buy_type: string | null
-  objective_type: string | null
-  campaign_start_date: string | null
-  campaign_end_date: string | null
-  format: FormatType[]
+  id: number;
+  platform_name: string;
+  buy_type: string | null;
+  objective_type: string | null;
+  campaign_start_date: string | null;
+  campaign_end_date: string | null;
+  format: FormatType[];
   ad_sets: Array<{
-    id: number
-    audience_type: string
-    name: string
-    size: string
-    format?: FormatType[] // Add format array to adsets
-  }>
-  budget: string | null
-  kpi: string | null
-  formatValidated?: boolean
-}
+    id: number;
+    audience_type: string;
+    name: string;
+    size: string;
+    format?: FormatType[]; // Add format array to adsets
+  }>;
+  budget: string | null;
+  kpi: string | null;
+  formatValidated?: boolean;
+};
 
 type ChannelType = {
-  id: number
-  funnel_stage: string
-  funnel_stage_timeline_start_date: string | null
-  funnel_stage_timeline_end_date: string | null
-  social_media: PlatformType[]
-  display_networks: PlatformType[]
-  search_engines: PlatformType[]
-  streaming: PlatformType[]
-  ooh: PlatformType[]
-  broadcast: PlatformType[]
-  messaging: PlatformType[]
-  print: PlatformType[]
-  e_commerce: PlatformType[]
-  in_game: PlatformType[]
-  mobile: PlatformType[]
-}
+  id: number;
+  funnel_stage: string;
+  funnel_stage_timeline_start_date: string | null;
+  funnel_stage_timeline_end_date: string | null;
+  social_media: PlatformType[];
+  display_networks: PlatformType[];
+  search_engines: PlatformType[];
+  streaming: PlatformType[];
+  ooh: PlatformType[];
+  broadcast: PlatformType[];
+  messaging: PlatformType[];
+  print: PlatformType[];
+  e_commerce: PlatformType[];
+  in_game: PlatformType[];
+  mobile: PlatformType[];
+};
 
 type MediaOptionType = {
-  name: string
-  icon: any
-}
+  name: string;
+  icon: any;
+};
 
 type QuantitiesType = {
   [platformName: string]: {
-    [formatName: string]: number
-  }
-}
+    [formatName: string]: number;
+  };
+};
 
 // Constants
 const CHANNEL_TYPES = [
@@ -71,7 +74,7 @@ const CHANNEL_TYPES = [
   { key: "display_networks", title: "Display Networks" },
   { key: "search_engines", title: "Search Engines" },
   { key: "streaming", title: "Streaming" },
-]
+];
 
 const DEFAULT_MEDIA_OPTIONS = [
   { name: "Carousel", icon: "/carousel.svg" },
@@ -79,19 +82,19 @@ const DEFAULT_MEDIA_OPTIONS = [
   { name: "Video", icon: "/video_format.svg" },
   { name: "Slideshow", icon: "/slideshow_format.svg" },
   { name: "Collection", icon: "/collection_format.svg" },
-]
+];
 
 // Helper functions
 const getLocalStorageItem = (key: string, defaultValue: any = null) => {
-  if (typeof window === "undefined") return defaultValue
-  const item = localStorage.getItem(key)
-  return item ? JSON.parse(item) : defaultValue
-}
+  if (typeof window === "undefined") return defaultValue;
+  const item = localStorage.getItem(key);
+  return item ? JSON.parse(item) : defaultValue;
+};
 
 const setLocalStorageItem = (key: string, value: any) => {
-  if (typeof window === "undefined") return
-  localStorage.setItem(key, JSON.stringify(value))
-}
+  if (typeof window === "undefined") return;
+  localStorage.setItem(key, JSON.stringify(value));
+};
 
 // Components
 const MediaOption = ({
@@ -104,67 +107,246 @@ const MediaOption = ({
   onOpenModal,
   platformName,
   channelName,
-  previews
+  previews,
+  stageName,
+  format,
 }: {
-  option: MediaOptionType
-  isSelected: boolean
-  isValidated: boolean
-  quantity: number
-  onSelect: () => void
-  onQuantityChange: (change: number) => void
-  onOpenModal: () => void
-  platformName: string
-  channelName: string
-  previews: any[]
+  option: MediaOptionType;
+  isSelected: boolean;
+  isValidated: boolean;
+  quantity: number;
+  onSelect: () => void;
+  onQuantityChange: (change: number) => void;
+  onOpenModal: () => void;
+  platformName: string;
+  channelName: string;
+  previews: any[];
+  stageName: string;
+  format: string;
 }) => {
+  console.log({ isValidated, isSelected, previews });
+  const { campaignFormData, campaignData, updateCampaign, getActiveCampaign } =
+    useCampaigns();
+  const [loading, setLoading] = useState(false);
+  const [localPreviews, setLocalPreviews] = useState(previews);
+  const [idToDel, setIdToDel] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!idToDel) {
+      setLocalPreviews(previews);
+    }
+  }, [previews]);
+
+  const uploadUpdatedCampaignToStrapi = async (data) => {
+    const cleanData = removeKeysRecursively(
+      campaignData,
+      ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
+      ["previews"]
+    );
+    await updateCampaign({
+      ...cleanData,
+      channel_mix: removeKeysRecursively(
+        data?.channel_mix,
+        [
+          "isValidated",
+          "formatValidated",
+          "validatedStages",
+          "documentId",
+          "id",
+        ],
+        ["previews"]
+      ),
+    });
+    await getActiveCampaign();
+    setIdToDel(null);
+    setLoading(false);
+  };
+
+  const updateGlobalState = async (ids: string[]) => {
+    const updatedChannelMix = [...(campaignFormData?.channel_mix || [])];
+
+    // Restructure other previews in other platform's formats to their IDs
+    updatedChannelMix.forEach((ch: any) => {
+      Object.keys(ch).forEach((key) => {
+        if (Array.isArray(ch[key])) {
+          ch[key].forEach((platform: any) => {
+            platform.format = platform.format.map((fo: any) => ({
+              ...fo,
+              previews: fo?.previews?.map((p: any) => ({ id: p?.id })),
+            }));
+          });
+        }
+      });
+    });
+
+    const stage = updatedChannelMix?.find(
+      (ch: any) => ch?.funnel_stage === stageName
+    );
+    if (!stage) return;
+
+    const platformKey = channelName?.toLowerCase()?.replace(" ", "_");
+    const platforms = stage[platformKey];
+    if (!platforms) return;
+
+    const targetPlatform = platforms?.find(
+      (pl: any) => pl?.platform_name === platformName
+    );
+    console.log("🚀 ~ updateGlobalState ~ targetPlatform:", targetPlatform);
+    if (!targetPlatform) return;
+
+    const targetFormatIndex = targetPlatform?.format?.findIndex(
+      (fo: any) => fo?.format_type === format
+    );
+    console.log(
+      "🚀 ~ updateGlobalState ~ targetFormatIndex:",
+      targetFormatIndex
+    );
+    if (targetFormatIndex === -1 || targetFormatIndex === undefined) return;
+
+    targetPlatform.format[targetFormatIndex] = {
+      ...targetPlatform.format[targetFormatIndex],
+      previews: Array.from(new Set([...ids]))?.map((id) => ({
+        id: id,
+      })),
+    };
+    console.log(updatedChannelMix);
+    const updatedState = {
+      ...campaignFormData,
+      channel_mix: updatedChannelMix,
+    };
+    console.log("Updated State:", updatedState);
+    await uploadUpdatedCampaignToStrapi(updatedState);
+    setLocalPreviews(ids);
+  };
+
+  const handleDelete = async (previewId: string) => {
+    const updatedPreviews = localPreviews.filter((prv) => prv.id !== previewId);
+    const updatedIds = updatedPreviews.map((prv) => prv.id);
+
+    // setLocalPreviews(updatedPreviews);
+
+    // Update the global state with the new previews
+    setLoading(true);
+    await updateGlobalState(updatedIds);
+  };
+
   return (
-    <div className="flex justify-center gap-6 min-w-fit">
-      <div className="flex flex-col items-center">
-        <div
-          onClick={() => !isValidated && onSelect()}
-          className={`relative text-center p-2 rounded-lg border transition ${
-            isSelected ? "border-blue-500 shadow-lg" : "border-gray-300"
-          } ${isValidated ? "cursor-default" : "cursor-pointer"}`}
-        >
-          <Image src={option.icon || "/placeholder.svg"} width={168} height={132} alt={option.name} />
-          <p className="text-sm font-medium text-gray-700 mt-2">{option.name}</p>
-          {isSelected && (
-            <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-              <FaCheck />
+    <div>
+      <div className="flex gap-6 min-w-fit">
+        <div className="flex flex-col items-center">
+          <div
+            onClick={() => !isValidated && onSelect()}
+            className={`relative text-center p-2 rounded-lg border transition ${
+              isSelected ? "border-blue-500 shadow-lg" : "border-gray-300"
+            } ${isValidated ? "cursor-default" : "cursor-pointer"}`}
+          >
+            <Image
+              src={option.icon || "/placeholder.svg"}
+              width={168}
+              height={132}
+              alt={option.name}
+            />
+            <p className="text-sm font-medium text-gray-700 mt-2">
+              {option.name}
+            </p>
+            {isSelected && (
+              <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                <FaCheck />
+              </div>
+            )}
+          </div>
+          {isValidated && isSelected && (
+            <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
+              <button
+                className="px-2 py-1 text-[#000000] text-lg font-semibold"
+                onClick={() => onQuantityChange(-1)}
+              >
+                -
+              </button>
+              <span className="px-2">{quantity || 1}</span>
+              <button
+                className="px-2 py-1 text-[#000000] text-lg font-semibold"
+                onClick={() => onQuantityChange(1)}
+              >
+                +
+              </button>
             </div>
           )}
         </div>
         {isValidated && isSelected && (
-          <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
-            <button className="px-2 py-1 text-[#000000] text-lg font-semibold" onClick={() => onQuantityChange(-1)}>
-              -
-            </button>
-            <span className="px-2">{quantity || 1}</span>
-            <button className="px-2 py-1 text-[#000000] text-lg font-semibold" onClick={() => onQuantityChange(1)}>
-              +
-            </button>
-          </div>
+          <>
+            <div
+              onClick={onOpenModal}
+              className="w-[225px] h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
+            >
+              <div className="flex flex-col items-center gap-2 text-center">
+                <svg
+                  width="16"
+                  height="17"
+                  viewBox="0 0 16 17"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
+                    fill="#3175FF"
+                  />
+                </svg>
+                <p className="text-md font-lighter text-black mt-2">
+                  Upload your previews
+                </p>
+              </div>
+            </div>
+          </>
         )}
       </div>
-      {isValidated && isSelected && (
-        <div
-          onClick={onOpenModal}
-          className="w-[225px] h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
-        >
-          <div className="flex flex-col items-center gap-2 text-center">
-            <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
-                fill="#3175FF"
-              />
-            </svg>
-            <p className="text-md font-lighter text-black mt-2">Upload your previews</p>
+      {isValidated && isSelected && previews && previews.length > 0 && (
+        <div className=" mt-8">
+          <p className="font-semibold text-[18px] mb-4">Uploaded Previews</p>
+          <div className="grid grid-cols-2 gap-3  flex-wrap">
+            {localPreviews?.map((prv, index) => {
+              console.log(prv);
+              return (
+                <div key={prv?.id || index} className="relative">
+                  <Link
+                    href={prv?.url ?? ""}
+                    target="_blank"
+                    // onClick={onOpenModal}
+                    className="w-[225px] h-[150px] rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors border border-gray-500 cursor-pointer"
+                  >
+                    <Image
+                      src={prv?.url ?? ""}
+                      alt=""
+                      width={225}
+                      height={140}
+                      className="rounded-lg w-full h-full object-cover"
+                    />
+                  </Link>
+                  <button
+                    className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
+                    onClick={() => {
+                      setIdToDel(prv?.id);
+                      handleDelete(prv?.id);
+                    }}
+                    disabled={loading}
+                  >
+                    {loading && idToDel === prv?.id ? (
+                      <center>
+                        <FaSpinner color="white" className="animate-spin" />
+                      </center>
+                    ) : (
+                      <Trash color="white" size={10} />
+                    )}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
 const MediaSelectionGrid = ({
   mediaOptions,
@@ -178,41 +360,59 @@ const MediaSelectionGrid = ({
   onOpenModal,
   adSetIndex,
 }: {
-  mediaOptions: MediaOptionType[]
-  platformName: string
-  channelName: string
-  stageName: string
-  isValidated: boolean
-  quantities: { [key: string]: number }
-  onFormatSelect: (index: number, adSetIndex?: number) => void
-  onQuantityChange: (formatName: string, change: number) => void
-  onOpenModal: (platform: string, channel: string, format: string) => void
-  adSetIndex?: number
+  mediaOptions: MediaOptionType[];
+  platformName: string;
+  channelName: string;
+  stageName: string;
+  isValidated: boolean;
+  quantities: { [key: string]: number };
+  onFormatSelect: (index: number, adSetIndex?: number) => void;
+  onQuantityChange: (formatName: string, change: number) => void;
+  onOpenModal: (
+    platform: string,
+    channel: string,
+    format: string,
+    perviews: any[],
+    quantities: any
+  ) => void;
+  adSetIndex?: number;
 }) => {
-  const { campaignFormData } = useCampaigns()
-  const channelKey = channelName.toLowerCase().replace(/\s+/g, "_")
+  const { campaignFormData } = useCampaigns();
+  const channelKey = channelName.toLowerCase().replace(/\s+/g, "_");
 
-  const stage = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
+  const stage = campaignFormData?.channel_mix?.find(
+    (ch) => ch?.funnel_stage === stageName
+  );
 
-  const platform = stage?.[channelKey]?.find((pl) => pl?.platform_name === platformName)
+  const platform = stage?.[channelKey]?.find(
+    (pl) => pl?.platform_name === platformName
+  );
 
   // If adSetIndex is present, find that specific ad set
-  const adSet = adSetIndex !== undefined ? platform?.ad_sets?.[adSetIndex] : null
+  const adSet =
+    adSetIndex !== undefined ? platform?.ad_sets?.[adSetIndex] : null;
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full h-full overflow-x-auto overflow-y-clip">
       <div className="flex gap-4" style={{ minWidth: "max-content" }}>
         {mediaOptions.map((option, index) => {
           // Check selection either from adSet or platform level
           const isSelected = adSet
             ? adSet.format?.some((f) => f.format_type === option.name)
-            : platform?.format?.some((f) => f.format_type === option.name)
+            : platform?.format?.some((f) => f.format_type === option.name);
 
-            const previews = adSet
+          const previews = adSet
             ? adSet.format?.map((f) => f.previews)
-            : platform.format?.map((f) => f.peviews)
+            : platform.format?.find((f) => f.format_type === option.name)
+                ?.previews;
 
-          if (isValidated && !isSelected) return null
+          const q = adSet
+            ? adSet.format?.map((f) => f.previews)
+            : platform.format?.find((f) => f.format_type === option.name)
+                ?.num_of_visuals;
+          // console.log('plarfoem', platform.format?.find((f) => f.format_type === option.name)?.previews)
+
+          if (isValidated && !isSelected) return null;
 
           return (
             <MediaOption
@@ -222,18 +422,24 @@ const MediaSelectionGrid = ({
               isValidated={isValidated}
               quantity={quantities[option.name] || 1}
               onSelect={() => onFormatSelect(index, adSetIndex)}
-              onQuantityChange={(change) => onQuantityChange(option.name, change)}
-              onOpenModal={() => onOpenModal(platformName, channelName, option.name)}
+              onQuantityChange={(change) =>
+                onQuantityChange(option.name, change)
+              }
+              onOpenModal={() =>
+                onOpenModal(platformName, channelName, option.name, previews, q)
+              }
               platformName={platformName}
               channelName={channelName}
               previews={previews}
+              stageName={stageName}
+              format={option?.name}
             />
-          )
+          );
         })}
       </div>
     </div>
-  )
-}
+  );
+};
 
 const PlatformItem = ({
   platform,
@@ -245,84 +451,122 @@ const PlatformItem = ({
   onOpenModal,
   view,
 }: {
-  platform: PlatformType
-  channelTitle: string
-  stageName: string
-  isValidated: boolean
-  quantities: QuantitiesType
-  onQuantityChange: (platformName: string, formatName: string, change: number) => void
-  onOpenModal: (platform: string, channel: string, format: string) => void
-  view: "channel" | "adset"
+  platform: PlatformType;
+  channelTitle: string;
+  stageName: string;
+  isValidated: boolean;
+  quantities: QuantitiesType;
+  onQuantityChange: (
+    platformName: string,
+    formatName: string,
+    change: number
+  ) => void;
+  onOpenModal: (
+    platform: string,
+    channel: string,
+    format: string,
+    previews: any[],
+    quantities: any
+  ) => void;
+  view: "channel" | "adset";
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false)
+  const hasSelectedFormats = platform.format?.length > 0;
+  const [isExpanded, setIsExpanded] = useState<{
+    [key: string]: boolean;
+  }>({});
   const [expandedAdsets, setExpandedAdsets] = useState<{
-    [key: string]: boolean
-  }>({})
-  const { campaignFormData, setCampaignFormData } = useCampaigns()
+    [key: string]: boolean;
+  }>({});
+  const { campaignFormData, setCampaignFormData } = useCampaigns();
 
-  const hasSelectedFormats = platform.format?.length > 0
+  console.log(
+    "🚀 ~ hasSelectedFormats:",
+    hasSelectedFormats,
+    isValidated,
+    isExpanded[`${platform.platform_name}-${platform.id}`]
+  );
 
-  const toggleExpansion = () => {
-    if (!isValidated || (isValidated && hasSelectedFormats)) {
-      setIsExpanded(!isExpanded)
+  useEffect(() => {
+    if (hasSelectedFormats) {
+      setIsExpanded((prev) => ({
+        ...prev,
+        [`${platform.platform_name}-${platform.id}`]: true,
+      }));
     }
-  }
+  }, []);
+
+  const toggleExpansion = (id: string) => {
+    if (!isValidated || (isValidated && hasSelectedFormats)) {
+      setIsExpanded((prev) => ({
+        ...prev,
+        [id]: !prev[id],
+      }));
+    }
+  };
 
   const toggleAdsetExpansion = (adsetId: string) => {
     setExpandedAdsets((prev) => ({
       ...prev,
       [adsetId]: !prev[adsetId],
-    }))
-  }
+    }));
+  };
 
   const handleFormatSelection = (index: number, adsetIndex?: number) => {
-    if (isValidated) return
+    if (isValidated) return;
 
-    const formatName = DEFAULT_MEDIA_OPTIONS[index].name
-    const copy = [...campaignFormData.channel_mix]
+    const formatName = DEFAULT_MEDIA_OPTIONS[index].name;
+    const copy = [...campaignFormData.channel_mix];
 
-    const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName)
-    if (stageIndex === -1) return
+    const stageIndex = copy.findIndex(
+      (item) => item.funnel_stage === stageName
+    );
+    if (stageIndex === -1) return;
 
-    const channelKey = channelTitle.toLowerCase().replace(/\s+/g, "_")
-    const channel = copy[stageIndex][channelKey]
-    const platformIndex = channel?.findIndex((item) => item.platform_name === platform.platform_name)
-    if (platformIndex === -1) return
+    const channelKey = channelTitle.toLowerCase().replace(/\s+/g, "_");
+    const channel = copy[stageIndex][channelKey];
+    const platformIndex = channel?.findIndex(
+      (item) => item.platform_name === platform.platform_name
+    );
+    if (platformIndex === -1) return;
 
-    const platformCopy = channel[platformIndex]
+    const platformCopy = channel[platformIndex];
 
     // Handle Ad Set if adsetIndex is provided
     if (typeof adsetIndex === "number" && platformCopy.ad_sets?.length > 0) {
-      const adset = platformCopy.ad_sets[adsetIndex]
-      if (!adset) return
+      const adset = platformCopy.ad_sets[adsetIndex];
+      if (!adset) return;
 
-      if (!adset.format) adset.format = []
+      if (!adset.format) adset.format = [];
 
-      const adsetFormatIndex = adset.format.findIndex((f) => f.format_type === formatName)
+      const adsetFormatIndex = adset.format.findIndex(
+        (f) => f.format_type === formatName
+      );
 
       if (adsetFormatIndex !== -1) {
-        adset.format.splice(adsetFormatIndex, 1)
+        adset.format.splice(adsetFormatIndex, 1);
       } else {
         adset.format.push({
           format_type: formatName,
-          num_of_visuals: "1",
+          num_of_visuals: 1,
           previews: null,
-        })
+        });
       }
     } else {
       // Handle top-level platform format
-      if (!platformCopy.format) platformCopy.format = []
+      if (!platformCopy.format) platformCopy.format = [];
 
-      const formatIndex = platformCopy.format.findIndex((f) => f.format_type === formatName)
+      const formatIndex = platformCopy.format.findIndex(
+        (f) => f.format_type === formatName
+      );
 
       if (formatIndex !== -1) {
-        platformCopy.format.splice(formatIndex, 1)
+        platformCopy.format.splice(formatIndex, 1);
       } else {
         platformCopy.format.push({
           format_type: formatName,
-          num_of_visuals: "1",
+          num_of_visuals: 1,
           previews: null,
-        })
+        });
       }
     }
 
@@ -333,8 +577,8 @@ const PlatformItem = ({
         ...prev.validatedStages,
         [stageName]: false,
       },
-    }))
-  }
+    }));
+  };
 
   return (
     <div>
@@ -350,10 +594,17 @@ const PlatformItem = ({
           )}
           <p>{platform.platform_name}</p>
         </div>
-        <div className="flex gap-3 items-center font-semibold cursor-pointer" onClick={toggleExpansion}>
-          {isExpanded ? (
+        <div
+          className="flex gap-3 items-center font-semibold cursor-pointer"
+          onClick={() =>
+            toggleExpansion(`${platform.platform_name}-${platform.id}`)
+          }
+        >
+          {isExpanded[`${platform.platform_name}-${platform.id}`] ? (
             <span className="text-gray-500">
-              {isValidated ? "Choose the number of visuals for this format" : "Select your format"}
+              {isValidated
+                ? "Choose the number of visuals for this format"
+                : "Select your format"}
             </span>
           ) : (
             (view === "channel" || platform.ad_sets?.length < 1) && (
@@ -373,7 +624,11 @@ const PlatformItem = ({
         </div>
       </div>
 
-      {((isExpanded && !isValidated) || (isValidated && hasSelectedFormats && isExpanded)) && (
+      {((isExpanded[`${platform.platform_name}-${platform.id}`] &&
+        !isValidated) ||
+        (isValidated &&
+          hasSelectedFormats &&
+          isExpanded[`${platform.platform_name}-${platform.id}`])) && (
         <div className="py-6">
           <MediaSelectionGrid
             mediaOptions={DEFAULT_MEDIA_OPTIONS}
@@ -383,7 +638,9 @@ const PlatformItem = ({
             isValidated={isValidated}
             quantities={quantities[platform.platform_name] || {}}
             onFormatSelect={handleFormatSelection}
-            onQuantityChange={(formatName, change) => onQuantityChange(platform.platform_name, formatName, change)}
+            onQuantityChange={(formatName, change) =>
+              onQuantityChange(platform.platform_name, formatName, change)
+            }
             onOpenModal={onOpenModal}
           />
         </div>
@@ -392,19 +649,26 @@ const PlatformItem = ({
       {view === "adset" && platform.ad_sets?.length > 0 && (
         <>
           {platform.ad_sets.map((adset, index) => {
-            const adsetKey = `${adset.id}-${index}`
-            const isAdsetExpanded = expandedAdsets[adsetKey]
+            const adsetKey = `${adset.id}-${index}`;
+            const isAdsetExpanded = expandedAdsets[adsetKey];
 
             return (
               <div key={adsetKey}>
                 <div className="my-3 flex items-center gap-8">
-                  <div className="p-3 border w-fit rounded-md">{adset.audience_type}</div>
+                  <div className="p-3 border w-fit rounded-md">
+                    {adset.audience_type}
+                  </div>
                   <div
                     className="flex items-center gap-2 cursor-pointer"
                     onClick={() => toggleAdsetExpansion(adsetKey)}
                   >
                     <p className="font-bold text-[18px] text-[#3175FF]">
-                      <svg width="13" height="12" viewBox="0 0 13 12" fill="none">
+                      <svg
+                        width="13"
+                        height="12"
+                        viewBox="0 0 13 12"
+                        fill="none"
+                      >
                         <path
                           d="M5.87891 5.16675V0.166748H7.54557V5.16675H12.5456V6.83342H7.54557V11.8334H5.87891V6.83342H0.878906V5.16675H5.87891Z"
                           fill="#3175FF"
@@ -426,7 +690,11 @@ const PlatformItem = ({
                       quantities={quantities[platform.platform_name] || {}}
                       onFormatSelect={handleFormatSelection}
                       onQuantityChange={(formatName, change) =>
-                        onQuantityChange(platform.platform_name, formatName, change)
+                        onQuantityChange(
+                          platform.platform_name,
+                          formatName,
+                          change
+                        )
                       }
                       onOpenModal={onOpenModal}
                       adSetIndex={index}
@@ -434,13 +702,13 @@ const PlatformItem = ({
                   </div>
                 )}
               </div>
-            )
+            );
           })}
         </>
       )}
     </div>
-  )
-}
+  );
+};
 
 const ChannelSection = ({
   channelTitle,
@@ -452,16 +720,26 @@ const ChannelSection = ({
   onOpenModal,
   view,
 }: {
-  channelTitle: string
-  platforms: PlatformType[]
-  stageName: string
-  isValidated: boolean
-  quantities: QuantitiesType
-  onQuantityChange: (platformName: string, formatName: string, change: number) => void
-  onOpenModal: (platform: string, channel: string, format: string) => void
-  view: "channel" | "adset"
+  channelTitle: string;
+  platforms: PlatformType[];
+  stageName: string;
+  isValidated: boolean;
+  quantities: QuantitiesType;
+  onQuantityChange: (
+    platformName: string,
+    formatName: string,
+    change: number
+  ) => void;
+  onOpenModal: (
+    platform: string,
+    channel: string,
+    format: string,
+    previews: any[],
+    quantities: any
+  ) => void;
+  view: "channel" | "adset";
 }) => {
-  if (!platforms || platforms.length === 0) return null
+  if (!platforms || platforms.length === 0) return null;
 
   return (
     <>
@@ -482,176 +760,206 @@ const ChannelSection = ({
         ))}
       </div>
     </>
-  )
-}
+  );
+};
 
 export const Platforms = ({
   stageName,
   view = "channel",
 }: {
-  stageName: string
-  view?: "channel" | "adset"
+  stageName: string;
+  view?: "channel" | "adset";
 }) => {
-  const [isValidated, setIsValidated] = useState(false)
-  const [isValidateEnabled, setIsValidateEnabled] = useState(false)
-  const [quantities, setQuantities] = useState<QuantitiesType>({})
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isValidated, setIsValidated] = useState(false);
+  const [isValidateEnabled, setIsValidateEnabled] = useState(false);
+  const [quantities, setQuantities] = useState<QuantitiesType>({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContext, setModalContext] = useState<{
-    platform: string
-    channel: string
-    format: string
-  } | null>(null)
+    platform: string;
+    channel: string;
+    format: string;
+    previews: any[];
+    quantities: any;
+  } | null>(null);
 
-  const { campaignFormData, setCampaignFormData } = useCampaigns()
+  const { campaignFormData, setCampaignFormData } = useCampaigns();
 
   // Load saved state from localStorage
   useEffect(() => {
-    setIsValidated(getLocalStorageItem(`formatValidation_${stageName}`, false))
-    setQuantities(getLocalStorageItem(`quantities_${stageName}`, {}))
-  }, [stageName])
+    setIsValidated(getLocalStorageItem(`formatValidation_${stageName}`, false));
+    setQuantities(getLocalStorageItem(`quantities_${stageName}`, {}));
+  }, [stageName]);
 
   // Check if any formats are selected to enable validation
   useEffect(() => {
-    const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName)
+    const stage = campaignFormData?.channel_mix?.find(
+      (chan) => chan?.funnel_stage === stageName
+    );
 
     const hasMediaOptionsSelected =
       stage &&
       (stage.social_media?.some((platform) => platform.format?.length > 0) ||
-        stage.display_networks?.some((platform) => platform.format?.length > 0) ||
+        stage.display_networks?.some(
+          (platform) => platform.format?.length > 0
+        ) ||
         stage.search_engines?.some((platform) => platform.format?.length > 0) ||
-        stage.streaming?.some((platform) => platform.format?.length > 0))
+        stage.streaming?.some((platform) => platform.format?.length > 0));
 
-    setIsValidateEnabled(hasMediaOptionsSelected)
-  }, [campaignFormData, stageName])
+    setIsValidateEnabled(hasMediaOptionsSelected);
+  }, [campaignFormData, stageName]);
 
   // Initialize quantities from campaign data - FIX: Added a check to prevent infinite loop
   useEffect(() => {
-    const stage = campaignFormData?.channel_mix?.find((chan) => chan.funnel_stage === stageName)
+    const stage = campaignFormData?.channel_mix?.find(
+      (chan) => chan.funnel_stage === stageName
+    );
 
     if (stage && Object.keys(quantities).length === 0) {
-      const initialQuantities: QuantitiesType = {}
+      const initialQuantities: QuantitiesType = {};
 
       CHANNEL_TYPES.forEach(({ key }) => {
         stage[key]?.forEach((platform) => {
           if (platform.format && platform.format.length > 0) {
-            initialQuantities[platform.platform_name] = {}
+            initialQuantities[platform.platform_name] = {};
             platform.format.forEach((f) => {
-              initialQuantities[platform.platform_name][f.format_type] = Number.parseInt(f.num_of_visuals || "1")
-            })
+              initialQuantities[platform.platform_name][f.format_type] =
+                Number.parseInt(f.num_of_visuals || "1");
+            });
           }
 
           // Also check adsets for formats
           platform.ad_sets?.forEach((adset, adsetIndex) => {
             if (adset.format && adset.format.length > 0) {
-              const adsetKey = `${platform.platform_name}_adset_${adsetIndex}`
-              initialQuantities[adsetKey] = {}
+              const adsetKey = `${platform.platform_name}_adset_${adsetIndex}`;
+              initialQuantities[adsetKey] = {};
               adset.format.forEach((f) => {
-                initialQuantities[adsetKey][f.format_type] = Number.parseInt(f.num_of_visuals || "1")
-              })
+                initialQuantities[adsetKey][f.format_type] = Number.parseInt(
+                  f.num_of_visuals || "1"
+                );
+              });
             }
-          })
-        })
-      })
+          });
+        });
+      });
 
       if (Object.keys(initialQuantities).length > 0) {
-        setQuantities(initialQuantities)
-        setLocalStorageItem(`quantities_${stageName}`, initialQuantities)
+        setQuantities(initialQuantities);
+        setLocalStorageItem(`quantities_${stageName}`, initialQuantities);
       }
     }
-  }, [campaignFormData, stageName]) // Removed quantities from dependency array to prevent infinite loop
+  }, [campaignFormData, stageName]); // Removed quantities from dependency array to prevent infinite loop
 
-  const handleQuantityChange = (platformName: string, formatName: string, change: number, adsetIndex?: number) => {
+  const handleQuantityChange = (
+    platformName: string,
+    formatName: string,
+    change: number,
+    adsetIndex?: number
+  ) => {
     // Update quantities state
     const newQuantities = {
       ...quantities,
       [platformName]: {
         ...quantities[platformName],
-        [formatName]: Math.max(1, (quantities[platformName]?.[formatName] || 1) + change),
+        [formatName]: Math.max(
+          1,
+          (quantities[platformName]?.[formatName] || 1) + change
+        ),
       },
-    }
+    };
 
-    setQuantities(newQuantities)
-    setLocalStorageItem(`quantities_${stageName}`, newQuantities)
+    setQuantities(newQuantities);
+    setLocalStorageItem(`quantities_${stageName}`, newQuantities);
 
     // Update campaign data
-    const copy = [...campaignFormData.channel_mix]
-    const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName)
-    if (stageIndex === -1) return
+    const copy = [...campaignFormData.channel_mix];
+    const stageIndex = copy.findIndex(
+      (item) => item.funnel_stage === stageName
+    );
+    if (stageIndex === -1) return;
 
     // Check if this is an adset quantity
-    const isAdsetQuantity = platformName.includes("_adset_")
+    const isAdsetQuantity = platformName.includes("_adset_");
 
     if (isAdsetQuantity) {
-      const [actualPlatformName, _, adsetIndexStr] = platformName.split("_adset_")
-      const adsetIndex = Number.parseInt(adsetIndexStr)
+      const [actualPlatformName, _, adsetIndexStr] =
+        platformName.split("_adset_");
+      const adsetIndex = Number.parseInt(adsetIndexStr);
 
       // Find the platform in any channel type
       for (const channelType of CHANNEL_TYPES) {
-        const platforms = copy[stageIndex][channelType.key]
-        if (!platforms) continue
+        const platforms = copy[stageIndex][channelType.key];
+        if (!platforms) continue;
 
-        const platform = platforms.find((p) => p.platform_name === actualPlatformName)
+        const platform = platforms.find(
+          (p) => p.platform_name === actualPlatformName
+        );
         if (platform && platform.ad_sets && platform.ad_sets[adsetIndex]) {
-          const adset = platform.ad_sets[adsetIndex]
-          if (!adset.format) continue
+          const adset = platform.ad_sets[adsetIndex];
+          if (!adset.format) continue;
 
-          const format = adset.format.find((f) => f.format_type === formatName)
+          const format = adset.format.find((f) => f.format_type === formatName);
           if (format) {
-            format.num_of_visuals = newQuantities[platformName][formatName].toString()
-            break
+            format.num_of_visuals =
+              newQuantities[platformName][formatName].toString();
+            break;
           }
         }
       }
     } else {
       // Find the platform in any channel type
       for (const channelType of CHANNEL_TYPES) {
-        const platforms = copy[stageIndex][channelType.key]
-        if (!platforms) continue
+        const platforms = copy[stageIndex][channelType.key];
+        if (!platforms) continue;
 
-        const platform = platforms.find((p) => p.platform_name === platformName)
+        const platform = platforms.find(
+          (p) => p.platform_name === platformName
+        );
         if (platform && platform.format) {
-          const format = platform.format.find((f) => f.format_type === formatName)
+          const format = platform.format.find(
+            (f) => f.format_type === formatName
+          );
           if (format) {
-            format.num_of_visuals = newQuantities[platformName][formatName].toString()
-            break
+            format.num_of_visuals =
+              newQuantities[platformName][formatName].toString();
+            break;
           }
         }
       }
     }
 
-    setCampaignFormData({ ...campaignFormData, channel_mix: copy })
-  }
+    setCampaignFormData({ ...campaignFormData, channel_mix: copy });
+  };
 
   const handleValidateOrEdit = () => {
     if (!isValidateEnabled && !isValidated) {
-      alert("Please select at least one format before validating")
-      return
+      alert("Please select at least one format before validating");
+      return;
     }
 
-    const newValidationState = !isValidated
-    setIsValidated(newValidationState)
-    setIsModalOpen(false)
+    const newValidationState = !isValidated;
+    setIsValidated(newValidationState);
+    setIsModalOpen(false);
 
-    setLocalStorageItem(`formatValidation_${stageName}`, newValidationState)
+    setLocalStorageItem(`formatValidation_${stageName}`, newValidationState);
 
     // Update validation state in campaign data
     const updatedChannelMix = campaignFormData.channel_mix.map((mix) => {
       if (mix.funnel_stage === stageName) {
-        const updatedMix = { ...mix }
+        const updatedMix = { ...mix };
 
         CHANNEL_TYPES.forEach(({ key }) => {
           if (updatedMix[key]) {
             updatedMix[key] = updatedMix[key].map((p: PlatformType) => ({
               ...p,
               formatValidated: newValidationState,
-            }))
+            }));
           }
-        })
+        });
 
-        return updatedMix
+        return updatedMix;
       }
-      return mix
-    })
+      return mix;
+    });
 
     setCampaignFormData((prev) => ({
       ...prev,
@@ -660,27 +968,35 @@ export const Platforms = ({
         ...prev.validatedStages,
         [stageName]: newValidationState,
       },
-    }))
-  }
+    }));
+  };
 
-  const openModal = (platform: string, channel: string, format: string) => {
-    setModalContext({ platform, channel, format })
-    setIsModalOpen(true)
-  }
+  const openModal = (
+    platform: string,
+    channel: string,
+    format: string,
+    previews: any[],
+    quantities: any
+  ) => {
+    setModalContext({ platform, channel, format, previews, quantities });
+    setIsModalOpen(true);
+  };
 
   // Get platforms for each channel type
   const getChannelPlatforms = () => {
-    const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName)
+    const stage = campaignFormData?.channel_mix?.find(
+      (chan) => chan?.funnel_stage === stageName
+    );
 
-    if (!stage) return []
+    if (!stage) return [];
 
     return CHANNEL_TYPES.map(({ key, title }) => ({
       title,
       platforms: stage[key]?.filter((p: PlatformType) => p.platform_name) || [],
-    })).filter((channel) => channel.platforms.length > 0)
-  }
+    })).filter((channel) => channel.platforms.length > 0);
+  };
 
-  const channelSections = getChannelPlatforms()
+  const channelSections = getChannelPlatforms();
 
   return (
     <div className="text-[16px] overflow-x-hidden">
@@ -719,70 +1035,77 @@ export const Platforms = ({
             platform={modalContext.platform}
             channel={modalContext.channel}
             format={modalContext.format}
-            quantities={quantities}
+            previews={modalContext.previews}
+            quantities={modalContext.quantities}
             stageName={stageName}
           />
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
 export const FormatSelection = () => {
-  const [openTabs, setOpenTabs] = useState<string[]>([])
-  const [view, setView] = useState<"channel" | "adset">("channel")
-  const { campaignFormData } = useCampaigns()
-  const { setIsDrawerOpen, setClose } = useComments()
+  const [openTabs, setOpenTabs] = useState<string[]>([]);
+  const [view, setView] = useState<"channel" | "adset">("channel");
+  const { campaignFormData } = useCampaigns();
+  const { setIsDrawerOpen, setClose } = useComments();
 
   // Close drawer on component mount
   useEffect(() => {
-    setIsDrawerOpen(false)
-    setClose(false)
-  }, [])
+    setIsDrawerOpen(false);
+    setClose(false);
+  }, []);
 
   // Load saved open tabs from localStorage
   useEffect(() => {
-    const savedOpenTabs = getLocalStorageItem("formatSelectionOpenTabs")
+    const savedOpenTabs = getLocalStorageItem("formatSelectionOpenTabs");
 
     if (savedOpenTabs) {
-      setOpenTabs(savedOpenTabs)
+      setOpenTabs(savedOpenTabs);
     } else if (campaignFormData?.channel_mix?.length > 0) {
-      const initialTab = [campaignFormData.channel_mix[0]?.funnel_stage]
-      setOpenTabs(initialTab)
-      setLocalStorageItem("formatSelectionOpenTabs", initialTab)
+      const initialTab = [campaignFormData.channel_mix[0]?.funnel_stage];
+      setOpenTabs(initialTab);
+      setLocalStorageItem("formatSelectionOpenTabs", initialTab);
     }
-  }, [campaignFormData])
+  }, [campaignFormData]);
 
   const handleToggleChange = (checked: boolean) => {
-    setView(checked ? "adset" : "channel")
-  }
+    setView(checked ? "adset" : "channel");
+  };
 
   const toggleTab = (stageName: string) => {
     const newOpenTabs = openTabs.includes(stageName)
       ? openTabs.filter((tab) => tab !== stageName)
-      : [...openTabs, stageName]
+      : [...openTabs, stageName];
 
-    setOpenTabs(newOpenTabs)
-    setLocalStorageItem("formatSelectionOpenTabs", newOpenTabs)
-  }
+    setOpenTabs(newOpenTabs);
+    setLocalStorageItem("formatSelectionOpenTabs", newOpenTabs);
+  };
 
   const hasSelectedFormatsForStage = (stageName: string) => {
-    const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName)
+    const stage = campaignFormData?.channel_mix?.find(
+      (chan) => chan?.funnel_stage === stageName
+    );
 
     return (
       stage &&
-      CHANNEL_TYPES.some(({ key }) => stage[key]?.some((platform: PlatformType) => platform.format?.length > 0))
-    )
-  }
+      CHANNEL_TYPES.some(({ key }) =>
+        stage[key]?.some(
+          (platform: PlatformType) => platform.format?.length > 0
+        )
+      )
+    );
+  };
 
   const getStageStatus = (stageName: string) => {
-    const hasFormats = hasSelectedFormatsForStage(stageName)
-    const isValidated = campaignFormData?.validatedStages?.[stageName] || false
+    const hasFormats = hasSelectedFormatsForStage(stageName);
+    const isValidated = campaignFormData?.validatedStages?.[stageName] || false;
 
-    if (hasFormats && isValidated) return "Completed"
-    if (hasFormats) return "In progress"
-    return "Not started"
-  }
+    if (hasFormats && isValidated) return "Completed";
+    if (hasFormats) return "In progress";
+    return "Not started";
+  };
 
   return (
     <div>
@@ -812,13 +1135,15 @@ export const FormatSelection = () => {
         </div>
 
         {campaignFormData?.funnel_stages?.map((stageName, index) => {
-          const stage = campaignFormData?.custom_funnels?.find((s) => s.name === stageName)
-          const funnelStage = funnelStages?.find((f) => f?.name === stageName)
+          const stage = campaignFormData?.custom_funnels?.find(
+            (s) => s.name === stageName
+          );
+          const funnelStage = funnelStages?.find((f) => f?.name === stageName);
 
-          if (!stage) return null
+          if (!stage) return null;
 
-          const status = getStageStatus(stageName)
-          const isOpen = openTabs.includes(stage.name)
+          const status = getStageStatus(stageName);
+          const isOpen = openTabs.includes(stage.name);
 
           return (
             <div key={index}>
@@ -830,7 +1155,12 @@ export const FormatSelection = () => {
               >
                 <div className="flex items-center gap-2">
                   {funnelStage?.icon && (
-                    <Image src={funnelStage.icon || "/placeholder.svg"} alt={stage.name} width={24} height={24} />
+                    <Image
+                      src={funnelStage.icon || "/placeholder.svg"}
+                      alt={stage.name}
+                      width={24}
+                      height={24}
+                    />
                   )}
                   <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#06371a]">
                     {stage.name}
@@ -869,11 +1199,11 @@ export const FormatSelection = () => {
                 </div>
               )}
             </div>
-          )
+          );
         })}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default FormatSelection
+export default FormatSelection;

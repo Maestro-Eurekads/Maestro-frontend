@@ -20,7 +20,7 @@ import bing from "../../../public/bing.svg";
 import tictok from "../../../public/tictok.svg";
 import Button from "./common/button";
 import { useCampaigns } from "../../utils/CampaignsContext";
-import { funnelStages } from "../../../components/data";
+import { funnelStages, getPlatformIcon } from "../../../components/data";
 import axios from "axios";
 import { FaSpinner } from "react-icons/fa";
 
@@ -107,39 +107,17 @@ const ObjectiveSelection = () => {
         : [];
       const updatedNetworks = channelMix.reduce((acc, ch) => {
         const platformsWithFormats = [
-          ...(ch?.social_media
-            ?.filter((sm) => sm.format?.length > 0)
-            .map((sm) => sm?.platform_name) || []),
-          ...(ch?.display_networks
-            ?.filter((dn) => dn.format?.length > 0)
-            .map((dn) => dn?.platform_name) || []),
-          ...(ch?.search_engines
-            ?.filter((se) => se.format?.length > 0)
-            .map((se) => se?.platform_name) || []),
-          ...(ch?.streaming
-            ?.filter((st) => st.format?.length > 0)
-            .map((st) => st?.platform_name) || []),
-          ...(ch?.mobile
-            ?.filter((mb) => mb.format?.length > 0)
-            .map((mb) => mb?.platform_name) || []),
-          ...(ch?.messaging
-            ?.filter((ms) => ms.format?.length > 0)
-            .map((ms) => ms?.platform_name) || []),
-          ...(ch?.in_game
-            ?.filter((ig) => ig.format?.length > 0)
-            .map((ig) => ig?.platform_name) || []),
-          ...(ch?.e_commerce
-            ?.filter((ec) => ec.format?.length > 0)
-            .map((ec) => ec?.platform_name) || []),
-          ...(ch?.broadcast
-            ?.filter((bc) => bc.format?.length > 0)
-            .map((bc) => bc?.platform_name) || []),
-          ...(ch?.print
-            ?.filter((pr) => pr.format?.length > 0)
-            .map((pr) => pr?.platform_name) || []),
-          ...(ch?.ooh
-            ?.filter((oh) => oh.format?.length > 0)
-            .map((oh) => oh?.platform_name) || []),
+          ...(ch?.social_media?.map((sm) => sm?.platform_name) || []),
+          ...(ch?.display_networks?.map((dn) => dn?.platform_name) || []),
+          ...(ch?.search_engines?.map((se) => se?.platform_name) || []),
+          ...(ch?.streaming?.map((st) => st?.platform_name) || []),
+          ...(ch?.mobile?.map((mb) => mb?.platform_name) || []),
+          ...(ch?.messaging?.map((ms) => ms?.platform_name) || []),
+          ...(ch?.in_game?.map((ig) => ig?.platform_name) || []),
+          ...(ch?.e_commerce?.map((ec) => ec?.platform_name) || []),
+          ...(ch?.broadcast?.map((bc) => bc?.platform_name) || []),
+          ...(ch?.print?.map((pr) => pr?.platform_name) || []),
+          ...(ch?.ooh?.map((oh) => oh?.platform_name) || []),
         ];
         acc[ch.funnel_stage] = new Set(platformsWithFormats);
         return acc;
@@ -194,13 +172,13 @@ const ObjectiveSelection = () => {
       : [];
     channelMix.forEach((stage) => {
       const stageName = stage.funnel_stage;
-      ["social_media", "display_networks", "search_engines"].forEach(
+      ["social_media", "display_networks", "search_engines", "streaming", "ooh", "print", "in_game","e_commerce", "broadcast", "messaging"].forEach(
         (category) => {
           const platforms = Array.isArray(stage[category])
             ? stage[category]
             : [];
           platforms.forEach((platform) => {
-            if (platform.format?.length > 0) {
+            
               const platformName = platform.platform_name;
               const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`;
               const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`;
@@ -214,7 +192,7 @@ const ObjectiveSelection = () => {
                 initialSelectedOptions[buyObjectiveKey] =
                   platform.objective_type;
               }
-            }
+            
           });
         }
       );
@@ -325,7 +303,7 @@ const ObjectiveSelection = () => {
     );
   };
 
-  const getPlatformIcon = (platformName) => platformIcons[platformName] || null;
+  
 
   const renderCompletedPlatform = (platformName, category, stageName) => {
     const normalizedCategory = category.toLowerCase().replaceAll(" ", "_");
@@ -525,9 +503,7 @@ const ObjectiveSelection = () => {
                     )
                       ? campaignFormData.channel_mix
                           .find((ch) => ch.funnel_stage === stageName)
-                          ?.[normalizedCategory]?.filter(
-                            (p) => p.format?.length > 0
-                          ) || []
+                          ?.[normalizedCategory] || []
                       : [];
                     if (platforms.length === 0) return null;
 
