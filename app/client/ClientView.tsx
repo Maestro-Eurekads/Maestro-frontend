@@ -121,8 +121,8 @@ interface Reply {
 	message?: string;
 }
 const ClientView = () => {
-	const { isDrawerOpen, setIsDrawerOpen, isCreateOpen, setClose, modalOpen, setModalOpen, selected } = useComments();
-	const [isOpen, setIsOpen] = useState(false);
+	const { isDrawerOpen, setIsDrawerOpen, isCreateOpen, setClose, modalOpen, setModalOpen, selected, isOpen, setIsOpen } = useComments();
+	// const [isOpen, setIsOpen] = useState(false);
 	const [generalComment, setGeneralComment] = useState(false);
 	const [active, setActive] = useState("Timeline view");
 	const { clientCampaignData, campaignData } = useCampaigns();
