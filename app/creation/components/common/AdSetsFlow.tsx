@@ -957,9 +957,9 @@ const AdSetFlow = memo(function AdSetFlow({
   };
 
   const handleValidate = useCallback(() => {
-    // setLoading(true);
-    console.log("campaignFormData", campaignFormData)
-  }, [setIsEditing]);
+    setIsEditing(false);
+    onValidate();
+  }, [setIsEditing, onValidate]);
 
   useEffect(() => {
     if (isEditing) {

@@ -48,15 +48,9 @@ const BuyingObjective = () => {
     return channelMix
       .map((stage) => {
         const filteredStage = { ...stage };
-        filteredStage.social_media = stage.social_media?.filter(
-          (platform) => platform.buy_type && platform.objective_type
-        ) || [];
-        filteredStage.display_networks = stage.display_networks?.filter(
-          (platform) => platform.buy_type && platform.objective_type
-        ) || [];
-        filteredStage.search_engines = stage.search_engines?.filter(
-          (platform) => platform.buy_type && platform.objective_type
-        ) || [];
+        filteredStage.social_media = stage.social_media || [];
+        filteredStage.display_networks = stage.display_networks || [];
+        filteredStage.search_engines = stage.search_engines || [];
         return filteredStage;
       })
       .filter(
@@ -174,6 +168,7 @@ const BuyingObjective = () => {
 
   if (!isMounted) {
     return (
+      <>
       <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2">
@@ -194,6 +189,10 @@ const BuyingObjective = () => {
         </div>
         <div>Loading...</div>
       </div>
+      <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full">
+        2
+      </div>
+      </>
     );
   }
 
@@ -204,7 +203,7 @@ const BuyingObjective = () => {
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
           <div className="flex rounded-full bg-blue-500 justify-center items-center w-6 h-6">
-            <span className="text-white font-bold">1</span>
+            <span className="text-white font-bold">5</span>
           </div>
           <h1 className="text-blue-500 font-semibold text-base">
             Your buying objectives and types
