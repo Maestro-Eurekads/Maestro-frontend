@@ -488,7 +488,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         await handleStepFour();
       }
 
-      if (active === 4 || active === 8) {
+      if (active === 7 || active === 8) {
         if (subStep < 1) {
           setSubStep((prev) => prev + 1);
         } else {
