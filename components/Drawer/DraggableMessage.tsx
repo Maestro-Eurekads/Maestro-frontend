@@ -11,7 +11,6 @@ import Mmessages from "../../public/message-2.svg";
 const DraggableComment = ({ opportunity }) => {
 	const { updateOpportunityPosition } = useComments();
 	const [show, setShow] = useState(false);
-	const [newPosition, setNewPosition] = useState(null);
 	const commentRef = useRef(null);
 	const [draggedRecently, setDraggedRecently] = useState(false);
 
@@ -49,7 +48,7 @@ const DraggableComment = ({ opportunity }) => {
 		<Draggable
 			handle=".drag-handle"
 			nodeRef={commentRef}
-			defaultPosition={{ x: 100, y: -50 }}
+			defaultPosition={{ x: 400, y: -500 }}
 			// defaultPosition={opportunity?.position || { x: 100, y: 100 }}
 			onStart={handleStart}
 			onStop={handleStop}

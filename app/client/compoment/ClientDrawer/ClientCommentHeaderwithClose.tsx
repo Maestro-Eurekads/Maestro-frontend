@@ -1,6 +1,6 @@
 import React from "react";
 
-const ClientCommentHeaderwithClose = ({ author = "Daniel Silva", timestamp }) => {
+const ClientCommentHeaderwithClose = ({ author, timestamp }) => {
 	// Format the date & time if provided
 	const formattedDate = timestamp
 		? new Date(timestamp).toLocaleDateString()

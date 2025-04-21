@@ -22,8 +22,8 @@ const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 	const items = [
 		{
 			label: "Agency",
-			name: "Eurekads Pte. Ltd.",
-			initials: getInitials("Eurekads"),
+			name: "-",
+			initials: getInitials("-"),
 		},
 		{
 			label: "Client approver",
@@ -37,8 +37,8 @@ const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 		},
 		{
 			label: "Campaign builder",
-			name: "Maxime Brevet", // Dummy or static; replace if dynamic source is available
-			initials: getInitials("Maxime Brevet"),
+			name: "-", // Dummy or static; replace if dynamic source is available
+			initials: getInitials("-"),
 		},
 	];
 
