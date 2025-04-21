@@ -44,10 +44,7 @@ const platformIcons = {
 
 const ObjectiveSelection = () => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
-  const [statuses, setStatuses] = useState(() => {
-    const savedStatuses = localStorage.getItem("funnelStageStatuses");
-    return savedStatuses ? JSON.parse(savedStatuses) : {};
-  });
+  const [statuses, setStatuses] = useState({});
   const [selectedOptions, setSelectedOptions] = useState(() => {
     const savedOptions = localStorage.getItem("selectedOptions");
     return savedOptions ? JSON.parse(savedOptions) : {};
@@ -90,9 +87,13 @@ const ObjectiveSelection = () => {
   // Initialize statuses and sync selectedNetworks
   useEffect(() => {
     if (campaignFormData?.funnel_stages) {
+      // Clear previous localStorage statuses to avoid conflicts
+      localStorage.removeItem("funnelStageStatuses");
+
+      // Initialize all stages as "Not Started"
       const initialStatuses = {};
       campaignFormData.funnel_stages.forEach((stage) => {
-        initialStatuses[stage] = statuses[stage] || "Not Started"; // Default to "Not Started"
+        initialStatuses[stage] = "Not Started";
       });
       setStatuses(initialStatuses);
       localStorage.setItem(
@@ -147,10 +148,10 @@ const ObjectiveSelection = () => {
     }
   }, [campaignFormData?.funnel_stages, campaignFormData?.channel_mix]);
 
-  // Update statuses based on selectedOptions
+  // Update statuses based on selectedOptions and validatedPlatforms
   useEffect(() => {
     if (campaignFormData?.funnel_stages) {
-      const updatedStatuses = { ...statuses };
+      const updatedStatuses = {};
       campaignFormData.funnel_stages.forEach((stageName) => {
         if (validatedPlatforms[stageName]?.size > 0) {
           updatedStatuses[stageName] = "Completed";
@@ -268,6 +269,9 @@ const ObjectiveSelection = () => {
   };
 
   const handleValidate = (stageName) => {
+    // Prevent duplicate validation
+    if (statuses[stageName] === "Completed") return;
+
     setStatuses((prev) => {
       const newStatuses = { ...prev, [stageName]: "Completed" };
       localStorage.setItem("funnelStageStatuses", JSON.stringify(newStatuses));
@@ -299,7 +303,7 @@ const ObjectiveSelection = () => {
       validatedStages: { ...prev.validatedStages, [stageName]: true },
     }));
     setPreviousSelectedOptions(selectedOptions);
-    toast.success("Stage completed successfully! 🎉");
+
     if (navigator.vibrate) navigator.vibrate(300);
   };
 
@@ -759,10 +763,19 @@ const ObjectiveSelection = () => {
                           [stage.name]: false,
                         }));
                         setSelectedOptions(previousSelectedOptions);
-                        setStatuses((prev) => ({
-                          ...prev,
-                          [stageName]: "In Progress",
-                        }));
+                        setStatuses((prev) => {
+                          const newStatuses = {
+                            ...prev,
+                            [stageName]: hasCompleteSelection(stageName)
+                              ? "In Progress"
+                              : "Not Started",
+                          };
+                          localStorage.setItem(
+                            "funnelStageStatuses",
+                            JSON.stringify(newStatuses)
+                          );
+                          return newStatuses;
+                        });
                         setValidatedPlatforms((prev) => ({
                           ...prev,
                           [stageName]: new Set(),
@@ -780,4 +793,4 @@ const ObjectiveSelection = () => {
   );
 };
 
-export default ObjectiveSelection;
+ export default ObjectiveSelection;
