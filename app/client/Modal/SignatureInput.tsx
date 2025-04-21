@@ -6,7 +6,7 @@ export default function SignatureInput({ value, onChange, setSign }) {
 	const sigCanvas = useRef(null);
 
 	const handleEnd = () => {
-		const dataURL = sigCanvas.current.getTrimmedCanvas().toDataURL("image/png");
+		const dataURL = sigCanvas?.current?.getTrimmedCanvas()?.toDataURL("image/png");
 		onChange(dataURL);
 		setSign(dataURL);
 	};
