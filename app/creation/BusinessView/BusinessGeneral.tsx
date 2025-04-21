@@ -1,16 +1,48 @@
 
 
-import React from "react";
+import React, { useMemo } from "react";
 import Image from "next/image";
 import info from "../../../public/info-circle.svg";
 
+// Component to display general campaign information like budget, impressions, and CPM
 const BusinessGeneral = ({ campaign }) => {
 	const budget = campaign?.campaign_budget?.amount || "0";
 	const currency = campaign?.budget_details?.currency || "USD";
 
-	// Dummy fallback values – replace with actual logic/data if available
-	const totalImpressions = "1,234,567";
-	const cpm = "15.23";
+	// Extract and calculate total impressions and average CPM
+	const { totalImpressions, averageCpm } = useMemo(() => {
+		let impressions = 0;
+		let cpmValues = [];
+
+		const parseChannels = (channels) => {
+			channels.forEach((platform) => {
+				const kpi = platform?.kpi;
+				if (kpi) {
+					if (kpi?.impressions) impressions += kpi?.impressions;
+					if (kpi?.cpm) cpmValues?.push(kpi.cpm);
+				}
+			});
+		};
+
+		campaign?.channel_mix?.forEach((channel) => {
+			Object.keys(channel).forEach((channelType) => {
+				if (Array.isArray(channel[channelType])) {
+					parseChannels(channel[channelType]);
+				}
+			});
+		});
+
+		const avgCpm =
+			cpmValues.length > 0
+				? (cpmValues?.reduce((sum, value) => sum + value, 0) / cpmValues?.length).toFixed(2)
+				: "0.00";
+
+		return {
+			totalImpressions: impressions,
+			averageCpm: avgCpm,
+		};
+	}, [campaign]);
+
 	const budgetChange = "+2.5%";
 	const impressionsChange = "+3.1%";
 	const cpmChange = "-1.2%";
@@ -52,7 +84,7 @@ const BusinessGeneral = ({ campaign }) => {
 							{impressionsChange}
 						</div>
 						<h1 className="font-medium text-[32px] leading-[49px] text-[#101828] whitespace-nowrap">
-							{totalImpressions}
+							{formatNumber(totalImpressions)}
 						</h1>
 					</div>
 				</div>
@@ -68,7 +100,7 @@ const BusinessGeneral = ({ campaign }) => {
 							{cpmChange}
 						</div>
 						<h1 className="font-medium text-[32px] leading-[49px] text-[#101828] whitespace-nowrap">
-							{currency} {cpm}
+							{currency} {averageCpm}
 						</h1>
 					</div>
 				</div>

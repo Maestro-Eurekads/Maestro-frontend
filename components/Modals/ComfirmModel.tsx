@@ -128,3 +128,6 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 }
 
 export default ComfirmModel
+
+
+
