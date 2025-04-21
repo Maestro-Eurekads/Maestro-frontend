@@ -277,7 +277,29 @@ const MapFunnelStages = () => {
         },
         duration: 3000,
       });
-
+      return;
+    }
+    if (name.trim().length < 2) {
+      toast("Funnel name cannot be less than 2 charatcers", {
+        style: {
+          background: "red",
+          color: "white",
+          textAlign: "center",
+        },
+        duration: 3000,
+      });
+      return;
+    }
+    // Check if the name contains at least one alphabet
+    if (!/[a-zA-Z]/.test(name)) {
+      toast("Funnel name must include at least one alphabet", {
+      style: {
+        background: "red",
+        color: "white",
+        textAlign: "center",
+      },
+      duration: 3000,
+      });
       return;
     }
     if (
