@@ -61,7 +61,7 @@ const EditInput = ({
         {fields.map((field, index) => (
           <div
             key={field.id}
-            className="mt-[8px] flex items-center px-4 py-2 w-full h-[40px] border border-[#EFEFEF] rounded-[10px]"
+            className={`mt-[8px] flex items-center px-4 py-2  h-[40px] border border-[#EFEFEF] rounded-[10px] ${index > 0 ? "ml-4 w-[85%]" : "w-full"}`}
           >
             <input
               type="text"

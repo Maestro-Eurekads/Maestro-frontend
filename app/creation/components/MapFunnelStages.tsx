@@ -448,7 +448,7 @@ const MapFunnelStages = () => {
     }
 
     // Update customFunnels state
-    const updatedFunnels = customFunnels.filter((f) => f.id !== id);
+    const updatedFunnels = customFunnels.filter((f) => f.name !== id);
     setCustomFunnels(updatedFunnels);
 
     // Update campaignFormData
