@@ -18,6 +18,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "utils/auth";
 import Login from "features/Login";
 import { ClientCampaignProvider } from "./client/ClientCampaignContext";
+import { KpiProvider } from "./utils/KpiProvider";
 
 // Load fonts
 const roboto = Roboto({
@@ -71,26 +72,28 @@ export default async function RootLayout({
           <Suspense>
             <ClientCampaignProvider>
               <CommentProvider>
-                <VerificationProvider>
-                  <CampaignSelectionProvider>
-                    <CampaignProvider>
-                      <DateRangeProvider>
-                        <SelectedDatesProvider>
-                          <ActiveProvider>
-                            <EditingProvider>
-                              <ObjectivesProvider>
-                                <FunnelProvider>
-                                  <ToastContainer />
-                                  {children}
-                                </FunnelProvider>
-                              </ObjectivesProvider>
-                            </EditingProvider>
-                          </ActiveProvider>
-                        </SelectedDatesProvider>
-                      </DateRangeProvider>
-                    </CampaignProvider>
-                  </CampaignSelectionProvider>
-                </VerificationProvider>
+                <KpiProvider>
+                  <VerificationProvider>
+                    <CampaignSelectionProvider>
+                      <CampaignProvider>
+                        <DateRangeProvider>
+                          <SelectedDatesProvider>
+                            <ActiveProvider>
+                              <EditingProvider>
+                                <ObjectivesProvider>
+                                  <FunnelProvider>
+                                    <ToastContainer />
+                                    {children}
+                                  </FunnelProvider>
+                                </ObjectivesProvider>
+                              </EditingProvider>
+                            </ActiveProvider>
+                          </SelectedDatesProvider>
+                        </DateRangeProvider>
+                      </CampaignProvider>
+                    </CampaignSelectionProvider>
+                  </VerificationProvider>
+                </KpiProvider>
               </CommentProvider>
             </ClientCampaignProvider>
           </Suspense>

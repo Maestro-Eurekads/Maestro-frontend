@@ -4,6 +4,7 @@ import closecircle from "../../public/close-circle.svg";
 import Image from "next/image";
 import { useComments } from 'app/utils/CommentProvider';
 import CommentHeaderwithClose from './CommentHeaderwithClose';
+import RealCommentHeaderwithClose from './RealCommentHeaderwithClose';
 
 
 const Showcomment = ({ comment, setActiveComment }) => {
@@ -23,7 +24,7 @@ const Showcomment = ({ comment, setActiveComment }) => {
 						<div className="flex flex-col justify-center items-center p-[10px] gap-[10px] w-[40px] h-[40px] bg-[#00A36C] rounded-full text-[20px] leading-[27px] text-center text-white">
 							{comment?.creator?.name[0] || "?"}
 						</div>
-						<CommentHeaderwithClose author={comment?.creator?.name} timestamp={new Date().toLocaleString()} />
+						<RealCommentHeaderwithClose author={comment?.creator?.name} comment={comment} />
 					</div>
 
 					{/* Mark as Approved Button */}

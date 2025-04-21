@@ -1,21 +1,38 @@
 import React from "react";
+import moment from "moment";
 
-const CommentHeader = ({ comment, timestamp }) => {
-	// Format the date & time if provided
-	const formattedDate = timestamp
-		? new Date(timestamp).toLocaleDateString()
-		: new Date().toLocaleDateString();
+// Define TypeScript interface for props
+interface CommentHeaderProps {
+	comment: {
+		creator?: {
+			name?: string;
+		};
+		createdAt?: string; // Assuming createdAt is an ISO date string
+	};
+	timestamp?: string; // Optional, unused in current logic
+}
 
-	const formattedTime = timestamp
-		? new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true })
-		: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
+const CommentHeader: React.FC<CommentHeaderProps> = ({ comment }) => {
+	// Format the date & time if createdAt is provided
+	const formattedDate = comment?.createdAt
+		? moment(comment?.createdAt).format("DD/MM/YYYY")
+		: "n/a";
+	const formattedTime = comment?.createdAt
+		? moment(comment?.createdAt).format("HH:mm")
+		: "n/a";
 
 	return (
 		<div>
-			<h3 className="font-[500] text-[18px] leading-[27px] text-[#292929]">{comment?.creator?.name}</h3>
+			<h3 className="font-[500] text-[18px] leading-[27px] text-[#292929]">
+				{comment?.creator?.name || "Unknown"}
+			</h3>
 			<div className="flex items-center gap-2">
-				<p className="font-[400] text-[10px] leading-[16px] text-[#292929] whitespace-nowrap">{formattedDate}</p>
-				<p className="font-[400] text-[10px] leading-[16px] text-[#292929] whitespace-nowrap">{formattedTime}</p>
+				<p className="font-[400] text-[10px] leading-[16px] text-[#292929] whitespace-nowrap">
+					{formattedDate}
+				</p>
+				<p className="font-[400] text-[10px] leading-[16px] text-[#292929] whitespace-nowrap">
+					{formattedTime}
+				</p>
 			</div>
 		</div>
 	);

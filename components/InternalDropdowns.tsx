@@ -35,13 +35,13 @@ const CustomInput = ({ options, selectedOption, setSelectedOption }) => {
 	};
 
 	return (
-		<div className="relative w-[170px]" ref={dropdownRef}>
+		<div className="relative w-[170px]" ref={dropdownRef} onClick={toggleDropdown}>
 			<div className="relative w-full mt-2">
 				<input
 					type="text"
 					value={selectedOption || "Select option"}
 					className={`w-full h-[40px] px-4 py-2 !border-none !outline-none rounded-md cursor-pointer font-semibold text-[15px] leading-[20px] text-[#00A36C] ${getBackgroundColor()}`}
-					onClick={toggleDropdown}
+
 					readOnly
 				/>
 				<span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer">

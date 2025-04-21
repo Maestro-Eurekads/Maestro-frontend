@@ -37,7 +37,7 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   return (
     <div
       id="client_header"
-      className={`py-[2.8rem] px-[50px] ${isDrawerOpen ? 'md:px-50px]' : 'xl:px-[150px]'} relative`}>
+      className={`py-[2.8rem] px-[30px] ${isDrawerOpen ? 'md:px-[50px]' : 'xl:px-[100px]'} relative`}>
       <div className="flex items-end">
         <div className="flex flex-col">
           {/* <button
