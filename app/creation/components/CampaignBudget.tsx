@@ -9,10 +9,13 @@ import Input from "components/Input";
 import Select from "react-select";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { useComments } from "app/utils/CommentProvider";
+import { useEditing } from "app/utils/EditingContext";
 
 const CampaignBudget = () => {
   const [active, setActive] = useState(null);
   const { setIsDrawerOpen, setClose } = useComments();
+  const { isEditing } = useEditing();
+
   useEffect(() => {
     setIsDrawerOpen(false);
     setClose(false);
@@ -45,6 +48,7 @@ const CampaignBudget = () => {
   ];
 
   const handleCurrencyChange = (option) => {
+    if (!isEditing) return;
     setSelectedOption(option);
     handleBudgetEdit("currency", option.value);
   };
@@ -62,6 +66,7 @@ const CampaignBudget = () => {
   };
 
   const handleBudgetEdit = (param: string, type: string) => {
+    if (!isEditing) return;
     setCampaignFormData((prev) => ({
       ...prev,
       campaign_budget: {
@@ -100,6 +105,7 @@ const CampaignBudget = () => {
             : "top_and_bottom_down_container"
             }`}
           onClick={() => {
+            if (!isEditing) return;
             handleTopDownClick();
             handleBudgetEdit("budget_type", "top_down");
           }}
@@ -141,6 +147,7 @@ const CampaignBudget = () => {
             : "top_and_bottom_down_container"
             }`}
           onClick={() => {
+            if (!isEditing) return;
             handleBottomUpClick();
             handleBudgetEdit("budget_type", "bottom_up");
           }}
@@ -183,11 +190,13 @@ const CampaignBudget = () => {
                 placeholder="Budget value"
                 value={Number(campaignFormData?.campaign_budget?.amount) || ""}
                 onChange={(e) => {
+                  if (!isEditing) return;
                   const value = e.target.value;
                   if (/^\d*\.?\d*$/.test(value)) {
                     handleBudgetEdit("amount", value);
                   }
                 }}
+                disabled={!isEditing}
               />
             </div>
             <div className="w-[120px]">
@@ -196,6 +205,7 @@ const CampaignBudget = () => {
                 options={selectCurrency}
                 onChange={handleCurrencyChange}
                 defaultValue={{ value: "EUR", label: "EUR" }}
+                isDisabled={!isEditing}
                 styles={{
                   control: (provided) => ({
                     ...provided,
