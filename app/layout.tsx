@@ -19,6 +19,7 @@ import { authOptions } from "utils/auth";
 import Login from "features/Login";
 import { ClientCampaignProvider } from "./client/ClientCampaignContext";
 import { KpiProvider } from "./utils/KpiProvider";
+import { DashboardDateRangeProvider } from "src/date-context";
 
 // Load fonts
 const roboto = Roboto({
@@ -76,20 +77,22 @@ export default async function RootLayout({
                   <VerificationProvider>
                     <CampaignSelectionProvider>
                       <CampaignProvider>
-                        <DateRangeProvider>
-                          <SelectedDatesProvider>
-                            <ActiveProvider>
-                              <EditingProvider>
-                                <ObjectivesProvider>
-                                  <FunnelProvider>
-                                    <ToastContainer />
-                                    {children}
-                                  </FunnelProvider>
-                                </ObjectivesProvider>
-                              </EditingProvider>
-                            </ActiveProvider>
-                          </SelectedDatesProvider>
-                        </DateRangeProvider>
+                        <DashboardDateRangeProvider>
+                          <DateRangeProvider>
+                            <SelectedDatesProvider>
+                              <ActiveProvider>
+                                <EditingProvider>
+                                  <ObjectivesProvider>
+                                    <FunnelProvider>
+                                      <ToastContainer />
+                                      {children}
+                                    </FunnelProvider>
+                                  </ObjectivesProvider>
+                                </EditingProvider>
+                              </ActiveProvider>
+                            </SelectedDatesProvider>
+                          </DateRangeProvider>
+                        </DashboardDateRangeProvider>
                       </CampaignProvider>
                     </CampaignSelectionProvider>
                   </VerificationProvider>
