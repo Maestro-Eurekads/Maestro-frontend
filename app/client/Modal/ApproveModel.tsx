@@ -8,15 +8,12 @@ import SignatureInput from "./SignatureInput";
 import DatePickerInput from "components/DatePickerInput";
 import { useComments } from "app/utils/CommentProvider";
 import { useSession } from "next-auth/react";
-import { useAppDispatch, useAppSelector } from "store/useStore";
-import { reset } from "features/Comment/commentSlice";
 
 const ApproveModel = ({ isOpen, setIsOpen }) => {
   const { setIsLoadingApproval, isLoadingApproval, createAsignatureapproval, createApprovalSuccess } = useComments();
 
   const { data: session }: any = useSession();
   const [alert, setAlert] = useState(null);
-  const dispatch = useAppDispatch();
   const [sign, setSign] = useState('');
   const id = session?.user?.id
   const [inputs, setInputs] = useState({

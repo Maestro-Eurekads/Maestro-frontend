@@ -36,6 +36,8 @@ export const CommentProvider = ({ children }) => {
 	const [replyText, setReplyText] = useState("");
 	const [generalComment, setGeneralComment] = useState("");
 	const [selected, setSelected] = useState(null);
+	const [isOpen, setIsOpen] = useState(false);
+
 	const dispatch = useAppDispatch();
 	const { data } = useAppSelector((state) => state.comment);
 
@@ -169,6 +171,7 @@ export const CommentProvider = ({ children }) => {
 			});
 			setIsLoadingApproval(false);
 			setCreateApprovalSuccess(true);
+			setIsOpen(false)
 		} catch (error) {
 			setCreateCommentsError(error);
 			setIsLoadingApproval(false);
@@ -357,7 +360,9 @@ export const CommentProvider = ({ children }) => {
 				setGeneralComment,
 				updateGeneralComment,
 				selected,
-				setSelected
+				setSelected,
+				isOpen,
+				setIsOpen
 			}}
 		>
 			{children}

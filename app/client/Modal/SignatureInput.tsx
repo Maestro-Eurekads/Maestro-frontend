@@ -1,15 +1,12 @@
 import React, { useRef } from "react";
 import SignaturePad from "react-signature-canvas";
-import { compressToEncodedURIComponent } from "lz-string";
 
 
 export default function SignatureInput({ value, onChange, setSign }) {
-	const sigCanvas = useRef<SignaturePad>(null);
+	const sigCanvas = useRef(null);
 
 	const handleEnd = () => {
-		const dataURL = sigCanvas.current
-			?.getTrimmedCanvas()
-			.toDataURL("image/png");
+		const dataURL = sigCanvas.current.getTrimmedCanvas().toDataURL("image/png");
 		onChange(dataURL);
 		setSign(dataURL);
 	};
