@@ -7,79 +7,20 @@ import TiktokIcon from "../../../../public/tictok.svg";
 import TwitterIcon from "../../../../public/x.svg";
 import Select, { components } from "react-select";
 import Image from "next/image";
-
-const buyObjectiveOptions = [
-  { value: "awareness", label: "Awareness" },
-  { value: "traffic", label: "Traffic" },
-  { value: "purchase", label: "Purchase" },
-];
-
-const buyTypeOptions = [
-  { value: "CPM", label: "CPM" },
-  { value: "CPV", label: "CPV" },
-];
-
-// Updated ChannelSelector with react‑select and icons
-const options = [
-  {
-    value: "TikTok",
-    label: "TikTok",
-    icon: (
-      <Image
-        src={TiktokIcon}
-        alt="TikTok"
-        width={16}
-        height={16}
-        className="cursor-pointer font-bold size-5"
-      />
-    ),
-  },
-  {
-    value: "YouTube",
-    label: "YouYube",
-    icon: (
-      <Image
-        src={YoutubeIcon}
-        alt="Youtube"
-        width={16}
-        height={16}
-        className="font-bold size-5"
-      />
-    ),
-  },
-  {
-    value: "Twitter/X",
-    label: "Twitter/X",
-    icon: (
-      <Image
-        src={TwitterIcon}
-        alt="Twitter"
-        width={16}
-        height={16}
-        className="cursor-pointer font-bold size-5"
-      />
-    ),
-  },
-  {
-    value: "LinkedIn",
-    label: "LinkedIn",
-    icon: (
-      <Image
-        src={LinkedinIcon}
-        alt="LinkedIn"
-        width={16}
-        height={16}
-        className="cursor-pointer font-bold size-5"
-      />
-    ),
-  },
-];
+import { useCampaigns } from "app/utils/CampaignsContext";
+import { getPlatformIcon } from "components/data";
 
 const IconOption = (props) => (
   <components.Option {...props}>
     <div style={{ display: "flex", alignItems: "center" }}>
       {props.data.icon && (
-        <span style={{ marginRight: 8 }}>{props.data.icon}</span>
+        <Image
+          style={{ marginRight: 8 }}
+          src={props.data.icon.src}
+          alt=""
+          width={16}
+          height={16}
+        />
       )}
       <span>{props.data.label}</span>
     </div>
@@ -98,7 +39,13 @@ const CustomControl = (props) => {
         {...innerProps}
       >
         <div className="flex items-center flex-1">
-          <div className="flex-shrink-0">{selectedValue.icon}</div>
+          <Image
+            style={{ marginRight: 8 }}
+            src={selectedValue.icon.src}
+            alt=""
+            width={16}
+            height={16}
+          />
           <span className="ml-2 truncate">{selectedValue.label}</span>
         </div>
         <div className="flex-shrink-0 ml-2">
@@ -137,6 +84,21 @@ export const ChannelSelector = ({
   const [showSelect, setShowSelect] = useState(false);
   const [selectedBuyObjective, setSelectedBuyObjective] = useState(null);
   const [selectedBuyType, setSelectedBuyType] = useState(null);
+  const { platformList, buyObj, buyType } = useCampaigns();
+
+  const platformListMerge = { ...platformList.offline, ...platformList.online };
+
+  const buyObjectiveOptions =
+    buyObj?.map((obj) => ({
+      label: obj?.text,
+      value: obj?.text,
+    })) || [];
+
+  const buyTypeOptions =
+    buyType?.map((obj) => ({
+      label: obj?.text,
+      value: obj?.text,
+    })) || [];
 
   return (
     <div className="flex flex-col gap-4">
@@ -151,7 +113,11 @@ export const ChannelSelector = ({
         <>
           <div className="relative">
             <Select
-              options={options}
+              options={platformListMerge[channelName]?.map((list) => ({
+                label: list?.platform_name,
+                value: list?.platform_name,
+                icon: getPlatformIcon(list?.platform_name),
+              }))}
               components={{
                 Option: IconOption,
                 Control: CustomControl,

@@ -1,6 +1,10 @@
 import type React from "react";
 import Button from "../common/button";
 import { useEditing } from "app/utils/EditingContext";
+import axios from "axios";
+import { useCampaigns } from "app/utils/CampaignsContext";
+import { removeKeysRecursively } from "utils/removeID";
+import { useState } from "react";
 
 interface SummarySectionProps {
   title: string;
@@ -13,7 +17,56 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
   number,
   children,
 }) => {
-  const { midcapEditing, setMidcapEditing } = useEditing();
+  const [loading, setLoading] = useState(false);
+  const { midcapEditing, setMidcapEditing, setIsEditing } = useEditing();
+  const { updateCampaign, getActiveCampaign, campaignData, campaignFormData } =
+    useCampaigns();
+
+  const closeEditStep = () => {
+    setMidcapEditing({ step: "", isEditing: false });
+  };
+
+  const cleanData = campaignData
+    ? removeKeysRecursively(campaignData, [
+        "id",
+        "documentId",
+        "createdAt",
+        "publishedAt",
+        "updatedAt",
+      ])
+    : {};
+
+  const handleConfirmStep = async () => {
+    setLoading(true);
+    await updateCampaign({
+      ...cleanData,
+      funnel_stages: campaignFormData?.funnel_stages,
+      channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+        "id",
+        "isValidated",
+        "formatValidated",
+        "validatedStages",
+        "documentId"
+      ], ["preview"]),
+      custom_funnels: campaignFormData?.custom_funnels,
+      funnel_type: campaignFormData?.funnel_type,
+    });
+    await getActiveCampaign();
+    setLoading(false);
+    closeEditStep();
+  };
+  const handleConfirmClick = async (step) => {
+    switch (step) {
+      case "Your funnel stages":
+      case "Your channel mix":
+        case "Your Adset and Audiences":
+        await handleConfirmStep();
+        break;
+
+      default:
+        break;
+    }
+  };
   return (
     <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full">
       <div className="flex justify-between items-center mb-4">
@@ -25,26 +78,34 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
         </div>
         {midcapEditing?.step === title && midcapEditing?.isEditing ? (
           <>
-          <div className="flex items-center gap-[15px]">
-            <Button
-              text="Confirm Changes"
-              variant="primary"
-              className="!w-[180px] !h-[40px] !rounded-[8px] !hover:ease-in-out"
-            />
-            <Button
-              text="Cancel"
-              variant="secondary"
-              className="!w-[180px] !h-[40px] !rounded-[8px] !hover:ease-in-out"
-              onClick={()=>setMidcapEditing({step:"", isEditing:false})}
-            />
-          </div>
+            <div className="flex items-center gap-[15px]">
+              <Button
+                text={loading ? "Loading..." : "Confirm Changes"}
+                variant="primary"
+                className="!w-[180px] !h-[40px] !rounded-[8px] !hover:ease-in-out"
+                onClick={() => !loading && handleConfirmClick(title)}
+                loading={loading}
+                disabled={loading}
+              />
+              <Button
+                text="Cancel"
+                variant="secondary"
+                className="!w-[180px] !h-[40px] !rounded-[8px] !hover:ease-in-out"
+                onClick={closeEditStep}
+              />
+            </div>
           </>
         ) : (
           <Button
             text="Edit"
             variant="primary"
             className="!w-[85px] !h-[40px]"
-            onClick={() => setMidcapEditing({ step: title, isEditing: true })}
+            onClick={() => {
+              if (!loading) {
+                setMidcapEditing({ step: title, isEditing: true });
+                setIsEditing(true);
+              }
+            }}
           />
         )}
       </div>
