@@ -565,7 +565,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-      {triggerFormatError && active === 4 && (
+      
+      {/* {triggerFormatError && active === 4 && (
         <AlertMain
           key={`format-error-${triggerFormatErrorCount}`}
           alert={{
@@ -574,7 +575,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             position: "bottom-right",
           }}
         />
-      )}
+      )} */}
+
       {triggerBuyObjectiveError && active === 5 && (
         <AlertMain
           alert={{
