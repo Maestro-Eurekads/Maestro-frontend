@@ -193,22 +193,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setValidateStep(true);
         hasError = true;
       }
-    }
 
-    // if (active === 1) {
-    //   if (campaignFormData?.campaign_objective?.length === 0) {
-    //     setAlert({
-    //       variant: "error",
-    //       message: "Please define a campaign objective before proceeding!",
-    //       position: "bottom-right",
-    //     });
-    //     hasError = true;
-    //   }
-    //   if (hasChanges) {
-    //     setValidateStep(true);
-    //     hasError = true;
-    //   }
-    // }
+      if (!hasError) {
+        setActive((prev) => prev + 1);
+      }
+    }
 
     if (active === 1) {
       if (
@@ -223,11 +212,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         });
         hasError = true;
       }
-
-      // if (hasChanges) {
-      //   setValidateStep(true);
-      //   hasError = true;
-      // }
     }
 
     if (active === 2) {
@@ -500,6 +484,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           setActive((prev) => prev + 1);
           setSubStep(0);
         }
+      } else if (active !== 0) {
+        setActive((prev) => prev + 1);
       }
     } catch (error) {
       console.error("Error in handleContinue:", error);
