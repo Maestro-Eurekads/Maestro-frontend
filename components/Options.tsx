@@ -1,6 +1,7 @@
 
 import { MdOutlineErrorOutline } from "react-icons/md";
 import { SVGLoader } from "./SVGLoader";
+import React from "react";
 
 
 
@@ -98,6 +99,107 @@ const categoryOrder = [
 ];
 
 
+function mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, icons, finalCategoryOrder) {
+  const categoryMappingBase = {
+    "Awareness Metrics": {
+      title: "Brand Awareness",
+      background: "#E5F2F7",
+      icons: { up: icons.upfull, down: icons.downoffline },
+      priorityKPIs: ["Reach", "Frequency", "Impressions"]
+    },
+    "Traffic": {
+      title: "Traffic",
+      background: "#E6F4D5",
+      icons: { up: icons.upfull, down: icons.downfull },
+      priorityKPIs: ["CTR", "Link Clicks", "Bounce Rate"]
+    },
+    "Purchase": {
+      title: "Purchase",
+      background: "#FFE2C5",
+      icons: { up: icons.upfull, down: icons.downfull },
+      priorityKPIs: ["CTR", "Purchases", "CVR"]
+    },
+    "Lead Generation (On platform)": {
+      title: "Lead Generation Platform",
+      background: "#E5F2F7",
+      icons: { up: icons.upfull, down: icons.downfull },
+      priorityKPIs: ["CVR", "Leads", "Cost / lead"]
+    },
+    "Lead Generation (On website)": {
+      title: "Lead Generation Website",
+      background: "#E5F2F7",
+      icons: { up: icons.upfull, down: icons.downfull },
+      priorityKPIs: ["CVR", "Leads", "Cost / lead"]
+    },
+    "App Install": {
+      title: "App Installs",
+      background: "#E6F4D5",
+      icons: { up: icons.upfull, down: icons.downfull },
+      priorityKPIs: ["CTR", "Installs", "Install Rate"]
+    },
+    "Engagement": {
+      title: "Engagement",
+      background: "#FFE2C5",
+      icons: { up: icons.upfull, down: icons.downfull },
+      priorityKPIs: ["Eng Rate", "Engagements", "CPE"]
+    },
+    "In-App Conversion": {
+      title: "In-App Conversion",
+      background: "#E5F2F7",
+      icons: { up: icons.upfull, down: icons.downfull },
+      priorityKPIs: ["CTR", "CPC", "App Open", "Link Clicks", "Open Rate"]
+    },
+    "Video Views": {
+      title: "Video Views",
+      background: "#E6F4D5",
+      icons: { up: icons.upoffline, down: icons.downfull },
+      priorityKPIs: ["VTR", "Video Views", "Completion Rate"]
+    }
+  };
+
+  const formatKPIValue = (value, kpiName) => {
+    if (value === undefined || value === null) {
+      if (kpiName.includes("Cost") || kpiName.includes("CPL")) return "$0";
+      if (kpiName.includes("Rate") || ["CTR", "CVR", "Frequency"].includes(kpiName)) return "0%";
+      return "0";
+    }
+    const formattedValue = value.toString();
+    if (kpiName.includes("Cost") || kpiName.includes("CPL")) return `$${formattedValue}`;
+    if (kpiName.includes("Rate") || ["CTR", "CVR", "Frequency"].includes(kpiName)) return `${formattedValue}%`;
+    return formattedValue;
+  };
+
+  return React.useMemo(() => {
+    return finalCategoryOrder?.filter((kpiCategory) => aggregatedStats[kpiCategory]) // Only include if data exists
+      ?.map((kpiCategory, index) => {
+        const category = categoryMappingBase[kpiCategory];
+        const kpiData = aggregatedStats[kpiCategory] || {};
+        const availableKPIs = Object.keys(kpiData);
+
+        const selectedKPIs = [
+          ...category?.priorityKPIs?.filter((kpi) => availableKPIs.includes(kpi)),
+          ...availableKPIs?.filter((kpi) => !category?.priorityKPIs?.includes(kpi)),
+        ].map((kpiName) => ({
+          label: kpiName,
+          value: formatKPIValue(kpiData[kpiName], kpiName),
+        }));
+
+        const indicators = Array(finalCategoryOrder?.length).fill("#C0C0C0");
+        indicators[index] = "#3175FF";
+
+        return {
+          title: category?.title,
+          background: category?.background,
+          stats: selectedKPIs?.length > 0 ? selectedKPIs : [{ label: "No Data", value: "0" }],
+          indicators,
+          icons: category?.icons,
+          kpiCategory,
+        };
+      });
+  }, [aggregatedStats, kpiCategories, icons]);
+}
+
+
 const CapitalizeFirstLetter = (str: string | undefined | any) => {
   return str ? str?.charAt(0).toUpperCase() + str?.slice(1) : "";
 };
@@ -150,5 +252,6 @@ export {
   CapitalizeFirstLetter,
   getRandomColor,
   getContrastingColor,
-  getInitials
+  getInitials,
+  mapKPIStatsToStatsDataDynamic
 };
