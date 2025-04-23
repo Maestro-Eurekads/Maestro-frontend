@@ -14,6 +14,7 @@ import { useVerification } from "app/utils/VerificationContext";
 import { useComments } from "app/utils/CommentProvider";
 import { PlusIcon, Edit2, Trash2, X } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+import customicon from "../../../public/social/customicon.png";
 
 const MapFunnelStages = () => {
   const {
@@ -325,8 +326,8 @@ const MapFunnelStages = () => {
       color: `bg-${
         ["blue", "green", "purple", "pink", "orange"][customFunnels.length % 5]
       }-500`,
-      icon: addPlus, // Added default icon
-      activeIcon: addPlusWhite, // Added default active icon
+      icon: customicon, // Updated to use customicon
+      activeIcon: customicon, // Updated to use customicon
     };
 
     // Update customFunnels state
@@ -590,11 +591,15 @@ const MapFunnelStages = () => {
                           <Image
                             src={funnelConfig.activeIcon || "/placeholder.svg"}
                             alt={`${funnelName} icon`}
+                            width={24} // Smaller icon size
+                            height={24} // Smaller icon size
                           />
                         ) : (
                           <Image
                             src={funnelConfig.icon || "/placeholder.svg"}
                             alt={`${funnelName} icon`}
+                            width={24} // Smaller icon size
+                            height={24} // Smaller icon size
                           />
                         ))}
                       <p className="text-[16px]">{funnelName}</p>
@@ -636,11 +641,15 @@ const MapFunnelStages = () => {
                       <Image
                         src={funnel.activeIcon || "/placeholder.svg"}
                         alt={`${funnel.name} icon`}
+                        width={24} // Smaller icon size
+                        height={24} // Smaller icon size
                       />
                     ) : (
                       <Image
                         src={funnel.icon || "/placeholder.svg"}
                         alt={`${funnel.name} icon`}
+                        width={24} // Smaller icon size
+                        height={24} // Smaller icon size
                       />
                     ))}
                   <p className="text-[16px]">{funnel.name}</p>
