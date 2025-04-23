@@ -77,7 +77,7 @@ function createPlatformObject(
     icon: getPlatformIcon(platformName),
     name: platformName,
     color: style?.color,
-    audience: platform?.ad_sets[0]?.audience_type,
+    audience: platform?.ad_sets && platform?.ad_sets.length > 0 && platform?.ad_sets[0]?.audience_type,
     start_date: moment(platform.campaign_start_date).format("DD/MM/YYYY"),
     end_date: moment(platform.campaign_end_date).format("DD/MM/YYYY"),
     audience_size: platform?.ad_sets?.reduce(
