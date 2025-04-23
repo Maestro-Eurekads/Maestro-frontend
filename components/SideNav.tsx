@@ -22,12 +22,11 @@ import { useComments } from "app/utils/CommentProvider";
 
 const SideNav: React.FC = () => {
   const { setClose, close } = useComments();
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { setActive, setSubStep } = useActive();
   const searchParams = useSearchParams();
   const campaignId = searchParams.get("campaignId");
-  const { campaignData, getActiveCampaign, setCampaignData } = useCampaigns();
+  const { campaignData, getActiveCampaign, setCampaignData, isLoading, setIsLoading } = useCampaigns();
 
   useEffect(() => {
     if (campaignId) {
@@ -151,9 +150,8 @@ const SideNav: React.FC = () => {
     >
       <div className="flex flex-col">
         <div
-          className={`flex ${
-            close ? "justify-center mb-[30px]" : "justify-end"
-          } w-full`}
+          className={`flex ${close ? "justify-center mb-[30px]" : "justify-end"
+            } w-full`}
         >
           <button onClick={() => setClose(!close)}>
             <Image src={closeicon} alt="closeicon" />
@@ -172,14 +170,14 @@ const SideNav: React.FC = () => {
               <Skeleton height={20} width={200} />
             ) : !campaignData?.client?.client_name ||
               campaignData?.media_plan_details?.plan_name ===
-                "Plan name" ? null : (
+              "Plan name" ? null : (
               <div>
                 <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
                   {campaignData?.media_plan_details?.plan_name
                     ? campaignData?.media_plan_details?.plan_name
-                        .charAt(0)
-                        .toUpperCase() +
-                      campaignData?.media_plan_details?.plan_name.slice(1)
+                      .charAt(0)
+                      .toUpperCase() +
+                    campaignData?.media_plan_details?.plan_name.slice(1)
                     : ""}
                 </h6>
               </div>
@@ -197,9 +195,9 @@ const SideNav: React.FC = () => {
                 <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic">
                   {campaignData?.client?.client_name
                     ? campaignData?.client?.client_name
-                        .charAt(0)
-                        .toUpperCase() +
-                      campaignData?.client?.client_name.slice(1)
+                      .charAt(0)
+                      .toUpperCase() +
+                    campaignData?.client?.client_name.slice(1)
                     : ""}
                 </p>
               )}

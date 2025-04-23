@@ -7,14 +7,9 @@ import downfull from "../../public/arrow-down-full.svg";
 import upoffline from "../../public/arrow-up-offline.svg";
 import Skeleton from "react-loading-skeleton";
 
-const BrandAwareness = ({ statsData, aggregatedStats }) => {
+const BrandAwareness = ({ statsData, aggregatedStats, loading, isLoadingCampaign }) => {
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [animationState, setAnimationState] = useState("");
-
-
-
-
-
 
 	const handlePrev = () => {
 		setAnimationState("in");
@@ -35,7 +30,9 @@ const BrandAwareness = ({ statsData, aggregatedStats }) => {
 		}
 	}, [animationState]);
 
-	const { title, background, indicators, icons } = statsData[currentIndex];
+	const currentStat = statsData[currentIndex] ?? {};
+	const { title, background, indicators, icons } = currentStat;
+
 
 	// Get all KPIs for the current category
 	const currentCategory = statsData[currentIndex]?.kpiCategory;
@@ -49,8 +46,8 @@ const BrandAwareness = ({ statsData, aggregatedStats }) => {
 				if (kpiName.includes("Rate") || kpiName === "CTR" || kpiName === "CVR" || kpiName === "Frequency") return "0%";
 				return "0";
 			}
-			const formattedValue = value % 1 !== 0 ? value?.toFixed(2) : value;
-			if (kpiName.includes("Cost") || kpiName?.includes("CPL")) return `$${formattedValue}`;
+			const formattedValue = value % 1 !== 0 ? value.toFixed(2) : value;
+			if (kpiName.includes("Cost") || kpiName.includes("CPL")) return `$${formattedValue}`;
 			if (kpiName.includes("Rate") || kpiName === "CTR" || kpiName === "CVR" || kpiName === "Frequency") return `${formattedValue}%`;
 			return formattedValue;
 		})(),
@@ -62,70 +59,71 @@ const BrandAwareness = ({ statsData, aggregatedStats }) => {
 				className="flex flex-col justify-between w-full h-[200px] border border-[rgba(49,117,255,0.3)] rounded-[12px] box-border p-[20px] shadow-[0px_4px_14px_rgba(0,38,116,0.15)]"
 				style={{ backgroundColor: background }}
 			>
-				<div className="flex items-center justify-between">
-					<h3
-						key={`title-${currentIndex}`}
-						className={`font-medium text-[24px] leading-[32px] text-black ${animationState === "in"
-							? "animate-slide-up"
-							: animationState === "out"
-								? "animate-slide-down"
-								: ""
-							}`}
-					>
-						{title}
-					</h3>
-					<div className="flex items-center gap-2">
-						<button disabled={currentIndex === 0} onClick={handlePrev}>
-							<Image src={icons.down} alt="previous" />
-						</button>
-						<button
-							disabled={currentIndex === statsData?.length - 1}
-							onClick={handleNext}
+				{loading || isLoadingCampaign ? <Skeleton height={20} width={"70%"} /> :
+					<div className="flex items-center justify-between">
+						<h3
+							key={`title-${currentIndex}`}
+							className={`font-medium text-[24px] leading-[32px] text-black ${animationState === "in"
+								? "animate-slide-up"
+								: animationState === "out"
+									? "animate-slide-down"
+									: ""
+								}`}
 						>
-							<Image src={icons.up} alt="next" />
-						</button>
-					</div>
-				</div>
-
-				<div className={"flex flex-row w-full overflow-auto"}>
-					{allStats?.map((stat, index) => (
-						<div key={`stat-${index}-${currentIndex}`}>
-							<div
-								className={`flex items-center gap-2 ${animationState === "in"
-									? "animate-slide-up"
-									: animationState === "out"
-										? "animate-slide-down"
-										: ""
-									}`}
+							{title}
+						</h3>
+						<div className="flex items-center gap-2">
+							<button disabled={currentIndex === 0} onClick={handlePrev}>
+								<Image src={icons?.down} alt="previous" />
+							</button>
+							<button
+								disabled={currentIndex === statsData?.length - 1}
+								onClick={handleNext}
 							>
-								<p className="font-medium text-[12px] leading-[16px] text-[#667085]">
-									{stat?.label}
-								</p>
-								<Image src={info} alt="info" />
-							</div>
-							<h1
-								className={` min-w-[250px] font-medium text-[36px] leading-[49px] text-[#101828] whitespace-nowrap ${animationState === "in"
-									? "animate-slide-up"
-									: animationState === "out"
-										? "animate-slide-down"
-										: ""
-									}`}
-							>
-								{stat?.value}
-							</h1>
+								<Image src={icons?.up} alt="next" />
+							</button>
 						</div>
-					))}
-				</div>
-
-				<div className="flex items-center gap-2 justify-center">
-					{indicators?.map((color, index) => (
-						<div
-							key={index}
-							className="w-[31px] h-0 border-t-[5px] rounded-full"
-							style={{ borderColor: color }}
-						/>
-					))}
-				</div>
+					</div>}
+				{loading || isLoadingCampaign ? <Skeleton height={20} width={"100%"} /> :
+					<div className={"flex flex-row w-full overflow-auto"}>
+						{allStats?.map((stat, index) => (
+							<div key={`stat-${index}-${currentIndex}`}>
+								<div
+									className={`flex items-center gap-2 ${animationState === "in"
+										? "animate-slide-up"
+										: animationState === "out"
+											? "animate-slide-down"
+											: ""
+										}`}
+								>
+									<p className="font-medium text-[12px] leading-[16px] text-[#667085]">
+										{stat?.label}
+									</p>
+									<Image src={info} alt="info" />
+								</div>
+								<h1
+									className={` min-w-[250px] font-medium text-[36px] leading-[49px] text-[#101828] whitespace-nowrap ${animationState === "in"
+										? "animate-slide-up"
+										: animationState === "out"
+											? "animate-slide-down"
+											: ""
+										}`}
+								>
+									{stat?.value}
+								</h1>
+							</div>
+						))}
+					</div>}
+				{loading || isLoadingCampaign ? <Skeleton height={20} width={"100%"} /> :
+					<div className="flex items-center gap-2 justify-center">
+						{indicators?.map((color, index) => (
+							<div
+								key={index}
+								className="w-[31px] h-0 border-t-[5px] rounded-full"
+								style={{ borderColor: color }}
+							/>
+						))}
+					</div>}
 			</div>
 
 			<style jsx>{`
@@ -162,5 +160,6 @@ const BrandAwareness = ({ statsData, aggregatedStats }) => {
 		</div>
 	);
 };
+
 
 export default BrandAwareness;

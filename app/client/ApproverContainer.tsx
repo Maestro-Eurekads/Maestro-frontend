@@ -45,7 +45,7 @@ const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 	return (
 		<div className="flex flex-col gap-[24px]">
 			<div className="flex items-center justify-between flex-wrap gap-4">
-				{items.map((item, index) => (
+				{items?.map((item, index) => (
 					<div
 						key={index}
 						className="flex flex-col items-start p-5 gap-2 w-[235px] h-[95px] bg-white shadow-[0px_4px_14px_rgba(0,38,116,0.15)] rounded-[12px]"

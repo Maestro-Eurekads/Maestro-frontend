@@ -35,6 +35,7 @@ import upfull from "../../public/arrow-up-full.svg";
 import downfull from "../../public/arrow-down-full.svg";
 import upoffline from "../../public/arrow-up-offline.svg";
 import { useKpis } from 'app/utils/KpiProvider';
+import { categoryOrder, kpiCategories, mapKPIStatsToStatsDataDynamic } from 'components/Options';
 
 
 const channels = [
@@ -125,7 +126,7 @@ const ClientView = () => {
 	// const [isOpen, setIsOpen] = useState(false);
 	const [generalComment, setGeneralComment] = useState(false);
 	const [active, setActive] = useState("Timeline view");
-	const { clientCampaignData, campaignData } = useCampaigns();
+	const { clientCampaignData, campaignData, getActiveCampaign } = useCampaigns();
 	const { data, campaignDetails, isLoadingCampaign } = useAppSelector((state) => state.comment);
 	const comments: Comment[] = data
 		?.filter((comment: Comment) => comment?.addcomment_as !== "Internal")
@@ -134,18 +135,24 @@ const ClientView = () => {
 	const dispatch = useAppDispatch();
 	// const commentId = campaignData?.documentId
 	const { campaigns, loading, fetchCampaignsByClientId } = useClientCampaign();
+	const [finalCategoryOrder, setFinalCategoryOrder] = useState(categoryOrder); // default fallback
 	const { data: session }: any = useSession();
 	const clientId = session?.user?.id;
 	const client_commentId = session?.user?.id;
 	const campaign = !campaignDetails ? [] : campaignDetails[0];
 	const commentId = campaign?.documentId
-	const { getKpis,
-		kpisData,
-		isFetchingKpis,
-		getKpisError } = useKpis();
+	const { getKpis, isLoadingKpis, kpiCategory, setkpiCategory } = useKpis();
 
-	console.log('kpisData-kpisData-kpisData', kpisData?.aggregated_kpis
-	)
+
+
+
+
+
+	useEffect(() => {
+		if (selected) {
+			getActiveCampaign(selected);
+		}
+	}, [selected]);
 
 	useEffect(() => {
 		if (selected) {
@@ -183,274 +190,238 @@ const ClientView = () => {
 		dispatch(getGeneralComment(commentId));
 	}
 
-	const kpiCategories = {
-		"Video Views": [
-			"VTR", "CPV", "Completed View", "Video Views", "Completion Rate", "CPCV"
-		],
-		"Engagement": [
-			"Eng Rate", "Engagements", "CPE"
-		],
-		"Traffic": [
-			"CTR", "CPC", "Lands", "Link Clicks", "Click to land rate", "CPL",
-			"Avg Visit Time", "Avg pages/visit", "Bounce Rate", "Bounced Visits",
-			"Cost/bounce", "Lead Rate", "Lead visits", "Cost/lead",
-			"Off-funnel rate", "Off-funnel visits", "Cost/Off funnel"
-		],
-		"Lead Generation (On platform)": [
-			"CTR", "Cost / opened form", "Leads", "Forms open", "CVR", "Cost / lead"
-		],
-		"Lead Generation (On website)": [
-			"CTR", "CPC", "Lands", "CVR", "Cost / lead", "Link clicks",
-			"Click to land rate", "CPL", "Leads"
-		],
-		"Purchase": [
-			"CTR", "CPC", "Lands", "Link Clicks", "Click to land rate", "CPL",
-			"Avg Visit Time", "Avg pages/visit", "Bounce Rate", "Bounced Visits",
-			"Cost/bounce", "Lead Rate", "Lead visits", "Cost/lead",
-			"Off-funnel rate", "Off-funnel visits", "Cost/Off funnel",
-			"Conversions", "CVR", "Cost/conversion",
-			"CLV of associated product", "Generated Revenue", "Return on Ad Spent",
-			"Add to cart rate", "Add to carts", "CPATC",
-			"Payment info rate", "Payment infos", "CPPI",
-			"Purchase rate", "Purchases", "CPP",
-			"Conversion", "Cost/conversion"
-		],
-		"App Install": [
-			"CTR", "CPC", "Installs", "Link Clicks", "Install Rate", "CPI"
-		],
-		"In-App Conversion": [
-			"CTR", "CPC", "App Open", "Link Clicks", "Open Rate", "Cost/App Open",
-			"CVR", "Cost/conversion", "CLV of associated product",
-			"Generated Revenue", "Return on Ad Spent",
-			"Conversion", "Cost/conversion"
-		],
-		"Awareness Metrics": [
-			"CPM", "Frequency", "Reach", "Impressions"
-		]
-	};
+
+
+	function extractKPIByFunnelStage(data, kpiCategories) {
+		const result = {};
+		const channelMix = data?.channel_mix;
+
+		channelMix?.forEach((stage) => {
+			const funnelStage = stage?.funnel_stage;
+			result[funnelStage] = [];
+
+			const socialMedia = stage?.social_media || [];
+			socialMedia.forEach((platform) => {
+				const platformName = platform?.platform_name;
+				const kpi = platform?.kpi || {};
+				const groupedKPIs = {};
+
+				Object.keys(kpiCategories).forEach((category) => {
+					groupedKPIs[category] = {};
+					const kpiList = kpiCategories[category];
+
+					kpiList?.forEach((kpiName) => {
+						const kpiKey = kpiName
+							.toLowerCase()
+							.replace(/ /g, "_")
+							.replace("/", "__");
+						if (kpi[kpiKey] !== undefined && kpi[kpiKey] !== null) {
+							groupedKPIs[category][kpiName] = kpi[kpiKey];
+						}
+					});
+
+					if (Object.keys(groupedKPIs[category])?.length === 0) {
+						delete groupedKPIs[category];
+					}
+				});
+
+				result[funnelStage].push({
+					platform_name: platformName,
+					kpi: groupedKPIs, // Fixed: Changed zonedKPIs to groupedKPIs
+				});
+			});
+		});
+
+		return result;
+	}
+
+	function aggregateKPIStatsFromExtracted(extractedData, kpiCategories) {
+		const kpiAccumulator = {};
+
+		Object.keys(kpiCategories).forEach((category) => {
+			kpiAccumulator[category] = {};
+			kpiCategories[category].forEach((kpiName) => {
+				kpiAccumulator[category][kpiName] = {
+					values: [],
+					displayName: kpiName,
+				};
+			});
+		});
+
+		Object.keys(extractedData).forEach((funnelStage) => {
+			const platforms = extractedData[funnelStage] || [];
+
+			platforms.forEach((platform) => {
+				const kpi = platform?.kpi || {};
+
+				Object.keys(kpiCategories).forEach((category) => {
+					const kpiList = kpiCategories[category];
+					const categoryData = kpi[category] || {};
+
+					kpiList.forEach((kpiName) => {
+						if (categoryData[kpiName] !== undefined && categoryData[kpiName] !== null) {
+							kpiAccumulator[category][kpiName].values.push(categoryData[kpiName]);
+						}
+					});
+				});
+			});
+		});
+
+		const aggregatedStats = {};
+
+		Object.keys(kpiAccumulator).forEach((category) => {
+			aggregatedStats[category] = {};
+
+			Object.keys(kpiAccumulator[category]).forEach((kpiName) => {
+				const kpiData = kpiAccumulator[category][kpiName];
+				const values = kpiData?.values;
+
+				if (values.length > 0) {
+					const average = values.reduce((sum, val) => sum + val, 0) / values?.length;
+					aggregatedStats[category][kpiData?.displayName] = Number(average.toFixed(2));
+				}
+			});
+
+			if (Object.keys(aggregatedStats[category])?.length === 0) {
+				delete aggregatedStats[category];
+			}
+		});
+
+		return aggregatedStats;
+	}
+
+
+
 
 
 	// function mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, icons) {
-	// 	const categoryMapping = [
-	// 		{
+	// 	const categoryMappingBase = {
+	// 		"Awareness Metrics": {
 	// 			title: "Brand Awareness",
-	// 			kpiCategory: "Awareness Metrics",
 	// 			background: "#E5F2F7",
 	// 			icons: { up: icons.upfull, down: icons.downoffline },
-	// 			indicatorIndex: 0,
-	// 			priorityKPIs: ["Reach", "Frequency", "Impressions"],
+	// 			priorityKPIs: ["Reach", "Frequency", "Impressions"]
 	// 		},
-	// 		{
+	// 		"Traffic": {
 	// 			title: "Traffic",
-	// 			kpiCategory: "Traffic",
 	// 			background: "#E6F4D5",
 	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			indicatorIndex: 1,
-	// 			priorityKPIs: ["CTR", "Link Clicks", "Bounce Rate"],
+	// 			priorityKPIs: ["CTR", "Link Clicks", "Bounce Rate"]
 	// 		},
-	// 		{
+	// 		"Purchase": {
 	// 			title: "Purchase",
-	// 			kpiCategory: "Purchase",
 	// 			background: "#FFE2C5",
 	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			indicatorIndex: 2,
-	// 			priorityKPIs: ["CTR", "Purchases", "CVR"],
+	// 			priorityKPIs: ["CTR", "Purchases", "CVR"]
 	// 		},
-	// 		{
-	// 			title: "Lead Generation",
-	// 			kpiCategory: "Lead Generation (On platform)",
+	// 		"Lead Generation (On platform)": {
+	// 			title: "Lead Generation Platform",
 	// 			background: "#E5F2F7",
 	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			indicatorIndex: 3,
-	// 			priorityKPIs: ["CVR", "Leads", "Cost / lead"],
+	// 			priorityKPIs: ["CVR", "Leads", "Cost / lead"]
 	// 		},
-	// 		{
+	// 		"Lead Generation (On website)": {
+	// 			title: "Lead Generation Website",
+	// 			background: "#E5F2F7",
+	// 			icons: { up: icons.upfull, down: icons.downfull },
+	// 			priorityKPIs: ["CVR", "Leads", "Cost / lead"]
+	// 		},
+	// 		"App Install": {
 	// 			title: "App Installs",
-	// 			kpiCategory: "App Install",
 	// 			background: "#E6F4D5",
 	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			indicatorIndex: 4,
-	// 			priorityKPIs: ["CTR", "Installs", "Install Rate"],
+	// 			priorityKPIs: ["CTR", "Installs", "Install Rate"]
 	// 		},
-	// 		{
+	// 		"Engagement": {
 	// 			title: "Engagement",
-	// 			kpiCategory: "Engagement",
 	// 			background: "#FFE2C5",
 	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			indicatorIndex: 5,
-	// 			priorityKPIs: ["Eng Rate", "Engagements", "CPE"],
+	// 			priorityKPIs: ["Eng Rate", "Engagements", "CPE"]
 	// 		},
-	// 		{
+	// 		"In-App Conversion": {
 	// 			title: "In-App Conversion",
-	// 			kpiCategory: "In-App Conversion",
 	// 			background: "#E5F2F7",
 	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			indicatorIndex: 6,
-	// 			priorityKPIs: ["CTR", "CPC", "App Open", "Link Clicks", "Open Rate"],
+	// 			priorityKPIs: ["CTR", "CPC", "App Open", "Link Clicks", "Open Rate"]
 	// 		},
-	// 		{
+	// 		"Video Views": {
 	// 			title: "Video Views",
-	// 			kpiCategory: "Video Views",
 	// 			background: "#E6F4D5",
 	// 			icons: { up: icons.upoffline, down: icons.downfull },
-	// 			indicatorIndex: 7,
-	// 			priorityKPIs: ["VTR", "Video Views", "Completion Rate"],
-	// 		},
-	// 	];
+	// 			priorityKPIs: ["VTR", "Video Views", "Completion Rate"]
+	// 		}
+	// 	};
 
 	// 	const formatKPIValue = (value, kpiName) => {
 	// 		if (value === undefined || value === null) {
 	// 			if (kpiName.includes("Cost") || kpiName.includes("CPL")) return "$0";
-	// 			if (kpiName.includes("Rate") || kpiName === "CTR" || kpiName === "CVR" || kpiName === "Frequency") return "0%";
+	// 			if (kpiName.includes("Rate") || ["CTR", "CVR", "Frequency"].includes(kpiName)) return "0%";
 	// 			return "0";
 	// 		}
 	// 		const formattedValue = value.toString();
 	// 		if (kpiName.includes("Cost") || kpiName.includes("CPL")) return `$${formattedValue}`;
-	// 		if (kpiName.includes("Rate") || kpiName === "CTR" || kpiName === "CVR" || kpiName === "Frequency") return `${formattedValue}%`;
+	// 		if (kpiName.includes("Rate") || ["CTR", "CVR", "Frequency"].includes(kpiName)) return `${formattedValue}%`;
 	// 		return formattedValue;
 	// 	};
 
 	// 	return React.useMemo(() => {
-	// 		return categoryMapping?.map((category) => {
-	// 			const kpiData = aggregatedStats[category?.kpiCategory] || {};
-	// 			const availableKPIs = Object.keys(kpiData);
+	// 		return categoryOrder?.filter((kpiCategory) => aggregatedStats[kpiCategory]) // Only include if data exists
+	// 			?.map((kpiCategory, index) => {
+	// 				const category = categoryMappingBase[kpiCategory];
+	// 				const kpiData = aggregatedStats[kpiCategory] || {};
+	// 				const availableKPIs = Object.keys(kpiData);
 
-	// 			const selectedKPIs = [
-	// 				...category?.priorityKPIs.filter((kpi) => availableKPIs.includes(kpi)),
-	// 				...availableKPIs.filter((kpi) => !category?.priorityKPIs.includes(kpi)),
-	// 			].map((kpiName) => ({
-	// 				label: kpiName,
-	// 				value: formatKPIValue(kpiData[kpiName], kpiName),
-	// 			}));
+	// 				const selectedKPIs = [
+	// 					...category?.priorityKPIs?.filter((kpi) => availableKPIs.includes(kpi)),
+	// 					...availableKPIs?.filter((kpi) => !category?.priorityKPIs?.includes(kpi)),
+	// 				].map((kpiName) => ({
+	// 					label: kpiName,
+	// 					value: formatKPIValue(kpiData[kpiName], kpiName),
+	// 				}));
 
-	// 			const indicators = Array(8).fill("#C0C0C0");
-	// 			indicators[category?.indicatorIndex] = "#3175FF";
+	// 				const indicators = Array(categoryOrder?.length).fill("#C0C0C0");
+	// 				indicators[index] = "#3175FF";
 
-	// 			return {
-	// 				title: category?.title,
-	// 				background: category?.background,
-	// 				stats: selectedKPIs?.length > 0 ? selectedKPIs : [{ label: "No Data", value: "0" }],
-	// 				indicators,
-	// 				icons: category?.icons,
-	// 				kpiCategory: category?.kpiCategory, // Added to access category in rendering
-	// 			};
-	// 		});
+	// 				return {
+	// 					title: category?.title,
+	// 					background: category?.background,
+	// 					stats: selectedKPIs?.length > 0 ? selectedKPIs : [{ label: "No Data", value: "0" }],
+	// 					indicators,
+	// 					icons: category?.icons,
+	// 					kpiCategory,
+	// 				};
+	// 			});
 	// 	}, [aggregatedStats, kpiCategories, icons]);
 	// }
-	function mapKPIStatsToStatsDataDynamic(aggregatedStats = {}, kpiCategories, icons) {
-		const categoryMapping = [
-			{
-				title: "Brand Awareness",
-				kpiCategory: "Awareness Metrics",
-				background: "#E5F2F7",
-				icons: { up: icons.upfull, down: icons.downoffline },
-				indicatorIndex: 0,
-				priorityKPIs: ["Reach", "Frequency", "Impressions"],
-			},
-			{
-				title: "Traffic",
-				kpiCategory: "Traffic",
-				background: "#E6F4D5",
-				icons: { up: icons.upfull, down: icons.downfull },
-				indicatorIndex: 1,
-				priorityKPIs: ["CTR", "Link Clicks", "Bounce Rate"],
-			},
-			{
-				title: "Purchase",
-				kpiCategory: "Purchase",
-				background: "#FFE2C5",
-				icons: { up: icons.upfull, down: icons.downfull },
-				indicatorIndex: 2,
-				priorityKPIs: ["CTR", "Purchases", "CVR"],
-			},
-			{
-				title: "Lead Generation",
-				kpiCategory: "Lead Generation (On platform)",
-				background: "#E5F2F7",
-				icons: { up: icons.upfull, down: icons.downfull },
-				indicatorIndex: 3,
-				priorityKPIs: ["CVR", "Leads", "Cost / lead"],
-			},
-			{
-				title: "App Installs",
-				kpiCategory: "App Install",
-				background: "#E6F4D5",
-				icons: { up: icons.upfull, down: icons.downfull },
-				indicatorIndex: 4,
-				priorityKPIs: ["CTR", "Installs", "Install Rate"],
-			},
-			{
-				title: "Engagement",
-				kpiCategory: "Engagement",
-				background: "#FFE2C5",
-				icons: { up: icons.upfull, down: icons.downfull },
-				indicatorIndex: 5,
-				priorityKPIs: ["Eng Rate", "Engagements", "CPE"],
-			},
-			{
-				title: "In-App Conversion",
-				kpiCategory: "In-App Conversion",
-				background: "#E5F2F7",
-				icons: { up: icons.upfull, down: icons.downfull },
-				indicatorIndex: 6,
-				priorityKPIs: ["CTR", "CPC", "App Open", "Link Clicks", "Open Rate"],
-			},
-			{
-				title: "Video Views",
-				kpiCategory: "Video Views",
-				background: "#E6F4D5",
-				icons: { up: icons.upoffline, down: icons.downfull },
-				indicatorIndex: 7,
-				priorityKPIs: ["VTR", "Video Views", "Completion Rate"],
-			},
-		];
 
-		const formatKPIValue = (value, kpiName) => {
-			if (value === undefined || value === null) {
-				if (kpiName.includes("Cost") || kpiName.includes("CPL")) return "$0";
-				if (kpiName.includes("Rate") || kpiName === "CTR" || kpiName === "CVR" || kpiName === "Frequency")
-					return "0%";
-				return "0";
-			}
-			const formattedValue = value.toString();
-			if (kpiName.includes("Cost") || kpiName.includes("CPL")) return `$${formattedValue}`;
-			if (kpiName.includes("Rate") || kpiName === "CTR" || kpiName === "CVR" || kpiName === "Frequency")
-				return `${formattedValue}%`;
-			return formattedValue;
-		};
+	const fetchCategories = async (campaign_id) => {
+		const kpiData = await getKpis(campaign_id);
+		if (kpiData) {
 
-		return React.useMemo(() => {
-			return categoryMapping.map((category) => {
-				// Safely access kpiData, defaulting to an empty object if undefined
-				const kpiData = aggregatedStats[category?.kpiCategory] || {};
-				const availableKPIs = Object.keys(kpiData);
+			setkpiCategory(kpiData);
+		}
+	};
 
-				const selectedKPIs = [
-					...category.priorityKPIs.filter((kpi) => availableKPIs.includes(kpi)),
-					...availableKPIs.filter((kpi) => !category.priorityKPIs.includes(kpi)),
-				].map((kpiName) => ({
-					label: kpiName,
-					value: formatKPIValue(kpiData[kpiName], kpiName),
-				}));
 
-				const indicators = Array(8).fill("#C0C0C0");
-				indicators[category.indicatorIndex] = "#3175FF";
+	useEffect(() => {
+		if (commentId) {
+			fetchCategories(commentId);
+		}
+	}, [commentId]);
 
-				return {
-					title: category.title,
-					background: category.background,
-					stats: selectedKPIs.length > 0 ? selectedKPIs : [{ label: "No Data", value: "0" }],
-					indicators,
-					icons: category.icons,
-					kpiCategory: category.kpiCategory,
-				};
-			});
-		}, [aggregatedStats, kpiCategories, icons]);
-	}
 
-	// const aggregatedStats = kpisData?.aggregated_kpis
-	const aggregatedStats = {}
-	const statsData = mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, { upfull, downfull, downoffline, upoffline });
+	useEffect(() => {
+		if (kpiCategory?.aggregated_kpis && Array.isArray(kpiCategory?.aggregated_kpis)) {
+			setFinalCategoryOrder(kpiCategory?.aggregated_kpis);
+		} else {
+			setFinalCategoryOrder(categoryOrder);
+		}
+	}, [kpiCategory]);
+
+
+	const extractedData = extractKPIByFunnelStage(campaignData, kpiCategories);
+	const aggregatedStats = aggregateKPIStatsFromExtracted(extractedData, kpiCategories)
+	const statsData = mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, { upfull, downfull, downoffline, upoffline }, finalCategoryOrder);
 
 
 	return (
@@ -460,13 +431,10 @@ const ClientView = () => {
 				<ClientCommentsDrawer isOpen={isDrawerOpen} onClose={setIsDrawerOpen} campaign={campaign} />
 				<main className="!px-0 mt-[30px] bg-[#F9FAFB]">
 					<div className={`px-[20px]  ${isDrawerOpen ? 'md:px-[50px]' : 'xl:px-[100px]'}`}>
-
 						<div className='flex	flex-col gap-[24px]'>
 							<ApproverContainer campaign={campaign} loading={loading} isLoadingCampaign={isLoadingCampaign} />
-
 							<General campaign={campaign} loading={loading} isLoadingCampaign={isLoadingCampaign} />
-
-							<BrandAwareness statsData={statsData} aggregatedStats={aggregatedStats} />
+							<BrandAwareness statsData={statsData} aggregatedStats={aggregatedStats} loading={isLoadingKpis} isLoadingCampaign={undefined} />
 							<ClientMessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} campaign={campaign} />
 							<div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
 								<ClientToggleSwitch active={active} setActive={setActive} />
@@ -488,7 +456,6 @@ const ClientView = () => {
 										className="bg-[#FAFDFF]  rounded-[10px] py-[14px] px-6 self-start flex items-center	gap-[4px]"
 										style={{ border: "1px solid #3175FF" }}>
 										{allApproved ? <Image src={tickcircles} alt="tickcircle" className="w-[18px] " /> : <RxDotFilled size={20} color='#FF0302' />}
-
 										<span className='text-[16px] font-[600] text-[#3175FF]'>See Focus Comments</span>
 									</button>
 								</div>
@@ -497,10 +464,8 @@ const ClientView = () => {
 							{generalComment &&
 								<GeneralComment />}
 
-
 						</div>
 					</div>
-
 					<div className='mt-[50px]'>
 						{isLoadingCampaign ? <TableLoader isLoading={isLoadingCampaign} /> : ""}
 					</div>
@@ -523,3 +488,5 @@ const ClientView = () => {
 }
 
 export default ClientView
+
+
