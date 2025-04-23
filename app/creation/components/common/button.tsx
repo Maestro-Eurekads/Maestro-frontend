@@ -7,7 +7,7 @@ import Image from "next/image";
 interface ButtonProps {
   icon?: React.ElementType;
   text: string;
-  onClick: () => void;
+  onClick?: () => void;
   variant?: "primary" | "secondary" | "danger" | "tertiary";
   iconColor?: string;
   className?: string;

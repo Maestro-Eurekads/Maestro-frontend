@@ -15,30 +15,8 @@ import Display from "../../../../public/Display.svg";
 import yahoo from "../../../../public/yahoo.svg";
 import bing from "../../../../public/bing.svg";
 import tictok from "../../../../public/tictok.svg";
+import { getPlatformIcon } from "components/data";
 
-const platformIcons = {
-  Facebook: facebook,
-  Instagram: ig,
-  YouTube: youtube,
-  Youtube: youtube,
-  TheTradeDesk: TheTradeDesk,
-  Quantcast: Quantcast,
-  Google: google,
-  "Twitter/X": x,
-  LinkedIn: linkedin,
-  Linkedin: linkedin,
-  TikTok: tictok,
-  "Display & Video": Display,
-  Yahoo: yahoo,
-  Bing: bing,
-  "Apple Search": google,
-  "The Trade Desk": TheTradeDesk,
-  QuantCast: Quantcast,
-};
-
-const getPlatformIcon = (platformName) => {
-  return platformIcons[platformName] || null;
-};
 
 const Awareness = ({
   edit,

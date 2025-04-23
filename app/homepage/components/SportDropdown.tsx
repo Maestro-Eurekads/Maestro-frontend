@@ -63,11 +63,11 @@ const EditInput = ({
         {fields.map((field, index) => (
           <div
             key={field.id}
-            className="mt-[8px] flex items-center px-4 py-2 w-full h-[40px] border border-[#EFEFEF] rounded-[10px]"
+            className={`mt-[8px] flex items-center px-4 py-2  h-[40px] border border-[#EFEFEF] rounded-[10px] ${index > 0 ? "ml-4 w-[85%]" : "w-full"}`}
           >
             <input
               type="text"
-              className="w-full bg-transparent outline-none text-gray-600"
+              className={`w-full bg-transparent outline-none text-gray-600`}
               placeholder={index === 0 ? "Business Level 1" : `Parameter ${index}`}
               value={field.text}
               onChange={(e) => handleInputChange(index, e.target.value)}

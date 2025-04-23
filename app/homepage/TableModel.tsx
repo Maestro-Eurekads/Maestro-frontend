@@ -76,10 +76,12 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       return
     }
 
-    if (emailList.includes(trimmedEmail)) {
+    // Check if email already exists in emailList
+    const emailExists = emailList.some(item => item.email.toLowerCase() === trimmedEmail.toLowerCase())
+    if (emailExists) {
       setAlert({
         variant: "warning",
-        message: "Email already exists",
+        message: "This email address is already added",
         position: "bottom-right",
       })
       return
