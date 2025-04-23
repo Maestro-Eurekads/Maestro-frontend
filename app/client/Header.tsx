@@ -39,16 +39,12 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
       id="client_header"
       className={`py-[2.8rem] px-[30px] ${isDrawerOpen ? 'md:px-[50px]' : 'xl:px-[100px]'} relative`}>
       <div className="flex items-end">
-        <div className="flex flex-col">
-          {/* <button
-            className="w-[35px] h-[22px] font-semibold text-[16px] leading-[22px] text-[#061237] font-[General Sans]">
-            Nike
-          </button> */}
+        {/* <div className="flex flex-col">
           <h1 className="w-[348px] h-[32px] font-semibold text-[24px] leading-[32px] text-[#292929] font-[General Sans]"
           >
             Spring Collection
           </h1>
-        </div>
+        </div> */}
         {loading ? <Skeleton height={20} width={200} /> :
           <ClientsCampaignDropdown loadingClients={false} campaigns={campaigns} setSelected={setSelected} selected={selected} />}
       </div>

@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import SignaturePad from "react-signature-canvas";
+import SignatureCanvas from "react-signature-canvas";
 
 
 export default function SignatureInput({ value, onChange, setSign }) {
@@ -26,7 +26,7 @@ export default function SignatureInput({ value, onChange, setSign }) {
 	return (
 		<div className="w-full">
 			<div className="border rounded-xl p-2">
-				<SignaturePad
+				<SignatureCanvas
 					ref={sigCanvas}
 					canvasProps={{
 						className: "w-full h-[150px] bg-white rounded-xl border"

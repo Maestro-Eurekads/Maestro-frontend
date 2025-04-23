@@ -105,7 +105,7 @@ const MapFunnelStages = () => {
     }
   }, [campaignData, cId, verifyStep]);
 
-  //   Auto-hide alert after 3 seconds
+  // Auto-hide alert after 3 seconds
   useEffect(() => {
     if (alert) {
       const timer = setTimeout(() => setAlert(null), 3000);
@@ -280,7 +280,7 @@ const MapFunnelStages = () => {
       return;
     }
     if (name.trim().length < 2) {
-      toast("Funnel name cannot be less than 2 charatcers", {
+      toast("Funnel name cannot be less than 2 characters", {
         style: {
           background: "red",
           color: "white",
@@ -293,12 +293,12 @@ const MapFunnelStages = () => {
     // Check if the name contains at least one alphabet
     if (!/[a-zA-Z]/.test(name)) {
       toast("Funnel name must include at least one alphabet", {
-      style: {
-        background: "red",
-        color: "white",
-        textAlign: "center",
-      },
-      duration: 3000,
+        style: {
+          background: "red",
+          color: "white",
+          textAlign: "center",
+        },
+        duration: 3000,
       });
       return;
     }
@@ -325,8 +325,8 @@ const MapFunnelStages = () => {
       color: `bg-${
         ["blue", "green", "purple", "pink", "orange"][customFunnels.length % 5]
       }-500`,
-      icon: "",
-      activeIcon: "",
+      icon: addPlus, // Added default icon
+      activeIcon: addPlusWhite, // Added default active icon
     };
 
     // Update customFunnels state
@@ -359,7 +359,9 @@ const MapFunnelStages = () => {
     // Check if a funnel with this name already exists (excluding the current funnel)
     if (
       customFunnels.some(
-        (funnel) => funnel.name?.toLowerCase() === newName?.toLowerCase()
+        (funnel) =>
+          funnel.name?.toLowerCase() === newName?.toLowerCase() &&
+          funnel.name !== oldId
       )
     ) {
       toast("A funnel with this name already exists", {
@@ -509,10 +511,9 @@ const MapFunnelStages = () => {
           t1={
             "How many funnel stage(s) would you like to activate to achieve your objective ?"
           }
-          
         />
       </div>
-      <div className="mt-[56px] flex  items-center gap-[32px]">
+      <div className="mt-[56px] flex items-center gap-[32px]">
         {[
           { id: "targeting_retargeting", label: "Targeting - Retargeting" },
           { id: "custom", label: "Custom" },
@@ -524,158 +525,231 @@ const MapFunnelStages = () => {
             <input
               type="radio"
               name="funnel_selection"
-              value={selectedOption}
+              value={option.id}
               checked={selectedOption === option.id}
               onChange={() => handleOptionChange(option.id)}
               className="w-4 h-4"
             />
-            <p className=" font-semibold">{option.label}</p>
+            <p className="font-semibold">{option.label}</p>
           </label>
         ))}
       </div>
-      {selectedOption === "targeting_retargeting"
-        ? null
-        : selectedOption === "custom" && (
-            <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
-              {customFunnels.map((funnel, index) => (
-                <div key={funnel.id} className="relative w-full max-w-[685px]">
-                  <button
-                    className={`cursor-pointer w-full ${
-                      campaignFormData["funnel_stages"]?.includes(funnel.name) ||
-                      hovered === index + 1
-                        ? funnel.color
-                        : ""
-                    } text-black rounded-lg py-4 flex items-center justify-center gap-2
+
+      {/* Render funnel stages based on selected option */}
+      {(selectedOption === "targeting_retargeting" ||
+        selectedOption === "custom") && (
+        <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
+          {/* Funnel stages for Targeting-Retargeting */}
+          {selectedOption === "targeting_retargeting" &&
+            savedSelections.targeting_retargeting.funnel_stages.map(
+              (funnelName, index) => {
+                // Define colors and icons for Targeting and Retargeting
+                const funnelConfig = {
+                  Targeting: {
+                    color: "bg-blue-500",
+                    icon: speaker,
+                    activeIcon: speakerWhite,
+                  },
+                  Retargeting: {
+                    color: "bg-green-500",
+                    icon: zoom,
+                    activeIcon: zoomWhite,
+                  },
+                }[funnelName] || {
+                  color: "bg-gray-500",
+                  icon: addPlus,
+                  activeIcon: addPlusWhite,
+                };
+
+                return (
+                  <div
+                    key={`${funnelName}-${index}`}
+                    className="relative w-full max-w-[685px]"
+                  >
+                    <button
+                      className={`cursor-pointer w-full ${
+                        campaignFormData["funnel_stages"]?.includes(funnelName) ||
+                        hovered === index + 1
+                          ? funnelConfig.color
+                          : ""
+                      } text-black rounded-lg py-4 flex items-center justify-center gap-2
+                      ${
+                        campaignFormData["funnel_stages"]?.includes(funnelName) ||
+                        hovered === index + 1
+                          ? "opacity-100 text-white"
+                          : "opacity-90 shadow-md"
+                      }`}
+                      onClick={() => handleSelect(funnelName)}
+                      onMouseEnter={() => setHovered(index + 1)}
+                      onMouseLeave={() => setHovered(null)}
+                    >
+                      {funnelConfig.icon &&
+                        (campaignFormData["funnel_stages"]?.includes(
+                          funnelName
+                        ) || hovered === index + 1 ? (
+                          <Image
+                            src={funnelConfig.activeIcon || "/placeholder.svg"}
+                            alt={`${funnelName} icon`}
+                          />
+                        ) : (
+                          <Image
+                            src={funnelConfig.icon || "/placeholder.svg"}
+                            alt={`${funnelName} icon`}
+                          />
+                        ))}
+                      <p className="text-[16px]">{funnelName}</p>
+                    </button>
+                  </div>
+                );
+              }
+            )}
+
+          {/* Funnel stages for Custom */}
+          {selectedOption === "custom" &&
+            customFunnels.map((funnel, index) => (
+              <div
+                key={`${funnel.id}-${index}`}
+                className="relative w-full max-w-[685px]"
+              >
+                <button
+                  className={`cursor-pointer w-full ${
+                    campaignFormData["funnel_stages"]?.includes(funnel.name) ||
+                    hovered === index + 1
+                      ? funnel.color
+                      : ""
+                  } text-black rounded-lg py-4 flex items-center justify-center gap-2
                   ${
                     campaignFormData["funnel_stages"]?.includes(funnel.name) ||
                     hovered === index + 1
                       ? "opacity-100 text-white"
                       : "opacity-90 shadow-md"
-                  } 
-                  `}
-                    onClick={() => {
-                      handleSelect(funnel.name);
-                    }}
-                    onMouseEnter={() => setHovered(index + 1)}
-                    onMouseLeave={() => setHovered(null)}
-                  >
-                    {funnel.icon &&
-                      (campaignFormData["funnel_stages"]?.includes(funnel.name) ||
-                      hovered === index + 1 ? (
-                        <Image
-                          src={funnel.activeIcon || "/placeholder.svg"}
-                          alt={`${funnel.name} icon`}
-                        />
-                      ) : (
-                        <Image
-                          src={funnel.icon || "/placeholder.svg"}
-                          alt={`${funnel.name} icon`}
-                        />
-                      ))}
-                    <p className="text-[16px]">{funnel.name}</p>
-                  </button>
-
-                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
-                    <button
-                      className="p-1 bg-white rounded-full shadow-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setModalMode("edit");
-                        setCurrentFunnel(funnel);
-                        setNewFunnelName(funnel.name);
-                        setIsModalOpen(true);
-                      }}
-                    >
-                      <Edit2 size={16} className="text-gray-600" />
-                    </button>
-                    <button
-                      className="p-1 bg-white rounded-full shadow-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveFunnel(funnel.name);
-                      }}
-                    >
-                      <Trash2 size={16} className="text-red-500" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              <button
-                className="flex items-center gap-2 text-blue-500 cursor-pointer text-[16px]"
-                onClick={() => {
-                  setModalMode("add");
-                  setCurrentFunnel(null);
-                  setNewFunnelName("");
-                  setIsModalOpen(true);
-                }}
-              >
-                <PlusIcon className="text-blue-500" />
-                Add new funnel
-              </button>
-
-              {/* Custom Modal without shadcn */}
-              {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                  <div
-                    ref={modalRef}
-                    className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl"
-                  >
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold">
-                        {modalMode === "add" ? "Add New Funnel" : "Edit Funnel"}
-                      </h3>
-                      <button
-                        onClick={() => setIsModalOpen(false)}
-                        className="text-gray-500 hover:text-gray-700"
-                      >
-                        <X size={20} />
-                      </button>
-                    </div>
-
-                    <div className="mb-4">
-                      <label
-                        htmlFor="funnelName"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                      >
-                        Name
-                      </label>
-                      <input
-                        type="text"
-                        id="funnelName"
-                        value={newFunnelName}
-                        onChange={(e) => setNewFunnelName(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Enter funnel name"
+                  }`}
+                  onClick={() => {
+                    handleSelect(funnel.name);
+                  }}
+                  onMouseEnter={() => setHovered(index + 1)}
+                  onMouseLeave={() => setHovered(null)}
+                >
+                  {funnel.icon &&
+                    (campaignFormData["funnel_stages"]?.includes(funnel.name) ||
+                    hovered === index + 1 ? (
+                      <Image
+                        src={funnel.activeIcon || "/placeholder.svg"}
+                        alt={`${funnel.name} icon`}
                       />
-                    </div>
+                    ) : (
+                      <Image
+                        src={funnel.icon || "/placeholder.svg"}
+                        alt={`${funnel.name} icon`}
+                      />
+                    ))}
+                  <p className="text-[16px]">{funnel.name}</p>
+                </button>
 
-                    <div className="flex justify-end gap-2 mt-6">
-                      <button
-                        onClick={() => setIsModalOpen(false)}
-                        className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (modalMode === "add") {
-                            handleAddFunnel(newFunnelName);
-                          } else if (currentFunnel) {
-                            handleEditFunnel(currentFunnel.name, newFunnelName);
-                          }
-                          setIsModalOpen(false);
-                        }}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                      >
-                        {modalMode === "add" ? "Add" : "Save"}
-                      </button>
-                    </div>
-                  </div>
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
+                  <button
+                    className="p-1 bg-white rounded-full shadow-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setModalMode("edit");
+                      setCurrentFunnel(funnel);
+                      setNewFunnelName(funnel.name);
+                      setIsModalOpen(true);
+                    }}
+                  >
+                    <Edit2 size={16} className="text-gray-600" />
+                  </button>
+                  <button
+                    className="p-1 bg-white rounded-full shadow-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveFunnel(funnel.name);
+                    }}
+                  >
+                    <Trash2 size={16} className="text-red-500" />
+                  </button>
                 </div>
-              )}
-            </div>
+              </div>
+            ))}
+
+          {/* Add new funnel button for Custom option */}
+          {selectedOption === "custom" && (
+            <button
+              className="flex items-center gap-2 text-blue-500 cursor-pointer text-[16px]"
+              onClick={() => {
+                setModalMode("add");
+                setCurrentFunnel(null);
+                setNewFunnelName("");
+                setIsModalOpen(true);
+              }}
+            >
+              <PlusIcon className="text-blue-500" />
+              Add new funnel
+            </button>
           )}
+        </div>
+      )}
+
+      {/* Custom Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div
+            ref={modalRef}
+            className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">
+                {modalMode === "add" ? "Add New Funnel" : "Edit Funnel"}
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <label
+                htmlFor="funnelName"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Name
+              </label>
+              <input
+                type="text"
+                id="funnelName"
+                value={newFunnelName}
+                onChange={(e) => setNewFunnelName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter funnel name"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (modalMode === "add") {
+                    handleAddFunnel(newFunnelName);
+                  } else if (currentFunnel) {
+                    handleEditFunnel(currentFunnel.name, newFunnelName);
+                  }
+                  setIsModalOpen(false);
+                }}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+              >
+                {modalMode === "add" ? "Add" : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
