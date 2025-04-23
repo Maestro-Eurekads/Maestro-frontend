@@ -119,6 +119,25 @@ function FeeSelectionStep() {
       ).toFixed(2);
     }
 
+    const totalFees = fees.reduce(
+      (total, fee) => total + Number.parseFloat(fee.amount),
+      0
+    );
+
+    const grossAmount = Number.parseFloat(
+      campaignFormData?.campaign_budget?.amount || "0"
+    );
+
+    if (active === 1 && totalFees + Number.parseFloat(calculatedAmount) > grossAmount) {
+      toast("Total fees cannot exceed the gross amount", {
+        style: {
+          background: "red",
+          color: "white",
+        },
+      });
+      return;
+    }
+
     const newFee = {
       type: feeType.value,
       label: feeType.label,
@@ -154,13 +173,13 @@ function FeeSelectionStep() {
 
   useEffect(() => {
     if (campaignFormData) {
-      setActive(
-        campaignFormData?.campaign_budget?.sub_budget_type === "gross"
-          ? 1
-          : campaignFormData?.campaign_budget?.sub_budget_type === "net"
-          ? 2
-          : null
-      );
+      // setActive(
+      //   campaignFormData?.campaign_budget?.sub_budget_type === "gross"
+      //     ? 1
+      //     : campaignFormData?.campaign_budget?.sub_budget_type === "net"
+      //     ? 2
+      //     : null
+      // );
       const feesData = campaignFormData?.campaign_budget?.budget_fees?.map(
         (bud) => ({
           type: bud?.fee_type,
@@ -221,7 +240,7 @@ function FeeSelectionStep() {
 
   return (
     <div>
-      <Toaster />
+      {/* <Toaster /> */}
       <CampaignBudget />
       <div>
         <PageHeaderWrapper t4="Choose the type of budget you have" span={2} />
@@ -378,16 +397,28 @@ function FeeSelectionStep() {
                     <input
                       className="text-center outline-none w-[145px]"
                       placeholder={
-                        feeType?.type === "percent"
-                          ? "Fee percentage"
-                          : "Fee amount"
+                      feeType?.type === "percent"
+                        ? "Fee percentage"
+                        : "Fee amount"
                       }
                       value={feeAmount}
                       onChange={(e) => {
-                        const value = e.target.value;
-                        if (/^\d*\.?\d*$/.test(value)) {
-                          setFeeAmount(value);
+                      const value = e.target.value;
+                      if (/^\d*\.?\d*$/.test(value)) {
+                        if (
+                        feeType?.type === "percent" &&
+                        Number(value) > 100
+                        ) {
+                        toast("Percentage cannot exceed 100", {
+                          style: {
+                          background: "red",
+                          color: "white",
+                          },
+                        });
+                        return;
                         }
+                        setFeeAmount(value);
+                      }
                       }}
                     />
                     {feeType?.type === "percent" && <span>%</span>}
