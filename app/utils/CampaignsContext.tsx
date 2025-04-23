@@ -12,35 +12,45 @@ import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import { useSelector } from "react-redux";
 
-const initialState = {
-  client_selection: { id: "", value: "" },
-  level_1: { id: "", value: "" },
-  level_2: { id: "", value: "" },
-  level_3: { id: "", value: "" },
-  media_plan: "",
-  approver: "",
-  client_approver: "",
-  budget_details_currency: { id: "", value: "", label: "" },
-  budget_details_fee_type: { id: "", value: "" },
-  budget_details_sub_fee_type: "",
-  budget_details_value: "",
-  campaign_objectives: "",
-  funnel_stages: [],
-  channel_mix: {},
-  campaign_timeline_start_date: "",
-  campaign_timeline_end_date: "",
-  campaign_budget: {},
-  goal_level: "",
-  validatedStages: {},
+// Get initial state from localStorage if available
+const getInitialState = () => {
+  if (typeof window !== 'undefined') {
+    const savedState = localStorage.getItem('campaignFormData');
+    if (savedState) {
+      return JSON.parse(savedState);
+    }
+  }
+  
+  return {
+    client_selection: { id: "", value: "" },
+    level_1: { id: "", value: "" },
+    level_2: { id: "", value: "" },
+    level_3: { id: "", value: "" },
+    media_plan: "",
+    approver: "",
+    client_approver: "",
+    budget_details_currency: { id: "", value: "", label: "" },
+    budget_details_fee_type: { id: "", value: "" },
+    budget_details_sub_fee_type: "",
+    budget_details_value: "",
+    campaign_objectives: "",
+    funnel_stages: [],
+    channel_mix: {},
+    campaign_timeline_start_date: "",
+    campaign_timeline_end_date: "",
+    campaign_budget: {},
+    goal_level: "",
+    validatedStages: {},
+  };
 };
 
 const CampaignContext = createContext<any>(null);
 
 export const CampaignProvider = ({ children }: { children: ReactNode }) => {
-  const [campaignFormData, setCampaignFormData] = useState(initialState);
+  const [campaignFormData, setCampaignFormData] = useState(getInitialState());
   const [campaignData, setCampaignData] = useState(null);
   const [clientCampaignData, setClientCampaignData] = useState([]);
-  const [loading, setLoading] = useState(true); // Start with loading true
+  const [loading, setLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const query = useSearchParams();
   const cId = query.get("campaignId");
@@ -56,7 +66,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [filterOptions, setFilterOptions] = useState({
     year: [],
     quarter: [],
-    month: [],
+    month: [], 
     category: [],
     product: [],
     select_plans: [],
@@ -74,6 +84,13 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
   const allClients = reduxClients.length > 0 ? reduxClients : hookAllClients;
   const loadingClients = reduxLoadingClients || hookLoadingClients;
+
+  // Save form data to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('campaignFormData', JSON.stringify(campaignFormData));
+    }
+  }, [campaignFormData]);
 
   // Initialize data on mount
   useEffect(() => {
@@ -184,18 +201,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       const data = response?.data?.data;
-      // setCampaignFormData((prev) => ({
-      //   ...prev,
-      //   budget_details_currency: {
-      //     id: data?.budget_details?.currency || prev.budget_details_currency.id,
-      //     value:
-      //       data?.budget_details?.currency ||
-      //       prev.budget_details_currency.value,
-      //     label:
-      //       data?.budget_details?.currency ||
-      //       prev.budget_details_currency.label,
-      //   },
-      // }));
       return response;
     } catch (error) {
       console.error("Error creating campaign:", error);
@@ -336,7 +341,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   };
 
   function organizeAdvertisingPlatforms(data) {
-    // Initialize the result structure
     const result = {
       online: {
         social_media: [],
@@ -366,18 +370,12 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       },
     };
 
-    // Loop through each platform in the data
     data.forEach((platform) => {
-      // Determine the type category (lowercase)
       const typeCategory = platform.type.toLowerCase();
-
-      // Convert channel_type to the expected format in the result object
-      // e.g., "Search engines" -> "search_engines"
       let channelType = platform.channel_type
         .toLowerCase()
         .replace(/\s+/g, "_");
 
-      // Handle special case for "In-Game" -> "in_game"
       if (channelType === "in-game") {
         channelType = "in_game";
       }
@@ -386,9 +384,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         channelType = "e_commerce";
       }
 
-      // Check if the type category and channel type exist in our result structure
       if (result[typeCategory] && result[typeCategory][channelType]) {
-        // Add the platform to the appropriate array
         result[typeCategory][channelType].push({
           id: platform.id,
           documentId: platform.documentId,
