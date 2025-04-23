@@ -1,118 +1,20 @@
-// "use client";
-// import React, { createContext, useContext, useState } from "react";
-// import axios from "axios";
-// const KpisContext = createContext(null);
-
-// export const useKpis = () => {
-// 	return useContext(KpisContext);
-// };
-
-// export const KpiProvider = ({ children }) => {
-// 	const [error, setError] = useState(null);
-// 	const [createKpisSuccess, setCreateKpisSuccess] = useState(null);
-// 	const [isLoading, setIsLoading] = useState(false);
-
-
-
-
-
-
-
-
-
-// 	// const updateGeneralComment = async (commentId, generalComment, author, id) => {
-// 	// 	setIsLoadingGeneral(true);
-// 	// 	try {
-// 	// 		await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/general-comments/${id}`, {
-// 	// 			data: {
-// 	// 				commentId,
-// 	// 				generalComment,
-// 	// 				author
-// 	// 			},
-// 	// 		}, {
-// 	// 			headers: {
-// 	// 				"Content-Type": "application/json",
-// 	// 				Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-// 	// 			},
-// 	// 		});
-// 	// 		dispatch(getGeneralComment(commentId));
-// 	// 		setGeneralComment("");
-// 	// 		setIsLoadingGeneral(false);
-// 	// 		setGeneralcommentsSuccess(true);
-// 	// 	} catch (error) {
-// 	// 		setGeneralError(error);
-// 	// 		setIsLoadingGeneral(false);
-// 	// 	}
-// 	// };
-
-// 	const addKpis = async (campaign_id, groupedKpis) => {
-// 		setIsLoading(true);
-// 		try {
-// 			await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/aggregated-kpis`, {
-// 				data: {
-// 					campaign_id,
-// 					aggregated_kpis: groupedKpis
-// 				},
-// 			}, {
-// 				headers: {
-// 					"Content-Type": "application/json",
-// 					Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-// 				},
-// 			});
-// 			setIsLoading(false);
-// 			setCreateKpisSuccess(true);
-// 		} catch (error) {
-// 			setError(error);
-// 			setIsLoading(false);
-// 		}
-// 	};
-
-
-
-
-
-
-
-
-
-
-
-// 	return (
-// 		<KpisContext.Provider
-// 			value={{
-// 				addKpis,
-// 				error,
-// 				createKpisSuccess,
-// 				isLoading
-// 			}}
-// 		>
-// 			{children}
-// 		</KpisContext.Provider>
-// 	);
-// };
-
-
 "use client";
 import React, { createContext, useContext, useState } from "react";
 import axios from "axios";
 
 const KpisContext = createContext(null);
-
 export const useKpis = () => useContext(KpisContext);
-
 export const KpiProvider = ({ children }) => {
 	const [kpisData, setKpisData] = useState(null);
-
-	// Add states
-	const [isAddingKpis, setIsAddingKpis] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
+	const [isLoadingKpis, setIsLoadingKpis] = useState(false);
 	const [addKpisError, setAddKpisError] = useState(null);
 	const [createKpisSuccess, setCreateKpisSuccess] = useState(null);
-
-	const [isFetchingKpis, setIsFetchingKpis] = useState(false);
 	const [getKpisError, setGetKpisError] = useState(null);
-
-	const [isUpdatingKpis, setIsUpdatingKpis] = useState(false);
 	const [updateKpisError, setUpdateKpisError] = useState(null);
+	const [kpiCategory, setkpiCategory] = useState<any>([]);
+	const [refresh, setRefresh] = useState(false);
+	const [showModal, setShowModal] = useState(false);
 
 	const headers = {
 		"Content-Type": "application/json",
@@ -120,7 +22,7 @@ export const KpiProvider = ({ children }) => {
 	};
 
 	const addKpis = async (campaign_id, groupedKpis) => {
-		setIsAddingKpis(true);
+		setIsLoading(true);
 		setAddKpisError(null);
 		try {
 			await axios.post(
@@ -129,20 +31,23 @@ export const KpiProvider = ({ children }) => {
 					data: {
 						campaign_id,
 						aggregated_kpis: groupedKpis,
+						isCreated: true,
 					},
 				},
 				{ headers }
 			);
 			setCreateKpisSuccess(true);
+			setRefresh(true);
+			setShowModal(false);
 		} catch (error) {
 			setAddKpisError(error);
 		} finally {
-			setIsAddingKpis(false);
+			setIsLoading(false);
 		}
 	};
 
 	const getKpis = async (campaign_id) => {
-		setIsFetchingKpis(true);
+		setIsLoadingKpis(true);
 		setGetKpisError(null);
 		try {
 			const res = await axios.get(
@@ -154,14 +59,15 @@ export const KpiProvider = ({ children }) => {
 			return kpis;
 		} catch (error) {
 			setGetKpisError(error);
+			setIsLoadingKpis(false);
 			console.error("Error fetching KPIs:", error);
 		} finally {
-			setIsFetchingKpis(false);
+			setIsLoadingKpis(false);
 		}
 	};
 
 	const updateKpis = async (id, updatedGroupedKpis) => {
-		setIsUpdatingKpis(true);
+		setIsLoading(true);
 		setUpdateKpisError(null);
 		try {
 			await axios.put(
@@ -174,11 +80,14 @@ export const KpiProvider = ({ children }) => {
 				{ headers }
 			);
 			setCreateKpisSuccess(true);
+			setRefresh(true);
+			setIsLoading(false);
+			setShowModal(false);
 		} catch (error) {
 			setUpdateKpisError(error);
 			console.error("Error updating KPIs:", error);
 		} finally {
-			setIsUpdatingKpis(false);
+			setIsLoading(false);
 		}
 	};
 
@@ -189,16 +98,18 @@ export const KpiProvider = ({ children }) => {
 				getKpis,
 				updateKpis,
 				kpisData,
-
-				// Add states
-				isAddingKpis,
+				isLoading,
+				isLoadingKpis,
 				addKpisError,
-				isFetchingKpis,
 				getKpisError,
-				isUpdatingKpis,
 				updateKpisError,
-
 				createKpisSuccess,
+				kpiCategory,
+				setkpiCategory,
+				refresh,
+				setRefresh,
+				showModal,
+				setShowModal
 			}}
 		>
 			{children}

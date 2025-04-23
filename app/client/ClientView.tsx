@@ -125,7 +125,7 @@ const ClientView = () => {
 	// const [isOpen, setIsOpen] = useState(false);
 	const [generalComment, setGeneralComment] = useState(false);
 	const [active, setActive] = useState("Timeline view");
-	const { clientCampaignData, campaignData } = useCampaigns();
+	const { clientCampaignData, campaignData, getActiveCampaign } = useCampaigns();
 	const { data, campaignDetails, isLoadingCampaign } = useAppSelector((state) => state.comment);
 	const comments: Comment[] = data
 		?.filter((comment: Comment) => comment?.addcomment_as !== "Internal")
@@ -144,8 +144,14 @@ const ClientView = () => {
 		isFetchingKpis,
 		getKpisError } = useKpis();
 
-	console.log('kpisData-kpisData-kpisData', kpisData?.aggregated_kpis
-	)
+
+
+
+	useEffect(() => {
+		if (selected) {
+			getActiveCampaign(selected);
+		}
+	}, [selected]);
 
 	useEffect(() => {
 		if (selected) {
@@ -230,226 +236,230 @@ const ClientView = () => {
 	};
 
 
-	// function mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, icons) {
-	// 	const categoryMapping = [
-	// 		{
-	// 			title: "Brand Awareness",
-	// 			kpiCategory: "Awareness Metrics",
-	// 			background: "#E5F2F7",
-	// 			icons: { up: icons.upfull, down: icons.downoffline },
-	// 			indicatorIndex: 0,
-	// 			priorityKPIs: ["Reach", "Frequency", "Impressions"],
-	// 		},
-	// 		{
-	// 			title: "Traffic",
-	// 			kpiCategory: "Traffic",
-	// 			background: "#E6F4D5",
-	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			indicatorIndex: 1,
-	// 			priorityKPIs: ["CTR", "Link Clicks", "Bounce Rate"],
-	// 		},
-	// 		{
-	// 			title: "Purchase",
-	// 			kpiCategory: "Purchase",
-	// 			background: "#FFE2C5",
-	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			indicatorIndex: 2,
-	// 			priorityKPIs: ["CTR", "Purchases", "CVR"],
-	// 		},
-	// 		{
-	// 			title: "Lead Generation",
-	// 			kpiCategory: "Lead Generation (On platform)",
-	// 			background: "#E5F2F7",
-	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			indicatorIndex: 3,
-	// 			priorityKPIs: ["CVR", "Leads", "Cost / lead"],
-	// 		},
-	// 		{
-	// 			title: "App Installs",
-	// 			kpiCategory: "App Install",
-	// 			background: "#E6F4D5",
-	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			indicatorIndex: 4,
-	// 			priorityKPIs: ["CTR", "Installs", "Install Rate"],
-	// 		},
-	// 		{
-	// 			title: "Engagement",
-	// 			kpiCategory: "Engagement",
-	// 			background: "#FFE2C5",
-	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			indicatorIndex: 5,
-	// 			priorityKPIs: ["Eng Rate", "Engagements", "CPE"],
-	// 		},
-	// 		{
-	// 			title: "In-App Conversion",
-	// 			kpiCategory: "In-App Conversion",
-	// 			background: "#E5F2F7",
-	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			indicatorIndex: 6,
-	// 			priorityKPIs: ["CTR", "CPC", "App Open", "Link Clicks", "Open Rate"],
-	// 		},
-	// 		{
-	// 			title: "Video Views",
-	// 			kpiCategory: "Video Views",
-	// 			background: "#E6F4D5",
-	// 			icons: { up: icons.upoffline, down: icons.downfull },
-	// 			indicatorIndex: 7,
-	// 			priorityKPIs: ["VTR", "Video Views", "Completion Rate"],
-	// 		},
-	// 	];
+	function extractKPIByFunnelStage(data, kpiCategories) {
+		const result = {};
+		const channelMix = data?.channel_mix;
 
-	// 	const formatKPIValue = (value, kpiName) => {
-	// 		if (value === undefined || value === null) {
-	// 			if (kpiName.includes("Cost") || kpiName.includes("CPL")) return "$0";
-	// 			if (kpiName.includes("Rate") || kpiName === "CTR" || kpiName === "CVR" || kpiName === "Frequency") return "0%";
-	// 			return "0";
-	// 		}
-	// 		const formattedValue = value.toString();
-	// 		if (kpiName.includes("Cost") || kpiName.includes("CPL")) return `$${formattedValue}`;
-	// 		if (kpiName.includes("Rate") || kpiName === "CTR" || kpiName === "CVR" || kpiName === "Frequency") return `${formattedValue}%`;
-	// 		return formattedValue;
-	// 	};
+		channelMix?.forEach((stage) => {
+			const funnelStage = stage?.funnel_stage;
+			result[funnelStage] = [];
 
-	// 	return React.useMemo(() => {
-	// 		return categoryMapping?.map((category) => {
-	// 			const kpiData = aggregatedStats[category?.kpiCategory] || {};
-	// 			const availableKPIs = Object.keys(kpiData);
+			const socialMedia = stage?.social_media || [];
+			socialMedia.forEach((platform) => {
+				const platformName = platform?.platform_name;
+				const kpi = platform?.kpi || {};
+				const groupedKPIs = {};
 
-	// 			const selectedKPIs = [
-	// 				...category?.priorityKPIs.filter((kpi) => availableKPIs.includes(kpi)),
-	// 				...availableKPIs.filter((kpi) => !category?.priorityKPIs.includes(kpi)),
-	// 			].map((kpiName) => ({
-	// 				label: kpiName,
-	// 				value: formatKPIValue(kpiData[kpiName], kpiName),
-	// 			}));
+				Object.keys(kpiCategories).forEach((category) => {
+					groupedKPIs[category] = {};
+					const kpiList = kpiCategories[category];
 
-	// 			const indicators = Array(8).fill("#C0C0C0");
-	// 			indicators[category?.indicatorIndex] = "#3175FF";
+					kpiList?.forEach((kpiName) => {
+						const kpiKey = kpiName
+							.toLowerCase()
+							.replace(/ /g, "_")
+							.replace("/", "__");
+						if (kpi[kpiKey] !== undefined && kpi[kpiKey] !== null) {
+							groupedKPIs[category][kpiName] = kpi[kpiKey];
+						}
+					});
 
-	// 			return {
-	// 				title: category?.title,
-	// 				background: category?.background,
-	// 				stats: selectedKPIs?.length > 0 ? selectedKPIs : [{ label: "No Data", value: "0" }],
-	// 				indicators,
-	// 				icons: category?.icons,
-	// 				kpiCategory: category?.kpiCategory, // Added to access category in rendering
-	// 			};
-	// 		});
-	// 	}, [aggregatedStats, kpiCategories, icons]);
-	// }
-	function mapKPIStatsToStatsDataDynamic(aggregatedStats = {}, kpiCategories, icons) {
-		const categoryMapping = [
-			{
+					if (Object.keys(groupedKPIs[category])?.length === 0) {
+						delete groupedKPIs[category];
+					}
+				});
+
+				result[funnelStage].push({
+					platform_name: platformName,
+					kpi: groupedKPIs, // Fixed: Changed zonedKPIs to groupedKPIs
+				});
+			});
+		});
+
+		return result;
+	}
+
+	function aggregateKPIStatsFromExtracted(extractedData, kpiCategories) {
+		const kpiAccumulator = {};
+
+		Object.keys(kpiCategories).forEach((category) => {
+			kpiAccumulator[category] = {};
+			kpiCategories[category].forEach((kpiName) => {
+				kpiAccumulator[category][kpiName] = {
+					values: [],
+					displayName: kpiName,
+				};
+			});
+		});
+
+		Object.keys(extractedData).forEach((funnelStage) => {
+			const platforms = extractedData[funnelStage] || [];
+
+			platforms.forEach((platform) => {
+				const kpi = platform?.kpi || {};
+
+				Object.keys(kpiCategories).forEach((category) => {
+					const kpiList = kpiCategories[category];
+					const categoryData = kpi[category] || {};
+
+					kpiList.forEach((kpiName) => {
+						if (categoryData[kpiName] !== undefined && categoryData[kpiName] !== null) {
+							kpiAccumulator[category][kpiName].values.push(categoryData[kpiName]);
+						}
+					});
+				});
+			});
+		});
+
+		const aggregatedStats = {};
+
+		Object.keys(kpiAccumulator).forEach((category) => {
+			aggregatedStats[category] = {};
+
+			Object.keys(kpiAccumulator[category]).forEach((kpiName) => {
+				const kpiData = kpiAccumulator[category][kpiName];
+				const values = kpiData?.values;
+
+				if (values.length > 0) {
+					const average = values.reduce((sum, val) => sum + val, 0) / values?.length;
+					aggregatedStats[category][kpiData?.displayName] = Number(average.toFixed(2));
+				}
+			});
+
+			if (Object.keys(aggregatedStats[category])?.length === 0) {
+				delete aggregatedStats[category];
+			}
+		});
+
+		return aggregatedStats;
+	}
+
+
+
+	const categoryOrder = [
+		"Awareness Metrics",
+		"Purchase",
+		"Video Views",
+		// "Traffic",
+		// "Lead Generation (On platform)",
+		// "Lead Generation (On website)",
+		"App Install",
+		"Engagement",
+		"In-App Conversion",
+	];
+
+	function mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, icons) {
+		const categoryMappingBase = {
+			"Awareness Metrics": {
 				title: "Brand Awareness",
-				kpiCategory: "Awareness Metrics",
 				background: "#E5F2F7",
 				icons: { up: icons.upfull, down: icons.downoffline },
-				indicatorIndex: 0,
-				priorityKPIs: ["Reach", "Frequency", "Impressions"],
+				priorityKPIs: ["Reach", "Frequency", "Impressions"]
 			},
-			{
+			"Traffic": {
 				title: "Traffic",
-				kpiCategory: "Traffic",
 				background: "#E6F4D5",
 				icons: { up: icons.upfull, down: icons.downfull },
-				indicatorIndex: 1,
-				priorityKPIs: ["CTR", "Link Clicks", "Bounce Rate"],
+				priorityKPIs: ["CTR", "Link Clicks", "Bounce Rate"]
 			},
-			{
+			"Purchase": {
 				title: "Purchase",
-				kpiCategory: "Purchase",
 				background: "#FFE2C5",
 				icons: { up: icons.upfull, down: icons.downfull },
-				indicatorIndex: 2,
-				priorityKPIs: ["CTR", "Purchases", "CVR"],
+				priorityKPIs: ["CTR", "Purchases", "CVR"]
 			},
-			{
-				title: "Lead Generation",
-				kpiCategory: "Lead Generation (On platform)",
+			"Lead Generation (On platform)": {
+				title: "Lead Generation Platform",
 				background: "#E5F2F7",
 				icons: { up: icons.upfull, down: icons.downfull },
-				indicatorIndex: 3,
-				priorityKPIs: ["CVR", "Leads", "Cost / lead"],
+				priorityKPIs: ["CVR", "Leads", "Cost / lead"]
 			},
-			{
+			"Lead Generation (On website)": {
+				title: "Lead Generation Website",
+				background: "#E5F2F7",
+				icons: { up: icons.upfull, down: icons.downfull },
+				priorityKPIs: ["CVR", "Leads", "Cost / lead"]
+			},
+			"App Install": {
 				title: "App Installs",
-				kpiCategory: "App Install",
 				background: "#E6F4D5",
 				icons: { up: icons.upfull, down: icons.downfull },
-				indicatorIndex: 4,
-				priorityKPIs: ["CTR", "Installs", "Install Rate"],
+				priorityKPIs: ["CTR", "Installs", "Install Rate"]
 			},
-			{
+			"Engagement": {
 				title: "Engagement",
-				kpiCategory: "Engagement",
 				background: "#FFE2C5",
 				icons: { up: icons.upfull, down: icons.downfull },
-				indicatorIndex: 5,
-				priorityKPIs: ["Eng Rate", "Engagements", "CPE"],
+				priorityKPIs: ["Eng Rate", "Engagements", "CPE"]
 			},
-			{
+			"In-App Conversion": {
 				title: "In-App Conversion",
-				kpiCategory: "In-App Conversion",
 				background: "#E5F2F7",
 				icons: { up: icons.upfull, down: icons.downfull },
-				indicatorIndex: 6,
-				priorityKPIs: ["CTR", "CPC", "App Open", "Link Clicks", "Open Rate"],
+				priorityKPIs: ["CTR", "CPC", "App Open", "Link Clicks", "Open Rate"]
 			},
-			{
+			"Video Views": {
 				title: "Video Views",
-				kpiCategory: "Video Views",
 				background: "#E6F4D5",
 				icons: { up: icons.upoffline, down: icons.downfull },
-				indicatorIndex: 7,
-				priorityKPIs: ["VTR", "Video Views", "Completion Rate"],
-			},
-		];
+				priorityKPIs: ["VTR", "Video Views", "Completion Rate"]
+			}
+		};
 
 		const formatKPIValue = (value, kpiName) => {
 			if (value === undefined || value === null) {
 				if (kpiName.includes("Cost") || kpiName.includes("CPL")) return "$0";
-				if (kpiName.includes("Rate") || kpiName === "CTR" || kpiName === "CVR" || kpiName === "Frequency")
-					return "0%";
+				if (kpiName.includes("Rate") || ["CTR", "CVR", "Frequency"].includes(kpiName)) return "0%";
 				return "0";
 			}
 			const formattedValue = value.toString();
 			if (kpiName.includes("Cost") || kpiName.includes("CPL")) return `$${formattedValue}`;
-			if (kpiName.includes("Rate") || kpiName === "CTR" || kpiName === "CVR" || kpiName === "Frequency")
-				return `${formattedValue}%`;
+			if (kpiName.includes("Rate") || ["CTR", "CVR", "Frequency"].includes(kpiName)) return `${formattedValue}%`;
 			return formattedValue;
 		};
 
 		return React.useMemo(() => {
-			return categoryMapping.map((category) => {
-				// Safely access kpiData, defaulting to an empty object if undefined
-				const kpiData = aggregatedStats[category?.kpiCategory] || {};
-				const availableKPIs = Object.keys(kpiData);
+			return categoryOrder?.filter((kpiCategory) => aggregatedStats[kpiCategory]) // Only include if data exists
+				?.map((kpiCategory, index) => {
+					const category = categoryMappingBase[kpiCategory];
+					const kpiData = aggregatedStats[kpiCategory] || {};
+					const availableKPIs = Object.keys(kpiData);
 
-				const selectedKPIs = [
-					...category.priorityKPIs.filter((kpi) => availableKPIs.includes(kpi)),
-					...availableKPIs.filter((kpi) => !category.priorityKPIs.includes(kpi)),
-				].map((kpiName) => ({
-					label: kpiName,
-					value: formatKPIValue(kpiData[kpiName], kpiName),
-				}));
+					const selectedKPIs = [
+						...category?.priorityKPIs?.filter((kpi) => availableKPIs.includes(kpi)),
+						...availableKPIs?.filter((kpi) => !category?.priorityKPIs?.includes(kpi)),
+					].map((kpiName) => ({
+						label: kpiName,
+						value: formatKPIValue(kpiData[kpiName], kpiName),
+					}));
 
-				const indicators = Array(8).fill("#C0C0C0");
-				indicators[category.indicatorIndex] = "#3175FF";
+					const indicators = Array(categoryOrder?.length).fill("#C0C0C0");
+					indicators[index] = "#3175FF";
 
-				return {
-					title: category.title,
-					background: category.background,
-					stats: selectedKPIs.length > 0 ? selectedKPIs : [{ label: "No Data", value: "0" }],
-					indicators,
-					icons: category.icons,
-					kpiCategory: category.kpiCategory,
-				};
-			});
+					return {
+						title: category?.title,
+						background: category?.background,
+						stats: selectedKPIs?.length > 0 ? selectedKPIs : [{ label: "No Data", value: "0" }],
+						indicators,
+						icons: category?.icons,
+						kpiCategory,
+					};
+				});
 		}, [aggregatedStats, kpiCategories, icons]);
 	}
 
-	// const aggregatedStats = kpisData?.aggregated_kpis
-	const aggregatedStats = {}
+
+
+
+
+	const extractedData = extractKPIByFunnelStage(campaignData, kpiCategories);
+
+
+	const aggregatedStats = aggregateKPIStatsFromExtracted(extractedData, kpiCategories)
+
+	console.log('campaignData-campaignData', campaignData)
+
+
 	const statsData = mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, { upfull, downfull, downoffline, upoffline });
 
 
@@ -523,3 +533,5 @@ const ClientView = () => {
 }
 
 export default ClientView
+
+

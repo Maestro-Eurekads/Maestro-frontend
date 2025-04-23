@@ -35,7 +35,9 @@ const BrandAwareness = ({ statsData, aggregatedStats }) => {
 		}
 	}, [animationState]);
 
-	const { title, background, indicators, icons } = statsData[currentIndex];
+	const currentStat = statsData[currentIndex] ?? {};
+	const { title, background, indicators, icons } = currentStat;
+
 
 	// Get all KPIs for the current category
 	const currentCategory = statsData[currentIndex]?.kpiCategory;
@@ -49,8 +51,8 @@ const BrandAwareness = ({ statsData, aggregatedStats }) => {
 				if (kpiName.includes("Rate") || kpiName === "CTR" || kpiName === "CVR" || kpiName === "Frequency") return "0%";
 				return "0";
 			}
-			const formattedValue = value % 1 !== 0 ? value?.toFixed(2) : value;
-			if (kpiName.includes("Cost") || kpiName?.includes("CPL")) return `$${formattedValue}`;
+			const formattedValue = value % 1 !== 0 ? value.toFixed(2) : value;
+			if (kpiName.includes("Cost") || kpiName.includes("CPL")) return `$${formattedValue}`;
 			if (kpiName.includes("Rate") || kpiName === "CTR" || kpiName === "CVR" || kpiName === "Frequency") return `${formattedValue}%`;
 			return formattedValue;
 		})(),
@@ -76,13 +78,13 @@ const BrandAwareness = ({ statsData, aggregatedStats }) => {
 					</h3>
 					<div className="flex items-center gap-2">
 						<button disabled={currentIndex === 0} onClick={handlePrev}>
-							<Image src={icons.down} alt="previous" />
+							<Image src={icons?.down} alt="previous" />
 						</button>
 						<button
 							disabled={currentIndex === statsData?.length - 1}
 							onClick={handleNext}
 						>
-							<Image src={icons.up} alt="next" />
+							<Image src={icons?.up} alt="next" />
 						</button>
 					</div>
 				</div>

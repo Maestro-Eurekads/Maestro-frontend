@@ -1,52 +1,9 @@
 
 import { MdOutlineErrorOutline } from "react-icons/md";
-import { VscCloudDownload } from "react-icons/vsc";
 import { SVGLoader } from "./SVGLoader";
 
 
 
-
-// EntriesPerPage
-const EntriesPerPage = ({ data, entriesPerPage, setEntriesPerPage }: any) => (
-  <div className="entries-perpage">
-    {data?.length >= 8 && (
-      // <>
-      // Show
-      <select
-        value={entriesPerPage}
-        onChange={(e) => setEntriesPerPage(e.target.value)}
-      >
-        <option value="8">8</option>
-        <option value="10">10</option>
-        <option value="25">25</option>
-        <option value="50">50</option>
-        <option value="100">100</option>
-      </select>
-
-    )}
-  </div>
-);
-
-const TableProgressBar = () => (
-  <div id="container-progressbar">
-    <div id="bar"></div>
-  </div>
-);
-
-
-
-
-// TableFetch
-const TableFetch = ({ colSpan }: any) => (
-  <tr>
-    <td colSpan={colSpan} id="table-loader">
-      <div className="center-content">
-        <VscCloudDownload size={75} />
-        <p id="mt-3">Fetching request...</p>
-      </div>
-    </td>
-  </tr>
-);
 // SVGLoader Fetch
 const SVGLoaderFetch = ({ colSpan, text }: any) => (
   <tr>
@@ -81,97 +38,71 @@ const NoRecordFoundD = ({ colSpan }: any) => (
 );
 
 
-
-
-
-const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-
-const customId = "custom-id-yes";
-const tokenKey = "svd-sYUDugysad-sdkjhsadkrjyteyugd--dskghjksdh";
-
-const getMonth = (data: any) => {
-  // Get the current date
-  const currentDate = new Date();
-
-  // Get the current year and month in the format "YYYY-MM"
-  const currentYearMonth = currentDate.toISOString().slice(0, 7);
-
-  // Filter the data for the current year and month
-  const currentMonthData = data?.filter((item: { createdAt: string | number | Date }) => {
-    const itemYearMonth = new Date(item?.createdAt).toISOString().slice(0, 7);
-    return itemYearMonth === currentYearMonth;
-  });
-
-  return currentMonthData;
-};
-
-const getDailyData = (data: any) => {
-  // Get the current date in "YYYY-MM-DD" format
-  const currentDate = new Date().toISOString().slice(0, 10);
-
-  // Filter the data for the current day
-  const currentDayData = data?.filter((item: { createdAt: string | number | Date }) => {
-    const itemDate = new Date(item?.createdAt).toISOString().slice(0, 10);
-    return itemDate === currentDate;
-  });
-
-  return currentDayData;
-};
-
-const getWeeklyData = (data: any) => {
-  const today = new Date();
-  const currentDay = today.getDay(); // Get the current day of the week (0 for Sunday, 1 for Monday, etc.)
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - currentDay); // Calculate the start date of the current week
-
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(startOfWeek.getDate() + 6); // Calculate the end date of the current week 
-  // Filter the data for the current week
-  const currentWeekData = data?.filter((item: { createdAt: string | number | Date }) => {
-    const itemDate = new Date(item?.createdAt);
-
-    // Compare if the item's date is within the start and end dates of the current week
-    return itemDate >= startOfWeek && itemDate <= endOfWeek;
-  });
-
-  return currentWeekData;
+const kpiCategories = {
+  "Video Views": [
+    "VTR", "CPV", "Completed View", "Video Views", "Completion Rate", "CPCV"
+  ],
+  "Engagement": [
+    "Eng Rate", "Engagements", "CPE"
+  ],
+  "Traffic": [
+    "CTR", "CPC", "Lands", "Link Clicks", "Click to land rate", "CPL",
+    "Avg Visit Time", "Avg pages/visit", "Bounce Rate", "Bounced Visits",
+    "Cost/bounce", "Lead Rate", "Lead visits", "Cost/lead",
+    "Off-funnel rate", "Off-funnel visits", "Cost/Off funnel"
+  ],
+  "Lead Generation (On platform)": [
+    "CTR", "Cost / opened form", "Leads", "Forms open", "CVR", "Cost / lead"
+  ],
+  "Lead Generation (On website)": [
+    "CTR", "CPC", "Lands", "CVR", "Cost / lead", "Link clicks",
+    "Click to land rate", "CPL", "Leads"
+  ],
+  "Purchase": [
+    "CTR", "CPC", "Lands", "Link Clicks", "Click to land rate", "CPL",
+    "Avg Visit Time", "Avg pages/visit", "Bounce Rate", "Bounced Visits",
+    "Cost/bounce", "Lead Rate", "Lead visits", "Cost/lead",
+    "Off-funnel rate", "Off-funnel visits", "Cost/Off funnel",
+    "Conversions", "CVR", "Cost/conversion",
+    "CLV of associated product", "Generated Revenue", "Return on Ad Spent",
+    "Add to cart rate", "Add to carts", "CPATC",
+    "Payment info rate", "Payment infos", "CPPI",
+    "Purchase rate", "Purchases", "CPP",
+    "Conversion", "Cost/conversion"
+  ],
+  "App Install": [
+    "CTR", "CPC", "Installs", "Link Clicks", "Install Rate", "CPI"
+  ],
+  "In-App Conversion": [
+    "CTR", "CPC", "App Open", "Link Clicks", "Open Rate", "Cost/App Open",
+    "CVR", "Cost/conversion", "CLV of associated product",
+    "Generated Revenue", "Return on Ad Spent",
+    "Conversion", "Cost/conversion"
+  ],
+  "Awareness Metrics": [
+    "CPM", "Frequency", "Reach", "Impressions"
+  ]
 };
 
 
-function getCurrentMonth() {
-  const currentDate = new Date();
-  const monthNames = [
-    "January", "February", "March", "April",
-    "May", "June", "July", "August",
-    "September", "October", "November", "December"
-  ];
-  const currentMonth = monthNames[currentDate.getMonth()];
-  return currentMonth;
-}
+const categoryOrder = [
+  "Awareness Metrics",
+  "Purchase",
+  "Traffic",
+  "Lead Generation (On platform)",
+  "Lead Generation (On website)",
+  "App Install",
+  "Engagement",
+  "In-App Conversion",
+  "Video Views",
+];
 
 
 const CapitalizeFirstLetter = (str: string | undefined | any) => {
   return str ? str?.charAt(0).toUpperCase() + str?.slice(1) : "";
 };
 
-function TooltipPositioned(userInfo: any, userInfo2: any) {
-  return (
-    <>
-      <p aria-label={userInfo + ' ' + userInfo2} tooltip-position="bottom">
-        <strong>{userInfo.slice(0, 14)}</strong>
-      </p>
-    </>
-  );
-}
-function TooltipPositioned2(words: any) {
-  return (
-    <>
-      <p aria-label={words} tooltip-position="bottom">
-        {words.slice(0, 14)}
-      </p>
-    </>
-  );
-}
+
 // Color Functions
 const getRandomColor = () => {
   const colors = ['#00A36C', '#EE1514', '#00A52C', '#FF8C00', '#C67003', '#14539A', '#02393E', '#275D2B', '#660D33', '#6F4439'];
@@ -185,22 +116,6 @@ const getContrastingColor = (color: string) => {
   const invertedColor = `#${(0xFFFFFF ^ (r << 16 | g << 8 | b)).toString(16).padStart(6, '0')}`;
   return invertedColor;
 };
-
-
-
-
-const LoginSpiner = () => {
-  return (
-    <div className="spinner-box">
-      <div className="configure-border-1">
-        <div className="configure-core"></div>
-      </div>
-      <div className="configure-border-2">
-        <div className="configure-core"></div>
-      </div>
-    </div>
-  )
-}
 
 
 
@@ -226,20 +141,9 @@ const getInitials = (name: string | null | undefined) => {
 
 
 export {
-  TableFetch,
-  EntriesPerPage,
+  kpiCategories,
+  categoryOrder,
   NoRecordFound,
-  TableProgressBar,
-  months,
-  getMonth,
-  getCurrentMonth,
-  getDailyData,
-  getWeeklyData,
-  TooltipPositioned,
-  TooltipPositioned2,
-  LoginSpiner,
-  customId,
-  tokenKey,
   SVGLoaderFetch,
   NoRecordFoundD,
   parseApiDate,

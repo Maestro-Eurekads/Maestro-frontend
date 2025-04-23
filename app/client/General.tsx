@@ -17,7 +17,7 @@ const General = ({ campaign, loading, isLoadingCampaign }) => {
 				const kpi = platform?.kpi;
 				if (kpi) {
 					if (kpi?.impressions) impressions += kpi?.impressions;
-					if (kpi?.cpm) cpmValues?.push(kpi.cpm);
+					if (kpi?.cpm) cpmValues?.push(kpi?.cpm);
 				}
 			});
 		};

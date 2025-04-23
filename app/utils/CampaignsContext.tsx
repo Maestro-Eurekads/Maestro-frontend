@@ -41,6 +41,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [campaignData, setCampaignData] = useState(null);
   const [clientCampaignData, setClientCampaignData] = useState([]);
   const [loading, setLoading] = useState(true); // Start with loading true
+  const [isLoading, setIsLoading] = useState(false);
   const query = useSearchParams();
   const cId = query.get("campaignId");
   const { loadingClients: hookLoadingClients, allClients: hookAllClients } =
@@ -103,8 +104,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${
-          cId || docId
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId
         }?populate=client&populate[media_plan_details]=*&populate[budget_details]=*&populate[client_selection]=*&populate[campaign_budget][populate][budget_fees]=*&populate[channel_mix][populate][social_media][populate]=*&populate[channel_mix][populate][display_networks][populate]=*&populate[channel_mix][populate][search_engines][populate]=*&populate[channel_mix][populate][streaming][populate]=*&populate[channel_mix][populate][ooh][populate]=*&populate[channel_mix][populate][broadcast][populate]=*&populate[channel_mix][populate][messaging][populate]=*&populate[channel_mix][populate][print][populate]=*&populate[channel_mix][populate][e_commerce][populate]=*&populate[channel_mix][populate][in_game][populate]=*&populate[channel_mix][populate][mobile][populate]=*`,
         {
           headers: {
@@ -481,7 +481,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         filterOptions,
         setFilterOptions,
         selectedFilters,
-        setSelectedFilters
+        setSelectedFilters,
+        isLoading,
+        setIsLoading
       }}
     >
       {children}
