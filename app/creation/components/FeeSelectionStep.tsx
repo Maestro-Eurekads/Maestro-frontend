@@ -100,8 +100,8 @@ function FeeSelectionStep() {
       toast("Fee type and value is required", {
         style: {
           background: "red",
-          color: "white"
-        }
+          color: "white",
+        },
       });
       return;
     }
@@ -221,7 +221,7 @@ function FeeSelectionStep() {
 
   return (
     <div>
-      <Toaster/>
+      <Toaster />
       <CampaignBudget />
       <div>
         <PageHeaderWrapper t4="Choose the type of budget you have" span={2} />
@@ -612,9 +612,11 @@ function FeeSelectionStep() {
                       />
                       {feeType?.type === "percent" && <span>%</span>}
                     </div>
-                    <div className="w-[120px]">
-                      <p>{campaignFormData?.campaign_budget?.currency}</p>
-                    </div>
+                    {feeType?.type !== "percent" && (
+                      <div className="w-[120px]">
+                        <p>{campaignFormData?.campaign_budget?.currency}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <p

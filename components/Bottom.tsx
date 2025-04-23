@@ -278,7 +278,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             borderRadius: "8px",
             width: "320px",
             border: "1px solid red",
-            borderLeft: "4px solid red"
+            borderLeft: "4px solid red",
           },
         });
         setLoading(false);
@@ -299,7 +299,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             borderRadius: "8px",
             width: "320px",
             border: "1px solid red",
-            borderLeft: "4px solid red"
+            borderLeft: "4px solid red",
           },
         });
         setLoading(false);
@@ -441,8 +441,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       });
     };
 
-   
-
     const handleStepSeven = async () => {
       if (!campaignData) return;
 
@@ -488,15 +486,20 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         await handleStepFour();
       }
 
-      if (active === 7 || active === 8) {
+      if (active === 7) {
         if (subStep < 1) {
           setSubStep((prev) => prev + 1);
         } else {
           setActive((prev) => prev + 1);
           setSubStep(0);
         }
-      } else {
-        setActive((prev) => Math.min(9, prev + 1));
+      } else if (active === 8) {
+        if (subStep < 2) {
+          setSubStep((prev) => prev + 1);
+        } else {
+          setActive((prev) => prev + 1);
+          setSubStep(0);
+        }
       }
     } catch (error) {
       console.error("Error in handleContinue:", error);
@@ -511,7 +514,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   return (
     <footer id="footer" className="w-full">
-      <Toaster position="bottom-right"/>
+      <Toaster position="bottom-right" />
       {alert && <AlertMain alert={alert} />}
       {validateStep && (
         <AlertMain
