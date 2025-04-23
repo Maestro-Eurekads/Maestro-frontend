@@ -519,7 +519,7 @@ const MapFunnelStages = () => {
           { id: "custom", label: "Custom" },
         ].map((option) => (
           <label
-            key={option.id} // Added key prop here
+            key={option.id}
             className="cursor-pointer flex items-center gap-3"
           >
             <input
@@ -563,7 +563,7 @@ const MapFunnelStages = () => {
 
                 return (
                   <div
-                    key={funnelName}
+                    key={`${funnelName}-${index}`}
                     className="relative w-full max-w-[685px]"
                   >
                     <button
@@ -607,7 +607,10 @@ const MapFunnelStages = () => {
           {/* Funnel stages for Custom */}
           {selectedOption === "custom" &&
             customFunnels.map((funnel, index) => (
-              <div key={funnel.id} className="relative w-full max-w-[685px]">
+              <div
+                key={`${funnel.id}-${index}`}
+                className="relative w-full max-w-[685px]"
+              >
                 <button
                   className={`cursor-pointer w-full ${
                     campaignFormData["funnel_stages"]?.includes(funnel.name) ||
