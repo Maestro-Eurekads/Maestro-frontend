@@ -4,6 +4,7 @@ import Image from "next/image";
 import up from "../../../public/arrow-down.svg";
 import down2 from "../../../public/arrow-down-2.svg";
 import checkmark from "../../../public/mingcute_check-fill.svg";
+import customicon from "../../../public/social/customicon.png";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { funnelStages, getPlatformIcon } from "../../../components/data";
 import { useCampaigns } from "../../utils/CampaignsContext";
@@ -332,9 +333,16 @@ const SelectChannelMix = () => {
                 onClick={() => toggleItem(stage.name)}
               >
                 <div className="flex items-center gap-2">
-                  {funn?.icon && (
+                  {funn?.icon ? (
                     <Image
-                      src={funn?.icon || "/placeholder.svg"}
+                      src={funn.icon}
+                      alt={stage.name}
+                      width={20}
+                      height={20}
+                    />
+                  ) : (
+                    <Image
+                      src={customicon}
                       alt={stage.name}
                       width={20}
                       height={20}
