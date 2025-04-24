@@ -242,13 +242,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         hasUnvalidatedSelectedStage ||
         !Object.values(validatedStages).some(Boolean)
       ) {
-        setTriggerChannelMixError(true);
-        setAlert({
-          variant: "error",
-          message: "Please select and validate at least one channel!",
-          position: "bottom-right",
-        });
-        hasError = true;
+        // setTriggerChannelMixError(true);
+        // setAlert({
+        //   variant: "error",
+        //   message: "Please select and validate at least one channel!",
+        //   position: "bottom-right",
+        // });
+        // hasError = true;
       }
     }
 
@@ -558,7 +558,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-      {triggerChannelMixError && (
+      {/* {triggerChannelMixError && (
         <AlertMain
           alert={{
             variant: "error",
@@ -566,7 +566,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             position: "bottom-right",
           }}
         />
-      )}
+      )} */}
 
       {/* {triggerFormatError && active === 4 && (
         <AlertMain
