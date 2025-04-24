@@ -41,6 +41,14 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     }
   }, [alert])
   const handleAddEmail = () => {
+    if (emailList.length >= 5) {
+      setAlert({
+        variant: "error",
+        message: "You can only add up to 5 email addresses.",
+        position: "bottom-right",
+      })
+      return;
+    }
     const trimmedEmail = inputs.email.trim()
     const fullName = inputs.full_name.trim()
 
@@ -72,22 +80,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     }
 
 
-    // if (!isValidFullName) {
-    //   setAlert({
-    //     variant: "error",
-    //     message: "Full name must contain first and last name",
-    //     position: "bottom-right",
-    //   })
-    //   return
-    // }
-    // if (!isValidFullName) {
-    //   setAlert({
-    //     variant: "error",
-    //     message: "Full name must only contain alphabetic characters and include both first and last name.",
-    //     position: "bottom-right",
-    //   })
-    //   return
-    // }
 
     if (!onlyLettersRegex.test(fullName)) {
       setAlert({
@@ -293,6 +285,23 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     }
   }
 
+
+  const resetForm = () => {
+    setInputs({
+      name: "",
+      email: "",
+      responsiblePerson: "",
+      approver: "",
+      sports: [],
+      categories: [],
+      businessUnits: [],
+      feeType: "",
+      full_name: "",
+    })
+    setEmailList([])
+  }
+
+
   return (
     <div className="z-50">
       {/* Show Alert */}
@@ -314,7 +323,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                   <p>Define the client structure and initial setup.</p>
                 </div>
               </div>
-              <button className="text-gray-500 hover:text-gray-800" onClick={() => setIsOpen(false)}>
+              <button className="text-gray-500 hover:text-gray-800" onClick={() => { setIsOpen(false); resetForm() }}>
                 <Image src={closefill || "/placeholder.svg"} alt="menu" />
               </button>
             </div>
@@ -357,7 +366,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                     <button
                       className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white"
                       onClick={handleAddEmail}
-                      disabled={emailList.length >= 5}
+                    // disabled={emailList.length >= 5}
                     >
                       Add
                     </button>
@@ -411,7 +420,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
             {/* Footer  */}
             <div className="p-6 border-t bg-white sticky bottom-0 z-10 flex justify-end rounded-b-[32px]">
               <div className="flex items-center gap-5">
-                <button onClick={() => setIsOpen(false)} className="btn_model_outline">
+                <button onClick={() => { setIsOpen(false); resetForm() }} className="btn_model_outline">
                   Cancel
                 </button>
                 <button className="btn_model_active whitespace-nowrap" onClick={handleSubmit}>

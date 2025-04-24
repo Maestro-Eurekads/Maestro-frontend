@@ -65,7 +65,7 @@ const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
 		const newOpportunity = {
 			commentId: Date.now(),
 			text: "New Comment Opportunity",
-			position: { x: 150, y: 150 },
+			position: { x: 400, y: -500 }
 		};
 
 		// Add only if there are 0  

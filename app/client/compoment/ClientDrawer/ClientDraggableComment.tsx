@@ -13,6 +13,8 @@ const ClientDraggableComment = ({ comment }) => {
 		updateCommentPosition(comment.documentId, newPosition);
 	};
 
+	console.log('comment?.position-comment?.position', comment?.position)
+
 
 
 	return (

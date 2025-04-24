@@ -3,6 +3,7 @@ import Image from "next/image";
 import NoSSR from "./no-ssr";
 import { useComments } from "app/utils/CommentProvider"; // Import context
 import Mmessages from "../../../../public/messageOnplus.svg";
+import Mmessages2 from "../../../../public/messageOnplusbabyblue.svg";
 import Draggable from "react-draggable";
 import { useAppSelector } from "store/useStore";
 import tickcircles from "../../../../public/solid_circle-check.svg";
@@ -62,6 +63,8 @@ const ClientDraggableComment = ({ comment, commentId }) => {
 		}
 	};
 
+	console.log('comment-comment', comment)
+
 
 	return (
 		<Draggable
@@ -77,16 +80,28 @@ const ClientDraggableComment = ({ comment, commentId }) => {
 				</div>
 			) : (
 				<div ref={commentRef} className="absolute cursor-move drag-handle z-20 flex	flex-col justify-center items-center">
-					<button
-						onClick={handleClick}
-						className="drag-handle flex items-center justify-center p-[-2px] bg-transparent border-none relative" >
-						{comment?.approved && <Image src={tickcircles} alt="tickcircle" className="w-[23px] absolute top-[10px] pointer-events-none" />}
-						<Image
-							src={Mmessages}
-							alt="message icon"
-							className="pointer-events-none"
-						/>
-					</button>
+					{comment?.addcomment_as === "Client" ?
+						<button
+							onClick={handleClick}
+							className="drag-handle flex items-center justify-center p-[-2px] bg-transparent border-none relative" >
+							{comment?.approved && <Image src={tickcircles} alt="tickcircle" className="w-[23px] absolute top-[10px] pointer-events-none" />}
+							<Image
+								src={Mmessages2}
+								alt="message icon"
+								className="pointer-events-none"
+							/>
+						</button> :
+						<button
+							onClick={handleClick}
+							className="drag-handle flex items-center justify-center p-[-2px] bg-transparent border-none relative" >
+							{comment?.approved && <Image src={tickcircles} alt="tickcircle" className="w-[23px] absolute top-[10px] pointer-events-none" />}
+							<Image
+								src={Mmessages}
+								alt="message icon"
+								className="pointer-events-none"
+							/>
+						</button>
+					}
 				</div>
 			)}
 		</Draggable>
