@@ -32,11 +32,10 @@ type PlatformType = {
     audience_type: string;
     name: string;
     size: string;
-    format?: FormatType[]; // Add format array to adsets
+    format?: FormatType[];
   }>;
   budget: string | null;
   kpi: string | null;
-  formatValidated?: boolean;
 };
 
 type ChannelType = {
@@ -100,7 +99,6 @@ const setLocalStorageItem = (key: string, value: any) => {
 const MediaOption = ({
   option,
   isSelected,
-  isValidated,
   quantity,
   onSelect,
   onQuantityChange,
@@ -113,7 +111,6 @@ const MediaOption = ({
 }: {
   option: MediaOptionType;
   isSelected: boolean;
-  isValidated: boolean;
   quantity: number;
   onSelect: () => void;
   onQuantityChange: (change: number) => void;
@@ -124,7 +121,6 @@ const MediaOption = ({
   stageName: string;
   format: string;
 }) => {
-  // console.log({ isValidated, isSelected, previews });
   const { campaignFormData, campaignData, updateCampaign, getActiveCampaign } =
     useCampaigns();
   const [loading, setLoading] = useState(false);
@@ -145,17 +141,9 @@ const MediaOption = ({
     );
     await updateCampaign({
       ...cleanData,
-      channel_mix: removeKeysRecursively(
-        data?.channel_mix,
-        [
-          "isValidated",
-          "formatValidated",
-          "validatedStages",
-          "documentId",
-          "id",
-        ],
-        ["previews"]
-      ),
+      channel_mix: removeKeysRecursively(data?.channel_mix, ["documentId", "id"], [
+        "previews",
+      ]),
     });
     await getActiveCampaign();
     setIdToDel(null);
@@ -165,7 +153,6 @@ const MediaOption = ({
   const updateGlobalState = async (ids: string[]) => {
     const updatedChannelMix = [...(campaignFormData?.channel_mix || [])];
 
-    // Restructure other previews in other platform's formats to their IDs
     updatedChannelMix.forEach((ch: any) => {
       Object.keys(ch).forEach((key) => {
         if (Array.isArray(ch[key])) {
@@ -191,16 +178,11 @@ const MediaOption = ({
     const targetPlatform = platforms?.find(
       (pl: any) => pl?.platform_name === platformName
     );
-    // console.log("🚀 ~ updateGlobalState ~ targetPlatform:", targetPlatform);
     if (!targetPlatform) return;
 
     const targetFormatIndex = targetPlatform?.format?.findIndex(
       (fo: any) => fo?.format_type === format
     );
-    // console.log(
-    //   "🚀 ~ updateGlobalState ~ targetFormatIndex:",
-    //   targetFormatIndex
-    // );
     if (targetFormatIndex === -1 || targetFormatIndex === undefined) return;
 
     targetPlatform.format[targetFormatIndex] = {
@@ -209,12 +191,10 @@ const MediaOption = ({
         id: id,
       })),
     };
-    // console.log(updatedChannelMix);
     const updatedState = {
       ...campaignFormData,
       channel_mix: updatedChannelMix,
     };
-    // console.log("Updated State:", updatedState);
     await uploadUpdatedCampaignToStrapi(updatedState);
     setLocalPreviews(ids);
   };
@@ -223,9 +203,6 @@ const MediaOption = ({
     const updatedPreviews = localPreviews.filter((prv) => prv.id !== previewId);
     const updatedIds = updatedPreviews.map((prv) => prv.id);
 
-    // setLocalPreviews(updatedPreviews);
-
-    // Update the global state with the new previews
     setLoading(true);
     await updateGlobalState(updatedIds);
   };
@@ -235,9 +212,9 @@ const MediaOption = ({
       <div className="flex gap-6 min-w-fit">
         <div className="flex flex-col items-center">
           <div
-            onClick={() => !isValidated && onSelect()}
-            className={`relative text-center p-2 rounded-lg border transition ${isSelected ? "border-blue-500 shadow-lg" : "border-gray-300"
-              } ${isValidated ? "cursor-default" : "cursor-pointer"}`}
+            onClick={onSelect}
+            className={`relative text-center p-2 arounded-lg border transition ${isSelected ? "border-blue-500 shadow-lg" : "border-gray-300"
+              } cursor-pointer`}
           >
             <Image
               src={option.icon || "/placeholder.svg"}
@@ -254,7 +231,7 @@ const MediaOption = ({
               </div>
             )}
           </div>
-          {isValidated && isSelected && (
+          {isSelected && (
             <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
               <button
                 className="px-2 py-1 text-[#000000] text-lg font-semibold"
@@ -272,74 +249,68 @@ const MediaOption = ({
             </div>
           )}
         </div>
-        {isValidated && isSelected && (
-          <>
-            <div
-              onClick={onOpenModal}
-              className="w-[225px] h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
-            >
-              <div className="flex flex-col items-center gap-2 text-center">
-                <svg
-                  width="16"
-                  height="17"
-                  viewBox="0 0 16 17"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
-                    fill="#3175FF"
-                  />
-                </svg>
-                <p className="text-md font-lighter text-black mt-2">
-                  Upload your previews
-                </p>
-              </div>
+        {isSelected && (
+          <div
+            onClick={onOpenModal}
+            className="w-[225px] h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
+          >
+            <div className="flex flex-col items-center gap-2 text-center">
+              <svg
+                width="16"
+                height="17"
+                viewBox="0 0 16 17"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
+                  fill="#3175FF"
+                />
+              </svg>
+              <p className="text-md font-lighter text-black mt-2">
+                Upload your previews
+              </p>
             </div>
-          </>
+          </div>
         )}
       </div>
-      {isValidated && isSelected && previews && previews.length > 0 && (
-        <div className=" mt-8">
+      {isSelected && previews && previews.length > 0 && (
+        <div className="mt-8">
           <p className="font-semibold text-[18px] mb-4">Uploaded Previews</p>
-          <div className="grid grid-cols-2 gap-3  flex-wrap">
-            {localPreviews?.map((prv, index) => {
-              // console.log(prv);
-              return (
-                <div key={prv?.id || index} className="relative">
-                  <Link
-                    href={prv?.url ?? ""}
-                    target="_blank"
-                    // onClick={onOpenModal}
-                    className="w-[225px] h-[150px] rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors border border-gray-500 cursor-pointer"
-                  >
-                    <Image
-                      src={prv?.url ?? ""}
-                      alt=""
-                      width={225}
-                      height={140}
-                      className="rounded-lg w-full h-full object-cover"
-                    />
-                  </Link>
-                  <button
-                    className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
-                    onClick={() => {
-                      setIdToDel(prv?.id);
-                      handleDelete(prv?.id);
-                    }}
-                    disabled={loading}
-                  >
-                    {loading && idToDel === prv?.id ? (
-                      <center>
-                        <FaSpinner color="white" className="animate-spin" />
-                      </center>
-                    ) : (
-                      <Trash color="white" size={10} />
-                    )}
-                  </button>
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-2 gap-3 flex-wrap">
+            {localPreviews?.map((prv, index) => (
+              <div key={prv?.id || index} className="relative">
+                <Link
+                  href={prv?.url ?? ""}
+                  target="_blank"
+                  className="w-[225px] h-[150px] rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors border border-gray-500 cursor-pointer"
+                >
+                  <Image
+                    src={prv?.url ?? ""}
+                    alt=""
+                    width={225}
+                    height={140}
+                    className="rounded-lg w-full h-full object-cover"
+                  />
+                </Link>
+                <button
+                  className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
+                  onClick={() => {
+                    setIdToDel(prv?.id);
+                    handleDelete(prv?.id);
+                  }}
+                  disabled={loading}
+                >
+                  {loading && idToDel === prv?.id ? (
+                    <center>
+                      <FaSpinner color="white" className="animate-spin" />
+                    </center>
+                  ) : (
+                    <Trash color="white" size={10} />
+                  )}
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -352,7 +323,6 @@ const MediaSelectionGrid = ({
   platformName,
   channelName,
   stageName,
-  isValidated,
   quantities,
   onFormatSelect,
   onQuantityChange,
@@ -363,10 +333,9 @@ const MediaSelectionGrid = ({
   platformName: string;
   channelName: string;
   stageName: string;
-  isValidated: boolean;
   quantities: { [key: string]: number };
   onFormatSelect: (index: number, adSetIndex?: number) => void;
-  onQuantityChange: (formatName: string, change: number) => void;
+  onQuantityChange: (modes: string, change: number) => void;
   onOpenModal: (
     platform: string,
     channel: string,
@@ -387,7 +356,6 @@ const MediaSelectionGrid = ({
     (pl) => pl?.platform_name === platformName
   );
 
-  // If adSetIndex is present, find that specific ad set
   const adSet =
     adSetIndex !== undefined ? platform?.ad_sets?.[adSetIndex] : null;
 
@@ -395,30 +363,26 @@ const MediaSelectionGrid = ({
     <div className="w-full h-full overflow-x-auto overflow-y-clip">
       <div className="flex gap-4" style={{ minWidth: "max-content" }}>
         {mediaOptions.map((option, index) => {
-          // Check selection either from adSet or platform level
           const isSelected = adSet
             ? adSet.format?.some((f) => f.format_type === option.name)
             : platform?.format?.some((f) => f.format_type === option.name);
 
           const previews = adSet
-            ? adSet.format?.map((f) => f.previews)
+            ? adSet.format?.find((f) => f.format_type === option.name)?.previews
             : platform.format?.find((f) => f.format_type === option.name)
               ?.previews;
 
           const q = adSet
-            ? adSet.format?.map((f) => f.previews)
+            ? adSet.format?.find((f) => f.format_type === option.name)
+              ?.num_of_visuals
             : platform.format?.find((f) => f.format_type === option.name)
               ?.num_of_visuals;
-          // console.log('plarfoem', platform.format?.find((f) => f.format_type === option.name)?.previews)
-
-          if (isValidated && !isSelected) return null;
 
           return (
             <MediaOption
               key={index}
               option={option}
               isSelected={!!isSelected}
-              isValidated={isValidated}
               quantity={quantities[option.name] || 1}
               onSelect={() => onFormatSelect(index, adSetIndex)}
               onQuantityChange={(change) =>
@@ -429,7 +393,7 @@ const MediaSelectionGrid = ({
               }
               platformName={platformName}
               channelName={channelName}
-              previews={previews}
+              previews={previews || []}
               stageName={stageName}
               format={option?.name}
             />
@@ -444,7 +408,6 @@ const PlatformItem = ({
   platform,
   channelTitle,
   stageName,
-  isValidated,
   quantities,
   onQuantityChange,
   onOpenModal,
@@ -453,7 +416,6 @@ const PlatformItem = ({
   platform: PlatformType;
   channelTitle: string;
   stageName: string;
-  isValidated: boolean;
   quantities: QuantitiesType;
   onQuantityChange: (
     platformName: string,
@@ -469,7 +431,6 @@ const PlatformItem = ({
   ) => void;
   view: "channel" | "adset";
 }) => {
-  const hasSelectedFormats = platform.format?.length > 0;
   const [isExpanded, setIsExpanded] = useState<{
     [key: string]: boolean;
   }>({});
@@ -478,29 +439,20 @@ const PlatformItem = ({
   }>({});
   const { campaignFormData, setCampaignFormData } = useCampaigns();
 
-  // console.log(
-  //   "🚀 ~ hasSelectedFormats:",
-  //   hasSelectedFormats,
-  //   isValidated,
-  //   isExpanded[`${platform.platform_name}-${platform.id}`]
-  // );
-
   useEffect(() => {
-    if (hasSelectedFormats) {
+    if (platform.format?.length > 0) {
       setIsExpanded((prev) => ({
         ...prev,
         [`${platform.platform_name}-${platform.id}`]: true,
       }));
     }
-  }, []);
+  }, [platform.format, platform.platform_name, platform.id]);
 
   const toggleExpansion = (id: string) => {
-    if (!isValidated || (isValidated && hasSelectedFormats)) {
-      setIsExpanded((prev) => ({
-        ...prev,
-        [id]: !prev[id],
-      }));
-    }
+    setIsExpanded((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
   };
 
   const toggleAdsetExpansion = (adsetId: string) => {
@@ -511,8 +463,6 @@ const PlatformItem = ({
   };
 
   const handleFormatSelection = (index: number, adsetIndex?: number) => {
-    if (isValidated) return;
-
     const formatName = DEFAULT_MEDIA_OPTIONS[index].name;
     const copy = [...campaignFormData.channel_mix];
 
@@ -530,7 +480,6 @@ const PlatformItem = ({
 
     const platformCopy = channel[platformIndex];
 
-    // Handle Ad Set if adsetIndex is provided
     if (typeof adsetIndex === "number" && platformCopy.ad_sets?.length > 0) {
       const adset = platformCopy.ad_sets[adsetIndex];
       if (!adset) return;
@@ -546,12 +495,11 @@ const PlatformItem = ({
       } else {
         adset.format.push({
           format_type: formatName,
-          num_of_visuals: 1,
+          num_of_visuals: "1",
           previews: null,
         });
       }
     } else {
-      // Handle top-level platform format
       if (!platformCopy.format) platformCopy.format = [];
 
       const formatIndex = platformCopy.format.findIndex(
@@ -563,7 +511,7 @@ const PlatformItem = ({
       } else {
         platformCopy.format.push({
           format_type: formatName,
-          num_of_visuals: 1,
+          num_of_visuals: "1",
           previews: null,
         });
       }
@@ -572,10 +520,6 @@ const PlatformItem = ({
     setCampaignFormData((prev) => ({
       ...prev,
       channel_mix: copy,
-      validatedStages: {
-        ...prev.validatedStages,
-        [stageName]: false,
-      },
     }));
   };
 
@@ -601,9 +545,7 @@ const PlatformItem = ({
         >
           {isExpanded[`${platform.platform_name}-${platform.id}`] ? (
             <span className="text-gray-500">
-              {isValidated
-                ? "Choose the number of visuals for this format"
-                : "Select your format"}
+              Choose the number of visuals for this format
             </span>
           ) : (
             (view === "channel" || platform.ad_sets?.length < 1) && (
@@ -623,27 +565,22 @@ const PlatformItem = ({
         </div>
       </div>
 
-      {((isExpanded[`${platform.platform_name}-${platform.id}`] &&
-        !isValidated) ||
-        (isValidated &&
-          hasSelectedFormats &&
-          isExpanded[`${platform.platform_name}-${platform.id}`])) && (
-          <div className="py-6">
-            <MediaSelectionGrid
-              mediaOptions={DEFAULT_MEDIA_OPTIONS}
-              platformName={platform.platform_name}
-              channelName={channelTitle}
-              stageName={stageName}
-              isValidated={isValidated}
-              quantities={quantities[platform.platform_name] || {}}
-              onFormatSelect={handleFormatSelection}
-              onQuantityChange={(formatName, change) =>
-                onQuantityChange(platform.platform_name, formatName, change)
-              }
-              onOpenModal={onOpenModal}
-            />
-          </div>
-        )}
+      {isExpanded[`${platform.platform_name}-${platform.id}`] && (
+        <div className="py-6">
+          <MediaSelectionGrid
+            mediaOptions={DEFAULT_MEDIA_OPTIONS}
+            platformName={platform.platform_name}
+            channelName={channelTitle}
+            stageName={stageName}
+            quantities={quantities[platform.platform_name] || {}}
+            onFormatSelect={handleFormatSelection}
+            onQuantityChange={(formatName, change) =>
+              onQuantityChange(platform.platform_name, formatName, change)
+            }
+            onOpenModal={onOpenModal}
+          />
+        </div>
+      )}
 
       {view === "adset" && platform.ad_sets?.length > 0 && (
         <>
@@ -685,7 +622,6 @@ const PlatformItem = ({
                       platformName={platform.platform_name}
                       channelName={channelTitle}
                       stageName={stageName}
-                      isValidated={isValidated}
                       quantities={quantities[platform.platform_name] || {}}
                       onFormatSelect={handleFormatSelection}
                       onQuantityChange={(formatName, change) =>
@@ -713,7 +649,6 @@ const ChannelSection = ({
   channelTitle,
   platforms,
   stageName,
-  isValidated,
   quantities,
   onQuantityChange,
   onOpenModal,
@@ -722,7 +657,6 @@ const ChannelSection = ({
   channelTitle: string;
   platforms: PlatformType[];
   stageName: string;
-  isValidated: boolean;
   quantities: QuantitiesType;
   onQuantityChange: (
     platformName: string,
@@ -750,7 +684,6 @@ const ChannelSection = ({
             platform={platform}
             channelTitle={channelTitle}
             stageName={stageName}
-            isValidated={isValidated}
             quantities={quantities}
             onQuantityChange={onQuantityChange}
             onOpenModal={onOpenModal}
@@ -769,8 +702,6 @@ export const Platforms = ({
   stageName: string;
   view?: "channel" | "adset";
 }) => {
-  const [isValidated, setIsValidated] = useState(false);
-  const [isValidateEnabled, setIsValidateEnabled] = useState(false);
   const [quantities, setQuantities] = useState<QuantitiesType>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContext, setModalContext] = useState<{
@@ -783,31 +714,10 @@ export const Platforms = ({
 
   const { campaignFormData, setCampaignFormData } = useCampaigns();
 
-  // Load saved state from localStorage
   useEffect(() => {
-    setIsValidated(getLocalStorageItem(`formatValidation_${stageName}`, false));
     setQuantities(getLocalStorageItem(`quantities_${stageName}`, {}));
   }, [stageName]);
 
-  // Check if any formats are selected to enable validation
-  useEffect(() => {
-    const stage = campaignFormData?.channel_mix?.find(
-      (chan) => chan?.funnel_stage === stageName
-    );
-
-    const hasMediaOptionsSelected =
-      stage &&
-      (stage.social_media?.some((platform) => platform.format?.length > 0) ||
-        stage.display_networks?.some(
-          (platform) => platform.format?.length > 0
-        ) ||
-        stage.search_engines?.some((platform) => platform.format?.length > 0) ||
-        stage.streaming?.some((platform) => platform.format?.length > 0));
-
-    setIsValidateEnabled(hasMediaOptionsSelected);
-  }, [campaignFormData, stageName]);
-
-  // Initialize quantities from campaign data - FIX: Added a check to prevent infinite loop
   useEffect(() => {
     const stage = campaignFormData?.channel_mix?.find(
       (chan) => chan.funnel_stage === stageName
@@ -826,7 +736,6 @@ export const Platforms = ({
             });
           }
 
-          // Also check adsets for formats
           platform.ad_sets?.forEach((adset, adsetIndex) => {
             if (adset.format && adset.format.length > 0) {
               const adsetKey = `${platform.platform_name}_adset_${adsetIndex}`;
@@ -846,7 +755,7 @@ export const Platforms = ({
         setLocalStorageItem(`quantities_${stageName}`, initialQuantities);
       }
     }
-  }, [campaignFormData, stageName]); // Removed quantities from dependency array to prevent infinite loop
+  }, [campaignFormData, stageName]);
 
   const handleQuantityChange = (
     platformName: string,
@@ -854,7 +763,6 @@ export const Platforms = ({
     change: number,
     adsetIndex?: number
   ) => {
-    // Update quantities state
     const newQuantities = {
       ...quantities,
       [platformName]: {
@@ -869,14 +777,12 @@ export const Platforms = ({
     setQuantities(newQuantities);
     setLocalStorageItem(`quantities_${stageName}`, newQuantities);
 
-    // Update campaign data
     const copy = [...campaignFormData.channel_mix];
     const stageIndex = copy.findIndex(
       (item) => item.funnel_stage === stageName
     );
     if (stageIndex === -1) return;
 
-    // Check if this is an adset quantity
     const isAdsetQuantity = platformName.includes("_adset_");
 
     if (isAdsetQuantity) {
@@ -884,7 +790,6 @@ export const Platforms = ({
         platformName.split("_adset_");
       const adsetIndex = Number.parseInt(adsetIndexStr);
 
-      // Find the platform in any channel type
       for (const channelType of CHANNEL_TYPES) {
         const platforms = copy[stageIndex][channelType.key];
         if (!platforms) continue;
@@ -905,7 +810,6 @@ export const Platforms = ({
         }
       }
     } else {
-      // Find the platform in any channel type
       for (const channelType of CHANNEL_TYPES) {
         const platforms = copy[stageIndex][channelType.key];
         if (!platforms) continue;
@@ -929,47 +833,6 @@ export const Platforms = ({
     setCampaignFormData({ ...campaignFormData, channel_mix: copy });
   };
 
-  const handleValidateOrEdit = () => {
-    if (!isValidateEnabled && !isValidated) {
-      alert("Please select at least one format before validating");
-      return;
-    }
-
-    const newValidationState = !isValidated;
-    setIsValidated(newValidationState);
-    setIsModalOpen(false);
-
-    setLocalStorageItem(`formatValidation_${stageName}`, newValidationState);
-
-    // Update validation state in campaign data
-    const updatedChannelMix = campaignFormData.channel_mix.map((mix) => {
-      if (mix.funnel_stage === stageName) {
-        const updatedMix = { ...mix };
-
-        CHANNEL_TYPES.forEach(({ key }) => {
-          if (updatedMix[key]) {
-            updatedMix[key] = updatedMix[key].map((p: PlatformType) => ({
-              ...p,
-              formatValidated: newValidationState,
-            }));
-          }
-        });
-
-        return updatedMix;
-      }
-      return mix;
-    });
-
-    setCampaignFormData((prev) => ({
-      ...prev,
-      channel_mix: updatedChannelMix,
-      validatedStages: {
-        ...prev.validatedStages,
-        [stageName]: newValidationState,
-      },
-    }));
-  };
-
   const openModal = (
     platform: string,
     channel: string,
@@ -981,7 +844,6 @@ export const Platforms = ({
     setIsModalOpen(true);
   };
 
-  // Get platforms for each channel type
   const getChannelPlatforms = () => {
     const stage = campaignFormData?.channel_mix?.find(
       (chan) => chan?.funnel_stage === stageName
@@ -1005,25 +867,12 @@ export const Platforms = ({
           channelTitle={channel.title}
           platforms={channel.platforms}
           stageName={stageName}
-          isValidated={isValidated}
           quantities={quantities}
           onQuantityChange={handleQuantityChange}
           onOpenModal={openModal}
           view={view as "channel" | "adset"}
         />
       ))}
-
-      <div className="w-full flex items-center justify-end mt-9">
-        <button
-          className={`px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${isValidateEnabled || isValidated
-            ? "bg-[#3175FF] hover:bg-[#2563eb]"
-            : "bg-[#3175FF] opacity-50 cursor-not-allowed"
-            }`}
-          onClick={handleValidateOrEdit}
-        >
-          {isValidated ? "Edit" : "Validate"}
-        </button>
-      </div>
 
       {isModalOpen && modalContext && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1049,13 +898,11 @@ export const FormatSelection = () => {
   const { campaignFormData } = useCampaigns();
   const { setIsDrawerOpen, setClose } = useComments();
 
-  // Close drawer on component mount
   useEffect(() => {
     setIsDrawerOpen(false);
     setClose(false);
   }, []);
 
-  // Load saved open tabs from localStorage
   useEffect(() => {
     const savedOpenTabs = getLocalStorageItem("formatSelectionOpenTabs");
 
@@ -1098,9 +945,7 @@ export const FormatSelection = () => {
 
   const getStageStatus = (stageName: string) => {
     const hasFormats = hasSelectedFormatsForStage(stageName);
-    const isValidated = campaignFormData?.validatedStages?.[stageName] || false;
 
-    if (hasFormats && isValidated) return "Completed";
     if (hasFormats) return "In progress";
     return "Not started";
   };
@@ -1163,18 +1008,7 @@ export const FormatSelection = () => {
                     {stage.name}
                   </p>
                 </div>
-                {status === "Completed" ? (
-                  <div className="flex items-center gap-2">
-                    <Image
-                      className="w-5 h-5 rounded-full p-1 bg-green-500"
-                      src="/mingcute_check-fill.svg"
-                      alt="Completed"
-                      width={20}
-                      height={20}
-                    />
-                    <p className="text-green-500 font-semibold">Completed</p>
-                  </div>
-                ) : status === "In progress" ? (
+                {status === "In progress" ? (
                   <p className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF]">
                     In Progress
                   </p>

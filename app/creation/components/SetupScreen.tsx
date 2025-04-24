@@ -55,12 +55,18 @@ export const SetupScreen = () => {
     setClose(false);
   }, []);
 
-  console.log('campaignFormData-campaignFormData-campaignFormData', campaignFormData)
+  // Load saved form data from localStorage on mount
+  useEffect(() => {
+    const savedFormData = localStorage.getItem('campaignFormData');
+    if (savedFormData) {
+      setCampaignFormData(JSON.parse(savedFormData));
+    }
+  }, []);
 
   // Initialize campaignFormData if empty
   useEffect(() => {
     if (!campaignFormData && !isInitialized) {
-      setCampaignFormData({
+      const initialFormData = {
         client_selection: {},
         media_plan: "",
         approver: "",
@@ -71,10 +77,19 @@ export const SetupScreen = () => {
         level_1: {},
         level_2: {},
         level_3: {},
-      });
+      };
+      setCampaignFormData(initialFormData);
+      localStorage.setItem('campaignFormData', JSON.stringify(initialFormData));
       setIsInitialized(true);
     }
   }, [campaignFormData, setCampaignFormData, isInitialized]);
+
+  // Save form data to localStorage whenever it changes
+  useEffect(() => {
+    if (campaignFormData) {
+      localStorage.setItem('campaignFormData', JSON.stringify(campaignFormData));
+    }
+  }, [campaignFormData]);
 
   useEffect(() => {
     const isValid = validationRules["step0"](campaignData);

@@ -198,7 +198,7 @@ const ObjectiveSelection = () => {
       : [];
     channelMix.forEach((stage) => {
       const stageName = stage.funnel_stage;
-      ["social_media", "display_networks", "search_engines", "streaming", "ooh", "print", "in_game", "e_commerce", "broadcast", "messaging"].forEach(
+      ["social_media", "display_networks", "search_engines", "streaming", "ooh", "print", "in_game", "e_commerce", "broadcast", "messaging", "mobile"].forEach(
         (category) => {
           const platforms = Array.isArray(stage[category])
             ? stage[category]
@@ -536,8 +536,8 @@ const ObjectiveSelection = () => {
                       )
                       .map((category) => (
                         <div key={category} className="w-full">
-                          <h3 className="text-xl font-semibold text-[#061237] mb-6">
-                            {category}
+                          <h3 className="text-xl font-semibold text-[#061237] mb-6 capitalize">
+                            {category?.replace("_", " ")}
                           </h3>
                           <div className="flex flex-wrap gap-8">
                             {Array.from(selectedNetworks[stage.name] || []).map(

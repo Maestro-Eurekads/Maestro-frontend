@@ -11,6 +11,7 @@ import Modal from "components/Modals/Modal";
 import adset from "../../../public/adset_level.svg";
 import channel from "../../../public/channel_level.svg";
 import Image from "next/image";
+import FeeSelectionStep from "./FeeSelectionStep";
 
 const ConfigureAdSetsAndBudget = () => {
   const [show, setShow] = useState(false); // Start with budget shown
@@ -103,12 +104,13 @@ const ConfigureAdSetsAndBudget = () => {
 
   return (
     <div>
-      <CampaignBudget />
+      {/* <CampaignBudget /> */}
+      <FeeSelectionStep/>
       <div>
         <div className="flex justify-between items-baseline">
           <PageHeaderWrapper
             t4="Allocate your budget across channels and ad sets of each phase"
-            span={2}
+            span={4}
             t1={""}
             t2={""}
           />

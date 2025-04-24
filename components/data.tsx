@@ -123,6 +123,7 @@ export const platformIcons: Record<string, StaticImageData> = {
   Quantcast: Quantcast,
   Google: google,
   "Twitter/X": x,
+  "Twitter (X)": x,
   LinkedIn: linkedin,
   Linkedin: linkedin,
   TikTok: tictok,

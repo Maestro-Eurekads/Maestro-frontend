@@ -193,22 +193,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setValidateStep(true);
         hasError = true;
       }
-    }
 
-    // if (active === 1) {
-    //   if (campaignFormData?.campaign_objective?.length === 0) {
-    //     setAlert({
-    //       variant: "error",
-    //       message: "Please define a campaign objective before proceeding!",
-    //       position: "bottom-right",
-    //     });
-    //     hasError = true;
-    //   }
-    //   if (hasChanges) {
-    //     setValidateStep(true);
-    //     hasError = true;
-    //   }
-    // }
+      if (!hasError) {
+        setActive((prev) => prev + 1);
+      }
+    }
 
     if (active === 1) {
       if (
@@ -223,11 +212,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         });
         hasError = true;
       }
-
-      // if (hasChanges) {
-      //   setValidateStep(true);
-      //   hasError = true;
-      // }
     }
 
     if (active === 2) {
@@ -278,7 +262,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             borderRadius: "8px",
             width: "320px",
             border: "1px solid red",
-            borderLeft: "4px solid red"
+            borderLeft: "4px solid red",
           },
         });
         setLoading(false);
@@ -299,7 +283,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             borderRadius: "8px",
             width: "320px",
             border: "1px solid red",
-            borderLeft: "4px solid red"
+            borderLeft: "4px solid red",
           },
         });
         setLoading(false);
@@ -441,8 +425,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       });
     };
 
-   
-
     const handleStepSeven = async () => {
       if (!campaignData) return;
 
@@ -488,15 +470,22 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         await handleStepFour();
       }
 
-      if (active === 7 || active === 8) {
+      if (active === 7) {
         if (subStep < 1) {
           setSubStep((prev) => prev + 1);
         } else {
           setActive((prev) => prev + 1);
           setSubStep(0);
         }
-      } else {
-        setActive((prev) => Math.min(9, prev + 1));
+      } else if (active === 8) {
+        if (subStep < 2) {
+          setSubStep((prev) => prev + 1);
+        } else {
+          setActive((prev) => prev + 1);
+          setSubStep(0);
+        }
+      } else if (active !== 0) {
+        setActive((prev) => prev + 1);
       }
     } catch (error) {
       console.error("Error in handleContinue:", error);
@@ -511,7 +500,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   return (
     <footer id="footer" className="w-full">
-      <Toaster position="bottom-right"/>
+      <Toaster position="bottom-right" />
       {alert && <AlertMain alert={alert} />}
       {validateStep && (
         <AlertMain
@@ -576,7 +565,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-      {triggerFormatError && active === 4 && (
+      
+      {/* {triggerFormatError && active === 4 && (
         <AlertMain
           key={`format-error-${triggerFormatErrorCount}`}
           alert={{
@@ -585,7 +575,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             position: "bottom-right",
           }}
         />
-      )}
+      )} */}
+
       {triggerBuyObjectiveError && active === 5 && (
         <AlertMain
           alert={{

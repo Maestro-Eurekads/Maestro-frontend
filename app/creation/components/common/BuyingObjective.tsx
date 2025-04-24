@@ -11,6 +11,7 @@ import { useCampaigns } from "../../../utils/CampaignsContext";
 import { funnelStages } from "../../../../components/data";
 import { ChannelSelector } from "./ChannelSelector";
 import { useEffect, useState } from "react";
+import { removeKeysRecursively } from "utils/removeID";
 
 // Default fallback data to ensure consistency during SSR
 const defaultCampaignData = {
@@ -21,13 +22,20 @@ const defaultCampaignData = {
 const BuyingObjective = () => {
   const [edit, setEdit] = useState(false);
   const [selectedStage, setSelectedStage] = useState("");
-  const { campaignFormData: rawCampaignFormData, setCampaignFormData } = useCampaigns();
+  const {
+    campaignFormData: rawCampaignFormData,
+    setCampaignFormData,
+    updateCampaign,
+    getActiveCampaign,
+    campaignData,
+  } = useCampaigns();
   const campaignFormData = rawCampaignFormData || defaultCampaignData; // Fallback to default
   const [updatedData, setUpdatedData] = useState(null);
   const [filteredChannelMix, setFilteredChannelMix] = useState([]);
   const [isLoyalty, setIsLoyalty] = useState(false);
   const [showLoyaltyField, setShowLoyaltyField] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -35,6 +43,8 @@ const BuyingObjective = () => {
     const filtered = getFilteredChannelMix(campaignFormData.channel_mix);
     setFilteredChannelMix(filtered);
   }, [rawCampaignFormData]);
+
+  console.log(filteredChannelMix);
 
   useEffect(() => {
     if (updatedData && isMounted) {
@@ -51,13 +61,29 @@ const BuyingObjective = () => {
         filteredStage.social_media = stage.social_media || [];
         filteredStage.display_networks = stage.display_networks || [];
         filteredStage.search_engines = stage.search_engines || [];
+        filteredStage.streaming = stage.streaming || [];
+        filteredStage.ooh = stage.ooh || [];
+        filteredStage.print = stage.print || [];
+        filteredStage.in_game = stage.in_game || [];
+        filteredStage.e_commerce = stage.e_commerce || [];
+        filteredStage.broadcast = stage.broadcast || [];
+        filteredStage.mobile = stage.mobile || [];
+        filteredStage.messaging = stage.messaging || [];
         return filteredStage;
       })
       .filter(
         (stage) =>
           stage.social_media.length > 0 ||
           stage.display_networks.length > 0 ||
-          stage.search_engines.length > 0
+          stage.search_engines.length > 0 ||
+          stage.streaming.length > 0 ||
+          stage.ooh.length > 0 ||
+          stage.print.length > 0 ||
+          stage.in_game.length > 0 ||
+          stage.e_commerce.length > 0 ||
+          stage.broadcast.length > 0 ||
+          stage.mobile.length > 0 ||
+          stage.messaging.length > 0
       );
   };
 
@@ -69,22 +95,24 @@ const BuyingObjective = () => {
     setSelectedStage(stageName);
     const updatedFunnels = updatedData?.funnel_stages?.includes(stageName)
       ? {
-        ...updatedData,
-        funnel_stages: updatedData.funnel_stages.filter((name: string) => name !== stageName),
-      }
+          ...updatedData,
+          funnel_stages: updatedData.funnel_stages.filter(
+            (name: string) => name !== stageName
+          ),
+        }
       : {
-        ...updatedData,
-        funnel_stages: [...(updatedData?.funnel_stages || []), stageName],
-        channel_mix: [
-          ...(updatedData?.channel_mix || []),
-          {
-            funnel_stage: stageName,
-            social_media: [],
-            display_networks: [],
-            search_engines: [],
-          },
-        ],
-      };
+          ...updatedData,
+          funnel_stages: [...(updatedData?.funnel_stages || []), stageName],
+          channel_mix: [
+            ...(updatedData?.channel_mix || []),
+            {
+              funnel_stage: stageName,
+              social_media: [],
+              display_networks: [],
+              search_engines: [],
+            },
+          ],
+        };
     setUpdatedData(updatedFunnels);
   };
 
@@ -92,22 +120,12 @@ const BuyingObjective = () => {
     const updatedChannelMix = updatedData?.channel_mix?.map((stage) => {
       if (stage.funnel_stage === stageName) {
         const updatedStage = { ...stage };
-        if (category === "Social media") {
-          updatedStage.social_media = [
-            ...stage.social_media,
-            { platform_name: platformName },
-          ];
-        } else if (category === "Display networks") {
-          updatedStage.display_networks = [
-            ...stage.display_networks,
-            { platform_name: platformName },
-          ];
-        } else if (category === "Search engines") {
-          updatedStage.search_engines = [
-            ...stage.search_engines,
-            { platform_name: platformName },
-          ];
-        }
+
+        updatedStage[category] = [
+          ...stage[category],
+          { platform_name: platformName },
+        ];
+
         return updatedStage;
       }
       return stage;
@@ -126,35 +144,23 @@ const BuyingObjective = () => {
     dropDownName,
     option
   ) => {
-    const updatedChannelMix = updatedData?.channel_mix?.map((stage, chIndex) => {
-      if (stage.funnel_stage === stageName) {
-        const updatedStage = { ...stage };
-        if (category === "Social media") {
-          updatedStage.social_media = stage.social_media.map((platform) => {
-            if (platform.platform_name === platformName) {
-              return { ...platform, [dropDownName]: option };
-            }
-            return platform;
-          });
-        } else if (category === "Display networks") {
-          updatedStage.display_networks = stage.display_networks.map((platform) => {
-            if (platform.platform_name === platformName) {
-              return { ...platform, [dropDownName]: option };
-            }
-            return platform;
-          });
-        } else if (category === "Search engines") {
-          updatedStage.search_engines = stage.search_engines.map((platform) => {
-            if (platform.platform_name === platformName) {
-              return { ...platform, [dropDownName]: option };
-            }
-            return platform;
-          });
+    const updatedChannelMix = updatedData?.channel_mix?.map(
+      (stage, chIndex) => {
+        if (stage.funnel_stage === stageName) {
+          const updatedStage = { ...stage };
+          
+            updatedStage[category] = stage[category].map((platform) => {
+              if (platform.platform_name === platformName) {
+                return { ...platform, [dropDownName]: option };
+              }
+              return platform;
+            });
+          
+          return updatedStage;
         }
-        return updatedStage;
+        return stage;
       }
-      return stage;
-    });
+    );
     setUpdatedData((prevData) => ({
       ...prevData,
       channel_mix: updatedChannelMix,
@@ -166,32 +172,74 @@ const BuyingObjective = () => {
     setShowLoyaltyField(false);
   };
 
+  const closeEditStep = () => {
+    setEdit(false);
+    setSelectedStage("");
+    setUpdatedData(null);
+    setIsLoyalty(false);
+    setShowLoyaltyField(false);
+  };
+
+  const cleanData = campaignData
+    ? removeKeysRecursively(campaignData, [
+        "id",
+        "documentId",
+        "createdAt",
+        "publishedAt",
+        "updatedAt",
+      ])
+    : {};
+
+  const handleConfirmStep = async () => {
+    setLoading(true);
+    await updateCampaign({
+      ...cleanData,
+      funnel_stages: updatedData?.funnel_stages,
+      channel_mix: removeKeysRecursively(
+        updatedData?.channel_mix,
+        [
+          "id",
+          "isValidated",
+          "formatValidated",
+          "validatedStages",
+          "documentId",
+        ],
+        ["preview"]
+      ),
+      custom_funnels: updatedData?.custom_funnels,
+      funnel_type: updatedData?.funnel_type,
+    });
+    await getActiveCampaign();
+    setLoading(false);
+    closeEditStep();
+  };
+
   if (!isMounted) {
     return (
       <>
-      <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-2">
-            <div className="flex rounded-full bg-blue-500 justify-center items-center w-6 h-6">
-              <span className="text-white font-bold">1</span>
+        <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2">
+              <div className="flex rounded-full bg-blue-500 justify-center items-center w-6 h-6">
+                <span className="text-white font-bold">1</span>
+              </div>
+              <h1 className="text-blue-500 font-semibold text-base">
+                Your buying objectives and types
+              </h1>
             </div>
-            <h1 className="text-blue-500 font-semibold text-base">
-              Your buying objectives and types
-            </h1>
+            <Button
+              text="Edit"
+              variant="primary"
+              className="!w-[85px] !h-[40px]"
+              onClick={() => {}}
+              disabled
+            />
           </div>
-          <Button
-            text="Edit"
-            variant="primary"
-            className="!w-[85px] !h-[40px]"
-            onClick={() => { }}
-            disabled
-          />
+          <div>Loading...</div>
         </div>
-        <div>Loading...</div>
-      </div>
-      <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full">
-        2
-      </div>
+        <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full">
+          2
+        </div>
       </>
     );
   }
@@ -212,17 +260,13 @@ const BuyingObjective = () => {
         {edit ? (
           <div className="flex items-center gap-[15px]">
             <Button
-              text="Confirm Changes"
+              text={loading ? "Loading..." : "Confirm Changes"}
               variant="primary"
               className="!w-[180px] !h-[40px] !rounded-[8px] !hover:ease-in-out"
               onClick={() => {
-                setEdit(false);
-                setCampaignFormData(updatedData);
-                setSelectedStage("");
-                setUpdatedData(null);
-                setIsLoyalty(false);
-                setShowLoyaltyField(false);
+                !loading && handleConfirmStep();
               }}
+              loading={loading}
             />
             <Button
               text="Cancel"
@@ -264,26 +308,32 @@ const BuyingObjective = () => {
 
       {edit && isLoyalty && (
         <div className="bg-gray-200 p-4 rounded-lg mt-4">
-          {funnelStages.map((stageName, stageIndex) => {
-            const stage = !campaignFormData?.funnel_stages?.includes(stageName?.name);
-            if (!stage) return null;
-            return (
-              <div key={stageIndex} className="flex justify-between items-center mb-4">
+          {campaignFormData?.custom_funnels
+            ?.filter(
+              (stageName) =>
+                !campaignFormData?.funnel_stages?.includes(stageName?.name)
+            )
+            ?.map((stageName) => (
+              <div
+                key={stageName?.name}
+                className="flex justify-between items-center mb-4"
+              >
                 <div>
                   <div
-                    className={`${stageName?.name === "Conversion"
+                    className={`${
+                      stageName?.name === "Conversion"
                         ? "bg-[#FF9037] cursor-pointer"
                         : stageName?.name === "Loyalty"
-                          ? "bg-[#EF5407] cursor-pointer"
-                          : stageName?.name === "Awareness"
-                            ? "bg-[#0866FF]"
-                            : stageName?.name === "Consideration"
-                              ? "bg-[#00A36C]"
-                              : ""
-                      } rounded-[10px]`}
+                        ? "bg-[#EF5407] cursor-pointer"
+                        : stageName?.name === "Awareness"
+                        ? "bg-[#0866FF]"
+                        : stageName?.name === "Consideration"
+                        ? "bg-[#00A36C]"
+                        : "bg-[#FFF] text-[#000]"
+                    } rounded-[10px] cursor-pointer`}
                     onClick={() => handleLoyaltyButtonClick(stageName?.name)}
                   >
-                    <div className="flex items-center justify-center gap-[16px] p-[24px]">
+                    <div className="w-full flex items-center justify-center gap-[16px] p-[24px]">
                       {stageName?.name === "Conversion" ? (
                         <Image src={creditWhite} alt={stageName?.name} />
                       ) : stageName?.name === "Loyalty" ? (
@@ -295,14 +345,30 @@ const BuyingObjective = () => {
                       ) : (
                         ""
                       )}
-                      <p className="text-[18px] font-medium text-white">{stageName?.name}</p>
+                      <p className={`text-[18px] font-medium ${["Awareness", "Consideration", "Conversion", "Loyalty"].includes(stageName?.name) ? "text-[#FFF]" : "text-[#000]"}`}>
+                        {stageName?.name}
+                      </p>
                     </div>
                   </div>
-                  {selectedStage === stageName?.name && showLoyaltyField && (
-                    <div className="flex gap-4 mt-4">
-                      {["Social media", "Display networks", "Search engines"].map((channel) => (
-                        <div key={channel} className="flex flex-col items-center">
-                          <span className="mb-2 font-medium">{channel}</span>
+                  {selectedStage === stageName?.name && (
+                    <div className="flex flex-col gap-4 mt-4">
+                      {[
+                        "social_media",
+                        "display_networks",
+                        "search_engines",
+                        "streaming",
+                        "mobile",
+                        "messaging",
+                        "in_game",
+                        "e_commerce",
+                        "broadcast",
+                        "print",
+                        "ooh",
+                      ].map((channel) => (
+                        <div key={channel} className="flex items-center">
+                          <span className="mb-2 font-medium capitalize w-[200px]">
+                            {channel?.replace("_", " ")}
+                          </span>
                           <ChannelSelector
                             stageName={stageName?.name}
                             channelName={channel}
@@ -315,16 +381,15 @@ const BuyingObjective = () => {
                     </div>
                   )}
                 </div>
-                <Button
+                {/* <Button
                   text="Delete this stage"
                   icon={Trash}
                   variant="danger"
                   className="!rounded-full !px-4 !py-4 !text-white !w-[167px] !h-[31px]"
                   onClick={handleDeleteLoyaltyStage}
-                />
+                /> */}
               </div>
-            );
-          })}
+            ))}
         </div>
       )}
 
@@ -349,6 +414,7 @@ const BuyingObjective = () => {
               handlePlatformSelect={handlePlatformSelect}
               handleDropDownSelection={handleDropDownSelection}
               onDelete={undefined}
+              stageData={stage}
             />
           );
         })

@@ -14,11 +14,12 @@ import { useEditing } from "app/utils/EditingContext";
 const CampaignBudget = () => {
   const [active, setActive] = useState(null);
   const { setIsDrawerOpen, setClose } = useComments();
-  const { isEditing } = useEditing();
+  const { isEditing, setIsEditing } = useEditing();
 
   useEffect(() => {
     setIsDrawerOpen(false);
     setClose(false);
+    setIsEditing(true);
   }, []);
 
   const [selectedOption, setSelectedOption] = useState({
