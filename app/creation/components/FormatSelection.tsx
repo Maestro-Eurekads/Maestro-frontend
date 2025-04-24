@@ -4,7 +4,12 @@ import { useState, useEffect } from "react";
 import { FaCheck, FaSpinner } from "react-icons/fa";
 import Switch from "react-switch";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
-import { funnelStages, platformIcons } from "../../../components/data";
+import {
+  funnelStages,
+  getPlatformIcon,
+  platformIcons,
+  renderUploadedFile,
+} from "../../../components/data";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import UploadModal from "../../../components/UploadModal/UploadModal";
 import { useComments } from "app/utils/CommentProvider";
@@ -73,6 +78,13 @@ const CHANNEL_TYPES = [
   { key: "display_networks", title: "Display Networks" },
   { key: "search_engines", title: "Search Engines" },
   { key: "streaming", title: "Streaming" },
+  { key: "ooh", title: "OOH" },
+  { key: "broadcast", title: "Broadcast" },
+  { key: "messaging", title: "Messaging" },
+  { key: "print", title: "Print" },
+  { key: "e_commerce", title: "E Commerce" },
+  { key: "in_game", title: "In Game" },
+  { key: "mobile", title: "Mobile" },
 ];
 
 const DEFAULT_MEDIA_OPTIONS = [
@@ -131,7 +143,7 @@ const MediaOption = ({
     if (!idToDel) {
       setLocalPreviews(previews);
     }
-  }, [previews]);
+  }, []);
 
   const uploadUpdatedCampaignToStrapi = async (data) => {
     const cleanData = removeKeysRecursively(
@@ -141,9 +153,11 @@ const MediaOption = ({
     );
     await updateCampaign({
       ...cleanData,
-      channel_mix: removeKeysRecursively(data?.channel_mix, ["documentId", "id"], [
-        "previews",
-      ]),
+      channel_mix: removeKeysRecursively(
+        data?.channel_mix,
+        ["documentId", "id"],
+        ["previews"]
+      ),
     });
     await getActiveCampaign();
     setIdToDel(null);
@@ -199,12 +213,16 @@ const MediaOption = ({
     setLocalPreviews(ids);
   };
 
-  const handleDelete = async (previewId: string) => {
-    const updatedPreviews = localPreviews.filter((prv) => prv.id !== previewId);
-    const updatedIds = updatedPreviews.map((prv) => prv.id);
+  const handleDelete = async (previewId: string, chName: string) => {
+    if (channelName === chName) {
+      const updatedPreviews = previews.filter(
+        (prv) => prv.id !== previewId
+      );
+      const updatedIds = updatedPreviews.map((prv) => prv.id);
 
-    setLoading(true);
-    await updateGlobalState(updatedIds);
+      setLoading(true);
+      await updateGlobalState(updatedIds);
+    }
   };
 
   return (
@@ -213,8 +231,9 @@ const MediaOption = ({
         <div className="flex flex-col items-center">
           <div
             onClick={onSelect}
-            className={`relative text-center p-2 arounded-lg border transition ${isSelected ? "border-blue-500 shadow-lg" : "border-gray-300"
-              } cursor-pointer`}
+            className={`relative text-center p-2 arounded-lg border transition ${
+              isSelected ? "border-blue-500 shadow-lg" : "border-gray-300"
+            } cursor-pointer`}
           >
             <Image
               src={option.icon || "/placeholder.svg"}
@@ -285,19 +304,24 @@ const MediaOption = ({
                   target="_blank"
                   className="w-[225px] h-[150px] rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors border border-gray-500 cursor-pointer"
                 >
-                  <Image
+                  {/* <Image
                     src={prv?.url ?? ""}
                     alt=""
                     width={225}
                     height={140}
                     className="rounded-lg w-full h-full object-cover"
-                  />
+                  /> */}
+                  {renderUploadedFile(
+                    localPreviews?.map((lp) => lp?.url),
+                    option.name,
+                    index
+                  )}
                 </Link>
                 <button
                   className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
                   onClick={() => {
                     setIdToDel(prv?.id);
-                    handleDelete(prv?.id);
+                    handleDelete(prv?.id, channelName);
                   }}
                   disabled={loading}
                 >
@@ -370,13 +394,13 @@ const MediaSelectionGrid = ({
           const previews = adSet
             ? adSet.format?.find((f) => f.format_type === option.name)?.previews
             : platform.format?.find((f) => f.format_type === option.name)
-              ?.previews;
+                ?.previews;
 
           const q = adSet
             ? adSet.format?.find((f) => f.format_type === option.name)
-              ?.num_of_visuals
+                ?.num_of_visuals
             : platform.format?.find((f) => f.format_type === option.name)
-              ?.num_of_visuals;
+                ?.num_of_visuals;
 
           return (
             <MediaOption
@@ -526,10 +550,12 @@ const PlatformItem = ({
   return (
     <div>
       <div className="flex items-center gap-6">
-        <div className="flex items-center gap-[8px] font-[500] border p-3 rounded-[10px] max-w-[150px] w-full">
+        <div className="flex items-center gap-[8px] font-[500] border p-3 rounded-[10px] min-w-[150px] max-w-[180px] w-full">
           {platformIcons[platform.platform_name] && (
             <Image
-              src={platformIcons[platform.platform_name] || "/placeholder.svg"}
+              src={
+                getPlatformIcon(platform.platform_name) || "/placeholder.svg"
+              }
               alt={platform.platform_name}
               width={20}
               height={20}
@@ -991,8 +1017,9 @@ export const FormatSelection = () => {
           return (
             <div key={index}>
               <div
-                className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
-                  }`}
+                className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${
+                  isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
+                }`}
                 onClick={() => toggleTab(stage.name)}
               >
                 <div className="flex items-center gap-2">

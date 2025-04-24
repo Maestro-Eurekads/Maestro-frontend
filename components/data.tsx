@@ -112,7 +112,7 @@ import roundget from "../public/ic_round-get-app.svg";
 import mingcute_basket from "../public/mingcute_basket-fill.svg";
 import mdi_leads from "../public/mdi_leads.svg";
 import apple from "../public/social/apple.jpeg";
-import { StaticImageData } from "next/image";
+import Image, { StaticImageData } from "next/image";
 
 export const platformIcons: Record<string, StaticImageData> = {
   Facebook: facebook,
@@ -199,12 +199,15 @@ export const platformIcons: Record<string, StaticImageData> = {
   Seznam: seznam,
   Yandex: yandex,
   Podcast: podcast,
+  "Podcast Ad Network": podcast,
   Vevo: vevo,
   Inmobi: inmobil,
   Admob: admob,
   IronSource: ironsource,
+  ironSource: ironsource,
   Vungle: vungle,
   Mintegral: mintegral,
+  MoPub: mopub,
   Mopub: mopub,
   StreetFurniture: streetfurniture,
   Transit: transit,
@@ -216,6 +219,7 @@ export const platformIcons: Record<string, StaticImageData> = {
   Magazine: magazine,
   Circular: circular,
   Door: door,
+  "Door Hangers": door,
   DirectMail: directmail,
   Brochure: brochure, 
   Cinema: cinema,
@@ -571,3 +575,37 @@ export const platformStyles = [
   { name: "Radio", color: "#EA580C", icon: radio, bg: "#FFF3ED" },
   { name: "FilmTV", color: "#7C3AED", icon: filmtv, bg: "#F6F0FF" },
 ];
+
+export const renderUploadedFile = (uploadBlobs, format,index: number) => {
+  if ( !uploadBlobs[index]) return null;
+
+  if (format === "Video") {
+    return (
+      <video
+        src={uploadBlobs[index]}
+        controls
+        className="w-full h-full object-cover rounded-lg"
+      />
+    );
+  }
+
+  if (format === "Slideshow") {
+    return (
+      <iframe
+        src={uploadBlobs[index]}
+        className="w-full h-full rounded-lg"
+        title={`Slideshow ${index}`}
+      />
+    );
+  }
+
+  return (
+    <Image
+      src={uploadBlobs[index]}
+      alt={`Image ${index}`}
+      className="w-full h-full object-cover rounded-lg"
+      width={225}
+      height={105}
+    />
+  );
+};

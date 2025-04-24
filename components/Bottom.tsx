@@ -408,6 +408,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "id",
           "isValidated",
           "validatedStages",
+          "documentId"
         ]),
       });
     };
