@@ -159,6 +159,29 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     return false;
   };
 
+  const validateChannelSelection = () => {
+    const selectedStages = campaignFormData?.funnel_stages || [];
+    if (!selectedStages.length || !campaignFormData?.channel_mix) {
+      return false;
+    }
+
+    return campaignFormData.channel_mix.some((mix) =>
+      [
+        "social_media",
+        "display_networks",
+        "search_engines",
+        "streaming",
+        "mobile",
+        "messaging",
+        "in_game",
+        "e_commerce",
+        "broadcast",
+        "print",
+        "ooh",
+      ].some((channel) => mix[channel]?.length > 0)
+    );
+  };
+
   const handleBack = () => {
     if (subStep > 0) {
       setSubStep((prev) => prev - 1);
@@ -216,39 +239,16 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
 
     if (active === 2) {
-      const selectedStages = campaignFormData?.funnel_stages || [];
-      const validatedStages = campaignFormData?.validatedStages || {};
+      const hasChannelSelected = validateChannelSelection();
 
-      const hasUnvalidatedSelectedStage = selectedStages.some((stage) => {
-        const isSelected = campaignFormData?.channel_mix?.some(
-          (mix) =>
-            mix.funnel_stage === stage &&
-            (mix.social_media?.length > 0 ||
-              mix.display_networks?.length > 0 ||
-              mix.search_engines?.length > 0 ||
-              mix.streaming?.length > 0 ||
-              mix.mobile?.length > 0 ||
-              mix.messaging?.length > 0 ||
-              mix.in_game?.length > 0 ||
-              mix.e_commerce?.length > 0 ||
-              mix.broadcast?.length > 0 ||
-              mix.print?.length > 0 ||
-              mix.ooh?.length > 0)
-        );
-        return isSelected && !validatedStages[stage];
-      });
-
-      if (
-        hasUnvalidatedSelectedStage ||
-        !Object.values(validatedStages).some(Boolean)
-      ) {
-        // setTriggerChannelMixError(true);
-        // setAlert({
-        //   variant: "error",
-        //   message: "Please select and validate at least one channel!",
-        //   position: "bottom-right",
-        // });
-        // hasError = true;
+      if (!hasChannelSelected) {
+        setTriggerChannelMixError(true);
+        setAlert({
+          variant: "error",
+          message: "Please select at least one channel before proceeding!",
+          position: "bottom-right",
+        });
+        hasError = true;
       }
     }
 
@@ -558,27 +558,15 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-      {/* {triggerChannelMixError && (
+      {triggerChannelMixError && (
         <AlertMain
           alert={{
             variant: "error",
-            message: "Please select and validate at least one channel!",
+            message: "Please select at least one channel before proceeding!",
             position: "bottom-right",
           }}
         />
-      )} */}
-
-      {/* {triggerFormatError && active === 4 && (
-        <AlertMain
-          key={`format-error-${triggerFormatErrorCount}`}
-          alert={{
-            variant: "error",
-            message: "Please select and validate at least one format!",
-            position: "bottom-right",
-          }}
-        />
-      )} */}
-
+      )}
       {triggerBuyObjectiveError && active === 5 && (
         <AlertMain
           alert={{
@@ -617,17 +605,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           </button>
         ) : (
           <div className="flex justify-center items-center gap-3">
-            {/* {active === 4 && (
-              <button
-                className="p-3 text-[16px] rounded-md  w-[150px] font-semibold text-[#3175FF]"
-                style={{
-                  border: "2px solid #3175FF",
-                }}
-                onClick={handleSkip}
-              >
-                Skip
-              </button>
-            )} */}
             <button
               className={clsx(
                 "bottom_black_next_btn whitespace-nowrap",
@@ -649,8 +626,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                     {active === 0
                       ? "Start"
                       : active === 4 && !hasFormatEntered(campaignFormData?.channel_mix)
-                      ? 
-                        "Skip"
+                      ? "Skip"
                       : isHovered
                       ? "Next Step"
                       : "Continue"}
