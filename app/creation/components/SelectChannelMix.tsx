@@ -48,6 +48,7 @@ const SelectChannelMix = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [openItems, setOpenItems] = useState({});
   const [selected, setSelected] = useState({});
+  const [stageStatuses, setStageStatuses] = useState({});
   const [showMoreMap, setShowMoreMap] = useState({});
   const [openChannelTypes, setOpenChannelTypes] = useState({});
   const ITEMS_TO_SHOW = 6;
@@ -70,6 +71,7 @@ const SelectChannelMix = () => {
     if (isMounted) {
       setOpenItems(loadStateFromLocalStorage("openItems", {}, cId));
       setSelected(loadStateFromLocalStorage("selected", {}, cId));
+      setStageStatuses(loadStateFromLocalStorage("stageStatuses", {}, cId));
       setShowMoreMap(loadStateFromLocalStorage("showMoreMap", {}, cId));
       setOpenChannelTypes(
         loadStateFromLocalStorage("openChannelTypes", {}, cId)
@@ -85,6 +87,10 @@ const SelectChannelMix = () => {
   useEffect(() => {
     if (isMounted) saveStateToLocalStorage("selected", selected, cId);
   }, [selected, isMounted, cId]);
+
+  useEffect(() => {
+    if (isMounted) saveStateToLocalStorage("stageStatuses", stageStatuses, cId);
+  }, [stageStatuses, isMounted, cId]);
 
   useEffect(() => {
     if (isMounted) saveStateToLocalStorage("showMoreMap", showMoreMap, cId);
@@ -137,6 +143,7 @@ const SelectChannelMix = () => {
       setSelected(initialSelected);
     } else if (isMounted && !cId) {
       setSelected({});
+      setStageStatuses({});
     }
   }, [campaignFormData?.channel_mix, isMounted, cId]);
 
@@ -145,7 +152,7 @@ const SelectChannelMix = () => {
     if (isMounted && campaignFormData?.funnel_stages?.length > 0) {
       const initialOpenItems = campaignFormData.funnel_stages.reduce(
         (acc, stage) => {
-          acc[stage] = true; // Open all stages by default
+          acc[stage] = true;
           return acc;
         },
         {}
@@ -153,6 +160,21 @@ const SelectChannelMix = () => {
       setOpenItems((prev) => ({ ...prev, ...initialOpenItems }));
     }
   }, [campaignFormData?.funnel_stages, isMounted]);
+
+  // Update stage statuses based on selections
+  useEffect(() => {
+    if (isMounted && campaignFormData?.funnel_stages?.length > 0) {
+      const updatedStatuses = {};
+      campaignFormData.funnel_stages.forEach((stageName) => {
+        const currentStageSelections = selected[stageName] || {};
+        const hasSelections = Object.values(currentStageSelections).some(
+          (arr) => Array.isArray(arr) && arr.length > 0
+        );
+        updatedStatuses[stageName] = hasSelections ? "In progress" : "Not started";
+      });
+      setStageStatuses((prev) => ({ ...prev, ...updatedStatuses }));
+    }
+  }, [selected, campaignFormData?.funnel_stages, isMounted]);
 
   // Initialize channel types to be open by default
   useEffect(() => {
@@ -322,6 +344,15 @@ const SelectChannelMix = () => {
                     {stage.name}
                   </p>
                 </div>
+                {stageStatuses[stage.name] === "In progress" ? (
+                  <p className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF]">
+                    In progress
+                  </p>
+                ) : (
+                  <p className="mx-auto w-[86px] h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] opacity-50">
+                    Not started
+                  </p>
+                )}
                 <div>
                   <Image
                     src={openItems[stage.name] ? up : down2}
