@@ -190,10 +190,7 @@ export const SetupScreen = () => {
     },
   ];
 
-  const mediaBudgetPercentage = [
-    { value: "Tooling", label: "Tooling" },
-    { value: "Fix budget fee", label: "Fix budget fee" },
-  ];
+
 
   // Updated useEffect to handle currencySign dynamically
   useEffect(() => {

@@ -61,14 +61,14 @@ const ObjectiveSelection = () => {
     const savedPlatforms = localStorage.getItem("validatedPlatforms");
     return savedPlatforms
       ? JSON.parse(savedPlatforms, (key, value) =>
-          value.dataType === "Set" ? new Set(value.value) : value
-        )
+        value.dataType === "Set" ? new Set(value.value) : value
+      )
       : {
-          Awareness: new Set(),
-          Consideration: new Set(),
-          Conversion: new Set(),
-          Loyalty: new Set(),
-        };
+        Awareness: new Set(),
+        Consideration: new Set(),
+        Conversion: new Set(),
+        Loyalty: new Set(),
+      };
   });
   const [dropdownOpen, setDropdownOpen] = useState({});
   const [showInput, setShowInput] = useState("");
@@ -127,18 +127,48 @@ const ObjectiveSelection = () => {
   }, [campaignFormData?.funnel_stages, campaignFormData?.channel_mix]);
 
   // Update statuses based on selectedOptions and validatedPlatforms
+  // useEffect(() => {
+  //   if (campaignFormData?.funnel_stages) {
+  //     const updatedStatuses = {};
+  //     campaignFormData.funnel_stages.forEach((stageName) => {
+  //       if (validatedPlatforms[stageName]?.size > 0) {
+  //         updatedStatuses[stageName] = "Completed";
+  //       } else if (hasCompleteSelection(stageName)) {
+  //         updatedStatuses[stageName] = "In Progress";
+  //       } else {
+  //         updatedStatuses[stageName] = "Not Started";
+  //       }
+  //     });
+  //     setStatuses(updatedStatuses);
+  //     localStorage.setItem(
+  //       "funnelStageStatuses",
+  //       JSON.stringify(updatedStatuses)
+  //     );
+  //   }
+  // }, [selectedOptions, validatedPlatforms, campaignFormData?.funnel_stages]);
+
+  // // Persist selectedOptions to localStorage
+  // useEffect(() => {
+  //   localStorage.setItem("selectedOptions", JSON.stringify(selectedOptions));
+  // }, [selectedOptions]);
+
   useEffect(() => {
     if (campaignFormData?.funnel_stages) {
       const updatedStatuses = {};
+
       campaignFormData.funnel_stages.forEach((stageName) => {
-        if (validatedPlatforms[stageName]?.size > 0) {
+        const hasValidated = validatedPlatforms[stageName]?.size > 0;
+        const hasSelected = hasCompleteSelection(stageName); // Your function for checking selections
+
+        if (hasValidated) {
           updatedStatuses[stageName] = "Completed";
-        } else if (hasCompleteSelection(stageName)) {
+        } else if (hasSelected) {
           updatedStatuses[stageName] = "In Progress";
         } else {
           updatedStatuses[stageName] = "Not Started";
         }
       });
+
       setStatuses(updatedStatuses);
       localStorage.setItem(
         "funnelStageStatuses",
@@ -147,10 +177,6 @@ const ObjectiveSelection = () => {
     }
   }, [selectedOptions, validatedPlatforms, campaignFormData?.funnel_stages]);
 
-  // Persist selectedOptions to localStorage
-  useEffect(() => {
-    localStorage.setItem("selectedOptions", JSON.stringify(selectedOptions));
-  }, [selectedOptions]);
 
   // Persist validatedPlatforms to localStorage
   useEffect(() => {
@@ -172,27 +198,27 @@ const ObjectiveSelection = () => {
       : [];
     channelMix.forEach((stage) => {
       const stageName = stage.funnel_stage;
-      ["social_media", "display_networks", "search_engines", "streaming", "ooh", "print", "in_game","e_commerce", "broadcast", "messaging", "mobile"].forEach(
+      ["social_media", "display_networks", "search_engines", "streaming", "ooh", "print", "in_game", "e_commerce", "broadcast", "messaging", "mobile"].forEach(
         (category) => {
           const platforms = Array.isArray(stage[category])
             ? stage[category]
             : [];
           platforms.forEach((platform) => {
-            
-              const platformName = platform.platform_name;
-              const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`;
-              const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`;
-              if (platform.buy_type && !selectedOptions[buyTypeKey]) {
-                initialSelectedOptions[buyTypeKey] = platform.buy_type;
-              }
-              if (
-                platform.objective_type &&
-                !selectedOptions[buyObjectiveKey]
-              ) {
-                initialSelectedOptions[buyObjectiveKey] =
-                  platform.objective_type;
-              }
-            
+
+            const platformName = platform.platform_name;
+            const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`;
+            const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`;
+            if (platform.buy_type && !selectedOptions[buyTypeKey]) {
+              initialSelectedOptions[buyTypeKey] = platform.buy_type;
+            }
+            if (
+              platform.objective_type &&
+              !selectedOptions[buyObjectiveKey]
+            ) {
+              initialSelectedOptions[buyObjectiveKey] =
+                platform.objective_type;
+            }
+
           });
         }
       );
@@ -306,7 +332,7 @@ const ObjectiveSelection = () => {
     );
   };
 
-  
+
 
   const renderCompletedPlatform = (platformName, category, stageName) => {
     const normalizedCategory = category.toLowerCase().replaceAll(" ", "_");
@@ -400,10 +426,9 @@ const ObjectiveSelection = () => {
         if (!stage) return null;
         return (
           <div key={stageName} className="w-full">
-            <div
+            {/* <div
               className={`flex justify-between items-center p-6 gap-3 max-w-[950px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-                rounded-t-[10px] ${
-                  openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"
+                rounded-t-[10px] ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"
                 }`}
               onClick={() => toggleItem(stage.name)}
             >
@@ -444,8 +469,51 @@ const ObjectiveSelection = () => {
                   <Image src={down2} alt="expand" />
                 )}
               </div>
+            </div> */}
+            <div
+              className={`flex justify-between items-center p-6 gap-3 max-w-[950px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
+    rounded-t-[10px] ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
+              onClick={() => toggleItem(stage.name)}
+            >
+              <div className="flex items-center gap-4">
+                {funn?.icon && (
+                  <Image src={funn.icon} className="size-5" alt={stage.name} />
+                )}
+                <p className="font-semibold text-[#061237] whitespace-nowrap">
+                  {stage.name}
+                </p>
+              </div>
+              <div
+                id={`status-${stageName}`} // Added unique id based on stageName
+                className="flex items-center gap-2"
+              >
+                {statuses[stageName] === "Completed" ? (
+                  <>
+                    <Image
+                      className="w-5 h-5 rounded-full p-1 bg-green-500"
+                      src={checkmark}
+                      alt="Completed"
+                    />
+                    <p className="text-green-500 font-semibold text-base">Completed</p>
+                  </>
+                ) : statuses[stageName] === "In Progress" ? (
+                  <p className="text-[#3175FF] font-semibold text-base whitespace-nowrap">
+                    In Progress
+                  </p>
+                ) : (
+                  <p className="text-[#061237] opacity-50 text-base whitespace-nowrap">
+                    Not Started
+                  </p>
+                )}
+              </div>
+              <div>
+                {openItems[stage.name] ? (
+                  <Image src={up} alt="collapse" />
+                ) : (
+                  <Image src={down2} alt="expand" />
+                )}
+              </div>
             </div>
-
             {openItems[stage.name] && (
               <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
                 {statuses[stageName] === "Completed" ? (
@@ -505,8 +573,8 @@ const ObjectiveSelection = () => {
                       campaignFormData?.channel_mix
                     )
                       ? campaignFormData.channel_mix
-                          .find((ch) => ch.funnel_stage === stageName)
-                          ?.[normalizedCategory] || []
+                        .find((ch) => ch.funnel_stage === stageName)
+                      ?.[normalizedCategory] || []
                       : [];
                     if (platforms.length === 0) return null;
 
@@ -523,11 +591,11 @@ const ObjectiveSelection = () => {
                             const platformKey = `${stage.name}-${category}-${platform.platform_name}`;
                             const selectedObj =
                               selectedOptions[
-                                `${stageName}-${category}-${platform.platform_name}-objective_type`
+                              `${stageName}-${category}-${platform.platform_name}-objective_type`
                               ];
                             const selectedBuy =
                               selectedOptions[
-                                `${stageName}-${category}-${platform.platform_name}-buy_type`
+                              `${stageName}-${category}-${platform.platform_name}-buy_type`
                               ];
 
                             return (
@@ -584,7 +652,7 @@ const ObjectiveSelection = () => {
                                           </li>
                                         ))}
                                         {showInput !==
-                                        `${platformKey}+custom` ? (
+                                          `${platformKey}+custom` ? (
                                           <li
                                             className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
                                             onClick={() =>
@@ -662,7 +730,7 @@ const ObjectiveSelection = () => {
                                           </li>
                                         ))}
                                         {showInput !==
-                                        `${platformKey}+custom+buy` ? (
+                                          `${platformKey}+custom+buy` ? (
                                           <li
                                             className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
                                             onClick={() =>
@@ -769,4 +837,4 @@ const ObjectiveSelection = () => {
   );
 };
 
- export default ObjectiveSelection;
+export default ObjectiveSelection;

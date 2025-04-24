@@ -44,6 +44,9 @@ const SideNav: React.FC = () => {
     router.push("/");
   };
 
+
+  console.log('campaignData?.media_plan_details?.plan_name', campaignData)
+
   const steps = [
     {
       vl: "vl",
@@ -170,7 +173,7 @@ const SideNav: React.FC = () => {
               <Skeleton height={20} width={200} />
             ) : !campaignData?.client?.client_name ||
               campaignData?.media_plan_details?.plan_name ===
-              "Plan name" ? null : (
+              undefined ? null : (
               <div>
                 <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
                   {campaignData?.media_plan_details?.plan_name
@@ -186,7 +189,7 @@ const SideNav: React.FC = () => {
               {isLoading ? (
                 <Skeleton height={20} width={150} />
               ) : !campaignData?.client?.client_name ||
-                campaignData?.media_plan_details?.plan_name === "Plan name" ? (
+                campaignData?.media_plan_details?.plan_name === undefined ? (
                 <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic mt-3">
                   Follow the steps to set up an effective and successful
                   campaign strategy.

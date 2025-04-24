@@ -32,6 +32,27 @@ const UploadModal: React.FC<UploadModalProps> = ({
   stageName,
   previews,
 }) => {
+  const handleCancel = () => {
+    onClose();
+  };
+
+  const handleConfirm = () => {
+    if (uploads?.length < 1) {
+      toast.error("Please upload the required file before submitting.");
+      return;
+    }
+
+    uploadFilesToStrapi();
+  };
+
+
+
+  const handleClose = () => {
+    // Close the modal
+    onClose();
+  };
+
+
   const { campaignFormData, updateCampaign, getActiveCampaign } = useCampaigns();
   const [uploads, setUploads] = useState<Array<File | null>>([]);
   const [uploadBlobs, setUploadBlobs] = useState<string[]>([]);
@@ -131,7 +152,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
       await updateGlobalState(formattedFiles);
       toast.success("Files uploaded successfully!");
     } catch (error) {
-      console.error("Error uploading files:", error);
+      // console.error("Error uploading files:", error);
       toast.error("Failed to upload files. Please try again.");
     } finally {
       setLoading(false);
@@ -277,8 +298,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
                   )}
                 </div>
               ))}
-            </div>
-          </div>
+            </div >
+          </div >
 
           <div className="mt-12 flex flex-col sm:flex-row w-full justify-between gap-4">
             <button
@@ -300,9 +321,9 @@ const UploadModal: React.FC<UploadModalProps> = ({
               )}
             </button>
           </div>
-        </div>
-      </div>
-    </div>
+        </div >
+      </div >
+    </div >
   );
 };
 

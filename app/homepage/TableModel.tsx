@@ -46,7 +46,12 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
     //  Email validation regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    const fullNameRegex = /^[a-zA-Z]+ [a-zA-Z]+$/
+
+    const fullNameRegex = /^[A-Za-z]+(?: [A-Za-z]+)+$/ // At least two words, letters only
+    const onlyLettersRegex = /^[A-Za-z ]+$/ // allows letters and spaces only
+    const hasTwoWords = fullName.split(" ").filter(Boolean).length >= 2
+
+    const isValidFullName = fullNameRegex.test(fullName)
 
     if (!trimmedEmail) {
       setAlert({
@@ -65,12 +70,38 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       })
       return
     }
-    const isValidFullName = fullNameRegex.test(fullName)
 
-    if (!isValidFullName) {
+
+    // if (!isValidFullName) {
+    //   setAlert({
+    //     variant: "error",
+    //     message: "Full name must contain first and last name",
+    //     position: "bottom-right",
+    //   })
+    //   return
+    // }
+    // if (!isValidFullName) {
+    //   setAlert({
+    //     variant: "error",
+    //     message: "Full name must only contain alphabetic characters and include both first and last name.",
+    //     position: "bottom-right",
+    //   })
+    //   return
+    // }
+
+    if (!onlyLettersRegex.test(fullName)) {
       setAlert({
         variant: "error",
-        message: "Full name must contain first and last name",
+        message: "Full name must contain only alphabetic characters and spaces.",
+        position: "bottom-right",
+      })
+      return
+    }
+
+    if (!hasTwoWords) {
+      setAlert({
+        variant: "error",
+        message: "Full name must include both first and last name.",
         position: "bottom-right",
       })
       return

@@ -191,7 +191,6 @@ const MediaOption = ({
         id: id,
       })),
     };
-
     const updatedState = {
       ...campaignFormData,
       channel_mix: updatedChannelMix,
@@ -214,9 +213,8 @@ const MediaOption = ({
         <div className="flex flex-col items-center">
           <div
             onClick={onSelect}
-            className={`relative text-center p-2 arounded-lg border transition ${
-              isSelected ? "border-blue-500 shadow-lg" : "border-gray-300"
-            } cursor-pointer`}
+            className={`relative text-center p-2 arounded-lg border transition ${isSelected ? "border-blue-500 shadow-lg" : "border-gray-300"
+              } cursor-pointer`}
           >
             <Image
               src={option.icon || "/placeholder.svg"}
@@ -372,13 +370,13 @@ const MediaSelectionGrid = ({
           const previews = adSet
             ? adSet.format?.find((f) => f.format_type === option.name)?.previews
             : platform.format?.find((f) => f.format_type === option.name)
-                ?.previews;
+              ?.previews;
 
           const q = adSet
             ? adSet.format?.find((f) => f.format_type === option.name)
-                ?.num_of_visuals
+              ?.num_of_visuals
             : platform.format?.find((f) => f.format_type === option.name)
-                ?.num_of_visuals;
+              ?.num_of_visuals;
 
           return (
             <MediaOption
@@ -993,9 +991,8 @@ export const FormatSelection = () => {
           return (
             <div key={index}>
               <div
-                className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${
-                  isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
-                }`}
+                className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
+                  }`}
                 onClick={() => toggleTab(stage.name)}
               >
                 <div className="flex items-center gap-2">
