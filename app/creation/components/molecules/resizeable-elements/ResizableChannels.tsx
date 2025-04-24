@@ -460,6 +460,8 @@ const ResizableChannels = ({
                   <Image
                     src={channel.icon || "/placeholder.svg"}
                     alt={channel.icon}
+                    width={20}
+                    height={20}
                   />
                   <span className="font-medium whitespace-nowrap">
                     {channel.name}
