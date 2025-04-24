@@ -331,16 +331,23 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     if (active === 7) {
       if (
-        (!selectedDates?.to?.day || !selectedDates?.from?.day) &&
-        subStep < 1
+        campaignFormData?.campaign_timeline_start_date &&
+        campaignFormData?.campaign_timeline_end_date
       ) {
-        setSelectedDatesError(true);
-        setAlert({
-          variant: "error",
-          message: "Choose your start and end date!",
-          position: "bottom-right",
-        });
-        hasError = true;
+        setSelectedDatesError(false);
+      } else {
+        if (
+          (!selectedDates?.to?.day || !selectedDates?.from?.day) &&
+          subStep < 1
+        ) {
+          setSelectedDatesError(true);
+          setAlert({
+            variant: "error",
+            message: "Choose your start and end date!",
+            position: "bottom-right",
+          });
+          hasError = true;
+        }
       }
 
       if (hasChanges) {
@@ -625,7 +632,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                   <p>
                     {active === 0
                       ? "Start"
-                      : active === 4 && !hasFormatEntered(campaignFormData?.channel_mix)
+                      : active === 4 &&
+                        !hasFormatEntered(campaignFormData?.channel_mix)
                       ? "Skip"
                       : isHovered
                       ? "Next Step"

@@ -130,10 +130,10 @@ box-sizing: border-box;
 display: flex;
 flex-direction: row;
 align-items: center;
-padding: 8px 12px 8px 8px;
+padding: 4px;
 gap: 4px;
 /* width: 143px; */
-height: 34px;
+/* height: 34px; */
 left: 549px;
 top: calc(50% - 34px/2);
 background: var(--accent-white);
@@ -152,10 +152,10 @@ box-sizing: border-box;
 display: flex;
 flex-direction: row;
 align-items: center;
-padding: 8px 12px 8px 8px;
+padding: 4px;
 gap: 4px;
 /* width: 143px; */
-height: 34px;
+/* height: 34px; */
 left: 549px;
 top: calc(50% - 34px/2);
 background: var(--accent-blue);
