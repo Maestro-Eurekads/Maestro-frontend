@@ -12,6 +12,7 @@ import { removeKeysRecursively } from "../utils/removeID";
 import { useSelectedDates } from "../app/utils/SelectedDatesContext";
 import { useVerification } from "app/utils/VerificationContext";
 import toast, { Toaster } from "react-hot-toast";
+import { hasFormatEntered } from "./data";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -408,7 +409,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "id",
           "isValidated",
           "validatedStages",
-          "documentId"
+          "documentId",
         ]),
       });
     };
@@ -566,7 +567,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-      
+
       {/* {triggerFormatError && active === 4 && (
         <AlertMain
           key={`format-error-${triggerFormatErrorCount}`}
@@ -616,7 +617,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           </button>
         ) : (
           <div className="flex justify-center items-center gap-3">
-            {active === 5 && (
+            {/* {active === 4 && (
               <button
                 className="p-3 text-[16px] rounded-md  w-[150px] font-semibold text-[#3175FF]"
                 style={{
@@ -626,7 +627,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
               >
                 Skip
               </button>
-            )}
+            )} */}
             <button
               className={clsx(
                 "bottom_black_next_btn whitespace-nowrap",
@@ -647,6 +648,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                   <p>
                     {active === 0
                       ? "Start"
+                      : active === 4 && !hasFormatEntered(campaignFormData?.channel_mix)
+                      ? 
+                        "Skip"
                       : isHovered
                       ? "Next Step"
                       : "Continue"}

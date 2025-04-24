@@ -609,3 +609,37 @@ export const renderUploadedFile = (uploadBlobs, format,index: number) => {
     />
   );
 };
+
+
+export function hasFormatEntered(channelMix) {
+  // Loop through each funnel stage
+  for (const stage of channelMix) {
+    // Check each type of media in the funnel stage
+    const mediaTypes = [
+      'social_media',
+      'display_networks',
+      'search_engines',
+      'streaming',
+      'ooh',
+      'broadcast',
+      'messaging',
+      'print',
+      'e_commerce',
+      'in_game',
+      'mobile'
+    ];
+
+    // Loop through each media type
+    for (const mediaType of mediaTypes) {
+      const platforms = stage[mediaType];
+
+      // Check each platform for a non-empty 'format' array
+      for (const platform of platforms) {
+        if (platform.format && platform.format.length > 0) {
+          return true; // At least one format is entered
+        }
+      }
+    }
+  }
+  return false; // No format found for any platform
+}
