@@ -10,6 +10,7 @@ import { FaSpinner } from "react-icons/fa";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import Link from "next/link";
 import { removeKeysRecursively } from "utils/removeID";
+import { renderUploadedFile } from "components/data";
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -45,15 +46,13 @@ const UploadModal: React.FC<UploadModalProps> = ({
     uploadFilesToStrapi();
   };
 
-
-
   const handleClose = () => {
     // Close the modal
     onClose();
   };
 
-
-  const { campaignFormData, updateCampaign, getActiveCampaign } = useCampaigns();
+  const { campaignFormData, updateCampaign, getActiveCampaign , campaignData} =
+    useCampaigns();
   const [uploads, setUploads] = useState<Array<File | null>>([]);
   const [uploadBlobs, setUploadBlobs] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -69,22 +68,45 @@ const UploadModal: React.FC<UploadModalProps> = ({
     }
   }, [previews, quantities]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
     e.preventDefault();
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+    const allowedTypes =
+      format === "Video"
+        ? ["video/mp4", "video/mov"]
+        : format === "Slideshow"
+        ? [
+            "application/pdf",
+            "application/vnd.ms-powerpoint",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          ]
+        : ["image/jpeg", "image/png", "image/jpg"];
     const maxSizeInMB = 10;
     const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
 
     if (!allowedTypes.includes(file.type)) {
-      toast.error("Invalid file type. Please upload a JPEG, PNG, or JPG file.");
-      return;
+      if (format === "Video") {
+        toast.error("Invalid file type. Please upload a MP4 or MOV file.");
+      } else if (format === "Slideshow") {
+        toast.error("Invalid file type. Please upload a PDF or PPTX file.");
+        return;
+      } else {
+        toast.error(
+          "Invalid file type. Please upload a JPEG, PNG, or JPG file."
+        );
+        return;
+      }
     }
 
     if (file.size > maxSizeInBytes) {
-      toast.error(`File size exceeds ${maxSizeInMB}MB. Please upload a smaller file.`);
+      toast.error(
+        `File size exceeds ${maxSizeInMB}MB. Please upload a smaller file.`
+      );
       return;
     }
 
@@ -131,13 +153,16 @@ const UploadModal: React.FC<UploadModalProps> = ({
         if (file) formData.append("files", file);
       });
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-        },
-        body: formData,
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to upload files to Strapi");
@@ -152,14 +177,16 @@ const UploadModal: React.FC<UploadModalProps> = ({
       await updateGlobalState(formattedFiles);
       toast.success("Files uploaded successfully!");
     } catch (error) {
-      // console.error("Error uploading files:", error);
+      console.error("Error uploading files:", error);
       toast.error("Failed to upload files. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const updateGlobalState = async (uploadedFiles: Array<{ id: string; url: string }>) => {
+  const updateGlobalState = async (
+    uploadedFiles: Array<{ id: string; url: string }>
+  ) => {
     const updatedChannelMix = [...campaignFormData.channel_mix];
 
     const stage = updatedChannelMix.find((ch) => ch.funnel_stage === stageName);
@@ -169,7 +196,9 @@ const UploadModal: React.FC<UploadModalProps> = ({
     const platforms = stage[platformKey];
     if (!platforms) throw new Error("Platform key not found");
 
-    const targetPlatform = platforms.find((pl) => pl.platform_name === platform);
+    const targetPlatform = platforms.find(
+      (pl) => pl.platform_name === platform
+    );
     if (!targetPlatform) throw new Error("Target platform ltx not found");
 
     const targetFormatIndex = targetPlatform.format.findIndex(
@@ -178,16 +207,14 @@ const UploadModal: React.FC<UploadModalProps> = ({
     if (targetFormatIndex === -1) throw new Error("Target format not found");
 
     // Merge new uploads with existing previews
-    const existingPreviews = targetPlatform.format[targetFormatIndex].previews || [];
-    const newPreviews = [
-      ...existingPreviews,
-      ...uploadedFiles,
-    ];
+    const existingPreviews =
+      targetPlatform.format[targetFormatIndex].previews || [];
+    const newPreviews = [...existingPreviews, ...uploadedFiles];
 
     targetPlatform.format[targetFormatIndex].previews = newPreviews;
 
     const updatedState = {
-      ...campaignFormData,
+      ...campaignData,
       channel_mix: updatedChannelMix,
     };
 
@@ -212,6 +239,9 @@ const UploadModal: React.FC<UploadModalProps> = ({
     }
   };
 
+
+
+
   if (!isOpen) return null;
 
   return (
@@ -227,9 +257,12 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
           <div className="flex flex-col items-center gap-4">
             <Image src={uploadIcon} alt="Upload" />
-            <h2 className="font-bold text-xl tracking-tighter">Upload your previews</h2>
+            <h2 className="font-bold text-xl tracking-tighter">
+              Upload your previews
+            </h2>
             <p className="font-lighter text-balance text-md text-black">
-              Upload the visuals for your selected formats. Each visual should have a corresponding preview.
+              Upload the visuals for your selected formats. Each visual should
+              have a corresponding preview.
             </p>
           </div>
 
@@ -251,14 +284,15 @@ const UploadModal: React.FC<UploadModalProps> = ({
                         target="_blank"
                         className="w-full h-full"
                       >
-                        <Image
+                        {/* <Image
                           src={uploadBlobs[index]}
                           alt={`Image ${index}`}
                           className="w-full h-full object-cover"
                           width={225}
                           height={105}
                           objectFit="cover"
-                        />
+                        /> */}
+                        {renderUploadedFile(uploadBlobs, format ,index)}
                       </Link>
                       <button
                         className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
@@ -289,7 +323,14 @@ const UploadModal: React.FC<UploadModalProps> = ({
                       </p>
                       <input
                         type="file"
-                        accept="image/jpeg,image/png,image/jpg"
+                        accept={
+                          format === "Video"
+                            ? "video/mp4,video/mov"
+                            : format === "Slideshow"
+                            ? "application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                            : "image/jpeg,image/png,image/jpg"
+                        }
+                        // "image/jpeg,image/png,image/jpg,video/mp4,video/mov,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
                         id={`upload${index}`}
                         className="hidden"
                         onChange={(e) => handleFileChange(e, index)}
@@ -298,8 +339,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
                   )}
                 </div>
               ))}
-            </div >
-          </div >
+            </div>
+          </div>
 
           <div className="mt-12 flex flex-col sm:flex-row w-full justify-between gap-4">
             <button
@@ -321,9 +362,9 @@ const UploadModal: React.FC<UploadModalProps> = ({
               )}
             </button>
           </div>
-        </div >
-      </div >
-    </div >
+        </div>
+      </div>
+    </div>
   );
 };
 
