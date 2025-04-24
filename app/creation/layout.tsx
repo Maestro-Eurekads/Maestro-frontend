@@ -10,7 +10,7 @@ import { useComments } from "app/utils/CommentProvider";
 
 function Layout({ children }: never) {
   const [isOpen, setIsOpen] = useState(false);
-  const { isDrawerOpen, setIsDrawerOpen, isCreateOpen } = useComments();
+  const { isDrawerOpen, setIsDrawerOpen } = useComments();
 
   return (
     <div id="page-wrapper-flow">

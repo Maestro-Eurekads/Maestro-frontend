@@ -142,7 +142,7 @@ const Dashboard = () => {
   const latestEndDate = max(endDates)
   // Calculate the week difference
   const dayDifference = differenceInCalendarDays(latestEndDate, earliestStartDate)
-  console.log("🚀 ~ Dashboard ~ dayDifference:", dayDifference)
+
 
   const weekDifference = differenceInCalendarWeeks(latestEndDate, earliestStartDate)
 
@@ -189,31 +189,31 @@ const Dashboard = () => {
       data.channel_mix.forEach((stage) => {
         const stageName = stage.funnel_stage
         const stageBudget = Number.parseFloat(stage.stage_budget?.fixed_value)
-        ;["search_engines", "display_networks", "social_media"].forEach((channelType) => {
-          stage[channelType].forEach((platform) => {
-            const platformName = platform.platform_name
-            const platformBudget = Number.parseFloat(platform.budget?.fixed_value || 0)
-            const percentage = (platformBudget / stageBudget) * 100 || 0
-            const existingPlatform = platforms.find((p) => p.platform_name === platformName)
-            if (existingPlatform) {
-              existingPlatform.stages_it_was_found.push({
-                stage_name: stageName,
-                percentage: percentage,
-              })
-            } else {
-              platforms.push({
-                platform_name: platformName,
-                platform_budegt: platformBudget,
-                stages_it_was_found: [
-                  {
-                    stage_name: stageName,
-                    percentage: percentage,
-                  },
-                ],
-              })
-            }
+          ;["search_engines", "display_networks", "social_media"].forEach((channelType) => {
+            stage[channelType].forEach((platform) => {
+              const platformName = platform.platform_name
+              const platformBudget = Number.parseFloat(platform.budget?.fixed_value || 0)
+              const percentage = (platformBudget / stageBudget) * 100 || 0
+              const existingPlatform = platforms.find((p) => p.platform_name === platformName)
+              if (existingPlatform) {
+                existingPlatform.stages_it_was_found.push({
+                  stage_name: stageName,
+                  percentage: percentage,
+                })
+              } else {
+                platforms.push({
+                  platform_name: platformName,
+                  platform_budegt: platformBudget,
+                  stages_it_was_found: [
+                    {
+                      stage_name: stageName,
+                      percentage: percentage,
+                    },
+                  ],
+                })
+              }
+            })
           })
-        })
       })
     return platforms
   }
@@ -247,7 +247,7 @@ const Dashboard = () => {
           </>
         )}
       </div> */}
-       <TimelineContainer
+      <TimelineContainer
         range={range}
         dayDifference={dayDifference}
         weekDifference={weekDifference}
@@ -300,9 +300,8 @@ const Dashboard = () => {
                             ? "#FF9037"
                             : "#F05406",
                     )}
-                    insideText={`${campaign?.campaign_budget?.amount || 0} ${
-                      campaign?.campaign_budget?.currency ? getCurrencySymbol(campaign?.campaign_budget?.currency) : ""
-                    }`}
+                    insideText={`${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency ? getCurrencySymbol(campaign?.campaign_budget?.currency) : ""
+                      }`}
                   />
                   {/* Campaign Phases */}
                   <CampaignPhases

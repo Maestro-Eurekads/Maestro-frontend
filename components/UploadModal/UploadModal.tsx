@@ -39,8 +39,15 @@ const UploadModal: React.FC<UploadModalProps> = ({
   };
 
   const handleConfirm = () => {
+    if (uploads?.length < 1) {
+      toast.error("Please upload the required file before submitting.");
+      return;
+    }
+
     uploadFilesToStrapi();
   };
+
+
 
   const handleClose = () => {
     // Close the modal
@@ -142,48 +149,45 @@ const UploadModal: React.FC<UploadModalProps> = ({
     const targetPlatform = platforms?.find(
       (pl: any) => pl?.platform_name === platform
     );
-    console.log("🚀 ~ updateGlobalState ~ targetPlatform:", targetPlatform);
+
     if (!targetPlatform) return;
 
     const targetFormatIndex = targetPlatform?.format?.findIndex(
       (fo: any) => fo?.format_type === format
     );
-    console.log(
-      "🚀 ~ updateGlobalState ~ targetFormatIndex:",
-      targetFormatIndex
-    );
+
     if (targetFormatIndex === -1 || targetFormatIndex === undefined) return;
 
-    if(!targetPlatform?.format[targetFormatIndex]?.previews) {
-    targetPlatform.format[targetFormatIndex] = {
-      ...targetPlatform.format[targetFormatIndex],
-      previews: Array.from(
-      new Set([
-        ...ids,
-      ])
-      )?.map((id) => ({
-      id: id,
-      })),
-    };
-  } else {
-    targetPlatform.format[targetFormatIndex] = {
-      ...targetPlatform.format[targetFormatIndex],
-      previews: Array.from(
-      new Set([
-        ...ids,
-        ...targetPlatform?.format[targetFormatIndex]?.previews?.map((p: { id: string }) => p.id),
-      ])
-      )?.map((id) => ({
-      id: id,
-      })),
-    };
-  }
-    console.log(updatedChannelMix);
+    if (!targetPlatform?.format[targetFormatIndex]?.previews) {
+      targetPlatform.format[targetFormatIndex] = {
+        ...targetPlatform.format[targetFormatIndex],
+        previews: Array.from(
+          new Set([
+            ...ids,
+          ])
+        )?.map((id) => ({
+          id: id,
+        })),
+      };
+    } else {
+      targetPlatform.format[targetFormatIndex] = {
+        ...targetPlatform.format[targetFormatIndex],
+        previews: Array.from(
+          new Set([
+            ...ids,
+            ...targetPlatform?.format[targetFormatIndex]?.previews?.map((p: { id: string }) => p.id),
+          ])
+        )?.map((id) => ({
+          id: id,
+        })),
+      };
+    }
+
     const updatedState = {
       ...campaignFormData,
       channel_mix: updatedChannelMix,
     };
-    console.log("Updated State:", updatedState);
+
     await uploadUpdatedCampaignToStrapi(updatedState);
   };
 
@@ -241,10 +245,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
       const uploadedFileIds = uploadedFiles.map((file) => file.id);
       await updateGlobalState(uploadedFileIds);
       // Update global state or perform further actions with the uploaded file IDs
-      console.log("Uploaded file IDs:", uploadedFileIds);
+      // console.log("Uploaded file IDs:", uploadedFileIds);
       toast.success("Files uploaded successfully!");
     } catch (error) {
-      console.error("Error uploading files:", error);
+      // console.error("Error uploading files:", error);
       toast.error("Failed to upload files. Please try again.");
       setLoading(false)
     } finally {
@@ -325,10 +329,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
                       key={index}
                       className="w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
                     >
-                        <label
+                      <label
                         className="flex flex-col items-center gap-2 text-center"
                         htmlFor={`upload${index}`}
-                        >
+                      >
                         <svg
                           width="16"
                           height="17"
@@ -337,8 +341,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
                           xmlns="http://www.w3.org/2000/svg"
                         >
                           <path
-                          d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
-                          fill="#3175FF"
+                            d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
+                            fill="#3175FF"
                           />
                         </svg>
                         <p className="text-md text-black font-lighter mt-2">
@@ -351,7 +355,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
                           className="hidden"
                           onChange={(e) => handleFileChange(e, index)}
                         />
-                        </label>
+                      </label>
                     </div>
                   );
                 }

@@ -11,11 +11,13 @@ import { SVGLoader } from 'components/SVGLoader';
 import AlertMain from 'components/Alert/AlertMain';
 import { useSession } from "next-auth/react";
 import { useSearchParams } from 'next/navigation';
+import { useAppSelector } from 'store/useStore';
 
 const AddAsInternalcomment = ({ position, setShow }) => {
 	const { campaignData } = useCampaigns();
 	const { data: session }: any = useSession();
 	const { addComment, isLoading, createCommentsError, comment, setComment } = useComments();
+	const { isLoading: loading } = useAppSelector((state) => state.comment);
 	const [alert, setAlert] = useState(null);
 	const [selectedOption, setSelectedOption] = useState("Add as Internal");
 	const addcomment_as = selectedOption === "Add as Internal" ? "Internal" : "Client";
@@ -69,17 +71,19 @@ const AddAsInternalcomment = ({ position, setShow }) => {
 					<InternalDropdowns setSelectedOption={setSelectedOption} selectedOption={selectedOption} />
 					<div>
 						<button
+							disabled={loading}
 							onClick={handleAddComment}
-							className="flex flex-row justify-center items-center px-[28px] py-[10px] gap-[8px] w-[135px] h-[40px] bg-[#3175FF] rounded-[8px] font-semibold text-[15px] leading-[20px] text-white cursor-pointer z-40 "
+							className={`flex flex-row justify-center items-center px-[28px] py-[10px] gap-[8px] w-[135px] h-[40px] rounded-[8px] font-semibold text-[15px] leading-[20px] text-white z-40
+    ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3175FF] cursor-pointer'}`}
 						>
-							{/* Comment */}
 							{isLoading ? (
-								<SVGLoader width={"25px"} height={"25px"} color={"#FFF"} />
+								<SVGLoader width="25px" height="25px" color="#FFF" />
 							) : (
 								"Comment"
 							)}
 							<Image src={send} alt="send" />
 						</button>
+
 					</div>
 				</div>
 			</div>

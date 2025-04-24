@@ -55,6 +55,8 @@ export const SetupScreen = () => {
     setClose(false);
   }, []);
 
+  console.log('campaignFormData-campaignFormData-campaignFormData', campaignFormData)
+
   // Initialize campaignFormData if empty
   useEffect(() => {
     if (!campaignFormData && !isInitialized) {
@@ -173,10 +175,7 @@ export const SetupScreen = () => {
     },
   ];
 
-  const mediaBudgetPercentage = [
-    { value: "Tooling", label: "Tooling" },
-    { value: "Fix budget fee", label: "Fix budget fee" },
-  ];
+
 
   // Updated useEffect to handle currencySign dynamically
   useEffect(() => {
