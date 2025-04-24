@@ -17,6 +17,7 @@ import { funnels, funnelStages } from "components/data";
 import adset from "../../../public/adset_level.svg";
 import channel from "../../../public/channel_level.svg";
 import Modal from "components/Modals/Modal";
+import customicon from "../../../public/social/customicon.png";
 
 const DefineAdSetPage = () => {
   const [openItems, setOpenItems] = useState({});
@@ -121,14 +122,21 @@ const DefineAdSetPage = () => {
               onClick={() => toggleItem(stage.name)}
             >
               <div className="flex items-center gap-4">
-                {funn?.icon &&
+                {funn?.icon ? (
                   <Image
-                    src={funn?.icon || "/placeholder.svg"}
+                    src={funn.icon}
                     alt={stage.name}
                     width={20}
                     height={20}
                   />
-                }
+                ) : (
+                  <Image
+                    src={customicon}
+                    alt={stage.name}
+                    width={20}
+                    height={20}
+                  />
+                )}
                 <p className="text-md font-semibold text-[#061237]">
                   {stage.name}
                 </p>
