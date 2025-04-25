@@ -99,7 +99,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     while (currentSnap <= containerWidth) {
       snapPoints.push(currentSnap);
       currentSnap += step;
-      step = Math.max(30, step - adjustmentPerStep); // Optional: don't let it go below 30
+      // step = Math.max(30, step - adjustmentPerStep);
     }
 
     console.log("Custom snap points:", snapPoints);
