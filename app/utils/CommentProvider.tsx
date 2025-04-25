@@ -37,6 +37,7 @@ export const CommentProvider = ({ children }) => {
 	const [generalComment, setGeneralComment] = useState("");
 	const [selected, setSelected] = useState(null);
 	const [isOpen, setIsOpen] = useState(false);
+	const [showbyID, setShowbyID] = useState(false);
 
 	const dispatch = useAppDispatch();
 	const { data } = useAppSelector((state) => state.comment);
