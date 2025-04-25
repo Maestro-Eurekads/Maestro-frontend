@@ -63,7 +63,6 @@ const ClientDraggableComment = ({ comment, commentId }) => {
 		}
 	};
 
-	// console.log('comment-comment', comment)
 
 
 	return (

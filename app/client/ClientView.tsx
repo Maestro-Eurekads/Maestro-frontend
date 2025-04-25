@@ -35,7 +35,7 @@ import upfull from "../../public/arrow-up-full.svg";
 import downfull from "../../public/arrow-down-full.svg";
 import upoffline from "../../public/arrow-up-offline.svg";
 import { useKpis } from 'app/utils/KpiProvider';
-import { categoryOrder, kpiCategories, mapKPIStatsToStatsDataDynamic } from 'components/Options';
+import { aggregateKPIStatsFromExtracted, categoryOrder, extractKPIByFunnelStage, kpiCategories, mapKPIStatsToStatsDataDynamic } from 'components/Options';
 
 
 const channels = [
@@ -123,7 +123,6 @@ interface Reply {
 }
 const ClientView = () => {
 	const { isDrawerOpen, setIsDrawerOpen, isCreateOpen, setClose, modalOpen, setModalOpen, selected, isOpen, setIsOpen } = useComments();
-	// const [isOpen, setIsOpen] = useState(false);
 	const [generalComment, setGeneralComment] = useState(false);
 	const [active, setActive] = useState("Timeline view");
 	const { clientCampaignData, campaignData, getActiveCampaign } = useCampaigns();
@@ -133,7 +132,6 @@ const ClientView = () => {
 		.sort((a: Comment, b: Comment) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 	const allApproved = (comments?.length || 0) > 0 && comments.every((comment: Comment) => comment?.approved === true);
 	const dispatch = useAppDispatch();
-	// const commentId = campaignData?.documentId
 	const { campaigns, loading, fetchCampaignsByClientId } = useClientCampaign();
 	const [finalCategoryOrder, setFinalCategoryOrder] = useState(categoryOrder); // default fallback
 	const { data: session }: any = useSession();
@@ -169,7 +167,6 @@ const ClientView = () => {
 
 	useEffect(() => {
 		if (selected) {
-			// dispatch(getCampaignById(clientId, selected));
 			dispatch(getCampaignById({ clientId: clientId, campaignId: selected }));
 			dispatch(getComment(commentId, client_commentId));
 			dispatch(getGeneralComment(commentId));
@@ -192,207 +189,104 @@ const ClientView = () => {
 
 
 
-	function extractKPIByFunnelStage(data, kpiCategories) {
-		const result = {};
-		const channelMix = data?.channel_mix;
+	// function extractKPIByFunnelStage(data, kpiCategories) {
+	// 	const result = {};
+	// 	const channelMix = data?.channel_mix;
 
-		channelMix?.forEach((stage) => {
-			const funnelStage = stage?.funnel_stage;
-			result[funnelStage] = [];
+	// 	channelMix?.forEach((stage) => {
+	// 		const funnelStage = stage?.funnel_stage;
+	// 		result[funnelStage] = [];
 
-			const socialMedia = stage?.social_media || [];
-			socialMedia.forEach((platform) => {
-				const platformName = platform?.platform_name;
-				const kpi = platform?.kpi || {};
-				const groupedKPIs = {};
+	// 		const socialMedia = stage?.social_media || [];
+	// 		socialMedia.forEach((platform) => {
+	// 			const platformName = platform?.platform_name;
+	// 			const kpi = platform?.kpi || {};
+	// 			const groupedKPIs = {};
 
-				Object.keys(kpiCategories).forEach((category) => {
-					groupedKPIs[category] = {};
-					const kpiList = kpiCategories[category];
+	// 			Object.keys(kpiCategories).forEach((category) => {
+	// 				groupedKPIs[category] = {};
+	// 				const kpiList = kpiCategories[category];
 
-					kpiList?.forEach((kpiName) => {
-						const kpiKey = kpiName
-							.toLowerCase()
-							.replace(/ /g, "_")
-							.replace("/", "__");
-						if (kpi[kpiKey] !== undefined && kpi[kpiKey] !== null) {
-							groupedKPIs[category][kpiName] = kpi[kpiKey];
-						}
-					});
+	// 				kpiList?.forEach((kpiName) => {
+	// 					const kpiKey = kpiName
+	// 						.toLowerCase()
+	// 						.replace(/ /g, "_")
+	// 						.replace("/", "__");
+	// 					if (kpi[kpiKey] !== undefined && kpi[kpiKey] !== null) {
+	// 						groupedKPIs[category][kpiName] = kpi[kpiKey];
+	// 					}
+	// 				});
 
-					if (Object.keys(groupedKPIs[category])?.length === 0) {
-						delete groupedKPIs[category];
-					}
-				});
-
-				result[funnelStage].push({
-					platform_name: platformName,
-					kpi: groupedKPIs, // Fixed: Changed zonedKPIs to groupedKPIs
-				});
-			});
-		});
-
-		return result;
-	}
-
-	function aggregateKPIStatsFromExtracted(extractedData, kpiCategories) {
-		const kpiAccumulator = {};
-
-		Object.keys(kpiCategories).forEach((category) => {
-			kpiAccumulator[category] = {};
-			kpiCategories[category].forEach((kpiName) => {
-				kpiAccumulator[category][kpiName] = {
-					values: [],
-					displayName: kpiName,
-				};
-			});
-		});
-
-		Object.keys(extractedData).forEach((funnelStage) => {
-			const platforms = extractedData[funnelStage] || [];
-
-			platforms.forEach((platform) => {
-				const kpi = platform?.kpi || {};
-
-				Object.keys(kpiCategories).forEach((category) => {
-					const kpiList = kpiCategories[category];
-					const categoryData = kpi[category] || {};
-
-					kpiList.forEach((kpiName) => {
-						if (categoryData[kpiName] !== undefined && categoryData[kpiName] !== null) {
-							kpiAccumulator[category][kpiName].values.push(categoryData[kpiName]);
-						}
-					});
-				});
-			});
-		});
-
-		const aggregatedStats = {};
-
-		Object.keys(kpiAccumulator).forEach((category) => {
-			aggregatedStats[category] = {};
-
-			Object.keys(kpiAccumulator[category]).forEach((kpiName) => {
-				const kpiData = kpiAccumulator[category][kpiName];
-				const values = kpiData?.values;
-
-				if (values.length > 0) {
-					const average = values.reduce((sum, val) => sum + val, 0) / values?.length;
-					aggregatedStats[category][kpiData?.displayName] = Number(average.toFixed(2));
-				}
-			});
-
-			if (Object.keys(aggregatedStats[category])?.length === 0) {
-				delete aggregatedStats[category];
-			}
-		});
-
-		return aggregatedStats;
-	}
-
-
-
-
-
-	// function mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, icons) {
-	// 	const categoryMappingBase = {
-	// 		"Awareness Metrics": {
-	// 			title: "Brand Awareness",
-	// 			background: "#E5F2F7",
-	// 			icons: { up: icons.upfull, down: icons.downoffline },
-	// 			priorityKPIs: ["Reach", "Frequency", "Impressions"]
-	// 		},
-	// 		"Traffic": {
-	// 			title: "Traffic",
-	// 			background: "#E6F4D5",
-	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			priorityKPIs: ["CTR", "Link Clicks", "Bounce Rate"]
-	// 		},
-	// 		"Purchase": {
-	// 			title: "Purchase",
-	// 			background: "#FFE2C5",
-	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			priorityKPIs: ["CTR", "Purchases", "CVR"]
-	// 		},
-	// 		"Lead Generation (On platform)": {
-	// 			title: "Lead Generation Platform",
-	// 			background: "#E5F2F7",
-	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			priorityKPIs: ["CVR", "Leads", "Cost / lead"]
-	// 		},
-	// 		"Lead Generation (On website)": {
-	// 			title: "Lead Generation Website",
-	// 			background: "#E5F2F7",
-	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			priorityKPIs: ["CVR", "Leads", "Cost / lead"]
-	// 		},
-	// 		"App Install": {
-	// 			title: "App Installs",
-	// 			background: "#E6F4D5",
-	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			priorityKPIs: ["CTR", "Installs", "Install Rate"]
-	// 		},
-	// 		"Engagement": {
-	// 			title: "Engagement",
-	// 			background: "#FFE2C5",
-	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			priorityKPIs: ["Eng Rate", "Engagements", "CPE"]
-	// 		},
-	// 		"In-App Conversion": {
-	// 			title: "In-App Conversion",
-	// 			background: "#E5F2F7",
-	// 			icons: { up: icons.upfull, down: icons.downfull },
-	// 			priorityKPIs: ["CTR", "CPC", "App Open", "Link Clicks", "Open Rate"]
-	// 		},
-	// 		"Video Views": {
-	// 			title: "Video Views",
-	// 			background: "#E6F4D5",
-	// 			icons: { up: icons.upoffline, down: icons.downfull },
-	// 			priorityKPIs: ["VTR", "Video Views", "Completion Rate"]
-	// 		}
-	// 	};
-
-	// 	const formatKPIValue = (value, kpiName) => {
-	// 		if (value === undefined || value === null) {
-	// 			if (kpiName.includes("Cost") || kpiName.includes("CPL")) return "$0";
-	// 			if (kpiName.includes("Rate") || ["CTR", "CVR", "Frequency"].includes(kpiName)) return "0%";
-	// 			return "0";
-	// 		}
-	// 		const formattedValue = value.toString();
-	// 		if (kpiName.includes("Cost") || kpiName.includes("CPL")) return `$${formattedValue}`;
-	// 		if (kpiName.includes("Rate") || ["CTR", "CVR", "Frequency"].includes(kpiName)) return `${formattedValue}%`;
-	// 		return formattedValue;
-	// 	};
-
-	// 	return React.useMemo(() => {
-	// 		return categoryOrder?.filter((kpiCategory) => aggregatedStats[kpiCategory]) // Only include if data exists
-	// 			?.map((kpiCategory, index) => {
-	// 				const category = categoryMappingBase[kpiCategory];
-	// 				const kpiData = aggregatedStats[kpiCategory] || {};
-	// 				const availableKPIs = Object.keys(kpiData);
-
-	// 				const selectedKPIs = [
-	// 					...category?.priorityKPIs?.filter((kpi) => availableKPIs.includes(kpi)),
-	// 					...availableKPIs?.filter((kpi) => !category?.priorityKPIs?.includes(kpi)),
-	// 				].map((kpiName) => ({
-	// 					label: kpiName,
-	// 					value: formatKPIValue(kpiData[kpiName], kpiName),
-	// 				}));
-
-	// 				const indicators = Array(categoryOrder?.length).fill("#C0C0C0");
-	// 				indicators[index] = "#3175FF";
-
-	// 				return {
-	// 					title: category?.title,
-	// 					background: category?.background,
-	// 					stats: selectedKPIs?.length > 0 ? selectedKPIs : [{ label: "No Data", value: "0" }],
-	// 					indicators,
-	// 					icons: category?.icons,
-	// 					kpiCategory,
-	// 				};
+	// 				if (Object.keys(groupedKPIs[category])?.length === 0) {
+	// 					delete groupedKPIs[category];
+	// 				}
 	// 			});
-	// 	}, [aggregatedStats, kpiCategories, icons]);
+
+	// 			result[funnelStage].push({
+	// 				platform_name: platformName,
+	// 				kpi: groupedKPIs, // Fixed: Changed zonedKPIs to groupedKPIs
+	// 			});
+	// 		});
+	// 	});
+
+	// 	return result;
 	// }
+
+	// function aggregateKPIStatsFromExtracted(extractedData, kpiCategories) {
+	// 	const kpiAccumulator = {};
+
+	// 	Object.keys(kpiCategories).forEach((category) => {
+	// 		kpiAccumulator[category] = {};
+	// 		kpiCategories[category].forEach((kpiName) => {
+	// 			kpiAccumulator[category][kpiName] = {
+	// 				values: [],
+	// 				displayName: kpiName,
+	// 			};
+	// 		});
+	// 	});
+
+	// 	Object.keys(extractedData).forEach((funnelStage) => {
+	// 		const platforms = extractedData[funnelStage] || [];
+
+	// 		platforms.forEach((platform) => {
+	// 			const kpi = platform?.kpi || {};
+
+	// 			Object.keys(kpiCategories).forEach((category) => {
+	// 				const kpiList = kpiCategories[category];
+	// 				const categoryData = kpi[category] || {};
+
+	// 				kpiList.forEach((kpiName) => {
+	// 					if (categoryData[kpiName] !== undefined && categoryData[kpiName] !== null) {
+	// 						kpiAccumulator[category][kpiName]?.values?.push(categoryData[kpiName]);
+	// 					}
+	// 				});
+	// 			});
+	// 		});
+	// 	});
+
+	// 	const aggregatedStats = {};
+
+	// 	Object.keys(kpiAccumulator).forEach((category) => {
+	// 		aggregatedStats[category] = {};
+
+	// 		Object.keys(kpiAccumulator[category]).forEach((kpiName) => {
+	// 			const kpiData = kpiAccumulator[category][kpiName];
+	// 			const values = kpiData?.values;
+
+	// 			if (values.length > 0) {
+	// 				const average = values.reduce((sum, val) => sum + val, 0) / values?.length;
+	// 				aggregatedStats[category][kpiData?.displayName] = Number(average.toFixed(2));
+	// 			}
+	// 		});
+
+	// 		if (Object.keys(aggregatedStats[category])?.length === 0) {
+	// 			delete aggregatedStats[category];
+	// 		}
+	// 	});
+
+	// 	return aggregatedStats;
+	// }
+
 
 	const fetchCategories = async (campaign_id) => {
 		const kpiData = await getKpis(campaign_id);

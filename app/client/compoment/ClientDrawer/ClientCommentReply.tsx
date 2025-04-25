@@ -1,4 +1,3 @@
-import { useComments } from "app/utils/CommentProvider";
 import { useEffect, useState } from "react";
 import { useAppSelector } from "store/useStore";
 
@@ -15,11 +14,6 @@ interface Reply {
 	date?: string;
 	time?: string;
 	message?: string;
-}
-
-interface ClientCommentReplyProps {
-	documentId: string;
-	contrastingColor: string;
 }
 
 
@@ -53,8 +47,6 @@ const ClientCommentReply = ({ documentId, contrastingColor }) => {
 					<div className="w-[70%] h-0 border border-black/50" />
 				</div>
 			)}
-
-
 
 			{/* Replies List */}
 			<div className="w-full mt-5 px-8 pt-4">

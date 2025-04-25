@@ -13,15 +13,13 @@ const ClientDraggableComment = ({ comment }) => {
 		updateCommentPosition(comment.documentId, newPosition);
 	};
 
-	console.log('comment?.position-comment?.position', comment?.position)
-
 
 
 	return (
 		<Draggable
 			handle=".drag-handle"
 			nodeRef={commentRef}
-			defaultPosition={comment?.position || { x: 150, y: 150 }}
+			defaultPosition={comment?.position}
 			onStop={handleStop}
 		>
 			<div ref={commentRef} className="absolute cursor-move drag-handle z-50">

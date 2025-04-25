@@ -133,7 +133,6 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 	}, [dispatch]);
 
 
-	console.log('viewcommentsId-viewcommentsId', viewcommentsId)
 
 
 

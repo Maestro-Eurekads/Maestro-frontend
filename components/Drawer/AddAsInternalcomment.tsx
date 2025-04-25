@@ -21,7 +21,6 @@ const AddAsInternalcomment = ({ position, setShow }) => {
 	const [alert, setAlert] = useState(null);
 	const [selectedOption, setSelectedOption] = useState("Add as Internal");
 	const addcomment_as = selectedOption === "Add as Internal" ? "Internal" : "Client";
-	// const commentId = campaignData?.documentId
 	const query = useSearchParams();
 	const commentId = query.get("campaignId");
 	const creator = {
