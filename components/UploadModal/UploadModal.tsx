@@ -56,6 +56,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const [uploads, setUploads] = useState<Array<File | null>>([]);
   const [uploadBlobs, setUploadBlobs] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
 
   // Initialize uploadBlobs with existing previews
   useEffect(() => {
@@ -68,7 +69,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
     }
   }, [previews, quantities]);
 
-  const handleFileChange = (
+  const handleFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
     index: number
   ) => {
@@ -117,13 +118,29 @@ const UploadModal: React.FC<UploadModalProps> = ({
       updated[index] = file;
       return updated;
     });
+    setUploadingIndex(index);
 
-    const objectUrl = URL.createObjectURL(file);
-    setUploadBlobs((prev) => {
-      const updated = [...prev];
-      updated[index] = objectUrl;
-      return updated;
-    });
+    try {
+      // Simulate loading time for file processing
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      setUploads((prev) => {
+        const updated = [...prev];
+        updated[index] = file;
+        return updated;
+      });
+
+      const objectUrl = URL.createObjectURL(file);
+      setUploadBlobs((prev) => {
+        const updated = [...prev];
+        updated[index] = objectUrl;
+        return updated;
+      });
+    } catch (error) {
+      toast.error("Error processing file. Please try again.");
+    } finally {
+      setUploadingIndex(null);
+    }
 
     e.target.value = ""; // Reset input
   };
@@ -276,7 +293,11 @@ const UploadModal: React.FC<UploadModalProps> = ({
                   key={index}
                   className="w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors relative"
                 >
-                  {uploadBlobs[index] ? (
+                  {uploadingIndex === index ? (
+                    <div className="flex items-center justify-center">
+                      <FaSpinner className="animate-spin text-blue-500 text-2xl" />
+                    </div>
+                  ) : uploadBlobs[index] ? (
                     <>
                       <div className="w-full h-full">
                         {renderUploadedFile(uploadBlobs, format, index, uploads[index])}
@@ -317,7 +338,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
                             ? "application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
                             : "image/jpeg,image/png,image/jpg"
                         }
-                        // "image/jpeg,image/png,image/jpg,video/mp4,video/mov,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
                         id={`upload${index}`}
                         className="hidden"
                         onChange={(e) => handleFileChange(e, index)}

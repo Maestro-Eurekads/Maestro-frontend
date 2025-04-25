@@ -389,6 +389,11 @@ const ObjectiveSelection = () => {
   };
 
   const handleSaveCustomValue = async (field) => {
+    if (!customValue.trim()) {
+      toast.error("Please enter a value");
+      return;
+    }
+    
     const endpoint = field === "obj" ? "/buy-objectives" : "/buy-types";
     setLoading(true);
     try {
