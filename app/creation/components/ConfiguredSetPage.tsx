@@ -16,7 +16,11 @@ import Display from "../../../public/Display.svg";
 import yahoo from "../../../public/yahoo.svg";
 import bing from "../../../public/bing.svg";
 import tictok from "../../../public/tictok.svg";
-import { funnelStages, getPlatformIcon } from "components/data";
+import {
+  formatNumberWithCommas,
+  funnelStages,
+  getPlatformIcon,
+} from "components/data";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { toast } from "react-toastify";
 import { FaCheckCircle } from "react-icons/fa";
@@ -315,12 +319,28 @@ const ConfiguredSetPage = () => {
                           <input
                             type="text"
                             className="w-full px-4 focus:outline-none"
-                            value={stageBudget?.toLocaleString() || ""}
+                            value={
+                              formatNumberWithCommas(
+                                campaignFormData?.channel_mix?.find(
+                                  (ch: { funnel_stage: string }) =>
+                                    ch?.funnel_stage === stageName
+                                )?.stage_budget?.fixed_value
+                              ) || ""
+                            }
                             onChange={(e) => {
-                              const newBudget = Number(e.target.value);
+                              const inputValue = e.target.value.replace(
+                                /,/g,
+                                ""
+                              ); // Remove commas
+                              const newBudget = Number(inputValue);
                               const currentTotal =
                                 campaignFormData?.channel_mix?.reduce(
-                                  (acc, stage) => {
+                                  (
+                                    acc: number,
+                                    stage: {
+                                      stage_budget: { fixed_value: string };
+                                    }
+                                  ) => {
                                     return (
                                       acc +
                                       (Number(
@@ -338,21 +358,29 @@ const ConfiguredSetPage = () => {
                                 totalBudget
                               ) {
                                 const updatedChannelMix =
-                                  campaignFormData.channel_mix.map((ch) => {
-                                    if (ch.funnel_stage === stage.name) {
-                                      return {
-                                        ...ch,
-                                        stage_budget: {
-                                          ...ch.stage_budget,
-                                          fixed_value: newBudget?.toString(),
-                                          percentage_value: String(
-                                            (newBudget / totalBudget) * 100
-                                          ),
-                                        },
+                                  campaignFormData.channel_mix.map(
+                                    (ch: {
+                                      funnel_stage: string;
+                                      stage_budget: {
+                                        fixed_value: string;
+                                        percentage_value: string;
                                       };
+                                    }) => {
+                                      if (ch.funnel_stage === stage.name) {
+                                        return {
+                                          ...ch,
+                                          stage_budget: {
+                                            ...ch.stage_budget,
+                                            fixed_value: newBudget?.toString(),
+                                            percentage_value: String(
+                                              (newBudget / totalBudget) * 100
+                                            ),
+                                          },
+                                        };
+                                      }
+                                      return ch;
                                     }
-                                    return ch;
-                                  });
+                                  );
                                 setCampaignFormData({
                                   ...campaignFormData,
                                   channel_mix: updatedChannelMix,
@@ -463,9 +491,13 @@ const ConfiguredSetPage = () => {
                                 <input
                                   type="text"
                                   className="w-full px-4 focus:outline-none"
-                                  value={budgetValue}
+                                  value={formatNumberWithCommas(budgetValue)}
                                   onChange={(e) => {
-                                    const newBudget = e.target.value;
+                                    const inputValue = e.target.value.replace(
+                                      /,/g,
+                                      ""
+                                    );
+                                    const newBudget = inputValue;
                                     setCampaignFormData(
                                       (prevData: typeof campaignFormData) => {
                                         const updatedChannelMix =
@@ -702,28 +734,25 @@ const ConfiguredSetPage = () => {
                           </div>
                           <div className="pb-8 space-y-6">
                             {platform?.ad_sets?.map((ad_set, index) => {
+                              console.log("fdfd", ad_set);
                               const getAdSetBudget = (adSet) => {
-                                return (
-                                  adSet?.budget?.fixed_value ||
-                                  (platform?.budget?.fixed_value &&
-                                  platform.ad_sets?.platform.ad_sets?.length
-                                    ? (
-                                        Number(platform.budget.fixed_value) /
-                                        platform.ad_sets.length
-                                      ).toFixed(2)
-                                    : "0")
-                                );
+                                return adSet?.budget?.fixed_value &&
+                                  platform.ad_sets?.length
+                                  ? Number(adSet?.budget?.fixed_value).toFixed(
+                                      2
+                                    )
+                                  : "0";
                               };
                               const adSetPercentage =
-                                ad_set?.budget?.percentage_value ||
-                                (platform?.budget?.fixed_value &&
+                                (ad_set?.budget?.percentage_value ||
+                                  platform?.budget?.fixed_value) &&
                                 Number(getAdSetBudget(ad_set))
                                   ? (
                                       (Number(getAdSetBudget(ad_set)) /
                                         Number(platform.budget.fixed_value)) *
                                       100
                                     ).toFixed(1)
-                                  : "0");
+                                  : "0";
                               return (
                                 <div
                                   key={index}
@@ -764,9 +793,13 @@ const ConfiguredSetPage = () => {
                                       <input
                                         type="text"
                                         className="w-full px-4 focus:outline-none"
-                                        value={getAdSetBudget(ad_set)}
+                                        value={formatNumberWithCommas(
+                                          getAdSetBudget(ad_set)
+                                        )}
                                         onChange={(e) => {
-                                          const newBudget = e.target.value;
+                                          const inputValue =
+                                            e.target.value.replace(/,/g, "");
+                                          const newBudget = inputValue;
                                           setCampaignFormData((prevData) => {
                                             const updatedChannelMix =
                                               prevData.channel_mix.map((ch) => {

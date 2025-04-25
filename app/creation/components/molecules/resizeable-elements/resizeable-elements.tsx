@@ -8,6 +8,7 @@ import ResizableChannels from "./ResizableChannels";
 import { useFunnelContext } from "../../../../utils/FunnelContextType";
 import {
   funnels,
+  funnelStages,
   getPlatformIcon,
   platformStyles,
 } from "../../../../../components/data";
@@ -20,7 +21,7 @@ interface OutletType {
   icon: StaticImageData;
   color: string;
   bg: string;
-  channelName: string
+  channelName: string;
 }
 
 const ResizeableElements = () => {
@@ -81,14 +82,26 @@ const ResizeableElements = () => {
 
     if (channelMix && channelMix?.length > 0) {
       channelMix.forEach((stage: any) => {
-        const { funnel_stage, search_engines, display_networks, social_media } =
-          stage;
+        const {
+          funnel_stage,
+          search_engines,
+          display_networks,
+          social_media,
+          streaming,
+          ooh,
+          broadcast,
+          messaging,
+          print,
+          e_commerce,
+          in_game,
+          mobile,
+        } = stage;
 
         if (!platformsByStage[funnel_stage]) {
           platformsByStage[funnel_stage] = [];
         }
 
-        const processPlatforms = (platforms: any[], channelName:string) => {
+        const processPlatforms = (platforms: any[], channelName: string) => {
           platforms.forEach((platform: any) => {
             const icon = getPlatformIcon(platform?.platform_name);
             if (icon) {
@@ -106,26 +119,32 @@ const ResizeableElements = () => {
                 icon,
                 color: style.color,
                 bg: style.bg,
-                channelName
+                channelName,
               });
             }
           });
         };
 
         // Process search engines
-        if (Array.isArray(search_engines)) {
-          processPlatforms(search_engines, "search_engines");
-        }
+        const channels = [
+          "social_media",
+          "display_networks",
+          "search_engines",
+          "streaming",
+          "ooh",
+          "broadcast",
+          "messaging",
+          "print",
+          "e_commerce",
+          "in_game",
+          "mobile",
+        ];
 
-        // Process display networks
-        if (Array.isArray(display_networks)) {
-          processPlatforms(display_networks, "display_networks");
-        }
-
-        // Process social media
-        if (Array.isArray(social_media)) {
-          processPlatforms(social_media, "social_media");
-        }
+        channels.forEach((channel) => {
+          if (Array.isArray(stage[channel])) {
+            processPlatforms(stage[channel], channel);
+          }
+        });
       });
     }
 
@@ -147,11 +166,13 @@ const ResizeableElements = () => {
       const initialWidths: Record<string, number> = {};
       const initialPositions: Record<string, number> = {};
 
-      campaignFormData.funnel_stages.forEach((stageName: string) => {
-        const stage = funnels.find((s) => s.description === stageName);
+      campaignFormData?.funnel_stages?.map((stageName, index) => {
+        const stage = campaignFormData?.custom_funnels?.find(
+          (s) => s?.name === stageName
+        );
         if (stage) {
-          initialWidths[stage.description] = 300; // Default width
-          initialPositions[stage.description] = 0; // Default left position
+          initialWidths[stage.name] = 300; // Default width
+          initialPositions[stage.name] = 0; // Default left position
         }
       });
 
@@ -169,16 +190,18 @@ const ResizeableElements = () => {
       }}
     >
       {campaignFormData?.funnel_stages?.map((stageName, index) => {
-        const stage = funnels.find((s) => s.description === stageName);
+        const stage = campaignFormData?.custom_funnels?.find(
+          (s) => s?.name === stageName
+        );
+        const funn = funnelStages?.find((ff) => ff?.name === stageName);
         if (!stage) return null;
-
-        const channelWidth = funnelWidths[stage?.description] || 400;
-        const isOpen = openChannels[stage?.description] || false; // Get open state by ID
+        console.log(stage);
+        const channelWidth = funnelWidths[stage?.name] || 400;
+        const isOpen = openChannels[stage?.name] || false; // Get open state by ID
 
         // Get the specific width and position for this channel or use default
-        const currentChannelWidth = channelWidths[stage?.description] || 300;
-        const currentChannelPosition =
-          channelPositions[stage?.description] || 0;
+        const currentChannelWidth = channelWidths[stage?.name] || 300;
+        const currentChannelPosition = channelPositions[stage?.name] || 0;
 
         return (
           <div
@@ -196,31 +219,31 @@ const ResizeableElements = () => {
               }}
             >
               <DraggableChannel
-                id={stage?.description} // Use description as ID
+                id={stage?.name} // Use description as ID
                 openChannel={isOpen} // Pass specific open state
-                bg={stage?.bg}
-                description={stage?.description}
+                bg={stage?.color?.split("-")[1]}
+                description={stage?.name}
                 setIsOpen={setIsOpen}
-                setOpenChannel={() => toggleChannel(stage?.description)} // Toggle only this channel
-                Icon={stage?.Icon}
+                setOpenChannel={() => toggleChannel(stage?.name)} // Toggle only this channel
+                Icon={stage?.activeIcon}
                 dateList={range}
                 dragConstraints={gridRef}
                 parentWidth={currentChannelWidth} // Use channel-specific width
                 setParentWidth={(width) =>
-                  updateChannelWidth(stage?.description, width)
+                  updateChannelWidth(stage?.name, width)
                 } // Update only this channel's width
                 // Add props to track and update position
                 parentLeft={currentChannelPosition}
                 setParentLeft={(left) =>
-                  updateChannelPosition(stage?.description, left)
+                  updateChannelPosition(stage?.name, left)
                 }
               />
 
               {isOpen && ( // Only show this if the specific channel is open
                 <div>
                   <ResizableChannels
-                    channels={platforms[stage.description]}
-                    parentId={stage?.description}
+                    channels={platforms[stage.name]}
+                    parentId={stage?.name}
                     parentWidth={currentChannelWidth} // Use channel-specific width
                     parentLeft={currentChannelPosition} // Pass parent's left position
                     setIsOpen={setIsOpen}
@@ -232,7 +255,11 @@ const ResizeableElements = () => {
           </div>
         );
       })}
-      <AddNewChennelsModel isOpen={isOpen} setIsOpen={setIsOpen} setPlatforms={setPlatforms}/>
+      <AddNewChennelsModel
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        setPlatforms={setPlatforms}
+      />
     </div>
   );
 };
