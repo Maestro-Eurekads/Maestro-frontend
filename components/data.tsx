@@ -643,3 +643,12 @@ export function hasFormatEntered(channelMix) {
   }
   return false; // No format found for any platform
 }
+
+
+
+export const formatNumberWithCommas = (value: string | number): string => {
+  if (!value) return "";
+  const number = typeof value === "string" ? parseFloat(value) : value;
+  if (isNaN(number)) return "";
+  return new Intl.NumberFormat().format(number);
+};

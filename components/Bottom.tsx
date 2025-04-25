@@ -479,7 +479,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         await handleStepSeven();
       } else if (active === 6) {
         await handleStepSeven();
-      } else if (active > 3 && subStep < 1) {
+      } else if (active > 3 && subStep < 2) {
         await handleStepFour();
       }
 
