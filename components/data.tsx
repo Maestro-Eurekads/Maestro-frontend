@@ -113,6 +113,7 @@ import mingcute_basket from "../public/mingcute_basket-fill.svg";
 import mdi_leads from "../public/mdi_leads.svg";
 import apple from "../public/social/apple.jpeg";
 import Image, { StaticImageData } from "next/image";
+import DocViewer, { DocViewerRenderers } from "react-doc-viewer";
 
 export const platformIcons: Record<string, StaticImageData> = {
   Facebook: facebook,
@@ -221,7 +222,7 @@ export const platformIcons: Record<string, StaticImageData> = {
   Door: door,
   "Door Hangers": door,
   DirectMail: directmail,
-  Brochure: brochure, 
+  Brochure: brochure,
   Cinema: cinema,
   Television: television,
   Radio: radio,
@@ -243,7 +244,8 @@ export const getPlatformIcon = (platformName: string): StaticImageData => {
     normalizedName,
     platformName.toLowerCase(),
     platformName.charAt(0).toUpperCase() + platformName.slice(1).toLowerCase(),
-    normalizedName.charAt(0).toUpperCase() + normalizedName.slice(1).toLowerCase(),
+    normalizedName.charAt(0).toUpperCase() +
+      normalizedName.slice(1).toLowerCase(),
   ];
 
   for (const variation of variations) {
@@ -486,7 +488,12 @@ export const platformStyles = [
   { name: "Line", color: "#00C300", icon: line, bg: "#F0FAF0" },
   { name: "Kakao", color: "#FFCD00", icon: Kakao_logo, bg: "#FFFDF0" },
   { name: "Tumblr", color: "#001935", icon: Tumblr, bg: "#F0F3F5" },
-  { name: "The Trade Desk", color: "#0099FA", icon: thetradedesk, bg: "#F0F9FF" },
+  {
+    name: "The Trade Desk",
+    color: "#0099FA",
+    icon: thetradedesk,
+    bg: "#F0F9FF",
+  },
   { name: "Quantcast", color: "#000000", icon: quantcast, bg: "#F7F7F7" },
   { name: "Display & Video", color: "#34A853", icon: Display, bg: "#F2FAF4" },
   { name: "DV360", color: "#1E8E3E", icon: Display, bg: "#F0F8F3" },
@@ -505,7 +512,12 @@ export const platformStyles = [
   { name: "Podcast", color: "#00AEEF", icon: podcast, bg: "#F0F9FF" },
   { name: "Magnite", color: "#E6001F", icon: magnite, bg: "#FFF0F1" },
   { name: "OpenX", color: "#FFA500", icon: openx, bg: "#FFF8ED" },
-  { name: "Index Exchange", color: "#0097D7", icon: indexchange, bg: "#F0F8FF" },
+  {
+    name: "Index Exchange",
+    color: "#0097D7",
+    icon: indexchange,
+    bg: "#F0F8FF",
+  },
   { name: "Stackadapt", color: "#1C1C1C", icon: stackadapt, bg: "#F5F5F5" },
   { name: "Choozle", color: "#4EAF4E", icon: choozle, bg: "#F3FAF3" },
   { name: "Teads", color: "#002244", icon: teads, bg: "#F0F3F6" },
@@ -521,7 +533,12 @@ export const platformStyles = [
   { name: "Nativo", color: "#0074C1", icon: nativo, bg: "#F0F5FF" },
   { name: "TripleLift", color: "#FF6600", icon: triplelift, bg: "#FFF4ED" },
   { name: "Sharethrough", color: "#00A37E", icon: sharethrough, bg: "#F0FAF7" },
-  { name: "Microsoft Audience", color: "#0066B8", icon: microsoft, bg: "#F0F5FF" },
+  {
+    name: "Microsoft Audience",
+    color: "#0066B8",
+    icon: microsoft,
+    bg: "#F0F5FF",
+  },
   { name: "BuySell", color: "#FF5722", icon: buysell, bg: "#FFF2EE" },
   { name: "Mozilla Tiles", color: "#C13832", icon: mozilla, bg: "#FEF2F1" },
   { name: "Telegram", color: "#0088CC", icon: telegram, bg: "#F0F7FF" },
@@ -558,7 +575,12 @@ export const platformStyles = [
   { name: "Vungle", color: "#FF9900", icon: vungle, bg: "#FFF8ED" },
   { name: "Mintegral", color: "#007AFF", icon: mintegral, bg: "#F0F5FF" },
   { name: "Mopub", color: "#00B7EB", icon: mopub, bg: "#F0F9FF" },
-  { name: "StreetFurniture", color: "#6B7280", icon: streetfurniture, bg: "#F5F6F6" },
+  {
+    name: "StreetFurniture",
+    color: "#6B7280",
+    icon: streetfurniture,
+    bg: "#F5F6F6",
+  },
   { name: "Transit", color: "#3B82F6", icon: transit, bg: "#F0F6FF" },
   { name: "Coupons", color: "#F59E0B", icon: coupons, bg: "#FFF8EE" },
   { name: "Billboard", color: "#D946EF", icon: billboard, bg: "#FEF0FE" },
@@ -576,8 +598,8 @@ export const platformStyles = [
   { name: "FilmTV", color: "#7C3AED", icon: filmtv, bg: "#F6F0FF" },
 ];
 
-export const renderUploadedFile = (uploadBlobs, format,index: number) => {
-  if ( !uploadBlobs[index]) return null;
+export const renderUploadedFile = (uploadBlobs, format, index: number, ext?:any) => {
+  if (!uploadBlobs[index]) return null;
 
   if (format === "Video") {
     return (
@@ -590,12 +612,26 @@ export const renderUploadedFile = (uploadBlobs, format,index: number) => {
   }
 
   if (format === "Slideshow") {
+    console.log("hr", ext?.name)
     return (
-      <iframe
-        src={uploadBlobs[index]}
-        className="w-full h-full rounded-lg"
-        title={`Slideshow ${index}`}
-      />
+      <>
+        {typeof uploadBlobs[index] === "string" &&
+        ext && ext?.name?.includes("pptx") ? (
+          <iframe
+          src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+            uploadBlobs[index]
+          )}`}
+          className="w-full h-full rounded-lg"
+          title={`Slideshow ${index}`}
+        />
+        ) : (
+          <iframe
+            src={uploadBlobs[index]}
+            className="w-full h-full rounded-lg"
+            title={`Slideshow ${index}`}
+          />
+        )}
+      </>
     );
   }
 
@@ -610,23 +646,22 @@ export const renderUploadedFile = (uploadBlobs, format,index: number) => {
   );
 };
 
-
 export function hasFormatEntered(channelMix) {
   // Loop through each funnel stage
   for (const stage of channelMix) {
     // Check each type of media in the funnel stage
     const mediaTypes = [
-      'social_media',
-      'display_networks',
-      'search_engines',
-      'streaming',
-      'ooh',
-      'broadcast',
-      'messaging',
-      'print',
-      'e_commerce',
-      'in_game',
-      'mobile'
+      "social_media",
+      "display_networks",
+      "search_engines",
+      "streaming",
+      "ooh",
+      "broadcast",
+      "messaging",
+      "print",
+      "e_commerce",
+      "in_game",
+      "mobile",
     ];
 
     // Loop through each media type
@@ -644,11 +679,29 @@ export function hasFormatEntered(channelMix) {
   return false; // No format found for any platform
 }
 
-
-
 export const formatNumberWithCommas = (value: string | number): string => {
   if (!value) return "";
   const number = typeof value === "string" ? parseFloat(value) : value;
   if (isNaN(number)) return "";
   return new Intl.NumberFormat().format(number);
+};
+
+export const PPTXRenderer = ({ file }: { file: string }) => {
+  if (!file) {
+    return <div>Error: No file provided</div>;
+  }
+
+  return (
+    <DocViewer
+      documents={[
+        { uri: typeof file === "string" && file.startsWith("blob:") ? file : URL.createObjectURL(new Blob([file])) },
+      ]}
+      pluginRenderers={DocViewerRenderers}
+      config={{
+        header: {
+          disableHeader: true,
+        },
+      }}
+    />
+  );
 };

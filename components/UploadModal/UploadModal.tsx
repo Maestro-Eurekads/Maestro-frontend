@@ -51,7 +51,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
     onClose();
   };
 
-  const { campaignFormData, updateCampaign, getActiveCampaign , campaignData} =
+  const { campaignFormData, updateCampaign, getActiveCampaign, campaignData } =
     useCampaigns();
   const [uploads, setUploads] = useState<Array<File | null>>([]);
   const [uploadBlobs, setUploadBlobs] = useState<string[]>([]);
@@ -111,6 +111,13 @@ const UploadModal: React.FC<UploadModalProps> = ({
       return;
     }
 
+    console.log("File selected:", file);
+
+    setUploads((prev) => {
+      const updated = [...prev];
+      updated[index] = file;
+      return updated;
+    });
     setUploadingIndex(index);
 
     try {
@@ -292,13 +299,9 @@ const UploadModal: React.FC<UploadModalProps> = ({
                     </div>
                   ) : uploadBlobs[index] ? (
                     <>
-                      <Link
-                        href={uploadBlobs[index]}
-                        target="_blank"
-                        className="w-full h-full"
-                      >
-                        {renderUploadedFile(uploadBlobs, format, index)}
-                      </Link>
+                      <div className="w-full h-full">
+                        {renderUploadedFile(uploadBlobs, format, index, uploads[index])}
+                      </div>
                       <button
                         className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
                         onClick={() => handleDelete(index)}

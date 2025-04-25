@@ -216,9 +216,7 @@ const MediaOption = ({
 
   const handleDelete = async (previewId: string, chName: string) => {
     if (channelName === chName) {
-      const updatedPreviews = previews.filter(
-        (prv) => prv.id !== previewId
-      );
+      const updatedPreviews = previews.filter((prv) => prv.id !== previewId);
       const updatedIds = updatedPreviews.map((prv) => prv.id);
 
       setLoading(true);
@@ -300,24 +298,36 @@ const MediaOption = ({
           <div className="grid grid-cols-2 gap-3 flex-wrap">
             {localPreviews?.map((prv, index) => (
               <div key={prv?.id || index} className="relative">
-                <Link
-                  href={prv?.url ?? ""}
-                  target="_blank"
-                  className="w-[225px] h-[150px] rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors border border-gray-500 cursor-pointer"
-                >
-                  {/* <Image
+                {format === "Slideshow" ? (
+                  <div
+                    className="w-[225px] h-[150px] rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors border border-gray-500 cursor-pointer"
+                  >
+                    {renderUploadedFile(
+                      localPreviews?.map((lp) => lp?.url),
+                      option.name,
+                      index
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    href={prv?.url ?? ""}
+                    target="_blank"
+                    className="w-[225px] h-[150px] rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors border border-gray-500 cursor-pointer"
+                  >
+                    {/* <Image
                     src={prv?.url ?? ""}
                     alt=""
                     width={225}
                     height={140}
                     className="rounded-lg w-full h-full object-cover"
                   /> */}
-                  {renderUploadedFile(
-                    localPreviews?.map((lp) => lp?.url),
-                    option.name,
-                    index
-                  )}
-                </Link>
+                    {renderUploadedFile(
+                      localPreviews?.map((lp) => lp?.url),
+                      option.name,
+                      index
+                    )}
+                  </Link>
+                )}
                 <button
                   className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
                   onClick={() => {
