@@ -43,7 +43,7 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
 						<div className="flex flex-col justify-center items-center p-[10px] gap-[10px] w-[40px] h-[40px] bg-[#00A36C] rounded-full text-[20px] leading-[27px] text-center text-white">
 							{session?.user?.name[0]}
 						</div>
-						<CommentHeaderwithClose author={session?.user?.name} timestamp={new Date().toLocaleString()} />
+						<CommentHeaderwithClose author={session?.user?.name} />
 					</div>
 
 					{/* Mark as Approved Button */}

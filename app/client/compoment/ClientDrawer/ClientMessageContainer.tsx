@@ -8,7 +8,7 @@ const ClientMessageContainer = ({ isOpen, isCreateOpen, campaign }) => {
 
 
 	return (
-		<div>
+		<div className='relative'>
 			{isCreateOpen &&
 				<ClientDraggableMessage campaign={campaign} />}
 			{isOpen &&

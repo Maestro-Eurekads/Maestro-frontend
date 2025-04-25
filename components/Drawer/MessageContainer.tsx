@@ -8,7 +8,7 @@ const MessageContainer = ({ isOpen, isCreateOpen }) => {
 
 
 	return (
-		<div>
+		<div className="relative">
 			{isCreateOpen &&
 				<DraggableMessage />}
 			{isOpen &&

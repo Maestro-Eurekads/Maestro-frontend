@@ -57,6 +57,7 @@ const DraggableComment = ({ comment, commentId }) => {
 			defaultPosition={comment?.position}
 			onStart={handleStart}
 			onStop={handleStop}
+		// cancel="button"
 		>
 			{activeComment === comment?.documentId ? (
 				<div ref={commentRef} className="absolute cursor-move drag-handle z-50">
