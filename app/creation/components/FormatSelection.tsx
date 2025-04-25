@@ -16,6 +16,7 @@ import { useComments } from "app/utils/CommentProvider";
 import { Trash } from "lucide-react";
 import Link from "next/link";
 import { removeKeysRecursively } from "utils/removeID";
+import customicon from "../../../public/social/customicon.png";
 
 // Types
 type FormatType = {
@@ -1023,9 +1024,16 @@ export const FormatSelection = () => {
                 onClick={() => toggleTab(stage.name)}
               >
                 <div className="flex items-center gap-2">
-                  {funnelStage?.icon && (
+                  {funnelStage?.icon ? (
                     <Image
                       src={funnelStage.icon || "/placeholder.svg"}
+                      alt={stage.name}
+                      width={24}
+                      height={24}
+                    />
+                  ) : (
+                    <Image
+                      src={customicon}
                       alt={stage.name}
                       width={24}
                       height={24}

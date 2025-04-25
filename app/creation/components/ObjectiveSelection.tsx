@@ -23,6 +23,7 @@ import { useCampaigns } from "../../utils/CampaignsContext";
 import { funnelStages, getPlatformIcon } from "../../../components/data";
 import axios from "axios";
 import { FaSpinner } from "react-icons/fa";
+import customicon from "../../../public/social/customicon.png";
 
 const platformIcons = {
   Facebook: facebook,
@@ -426,58 +427,16 @@ const ObjectiveSelection = () => {
         if (!stage) return null;
         return (
           <div key={stageName} className="w-full">
-            {/* <div
-              className={`flex justify-between items-center p-6 gap-3 max-w-[950px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-                rounded-t-[10px] ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"
-                }`}
-              onClick={() => toggleItem(stage.name)}
-            >
-              <div className="flex items-center gap-4">
-                {funn?.icon && (
-                  <Image src={funn.icon} className="size-5" alt={stage.name} />
-                )}
-                <p className="font-semibold text-[#061237] whitespace-nowrap">
-                  {stage.name}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                {statuses[stageName] === "Completed" ? (
-                  <>
-                    <Image
-                      className="w-5 h-5 rounded-full p-1 bg-green-500"
-                      src={checkmark}
-                      alt="Completed"
-                    />
-                    <p className="text-green-500 font-semibold text-base">
-                      Completed
-                    </p>
-                  </>
-                ) : statuses[stageName] === "In Progress" ? (
-                  <p className="text-[#3175FF] font-semibold text-base whitespace-nowrap">
-                    In Progress
-                  </p>
-                ) : (
-                  <p className="text-[#061237] opacity-50 text-base whitespace-nowrap">
-                    Not Started
-                  </p>
-                )}
-              </div>
-              <div>
-                {openItems[stage.name] ? (
-                  <Image src={up} alt="collapse" />
-                ) : (
-                  <Image src={down2} alt="expand" />
-                )}
-              </div>
-            </div> */}
             <div
               className={`flex justify-between items-center p-6 gap-3 max-w-[950px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
     rounded-t-[10px] ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
               onClick={() => toggleItem(stage.name)}
             >
               <div className="flex items-center gap-4">
-                {funn?.icon && (
+                {funn?.icon ? (
                   <Image src={funn.icon} className="size-5" alt={stage.name} />
+                ) : (
+                  <Image src={customicon} className="size-5" alt={stage.name} />
                 )}
                 <p className="font-semibold text-[#061237] whitespace-nowrap">
                   {stage.name}

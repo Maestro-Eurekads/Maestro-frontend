@@ -11,7 +11,7 @@ const DraggableComment = ({ comment }) => {
 
 	const handleStop = (e, data) => {
 		const newPosition = { x: data.x, y: data.y };
-		updateCommentPosition(comment.documentId, newPosition);
+		updateCommentPosition(comment?.documentId, newPosition);
 	};
 
 

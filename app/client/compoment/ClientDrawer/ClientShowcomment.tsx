@@ -47,7 +47,8 @@ const ClientShowcomment = ({ comment, setActiveComment }) => {
 							{comment?.addcomment_as === "Internal" ? "Internal" : "Client"}</h3>
 					</div> : ""}
 
-					<div>
+					<div className='flex justify-between w-full'>
+						<div />
 						<button
 							onClick={() => handleViewComment(comment?.documentId)}
 							className="flex flex-row justify-center items-center px-[28px] py-[10px] gap-[8px] w-[135px] h-[40px] bg-[#3175FF] rounded-[8px] font-semibold text-[15px] leading-[20px] text-white cursor-pointer" >

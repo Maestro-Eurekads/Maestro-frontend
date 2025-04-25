@@ -11,6 +11,7 @@ import { SVGLoader } from "components/SVGLoader";
 import AlertMain from "components/Alert/AlertMain";
 import ClientComments from "./ClientComments";
 import ClientAddCommentReply from "./ClientAddCommentReply";
+import { BsXLg } from "react-icons/bs";
 
 interface Comment {
 	documentId: string;
@@ -65,7 +66,7 @@ const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
 		const newOpportunity = {
 			commentId: Date.now(),
 			text: "New Comment Opportunity",
-			position: { x: 150, y: 150 },
+			position: { x: 400, y: -500 }
 		};
 
 		// Add only if there are 0  
@@ -171,8 +172,14 @@ const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
 							return (
 								<div
 									key={comment?.documentId}
-									className="flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-[0px_4px_10px_rgba(0,0,0,0.1)] rounded-lg border-box mb-5"
+									className=" relative flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-[0px_4px_10px_rgba(0,0,0,0.1)] rounded-lg border-box mb-5"
 								>
+									<button
+										className="cursor-pointer absolute right-2 top-2 group"
+										onClick={() => setViewcommentsId('')}
+									>
+										<BsXLg className="text-[#29292968] group-hover:text-red-500 transition-colors duration-200" />
+									</button>
 									<ClientComments comment={comment} contrastingColor={contrastingColor} />
 									<ClientAddCommentReply documentId={comment?.documentId} contrastingColor={contrastingColor} commentId={comment?.commentId} />
 								</div>

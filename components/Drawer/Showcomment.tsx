@@ -3,12 +3,11 @@ import send from "../../public/send.svg";
 import closecircle from "../../public/close-circle.svg";
 import Image from "next/image";
 import { useComments } from 'app/utils/CommentProvider';
-import CommentHeaderwithClose from './CommentHeaderwithClose';
 import RealCommentHeaderwithClose from './RealCommentHeaderwithClose';
 
 
 const Showcomment = ({ comment, setActiveComment }) => {
-	const { setViewcommentsId, setIsDrawerOpen } = useComments();
+	const { setViewcommentsId, setIsDrawerOpen, setShowbyID } = useComments();
 
 
 	const handleViewComment = (documentId) => {
@@ -49,7 +48,7 @@ const Showcomment = ({ comment, setActiveComment }) => {
 					</div> : ""}
 					<div>
 						<button
-							onClick={() => handleViewComment(comment?.documentId)}
+							onClick={() => { handleViewComment(comment?.documentId); setShowbyID(true) }}
 							className="flex flex-row justify-center items-center px-[28px] py-[10px] gap-[8px] w-[135px] h-[40px] bg-[#3175FF] rounded-[8px] font-semibold text-[15px] leading-[20px] text-white cursor-pointer" >
 							Comment
 							<Image src={send} alt="send" />
