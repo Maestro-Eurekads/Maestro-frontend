@@ -45,7 +45,7 @@ const SideNav: React.FC = () => {
   };
 
 
-  console.log('campaignData?.media_plan_details?.plan_name', campaignData)
+  // console.log('campaignData?.media_plan_details?.plan_name', campaignData)
 
   const steps = [
     {

@@ -63,7 +63,7 @@ const ClientDraggableComment = ({ comment, commentId }) => {
 		}
 	};
 
-	console.log('comment-comment', comment)
+	// console.log('comment-comment', comment)
 
 
 	return (
@@ -86,7 +86,7 @@ const ClientDraggableComment = ({ comment, commentId }) => {
 							className="drag-handle flex items-center justify-center p-[-2px] bg-transparent border-none relative" >
 							{comment?.approved && <Image src={tickcircles} alt="tickcircle" className="w-[23px] absolute top-[10px] pointer-events-none" />}
 							<Image
-								src={Mmessages2}
+								src={Mmessages}
 								alt="message icon"
 								className="pointer-events-none"
 							/>
@@ -96,7 +96,7 @@ const ClientDraggableComment = ({ comment, commentId }) => {
 							className="drag-handle flex items-center justify-center p-[-2px] bg-transparent border-none relative" >
 							{comment?.approved && <Image src={tickcircles} alt="tickcircle" className="w-[23px] absolute top-[10px] pointer-events-none" />}
 							<Image
-								src={Mmessages}
+								src={Mmessages2}
 								alt="message icon"
 								className="pointer-events-none"
 							/>

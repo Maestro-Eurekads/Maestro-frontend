@@ -76,7 +76,7 @@ const KPIEditorModal = ({ aggregatedStats, campaign_id, finalCategoryOrder }) =>
 	const [alert, setAlert] = useState(null);
 
 
-	console.log('getKpis-getKpis-getKpis-getKpis', kpisData?.id)
+
 
 	const generateGroupedKpis = (stats) => {
 		const grouped = {};
