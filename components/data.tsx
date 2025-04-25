@@ -113,7 +113,7 @@ import mingcute_basket from "../public/mingcute_basket-fill.svg";
 import mdi_leads from "../public/mdi_leads.svg";
 import apple from "../public/social/apple.jpeg";
 import Image, { StaticImageData } from "next/image";
-import DocViewer from "react-doc-viewer";
+import DocViewer, { DocViewerRenderers } from "react-doc-viewer";
 
 export const platformIcons: Record<string, StaticImageData> = {
   Facebook: facebook,
@@ -598,7 +598,7 @@ export const platformStyles = [
   { name: "FilmTV", color: "#7C3AED", icon: filmtv, bg: "#F6F0FF" },
 ];
 
-export const renderUploadedFile = (uploadBlobs, format, index: number) => {
+export const renderUploadedFile = (uploadBlobs, format, index: number, ext?:any) => {
   if (!uploadBlobs[index]) return null;
 
   if (format === "Video") {
@@ -612,11 +612,18 @@ export const renderUploadedFile = (uploadBlobs, format, index: number) => {
   }
 
   if (format === "Slideshow") {
+    console.log("hr", ext?.name)
     return (
       <>
         {typeof uploadBlobs[index] === "string" &&
-        uploadBlobs[index].endsWith(".pptx") ? (
-          <PPTXRenderer file={uploadBlobs[index]} />
+        ext && ext?.name?.includes("pptx") ? (
+          <iframe
+          src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+            uploadBlobs[index]
+          )}`}
+          className="w-full h-full rounded-lg"
+          title={`Slideshow ${index}`}
+        />
         ) : (
           <iframe
             src={uploadBlobs[index]}
@@ -679,6 +686,22 @@ export const formatNumberWithCommas = (value: string | number): string => {
   return new Intl.NumberFormat().format(number);
 };
 
-export const PPTXRenderer = (file) => {
-  return <DocViewer documents={[{ uri: file }]} />;
+export const PPTXRenderer = ({ file }: { file: string }) => {
+  if (!file) {
+    return <div>Error: No file provided</div>;
+  }
+
+  return (
+    <DocViewer
+      documents={[
+        { uri: typeof file === "string" && file.startsWith("blob:") ? file : URL.createObjectURL(new Blob([file])) },
+      ]}
+      pluginRenderers={DocViewerRenderers}
+      config={{
+        header: {
+          disableHeader: true,
+        },
+      }}
+    />
+  );
 };

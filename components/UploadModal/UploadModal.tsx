@@ -110,6 +110,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
       return;
     }
 
+    console.log("File selected:", file);
+
     setUploads((prev) => {
       const updated = [...prev];
       updated[index] = file;
@@ -277,7 +279,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
                   {uploadBlobs[index] ? (
                     <>
                       <div className="w-full h-full">
-                        {renderUploadedFile(uploadBlobs, format, index)}
+                        {renderUploadedFile(uploadBlobs, format, index, uploads[index])}
                       </div>
                       <button
                         className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"

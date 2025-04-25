@@ -68,7 +68,7 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
   };
 
   const handleDateClick = (day: number, monthIndex: number, year: number) => {
-    if (!isEditing || isPastDate(day, monthIndex, year)) return;
+    if (isPastDate(day, monthIndex, year)) return;
 
     const newDate = { day, month: monthIndex };
 
@@ -87,9 +87,9 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
   };
 
   const resetDates = () => {
-    if (isEditing) {
+    
       setSelectedDates({ from: null, to: null });
-    }
+    
   };
 
   const months = [getMonthData(monthOffset), getMonthData(monthOffset + 1)];
