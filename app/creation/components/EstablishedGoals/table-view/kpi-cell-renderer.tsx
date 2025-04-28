@@ -2,7 +2,7 @@
 import { useCampaigns } from "app/utils/CampaignsContext";
 import Image from "next/image";
 
-export const CellRenderer = ({
+export const KPICellRenderer = ({
   body,
   channel,
   calculatedValues,
@@ -46,57 +46,13 @@ export const CellRenderer = ({
     return new Intl.NumberFormat("en-US").format(num);
   };
 
-  // Channel cell rendering
-  if (body === "channel") {
-    return (
-      <span
-        className="flex items-center gap-2 cursor-pointer"
-        onClick={() =>
-          goalLevel === "Adset level" &&
-          channel?.ad_sets?.length > 0 &&
-          toggleRow(`${stage.name}${index}`)
-        }
-        style={{ color: channel?.color }}
-      >
-        {goalLevel === "Adset level" && channel?.ad_sets?.length > 0 && (
-          <span className="shrink-0">
-            <svg
-              width="17"
-              height="16"
-              viewBox="0 0 17 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M5.38021 6.66667L8.71354 10L12.0469 6.66667 6.66667"
-                stroke="#061237"
-                strokeOpacity="0.8"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                transform={expandedRows[index] ? "rotate(180 8.5 8)" : ""}
-              />
-            </svg>
-          </span>
-        )}
-        <span className="relative w-[16px] h-[16px] shrink-0">
-          <Image
-            src={channel.icon || "/placeholder.svg"}
-            fill
-            alt={`${channel.name} Icon`}
-          />
-        </span>
-        <span>{channel.name}</span>
-      </span>
-    );
-  }
-
   // Handle calculated fields
   const calculatedFields = [
     "impressions",
     "reach",
     "video_views",
     "cpv",
+    "cpc",
     "completed_view",
     "cpcv",
     "link_clicks",

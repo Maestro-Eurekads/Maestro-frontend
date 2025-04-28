@@ -28,13 +28,14 @@ import { CellRenderer } from "./cell-renderer";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { tableHeaders } from "utils/tableHeaders";
 import { ArrowRight } from "lucide-react";
+import { KPICellRenderer } from "./kpi-cell-renderer";
 
-export const ChannelRow = ({
+export const KPIRow = ({
   channel,
   index,
   stage,
   tableBody,
-  tableHeaders,
+  //   tableHeaders,
   goalLevel,
   expandedRows,
   toggleRow,
@@ -47,6 +48,8 @@ export const ChannelRow = ({
   const chData = campaignFormData?.channel_mix
     ?.find((ch) => ch?.funnel_stage === stage.name)
     ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name);
+
+  const tHeaders = tableHeaders?.[chData?.objective_type];
 
   const obj = campaignFormData?.campaign_objectives;
 
@@ -152,7 +155,9 @@ export const ChannelRow = ({
 
   const getNestedValue = (obj, ...paths) => {
     for (const path of paths) {
+        console.log("path", path);
       let value = path.split(".").reduce((acc, key) => acc?.[key], obj);
+      console.log("🚀 ~ getNestedValue ~ value:", value)
       if (value !== undefined) {
         // Check if this is a percentage field
         if (isPercentageField(path, tableHeaders)) {
@@ -229,38 +234,44 @@ export const ChannelRow = ({
 
   return (
     <tr key={index} className="border-t bg-white hover:bg-gray-100">
-      {tableBody?.map((body, bodyIndex) => (
-        <td key={bodyIndex} className="py-6 px-6 text-[15px]">
-          <CellRenderer
-            body={body}
-            channel={channel}
-            calculatedValues={calculatedValues}
-            tableHeaders={tableHeaders}
-            bodyIndex={bodyIndex}
-            goalLevel={goalLevel}
-            stage={stage}
-            index={index}
-            expandedRows={expandedRows}
-            toggleRow={toggleRow}
-            handleEditInfo={handleEditInfo}
-          />
-        </td>
-      ))}
-      {chData?.objective_type &&
-        chData?.objective_type !== "Brand Awareness" && (
-          <td className="py-6 px-6 text-[15px]">
-            <span
-              className="flex items-center gap-2 text-blue-500 cursor-pointer"
-              onClick={() => toggleKPIShow(`${stage.name}${index}`)}
-            >
-              <p>
-                {expandedKPI[`${stage.name}${index}`] ? "Hide" : "View"}{" "}
-                Objective KPI
-              </p>
-              <ArrowRight size={14} />
-            </span>
-          </td>
-        )}
+      <td className="py-6 px-6 text-[15px]" colSpan={11}>
+        <div>
+          <table>
+            <thead>
+              <tr>
+                {tHeaders?.map((header, hIndex) => (
+                  <th key={hIndex} className="py-4 px-6">
+                    {header?.name}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {tHeaders?.map((body, bodyIndex) => (
+                <td key={bodyIndex} className="py-6 px-6 text-[15px]">
+                  <KPICellRenderer
+                    body={Object.values(body)[0]
+                      ?.toLowerCase()
+                      .replace(/ /g, "_")
+                      .replace(/\//g, "")
+                      .replace(/-/g, "_")}
+                    channel={channel}
+                    calculatedValues={calculatedValues}
+                    tableHeaders={tHeaders}
+                    bodyIndex={bodyIndex}
+                    goalLevel={goalLevel}
+                    stage={stage}
+                    index={index}
+                    expandedRows={expandedRows}
+                    toggleRow={toggleRow}
+                    handleEditInfo={handleEditInfo}
+                  />
+                </td>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </td>
     </tr>
   );
 };

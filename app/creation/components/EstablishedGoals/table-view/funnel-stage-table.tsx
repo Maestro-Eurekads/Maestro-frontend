@@ -2,6 +2,7 @@ import React from "react";
 import Image from "next/image";
 import { ChannelRow } from "./channel-row";
 import { AdSetRow } from "./ad-set-row";
+import { KPIRow } from "./kpi-row";
 
 export const FunnelStageTable = ({
   stage,
@@ -13,6 +14,8 @@ export const FunnelStageTable = ({
   handleEditInfo,
   tableHeaders,
   tableBody,
+  expandedKPI,
+  toggleKPIShow,
 }) => {
   return (
     <section className="mb-[30px]">
@@ -37,6 +40,7 @@ export const FunnelStageTable = ({
                     {header?.name}
                   </th>
                 ))}
+                <th className="py-4 px-6">Other</th>
               </tr>
             </thead>
             <tbody className="whitespace-nowrap">
@@ -53,7 +57,26 @@ export const FunnelStageTable = ({
                     expandedRows={expandedRows}
                     toggleRow={toggleRow}
                     handleEditInfo={handleEditInfo}
+                    expandedKPI={expandedKPI}
+                    toggleKPIShow={toggleKPIShow}
                   />
+
+                  {/* Sub-table (Expanded Rows) */}
+                  {expandedKPI[`${stage.name}${index}`] && (
+                    <KPIRow
+                      channel={channel}
+                      index={index}
+                      stage={stage}
+                      tableBody={tableBody}
+                      // tableHeaders={tableHeaders}
+                      goalLevel={goalLevel}
+                      expandedRows={expandedRows}
+                      toggleRow={toggleRow}
+                      handleEditInfo={handleEditInfo}
+                      expandedKPI={expandedKPI}
+                      toggleKPIShow={toggleKPIShow}
+                    />
+                  )}
 
                   {/* Sub-table (Expanded Rows) */}
                   {expandedRows[`${stage.name}${index}`] &&
@@ -67,7 +90,6 @@ export const FunnelStageTable = ({
                         tableBody={tableBody}
                         tableHeaders={tableHeaders}
                         handleEditInfo={handleEditInfo}
-
                       />
                     ))}
                 </React.Fragment>

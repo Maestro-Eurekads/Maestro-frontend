@@ -134,6 +134,82 @@ export const tableHeaders = {
       showInput: false,
     },
   ],
+  "Website Traffic": [
+    // ...defaultHeaders,
+    {
+      name: "CTR",
+      showInput: true,
+      type: "percent"
+    },
+    {
+      name: "Link Clicks",
+      showInputs: false,
+    },
+    {
+      name: "CPC",
+      showInputs: false,
+    },
+    {
+      name: "Click to land rate",
+      showInput: true,
+      type: "percent"
+    },
+    {
+      name: "Lands",
+      showInput: false,
+    },
+    {
+      name: "CPL",
+      showInput: false,
+    },
+    {
+      name: "Avg Visit Time",
+      showInput: true,
+    },
+    {
+      name: "Avg pages / visit",
+      showInput: true,
+    },
+    {
+      name: "Bounce Rate",
+      showInput: true,
+      type: "percent"
+    },
+    {
+      name: "Bounced Visits",
+      showInput: false,
+    },
+    {
+      name: "Cost/bounce",
+      showInput: false,
+    },
+    {
+      name: "Lead Rate",
+      showInput: true,
+      type: "percent"
+    },
+    {
+      name: "Lead visits",
+      showInput: false,
+    },
+    {
+      name: "Cost/lead",
+      showInput: false,
+    },
+    {
+      name: "Off-funnel rate",
+      showInput: true,
+      type: "percent"
+    },
+    {
+      name: "Off-funnel visits",
+      showInput: false,
+    },
+    {
+      name: "Cost / Off funnel",
+      showInput: false,
+    },
+  ],
   "Lead Generation (On platform)": [
     ...defaultHeaders,
     {
