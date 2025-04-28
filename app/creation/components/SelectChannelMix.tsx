@@ -4,7 +4,8 @@ import Image from "next/image";
 import up from "../../../public/arrow-down.svg";
 import down2 from "../../../public/arrow-down-2.svg";
 import checkmark from "../../../public/mingcute_check-fill.svg";
-import customicon from "../../../public/social/customicon.png";
+import zoom from "../../../public/tabler_zoom-filled.svg";
+import credit from "../../../public/mdi_credit-card.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { funnelStages, getPlatformIcon } from "../../../components/data";
 import { useCampaigns } from "../../utils/CampaignsContext";
@@ -55,11 +56,17 @@ const SelectChannelMix = () => {
   const [isDataReady, setIsDataReady] = useState(false);
   const ITEMS_TO_SHOW = 6;
 
+  // Fallback metadata for Targeting/Retargeting, using same icons as MapFunnelStages
+  const fallbackFunnelMetadata = {
+    Targeting: { name: "Targeting", icon: zoom },
+    Retargeting: { name: "Retargeting", icon: credit },
+  };
+
   // Debug data on mount
   useEffect(() => {
-    console.log("platformList:", platformList);
-    console.log("campaignFormData:", campaignFormData);
-    console.log("cId:", cId);
+    console.log("SelectChannelMix - platformList:", platformList);
+    console.log("SelectChannelMix - campaignFormData:", campaignFormData);
+    console.log("SelectChannelMix - cId:", cId);
   }, [platformList, campaignFormData, cId]);
 
   // Ensure component is mounted and data is ready
@@ -70,6 +77,11 @@ const SelectChannelMix = () => {
       Object.keys(platformList).length > 0
     ) {
       setIsDataReady(true);
+    } else {
+      console.warn("SelectChannelMix - Data not ready:", {
+        funnel_stages: campaignFormData?.funnel_stages,
+        platformList: Object.keys(platformList),
+      });
     }
   }, [campaignFormData, platformList]);
 
@@ -352,8 +364,15 @@ const SelectChannelMix = () => {
   }
 
   // Fallback for empty funnel stages or platformList
-  if (!campaignFormData?.funnel_stages?.length || !Object.keys(platformList).length) {
-    return <div>No channels or funnel stages available.</div>;
+  if (!campaignFormData?.funnel_stages?.length) {
+    return (
+      <div>
+        No funnel stages selected. Please select stages in the previous step.
+      </div>
+    );
+  }
+  if (!Object.keys(platformList).length) {
+    return <div>No platforms available. Please contact support.</div>;
   }
 
   return (
@@ -368,14 +387,33 @@ const SelectChannelMix = () => {
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
         {campaignFormData.funnel_stages.map((stageName, index) => {
-          const stage = campaignFormData?.custom_funnels?.find(
+          // Find stage metadata: prioritize funnelStages, then custom_funnels, then fallback
+          const stageFromFunnelStages = funnelStages?.find(
+            (f) => f.name === stageName
+          );
+          const stageFromCustomFunnels = campaignFormData?.custom_funnels?.find(
             (s) => s.name === stageName
           );
-          const funn = funnelStages?.find((f) => f.name === stageName);
+          const stage =
+            stageFromFunnelStages ||
+            stageFromCustomFunnels ||
+            fallbackFunnelMetadata[stageName];
+
           if (!stage) {
-            console.warn(`Stage not found: ${stageName}`);
-            return null;
+            console.warn(`Stage metadata not found for: ${stageName}`);
+            return (
+              <div key={index}>
+                Stage "{stageName}" not found. Please check configuration.
+              </div>
+            );
           }
+
+          // Use stage.icon if available, else fallback to custom icon from funnelStages or custom_funnels
+          const icon =
+            stage.icon ||
+            stageFromFunnelStages?.icon ||
+            stageFromCustomFunnels?.icon ||
+            "/placeholder.svg";
 
           return (
             <div key={index}>
@@ -385,21 +423,12 @@ const SelectChannelMix = () => {
                 onClick={() => toggleItem(stage.name)}
               >
                 <div className="flex items-center gap-2">
-                  {funn?.icon ? (
-                    <Image
-                      src={funn.icon}
-                      alt={stage.name}
-                      width={20}
-                      height={20}
-                    />
-                  ) : (
-                    <Image
-                      src={customicon}
-                      alt={stage.name}
-                      width={20}
-                      height={20}
-                    />
-                  )}
+                  <Image
+                    src={icon}
+                    alt={stage.name}
+                    width={20}
+                    height={20}
+                  />
                   <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
                     {stage.name}
                   </p>
@@ -430,11 +459,13 @@ const SelectChannelMix = () => {
                         onClick={(e) => toggleChannelType(e, stage.name, type)}
                       >
                         <h2 className="font-bold capitalize text-[18px]">
-                          {type} Channels
+                          {type.replace("_", " ")} Channels
                         </h2>
                         <Image
                           src={
-                            openChannelTypes[`${stage.name}-${type}`] ? up : down2
+                            openChannelTypes[`${stage.name}-${type}`]
+                              ? up
+                              : down2
                           }
                           alt={
                             openChannelTypes[`${stage.name}-${type}`]
@@ -455,25 +486,28 @@ const SelectChannelMix = () => {
                                 platforms?.length > 0 ? (
                                   <div key={channelName} className="mb-6">
                                     <p className="capitalize font-semibold mb-4">
-                                      {channelName?.replace("_", " ")}
+                                      {channelName.replace("_", " ")}
                                     </p>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                                       {platforms
                                         .slice(
                                           0,
-                                          showMoreMap[`${stage.name}-${channelName}`]
+                                          showMoreMap[
+                                            `${stage.name}-${channelName}`
+                                          ]
                                             ? platforms.length
                                             : ITEMS_TO_SHOW
                                         )
                                         .map((platform, pIndex) => {
-                                          const isSelected = selected[
-                                            stage.name
-                                          ]?.[
+                                          const normalizedChannelName =
                                             channelName
-                                              ?.replace(" ", "")
-                                              ?.replace("-", "")
-                                              ?.toLowerCase()
-                                          ]?.includes(platform.platform_name);
+                                              .replace(" ", "")
+                                              .replace("-", "")
+                                              .toLowerCase();
+                                          const isSelected =
+                                            selected[stage.name]?.[
+                                              normalizedChannelName
+                                            ]?.includes(platform.platform_name);
                                           return (
                                             <div
                                               key={pIndex}
@@ -487,10 +521,7 @@ const SelectChannelMix = () => {
                                                 handlePlatformClick(
                                                   e,
                                                   stage.name,
-                                                  channelName
-                                                    ?.replace(" ", "")
-                                                    ?.replace("-", "")
-                                                    ?.toLowerCase(),
+                                                  normalizedChannelName,
                                                   platform.platform_name,
                                                   type
                                                 )
@@ -537,7 +568,8 @@ const SelectChannelMix = () => {
                                               </div>
                                             </div>
                                           );
-                                        })}
+                                        })
+                                      }
                                     </div>
                                     {platforms.length > ITEMS_TO_SHOW && (
                                       <div className="flex justify-center mt-4">

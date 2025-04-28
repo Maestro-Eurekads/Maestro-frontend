@@ -611,29 +611,22 @@ const AdsetSettings = memo(function AdsetSettings({
     onInteraction();
   }, [onInteraction, adsets.length]);
 
-  const deleteAdSet = useCallback(
-    (id: number) => {
-      setAdSets((prev) => {
-        const newAdSets = prev.filter((adset) => adset.id !== id);
-        // Only reset if there are no ad sets left
-        if (newAdSets.length === 0) {
-          setSelectedPlatforms((prev) =>
-            prev.filter((platform) => platform !== outlet.outlet)
-          );
-          setAdSetDataMap({});
-          initialized.current = false;
-        }
-        return newAdSets;
-      });
-      setAdSetDataMap((prev) => {
-        const newMap = { ...prev };
-        delete newMap[id];
-        return newMap;
-      });
-      onInteraction();
-    },
-    [outlet.outlet, onInteraction]
-  );
+  const deleteAdSet = useCallback((id: number) => {
+    setAdSets((prev) => {
+      const newAdSets = prev.filter((adset) => adset.id !== id);
+      if (newAdSets.length === 0) {
+        setSelectedPlatforms([]);
+        setAdSetDataMap({});
+        initialized.current = false;
+      }
+      return newAdSets;
+    });
+    setAdSetDataMap((prev) => {
+      const newMap = { ...prev };
+      delete newMap[id];
+      return newMap;
+    });
+  }, []);
 
   const updateAdSetData = useCallback(
     (id: number, data: Partial<AdSetData>) => {
@@ -646,8 +639,45 @@ const AdsetSettings = memo(function AdsetSettings({
     [onInteraction]
   );
 
+  const saveChangesToCampaign = useCallback(() => {
+    console.log("hrere");
+    if (!campaignFormData?.channel_mix) return;
+    const adSetsToSave = adsets
+      .map((adset) => {
+        const data = adSetDataMap[adset.id] || { name: "", audience_type: "" };
+        return {
+          id: adset.id,
+          name: data.name,
+          audience_type: data.audience_type,
+          size: data.size,
+        };
+      })
+      .filter((data) => data.name || data.audience_type);
+    if (adSetsToSave.length === 0) return;
+
+    const updatedChannelMix = updateMultipleAdSets(
+      campaignFormData.channel_mix,
+      stageName,
+      outlet.outlet,
+      adSetsToSave
+    );
+    setCampaignFormData((prevData) => ({
+      ...prevData,
+      channel_mix: updatedChannelMix,
+    }));
+  }, [
+    adsets,
+    adSetDataMap,
+    campaignFormData,
+    stageName,
+    outlet.outlet,
+    setCampaignFormData,
+  ]);
+
   useEffect(() => {
-    if (selectedPlatforms.includes(outlet.outlet) && campaignFormData?.channel_mix) {
+    if (selectedPlatforms.includes(outlet.outlet)) {
+      if (!campaignFormData?.channel_mix) return;
+
       const adSetsToSave = adsets
         .map((adset) => {
           const data = adSetDataMap[adset.id] || {
@@ -664,19 +694,19 @@ const AdsetSettings = memo(function AdsetSettings({
         })
         .filter((data) => data.name || data.audience_type);
 
-      if (adSetsToSave.length > 0) {
-        const updatedChannelMix = updateMultipleAdSets(
-          campaignFormData.channel_mix,
-          stageName,
-          outlet.outlet,
-          adSetsToSave
-        );
+      if (adSetsToSave.length === 0) return;
 
-        setCampaignFormData((prevData) => ({
-          ...prevData,
-          channel_mix: updatedChannelMix,
-        }));
-      }
+      const updatedChannelMix = updateMultipleAdSets(
+        campaignFormData.channel_mix,
+        stageName,
+        outlet.outlet,
+        adSetsToSave
+      );
+
+      setCampaignFormData((prevData) => ({
+        ...prevData,
+        channel_mix: updatedChannelMix,
+      }));
     }
   }, [
     selectedPlatforms,
@@ -685,7 +715,6 @@ const AdsetSettings = memo(function AdsetSettings({
     adSetDataMap,
     setCampaignFormData,
     stageName,
-    campaignFormData,
   ]);
 
   const handleSelectOutlet = useCallback(() => {
@@ -702,6 +731,15 @@ const AdsetSettings = memo(function AdsetSettings({
       />
     );
   }
+
+  const adsetAmount = adsets.length;
+  const buttonPositionClass = `top-[${adsets.length * 70}px]`;
+  const linePositionClass =
+    adsetAmount === 1
+      ? "top-1/2 rounded-tl-[10px] border-t-2"
+      : adsetAmount === 2
+      ? "bottom-1/2 rounded-bl-[10px] border-b-2"
+      : "";
 
   return (
     <div className="flex items-center gap-8 w-full max-w-[1024px]">
