@@ -15,7 +15,7 @@ interface DraggableChannelProps {
   setIsOpen?: (show: boolean) => void;
   openChannel?: boolean;
   setOpenChannel?: (open: boolean) => void;
-  Icon?: React.ReactNode;
+  Icon?: any;
   dateList?: Date[];
   dragConstraints?: any;
   parentWidth?: any;
@@ -70,6 +70,50 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     return calculatedDate;
   };
 
+  // Snap to the nearest grid position
+  // const snapToTimeline = (currentPosition: number, containerWidth: number) => {
+  //   const snapPoints = Array.from(
+  //     { length: Math.round(containerWidth / 120) },
+  //     (_, i) => i * 120 // Adjust based on your grid size
+  //   );
+
+  //   console.log("here is the snappoints", snapPoints)
+
+  //   let closestSnap = snapPoints.reduce((prev, curr) =>
+  //     Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition) ? curr : prev
+  // );
+
+  // console.log("here is the closest snap", closestSnap)
+  //   return closestSnap;
+  // };
+
+  const snapToTimeline = (currentPosition: number, containerWidth: number) => {
+    const baseStep = 120; // Base grid size
+    const adjustmentPerStep = 10; // Decrease each next step by 10
+    const snapPoints = [];
+
+    let currentSnap = 0;
+    let step = baseStep;
+
+    // Generate snap points with decreasing step size
+    while (currentSnap <= containerWidth) {
+      snapPoints.push(currentSnap);
+      currentSnap += step;
+      // step = Math.max(30, step - adjustmentPerStep);
+    }
+
+    console.log("Custom snap points:", snapPoints);
+
+    const closestSnap = snapPoints.reduce((prev, curr) =>
+      Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition)
+        ? curr
+        : prev
+    );
+
+    console.log("Closest custom snap:", closestSnap);
+    return closestSnap;
+  };
+
   const handleMouseDownResize = (
     e: React.MouseEvent<HTMLDivElement>,
     direction: "left" | "right"
@@ -115,6 +159,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       newWidth = maxX - newPos;
     }
 
+    // Snap to grid position
+    newPos = snapToTimeline(newPos, containerRect.width);
+
     // Convert pixel positions to dates
     const startDate = pixelToDate(newPos, containerRect.width);
     const endDate = pixelToDate(newPos + newWidth, containerRect.width);
@@ -136,8 +183,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       }));
     }
 
-
-
     setParentWidth(newWidth);
     setParentLeft(newPos);
     setPosition(newPos);
@@ -158,6 +203,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     document.addEventListener("mousemove", handleMouseMoveDrag);
     document.addEventListener("mouseup", handleMouseUp);
   };
+
   const handleMouseMoveDrag = (e: MouseEvent) => {
     if (!isDragging.current) return;
     const { startX, startPos } = isDragging.current;
@@ -173,6 +219,16 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
     let newPosition = startPos + (e.clientX - startX);
     newPosition = Math.max(minX, Math.min(newPosition, maxX));
+
+    // Snap to the nearest grid position
+    newPosition = snapToTimeline(newPosition, containerRect.width);
+
+    // Smoothly update the position using requestAnimationFrame
+    requestAnimationFrame(() => {
+      setParentLeft(newPosition);
+      setPosition(newPosition);
+    });
+
     // Calculate start and end pixel positions
     const startPixel = newPosition;
     const endPixel = startPixel + parentWidth;
@@ -197,22 +253,20 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         ),
       }));
     }
-
-
-    setParentLeft(newPosition);
-    setPosition(newPosition);
   };
 
   return (
     <div
-      className={`relative w-full h-14 flex select-none ${disableDrag ? "rounded-[10px]" : "rounded-none"
-        }`}
+      className={`relative w-full h-14 flex select-none ${
+        disableDrag ? "rounded-[10px]" : "rounded-none"
+      }`}
       style={{ transform: `translateX(${position}px)` }}
     >
       {/* Left Resize Handle */}
       <div
-        className={`w-5 h-full bg-opacity-80 bg-black ${disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-          } rounded-l-lg text-white flex items-center justify-center`}
+        className={`w-5 h-full bg-opacity-80 bg-black ${
+          disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+        } rounded-l-lg text-white flex items-center justify-center`}
         onMouseDown={(e) => !disableDrag && handleMouseDownResize(e, "left")}
       >
         <MdDragHandle className="rotate-90" />
@@ -220,11 +274,13 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
       {/* Draggable Content */}
       <div
-        className={`h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[150px] ${disableDrag ? "cursor-default rounded-[10px] relative" : "cursor-move"
-          }`}
+        className={`h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[150px] ${
+          disableDrag ? "cursor-default rounded-[10px] relative" : "cursor-move"
+        }`}
         style={{
           width: disableDrag ? "100%" : parentWidth,
           backgroundColor: bg,
+          transition: "transform 0.2s ease-out",
         }}
         onMouseDown={handleMouseDownDrag}
       >
@@ -233,7 +289,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           className="flex items-center gap-3"
           onClick={() => setOpenChannel?.(!openChannel)}
         >
-          {Icon}
+          {Icon?.src ? (
+            <Image src={Icon?.src} alt="" width={20} height={20} />
+          ) : (
+            Icon
+          )}
           <span className="font-medium">{description}</span>
           <MdOutlineKeyboardArrowDown />
         </button>
@@ -256,8 +316,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
       {/* Right Resize Handle */}
       <div
-        className={`w-5 h-full bg-opacity-80 bg-black ${disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-          } rounded-r-lg text-white flex items-center justify-center`}
+        className={`w-5 h-full bg-opacity-80 bg-black ${
+          disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+        } rounded-r-lg text-white flex items-center justify-center`}
         onMouseDown={(e) => !disableDrag && handleMouseDownResize(e, "right")}
       >
         <MdDragHandle className="rotate-90" />

@@ -351,8 +351,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
 
       if (hasChanges) {
-        setValidateStep(true);
-        hasError = true;
+        // setValidateStep(true);
+        // hasError = true;
       }
     }
 
@@ -402,6 +402,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "isValidated",
           "formatValidated",
           "validatedStages",
+          "documentId"
         ]),
         custom_funnels: campaignFormData?.custom_funnels,
         funnel_type: campaignFormData?.funnel_type,
@@ -430,6 +431,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "isValidated",
           "formatValidated",
           "validatedStages",
+          "documentId"
         ]),
       });
     };
@@ -444,6 +446,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
             "id",
             "isValidated",
+            "documentId"
           ]),
           campaign_budget: removeKeysRecursively(copy?.campaign_budget, ["id"]),
         });
@@ -454,6 +457,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
             "id",
             "isValidated",
+            "documentId"
           ]),
           campaign_budget: removeKeysRecursively(
             campaignFormData?.campaign_budget,
@@ -475,7 +479,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         await handleStepSeven();
       } else if (active === 6) {
         await handleStepSeven();
-      } else if (active > 3 && subStep < 1) {
+      } else if (active > 3 && subStep < 2) {
         await handleStepFour();
       }
 

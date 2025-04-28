@@ -106,18 +106,18 @@ const PlanCampaignSchedule: React.FC = () => {
 					span={1}
 					t4="Choose your start and end date for the campaign"
 				/>
-				{!isEditing && (
+				{/* {!isEditing && (
 					<button className="model_button_blue" onClick={() => { setIsEditing(true); setHasChanges(true) }}>
 						Edit
 					</button>
-				)}
+				)} */}
 			</div>
 			{/* @ts-ignore      */}
 			{alert && <AlertMain alert={alert} />}
 
 			<MultiDatePicker isEditing={isEditing} campaignData={campaignData} />
 
-			<div className="flex justify-end pr-[24px] mt-4">
+			{/* <div className="flex justify-end pr-[24px] mt-4">
 				{isEditing && (
 					<button
 						onClick={() => handleValidate(selectedDates)}
@@ -127,7 +127,7 @@ const PlanCampaignSchedule: React.FC = () => {
 						{loading ? <SVGLoader width={"24px"} height={"24px"} color={"#fff"} /> : "Validate"}
 					</button>
 				)}
-			</div>
+			</div> */}
 		</div>
 	);
 };

@@ -10,6 +10,7 @@ import Select from "react-select";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { useComments } from "app/utils/CommentProvider";
 import { useEditing } from "app/utils/EditingContext";
+import { formatNumberWithCommas } from "components/data";
 
 const CampaignBudget = () => {
   const [active, setActive] = useState(null);
@@ -101,10 +102,11 @@ const CampaignBudget = () => {
       <div className="mt-[24px] flex gap-5">
         {/* Top‑down Option */}
         <div
-          className={`relative ${active === 1
-            ? "top_and_bottom_down_container_active"
-            : "top_and_bottom_down_container"
-            }`}
+          className={`relative ${
+            active === 1
+              ? "top_and_bottom_down_container_active"
+              : "top_and_bottom_down_container"
+          }`}
           onClick={() => {
             if (!isEditing) return;
             handleTopDownClick();
@@ -143,10 +145,11 @@ const CampaignBudget = () => {
 
         {/* Bottom‑up Option */}
         <div
-          className={`relative ${active === 2
-            ? "top_and_bottom_down_container_active"
-            : "top_and_bottom_down_container"
-            }`}
+          className={`relative ${
+            active === 2
+              ? "top_and_bottom_down_container_active"
+              : "top_and_bottom_down_container"
+          }`}
           onClick={() => {
             if (!isEditing) return;
             handleBottomUpClick();
@@ -189,12 +192,17 @@ const CampaignBudget = () => {
               <input
                 className="text-center outline-none w-[145px]"
                 placeholder="Budget value"
-                value={Number(campaignFormData?.campaign_budget?.amount) || ""}
+                value={
+                  formatNumberWithCommas(
+                    campaignFormData?.campaign_budget?.amount
+                  ) || ""
+                }
                 onChange={(e) => {
                   if (!isEditing) return;
-                  const value = e.target.value;
-                  if (/^\d*\.?\d*$/.test(value)) {
-                    handleBudgetEdit("amount", value);
+                  const inputValue = e.target.value.replace(/,/g, ""); // Remove commas
+                  const newBudget = Number(inputValue);
+                  if (/^\d*\.?\d*$/.test(newBudget.toString())) {
+                    handleBudgetEdit("amount", newBudget.toString());
                   }
                 }}
                 disabled={!isEditing}
@@ -239,17 +247,18 @@ const CampaignBudget = () => {
           </div>
           <div>
             <p
-              className={`font-[600] text-[15px] leading-[20px] ${Number(calculateRemainingBudget()) < 1
-                ? "text-red-500"
-                : "text-[#00A36C]"
-                }`}
+              className={`font-[600] text-[15px] leading-[20px] ${
+                Number(calculateRemainingBudget()) < 1
+                  ? "text-red-500"
+                  : "text-[#00A36C]"
+              }`}
             >
               Remaining budget:{" "}
               {Number(campaignFormData?.campaign_budget?.amount) > 0
                 ? getCurrencySymbol(
-                  campaignFormData?.campaign_budget?.currency ||
-                  selectedOption?.value
-                )
+                    campaignFormData?.campaign_budget?.currency ||
+                      selectedOption?.value
+                  )
                 : ""}
               {Number(calculateRemainingBudget())?.toLocaleString()}
             </p>

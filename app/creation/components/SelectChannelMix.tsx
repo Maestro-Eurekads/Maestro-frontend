@@ -4,7 +4,8 @@ import Image from "next/image";
 import up from "../../../public/arrow-down.svg";
 import down2 from "../../../public/arrow-down-2.svg";
 import checkmark from "../../../public/mingcute_check-fill.svg";
-import customicon from "../../../public/social/customicon.png";
+import zoom from "../../../public/tabler_zoom-filled.svg";
+import credit from "../../../public/mdi_credit-card.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { funnelStages, getPlatformIcon } from "../../../components/data";
 import { useCampaigns } from "../../utils/CampaignsContext";
@@ -52,12 +53,37 @@ const SelectChannelMix = () => {
   const [stageStatuses, setStageStatuses] = useState({});
   const [showMoreMap, setShowMoreMap] = useState({});
   const [openChannelTypes, setOpenChannelTypes] = useState({});
+  const [isDataReady, setIsDataReady] = useState(false);
   const ITEMS_TO_SHOW = 6;
 
-  // Ensure component is mounted before rendering
+  // Fallback metadata for Targeting/Retargeting, using same icons as MapFunnelStages
+  const fallbackFunnelMetadata = {
+    Targeting: { name: "Targeting", icon: zoom },
+    Retargeting: { name: "Retargeting", icon: credit },
+  };
+
+  // Debug data on mount
+  useEffect(() => {
+    console.log("SelectChannelMix - platformList:", platformList);
+    console.log("SelectChannelMix - campaignFormData:", campaignFormData);
+    console.log("SelectChannelMix - cId:", cId);
+  }, [platformList, campaignFormData, cId]);
+
+  // Ensure component is mounted and data is ready
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    if (
+      campaignFormData?.funnel_stages?.length > 0 &&
+      Object.keys(platformList).length > 0
+    ) {
+      setIsDataReady(true);
+    } else {
+      console.warn("SelectChannelMix - Data not ready:", {
+        funnel_stages: campaignFormData?.funnel_stages,
+        platformList: Object.keys(platformList),
+      });
+    }
+  }, [campaignFormData, platformList]);
 
   // Close drawer on mount
   useEffect(() => {
@@ -66,6 +92,25 @@ const SelectChannelMix = () => {
       setClose(false);
     }
   }, [isMounted, setIsDrawerOpen, setClose]);
+
+  // Reset localStorage on cId change
+  useEffect(() => {
+    if (isMounted && cId) {
+      Object.keys(localStorage).forEach((key) => {
+        if (
+          key.includes("openItems") ||
+          key.includes("selected") ||
+          key.includes("stageStatuses") ||
+          key.includes("showMoreMap") ||
+          key.includes("openChannelTypes")
+        ) {
+          if (!key.startsWith(`${cId}_`)) {
+            localStorage.removeItem(key);
+          }
+        }
+      });
+    }
+  }, [cId, isMounted]);
 
   // Initialize states from localStorage based on cId
   useEffect(() => {
@@ -165,15 +210,19 @@ const SelectChannelMix = () => {
   // Update stage statuses based on selections
   useEffect(() => {
     if (isMounted && campaignFormData?.funnel_stages?.length > 0) {
-      const updatedStatuses = {};
-      campaignFormData.funnel_stages.forEach((stageName) => {
-        const currentStageSelections = selected[stageName] || {};
-        const hasSelections = Object.values(currentStageSelections).some(
-          (arr) => Array.isArray(arr) && arr.length > 0
-        );
-        updatedStatuses[stageName] = hasSelections ? "In progress" : "Not started";
+      setStageStatuses((prev) => {
+        const updatedStatuses = { ...prev };
+        campaignFormData.funnel_stages.forEach((stageName) => {
+          const currentStageSelections = selected[stageName] || {};
+          const hasSelections = Object.values(currentStageSelections).some(
+            (arr) => Array.isArray(arr) && arr.length > 0
+          );
+          updatedStatuses[stageName] = hasSelections
+            ? "In progress"
+            : "Not started";
+        });
+        return updatedStatuses;
       });
-      setStageStatuses((prev) => ({ ...prev, ...updatedStatuses }));
     }
   }, [selected, campaignFormData?.funnel_stages, isMounted]);
 
@@ -216,10 +265,21 @@ const SelectChannelMix = () => {
         [category]: newCategorySelection,
       };
 
-      return {
+      const updatedSelected = {
         ...prevSelected,
         [stageName]: updatedStageSelection,
       };
+
+      // Compute new stage status immediately
+      const hasSelections = Object.values(updatedStageSelection).some(
+        (arr) => Array.isArray(arr) && arr.length > 0
+      );
+      setStageStatuses((prev) => ({
+        ...prev,
+        [stageName]: hasSelections ? "In progress" : "Not started",
+      }));
+
+      return updatedSelected;
     });
 
     const updatedFormData = await setCampaignFormData((prevFormData) => {
@@ -298,9 +358,21 @@ const SelectChannelMix = () => {
     }));
   };
 
-  // Early return if not mounted or no campaign form data
-  if (!isMounted || !campaignFormData?.funnel_stages?.length) {
-    return <div>Loading...</div>;
+  // Early return if not mounted or data not ready
+  if (!isMounted || !isDataReady) {
+    return <div>Loading channels...</div>;
+  }
+
+  // Fallback for empty funnel stages or platformList
+  if (!campaignFormData?.funnel_stages?.length) {
+    return (
+      <div>
+        No funnel stages selected. Please select stages in the previous step.
+      </div>
+    );
+  }
+  if (!Object.keys(platformList).length) {
+    return <div>No platforms available. Please contact support.</div>;
   }
 
   return (
@@ -314,53 +386,62 @@ const SelectChannelMix = () => {
       </div>
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
-        {campaignFormData?.funnel_stages?.map((stageName, index) => {
-          const stage = campaignFormData?.custom_funnels?.find(
+        {campaignFormData.funnel_stages.map((stageName, index) => {
+          // Find stage metadata: prioritize funnelStages, then custom_funnels, then fallback
+          const stageFromFunnelStages = funnelStages?.find(
+            (f) => f.name === stageName
+          );
+          const stageFromCustomFunnels = campaignFormData?.custom_funnels?.find(
             (s) => s.name === stageName
           );
-          const funn = funnelStages?.find((f) => f.name === stageName);
-          if (!stage) return null;
+          const stage =
+            stageFromFunnelStages ||
+            stageFromCustomFunnels ||
+            fallbackFunnelMetadata[stageName];
+
+          if (!stage) {
+            console.warn(`Stage metadata not found for: ${stageName}`);
+            return (
+              <div key={index}>
+                Stage "{stageName}" not found. Please check configuration.
+              </div>
+            );
+          }
+
+          // Use stage.icon if available, else fallback to custom icon from funnelStages or custom_funnels
+          const icon =
+            stage.icon ||
+            stageFromFunnelStages?.icon ||
+            stageFromCustomFunnels?.icon ||
+            "/placeholder.svg";
 
           return (
             <div key={index}>
               <div
                 className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-                  ${
-                    openItems[stage.name]
-                      ? "rounded-t-[10px]"
-                      : "rounded-[10px]"
-                  }`}
+                  ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
                 onClick={() => toggleItem(stage.name)}
               >
                 <div className="flex items-center gap-2">
-                  {funn?.icon ? (
-                    <Image
-                      src={funn.icon}
-                      alt={stage.name}
-                      width={20}
-                      height={20}
-                    />
-                  ) : (
-                    <Image
-                      src={customicon}
-                      alt={stage.name}
-                      width={20}
-                      height={20}
-                    />
-                  )}
+                  <Image
+                    src={icon}
+                    alt={stage.name}
+                    width={20}
+                    height={20}
+                  />
                   <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
                     {stage.name}
                   </p>
                 </div>
-                {stageStatuses[stage.name] === "In progress" ? (
-                  <p className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF]">
-                    In progress
-                  </p>
-                ) : (
-                  <p className="mx-auto w-[86px] h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] opacity-50">
-                    Not started
-                  </p>
-                )}
+                <p
+                  className={`font-general-sans font-semibold text-[16px] leading-[22px] ${
+                    stageStatuses[stage.name] === "In progress"
+                      ? "text-[#3175FF]"
+                      : "text-[#061237] opacity-50"
+                  }`}
+                >
+                  {stageStatuses[stage.name] || "Not started"}
+                </p>
                 <div>
                   <Image
                     src={openItems[stage.name] ? up : down2}
@@ -378,7 +459,7 @@ const SelectChannelMix = () => {
                         onClick={(e) => toggleChannelType(e, stage.name, type)}
                       >
                         <h2 className="font-bold capitalize text-[18px]">
-                          {type} Channels
+                          {type.replace("_", " ")} Channels
                         </h2>
                         <Image
                           src={
@@ -395,146 +476,157 @@ const SelectChannelMix = () => {
                           height={24}
                         />
                       </div>
-                      {openChannelTypes[`${stage.name}-${type}`] &&
-                        Object.entries(channels).map(
-                          ([channelName, platforms]) =>
-                            platforms?.length > 0 ? (
-                              <div key={channelName} className="mb-6">
-                                <p className="capitalize font-semibold mb-4">
-                                  {channelName?.replace("_", " ")}
-                                </p>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                                  {platforms
-                                    .slice(
-                                      0,
-                                      showMoreMap[`${stage.name}-${channelName}`]
-                                        ? platforms.length
-                                        : ITEMS_TO_SHOW
-                                    )
-                                    .map((platform, pIndex) => {
-                                      const isSelected = selected[
-                                        stage.name
-                                      ]?.[channelName]?.includes(
-                                        platform.platform_name
-                                      );
-                                      return (
-                                        <div
-                                          key={pIndex}
-                                          className={`cursor-pointer flex flex-row justify-between items-center p-4 gap-2 w-[250px] min-h-[62px] bg-white 
-                              border rounded-[10px] ${
-                                isSelected
-                                  ? "border-[#3175FF]"
-                                  : "border-[rgba(0,0,0,0.1)]"
-                              }`}
-                                          onClick={(e) =>
-                                            handlePlatformClick(
-                                              e,
-                                              stage.name,
-                                              channelName
-                                                ?.replace(" ", "")
-                                                ?.replace("-", "")
-                                                ?.toLowerCase(),
-                                              platform.platform_name,
-                                              type
+                      {openChannelTypes[`${stage.name}-${type}`] && (
+                        <>
+                          {Object.entries(channels).length === 0 ? (
+                            <p>No channels available for {type}</p>
+                          ) : (
+                            Object.entries(channels).map(
+                              ([channelName, platforms]) =>
+                                platforms?.length > 0 ? (
+                                  <div key={channelName} className="mb-6">
+                                    <p className="capitalize font-semibold mb-4">
+                                      {channelName.replace("_", " ")}
+                                    </p>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                                      {platforms
+                                        .slice(
+                                          0,
+                                          showMoreMap[
+                                            `${stage.name}-${channelName}`
+                                          ]
+                                            ? platforms.length
+                                            : ITEMS_TO_SHOW
+                                        )
+                                        .map((platform, pIndex) => {
+                                          const normalizedChannelName =
+                                            channelName
+                                              .replace(" ", "")
+                                              .replace("-", "")
+                                              .toLowerCase();
+                                          const isSelected =
+                                            selected[stage.name]?.[
+                                              normalizedChannelName
+                                            ]?.includes(platform.platform_name);
+                                          return (
+                                            <div
+                                              key={pIndex}
+                                              className={`cursor-pointer flex flex-row justify-between items-center p-4 gap-2 w-[250px] min-h-[62px] bg-white 
+                                  border rounded-[10px] ${
+                                    isSelected
+                                      ? "border-[#3175FF]"
+                                      : "border-[rgba(0,0,0,0.1)]"
+                                  }`}
+                                              onClick={(e) =>
+                                                handlePlatformClick(
+                                                  e,
+                                                  stage.name,
+                                                  normalizedChannelName,
+                                                  platform.platform_name,
+                                                  type
+                                                )
+                                              }
+                                            >
+                                              <div className="flex items-center gap-2">
+                                                {getPlatformIcon(
+                                                  platform.platform_name
+                                                ) ? (
+                                                  <Image
+                                                    src={
+                                                      getPlatformIcon(
+                                                        platform.platform_name
+                                                      ) || "/placeholder.svg"
+                                                    }
+                                                    alt={platform.platform_name}
+                                                    width={20}
+                                                    height={20}
+                                                  />
+                                                ) : null}
+                                                <p className="min-h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]">
+                                                  {platform.platform_name}
+                                                </p>
+                                              </div>
+                                              <div
+                                                className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${
+                                                  isSelected
+                                                    ? "bg-[#3175FF]"
+                                                    : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
+                                                }`}
+                                              >
+                                                {isSelected && (
+                                                  <Image
+                                                    src={
+                                                      checkmark ||
+                                                      "/placeholder.svg"
+                                                    }
+                                                    alt="selected"
+                                                    className="w-3 h-3"
+                                                    width={20}
+                                                    height={20}
+                                                  />
+                                                )}
+                                              </div>
+                                            </div>
+                                          );
+                                        })
+                                      }
+                                    </div>
+                                    {platforms.length > ITEMS_TO_SHOW && (
+                                      <div className="flex justify-center mt-4">
+                                        <button
+                                          onClick={() =>
+                                            toggleShowMore(
+                                              `${stage.name}-${channelName}`
                                             )
                                           }
+                                          className="text-blue-500 font-medium flex items-center gap-1"
                                         >
-                                          <div className="flex items-center gap-2">
-                                            {getPlatformIcon(
-                                              platform.platform_name
-                                            ) ? (
-                                              <Image
-                                                src={
-                                                  getPlatformIcon(
-                                                    platform.platform_name
-                                                  ) || "/placeholder.svg"
-                                                }
-                                                alt={platform.platform_name}
-                                                width={20}
-                                                height={20}
-                                              />
-                                            ) : null}
-                                            <p className="min-h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]">
-                                              {platform.platform_name}
-                                            </p>
-                                          </div>
-                                          <div
-                                            className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${
-                                              isSelected
-                                                ? "bg-[#3175FF]"
-                                                : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
-                                            }`}
-                                          >
-                                            {isSelected && (
-                                              <Image
-                                                src={
-                                                  checkmark ||
-                                                  "/placeholder.svg"
-                                                }
-                                                alt="selected"
-                                                className="w-3 h-3"
-                                                width={20}
-                                                height={20}
-                                              />
-                                            )}
-                                          </div>
-                                        </div>
-                                      );
-                                    })}
-                                </div>
-                                {platforms.length > ITEMS_TO_SHOW && (
-                                  <div className="flex justify-center mt-4">
-                                    <button
-                                      onClick={() =>
-                                        toggleShowMore(
-                                          `${stage.name}-${channelName}`
-                                        )
-                                      }
-                                      className="text-blue-500 font-medium flex items-center gap-1"
-                                    >
-                                      {showMoreMap[
-                                        `${stage.name}-${channelName}`
-                                      ] ? (
-                                        <>
-                                          Show less
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="20"
-                                            height="20"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="2"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          >
-                                            <path d="m18 15-6-6-6 6" />
-                                          </svg>
-                                        </>
-                                      ) : (
-                                        <>
-                                          Show more
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="20"
-                                            height="20"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="2"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          >
-                                            <path d="m6 9 6 6 6-6" />
-                                          </svg>
-                                        </>
-                                      )}
-                                    </button>
+                                          {showMoreMap[
+                                            `${stage.name}-${channelName}`
+                                          ] ? (
+                                            <>
+                                              Show less
+                                              <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="20"
+                                                height="20"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              >
+                                                <path d="m18 15-6-6-6 6" />
+                                              </svg>
+                                            </>
+                                          ) : (
+                                            <>
+                                              Show more
+                                              <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="20"
+                                                height="20"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              >
+                                                <path d="m6 9 6 6 6-6" />
+                                              </svg>
+                                            </>
+                                          )}
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
-                              </div>
-                            ) : null
-                        )}
+                                ) : null
+                            )
+                          )}
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>

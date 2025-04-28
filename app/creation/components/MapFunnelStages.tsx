@@ -537,165 +537,92 @@ const MapFunnelStages = () => {
       </div>
 
       {/* Render funnel stages based on selected option */}
-      {(selectedOption === "targeting_retargeting" ||
-        selectedOption === "custom") && (
+      {selectedOption === "custom" && (
         <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
-          {/* Funnel stages for Targeting-Retargeting */}
-          {selectedOption === "targeting_retargeting" &&
-            savedSelections.targeting_retargeting.funnel_stages.map(
-              (funnelName, index) => {
-                // Define colors and icons for Targeting and Retargeting
-                const funnelConfig = {
-                  Targeting: {
-                    color: "bg-blue-500",
-                    icon: speaker,
-                    activeIcon: speakerWhite,
-                  },
-                  Retargeting: {
-                    color: "bg-green-500",
-                    icon: zoom,
-                    activeIcon: zoomWhite,
-                  },
-                }[funnelName] || {
-                  color: "bg-gray-500",
-                  icon: addPlus,
-                  activeIcon: addPlusWhite,
-                };
-
-                return (
-                  <div
-                    key={`${funnelName}-${index}`}
-                    className="relative w-full max-w-[685px]"
-                  >
-                    <button
-                      className={`cursor-pointer w-full ${
-                        campaignFormData["funnel_stages"]?.includes(funnelName) ||
-                        hovered === index + 1
-                          ? funnelConfig.color
-                          : ""
-                      } text-black rounded-lg py-4 flex items-center justify-center gap-2
-                      ${
-                        campaignFormData["funnel_stages"]?.includes(funnelName) ||
-                        hovered === index + 1
-                          ? "opacity-100 text-white"
-                          : "opacity-90 shadow-md"
-                      }`}
-                      onClick={() => handleSelect(funnelName)}
-                      onMouseEnter={() => setHovered(index + 1)}
-                      onMouseLeave={() => setHovered(null)}
-                    >
-                      {funnelConfig.icon &&
-                        (campaignFormData["funnel_stages"]?.includes(
-                          funnelName
-                        ) || hovered === index + 1 ? (
-                          <Image
-                            src={funnelConfig.activeIcon || "/placeholder.svg"}
-                            alt={`${funnelName} icon`}
-                            width={24} // Smaller icon size
-                            height={24} // Smaller icon size
-                          />
-                        ) : (
-                          <Image
-                            src={funnelConfig.icon || "/placeholder.svg"}
-                            alt={`${funnelName} icon`}
-                            width={24} // Smaller icon size
-                            height={24} // Smaller icon size
-                          />
-                        ))}
-                      <p className="text-[16px]">{funnelName}</p>
-                    </button>
-                  </div>
-                );
-              }
-            )}
-
           {/* Funnel stages for Custom */}
-          {selectedOption === "custom" &&
-            customFunnels.map((funnel, index) => (
-              <div
-                key={`${funnel.id}-${index}`}
-                className="relative w-full max-w-[685px]"
+          {customFunnels.map((funnel, index) => (
+            <div
+              key={`${funnel.id}-${index}`}
+              className="relative w-full max-w-[685px]"
+            >
+              <button
+                className={`cursor-pointer w-full ${
+                  campaignFormData["funnel_stages"]?.includes(funnel.name) ||
+                  hovered === index + 1
+                    ? funnel.color
+                    : ""
+                } text-black rounded-lg py-4 flex items-center justify-center gap-2
+                ${
+                  campaignFormData["funnel_stages"]?.includes(funnel.name) ||
+                  hovered === index + 1
+                    ? "opacity-100 text-white"
+                    : "opacity-90 shadow-md"
+                }`}
+                onClick={() => {
+                  handleSelect(funnel.name);
+                }}
+                onMouseEnter={() => setHovered(index + 1)}
+                onMouseLeave={() => setHovered(null)}
               >
-                <button
-                  className={`cursor-pointer w-full ${
-                    campaignFormData["funnel_stages"]?.includes(funnel.name) ||
-                    hovered === index + 1
-                      ? funnel.color
-                      : ""
-                  } text-black rounded-lg py-4 flex items-center justify-center gap-2
-                  ${
-                    campaignFormData["funnel_stages"]?.includes(funnel.name) ||
-                    hovered === index + 1
-                      ? "opacity-100 text-white"
-                      : "opacity-90 shadow-md"
-                  }`}
-                  onClick={() => {
-                    handleSelect(funnel.name);
-                  }}
-                  onMouseEnter={() => setHovered(index + 1)}
-                  onMouseLeave={() => setHovered(null)}
-                >
-                  {funnel.icon &&
-                    (campaignFormData["funnel_stages"]?.includes(funnel.name) ||
-                    hovered === index + 1 ? (
-                      <Image
-                        src={funnel.activeIcon || "/placeholder.svg"}
-                        alt={`${funnel.name} icon`}
-                        width={24} // Smaller icon size
-                        height={24} // Smaller icon size
-                      />
-                    ) : (
-                      <Image
-                        src={funnel.icon || "/placeholder.svg"}
-                        alt={`${funnel.name} icon`}
-                        width={24} // Smaller icon size
-                        height={24} // Smaller icon size
-                      />
-                    ))}
-                  <p className="text-[16px]">{funnel.name}</p>
-                </button>
+                {funnel.icon &&
+                  (campaignFormData["funnel_stages"]?.includes(funnel.name) ||
+                  hovered === index + 1 ? (
+                    <Image
+                      src={funnel.activeIcon || "/placeholder.svg"}
+                      alt={`${funnel.name} icon`}
+                      width={24} // Smaller icon size
+                      height={24} // Smaller icon size
+                    />
+                  ) : (
+                    <Image
+                      src={funnel.icon || "/placeholder.svg"}
+                      alt={`${funnel.name} icon`}
+                      width={24} // Smaller icon size
+                      height={24} // Smaller icon size
+                    />
+                  ))}
+                <p className="text-[16px]">{funnel.name}</p>
+              </button>
 
-                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
-                  <button
-                    className="p-1 bg-white rounded-full shadow-sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setModalMode("edit");
-                      setCurrentFunnel(funnel);
-                      setNewFunnelName(funnel.name);
-                      setIsModalOpen(true);
-                    }}
-                  >
-                    <Edit2 size={16} className="text-gray-600" />
-                  </button>
-                  <button
-                    className="p-1 bg-white rounded-full shadow-sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveFunnel(funnel.name);
-                    }}
-                  >
-                    <Trash2 size={16} className="text-red-500" />
-                  </button>
-                </div>
+              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
+                <button
+                  className="p-1 bg-white rounded-full shadow-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setModalMode("edit");
+                    setCurrentFunnel(funnel);
+                    setNewFunnelName(funnel.name);
+                    setIsModalOpen(true);
+                  }}
+                >
+                  <Edit2 size={16} className="text-gray-600" />
+                </button>
+                <button
+                  className="p-1 bg-white rounded-full shadow-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveFunnel(funnel.name);
+                  }}
+                >
+                  <Trash2 size={16} className="text-red-500" />
+                </button>
               </div>
-            ))}
+            </div>
+          ))}
 
           {/* Add new funnel button for Custom option */}
-          {selectedOption === "custom" && (
-            <button
-              className="flex items-center gap-2 text-blue-500 cursor-pointer text-[16px]"
-              onClick={() => {
-                setModalMode("add");
-                setCurrentFunnel(null);
-                setNewFunnelName("");
-                setIsModalOpen(true);
-              }}
-            >
-              <PlusIcon className="text-blue-500" />
-              Add new funnel
-            </button>
-          )}
+          <button
+            className="flex items-center gap-2 text-blue-500 cursor-pointer text-[16px]"
+            onClick={() => {
+              setModalMode("add");
+              setCurrentFunnel(null);
+              setNewFunnelName("");
+              setIsModalOpen(true);
+            }}
+          >
+            <PlusIcon className="text-blue-500" />
+            Add new funnel
+          </button>
         </div>
       )}
 

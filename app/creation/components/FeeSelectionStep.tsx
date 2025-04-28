@@ -58,7 +58,7 @@ function FeeSelectionStep() {
     { value: "CAD", label: "CAD" },
   ];
   const handleBudgetEdit = (param: string, type: string) => {
-    setCampaignFormData((prev) => ({
+    setCampaignFormData((prev: any) => ({
       ...prev,
       campaign_budget: {
         ...prev?.campaign_budget,
@@ -128,7 +128,10 @@ function FeeSelectionStep() {
       campaignFormData?.campaign_budget?.amount || "0"
     );
 
-    if (active === 1 && totalFees + Number.parseFloat(calculatedAmount) > grossAmount) {
+    if (
+      active === 1 &&
+      totalFees + Number.parseFloat(calculatedAmount) > grossAmount
+    ) {
       toast("Total fees cannot exceed the gross amount", {
         style: {
           background: "red",
@@ -173,15 +176,8 @@ function FeeSelectionStep() {
 
   useEffect(() => {
     if (campaignFormData) {
-      // setActive(
-      //   campaignFormData?.campaign_budget?.sub_budget_type === "gross"
-      //     ? 1
-      //     : campaignFormData?.campaign_budget?.sub_budget_type === "net"
-      //     ? 2
-      //     : null
-      // );
       const feesData = campaignFormData?.campaign_budget?.budget_fees?.map(
-        (bud) => ({
+        (bud: { fee_type: string; value: string }) => ({
           type: bud?.fee_type,
           label: feeOptions?.find((opt) => opt.value === bud?.fee_type)?.label,
           amount: bud?.value,
@@ -236,7 +232,7 @@ function FeeSelectionStep() {
     }
 
     setNetAmount(calculateNetAmount());
-  }, [fees, campaignFormData?.campaign_budget?.amount, active]);
+  }, [campaignFormData?.campaign_budget?.amount, active]);
 
   return (
     <div>
@@ -266,7 +262,9 @@ function FeeSelectionStep() {
                 </h3>
               </div>
             </div>
-            {active === 1 && (
+            {(active === 1 ||
+              campaignFormData?.campaign_budget?.sub_budget_type ===
+                "gross") && (
               <div className="absolute right-2 top-2">
                 <Image
                   src={Selectstatus || "/placeholder.svg"}
@@ -297,7 +295,8 @@ function FeeSelectionStep() {
                 </h3>
               </div>
             </div>
-            {active === 2 && (
+            {(active === 2 ||
+              campaignFormData?.campaign_budget?.sub_budget_type === "net") && (
               <div className="absolute right-2 top-2">
                 <Image
                   src={Selectstatus || "/placeholder.svg"}
@@ -397,28 +396,28 @@ function FeeSelectionStep() {
                     <input
                       className="text-center outline-none w-[145px]"
                       placeholder={
-                      feeType?.type === "percent"
-                        ? "Fee percentage"
-                        : "Fee amount"
+                        feeType?.type === "percent"
+                          ? "Fee percentage"
+                          : "Fee amount"
                       }
                       value={feeAmount}
                       onChange={(e) => {
-                      const value = e.target.value;
-                      if (/^\d*\.?\d*$/.test(value)) {
-                        if (
-                        feeType?.type === "percent" &&
-                        Number(value) > 100
-                        ) {
-                        toast("Percentage cannot exceed 100", {
-                          style: {
-                          background: "red",
-                          color: "white",
-                          },
-                        });
-                        return;
+                        const value = e.target.value;
+                        if (/^\d*\.?\d*$/.test(value)) {
+                          if (
+                            feeType?.type === "percent" &&
+                            Number(value) > 100
+                          ) {
+                            toast("Percentage cannot exceed 100", {
+                              style: {
+                                background: "red",
+                                color: "white",
+                              },
+                            });
+                            return;
+                          }
+                          setFeeAmount(value);
                         }
-                        setFeeAmount(value);
-                      }
                       }}
                     />
                     {feeType?.type === "percent" && <span>%</span>}

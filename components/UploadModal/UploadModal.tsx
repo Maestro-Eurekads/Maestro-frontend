@@ -56,6 +56,9 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const [uploads, setUploads] = useState<Array<File | null>>([]);
   const [uploadBlobs, setUploadBlobs] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
 
   // Initialize uploadBlobs with existing previews
   useEffect(() => {
@@ -68,7 +71,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
     }
   }, [previews, quantities]);
 
-  const handleFileChange = (
+  const handleFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
     index: number
   ) => {
@@ -86,7 +89,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
             "application/vnd.openxmlformats-officedocument.presentationml.presentation",
           ]
         : ["image/jpeg", "image/png", "image/jpg"];
-    const maxSizeInMB = 10;
+    const maxSizeInMB = 20;
     const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
 
     if (!allowedTypes.includes(file.type)) {
@@ -110,18 +113,29 @@ const UploadModal: React.FC<UploadModalProps> = ({
       return;
     }
 
-    setUploads((prev) => {
-      const updated = [...prev];
-      updated[index] = file;
-      return updated;
-    });
+    setUploadingIndex(index);
 
-    const objectUrl = URL.createObjectURL(file);
-    setUploadBlobs((prev) => {
-      const updated = [...prev];
-      updated[index] = objectUrl;
-      return updated;
-    });
+    try {
+      // Simulate loading time for file processing
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      setUploads((prev) => {
+        const updated = [...prev];
+        updated[index] = file;
+        return updated;
+      });
+
+      const objectUrl = URL.createObjectURL(file);
+      setUploadBlobs((prev) => {
+        const updated = [...prev];
+        updated[index] = objectUrl;
+        return updated;
+      });
+    } catch (error) {
+      toast.error("Error processing file. Please try again.");
+    } finally {
+      setUploadingIndex(null);
+    }
 
     e.target.value = ""; // Reset input
   };
@@ -147,28 +161,44 @@ const UploadModal: React.FC<UploadModalProps> = ({
     }
 
     setLoading(true);
-    try {
-      const formData = new FormData();
-      uploads.forEach((file) => {
-        if (file) formData.append("files", file);
-      });
+    setRetryCount(0);
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-          },
-          body: formData,
+    const attemptUpload = async (): Promise<any> => {
+      try {
+        const formData = new FormData();
+        uploads.forEach((file) => {
+          if (file) formData.append("files", file);
+        });
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            },
+            body: formData,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      );
 
-      if (!response.ok) {
-        throw new Error("Failed to upload files to Strapi");
+        return await response.json();
+      } catch (error) {
+        if (retryCount < MAX_RETRIES) {
+          setRetryCount(prev => prev + 1);
+          // Exponential backoff: wait longer between each retry
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+          return attemptUpload();
+        }
+        throw error;
       }
+    };
 
-      const uploadedFiles = await response.json();
+    try {
+      const uploadedFiles = await attemptUpload();
       const formattedFiles = uploadedFiles.map((file) => ({
         id: file.id.toString(),
         url: file.url,
@@ -178,7 +208,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
       toast.success("Files uploaded successfully!");
     } catch (error) {
       console.error("Error uploading files:", error);
-      toast.error("Failed to upload files. Please try again.");
+      toast.error("Failed to upload files after multiple attempts. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -187,38 +217,43 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const updateGlobalState = async (
     uploadedFiles: Array<{ id: string; url: string }>
   ) => {
-    const updatedChannelMix = [...campaignFormData.channel_mix];
+    try {
+      const updatedChannelMix = [...campaignFormData.channel_mix];
 
-    const stage = updatedChannelMix.find((ch) => ch.funnel_stage === stageName);
-    if (!stage) throw new Error("Stage not found");
+      const stage = updatedChannelMix.find((ch) => ch.funnel_stage === stageName);
+      if (!stage) throw new Error("Stage not found");
 
-    const platformKey = channel.toLowerCase().replace(/\s+/g, "_");
-    const platforms = stage[platformKey];
-    if (!platforms) throw new Error("Platform key not found");
+      const platformKey = channel.toLowerCase().replace(/\s+/g, "_");
+      const platforms = stage[platformKey];
+      if (!platforms) throw new Error("Platform key not found");
 
-    const targetPlatform = platforms.find(
-      (pl) => pl.platform_name === platform
-    );
-    if (!targetPlatform) throw new Error("Target platform ltx not found");
+      const targetPlatform = platforms.find(
+        (pl) => pl.platform_name === platform
+      );
+      if (!targetPlatform) throw new Error("Target platform not found");
 
-    const targetFormatIndex = targetPlatform.format.findIndex(
-      (fo) => fo.format_type === format
-    );
-    if (targetFormatIndex === -1) throw new Error("Target format not found");
+      const targetFormatIndex = targetPlatform.format.findIndex(
+        (fo) => fo.format_type === format
+      );
+      if (targetFormatIndex === -1) throw new Error("Target format not found");
 
-    // Merge new uploads with existing previews
-    const existingPreviews =
-      targetPlatform.format[targetFormatIndex].previews || [];
-    const newPreviews = [...existingPreviews, ...uploadedFiles];
+      // Merge new uploads with existing previews
+      const existingPreviews =
+        targetPlatform.format[targetFormatIndex].previews || [];
+      const newPreviews = [...existingPreviews, ...uploadedFiles];
 
-    targetPlatform.format[targetFormatIndex].previews = newPreviews;
+      targetPlatform.format[targetFormatIndex].previews = newPreviews;
 
-    const updatedState = {
-      ...campaignData,
-      channel_mix: updatedChannelMix,
-    };
+      const updatedState = {
+        ...campaignData,
+        channel_mix: updatedChannelMix,
+      };
 
-    await uploadUpdatedCampaignToStrapi(updatedState);
+      await uploadUpdatedCampaignToStrapi(updatedState);
+    } catch (error) {
+      console.error("Error updating global state:", error);
+      throw error; // Re-throw to be caught by the caller
+    }
   };
 
   const uploadUpdatedCampaignToStrapi = async (data: any) => {
@@ -234,13 +269,11 @@ const UploadModal: React.FC<UploadModalProps> = ({
     } catch (error) {
       console.error("Error updating campaign:", error);
       toast.error("Failed to save campaign data.");
+      throw error; // Re-throw to be caught by the caller
     } finally {
       setLoading(false);
     }
   };
-
-
-
 
   if (!isOpen) return null;
 
@@ -277,22 +310,18 @@ const UploadModal: React.FC<UploadModalProps> = ({
                   key={index}
                   className="w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors relative"
                 >
-                  {uploadBlobs[index] ? (
+                  {uploadingIndex === index ? (
+                    <div className="flex items-center justify-center">
+                      <FaSpinner className="animate-spin text-blue-500 text-2xl" />
+                    </div>
+                  ) : uploadBlobs[index] ? (
                     <>
                       <Link
                         href={uploadBlobs[index]}
                         target="_blank"
                         className="w-full h-full"
                       >
-                        {/* <Image
-                          src={uploadBlobs[index]}
-                          alt={`Image ${index}`}
-                          className="w-full h-full object-cover"
-                          width={225}
-                          height={105}
-                          objectFit="cover"
-                        /> */}
-                        {renderUploadedFile(uploadBlobs, format ,index)}
+                        {renderUploadedFile(uploadBlobs, format, index)}
                       </Link>
                       <button
                         className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
@@ -330,7 +359,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
                             ? "application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
                             : "image/jpeg,image/png,image/jpg"
                         }
-                        // "image/jpeg,image/png,image/jpg,video/mp4,video/mov,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
                         id={`upload${index}`}
                         className="hidden"
                         onChange={(e) => handleFileChange(e, index)}
