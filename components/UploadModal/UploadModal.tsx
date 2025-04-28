@@ -51,7 +51,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
     onClose();
   };
 
-  const { campaignFormData, updateCampaign, getActiveCampaign, campaignData } =
+  const { campaignFormData, updateCampaign, getActiveCampaign , campaignData} =
     useCampaigns();
   const [uploads, setUploads] = useState<Array<File | null>>([]);
   const [uploadBlobs, setUploadBlobs] = useState<string[]>([]);
@@ -87,7 +87,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
             "application/vnd.openxmlformats-officedocument.presentationml.presentation",
           ]
         : ["image/jpeg", "image/png", "image/jpg"];
-    const maxSizeInMB = 15; // Reduced max file size to 1.5MB
+    const maxSizeInMB = 15;
     const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
 
     if (!allowedTypes.includes(file.type)) {
@@ -111,13 +111,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
       return;
     }
 
-    console.log("File selected:", file);
-
-    setUploads((prev) => {
-      const updated = [...prev];
-      updated[index] = file;
-      return updated;
-    });
     setUploadingIndex(index);
 
     try {
@@ -167,33 +160,27 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
     setLoading(true);
     try {
-      // Upload files one by one
-      const uploadedFiles = [];
-      for (const file of uploads) {
-        if (!file) continue;
+      const formData = new FormData();
+      uploads.forEach((file) => {
+        if (file) formData.append("files", file);
+      });
 
-        const formData = new FormData();
-        formData.append("files", file);
-
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-            },
-            body: formData,
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`Failed to upload file: ${file.name}`);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+          body: formData,
         }
+      );
 
-        const result = await response.json();
-        uploadedFiles.push(...result);
+      if (!response.ok) {
+        throw new Error("Failed to upload files to Strapi");
       }
 
+      const uploadedFiles = await response.json();
       const formattedFiles = uploadedFiles.map((file) => ({
         id: file.id.toString(),
         url: file.url,
@@ -284,7 +271,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
             </h2>
             <p className="font-lighter text-balance text-md text-black">
               Upload the visuals for your selected formats. Each visual should
-              have a corresponding preview. Maximum file size: 15MB
+              have a corresponding preview.
             </p>
           </div>
 
@@ -305,9 +292,13 @@ const UploadModal: React.FC<UploadModalProps> = ({
                     </div>
                   ) : uploadBlobs[index] ? (
                     <>
-                      <div className="w-full h-full">
-                        {renderUploadedFile(uploadBlobs, format, index, uploads[index])}
-                      </div>
+                      <Link
+                        href={uploadBlobs[index]}
+                        target="_blank"
+                        className="w-full h-full"
+                      >
+                        {renderUploadedFile(uploadBlobs, format, index)}
+                      </Link>
                       <button
                         className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
                         onClick={() => handleDelete(index)}
