@@ -16,9 +16,22 @@ import ConfigureAdSetsAndBudget from "./components/ ConfigureadSetsAndbudget";
 import DefineAdSet from "./components/DefineAdSet";
 import { FormatSelection } from "./components/FormatSelection";
 import FeeSelectionStep from "./components/FeeSelectionStep";
+import { useComments } from "app/utils/CommentProvider";
 
 const Creation = () => {
   const { active, subStep } = useActive();
+  const { setClose, close } = useComments();
+
+  useEffect(() => {
+    if (active === 10) {
+      setClose(!close)
+    }
+  }, [active, setClose]);
+
+
+
+
+
 
   return (
     <div>

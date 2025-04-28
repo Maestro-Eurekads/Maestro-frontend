@@ -221,7 +221,7 @@ export const platformIcons: Record<string, StaticImageData> = {
   Door: door,
   "Door Hangers": door,
   DirectMail: directmail,
-  Brochure: brochure, 
+  Brochure: brochure,
   Cinema: cinema,
   Television: television,
   Radio: radio,
@@ -576,8 +576,8 @@ export const platformStyles = [
   { name: "FilmTV", color: "#7C3AED", icon: filmtv, bg: "#F6F0FF" },
 ];
 
-export const renderUploadedFile = (uploadBlobs, format,index: number) => {
-  if ( !uploadBlobs[index]) return null;
+export const renderUploadedFile = (uploadBlobs, format, index: number) => {
+  if (!uploadBlobs[index]) return null;
 
   if (format === "Video") {
     return (
@@ -643,3 +643,21 @@ export function hasFormatEntered(channelMix) {
   }
   return false; // No format found for any platform
 }
+
+
+export const selectCurrency = [
+  { value: "USD", label: "US Dollar (USD)", sign: "$" },
+  { value: "EUR", label: "Euro (EUR)", sign: "€" },
+  { value: "GBP", label: "British Pound (GBP)", sign: "£" },
+  { value: "NGN", label: "Nigerian Naira (NGN)", sign: "₦" },
+  { value: "JPY", label: "Japanese Yen (JPY)", sign: "¥" },
+  { value: "CAD", label: "Canadian Dollar (CAD)", sign: "C$" },
+];
+
+
+export const statusOption = [
+  { value: "open", label: "Open" },
+  { label: "Reconcilled", value: "reconcilled" },
+  { label: "Partially paid", value: "partially_paid" },
+  { label: "Fully Paid", value: "fully_paid" },
+];

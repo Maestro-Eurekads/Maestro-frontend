@@ -11,8 +11,8 @@ import { useAppSelector } from "store/useStore";
 import tickcircles from "../../public/solid_circle-check.svg";
 
 const DraggableComment = ({ comment, commentId }) => {
-	const { updateCommentsPosition, updatePosition } = useComments();
-	const [activeComment, setActiveComment] = useState(null);
+	const { updateCommentsPosition, updatePosition, activeComment, setActiveComment } = useComments();
+
 	const commentRef = useRef(null);
 	const [draggedRecently, setDraggedRecently] = useState(false);
 
@@ -47,6 +47,8 @@ const DraggableComment = ({ comment, commentId }) => {
 			setActiveComment(comment?.documentId);
 		}
 	};
+
+
 
 
 

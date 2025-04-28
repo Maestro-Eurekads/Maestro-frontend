@@ -44,9 +44,8 @@ const Dropdown = ({ label, options, selectedFilters, handleSelect, isDisabled = 
     <div className="relative" ref={dropdownRef}>
       {/* Dropdown Button */}
       <div
-        className={`flex items-center gap-3 px-4 py-2 whitespace-nowrap h-[40px] border border-[#EFEFEF] rounded-[10px] cursor-pointer ${
-          isDisabled ? "opacity-60" : ""
-        }`}
+        className={`flex items-center gap-3 px-4 py-2 whitespace-nowrap h-[40px] border border-[#EFEFEF] rounded-[10px] cursor-pointer ${isDisabled ? "opacity-60" : ""
+          }`}
         onClick={toggleDropdown}
       >
         <span className="text-gray-600 capitalize">{selectedFilters[label] || label?.replace("_", " ")}</span>
@@ -166,7 +165,7 @@ const FiltersDropdowns = ({ hideTitle }: Props) => {
           .finally(() => {
             setLoading(false)
           })
-        console.log("🚀 ~ fetchData ~ data:", data)
+
       }
       fetchData()
     }
@@ -177,7 +176,7 @@ const FiltersDropdowns = ({ hideTitle }: Props) => {
 
   return (
     <div>
-      <Toaster/>
+      <Toaster />
       {!hideTitle && <h6 className="font-[600] text-[14px] leading-[19px] text-[rgba(6,18,55,0.8)]">Filters</h6>}
       <div className="flex items-center gap-4 mt-[5px] flex-wrap">
         {filters

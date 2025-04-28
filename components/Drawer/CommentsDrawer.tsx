@@ -94,7 +94,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 		setOpportunities([]);
 		onClose(false);
 		setViewcommentsId('');
-		setClose(false)
+		// setClose(false)
 	};
 
 	useEffect(() => {
