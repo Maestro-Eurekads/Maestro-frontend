@@ -87,7 +87,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
             "application/vnd.openxmlformats-officedocument.presentationml.presentation",
           ]
         : ["image/jpeg", "image/png", "image/jpg"];
-    const maxSizeInMB = 10;
+    const maxSizeInMB = 15; // Reduced max file size to 1.5MB
     const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
 
     if (!allowedTypes.includes(file.type)) {
@@ -167,27 +167,33 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
     setLoading(true);
     try {
-      const formData = new FormData();
-      uploads.forEach((file) => {
-        if (file) formData.append("files", file);
-      });
+      // Upload files one by one
+      const uploadedFiles = [];
+      for (const file of uploads) {
+        if (!file) continue;
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-          },
-          body: formData,
+        const formData = new FormData();
+        formData.append("files", file);
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            },
+            body: formData,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Failed to upload file: ${file.name}`);
         }
-      );
 
-      if (!response.ok) {
-        throw new Error("Failed to upload files to Strapi");
+        const result = await response.json();
+        uploadedFiles.push(...result);
       }
 
-      const uploadedFiles = await response.json();
       const formattedFiles = uploadedFiles.map((file) => ({
         id: file.id.toString(),
         url: file.url,
@@ -278,7 +284,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
             </h2>
             <p className="font-lighter text-balance text-md text-black">
               Upload the visuals for your selected formats. Each visual should
-              have a corresponding preview.
+              have a corresponding preview. Maximum file size: 15MB
             </p>
           </div>
 
