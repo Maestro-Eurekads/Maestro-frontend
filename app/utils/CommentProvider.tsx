@@ -37,7 +37,8 @@ export const CommentProvider = ({ children }) => {
 	const [generalComment, setGeneralComment] = useState("");
 	const [selected, setSelected] = useState(null);
 	const [isOpen, setIsOpen] = useState(false);
-	const [showbyID, setShowbyID] = useState(false);
+	const [activeComment, setActiveComment] = useState(null);
+	const [show, setShow] = useState(false);
 
 	const dispatch = useAppDispatch();
 	const { data } = useAppSelector((state) => state.comment);
@@ -363,7 +364,11 @@ export const CommentProvider = ({ children }) => {
 				selected,
 				setSelected,
 				isOpen,
-				setIsOpen
+				setIsOpen,
+				activeComment,
+				setActiveComment,
+				show,
+				setShow
 			}}
 		>
 			{children}

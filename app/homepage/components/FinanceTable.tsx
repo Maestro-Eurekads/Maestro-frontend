@@ -26,6 +26,8 @@ function FinanceTable({
     setExpandedPO(po);
   };
 
+  console.log('clientCampaignData-clientCampaignData', clientCampaignData)
+
   return (
     <table className="w-full">
       <thead>
@@ -107,13 +109,12 @@ function FinanceTable({
                   </td>
                   <td className="py-[12px] px-[16px]">
                     <span
-                      className={`${
-                        po?.PO_status === "open"
+                      className={`${po?.PO_status === "open"
                           ? "text-blue-400"
                           : po?.PO_status === "partially_paid"
-                          ? "text-orange-400"
-                          : "text-green-400"
-                      } capitalize`}
+                            ? "text-orange-400"
+                            : "text-green-400"
+                        } capitalize`}
                     >
                       {po?.PO_status?.replace("_", " ")}
                     </span>
