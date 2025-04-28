@@ -19,10 +19,10 @@ const TableView = () => {
   // Initialize merged headers and body when campaign objectives change
   useEffect(() => {
     const existingHeaderNames = new Set(
-      tableHeaders[campaignFormData?.campaign_objective]?.map((header) => header.name) || [],
+      tableHeaders[campaignFormData?.campaign_objectives]?.map((header) => header.name) || [],
     )
-    const newHeaders = [...(tableHeaders[campaignFormData?.campaign_objective] || [])]
-    const newBody = [...(tableBody[campaignFormData?.campaign_objective] || [])]
+    const newHeaders = [...(tableHeaders[campaignFormData?.campaign_objectives] || [])]
+    const newBody = [...(tableBody[campaignFormData?.campaign_objectives] || [])]
 
     selectedMetrics.forEach((metric) => {
       if (!existingHeaderNames.has(metric.name)) {
@@ -38,7 +38,7 @@ const TableView = () => {
 
     setMergedTableHeaders(newHeaders)
     setMergedTableBody(newBody)
-  }, [selectedMetrics, campaignFormData?.campaign_objective])
+  }, [selectedMetrics, campaignFormData?.campaign_objectives])
 
   const toggleRow = (index) => {
     setExpandedRows((prev) => ({
@@ -111,10 +111,13 @@ const TableView = () => {
         className="p-3 bg-[#3175FF] rounded-[10px] text-white w-fit ml-auto mb-5 flex justify-end font-medium cursor-pointer"
         onClick={() => setIsOpen(true)}
       >
-        Add More KPIs
+        Edit KPIs
       </div>
       {campaignFormData?.funnel_stages?.map((stageName, index) => {
-        const stage = funnelStages.find((s) => s.name === stageName)
+        const stage = campaignFormData?.custom_funnels?.find(
+          (s) => s.name === stageName
+        );
+        const funn = funnelStages?.find((f) => f.name === stageName);
         if (!stage) return null
 
         const stageData = processedData[stage?.name] || []
@@ -123,7 +126,7 @@ const TableView = () => {
             key={index}
             stage={stage}
             stageData={stageData}
-            campaignObjectives={campaignFormData?.campaign_objective}
+            campaignObjectives={campaignFormData?.campaign_objectives}
             goalLevel={campaignFormData?.goal_level}
             expandedRows={expandedRows}
             toggleRow={toggleRow}
@@ -148,7 +151,7 @@ const TableView = () => {
                       .filter(
                         (header) =>
                           // Filter out headers that are already in the current campaign objective
-                          !tableHeaders[campaignFormData?.campaign_objective]?.some(
+                          !tableHeaders[campaignFormData?.campaign_objectives]?.some(
                             (existingHeader) => existingHeader.name === header.name,
                           ),
                       )

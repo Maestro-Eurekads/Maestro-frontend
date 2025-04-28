@@ -50,9 +50,9 @@ const SelectChannelMix = () => {
   const [openItems, setOpenItems] = useState({});
   const [selected, setSelected] = useState({});
   const [stageStatuses, setStageStatuses] = useState({});
-  const [showMoreMap, setShowMoreMap] = useState({});
   const [openChannelTypes, setOpenChannelTypes] = useState({});
   const [isDataReady, setIsDataReady] = useState(false);
+  const [showMoreMap, setShowMoreMap] = useState({});
   const ITEMS_TO_SHOW = 6;
 
   // Debug data on mount
