@@ -57,6 +57,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const [uploadBlobs, setUploadBlobs] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
 
   // Initialize uploadBlobs with existing previews
   useEffect(() => {
@@ -87,7 +89,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
             "application/vnd.openxmlformats-officedocument.presentationml.presentation",
           ]
         : ["image/jpeg", "image/png", "image/jpg"];
-    const maxSizeInMB = 15;
+    const maxSizeInMB = 20;
     const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
 
     if (!allowedTypes.includes(file.type)) {
@@ -159,28 +161,44 @@ const UploadModal: React.FC<UploadModalProps> = ({
     }
 
     setLoading(true);
-    try {
-      const formData = new FormData();
-      uploads.forEach((file) => {
-        if (file) formData.append("files", file);
-      });
+    setRetryCount(0);
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-          },
-          body: formData,
+    const attemptUpload = async (): Promise<any> => {
+      try {
+        const formData = new FormData();
+        uploads.forEach((file) => {
+          if (file) formData.append("files", file);
+        });
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            },
+            body: formData,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      );
 
-      if (!response.ok) {
-        throw new Error("Failed to upload files to Strapi");
+        return await response.json();
+      } catch (error) {
+        if (retryCount < MAX_RETRIES) {
+          setRetryCount(prev => prev + 1);
+          // Exponential backoff: wait longer between each retry
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+          return attemptUpload();
+        }
+        throw error;
       }
+    };
 
-      const uploadedFiles = await response.json();
+    try {
+      const uploadedFiles = await attemptUpload();
       const formattedFiles = uploadedFiles.map((file) => ({
         id: file.id.toString(),
         url: file.url,
@@ -190,7 +208,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
       toast.success("Files uploaded successfully!");
     } catch (error) {
       console.error("Error uploading files:", error);
-      toast.error("Failed to upload files. Please try again.");
+      toast.error("Failed to upload files after multiple attempts. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -199,38 +217,43 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const updateGlobalState = async (
     uploadedFiles: Array<{ id: string; url: string }>
   ) => {
-    const updatedChannelMix = [...campaignFormData.channel_mix];
+    try {
+      const updatedChannelMix = [...campaignFormData.channel_mix];
 
-    const stage = updatedChannelMix.find((ch) => ch.funnel_stage === stageName);
-    if (!stage) throw new Error("Stage not found");
+      const stage = updatedChannelMix.find((ch) => ch.funnel_stage === stageName);
+      if (!stage) throw new Error("Stage not found");
 
-    const platformKey = channel.toLowerCase().replace(/\s+/g, "_");
-    const platforms = stage[platformKey];
-    if (!platforms) throw new Error("Platform key not found");
+      const platformKey = channel.toLowerCase().replace(/\s+/g, "_");
+      const platforms = stage[platformKey];
+      if (!platforms) throw new Error("Platform key not found");
 
-    const targetPlatform = platforms.find(
-      (pl) => pl.platform_name === platform
-    );
-    if (!targetPlatform) throw new Error("Target platform ltx not found");
+      const targetPlatform = platforms.find(
+        (pl) => pl.platform_name === platform
+      );
+      if (!targetPlatform) throw new Error("Target platform not found");
 
-    const targetFormatIndex = targetPlatform.format.findIndex(
-      (fo) => fo.format_type === format
-    );
-    if (targetFormatIndex === -1) throw new Error("Target format not found");
+      const targetFormatIndex = targetPlatform.format.findIndex(
+        (fo) => fo.format_type === format
+      );
+      if (targetFormatIndex === -1) throw new Error("Target format not found");
 
-    // Merge new uploads with existing previews
-    const existingPreviews =
-      targetPlatform.format[targetFormatIndex].previews || [];
-    const newPreviews = [...existingPreviews, ...uploadedFiles];
+      // Merge new uploads with existing previews
+      const existingPreviews =
+        targetPlatform.format[targetFormatIndex].previews || [];
+      const newPreviews = [...existingPreviews, ...uploadedFiles];
 
-    targetPlatform.format[targetFormatIndex].previews = newPreviews;
+      targetPlatform.format[targetFormatIndex].previews = newPreviews;
 
-    const updatedState = {
-      ...campaignData,
-      channel_mix: updatedChannelMix,
-    };
+      const updatedState = {
+        ...campaignData,
+        channel_mix: updatedChannelMix,
+      };
 
-    await uploadUpdatedCampaignToStrapi(updatedState);
+      await uploadUpdatedCampaignToStrapi(updatedState);
+    } catch (error) {
+      console.error("Error updating global state:", error);
+      throw error; // Re-throw to be caught by the caller
+    }
   };
 
   const uploadUpdatedCampaignToStrapi = async (data: any) => {
@@ -246,6 +269,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
     } catch (error) {
       console.error("Error updating campaign:", error);
       toast.error("Failed to save campaign data.");
+      throw error; // Re-throw to be caught by the caller
     } finally {
       setLoading(false);
     }
