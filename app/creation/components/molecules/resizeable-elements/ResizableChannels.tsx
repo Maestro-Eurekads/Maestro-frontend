@@ -53,7 +53,7 @@ const ResizableChannels = ({
   const [channelState, setChannelState] = useState(
     channels?.map(() => ({
       left: parentLeft, // Start at parent's left position
-      width: Math.min(150, parentWidth),
+      width: Math.min(160, parentWidth),
     }))
   );
 

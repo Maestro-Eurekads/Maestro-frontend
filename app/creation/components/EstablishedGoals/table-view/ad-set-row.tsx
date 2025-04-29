@@ -26,6 +26,7 @@ import {
 import { AdSetCellRenderer } from "./ad-set-cell-renderer";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { useEffect } from "react";
+import { ArrowRight } from "lucide-react";
 
 export const AdSetRow = ({
   adSet,
@@ -35,6 +36,8 @@ export const AdSetRow = ({
   handleEditInfo,
   tableBody,
   tableHeaders,
+  expandedAdsetKPI,
+toggleAdSetKPIShow
 }) => {
   const { campaignFormData } = useCampaigns();
   const chData = campaignFormData?.channel_mix
@@ -236,6 +239,21 @@ export const AdSetRow = ({
           />
         </td>
       ))}
+      {chData?.objective_type &&
+        chData?.objective_type !== "Brand Awareness" && (
+          <td className="py-6 px-6 text-[15px]">
+            <span
+              className="flex items-center gap-2 text-blue-500 cursor-pointer"
+              onClick={() => toggleAdSetKPIShow(`${stage.name}${adSetIndex}`)}
+            >
+              <p>
+                {expandedAdsetKPI[`${stage.name}${adSetIndex}`] ? "Hide" : "View"}{" "}
+                Objective KPI
+              </p>
+              <ArrowRight size={14} />
+            </span>
+          </td>
+        )}
     </tr>
   );
 };

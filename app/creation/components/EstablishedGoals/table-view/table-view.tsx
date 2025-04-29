@@ -16,6 +16,7 @@ const TableView = () => {
   const [mergedTableBody, setMergedTableBody] = useState([]);
   const [selectedMetrics, setSelectedMetrics] = useState([]);
   const [expandedKPI, setExpandedKPI] = useState({});
+  const [expandedAdsetKPI, setExpandedAdsetKPI] = useState({});
 
   // Initialize merged headers and body when campaign objectives change
   useEffect(() => {
@@ -60,6 +61,13 @@ const TableView = () => {
 
   const toggleKPIShow = (index) => {
     setExpandedKPI((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  }
+
+  const toggleAdSetKPIShow = (index) => {
+    setExpandedAdsetKPI((prev) => ({
       ...prev,
       [index]: !prev[index],
     }));
@@ -183,6 +191,8 @@ const TableView = () => {
             tableBody={mergedTableBody}
             expandedKPI={expandedKPI}
             toggleKPIShow={toggleKPIShow}
+            expandedAdsetKPI={expandedAdsetKPI}
+            toggleAdSetKPIShow={toggleAdSetKPIShow}
           />
         );
       })}

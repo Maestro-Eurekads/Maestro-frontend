@@ -226,24 +226,6 @@ const Dashboard = () => {
     <Range />
    </div>
    <div className=" mt-[20px] w-full">{loading ? <TableLoader isLoading={loading} /> : ""}</div>
-   {/* <div className="box-border w-full min-h-[519px] bg-white border-b-2">
-        {range === "Day" ? (
-          <>
-            <DayInterval daysCount={dayDifference} />
-            <DayTimeline daysCount={dayDifference} funnels={funnelsData} />
-          </>
-        ) : range === "Month" ? (
-          <>
-            <MonthInterval monthsCount={monthDifference} />
-            <MonthTimeline monthsCount={monthDifference} funnels={funnelsData} />
-          </>
-        ) : (
-          <>
-            <WeekInterval weeksCount={weekDifference} />
-            <WeekTimeline weeksCount={weekDifference} funnels={funnelsData} />
-          </>
-        )}
-      </div> */}
    <TimelineContainer
     range={range}
     dayDifference={dayDifference}

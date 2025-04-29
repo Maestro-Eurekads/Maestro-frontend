@@ -16,6 +16,8 @@ export const FunnelStageTable = ({
   tableBody,
   expandedKPI,
   toggleKPIShow,
+  expandedAdsetKPI,
+  toggleAdSetKPIShow,
 }) => {
   return (
     <section className="mb-[30px]">
@@ -90,8 +92,25 @@ export const FunnelStageTable = ({
                         tableBody={tableBody}
                         tableHeaders={tableHeaders}
                         handleEditInfo={handleEditInfo}
+                        expandedAdsetKPI={expandedAdsetKPI}
+                        toggleAdSetKPIShow={toggleAdSetKPIShow}
                       />
                     ))}
+                    {expandedAdsetKPI[`${stage.name}${index}`] && (
+                    <KPIRow
+                      channel={channel}
+                      index={index}
+                      stage={stage}
+                      tableBody={tableBody}
+                      // tableHeaders={tableHeaders}
+                      goalLevel={goalLevel}
+                      expandedRows={expandedRows}
+                      toggleRow={toggleRow}
+                      handleEditInfo={handleEditInfo}
+                      expandedKPI={expandedKPI}
+                      toggleKPIShow={toggleKPIShow}
+                    />
+                  )}
                 </React.Fragment>
               ))}
             </tbody>

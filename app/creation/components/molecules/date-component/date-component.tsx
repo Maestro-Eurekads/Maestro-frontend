@@ -1,6 +1,6 @@
 "use client";
 import DateInterval from "../../atoms/date-interval/date-interval";
-import Range from "../../atoms/date-range/date-range";
+import Range from "../../atoms/date-range/dashboard-date-range";
 import DateRangeSelector from "../../atoms/date-selector/date-range-selector";
 
 const DateComponent = ({ useDate }) => {

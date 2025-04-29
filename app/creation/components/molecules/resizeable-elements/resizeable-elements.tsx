@@ -14,6 +14,7 @@ import {
 } from "../../../../../components/data";
 import AddNewChennelsModel from "../../../../../components/Modals/AddNewChennelsModel";
 import { useDateRange } from "src/date-range-context";
+import { useDateRange as useRange } from "src/date-context";
 import { useCampaigns } from "app/utils/CampaignsContext";
 
 interface OutletType {
@@ -24,13 +25,14 @@ interface OutletType {
   channelName: string;
 }
 
-const ResizeableElements = () => {
+const ResizeableElements = ({ funnelData }) => {
   const { funnelWidths } = useFunnelContext(); // Get width for all channels
   const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({}); // Track open state per channel
   const [isOpen, setIsOpen] = useState(false);
   const { range } = useDateRange();
+  const { range: rrange } = useRange();
   const { campaignFormData } = useCampaigns();
-
+  console.log("rr", rrange, funnelData);
   // Replace single parentWidth with a map of widths per channel
   const [channelWidths, setChannelWidths] = useState<Record<string, number>>(
     {}
@@ -186,7 +188,7 @@ const ResizeableElements = () => {
       className="w-full min-h-[494px] relative pb-5 grid-container"
       style={{
         backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-        backgroundSize: `calc(100px) 100%`,
+        backgroundSize: rrange === "Day" ? `calc(100px) 100%` : rrange === "Week" ? `calc(100% / ${funnelData?.endWeek -1}) 100%` : `calc(100% / ${funnelData?.endMonth -1}) 100%`,
       }}
     >
       {campaignFormData?.funnel_stages?.map((stageName, index) => {
@@ -208,7 +210,7 @@ const ResizeableElements = () => {
             key={index}
             style={{
               display: "grid",
-              gridTemplateColumns: `repeat(${range?.length}, 100px)`,
+              gridTemplateColumns: rrange === "Day" ? `repeat(${funnelData?.endDay -1 || 1}, 100px)` : rrange === "Week" ? `repeat(${funnelData?.endWeek -1 || 1}, 100%)` : `repeat(${funnelData?.endMonth -1 || 1}, 1fr)`,
             }}
           >
             <div
