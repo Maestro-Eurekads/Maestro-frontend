@@ -328,7 +328,7 @@ const ClientView = () => {
 						<div className='flex	flex-col gap-[24px]'>
 							<ApproverContainer campaign={campaign} loading={loading} isLoadingCampaign={isLoadingCampaign} />
 							<General campaign={campaign} loading={loading} isLoadingCampaign={isLoadingCampaign} />
-							<BrandAwareness statsData={statsData} aggregatedStats={aggregatedStats} loading={isLoadingKpis} isLoadingCampaign={undefined} />
+							<BrandAwareness statsData={statsData} aggregatedStats={aggregatedStats} loading={isLoadingKpis} isLoadingCampaign={isLoadingCampaign} />
 							<ClientMessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} campaign={campaign} />
 							<div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
 								<ClientToggleSwitch active={active} setActive={setActive} />
