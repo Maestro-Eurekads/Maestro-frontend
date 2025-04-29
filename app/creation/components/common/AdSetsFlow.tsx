@@ -1,12 +1,23 @@
 "use client";
 
 import type React from "react";
-import { memo, useState, useCallback, useEffect, useRef, createContext, useContext } from "react";
+import {
+  memo,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  createContext,
+  useContext,
+} from "react";
 import Image, { type StaticImageData } from "next/image";
-import { FaAngleRight } from "react-icons/fa";
+import { FaAngleRight, FaSpinner } from "react-icons/fa";
+
 import { MdDelete, MdAdd } from "react-icons/md";
 import { useEditing } from "../../../utils/EditingContext";
 import { useCampaigns } from "../../../utils/CampaignsContext";
+
+// Import platform icons
 import facebook from "../../../../public/facebook.svg";
 import ig from "../../../../public/ig.svg";
 import youtube from "../../../../public/youtube.svg";
@@ -49,7 +60,7 @@ interface AdSetData {
   name: string;
   audience_type: string;
   size?: string;
-  extra_audiences?: string[];
+  extra_audiences?: string[]; // 👈 Add this
 }
 
 interface Format {
@@ -99,6 +110,7 @@ const platformIcons: Record<string, StaticImageData> = {
   "The Trade Desk": TheTradeDesk,
   QuantCast: Quantcast,
 };
+
 
 // Context for dropdown management
 const DropdownContext = createContext<{
@@ -163,6 +175,7 @@ const updateMultipleAdSets = (
     if (platformIndex !== -1) {
       const platform = stage[channelType][platformIndex];
       platform.ad_sets = adSets;
+
       platformFound = true;
       break;
     }
@@ -223,8 +236,8 @@ const AdSet = memo(function AdSet({
     const cleaned = updatedList
       .map((item) => item?.value?.trim())
       .filter((val) => !!val) as string[];
-    onUpdateExtraAudiences(cleaned);
-    onInteraction();
+    onUpdateExtraAudiences(cleaned); // this updates adSetDataMap
+    onInteraction(); // notify form system
   };
 
   const handleAudienceSelect = useCallback(
@@ -543,6 +556,7 @@ const AdsetSettings = memo(function AdsetSettings({
       stageName,
       outlet.outlet
     );
+    // Handle null case explicitly
     if (!result) {
       console.warn(
         `No platform found for ${outlet.outlet} in stage ${stageName}`
@@ -586,7 +600,9 @@ const AdsetSettings = memo(function AdsetSettings({
   }, [campaignFormData, stageName, outlet.outlet, selectedPlatforms]);
 
   const addNewAddset = useCallback(() => {
+    // Check if we've reached the maximum limit of 10 ad sets
     if (adsets.length >= 10) {
+      // You could add a toast notification here if you have a toast system
       console.warn("Maximum limit of 10 ad sets reached");
       return;
     }
@@ -631,6 +647,41 @@ const AdsetSettings = memo(function AdsetSettings({
     [onInteraction]
   );
 
+  const saveChangesToCampaign = useCallback(() => {
+    console.log("hrere");
+    if (!campaignFormData?.channel_mix) return;
+    const adSetsToSave = adsets
+      .map((adset) => {
+        const data = adSetDataMap[adset.id] || { name: "", audience_type: "" };
+        return {
+          id: adset.id,
+          name: data.name,
+          audience_type: data.audience_type,
+          size: data.size,
+        };
+      })
+      .filter((data) => data.name || data.audience_type);
+    if (adSetsToSave.length === 0) return;
+
+    const updatedChannelMix = updateMultipleAdSets(
+      campaignFormData.channel_mix,
+      stageName,
+      outlet.outlet,
+      adSetsToSave
+    );
+    setCampaignFormData((prevData) => ({
+      ...prevData,
+      channel_mix: updatedChannelMix,
+    }));
+  }, [
+    adsets,
+    adSetDataMap,
+    campaignFormData,
+    stageName,
+    outlet.outlet,
+    setCampaignFormData,
+  ]);
+
   useEffect(() => {
     if (isEditing && selectedPlatforms.includes(outlet.outlet)) {
       if (!campaignFormData?.channel_mix) return;
@@ -670,7 +721,7 @@ const AdsetSettings = memo(function AdsetSettings({
     selectedPlatforms,
     outlet.outlet,
     adsets,
-    adSetDataMap,
+    adSetDataMap, // ✅ This was missing
     setCampaignFormData,
     stageName,
   ]);
@@ -711,6 +762,7 @@ const AdsetSettings = memo(function AdsetSettings({
           <span className="text-[#061237] font-medium">{outlet.outlet}</span>
           <FaAngleRight />
         </button>
+        {/* <hr className="border border-[#0000001A] w-[100px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" /> */}
       </div>
       <DropdownContext.Provider value={{ openDropdownId, setOpenDropdownId }}>
         <div
@@ -719,6 +771,7 @@ const AdsetSettings = memo(function AdsetSettings({
         >
           {adsets.length > 0 && (
             <>
+              {/* Position the "New ad set" button at the top, before any ad sets */}
               <div className="absolute top-0 left-0 mb-4">
                 <button
                   onClick={addNewAddset}
@@ -733,6 +786,8 @@ const AdsetSettings = memo(function AdsetSettings({
                   </span>
                 </button>
               </div>
+
+              {/* Position ad sets with proper spacing, starting below the "New ad set" button */}
               {adsets.map((adset, index) => {
                 const adSetData = adSetDataMap[adset.id] || {
                   name: "",
@@ -785,9 +840,13 @@ const AdSetFlow = memo(function AdSetFlow({
   isValidateDisabled,
   onEditStart,
 }: AdSetFlowProps) {
-  const { campaignFormData } = useCampaigns();
+  const { isEditing, setIsEditing } = useEditing();
+  const { active } = useActive();
+  const { campaignFormData, updateCampaign, getActiveCampaign, campaignData } =
+    useCampaigns();
   const [platforms, setPlatforms] = useState<Record<string, OutletType[]>>({});
   const [hasInteraction, setHasInteraction] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const getPlatformsFromStage = useCallback(() => {
     const platformsByStage: Record<string, OutletType[]> = {};
@@ -828,7 +887,7 @@ const AdSetFlow = memo(function AdSetFlow({
             platformsByStage[funnel_stage].push({
               id: Math.floor(Math.random() * 1000000),
               outlet: platform.platform_name,
-              icon: icon,
+              icon: icon ,
             });
           });
         }
@@ -842,12 +901,71 @@ const AdSetFlow = memo(function AdSetFlow({
       const data = getPlatformsFromStage();
       setPlatforms(data);
     }
-  }, [campaignFormData, getPlatformsFromStage]);
+  }, []);
 
   const handleInteraction = useCallback(() => {
     setHasInteraction(true);
     onInteraction();
   }, [onInteraction]);
+
+  const updateCampaignData = async (data) => {
+    const calcPercent = Math.ceil((active / 10) * 100);
+    try {
+      console.log("herer", data);
+      await updateCampaign({
+        ...data,
+        progress_percent:
+          campaignFormData?.progress_percent > calcPercent
+            ? campaignFormData?.progress_percent
+            : calcPercent,
+      });
+      await getActiveCampaign(data);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const cleanData = campaignData
+    ? removeKeysRecursively(campaignData, [
+        "id",
+        "documentId",
+        "createdAt",
+        "publishedAt",
+        "updatedAt",
+      ])
+    : {};
+
+  const handleStepThree = async () => {
+    await updateCampaignData({
+      ...cleanData,
+      channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+        "id",
+        "isValidated",
+        "validatedStages",
+      ]),
+    })
+      .then(() => {
+        setIsEditing(false);
+        onValidate();
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
+  const handleValidate = useCallback(() => {
+    setIsEditing(false);
+    onValidate();
+  }, [setIsEditing, onValidate]);
+
+  useEffect(() => {
+    if (isEditing) {
+      onEditStart();
+    }
+  }, [isEditing]);
 
   return (
     <div className="w-full space-y-4 p-4">
@@ -859,6 +977,29 @@ const AdSetFlow = memo(function AdSetFlow({
           onInteraction={handleInteraction}
         />
       ))}
+      {isEditing && (
+        <div className="flex justify-end gap-2 w-full">
+          <button
+            onClick={handleValidate}
+            disabled={!hasInteraction || loading}
+            className={`w-[142px] h-[52px] text-white px-6 py-3 rounded-md text-sm font-bold ${
+              !hasInteraction
+                ? "bg-blue-300 cursor-not-allowed"
+                : "bg-[#3175FF] hover:bg-blue-600"
+            }`}
+          >
+            <span>
+              {loading ? (
+                <center>
+                  <FaSpinner className="animate-spin" />
+                </center>
+              ) : (
+                "Validate"
+              )}
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   );
 });
