@@ -94,16 +94,16 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   }, [campaignFormData]);
 
   // Initialize data on mount
-  useEffect(() => {
-    const initializeData = async () => {
-      if (cId) {
-        await getActiveCampaign();
-      }
-      setLoading(false);
-    };
+  // useEffect(() => {
+  //   const initializeData = async () => {
+  //     if (cId) {
+  //       await getActiveCampaign();
+  //     }
+  //     setLoading(false);
+  //   };
 
-    initializeData();
-  }, []);
+  //   initializeData();
+  // }, []);
 
   useEffect(() => {
     if (!loadingClients && allClients?.length > 0) {

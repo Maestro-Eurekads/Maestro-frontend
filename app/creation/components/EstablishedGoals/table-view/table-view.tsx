@@ -19,10 +19,12 @@ const TableView = () => {
   // Initialize merged headers and body when campaign objectives change
   useEffect(() => {
     const existingHeaderNames = new Set(
-      tableHeaders[campaignFormData?.campaign_objective]?.map((header) => header.name) || [],
+      tableHeaders[campaignFormData?.campaign_objective]?.map((header) => header.name) || tableHeaders["Brand Awareness"],
     )
-    const newHeaders = [...(tableHeaders[campaignFormData?.campaign_objective] || [])]
-    const newBody = [...(tableBody[campaignFormData?.campaign_objective] || [])]
+    const newHeaders = [...(tableHeaders[campaignFormData?.campaign_objective] || tableHeaders["Brand Awareness"])]
+    console.log("🚀 ~ useEffect ~ newHeaders:", newHeaders)
+    const newBody = [...(tableBody[campaignFormData?.campaign_objective] || tableBody["Brand Awareness"])]
+    console.log("🚀 ~ useEffect ~ newBody:", tableBody)
 
     selectedMetrics.forEach((metric) => {
       if (!existingHeaderNames.has(metric.name)) {
@@ -114,7 +116,10 @@ const TableView = () => {
         Add More KPIs
       </div>
       {campaignFormData?.funnel_stages?.map((stageName, index) => {
-        const stage = funnelStages.find((s) => s.name === stageName)
+          const stage = campaignFormData?.custom_funnels?.find(
+            (s) => s.name === stageName
+          );
+          // const funnelStage = funnelStages?.find((f) => f?.name === stageName);
         if (!stage) return null
 
         const stageData = processedData[stage?.name] || []
