@@ -26,14 +26,14 @@ const SideNav: React.FC = () => {
   const { setActive, setSubStep } = useActive();
   const searchParams = useSearchParams();
   const campaignId = searchParams.get("campaignId");
-  const { campaignData, getActiveCampaign, setCampaignData, isLoading, setIsLoading } = useCampaigns();
+  const { campaignData, getActiveCampaign, setCampaignData, isLoading, setIsLoading, loading } = useCampaigns();
 
-  useEffect(() => {
-    if (campaignId) {
-      setIsLoading(true);
-      getActiveCampaign(campaignId).finally(() => setIsLoading(false));
-    }
-  }, [campaignId]);
+  // useEffect(() => {
+  //   if (campaignId) {
+  //     setIsLoading(true);
+  //     getActiveCampaign(campaignId).finally(() => setIsLoading(false));
+  //   }
+  // }, [campaignId]);
 
   const handleBackClick = (e) => {
     e.preventDefault();
@@ -169,7 +169,7 @@ const SideNav: React.FC = () => {
               <Image src={left_arrow} alt="menu" />
               <p>Back to Dashboard</p>
             </button>
-            {isLoading ? (
+            {loading ? (
               <Skeleton height={20} width={200} />
             ) : !campaignData?.client?.client_name ||
               campaignData?.media_plan_details?.plan_name ===
@@ -186,7 +186,7 @@ const SideNav: React.FC = () => {
               </div>
             )}
             <div className="flex items-center gap-[8px]">
-              {isLoading ? (
+              {loading ? (
                 <Skeleton height={20} width={150} />
               ) : !campaignData?.client?.client_name ||
                 campaignData?.media_plan_details?.plan_name === undefined ? (
