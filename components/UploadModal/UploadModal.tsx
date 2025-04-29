@@ -310,7 +310,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
            {Array.from({ length: quantities }).map((_, index) => (
             <div
           key={index}
-    className="w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors relative"
+    className="w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors relative cursor-pointer"
+    onClick={() => document.getElementById(`upload${index}`)?.click()}
   >
     {uploadingIndex === index ? (
       <div className="flex items-center justify-center">
@@ -322,38 +323,37 @@ const UploadModal: React.FC<UploadModalProps> = ({
           href={uploadBlobs[index]}
           target="_blank"
           className="w-full h-full"
+          onClick={(e) => e.stopPropagation()}
         >
           {renderUploadedFile(uploadBlobs, format, index)}
         </Link>
         <button
           className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
-          onClick={() => handleDelete(index)}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDelete(index);
+          }}
         >
           <Trash color="white" size={10} />
         </button>
       </>
     ) : (
       <div className="flex flex-col items-center gap-2 text-center">
-        <label
-          className="flex flex-col items-center gap-2 cursor-pointer"
-          htmlFor={`upload${index}`}
+        <svg
+          width="16"
+          height="17"
+          viewBox="0 0 16 17"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <svg
-            width="16"
-            height="17"
-            viewBox="0 0 16 17"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
-              fill="#3175FF"
-            />
-          </svg>
-          <p className="text-md text-black font-lighter mt-2">
-            Upload visual {index + 1}
-          </p>
-        </label>
+          <path
+            d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
+            fill="#3175FF"
+          />
+        </svg>
+        <p className="text-md text-black font-lighter mt-2">
+          Upload visual {index + 1}
+        </p>
         <input
           type="file"
           accept={
