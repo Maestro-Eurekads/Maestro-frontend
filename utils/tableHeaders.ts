@@ -4,7 +4,7 @@ const defaultHeaders = [
   { name: "Start Date", showInput: false },
   { name: "End Date", showInput: false },
   { name: "Audience Size", showInput: false },
-  { name: "Budget Size", showInput: false },
+  { name: "Budget Size", showInput: true },
   { name: "CPM", showInput: true },
   { name: "Impressions", showInput: false },
   { name: "Frequency", showInput: true },

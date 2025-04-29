@@ -130,7 +130,7 @@ export const CellRenderer = ({
     "payment_infos",
     "cppi",
     "purchases",
-    "cpp"
+    "cpp",
   ];
 
   if (calculatedFields.includes(body)) {
@@ -142,7 +142,7 @@ export const CellRenderer = ({
   if (!showInput) {
     const value = channel?.[body];
     if (exemptFields.includes(body)) {
-      return value === "Invalid date" ? "-" : (value);
+      return value === "Invalid date" ? "-" : value;
     }
     return value === "Invalid date"
       ? "-"
@@ -153,10 +153,17 @@ export const CellRenderer = ({
 
   // Get the raw value from the form data
   const kpiValue =
-    campaignFormData?.channel_mix
+    body === "budget_size"
+      ? campaignFormData?.channel_mix
       ?.find((ch) => ch?.funnel_stage === stage.name)
-      ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)
-      ?.kpi?.[body] || "";
+      ?.[channel?.channel_name]?.find(
+        (c) => c?.platform_name === channel?.name
+      )?.budget?.fixed_value || ""
+      : campaignFormData?.channel_mix
+          ?.find((ch) => ch?.funnel_stage === stage.name)
+          ?.[channel?.channel_name]?.find(
+            (c) => c?.platform_name === channel?.name
+          )?.kpi?.[body] || "";
 
   // Format display value for percentage fields - keep the raw input value for UI
   let displayValue = kpiValue;
