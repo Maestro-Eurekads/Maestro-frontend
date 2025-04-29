@@ -81,28 +81,52 @@ const TableView = () => {
     setIsOpen(false)
   }
 
-  const handleEditInfo = (stageName, channelName, platformName, fieldName, value, adSetIndex) => {
+  const handleEditInfo = (
+    stageName,
+    channelName,
+    platformName,
+    fieldName,
+    value,
+    adSetIndex
+  ) => {
     setCampaignFormData((prevData) => {
-      const updatedData = { ...prevData }
-      const channelMix = updatedData.channel_mix?.find((ch) => ch.funnel_stage === stageName)
+      const updatedData = { ...prevData };
+      const channelMix = updatedData.channel_mix?.find(
+        (ch) => ch.funnel_stage === stageName
+      );
 
       if (channelMix) {
-        const platform = channelMix[channelName]?.find((platform) => platform.platform_name === platformName)
+        const platform = channelMix[channelName]?.find(
+          (platform) => platform.platform_name === platformName
+        );
 
         if (platform) {
-          if (adSetIndex !== "") {
-            platform.ad_sets[adSetIndex]["kpi"] = platform.ad_sets[adSetIndex]["kpi"] || {}
-            platform.ad_sets[adSetIndex]["kpi"][fieldName] = Number(value)
+          if (fieldName === "budget_size") {
+            if (adSetIndex !== "") {
+              platform.ad_sets[adSetIndex]["budget"] =
+                platform.ad_sets[adSetIndex]["budget"] || {};
+              platform.ad_sets[adSetIndex]["budget"]["fixed_value"] =
+              value.toString();
+            } else {
+              platform["budget"] = platform["budget"] || {};
+              platform["budget"]["fixed_value"] = value.toString();
+            }
           } else {
-            platform["kpi"] = platform["kpi"] || {}
-            platform["kpi"][fieldName] = Number(value)
+            if (adSetIndex !== "") {
+              platform.ad_sets[adSetIndex]["kpi"] =
+                platform.ad_sets[adSetIndex]["kpi"] || {};
+              platform.ad_sets[adSetIndex]["kpi"][fieldName] = Number(value);
+            } else {
+              platform["kpi"] = platform["kpi"] || {};
+              platform["kpi"][fieldName] = Number(value);
+            }
           }
         }
       }
 
-      return updatedData
-    })
-  }
+      return updatedData;
+    });
+  };
 
   // Process data once at the top level
   const processedData = extractPlatforms(campaignFormData)
