@@ -199,6 +199,104 @@ function mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, icons, fi
   }, [aggregatedStats, kpiCategories, icons]);
 }
 
+function extractKPIByFunnelStage(data, kpiCategories) {
+  const result = {};
+  const channelMix = data?.channel_mix;
+
+  channelMix?.forEach((stage) => {
+    const funnelStage = stage?.funnel_stage;
+    result[funnelStage] = [];
+
+    const socialMedia = stage?.social_media || [];
+    socialMedia.forEach((platform) => {
+      const platformName = platform?.platform_name;
+      const kpi = platform?.kpi || {};
+      const groupedKPIs = {};
+
+      Object.keys(kpiCategories).forEach((category) => {
+        groupedKPIs[category] = {};
+        const kpiList = kpiCategories[category];
+
+        kpiList?.forEach((kpiName) => {
+          const kpiKey = kpiName
+            .toLowerCase()
+            .replace(/ /g, "_")
+            .replace("/", "__");
+          if (kpi[kpiKey] !== undefined && kpi[kpiKey] !== null) {
+            groupedKPIs[category][kpiName] = kpi[kpiKey];
+          }
+        });
+
+        if (Object.keys(groupedKPIs[category])?.length === 0) {
+          delete groupedKPIs[category];
+        }
+      });
+
+      result[funnelStage].push({
+        platform_name: platformName,
+        kpi: groupedKPIs, // Fixed: Changed zonedKPIs to groupedKPIs
+      });
+    });
+  });
+
+  return result;
+}
+
+
+function aggregateKPIStatsFromExtracted(extractedData, kpiCategories) {
+  const kpiAccumulator = {};
+
+  Object.keys(kpiCategories).forEach((category) => {
+    kpiAccumulator[category] = {};
+    kpiCategories[category].forEach((kpiName) => {
+      kpiAccumulator[category][kpiName] = {
+        values: [],
+        displayName: kpiName,
+      };
+    });
+  });
+
+  Object.keys(extractedData).forEach((funnelStage) => {
+    const platforms = extractedData[funnelStage] || [];
+
+    platforms.forEach((platform) => {
+      const kpi = platform?.kpi || {};
+
+      Object.keys(kpiCategories).forEach((category) => {
+        const kpiList = kpiCategories[category];
+        const categoryData = kpi[category] || {};
+
+        kpiList.forEach((kpiName) => {
+          if (categoryData[kpiName] !== undefined && categoryData[kpiName] !== null) {
+            kpiAccumulator[category][kpiName]?.values?.push(categoryData[kpiName]);
+          }
+        });
+      });
+    });
+  });
+
+  const aggregatedStats = {};
+
+  Object.keys(kpiAccumulator).forEach((category) => {
+    aggregatedStats[category] = {};
+
+    Object.keys(kpiAccumulator[category]).forEach((kpiName) => {
+      const kpiData = kpiAccumulator[category][kpiName];
+      const values = kpiData?.values;
+
+      if (values.length > 0) {
+        const average = values.reduce((sum, val) => sum + val, 0) / values?.length;
+        aggregatedStats[category][kpiData?.displayName] = Number(average.toFixed(2));
+      }
+    });
+
+    if (Object.keys(aggregatedStats[category])?.length === 0) {
+      delete aggregatedStats[category];
+    }
+  });
+
+  return aggregatedStats;
+}
 
 const CapitalizeFirstLetter = (str: string | undefined | any) => {
   return str ? str?.charAt(0).toUpperCase() + str?.slice(1) : "";
@@ -253,5 +351,7 @@ export {
   getRandomColor,
   getContrastingColor,
   getInitials,
-  mapKPIStatsToStatsDataDynamic
+  mapKPIStatsToStatsDataDynamic,
+  extractKPIByFunnelStage,
+  aggregateKPIStatsFromExtracted
 };

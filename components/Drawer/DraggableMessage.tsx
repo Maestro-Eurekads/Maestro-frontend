@@ -9,8 +9,8 @@ import Image from "next/image";
 import Mmessages from "../../public/message-2.svg";
 
 const DraggableComment = ({ opportunity }) => {
-	const { updateOpportunityPosition } = useComments();
-	const [show, setShow] = useState(false);
+	const { updateOpportunityPosition, show, setShow } = useComments();
+	// const [show, setShow] = useState(false);
 	const commentRef = useRef(null);
 	const [draggedRecently, setDraggedRecently] = useState(false);
 

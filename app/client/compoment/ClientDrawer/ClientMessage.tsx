@@ -26,8 +26,8 @@ interface Reply {
 	message?: string;
 }
 const ClientDraggableComment = ({ comment, commentId }) => {
-	const { updateCommentsPosition, updatePosition } = useComments();
-	const [activeComment, setActiveComment] = useState(null);
+	const { updateCommentsPosition, updatePosition, activeComment, setActiveComment } = useComments();
+	// const [activeComment, setActiveComment] = useState(null);
 	const commentRef = useRef(null);
 	const [draggedRecently, setDraggedRecently] = useState(false);
 
@@ -63,7 +63,6 @@ const ClientDraggableComment = ({ comment, commentId }) => {
 		}
 	};
 
-	// console.log('comment-comment', comment)
 
 
 	return (

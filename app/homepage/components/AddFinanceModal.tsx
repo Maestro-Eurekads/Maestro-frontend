@@ -7,13 +7,15 @@ import blueBtn from "../../../public/blueBtn.svg";
 import { MdOutlineCancel } from "react-icons/md";
 import { CustomSelect } from "./CustomReactSelect";
 import { Trash2 } from "lucide-react";
-import { useAppSelector } from "store/useStore";
+import { useAppDispatch, useAppSelector } from "store/useStore";
 import { FiLoader } from "react-icons/fi";
 import useCampaignHook from "app/utils/useCampaignHook";
 import axios from "axios";
 import { FaSpinner } from "react-icons/fa";
 import toast, { Toaster } from "react-hot-toast";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import { selectCurrency, statusOption } from "components/data";
+import { getCreateClient } from "features/Client/clientSlice";
 
 const AddFinanceModal = ({
   isOpen,
@@ -48,6 +50,10 @@ const AddFinanceModal = ({
   const [loadingCam, setLoadingCam] = useState(false);
   const [loadingUser, setLoadingUser] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const dispatch = useAppDispatch();
+
+
+  console.log('selected-selected-selected', selected)
 
   const { getCreateClientData, getCreateClientIsLoading } = useAppSelector(
     (state) => state.client
@@ -61,21 +67,9 @@ const AddFinanceModal = ({
     });
   };
 
-  const selectCurrency = [
-    { value: "USD", label: "US Dollar (USD)", sign: "$" },
-    { value: "EUR", label: "Euro (EUR)", sign: "€" },
-    { value: "GBP", label: "British Pound (GBP)", sign: "£" },
-    { value: "NGN", label: "Nigerian Naira (NGN)", sign: "₦" },
-    { value: "JPY", label: "Japanese Yen (JPY)", sign: "¥" },
-    { value: "CAD", label: "Canadian Dollar (CAD)", sign: "C$" },
-  ];
 
-  const statusOption = [
-    { value: "open", label: "Open" },
-    { label: "Reconcilled", value: "reconcilled" },
-    { label: "Partially paid", value: "partially_paid" },
-    { label: "Fully Paid", value: "fully_paid" },
-  ];
+
+
 
   const handleClose = () => {
     setPoForm({
@@ -340,7 +334,10 @@ const AddFinanceModal = ({
 
       // Prepend the new PO to the existing clientPOs list
       setClientPOs((prevPOs) => [response.data.data, ...(prevPOs || [])]);
-
+      dispatch(getCreateClient());
+      if (selected) {
+        localStorage.setItem("selectedClient", selected);
+      }
       // Show success message
       toast("Purchase Order created successfully!", {
         style: {
@@ -380,6 +377,8 @@ const AddFinanceModal = ({
       setUploading(false);
     }
   };
+
+
 
   const updatePOInDB = async () => {
     // Validate all required fields
@@ -690,7 +689,7 @@ const AddFinanceModal = ({
                 {mediaPlans?.length > 0 && (
                   <>
                     <div className="space-y-3">
-                      {mediaPlans.map((plan, index) => {
+                      {mediaPlans?.map((plan, index) => {
                         return (
                           <div key={index} className="">
                             {loadingCam ? (
@@ -708,7 +707,7 @@ const AddFinanceModal = ({
                                       (campaign) =>
                                         !mediaPlans.some(
                                           (plan) =>
-                                            plan?.name === campaign.value
+                                            plan?.name === campaign?.value
                                         )
                                     )}
                                     value={
@@ -970,7 +969,7 @@ const AddFinanceModal = ({
                 <div
                   className="bg-white w-fit flex items-center gap-2 cursor-pointer text-[14px] shadow-lg px-3 py-1 rounded-2xl mt-[20px]"
                   onClick={() => {
-                    const totalAssignedAmount = mediaPlans.reduce(
+                    const totalAssignedAmount = mediaPlans?.reduce(
                       (acc, plan) => {
                         if (plan?.amount > 0) {
                           if (plan?.type !== "total_po_amount_percent") {

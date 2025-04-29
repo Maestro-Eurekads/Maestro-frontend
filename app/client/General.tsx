@@ -52,7 +52,8 @@ const General = ({ campaign, loading, isLoadingCampaign }) => {
 
 	return (
 		<div className="flex flex-col justify-between w-full h-[153px] bg-white border border-[rgba(49,117,255,0.3)] rounded-[12px] box-border p-[20px] shadow-[0px_4px_14px_rgba(0,38,116,0.15)]">
-			<h3 className="font-medium text-[24px] leading-[32px] text-black">General</h3>
+			{loading || isLoadingCampaign ? <Skeleton height={20} width={100} /> :
+				<h3 className="font-medium text-[24px] leading-[32px] text-black">General</h3>}
 
 			<div className="flex items-center justify-between">
 				{/* Total Budget */}

@@ -47,7 +47,7 @@ const DefineAdSetPage = () => {
         setIsModalOpen(true);
       }
     }
-  }, [campaignFormData]);
+  }, []);
 
   // Initialize statuses and interaction tracking
   useEffect(() => {
@@ -87,6 +87,16 @@ const DefineAdSetPage = () => {
     // Only update status to "In progress" when user has actually interacted
     setStageStatuses((prev) => ({ ...prev, [stageName]: "In progress" }));
     setHasInteracted((prev) => ({ ...prev, [stageName]: true }));
+  };
+
+  const handleValidate = (stageName: string) => {
+    setStageStatuses((prev) => ({ ...prev, [stageName]: "Completed" }));
+    setOpenItems((prev) => ({ ...prev, [stageName]: false }));
+  };
+
+  const resetInteraction = (stageName: string) => {
+    setHasInteracted((prev) => ({ ...prev, [stageName]: false }));
+    setStageStatuses((prev) => ({ ...prev, [stageName]: "Not started" }));
   };
 
   return (
@@ -179,6 +189,9 @@ const DefineAdSetPage = () => {
                 <AdSetsFlow
                   stageName={stage.name}
                   onInteraction={() => handleInteraction(stage.name)}
+                  onValidate={() => handleValidate(stage.name)}
+                  isValidateDisabled={!hasInteracted[stage.name]}
+                  onEditStart={() => resetInteraction(stage.name)}
                 />
               </div>
             )}

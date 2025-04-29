@@ -51,12 +51,14 @@ const UploadModal: React.FC<UploadModalProps> = ({
     onClose();
   };
 
-  const { campaignFormData, updateCampaign, getActiveCampaign, campaignData } =
+  const { campaignFormData, updateCampaign, getActiveCampaign , campaignData} =
     useCampaigns();
   const [uploads, setUploads] = useState<Array<File | null>>([]);
   const [uploadBlobs, setUploadBlobs] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
 
   // Initialize uploadBlobs with existing previews
   useEffect(() => {
@@ -87,7 +89,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
             "application/vnd.openxmlformats-officedocument.presentationml.presentation",
           ]
         : ["image/jpeg", "image/png", "image/jpg"];
-    const maxSizeInMB = 10;
+    const maxSizeInMB = 20;
     const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
 
     if (!allowedTypes.includes(file.type)) {
@@ -111,13 +113,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
       return;
     }
 
-    console.log("File selected:", file);
-
-    setUploads((prev) => {
-      const updated = [...prev];
-      updated[index] = file;
-      return updated;
-    });
     setUploadingIndex(index);
 
     try {
@@ -166,28 +161,44 @@ const UploadModal: React.FC<UploadModalProps> = ({
     }
 
     setLoading(true);
-    try {
-      const formData = new FormData();
-      uploads.forEach((file) => {
-        if (file) formData.append("files", file);
-      });
+    setRetryCount(0);
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-          },
-          body: formData,
+    const attemptUpload = async (): Promise<any> => {
+      try {
+        const formData = new FormData();
+        uploads.forEach((file) => {
+          if (file) formData.append("files", file);
+        });
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            },
+            body: formData,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      );
 
-      if (!response.ok) {
-        throw new Error("Failed to upload files to Strapi");
+        return await response.json();
+      } catch (error) {
+        if (retryCount < MAX_RETRIES) {
+          setRetryCount(prev => prev + 1);
+          // Exponential backoff: wait longer between each retry
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+          return attemptUpload();
+        }
+        throw error;
       }
+    };
 
-      const uploadedFiles = await response.json();
+    try {
+      const uploadedFiles = await attemptUpload();
       const formattedFiles = uploadedFiles.map((file) => ({
         id: file.id.toString(),
         url: file.url,
@@ -197,7 +208,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
       toast.success("Files uploaded successfully!");
     } catch (error) {
       console.error("Error uploading files:", error);
-      toast.error("Failed to upload files. Please try again.");
+      toast.error("Failed to upload files after multiple attempts. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -206,38 +217,43 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const updateGlobalState = async (
     uploadedFiles: Array<{ id: string; url: string }>
   ) => {
-    const updatedChannelMix = [...campaignFormData.channel_mix];
+    try {
+      const updatedChannelMix = [...campaignFormData.channel_mix];
 
-    const stage = updatedChannelMix.find((ch) => ch.funnel_stage === stageName);
-    if (!stage) throw new Error("Stage not found");
+      const stage = updatedChannelMix.find((ch) => ch.funnel_stage === stageName);
+      if (!stage) throw new Error("Stage not found");
 
-    const platformKey = channel.toLowerCase().replace(/\s+/g, "_");
-    const platforms = stage[platformKey];
-    if (!platforms) throw new Error("Platform key not found");
+      const platformKey = channel.toLowerCase().replace(/\s+/g, "_");
+      const platforms = stage[platformKey];
+      if (!platforms) throw new Error("Platform key not found");
 
-    const targetPlatform = platforms.find(
-      (pl) => pl.platform_name === platform
-    );
-    if (!targetPlatform) throw new Error("Target platform ltx not found");
+      const targetPlatform = platforms.find(
+        (pl) => pl.platform_name === platform
+      );
+      if (!targetPlatform) throw new Error("Target platform not found");
 
-    const targetFormatIndex = targetPlatform.format.findIndex(
-      (fo) => fo.format_type === format
-    );
-    if (targetFormatIndex === -1) throw new Error("Target format not found");
+      const targetFormatIndex = targetPlatform.format.findIndex(
+        (fo) => fo.format_type === format
+      );
+      if (targetFormatIndex === -1) throw new Error("Target format not found");
 
-    // Merge new uploads with existing previews
-    const existingPreviews =
-      targetPlatform.format[targetFormatIndex].previews || [];
-    const newPreviews = [...existingPreviews, ...uploadedFiles];
+      // Merge new uploads with existing previews
+      const existingPreviews =
+        targetPlatform.format[targetFormatIndex].previews || [];
+      const newPreviews = [...existingPreviews, ...uploadedFiles];
 
-    targetPlatform.format[targetFormatIndex].previews = newPreviews;
+      targetPlatform.format[targetFormatIndex].previews = newPreviews;
 
-    const updatedState = {
-      ...campaignData,
-      channel_mix: updatedChannelMix,
-    };
+      const updatedState = {
+        ...campaignData,
+        channel_mix: updatedChannelMix,
+      };
 
-    await uploadUpdatedCampaignToStrapi(updatedState);
+      await uploadUpdatedCampaignToStrapi(updatedState);
+    } catch (error) {
+      console.error("Error updating global state:", error);
+      throw error; // Re-throw to be caught by the caller
+    }
   };
 
   const uploadUpdatedCampaignToStrapi = async (data: any) => {
@@ -253,6 +269,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
     } catch (error) {
       console.error("Error updating campaign:", error);
       toast.error("Failed to save campaign data.");
+      throw error; // Re-throw to be caught by the caller
     } finally {
       setLoading(false);
     }
@@ -261,7 +278,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+    <div className="fixed cursor-pointer inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
       <div className="relative bg-white w-full max-w-[771px] max-h-[90vh] rounded-[10px] shadow-md overflow-y-auto">
         <div className="p-8 flex flex-col gap-4">
           <div
@@ -271,7 +288,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
             <Image src={closeIcon} className="size-4" alt="Close" />
           </div>
 
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex cursor-pointer flex-col items-center gap-4">
             <Image src={uploadIcon} alt="Upload" />
             <h2 className="font-bold text-xl tracking-tighter">
               Upload your previews
@@ -288,64 +305,72 @@ const UploadModal: React.FC<UploadModalProps> = ({
             </h2>
 
             <div className="flex justify-center gap-6 flex-wrap">
-              {Array.from({ length: quantities }).map((_, index) => (
-                <div
-                  key={index}
-                  className="w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors relative"
-                >
-                  {uploadingIndex === index ? (
-                    <div className="flex items-center justify-center">
-                      <FaSpinner className="animate-spin text-blue-500 text-2xl" />
-                    </div>
-                  ) : uploadBlobs[index] ? (
-                    <>
-                      <div className="w-full h-full">
-                        {renderUploadedFile(uploadBlobs, format, index, uploads[index])}
-                      </div>
-                      <button
-                        className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
-                        onClick={() => handleDelete(index)}
-                      >
-                        <Trash color="white" size={10} />
-                      </button>
-                    </>
-                  ) : (
-                    <label
-                      className="flex flex-col items-center gap-2 text-center cursor-pointer"
-                      htmlFor={`upload${index}`}
-                    >
-                      <svg
-                        width="16"
-                        height="17"
-                        viewBox="0 0 16 17"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
-                          fill="#3175FF"
-                        />
-                      </svg>
-                      <p className="text-md text-black font-lighter mt-2">
-                        Upload visual {index + 1}
-                      </p>
-                      <input
-                        type="file"
-                        accept={
-                          format === "Video"
-                            ? "video/mp4,video/mov"
-                            : format === "Slideshow"
-                            ? "application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                            : "image/jpeg,image/png,image/jpg"
-                        }
-                        id={`upload${index}`}
-                        className="hidden"
-                        onChange={(e) => handleFileChange(e, index)}
-                      />
-                    </label>
-                  )}
-                </div>
-              ))}
+          
+
+           {Array.from({ length: quantities }).map((_, index) => (
+            <div
+          key={index}
+    className="w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors relative"
+  >
+    {uploadingIndex === index ? (
+      <div className="flex items-center justify-center">
+        <FaSpinner className="animate-spin text-blue-500 text-2xl" />
+      </div>
+    ) : uploadBlobs[index] ? (
+      <>
+        <Link
+          href={uploadBlobs[index]}
+          target="_blank"
+          className="w-full h-full"
+        >
+          {renderUploadedFile(uploadBlobs, format, index)}
+        </Link>
+        <button
+          className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
+          onClick={() => handleDelete(index)}
+        >
+          <Trash color="white" size={10} />
+        </button>
+      </>
+    ) : (
+      <div className="flex flex-col items-center gap-2 text-center">
+        <label
+          className="flex flex-col items-center gap-2 cursor-pointer"
+          htmlFor={`upload${index}`}
+        >
+          <svg
+            width="16"
+            height="17"
+            viewBox="0 0 16 17"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
+              fill="#3175FF"
+            />
+          </svg>
+          <p className="text-md text-black font-lighter mt-2">
+            Upload visual {index + 1}
+          </p>
+        </label>
+        <input
+          type="file"
+          accept={
+            format === "Video"
+              ? "video/mp4,video/mov"
+              : format === "Slideshow"
+              ? "application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+              : "image/jpeg,image/png,image/jpg"
+          }
+          id={`upload${index}`}
+          className="hidden"
+          onChange={(e) => handleFileChange(e, index)}
+        />
+      </div>
+    )}
+  </div>
+           ))}
             </div>
           </div>
 

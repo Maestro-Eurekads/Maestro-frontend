@@ -1,22 +1,12 @@
 "use client";
 
 import type React from "react";
-import {
-  memo,
-  useState,
-  useCallback,
-  useEffect,
-  useRef,
-  createContext,
-  useContext,
-} from "react";
+import { memo, useState, useCallback, useEffect, useRef, createContext, useContext } from "react";
 import Image, { type StaticImageData } from "next/image";
 import { FaAngleRight } from "react-icons/fa";
-
 import { MdDelete, MdAdd } from "react-icons/md";
+import { useEditing } from "../../../utils/EditingContext";
 import { useCampaigns } from "../../../utils/CampaignsContext";
-
-// Import platform icons
 import facebook from "../../../../public/facebook.svg";
 import ig from "../../../../public/ig.svg";
 import youtube from "../../../../public/youtube.svg";
@@ -30,6 +20,8 @@ import yahoo from "../../../../public/yahoo.svg";
 import bing from "../../../../public/bing.svg";
 import tictok from "../../../../public/tictok.svg";
 import { Plus } from "lucide-react";
+import { useActive } from "app/utils/ActiveContext";
+import { removeKeysRecursively } from "utils/removeID";
 import { getPlatformIcon } from "components/data";
 
 // Types
@@ -47,6 +39,9 @@ interface OutletType {
 interface AdSetFlowProps {
   stageName: string;
   onInteraction: () => void;
+  onValidate: () => void;
+  isValidateDisabled: boolean;
+  onEditStart: () => void;
 }
 
 interface AdSetData {
@@ -168,7 +163,6 @@ const updateMultipleAdSets = (
     if (platformIndex !== -1) {
       const platform = stage[channelType][platformIndex];
       platform.ad_sets = adSets;
-
       platformFound = true;
       break;
     }
@@ -229,8 +223,8 @@ const AdSet = memo(function AdSet({
     const cleaned = updatedList
       .map((item) => item?.value?.trim())
       .filter((val) => !!val) as string[];
-    onUpdateExtraAudiences(cleaned); // this updates adSetDataMap
-    onInteraction(); // notify form system
+    onUpdateExtraAudiences(cleaned);
+    onInteraction();
   };
 
   const handleAudienceSelect = useCallback(
@@ -523,6 +517,7 @@ const AdsetSettings = memo(function AdsetSettings({
   stageName: string;
   onInteraction: () => void;
 }) {
+  const { isEditing } = useEditing();
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [adsets, setAdSets] = useState<AdSetType[]>([]);
@@ -548,7 +543,6 @@ const AdsetSettings = memo(function AdsetSettings({
       stageName,
       outlet.outlet
     );
-    // Handle null case explicitly
     if (!result) {
       console.warn(
         `No platform found for ${outlet.outlet} in stage ${stageName}`
@@ -592,9 +586,7 @@ const AdsetSettings = memo(function AdsetSettings({
   }, [campaignFormData, stageName, outlet.outlet, selectedPlatforms]);
 
   const addNewAddset = useCallback(() => {
-    // Check if we've reached the maximum limit of 10 ad sets
     if (adsets.length >= 10) {
-      // You could add a toast notification here if you have a toast system
       console.warn("Maximum limit of 10 ad sets reached");
       return;
     }
@@ -611,29 +603,22 @@ const AdsetSettings = memo(function AdsetSettings({
     onInteraction();
   }, [onInteraction, adsets.length]);
 
-  const deleteAdSet = useCallback(
-    (id: number) => {
-      setAdSets((prev) => {
-        const newAdSets = prev.filter((adset) => adset.id !== id);
-        // Only reset if there are no ad sets left
-        if (newAdSets.length === 0) {
-          setSelectedPlatforms((prev) =>
-            prev.filter((platform) => platform !== outlet.outlet)
-          );
-          setAdSetDataMap({});
-          initialized.current = false;
-        }
-        return newAdSets;
-      });
-      setAdSetDataMap((prev) => {
-        const newMap = { ...prev };
-        delete newMap[id];
-        return newMap;
-      });
-      onInteraction();
-    },
-    [outlet.outlet, onInteraction]
-  );
+  const deleteAdSet = useCallback((id: number) => {
+    setAdSets((prev) => {
+      const newAdSets = prev.filter((adset) => adset.id !== id);
+      if (newAdSets.length === 0) {
+        setSelectedPlatforms([]);
+        setAdSetDataMap({});
+        initialized.current = false;
+      }
+      return newAdSets;
+    });
+    setAdSetDataMap((prev) => {
+      const newMap = { ...prev };
+      delete newMap[id];
+      return newMap;
+    });
+  }, []);
 
   const updateAdSetData = useCallback(
     (id: number, data: Partial<AdSetData>) => {
@@ -647,7 +632,9 @@ const AdsetSettings = memo(function AdsetSettings({
   );
 
   useEffect(() => {
-    if (selectedPlatforms.includes(outlet.outlet) && campaignFormData?.channel_mix) {
+    if (isEditing && selectedPlatforms.includes(outlet.outlet)) {
+      if (!campaignFormData?.channel_mix) return;
+
       const adSetsToSave = adsets
         .map((adset) => {
           const data = adSetDataMap[adset.id] || {
@@ -664,28 +651,28 @@ const AdsetSettings = memo(function AdsetSettings({
         })
         .filter((data) => data.name || data.audience_type);
 
-      if (adSetsToSave.length > 0) {
-        const updatedChannelMix = updateMultipleAdSets(
-          campaignFormData.channel_mix,
-          stageName,
-          outlet.outlet,
-          adSetsToSave
-        );
+      if (adSetsToSave.length === 0) return;
 
-        setCampaignFormData((prevData) => ({
-          ...prevData,
-          channel_mix: updatedChannelMix,
-        }));
-      }
+      const updatedChannelMix = updateMultipleAdSets(
+        campaignFormData.channel_mix,
+        stageName,
+        outlet.outlet,
+        adSetsToSave
+      );
+
+      setCampaignFormData((prevData) => ({
+        ...prevData,
+        channel_mix: updatedChannelMix,
+      }));
     }
   }, [
+    isEditing,
     selectedPlatforms,
     outlet.outlet,
     adsets,
     adSetDataMap,
     setCampaignFormData,
     stageName,
-    campaignFormData,
   ]);
 
   const handleSelectOutlet = useCallback(() => {
@@ -702,6 +689,15 @@ const AdsetSettings = memo(function AdsetSettings({
       />
     );
   }
+
+  const adsetAmount = adsets.length;
+  const buttonPositionClass = `top-[${adsets.length * 70}px]`;
+  const linePositionClass =
+    adsetAmount === 1
+      ? "top-1/2 rounded-tl-[10px] border-t-2"
+      : adsetAmount === 2
+      ? "bottom-1/2 rounded-bl-[10px] border-b-2"
+      : "";
 
   return (
     <div className="flex items-center gap-8 w-full max-w-[1024px]">
@@ -737,7 +733,6 @@ const AdsetSettings = memo(function AdsetSettings({
                   </span>
                 </button>
               </div>
-
               {adsets.map((adset, index) => {
                 const adSetData = adSetDataMap[adset.id] || {
                   name: "",
@@ -756,7 +751,7 @@ const AdsetSettings = memo(function AdsetSettings({
                     <AdSet
                       adset={adset}
                       index={index}
-                      isEditing={true}
+                      isEditing={isEditing}
                       onDelete={deleteAdSet}
                       onUpdate={updateAdSetData}
                       audienceType={adSetData.audience_type}
@@ -786,9 +781,13 @@ const AdsetSettings = memo(function AdsetSettings({
 const AdSetFlow = memo(function AdSetFlow({
   stageName,
   onInteraction,
+  onValidate,
+  isValidateDisabled,
+  onEditStart,
 }: AdSetFlowProps) {
   const { campaignFormData } = useCampaigns();
   const [platforms, setPlatforms] = useState<Record<string, OutletType[]>>({});
+  const [hasInteraction, setHasInteraction] = useState(false);
 
   const getPlatformsFromStage = useCallback(() => {
     const platformsByStage: Record<string, OutletType[]> = {};
@@ -845,6 +844,11 @@ const AdSetFlow = memo(function AdSetFlow({
     }
   }, [campaignFormData, getPlatformsFromStage]);
 
+  const handleInteraction = useCallback(() => {
+    setHasInteraction(true);
+    onInteraction();
+  }, [onInteraction]);
+
   return (
     <div className="w-full space-y-4 p-4">
       {platforms[stageName]?.map((outlet) => (
@@ -852,7 +856,7 @@ const AdSetFlow = memo(function AdSetFlow({
           key={outlet.id}
           outlet={outlet}
           stageName={stageName}
-          onInteraction={onInteraction}
+          onInteraction={handleInteraction}
         />
       ))}
     </div>

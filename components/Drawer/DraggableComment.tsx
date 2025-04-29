@@ -1,8 +1,7 @@
 "use client";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import Draggable from "react-draggable";
 import { HiOutlinePlus } from "react-icons/hi";
-import AddAsInternalcomment from "./AddAsInternalcomment";
 import { useComments } from "app/utils/CommentProvider";
 
 const DraggableComment = ({ comment }) => {
@@ -20,7 +19,7 @@ const DraggableComment = ({ comment }) => {
 		<Draggable
 			handle=".drag-handle"
 			nodeRef={commentRef}
-			defaultPosition={comment?.position || { x: 100, y: 100 }}
+			defaultPosition={comment?.position}
 			onStop={handleStop}
 		>
 			<div ref={commentRef} className="absolute cursor-move drag-handle z-50">

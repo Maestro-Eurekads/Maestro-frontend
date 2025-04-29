@@ -21,7 +21,7 @@ const getInitialState = () => {
       return JSON.parse(savedState);
     }
   }
-  
+
   return {
     client_selection: { id: "", value: "" },
     level_1: { id: "", value: "" },
@@ -67,7 +67,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [filterOptions, setFilterOptions] = useState({
     year: [],
     quarter: [],
-    month: [], 
+    month: [],
     category: [],
     product: [],
     select_plans: [],
@@ -153,7 +153,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       const data = res?.data?.data;
-      console.log('populate-populate-populate-populate', data)
+
       setCampaignData(data);
       setCampaignFormData((prev) => ({
         ...prev,

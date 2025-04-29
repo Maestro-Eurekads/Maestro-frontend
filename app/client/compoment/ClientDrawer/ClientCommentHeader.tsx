@@ -1,14 +1,15 @@
+import moment from "moment";
 import React from "react";
 
-const ClientCommentHeader = ({ comment, timestamp }) => {
-	// Format the date & time if provided
-	const formattedDate = timestamp
-		? new Date(timestamp).toLocaleDateString()
-		: new Date().toLocaleDateString();
+const ClientCommentHeader = ({ comment }) => {
+	// Format the date & time if createdAt is provided
+	const formattedDate = comment?.createdAt
+		? moment(comment?.createdAt).format("DD/MM/YYYY")
+		: "n/a";
+	const formattedTime = comment?.createdAt
+		? moment(comment?.createdAt).format("HH:mm")
+		: "n/a";
 
-	const formattedTime = timestamp
-		? new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true })
-		: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
 
 	return (
 		<div>

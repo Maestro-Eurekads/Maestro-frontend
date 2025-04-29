@@ -1,14 +1,15 @@
 import React from "react";
 
-const ClientCommentHeaderwithClose = ({ author, timestamp }) => {
-	// Format the date & time if provided
-	const formattedDate = timestamp
-		? new Date(timestamp).toLocaleDateString()
-		: new Date().toLocaleDateString();
-
-	const formattedTime = timestamp
-		? new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true })
-		: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
+const ClientCommentHeaderwithClose = ({ author }) => {
+	// Use a single Date object for the current date and time
+	const currentDate = new Date();
+	// Format the date and time
+	const formattedDate = currentDate.toLocaleDateString();
+	const formattedTime = currentDate.toLocaleTimeString([], {
+		hour: "2-digit",
+		minute: "2-digit",
+		hour12: true,
+	});
 
 	return (
 		<div>

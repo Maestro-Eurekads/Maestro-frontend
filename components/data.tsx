@@ -245,7 +245,7 @@ export const getPlatformIcon = (platformName: string): StaticImageData => {
     platformName.toLowerCase(),
     platformName.charAt(0).toUpperCase() + platformName.slice(1).toLowerCase(),
     normalizedName.charAt(0).toUpperCase() +
-      normalizedName.slice(1).toLowerCase(),
+    normalizedName.slice(1).toLowerCase(),
   ];
 
   for (const variation of variations) {
@@ -599,7 +599,7 @@ export const platformStyles = [
   { name: "FilmTV", color: "#7C3AED", icon: filmtv, bg: "#F6F0FF" },
 ];
 
-export const renderUploadedFile = (uploadBlobs, format, index: number, ext?:any) => {
+export const renderUploadedFile = (uploadBlobs, format, index: number, ext?: any) => {
   if (!uploadBlobs[index]) return null;
 
   if (format === "Video") {
@@ -617,14 +617,14 @@ export const renderUploadedFile = (uploadBlobs, format, index: number, ext?:any)
     return (
       <>
         {typeof uploadBlobs[index] === "string" &&
-        ext && ext?.name?.includes("pptx") ? (
+          ext && ext?.name?.includes("pptx") ? (
           <iframe
-          src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-            uploadBlobs[index]
-          )}`}
-          className="w-full h-full rounded-lg"
-          title={`Slideshow ${index}`}
-        />
+            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+              uploadBlobs[index]
+            )}`}
+            className="w-full h-full rounded-lg"
+            title={`Slideshow ${index}`}
+          />
         ) : (
           <iframe
             src={uploadBlobs[index]}
@@ -680,6 +680,25 @@ export function hasFormatEntered(channelMix) {
   return false; // No format found for any platform
 }
 
+
+
+export const selectCurrency = [
+  { value: "USD", label: "US Dollar (USD)", sign: "$" },
+  { value: "EUR", label: "Euro (EUR)", sign: "€" },
+  { value: "GBP", label: "British Pound (GBP)", sign: "£" },
+  { value: "NGN", label: "Nigerian Naira (NGN)", sign: "₦" },
+  { value: "JPY", label: "Japanese Yen (JPY)", sign: "¥" },
+  { value: "CAD", label: "Canadian Dollar (CAD)", sign: "C$" },
+];
+
+
+export const statusOption = [
+  { value: "open", label: "Open" },
+  { label: "Reconcilled", value: "reconcilled" },
+  { label: "Partially paid", value: "partially_paid" },
+  { label: "Fully Paid", value: "fully_paid" },
+];
+
 export const formatNumberWithCommas = (value: string | number): string => {
   if (!value) return "";
   const number = typeof value === "string" ? parseFloat(value) : value;
@@ -706,3 +725,4 @@ export const PPTXRenderer = ({ file }: { file: string }) => {
     />
   );
 };
+

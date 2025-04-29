@@ -10,8 +10,7 @@ import ClientAddAsInternalcomment from "./ClientAddAsInternalcomment";
 
 
 const ClientDraggableComment = ({ opportunity, campaign }) => {
-	const { updateOpportunityPosition } = useComments();
-	const [show, setShow] = useState(false);
+	const { updateOpportunityPosition, show, setShow } = useComments();
 	const [draggedRecently, setDraggedRecently] = useState(false);
 	const commentRef = useRef(null);
 
@@ -41,15 +40,13 @@ const ClientDraggableComment = ({ opportunity, campaign }) => {
 		}
 	};
 
-	console.log('opportunity?.position-opportunity?.position', opportunity?.position)
-
 
 
 	return (
 		<Draggable
 			handle=".drag-handle"
 			nodeRef={commentRef}
-			defaultPosition={opportunity?.position || { x: 150, y: 150 }}
+			defaultPosition={opportunity?.position}
 			onStart={handleStart}
 			onStop={handleStop}
 		>

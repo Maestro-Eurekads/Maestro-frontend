@@ -94,7 +94,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 		setOpportunities([]);
 		onClose(false);
 		setViewcommentsId('');
-		setClose(false)
+		// setClose(false)
 	};
 
 	useEffect(() => {
@@ -133,7 +133,6 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 	}, [dispatch]);
 
 
-	console.log('viewcommentsId-viewcommentsId', viewcommentsId)
 
 
 

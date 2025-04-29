@@ -16,7 +16,7 @@ const ClientClientComments = ({ comment, contrastingColor }) => {
 					>
 						{comment?.creator?.name[0] || "?"}
 					</div>
-					<ClientCommentHeader comment={comment} timestamp={new Date().toLocaleString()} />
+					<ClientCommentHeader comment={comment} />
 				</div>
 				{/* Approval Button */}
 				<ClientApproved comment={comment} commentId={comment?.commentId} />

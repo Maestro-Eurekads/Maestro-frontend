@@ -110,8 +110,8 @@ function FinanceView({ setOpenModal }) {
         <div className="flex justify-center items-center gap-4 mt-4">
           <button
             className={`p-2 rounded-md ${currentPage === 1
-                ? "bg-gray-200 cursor-not-allowed"
-                : "bg-blue-500 text-white hover:bg-blue-600"
+              ? "bg-gray-200 cursor-not-allowed"
+              : "bg-blue-500 text-white hover:bg-blue-600"
               }`}
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
@@ -124,8 +124,8 @@ function FinanceView({ setOpenModal }) {
           </span>
           <button
             className={`p-2 rounded-md ${currentPage === totalPages
-                ? "bg-gray-200 cursor-not-allowed"
-                : "bg-blue-500 text-white hover:bg-blue-600"
+              ? "bg-gray-200 cursor-not-allowed"
+              : "bg-blue-500 text-white hover:bg-blue-600"
               }`}
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
