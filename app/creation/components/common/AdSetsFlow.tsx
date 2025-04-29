@@ -1,5 +1,3 @@
-"use client";
-
 import type React from "react";
 import {
   memo,
@@ -110,7 +108,6 @@ const platformIcons: Record<string, StaticImageData> = {
   "The Trade Desk": TheTradeDesk,
   QuantCast: Quantcast,
 };
-
 
 // Context for dropdown management
 const DropdownContext = createContext<{
@@ -721,7 +718,7 @@ const AdsetSettings = memo(function AdsetSettings({
     selectedPlatforms,
     outlet.outlet,
     adsets,
-    adSetDataMap, // ✅ This was missing
+    adSetDataMap,
     setCampaignFormData,
     stageName,
   ]);
@@ -956,11 +953,6 @@ const AdSetFlow = memo(function AdSetFlow({
       });
   };
 
-  const handleValidate = useCallback(() => {
-    setIsEditing(false);
-    onValidate();
-  }, [setIsEditing, onValidate]);
-
   useEffect(() => {
     if (isEditing) {
       onEditStart();
@@ -977,29 +969,6 @@ const AdSetFlow = memo(function AdSetFlow({
           onInteraction={handleInteraction}
         />
       ))}
-      {isEditing && (
-        <div className="flex justify-end gap-2 w-full">
-          <button
-            onClick={handleValidate}
-            disabled={!hasInteraction || loading}
-            className={`w-[142px] h-[52px] text-white px-6 py-3 rounded-md text-sm font-bold ${
-              !hasInteraction
-                ? "bg-blue-300 cursor-not-allowed"
-                : "bg-[#3175FF] hover:bg-blue-600"
-            }`}
-          >
-            <span>
-              {loading ? (
-                <center>
-                  <FaSpinner className="animate-spin" />
-                </center>
-              ) : (
-                "Validate"
-              )}
-            </span>
-          </button>
-        </div>
-      )}
     </div>
   );
 });
