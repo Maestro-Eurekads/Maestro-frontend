@@ -10,8 +10,7 @@ import ClientAddAsInternalcomment from "./ClientAddAsInternalcomment";
 
 
 const ClientDraggableComment = ({ opportunity, campaign }) => {
-	const { updateOpportunityPosition } = useComments();
-	const [show, setShow] = useState(false);
+	const { updateOpportunityPosition, show, setShow } = useComments();
 	const [draggedRecently, setDraggedRecently] = useState(false);
 	const commentRef = useRef(null);
 

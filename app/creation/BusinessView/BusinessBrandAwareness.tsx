@@ -57,12 +57,12 @@ const BusinessBrandAwareness = ({ statsData, aggregatedStats, loading, isLoading
 				className="flex flex-col justify-between w-full h-[200px] border border-[rgba(49,117,255,0.3)] rounded-[12px] box-border p-[20px] shadow-[0px_4px_14px_rgba(0,38,116,0.15)]"
 				style={{ backgroundColor: background }}
 			>
-				{statsData?.length === 0 ?
+				{statsData?.length === 0 && (!loading || !isLoadingCampaign) ?
 					<div className="center-content">
 						<MdOutlineErrorOutline size={75} color="#29292968" />
 						<p id="mt-3" className="text-[#29292968]">No record found</p>
 					</div> :
-					<div className="w-full">
+					<div className="w-full flex	flex-col gap-4">
 						{loading || isLoadingCampaign ? <Skeleton height={20} width={"70%"} /> :
 							<div className="flex items-center justify-between">
 								<h3
