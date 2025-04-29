@@ -144,7 +144,7 @@ const MediaOption = ({
     if (!idToDel) {
       setLocalPreviews(previews);
     }
-  }, []);
+  }, [previews]);
 
   const uploadUpdatedCampaignToStrapi = async (data) => {
     const cleanData = removeKeysRecursively(
@@ -216,9 +216,7 @@ const MediaOption = ({
 
   const handleDelete = async (previewId: string, chName: string) => {
     if (channelName === chName) {
-      const updatedPreviews = previews.filter(
-        (prv) => prv.id !== previewId
-      );
+      const updatedPreviews = previews.filter((prv) => prv.id !== previewId);
       const updatedIds = updatedPreviews.map((prv) => prv.id);
 
       setLoading(true);
@@ -232,7 +230,7 @@ const MediaOption = ({
         <div className="flex flex-col items-center">
           <div
             onClick={onSelect}
-            className={`relative text-center p-2 arounded-lg border transition ${
+            className={`relative text-center p-2 rounded-lg border transition ${
               isSelected ? "border-blue-500 shadow-lg" : "border-gray-300"
             } cursor-pointer`}
           >
@@ -305,13 +303,6 @@ const MediaOption = ({
                   target="_blank"
                   className="w-[225px] h-[150px] rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors border border-gray-500 cursor-pointer"
                 >
-                  {/* <Image
-                    src={prv?.url ?? ""}
-                    alt=""
-                    width={225}
-                    height={140}
-                    className="rounded-lg w-full h-full object-cover"
-                  /> */}
                   {renderUploadedFile(
                     localPreviews?.map((lp) => lp?.url),
                     option.name,
@@ -365,7 +356,7 @@ const MediaSelectionGrid = ({
     platform: string,
     channel: string,
     format: string,
-    perviews: any[],
+    previews: any[],
     quantities: any
   ) => void;
   adSetIndex?: number;
@@ -575,19 +566,17 @@ const PlatformItem = ({
               Choose the number of visuals for this format
             </span>
           ) : (
-            (view === "channel" || platform.ad_sets?.length < 1) && (
-              <>
-                <p className="font-bold text-[18px] text-[#3175FF]">
-                  <svg width="13" height="12" viewBox="0 0 13 12" fill="none">
-                    <path
-                      d="M5.87891 5.16675V0.166748H7.54557V5.16675H12.5456V6.83342H7.54557V11.8334H5.87891V6.83342H0.878906V5.16675H5.87891Z"
-                      fill="#3175FF"
-                    />
-                  </svg>
-                </p>
-                <h3 className="text-[#3175FF]">Add format</h3>
-              </>
-            )
+            <>
+              <p className="font-bold text-[18px] text-[#3175FF]">
+                <svg width="13" height="12" viewBox="0 0 13 12" fill="none">
+                  <path
+                    d="M5.87891 5.16675V0.166748H7.54557V5.16675H12.5456V6.83342H7.54557V11.8334H5.87891V6.83342H0.878906V5.16675H5.87891Z"
+                    fill="#3175FF"
+                  />
+                </svg>
+              </p>
+              <h3 className="text-[#3175FF]">Add format</h3>
+            </>
           )}
         </div>
       </div>
@@ -625,20 +614,28 @@ const PlatformItem = ({
                     className="flex items-center gap-2 cursor-pointer"
                     onClick={() => toggleAdsetExpansion(adsetKey)}
                   >
-                    <p className="font-bold text-[18px] text-[#3175FF]">
-                      <svg
-                        width="13"
-                        height="12"
-                        viewBox="0 0 13 12"
-                        fill="none"
-                      >
-                        <path
-                          d="M5.87891 5.16675V0.166748H7.54557V5.16675H12.5456V6.83342H7.54557V11.8334H5.87891V6.83342H0.878906V5.16675H5.87891Z"
-                          fill="#3175FF"
-                        />
-                      </svg>
-                    </p>
-                    <h3 className="text-[#3175FF] font-semibold">Add format</h3>
+                    {isAdsetExpanded ? (
+                      <span className="text-gray-500">
+                        Choose the number of visuals for this format
+                      </span>
+                    ) : (
+                      <>
+                        <p className="font-bold text-[18px] text-[#3175FF]">
+                          <svg
+                            width="13"
+                            height="12"
+                            viewBox="0 0 13 12"
+                            fill="none"
+                          >
+                            <path
+                              d="M5.87891 5.16675V0.166748H7.54557V5.16675H12.5456V6.83342H7.54557V11.8334H5.87891V6.83342H0.878906V5.16675H5.87891Z"
+                              fill="#3175FF"
+                            />
+                          </svg>
+                        </p>
+                        <h3 className="text-[#3175FF] font-semibold">Add format</h3>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -699,13 +696,20 @@ const ChannelSection = ({
   ) => void;
   view: "channel" | "adset";
 }) => {
-  if (!platforms || platforms.length === 0) return null;
+  // Filter platforms based on view type
+  const filteredPlatforms =
+    view === "adset"
+      ? platforms.filter((platform) => platform.ad_sets?.length > 0)
+      : platforms;
+
+  // Only render if there are platforms to display
+  if (!filteredPlatforms || filteredPlatforms.length === 0) return null;
 
   return (
     <>
       <h3 className="font-[600] my-[24px]">{channelTitle}</h3>
       <div className="flex flex-col gap-[24px]">
-        {platforms.map((platform, index) => (
+        {filteredPlatforms.map((platform, index) => (
           <PlatformItem
             key={`${platform.platform_name}-${index}`}
             platform={platform}
@@ -897,7 +901,7 @@ export const Platforms = ({
           quantities={quantities}
           onQuantityChange={handleQuantityChange}
           onOpenModal={openModal}
-          view={view as "channel" | "adset"}
+          view={view}
         />
       ))}
 
