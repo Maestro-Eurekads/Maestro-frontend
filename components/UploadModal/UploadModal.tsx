@@ -278,7 +278,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+    <div className="fixed cursor-pointer inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
       <div className="relative bg-white w-full max-w-[771px] max-h-[90vh] rounded-[10px] shadow-md overflow-y-auto">
         <div className="p-8 flex flex-col gap-4">
           <div
@@ -288,7 +288,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
             <Image src={closeIcon} className="size-4" alt="Close" />
           </div>
 
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex cursor-pointer flex-col items-center gap-4">
             <Image src={uploadIcon} alt="Upload" />
             <h2 className="font-bold text-xl tracking-tighter">
               Upload your previews
@@ -305,68 +305,72 @@ const UploadModal: React.FC<UploadModalProps> = ({
             </h2>
 
             <div className="flex justify-center gap-6 flex-wrap">
-              {Array.from({ length: quantities }).map((_, index) => (
-                <div
-                  key={index}
-                  className="w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors relative"
-                >
-                  {uploadingIndex === index ? (
-                    <div className="flex items-center justify-center">
-                      <FaSpinner className="animate-spin text-blue-500 text-2xl" />
-                    </div>
-                  ) : uploadBlobs[index] ? (
-                    <>
-                      <Link
-                        href={uploadBlobs[index]}
-                        target="_blank"
-                        className="w-full h-full"
-                      >
-                        {renderUploadedFile(uploadBlobs, format, index)}
-                      </Link>
-                      <button
-                        className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
-                        onClick={() => handleDelete(index)}
-                      >
-                        <Trash color="white" size={10} />
-                      </button>
-                    </>
-                  ) : (
-                    <label
-                      className="flex flex-col items-center gap-2 text-center cursor-pointer"
-                      htmlFor={`upload${index}`}
-                    >
-                      <svg
-                        width="16"
-                        height="17"
-                        viewBox="0 0 16 17"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
-                          fill="#3175FF"
-                        />
-                      </svg>
-                      <p className="text-md text-black font-lighter mt-2">
-                        Upload visual {index + 1}
-                      </p>
-                      <input
-                        type="file"
-                        accept={
-                          format === "Video"
-                            ? "video/mp4,video/mov"
-                            : format === "Slideshow"
-                            ? "application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                            : "image/jpeg,image/png,image/jpg"
-                        }
-                        id={`upload${index}`}
-                        className="hidden"
-                        onChange={(e) => handleFileChange(e, index)}
-                      />
-                    </label>
-                  )}
-                </div>
-              ))}
+          
+
+           {Array.from({ length: quantities }).map((_, index) => (
+            <div
+          key={index}
+    className="w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors relative"
+  >
+    {uploadingIndex === index ? (
+      <div className="flex items-center justify-center">
+        <FaSpinner className="animate-spin text-blue-500 text-2xl" />
+      </div>
+    ) : uploadBlobs[index] ? (
+      <>
+        <Link
+          href={uploadBlobs[index]}
+          target="_blank"
+          className="w-full h-full"
+        >
+          {renderUploadedFile(uploadBlobs, format, index)}
+        </Link>
+        <button
+          className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
+          onClick={() => handleDelete(index)}
+        >
+          <Trash color="white" size={10} />
+        </button>
+      </>
+    ) : (
+      <div className="flex flex-col items-center gap-2 text-center">
+        <label
+          className="flex flex-col items-center gap-2 cursor-pointer"
+          htmlFor={`upload${index}`}
+        >
+          <svg
+            width="16"
+            height="17"
+            viewBox="0 0 16 17"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
+              fill="#3175FF"
+            />
+          </svg>
+          <p className="text-md text-black font-lighter mt-2">
+            Upload visual {index + 1}
+          </p>
+        </label>
+        <input
+          type="file"
+          accept={
+            format === "Video"
+              ? "video/mp4,video/mov"
+              : format === "Slideshow"
+              ? "application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+              : "image/jpeg,image/png,image/jpg"
+          }
+          id={`upload${index}`}
+          className="hidden"
+          onChange={(e) => handleFileChange(e, index)}
+        />
+      </div>
+    )}
+  </div>
+           ))}
             </div>
           </div>
 
