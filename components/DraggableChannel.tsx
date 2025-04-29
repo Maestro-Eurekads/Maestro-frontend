@@ -102,7 +102,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       step = Math.max(100, step - adjustmentPerStep);
     }
 
-    console.log("Custom snap points:", snapPoints);
+    console.log("Custom snap points:", {
+      snapPoints,
+      containerWidth,
+      currentPosition,
+    });
 
     const closestSnap = snapPoints.reduce((prev, curr) =>
       Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition)

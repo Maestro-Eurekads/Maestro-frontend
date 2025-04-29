@@ -155,7 +155,7 @@ export const KPICellRenderer = ({
         if (isPercentType) {
           // Remove % if present
           newValue = newValue.replace(/%/g, "");
-
+          newValue = (parseFloat(newValue) / 100).toString();
           // Store the raw percentage value (not converted to decimal)
           handleEditInfo(
             stage.name,

@@ -510,7 +510,7 @@ export const tableHeaders = {
     },
   ],
   "App Install": [
-    ...defaultHeaders,
+    // ...defaultHeaders,
     {
       name: "CTR",
       showInput: true,

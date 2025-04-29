@@ -171,7 +171,7 @@ const ResizeableElements = () => {
           (s) => s?.name === stageName
         );
         if (stage) {
-          initialWidths[stage.name] = 300; // Default width
+          initialWidths[stage.name] = 360; // Default width
           initialPositions[stage.name] = 0; // Default left position
         }
       });
@@ -186,7 +186,7 @@ const ResizeableElements = () => {
       className="w-full min-h-[494px] relative pb-5 grid-container"
       style={{
         backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-        backgroundSize: `calc(100% / ${range?.length}) 100%`,
+        backgroundSize: `calc(100px) 100%`,
       }}
     >
       {campaignFormData?.funnel_stages?.map((stageName, index) => {
@@ -195,12 +195,12 @@ const ResizeableElements = () => {
         );
         const funn = funnelStages?.find((ff) => ff?.name === stageName);
         if (!stage) return null;
-        console.log(stage);
+        // console.log(stage);
         const channelWidth = funnelWidths[stage?.name] || 400;
         const isOpen = openChannels[stage?.name] || false; // Get open state by ID
 
         // Get the specific width and position for this channel or use default
-        const currentChannelWidth = channelWidths[stage?.name] || 300;
+        const currentChannelWidth = channelWidths[stage?.name] || 350;
         const currentChannelPosition = channelPositions[stage?.name] || 0;
 
         return (
@@ -208,7 +208,7 @@ const ResizeableElements = () => {
             key={index}
             style={{
               display: "grid",
-              gridTemplateColumns: `repeat(${range?.length}, 1fr)`,
+              gridTemplateColumns: `repeat(${range?.length}, 100px)`,
             }}
           >
             <div
