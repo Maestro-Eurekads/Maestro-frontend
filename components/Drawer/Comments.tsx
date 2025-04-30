@@ -14,7 +14,7 @@ const Comments = ({ comment, contrastingColor }) => {
 						className="flex flex-col justify-center items-center p-2 w-10 h-10 rounded-full text-white"
 						style={{ backgroundColor: contrastingColor }}
 					>
-						{comment?.creator?.name[0] || "?"}
+						{comment && comment?.creator && comment?.creator?.name&& comment?.creator?.name[0] || "?"}
 					</div>
 					<CommentHeader comment={comment} timestamp={new Date().toLocaleString()} />
 				</div>

@@ -21,16 +21,12 @@ const TableView = () => {
   // Initialize merged headers and body when campaign objectives change
   useEffect(() => {
     const existingHeaderNames = new Set(
-      tableHeaders[campaignFormData?.campaign_objectives]?.map(
-        (header) => header.name
-      ) || []
-    );
-    const newHeaders = [
-      ...(tableHeaders[campaignFormData?.campaign_objectives] || []),
-    ];
-    const newBody = [
-      ...(tableBody[campaignFormData?.campaign_objectives] || []),
-    ];
+      tableHeaders[campaignFormData?.campaign_objective]?.map((header) => header.name) || tableHeaders["Brand Awareness"],
+    )
+    const newHeaders = [...(tableHeaders[campaignFormData?.campaign_objective] || tableHeaders["Brand Awareness"])]
+    console.log("🚀 ~ useEffect ~ newHeaders:", newHeaders)
+    const newBody = [...(tableBody[campaignFormData?.campaign_objective] || tableBody["Brand Awareness"])]
+    console.log("🚀 ~ useEffect ~ newBody:", tableBody)
 
     selectedMetrics.forEach((metric) => {
       if (!existingHeaderNames.has(metric.name)) {

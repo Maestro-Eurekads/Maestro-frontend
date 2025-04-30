@@ -4,13 +4,25 @@ import { tableHeaders } from "utils/tableHeaders";
 
 export function extractPlatforms(data) {
   const platforms = {};
-  const headers = tableHeaders[data?.campaign_objective] || [];
+  const headers = tableHeaders[data?.campaign_objective] || tableHeaders["Brand Awareness"];
 
   data?.channel_mix?.length > 0 &&
     data.channel_mix.forEach((stage) => {
       const stageName = stage.funnel_stage;
       platforms[stageName] = platforms[stageName] || [];
-      ["search_engines", "display_networks", "social_media"].forEach(
+      [
+        "social_media",
+        "display_networks",
+        "search_engines",
+        "streaming",
+        "ooh",
+        "broadcast",
+        "messaging",
+        "print",
+        "e_commerce",
+        "in_game",
+        "mobile",
+      ].forEach(
         (channelType) => {
           stage[channelType].forEach((platform) => {
             const platformName = platform.platform_name;
