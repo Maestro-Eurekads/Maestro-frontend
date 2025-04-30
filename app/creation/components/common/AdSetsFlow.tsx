@@ -1,5 +1,3 @@
-"use client";
-
 import type React from "react";
 import {
   memo,
@@ -11,9 +9,10 @@ import {
   useContext,
 } from "react";
 import Image, { type StaticImageData } from "next/image";
-import { FaAngleRight } from "react-icons/fa";
+import { FaAngleRight, FaSpinner } from "react-icons/fa";
 
 import { MdDelete, MdAdd } from "react-icons/md";
+import { useEditing } from "../../../utils/EditingContext";
 import { useCampaigns } from "../../../utils/CampaignsContext";
 
 // Import platform icons
@@ -30,6 +29,8 @@ import yahoo from "../../../../public/yahoo.svg";
 import bing from "../../../../public/bing.svg";
 import tictok from "../../../../public/tictok.svg";
 import { Plus } from "lucide-react";
+import { useActive } from "app/utils/ActiveContext";
+import { removeKeysRecursively } from "utils/removeID";
 import { getPlatformIcon } from "components/data";
 
 // Types
@@ -47,6 +48,9 @@ interface OutletType {
 interface AdSetFlowProps {
   stageName: string;
   onInteraction: () => void;
+  onValidate: () => void;
+  isValidateDisabled: boolean;
+  onEditStart: () => void;
 }
 
 interface AdSetData {
@@ -54,7 +58,7 @@ interface AdSetData {
   name: string;
   audience_type: string;
   size?: string;
-  extra_audiences?: string[];
+  extra_audiences?: string[]; // 👈 Add this
 }
 
 interface Format {
@@ -523,6 +527,7 @@ const AdsetSettings = memo(function AdsetSettings({
   stageName: string;
   onInteraction: () => void;
 }) {
+  const { isEditing } = useEditing();
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [adsets, setAdSets] = useState<AdSetType[]>([]);
@@ -675,7 +680,7 @@ const AdsetSettings = memo(function AdsetSettings({
   ]);
 
   useEffect(() => {
-    if (selectedPlatforms.includes(outlet.outlet)) {
+    if (isEditing && selectedPlatforms.includes(outlet.outlet)) {
       if (!campaignFormData?.channel_mix) return;
 
       const adSetsToSave = adsets
@@ -709,6 +714,7 @@ const AdsetSettings = memo(function AdsetSettings({
       }));
     }
   }, [
+    isEditing,
     selectedPlatforms,
     outlet.outlet,
     adsets,
@@ -753,6 +759,7 @@ const AdsetSettings = memo(function AdsetSettings({
           <span className="text-[#061237] font-medium">{outlet.outlet}</span>
           <FaAngleRight />
         </button>
+        {/* <hr className="border border-[#0000001A] w-[100px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" /> */}
       </div>
       <DropdownContext.Provider value={{ openDropdownId, setOpenDropdownId }}>
         <div
@@ -761,6 +768,7 @@ const AdsetSettings = memo(function AdsetSettings({
         >
           {adsets.length > 0 && (
             <>
+              {/* Position the "New ad set" button at the top, before any ad sets */}
               <div className="absolute top-0 left-0 mb-4">
                 <button
                   onClick={addNewAddset}
@@ -776,6 +784,7 @@ const AdsetSettings = memo(function AdsetSettings({
                 </button>
               </div>
 
+              {/* Position ad sets with proper spacing, starting below the "New ad set" button */}
               {adsets.map((adset, index) => {
                 const adSetData = adSetDataMap[adset.id] || {
                   name: "",
@@ -794,7 +803,7 @@ const AdsetSettings = memo(function AdsetSettings({
                     <AdSet
                       adset={adset}
                       index={index}
-                      isEditing={true}
+                      isEditing={isEditing}
                       onDelete={deleteAdSet}
                       onUpdate={updateAdSetData}
                       audienceType={adSetData.audience_type}
@@ -824,9 +833,17 @@ const AdsetSettings = memo(function AdsetSettings({
 const AdSetFlow = memo(function AdSetFlow({
   stageName,
   onInteraction,
+  onValidate,
+  isValidateDisabled,
+  onEditStart,
 }: AdSetFlowProps) {
-  const { campaignFormData } = useCampaigns();
+  const { isEditing, setIsEditing } = useEditing();
+  const { active } = useActive();
+  const { campaignFormData, updateCampaign, getActiveCampaign, campaignData } =
+    useCampaigns();
   const [platforms, setPlatforms] = useState<Record<string, OutletType[]>>({});
+  const [hasInteraction, setHasInteraction] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const getPlatformsFromStage = useCallback(() => {
     const platformsByStage: Record<string, OutletType[]> = {};
@@ -867,7 +884,7 @@ const AdSetFlow = memo(function AdSetFlow({
             platformsByStage[funnel_stage].push({
               id: Math.floor(Math.random() * 1000000),
               outlet: platform.platform_name,
-              icon: icon,
+              icon: icon ,
             });
           });
         }
@@ -881,7 +898,66 @@ const AdSetFlow = memo(function AdSetFlow({
       const data = getPlatformsFromStage();
       setPlatforms(data);
     }
-  }, [campaignFormData, getPlatformsFromStage]);
+  }, []);
+
+  const handleInteraction = useCallback(() => {
+    setHasInteraction(true);
+    onInteraction();
+  }, [onInteraction]);
+
+  const updateCampaignData = async (data) => {
+    const calcPercent = Math.ceil((active / 10) * 100);
+    try {
+      console.log("herer", data);
+      await updateCampaign({
+        ...data,
+        progress_percent:
+          campaignFormData?.progress_percent > calcPercent
+            ? campaignFormData?.progress_percent
+            : calcPercent,
+      });
+      await getActiveCampaign(data);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const cleanData = campaignData
+    ? removeKeysRecursively(campaignData, [
+        "id",
+        "documentId",
+        "createdAt",
+        "publishedAt",
+        "updatedAt",
+      ])
+    : {};
+
+  const handleStepThree = async () => {
+    await updateCampaignData({
+      ...cleanData,
+      channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+        "id",
+        "isValidated",
+        "validatedStages",
+      ]),
+    })
+      .then(() => {
+        setIsEditing(false);
+        onValidate();
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    if (isEditing) {
+      onEditStart();
+    }
+  }, [isEditing]);
 
   return (
     <div className="w-full space-y-4 p-4">
@@ -890,7 +966,7 @@ const AdSetFlow = memo(function AdSetFlow({
           key={outlet.id}
           outlet={outlet}
           stageName={stageName}
-          onInteraction={onInteraction}
+          onInteraction={handleInteraction}
         />
       ))}
     </div>

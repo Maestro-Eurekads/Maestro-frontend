@@ -15,14 +15,16 @@ import { useAppDispatch, useAppSelector } from "store/useStore";
 import AlertMain from "./Alert/AlertMain";
 import { getCreateClient } from "features/Client/clientSlice"; // Removed unused 'reset'
 import { LogOut } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import ClientSelection from "./ClientSelection";
 import { CustomSelect } from "app/homepage/components/CustomReactSelect";
 import { useActive } from "app/utils/ActiveContext";
 import { extractAprroverFilters, extractChannelAndPhase, extractDateFilters } from "app/utils/campaign-filter-utils";
+import { useAuth } from "utils/AuthUserContext";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 const Header = ({ setIsOpen }) => {
+  const token = useSession();
   const {
     getCreateClientData,
     getCreateClientIsLoading,
@@ -35,7 +37,8 @@ const Header = ({ setIsOpen }) => {
     setCampaignFormData,
     setClientPOs,
     setFetchingPO,
-    setFilterOptions
+    setFilterOptions,
+    profile
   } = useCampaigns();
   const { setActive, setSubStep } = useActive()
   const [selected, setSelected] = useState("");
@@ -46,6 +49,10 @@ const Header = ({ setIsOpen }) => {
   // Removed unused 'IsError' and 'setIsError'
   const clients: any = getCreateClientData;
 
+
+
+  // profile
+
   // useEffect(() => {
   //   if (getCreateClientIsError) {
   //     setAlert({ variant: "error", message: getCreateClientMessage, position: "bottom-right" });
@@ -53,6 +60,8 @@ const Header = ({ setIsOpen }) => {
 
   //   dispatch(reset());
   // }, [dispatch, getCreateClientIsError]);
+
+  console.log("🚀 ~ profile ~ profile:", profile?.client?.id);
 
   useEffect(() => {
     dispatch(getCreateClient());
@@ -82,7 +91,7 @@ const Header = ({ setIsOpen }) => {
     }
 
     setSelected(selectedId ? selectedId : clients.data[0]?.id?.toString());
-    fetchClientCampaign(clientId)
+    fetchClientCampaign(profile?.client?.id ?? clientId)
       .then((res) => {
         if (isMounted) setClientCampaignData(res?.data?.data || []); // Ensure data fallback
         const dateData = extractDateFilters(res?.data?.data)
@@ -109,7 +118,7 @@ const Header = ({ setIsOpen }) => {
     return () => {
       isMounted = false; // Cleanup function to avoid memory leaks
     };
-  }, [clients, selectedId]);
+  }, [clients, selectedId, profile?.client?.id]); // Removed unused 'profile?.client?.id'
 
   return (
     <div id="header">
