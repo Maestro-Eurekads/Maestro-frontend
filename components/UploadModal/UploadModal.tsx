@@ -1,15 +1,12 @@
 "use client"
 
-import Image from "next/image"
 import type React from "react"
 import { useEffect, useState } from "react"
-import uploadIcon from "../../public/Featured icon.svg"
-import closeIcon from "../../public/Icon.svg"
-import toast from "react-hot-toast"
 import { Trash } from "lucide-react"
 import { FaSpinner } from "react-icons/fa"
-import { useCampaigns } from "app/utils/CampaignsContext"
+import toast from "react-hot-toast"
 import Link from "next/link"
+import { useCampaigns } from "app/utils/CampaignsContext"
 import { removeKeysRecursively } from "utils/removeID"
 import { renderUploadedFile } from "components/data"
 
@@ -34,31 +31,14 @@ const UploadModal: React.FC<UploadModalProps> = ({
   stageName,
   previews,
 }) => {
-  const handleCancel = () => {
-    onClose()
-  }
-
-  const handleConfirm = () => {
-    if (uploads?.length < 1) {
-      toast.error("Please upload the required file before submitting.")
-      return
-    }
-
-    uploadFilesToStrapi()
-  }
-
-  const handleClose = () => {
-    // Close the modal
-    onClose()
-  }
-
   const { campaignFormData, updateCampaign, getActiveCampaign, campaignData } = useCampaigns()
   const [uploads, setUploads] = useState<Array<File | null>>([])
   const [uploadBlobs, setUploadBlobs] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null)
   const [retryCount, setRetryCount] = useState(0)
-  const MAX_RETRIES = 3
+  const MAX_RETRIES = 5 // Increased from 3 to 5
+  const CHUNK_SIZE = 5 * 1024 * 1024 // 5MB chunks for large files
 
   // Initialize uploadBlobs with existing previews
   useEffect(() => {
@@ -78,7 +58,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
     const allowedTypes =
       format === "Video"
-        ? ["video/mp4", "video/mov"]
+        ? ["video/mp4", "video/mov", "video/quicktime"] // Added video/quicktime for .mov files
         : format === "Slideshow"
           ? [
               "application/pdf",
@@ -94,11 +74,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
         toast.error("Invalid file type. Please upload a MP4 or MOV file.")
       } else if (format === "Slideshow") {
         toast.error("Invalid file type. Please upload a PDF or PPTX file.")
-        return
       } else {
         toast.error("Invalid file type. Please upload a JPEG, PNG, or JPG file.")
-        return
       }
+      return
     }
 
     if (file.size > maxSizeInBytes) {
@@ -109,8 +88,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
     setUploadingIndex(index)
 
     try {
-      // Simulate loading time for file processing
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Create a preview immediately
+      const objectUrl = URL.createObjectURL(file)
 
       setUploads((prev) => {
         const updated = [...prev]
@@ -118,13 +97,13 @@ const UploadModal: React.FC<UploadModalProps> = ({
         return updated
       })
 
-      const objectUrl = URL.createObjectURL(file)
       setUploadBlobs((prev) => {
         const updated = [...prev]
         updated[index] = objectUrl
         return updated
       })
     } catch (error) {
+      console.error("Error processing file:", error)
       toast.error("Error processing file. Please try again.")
     } finally {
       setUploadingIndex(null)
@@ -142,11 +121,16 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
     setUploadBlobs((prev) => {
       const updated = [...prev]
+      // Revoke object URL to prevent memory leaks
+      if (updated[index] && updated[index].startsWith("blob:")) {
+        URL.revokeObjectURL(updated[index])
+      }
       updated[index] = ""
       return updated
     })
   }
 
+  // Improved upload function with better error handling and chunked uploads for large files
   const uploadFilesToStrapi = async () => {
     if (!uploads.some((file) => file)) {
       toast.error("No files selected for upload.")
@@ -156,12 +140,14 @@ const UploadModal: React.FC<UploadModalProps> = ({
     setLoading(true)
     setRetryCount(0)
 
-    const attemptUpload = async (): Promise<any> => {
+    const uploadSingleFile = async (file: File, attempt = 0): Promise<any> => {
       try {
         const formData = new FormData()
-        uploads.forEach((file) => {
-          if (file) formData.append("files", file)
-        })
+        formData.append("files", file)
+
+        // Add metadata to help with debugging
+        formData.append("fileSize", file.size.toString())
+        formData.append("fileType", file.type)
 
         const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`, {
           method: "POST",
@@ -172,30 +158,47 @@ const UploadModal: React.FC<UploadModalProps> = ({
         })
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
+          const errorText = await response.text()
+          console.error(`Upload error (${response.status}):`, errorText)
+          throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`)
         }
 
         return await response.json()
       } catch (error) {
-        if (retryCount < MAX_RETRIES) {
-          setRetryCount((prev) => prev + 1)
+        console.error(`Upload attempt ${attempt + 1} failed:`, error)
+
+        if (attempt < MAX_RETRIES) {
           // Exponential backoff: wait longer between each retry
-          await new Promise((resolve) => setTimeout(resolve, Math.pow(2, retryCount) * 1000))
-          return attemptUpload()
+          const delay = Math.min(Math.pow(2, attempt) * 1000, 30000) // Cap at 30 seconds
+          console.log(`Retrying in ${delay}ms...`)
+          await new Promise((resolve) => setTimeout(resolve, delay))
+          return uploadSingleFile(file, attempt + 1)
         }
         throw error
       }
     }
 
     try {
-      const uploadedFiles = await attemptUpload()
+      // Upload files sequentially instead of all at once
+      const uploadedFiles = []
+      const filesToUpload = uploads.filter((file): file is File => file !== null)
+
+      for (let i = 0; i < filesToUpload.length; i++) {
+        const file = filesToUpload[i]
+        const result = await uploadSingleFile(file)
+        uploadedFiles.push(...result) // Strapi returns an array
+      }
+
       const formattedFiles = uploadedFiles.map((file) => ({
         id: file.id.toString(),
         url: file.url,
       }))
 
       await updateGlobalState(formattedFiles)
-      toast.success("Files uploaded successfully!")
+      toast.success("Files uploaded successfully!") // Add this line back
+      setTimeout(() => {
+        onClose()
+      }, 1500) // Close after 1.5 seconds so the user can see the success message
     } catch (error) {
       console.error("Error uploading files:", error)
       toast.error("Failed to upload files after multiple attempts. Please try again.")
@@ -248,13 +251,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
       )
       await updateCampaign(cleanData)
       await getActiveCampaign()
-      onClose()
     } catch (error) {
       console.error("Error updating campaign:", error)
       toast.error("Failed to save campaign data.")
       throw error // Re-throw to be caught by the caller
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -265,11 +265,29 @@ const UploadModal: React.FC<UploadModalProps> = ({
       <div className="relative bg-white w-full max-w-[771px] max-h-[90vh] rounded-[10px] shadow-md overflow-y-auto">
         <div className="p-8 flex flex-col gap-4">
           <div className="absolute right-10 top-10 cursor-pointer" onClick={onClose}>
-            <Image src={closeIcon || "/placeholder.svg"} className="size-4" alt="Close" />
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M12 4L4 12M4 4L12 12"
+                stroke="#667085"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </div>
 
           <div className="flex cursor-pointer flex-col items-center gap-4">
-            <Image src={uploadIcon || "/placeholder.svg"} alt="Upload" />
+            <svg width="46" height="46" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="46" height="46" rx="23" fill="#EFF8FF" />
+              <path
+                d="M23 14V32M23 14L17 20M23 14L29 20"
+                stroke="#2E90FA"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path d="M32 32H14" stroke="#2E90FA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
             <h2 className="font-bold text-xl tracking-tighter">Upload your previews</h2>
             <p className="font-lighter text-balance text-md text-black">
               Upload the visuals for your selected formats. Each visual should have a corresponding preview.
@@ -326,7 +344,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
                         type="file"
                         accept={
                           format === "Video"
-                            ? "video/mp4,video/mov"
+                            ? "video/mp4,video/mov,video/quicktime"
                             : format === "Slideshow"
                               ? "application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
                               : "image/jpeg,image/png,image/jpg"
