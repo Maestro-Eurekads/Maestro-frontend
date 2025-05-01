@@ -114,6 +114,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           ...(stageData.social_media || []),
           ...(stageData.display_networks || []),
           ...(stageData.search_engines || []),
+          ...(stageData.streaming || []),
+          ...(stageData.ooh || []),
+          ...(stageData.broadcast || []),
+          ...(stageData.messaging || []),
+          ...(stageData.print || []),
+          ...(stageData.e_commerce || []),
+          ...(stageData.in_game || []),
+          ...(stageData.mobile || []),
         ].some(
           (platform) =>
             platform.format?.length > 0 &&
@@ -122,7 +130,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
         const isStageValidated = validatedStages[stage];
 
-        if (hasFormatSelected && isStageValidated) {
+        if (hasFormatSelected || isStageValidated) {
           hasValidFormat = true;
           break;
         }
