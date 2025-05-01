@@ -229,33 +229,45 @@ const UploadModal: React.FC<UploadModalProps> = ({
         throw new Error("Target platform not found")
       }
 
-      let targetFormatArray
+      // Handle both channel and ad set formats
       if (adSetIndex !== undefined) {
+        // Update ad set format
         if (!targetPlatform.ad_sets?.[adSetIndex]) {
           throw new Error(`Ad set not found at index ${adSetIndex}`)
         }
+        
         const adSet = targetPlatform.ad_sets[adSetIndex]
         adSet.format = adSet.format || []
-        targetFormatArray = adSet.format
+        
+        let targetFormatIndex = adSet.format.findIndex((fo) => fo.format_type === format)
+        if (targetFormatIndex === -1) {
+          adSet.format.push({
+            format_type: format,
+            num_of_visuals: quantities.toString(),
+            previews: [],
+          })
+          targetFormatIndex = adSet.format.length - 1
+        }
+
+        // Replace all previews with the new uploads
+        adSet.format[targetFormatIndex].previews = [...uploadedFiles]
       } else {
+        // Update platform format
         targetPlatform.format = targetPlatform.format || []
-        targetFormatArray = targetPlatform.format
-      }
+        
+        let targetFormatIndex = targetPlatform.format.findIndex((fo) => fo.format_type === format)
+        if (targetFormatIndex === -1) {
+          targetPlatform.format.push({
+            format_type: format,
+            num_of_visuals: quantities.toString(),
+            previews: [],
+          })
+          targetFormatIndex = targetPlatform.format.length - 1
+        }
 
-      let targetFormatIndex = targetFormatArray.findIndex((fo) => fo.format_type === format)
-      if (targetFormatIndex === -1) {
-        targetFormatArray.push({
-          format_type: format,
-          num_of_visuals: quantities.toString(),
-          previews: [],
-        })
-        targetFormatIndex = targetFormatArray.length - 1
+        // Replace all previews with the new uploads
+        targetPlatform.format[targetFormatIndex].previews = [...uploadedFiles]
       }
-
-      targetFormatArray[targetFormatIndex].previews = [
-        ...(targetFormatArray[targetFormatIndex].previews || []),
-        ...uploadedFiles,
-      ]
 
       const updatedState = {
         ...campaignData,

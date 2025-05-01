@@ -13,12 +13,13 @@ import { Trash } from "lucide-react"
 import Link from "next/link"
 import { removeKeysRecursively } from "utils/removeID"
 import customicon from "../../../public/social/customicon.png"
+import toast from "react-hot-toast"
 
 // Types
 type FormatType = {
   format_type: string
   num_of_visuals: string
-  previews: any
+  previews: Array<{ id: string; url: string }>
 }
 
 type PlatformType = {
@@ -117,6 +118,7 @@ const MediaOption = ({
   previews,
   stageName,
   format,
+  adSetIndex,
 }: {
   option: MediaOptionType
   isSelected: boolean
@@ -126,11 +128,12 @@ const MediaOption = ({
   onOpenModal: () => void
   platformName: string
   channelName: string
-  previews: any[]
+  previews: Array<{ id: string; url: string }>
   stageName: string
   format: string
+  adSetIndex?: number
 }) => {
-  const { campaignFormData, campaignData, updateCampaign, getActiveCampaign } = useCampaigns()
+  const { campaignFormData, updateCampaign } = useCampaigns()
   const [loading, setLoading] = useState(false)
   const [localPreviews, setLocalPreviews] = useState(previews)
   const [idToDel, setIdToDel] = useState<string | null>(null)
@@ -139,105 +142,70 @@ const MediaOption = ({
     setLocalPreviews(previews)
   }, [previews])
 
-  const uploadUpdatedCampaignToStrapi = async (data) => {
-    const cleanData = removeKeysRecursively(
-      campaignData,
-      ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
-      ["previews"],
-    )
-    await updateCampaign({
-      ...cleanData,
-      channel_mix: removeKeysRecursively(data?.channel_mix, ["documentId", "id"], ["previews"]),
-    })
-    await getActiveCampaign()
-    setIdToDel(null)
-    setLoading(false)
-  }
-
-  const updateGlobalState = async (ids: string[]) => {
-    const updatedChannelMix = [...(campaignFormData?.channel_mix || [])]
-
-    updatedChannelMix.forEach((ch: any) => {
-      Object.keys(ch).forEach((key) => {
-        if (Array.isArray(ch[key])) {
-          ch[key].forEach((platform: any) => {
-            if (platform.format) {
-              platform.format = platform.format.map((fo: any) => ({
-                ...fo,
-                previews: fo?.previews?.map((p: any) => ({ id: p?.id })) || [],
-              }))
-            }
-            if (platform.ad_sets) {
-              platform.ad_sets.forEach((adSet: any) => {
-                if (adSet.format) {
-                  adSet.format = adSet.format.map((fo: any) => ({
-                    ...fo,
-                    previews: fo?.previews?.map((p: any) => ({ id: p?.id })) || [],
-                  }))
-                }
-              })
-            }
-          })
-        }
-      })
-    })
-
-    const stage = updatedChannelMix?.find((ch: any) => ch?.funnel_stage === stageName)
-    if (!stage) return
-
-    const platformKey = channelName?.toLowerCase()?.replace(" ", "_")
-    const platforms = stage[platformKey]
-    if (!platforms) return
-
-    const targetPlatform = platforms?.find((pl: any) => pl?.platform_name === platformName)
-    if (!targetPlatform) return
-
-    // Check if this is for an ad set or platform format
-    const isAdSetFormat = targetPlatform.ad_sets?.some((adSet: any) => 
-      adSet.format?.some((f: any) => f.format_type === format)
-    )
-
-    if (isAdSetFormat) {
-      // Update the ad set format
-      targetPlatform.ad_sets.forEach((adSet: any) => {
-        const targetFormatIndex = adSet.format?.findIndex((fo: any) => fo?.format_type === format)
-        if (targetFormatIndex !== -1 && targetFormatIndex !== undefined) {
-          adSet.format[targetFormatIndex] = {
-            ...adSet.format[targetFormatIndex],
-            previews: Array.from(new Set([...ids]))?.map((id) => ({
-              id: id,
-            })),
-          }
-        }
-      })
-    } else {
-      // Update the platform format
-      const targetFormatIndex = targetPlatform?.format?.findIndex((fo: any) => fo?.format_type === format)
-      if (targetFormatIndex !== -1 && targetFormatIndex !== undefined) {
-        targetPlatform.format[targetFormatIndex] = {
-          ...targetPlatform.format[targetFormatIndex],
-          previews: Array.from(new Set([...ids]))?.map((id) => ({
-            id: id,
-          })),
-        }
-      }
+  const uploadUpdatedCampaignToStrapi = async (data: any) => {
+    try {
+      const cleanData = removeKeysRecursively(
+        data,
+        ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
+        ["previews"],
+      )
+      await updateCampaign(cleanData)
+    } catch (error) {
+      console.error("Error in uploadUpdatedCampaignToStrapi:", error)
+      toast.error("Failed to save campaign data.")
+      throw error
     }
-
-    const updatedState = {
-      ...campaignFormData,
-      channel_mix: updatedChannelMix,
-    }
-    await uploadUpdatedCampaignToStrapi(updatedState)
-    setLocalPreviews(ids.map(id => ({ id })))
   }
 
   const handleDelete = async (previewId: string) => {
-    const updatedPreviews = localPreviews.filter((prv) => prv.id !== previewId)
-    const updatedIds = updatedPreviews.map((prv) => prv.id)
-
     setLoading(true)
     setIdToDel(previewId)
-    await updateGlobalState(updatedIds)
+
+    try {
+      const updatedPreviews = localPreviews.filter((prv) => prv.id !== previewId)
+      setLocalPreviews(updatedPreviews)
+
+      const updatedChannelMix = [...(campaignFormData?.channel_mix || [])]
+      const stageIndex = updatedChannelMix.findIndex((ch) => ch.funnel_stage === stageName)
+      if (stageIndex === -1) return
+
+      const platformKey = channelName.toLowerCase().replace(/\s+/g, "_")
+      const platforms = updatedChannelMix[stageIndex][platformKey]
+      if (!platforms) return
+
+      const platformIndex = platforms.findIndex((pl) => pl.platform_name === platformName)
+      if (platformIndex === -1) return
+
+      if (adSetIndex !== undefined) {
+        // Handle ad set format
+        const adSet = platforms[platformIndex].ad_sets?.[adSetIndex]
+        if (!adSet?.format) return
+
+        const formatIndex = adSet.format.findIndex((f) => f.format_type === format)
+        if (formatIndex === -1) return
+
+        adSet.format[formatIndex].previews = updatedPreviews
+      } else {
+        // Handle platform format
+        const formatIndex = platforms[platformIndex].format?.findIndex((f) => f.format_type === format)
+        if (formatIndex === -1 || !platforms[platformIndex].format) return
+
+        platforms[platformIndex].format[formatIndex].previews = updatedPreviews
+      }
+
+      const updatedState = {
+        ...campaignFormData,
+        channel_mix: updatedChannelMix,
+      }
+
+      await uploadUpdatedCampaignToStrapi(updatedState)
+    } catch (error) {
+      console.error("Error deleting preview:", error)
+      toast.error("Failed to delete preview")
+    } finally {
+      setLoading(false)
+      setIdToDel(null)
+    }
   }
 
   return (
@@ -345,7 +313,7 @@ const MediaSelectionGrid = ({
   quantities: { [key: string]: number }
   onFormatSelect: (index: number, adSetIndex?: number) => void
   onQuantityChange: (modes: string, change: number) => void
-  onOpenModal: (platform: string, channel: string, format: string, previews: any[], quantities: any) => void
+  onOpenModal: (platform: string, channel: string, format: string, previews: any[], quantities: any, adSetIndex?: number) => void
   adSetIndex?: number
   view: "channel" | "adset"
 }) => {
@@ -353,9 +321,7 @@ const MediaSelectionGrid = ({
   const channelKey = channelName.toLowerCase().replace(/\s+/g, "_")
 
   const stage = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
-
   const platform = stage?.[channelKey]?.find((pl) => pl?.platform_name === platformName)
-
   const adSet = adSetIndex !== undefined ? platform?.ad_sets?.[adSetIndex] : null
 
   return (
@@ -367,8 +333,8 @@ const MediaSelectionGrid = ({
             : platform?.format?.some((f) => f.format_type === option.name)
 
           const previews = adSet && view === "adset"
-            ? adSet.format?.find((f) => f.format_type === option.name)?.previews
-            : platform?.format?.find((f) => f.format_type === option.name)?.previews
+            ? adSet.format?.find((f) => f.format_type === option.name)?.previews || []
+            : platform?.format?.find((f) => f.format_type === option.name)?.previews || []
 
           const q = adSet && view === "adset"
             ? adSet.format?.find((f) => f.format_type === option.name)?.num_of_visuals
@@ -382,12 +348,13 @@ const MediaSelectionGrid = ({
               quantity={quantities[option.name] || Number.parseInt(q) || 1}
               onSelect={() => onFormatSelect(index, adSetIndex)}
               onQuantityChange={(change) => onQuantityChange(option.name, change)}
-              onOpenModal={() => onOpenModal(platformName, channelName, option.name, previews || [], q)}
+              onOpenModal={() => onOpenModal(platformName, channelName, option.name, previews, q, adSetIndex)}
               platformName={platformName}
               channelName={channelName}
-              previews={previews || []}
+              previews={previews}
               stageName={stageName}
-              format={option?.name}
+              format={option.name}
+              adSetIndex={adSetIndex}
             />
           )
         })}
@@ -410,15 +377,11 @@ const PlatformItem = ({
   stageName: string
   quantities: QuantitiesType
   onQuantityChange: (platformName: string, formatName: string, change: number) => void
-  onOpenModal: (platform: string, channel: string, format: string, previews: any[], quantities: any) => void
+  onOpenModal: (platform: string, channel: string, format: string, previews: any[], quantities: any, adSetIndex?: number) => void
   view: "channel" | "adset"
 }) => {
-  const [isExpanded, setIsExpanded] = useState<{
-    [key: string]: boolean
-  }>({})
-  const [expandedAdsets, setExpandedAdsets] = useState<{
-    [key: string]: boolean
-  }>({})
+  const [isExpanded, setIsExpanded] = useState<{ [key: string]: boolean }>({})
+  const [expandedAdsets, setExpandedAdsets] = useState<{ [key: string]: boolean }>({})
   const { campaignFormData, setCampaignFormData } = useCampaigns()
 
   useEffect(() => {
@@ -624,7 +587,7 @@ const ChannelSection = ({
   stageName: string
   quantities: QuantitiesType
   onQuantityChange: (platformName: string, formatName: string, change: number) => void
-  onOpenModal: (platform: string, channel: string, format: string, previews: any[], quantities: any) => void
+  onOpenModal: (platform: string, channel: string, format: string, previews: any[], quantities: any, adSetIndex?: number) => void
   view: "channel" | "adset"
 }) => {
   // Filter platforms based on view type
@@ -670,6 +633,7 @@ export const Platforms = ({
     format: string
     previews: any[]
     quantities: any
+    adSetIndex?: number
   } | null>(null)
 
   const { campaignFormData, setCampaignFormData } = useCampaigns()
@@ -787,8 +751,8 @@ export const Platforms = ({
     setCampaignFormData({ ...campaignFormData, channel_mix: copy })
   }
 
-  const openModal = (platform: string, channel: string, format: string, previews: any[], quantities: any) => {
-    setModalContext({ platform, channel, format, previews, quantities })
+  const openModal = (platform: string, channel: string, format: string, previews: any[], quantities: any, adSetIndex?: number) => {
+    setModalContext({ platform, channel, format, previews, quantities, adSetIndex })
     setIsModalOpen(true)
   }
 
@@ -821,18 +785,17 @@ export const Platforms = ({
       ))}
 
       {isModalOpen && modalContext && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <UploadModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            platform={modalContext.platform}
-            channel={modalContext.channel}
-            format={modalContext.format}
-            previews={modalContext.previews}
-            quantities={modalContext.quantities}
-            stageName={stageName}
-          />
-        </div>
+        <UploadModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          platform={modalContext.platform}
+          channel={modalContext.channel}
+          format={modalContext.format}
+          previews={modalContext.previews}
+          quantities={modalContext.quantities}
+          stageName={stageName}
+          adSetIndex={modalContext.adSetIndex}
+        />
       )}
     </div>
   )
