@@ -20,7 +20,7 @@ interface UploadModalProps {
   stageName: string
   previews: Array<{ id: string; url: string }>
   adSetIndex?: number
-  onUploadSuccess?: () => void // Added to notify parent of successful upload
+  onUploadSuccess?: () => void
 }
 
 const UploadModal: React.FC<UploadModalProps> = ({
@@ -39,20 +39,22 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const [uploads, setUploads] = useState<Array<File | null>>([])
   const [uploadBlobs, setUploadBlobs] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<number[]>([]) // Track progress for each file
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null)
-  const [retryCount, setRetryCount] = useState(0)
-  const MAX_RETRIES = 5
-  const CHUNK_SIZE = 5 * 1024 * 1024 // 5MB chunks for large files
+  const MAX_RETRIES = 3 // Reduced for faster failure
+  const CHUNK_SIZE = 5 * 1024 * 1024 // 5MB chunks (used in logic if chunking is implemented)
 
-  // Initialize uploadBlobs with existing previews
+  // Initialize uploadBlobs and uploadProgress
   useEffect(() => {
     console.log("UploadModal props:", { platform, channel, format, quantities, stageName, previews, adSetIndex })
     if (previews && previews.length > 0) {
       setUploadBlobs(previews.map((preview) => preview.url))
       setUploads(previews.map(() => null))
+      setUploadProgress(previews.map(() => 100)) // Previews are already "uploaded"
     } else {
       setUploadBlobs(Array(quantities).fill(""))
       setUploads(Array(quantities).fill(null))
+      setUploadProgress(Array(quantities).fill(0))
     }
   }, [previews, quantities])
 
@@ -106,6 +108,12 @@ const UploadModal: React.FC<UploadModalProps> = ({
         updated[index] = objectUrl
         return updated
       })
+
+      setUploadProgress((prev) => {
+        const updated = [...prev]
+        updated[index] = 0
+        return updated
+      })
     } catch (error) {
       console.error("Error processing file:", error)
       toast.error("Error processing file. Please try again.")
@@ -131,9 +139,15 @@ const UploadModal: React.FC<UploadModalProps> = ({
       updated[index] = ""
       return updated
     })
+
+    setUploadProgress((prev) => {
+      const updated = [...prev]
+      updated[index] = 0
+      return updated
+    })
   }
 
-  const uploadSingleFile = async (file: File, attempt = 0): Promise<any> => {
+  const uploadSingleFile = async (file: File, index: number, attempt = 0): Promise<any> => {
     try {
       const formData = new FormData()
       formData.append("files", file)
@@ -142,30 +156,42 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
       console.log(`Uploading file: ${file.name}, size: ${file.size}, type: ${file.type}, attempt: ${attempt + 1}`)
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-        },
-        body: formData,
+      const xhr = new XMLHttpRequest()
+      return new Promise((resolve, reject) => {
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percent = Math.round((event.loaded / event.total) * 100)
+            setUploadProgress((prev) => {
+              const updated = [...prev]
+              updated[index] = percent
+              return updated
+            })
+          }
+        }
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            const result = JSON.parse(xhr.responseText)
+            console.log(`Upload successful for ${file.name}:`, result)
+            resolve(result)
+          } else {
+            const error = new Error(`HTTP error! status: ${xhr.status}`)
+            reject(error)
+          }
+        }
+
+        xhr.onerror = () => reject(new Error("Network error during upload"))
+
+        xhr.open("POST", `${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`)
+        xhr.setRequestHeader("Authorization", `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`)
+        xhr.send(formData)
       })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error(`Upload error (Attempt ${attempt + 1}, Status: ${response.status}):`, errorText)
-        throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`)
-      }
-
-      const result = await response.json()
-      console.log(`Upload successful for ${file.name}:`, result)
-      return result
     } catch (error) {
       console.error(`Upload attempt ${attempt + 1} failed for file "${file.name}":`, error)
       if (attempt < MAX_RETRIES) {
-        const delay = Math.min(Math.pow(2, attempt) * 1000, 30000)
-        console.log(`Retrying upload for "${file.name}" in ${delay}ms...`)
+        const delay = Math.min(1000 * (attempt + 1), 5000) // Linear backoff, max 5s
         await new Promise((resolve) => setTimeout(resolve, delay))
-        return uploadSingleFile(file, attempt + 1)
+        return uploadSingleFile(file, index, attempt + 1)
       }
       throw error
     }
@@ -178,18 +204,31 @@ const UploadModal: React.FC<UploadModalProps> = ({
     }
 
     setLoading(true)
-    setRetryCount(0)
 
     try {
-      const uploadedFiles = []
-      const filesToUpload = uploads.filter((file): file is File => file !== null)
+      const filesToUpload = uploads
+        .map((file, index) => ({ file, index }))
+        .filter((item): item is { file: File; index: number } => item.file !== null)
 
-      console.log(`Uploading ${filesToUpload.length} files`)
+      console.log(`Uploading ${filesToUpload.length} files concurrently`)
 
-      for (let i = 0; i < filesToUpload.length; i++) {
-        const file = filesToUpload[i]
-        const result = await uploadSingleFile(file)
-        uploadedFiles.push(...result)
+      // Upload all files in parallel
+      const uploadPromises = filesToUpload.map(({ file, index }) =>
+        uploadSingleFile(file, index).catch((error) => {
+          console.error(`Failed to upload file at index ${index}:`, error)
+          return null // Handle individual failures gracefully
+        }),
+      )
+
+      const results = await Promise.all(uploadPromises)
+
+      // Filter out failed uploads
+      const uploadedFiles = results
+        .flat()
+        .filter((result): result is any => result !== null)
+
+      if (uploadedFiles.length === 0) {
+        throw new Error("All file uploads failed")
       }
 
       const formattedFiles = uploadedFiles.map((file) => ({
@@ -201,13 +240,13 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
       await updateGlobalState(formattedFiles)
       toast.success("Files uploaded successfully!")
-      onUploadSuccess?.() // Notify parent of successful upload
+      onUploadSuccess?.()
       setTimeout(() => {
         onClose()
-      }, 1500)
+      }, 1000)
     } catch (error) {
       console.error("Error in uploadFilesToStrapi:", error)
-      toast.error("Failed to upload files after multiple attempts. Please try again.")
+      toast.error("Some files failed to upload. Please try again.")
     } finally {
       setLoading(false)
     }
@@ -371,9 +410,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
                   className={`w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors relative ${loading ? "cursor-not-allowed" : "cursor-pointer"}`}
                   onClick={() => !loading && document.getElementById(`upload${index}`)?.click()}
                 >
-                  {uploadingIndex === index ? (
-                    <div className="flex items-center justify-center">
+                  {uploadingIndex === index || (loading && uploadProgress[index] > 0 && uploadProgress[index] < 100) ? (
+                    <div className="flex flex-col items-center justify-center">
                       <FaSpinner className="animate-spin text-blue-500 text-2xl" />
+                      <span className="text-sm">{uploadProgress[index]}%</span>
                     </div>
                   ) : uploadBlobs[index] ? (
                     <>
