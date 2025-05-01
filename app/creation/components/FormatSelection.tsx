@@ -136,9 +136,7 @@ const MediaOption = ({
   const [idToDel, setIdToDel] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!idToDel) {
-      setLocalPreviews(previews)
-    }
+    setLocalPreviews(previews)
   }, [previews])
 
   const uploadUpdatedCampaignToStrapi = async (data) => {
@@ -163,10 +161,22 @@ const MediaOption = ({
       Object.keys(ch).forEach((key) => {
         if (Array.isArray(ch[key])) {
           ch[key].forEach((platform: any) => {
-            platform.format = platform.format.map((fo: any) => ({
-              ...fo,
-              previews: fo?.previews?.map((p: any) => ({ id: p?.id })),
-            }))
+            if (platform.format) {
+              platform.format = platform.format.map((fo: any) => ({
+                ...fo,
+                previews: fo?.previews?.map((p: any) => ({ id: p?.id })) || [],
+              }))
+            }
+            if (platform.ad_sets) {
+              platform.ad_sets.forEach((adSet: any) => {
+                if (adSet.format) {
+                  adSet.format = adSet.format.map((fo: any) => ({
+                    ...fo,
+                    previews: fo?.previews?.map((p: any) => ({ id: p?.id })) || [],
+                  }))
+                }
+              })
+            }
           })
         }
       })
@@ -182,15 +192,37 @@ const MediaOption = ({
     const targetPlatform = platforms?.find((pl: any) => pl?.platform_name === platformName)
     if (!targetPlatform) return
 
-    const targetFormatIndex = targetPlatform?.format?.findIndex((fo: any) => fo?.format_type === format)
-    if (targetFormatIndex === -1 || targetFormatIndex === undefined) return
+    // Check if this is for an ad set or platform format
+    const isAdSetFormat = targetPlatform.ad_sets?.some((adSet: any) => 
+      adSet.format?.some((f: any) => f.format_type === format)
+    )
 
-    targetPlatform.format[targetFormatIndex] = {
-      ...targetPlatform.format[targetFormatIndex],
-      previews: Array.from(new Set([...ids]))?.map((id) => ({
-        id: id,
-      })),
+    if (isAdSetFormat) {
+      // Update the ad set format
+      targetPlatform.ad_sets.forEach((adSet: any) => {
+        const targetFormatIndex = adSet.format?.findIndex((fo: any) => fo?.format_type === format)
+        if (targetFormatIndex !== -1 && targetFormatIndex !== undefined) {
+          adSet.format[targetFormatIndex] = {
+            ...adSet.format[targetFormatIndex],
+            previews: Array.from(new Set([...ids]))?.map((id) => ({
+              id: id,
+            })),
+          }
+        }
+      })
+    } else {
+      // Update the platform format
+      const targetFormatIndex = targetPlatform?.format?.findIndex((fo: any) => fo?.format_type === format)
+      if (targetFormatIndex !== -1 && targetFormatIndex !== undefined) {
+        targetPlatform.format[targetFormatIndex] = {
+          ...targetPlatform.format[targetFormatIndex],
+          previews: Array.from(new Set([...ids]))?.map((id) => ({
+            id: id,
+          })),
+        }
+      }
     }
+
     const updatedState = {
       ...campaignFormData,
       channel_mix: updatedChannelMix,
@@ -199,14 +231,13 @@ const MediaOption = ({
     setLocalPreviews(ids.map(id => ({ id })))
   }
 
-  const handleDelete = async (previewId: string, chName: string) => {
-    if (channelName === chName) {
-      const updatedPreviews = previews.filter((prv) => prv.id !== previewId)
-      const updatedIds = updatedPreviews.map((prv) => prv.id)
+  const handleDelete = async (previewId: string) => {
+    const updatedPreviews = localPreviews.filter((prv) => prv.id !== previewId)
+    const updatedIds = updatedPreviews.map((prv) => prv.id)
 
-      setLoading(true)
-      await updateGlobalState(updatedIds)
-    }
+    setLoading(true)
+    setIdToDel(previewId)
+    await updateGlobalState(updatedIds)
   }
 
   return (
@@ -275,11 +306,8 @@ const MediaOption = ({
                 </Link>
                 <button
                   className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
-                  onClick={() => {
-                    setIdToDel(prv?.id)
-                    handleDelete(prv?.id, channelName)
-                  }}
-                  disabled={loading}
+                  onClick={() => handleDelete(prv?.id)}
+                  disabled={loading && idToDel === prv?.id}
                 >
                   {loading && idToDel === prv?.id ? (
                     <center>
@@ -338,11 +366,11 @@ const MediaSelectionGrid = ({
 
           const previews = adSet
             ? adSet.format?.find((f) => f.format_type === option.name)?.previews
-            : platform.format?.find((f) => f.format_type === option.name)?.previews
+            : platform?.format?.find((f) => f.format_type === option.name)?.previews
 
           const q = adSet
             ? adSet.format?.find((f) => f.format_type === option.name)?.num_of_visuals
-            : platform.format?.find((f) => f.format_type === option.name)?.num_of_visuals
+            : platform?.format?.find((f) => f.format_type === option.name)?.num_of_visuals
 
           return (
             <MediaOption
@@ -679,7 +707,7 @@ export const Platforms = ({
     }
   }, [campaignFormData, stageName])
 
-  const handleQuantityChange = (platformName: string, formatName: string, change: number, adsetIndex?: number) => {
+  const handleQuantityChange = (platformName: string, formatName: string, change: number) => {
     const newQuantity = Math.max(1, (quantities[platformName]?.[formatName] || 1) + change)
     const newQuantities = {
       ...quantities,
@@ -696,49 +724,37 @@ export const Platforms = ({
     const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName)
     if (stageIndex === -1) return
 
-    const isAdsetQuantity = platformName.includes("_adset_")
+    for (const channelType of CHANNEL_TYPES) {
+      const platforms = copy[stageIndex][channelType.key]
+      if (!platforms) continue
 
-    if (isAdsetQuantity) {
-      const [actualPlatformName, _, adsetIndexStr] = platformName.split("_adset_")
-      const adsetIndex = Number.parseInt(adsetIndexStr)
+      const platform = platforms.find((p) => p.platform_name === platformName)
+      if (!platform) continue
 
-      for (const channelType of CHANNEL_TYPES) {
-        const platforms = copy[stageIndex][channelType.key]
-        if (!platforms) continue
-
-        const platform = platforms.find((p) => p.platform_name === actualPlatformName)
-        if (platform && platform.ad_sets && platform.ad_sets[adsetIndex]) {
-          const adset = platform.ad_sets[adsetIndex]
-          if (!adset.format) continue
-
-          const format = adset.format.find((f) => f.format_type === formatName)
-          if (format) {
-            format.num_of_visuals = newQuantity.toString()
-            // Truncate previews if quantity is reduced
-            if (format.previews && format.previews.length > newQuantity) {
-              format.previews = format.previews.slice(0, newQuantity)
-            }
-            break
+      // Update platform formats
+      if (platform.format) {
+        const format = platform.format.find((f) => f.format_type === formatName)
+        if (format) {
+          format.num_of_visuals = newQuantity.toString()
+          if (format.previews && format.previews.length > newQuantity) {
+            format.previews = format.previews.slice(0, newQuantity)
           }
         }
       }
-    } else {
-      for (const channelType of CHANNEL_TYPES) {
-        const platforms = copy[stageIndex][channelType.key]
-        if (!platforms) continue
 
-        const platform = platforms.find((p) => p.platform_name === platformName)
-        if (platform && platform.format) {
-          const format = platform.format.find((f) => f.format_type === formatName)
-          if (format) {
-            format.num_of_visuals = newQuantity.toString()
-            // Truncate previews if quantity is reduced
-            if (format.previews && format.previews.length > newQuantity) {
-              format.previews = format.previews.slice(0, newQuantity)
+      // Update ad set formats
+      if (platform.ad_sets) {
+        platform.ad_sets.forEach((adSet) => {
+          if (adSet.format) {
+            const adSetFormat = adSet.format.find((f) => f.format_type === formatName)
+            if (adSetFormat) {
+              adSetFormat.num_of_visuals = newQuantity.toString()
+              if (adSetFormat.previews && adSetFormat.previews.length > newQuantity) {
+                adSetFormat.previews = adSetFormat.previews.slice(0, newQuantity)
+              }
             }
-            break
           }
-        }
+        })
       }
     }
 
@@ -798,7 +814,7 @@ export const Platforms = ({
 
 export const FormatSelection = () => {
   const [openTabs, setOpenTabs] = useState<string[]>([])
-  const [view, setView] = useState<"channel" | "adset">("channel") // Changed default to "channel"
+  const [view, setView] = useState<"channel" | "adset">("channel")
   const { campaignFormData } = useCampaigns()
   const { setIsDrawerOpen, setClose } = useComments()
 
