@@ -798,7 +798,7 @@ export const Platforms = ({
 
 export const FormatSelection = () => {
   const [openTabs, setOpenTabs] = useState<string[]>([])
-  const [view, setView] = useState<"channel" | "adset">("adset")
+  const [view, setView] = useState<"channel" | "adset">("channel") // Changed default to "channel"
   const { campaignFormData } = useCampaigns()
   const { setIsDrawerOpen, setClose } = useComments()
 

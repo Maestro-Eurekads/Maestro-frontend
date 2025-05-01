@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { Trash } from "lucide-react"
 import { FaSpinner } from "react-icons/fa"
 import toast from "react-hot-toast"
@@ -39,18 +39,17 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const [uploads, setUploads] = useState<Array<File | null>>([])
   const [uploadBlobs, setUploadBlobs] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState<number[]>([]) // Track progress for each file
+  const [uploadProgress, setUploadProgress] = useState<number[]>([])
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null)
-  const MAX_RETRIES = 3 // Reduced for faster failure
-  const CHUNK_SIZE = 5 * 1024 * 1024 // 5MB chunks (used in logic if chunking is implemented)
+  const MAX_RETRIES = 2
+  const CONCURRENT_UPLOADS = 3
 
   // Initialize uploadBlobs and uploadProgress
   useEffect(() => {
-    console.log("UploadModal props:", { platform, channel, format, quantities, stageName, previews, adSetIndex })
     if (previews && previews.length > 0) {
       setUploadBlobs(previews.map((preview) => preview.url))
       setUploads(previews.map(() => null))
-      setUploadProgress(previews.map(() => 100)) // Previews are already "uploaded"
+      setUploadProgress(previews.map(() => 100))
     } else {
       setUploadBlobs(Array(quantities).fill(""))
       setUploads(Array(quantities).fill(null))
@@ -58,146 +57,217 @@ const UploadModal: React.FC<UploadModalProps> = ({
     }
   }, [previews, quantities])
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    e.preventDefault()
-    const file = e.target.files?.[0]
-    if (!file) return
+  const handleFileChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+      e.preventDefault()
+      const file = e.target.files?.[0]
+      if (!file) return
 
-    const allowedTypes =
-      format === "Video"
-        ? ["video/mp4", "video/mov", "video/quicktime"]
-        : format === "Slideshow"
-          ? [
-              "application/pdf",
-              "application/vnd.ms-powerpoint",
-              "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-            ]
-          : ["image/jpeg", "image/png", "image/jpg"]
-    const maxSizeInMB = 20
-    const maxSizeInBytes = maxSizeInMB * 1024 * 1024
+      const allowedTypes =
+        format === "Video"
+          ? ["video/mp4", "video/mov", "video/quicktime"]
+          : format === "Slideshow"
+            ? [
+                "application/pdf",
+                "application/vnd.ms-powerpoint",
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+              ]
+            : ["image/jpeg", "image/png", "image/jpg"]
+      const maxSizeInMB = 20
+      const maxSizeInBytes = maxSizeInMB * 1024 * 1024
 
-    if (!allowedTypes.includes(file.type)) {
-      if (format === "Video") {
-        toast.error("Invalid file type. Please upload a MP4 or MOV file.")
-      } else if (format === "Slideshow") {
-        toast.error("Invalid file type. Please upload a PDF or PPTX file.")
-      } else {
-        toast.error("Invalid file type. Please upload a JPEG, PNG, or JPG file.")
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(
+          format === "Video"
+            ? "Invalid file type. Please upload a MP4 or MOV file."
+            : format === "Slideshow"
+              ? "Invalid file type. Please upload a PDF or PPTX file."
+              : "Invalid file type. Please upload a JPEG, PNG, or JPG file.",
+        )
+        return
       }
-      return
-    }
 
-    if (file.size > maxSizeInBytes) {
-      toast.error(`File size exceeds ${maxSizeInMB}MB. Please upload a smaller file.`)
-      return
-    }
+      if (file.size > maxSizeInBytes) {
+        toast.error(`File size exceeds ${maxSizeInMB}MB. Please upload a smaller file.`)
+        return
+      }
 
-    setUploadingIndex(index)
+      setUploadingIndex(index)
 
-    try {
-      const objectUrl = URL.createObjectURL(file)
+      try {
+        const objectUrl = URL.createObjectURL(file)
+        setUploads((prev) => {
+          const updated = [...prev]
+          updated[index] = file
+          return updated
+        })
+        setUploadBlobs((prev) => {
+          const updated = [...prev]
+          updated[index] = objectUrl
+          return updated
+        })
+        setUploadProgress((prev) => {
+          const updated = [...prev]
+          updated[index] = 0
+          return updated
+        })
+      } catch (error) {
+        console.error("Error processing file:", error)
+        toast.error("Error processing file. Please try again.")
+      } finally {
+        setUploadingIndex(null)
+      }
 
+      e.target.value = ""
+    },
+    [format],
+  )
+
+  const handleDelete = useCallback(
+    (index: number) => {
       setUploads((prev) => {
         const updated = [...prev]
-        updated[index] = file
+        updated[index] = null
         return updated
       })
-
       setUploadBlobs((prev) => {
         const updated = [...prev]
-        updated[index] = objectUrl
+        if (updated[index] && updated[index].startsWith("blob:")) {
+          URL.revokeObjectURL(updated[index])
+        }
+        updated[index] = ""
         return updated
       })
-
       setUploadProgress((prev) => {
         const updated = [...prev]
         updated[index] = 0
         return updated
       })
-    } catch (error) {
-      console.error("Error processing file:", error)
-      toast.error("Error processing file. Please try again.")
-    } finally {
-      setUploadingIndex(null)
-    }
+    },
+    [],
+  )
 
-    e.target.value = ""
-  }
+  const uploadSingleFile = useCallback(
+    async (file: File, index: number, attempt = 0): Promise<any> => {
+      try {
+        const formData = new FormData()
+        formData.append("files", file)
+        formData.append("fileSize", file.size.toString())
+        formData.append("fileType", file.type)
 
-  const handleDelete = (index: number) => {
-    setUploads((prev) => {
-      const updated = [...prev]
-      updated[index] = null
-      return updated
-    })
+        const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+          body: formData,
+        })
 
-    setUploadBlobs((prev) => {
-      const updated = [...prev]
-      if (updated[index] && updated[index].startsWith("blob:")) {
-        URL.revokeObjectURL(updated[index])
-      }
-      updated[index] = ""
-      return updated
-    })
-
-    setUploadProgress((prev) => {
-      const updated = [...prev]
-      updated[index] = 0
-      return updated
-    })
-  }
-
-  const uploadSingleFile = async (file: File, index: number, attempt = 0): Promise<any> => {
-    try {
-      const formData = new FormData()
-      formData.append("files", file)
-      formData.append("fileSize", file.size.toString())
-      formData.append("fileType", file.type)
-
-      console.log(`Uploading file: ${file.name}, size: ${file.size}, type: ${file.type}, attempt: ${attempt + 1}`)
-
-      const xhr = new XMLHttpRequest()
-      return new Promise((resolve, reject) => {
-        xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const percent = Math.round((event.loaded / event.total) * 100)
-            setUploadProgress((prev) => {
-              const updated = [...prev]
-              updated[index] = percent
-              return updated
-            })
-          }
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
         }
 
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            const result = JSON.parse(xhr.responseText)
-            console.log(`Upload successful for ${file.name}:`, result)
-            resolve(result)
-          } else {
-            const error = new Error(`HTTP error! status: ${xhr.status}`)
-            reject(error)
-          }
+        const result = await response.json()
+        setUploadProgress((prev) => {
+          const updated = [...prev]
+          updated[index] = 100
+          return updated
+        })
+        return result
+      } catch (error) {
+        console.error(`Upload attempt ${attempt + 1} failed for file "${file.name}":`, error)
+        if (attempt < MAX_RETRIES) {
+          const delay = 500 * (attempt + 1)
+          await new Promise((resolve) => setTimeout(resolve, delay))
+          return uploadSingleFile(file, index, attempt + 1)
         }
-
-        xhr.onerror = () => reject(new Error("Network error during upload"))
-
-        xhr.open("POST", `${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`)
-        xhr.setRequestHeader("Authorization", `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`)
-        xhr.send(formData)
-      })
-    } catch (error) {
-      console.error(`Upload attempt ${attempt + 1} failed for file "${file.name}":`, error)
-      if (attempt < MAX_RETRIES) {
-        const delay = Math.min(1000 * (attempt + 1), 5000) // Linear backoff, max 5s
-        await new Promise((resolve) => setTimeout(resolve, delay))
-        return uploadSingleFile(file, index, attempt + 1)
+        throw error
       }
-      throw error
-    }
-  }
+    },
+    [],
+  )
 
-  const uploadFilesToStrapi = async () => {
+  const uploadUpdatedCampaignToStrapi = useCallback(
+    async (data: any) => {
+      try {
+        const cleanData = removeKeysRecursively(
+          data,
+          ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
+          ["previews"],
+        )
+        await updateCampaign(cleanData)
+        await getActiveCampaign()
+      } catch (error) {
+        console.error("Error in uploadUpdatedCampaignToStrapi:", error)
+        toast.error("Failed to save campaign data.")
+        throw error
+      }
+    },
+    [updateCampaign, getActiveCampaign],
+  )
+
+  const updateGlobalState = useCallback(
+    async (uploadedFiles: Array<{ id: string; url: string }>) => {
+      if (!campaignFormData?.channel_mix) {
+        throw new Error("campaignFormData or channel_mix is undefined")
+      }
+
+      const updatedChannelMix = [...campaignFormData.channel_mix]
+      const stage = updatedChannelMix.find((ch) => ch.funnel_stage === stageName)
+      if (!stage) {
+        throw new Error("Stage not found")
+      }
+
+      const platformKey = channel.toLowerCase().replace(/\s+/g, "_")
+      const platforms = stage[platformKey]
+      if (!platforms) {
+        throw new Error("Platform key not found")
+      }
+
+      const targetPlatform = platforms.find((pl) => pl.platform_name === platform)
+      if (!targetPlatform) {
+        throw new Error("Target platform not found")
+      }
+
+      let targetFormatArray
+      if (adSetIndex !== undefined) {
+        if (!targetPlatform.ad_sets?.[adSetIndex]) {
+          throw new Error(`Ad set not found at index ${adSetIndex}`)
+        }
+        const adSet = targetPlatform.ad_sets[adSetIndex]
+        adSet.format = adSet.format || []
+        targetFormatArray = adSet.format
+      } else {
+        targetPlatform.format = targetPlatform.format || []
+        targetFormatArray = targetPlatform.format
+      }
+
+      let targetFormatIndex = targetFormatArray.findIndex((fo) => fo.format_type === format)
+      if (targetFormatIndex === -1) {
+        targetFormatArray.push({
+          format_type: format,
+          num_of_visuals: quantities.toString(),
+          previews: [],
+        })
+        targetFormatIndex = targetFormatArray.length - 1
+      }
+
+      targetFormatArray[targetFormatIndex].previews = [
+        ...(targetFormatArray[targetFormatIndex].previews || []),
+        ...uploadedFiles,
+      ]
+
+      const updatedState = {
+        ...campaignData,
+        channel_mix: updatedChannelMix,
+      }
+
+      await uploadUpdatedCampaignToStrapi(updatedState)
+    },
+    [campaignFormData, campaignData, stageName, channel, platform, format, quantities, adSetIndex, uploadUpdatedCampaignToStrapi],
+  )
+
+  const uploadFilesToStrapi = useCallback(async () => {
     if (!uploads.some((file) => file)) {
       toast.error("No files selected for upload.")
       return
@@ -210,22 +280,18 @@ const UploadModal: React.FC<UploadModalProps> = ({
         .map((file, index) => ({ file, index }))
         .filter((item): item is { file: File; index: number } => item.file !== null)
 
-      console.log(`Uploading ${filesToUpload.length} files concurrently`)
-
-      // Upload all files in parallel
-      const uploadPromises = filesToUpload.map(({ file, index }) =>
-        uploadSingleFile(file, index).catch((error) => {
-          console.error(`Failed to upload file at index ${index}:`, error)
-          return null // Handle individual failures gracefully
-        }),
-      )
-
-      const results = await Promise.all(uploadPromises)
-
-      // Filter out failed uploads
-      const uploadedFiles = results
-        .flat()
-        .filter((result): result is any => result !== null)
+      const uploadedFiles: any[] = []
+      for (let i = 0; i < filesToUpload.length; i += CONCURRENT_UPLOADS) {
+        const batch = filesToUpload.slice(i, i + CONCURRENT_UPLOADS)
+        const batchPromises = batch.map(({ file, index }) =>
+          uploadSingleFile(file, index).catch((error) => {
+            console.error(`Failed to upload file at index ${index}:`, error)
+            return null
+          }),
+        )
+        const batchResults = (await Promise.all(batchPromises)).flat().filter((result) => result !== null)
+        uploadedFiles.push(...batchResults)
+      }
 
       if (uploadedFiles.length === 0) {
         throw new Error("All file uploads failed")
@@ -236,136 +302,24 @@ const UploadModal: React.FC<UploadModalProps> = ({
         url: file.url,
       }))
 
-      console.log("Formatted uploaded files:", formattedFiles)
-
       await updateGlobalState(formattedFiles)
       toast.success("Files uploaded successfully!")
       onUploadSuccess?.()
       setTimeout(() => {
         onClose()
-      }, 1000)
+      }, 500)
     } catch (error) {
       console.error("Error in uploadFilesToStrapi:", error)
       toast.error("Some files failed to upload. Please try again.")
     } finally {
       setLoading(false)
     }
-  }
-
-  const updateGlobalState = async (uploadedFiles: Array<{ id: string; url: string }>) => {
-    try {
-      console.log("updateGlobalState called with uploadedFiles:", uploadedFiles)
-      console.log("campaignFormData:", campaignFormData)
-      console.log("campaignData:", campaignData)
-
-      if (!campaignFormData || !campaignFormData.channel_mix) {
-        throw new Error("campaignFormData or channel_mix is undefined")
-      }
-
-      const updatedChannelMix = [...campaignFormData.channel_mix]
-
-      const stage = updatedChannelMix.find((ch) => ch.funnel_stage === stageName)
-      if (!stage) {
-        console.error("Stage not found:", stageName)
-        throw new Error("Stage not found")
-      }
-
-      const platformKey = channel.toLowerCase().replace(/\s+/g, "_")
-      const platforms = stage[platformKey]
-      if (!platforms) {
-        console.error("Platform key not found:", platformKey)
-        throw new Error("Platform key not found")
-      }
-
-      const targetPlatform = platforms.find((pl) => pl.platform_name === platform)
-      if (!targetPlatform) {
-        console.error("Target platform not found:", platform)
-        throw new Error("Target platform not found")
-      }
-
-      console.log("Target platform:", targetPlatform)
-      console.log("adSetIndex:", adSetIndex)
-
-      let targetFormatArray
-      if (adSetIndex !== undefined) {
-        if (!targetPlatform.ad_sets || !targetPlatform.ad_sets[adSetIndex]) {
-          console.error("Ad set not found for index:", adSetIndex, "in platform:", targetPlatform)
-          throw new Error(`Ad set not found at index ${adSetIndex}`)
-        }
-        const adSet = targetPlatform.ad_sets[adSetIndex]
-        if (!adSet.format) {
-          console.log("Initializing adSet.format for adSetIndex:", adSetIndex)
-          adSet.format = []
-        }
-        targetFormatArray = adSet.format
-      } else {
-        if (!targetPlatform.format) {
-          console.log("Initializing platform.format")
-          targetPlatform.format = []
-        }
-        targetFormatArray = targetPlatform.format
-      }
-
-      console.log("targetFormatArray before update:", targetFormatArray)
-
-      let targetFormatIndex = targetFormatArray.findIndex((fo) => fo.format_type === format)
-      if (targetFormatIndex === -1) {
-        console.log(`Format ${format} not found, creating new format entry`)
-        targetFormatArray.push({
-          format_type: format,
-          num_of_visuals: quantities.toString(),
-          previews: [],
-        })
-        targetFormatIndex = targetFormatArray.length - 1
-      }
-
-      const existingPreviews = targetFormatArray[targetFormatIndex].previews || []
-      const newPreviews = [...existingPreviews, ...uploadedFiles]
-
-      console.log("Existing previews:", existingPreviews)
-      console.log("New previews:", newPreviews)
-
-      targetFormatArray[targetFormatIndex].previews = newPreviews
-
-      console.log("targetFormatArray after update:", targetFormatArray)
-
-      const updatedState = {
-        ...campaignData,
-        channel_mix: updatedChannelMix,
-      }
-
-      console.log("Updated state:", updatedState)
-
-      await uploadUpdatedCampaignToStrapi(updatedState)
-    } catch (error) {
-      console.error("Error in updateGlobalState:", error)
-      throw error
-    }
-  }
-
-  const uploadUpdatedCampaignToStrapi = async (data: any) => {
-    try {
-      console.log("Uploading updated campaign to Strapi:", data)
-      const cleanData = removeKeysRecursively(
-        data,
-        ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
-        ["previews"],
-      )
-      console.log("Cleaned data for Strapi:", cleanData)
-      await updateCampaign(cleanData)
-      const updatedCampaign = await getActiveCampaign()
-      console.log("Campaign updated successfully, refreshed data:", updatedCampaign)
-    } catch (error) {
-      console.error("Error in uploadUpdatedCampaignToStrapi:", error)
-      toast.error("Failed to save campaign data.")
-      throw error
-    }
-  }
+  }, [uploads, updateGlobalState, onUploadSuccess, onClose])
 
   if (!isOpen) return null
 
   return (
-    <div className="fixed cursor-pointer inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
       <div className="relative bg-white w-full max-w-[771px] max-h-[90vh] rounded-[10px] shadow-md overflow-y-auto">
         <div className="p-8 flex flex-col gap-4">
           <div className="absolute right-10 top-10 cursor-pointer" onClick={onClose}>
@@ -380,7 +334,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
             </svg>
           </div>
 
-          <div className="flex cursor-pointer flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-4">
             <svg width="46" height="46" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect width="46" height="46" rx="23" fill="#EFF8FF" />
               <path
