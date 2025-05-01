@@ -50,7 +50,7 @@ const CampaignContext = createContext<any>(null);
 
 export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const token = useSession();
-  const jwt = token?.data?.user?.data?.jwt;
+  const id = (token?.data?.user as { id?: string })?.id;
   const [campaignFormData, setCampaignFormData] = useState(getInitialState());
   const [campaignData, setCampaignData] = useState(null);
   const [clientCampaignData, setClientCampaignData] = useState([]);
@@ -244,7 +244,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/15?populate=client`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${id}?populate=client`,
         {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
@@ -487,9 +487,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   }, [campaignFormData.client_selection?.id]);
 
   useEffect(() => {
-    if (jwt) {
-      getProfile();
-    }
+    getProfile();
 
     if (cId) {
       getActiveCampaign();
@@ -498,7 +496,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     fetchObjectives();
     fetchPlatformLists();
     fetchBuyTypes();
-  }, [cId, jwt]);
+  }, [cId]);
 
 
 

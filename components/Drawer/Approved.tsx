@@ -4,14 +4,17 @@ import { useComments } from "app/utils/CommentProvider";
 import tickcircle from "../../public/tick-circle.svg";
 import tickcircles from "../../public/tick-circle-green.svg";
 import { SVGLoader } from "components/SVGLoader";
+import { useUserPrivileges } from "utils/userPrivileges";
 
-const Approved = ({ comment, commentId, setAlert, user }) => {
+const Approved = ({ comment, commentId, setAlert, isFinancialApprover, isAgencyApprover }) => {
 	const { approval, approvedIsLoading } = useComments();
+
+
 
 
 	// Toggle approval state
 	const handleApproval = () => {
-		if (user !== "agency_approver") {
+		if (isAgencyApprover === false && isFinancialApprover === false) {
 			setAlert({
 				variant: "error",
 				message: "Not authorized to approve this comment.",
@@ -24,6 +27,7 @@ const Approved = ({ comment, commentId, setAlert, user }) => {
 			approval(comment?.documentId, true, commentId);
 		}
 	};
+
 
 
 	return (

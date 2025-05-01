@@ -1,9 +1,7 @@
 "use client";
 import Image from "next/image";
-// Removed unused import 'nike'
 import plus from "../public/plus.svg";
 import white from "../public/white-plus.svg";
-// Removed unused import 'down'
 import Link from "next/link";
 import { useCampaigns } from "../app/utils/CampaignsContext";
 import { FiLoader } from "react-icons/fi";
@@ -11,7 +9,6 @@ import useCampaignHook from "../app/utils/useCampaignHook";
 import { useEffect, useState } from "react";
 // Removed unused import 'AllClientsCustomDropdown'
 import { useAppDispatch, useAppSelector } from "store/useStore";
-// Removed unused import 'client'
 import AlertMain from "./Alert/AlertMain";
 import { getCreateClient } from "features/Client/clientSlice"; // Removed unused 'reset'
 import { LogOut } from "lucide-react";
@@ -20,16 +17,19 @@ import ClientSelection from "./ClientSelection";
 import { CustomSelect } from "app/homepage/components/CustomReactSelect";
 import { useActive } from "app/utils/ActiveContext";
 import { extractAprroverFilters, extractChannelAndPhase, extractDateFilters } from "app/utils/campaign-filter-utils";
-import { useAuth } from "utils/AuthUserContext";
+import { useUserPrivileges } from "utils/userPrivileges";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 const Header = ({ setIsOpen }) => {
-  const token = useSession();
+  const {
+    isAdmin
+  } = useUserPrivileges();
+  const { data: session } = useSession();
+
+
   const {
     getCreateClientData,
     getCreateClientIsLoading,
-    // Removed unused 'getCreateClientIsError'
-    // Removed unused 'getCreateClientMessage'
   } = useAppSelector((state) => state.client);
   const {
     setClientCampaignData,
@@ -62,6 +62,7 @@ const Header = ({ setIsOpen }) => {
   // }, [dispatch, getCreateClientIsError]);
 
   console.log("🚀 ~ profile ~ profile:", profile?.client?.id);
+  console.log("🚀 ~ profile ~ profile:", isAdmin);
 
   useEffect(() => {
     dispatch(getCreateClient());
@@ -120,52 +121,61 @@ const Header = ({ setIsOpen }) => {
     };
   }, [clients, selectedId, profile?.client?.id]); // Removed unused 'profile?.client?.id'
 
+
+
+  function getFirstLetters(str) {
+    const words = str.trim().split(' ');
+    if (words.length < 2) return 'Need at least two words';
+    return words[0][0].toUpperCase() + words[1][0].toUpperCase();
+  }
+
   return (
     <div id="header">
-      <div className="flex items-center">
-        {getCreateClientIsLoading === true ? (
-          <div className="flex items-center gap-2">
-            <FiLoader className="animate-spin" />
-            <p>Loading clients...</p>
-          </div>
-        ) : (
-          clients?.data && (
-            <>
-              <CustomSelect
-                options={clients?.data?.map((c) => ({
-                  label: c?.client_name,
-                  value: c?.id,
-                }))}
-                className="min-w-[150px] z-[20]"
-                placeholder="Select client"
-                onChange={(value: { label: string; value: string } | null) => {
-                  if (value) {
-                    localStorage.setItem("selectedClient", value.value);
-                    setSelected(value.value);
-                  }
-                }}
-                value={clients?.data
-                  ?.map((c) => ({
-                    label: c.client_name,
-                    value: c.id?.toString(),
-                  }))
-                  .find(
-                    (option: { label: string; value: string }) =>
-                      option.value === selectedId || option.value === selected
-                  )}
-              />
-            </>
-          )
-        )}
+      {isAdmin ?
+        <div className="flex items-center">
+          {getCreateClientIsLoading === true ? (
+            <div className="flex items-center gap-2">
+              <FiLoader className="animate-spin" />
+              <p>Loading clients...</p>
+            </div>
+          ) : (
+            clients?.data && (
+              <>
+                <CustomSelect
+                  options={clients?.data?.map((c) => ({
+                    label: c?.client_name,
+                    value: c?.id,
+                  }))}
+                  className="min-w-[150px] z-[20]"
+                  placeholder="Select client"
+                  onChange={(value: { label: string; value: string } | null) => {
+                    if (value) {
+                      localStorage.setItem("selectedClient", value.value);
+                      setSelected(value.value);
+                    }
+                  }}
+                  value={clients?.data
+                    ?.map((c) => ({
+                      label: c.client_name,
+                      value: c.id?.toString(),
+                    }))
+                    .find(
+                      (option: { label: string; value: string }) =>
+                        option.value === selectedId || option.value === selected
+                    )}
+                />
+              </>
+            )
+          )}
 
-        <button
-          className="client_btn_text whitespace-nowrap w-fit"
-          onClick={() => setIsOpen(true)}
-        >
-          <Image src={plus} alt="plus" />
-          New Client
-        </button>
-      </div>
+          <button
+            className="client_btn_text whitespace-nowrap w-fit"
+            onClick={() => setIsOpen(true)}
+          >
+            <Image src={plus} alt="plus" />
+            New Client
+          </button>
+        </div> : <div className="media_text">{session?.user?.name}</div>}
       {alert && <AlertMain alert={alert} />}
       <div className="profiledropdown_container_main">
         <div className="profiledropdown_container">
@@ -177,16 +187,25 @@ const Header = ({ setIsOpen }) => {
               setSubStep(0)
             }}
           >
-            <button className="new_plan_btn">
-              <Image src={white} alt="white" />
-              <p className="new_plan_btn_text">New media plan</p>
-            </button>
+
+            {profile?.client?.id || isAdmin ?
+              <button className="new_plan_btn">
+                <Image src={white} alt="white" />
+                <p className="new_plan_btn_text">New media plan</p>
+              </button>
+              : <button
+                className={`new_plan_btn ${!profile?.client?.id || !isAdmin ? '!bg-[gray]' : 'new_plan_btn'}`}
+                disabled={!profile?.client?.id || !isAdmin}
+              >
+                <Image src={white} alt="white" />
+                <p className="new_plan_btn_text">New media plan</p>
+              </button>}
           </Link>
           <div
             className="profile_container"
             onClick={() => setShow((prev) => !prev)}
           >
-            MD
+            {getFirstLetters(session?.user?.name)}
             {show && (
               <div className="absolute bg-white border shadow-md rounded-[10px] top-[50px]">
                 <div

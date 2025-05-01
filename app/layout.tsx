@@ -20,7 +20,6 @@ import Login from "features/Login";
 import { ClientCampaignProvider } from "./client/ClientCampaignContext";
 import { KpiProvider } from "./utils/KpiProvider";
 import { DashboardDateRangeProvider } from "src/date-context";
-import { AuthUserProvider } from "utils/AuthUserContext";
 
 // Load fonts
 const roboto = Roboto({
@@ -73,34 +72,32 @@ export default async function RootLayout({
         <NewProvider session={session}>
           <Suspense>
             <ClientCampaignProvider>
-              <AuthUserProvider>
-                <CommentProvider>
-                  <KpiProvider>
-                    <VerificationProvider>
-                      <CampaignSelectionProvider>
-                        <CampaignProvider>
-                          <DashboardDateRangeProvider>
-                            <DateRangeProvider>
-                              <SelectedDatesProvider>
-                                <ActiveProvider>
-                                  <EditingProvider>
-                                    <ObjectivesProvider>
-                                      <FunnelProvider>
-                                        <ToastContainer />
-                                        {children}
-                                      </FunnelProvider>
-                                    </ObjectivesProvider>
-                                  </EditingProvider>
-                                </ActiveProvider>
-                              </SelectedDatesProvider>
-                            </DateRangeProvider>
-                          </DashboardDateRangeProvider>
-                        </CampaignProvider>
-                      </CampaignSelectionProvider>
-                    </VerificationProvider>
-                  </KpiProvider>
-                </CommentProvider>
-              </AuthUserProvider>
+              <CommentProvider>
+                <KpiProvider>
+                  <VerificationProvider>
+                    <CampaignSelectionProvider>
+                      <CampaignProvider>
+                        <DashboardDateRangeProvider>
+                          <DateRangeProvider>
+                            <SelectedDatesProvider>
+                              <ActiveProvider>
+                                <EditingProvider>
+                                  <ObjectivesProvider>
+                                    <FunnelProvider>
+                                      <ToastContainer />
+                                      {children}
+                                    </FunnelProvider>
+                                  </ObjectivesProvider>
+                                </EditingProvider>
+                              </ActiveProvider>
+                            </SelectedDatesProvider>
+                          </DateRangeProvider>
+                        </DashboardDateRangeProvider>
+                      </CampaignProvider>
+                    </CampaignSelectionProvider>
+                  </VerificationProvider>
+                </KpiProvider>
+              </CommentProvider>
             </ClientCampaignProvider>
           </Suspense>
         </NewProvider>
