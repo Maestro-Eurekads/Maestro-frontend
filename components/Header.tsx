@@ -51,18 +51,8 @@ const Header = ({ setIsOpen }) => {
 
 
 
-  // profile
-
-  // useEffect(() => {
-  //   if (getCreateClientIsError) {
-  //     setAlert({ variant: "error", message: getCreateClientMessage, position: "bottom-right" });
-  //   }
-
-  //   dispatch(reset());
-  // }, [dispatch, getCreateClientIsError]);
-
-  console.log("🚀 ~ profile ~ profile:", profile?.client?.id);
-  console.log("🚀 ~ profile ~ profile:", isAdmin);
+  // console.log("🚀 ~ profile ~ profile:", profile?.client?.id);
+  // console.log("🚀 ~ profile ~ profile:", isAdmin);
 
   useEffect(() => {
     dispatch(getCreateClient());
