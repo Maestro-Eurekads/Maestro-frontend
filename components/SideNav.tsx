@@ -17,6 +17,7 @@ import Calender from "../public/Calender.svg";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import Skeleton from "react-loading-skeleton";
 import { useComments } from "app/utils/CommentProvider";
+import { useEffect } from "react";
 
 const SideNav: React.FC = () => {
   const { setClose, close } = useComments();
@@ -25,8 +26,6 @@ const SideNav: React.FC = () => {
   const searchParams = useSearchParams();
   const campaignId = searchParams.get("campaignId");
   const { campaignData, getActiveCampaign, setCampaignData, isLoading, loadingCampaign, loading } = useCampaigns();
-
-
 
   useEffect(() => {
     if(active == 9){
@@ -45,8 +44,6 @@ const SideNav: React.FC = () => {
     setSubStep(0);
     router.push("/");
   };
-
-
 
   const steps = [
     {
