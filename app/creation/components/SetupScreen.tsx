@@ -16,6 +16,7 @@ import {
 } from "app/utils/VerificationContext";
 import ClientSelectionInputbudget from "components/ClientSelectionInputbudget";
 import { useComments } from "app/utils/CommentProvider";
+import { useUserPrivileges } from "utils/userPrivileges";
 
 export const SetupScreen = () => {
   const {
@@ -27,6 +28,7 @@ export const SetupScreen = () => {
     cId,
     getActiveCampaign,
     setCampaignFormData,
+    profile
   } = useCampaigns();
   const { client_selection } = campaignFormData || {}; // Add default empty object
   const [selectedOption, setSelectedOption] = useState("percentage");
@@ -49,6 +51,7 @@ export const SetupScreen = () => {
     setHasChanges,
     hasChanges,
   } = useVerification();
+  const { isAgencyCreator } = useUserPrivileges();
 
   useEffect(() => {
     setIsDrawerOpen(false);
@@ -57,7 +60,7 @@ export const SetupScreen = () => {
 
   // Load saved form data from localStorage on mount
   useEffect(() => {
-    const savedFormData = localStorage.getItem('campaignFormData');
+    const savedFormData = localStorage.getItem("campaignFormData");
     if (savedFormData) {
       setCampaignFormData(JSON.parse(savedFormData));
     }
@@ -79,7 +82,7 @@ export const SetupScreen = () => {
         level_3: {},
       };
       setCampaignFormData(initialFormData);
-      localStorage.setItem('campaignFormData', JSON.stringify(initialFormData));
+      localStorage.setItem("campaignFormData", JSON.stringify(initialFormData));
       setIsInitialized(true);
     }
   }, [campaignFormData, setCampaignFormData, isInitialized]);
@@ -87,7 +90,10 @@ export const SetupScreen = () => {
   // Save form data to localStorage whenever it changes
   useEffect(() => {
     if (campaignFormData) {
-      localStorage.setItem('campaignFormData', JSON.stringify(campaignFormData));
+      localStorage.setItem(
+        "campaignFormData",
+        JSON.stringify(campaignFormData)
+      );
     }
   }, [campaignFormData]);
 
@@ -118,15 +124,26 @@ export const SetupScreen = () => {
   }, [verifybeforeMove]);
 
   useEffect(() => {
-    if (allClients) {
-      const options = allClients.map((c) => ({
-        id: c?.documentId,
-        value: c?.client_name,
-        label: c?.client_name,
-      }));
-      setClientOptions(options);
+    if (isAgencyCreator) {
+      if(profile?.clients){
+        const options = profile?.clients?.map((c)=>({
+          id: c?.documentId,
+          value: c?.client_name,
+          label: c?.client_name,
+        }))
+        setClientOptions(options);
+      }
+    } else {
+      if (allClients) {
+        const options = allClients.map((c) => ({
+          id: c?.documentId,
+          value: c?.client_name,
+          label: c?.client_name,
+        }));
+        setClientOptions(options);
+      }
     }
-  }, [allClients]);
+  }, [allClients, profile]);
 
   useEffect(() => {
     if (!allClients || !client_selection) return;
@@ -189,8 +206,6 @@ export const SetupScreen = () => {
       sign: "C$",
     },
   ];
-
-
 
   // Updated useEffect to handle currencySign dynamically
   useEffect(() => {
@@ -331,7 +346,7 @@ export const SetupScreen = () => {
         campaignFormData?.client_approver,
         campaignFormData?.level_1?.id,
         campaignFormData?.level_2?.id,
-        campaignFormData?.level_3?.id
+        campaignFormData?.level_3?.id,
       ];
     } else {
       fields = [
@@ -341,7 +356,7 @@ export const SetupScreen = () => {
         campaignFormData?.client_approver,
         campaignFormData?.level_1?.id,
         campaignFormData?.level_2?.id,
-        campaignFormData?.level_3?.id
+        campaignFormData?.level_3?.id,
       ];
     }
 
@@ -371,7 +386,9 @@ export const SetupScreen = () => {
           <ClientSelection
             options={level1Options?.slice(1)}
             label={
-              level1Options?.length > 0 ? level1Options[0]?.label : "Business Level 1"
+              level1Options?.length > 0
+                ? level1Options[0]?.label
+                : "Business Level 1"
             }
             formId="level_1"
             setHasChanges={setHasChanges}
@@ -379,7 +396,9 @@ export const SetupScreen = () => {
           <ClientSelection
             options={level2Options?.slice(1)}
             label={
-              level2Options?.length > 0 ? level2Options[0]?.label : "Business Level 2"
+              level2Options?.length > 0
+                ? level2Options[0]?.label
+                : "Business Level 2"
             }
             formId="level_2"
             setHasChanges={setHasChanges}
@@ -387,7 +406,9 @@ export const SetupScreen = () => {
           <ClientSelection
             options={level3Options?.slice(1)}
             label={
-              level3Options?.length > 0 ? level3Options[0]?.label : "Business Level 3"
+              level3Options?.length > 0
+                ? level3Options[0]?.label
+                : "Business Level 3"
             }
             formId="level_3"
             setHasChanges={setHasChanges}

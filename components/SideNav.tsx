@@ -30,7 +30,7 @@ const SideNav: React.FC = () => {
   const { campaignData, getActiveCampaign, setCampaignData, isLoading, loadingCampaign, loading } = useCampaigns();
 
   useEffect(() => {
-    if (active == 10) {
+    if (active == 10 || active == 9) {
       console.log('active', active, "here", close)
       setClose(true)
     } else {
