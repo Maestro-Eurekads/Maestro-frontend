@@ -5,7 +5,7 @@ import CreationFlow from "./CreationFlow";
 import closeicon from "../public/layout-left-line.svg";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useActive } from "../app/utils/ActiveContext";
-import {  useState } from "react";
+import { useState } from "react";
 import CreationFlowActive from "./CreationFlowActive";
 import symbol from "../public/material-symbols_campaign-rounded.svg";
 import funnel from "../public/ant-design_funnel-plot-filled.svg";
@@ -22,7 +22,7 @@ import { useComments } from "app/utils/CommentProvider";
 import { useEffect } from "react";
 
 const SideNav: React.FC = () => {
-  const { setClose, close } = useComments();
+  const { setClose, close, setViewcommentsId, setOpportunities } = useComments();
   const router = useRouter();
   const { setActive, setSubStep, active } = useActive();
   const searchParams = useSearchParams();
@@ -39,6 +39,8 @@ const SideNav: React.FC = () => {
   }, [active])
 
   const handleBackClick = (e) => {
+    setOpportunities([]);
+    setViewcommentsId('');
     e.preventDefault();
     e.stopPropagation();
     setCampaignData(null);
