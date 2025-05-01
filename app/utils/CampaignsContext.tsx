@@ -244,7 +244,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${id}?populate=client`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${id}?populate=*`,
         {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
