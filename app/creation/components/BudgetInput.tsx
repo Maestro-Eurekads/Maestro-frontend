@@ -1,6 +1,6 @@
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { formatNumberWithCommas, getCurrencySymbol } from "components/data";
-import React from "react";
+import React, { useEffect } from "react";
 import Select from "react-select";
 
 function BudgetInput({
@@ -22,8 +22,18 @@ function BudgetInput({
       }, 0) || 0;
     return totalBudget - subBudgets;
   };
+
+  useEffect(() => {
+    if (campaignFormData?.campaign_budget) {
+      setSelectedOption({
+        label: campaignFormData?.campaign_budget?.currency,
+        value: campaignFormData?.campaign_budget?.currency,
+      });
+    }
+  }, [campaignFormData]);
+
   return (
-    <div className="mt-[24px] flex flex-row items-center gap-[16px] px-0 py-[24px] bg-[#F9FAFB] border-b border-[rgba(6,18,55,0.1)] box-border">
+    <div className="flex flex-row items-center gap-[16px] px-0 bg-[#F9FAFB] border-[rgba(6,18,55,0.1)] box-border">
       <div className="e_currency-eur items-center">
         <div className="flex items-center">
           <p>{getCurrencySymbol(selectedOption.value)}</p>
@@ -49,7 +59,7 @@ function BudgetInput({
             placeholder="EUR"
             options={selectCurrency}
             onChange={handleCurrencyChange}
-            defaultValue={{ value: "EUR", label: "EUR" }}
+            value={selectedOption}
             styles={{
               control: (provided) => ({
                 ...provided,
@@ -80,7 +90,7 @@ function BudgetInput({
           />
         </div>
       </div>
-      <div>
+      {/* <div>
         <p
           className={`font-[600] text-[15px] leading-[20px] ${
             Number(calculateRemainingBudget()) < 1
@@ -97,7 +107,7 @@ function BudgetInput({
             : ""}
           {Number(calculateRemainingBudget())?.toLocaleString()}
         </p>
-      </div>
+      </div> */}
     </div>
   );
 }

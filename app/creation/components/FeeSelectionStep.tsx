@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import CampaignBudget from "./CampaignBudget";
 import Image from "next/image";
 import Selectstatus from "../../../public/Select-status.svg";
-import { getCurrencySymbol } from "components/data";
+import { formatNumberWithCommas, getCurrencySymbol } from "components/data";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import Select from "react-select";
 import toast from "react-hot-toast";
@@ -20,7 +20,7 @@ const feeOptions = [
   { label: "Fixed Fee", value: "fixed_fee", type: "fixed" },
 ];
 
-function FeeSelectionStep() {
+function FeeSelectionStep({num1, num2}) {
   const [active, setActive] = useState(null);
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   const [selectedOption, setSelectedOption] = useState({
@@ -76,6 +76,24 @@ function FeeSelectionStep() {
     return "";
   };
 
+  const updateNetAmount = (
+    feesList = fees,
+    budget = campaignFormData?.campaign_budget?.amount
+  ) => {
+    const budgetAmount = parseFloat(budget || "0");
+    const totalFees = feesList.reduce(
+      (total, fee) => total + parseFloat(fee.amount),
+      0
+    );
+
+    const net =
+      active === 1
+        ? (budgetAmount - totalFees).toFixed(2)
+        : (budgetAmount + totalFees).toFixed(2);
+
+    setNetAmount(net);
+  };
+
   const handleAddFee = () => {
     if (!feeType || !feeAmount) {
       toast("Fee type and value is required", {
@@ -84,31 +102,37 @@ function FeeSelectionStep() {
       return;
     }
 
-    let calculatedAmount = feeAmount;
-
-    if (feeType.type === "percent") {
-      const budgetAmount = Number.parseFloat(
-        campaignFormData?.campaign_budget?.amount || "0"
-      );
-      calculatedAmount = (
-        (budgetAmount * Number.parseFloat(feeAmount)) /
-        100
-      ).toFixed(2);
-    }
-
-    const totalFees = fees.reduce(
-      (total, fee) => total + Number.parseFloat(fee.amount),
-      0
-    );
-
-    const grossAmount = Number.parseFloat(
+    const budgetAmount = parseFloat(
       campaignFormData?.campaign_budget?.amount || "0"
     );
+    console.log("🚀 ~ handleAddFee ~ budgetAmount:", budgetAmount);
+    const feeValue = parseFloat(feeAmount);
 
-    if (
-      active === 1 &&
-      totalFees + Number.parseFloat(calculatedAmount) > grossAmount
-    ) {
+    if (feeType.type === "percent" && feeValue > 100) {
+      toast("Percentage cannot exceed 100", {
+        style: { background: "red", color: "white" },
+      });
+      return;
+    }
+
+    let calculatedAmount =
+      feeType.type === "percent" ? (budgetAmount * feeValue) / 100 : feeValue;
+
+    // Prevent duplicate fee types
+    const duplicate = fees.find((fee) => fee.type === feeType.value);
+    if (duplicate) {
+      toast(`${feeType.label} has already been added.`, {
+        style: { background: "orange", color: "white" },
+      });
+      return;
+    }
+
+    // Check if total fees exceed budget in gross mode
+    const newTotalFees =
+      fees.reduce((total, fee) => total + parseFloat(fee.amount), 0) +
+      calculatedAmount;
+
+    if (active === 1 && newTotalFees > budgetAmount) {
       toast("Total fees cannot exceed the gross amount", {
         style: { background: "red", color: "white" },
       });
@@ -118,18 +142,22 @@ function FeeSelectionStep() {
     const newFee = {
       type: feeType.value,
       label: feeType.label,
-      amount: calculatedAmount,
+      amount: calculatedAmount.toFixed(2),
       isPercent: feeType.type === "percent",
       percentValue: feeType.type === "percent" ? feeAmount : null,
     };
+    console.log("🚀 ~ handleAddFee ~ newFee:", newFee);
 
     const updatedFees = [...fees, newFee];
     setFees(updatedFees);
 
     const budgetFees = updatedFees.map((fee) => ({
       fee_type: fee.type,
-      value: fee.isPercent ? fee.percentValue : fee.amount,
+      value: fee.amount,
+      isPercent: fee.isPercent,
+      percentValue: fee.percentValue,
     }));
+    console.log("🚀 ~ budgetFees ~ budgetFees:", budgetFees);
 
     setCampaignFormData((prev) => ({
       ...prev,
@@ -139,9 +167,15 @@ function FeeSelectionStep() {
       },
     }));
 
+    // Recalculate net amount correctly with updated fees
+    const net =
+      active === 1
+        ? (budgetAmount - newTotalFees).toFixed(2)
+        : (budgetAmount + newTotalFees).toFixed(2);
+
+    updateNetAmount(updatedFees);
     setFeeType(null);
     setFeeAmount("");
-    setNetAmount(calculateNetAmount());
   };
 
   useEffect(() => {
@@ -157,11 +191,18 @@ function FeeSelectionStep() {
           percentValue:
             feeOptions?.find((opt) => opt.value === bud?.fee_type)?.type ===
             "percent"
-              ? bud?.value
+              ? bud?.percentValue
               : null,
         })
       );
       setFees(feesData || []);
+      if (campaignFormData?.campaign_budget?.sub_budget_type === "net") {
+        setActive(2);
+      } else if (
+        campaignFormData?.campaign_budget?.sub_budget_type === "gross"
+      ) {
+        setActive(1);
+      }
     }
   }, [campaignFormData]);
 
@@ -198,16 +239,28 @@ function FeeSelectionStep() {
       }));
     }
 
-    setNetAmount(calculateNetAmount());
+    updateNetAmount(fees);
   }, [campaignFormData?.campaign_budget?.amount, active]);
+
+  const calculateRemainingBudget = () => {
+    const totalBudget =
+      Number(netAmount) > 0
+        ? parseInt(netAmount)
+        : parseInt(campaignFormData?.campaign_budget?.fixed_value);
+    const subBudgets =
+      campaignFormData?.channel_mix?.reduce((acc, stage) => {
+        return acc + (Number(stage?.stage_budget?.fixed_value) || 0);
+      }, 0) || 0;
+    return totalBudget - subBudgets;
+  };
 
   return (
     <div>
       <div>
-        <PageHeaderWrapper t4="Choose the type of budget you have" span={2} />
+        <PageHeaderWrapper t4="Choose the type of budget you have" span={num1} />
         <div className="mt-[24px] flex gap-5">
           <div
-            className="relative bg-white rounded-lg border p-4 w-[350px]"
+            className="relative bg-white rounded-lg border p-4 w-[350px] cursor-pointer"
             onClick={() => {
               setActive(1);
               setCampaignFormData((prev) => ({
@@ -239,7 +292,7 @@ function FeeSelectionStep() {
           </div>
 
           <div
-            className="relative bg-white rounded-lg border p-4 w-[350px]"
+            className="relative bg-white rounded-lg border p-4 w-[350px] cursor-pointer"
             onClick={() => {
               setActive(2);
               setCampaignFormData((prev) => ({
@@ -270,20 +323,19 @@ function FeeSelectionStep() {
           </div>
         </div>
         {active && (
-          <PageHeaderWrapper t4="Add the applicable fee(s)" span={3} />
+          <PageHeaderWrapper t4="Add the applicable fee(s)" span={num2} />
         )}
         {active === 1 ? (
           <div className="space-y-8">
             <div className="flex w-[600px] justify-between mt-[24px] items-center">
               <p className="font-semibold text-[16px]">Media Gross Amount</p>
-              <div className="flex flex-row items-center gap-[16px] px-0 bg-[#F9FAFB] border-b border-[rgba(6,18,55,0.1)] box-border">
-                <BudgetInput
-                  selectedOption={selectedOption}
-                  setSelectedOption={setSelectedOption}
-                  handleBudgetEdit={handleBudgetEdit}
-                  selectCurrency={selectCurrency}
-                />
-              </div>
+
+              <BudgetInput
+                selectedOption={selectedOption}
+                setSelectedOption={setSelectedOption}
+                handleBudgetEdit={handleBudgetEdit}
+                selectCurrency={selectCurrency}
+              />
             </div>
             <div>
               <div className="flex w-[600px] justify-between items-end gap-6">
@@ -296,7 +348,7 @@ function FeeSelectionStep() {
                     options={feeOptions}
                     onChange={(option) => setFeeType(option)}
                     value={feeType}
-                    className="w-full"
+                    className="w-full max-w-[300px]"
                     styles={{
                       control: (provided) => ({
                         ...provided,
@@ -336,7 +388,7 @@ function FeeSelectionStep() {
                           )}
                     </p>
                     <input
-                      className="text-center outline-none w-[145px]"
+                      className="text-center outline-none max-w-[205px]"
                       placeholder={
                         feeType?.type === "percent"
                           ? "Fee percentage"
@@ -361,9 +413,11 @@ function FeeSelectionStep() {
                     />
                     {feeType?.type === "percent" && <span>%</span>}
                   </div>
-                  <div className="w-[120px]">
-                    <p>{campaignFormData?.campaign_budget?.currency}</p>
-                  </div>
+                  {feeType?.type !== "percent" && (
+                    <div className="w-fit">
+                      <p>{campaignFormData?.campaign_budget?.currency}</p>
+                    </div>
+                  )}
                 </div>
               </div>
               <span
@@ -402,12 +456,14 @@ function FeeSelectionStep() {
                               (_, i) => i !== index
                             );
                             setFees(updatedFees);
+
                             const budgetFees = updatedFees.map((fee) => ({
                               fee_type: fee.type,
-                              value: fee.isPercent
-                                ? fee.percentValue
-                                : fee.amount,
+                              value: fee.amount,
+                              isPercent: fee.isPercent,
+                              percentValue: fee.percentValue,
                             }));
+
                             setCampaignFormData((prev) => ({
                               ...prev,
                               campaign_budget: {
@@ -415,6 +471,21 @@ function FeeSelectionStep() {
                                 budget_fees: budgetFees,
                               },
                             }));
+
+                            // Recalculate netAmount after fee removal
+                            const budgetAmount = parseFloat(
+                              campaignFormData?.campaign_budget?.amount || "0"
+                            );
+                            const totalFees = updatedFees.reduce(
+                              (total, fee) => total + parseFloat(fee.amount),
+                              0
+                            );
+                            const newNetAmount =
+                              active === 1
+                                ? (budgetAmount - totalFees).toFixed(2)
+                                : (budgetAmount + totalFees).toFixed(2);
+
+                            updateNetAmount(updatedFees);
                           }}
                         >
                           Remove
@@ -438,7 +509,13 @@ function FeeSelectionStep() {
                     <input
                       className="text-center outline-none w-[145px]"
                       placeholder="Gross amount"
-                      value={netAmount}
+                      value={
+                        Number(netAmount.toLocaleString()) > 0
+                          ? netAmount
+                          : parseInt(
+                              campaignFormData?.campaign_budget?.fixed_value
+                            ).toLocaleString()
+                      }
                       readOnly
                     />
                   </div>
@@ -632,7 +709,7 @@ function FeeSelectionStep() {
                       <input
                         className="text-center outline-none w-[145px]"
                         placeholder="Gross amount"
-                        value={netAmount}
+                        value={Number(netAmount) > 0 ? netAmount : 0}
                         readOnly
                       />
                     </div>
@@ -645,6 +722,41 @@ function FeeSelectionStep() {
             </div>
           )
         )}
+      </div>
+      <div className="flex flex-row items-center gap-[16px] px-0 bg-[#F9FAFB] border-[rgba(6,18,55,0.1)] box-border mt-[40px] w-full">
+        <div className="e_currency-eur items-center justify-between w-[200px]">
+          <div className="flex items-center gap-4">
+            <p>{getCurrencySymbol(selectedOption.value)}</p>
+            <p>
+              {Number(netAmount.toLocaleString()) > 0
+                ? netAmount
+                : parseInt(
+                    campaignFormData?.campaign_budget?.fixed_value
+                  ).toLocaleString()}
+            </p>
+          </div>
+          <div className="mx-[20px]">
+            <p>{selectedOption?.value}</p>
+          </div>
+        </div>
+        <div>
+          <p
+            className={`font-[600] text-[15px] leading-[20px] ${
+              Number(calculateRemainingBudget()) < 1
+                ? "text-red-500"
+                : "text-[#00A36C]"
+            }`}
+          >
+            Remaining budget:{" "}
+            {Number(campaignFormData?.campaign_budget?.amount) > 0
+              ? getCurrencySymbol(
+                  campaignFormData?.campaign_budget?.currency ||
+                    selectedOption?.value
+                )
+              : ""}
+            {Number(calculateRemainingBudget())?.toLocaleString()}
+          </p>
+        </div>
       </div>
     </div>
   );
