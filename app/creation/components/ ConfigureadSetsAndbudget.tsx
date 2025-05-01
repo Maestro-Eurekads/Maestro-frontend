@@ -14,7 +14,7 @@ import Image from "next/image";
 import FeeSelectionStep from "./FeeSelectionStep";
 import { mediaTypes } from "components/data";
 
-const ConfigureAdSetsAndBudget = () => {
+const ConfigureAdSetsAndBudget = ({num}) => {
   const [show, setShow] = useState(false); // Start with budget shown
   const { setIsDrawerOpen, setClose } = useComments();
   const [step, setStep] = useState(1);
@@ -106,12 +106,12 @@ const ConfigureAdSetsAndBudget = () => {
   return (
     <div>
       {/* <CampaignBudget /> */}
-      <FeeSelectionStep/>
+      {/* <FeeSelectionStep/> */}
       <div>
         <div className="flex justify-between items-baseline">
           <PageHeaderWrapper
             t4="Allocate your budget across channels and ad sets of each phase"
-            span={4}
+            span={num}
             t1={""}
             t2={""}
           />
