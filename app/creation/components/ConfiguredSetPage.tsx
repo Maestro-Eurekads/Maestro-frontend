@@ -20,6 +20,7 @@ import {
   formatNumberWithCommas,
   funnelStages,
   getPlatformIcon,
+  mediaTypes,
 } from "components/data";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { toast } from "react-toastify";
@@ -56,57 +57,43 @@ const ConfiguredSetPage = () => {
     if (channelMix?.length > 0) {
       const platformsByStage: Record<string, OutletType[]> = {};
       channelMix?.forEach((stage: any) => {
-        const { funnel_stage, search_engines, display_networks, social_media } =
-          stage;
+        const {
+          funnel_stage,
+          search_engines,
+          display_networks,
+          social_media,
+          streaming,
+          ooh,
+          broadcast,
+          messaging,
+          print,
+          e_commerce,
+          in_game,
+          mobile,
+        } = stage;
 
         if (!platformsByStage[funnel_stage]) {
           platformsByStage[funnel_stage] = [];
         }
 
-        if (Array.isArray(search_engines)) {
-          search_engines.forEach((platform: any) => {
-            const icon = getPlatformIcon(platform?.platform_name);
-            if (icon) {
-              platformsByStage[funnel_stage].push({
-                id: Math.floor(Math.random() * 1000000),
-                outlet: platform.platform_name,
-                ad_sets: platform?.ad_sets,
-                icon,
-                budget: platform?.budget,
+        mediaTypes?.forEach((channel, index) => {
+          if (stage[channel]) {
+            if (Array.isArray(stage[channel])) {
+              stage[channel].forEach((platform: any) => {
+                const icon = getPlatformIcon(platform?.platform_name);
+                if (icon) {
+                  platformsByStage[funnel_stage].push({
+                    id: Math.floor(Math.random() * 1000000),
+                    outlet: platform.platform_name,
+                    ad_sets: platform?.ad_sets,
+                    icon,
+                    budget: platform?.budget,
+                  });
+                }
               });
             }
-          });
-        }
-
-        if (Array.isArray(display_networks)) {
-          display_networks.forEach((platform: any) => {
-            const icon = getPlatformIcon(platform?.platform_name);
-            if (icon) {
-              platformsByStage[funnel_stage].push({
-                id: Math.floor(Math.random() * 1000000),
-                outlet: platform.platform_name,
-                icon,
-                ad_sets: platform?.ad_sets,
-                budget: platform?.budget,
-              });
-            }
-          });
-        }
-
-        if (Array.isArray(social_media)) {
-          social_media.forEach((platform: any) => {
-            const icon = getPlatformIcon(platform?.platform_name);
-            if (icon) {
-              platformsByStage[funnel_stage].push({
-                id: Math.floor(Math.random() * 1000000),
-                outlet: platform.platform_name,
-                icon,
-                ad_sets: platform?.ad_sets,
-                budget: platform?.budget,
-              });
-            }
-          });
-        }
+          }
+        });
       });
 
       return platformsByStage;
@@ -749,7 +736,7 @@ const ConfiguredSetPage = () => {
                                 Number(getAdSetBudget(ad_set))
                                   ? (
                                       (Number(getAdSetBudget(ad_set)) /
-                                        Number(platform.budget.fixed_value)) *
+                                        Number(platform?.budget?.fixed_value)) *
                                       100
                                     ).toFixed(1)
                                   : "0";
