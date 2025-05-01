@@ -11,9 +11,11 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 import { useComments } from "app/utils/CommentProvider";
 import { useEditing } from "app/utils/EditingContext";
 import { formatNumberWithCommas } from "components/data";
+import FeeSelectionStep from "./FeeSelectionStep";
 
 const CampaignBudget = () => {
-  const [active, setActive] = useState(null);
+  const [budgetStyle, setBudgetStyle] = useState("");
+  const [step, setStep] = useState(0);
   const { setIsDrawerOpen, setClose } = useComments();
   const { isEditing, setIsEditing } = useEditing();
 
@@ -30,16 +32,6 @@ const CampaignBudget = () => {
 
   const { campaignFormData, setCampaignFormData } = useCampaigns();
 
-  // Clicking Top‑down: set active without auto-opening any details.
-  const handleTopDownClick = () => {
-    setActive(1);
-  };
-
-  // Clicking Bottom‑up: set active without auto-opening any details.
-  const handleBottomUpClick = () => {
-    setActive(2);
-  };
-
   const selectCurrency = [
     { value: "USD", label: "USD" },
     { value: "EUR", label: "EUR" },
@@ -49,11 +41,7 @@ const CampaignBudget = () => {
     { value: "CAD", label: "CAD" },
   ];
 
-  const handleCurrencyChange = (option) => {
-    if (!isEditing) return;
-    setSelectedOption(option);
-    handleBudgetEdit("currency", option.value);
-  };
+
 
   const getCurrencySymbol = (currency) => {
     const symbols = {
@@ -76,16 +64,13 @@ const CampaignBudget = () => {
         [param]: type?.toString(),
       },
     }));
+    if (param === "budget_type") {
+      setStep(1);
+      setBudgetStyle(type);
+    }
   };
 
-  const calculateRemainingBudget = () => {
-    const totalBudget = Number(campaignFormData?.campaign_budget?.amount) || 0;
-    const subBudgets =
-      campaignFormData?.channel_mix?.reduce((acc, stage) => {
-        return acc + (Number(stage?.stage_budget?.fixed_value) || 0);
-      }, 0) || 0;
-    return totalBudget - subBudgets;
-  };
+
 
   return (
     <div>
@@ -103,18 +88,16 @@ const CampaignBudget = () => {
         {/* Top‑down Option */}
         <div
           className={`relative ${
-            active === 1
+            budgetStyle === "top_down"
               ? "top_and_bottom_down_container_active"
               : "top_and_bottom_down_container"
           }`}
           onClick={() => {
-            if (!isEditing) return;
-            handleTopDownClick();
             handleBudgetEdit("budget_type", "top_down");
           }}
         >
           <div className="flex items-start gap-2">
-            {active === 2 ? (
+            {budgetStyle !== "top_down" ? (
               <Image
                 src={backdown}
                 alt="backdown"
@@ -124,7 +107,9 @@ const CampaignBudget = () => {
               <Image
                 src={Topdown}
                 alt="Topdown"
-                className={active === 1 ? "rotate-30 transform" : ""}
+                className={
+                  budgetStyle === "top_down" ? "rotate-30 transform" : ""
+                }
               />
             )}
             <div>
@@ -136,7 +121,7 @@ const CampaignBudget = () => {
               </p>
             </div>
           </div>
-          {active === 1 && (
+          {budgetStyle === "top_down" && (
             <div className="absolute right-2 top-2">
               <Image src={Selectstatus} alt="Selectstatus" />
             </div>
@@ -146,18 +131,16 @@ const CampaignBudget = () => {
         {/* Bottom‑up Option */}
         <div
           className={`relative ${
-            active === 2
+            budgetStyle === "bottom_up"
               ? "top_and_bottom_down_container_active"
               : "top_and_bottom_down_container"
           }`}
           onClick={() => {
-            if (!isEditing) return;
-            handleBottomUpClick();
             handleBudgetEdit("budget_type", "bottom_up");
           }}
         >
           <div className="flex items-start gap-2">
-            {active === 2 ? (
+            {budgetStyle === "bottom_up" ? (
               <Image
                 src={Topdown}
                 alt="Topdown"
@@ -175,7 +158,7 @@ const CampaignBudget = () => {
               </p>
             </div>
           </div>
-          {active === 2 && (
+          {budgetStyle === "bottom_up" && (
             <div className="absolute right-2 top-2">
               <Image src={Selectstatus} alt="Selectstatus" />
             </div>
@@ -183,8 +166,10 @@ const CampaignBudget = () => {
         </div>
       </div>
 
-      {/* Only show the 12,000 EUR section when an option is active */}
-      {active && (
+      {budgetStyle !== "" && budgetStyle === "top_down" && step === 1 && (
+        <FeeSelectionStep />
+      )}
+      {/* {budgetStyle !== "" && (
         <div className="mt-[24px] flex flex-row items-center gap-[16px] px-0 py-[24px] bg-[#F9FAFB] border-b border-[rgba(6,18,55,0.1)] box-border">
           <div className="e_currency-eur items-center">
             <div className="flex items-center">
@@ -264,7 +249,7 @@ const CampaignBudget = () => {
             </p>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

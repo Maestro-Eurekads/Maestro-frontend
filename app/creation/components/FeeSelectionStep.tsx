@@ -1,44 +1,45 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import CampaignBudget from './CampaignBudget';
-import Image from 'next/image';
-import Selectstatus from '../../../public/Select-status.svg';
-import { getCurrencySymbol } from 'components/data';
-import { useCampaigns } from 'app/utils/CampaignsContext';
-import Select from 'react-select';
-import toast from 'react-hot-toast';
-import PageHeaderWrapper from 'components/PageHeaderWapper';
+import React, { useEffect, useState } from "react";
+import CampaignBudget from "./CampaignBudget";
+import Image from "next/image";
+import Selectstatus from "../../../public/Select-status.svg";
+import { getCurrencySymbol } from "components/data";
+import { useCampaigns } from "app/utils/CampaignsContext";
+import Select from "react-select";
+import toast from "react-hot-toast";
+import PageHeaderWrapper from "components/PageHeaderWapper";
+import BudgetInput from "./BudgetInput";
 
 const feeOptions = [
-  { label: 'VAT', value: 'vat', type: 'percent' },
-  { label: 'Media Fee', value: 'media_fee', type: 'percent' },
-  { label: 'Admin Fee', value: 'admin_fee', type: 'percent' },
-  { label: 'Trafficking Fee', value: 'trafficking_fee', type: 'percent' },
-  { label: 'Platform Fee', value: 'platform_fee', type: 'percent' },
-  { label: 'Fixed Fee', value: 'fixed_fee', type: 'fixed' },
+  { label: "VAT", value: "vat", type: "percent" },
+  { label: "Media Fee", value: "media_fee", type: "percent" },
+  { label: "Admin Fee", value: "admin_fee", type: "percent" },
+  { label: "Trafficking Fee", value: "trafficking_fee", type: "percent" },
+  { label: "Platform Fee", value: "platform_fee", type: "percent" },
+  { label: "Fixed Fee", value: "fixed_fee", type: "fixed" },
 ];
 
 function FeeSelectionStep() {
   const [active, setActive] = useState(null);
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   const [selectedOption, setSelectedOption] = useState({
-    value: 'EUR',
-    label: 'EUR',
+    value: "EUR",
+    label: "EUR",
   });
   const [selectedFees, setSelectedFees] = useState([]);
   const [fees, setFees] = useState([]);
   const [feeType, setFeeType] = useState(null);
-  const [feeAmount, setFeeAmount] = useState('');
-  const [netAmount, setNetAmount] = useState('');
+  const [feeAmount, setFeeAmount] = useState("");
+  const [netAmount, setNetAmount] = useState("");
 
   const selectCurrency = [
-    { value: 'USD', label: 'USD' },
-    { value: 'EUR', label: 'EUR' },
-    { value: 'GBP', label: 'GBP' },
-    { value: 'NGN', label: 'NGN' },
-    { value: 'JPY', label: 'JPY' },
-    { value: 'CAD', label: 'CAD' },
+    { value: "USD", label: "USD" },
+    { value: "EUR", label: "EUR" },
+    { value: "GBP", label: "GBP" },
+    { value: "NGN", label: "NGN" },
+    { value: "JPY", label: "JPY" },
+    { value: "CAD", label: "CAD" },
   ];
 
   const handleBudgetEdit = (param, type) => {
@@ -52,7 +53,7 @@ function FeeSelectionStep() {
   };
 
   const calculateNetAmount = () => {
-    if (!campaignFormData?.campaign_budget?.amount) return '';
+    if (!campaignFormData?.campaign_budget?.amount) return "";
 
     const grossAmount = Number.parseFloat(
       campaignFormData?.campaign_budget?.amount
@@ -72,22 +73,22 @@ function FeeSelectionStep() {
       return (grossAmount + totalFees).toFixed(2);
     }
 
-    return '';
+    return "";
   };
 
   const handleAddFee = () => {
     if (!feeType || !feeAmount) {
-      toast('Fee type and value is required', {
-        style: { background: 'red', color: 'white' },
+      toast("Fee type and value is required", {
+        style: { background: "red", color: "white" },
       });
       return;
     }
 
     let calculatedAmount = feeAmount;
 
-    if (feeType.type === 'percent') {
+    if (feeType.type === "percent") {
       const budgetAmount = Number.parseFloat(
-        campaignFormData?.campaign_budget?.amount || '0'
+        campaignFormData?.campaign_budget?.amount || "0"
       );
       calculatedAmount = (
         (budgetAmount * Number.parseFloat(feeAmount)) /
@@ -101,15 +102,15 @@ function FeeSelectionStep() {
     );
 
     const grossAmount = Number.parseFloat(
-      campaignFormData?.campaign_budget?.amount || '0'
+      campaignFormData?.campaign_budget?.amount || "0"
     );
 
     if (
       active === 1 &&
       totalFees + Number.parseFloat(calculatedAmount) > grossAmount
     ) {
-      toast('Total fees cannot exceed the gross amount', {
-        style: { background: 'red', color: 'white' },
+      toast("Total fees cannot exceed the gross amount", {
+        style: { background: "red", color: "white" },
       });
       return;
     }
@@ -118,8 +119,8 @@ function FeeSelectionStep() {
       type: feeType.value,
       label: feeType.label,
       amount: calculatedAmount,
-      isPercent: feeType.type === 'percent',
-      percentValue: feeType.type === 'percent' ? feeAmount : null,
+      isPercent: feeType.type === "percent",
+      percentValue: feeType.type === "percent" ? feeAmount : null,
     };
 
     const updatedFees = [...fees, newFee];
@@ -139,7 +140,7 @@ function FeeSelectionStep() {
     }));
 
     setFeeType(null);
-    setFeeAmount('');
+    setFeeAmount("");
     setNetAmount(calculateNetAmount());
   };
 
@@ -152,10 +153,10 @@ function FeeSelectionStep() {
           amount: bud?.value,
           isPercent:
             feeOptions?.find((opt) => opt.value === bud?.fee_type)?.type ===
-            'percent',
+            "percent",
           percentValue:
             feeOptions?.find((opt) => opt.value === bud?.fee_type)?.type ===
-            'percent'
+            "percent"
               ? bud?.value
               : null,
         })
@@ -167,7 +168,7 @@ function FeeSelectionStep() {
   useEffect(() => {
     if (fees?.some((fee) => fee?.isPercent)) {
       const budgetAmount = Number.parseFloat(
-        campaignFormData?.campaign_budget?.amount || '0'
+        campaignFormData?.campaign_budget?.amount || "0"
       );
 
       const updatedFees = fees?.map((fee) => {
@@ -202,7 +203,6 @@ function FeeSelectionStep() {
 
   return (
     <div>
-      <CampaignBudget />
       <div>
         <PageHeaderWrapper t4="Choose the type of budget you have" span={2} />
         <div className="mt-[24px] flex gap-5">
@@ -214,7 +214,7 @@ function FeeSelectionStep() {
                 ...prev,
                 campaign_budget: {
                   ...prev?.campaign_budget,
-                  sub_budget_type: 'gross',
+                  sub_budget_type: "gross",
                 },
               }));
             }}
@@ -227,9 +227,13 @@ function FeeSelectionStep() {
               </div>
             </div>
             {(active === 1 ||
-              campaignFormData?.campaign_budget?.sub_budget_type === 'gross') && (
+              campaignFormData?.campaign_budget?.sub_budget_type ===
+                "gross") && (
               <div className="absolute right-2 top-2">
-                <Image src={Selectstatus || '/placeholder.svg'} alt="Selectstatus" />
+                <Image
+                  src={Selectstatus || "/placeholder.svg"}
+                  alt="Selectstatus"
+                />
               </div>
             )}
           </div>
@@ -242,7 +246,7 @@ function FeeSelectionStep() {
                 ...prev,
                 campaign_budget: {
                   ...prev?.campaign_budget,
-                  sub_budget_type: 'net',
+                  sub_budget_type: "net",
                 },
               }));
             }}
@@ -255,49 +259,38 @@ function FeeSelectionStep() {
               </div>
             </div>
             {(active === 2 ||
-              campaignFormData?.campaign_budget?.sub_budget_type === 'net') && (
+              campaignFormData?.campaign_budget?.sub_budget_type === "net") && (
               <div className="absolute right-2 top-2">
-                <Image src={Selectstatus || '/placeholder.svg'} alt="Selectstatus" />
+                <Image
+                  src={Selectstatus || "/placeholder.svg"}
+                  alt="Selectstatus"
+                />
               </div>
             )}
           </div>
         </div>
-        {active && <PageHeaderWrapper t4="Add the applicable fee(s)" span={3} />}
+        {active && (
+          <PageHeaderWrapper t4="Add the applicable fee(s)" span={3} />
+        )}
         {active === 1 ? (
           <div className="space-y-8">
             <div className="flex w-[600px] justify-between mt-[24px] items-center">
               <p className="font-semibold text-[16px]">Media Gross Amount</p>
               <div className="flex flex-row items-center gap-[16px] px-0 bg-[#F9FAFB] border-b border-[rgba(6,18,55,0.1)] box-border">
-                <div className="e_currency-eur items-center">
-                  <div className="flex items-center">
-                    <p>
-                      {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
-                    </p>
-                    <input
-                      className="text-center outline-none w-[145px]"
-                      placeholder="Budget value"
-                      value={
-                        Number(campaignFormData?.campaign_budget?.amount)?.toLocaleString() ||
-                        ''
-                      }
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (/^\d*\.?\d*$/.test(value)) {
-                          handleBudgetEdit('amount', value);
-                        }
-                      }}
-                    />
-                  </div>
-                  <div className="w-[120px]">
-                    <p>{campaignFormData?.campaign_budget?.currency}</p>
-                  </div>
-                </div>
+                <BudgetInput
+                  selectedOption={selectedOption}
+                  setSelectedOption={setSelectedOption}
+                  handleBudgetEdit={handleBudgetEdit}
+                  selectCurrency={selectCurrency}
+                />
               </div>
             </div>
             <div>
               <div className="flex w-[600px] justify-between items-end gap-6">
                 <div className="w-full">
-                  <p className="font-semibold text-[16px] mb-2">Select Fee Type</p>
+                  <p className="font-semibold text-[16px] mb-2">
+                    Select Fee Type
+                  </p>
                   <Select
                     placeholder="Select fee type"
                     options={feeOptions}
@@ -307,24 +300,24 @@ function FeeSelectionStep() {
                     styles={{
                       control: (provided) => ({
                         ...provided,
-                        border: '',
-                        background: 'white',
-                        outline: 'none',
-                        padding: '5px 10px',
-                        borderRadius: '10px',
+                        border: "",
+                        background: "white",
+                        outline: "none",
+                        padding: "5px 10px",
+                        borderRadius: "10px",
                       }),
                       indicatorSeparator: (provided) => ({
                         ...provided,
-                        display: 'none',
+                        display: "none",
                       }),
                       indicatorsContainer: (provided) => ({
                         ...provided,
-                        scale: '0.7',
+                        scale: "0.7",
                       }),
                       placeholder: (provided) => ({
                         ...provided,
-                        padding: '5px',
-                        fontSize: '14px',
+                        padding: "5px",
+                        fontSize: "14px",
                       }),
                       valueContainer: (provided) => ({
                         ...provided,
@@ -336,20 +329,29 @@ function FeeSelectionStep() {
                 <div className="e_currency-eur items-center">
                   <div className="flex items-center">
                     <p>
-                      {feeType?.type === 'percent'
-                        ? ''
-                        : getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                      {feeType?.type === "percent"
+                        ? ""
+                        : getCurrencySymbol(
+                            campaignFormData?.campaign_budget?.currency
+                          )}
                     </p>
                     <input
                       className="text-center outline-none w-[145px]"
-                      placeholder={feeType?.type === 'percent' ? 'Fee percentage' : 'Fee amount'}
+                      placeholder={
+                        feeType?.type === "percent"
+                          ? "Fee percentage"
+                          : "Fee amount"
+                      }
                       value={feeAmount}
                       onChange={(e) => {
                         const value = e.target.value;
                         if (/^\d*\.?\d*$/.test(value)) {
-                          if (feeType?.type === 'percent' && Number(value) > 100) {
-                            toast('Percentage cannot exceed 100', {
-                              style: { background: 'red', color: 'white' },
+                          if (
+                            feeType?.type === "percent" &&
+                            Number(value) > 100
+                          ) {
+                            toast("Percentage cannot exceed 100", {
+                              style: { background: "red", color: "white" },
                             });
                             return;
                           }
@@ -357,7 +359,7 @@ function FeeSelectionStep() {
                         }
                       }}
                     />
-                    {feeType?.type === 'percent' && <span>%</span>}
+                    {feeType?.type === "percent" && <span>%</span>}
                   </div>
                   <div className="w-[120px]">
                     <p>{campaignFormData?.campaign_budget?.currency}</p>
@@ -381,20 +383,30 @@ function FeeSelectionStep() {
                       <span>{fee.label}</span>
                       <div className="flex items-center">
                         <span>
-                          {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                          {getCurrencySymbol(
+                            campaignFormData?.campaign_budget?.currency
+                          )}
                         </span>
-                        <span>{Number.parseFloat(fee.amount).toLocaleString()}</span>
+                        <span>
+                          {Number.parseFloat(fee.amount).toLocaleString()}
+                        </span>
                         {fee.isPercent && (
-                          <span className="ml-2 text-gray-500">({fee.percentValue}%)</span>
+                          <span className="ml-2 text-gray-500">
+                            ({fee.percentValue}%)
+                          </span>
                         )}
                         <button
                           className="ml-4 text-red-500"
                           onClick={() => {
-                            const updatedFees = fees.filter((_, i) => i !== index);
+                            const updatedFees = fees.filter(
+                              (_, i) => i !== index
+                            );
                             setFees(updatedFees);
                             const budgetFees = updatedFees.map((fee) => ({
                               fee_type: fee.type,
-                              value: fee.isPercent ? fee.percentValue : fee.amount,
+                              value: fee.isPercent
+                                ? fee.percentValue
+                                : fee.amount,
                             }));
                             setCampaignFormData((prev) => ({
                               ...prev,
@@ -419,7 +431,9 @@ function FeeSelectionStep() {
                 <div className="e_currency-eur items-center">
                   <div className="flex items-center">
                     <p>
-                      {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                      {getCurrencySymbol(
+                        campaignFormData?.campaign_budget?.currency
+                      )}
                     </p>
                     <input
                       className="text-center outline-none w-[145px]"
@@ -444,19 +458,22 @@ function FeeSelectionStep() {
                   <div className="e_currency-eur items-center">
                     <div className="flex items-center">
                       <p>
-                        {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                        {getCurrencySymbol(
+                          campaignFormData?.campaign_budget?.currency
+                        )}
                       </p>
                       <input
                         className="text-center outline-none w-[145px]"
                         placeholder="Budget value"
                         value={
-                          Number(campaignFormData?.campaign_budget?.amount)?.toLocaleString() ||
-                          ''
+                          Number(
+                            campaignFormData?.campaign_budget?.amount
+                          )?.toLocaleString() || ""
                         }
                         onChange={(e) => {
                           const value = e.target.value;
                           if (/^\d*\.?\d*$/.test(value)) {
-                            handleBudgetEdit('amount', value);
+                            handleBudgetEdit("amount", value);
                           }
                         }}
                       />
@@ -470,7 +487,9 @@ function FeeSelectionStep() {
               <div>
                 <div className="flex w-[600px] justify-between items-end gap-6">
                   <div className="w-full">
-                    <p className="font-semibold text-[16px] mb-2">Select Fee Type</p>
+                    <p className="font-semibold text-[16px] mb-2">
+                      Select Fee Type
+                    </p>
                     <Select
                       placeholder="Select fee type"
                       options={feeOptions}
@@ -480,24 +499,24 @@ function FeeSelectionStep() {
                       styles={{
                         control: (provided) => ({
                           ...provided,
-                          border: '',
-                          background: 'white',
-                          outline: 'none',
-                          padding: '5px 10px',
-                          borderRadius: '10px',
+                          border: "",
+                          background: "white",
+                          outline: "none",
+                          padding: "5px 10px",
+                          borderRadius: "10px",
                         }),
                         indicatorSeparator: (provided) => ({
                           ...provided,
-                          display: 'none',
+                          display: "none",
                         }),
                         indicatorsContainer: (provided) => ({
                           ...provided,
-                          scale: '0.7',
+                          scale: "0.7",
                         }),
                         placeholder: (provided) => ({
                           ...provided,
-                          padding: '5px',
-                          fontSize: '14px',
+                          padding: "5px",
+                          fontSize: "14px",
                         }),
                         valueContainer: (provided) => ({
                           ...provided,
@@ -509,13 +528,19 @@ function FeeSelectionStep() {
                   <div className="e_currency-eur items-center">
                     <div className="flex items-center">
                       <p>
-                        {feeType?.type === 'percent'
-                          ? ''
-                          : getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                        {feeType?.type === "percent"
+                          ? ""
+                          : getCurrencySymbol(
+                              campaignFormData?.campaign_budget?.currency
+                            )}
                       </p>
                       <input
                         className="text-center outline-none w-[145px]"
-                        placeholder={feeType?.type === 'percent' ? 'Fee percentage' : 'Fee amount'}
+                        placeholder={
+                          feeType?.type === "percent"
+                            ? "Fee percentage"
+                            : "Fee amount"
+                        }
                         value={feeAmount}
                         onChange={(e) => {
                           const value = e.target.value;
@@ -524,9 +549,9 @@ function FeeSelectionStep() {
                           }
                         }}
                       />
-                      {feeType?.type === 'percent' && <span>%</span>}
+                      {feeType?.type === "percent" && <span>%</span>}
                     </div>
-                    {feeType?.type !== 'percent' && (
+                    {feeType?.type !== "percent" && (
                       <div className="w-[120px]">
                         <p>{campaignFormData?.campaign_budget?.currency}</p>
                       </div>
@@ -541,7 +566,9 @@ function FeeSelectionStep() {
                 </span>
                 {fees.length > 0 && (
                   <div className="mt-4 w-[600px]">
-                    <p className="font-semibold text-[16px] mb-2">Added Fees:</p>
+                    <p className="font-semibold text-[16px] mb-2">
+                      Added Fees:
+                    </p>
                     {fees.map((fee, index) => (
                       <div
                         key={index}
@@ -550,20 +577,30 @@ function FeeSelectionStep() {
                         <span>{fee.label}</span>
                         <div className="flex items-center">
                           <span>
-                            {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                            {getCurrencySymbol(
+                              campaignFormData?.campaign_budget?.currency
+                            )}
                           </span>
-                          <span>{Number.parseFloat(fee.amount).toLocaleString()}</span>
+                          <span>
+                            {Number.parseFloat(fee.amount).toLocaleString()}
+                          </span>
                           {fee.isPercent && (
-                            <span className="ml-2 text-gray-500">({fee.percentValue}%)</span>
+                            <span className="ml-2 text-gray-500">
+                              ({fee.percentValue}%)
+                            </span>
                           )}
                           <button
                             className="ml-4 text-red-500"
                             onClick={() => {
-                              const updatedFees = fees.filter((_, i) => i !== index);
+                              const updatedFees = fees.filter(
+                                (_, i) => i !== index
+                              );
                               setFees(updatedFees);
                               const budgetFees = updatedFees.map((fee) => ({
                                 fee_type: fee.type,
-                                value: fee.isPercent ? fee.percentValue : fee.amount,
+                                value: fee.isPercent
+                                  ? fee.percentValue
+                                  : fee.amount,
                               }));
                               setCampaignFormData((prev) => ({
                                 ...prev,
@@ -588,7 +625,9 @@ function FeeSelectionStep() {
                   <div className="e_currency-eur items-center">
                     <div className="flex items-center">
                       <p>
-                        {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                        {getCurrencySymbol(
+                          campaignFormData?.campaign_budget?.currency
+                        )}
                       </p>
                       <input
                         className="text-center outline-none w-[145px]"
