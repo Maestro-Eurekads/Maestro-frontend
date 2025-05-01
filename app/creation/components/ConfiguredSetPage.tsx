@@ -20,6 +20,7 @@ import {
   formatNumberWithCommas,
   funnelStages,
   getPlatformIcon,
+  mediaTypes,
 } from "components/data";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { toast } from "react-toastify";
@@ -56,57 +57,43 @@ const ConfiguredSetPage = () => {
     if (channelMix?.length > 0) {
       const platformsByStage: Record<string, OutletType[]> = {};
       channelMix?.forEach((stage: any) => {
-        const { funnel_stage, search_engines, display_networks, social_media } =
-          stage;
+        const {
+          funnel_stage,
+          search_engines,
+          display_networks,
+          social_media,
+          streaming,
+          ooh,
+          broadcast,
+          messaging,
+          print,
+          e_commerce,
+          in_game,
+          mobile,
+        } = stage;
 
         if (!platformsByStage[funnel_stage]) {
           platformsByStage[funnel_stage] = [];
         }
 
-        if (Array.isArray(search_engines)) {
-          search_engines.forEach((platform: any) => {
-            const icon = getPlatformIcon(platform?.platform_name);
-            if (icon) {
-              platformsByStage[funnel_stage].push({
-                id: Math.floor(Math.random() * 1000000),
-                outlet: platform.platform_name,
-                ad_sets: platform?.ad_sets,
-                icon,
-                budget: platform?.budget,
+        mediaTypes?.forEach((channel, index) => {
+          if (stage[channel]) {
+            if (Array.isArray(stage[channel])) {
+              stage[channel].forEach((platform: any) => {
+                const icon = getPlatformIcon(platform?.platform_name);
+                if (icon) {
+                  platformsByStage[funnel_stage].push({
+                    id: Math.floor(Math.random() * 1000000),
+                    outlet: platform.platform_name,
+                    ad_sets: platform?.ad_sets,
+                    icon,
+                    budget: platform?.budget,
+                  });
+                }
               });
             }
-          });
-        }
-
-        if (Array.isArray(display_networks)) {
-          display_networks.forEach((platform: any) => {
-            const icon = getPlatformIcon(platform?.platform_name);
-            if (icon) {
-              platformsByStage[funnel_stage].push({
-                id: Math.floor(Math.random() * 1000000),
-                outlet: platform.platform_name,
-                icon,
-                ad_sets: platform?.ad_sets,
-                budget: platform?.budget,
-              });
-            }
-          });
-        }
-
-        if (Array.isArray(social_media)) {
-          social_media.forEach((platform: any) => {
-            const icon = getPlatformIcon(platform?.platform_name);
-            if (icon) {
-              platformsByStage[funnel_stage].push({
-                id: Math.floor(Math.random() * 1000000),
-                outlet: platform.platform_name,
-                icon,
-                ad_sets: platform?.ad_sets,
-                budget: platform?.budget,
-              });
-            }
-          });
-        }
+          }
+        });
       });
 
       return platformsByStage;
@@ -164,8 +151,8 @@ const ConfiguredSetPage = () => {
       return true;
     }
 
-    const channelTypes = ["search_engines", "display_networks", "social_media"];
-    const hasPlatformBudget = channelTypes.some((type) =>
+    
+    const hasPlatformBudget = mediaTypes.some((type) =>
       stageData?.[type]?.some(
         (platform) =>
           platform?.budget?.fixed_value &&
@@ -173,7 +160,7 @@ const ConfiguredSetPage = () => {
       )
     );
 
-    const hasAdSetBudget = channelTypes.some((type) =>
+    const hasAdSetBudget = mediaTypes.some((type) =>
       stageData?.[type]?.some((platform) =>
         platform?.ad_sets?.some(
           (adSet) =>
@@ -226,8 +213,8 @@ const ConfiguredSetPage = () => {
     }
 
     // Add platform budgets
-    const channelTypes = ["search_engines", "display_networks", "social_media"];
-    channelTypes.forEach((type) => {
+    
+    mediaTypes.forEach((type) => {
       stageData?.[type]?.forEach((platform) => {
         if (platform?.budget?.fixed_value) {
           newResults.push({
@@ -261,7 +248,7 @@ const ConfiguredSetPage = () => {
             (ch) => ch?.funnel_stage === stageName
           )?.stage_budget?.fixed_value || 0;
         const percentage = totalBudget ? (stageBudget / totalBudget) * 100 : 0;
-        const stage = funnelStages.find((s) => s.name === stageName);
+        const stage = campaignFormData?.custom_funnels?.find((s) => s.name === stageName);
         if (!stage) return null;
         return (
           <div key={index} className="w-full">
@@ -269,15 +256,19 @@ const ConfiguredSetPage = () => {
               className="flex items-center justify-between px-6 py-4 w-full bg-[#FCFCFC] border border-gray-300 rounded-lg cursor-pointer"
               onClick={() => toggleItem(stage.name)}
             >
+              {stage?.icon &&
               <div className="flex items-center gap-4">
                 <Image
-                  src={stage.icon || "/placeholder.svg"}
+                  src={stage.icon.src || "/placeholder.svg"}
                   alt={stage.name}
+                  width={20}
+                  height={20}
                 />
                 <p className="text-md font-semibold text-[#061237]">
                   {stage.name}
                 </p>
               </div>
+              }
               <div className="flex items-center gap-2">
                 <p
                   className={`font-semibold text-base ${
@@ -749,7 +740,7 @@ const ConfiguredSetPage = () => {
                                 Number(getAdSetBudget(ad_set))
                                   ? (
                                       (Number(getAdSetBudget(ad_set)) /
-                                        Number(platform.budget.fixed_value)) *
+                                        Number(platform?.budget?.fixed_value)) *
                                       100
                                     ).toFixed(1)
                                   : "0";

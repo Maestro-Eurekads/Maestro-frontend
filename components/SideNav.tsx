@@ -26,7 +26,7 @@ const SideNav: React.FC = () => {
   const { setActive, setSubStep, active } = useActive();
   const searchParams = useSearchParams();
   const campaignId = searchParams.get("campaignId");
-  const { campaignData, getActiveCampaign, setCampaignData, isLoading, setIsLoading, loading } = useCampaigns();
+  const { campaignData, getActiveCampaign, setCampaignData, isLoading, loadingCampaign, loading } = useCampaigns();
 
 
 
@@ -172,7 +172,7 @@ const SideNav: React.FC = () => {
               <Image src={left_arrow} alt="menu" />
               <p>Back to Dashboard</p>
             </button>
-            {loading ? (
+            {loading || loadingCampaign ? (
               <Skeleton height={20} width={200} />
             ) : !campaignData?.client?.client_name ||
               campaignData?.media_plan_details?.plan_name ===

@@ -12,6 +12,7 @@ import adset from "../../../public/adset_level.svg";
 import channel from "../../../public/channel_level.svg";
 import Image from "next/image";
 import FeeSelectionStep from "./FeeSelectionStep";
+import { mediaTypes } from "components/data";
 
 const ConfigureAdSetsAndBudget = () => {
   const [show, setShow] = useState(false); // Start with budget shown
@@ -69,7 +70,7 @@ const ConfigureAdSetsAndBudget = () => {
     data.channel_mix.forEach((stage) => {
       const stageName = stage.funnel_stage;
       const stageBudget = parseFloat(stage.stage_budget?.fixed_value);
-      ["search_engines", "display_networks", "social_media"].forEach(
+      mediaTypes.forEach(
         (channelType) => {
           stage[channelType].forEach((platform) => {
             const platformName = platform.platform_name;
