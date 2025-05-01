@@ -156,15 +156,20 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 				<div>
 					<h3 className="font-medium text-2xl text-[#292929]">Comments For</h3>
 					<div className="flex  items-center gap-2 w-full">
-						<p className="font-medium text-lg text-[#292929]">
-							{campaignData?.media_plan_details?.plan_name
+						<p className="font-medium text-lg text-[#292929] mb-4">
+							{campaignData?.funnel_stages?.length > 0
+								? campaignData?.funnel_stages?.length > 3
+									? campaignData?.funnel_stages?.slice(0, 3).join(" · ") + " ..."
+									: campaignData?.funnel_stages?.join(" · ")
+								: ""}
+							{/* {campaignData?.media_plan_details?.plan_name
 								? campaignData?.media_plan_details?.plan_name.charAt(0).toUpperCase() +
 								campaignData?.media_plan_details?.plan_name.slice(1)
-								: ""}
+								: ""} */}
 						</p>
-						<p className="font-medium text-lg text-[#292929]">
+						{/* <p className="font-medium text-lg text-[#292929]">
 							Awareness
-						</p>
+						</p> */}
 					</div>
 
 				</div>
