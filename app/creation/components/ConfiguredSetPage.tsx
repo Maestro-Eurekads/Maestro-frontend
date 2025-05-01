@@ -151,8 +151,8 @@ const ConfiguredSetPage = () => {
       return true;
     }
 
-    const channelTypes = ["search_engines", "display_networks", "social_media"];
-    const hasPlatformBudget = channelTypes.some((type) =>
+    
+    const hasPlatformBudget = mediaTypes.some((type) =>
       stageData?.[type]?.some(
         (platform) =>
           platform?.budget?.fixed_value &&
@@ -160,7 +160,7 @@ const ConfiguredSetPage = () => {
       )
     );
 
-    const hasAdSetBudget = channelTypes.some((type) =>
+    const hasAdSetBudget = mediaTypes.some((type) =>
       stageData?.[type]?.some((platform) =>
         platform?.ad_sets?.some(
           (adSet) =>
@@ -213,8 +213,8 @@ const ConfiguredSetPage = () => {
     }
 
     // Add platform budgets
-    const channelTypes = ["search_engines", "display_networks", "social_media"];
-    channelTypes.forEach((type) => {
+    
+    mediaTypes.forEach((type) => {
       stageData?.[type]?.forEach((platform) => {
         if (platform?.budget?.fixed_value) {
           newResults.push({
@@ -248,7 +248,7 @@ const ConfiguredSetPage = () => {
             (ch) => ch?.funnel_stage === stageName
           )?.stage_budget?.fixed_value || 0;
         const percentage = totalBudget ? (stageBudget / totalBudget) * 100 : 0;
-        const stage = funnelStages.find((s) => s.name === stageName);
+        const stage = campaignFormData?.custom_funnels?.find((s) => s.name === stageName);
         if (!stage) return null;
         return (
           <div key={index} className="w-full">
@@ -256,15 +256,19 @@ const ConfiguredSetPage = () => {
               className="flex items-center justify-between px-6 py-4 w-full bg-[#FCFCFC] border border-gray-300 rounded-lg cursor-pointer"
               onClick={() => toggleItem(stage.name)}
             >
+              {stage?.icon &&
               <div className="flex items-center gap-4">
                 <Image
-                  src={stage.icon || "/placeholder.svg"}
+                  src={stage.icon.src || "/placeholder.svg"}
                   alt={stage.name}
+                  width={20}
+                  height={20}
                 />
                 <p className="text-md font-semibold text-[#061237]">
                   {stage.name}
                 </p>
               </div>
+              }
               <div className="flex items-center gap-2">
                 <p
                   className={`font-semibold text-base ${
