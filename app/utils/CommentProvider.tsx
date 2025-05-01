@@ -147,6 +147,7 @@ export const CommentProvider = ({ children }) => {
 			setComment("");
 			setIsLoading(false);
 			setCreateCommentsSuccess(true);
+			setViewcommentsId('')
 		} catch (error) {
 			setCreateCommentsError(error);
 			setIsLoading(false);

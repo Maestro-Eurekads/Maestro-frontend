@@ -53,7 +53,7 @@ const AddFinanceModal = ({
   const dispatch = useAppDispatch();
 
 
-  console.log('selected-selected-selected', selected)
+  //  console.log('selected-selected-selected', selected)
 
   const { getCreateClientData, getCreateClientIsLoading } = useAppSelector(
     (state) => state.client

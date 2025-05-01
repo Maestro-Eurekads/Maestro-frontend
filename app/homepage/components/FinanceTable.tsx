@@ -110,10 +110,10 @@ function FinanceTable({
                   <td className="py-[12px] px-[16px]">
                     <span
                       className={`${po?.PO_status === "open"
-                          ? "text-blue-400"
-                          : po?.PO_status === "partially_paid"
-                            ? "text-orange-400"
-                            : "text-green-400"
+                        ? "text-blue-400"
+                        : po?.PO_status === "partially_paid"
+                          ? "text-orange-400"
+                          : "text-green-400"
                         } capitalize`}
                     >
                       {po?.PO_status?.replace("_", " ")}

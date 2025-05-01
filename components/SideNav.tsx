@@ -28,12 +28,7 @@ const SideNav: React.FC = () => {
   const campaignId = searchParams.get("campaignId");
   const { campaignData, getActiveCampaign, setCampaignData, isLoading, setIsLoading, loading } = useCampaigns();
 
-  // useEffect(() => {
-  //   if (campaignId) {
-  //     setIsLoading(true);
-  //     getActiveCampaign(campaignId).finally(() => setIsLoading(false));
-  //   }
-  // }, [campaignId]);
+
 
   const handleBackClick = (e) => {
     e.preventDefault();
@@ -45,7 +40,6 @@ const SideNav: React.FC = () => {
   };
 
 
-  // console.log('campaignData?.media_plan_details?.plan_name', campaignData)
 
   const steps = [
     {
