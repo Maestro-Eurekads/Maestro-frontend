@@ -1,23 +1,25 @@
-"use client"
-import { useState, useEffect } from "react"
-import Image from "next/image"
-import closefill from "../../public/close-fill.svg"
-import blueprofile from "../../public/blueprofile.svg"
-import Input from "../../components/Input"
-import ResponsibleApproverDropdowns from "../../components/ResponsibleApproverDropdowns"
-import FeeDropdowns from "./FeeDropdowns"
-import CategoryDropdown from "./components/CategoryDropdown"
-import SportDropdown from "./components/SportDropdown"
-import BusinessUnit from "./components/BusinessUnit"
-import { SVGLoader } from "../../components/SVGLoader"
-import AlertMain from "../../components/Alert/AlertMain"
-import { MdOutlineCancel } from "react-icons/md"
-import { addNewClient } from "./functions/clients"
-import { getCreateClient } from "features/Client/clientSlice"
-import { useAppDispatch } from "store/useStore"
+"use client";
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import closefill from "../../public/close-fill.svg";
+import blueprofile from "../../public/blueprofile.svg";
+import Input from "../../components/Input";
+import ResponsibleApproverDropdowns from "../../components/ResponsibleApproverDropdowns";
+import FeeDropdowns from "./FeeDropdowns";
+import CategoryDropdown from "./components/CategoryDropdown";
+import SportDropdown from "./components/SportDropdown";
+import BusinessUnit from "./components/BusinessUnit";
+import { SVGLoader } from "../../components/SVGLoader";
+import AlertMain from "../../components/Alert/AlertMain";
+import { MdOutlineCancel } from "react-icons/md";
+import { addNewClient } from "./functions/clients";
+import { getCreateClient } from "features/Client/clientSlice";
+import { useAppDispatch } from "store/useStore";
+import { useCampaigns } from "app/utils/CampaignsContext";
 
 const TableModel = ({ isOpen, setIsOpen }) => {
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch();
+  const { profile, getProfile } = useCampaigns();
   const [inputs, setInputs] = useState({
     name: "",
     email: "",
@@ -28,46 +30,46 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     categories: [],
     businessUnits: [],
     feeType: "",
-  })
-  const [emailList, setEmailList] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [alert, setAlert] = useState(null)
+  });
+  const [emailList, setEmailList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState(null);
 
   //  Automatically reset alert after showing
   useEffect(() => {
     if (alert) {
-      const timer = setTimeout(() => setAlert(null), 3000) // Reset after 3 seconds
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setAlert(null), 3000); // Reset after 3 seconds
+      return () => clearTimeout(timer);
     }
-  }, [alert])
+  }, [alert]);
   const handleAddEmail = () => {
     if (emailList.length >= 5) {
       setAlert({
         variant: "error",
         message: "You can only add up to 5 email addresses.",
         position: "bottom-right",
-      })
+      });
       return;
     }
-    const trimmedEmail = inputs.email.trim()
-    const fullName = inputs.full_name.trim()
+    const trimmedEmail = inputs.email.trim();
+    const fullName = inputs.full_name.trim();
 
     //  Email validation regex
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    const fullNameRegex = /^[A-Za-z]+(?: [A-Za-z]+)+$/ // At least two words, letters only
-    const onlyLettersRegex = /^[A-Za-z ]+$/ // allows letters and spaces only
-    const hasTwoWords = fullName.split(" ").filter(Boolean).length >= 2
+    const fullNameRegex = /^[A-Za-z]+(?: [A-Za-z]+)+$/; // At least two words, letters only
+    const onlyLettersRegex = /^[A-Za-z ]+$/; // allows letters and spaces only
+    const hasTwoWords = fullName.split(" ").filter(Boolean).length >= 2;
 
-    const isValidFullName = fullNameRegex.test(fullName)
+    const isValidFullName = fullNameRegex.test(fullName);
 
     if (!trimmedEmail) {
       setAlert({
         variant: "error",
         message: "Email cannot be empty",
         position: "bottom-right",
-      })
-      return
+      });
+      return;
     }
 
     if (!emailRegex.test(trimmedEmail)) {
@@ -75,19 +77,18 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         variant: "error",
         message: "Invalid email format",
         position: "bottom-right",
-      })
-      return
+      });
+      return;
     }
-
-
 
     if (!onlyLettersRegex.test(fullName)) {
       setAlert({
         variant: "error",
-        message: "Full name must contain only alphabetic characters and spaces.",
+        message:
+          "Full name must contain only alphabetic characters and spaces.",
         position: "bottom-right",
-      })
-      return
+      });
+      return;
     }
 
     if (!hasTwoWords) {
@@ -95,19 +96,21 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         variant: "error",
         message: "Full name must include both first and last name.",
         position: "bottom-right",
-      })
-      return
+      });
+      return;
     }
 
     // Check if email already exists in emailList
-    const emailExists = emailList.some(item => item.email.toLowerCase() === trimmedEmail.toLowerCase())
+    const emailExists = emailList.some(
+      (item) => item.email.toLowerCase() === trimmedEmail.toLowerCase()
+    );
     if (emailExists) {
       setAlert({
         variant: "warning",
         message: "This email address is already added",
         position: "bottom-right",
-      })
-      return
+      });
+      return;
     }
 
     if (emailList.length >= 5) {
@@ -115,39 +118,39 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         variant: "warning",
         message: "Maximum 5 emails allowed",
         position: "bottom-right",
-      })
-      return
+      });
+      return;
     }
 
-    setEmailList([...emailList, { full_name: fullName, email: trimmedEmail }])
+    setEmailList([...emailList, { full_name: fullName, email: trimmedEmail }]);
     setInputs((prevState) => ({
       ...prevState,
       email: "",
       full_name: "",
-    }))
-  }
+    }));
+  };
 
   const handleRemoveEmail = (email) => {
-    const filteredEmails = emailList.filter((e) => e?.email !== email)
-    setEmailList(filteredEmails)
-  }
+    const filteredEmails = emailList.filter((e) => e?.email !== email);
+    setEmailList(filteredEmails);
+  };
 
   const handleOnChange = (input: string, value: string) => {
     setInputs((prevState) => ({
       ...prevState,
       [input]: value,
-    }))
-  }
+    }));
+  };
 
   // Prevent background scrolling when modal is open
   useEffect(() => {
     if (isOpen) {
-      document.body.classList.add("overflow-hidden")
+      document.body.classList.add("overflow-hidden");
     } else {
-      document.body.classList.remove("overflow-hidden")
+      document.body.classList.remove("overflow-hidden");
     }
-    return () => document.body.classList.remove("overflow-hidden")
-  }, [isOpen])
+    return () => document.body.classList.remove("overflow-hidden");
+  }, [isOpen]);
 
   // Add a validation function before the handleSubmit function
   const validateForm = () => {
@@ -157,8 +160,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         variant: "error",
         message: "Client Name is required",
         position: "bottom-right",
-      })
-      return false
+      });
+      return false;
     }
 
     // Check if at least one email is added
@@ -167,8 +170,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         variant: "error",
         message: "At least one client email is required",
         position: "bottom-right",
-      })
-      return false
+      });
+      return false;
     }
 
     // Check if responsible person is selected
@@ -177,8 +180,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         variant: "error",
         message: "Responsible Person is required",
         position: "bottom-right",
-      })
-      return false
+      });
+      return false;
     }
 
     // Check if approver is selected
@@ -187,8 +190,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         variant: "error",
         message: "Approver is required",
         position: "bottom-right",
-      })
-      return false
+      });
+      return false;
     }
 
     // Check if at least two business level 1 (sports) are added
@@ -197,28 +200,36 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         variant: "error",
         message: "At least two Business Level 1 entries are required",
         position: "bottom-right",
-      })
-      return false
+      });
+      return false;
     }
 
     // Check if at least two business level 2 (business units) are added
-    if (inputs.businessUnits.length < 2 || !inputs.businessUnits[0] || !inputs.businessUnits[1]) {
+    if (
+      inputs.businessUnits.length < 2 ||
+      !inputs.businessUnits[0] ||
+      !inputs.businessUnits[1]
+    ) {
       setAlert({
         variant: "error",
         message: "At least two Business Level 2 entries are required",
         position: "bottom-right",
-      })
-      return false
+      });
+      return false;
     }
 
     // Check if at least two business level 3 (categories) are added
-    if (inputs.categories.length < 2 || !inputs.categories[0] || !inputs.categories[1]) {
+    if (
+      inputs.categories.length < 2 ||
+      !inputs.categories[0] ||
+      !inputs.categories[1]
+    ) {
       setAlert({
         variant: "error",
         message: "At least two Business Level 3 entries are required",
         position: "bottom-right",
-      })
-      return false
+      });
+      return false;
     }
 
     // Check if fee type is selected
@@ -227,21 +238,21 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         variant: "error",
         message: "Fee Type is required",
         position: "bottom-right",
-      })
-      return false
+      });
+      return false;
     }
 
-    return true
-  }
+    return true;
+  };
 
   // Modify the handleSubmit function to use the validation
   const handleSubmit = async () => {
     // Validate form before submission
     if (!validateForm()) {
-      return
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     try {
       await addNewClient({
@@ -253,11 +264,12 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         level_2: inputs.businessUnits,
         level_3: inputs.categories,
         fee_type: inputs.feeType,
-      })
-
+        user: profile?.id,
+      });
+      getProfile()
       // Fetch clients after successfully adding a new one
       //@ts-ignore
-      dispatch(getCreateClient())
+      dispatch(getCreateClient());
       // Reset form state
       setInputs({
         name: "",
@@ -269,10 +281,10 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         businessUnits: [],
         feeType: "",
         full_name: "",
-      })
-      setEmailList([])
+      });
+      setEmailList([]);
 
-      setIsOpen(false)
+      setIsOpen(false);
     } catch (error) {
       const errors: any =
         error.response?.data?.error?.details?.errors ||
@@ -281,10 +293,9 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         [];
       setAlert({ variant: "error", message: errors, position: "bottom-right" });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-
+  };
 
   const resetForm = () => {
     setInputs({
@@ -297,10 +308,9 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       businessUnits: [],
       feeType: "",
       full_name: "",
-    })
-    setEmailList([])
-  }
-
+    });
+    setEmailList([]);
+  };
 
   return (
     <div className="z-50">
@@ -323,7 +333,13 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                   <p>Define the client structure and initial setup.</p>
                 </div>
               </div>
-              <button className="text-gray-500 hover:text-gray-800" onClick={() => { setIsOpen(false); resetForm() }}>
+              <button
+                className="text-gray-500 hover:text-gray-800"
+                onClick={() => {
+                  setIsOpen(false);
+                  resetForm();
+                }}
+              >
                 <Image src={closefill || "/placeholder.svg"} alt="menu" />
               </button>
             </div>
@@ -342,7 +358,9 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                   <label className="font-medium text-[15px] leading-5 text-gray-600">
                     Client emails (add up to 5 emails)
                   </label>
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{emailList.length}/5</span>
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                    {emailList.length}/5
+                  </span>
                 </div>
 
                 <div className="flex items-start gap-3 w-full">
@@ -350,7 +368,9 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                     <Input
                       type="email"
                       value={inputs.email}
-                      handleOnChange={(e) => handleOnChange("email", e.target.value)}
+                      handleOnChange={(e) =>
+                        handleOnChange("email", e.target.value)
+                      }
                       label=""
                       placeholder="Enter email address"
                     />
@@ -359,14 +379,16 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                     <Input
                       type="text"
                       value={inputs.full_name}
-                      handleOnChange={(e) => handleOnChange("full_name", e.target.value)}
+                      handleOnChange={(e) =>
+                        handleOnChange("full_name", e.target.value)
+                      }
                       label=""
                       placeholder="Full Name"
                     />
                     <button
                       className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white"
                       onClick={handleAddEmail}
-                    // disabled={emailList.length >= 5}
+                      // disabled={emailList.length >= 5}
                     >
                       Add
                     </button>
@@ -380,14 +402,21 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                     <div className="max-h-[150px] overflow-y-auto">
                       <ul className="divide-y divide-gray-100">
                         {emailList.map((email, index) => (
-                          <li key={index} className="flex items-center justify-between p-3 hover:bg-gray-50 group">
+                          <li
+                            key={index}
+                            className="flex items-center justify-between p-3 hover:bg-gray-50 group"
+                          >
                             <div className="flex items-center gap-3">
                               <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                                 {email.full_name.charAt(0).toUpperCase()}
                               </div>
                               <div>
-                                <p className="font-medium text-sm">{email.full_name}</p>
-                                <p className="text-xs text-gray-500">{email.email}</p>
+                                <p className="font-medium text-sm">
+                                  {email.full_name}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {email.email}
+                                </p>
                               </div>
                             </div>
                             <button
@@ -405,7 +434,10 @@ const TableModel = ({ isOpen, setIsOpen }) => {
               )}
 
               <div className="w-full">
-                <ResponsibleApproverDropdowns right={true} setInputs={setInputs} />
+                <ResponsibleApproverDropdowns
+                  right={true}
+                  setInputs={setInputs}
+                />
               </div>
               <div className="w-full flex items-start gap-3">
                 <SportDropdown setInputs={setInputs} setAlert={setAlert} />
@@ -413,18 +445,36 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                 <CategoryDropdown setInputs={setInputs} setAlert={setAlert} />
               </div>
               <div className="w-[50%]">
-                <FeeDropdowns labelone="Select fee type" islabelone="Fee" inputs={inputs} setInputs={setInputs} />
+                <FeeDropdowns
+                  labelone="Select fee type"
+                  islabelone="Fee"
+                  inputs={inputs}
+                  setInputs={setInputs}
+                />
               </div>
             </div>
 
             {/* Footer  */}
             <div className="p-6 border-t bg-white sticky bottom-0 z-10 flex justify-end rounded-b-[32px]">
               <div className="flex items-center gap-5">
-                <button onClick={() => { setIsOpen(false); resetForm() }} className="btn_model_outline">
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    resetForm();
+                  }}
+                  className="btn_model_outline"
+                >
                   Cancel
                 </button>
-                <button className="btn_model_active whitespace-nowrap" onClick={handleSubmit}>
-                  {loading ? <SVGLoader width={"30px"} height={"30px"} color={"#FFF"} /> : "Add Client"}
+                <button
+                  className="btn_model_active whitespace-nowrap"
+                  onClick={handleSubmit}
+                >
+                  {loading ? (
+                    <SVGLoader width={"30px"} height={"30px"} color={"#FFF"} />
+                  ) : (
+                    "Add Client"
+                  )}
                 </button>
               </div>
             </div>
@@ -432,7 +482,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default TableModel
+export default TableModel;

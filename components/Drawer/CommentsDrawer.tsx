@@ -33,7 +33,8 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 	const { opportunities, setViewcommentsId, viewcommentsId, addCommentOpportunity, setOpportunities, createCommentsError, createCommentsSuccess, approvedError, replyError, setIsCreateOpen, setClose, showbyID } = useComments();
 	const {
 		isAgencyApprover,
-		isFinancialApprover
+		isFinancialApprover,
+		isAdmin
 	} = useUserPrivileges();
 	const {
 		data,
@@ -44,11 +45,6 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 	const { campaignData } = useCampaigns();
 	const [alert, setAlert] = useState(null);
 	const [commentColors, setCommentColors] = useState({});
-
-	console.log("isFinancialApprover", isFinancialApprover);
-
-	console.log("isAgencyApprover", isAgencyApprover);
-
 
 
 	// const commentId = campaignData?.documentId
@@ -156,15 +152,20 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 				<div>
 					<h3 className="font-medium text-2xl text-[#292929]">Comments For</h3>
 					<div className="flex  items-center gap-2 w-full">
-						<p className="font-medium text-lg text-[#292929]">
-							{campaignData?.media_plan_details?.plan_name
+						<p className="font-medium text-lg text-[#292929] mb-4">
+							{campaignData?.funnel_stages?.length > 0
+								? campaignData?.funnel_stages?.length > 3
+									? campaignData?.funnel_stages?.slice(0, 3).join(" · ") + " ..."
+									: campaignData?.funnel_stages?.join(" · ")
+								: ""}
+							{/* {campaignData?.media_plan_details?.plan_name
 								? campaignData?.media_plan_details?.plan_name.charAt(0).toUpperCase() +
 								campaignData?.media_plan_details?.plan_name.slice(1)
-								: ""}
+								: ""} */}
 						</p>
-						<p className="font-medium text-lg text-[#292929]">
+						{/* <p className="font-medium text-lg text-[#292929]">
 							Awareness
-						</p>
+						</p> */}
 					</div>
 
 				</div>
@@ -205,7 +206,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 										<BsXLg className="text-[#29292968] group-hover:text-red-500 transition-colors duration-200" />
 									</button>
 
-									<Comments comment={comment} contrastingColor={contrastingColor} setAlert={setAlert} isAgencyApprover={isAgencyApprover} isFinancialApprover={isFinancialApprover} />
+									<Comments comment={comment} contrastingColor={contrastingColor} setAlert={setAlert} isAgencyApprover={isAgencyApprover} isFinancialApprover={isFinancialApprover} isAdmin={isAdmin} />
 									<AddCommentReply documentId={comment?.documentId} contrastingColor={contrastingColor} commentId={comment?.commentId} />
 								</div>
 							);
@@ -218,7 +219,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 								key={comment?.documentId}
 								className="flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-[0px_4px_10px_rgba(0,0,0,0.1)] rounded-lg border-box mb-5"
 							>
-								<Comments comment={comment} contrastingColor={contrastingColor} setAlert={setAlert} isAgencyApprover={isAgencyApprover} isFinancialApprover={isFinancialApprover} />
+								<Comments comment={comment} contrastingColor={contrastingColor} setAlert={setAlert} isAgencyApprover={isAgencyApprover} isFinancialApprover={isFinancialApprover} isAdmin={isAdmin} />
 								<AddCommentReply documentId={comment?.documentId} contrastingColor={contrastingColor} commentId={comment?.commentId} />
 							</div>
 						);

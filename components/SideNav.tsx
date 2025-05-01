@@ -5,7 +5,7 @@ import CreationFlow from "./CreationFlow";
 import closeicon from "../public/layout-left-line.svg";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useActive } from "../app/utils/ActiveContext";
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import CreationFlowActive from "./CreationFlowActive";
 import symbol from "../public/material-symbols_campaign-rounded.svg";
 import funnel from "../public/ant-design_funnel-plot-filled.svg";
@@ -19,6 +19,7 @@ import Calender from "../public/Calender.svg";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import Skeleton from "react-loading-skeleton";
 import { useComments } from "app/utils/CommentProvider";
+import { useEffect } from "react";
 
 const SideNav: React.FC = () => {
   const { setClose, close } = useComments();
@@ -28,10 +29,8 @@ const SideNav: React.FC = () => {
   const campaignId = searchParams.get("campaignId");
   const { campaignData, getActiveCampaign, setCampaignData, isLoading, loadingCampaign, loading } = useCampaigns();
 
-
-
   useEffect(() => {
-    if(active == 9){
+    if (active == 10) {
       console.log('active', active, "here", close)
       setClose(true)
     } else {
@@ -47,8 +46,6 @@ const SideNav: React.FC = () => {
     setSubStep(0);
     router.push("/");
   };
-
-
 
   const steps = [
     {
