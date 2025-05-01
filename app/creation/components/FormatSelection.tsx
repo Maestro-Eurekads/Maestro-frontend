@@ -480,29 +480,31 @@ const PlatformItem = ({
           )}
           <p>{platform.platform_name}</p>
         </div>
-        <div
-          className="flex gap-3 items-center font-semibold cursor-pointer"
-          onClick={() => toggleExpansion(`${platform.platform_name}-${platform.id}`)}
-        >
-          {isExpanded[`${platform.platform_name}-${platform.id}`] ? (
-            <span className="text-gray-500">Choose the number of visuals for this format</span>
-          ) : (
-            <>
-              <p className="font-bold text-[18px] text-[#3175FF]">
-                <svg width="13" height="12" viewBox="0 0 13 12" fill="none">
-                  <path
-                    d="M5.87891 5.16675V0.166748H7.54557V5.16675H12.5456V6.83342H7.54557V11.8334H5.87891V6.83342H0.878906V5.16675H5.87891Z"
-                    fill="#3175FF"
-                  />
-                </svg>
-              </p>
-              <h3 className="text-[#3175FF]">Add format</h3>
-            </>
-          )}
-        </div>
+        {view !== "adset" && (
+          <div
+            className="flex gap-3 items-center font-semibold cursor-pointer"
+            onClick={() => toggleExpansion(`${platform.platform_name}-${platform.id}`)}
+          >
+            {isExpanded[`${platform.platform_name}-${platform.id}`] ? (
+              <span className="text-gray-500">Choose the number of visuals for this format</span>
+            ) : (
+              <>
+                <p className="font-bold text-[18px] text-[#3175FF]">
+                  <svg width="13" height="12" viewBox="0 0 13 12" fill="none">
+                    <path
+                      d="M5.87891 5.16675V0.166748H7.54557V5.16675H12.5456V6.83342H7.54557V11.8334H5.87891V6.83342H0.878906V5.16675H5.87891Z"
+                      fill="#3175FF"
+                    />
+                  </svg>
+                </p>
+                <h3 className="text-[#3175FF]">Add format</h3>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
-      {isExpanded[`${platform.platform_name}-${platform.id}`] && (
+      {view !== "adset" && isExpanded[`${platform.platform_name}-${platform.id}`] && (
         <div className="py-6">
           <MediaSelectionGrid
             mediaOptions={DEFAULT_MEDIA_OPTIONS}
@@ -786,7 +788,7 @@ export const Platforms = ({
 
 export const FormatSelection = () => {
   const [openTabs, setOpenTabs] = useState<string[]>([])
-  const [view, setView] = useState<"channel" | "adset">("channel")
+  const [view, setView] = useState<"channel" | "adset">("adset")
   const { campaignFormData } = useCampaigns()
   const { setIsDrawerOpen, setClose } = useComments()
 
@@ -806,10 +808,6 @@ export const FormatSelection = () => {
       setLocalStorageItem("formatSelectionOpenTabs", initialTab)
     }
   }, [campaignFormData])
-
-  const handleToggleChange = (checked: boolean) => {
-    setView(checked ? "adset" : "channel")
-  }
 
   const toggleTab = (stageName: string) => {
     const newOpenTabs = openTabs.includes(stageName)
@@ -834,6 +832,10 @@ export const FormatSelection = () => {
 
     if (hasFormats) return "In progress"
     return "Not started"
+  }
+
+  const handleToggleChange = (checked: boolean) => {
+    setView(checked ? "adset" : "channel")
   }
 
   return (
