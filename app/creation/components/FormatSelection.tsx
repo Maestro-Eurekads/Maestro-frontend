@@ -1,4 +1,5 @@
 "use client"
+
 import Image from "next/image"
 import { useState, useEffect } from "react"
 import { FaCheck, FaSpinner } from "react-icons/fa"
@@ -195,7 +196,7 @@ const MediaOption = ({
       channel_mix: updatedChannelMix,
     }
     await uploadUpdatedCampaignToStrapi(updatedState)
-    setLocalPreviews(ids)
+    setLocalPreviews(ids.map(id => ({ id })))
   }
 
   const handleDelete = async (previewId: string, chName: string) => {
@@ -255,11 +256,11 @@ const MediaOption = ({
           </div>
         )}
       </div>
-      {isSelected && previews && previews.length > 0 && (
+      {isSelected && localPreviews && localPreviews.length > 0 && (
         <div className="mt-8">
           <p className="font-semibold text-[18px] mb-4">Uploaded Previews</p>
           <div className="grid grid-cols-2 gap-3 flex-wrap">
-            {localPreviews?.map((prv, index) => (
+            {localPreviews.slice(0, quantity).map((prv, index) => (
               <div key={prv?.id || index} className="relative">
                 <Link
                   href={prv?.url ?? ""}
@@ -267,7 +268,7 @@ const MediaOption = ({
                   className="w-[225px] h-[150px] rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors border border-gray-500 cursor-pointer"
                 >
                   {renderUploadedFile(
-                    localPreviews?.map((lp) => lp?.url),
+                    localPreviews.map((lp) => lp?.url),
                     option.name,
                     index,
                   )}
@@ -351,7 +352,7 @@ const MediaSelectionGrid = ({
               quantity={quantities[option.name] || 1}
               onSelect={() => onFormatSelect(index, adSetIndex)}
               onQuantityChange={(change) => onQuantityChange(option.name, change)}
-              onOpenModal={() => onOpenModal(platformName, channelName, option.name, previews, q)}
+              onOpenModal={() => onOpenModal(platformName, channelName, option.name, previews || [], q)}
               platformName={platformName}
               channelName={channelName}
               previews={previews || []}
@@ -441,7 +442,7 @@ const PlatformItem = ({
         adset.format.push({
           format_type: formatName,
           num_of_visuals: "1",
-          previews: null,
+          previews: [],
         })
       }
     } else {
@@ -455,7 +456,7 @@ const PlatformItem = ({
         platformCopy.format.push({
           format_type: formatName,
           num_of_visuals: "1",
-          previews: null,
+          previews: [],
         })
       }
     }
@@ -679,11 +680,12 @@ export const Platforms = ({
   }, [campaignFormData, stageName])
 
   const handleQuantityChange = (platformName: string, formatName: string, change: number, adsetIndex?: number) => {
+    const newQuantity = Math.max(1, (quantities[platformName]?.[formatName] || 1) + change)
     const newQuantities = {
       ...quantities,
       [platformName]: {
         ...quantities[platformName],
-        [formatName]: Math.max(1, (quantities[platformName]?.[formatName] || 1) + change),
+        [formatName]: newQuantity,
       },
     }
 
@@ -711,7 +713,11 @@ export const Platforms = ({
 
           const format = adset.format.find((f) => f.format_type === formatName)
           if (format) {
-            format.num_of_visuals = newQuantities[platformName][formatName].toString()
+            format.num_of_visuals = newQuantity.toString()
+            // Truncate previews if quantity is reduced
+            if (format.previews && format.previews.length > newQuantity) {
+              format.previews = format.previews.slice(0, newQuantity)
+            }
             break
           }
         }
@@ -725,7 +731,11 @@ export const Platforms = ({
         if (platform && platform.format) {
           const format = platform.format.find((f) => f.format_type === formatName)
           if (format) {
-            format.num_of_visuals = newQuantities[platformName][formatName].toString()
+            format.num_of_visuals = newQuantity.toString()
+            // Truncate previews if quantity is reduced
+            if (format.previews && format.previews.length > newQuantity) {
+              format.previews = format.previews.slice(0, newQuantity)
+            }
             break
           }
         }
