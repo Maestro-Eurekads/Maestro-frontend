@@ -37,12 +37,14 @@ export const AdSetRow = ({
   tableBody,
   tableHeaders,
   expandedAdsetKPI,
-toggleAdSetKPIShow
+  toggleAdSetKPIShow,
+  nrAdCells,
+  toggleNRAdCell,
 }) => {
   const { campaignFormData } = useCampaigns();
   const chData = campaignFormData?.channel_mix
     ?.find((ch) => ch?.funnel_stage === stage.name)
-  [channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)
+    [channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)
     ?.ad_sets[adSetIndex];
   const obj = campaignFormData?.campaign_objective;
 
@@ -173,13 +175,13 @@ toggleAdSetKPIShow
       key,
       typeof fn === "function"
         ? fn.apply(
-          null,
-          args.map((arg) =>
-            Array.isArray(arg)
-              ? Number(getNestedValue(chData, ...arg))
-              : Number(getNestedValue(chData, arg))
+            null,
+            args.map((arg) =>
+              Array.isArray(arg)
+                ? Number(getNestedValue(chData, ...arg))
+                : Number(getNestedValue(chData, arg))
+            )
           )
-        )
         : null,
     ])
   );
@@ -223,7 +225,7 @@ toggleAdSetKPIShow
     chData?.kpi?.purchase_rate,
   ]);
   return (
-    <tr key={`${stage.name}${adSetIndex}`} className="bg-white">
+    <tr key={`${stage.name}${adSetIndex}`} className="bg-white indent-8">
       {tableBody?.map((body, bodyIndex) => (
         <td key={bodyIndex} className="py-6 px-6 border-none">
           <AdSetCellRenderer
@@ -236,6 +238,8 @@ toggleAdSetKPIShow
             adSetIndex={adSetIndex}
             adSet={adSet}
             handleEditInfo={handleEditInfo}
+            nrAdCells={nrAdCells}
+            toggleNRAdCell={toggleNRAdCell}
           />
         </td>
       ))}
@@ -247,7 +251,9 @@ toggleAdSetKPIShow
               onClick={() => toggleAdSetKPIShow(`${stage.name}${adSetIndex}`)}
             >
               <p>
-                {expandedAdsetKPI[`${stage.name}${adSetIndex}`] ? "Hide" : "View"}{" "}
+                {expandedAdsetKPI[`${stage.name}${adSetIndex}`]
+                  ? "Hide"
+                  : "View"}{" "}
                 Objective KPI
               </p>
               <ArrowRight size={14} />

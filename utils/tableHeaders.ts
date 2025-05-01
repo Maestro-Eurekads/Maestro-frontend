@@ -135,7 +135,7 @@ export const tableHeaders = {
     },
   ],
   "Website Traffic": [
-    // ...defaultHeaders,
+    ...defaultHeaders,
     {
       name: "CTR",
       showInput: true,
@@ -510,7 +510,7 @@ export const tableHeaders = {
     },
   ],
   "App Install": [
-    // ...defaultHeaders,
+    ...defaultHeaders,
     {
       name: "CTR",
       showInput: true,

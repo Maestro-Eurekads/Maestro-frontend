@@ -32,16 +32,22 @@ import { KPICellRenderer } from "./kpi-cell-renderer";
 
 export const KPIRow = ({
   channel,
-  index,
+  // index,
   stage,
   tableBody,
-  //   tableHeaders,
-  goalLevel,
-  expandedRows,
-  toggleRow,
+  adSet,
+  adSetIndex,
+  // goalLevel,
+  // expandedRows,
+  // toggleRow,
   handleEditInfo,
-  expandedKPI,
-  toggleKPIShow,
+  // expandedKPI,
+  // toggleKPIShow,
+  tableHeaders,
+  expandedAdsetKPI,
+  toggleAdSetKPIShow,
+  nrAdCells,
+  toggleNRAdCell,
 }) => {
   const { campaignFormData } = useCampaigns();
 
@@ -155,9 +161,9 @@ export const KPIRow = ({
 
   const getNestedValue = (obj, ...paths) => {
     for (const path of paths) {
-        console.log("path", path);
+      console.log("path", path);
       let value = path.split(".").reduce((acc, key) => acc?.[key], obj);
-      console.log("🚀 ~ getNestedValue ~ value:", value)
+      console.log("🚀 ~ getNestedValue ~ value:", value);
       if (value !== undefined) {
         // Check if this is a percentage field
         if (isPercentageField(path, tableHeaders)) {
@@ -233,45 +239,24 @@ export const KPIRow = ({
   ]);
 
   return (
-    <tr key={index} className="border-t bg-white hover:bg-gray-100">
-      <td className="py-6 px-6 text-[15px]" colSpan={11}>
-        <div>
-          <table>
-            <thead>
-              <tr>
-                {tHeaders?.map((header, hIndex) => (
-                  <th key={hIndex} className="py-4 px-6">
-                    {header?.name}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {tHeaders?.map((body, bodyIndex) => (
-                <td key={bodyIndex} className="py-6 px-6 text-[15px]">
-                  <KPICellRenderer
-                    body={Object.values(body)[0]
-                      ?.toLowerCase()
-                      .replace(/ /g, "_")
-                      .replace(/\//g, "")
-                      .replace(/-/g, "_")}
-                    channel={channel}
-                    calculatedValues={calculatedValues}
-                    tableHeaders={tHeaders}
-                    bodyIndex={bodyIndex}
-                    goalLevel={goalLevel}
-                    stage={stage}
-                    index={index}
-                    expandedRows={expandedRows}
-                    toggleRow={toggleRow}
-                    handleEditInfo={handleEditInfo}
-                  />
-                </td>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </td>
+    <tr key={`${stage.name}`} className="bg-white indent-[65px]">
+      {tableBody?.map((body, bodyIndex) => (
+        <td key={bodyIndex} className="py-6 px-6 border-none">
+          <KPICellRenderer
+            body={body}
+            channel={channel}
+            calculatedValues={calculatedValues}
+            tableHeaders={tableHeaders}
+            bodyIndex={bodyIndex}
+            stage={stage}
+             adSetIndex={adSetIndex}
+             adSet={adSet}
+            handleEditInfo={handleEditInfo}
+             nrAdCells={nrAdCells}
+             toggleNRAdCell={toggleNRAdCell}
+          />
+        </td>
+      ))}
     </tr>
   );
 };

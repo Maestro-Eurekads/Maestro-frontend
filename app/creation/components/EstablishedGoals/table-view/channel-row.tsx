@@ -27,7 +27,7 @@ import {
 import { CellRenderer } from "./cell-renderer";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { tableHeaders } from "utils/tableHeaders";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Ban, Pin } from "lucide-react";
 
 export const ChannelRow = ({
   channel,
@@ -41,6 +41,9 @@ export const ChannelRow = ({
   handleEditInfo,
   expandedKPI,
   toggleKPIShow,
+  nrColumns,
+  nrCells,
+  toggleNRCell,
 }) => {
   const { campaignFormData } = useCampaigns();
 
@@ -230,23 +233,34 @@ export const ChannelRow = ({
   return (
     <tr key={index} className="border-t bg-white hover:bg-gray-100">
       {tableBody?.map((body, bodyIndex) => (
-        <td key={bodyIndex} className="py-6 px-6 text-[15px]">
-          <CellRenderer
-            body={body}
-            channel={channel}
-            calculatedValues={calculatedValues}
-            tableHeaders={tableHeaders}
-            bodyIndex={bodyIndex}
-            goalLevel={goalLevel}
-            stage={stage}
-            index={index}
-            expandedRows={expandedRows}
-            toggleRow={toggleRow}
-            handleEditInfo={handleEditInfo}
-          />
+        <td
+          key={bodyIndex}
+          className={`py-4 px-6 text-[15px] ${
+            nrColumns?.includes(body) ? "text-gray-400" : ""
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <CellRenderer
+              body={body}
+              channel={channel}
+              calculatedValues={calculatedValues}
+              tableHeaders={tableHeaders}
+              bodyIndex={bodyIndex}
+              goalLevel={goalLevel}
+              stage={stage}
+              index={index}
+              expandedRows={expandedRows}
+              toggleRow={toggleRow}
+              handleEditInfo={handleEditInfo}
+              nrColumns={nrColumns}
+              nrCells={nrCells}
+              toggleNRCell={toggleNRCell}
+            />
+           
+          </div>
         </td>
       ))}
-      {chData?.objective_type &&
+      {/* {chData?.objective_type &&
         chData?.objective_type !== "Brand Awareness" && (
           <td className="py-6 px-6 text-[15px]">
             <span
@@ -260,7 +274,7 @@ export const ChannelRow = ({
               <ArrowRight size={14} />
             </span>
           </td>
-        )}
+        )} */}
     </tr>
   );
 };

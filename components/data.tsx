@@ -726,3 +726,18 @@ export const PPTXRenderer = ({ file }: { file: string }) => {
   );
 };
 
+
+
+export const mediaTypes = [
+  "social_media",
+  "display_networks",
+  "search_engines",
+  "streaming",
+  "ooh",
+  "broadcast",
+  "messaging",
+  "print",
+  "e_commerce",
+  "in_game",
+  "mobile",
+];

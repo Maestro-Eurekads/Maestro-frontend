@@ -1,5 +1,6 @@
 "use client";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import { Ban } from "lucide-react";
 import Image from "next/image";
 
 export const CellRenderer = ({
@@ -14,6 +15,9 @@ export const CellRenderer = ({
   expandedRows,
   toggleRow,
   handleEditInfo,
+  nrColumns,
+  nrCells,
+  toggleNRCell,
 }) => {
   const { campaignFormData } = useCampaigns();
 
@@ -31,6 +35,7 @@ export const CellRenderer = ({
     "reach",
   ];
 
+  const isNR = nrCells[channel?.name]?.[body];
   // Helper function to safely get calculated values
   const getCalculatedValue = (key) => {
     const value = calculatedValues[key];
@@ -43,51 +48,59 @@ export const CellRenderer = ({
   // Helper function to format numbers with commas
   const formatNumber = (num) => {
     if (isNaN(num) || num === null || num === undefined) return "-";
-    return new Intl.NumberFormat("en-US").format(num);
+    return num?.toLocaleString();
   };
 
   // Channel cell rendering
   if (body === "channel") {
     return (
-      <span
-        className="flex items-center gap-2 cursor-pointer"
-        onClick={() =>
-          goalLevel === "Adset level" &&
-          channel?.ad_sets?.length > 0 &&
-          toggleRow(`${stage.name}${index}`)
-        }
-        style={{ color: channel?.color }}
-      >
-        {goalLevel === "Adset level" && channel?.ad_sets?.length > 0 && (
-          <span className="shrink-0">
-            <svg
-              width="17"
-              height="16"
-              viewBox="0 0 17 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M5.38021 6.66667L8.71354 10L12.0469 6.66667 6.66667"
-                stroke="#061237"
-                strokeOpacity="0.8"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                transform={expandedRows[index] ? "rotate(180 8.5 8)" : ""}
-              />
-            </svg>
+      <div className="flex items-center gap-5 w-fit">
+        <span
+          className={`flex items-center gap-2 cursor-pointer ${
+            nrColumns?.includes(body) ? "text-gray-400" : ""
+          }`}
+          onClick={() =>
+            goalLevel === "Adset level" &&
+            channel?.ad_sets?.length > 0 &&
+            toggleRow(`${stage.name}${index}`)
+          }
+          style={{ color: channel?.color }}
+        >
+          {goalLevel === "Adset level" && channel?.ad_sets?.length > 0 && (
+            <span className="shrink-0">
+              <svg
+                width="17"
+                height="16"
+                viewBox="0 0 17 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5.38021 6.66667L8.71354 10L12.0469 6.66667 6.66667"
+                  stroke="#061237"
+                  strokeOpacity="0.8"
+                  strokeWidth="1.33333"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  transform={expandedRows[index] ? "rotate(180 8.5 8)" : ""}
+                />
+              </svg>
+            </span>
+          )}
+          <span className="relative w-[16px] h-[16px] shrink-0">
+            <Image
+              src={channel.icon || "/placeholder.svg"}
+              fill
+              alt={`${channel.name} Icon`}
+            />
           </span>
-        )}
-        <span className="relative w-[16px] h-[16px] shrink-0">
-          <Image
-            src={channel.icon || "/placeholder.svg"}
-            fill
-            alt={`${channel.name} Icon`}
-          />
+          <span>{channel.name}</span>
         </span>
-        <span>{channel.name}</span>
-      </span>
+        {/* <Ban
+          size={10}
+          className="hidden group-hover:block shrink-0 cursor-pointer"
+        /> */}
+      </div>
     );
   }
 
@@ -134,7 +147,18 @@ export const CellRenderer = ({
   ];
 
   if (calculatedFields.includes(body)) {
-    return getCalculatedValue(body);
+    return (
+      <div
+        className="flex justify-center items-center gap-5 w-fit group"
+        onClick={() => toggleNRCell(stage.name, channel?.name, body)}
+      >
+        {isNR ? <p className="text-gray-300 font-semibold">NR</p> : <p>{getCalculatedValue(body)}</p>}
+        <Ban
+          size={10}
+          className="hidden group-hover:block shrink-0 cursor-pointer"
+        />
+      </div>
+    );
   }
 
   // Handle input fields and static values
@@ -144,9 +168,17 @@ export const CellRenderer = ({
     if (exemptFields.includes(body)) {
       return value === "Invalid date" ? "-" : value;
     }
-    return value === "Invalid date"
-      ? "-"
-      : formatNumber(parseFloat(value)?.toFixed(2));
+    return value === "Invalid date" ? (
+      "-"
+    ) : (
+      <div className="flex justify-center items-center gap-5 w-fit">
+        <p>{formatNumber(parseFloat(value)?.toFixed(2))}</p>
+        <Ban
+          size={10}
+          className="hidden group-hover:block shrink-0 cursor-pointer"
+        />
+      </div>
+    );
   }
 
   const isPercentType = tableHeaders[bodyIndex]?.type === "percent";
@@ -155,10 +187,10 @@ export const CellRenderer = ({
   const kpiValue =
     body === "budget_size"
       ? campaignFormData?.channel_mix
-      ?.find((ch) => ch?.funnel_stage === stage.name)
-      ?.[channel?.channel_name]?.find(
-        (c) => c?.platform_name === channel?.name
-      )?.budget?.fixed_value || ""
+          ?.find((ch) => ch?.funnel_stage === stage.name)
+          ?.[channel?.channel_name]?.find(
+            (c) => c?.platform_name === channel?.name
+          )?.budget?.fixed_value || ""
       : campaignFormData?.channel_mix
           ?.find((ch) => ch?.funnel_stage === stage.name)
           ?.[channel?.channel_name]?.find(
@@ -187,43 +219,57 @@ export const CellRenderer = ({
   }
 
   return (
-    <input
-      value={displayValue}
-      onChange={(e) => {
-        let newValue = e.target.value;
+    <div className="flex  items-center gap-2 group">
+      {isNR ? (
+        <p className="text-gray-300 font-semibold">NR</p>
+      ) : (
+        <input
+          value={displayValue}
+          onChange={(e) => {
+            let newValue = e.target.value;
 
-        // Allow only valid characters: numbers, '.', ',', ':', and '%'
-        newValue = newValue.replace(/[^0-9.,:%]/g, "");
+            // Allow only valid characters: numbers, '.', ',', ':', and '%'
+            newValue = newValue.replace(/[^0-9.,:%]/g, "");
 
-        // Handle percentage input
-        if (isPercentType) {
-          // Remove % if present
-          newValue = newValue.replace(/%/g, "");
+            // Handle percentage input
+            if (isPercentType) {
+              // Remove % if present
+              newValue = newValue.replace(/%/g, "");
 
-          // Store the raw percentage value (not converted to decimal)
-          handleEditInfo(
-            stage.name,
-            channel?.channel_name,
-            channel?.name,
-            body,
-            newValue,
-            ""
-          );
-          return;
-        }
+              // Store the raw percentage value (not converted to decimal)
+              handleEditInfo(
+                stage.name,
+                channel?.channel_name,
+                channel?.name,
+                body,
+                newValue,
+                ""
+              );
+              return;
+            }
 
-        // Handle non-percentage input normally
-        handleEditInfo(
-          stage.name,
-          channel?.channel_name,
-          channel?.name,
-          body,
-          newValue,
-          ""
-        );
-      }}
-      className="cpm-bg border-none outline-none w-[100px] p-1"
-      placeholder={body ? body?.toUpperCase() : "Insert value"}
-    />
+            // Handle non-percentage input normally
+            handleEditInfo(
+              stage.name,
+              channel?.channel_name,
+              channel?.name,
+              body,
+              newValue,
+              ""
+            );
+          }}
+          disabled={isNR}
+          className={`cpm-bg border-none outline-none max-w-[90px] p-1 ${
+            isNR ? "text-gray-400" : ""
+          }`}
+          placeholder={body ? body?.toUpperCase() : "Insert value"}
+        />
+      )}
+      <Ban
+        size={10}
+        className="hidden group-hover:block shrink-0 cursor-pointer"
+        onClick={() => toggleNRCell(stage.name, channel?.name, body)}
+      />
+    </div>
   );
 };

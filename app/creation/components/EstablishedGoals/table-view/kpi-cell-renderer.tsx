@@ -8,12 +8,16 @@ export const KPICellRenderer = ({
   calculatedValues,
   tableHeaders,
   bodyIndex,
-  goalLevel,
+  // goalLevel,
   stage,
-  index,
-  expandedRows,
-  toggleRow,
+  // index,
+  // expandedRows,
+  // toggleRow,
   handleEditInfo,
+  adSetIndex,
+  adSet,
+  nrAdCells,
+  toggleNRAdCell
 }) => {
   const { campaignFormData } = useCampaigns();
 
@@ -45,6 +49,22 @@ export const KPICellRenderer = ({
     if (isNaN(num) || num === null || num === undefined) return "-";
     return new Intl.NumberFormat("en-US").format(num);
   };
+
+  if (body === "channel") {
+    return (
+      <div className="flex gap-2">
+        <div className="l-shape-container-ad">
+          <div className="l-vertical-ad"></div>
+          <div className="l-horizontal-ad"></div>
+        </div>
+
+        <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
+          {1}.
+        </span>
+        <span>{adSet? adSet: "-"}</span>
+      </div>
+    );
+  }
 
   // Handle calculated fields
   const calculatedFields = [
@@ -89,8 +109,11 @@ export const KPICellRenderer = ({
     "cpp",
   ];
 
+  // if (calculatedFields.includes(body)) {
+  //   return getCalculatedValue(body);
+  // }
   if (calculatedFields.includes(body)) {
-    return getCalculatedValue(body);
+    return "";
   }
 
   // Handle input fields and static values
@@ -111,10 +134,10 @@ export const KPICellRenderer = ({
   const kpiValue =
     body === "budget_size"
       ? campaignFormData?.channel_mix
-      ?.find((ch) => ch?.funnel_stage === stage.name)
-      ?.[channel?.channel_name]?.find(
-        (c) => c?.platform_name === channel?.name
-      )?.budget?.fixed_value || ""
+          ?.find((ch) => ch?.funnel_stage === stage.name)
+          ?.[channel?.channel_name]?.find(
+            (c) => c?.platform_name === channel?.name
+          )?.budget?.fixed_value || ""
       : campaignFormData?.channel_mix
           ?.find((ch) => ch?.funnel_stage === stage.name)
           ?.[channel?.channel_name]?.find(
@@ -142,44 +165,44 @@ export const KPICellRenderer = ({
     }
   }
 
-  return (
-    <input
-      value={displayValue}
-      onChange={(e) => {
-        let newValue = e.target.value;
+  // return (
+  //   <input
+  //     value={displayValue}
+  //     onChange={(e) => {
+  //       let newValue = e.target.value;
 
-        // Allow only valid characters: numbers, '.', ',', ':', and '%'
-        newValue = newValue.replace(/[^0-9.,:%]/g, "");
+  //       // Allow only valid characters: numbers, '.', ',', ':', and '%'
+  //       newValue = newValue.replace(/[^0-9.,:%]/g, "");
 
-        // Handle percentage input
-        if (isPercentType) {
-          // Remove % if present
-          newValue = newValue.replace(/%/g, "");
-          newValue = (parseFloat(newValue) / 100).toString();
-          // Store the raw percentage value (not converted to decimal)
-          handleEditInfo(
-            stage.name,
-            channel?.channel_name,
-            channel?.name,
-            body,
-            newValue,
-            ""
-          );
-          return;
-        }
+  //       // Handle percentage input
+  //       if (isPercentType) {
+  //         // Remove % if present
+  //         newValue = newValue.replace(/%/g, "");
+  //         newValue = (parseFloat(newValue) / 100).toString();
+  //         // Store the raw percentage value (not converted to decimal)
+  //         handleEditInfo(
+  //           stage.name,
+  //           channel?.channel_name,
+  //           channel?.name,
+  //           body,
+  //           newValue,
+  //           ""
+  //         );
+  //         return;
+  //       }
 
-        // Handle non-percentage input normally
-        handleEditInfo(
-          stage.name,
-          channel?.channel_name,
-          channel?.name,
-          body,
-          newValue,
-          ""
-        );
-      }}
-      className="cpm-bg border-none outline-none w-[100px] p-1"
-      placeholder={body ? body?.toUpperCase() : "Insert value"}
-    />
-  );
+  //       // Handle non-percentage input normally
+  //       handleEditInfo(
+  //         stage.name,
+  //         channel?.channel_name,
+  //         channel?.name,
+  //         body,
+  //         newValue,
+  //         ""
+  //       );
+  //     }}
+  //     className="cpm-bg border-none outline-none w-[100px] p-1"
+  //     placeholder={body ? body?.toUpperCase() : "Insert value"}
+  //   />
+  // );
 };

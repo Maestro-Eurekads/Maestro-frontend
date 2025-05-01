@@ -1,5 +1,6 @@
 "use client";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import { Ban } from "lucide-react";
 import Image from "next/image";
 
 export const AdSetCellRenderer = ({
@@ -12,6 +13,8 @@ export const AdSetCellRenderer = ({
   adSetIndex,
   adSet,
   handleEditInfo,
+  nrAdCells,
+  toggleNRAdCell,
 }) => {
   const { campaignFormData } = useCampaigns();
 
@@ -27,6 +30,8 @@ export const AdSetCellRenderer = ({
     "frequency",
     "reach",
   ];
+
+  const isNR = nrAdCells[`${channel?.name}-${adSetIndex}`]?.[body];
 
   // Helper function to safely get calculated values
   const getCalculatedValue = (key) => {
@@ -47,6 +52,11 @@ export const AdSetCellRenderer = ({
   if (body === "channel") {
     return (
       <div className="flex gap-2">
+        <div className="l-shape-container">
+          <div className="l-vertical"></div>
+          <div className="l-horizontal"></div>
+        </div>
+
         <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
           {adSetIndex + 1}.
         </span>
@@ -63,9 +73,9 @@ export const AdSetCellRenderer = ({
     return !adSet?.size ? "-" : adSet?.size;
   }
 
-  if (body === "budget_size") {
-    return !adSet?.budget ? "-" : adSet?.budget?.fixed_value;
-  }
+  // if (body === "budget_size") {
+  //   return adSet?.budget?.fixed_value === null || adSet?.budget?.fixed_value === undefined ? "-" : adSet?.budget?.fixed_value;
+  // }
 
   const calculatedFields = [
     "impressions",
@@ -109,7 +119,24 @@ export const AdSetCellRenderer = ({
   ];
 
   if (calculatedFields.includes(body)) {
-    return getCalculatedValue(body);
+    return (
+      <div
+        className="flex justify-center items-center gap-5 w-fit group"
+        onClick={() =>
+          toggleNRAdCell(stage.name, `${channel?.name}-${adSetIndex}`, body)
+        }
+      >
+        {isNR ? (
+          <p className="text-gray-300 font-semibold">NR</p>
+        ) : (
+          <p>{getCalculatedValue(body)}</p>
+        )}
+        <Ban
+          size={10}
+          className="hidden group-hover:block shrink-0 cursor-pointer"
+        />
+      </div>
+    );
   }
 
   // Handle input fields and static values
@@ -155,37 +182,59 @@ export const AdSetCellRenderer = ({
   }
 
   return (
-    <input
-      value={displayValue}
-      onChange={(e) => {
-        let newValue = e.target.value;
+    <div className="flex  items-center gap-2 group">
+      {isNR ? (
+        <p className="text-gray-300 font-semibold">NR</p>
+      ) : (
+        <input
+          value={displayValue}
+          onChange={(e) => {
+            let newValue = e.target.value;
 
-        // Allow only valid characters: numbers, '.', ',', ':', and '%'
-        newValue = newValue.replace(/[^0-9.,:%]/g, "");
-        if (isPercentType) {
-          // Remove % if present
-          newValue = newValue.replace(/%/g, "");
-          handleEditInfo(
-            stage.name,
-            channel?.channel_name,
-            channel?.name,
-            body,
-            newValue,
-            adSetIndex
-          );
-          return;
+            // Allow only valid characters: numbers, '.', ',', ':', and '%'
+            newValue = newValue.replace(/[^0-9.,:%]/g, "");
+
+            // Handle percentage input
+            if (isPercentType) {
+              // Remove % if present
+              newValue = newValue.replace(/%/g, "");
+
+              // Store the raw percentage value (not converted to decimal)
+              handleEditInfo(
+                stage.name,
+                channel?.channel_name,
+                channel?.name,
+                body,
+                newValue,
+                ""
+              );
+              return;
+            }
+
+            // Handle non-percentage input normally
+            handleEditInfo(
+              stage.name,
+              channel?.channel_name,
+              channel?.name,
+              body,
+              newValue,
+              ""
+            );
+          }}
+          disabled={isNR}
+          className={`cpm-bg border-none outline-none max-w-[90px] p-1 ${
+            isNR ? "text-gray-400" : ""
+          }`}
+          placeholder={body ? body?.toUpperCase() : "Insert value"}
+        />
+      )}
+      <Ban
+        size={10}
+        className="hidden group-hover:block shrink-0 cursor-pointer"
+        onClick={() =>
+          toggleNRAdCell(stage.name, `${channel?.name}-${adSetIndex}`, body)
         }
-        handleEditInfo(
-          stage.name,
-          channel?.channel_name,
-          channel?.name,
-          body,
-          newValue,
-          adSetIndex
-        );
-      }}
-      className="cpm-bg border-none outline-none w-[100px] p-1"
-      placeholder={body ? body?.toUpperCase() : "Insert value"}
-    />
+      />
+    </div>
   );
 };
