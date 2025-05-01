@@ -402,7 +402,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "isValidated",
           "formatValidated",
           "validatedStages",
-          "documentId"
+          "documentId",
         ]),
         custom_funnels: campaignFormData?.custom_funnels,
         funnel_type: campaignFormData?.funnel_type,
@@ -431,41 +431,24 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "isValidated",
           "formatValidated",
           "validatedStages",
-          "documentId"
+          "documentId",
         ]),
       });
     };
 
     const handleStepSeven = async () => {
       if (!campaignData) return;
-
-      if (active === 7 && subStep === 1) {
-        await updateCampaignData({
-          ...cleanData,
-          funnel_stages: campaignFormData?.funnel_stages,
-          channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
-            "id",
-            "isValidated",
-            "documentId"
-          ]),
-          campaign_budget: removeKeysRecursively(copy?.campaign_budget, ["id"]),
-        });
-      } else {
-        await updateCampaignData({
-          ...cleanData,
-          funnel_stages: campaignFormData?.funnel_stages,
-          channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
-            "id",
-            "isValidated",
-            "documentId"
-          ]),
-          campaign_budget: removeKeysRecursively(
-            campaignFormData?.campaign_budget,
-            ["id"]
-          ),
-          goal_level: campaignFormData?.goal_level,
-        });
-      }
+      await updateCampaignData({
+        ...cleanData,
+        funnel_stages: campaignFormData?.funnel_stages,
+        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+          "id",
+          "isValidated",
+          "documentId",
+        ]),
+        campaign_budget: removeKeysRecursively(copy?.campaign_budget, ["id"]),
+        goal_level: campaignFormData?.goal_level,
+      })
     };
 
     try {

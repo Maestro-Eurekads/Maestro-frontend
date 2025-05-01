@@ -289,3 +289,47 @@ main {
   justify-content: center;
   height: 100%;  
 }
+
+
+.l-shape-container {
+  position: relative;
+}
+
+.l-vertical {
+  position: absolute;
+  width: 1px;
+  height: 65px;
+  background-color: black;
+  left: 8px;
+  top: -55px;
+}
+
+.l-horizontal {
+  position: absolute;
+  width: 30px;
+  height: 1px;
+  background-color: black;
+  bottom: 9px;
+  left: 8px;
+}
+.l-shape-container-ad {
+  position: relative;
+}
+
+.l-vertical-ad {
+  position: absolute;
+  width: 1px;
+  height: 65px;
+  background-color: black;
+  left: 40px;
+  top: -55px;
+}
+
+.l-horizontal-ad {
+  position: absolute;
+  width: 30px;
+  height: 1px;
+  background-color: black;
+  bottom: 9px;
+  left: 40px;
+}

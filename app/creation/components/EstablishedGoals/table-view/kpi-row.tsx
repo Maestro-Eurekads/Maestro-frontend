@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import {
   calculateAdReturn,
   calculateBouncedVisits,
@@ -23,18 +24,25 @@ import {
   calculateReach,
   calculateVideoViews,
 } from "utils/formula";
-import { AdSetCellRenderer } from "./ad-set-cell-renderer";
+import { CellRenderer } from "./cell-renderer";
 import { useCampaigns } from "app/utils/CampaignsContext";
-import { useEffect } from "react";
+import { tableHeaders } from "utils/tableHeaders";
 import { ArrowRight } from "lucide-react";
+import { KPICellRenderer } from "./kpi-cell-renderer";
 
-export const AdSetRow = ({
+export const KPIRow = ({
+  channel,
+  // index,
+  stage,
+  tableBody,
   adSet,
   adSetIndex,
-  channel,
-  stage,
+  // goalLevel,
+  // expandedRows,
+  // toggleRow,
   handleEditInfo,
-  tableBody,
+  // expandedKPI,
+  // toggleKPIShow,
   tableHeaders,
   expandedAdsetKPI,
   toggleAdSetKPIShow,
@@ -42,11 +50,14 @@ export const AdSetRow = ({
   toggleNRAdCell,
 }) => {
   const { campaignFormData } = useCampaigns();
+
   const chData = campaignFormData?.channel_mix
     ?.find((ch) => ch?.funnel_stage === stage.name)
-    [channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)
-    ?.ad_sets[adSetIndex];
-  const obj = campaignFormData?.campaign_objective;
+    ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name);
+
+  const tHeaders = tableHeaders?.[chData?.objective_type];
+
+  const obj = campaignFormData?.campaign_objectives;
 
   const formulas = {
     impressions: [calculateImpression, "budget.fixed_value", "kpi.cpm"],
@@ -150,7 +161,9 @@ export const AdSetRow = ({
 
   const getNestedValue = (obj, ...paths) => {
     for (const path of paths) {
+      console.log("path", path);
       let value = path.split(".").reduce((acc, key) => acc?.[key], obj);
+      console.log("🚀 ~ getNestedValue ~ value:", value);
       if (value !== undefined) {
         // Check if this is a percentage field
         if (isPercentageField(path, tableHeaders)) {
@@ -195,7 +208,7 @@ export const AdSetRow = ({
           channel?.name,
           key,
           value,
-          adSetIndex
+          ""
         );
       }
     });
@@ -224,42 +237,26 @@ export const AdSetRow = ({
     chData?.kpi?.cppi,
     chData?.kpi?.purchase_rate,
   ]);
+
   return (
-    <tr key={`${stage.name}${adSetIndex}`} className="bg-white indent-8">
+    <tr key={`${stage.name}`} className="bg-white indent-[65px]">
       {tableBody?.map((body, bodyIndex) => (
         <td key={bodyIndex} className="py-6 px-6 border-none">
-          <AdSetCellRenderer
+          <KPICellRenderer
             body={body}
             channel={channel}
             calculatedValues={calculatedValues}
             tableHeaders={tableHeaders}
             bodyIndex={bodyIndex}
             stage={stage}
-            adSetIndex={adSetIndex}
-            adSet={adSet}
+             adSetIndex={adSetIndex}
+             adSet={adSet}
             handleEditInfo={handleEditInfo}
-            nrAdCells={nrAdCells}
-            toggleNRAdCell={toggleNRAdCell}
+             nrAdCells={nrAdCells}
+             toggleNRAdCell={toggleNRAdCell}
           />
         </td>
       ))}
-      {chData?.objective_type &&
-        chData?.objective_type !== "Brand Awareness" && (
-          <td className="py-6 px-6 text-[15px]">
-            <span
-              className="flex items-center gap-2 text-blue-500 cursor-pointer"
-              onClick={() => toggleAdSetKPIShow(`${stage.name}${adSetIndex}`)}
-            >
-              <p>
-                {expandedAdsetKPI[`${stage.name}${adSetIndex}`]
-                  ? "Hide"
-                  : "View"}{" "}
-                Objective KPI
-              </p>
-              <ArrowRight size={14} />
-            </span>
-          </td>
-        )}
     </tr>
   );
 };

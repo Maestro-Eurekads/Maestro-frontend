@@ -54,6 +54,7 @@ channelKeys.forEach((key) => {
       },
       budget: "*",
       kpi: "*",
+      ad_sets: "*",
       ...nestedAdSetPopulate,
     },
   };

@@ -1,10 +1,11 @@
 import moment from "moment";
-import { getPlatformIcon, platformStyles } from "components/data";
+import { getPlatformIcon, mediaTypes, platformStyles } from "components/data";
 import { tableHeaders } from "utils/tableHeaders";
 
 export function extractPlatforms(data) {
   const platforms = {};
-  const headers = tableHeaders[data?.campaign_objective] || tableHeaders["Brand Awareness"];
+  const headers =
+    tableHeaders[data?.campaign_objective] || tableHeaders["Brand Awareness"];
 
   data?.channel_mix?.length > 0 &&
     data.channel_mix.forEach((stage) => {
@@ -22,39 +23,35 @@ export function extractPlatforms(data) {
         "e_commerce",
         "in_game",
         "mobile",
-      ].forEach(
-        (channelType) => {
-          stage[channelType].forEach((platform) => {
-            const platformName = platform.platform_name;
-            const existingPlatform = platforms[stageName].find(
-              (p) => p.name === platformName
+      ].forEach((channelType) => {
+        stage[channelType].forEach((platform) => {
+          const platformName = platform.platform_name;
+          const existingPlatform = platforms[stageName].find(
+            (p) => p.name === platformName
+          );
+
+          if (!existingPlatform) {
+            // Find platform style or use random one
+            const style =
+              platformStyles.find((style) => style.name === platformName) ||
+              platformStyles[Math.floor(Math.random() * platformStyles.length)];
+
+            // Map headers to values
+            const rowData = mapHeadersToValues(headers, platform);
+
+            // Create platform object with all necessary data
+            platforms[stageName].push(
+              createPlatformObject(
+                platformName,
+                style,
+                platform,
+                channelType,
+                rowData
+              )
             );
-
-            if (!existingPlatform) {
-              // Find platform style or use random one
-              const style =
-                platformStyles.find((style) => style.name === platformName) ||
-                platformStyles[
-                  Math.floor(Math.random() * platformStyles.length)
-                ];
-
-              // Map headers to values
-              const rowData = mapHeadersToValues(headers, platform);
-
-              // Create platform object with all necessary data
-              platforms[stageName].push(
-                createPlatformObject(
-                  platformName,
-                  style,
-                  platform,
-                  channelType,
-                  rowData
-                )
-              );
-            }
-          });
-        }
-      );
+          }
+        });
+      });
     });
 
   return platforms;
@@ -85,11 +82,15 @@ function createPlatformObject(
   channelType,
   rowData
 ) {
+  // console.log({ platformName, style, platform, channelType, rowData });
   return {
     icon: getPlatformIcon(platformName),
     name: platformName,
     color: style?.color,
-    audience: platform?.ad_sets && platform?.ad_sets.length > 0 && platform?.ad_sets[0]?.audience_type,
+    audience:
+      platform?.ad_sets &&
+      platform?.ad_sets.length > 0 &&
+      platform?.ad_sets[0]?.audience_type,
     start_date: moment(platform.campaign_start_date).format("DD/MM/YYYY"),
     end_date: moment(platform.campaign_end_date).format("DD/MM/YYYY"),
     audience_size: platform?.ad_sets?.reduce(
@@ -111,5 +112,33 @@ function createPlatformObject(
     })),
     channel_name: channelType,
     ...rowData,
+  };
+}
+
+export function extractObjectives(data) {
+  const result = {};
+
+  data.channel_mix.forEach((channel) => {
+    const funnelStage = channel.funnel_stage;
+    if (!result[funnelStage]) {
+      result[funnelStage] = [];
+    }
+
+    mediaTypes.forEach((mediaType) => {
+      if (channel[mediaType]) {
+        channel[mediaType].forEach((media) => {
+          if (
+            media.objective_type &&
+            !result[funnelStage].includes(media.objective_type)
+          ) {
+            result[funnelStage].push(media.objective_type);
+          }
+        });
+      }
+    });
+  });
+
+  return result as {
+    [key: string]: string[];
   };
 }

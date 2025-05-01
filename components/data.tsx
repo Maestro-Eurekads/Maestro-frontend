@@ -477,6 +477,7 @@ export const platformStyles = [
   { name: "TikTok", color: "#000000", icon: tictok, bg: "#F7F7F7" },
   { name: "YouTube", color: "#FF0000", icon: youtube, bg: "#FFF0F0" },
   { name: "Twitter/X", color: "#000000", icon: x, bg: "#F7F7F7" },
+  { name: "Twitter (X)", color: "#000000", icon: x, bg: "#F7F7F7" },
   { name: "LinkedIn", color: "#0A66C2", icon: linkedin, bg: "#F0F5FF" },
   { name: "Snapchat", color: "#FFFC00", icon: snapchat, bg: "#FFFFF0" },
   { name: "Pinterest", color: "#E60023", icon: pinterest, bg: "#FFF0F2" },
@@ -725,3 +726,18 @@ export const PPTXRenderer = ({ file }: { file: string }) => {
   );
 };
 
+
+
+export const mediaTypes = [
+  "social_media",
+  "display_networks",
+  "search_engines",
+  "streaming",
+  "ooh",
+  "broadcast",
+  "messaging",
+  "print",
+  "e_commerce",
+  "in_game",
+  "mobile",
+];

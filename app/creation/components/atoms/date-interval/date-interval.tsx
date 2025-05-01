@@ -29,12 +29,12 @@ const DateInterval = () => {
           return (
             <div
               key={index}
-              className={`relative min-w-[60px] text-center text-sm font-medium px-1 py-1 rounded-md
+              className={`relative min-w-[100px] text-center text-sm font-medium px-1 py-1 rounded-md
               ${isEdge ? "bg-[#f05406] text-white" : "#fff"}
             `}
               style={{
                 display: "grid",
-                gridTemplateColumns: `repeat(${range?.length}, 1fr)`,
+                gridTemplateColumns: `repeat(100px, 1fr)`,
               }}
             >
               <span className={`${isEdge ? "text-white" : "text-black"}`}>

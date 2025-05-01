@@ -215,44 +215,26 @@ const Dashboard = () => {
     return platforms
   }
 
-  return (
-    <div className="mt-[24px] ">
-      <div className="flex items-center gap-3 px-[72px] flex-wrap ">
-        <FiltersDropdowns />
-        <div className="w-[24px] h-0 border border-[rgba(0,0,0,0.1)] rotate-90 self-center " />
-        <HighlightViewDropdowns />
-      </div>
-      <div className="flex justify-end mb-4 mr-8">
-        <Range />
-      </div>
-      <div className=" mt-[20px] w-full">{loading ? <TableLoader isLoading={loading} /> : ""}</div>
-      {/* <div className="box-border w-full min-h-[519px] bg-white border-b-2">
-        {range === "Day" ? (
-          <>
-            <DayInterval daysCount={dayDifference} />
-            <DayTimeline daysCount={dayDifference} funnels={funnelsData} />
-          </>
-        ) : range === "Month" ? (
-          <>
-            <MonthInterval monthsCount={monthDifference} />
-            <MonthTimeline monthsCount={monthDifference} funnels={funnelsData} />
-          </>
-        ) : (
-          <>
-            <WeekInterval weeksCount={weekDifference} />
-            <WeekTimeline weeksCount={weekDifference} funnels={funnelsData} />
-          </>
-        )}
-      </div> */}
-      <TimelineContainer
-        range={range}
-        dayDifference={dayDifference}
-        weekDifference={weekDifference}
-        monthDifference={monthDifference}
-        funnelsData={funnelsData}
-      />
-      {processedCampaigns?.map((campaign, index) => {
-        const channelD = extractPlatforms(campaign)
+ return (
+  <div className="mt-[24px] ">
+   <div className="flex items-center gap-3 px-[72px] flex-wrap ">
+    <FiltersDropdowns />
+    <div className="w-[24px] h-0 border border-[rgba(0,0,0,0.1)] rotate-90 self-center " />
+    <HighlightViewDropdowns />
+   </div>
+   <div className="flex justify-end mb-4 mr-8">
+    <Range />
+   </div>
+   <div className=" mt-[20px] w-full">{loading ? <TableLoader isLoading={loading} /> : ""}</div>
+   <TimelineContainer
+    range={range}
+    dayDifference={dayDifference}
+    weekDifference={weekDifference}
+    monthDifference={monthDifference}
+    funnelsData={funnelsData}
+   />
+   {processedCampaigns?.map((campaign, index) => {
+    const channelD = extractPlatforms(campaign)
 
         return (
           <div key={index} className="flex justify-center gap-[48px] mt-[100px]">

@@ -23,12 +23,21 @@ import { useComments } from "app/utils/CommentProvider";
 const SideNav: React.FC = () => {
   const { setClose, close } = useComments();
   const router = useRouter();
-  const { setActive, setSubStep } = useActive();
+  const { setActive, setSubStep, active } = useActive();
   const searchParams = useSearchParams();
   const campaignId = searchParams.get("campaignId");
   const { campaignData, getActiveCampaign, setCampaignData, isLoading, setIsLoading, loading } = useCampaigns();
 
 
+
+  useEffect(() => {
+    if(active == 9){
+      console.log('active', active, "here", close)
+      setClose(true)
+    } else {
+      setClose(false)
+    }
+  }, [active])
 
   const handleBackClick = (e) => {
     e.preventDefault();
