@@ -1,3 +1,4 @@
+
 "use client"
 
 import type React from "react"
@@ -19,6 +20,8 @@ interface UploadModalProps {
   quantities: number
   stageName: string
   previews: Array<{ id: string; url: string }>
+  adSetIndex?: number
+  onUploadSuccess?: () => void // Added to notify parent of successful upload
 }
 
 const UploadModal: React.FC<UploadModalProps> = ({
@@ -30,6 +33,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
   quantities,
   stageName,
   previews,
+  adSetIndex,
+  onUploadSuccess,
 }) => {
   const { campaignFormData, updateCampaign, getActiveCampaign, campaignData } = useCampaigns()
   const [uploads, setUploads] = useState<Array<File | null>>([])
@@ -37,14 +42,15 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const [loading, setLoading] = useState(false)
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null)
   const [retryCount, setRetryCount] = useState(0)
-  const MAX_RETRIES = 5 // Increased from 3 to 5
+  const MAX_RETRIES = 5
   const CHUNK_SIZE = 5 * 1024 * 1024 // 5MB chunks for large files
 
   // Initialize uploadBlobs with existing previews
   useEffect(() => {
+    console.log("UploadModal props:", { platform, channel, format, quantities, stageName, previews, adSetIndex })
     if (previews && previews.length > 0) {
       setUploadBlobs(previews.map((preview) => preview.url))
-      setUploads(previews.map(() => null)) // Initialize uploads to match previews
+      setUploads(previews.map(() => null))
     } else {
       setUploadBlobs(Array(quantities).fill(""))
       setUploads(Array(quantities).fill(null))
@@ -58,7 +64,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
     const allowedTypes =
       format === "Video"
-        ? ["video/mp4", "video/mov", "video/quicktime"] // Added video/quicktime for .mov files
+        ? ["video/mp4", "video/mov", "video/quicktime"]
         : format === "Slideshow"
           ? [
               "application/pdf",
@@ -88,7 +94,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
     setUploadingIndex(index)
 
     try {
-      // Create a preview immediately
       const objectUrl = URL.createObjectURL(file)
 
       setUploads((prev) => {
@@ -109,7 +114,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
       setUploadingIndex(null)
     }
 
-    e.target.value = "" // Reset input
+    e.target.value = ""
   }
 
   const handleDelete = (index: number) => {
@@ -121,7 +126,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
     setUploadBlobs((prev) => {
       const updated = [...prev]
-      // Revoke object URL to prevent memory leaks
       if (updated[index] && updated[index].startsWith("blob:")) {
         URL.revokeObjectURL(updated[index])
       }
@@ -130,7 +134,44 @@ const UploadModal: React.FC<UploadModalProps> = ({
     })
   }
 
-  // Improved upload function with better error handling and chunked uploads for large files
+  const uploadSingleFile = async (file: File, attempt = 0): Promise<any> => {
+    try {
+      const formData = new FormData()
+      formData.append("files", file)
+      formData.append("fileSize", file.size.toString())
+      formData.append("fileType", file.type)
+
+      console.log(`Uploading file: ${file.name}, size: ${file.size}, type: ${file.type}, attempt: ${attempt + 1}`)
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+        },
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error(`Upload error (Attempt ${attempt + 1}, Status: ${response.status}):`, errorText)
+        throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`)
+      }
+
+      const result = await response.json()
+      console.log(`Upload successful for ${file.name}:`, result)
+      return result
+    } catch (error) {
+      console.error(`Upload attempt ${attempt + 1} failed for file "${file.name}":`, error)
+      if (attempt < MAX_RETRIES) {
+        const delay = Math.min(Math.pow(2, attempt) * 1000, 30000)
+        console.log(`Retrying upload for "${file.name}" in ${delay}ms...`)
+        await new Promise((resolve) => setTimeout(resolve, delay))
+        return uploadSingleFile(file, attempt + 1)
+      }
+      throw error
+    }
+  }
+
   const uploadFilesToStrapi = async () => {
     if (!uploads.some((file) => file)) {
       toast.error("No files selected for upload.")
@@ -140,53 +181,16 @@ const UploadModal: React.FC<UploadModalProps> = ({
     setLoading(true)
     setRetryCount(0)
 
-    const uploadSingleFile = async (file: File, attempt = 0): Promise<any> => {
-      try {
-        const formData = new FormData()
-        formData.append("files", file)
-
-        // Add metadata to help with debugging
-        formData.append("fileSize", file.size.toString())
-        formData.append("fileType", file.type)
-
-        const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-          },
-          body: formData,
-        })
-
-        if (!response.ok) {
-          const errorText = await response.text()
-          console.error(`Upload error (${response.status}):`, errorText)
-          throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`)
-        }
-
-        return await response.json()
-      } catch (error) {
-        console.error(`Upload attempt ${attempt + 1} failed:`, error)
-
-        if (attempt < MAX_RETRIES) {
-          // Exponential backoff: wait longer between each retry
-          const delay = Math.min(Math.pow(2, attempt) * 1000, 30000) // Cap at 30 seconds
-          console.log(`Retrying in ${delay}ms...`)
-          await new Promise((resolve) => setTimeout(resolve, delay))
-          return uploadSingleFile(file, attempt + 1)
-        }
-        throw error
-      }
-    }
-
     try {
-      // Upload files sequentially instead of all at once
       const uploadedFiles = []
       const filesToUpload = uploads.filter((file): file is File => file !== null)
+
+      console.log(`Uploading ${filesToUpload.length} files`)
 
       for (let i = 0; i < filesToUpload.length; i++) {
         const file = filesToUpload[i]
         const result = await uploadSingleFile(file)
-        uploadedFiles.push(...result) // Strapi returns an array
+        uploadedFiles.push(...result)
       }
 
       const formattedFiles = uploadedFiles.map((file) => ({
@@ -194,13 +198,16 @@ const UploadModal: React.FC<UploadModalProps> = ({
         url: file.url,
       }))
 
+      console.log("Formatted uploaded files:", formattedFiles)
+
       await updateGlobalState(formattedFiles)
-      toast.success("Files uploaded successfully!") // Add this line back
+      toast.success("Files uploaded successfully!")
+      onUploadSuccess?.() // Notify parent of successful upload
       setTimeout(() => {
         onClose()
-      }, 1500) // Close after 1.5 seconds so the user can see the success message
+      }, 1500)
     } catch (error) {
-      console.error("Error uploading files:", error)
+      console.error("Error in uploadFilesToStrapi:", error)
       toast.error("Failed to upload files after multiple attempts. Please try again.")
     } finally {
       setLoading(false)
@@ -209,52 +216,111 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
   const updateGlobalState = async (uploadedFiles: Array<{ id: string; url: string }>) => {
     try {
+      console.log("updateGlobalState called with uploadedFiles:", uploadedFiles)
+      console.log("campaignFormData:", campaignFormData)
+      console.log("campaignData:", campaignData)
+
+      if (!campaignFormData || !campaignFormData.channel_mix) {
+        throw new Error("campaignFormData or channel_mix is undefined")
+      }
+
       const updatedChannelMix = [...campaignFormData.channel_mix]
 
       const stage = updatedChannelMix.find((ch) => ch.funnel_stage === stageName)
-      if (!stage) throw new Error("Stage not found")
+      if (!stage) {
+        console.error("Stage not found:", stageName)
+        throw new Error("Stage not found")
+      }
 
       const platformKey = channel.toLowerCase().replace(/\s+/g, "_")
       const platforms = stage[platformKey]
-      if (!platforms) throw new Error("Platform key not found")
+      if (!platforms) {
+        console.error("Platform key not found:", platformKey)
+        throw new Error("Platform key not found")
+      }
 
       const targetPlatform = platforms.find((pl) => pl.platform_name === platform)
-      if (!targetPlatform) throw new Error("Target platform not found")
+      if (!targetPlatform) {
+        console.error("Target platform not found:", platform)
+        throw new Error("Target platform not found")
+      }
 
-      const targetFormatIndex = targetPlatform.format.findIndex((fo) => fo.format_type === format)
-      if (targetFormatIndex === -1) throw new Error("Target format not found")
+      console.log("Target platform:", targetPlatform)
+      console.log("adSetIndex:", adSetIndex)
 
-      // Merge new uploads with existing previews
-      const existingPreviews = targetPlatform.format[targetFormatIndex].previews || []
+      let targetFormatArray
+      if (adSetIndex !== undefined) {
+        if (!targetPlatform.ad_sets || !targetPlatform.ad_sets[adSetIndex]) {
+          console.error("Ad set not found for index:", adSetIndex, "in platform:", targetPlatform)
+          throw new Error(`Ad set not found at index ${adSetIndex}`)
+        }
+        const adSet = targetPlatform.ad_sets[adSetIndex]
+        if (!adSet.format) {
+          console.log("Initializing adSet.format for adSetIndex:", adSetIndex)
+          adSet.format = []
+        }
+        targetFormatArray = adSet.format
+      } else {
+        if (!targetPlatform.format) {
+          console.log("Initializing platform.format")
+          targetPlatform.format = []
+        }
+        targetFormatArray = targetPlatform.format
+      }
+
+      console.log("targetFormatArray before update:", targetFormatArray)
+
+      let targetFormatIndex = targetFormatArray.findIndex((fo) => fo.format_type === format)
+      if (targetFormatIndex === -1) {
+        console.log(`Format ${format} not found, creating new format entry`)
+        targetFormatArray.push({
+          format_type: format,
+          num_of_visuals: quantities.toString(),
+          previews: [],
+        })
+        targetFormatIndex = targetFormatArray.length - 1
+      }
+
+      const existingPreviews = targetFormatArray[targetFormatIndex].previews || []
       const newPreviews = [...existingPreviews, ...uploadedFiles]
 
-      targetPlatform.format[targetFormatIndex].previews = newPreviews
+      console.log("Existing previews:", existingPreviews)
+      console.log("New previews:", newPreviews)
+
+      targetFormatArray[targetFormatIndex].previews = newPreviews
+
+      console.log("targetFormatArray after update:", targetFormatArray)
 
       const updatedState = {
         ...campaignData,
         channel_mix: updatedChannelMix,
       }
 
+      console.log("Updated state:", updatedState)
+
       await uploadUpdatedCampaignToStrapi(updatedState)
     } catch (error) {
-      console.error("Error updating global state:", error)
-      throw error // Re-throw to be caught by the caller
+      console.error("Error in updateGlobalState:", error)
+      throw error
     }
   }
 
   const uploadUpdatedCampaignToStrapi = async (data: any) => {
     try {
+      console.log("Uploading updated campaign to Strapi:", data)
       const cleanData = removeKeysRecursively(
         data,
         ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
         ["previews"],
       )
+      console.log("Cleaned data for Strapi:", cleanData)
       await updateCampaign(cleanData)
-      await getActiveCampaign()
+      const updatedCampaign = await getActiveCampaign()
+      console.log("Campaign updated successfully, refreshed data:", updatedCampaign)
     } catch (error) {
-      console.error("Error updating campaign:", error)
+      console.error("Error in uploadUpdatedCampaignToStrapi:", error)
       toast.error("Failed to save campaign data.")
-      throw error // Re-throw to be caught by the caller
+      throw error
     }
   }
 
