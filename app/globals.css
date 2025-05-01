@@ -306,7 +306,7 @@ main {
 
 .l-horizontal {
   position: absolute;
-  width: 30px;
+  width: 10px;
   height: 1px;
   background-color: black;
   bottom: 9px;
@@ -321,15 +321,15 @@ main {
   width: 1px;
   height: 65px;
   background-color: black;
-  left: 40px;
+  left: 20px;
   top: -55px;
 }
 
 .l-horizontal-ad {
   position: absolute;
-  width: 30px;
+  width: 10px;
   height: 1px;
   background-color: black;
   bottom: 9px;
-  left: 40px;
+  left: 20px;
 }

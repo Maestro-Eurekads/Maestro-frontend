@@ -235,7 +235,7 @@ export const ChannelRow = ({
       {tableBody?.map((body, bodyIndex) => (
         <td
           key={bodyIndex}
-          className={`py-4 px-6 text-[15px] ${
+          className={`py-4 px-3 text-[15px] ${
             nrColumns?.includes(body) ? "text-gray-400" : ""
           }`}
         >

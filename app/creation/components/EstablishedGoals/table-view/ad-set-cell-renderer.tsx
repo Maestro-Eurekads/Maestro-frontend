@@ -51,7 +51,7 @@ export const AdSetCellRenderer = ({
   // Handle channel cell with icon and name
   if (body === "channel") {
     return (
-      <div className="flex gap-2">
+      <div className="flex gap-2 indent-[10px]">
         <div className="l-shape-container">
           <div className="l-vertical"></div>
           <div className="l-horizontal"></div>

@@ -52,7 +52,7 @@ export const KPICellRenderer = ({
 
   if (body === "channel") {
     return (
-      <div className="flex gap-2">
+      <div className="flex gap-2 indent-[20px]">
         <div className="l-shape-container-ad">
           <div className="l-vertical-ad"></div>
           <div className="l-horizontal-ad"></div>
