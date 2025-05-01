@@ -1,23 +1,27 @@
 "use client";
 import { useCampaigns } from "app/utils/CampaignsContext";
-import { Ban } from "lucide-react";
 import Image from "next/image";
 
-export const AdSetCellRenderer = ({
+export const KPICellRenderer = ({
   body,
   channel,
   calculatedValues,
   tableHeaders,
   bodyIndex,
+  // goalLevel,
   stage,
+  // index,
+  // expandedRows,
+  // toggleRow,
+  handleEditInfo,
   adSetIndex,
   adSet,
-  handleEditInfo,
   nrAdCells,
-  toggleNRAdCell,
+  toggleNRAdCell
 }) => {
   const { campaignFormData } = useCampaigns();
 
+  // Fields to exempt from toFixed(2) logic
   const exemptFields = [
     "channel",
     "audience",
@@ -30,8 +34,6 @@ export const AdSetCellRenderer = ({
     "frequency",
     "reach",
   ];
-
-  const isNR = nrAdCells[`${channel?.name}-${adSetIndex}`]?.[body];
 
   // Helper function to safely get calculated values
   const getCalculatedValue = (key) => {
@@ -48,40 +50,29 @@ export const AdSetCellRenderer = ({
     return new Intl.NumberFormat("en-US").format(num);
   };
 
-  // Handle channel cell with icon and name
   if (body === "channel") {
     return (
-      <div className="flex gap-2 indent-[10px]">
-        <div className="l-shape-container">
-          <div className="l-vertical"></div>
-          <div className="l-horizontal"></div>
+      <div className="flex gap-2 indent-[20px]">
+        <div className="l-shape-container-ad">
+          <div className="l-vertical-ad"></div>
+          <div className="l-horizontal-ad"></div>
         </div>
 
         <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
-          {adSetIndex + 1}.
+          {1}.
         </span>
-        <span>{adSet?.name ? adSet?.name : "-"}</span>
+        <span>{adSet? adSet: "-"}</span>
       </div>
     );
   }
 
-  if (body === "audience") {
-    return !adSet?.audience_type ? "-" : adSet?.audience_type;
-  }
-
-  if (body === "audience_size") {
-    return !adSet?.size ? "-" : adSet?.size;
-  }
-
-  // if (body === "budget_size") {
-  //   return adSet?.budget?.fixed_value === null || adSet?.budget?.fixed_value === undefined ? "-" : adSet?.budget?.fixed_value;
-  // }
-
+  // Handle calculated fields
   const calculatedFields = [
     "impressions",
     "reach",
     "video_views",
     "cpv",
+    "cpc",
     "completed_view",
     "cpcv",
     "link_clicks",
@@ -118,25 +109,11 @@ export const AdSetCellRenderer = ({
     "cpp",
   ];
 
+  // if (calculatedFields.includes(body)) {
+  //   return getCalculatedValue(body);
+  // }
   if (calculatedFields.includes(body)) {
-    return (
-      <div
-        className="flex justify-center items-center gap-5 w-fit group"
-        onClick={() =>
-          toggleNRAdCell(stage.name, `${channel?.name}-${adSetIndex}`, body)
-        }
-      >
-        {isNR ? (
-          <p className="text-gray-300 font-semibold">NR</p>
-        ) : (
-          <p>{getCalculatedValue(body)}</p>
-        )}
-        <Ban
-          size={10}
-          className="hidden group-hover:block shrink-0 cursor-pointer"
-        />
-      </div>
-    );
+    return "";
   }
 
   // Handle input fields and static values
@@ -155,10 +132,17 @@ export const AdSetCellRenderer = ({
 
   // Get the raw value from the form data
   const kpiValue =
-    campaignFormData?.channel_mix
-      ?.find((ch) => ch?.funnel_stage === stage.name)
-      [channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)
-      ?.ad_sets[adSetIndex]?.kpi?.[body] || "";
+    body === "budget_size"
+      ? campaignFormData?.channel_mix
+          ?.find((ch) => ch?.funnel_stage === stage.name)
+          ?.[channel?.channel_name]?.find(
+            (c) => c?.platform_name === channel?.name
+          )?.budget?.fixed_value || ""
+      : campaignFormData?.channel_mix
+          ?.find((ch) => ch?.funnel_stage === stage.name)
+          ?.[channel?.channel_name]?.find(
+            (c) => c?.platform_name === channel?.name
+          )?.kpi?.[body] || "";
 
   // Format display value for percentage fields - keep the raw input value for UI
   let displayValue = kpiValue;
@@ -181,60 +165,44 @@ export const AdSetCellRenderer = ({
     }
   }
 
-  return (
-    <div className="flex  items-center gap-2 group">
-      {isNR ? (
-        <p className="text-gray-300 font-semibold">NR</p>
-      ) : (
-        <input
-          value={displayValue}
-          onChange={(e) => {
-            let newValue = e.target.value;
+  // return (
+  //   <input
+  //     value={displayValue}
+  //     onChange={(e) => {
+  //       let newValue = e.target.value;
 
-            // Allow only valid characters: numbers, '.', ',', ':', and '%'
-            newValue = newValue.replace(/[^0-9.,:%]/g, "");
+  //       // Allow only valid characters: numbers, '.', ',', ':', and '%'
+  //       newValue = newValue.replace(/[^0-9.,:%]/g, "");
 
-            // Handle percentage input
-            if (isPercentType) {
-              // Remove % if present
-              newValue = newValue.replace(/%/g, "");
+  //       // Handle percentage input
+  //       if (isPercentType) {
+  //         // Remove % if present
+  //         newValue = newValue.replace(/%/g, "");
+  //         newValue = (parseFloat(newValue) / 100).toString();
+  //         // Store the raw percentage value (not converted to decimal)
+  //         handleEditInfo(
+  //           stage.name,
+  //           channel?.channel_name,
+  //           channel?.name,
+  //           body,
+  //           newValue,
+  //           ""
+  //         );
+  //         return;
+  //       }
 
-              // Store the raw percentage value (not converted to decimal)
-              handleEditInfo(
-                stage.name,
-                channel?.channel_name,
-                channel?.name,
-                body,
-                newValue,
-                ""
-              );
-              return;
-            }
-
-            // Handle non-percentage input normally
-            handleEditInfo(
-              stage.name,
-              channel?.channel_name,
-              channel?.name,
-              body,
-              newValue,
-              ""
-            );
-          }}
-          disabled={isNR}
-          className={`cpm-bg border-none outline-none max-w-[90px] p-1 ${
-            isNR ? "text-gray-400" : ""
-          }`}
-          placeholder={body ? body?.toUpperCase() : "Insert value"}
-        />
-      )}
-      <Ban
-        size={10}
-        className="hidden group-hover:block shrink-0 cursor-pointer"
-        onClick={() =>
-          toggleNRAdCell(stage.name, `${channel?.name}-${adSetIndex}`, body)
-        }
-      />
-    </div>
-  );
+  //       // Handle non-percentage input normally
+  //       handleEditInfo(
+  //         stage.name,
+  //         channel?.channel_name,
+  //         channel?.name,
+  //         body,
+  //         newValue,
+  //         ""
+  //       );
+  //     }}
+  //     className="cpm-bg border-none outline-none w-[100px] p-1"
+  //     placeholder={body ? body?.toUpperCase() : "Insert value"}
+  //   />
+  // );
 };

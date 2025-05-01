@@ -34,7 +34,7 @@ export const EstablishedGoals = () => {
 
   useEffect(() => {
     setIsDrawerOpen(false);
-    setClose(false);
+    // setClose(false);
   }, []);
 
   const handleOpenModal = () => {

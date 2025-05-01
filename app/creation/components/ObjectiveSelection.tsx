@@ -388,9 +388,42 @@ const ObjectiveSelection = () => {
     );
   };
 
+  // const handleSaveCustomValue = async (field) => {
+  //   if (!customValue.trim()) {
+  //     toast.error("Please enter a value");
+  //     return;
+  //   }
+    
+  //   const endpoint = field === "obj" ? "/buy-objectives" : "/buy-types";
+  //   setLoading(true);
+  //   try {
+  //     const res = await axios.post(
+  //       `${process.env.NEXT_PUBLIC_STRAPI_URL}${endpoint}`,
+  //       { data: { text: customValue } },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+  //         },
+  //       }
+  //     );
+  //     const data = res?.data?.data;
+  //     if (field === "obj") {
+  //       setBuyObj((prev) => [...prev, data]);
+  //     } else {
+  //       setBuyType((prev) => [...prev, data]);
+  //     }
+  //     setCustomValue("");
+  //     setShowInput("");
+  //   } catch (error) {
+  //     console.error("Error saving custom value:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+ 
   const handleSaveCustomValue = async (field) => {
     if (!customValue.trim()) {
-      toast.error("Please enter a value");
+      toast.error("Please enter a value", { id: "custom-value-error" }); // Add unique toast ID
       return;
     }
     
@@ -416,6 +449,7 @@ const ObjectiveSelection = () => {
       setShowInput("");
     } catch (error) {
       console.error("Error saving custom value:", error);
+      toast.error("Failed to save custom value");
     } finally {
       setLoading(false);
     }
@@ -423,7 +457,8 @@ const ObjectiveSelection = () => {
 
   return (
     <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
-      <Toaster position="top-right" reverseOrder={false} />
+      {/* <Toaster position="top-right" reverseOrder={false} /> */}
+
       {campaignFormData?.funnel_stages?.map((stageName) => {
         const stage = campaignFormData?.custom_funnels?.find(
           (s) => s?.name === stageName

@@ -1,6 +1,6 @@
 "use client";
 import DateInterval from "../../atoms/date-interval/date-interval";
-import Range from "../../atoms/date-range/date-range";
+import Range from "../../atoms/date-range/dashboard-date-range";
 import DateRangeSelector from "../../atoms/date-selector/date-range-selector";
 
 const DateComponent = ({ useDate }) => {
@@ -12,14 +12,7 @@ const DateComponent = ({ useDate }) => {
         <DateRangeSelector />
       </div>}
 
-      <div className="relative">
-        <div className="bg-white">
-          <DateInterval />
-          <div className="absolute right-[2px] top-18 w-1 bg-orange-500 h-screen"></div>
-          <div className="absolute left-0 top-18 w-1 bg-orange-500 h-screen"></div>
-        </div>
 
-      </div>
 
     </div>
   );

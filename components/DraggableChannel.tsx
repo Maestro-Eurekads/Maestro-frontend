@@ -88,8 +88,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   // };
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    const baseStep = 120; // Base grid size
-    const adjustmentPerStep = 10; // Decrease each next step by 10
+    const baseStep = 100; // Base grid size
+    const adjustmentPerStep = 0; // Decrease each next step by 10
     const snapPoints = [];
 
     let currentSnap = 0;
@@ -99,10 +99,14 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     while (currentSnap <= containerWidth) {
       snapPoints.push(currentSnap);
       currentSnap += step;
-      // step = Math.max(30, step - adjustmentPerStep);
+      step = Math.max(100, step - adjustmentPerStep);
     }
 
-    console.log("Custom snap points:", snapPoints);
+    console.log("Custom snap points:", {
+      snapPoints,
+      containerWidth,
+      currentPosition,
+    });
 
     const closestSnap = snapPoints.reduce((prev, curr) =>
       Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition)
