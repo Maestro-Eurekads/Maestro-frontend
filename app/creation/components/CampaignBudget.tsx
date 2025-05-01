@@ -112,6 +112,13 @@ const CampaignBudget = () => {
           }`}
           onClick={() => {
             handleBudgetEdit("budget_type", "top_down");
+            setCampaignFormData((prev) => ({
+              ...prev,
+              campaign_budget: {
+                ...prev.campaign_budget,
+                level: "",
+              },
+            }));
           }}
         >
           <div className="flex items-start gap-2">
@@ -155,6 +162,13 @@ const CampaignBudget = () => {
           }`}
           onClick={() => {
             handleBudgetEdit("budget_type", "bottom_up");
+            setCampaignFormData((prev) => ({
+              ...prev,
+              campaign_budget: {
+                ...prev.campaign_budget,
+                level: "",
+              },
+            }));
           }}
         >
           <div className="flex items-start gap-2">
