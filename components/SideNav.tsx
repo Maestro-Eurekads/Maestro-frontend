@@ -5,7 +5,9 @@ import CreationFlow from "./CreationFlow";
 import closeicon from "../public/layout-left-line.svg";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useActive } from "../app/utils/ActiveContext";
+import {  useState } from "react";
 import CreationFlowActive from "./CreationFlowActive";
+import symbol from "../public/material-symbols_campaign-rounded.svg";
 import funnel from "../public/ant-design_funnel-plot-filled.svg";
 import channel from "../public/icon-park-solid_web-page.svg";
 import devicefill from "../public/device-fill.svg";
@@ -28,7 +30,7 @@ const SideNav: React.FC = () => {
   const { campaignData, getActiveCampaign, setCampaignData, isLoading, loadingCampaign, loading } = useCampaigns();
 
   useEffect(() => {
-    if(active == 9){
+    if (active == 10) {
       console.log('active', active, "here", close)
       setClose(true)
     } else {

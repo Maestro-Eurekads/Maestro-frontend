@@ -7,7 +7,8 @@ const Comments = ({
 	contrastingColor,
 	setAlert,
 	isAgencyApprover,
-	isFinancialApprover
+	isFinancialApprover,
+	isAdmin
 }) => {
 
 
@@ -27,7 +28,7 @@ const Comments = ({
 
 				{/* Click-controlled Approved button */}
 				<div  >
-					<Approved comment={comment} commentId={comment?.commentId} setAlert={setAlert} isFinancialApprover={isFinancialApprover} isAgencyApprover={isAgencyApprover} />
+					<Approved comment={comment} commentId={comment?.commentId} setAlert={setAlert} isFinancialApprover={isFinancialApprover} isAgencyApprover={isAgencyApprover} isAdmin={isAdmin} />
 				</div>
 			</div>
 
