@@ -7,6 +7,25 @@ import { useCampaigns } from "app/utils/CampaignsContext"
 import { fetchFilteredCampaigns } from "app/utils/campaign-filter-utils"
 import { toast, Toaster } from "react-hot-toast" // Make sure you have this package installed
 
+// Add these styles for the scrollbar
+const scrollbarStyles = `
+  /* For Webkit browsers like Chrome/Safari */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+  }
+`
+
 type Props = {
   hideTitle?: boolean
 }
@@ -44,8 +63,9 @@ const Dropdown = ({ label, options, selectedFilters, handleSelect, isDisabled = 
     <div className="relative" ref={dropdownRef}>
       {/* Dropdown Button */}
       <div
-        className={`flex items-center gap-3 px-4 py-2 whitespace-nowrap h-[40px] border border-[#EFEFEF] rounded-[10px] cursor-pointer ${isDisabled ? "opacity-60" : ""
-          }`}
+        className={`flex items-center gap-3 px-4 py-2 whitespace-nowrap h-[40px] border border-[#EFEFEF] rounded-[10px] cursor-pointer ${
+          isDisabled ? "opacity-60" : ""
+        }`}
         onClick={toggleDropdown}
       >
         <span className="text-gray-600 capitalize">{selectedFilters[label] || label?.replace("_", " ")}</span>
@@ -57,15 +77,19 @@ const Dropdown = ({ label, options, selectedFilters, handleSelect, isDisabled = 
       {/* Dropdown List */}
       {isOpen && (
         <div className="absolute w-full bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-2 z-10">
-          {options.map((option) => (
-            <div
-              key={option}
-              className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-              onClick={() => handleOptionSelect(option)}
-            >
-              {option}
-            </div>
-          ))}
+          <div
+            className={`max-h-[200px] overflow-y-auto ${label === "Select Plans" ? "scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" : ""}`}
+          >
+            {options.map((option) => (
+              <div
+                key={option}
+                className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                onClick={() => handleOptionSelect(option)}
+              >
+                {option}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -109,6 +133,17 @@ const defaulFilters = [
 ]
 
 const FiltersDropdowns = ({ hideTitle }: Props) => {
+  // Add this at the beginning of the component
+  useEffect(() => {
+    // Add the scrollbar styles to the document
+    const styleElement = document.createElement("style")
+    styleElement.innerHTML = scrollbarStyles
+    document.head.appendChild(styleElement)
+
+    return () => {
+      document.head.removeChild(styleElement)
+    }
+  }, [])
   const { filterOptions, selectedFilters, setSelectedFilters, loading, setLoading, setClientCampaignData, allClients } =
     useCampaigns()
   const [filters, setFilters] = useState(defaulFilters)
@@ -165,7 +200,6 @@ const FiltersDropdowns = ({ hideTitle }: Props) => {
           .finally(() => {
             setLoading(false)
           })
-
       }
       fetchData()
     }

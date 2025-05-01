@@ -33,7 +33,7 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
 
   const isSignature = dataApprove?.[0]?.isSignature || false;
 
-  // console.log('selected-selected-selected', selected)
+
   return (
     <div
       id="client_header"

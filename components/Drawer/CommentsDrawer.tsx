@@ -13,6 +13,7 @@ import { SVGLoader } from "components/SVGLoader";
 import AlertMain from "components/Alert/AlertMain";
 import { useSearchParams } from "next/navigation";
 import { BsXLg } from "react-icons/bs";
+import { useUserPrivileges } from "utils/userPrivileges";
 
 
 interface Comment {
@@ -31,6 +32,10 @@ interface Comment {
 const CommentsDrawer = ({ isOpen, onClose }) => {
 	const { opportunities, setViewcommentsId, viewcommentsId, addCommentOpportunity, setOpportunities, createCommentsError, createCommentsSuccess, approvedError, replyError, setIsCreateOpen, setClose, showbyID } = useComments();
 	const {
+		isAgencyApprover,
+		isFinancialApprover
+	} = useUserPrivileges();
+	const {
 		data,
 		isLoading,
 		isError,
@@ -39,6 +44,13 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 	const { campaignData } = useCampaigns();
 	const [alert, setAlert] = useState(null);
 	const [commentColors, setCommentColors] = useState({});
+
+	console.log("isFinancialApprover", isFinancialApprover);
+
+	console.log("isAgencyApprover", isAgencyApprover);
+
+
+
 	// const commentId = campaignData?.documentId
 	const query = useSearchParams();
 	const commentId = query.get("campaignId");
@@ -193,7 +205,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 										<BsXLg className="text-[#29292968] group-hover:text-red-500 transition-colors duration-200" />
 									</button>
 
-									<Comments comment={comment} contrastingColor={contrastingColor} />
+									<Comments comment={comment} contrastingColor={contrastingColor} setAlert={setAlert} isAgencyApprover={isAgencyApprover} isFinancialApprover={isFinancialApprover} />
 									<AddCommentReply documentId={comment?.documentId} contrastingColor={contrastingColor} commentId={comment?.commentId} />
 								</div>
 							);
@@ -206,7 +218,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 								key={comment?.documentId}
 								className="flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-[0px_4px_10px_rgba(0,0,0,0.1)] rounded-lg border-box mb-5"
 							>
-								<Comments comment={comment} contrastingColor={contrastingColor} />
+								<Comments comment={comment} contrastingColor={contrastingColor} setAlert={setAlert} isAgencyApprover={isAgencyApprover} isFinancialApprover={isFinancialApprover} />
 								<AddCommentReply documentId={comment?.documentId} contrastingColor={contrastingColor} commentId={comment?.commentId} />
 							</div>
 						);

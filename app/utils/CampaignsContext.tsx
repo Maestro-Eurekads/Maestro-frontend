@@ -12,6 +12,7 @@ import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import { useSelector } from "react-redux";
 import { channelMixPopulate } from "utils/fetcher";
+import { useSession } from "next-auth/react";
 
 // Get initial state from localStorage if available
 const getInitialState = () => {
@@ -48,11 +49,14 @@ const getInitialState = () => {
 const CampaignContext = createContext<any>(null);
 
 export const CampaignProvider = ({ children }: { children: ReactNode }) => {
+  const token = useSession();
+  const id = (token?.data?.user as { id?: string })?.id;
   const [campaignFormData, setCampaignFormData] = useState(getInitialState());
   const [campaignData, setCampaignData] = useState(null);
   const [clientCampaignData, setClientCampaignData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [profile, setGetProfile] = useState(null);
   const query = useSearchParams();
   const cId = query.get("campaignId");
   const { loadingClients: hookLoadingClients, allClients: hookAllClients } =
@@ -84,7 +88,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const allClients = reduxClients.length > 0 ? reduxClients : hookAllClients;
-  const loadingClients = reduxLoadingClients || hookLoadingClients;
+  const loadingClients = reduxLoadingClients || hookLoadingClients || false;
 
   // Save form data to localStorage whenever it changes
   useEffect(() => {
@@ -104,6 +108,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
   //   initializeData();
   // }, []);
+
+
 
   useEffect(() => {
     if (!loadingClients && allClients?.length > 0) {
@@ -233,6 +239,31 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+
+  const getProfile = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${id}?populate=client`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+        }
+      );
+
+      const responseData = response?.data;
+      setGetProfile(responseData);
+      return response;
+    } catch (error) {
+      console.error("Error updating campaign:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+
   const updateCampaign = async (data) => {
     try {
       setLoading(true);
@@ -245,6 +276,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
+
       const responseData = response?.data?.data;
       return response;
     } catch (error) {
@@ -455,6 +487,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   }, [campaignFormData.client_selection?.id]);
 
   useEffect(() => {
+    getProfile();
+
     if (cId) {
       getActiveCampaign();
     }
@@ -463,6 +497,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     fetchPlatformLists();
     fetchBuyTypes();
   }, [cId]);
+
+
 
   return (
     <CampaignContext.Provider
@@ -502,7 +538,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         selectedFilters,
         setSelectedFilters,
         isLoading,
-        setIsLoading
+        setIsLoading,
+        profile
       }}
     >
       {children}
