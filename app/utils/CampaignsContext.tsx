@@ -542,7 +542,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         setIsLoading,
         profile,
         loadingCampaign,
-        setLoadingCampaign
+        setLoadingCampaign,
+        getProfile
       }}
     >
       {children}
