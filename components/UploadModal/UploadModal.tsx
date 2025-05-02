@@ -249,8 +249,9 @@ const UploadModal: React.FC<UploadModalProps> = ({
           targetFormatIndex = adSet.format.length - 1
         }
 
-        // Replace all previews with the new uploads
-        adSet.format[targetFormatIndex].previews = [...uploadedFiles]
+        // Filter out any null uploads and only keep the successfully uploaded files
+        const validFiles = uploadedFiles.filter(file => file !== null)
+        adSet.format[targetFormatIndex].previews = [...validFiles]
       } else {
         // Update platform format
         targetPlatform.format = targetPlatform.format || []
@@ -265,8 +266,9 @@ const UploadModal: React.FC<UploadModalProps> = ({
           targetFormatIndex = targetPlatform.format.length - 1
         }
 
-        // Replace all previews with the new uploads
-        targetPlatform.format[targetFormatIndex].previews = [...uploadedFiles]
+        // Filter out any null uploads and only keep the successfully uploaded files
+        const validFiles = uploadedFiles.filter(file => file !== null)
+        targetPlatform.format[targetFormatIndex].previews = [...validFiles]
       }
 
       const updatedState = {
@@ -326,7 +328,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
     } finally {
       setLoading(false)
     }
-  }, [uploads, updateGlobalState, onUploadSuccess, onClose])
+  }, [uploads, updateGlobalState, onUploadSuccess, onClose, uploadSingleFile])
 
   if (!isOpen) return null
 
