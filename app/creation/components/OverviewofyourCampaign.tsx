@@ -53,7 +53,6 @@ const OverviewofyourCampaign = () => {
 	const [finalCategoryOrder, setFinalCategoryOrder] = useState(categoryOrder); // default fallback
 	const { getKpis, isLoadingKpis, kpiCategory, setkpiCategory, refresh, setRefresh } = useKpis();
 
-	// const commentId = campaignData?.documentId
 	const comments: Comment[] = clientCampaignData
 		?.filter((comment: Comment) => comment?.addcomment_as !== "Internal")
 		.sort((a: Comment, b: Comment) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -65,6 +64,10 @@ const OverviewofyourCampaign = () => {
 			return () => clearTimeout(timer);
 		}
 	}, [refresh]);
+
+	useEffect(() => {
+		setClose(true);
+	}, []);
 
 	const mapCampaignsToFunnels = (campaigns: any[]) => {
 		return campaigns?.map((campaign, index) => {
@@ -197,18 +200,9 @@ const OverviewofyourCampaign = () => {
 	}
 
 
-
-
-
-
-
 	const extractedData = extractKPIByFunnelStage(campaignData, kpiCategories);
 	const aggregatedStats = aggregateKPIStatsFromExtracted(extractedData, kpiCategories)
 	const statsData = mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, { upfull, downfull, downoffline, upoffline }, finalCategoryOrder);
-
-
-
-
 
 
 	const fetchCategories = async (campaign_id) => {

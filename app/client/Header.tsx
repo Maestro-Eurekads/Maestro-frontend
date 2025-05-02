@@ -3,7 +3,7 @@ import { useComments } from "app/utils/CommentProvider";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import { useAppDispatch, useAppSelector } from "store/useStore";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { getSignedApproval } from "features/Comment/commentSlice";
 import Skeleton from "react-loading-skeleton";
 import tickcircles from "../../public/solid_circle-check.svg";

@@ -27,7 +27,6 @@ interface Reply {
 }
 const ClientDraggableComment = ({ comment, commentId }) => {
 	const { updateCommentsPosition, updatePosition, activeComment, setActiveComment } = useComments();
-	// const [activeComment, setActiveComment] = useState(null);
 	const commentRef = useRef(null);
 	const [draggedRecently, setDraggedRecently] = useState(false);
 
