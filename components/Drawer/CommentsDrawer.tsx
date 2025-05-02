@@ -8,12 +8,12 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 import { getContrastingColor, getRandomColor } from "components/Options";
 import { useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "store/useStore";
-import { getComment } from "features/Comment/commentSlice";
+// import { getComment } from "features/Comment/commentSlice";
 import { SVGLoader } from "components/SVGLoader";
 import AlertMain from "components/Alert/AlertMain";
-import { useSearchParams } from "next/navigation";
 import { BsXLg } from "react-icons/bs";
 import { useUserPrivileges } from "utils/userPrivileges";
+import { reset } from "features/Comment/commentSlice";
 
 
 interface Comment {
@@ -46,11 +46,6 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 	const [alert, setAlert] = useState(null);
 	const [commentColors, setCommentColors] = useState({});
 
-
-	// const commentId = campaignData?.documentId
-	const query = useSearchParams();
-	const commentId = query.get("campaignId");
-
 	// Memoize filtered comments
 	const comment = useMemo(() => {
 		if (!data) return [];
@@ -64,6 +59,9 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 				new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime()
 		);
 	}, [comment]);
+
+
+	console.log("comments-data", data);
 
 
 
@@ -102,6 +100,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 		setOpportunities([]);
 		onClose(false);
 		setViewcommentsId('');
+		dispatch(reset())
 		// setClose(false)
 	};
 
@@ -136,9 +135,9 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 		}
 	}, [createCommentsError, replyError]);
 
-	useEffect(() => {
-		dispatch(getComment(commentId));
-	}, [dispatch]);
+	// useEffect(() => {
+	// 	dispatch(getComment(commentId));
+	// }, [dispatch]);
 
 
 
@@ -158,14 +157,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 									? campaignData?.funnel_stages?.slice(0, 3).join(" · ") + " ..."
 									: campaignData?.funnel_stages?.join(" · ")
 								: ""}
-							{/* {campaignData?.media_plan_details?.plan_name
-								? campaignData?.media_plan_details?.plan_name.charAt(0).toUpperCase() +
-								campaignData?.media_plan_details?.plan_name.slice(1)
-								: ""} */}
 						</p>
-						{/* <p className="font-medium text-lg text-[#292929]">
-							Awareness
-						</p> */}
 					</div>
 
 				</div>

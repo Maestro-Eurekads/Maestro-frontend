@@ -9,7 +9,7 @@ export function extractPlatforms(data) {
 
   data?.channel_mix?.length > 0 &&
     data.channel_mix.forEach((stage) => {
-      const stageName = stage.funnel_stage;
+      const stageName = stage?.funnel_stage;
       platforms[stageName] = platforms[stageName] || [];
       [
         "social_media",

@@ -37,13 +37,7 @@ export const EstablishedGoals = () => {
     // setClose(false);
   }, []);
 
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
-  };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
 
   useEffect(() => {
     if (campaignFormData) {
@@ -216,7 +210,7 @@ export const EstablishedGoals = () => {
         </div>
       </div>
 
-    
+
 
       {<TableView />}
     </div>

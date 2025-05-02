@@ -139,6 +139,7 @@ export const clientSlice = createSlice({
       state.isSuccess = false;
       state.isError = false;
       state.message = '';
+      state.data = null;
 
       state.isLoadingApprove = false;
       state.isSuccessApprove = false;
