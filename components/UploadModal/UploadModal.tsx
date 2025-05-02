@@ -63,7 +63,11 @@ const UploadModal: React.FC<UploadModalProps> = ({
       const file = e.target.files?.[0]
       if (!file) return
 
-      const allowedTypes = format === "Slideshow" ? ["application/pdf"] : format === "Video" ? ["video/mp4", "video/mov", "video/quicktime"] : ["image/jpeg", "image/png", "image/jpg"]
+      const allowedTypes = format === "Slideshow" 
+        ? ["application/pdf"] 
+        : format === "Video" 
+          ? ["video/mp4", "video/mov", "video/quicktime"] 
+          : ["image/jpeg", "image/png", "image/jpg"]
       const maxSizeInMB = 20
       const maxSizeInBytes = maxSizeInMB * 1024 * 1024
 
@@ -164,7 +168,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
           updated[index] = 100
           return updated
         })
-        return result
+        return result[0] // Return the first file from the response array
       } catch (error) {
         console.error(`Upload attempt ${attempt + 1} failed for file "${file.name}":`, error)
         if (attempt < MAX_RETRIES) {
@@ -294,7 +298,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
             return null
           }),
         )
-        const batchResults = (await Promise.all(batchPromises)).flat().filter((result) => result !== null)
+        const batchResults = (await Promise.all(batchPromises)).filter((result) => result !== null)
         uploadedFiles.push(...batchResults)
       }
 
