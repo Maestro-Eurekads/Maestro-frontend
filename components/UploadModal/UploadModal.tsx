@@ -66,13 +66,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
       const allowedTypes =
         format === "Video"
           ? ["video/mp4", "video/mov", "video/quicktime"]
-          : format === "Slideshow"
-            ? [
-                "application/pdf",
-                "application/vnd.ms-powerpoint",
-                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-              ]
-            : ["image/jpeg", "image/png", "image/jpg"]
+          : ["image/jpeg", "image/png", "image/jpg"]
+
       const maxSizeInMB = 20
       const maxSizeInBytes = maxSizeInMB * 1024 * 1024
 
@@ -80,9 +75,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
         toast.error(
           format === "Video"
             ? "Invalid file type. Please upload a MP4 or MOV file."
-            : format === "Slideshow"
-              ? "Invalid file type. Please upload a PDF or PPTX file."
-              : "Invalid file type. Please upload a JPEG, PNG, or JPG file.",
+            : "Invalid file type. Please upload a JPEG, PNG, or JPG file.",
         )
         return
       }
@@ -418,9 +411,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
                         accept={
                           format === "Video"
                             ? "video/mp4,video/mov,video/quicktime"
-                            : format === "Slideshow"
-                              ? "application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                              : "image/jpeg,image/png,image/jpg"
+                            : "image/jpeg,image/png,image/jpg"
                         }
                         id={`upload${index}`}
                         className="hidden"
