@@ -305,7 +305,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         {!disableDrag && parentWidth >= 350 ? (
           <button className="channel-btn" onClick={() => setIsOpen?.(true)}>
             <Image src={icroundadd} alt="icroundadd" />
-            <p className="whitespace-nowrap text-[11px]">Add new channel</p>
+            <p className="whitespace-nowrap text-[11px]">Add channel</p>
           </button>
         ) : (
           <div />
