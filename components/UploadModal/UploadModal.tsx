@@ -63,10 +63,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
       const file = e.target.files?.[0]
       if (!file) return
 
-      const allowedTypes =
-        format === "Video"
-          ? ["video/mp4", "video/mov", "video/quicktime"]
-          : ["image/jpeg", "image/png", "image/jpg"]
+      const allowedTypes = format === "Slideshow" ? ["application/pdf"] : format === "Video" ? ["video/mp4", "video/mov", "video/quicktime"] : ["image/jpeg", "image/png", "image/jpg"]
       const maxSizeInMB = 20
       const maxSizeInBytes = maxSizeInMB * 1024 * 1024
 
@@ -74,6 +71,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
         toast.error(
           format === "Video"
             ? "Invalid file type. Please upload a MP4 or MOV file."
+            : format === "Slideshow"
+            ? "Invalid file type. Please upload a PDF file."
             : "Invalid file type. Please upload a JPEG, PNG, or JPG file.",
         )
         return
@@ -410,6 +409,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
                         accept={
                           format === "Video"
                             ? "video/mp4,video/mov,video/quicktime"
+                            : format === "Slideshow"
+                            ? "application/pdf"
                             : "image/jpeg,image/png,image/jpg"
                         }
                         id={`upload${index}`}
