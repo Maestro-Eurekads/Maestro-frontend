@@ -6,7 +6,7 @@ import AddCommentReply from "./AddCommentReply";
 import { useComments } from "app/utils/CommentProvider";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { getContrastingColor, getRandomColor } from "components/Options";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "store/useStore";
 // import { getComment } from "features/Comment/commentSlice";
 import { SVGLoader } from "components/SVGLoader";
@@ -14,6 +14,7 @@ import AlertMain from "components/Alert/AlertMain";
 import { BsXLg } from "react-icons/bs";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { reset } from "features/Comment/commentSlice";
+import clsx from "clsx";
 
 
 interface Comment {
@@ -29,45 +30,40 @@ interface Comment {
 	}[];
 }
 
+
+
+
+
+
+
 const CommentsDrawer = ({ isOpen, onClose }) => {
 	const { opportunities, setViewcommentsId, viewcommentsId, addCommentOpportunity, setOpportunities, createCommentsError, createCommentsSuccess, approvedError, replyError, setIsCreateOpen, setClose, showbyID } = useComments();
-	const {
-		isAgencyApprover,
-		isFinancialApprover,
-		isAdmin
-	} = useUserPrivileges();
-	const {
-		data,
-		isLoading,
-		isError,
-	} = useAppSelector((state) => state.comment);
+
+	const { isAgencyApprover, isFinancialApprover, isAdmin } = useUserPrivileges();
+
+	const { data, isLoading } = useAppSelector((state) => state.comment);
 	const dispatch = useAppDispatch();
 	const { campaignData } = useCampaigns();
+
 	const [alert, setAlert] = useState(null);
 	const [commentColors, setCommentColors] = useState({});
 
-	// Memoize filtered comments
+	const commentRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
 	const comment = useMemo(() => {
 		if (!data) return [];
-		return data?.filter((comment) => comment?.client_commentID === null);
+		return data.filter((comment) => comment?.client_commentID === null);
 	}, [data]);
 
-	// Memoize sorted comments
-	const comments: Comment[] = useMemo(() => {
+	const comments = useMemo(() => {
 		return [...comment].sort(
-			(a: Comment, b: Comment) =>
-				new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime()
+			(a, b) => new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime()
 		);
 	}, [comment]);
 
-
-	console.log("comments-data", data);
-
-
-
 	useEffect(() => {
 		const newColors = {};
-		comments?.forEach((comment) => {
+		comments.forEach((comment) => {
 			if (!commentColors[comment?.documentId]) {
 				const randomColor = getRandomColor();
 				newColors[comment?.documentId] = {
@@ -79,7 +75,20 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 		setCommentColors((prevColors) => ({ ...prevColors, ...newColors }));
 	}, [comments]);
 
-	// Function to create a new Comment Opportunity
+	// Scroll and highlight selected comment
+	useEffect(() => {
+		if (viewcommentsId && commentRefs.current[viewcommentsId]) {
+			const el = commentRefs.current[viewcommentsId];
+			el?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+			const timeout = setTimeout(() => {
+				setViewcommentsId('');
+			}, 3000);
+
+			return () => clearTimeout(timeout);
+		}
+	}, [viewcommentsId]);
+
 	const createCommentOpportunity = () => {
 		const newOpportunity = {
 			commentId: Date.now(),
@@ -87,21 +96,17 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 			position: { x: 400, y: -500 },
 		};
 
-		// Add only if there are 0  
 		if (opportunities.length === 0) {
 			setIsCreateOpen(true);
 			addCommentOpportunity(newOpportunity);
 		}
 	};
 
-
-
 	const handleClose = () => {
 		setOpportunities([]);
 		onClose(false);
 		setViewcommentsId('');
-		dispatch(reset())
-		// setClose(false)
+		dispatch(reset());
 	};
 
 	useEffect(() => {
@@ -135,23 +140,18 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 		}
 	}, [createCommentsError, replyError]);
 
-	// useEffect(() => {
-	// 	dispatch(getComment(commentId));
-	// }, [dispatch]);
-
-
-
 
 
 
 	return (
-		<div className={`drawer-container ${isOpen ? "drawer-open" : ""}   max-h-screen`}>
+		<div className={`drawer-container ${isOpen ? "drawer-open" : ""} max-h-screen`}>
 			{alert && <AlertMain alert={alert} />}
+
 			<div className="flex w-full justify-between p-3">
 				<div>
-					<h3 className="font-medium text-2xl text-[#292929]">Comments For</h3>
-					<div className="flex  items-center gap-2 w-full">
-						<p className="font-medium text-lg text-[#292929] mb-4">
+					<h3 className="font-medium text-[22px] text-[#292929]">Comments For</h3>
+					<div className="flex items-center gap-2 w-full">
+						<p className="font-medium text-[16px] text-[#292929] mb-4">
 							{campaignData?.funnel_stages?.length > 0
 								? campaignData?.funnel_stages?.length > 3
 									? campaignData?.funnel_stages?.slice(0, 3).join(" · ") + " ..."
@@ -159,7 +159,6 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 								: ""}
 						</p>
 					</div>
-
 				</div>
 				<button onClick={handleClose}>
 					<Image src={closecircle} alt="Close" />
@@ -170,7 +169,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 				<button onClick={createCommentOpportunity}>
 					<Image src={Mmessages} alt="Add Comment Opportunity" />
 				</button>
-				<h6 className="w-[70%] text-center text-black text-[16px]">
+				<h6 className="w-[70%] text-center text-black text-[15px]">
 					Add a comment, your comments will appear here!
 				</h6>
 			</div>
@@ -181,50 +180,41 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 					<div className="w-full h-full flex justify-center items-center py-5">
 						<SVGLoader width={"35px"} height={"35px"} color={"#00A36C"} />
 					</div>
-				) : viewcommentsId ? (
-					comments
-						.filter((comment) => comment?.documentId === viewcommentsId)
-						.map((comment) => {
-							const { color, contrastingColor } = commentColors[comment?.documentId] || {};
-							return (
-								<div
-									key={comment?.documentId}
-									className="relative flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-[0px_4px_10px_rgba(0,0,0,0.1)] rounded-lg border-box mb-5"
-								>
-									<button
-										className="cursor-pointer absolute right-2 top-2 group"
-										onClick={() => setViewcommentsId('')}
-									>
-										<BsXLg className="text-[#29292968] group-hover:text-red-500 transition-colors duration-200" />
-									</button>
-
-									<Comments comment={comment} contrastingColor={contrastingColor} setAlert={setAlert} isAgencyApprover={isAgencyApprover} isFinancialApprover={isFinancialApprover} isAdmin={isAdmin} />
-									<AddCommentReply documentId={comment?.documentId} contrastingColor={contrastingColor} commentId={comment?.commentId} />
-								</div>
-							);
-						})
 				) : (
-					comments?.map((comment) => {
+					comments.map((comment) => {
 						const { color, contrastingColor } = commentColors[comment?.documentId] || {};
 						return (
 							<div
 								key={comment?.documentId}
-								className="flex flex-col p-5 gap-4 w-full min-h-[203px] bg-white shadow-[0px_4px_10px_rgba(0,0,0,0.1)] rounded-lg border-box mb-5"
+								ref={(el) => {
+									commentRefs.current[comment?.documentId] = el;
+								}}
+								className={clsx(
+									"flex flex-col justify-between p-5 gap-4 w-full min-h-[203px] bg-white shadow-[0px_4px_10px_rgba(0,0,0,0.1)] rounded-lg border-box mb-5 transition-all duration-500",
+									viewcommentsId === comment?.documentId && "ring-2 ring-[#00A36C]"
+								)}
 							>
-								<Comments comment={comment} contrastingColor={contrastingColor} setAlert={setAlert} isAgencyApprover={isAgencyApprover} isFinancialApprover={isFinancialApprover} isAdmin={isAdmin} />
-								<AddCommentReply documentId={comment?.documentId} contrastingColor={contrastingColor} commentId={comment?.commentId} />
+								<Comments
+									comment={comment}
+									contrastingColor={contrastingColor}
+									setAlert={setAlert}
+									isAgencyApprover={isAgencyApprover}
+									isFinancialApprover={isFinancialApprover}
+									isAdmin={isAdmin}
+								/>
+								<AddCommentReply
+									documentId={comment?.documentId}
+									contrastingColor={contrastingColor}
+									commentId={comment?.commentId}
+								/>
 							</div>
 						);
 					})
 				)}
 			</div>
-
 		</div>
 	);
 };
 
 export default CommentsDrawer;
-
-
-
 
