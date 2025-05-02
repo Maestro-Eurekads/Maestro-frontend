@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import speaker from "../../../public/mdi_megaphone.svg";
@@ -29,7 +30,6 @@ const MapFunnelStages = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [hovered, setHovered] = React.useState<number | null>(null);
   const [alert, setAlert] = useState(null);
-  const [loading, setLoading] = useState(false);
   const { verifyStep, setHasChanges, hasChanges, setverifybeforeMove } =
     useVerification();
   const [selectedOption, setSelectedOption] = useState<string | null>("");
@@ -49,7 +49,7 @@ const MapFunnelStages = () => {
     },
   });
 
-  // Default funnel stages
+  // Default funnel stages for Custom option
   const defaultFunnels = [
     {
       id: "Awareness",
@@ -81,6 +81,24 @@ const MapFunnelStages = () => {
     },
   ];
 
+  // Funnel stages for Targeting-Retargeting option with fixed icons
+  const targetingRetargetingFunnels = [
+    {
+      id: "Targeting",
+      name: "Targeting",
+      icon: zoom, // Fixed icon for Targeting
+      activeIcon: zoomWhite,
+      color: "bg-blue-500",
+    },
+    {
+      id: "Retargeting",
+      name: "Retargeting",
+      icon: credit, // Fixed icon for Retargeting
+      activeIcon: creditWhite,
+      color: "bg-green-500",
+    },
+  ];
+
   // State for custom funnels and modal
   const [customFunnels, setCustomFunnels] = useState(defaultFunnels);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -90,11 +108,6 @@ const MapFunnelStages = () => {
     name: string;
   } | null>(null);
   const [newFunnelName, setNewFunnelName] = useState("");
-
-  // Debug campaignFormData.funnel_stages changes
-  useEffect(() => {
-    console.log("campaignFormData.funnel_stages:", campaignFormData.funnel_stages);
-  }, [campaignFormData.funnel_stages]);
 
   useEffect(() => {
     setIsDrawerOpen(false);
@@ -111,7 +124,6 @@ const MapFunnelStages = () => {
     }
   }, [campaignData, cId, verifyStep]);
 
-  // Auto-hide alert after 3 seconds
   useEffect(() => {
     if (alert) {
       const timer = setTimeout(() => setAlert(null), 3000);
@@ -124,7 +136,18 @@ const MapFunnelStages = () => {
     const initialOption = campaignData?.funnel_type || "";
     setSelectedOption(initialOption);
 
-    if (
+    if (initialOption === "targeting_retargeting") {
+      setCustomFunnels(targetingRetargetingFunnels);
+      setCampaignFormData((prev) => ({
+        ...prev,
+        custom_funnels: targetingRetargetingFunnels, // Use fixed icons for Targeting/Retargeting
+        funnel_stages: ["Targeting", "Retargeting"],
+        channel_mix: [
+          { funnel_stage: "Targeting" },
+          { funnel_stage: "Retargeting" },
+        ],
+      }));
+    } else if (
       campaignData?.custom_funnels &&
       campaignData.custom_funnels.length > 0
     ) {
@@ -146,11 +169,8 @@ const MapFunnelStages = () => {
         setSavedSelections((prev) => ({
           ...prev,
           targeting_retargeting: {
-            funnel_stages: campaignData.funnel_stages || [
-              "Targeting",
-              "Retargeting",
-            ],
-            channel_mix: campaignData.channel_mix || [
+            funnel_stages: ["Targeting", "Retargeting"],
+            channel_mix: [
               { funnel_stage: "Targeting" },
               { funnel_stage: "Retargeting" },
             ],
@@ -160,15 +180,14 @@ const MapFunnelStages = () => {
     }
   }, [campaignData]);
 
-  // Update campaignFormData when customFunnels change
+  // Update campaignFormData when customFunnels or selectedOption change
   useEffect(() => {
-    if (selectedOption === "custom") {
-      setCampaignFormData((prev) => ({
-        ...prev,
-        custom_funnels: customFunnels,
-      }));
-      setHasChanges(true);
-    }
+    setCampaignFormData((prev) => ({
+      ...prev,
+      custom_funnels:
+        selectedOption === "custom" ? customFunnels : targetingRetargetingFunnels,
+    }));
+    setHasChanges(true);
   }, [customFunnels, selectedOption, setCampaignFormData]);
 
   const handleSelect = (id: string) => {
@@ -183,9 +202,7 @@ const MapFunnelStages = () => {
     let newChannelMix = [...(campaignFormData?.channel_mix || [])];
 
     if (campaignFormData?.funnel_stages?.includes(id)) {
-      newChannelMix = newChannelMix.filter(
-        (ch: any) => ch?.funnel_stage !== id
-      );
+      newChannelMix = newChannelMix.filter((ch: any) => ch?.funnel_stage !== id);
     } else {
       newChannelMix.push({ funnel_stage: id });
     }
@@ -211,29 +228,34 @@ const MapFunnelStages = () => {
         ...prev,
         [selectedOption]: {
           funnel_stages: campaignFormData?.funnel_stages || [],
-          channel_mix: campaignFormData?.channel_mix || [],
+          channel_mix: campaignData?.channel_mix || [],
         },
       }));
     }
 
     setSelectedOption(option);
 
-    setCampaignFormData((prev) => ({
-      ...prev,
+    const newFormData = {
+      ...campaignFormData,
       funnel_type: option,
-      funnel_stages:
-        savedSelections[option]?.funnel_stages ||
-        (option === "targeting_retargeting"
-          ? ["Targeting", "Retargeting"]
-          : []),
-      channel_mix:
-        savedSelections[option]?.channel_mix ||
-        (option === "targeting_retargeting"
-          ? [{ funnel_stage: "Targeting" }, { funnel_stage: "Retargeting" }]
-          : []),
-      ...(option === "custom" ? { custom_funnels: customFunnels } : {}),
-    }));
+    };
 
+    if (option === "targeting_retargeting") {
+      newFormData.funnel_stages = ["Targeting", "Retargeting"];
+      newFormData.channel_mix = [
+        { funnel_stage: "Targeting" },
+        { funnel_stage: "Retargeting" },
+      ];
+      newFormData.custom_funnels = targetingRetargetingFunnels; // Use fixed icons
+      setCustomFunnels(targetingRetargetingFunnels);
+    } else if (option === "custom") {
+      newFormData.funnel_stages = savedSelections.custom.funnel_stages;
+      newFormData.channel_mix = savedSelections.custom.channel_mix;
+      newFormData.custom_funnels = customFunnels;
+      setCustomFunnels(defaultFunnels);
+    }
+
+    setCampaignFormData(newFormData);
     setHasChanges(true);
   };
 
@@ -257,7 +279,6 @@ const MapFunnelStages = () => {
     };
   }, [isModalOpen]);
 
-  // Handle adding a new funnel
   const handleAddFunnel = (name: string) => {
     if (!name.trim()) {
       toast("Funnel name cannot be empty", {
@@ -318,7 +339,7 @@ const MapFunnelStages = () => {
       id: name,
       name: name,
       color: colorPalette[customFunnels.length % colorPalette.length],
-      icon: customicon,
+      icon: customicon, // Use customicon for new custom funnels only
       activeIcon: customicon,
     };
 
@@ -333,7 +354,6 @@ const MapFunnelStages = () => {
     setHasChanges(true);
   };
 
-  // Handle editing a funnel
   const handleEditFunnel = (oldId: string, newName: string) => {
     if (!newName.trim()) {
       toast("Funnel name cannot be empty", {
@@ -421,7 +441,6 @@ const MapFunnelStages = () => {
     setHasChanges(true);
   };
 
-  // Handle removing a funnel
   const handleRemoveFunnel = (id: string) => {
     if (customFunnels.length <= 1) {
       setAlert({
@@ -450,7 +469,6 @@ const MapFunnelStages = () => {
         channel_mix: updatedChannelMix,
       };
 
-      console.log("After deletion - updatedFormData:", updatedFormData);
       return updatedFormData;
     });
 
@@ -510,24 +528,17 @@ const MapFunnelStages = () => {
         ))}
       </div>
 
-      {/* Render funnel stages based on selected option */}
-      {selectedOption === "custom" && (
+      {selectedOption === "targeting_retargeting" && (
         <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
-          {/* Funnel stages for Custom */}
-          {customFunnels.map((funnel, index) => {
-            console.log(
-              `Rendering ${funnel.name}: selected=${
-                campaignFormData.funnel_stages?.includes(funnel.name)
-              }, color=${funnel.color}`
+          {targetingRetargetingFunnels.map((funnel, index) => {
+            const isSelected = campaignFormData.funnel_stages?.includes(
+              funnel.name
             );
             return (
-              <div
-                key={`${funnel.id}-${index}`}
-                className="relative w-full max-w-[685px]"
-              >
+              <div key={funnel.id} className="relative w-full max-w-[685px]">
                 <button
                   className={`cursor-pointer w-full ${
-                    campaignFormData.funnel_stages?.includes(funnel.name)
+                    isSelected
                       ? `${funnel.color} text-white`
                       : "bg-white text-black shadow-md hover:bg-gray-100"
                   } rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200`}
@@ -536,11 +547,42 @@ const MapFunnelStages = () => {
                   onMouseLeave={() => setHovered(null)}
                 >
                   <Image
-                    src={
-                      campaignFormData.funnel_stages?.includes(funnel.name)
-                        ? funnel.activeIcon || "/placeholder.svg"
-                        : funnel.icon || "/placeholder.svg"
-                    }
+                    src={isSelected ? funnel.activeIcon : funnel.icon}
+                    alt={`${funnel.name} icon`}
+                    width={24}
+                    height={24}
+                  />
+                  <p className="text-[16px]">{funnel.name}</p>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {selectedOption === "custom" && (
+        <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
+          {customFunnels.map((funnel, index) => {
+            const isSelected = campaignFormData.funnel_stages?.includes(
+              funnel.name
+            );
+            return (
+              <div
+                key={`${funnel.id}-${index}`}
+                className="relative w-full max-w-[685px]"
+              >
+                <button
+                  className={`cursor-pointer w-full ${
+                    isSelected
+                      ? `${funnel.color} text-white`
+                      : "bg-white text-black shadow-md hover:bg-gray-100"
+                  } rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200`}
+                  onClick={() => handleSelect(funnel.name)}
+                  onMouseEnter={() => setHovered(index + 1)}
+                  onMouseLeave={() => setHovered(null)}
+                >
+                  <Image
+                    src={isSelected ? funnel.activeIcon : funnel.icon}
                     alt={`${funnel.name} icon`}
                     width={24}
                     height={24}
@@ -575,7 +617,6 @@ const MapFunnelStages = () => {
             );
           })}
 
-          {/* Add new funnel button for Custom option */}
           <button
             className="flex items-center gap-2 text-blue-500 cursor-pointer text-[16px]"
             onClick={() => {
@@ -591,7 +632,6 @@ const MapFunnelStages = () => {
         </div>
       )}
 
-      {/* Custom Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div

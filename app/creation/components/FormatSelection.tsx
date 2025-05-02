@@ -106,6 +106,194 @@ const setLocalStorageItem = (key: string, value: any) => {
 }
 
 // Components
+// const MediaOption = ({
+//   option,
+//   isSelected,
+//   quantity,
+//   onSelect,
+//   onQuantityChange,
+//   onOpenModal,
+//   platformName,
+//   channelName,
+//   previews,
+//   stageName,
+//   format,
+//   adSetIndex,
+// }: {
+//   option: MediaOptionType
+//   isSelected: boolean
+//   quantity: number
+//   onSelect: () => void
+//   onQuantityChange: (change: number) => void
+//   onOpenModal: () => void
+//   platformName: string
+//   channelName: string
+//   previews: Array<{ id: string; url: string }>
+//   stageName: string
+//   format: string
+//   adSetIndex?: number
+// }) => {
+//   const { campaignFormData, updateCampaign } = useCampaigns()
+//   const [loading, setLoading] = useState(false)
+//   const [localPreviews, setLocalPreviews] = useState(previews)
+//   const [idToDel, setIdToDel] = useState<string | null>(null)
+
+//   useEffect(() => {
+//     setLocalPreviews(previews)
+//   }, [previews])
+
+//   const uploadUpdatedCampaignToStrapi = async (data: any) => {
+//     try {
+//       const cleanData = removeKeysRecursively(
+//         data,
+//         ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
+//         ["previews"],
+//       )
+//       await updateCampaign(cleanData)
+//     } catch (error) {
+//       console.error("Error in uploadUpdatedCampaignToStrapi:", error)
+//       toast.error("Failed to save campaign data.")
+//       throw error
+//     }
+//   }
+
+//   const handleDelete = async (previewId: string) => {
+//     setLoading(true)
+//     setIdToDel(previewId)
+
+//     try {
+//       const updatedPreviews = localPreviews.filter((prv) => prv.id !== previewId)
+//       setLocalPreviews(updatedPreviews)
+
+//       const updatedChannelMix = [...(campaignFormData?.channel_mix || [])]
+//       const stageIndex = updatedChannelMix.findIndex((ch) => ch.funnel_stage === stageName)
+//       if (stageIndex === -1) return
+
+//       const platformKey = channelName.toLowerCase().replace(/\s+/g, "_")
+//       const platforms = updatedChannelMix[stageIndex][platformKey]
+//       if (!platforms) return
+
+//       const platformIndex = platforms.findIndex((pl) => pl.platform_name === platformName)
+//       if (platformIndex === -1) return
+
+//       if (adSetIndex !== undefined) {
+//         // Handle ad set format
+//         const adSet = platforms[platformIndex].ad_sets?.[adSetIndex]
+//         if (!adSet?.format) return
+
+//         const formatIndex = adSet.format.findIndex((f) => f.format_type === format)
+//         if (formatIndex === -1) return
+
+//         adSet.format[formatIndex].previews = updatedPreviews
+//       } else {
+//         // Handle platform format
+//         const formatIndex = platforms[platformIndex].format?.findIndex((f) => f.format_type === format)
+//         if (formatIndex === -1 || !platforms[platformIndex].format) return
+
+//         platforms[platformIndex].format[formatIndex].previews = updatedPreviews
+//       }
+
+//       const updatedState = {
+//         ...campaignFormData,
+//         channel_mix: updatedChannelMix,
+//       }
+
+//       await uploadUpdatedCampaignToStrapi(updatedState)
+//     } catch (error) {
+//       console.error("Error deleting preview:", error)
+//       toast.error("Failed to delete preview")
+//     } finally {
+//       setLoading(false)
+//       setIdToDel(null)
+//     }
+//   }
+
+//   return (
+//     <div>
+//       <div className="flex gap-6 min-w-fit">
+//         <div className="flex flex-col items-center">
+//           <div
+//             onClick={onSelect}
+//             className={`relative text-center p-2 rounded-lg border transition ${
+//               isSelected ? "border-blue-500 shadow-lg" : "border-gray-300"
+//             } cursor-pointer`}
+//           >
+//             <Image src={option.icon || "/placeholder.svg"} width={168} height={132} alt={option.name} />
+//             <p className="text-sm font-medium text-gray-700 mt-2">{option.name}</p>
+//             {isSelected && (
+//               <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+//                 <FaCheck />
+//               </div>
+//             )}
+//           </div>
+//           {isSelected && (
+//             <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
+//               <button className="px-2 py-1 text-[#000000] text-lg font-semibold" onClick={() => onQuantityChange(-1)}>
+//                 -
+//               </button>
+//               <span className="px-2">{quantity || 1}</span>
+//               <button className="px-2 py-1 text-[#000000] text-lg font-semibold" onClick={() => onQuantityChange(1)}>
+//                 +
+//               </button>
+//             </div>
+//           )}
+//         </div>
+//         {isSelected && (
+//           <div
+//             onClick={onOpenModal}
+//             className="w-[225px] h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
+//           >
+//             <div className="flex flex-col items-center gap-2 text-center">
+//               <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+//                 <path
+//                   d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
+//                   fill="#3175FF"
+//                 />
+//               </svg>
+//               <p className="text-md font-lighter text-black mt-2">Upload your previews</p>
+//             </div>
+//           </div>
+//         )}
+//       </div>
+//       {isSelected && localPreviews && localPreviews.length > 0 && (
+//         <div className="mt-8">
+//           <p className="font-semibold text-[18px] mb-4">Uploaded Previews</p>
+//           <div className="grid grid-cols-2 gap-3 flex-wrap">
+//             {localPreviews.slice(0, quantity).map((prv, index) => (
+//               <div key={prv?.id || index} className="relative">
+//                 <Link
+//                   href={prv?.url ?? ""}
+//                   target="_blank"
+//                   className="w-[225px] h-[150px] rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors border border-gray-500 cursor-pointer"
+//                 >
+//                   {renderUploadedFile(
+//                     localPreviews.map((lp) => lp?.url),
+//                     option.name,
+//                     index,
+//                   )}
+//                 </Link>
+//                 <button
+//                   className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
+//                   onClick={() => handleDelete(prv?.id)}
+//                   disabled={loading && idToDel === prv?.id}
+//                 >
+//                   {loading && idToDel === prv?.id ? (
+//                     <center>
+//                       <FaSpinner color="white" className="animate-spin" />
+//                     </center>
+//                   ) : (
+//                     <Trash color="white" size={10} />
+//                   )}
+//                 </button>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   )
+// }
+
 const MediaOption = ({
   option,
   isSelected,
@@ -135,12 +323,14 @@ const MediaOption = ({
 }) => {
   const { campaignFormData, updateCampaign } = useCampaigns()
   const [loading, setLoading] = useState(false)
-  const [localPreviews, setLocalPreviews] = useState(previews)
+  const [localPreviews, setLocalPreviews] = useState<Array<{ id: string; url: string }>>([])
   const [idToDel, setIdToDel] = useState<string | null>(null)
 
   useEffect(() => {
-    setLocalPreviews(previews)
-  }, [previews])
+    // Show exactly the number of previews matching the quantity
+    const shownPreviews = (previews || []).slice(0, quantity)
+    setLocalPreviews(shownPreviews)
+  }, [previews, quantity])
 
   const uploadUpdatedCampaignToStrapi = async (data: any) => {
     try {
@@ -158,11 +348,13 @@ const MediaOption = ({
   }
 
   const handleDelete = async (previewId: string) => {
+    if (!previewId) return
+    
     setLoading(true)
     setIdToDel(previewId)
 
     try {
-      const updatedPreviews = localPreviews.filter((prv) => prv.id !== previewId)
+      const updatedPreviews = localPreviews.filter(prv => prv.id !== previewId)
       setLocalPreviews(updatedPreviews)
 
       const updatedChannelMix = [...(campaignFormData?.channel_mix || [])]
@@ -177,20 +369,23 @@ const MediaOption = ({
       if (platformIndex === -1) return
 
       if (adSetIndex !== undefined) {
-        // Handle ad set format
         const adSet = platforms[platformIndex].ad_sets?.[adSetIndex]
         if (!adSet?.format) return
 
         const formatIndex = adSet.format.findIndex((f) => f.format_type === format)
         if (formatIndex === -1) return
 
-        adSet.format[formatIndex].previews = updatedPreviews
+        adSet.format[formatIndex].previews = adSet.format[formatIndex].previews.filter(
+          prv => prv.id !== previewId
+        )
       } else {
-        // Handle platform format
         const formatIndex = platforms[platformIndex].format?.findIndex((f) => f.format_type === format)
         if (formatIndex === -1 || !platforms[platformIndex].format) return
 
-        platforms[platformIndex].format[formatIndex].previews = updatedPreviews
+        platforms[platformIndex].format[formatIndex].previews = 
+          platforms[platformIndex].format[formatIndex].previews.filter(
+            prv => prv.id !== previewId
+          )
       }
 
       const updatedState = {
@@ -255,29 +450,31 @@ const MediaOption = ({
           </div>
         )}
       </div>
-      {isSelected && localPreviews && localPreviews.length > 0 && (
+      {isSelected && localPreviews.length > 0 && (
         <div className="mt-8">
-          <p className="font-semibold text-[18px] mb-4">Uploaded Previews</p>
+          <p className="font-semibold text-[18px] mb-4">
+            Uploaded Previews ({localPreviews.length}/{quantity})
+          </p>
           <div className="grid grid-cols-2 gap-3 flex-wrap">
-            {localPreviews.slice(0, quantity).map((prv, index) => (
-              <div key={prv?.id || index} className="relative">
+            {localPreviews.map((prv, index) => (
+              <div key={prv.id || index} className="relative">
                 <Link
-                  href={prv?.url ?? ""}
+                  href={prv.url}
                   target="_blank"
                   className="w-[225px] h-[150px] rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors border border-gray-500 cursor-pointer"
                 >
                   {renderUploadedFile(
-                    localPreviews.map((lp) => lp?.url),
+                    localPreviews.map(lp => lp.url),
                     option.name,
                     index,
                   )}
                 </Link>
                 <button
                   className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
-                  onClick={() => handleDelete(prv?.id)}
-                  disabled={loading && idToDel === prv?.id}
+                  onClick={() => handleDelete(prv.id)}
+                  disabled={loading && idToDel === prv.id}
                 >
-                  {loading && idToDel === prv?.id ? (
+                  {loading && idToDel === prv.id ? (
                     <center>
                       <FaSpinner color="white" className="animate-spin" />
                     </center>
