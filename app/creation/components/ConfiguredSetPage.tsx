@@ -414,11 +414,7 @@ const ConfiguredSetPage = () => {
                       );
                       if (!stage) return "";
 
-                      const channelTypes = [
-                        "search_engines",
-                        "display_networks",
-                        "social_media",
-                      ] as const;
+                      const channelTypes = mediaTypes;
 
                       let platformBudget = "";
                       for (const channelType of channelTypes) {
@@ -460,7 +456,7 @@ const ConfiguredSetPage = () => {
                                     />
                                     <span>{platform?.outlet}</span>
                                   </div>
-                                  {platform?.ad_sets?.length > 0 && (
+                                  {campaignFormData?.campaign_budget?.level === "Adset level" &&platform?.ad_sets?.length > 0 && (
                                     <Image
                                       src={down2 || "/placeholder.svg"}
                                       className="size-5"
@@ -601,7 +597,7 @@ const ConfiguredSetPage = () => {
                                   of {stage.name} budget
                                 </p>
                                 {stageName?.funnel_stage === stage.name &&
-                                  platform?.ad_sets?.length > 0 && (
+                                  platform?.ad_sets?.length > 0 && campaignFormData?.campaign_budget?.level === "Adset level" && (
                                     <div
                                       className="flex items-center gap-2"
                                       onClick={(e) => {
@@ -724,7 +720,7 @@ const ConfiguredSetPage = () => {
                             </div>
                           </div>
                           <div className="pb-8 space-y-6">
-                            {platform?.ad_sets?.map((ad_set, index) => {
+                            {campaignFormData?.campaign_budget?.level === "Adset level" && platform?.ad_sets?.map((ad_set, index) => {
                               console.log("fdfd", ad_set);
                               const getAdSetBudget = (adSet) => {
                                 return adSet?.budget?.fixed_value &&
