@@ -31,7 +31,7 @@ import tictok from "../../../../public/tictok.svg";
 import { Plus } from "lucide-react";
 import { useActive } from "app/utils/ActiveContext";
 import { removeKeysRecursively } from "utils/removeID";
-import { getPlatformIcon } from "components/data";
+import { getPlatformIcon, mediaTypes } from "components/data";
 
 // Types
 interface AdSetType {
@@ -131,11 +131,7 @@ const findPlatform = (
   const stage = campaignData.find((stage) => stage.funnel_stage === stageName);
   if (!stage) return null;
 
-  const channelTypes = [
-    "search_engines",
-    "display_networks",
-    "social_media",
-  ] as const;
+  const channelTypes = mediaTypes;
   for (const channelType of channelTypes) {
     const platform = stage[channelType].find(
       (p) => p.platform_name === platformName
@@ -162,11 +158,7 @@ const updateMultipleAdSets = (
   }
 
   const stage = updatedCampaignData[stageIndex];
-  const channelTypes = [
-    "search_engines",
-    "display_networks",
-    "social_media",
-  ] as const;
+  const channelTypes = mediaTypes
   let platformFound = false;
 
   for (const channelType of channelTypes) {
