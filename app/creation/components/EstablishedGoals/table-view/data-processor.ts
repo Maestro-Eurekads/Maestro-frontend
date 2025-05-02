@@ -118,7 +118,7 @@ function createPlatformObject(
 export function extractObjectives(data) {
   const result = {};
 
-  data.channel_mix.forEach((channel) => {
+  data.channel_mix && data.channel_mix?.length > 0 && data.channel_mix.forEach((channel) => {
     const funnelStage = channel.funnel_stage;
     if (!result[funnelStage]) {
       result[funnelStage] = [];
