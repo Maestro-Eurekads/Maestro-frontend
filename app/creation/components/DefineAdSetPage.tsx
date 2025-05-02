@@ -52,25 +52,49 @@ const DefineAdSetPage = () => {
   // Initialize statuses and interaction tracking
   useEffect(() => {
     if (campaignFormData?.funnel_stages) {
-      const initialStatuses = campaignFormData.funnel_stages.reduce(
-        (acc, stageName) => {
-          acc[stageName] = "Not started";
-          return acc;
-        },
-        {} as Record<string, string>
-      );
+      const initialStatuses = {};
+      const initialInteractions = {};
+      const initialOpenItems = {};
+  
+      for (const stageName of campaignFormData.funnel_stages) {
+        initialStatuses[stageName] = "Not started";
+        initialInteractions[stageName] = false;
+  
+        const stage = campaignFormData.channel_mix?.find(
+          (s) => s.funnel_stage === stageName
+        );
+  
+        if (stage) {
+            const platforms = [
+            ...(stage.search_engines || []),
+            ...(stage.display_networks || []),
+            ...(stage.social_media || []),
+            ...(stage.streaming || []),
+            ...(stage.ooh || []),
+            ...(stage.broadcast || []),
+            ...(stage.messaging || []),
+            ...(stage.print || []),
+            ...(stage.e_commerce || []),
+            ...(stage.in_game || []),
+            ...(stage.mobile || []),
+            ];
+  
+          const hasAdSets = platforms.some(
+            (platform) => platform.ad_sets && platform.ad_sets.length > 0
+          );
+  
+          if (hasAdSets) {
+            initialOpenItems[stageName] = true;
+          }
+        }
+      }
+  
       setStageStatuses(initialStatuses);
-
-      const initialInteractions = campaignFormData.funnel_stages.reduce(
-        (acc, stageName) => {
-          acc[stageName] = false;
-          return acc;
-        },
-        {} as Record<string, boolean>
-      );
       setHasInteracted(initialInteractions);
+      setOpenItems(initialOpenItems);
     }
   }, [campaignFormData]);
+  
 
   const toggleItem = (stage: string) => {
     setOpenItems((prev) => {

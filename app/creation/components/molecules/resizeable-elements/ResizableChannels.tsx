@@ -405,7 +405,7 @@ const ResizableChannels = ({
           }}
         >
           <Image src={whiteplus || "/placeholder.svg"} alt="whiteplus" />
-          <p className="whitespace-nowrap">Add new channel</p>
+          <p className="whitespace-nowrap">Add channel</p>
         </button>
       )}
       {channels?.map((channel, index) => {

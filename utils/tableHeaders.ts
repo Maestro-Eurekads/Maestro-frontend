@@ -1,5 +1,6 @@
 const defaultHeaders = [
   { name: "Channel", showInput: false },
+  { name: "AdSets", showInput: false },
   { name: "Audience", showInput: false },
   { name: "Start Date", showInput: false },
   { name: "End Date", showInput: false },

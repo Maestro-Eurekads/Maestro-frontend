@@ -9,7 +9,7 @@ export function extractPlatforms(data) {
 
   data?.channel_mix?.length > 0 &&
     data.channel_mix.forEach((stage) => {
-      const stageName = stage.funnel_stage;
+      const stageName = stage?.funnel_stage;
       platforms[stageName] = platforms[stageName] || [];
       [
         "social_media",
@@ -93,23 +93,36 @@ function createPlatformObject(
       platform?.ad_sets[0]?.audience_type,
     start_date: moment(platform.campaign_start_date).format("DD/MM/YYYY"),
     end_date: moment(platform.campaign_end_date).format("DD/MM/YYYY"),
-    audience_size: platform?.ad_sets?.reduce(
-      (total, adSet) => total + (Number(adSet.size) || 0),
-      0
-    ),
+    audience_size: platform?.ad_sets?.reduce((total, adSet) => {
+      const baseSize = Number(adSet.size) || 0;
+      const extraSize = (adSet.extra_audiences || []).reduce(
+        (subTotal, extra) => subTotal + (Number(extra.size) || 0),
+        0
+      );
+      return total + baseSize + extraSize;
+    }, 0),
     budget_size:
       Number(platform?.budget?.fixed_value) > 0
         ? `${Number(platform?.budget?.fixed_value)}`
         : 0,
     impressions: platform.impressions,
     reach: platform.reach,
-    ad_sets: platform?.ad_sets?.map((ad) => ({
-      ...ad,
-      budget:
-        ad?.budget === null || ad?.budget === undefined
-          ? { fixed_value: platform?.budget?.fixed_value }
-          : ad?.budget,
-    })),
+    adsets: platform?.ad_sets?.length,
+    ad_sets: platform?.ad_sets?.map((ad) => {
+      const baseSize = Number(ad.size) || 0;
+      const extraSize = (ad.extra_audiences || []).reduce(
+        (sum, extra) => sum + (Number(extra.size) || 0),
+        0
+      );
+      return {
+        ...ad,
+        size: baseSize + extraSize, // ✅ assign per-adset audience size
+        budget:
+          ad?.budget === null || ad?.budget === undefined
+            ? { fixed_value: platform?.budget?.fixed_value }
+            : ad?.budget,
+      };
+    }),
     channel_name: channelType,
     ...rowData,
   };
@@ -118,25 +131,27 @@ function createPlatformObject(
 export function extractObjectives(data) {
   const result = {};
 
-  data.channel_mix && data.channel_mix?.length > 0 && data.channel_mix.forEach((channel) => {
-    const funnelStage = channel.funnel_stage;
-    if (!result[funnelStage]) {
-      result[funnelStage] = [];
-    }
-
-    mediaTypes.forEach((mediaType) => {
-      if (channel[mediaType]) {
-        channel[mediaType].forEach((media) => {
-          if (
-            media.objective_type &&
-            !result[funnelStage].includes(media.objective_type)
-          ) {
-            result[funnelStage].push(media.objective_type);
-          }
-        });
+  data.channel_mix &&
+    data.channel_mix?.length > 0 &&
+    data.channel_mix.forEach((channel) => {
+      const funnelStage = channel.funnel_stage;
+      if (!result[funnelStage]) {
+        result[funnelStage] = [];
       }
+
+      mediaTypes.forEach((mediaType) => {
+        if (channel[mediaType]) {
+          channel[mediaType].forEach((media) => {
+            if (
+              media.objective_type &&
+              !result[funnelStage].includes(media.objective_type)
+            ) {
+              result[funnelStage].push(media.objective_type);
+            }
+          });
+        }
+      });
     });
-  });
 
   return result as {
     [key: string]: string[];
