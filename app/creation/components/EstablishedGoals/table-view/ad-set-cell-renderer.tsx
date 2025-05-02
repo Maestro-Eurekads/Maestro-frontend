@@ -61,17 +61,24 @@ export const AdSetCellRenderer = ({
   }
   if (body === "adsets") {
     return (
-      <div className="flex gap-2">
-        <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
+      <div className="flex gap-2 ">
+        {/* <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
           {adSetIndex + 1}.
-        </span>
-        <span>{adSet?.name ? adSet?.name : "-"}</span>
+        </span>*/}
+        <span>{adSet?.name ? adSet?.name : "-"}</span> 
       </div>
     );
   }
 
   if (body === "audience") {
-    return !adSet?.audience_type ? "-" : adSet?.audience_type;
+    return (
+      <div className="flex gap-2 ">
+        <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
+          {1}.
+        </span>
+        {!adSet?.audience_type ? "-" : adSet?.audience_type}
+      </div>
+    );
   }
 
   if (body === "audience_size") {

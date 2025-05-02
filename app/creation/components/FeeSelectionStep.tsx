@@ -509,21 +509,19 @@ function FeeSelectionStep({ num1, num2 }) {
                   <div className="e_currency-eur items-center">
                     <div className="flex items-center">
                       <p>
-                        {getCurrencySymbol(
-                          campaignFormData?.campaign_budget?.currency
-                        )}
+                      {getCurrencySymbol(
+                        campaignFormData?.campaign_budget?.currency
+                      )}
                       </p>
                       <input
-                        className="text-center outline-none w-[145px]"
-                        placeholder="Gross amount"
-                        value={
-                          Number(netAmount.toLocaleString()) > 0
-                            ? netAmount
-                            : parseInt(
-                                campaignFormData?.campaign_budget?.fixed_value
-                              ).toLocaleString()
-                        }
-                        readOnly
+                      className="text-center outline-none w-[145px]"
+                      placeholder="Gross amount"
+                      value={
+                        isNaN(Number(netAmount)) || Number(netAmount.toLocaleString()) <= 0
+                        ? ""
+                        : netAmount
+                      }
+                      readOnly
                       />
                     </div>
                     <div className="w-[120px]">

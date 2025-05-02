@@ -60,6 +60,7 @@ function BudgetInput({
             options={selectCurrency}
             onChange={handleCurrencyChange}
             value={selectedOption}
+            defaultValue={{label: "EUR", value: "EUR"}}
             styles={{
               control: (provided) => ({
                 ...provided,

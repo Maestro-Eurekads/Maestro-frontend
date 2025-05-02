@@ -64,7 +64,7 @@ export const KPICellRenderer = ({
     return (
       <div className="flex gap-2">
         <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
-          {adSetIndex + 1}.
+          {adSetIndex + 2}.
         </span>
         <span>{adSet ? adSet?.audience_type : "-"}</span>
       </div>
