@@ -57,7 +57,7 @@ export const FunnelStageTable = ({
                 {tableHeaders?.map((header, hIndex) => (
                   <th
                     key={hIndex}
-                    className={`py-4 px-6 cursor-pointer ${
+                    className={`py-4 px-3 cursor-pointer ${
                       nrColumns?.includes(
                         header.name
                           .toLowerCase()

@@ -33,6 +33,7 @@ export const CellRenderer = ({
     "impressions",
     "frequency",
     "reach",
+    "adsets"
   ];
 
   const isNR = nrCells[channel?.name]?.[body];
@@ -54,7 +55,7 @@ export const CellRenderer = ({
   // Channel cell rendering
   if (body === "channel") {
     return (
-      <div className="flex items-center gap-5 w-fit">
+      <div className="flex items-center gap-5 w-fit pr-6">
         <span
           className={`flex items-center gap-2 cursor-pointer ${
             nrColumns?.includes(body) ? "text-gray-400" : ""
