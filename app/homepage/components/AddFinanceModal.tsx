@@ -4,7 +4,6 @@ import Image from "next/image";
 import closefill from "../../../public/close-fill.svg";
 import blueprofile from "../../../public/blueprofile.svg";
 import blueBtn from "../../../public/blueBtn.svg";
-import { MdOutlineCancel } from "react-icons/md";
 import { CustomSelect } from "./CustomReactSelect";
 import { Trash2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "store/useStore";
@@ -16,6 +15,24 @@ import toast, { Toaster } from "react-hot-toast";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { selectCurrency, statusOption } from "components/data";
 import { getCreateClient } from "features/Client/clientSlice";
+
+interface MediaPlan {
+  name: string;
+  amount: number;
+  type: string;
+  percentage: number | null;
+  originalCampaign?: any;
+}
+
+interface POForm {
+  client: string;
+  client_responsible: string;
+  financial_responsible: string;
+  PO_number: number;
+  PO_currency: string;
+  PO_total_amount: number;
+  PO_status: string;
+}
 
 const AddFinanceModal = ({
   isOpen,
@@ -30,11 +47,11 @@ const AddFinanceModal = ({
   selectedRow?: any;
   setSelectedRow?: any;
 }) => {
-  const [mediaPlans, setMediaPlans] = useState([]);
+  const [mediaPlans, setMediaPlans] = useState<MediaPlan[]>([]);
   const { fetchClientCampaign, fetchUserByType, fetchClientPOS } = useCampaignHook();
   const { setClientPOs, setFetchingPO } = useCampaigns();
   const [selected, setSelected] = useState("");
-  const [poForm, setPoForm] = useState({
+  const [poForm, setPoForm] = useState<POForm>({
     client: "",
     client_responsible: "",
     financial_responsible: "",
@@ -43,8 +60,8 @@ const AddFinanceModal = ({
     PO_total_amount: 0,
     PO_status: "open",
   });
-  const [clientCampaigns, setClientCampaigns] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [clientCampaigns, setClientCampaigns] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [loadingCam, setLoadingCam] = useState(false);
   const [loadingUser, setLoadingUser] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -55,7 +72,7 @@ const AddFinanceModal = ({
   );
   const clients: any = getCreateClientData;
 
-  const removeMP = (index) => {
+  const removeMP = (index: number) => {
     setMediaPlans((prev) => prev.filter((_, ind) => ind !== index));
   };
 
@@ -73,6 +90,9 @@ const AddFinanceModal = ({
     setIsOpen(false);
     setClientCampaigns([]);
     setMediaPlans([]);
+    if (setSelectedRow) {
+      setSelectedRow(null);
+    }
   };
 
   useEffect(() => {
@@ -85,67 +105,81 @@ const AddFinanceModal = ({
   }, [poForm.client, selected]);
 
   useEffect(() => {
-    if (selected || selectedRow) {
-      setLoadingCam(true);
-      fetchClientCampaign(selected || selectedRow?.client?.id)
-        .then((res) => {
+    const fetchClientCampaigns = async () => {
+      if (selected || selectedRow?.client?.id) {
+        setLoadingCam(true);
+        try {
+          const res = await fetchClientCampaign(selected || selectedRow?.client?.id);
           const data = res?.data?.data;
-          const newOption = data?.map((opt) => ({
+          const newOption = data?.map((opt: any) => ({
             label: opt?.media_plan_details?.plan_name,
-            value: opt?.id,
+            value: opt?.id?.toString(),
             budget: opt?.campaign_budget?.amount,
           }));
           setClientCampaigns(newOption);
-        })
-        .catch((err) => console.log(err))
-        .finally(() => setLoadingCam(false));
-    }
+        } catch (err) {
+          console.log(err);
+        } finally {
+          setLoadingCam(false);
+        }
+      }
+    };
+
+    fetchClientCampaigns();
   }, [selected, selectedRow]);
 
   useEffect(() => {
     const fetchAgencyUsers = async () => {
       setLoadingUser(true);
-      await fetchUserByType(
-        "?filters[$or][0][user_type][$eq]=agency_approver&filters[$or][1][user_type][$eq]=agency_creator"
-      )
-        .then((res) => {
-          const d = res?.data;
-          const newOpt = d?.map((opt) => ({
-            label: opt?.username,
-            value: opt?.id,
-          }));
-          setUsers(newOpt);
-        })
-        .catch((err) => console.log(err))
-        .finally(() => setLoadingUser(false));
+      try {
+        const res = await fetchUserByType(
+          "?filters[$or][0][user_type][$eq]=agency_approver&filters[$or][1][user_type][$eq]=agency_creator"
+        );
+        const d = res?.data;
+        const newOpt = d?.map((opt: any) => ({
+          label: opt?.username,
+          value: opt?.id?.toString(),
+        }));
+        setUsers(newOpt);
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setLoadingUser(false);
+      }
     };
     fetchAgencyUsers();
   }, []);
 
   useEffect(() => {
-    if (selectedRow) {
+    if (selectedRow && isOpen) {
       setPoForm({
-        client: selectedRow?.client?.id || "",
-        client_responsible: selectedRow?.client_responsible?.id || "",
-        financial_responsible: selectedRow?.financial_responsible?.id || "",
+        client: selectedRow?.client?.id?.toString() || "",
+        client_responsible: selectedRow?.client_responsible?.id?.toString() || "",
+        financial_responsible: selectedRow?.financial_responsible?.id?.toString() || "",
         PO_number: selectedRow?.PO_number || 0,
         PO_currency: selectedRow?.PO_currency || "",
         PO_total_amount: selectedRow?.PO_total_amount || 0,
         PO_status: selectedRow?.PO_status || "open",
       });
 
-      const mp = selectedRow?.assigned_media_plans?.map((mp) => ({
-        name: mp?.campaign?.id?.toString() || "",
-        amount:
-          mp?.amount_type === "total_po_amount_percent"
+      const mp = selectedRow?.assigned_media_plans?.map((mp: any) => {
+        const campaignId = mp?.campaign?.id?.toString() || 
+                         (typeof mp?.campaign === 'string' ? mp.campaign : '');
+        
+        return {
+          name: campaignId,
+          amount: mp?.amount_type === "total_po_amount_percent"
             ? mp?.percentage
             : mp?.amount || 0,
-        type: mp?.amount_type || "",
-        percentage: mp?.percentage || null,
-      })) || [];
+          type: mp?.amount_type || "",
+          percentage: mp?.percentage || null,
+          originalCampaign: mp?.campaign
+        };
+      }) || [];
+      
       setMediaPlans(mp);
     }
-  }, [selectedRow]);
+  }, [selectedRow, isOpen]);
 
   const validateForm = () => {
     if (!poForm.client) {
@@ -284,28 +318,6 @@ const AddFinanceModal = ({
         localStorage.setItem("selectedClient", selected);
       }
 
-      if (setSelectedRow) {
-        setSelectedRow({
-          ...newPO,
-          client: { id: poForm.client },
-          client_responsible: { id: poForm.client_responsible },
-          financial_responsible: { id: poForm.financial_responsible },
-          PO_number: poForm.PO_number,
-          PO_currency: poForm.PO_currency,
-          PO_total_amount: poForm.PO_total_amount,
-          PO_status: poForm.PO_status,
-          assigned_media_plans: mediaPlans?.map((mp) => ({
-            campaign: { id: mp?.name },
-            amount:
-              mp?.type === "total_po_amount_percent"
-                ? (Number(mp?.amount) / 100) * Number(poForm?.PO_total_amount)
-                : Number(mp?.amount),
-            amount_type: mp?.type,
-            percentage: mp?.type === "total_po_amount_percent" ? Number(mp?.amount) : null,
-          })),
-        });
-      }
-
       toast("Purchase Order created successfully!", {
         style: { background: "green", color: "white", textAlign: "center" },
         duration: 3000,
@@ -315,7 +327,7 @@ const AddFinanceModal = ({
       fetchClientPOS(poForm.client).then((res) => {
         setClientPOs(res?.data?.data || []);
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error creating PO:", err);
       const errorMessage =
         err?.response?.data?.error?.message || "An unexpected error occurred";
@@ -365,10 +377,18 @@ const AddFinanceModal = ({
         }
       );
 
+      const updatedPO = response.data.data;
+      setClientPOs((prevPOs) => 
+        prevPOs?.map(po => 
+          po.id === updatedPO.id ? updatedPO : po
+        ) || []
+      );
+
       toast("Purchase Order updated successfully!", {
         style: { background: "green", color: "white", textAlign: "center" },
         duration: 3000,
       });
+      
       handleClose();
       setFetchingPO(true);
       fetchClientPOS(selectedRow?.client?.id)
@@ -424,18 +444,18 @@ const AddFinanceModal = ({
                   ) : (
                     clients?.data && (
                       <CustomSelect
-                        options={clients?.data?.map((c) => ({
+                        options={clients?.data?.map((c: any) => ({
                           label: c?.client_name,
-                          value: c?.id,
+                          value: c?.id?.toString(),
                         }))}
                         className="min-w-[150px] z-[20]"
                         placeholder="Select client"
                         value={clients?.data
-                          ?.map((c) => ({
+                          ?.map((c: any) => ({
                             label: c?.client_name,
-                            value: c?.id,
+                            value: c?.id?.toString(),
                           }))
-                          ?.find((op) => op?.value === poForm?.client)}
+                          ?.find((op: any) => op?.value === poForm?.client)}
                         onChange={(value: { label: string; value: string } | null) => {
                           if (value) {
                             setSelected(value.value);
@@ -462,7 +482,7 @@ const AddFinanceModal = ({
                       className="mt-2"
                       placeholder="Select responsible"
                       options={users}
-                      value={users?.find((uu) => uu?.value === poForm?.client_responsible)}
+                      value={users?.find((uu: any) => uu?.value === poForm?.client_responsible)}
                       onChange={(value: { label: string; value: string } | null) => {
                         if (value) {
                           setPoForm((prev) => ({
@@ -487,7 +507,7 @@ const AddFinanceModal = ({
                     className="mt-2"
                     placeholder="Select responsible"
                     options={users}
-                    value={users?.find((uu) => uu?.value === poForm?.financial_responsible)}
+                    value={users?.find((uu: any) => uu?.value === poForm?.financial_responsible)}
                     onChange={(value: { label: string; value: string } | null) => {
                       if (value) {
                         setPoForm((prev) => ({
@@ -581,7 +601,7 @@ const AddFinanceModal = ({
 
                 {mediaPlans?.length > 0 && (
                   <div className="space-y-3">
-                    {mediaPlans?.map((plan, index) => (
+                    {mediaPlans?.map((plan: MediaPlan, index: number) => (
                       <div key={index}>
                         {loadingCam ? (
                           <div className="shrink-0 flex items-center gap-2">
@@ -594,11 +614,17 @@ const AddFinanceModal = ({
                               placeholder="Select media plan"
                               className="rounded-3xl"
                               options={clientCampaigns.filter(
-                                (campaign) =>
-                                  !mediaPlans.some((plan) => plan?.name === campaign?.value)
+                                (campaign: any) =>
+                                  !mediaPlans.some(
+                                    (plan: MediaPlan, i: number) => 
+                                      plan?.name === campaign?.value && i !== index
+                                  )
                               )}
                               value={
-                                clientCampaigns?.find((cc) => cc.value === mediaPlans[index]?.name) || null
+                                clientCampaigns.find((cc: any) => 
+                                  cc.value === plan?.name || 
+                                  (plan?.originalCampaign && cc.value === plan.originalCampaign.id?.toString())
+                                ) || null
                               }
                               onChange={(value: { label: string; value: string; budget: string } | null) => {
                                 if (value) {
@@ -607,6 +633,7 @@ const AddFinanceModal = ({
                                     newPlans[index] = {
                                       ...newPlans[index],
                                       name: value.value,
+                                      originalCampaign: undefined
                                     };
                                     if (plan?.type && plan?.type === "total_po_amount") {
                                       newPlans[index].type = plan.type;
@@ -653,7 +680,7 @@ const AddFinanceModal = ({
                                   } else {
                                     setMediaPlans((prev) => {
                                       const newPlans = [...prev];
-                                      newPlans[index].amount = "";
+                                      newPlans[index].amount = 0;
                                       newPlans[index].type = value.value;
                                       return newPlans;
                                     });
@@ -821,7 +848,7 @@ const AddFinanceModal = ({
                           }
                         );
                       } else {
-                        setMediaPlans((prev) => [...prev, {}]);
+                        setMediaPlans((prev) => [...prev, { name: "", amount: 0, type: "", percentage: null }]);
                       }
                     } else {
                       toast(
