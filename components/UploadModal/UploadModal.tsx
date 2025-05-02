@@ -67,7 +67,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
         format === "Video"
           ? ["video/mp4", "video/mov", "video/quicktime"]
           : ["image/jpeg", "image/png", "image/jpg"]
-
       const maxSizeInMB = 20
       const maxSizeInBytes = maxSizeInMB * 1024 * 1024
 
