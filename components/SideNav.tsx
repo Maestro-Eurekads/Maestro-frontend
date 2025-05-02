@@ -20,25 +20,28 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 import Skeleton from "react-loading-skeleton";
 import { useComments } from "app/utils/CommentProvider";
 import { useEffect } from "react";
+import { useAppDispatch } from "store/useStore";
+import { reset } from "features/Comment/commentSlice";
 
 const SideNav: React.FC = () => {
   const { setClose, close, setViewcommentsId, setOpportunities } = useComments();
   const router = useRouter();
   const { setActive, setSubStep, active } = useActive();
-  const searchParams = useSearchParams();
-  const campaignId = searchParams.get("campaignId");
+  const dispatch = useAppDispatch();
   const { campaignData, getActiveCampaign, setCampaignData, isLoading, loadingCampaign, loading } = useCampaigns();
 
   useEffect(() => {
-    if (active == 10 || active == 9) {
-      console.log('active', active, "here", close)
-      setClose(true)
-    } else {
-      setClose(false)
-    }
-  }, [active])
+    const shouldClose = active === 9 || active === 10;
+
+    setClose((prev) => {
+      // Only update if the value has changed
+      return prev !== shouldClose ? shouldClose : prev;
+    });
+  }, [active]);
+
 
   const handleBackClick = (e) => {
+    dispatch(reset())
     setOpportunities([]);
     setViewcommentsId('');
     e.preventDefault();
@@ -188,7 +191,7 @@ const SideNav: React.FC = () => {
               </div>
             )}
             <div className="flex items-center gap-[8px]">
-              {loading ? (
+              {loading || loadingCampaign ? (
                 <Skeleton height={20} width={150} />
               ) : !campaignData?.client?.client_name ||
                 campaignData?.media_plan_details?.plan_name === undefined ? (

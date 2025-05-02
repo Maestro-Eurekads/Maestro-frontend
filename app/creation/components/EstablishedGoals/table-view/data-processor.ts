@@ -118,8 +118,8 @@ function createPlatformObject(
 export function extractObjectives(data) {
   const result = {};
 
-  data.channel_mix.forEach((channel) => {
-    const funnelStage = channel.funnel_stage;
+  data?.channel_mix?.forEach((channel) => {
+    const funnelStage = channel?.funnel_stage;
     if (!result[funnelStage]) {
       result[funnelStage] = [];
     }
@@ -128,10 +128,10 @@ export function extractObjectives(data) {
       if (channel[mediaType]) {
         channel[mediaType].forEach((media) => {
           if (
-            media.objective_type &&
-            !result[funnelStage].includes(media.objective_type)
+            media?.objective_type &&
+            !result[funnelStage].includes(media?.objective_type)
           ) {
-            result[funnelStage].push(media.objective_type);
+            result[funnelStage].push(media?.objective_type);
           }
         });
       }
