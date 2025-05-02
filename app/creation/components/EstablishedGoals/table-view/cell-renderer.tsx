@@ -105,6 +105,10 @@ export const CellRenderer = ({
     );
   }
 
+  if (body === "audience"){
+    return ""
+  }
+
   // Handle calculated fields
   const calculatedFields = [
     "impressions",
