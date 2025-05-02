@@ -9,7 +9,7 @@ export function extractPlatforms(data) {
 
   data?.channel_mix?.length > 0 &&
     data.channel_mix.forEach((stage) => {
-      const stageName = stage.funnel_stage;
+      const stageName = stage?.funnel_stage;
       platforms[stageName] = platforms[stageName] || [];
       [
         "social_media",
@@ -91,8 +91,8 @@ function createPlatformObject(
       platform?.ad_sets &&
       platform?.ad_sets.length > 0 &&
       platform?.ad_sets[0]?.audience_type,
-    start_date: moment(platform.campaign_start_date).format("DD/MM/YYYY"),
-    end_date: moment(platform.campaign_end_date).format("DD/MM/YYYY"),
+    start_date: moment(platform?.campaign_start_date).format("DD/MM/YYYY"),
+    end_date: moment(platform?.campaign_end_date).format("DD/MM/YYYY"),
     audience_size: platform?.ad_sets?.reduce(
       (total, adSet) => total + (Number(adSet.size) || 0),
       0
@@ -101,8 +101,8 @@ function createPlatformObject(
       Number(platform?.budget?.fixed_value) > 0
         ? `${Number(platform?.budget?.fixed_value)}`
         : 0,
-    impressions: platform.impressions,
-    reach: platform.reach,
+    impressions: platform?.impressions,
+    reach: platform?.reach,
     ad_sets: platform?.ad_sets?.map((ad) => ({
       ...ad,
       budget:
@@ -118,7 +118,7 @@ function createPlatformObject(
 export function extractObjectives(data) {
   const result = {};
 
-  data?.channel_mix?.forEach((channel) => {
+  data?.channel_mix && data?.channel_mix?.length > 0 && data?.channel_mix.forEach((channel) => {
     const funnelStage = channel?.funnel_stage;
     if (!result[funnelStage]) {
       result[funnelStage] = [];

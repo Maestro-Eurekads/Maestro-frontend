@@ -36,7 +36,8 @@ const CampaignBudget = () => {
     label: "EUR",
   });
 
-  const { campaignFormData, setCampaignFormData } = useCampaigns();
+  const { campaignFormData, setCampaignFormData, campaignData } =
+    useCampaigns();
 
   const selectCurrency = [
     { value: "USD", label: "USD" },
@@ -75,20 +76,20 @@ const CampaignBudget = () => {
   };
 
   useEffect(() => {
-    if (campaignFormData?.campaign_budget) {
-      setBudgetStyle(campaignFormData?.campaign_budget?.budget_type);
+    if (campaignData?.campaign_budget) {
+      setBudgetStyle(campaignData?.campaign_budget?.budget_type);
       setStep(0);
-      if (campaignFormData?.campaign_budget?.sub_budget_type?.length > 0) {
+      if (campaignData?.campaign_budget?.sub_budget_type?.length > 0) {
         setStep(1);
       }
-      if (campaignFormData?.campaign_budget?.budget_fees?.length > 0) {
+      if (campaignData?.campaign_budget?.budget_fees?.length > 0) {
         setStep(2);
       }
-      if (campaignFormData?.campaign_budget?.level) {
+      if (campaignData?.campaign_budget?.level) {
         setStep(3);
       }
     }
-  }, [campaignFormData]);
+  }, [campaignData]);
 
   return (
     <div>
@@ -201,23 +202,25 @@ const CampaignBudget = () => {
       {budgetStyle !== "" && budgetStyle === "top_down" && step > 0 && (
         <>
           <FeeSelectionStep num1={2} num2={3} />
-          <div className="flex justify-end mt-[20px]">
-            <button
-              onClick={() => setStep(2)}
-              className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-                loading
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-[#3175FF] hover:bg-[#2563eb]"
-              }`}
-              disabled={loading}
-            >
-              {loading ? (
-                <SVGLoader width={"24px"} height={"24px"} color={"#fff"} />
-              ) : (
-                "Validate"
-              )}
-            </button>
-          </div>
+          {campaignFormData?.campaign_budget?.sub_budget_type && (
+            <div className="flex justify-end mt-[20px]">
+              <button
+                onClick={() => setStep(2)}
+                className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
+                  loading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-[#3175FF] hover:bg-[#2563eb]"
+                }`}
+                disabled={loading}
+              >
+                {loading ? (
+                  <SVGLoader width={"24px"} height={"24px"} color={"#fff"} />
+                ) : (
+                  "Validate"
+                )}
+              </button>
+            </div>
+          )}
         </>
       )}
       {budgetStyle !== "" && budgetStyle === "top_down" && step > 1 && (
@@ -505,7 +508,7 @@ const CampaignBudget = () => {
                       <button
                         className="btn btn-primary w-full text-sm bg-[#3175FF]"
                         onClick={() => {
-                          setStep(1);
+                          setStep(2);
                           setCampaignFormData((prev) => ({
                             ...prev,
                             campaign_budget: {
