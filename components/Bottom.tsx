@@ -456,7 +456,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         ]),
         campaign_budget: removeKeysRecursively(copy?.campaign_budget, ["id"]),
         goal_level: campaignFormData?.goal_level,
-      })
+      });
     };
 
     try {
@@ -476,13 +476,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
       if (active === 7) {
         if (subStep < 1) {
-          setSubStep((prev) => prev + 1);
-        } else {
-          setActive((prev) => prev + 1);
-          setSubStep(0);
-        }
-      } else if (active === 8) {
-        if (subStep < 2) {
           setSubStep((prev) => prev + 1);
         } else {
           setActive((prev) => prev + 1);
