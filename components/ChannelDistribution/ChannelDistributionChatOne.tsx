@@ -17,50 +17,71 @@ const platforms = [
 	{ img: <Image src={Google} alt='Google' />, name: "Google", amount: "450 €", values: [0, 0, 100] },
 ];
 
-const ChannelDistributionChatOne = () => {
+const ChannelDistributionChatOne = ({ channelData, currency }) => {
 	return (
-		<div className="flex flex-col gap-[20px]">
-			{/* Legend */}
-			<div className="flex gap-[24px] items-center mt-[10px] flex-wrap">
-				<div className="flex items-center gap-2">
-					<div className="w-[14px] h-[14px] bg-[#3175FF] rounded-[4px]"></div>
-					<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-						Awareness
-					</p>
-				</div>
-				<div className="flex items-center gap-2">
-					<div className="w-[14px] h-[14px] bg-[#00A36C] rounded-[4px]"></div>
-					<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-						Consideration
-					</p>
-				</div>
-				<div className="flex items-center gap-2">
-					<div className="w-[14px] h-[14px] bg-[#FF9037] rounded-[4px]"></div>
-					<p className="font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-						Conversion
-					</p>
-				</div>
-			</div>
-			{platforms.map((platform, index) => (
+		<div className="flex flex-col gap-[20px] w-full">
+			{channelData?.map((platform, index) => (
 				<div key={index} className="flex flex-col gap-[10px]">
 					{/* Platform Name & Amount */}
-					<div className="flex justify-between items-center mt-[24px]">
+					<div className="flex justify-between items-center mt-[24px] w-full">
 						<div className="flex items-center gap-2">
-							<p>{platform.img}</p>
-							<p>{platform.name}</p>
+							{/* <p>{platform.img}</p> */}
+							<p>{platform.platform_name}</p>
 						</div>
 						<div className="w-[72px] h-[29px] flex flex-row justify-center items-center p-[5px] px-[12px] gap-[8px] bg-[#E8F6FF] border border-[rgba(49,117,255,0.1)] rounded-[50px]">
-							<p className="font-semibold text-[14px] leading-[19px] text-[#3175FF] order-0 flex-none">
-								{platform.amount}
+							<p className="font-semibold text-[14px] leading-[19px] text-[#3175FF] whitespace-nowrap">
+								{platform.platform_budegt || 0} {" "} {platform?.platform_budegt > 0 && currency}
 							</p>
 						</div>
 					</div>
+
 					{/* Progress Bar */}
-					<div>
-						<ThreeValuesProgress values={platform.values} showpercent={true} />
+					<div className="w-full">
+						<ThreeValuesProgress
+							values={platform?.stages_it_was_found?.filter((c) => Number(c?.percentage) > 0)?.map(
+								(st) => st?.percentage ?? 0
+							)}
+							color={platform?.stages_it_was_found?.map((ch) =>
+								ch?.stage_name === "Awareness"
+									? "bg-[#3175FF]"
+									: ch?.stage_name === "Consideration"
+										? "bg-[#00A36C]"
+										: ch?.stage_name === "Conversion"
+											? "bg-[#FF9037]"
+											: "bg-[#F05406]"
+							)}
+							showpercent={false}
+						/>
 					</div>
 
-
+					{/* Legend */}
+					<div className="flex  gap-[16px] items-center mt-[10px] flex-wrap">
+						{platform?.stages_it_was_found?.filter((c) => Number(c?.percentage) > 0)?.map((platform, index) => (
+							<div key={index} className="flex items-center gap-2">
+								<div
+									className="w-[12px] h-[12px] rounded-[4px]"
+									style={{
+										backgroundColor:
+											platform?.stage_name === "Awareness"
+												? "#3175FF"
+												: platform?.stage_name === "Consideration"
+													? "#00A36C"
+													: platform?.stage_name === "Conversion"
+														? "#FF9037"
+														: "#F05406]",
+									}}
+								></div>
+								<div className="flex items-center gap-[2px]">
+									<p className="font-medium text-[14px] leading-[19px] text-[rgba(6,18,55,0.8)]">
+										{platform?.stage_name}
+									</p>
+									<span className="font-semibold text-[16px] leading-[22px] text-[#061237]">
+										({platform?.percentage?.toFixed(0)}%)
+									</span>
+								</div>
+							</div>
+						))}
+					</div>
 				</div>
 			))}
 		</div>

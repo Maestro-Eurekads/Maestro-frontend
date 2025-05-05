@@ -77,7 +77,7 @@ const DoughnutChart = ({
         backgroundColor: color,
         cutout: "70%", // Controls thickness of the ring
         borderRadius: 7, // Softens the edges
-        hoverOffset: 7, // Enhances hover effect
+        hoverOffset: 7,
       },
     ],
   };

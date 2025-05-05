@@ -23,6 +23,7 @@ import upfull from "../../../public/arrow-up-full.svg";
 import downfull from "../../../public/arrow-down-full.svg";
 import upoffline from "../../../public/arrow-up-offline.svg";
 import { useKpis } from 'app/utils/KpiProvider';
+import AlertMain from 'components/Alert/AlertMain';
 
 interface Comment {
 	documentId: string;
@@ -44,7 +45,8 @@ const OverviewofyourCampaign = () => {
 	const { isDrawerOpen, setIsDrawerOpen, isCreateOpen, setClose, close } = useComments();
 	const [show, setShow] = useState(false);
 	const [generalComment, setGeneralComment] = useState(false);
-
+	const [alert, setAlert] = useState(null);
+	const [showalert, setshowAlert] = useState(false);
 	const { range } = useDateRange();
 	const { clientCampaignData, campaignData, isLoading: isLoadingCampaign } = useCampaigns();
 	const dispatch = useAppDispatch();
@@ -231,8 +233,41 @@ const OverviewofyourCampaign = () => {
 	// console.log('aggregatedStats-aggregatedStats-aggregatedStats', aggregatedStats);
 	// console.log('statsData-statsData-statsData', statsData);
 
+	// useEffect(() => {
+	// 		if (createKpisSuccess) {
+	// 			setAlert({ variant: "success", message: "Kpi created!", position: "bottom-right" });
+	// 		}
+	// 		if (error) {
+	// 			setAlert({
+	// 				variant: "error", message: error.response?.data || error.response?.data?.error?.message || error?.message, position: "bottom-right"
+	// 			});
+	// 		}
+	// 	}, [createKpisSuccess, error]);
+
+	console.log("aggregatedStats-aggregatedStats", Object.keys(aggregatedStats).length);
+	console.log("aggregatedStats-aggregatedStats", showalert);
+
+
+	useEffect(() => {
+		if (alert) {
+			const timer = setTimeout(() => { setAlert(null), setshowAlert(false) }, 3000);
+			return () => clearTimeout(timer);
+		}
+	}, [alert]);
+
+
+	useEffect(() => {
+		if (showalert) {
+			setAlert({
+				variant: "error", message: "No kpi Data", position: "bottom-right"
+			});
+		}
+	}, [showalert]);
+
+
 	return (
 		<div>
+			{alert && <AlertMain alert={alert} />}
 			<div className={`px-[20px]  ${isDrawerOpen ? 'md:px-[30px]' : 'xl:px-[60px]'}`}>
 				<div className='flex	flex-col gap-[24px]'>
 					<BusinessApproverContainer campaign={campaignData} loading={undefined} isLoadingCampaign={isLoadingCampaign} />
@@ -242,8 +277,17 @@ const OverviewofyourCampaign = () => {
 						<div className="flex gap-[12px] md:flex-row">
 							<button className="overview-budget-conponent"
 								onClick={() => setShow(!show)}>{!show ? "See" : "Hide"} budget overview</button>
-							<KPIEditorModal
-								aggregatedStats={aggregatedStats} campaign_id={commentId} finalCategoryOrder={finalCategoryOrder} />
+
+							{Object.keys(aggregatedStats).length === 0 ? <button
+								className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
+								style={{ border: "1px solid #3175FF" }}
+								onClick={() => setshowAlert(true)}
+							>
+								Edit KPI
+							</button> :
+								<KPIEditorModal
+									aggregatedStats={aggregatedStats} campaign_id={commentId} finalCategoryOrder={finalCategoryOrder} />}
+
 							<button
 								className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
 								style={{ border: "1px solid #3175FF" }}
@@ -254,7 +298,8 @@ const OverviewofyourCampaign = () => {
 								onClick={handleDrawerOpen}
 								className="bg-[#FAFDFF]  rounded-[10px] py-[14px] px-6 self-start flex items-center	gap-[4px]"
 								style={{ border: "1px solid #3175FF" }}>
-								{allApproved ? <Image src={tickcircles} alt="tickcircle" className="w-[18px] " /> : <RxDotFilled size={20} color='#FF0302' />}
+								{allApproved ? <Image src={tickcircles} alt="tickcircle" className="w-[18px] " /> :
+									<RxDotFilled size={20} color='#FF0302' />}
 								<span className='text-[16px] font-[600] text-[#3175FF]'>See Focus Comments</span>
 							</button>
 						</div>
@@ -290,46 +335,4 @@ export default OverviewofyourCampaign
 
 
 
-// const normalizeKpiKey = (key) => {
-// 	const keyMap = {
-// 		'cost__off_funnel': 'Cost/Off funnel',
-// 		'cost__lead': 'Cost/lead',
-// 		'cost__opened_form': 'Cost / opened form',
-// 		'cost__app_open': 'Cost/App Open',
-// 		'cost__conversion': 'Cost/conversion',
-// 		'costlead': 'Cost/lead',
-// 		'costbounce': 'Cost/bounce',
-// 		'avg_pages__visit': 'Avg pages/visit',
-// 		'avg_visit_time': 'Avg Visit Time',
-// 		'link_clicks': 'Link Clicks',
-// 		'completed_view': 'Completed View',
-// 		'video_views': 'Video Views',
-// 		'completion_rate': 'Completion Rate',
-// 		'eng_rate': 'Eng Rate',
-// 		'click_to_land_rate': 'Click to land rate',
-// 		'bounced_visits': 'Bounced Visits',
-// 		'lead_visits': 'Lead visits',
-// 		'off_funnel_visits': 'Off-funnel visits',
-// 		'off_funnel_rate': 'Off-funnel rate',
-// 		'clv_of_associated_product': 'CLV of associated product',
-// 		'generated_revenue': 'Generated Revenue',
-// 		'return_on_ad_spent': 'Return on Ad Spent',
-// 		'add_to_cart_rate': 'Add to cart rate',
-// 		'add_to_carts': 'Add to carts',
-// 		'cpatc': 'CPATC',
-// 		'payment_info_rate': 'Payment info rate',
-// 		'payment_infos': 'Payment infos',
-// 		'cppi': 'CPPI',
-// 		'purchase_rate': 'Purchase rate',
-// 		'purchases': 'Purchases',
-// 		'cpp': 'CPP',
-// 		'app_open': 'App Open',
-// 		'open_rate': 'Open Rate',
-// 		'forms_open': 'Forms open',
-// 		'install_rate': 'Install Rate',
-// 		'lead_rate': 'Lead Rate',
-// 		'conversions': 'Conversions',
-// 		'conversion': 'Conversion'
-// 	};
-// 	return keyMap[key] || key.toUpperCase();
-// };
+
