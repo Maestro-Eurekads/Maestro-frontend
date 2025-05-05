@@ -163,6 +163,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       const data = res?.data?.data;
+      console.log("🚀 ~ getActiveCampaign ~ data:", JSON.stringify(data, null, 2))
 
       setCampaignData(data);
       setCampaignFormData((prev) => ({

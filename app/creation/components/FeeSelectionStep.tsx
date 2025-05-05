@@ -235,7 +235,9 @@ function FeeSelectionStep({
 
       const budgetFees = updatedFees.map((fee) => ({
         fee_type: fee.type,
-        value: fee.isPercent ? fee.percentValue : fee.amount,
+        value: fee.amount,
+        percentValue: fee?.percentValue,
+        isPercent: fee?.isPercent,
       }));
 
       setCampaignFormData((prev) => ({

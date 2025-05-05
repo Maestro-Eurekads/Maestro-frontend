@@ -129,6 +129,18 @@ const ConfigureAdSetsAndBudget = ({ num }) => {
 
         {show && (
           <div className="w-[100%] items-start p-[24px] gap-[10px] bg-white border border-[rgba(6,18,55,0.1)] rounded-[8px] box-border mt-[20px]">
+            <div className="flex items-center gap-[30px]">
+              <p>
+                Media Budget Amount: {campaignFormData?.campaign_budget?.amount}
+                {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+              </p>
+              <p>
+                Total Fees Amount:{" "}
+                {campaignFormData?.campaign_budget?.fixed_value}
+                {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+              </p>
+            </div>
+
             <div className="allocate_budget_phase gap-[40px]">
               <div className="allocate_budget_phase_one">
                 <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
@@ -210,7 +222,7 @@ const ConfigureAdSetsAndBudget = ({ num }) => {
                         }))}
                     />
                   </div>
-                  <PhasedistributionProgress/>
+                  <PhasedistributionProgress />
                 </>
               </div>
               <div className="allocate_budget_phase_two">

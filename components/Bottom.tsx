@@ -454,7 +454,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "isValidated",
           "documentId",
         ]),
-        campaign_budget: removeKeysRecursively(copy?.campaign_budget, ["id"]),
+        campaign_budget: removeKeysRecursively(campaignFormData?.campaign_budget, ["id"]),
         goal_level: campaignFormData?.goal_level,
       });
     };
