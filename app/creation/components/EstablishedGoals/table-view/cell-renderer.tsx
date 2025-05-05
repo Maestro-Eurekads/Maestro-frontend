@@ -248,6 +248,7 @@ export const CellRenderer = ({
                 channel?.name,
                 body,
                 newValue,
+                "",
                 ""
               );
               return;
@@ -260,6 +261,7 @@ export const CellRenderer = ({
               channel?.name,
               body,
               newValue,
+              "",
               ""
             );
           }}

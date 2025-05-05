@@ -9,10 +9,10 @@ export default async function Home() {
   const token = await getServerSession(authOptions);
 
   // @ts-ignore
-  return token?.user?.data?.user?.user_type === "admin" || "agency_creator" || "agency_approver" || "financial_approver" ? (
-    <Homepage />
-  ) : (
+  return token?.user?.data?.user?.user_type === "client" ? (
     <ClientView />
+  ) : (
+    <Homepage />
   );
 
 }
