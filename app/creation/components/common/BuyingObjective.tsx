@@ -40,51 +40,68 @@ const BuyingObjective = () => {
   useEffect(() => {
     setIsMounted(true);
     setUpdatedData(campaignFormData);
-    const filtered = getFilteredChannelMix(campaignFormData.channel_mix);
+    const filtered = getFilteredChannelMix(campaignFormData.channel_mix, campaignFormData.funnel_stages);
     setFilteredChannelMix(filtered);
   }, [rawCampaignFormData]);
 
-  console.log(filteredChannelMix);
-
   useEffect(() => {
     if (updatedData && isMounted) {
-      const filtered = getFilteredChannelMix(updatedData.channel_mix);
+      const filtered = getFilteredChannelMix(updatedData.channel_mix, updatedData.funnel_stages);
       setFilteredChannelMix(filtered);
     }
   }, [updatedData]);
 
-  const getFilteredChannelMix = (channelMix) => {
+  const getFilteredChannelMix = (channelMix, funnelStages) => {
     if (!Array.isArray(channelMix)) return [];
-    return channelMix
-      .map((stage) => {
-        const filteredStage = { ...stage };
-        filteredStage.social_media = stage.social_media || [];
-        filteredStage.display_networks = stage.display_networks || [];
-        filteredStage.search_engines = stage.search_engines || [];
-        filteredStage.streaming = stage.streaming || [];
-        filteredStage.ooh = stage.ooh || [];
-        filteredStage.print = stage.print || [];
-        filteredStage.in_game = stage.in_game || [];
-        filteredStage.e_commerce = stage.e_commerce || [];
-        filteredStage.broadcast = stage.broadcast || [];
-        filteredStage.mobile = stage.mobile || [];
-        filteredStage.messaging = stage.messaging || [];
-        return filteredStage;
-      })
-      .filter(
-        (stage) =>
-          stage.social_media.length > 0 ||
-          stage.display_networks.length > 0 ||
-          stage.search_engines.length > 0 ||
-          stage.streaming.length > 0 ||
-          stage.ooh.length > 0 ||
-          stage.print.length > 0 ||
-          stage.in_game.length > 0 ||
-          stage.e_commerce.length > 0 ||
-          stage.broadcast.length > 0 ||
-          stage.mobile.length > 0 ||
-          stage.messaging.length > 0
-      );
+    
+    // Ensure all funnel stages are represented, even if channel_mix is incomplete
+    const stageMap = funnelStages.map((stageName) => {
+      const stage = channelMix.find((s) => s.funnel_stage === stageName) || {
+        funnel_stage: stageName,
+        social_media: [],
+        display_networks: [],
+        search_engines: [],
+        streaming: [],
+        ooh: [],
+        print: [],
+        in_game: [],
+        e_commerce: [],
+        broadcast: [],
+        mobile: [],
+        messaging: [],
+      };
+      return {
+        ...stage,
+        social_media: stage.social_media || [],
+        display_networks: stage.display_networks || [],
+        search_engines: stage.search_engines || [],
+        streaming: stage.streaming || [],
+        ooh: stage.ooh || [],
+        print: stage.print || [],
+        in_game: stage.in_game || [],
+        e_commerce: stage.e_commerce || [],
+        broadcast: stage.broadcast || [],
+        mobile: stage.mobile || [],
+        messaging: stage.messaging || [],
+      };
+    });
+
+    // Filter stages with at least one platform
+    return stageMap.filter(
+      (stage) =>
+        stage.social_media.length > 0 ||
+        stage.display_networks.length > 0 ||
+        stage.search_engines.length > 0 ||
+        stage.streaming.length > 0 ||
+        stage.ooh.length > 0 ||
+        stage.print.length > 0 ||
+        stage.in_game.length > 0 ||
+        stage.e_commerce.length > 0 ||
+        stage.broadcast.length > 0 ||
+        stage.mobile.length > 0 ||
+        stage.messaging.length > 0 ||
+        funnelStages.includes(stage.funnel_stage) // Include even if no platforms, to show empty state
+    );
   };
 
   const handleLoyaltyButtonClick = (stageName?: string) => {
@@ -120,16 +137,14 @@ const BuyingObjective = () => {
     const updatedChannelMix = updatedData?.channel_mix?.map((stage) => {
       if (stage.funnel_stage === stageName) {
         const updatedStage = { ...stage };
-
         updatedStage[category] = [
-          ...stage[category],
+          ...(stage[category] || []),
           { platform_name: platformName },
         ];
-
         return updatedStage;
       }
       return stage;
-    });
+    }) || [];
 
     setUpdatedData((prevData) => ({
       ...prevData,
@@ -144,23 +159,20 @@ const BuyingObjective = () => {
     dropDownName,
     option
   ) => {
-    const updatedChannelMix = updatedData?.channel_mix?.map(
-      (stage, chIndex) => {
-        if (stage.funnel_stage === stageName) {
-          const updatedStage = { ...stage };
-          
-            updatedStage[category] = stage[category].map((platform) => {
-              if (platform.platform_name === platformName) {
-                return { ...platform, [dropDownName]: option };
-              }
-              return platform;
-            });
-          
-          return updatedStage;
-        }
-        return stage;
+    const updatedChannelMix = updatedData?.channel_mix?.map((stage) => {
+      if (stage.funnel_stage === stageName) {
+        const updatedStage = { ...stage };
+        updatedStage[category] = (stage[category] || []).map((platform) => {
+          if (platform.platform_name === platformName) {
+            return { ...platform, [dropDownName]: option };
+          }
+          return platform;
+        });
+        return updatedStage;
       }
-    );
+      return stage;
+    }) || [];
+
     setUpdatedData((prevData) => ({
       ...prevData,
       channel_mix: updatedChannelMix,
@@ -329,6 +341,8 @@ const BuyingObjective = () => {
                         ? "bg-[#0866FF]"
                         : stageName?.name === "Consideration"
                         ? "bg-[#00A36C]"
+                        : stageName?.name === "Targeting and Retargeting"
+                        ? "bg-[#6B7280]"
                         : "bg-[#FFF] text-[#000]"
                     } rounded-[10px] cursor-pointer`}
                     onClick={() => handleLoyaltyButtonClick(stageName?.name)}
@@ -342,10 +356,12 @@ const BuyingObjective = () => {
                         <Image src={speakerWhite} alt={stageName?.name} />
                       ) : stageName?.name === "Consideration" ? (
                         <Image src={zoomWhite} alt={stageName?.name} />
+                      ) : stageName?.name === "Targeting and Retargeting" ? (
+                        <Image src={zoomWhite} alt={stageName?.name} />
                       ) : (
                         ""
                       )}
-                      <p className={`text-[18px] font-medium ${["Awareness", "Consideration", "Conversion", "Loyalty"].includes(stageName?.name) ? "text-[#FFF]" : "text-[#000]"}`}>
+                      <p className={`text-[18px] font-medium ${["Awareness", "Consideration", "Conversion", "Loyalty", "Targeting and Retargeting"].includes(stageName?.name) ? "text-[#FFF]" : "text-[#000]"}`}>
                         {stageName?.name}
                       </p>
                     </div>
@@ -381,13 +397,6 @@ const BuyingObjective = () => {
                     </div>
                   )}
                 </div>
-                {/* <Button
-                  text="Delete this stage"
-                  icon={Trash}
-                  variant="danger"
-                  className="!rounded-full !px-4 !py-4 !text-white !w-[167px] !h-[31px]"
-                  onClick={handleDeleteLoyaltyStage}
-                /> */}
               </div>
             ))}
         </div>
@@ -397,11 +406,10 @@ const BuyingObjective = () => {
         filteredChannelMix.map((stage, index) => {
           const stageName = stage.funnel_stage;
           const stageConfig = funnelStages?.find((s) => s?.name === stageName);
-          if (!stageConfig) return null;
-          const StageComponent = Awareness;
+          const StageComponent = Awareness; // Fallback component
           return (
             <StageComponent
-              key={stageName} // Use stageName as key for stability
+              key={stageName}
               edit={edit}
               setEdit={setEdit}
               stageName={stageName}
@@ -419,7 +427,7 @@ const BuyingObjective = () => {
           );
         })
       ) : (
-        <div>No validated platforms available.</div>
+        <div>No platforms selected for the selected funnel stages. Please add platforms to continue.</div>
       )}
     </div>
   );
