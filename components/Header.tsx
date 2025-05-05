@@ -126,9 +126,9 @@ const Header = ({ setIsOpen }) => {
 
 
   function getFirstLetters(str) {
-    const words = str.trim().split(/\s+/);
-    const first = words[0]?.[0] || '';
-    const second = words[1]?.[0] || '';
+    const words = str?.trim().split(/\s+/);
+    const first = words?.length > 0&& words[0]?.[0] || '';
+    const second = words?.length > 0&& words[1]?.[0] || '';
     return (first + second).toUpperCase();
   }
 
