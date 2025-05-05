@@ -36,30 +36,30 @@
 
 /* Drawer open state with responsive widths */
 .drawer-container.drawer-open {
-  width: 400px;
+  width: 380px;
 }
 
 @media screen and (max-width: 1300px) {
-  .drawer-container.drawer-open {
-    width: 380px;
-  }
-}
-
-@media screen and (max-width: 1080px) {
   .drawer-container.drawer-open {
     width: 360px;
   }
 }
 
-@media screen and (max-width: 780px) {
+@media screen and (max-width: 1080px) {
   .drawer-container.drawer-open {
     width: 340px;
   }
 }
 
-@media screen and (max-width: 480px) {
+@media screen and (max-width: 780px) {
   .drawer-container.drawer-open {
     width: 320px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .drawer-container.drawer-open {
+    width: 300px;
   }
 }
 

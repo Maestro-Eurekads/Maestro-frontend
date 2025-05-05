@@ -57,128 +57,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
     }
   }, [previews, quantities])
 
-  const handleFileChange = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-      e.preventDefault()
-      const file = e.target.files?.[0]
-      if (!file) return
-
-      const allowedTypes =
-        format === "Video"
-          ? ["video/mp4", "video/mov", "video/quicktime"]
-          : ["image/jpeg", "image/png", "image/jpg"]
-      const maxSizeInMB = 20
-      const maxSizeInBytes = maxSizeInMB * 1024 * 1024
-
-      if (!allowedTypes.includes(file.type)) {
-        toast.error(
-          format === "Video"
-            ? "Invalid file type. Please upload a MP4 or MOV file."
-            : "Invalid file type. Please upload a JPEG, PNG, or JPG file.",
-        )
-        return
-      }
-
-      if (file.size > maxSizeInBytes) {
-        toast.error(`File size exceeds ${maxSizeInMB}MB. Please upload a smaller file.`)
-        return
-      }
-
-      setUploadingIndex(index)
-
-      try {
-        const objectUrl = URL.createObjectURL(file)
-        setUploads((prev) => {
-          const updated = [...prev]
-          updated[index] = file
-          return updated
-        })
-        setUploadBlobs((prev) => {
-          const updated = [...prev]
-          updated[index] = objectUrl
-          return updated
-        })
-        setUploadProgress((prev) => {
-          const updated = [...prev]
-          updated[index] = 0
-          return updated
-        })
-      } catch (error) {
-        console.error("Error processing file:", error)
-        toast.error("Error processing file. Please try again.")
-      } finally {
-        setUploadingIndex(null)
-      }
-
-      e.target.value = ""
-    },
-    [format],
-  )
-
-  const handleDelete = useCallback(
-    (index: number) => {
-      setUploads((prev) => {
-        const updated = [...prev]
-        updated[index] = null
-        return updated
-      })
-      setUploadBlobs((prev) => {
-        const updated = [...prev]
-        if (updated[index] && updated[index].startsWith("blob:")) {
-          URL.revokeObjectURL(updated[index])
-        }
-        updated[index] = ""
-        return updated
-      })
-      setUploadProgress((prev) => {
-        const updated = [...prev]
-        updated[index] = 0
-        return updated
-      })
-    },
-    [],
-  )
-
-  const uploadSingleFile = useCallback(
-    async (file: File, index: number, attempt = 0): Promise<any> => {
-      try {
-        const formData = new FormData()
-        formData.append("files", file)
-        formData.append("fileSize", file.size.toString())
-        formData.append("fileType", file.type)
-
-        const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-          },
-          body: formData,
-        })
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        const result = await response.json()
-        setUploadProgress((prev) => {
-          const updated = [...prev]
-          updated[index] = 100
-          return updated
-        })
-        return result
-      } catch (error) {
-        console.error(`Upload attempt ${attempt + 1} failed for file "${file.name}":`, error)
-        if (attempt < MAX_RETRIES) {
-          const delay = 500 * (attempt + 1)
-          await new Promise((resolve) => setTimeout(resolve, delay))
-          return uploadSingleFile(file, index, attempt + 1)
-        }
-        throw error
-      }
-    },
-    [],
-  )
-
   const uploadUpdatedCampaignToStrapi = useCallback(
     async (data: any) => {
       try {
@@ -273,6 +151,157 @@ const UploadModal: React.FC<UploadModalProps> = ({
     [campaignFormData, campaignData, stageName, channel, platform, format, quantities, adSetIndex, uploadUpdatedCampaignToStrapi],
   )
 
+  const handleFileChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+      e.preventDefault()
+      const file = e.target.files?.[0]
+      if (!file) return
+
+      const allowedTypes = format === "Slideshow" 
+        ? ["application/pdf"] 
+        : format === "Video" 
+          ? ["video/mp4", "video/mov", "video/quicktime"] 
+          : ["image/jpeg", "image/png", "image/jpg"]
+      const maxSizeInMB = 20
+      const maxSizeInBytes = maxSizeInMB * 1024 * 1024
+
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(
+          format === "Video"
+            ? "Invalid file type. Please upload a MP4 or MOV file."
+            : format === "Slideshow"
+            ? "Invalid file type. Please upload a PDF file."
+            : "Invalid file type. Please upload a JPEG, PNG, or JPG file.",
+        )
+        return
+      }
+
+      if (file.size > maxSizeInBytes) {
+        toast.error(`File size exceeds ${maxSizeInMB}MB. Please upload a smaller file.`)
+        return
+      }
+
+      setUploadingIndex(index)
+
+      try {
+        const objectUrl = URL.createObjectURL(file)
+        setUploads((prev) => {
+          const updated = [...prev]
+          updated[index] = file
+          return updated
+        })
+        setUploadBlobs((prev) => {
+          const updated = [...prev]
+          updated[index] = objectUrl
+          return updated
+        })
+        setUploadProgress((prev) => {
+          const updated = [...prev]
+          updated[index] = 0
+          return updated
+        })
+      } catch (error) {
+        console.error("Error processing file:", error)
+        toast.error("Error processing file. Please try again.")
+      } finally {
+        setUploadingIndex(null)
+      }
+
+      e.target.value = ""
+    },
+    [format],
+  )
+
+  const handleDelete = useCallback(
+    async (index: number) => {
+      try {
+        // If there was a previously uploaded file (not just a blob), we need to delete it from Strapi
+        if (previews?.[index]?.id) {
+          setLoading(true)
+          await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/upload/files/${previews[index].id}`, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            },
+          })
+        }
+
+        // Update local state
+        setUploads((prev) => {
+          const updated = [...prev]
+          updated[index] = null
+          return updated
+        })
+        setUploadBlobs((prev) => {
+          const updated = [...prev]
+          if (updated[index] && updated[index].startsWith("blob:")) {
+            URL.revokeObjectURL(updated[index])
+          }
+          updated[index] = ""
+          return updated
+        })
+        setUploadProgress((prev) => {
+          const updated = [...prev]
+          updated[index] = 0
+          return updated
+        })
+
+        // Update global state by removing the deleted file
+        const updatedPreviews = [...previews]
+        updatedPreviews.splice(index, 1)
+        await updateGlobalState(updatedPreviews)
+        
+        toast.success("File deleted successfully!")
+      } catch (error) {
+        console.error("Error deleting file:", error)
+        toast.error("Failed to delete file. Please try again.")
+      } finally {
+        setLoading(false)
+      }
+    },
+    [previews, updateGlobalState]
+  )
+
+  const uploadSingleFile = useCallback(
+    async (file: File, index: number, attempt = 0): Promise<any> => {
+      try {
+        const formData = new FormData()
+        formData.append("files", file)
+        formData.append("fileSize", file.size.toString())
+        formData.append("fileType", file.type)
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+          body: formData,
+        })
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const result = await response.json()
+        setUploadProgress((prev) => {
+          const updated = [...prev]
+          updated[index] = 100
+          return updated
+        })
+        return result[0] // Return the first file from the response array
+      } catch (error) {
+        console.error(`Upload attempt ${attempt + 1} failed for file "${file.name}":`, error)
+        if (attempt < MAX_RETRIES) {
+          const delay = 500 * (attempt + 1)
+          await new Promise((resolve) => setTimeout(resolve, delay))
+          return uploadSingleFile(file, index, attempt + 1)
+        }
+        throw error
+      }
+    },
+    [],
+  )
+
   const uploadFilesToStrapi = useCallback(async () => {
     if (!uploads.some((file) => file)) {
       toast.error("No files selected for upload.")
@@ -295,7 +324,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
             return null
           }),
         )
-        const batchResults = (await Promise.all(batchPromises)).flat().filter((result) => result !== null)
+        const batchResults = (await Promise.all(batchPromises)).filter((result) => result !== null)
         uploadedFiles.push(...batchResults)
       }
 
@@ -308,7 +337,14 @@ const UploadModal: React.FC<UploadModalProps> = ({
         url: file.url,
       }))
 
-      await updateGlobalState(formattedFiles)
+      // Combine existing previews with new uploads
+      const allPreviews = [...previews]
+      formattedFiles.forEach((file, index) => {
+        const uploadIndex = filesToUpload[index].index
+        allPreviews[uploadIndex] = file
+      })
+
+      await updateGlobalState(allPreviews.filter(preview => preview))
       toast.success("Files uploaded successfully!")
       onUploadSuccess?.()
       setTimeout(() => {
@@ -320,7 +356,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
     } finally {
       setLoading(false)
     }
-  }, [uploads, updateGlobalState, onUploadSuccess, onClose, uploadSingleFile])
+  }, [uploads, previews, updateGlobalState, onUploadSuccess, onClose, uploadSingleFile])
 
   if (!isOpen) return null
 
@@ -410,6 +446,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
                         accept={
                           format === "Video"
                             ? "video/mp4,video/mov,video/quicktime"
+                            : format === "Slideshow"
+                            ? "application/pdf"
                             : "image/jpeg,image/png,image/jpg"
                         }
                         id={`upload${index}`}

@@ -28,11 +28,11 @@ const AddCommentReply = ({ documentId, commentId, contrastingColor }) => {
 
 			{/* Buttons to show/hide replies */}
 			<div className="flex w-full justify-end gap-5 mt-3">
-				<button className="font-semibold text-[16px] text-[#3175FF]" onClick={() => setShow(true)}>
+				<button className="font-semibold text-[14px] text-[#3175FF]" onClick={() => setShow(true)}>
 					Add Reply to this comment
 				</button>
 				{show && (
-					<button className="font-semibold text-[16px] text-[#3175FF]" onClick={() => setShow(false)}>
+					<button className="font-semibold text-[14px] text-[#3175FF]" onClick={() => setShow(false)}>
 						Hide Replies
 					</button>
 				)}
