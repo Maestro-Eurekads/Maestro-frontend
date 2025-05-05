@@ -37,19 +37,19 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 			["search_engines", "display_networks", "social_media"].forEach(
 				(channelType) => {
 					stage[channelType].forEach((platform) => {
-						const platformName = platform.platform_name;
-						const platformBudget = parseFloat(platform.budget?.fixed_value);
+						const platformName = platform?.platform_name;
+						const platformBudget = parseFloat(platform?.budget?.fixed_value);
 						const percentage = (platformBudget / stageBudget) * 100;
 						const existingPlatform = platforms.find(
-							(p) => p.platform_name === platformName
+							(p) => p?.platform_name === platformName
 						);
 						if (existingPlatform) {
-							existingPlatform.stages_it_was_found.push({
+							existingPlatform?.stages_it_was_found?.push({
 								stage_name: stageName,
 								percentage: percentage,
 							});
 						} else {
-							platforms.push({
+							platforms?.push({
 								platform_name: platformName,
 								platform_budegt: platformBudget,
 								stages_it_was_found: [
@@ -68,13 +68,50 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 	}
 
 
-	const campaignPhases = [
-		{ name: "Awareness", percentage: 25, color: "#3175FF" },
-		{ name: "Consideration", percentage: 50, color: "#00A36C" },
-		{ name: "Conversion", percentage: 25, color: "#FF9037" },
-	];
+	function mapCampaignPhases(phases) {
+		return phases?.map(phase => ({
+			name: phase?.name,
+			percentage: phase?.percentage ?? 0,
+			colorClass: phase?.color
+		}));
+	}
 
-	console.log('funnel_stage-funnel_stage', campaignFormData)
+
+	const campaignPhases = mapCampaignPhases(campaignFormData?.custom_funnels);
+	const data = campaignPhases?.map((phase) => Number(phase?.percentage?.toFixed(0)));
+	const colors = campaignPhases?.map((phase) => phase.colorClass);
+
+
+	function tailwindBgClassToHex(className: string): string {
+		const colorMap: Record<string, Record<string, string>> = {
+			blue: {
+				"500": "#3B82F6",
+			},
+			green: {
+				"500": "#22C55E",
+			},
+			orange: {
+				"500": "#F97316",
+			},
+			red: {
+				"500": "#EF4444",
+			},
+			// Add more colors/shades if needed
+		};
+
+		// Extract the first matched bg-* class
+		const match = className.match(/bg-([a-z]+)-(\d{3})/);
+		if (!match) return "#000000"; // Fallback hex if not matched
+
+		const [, color, shade] = match;
+		return colorMap[color]?.[shade] || "#000000";
+	}
+
+
+
+	const hexColors = colors?.map(cls => tailwindBgClassToHex(cls));
+	// console.log("hexColors-hexColors", hexColors);
+
 
 	return (
 		<div>
@@ -99,10 +136,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 									</p>
 
 									<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-										{campaignFormData?.campaign_budget?.amount}{" "}
-										{getCurrencySymbol(
-											campaignFormData?.campaign_budget?.currency
-										)}
+										{campaignFormData?.campaign_budget?.amount ?? 0}{" "}{getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
 									</h3>
 								</div>
 								<div className='mt-[16px]'>
@@ -118,42 +152,13 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 							<div className='campaign_phases_container mt-[24px]'>
 								<div className='campaign_phases_container_one'>
 									<DoughnutChat
-										data={campaignFormData?.channel_mix?.filter((c) => Number(c?.stage_budget?.percentage_value) > 0)?.map((ch) =>
-											Number(ch?.stage_budget?.percentage_value)?.toFixed(0)
-										)}
-										color={campaignFormData?.channel_mix?.map((ch) =>
-											ch?.funnel_stage === "Awareness"
-												? "#3175FF"
-												: ch?.funnel_stage === "Consideration"
-													? "#00A36C"
-													: ch?.funnel_stage === "Conversion"
-														? "#FF9037"
-														: "#F05406"
-										)}
-										insideText={`${campaignFormData?.campaign_budget?.amount
-											} ${getCurrencySymbol(
-												campaignFormData?.campaign_budget?.currency
-											)}`} />
+										data={data}
+										color={hexColors}
+										insideText={`${campaignFormData?.campaign_budget?.amount ?? 0} ${getCurrencySymbol(campaignFormData?.campaign_budget?.currency ?? '')}`}
+									/>
 								</div>
 								{/* Campaign Phases */}
-								<CampaignPhases
-
-									campaignPhases={campaignFormData?.channel_mix?.filter((c) => Number(c?.stage_budget?.percentage_value) > 0)?.map(
-										(ch) => ({
-											name: ch?.funnel_stage,
-											percentage: Number(
-												ch?.stage_budget?.percentage_value
-											)?.toFixed(0),
-											color:
-												ch?.funnel_stage === "Awareness"
-													? "#3175FF"
-													: ch?.funnel_stage === "Consideration"
-														? "#00A36C"
-														: ch?.funnel_stage === "Conversion"
-															? "#FF9037"
-															: "#F05406",
-										})
-									)} />
+								<CampaignPhases campaignPhases={campaignPhases} />
 							</div>
 
 							{/* Phase distribution */}
@@ -182,7 +187,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 
 						<div className='allocate_budget_phase_two'>
 							<button
-								onClick={() => setOpens(!opens)}
+								onClick={() => (setOpens(!opens), extractPlatforms(campaignFormData))}
 								className="flex flex-row items-center p-0 gap-2 h-[24px] font-[600] text-[18px] leading-[24px] text-[#061237]"
 							>
 								<Image
@@ -203,11 +208,15 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 										Channels
 									</p>
 
-									<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">6</h3>
+
+									<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
+										{channelData?.length}</h3>
 								</div>}
 
 							{/* <PlatformSpending /> */}
-							{opens && <ChannelDistributionChatOne />}
+							{opens && <ChannelDistributionChatOne channelData={channelData} currency={getCurrencySymbol(
+								campaignFormData?.campaign_budget?.currency
+							)} />}
 
 						</div>
 

@@ -32,10 +32,6 @@ interface Comment {
 
 
 
-
-
-
-
 const CommentsDrawer = ({ isOpen, onClose }) => {
 	const { opportunities, setViewcommentsId, viewcommentsId, addCommentOpportunity, setOpportunities, createCommentsError, createCommentsSuccess, approvedError, replyError, setIsCreateOpen, setClose, showbyID } = useComments();
 
@@ -181,7 +177,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 						<SVGLoader width={"35px"} height={"35px"} color={"#00A36C"} />
 					</div>
 				) : (
-					comments.map((comment) => {
+					comments?.map((comment) => {
 						const { color, contrastingColor } = commentColors[comment?.documentId] || {};
 						return (
 							<div
