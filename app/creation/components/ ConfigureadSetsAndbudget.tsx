@@ -13,8 +13,9 @@ import channel from "../../../public/channel_level.svg";
 import Image from "next/image";
 import FeeSelectionStep from "./FeeSelectionStep";
 import { mediaTypes } from "components/data";
+import PhasedistributionProgress from "../../../components/PhasedistributionProgress";
 
-const ConfigureAdSetsAndBudget = ({num}) => {
+const ConfigureAdSetsAndBudget = ({ num }) => {
   const [show, setShow] = useState(false); // Start with budget shown
   const { setIsDrawerOpen, setClose } = useComments();
   const [step, setStep] = useState(1);
@@ -28,23 +29,23 @@ const ConfigureAdSetsAndBudget = ({num}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { campaignFormData, setCampaignFormData } = useCampaigns();
 
-    const handleOpenModal = () => {
-      setIsModalOpen(true);
-    };
-  
-    const handleCloseModal = () => {
-      setIsModalOpen(false);
-    };
-  
-    useEffect(() => {
-      if (campaignFormData) {
-        if (campaignFormData?.goal_level) {
-          setIsModalOpen(false);
-        } else {
-          setIsModalOpen(true);
-        }
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  useEffect(() => {
+    if (campaignFormData) {
+      if (campaignFormData?.goal_level) {
+        setIsModalOpen(false);
+      } else {
+        setIsModalOpen(true);
       }
-    }, [campaignFormData]);
+    }
+  }, [campaignFormData]);
 
   const getCurrencySymbol = (currencyCode) => {
     switch (currencyCode) {
@@ -70,35 +71,33 @@ const ConfigureAdSetsAndBudget = ({num}) => {
     data.channel_mix.forEach((stage) => {
       const stageName = stage.funnel_stage;
       const stageBudget = parseFloat(stage.stage_budget?.fixed_value);
-      mediaTypes.forEach(
-        (channelType) => {
-          stage[channelType].forEach((platform) => {
-            const platformName = platform.platform_name;
-            const platformBudget = parseFloat(platform.budget?.fixed_value);
-            const percentage = (platformBudget / stageBudget) * 100;
-            const existingPlatform = platforms.find(
-              (p) => p.platform_name === platformName
-            );
-            if (existingPlatform) {
-              existingPlatform.stages_it_was_found.push({
-                stage_name: stageName,
-                percentage: percentage,
-              });
-            } else {
-              platforms.push({
-                platform_name: platformName,
-                platform_budegt: platformBudget,
-                stages_it_was_found: [
-                  {
-                    stage_name: stageName,
-                    percentage: percentage,
-                  },
-                ],
-              });
-            }
-          });
-        }
-      );
+      mediaTypes.forEach((channelType) => {
+        stage[channelType].forEach((platform) => {
+          const platformName = platform.platform_name;
+          const platformBudget = parseFloat(platform.budget?.fixed_value);
+          const percentage = (platformBudget / stageBudget) * 100;
+          const existingPlatform = platforms.find(
+            (p) => p.platform_name === platformName
+          );
+          if (existingPlatform) {
+            existingPlatform.stages_it_was_found.push({
+              stage_name: stageName,
+              percentage: percentage,
+            });
+          } else {
+            platforms.push({
+              platform_name: platformName,
+              platform_budegt: platformBudget,
+              stages_it_was_found: [
+                {
+                  stage_name: stageName,
+                  percentage: percentage,
+                },
+              ],
+            });
+          }
+        });
+      });
     });
     setChannelData(platforms);
   }
@@ -130,7 +129,7 @@ const ConfigureAdSetsAndBudget = ({num}) => {
 
         {show && (
           <div className="w-[100%] items-start p-[24px] gap-[10px] bg-white border border-[rgba(6,18,55,0.1)] rounded-[8px] box-border mt-[20px]">
-            <div className="allocate_budget_phase gap-[5px]">
+            <div className="allocate_budget_phase gap-[40px]">
               <div className="allocate_budget_phase_one">
                 <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
                   Your budget by campaign phase
@@ -160,68 +159,59 @@ const ConfigureAdSetsAndBudget = ({num}) => {
                     </h3>
                   </div>
                 </div>
-
-                <div className="campaign_phases_container mt-[24px]">
-                  <div className="campaign_phases_container_one">
-                    <DoughnutChat
-                      data={campaignFormData?.channel_mix?.filter((c) => Number(c?.stage_budget?.percentage_value) > 0)?.map((ch) =>
-                        Number(ch?.stage_budget?.percentage_value)?.toFixed(0)
-                      )}
-                      color={campaignFormData?.channel_mix?.map((ch) =>
-                        ch?.funnel_stage === "Awareness"
-                          ? "#3175FF"
-                          : ch?.funnel_stage === "Consideration"
-                            ? "#00A36C"
-                            : ch?.funnel_stage === "Conversion"
-                              ? "#FF9037"
-                              : "#F05406"
-                      )}
-                      insideText={`${campaignFormData?.campaign_budget?.amount
-                        } ${getCurrencySymbol(
-                          campaignFormData?.campaign_budget?.currency
-                        )}`}
-                    />
-                  </div>
-
-                  <CampaignPhases
-                    campaignPhases={campaignFormData?.channel_mix?.filter((c) => Number(c?.stage_budget?.percentage_value) > 0)?.map(
-                      (ch) => ({
-                        name: ch?.funnel_stage,
-                        percentage: Number(
-                          ch?.stage_budget?.percentage_value
-                        )?.toFixed(0),
-                        color:
+                <>
+                  <div className="campaign_phases_container mt-[24px]">
+                    <div className="campaign_phases_container_one">
+                      <DoughnutChat
+                        data={campaignFormData?.channel_mix
+                          ?.filter(
+                            (c) => Number(c?.stage_budget?.percentage_value) > 0
+                          )
+                          ?.map((ch) =>
+                            Number(ch?.stage_budget?.percentage_value)?.toFixed(
+                              0
+                            )
+                          )}
+                        color={campaignFormData?.channel_mix?.map((ch) =>
                           ch?.funnel_stage === "Awareness"
                             ? "#3175FF"
                             : ch?.funnel_stage === "Consideration"
+                            ? "#00A36C"
+                            : ch?.funnel_stage === "Conversion"
+                            ? "#FF9037"
+                            : "#F05406"
+                        )}
+                        insideText={`${
+                          campaignFormData?.campaign_budget?.amount
+                        } ${getCurrencySymbol(
+                          campaignFormData?.campaign_budget?.currency
+                        )}`}
+                      />
+                    </div>
+
+                    <CampaignPhases
+                      campaignPhases={campaignFormData?.channel_mix
+                        ?.filter(
+                          (c) => Number(c?.stage_budget?.percentage_value) > 0
+                        )
+                        ?.map((ch) => ({
+                          name: ch?.funnel_stage,
+                          percentage: Number(
+                            ch?.stage_budget?.percentage_value
+                          )?.toFixed(0),
+                          color:
+                            ch?.funnel_stage === "Awareness"
+                              ? "#3175FF"
+                              : ch?.funnel_stage === "Consideration"
                               ? "#00A36C"
                               : ch?.funnel_stage === "Conversion"
-                                ? "#FF9037"
-                                : "#F05406",
-                      })
-                    )}
-                  />
-                  {/* <div className='campaign_phases_container_two flex flex-col gap-[28px]'>
-										<div className='flex items-center gap-2'>
-											<div className="w-[12px] h-[12px] bg-[#3175FF] rounded-[4px]"></div>
-											<p className="   font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-												Awareness (25%)
-											</p>
-										</div>
-										<div className='flex items-center gap-2'>
-											<div className="w-[12px] h-[12px] bg-[#00A36C] rounded-[4px]"></div>
-											<p className="   font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-												Consideration (23%)
-											</p>
-										</div>
-										<div className='flex items-center gap-2'>
-											<div className="w-[12px] h-[12px] bg-[#FF9037] rounded-[4px]"></div>
-											<p className="   font-medium text-[14px] leading-[19px] flex items-center text-[rgba(6,18,55,0.8)]">
-												Conversion (25%)
-											</p>
-										</div>
-									</div> */}
-                </div>
+                              ? "#FF9037"
+                              : "#F05406",
+                        }))}
+                    />
+                  </div>
+                  <PhasedistributionProgress/>
+                </>
               </div>
               <div className="allocate_budget_phase_two">
                 <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">

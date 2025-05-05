@@ -255,6 +255,7 @@ const AdSet = memo(function AdSet({
 
   const handleExtraAudienceSelect = (selected: string, idx: number) => {
     if (!selected) return;
+    console.log(selected)
     const updated = [...extraAudience];
     updated[idx] = {
       ...updated[idx],

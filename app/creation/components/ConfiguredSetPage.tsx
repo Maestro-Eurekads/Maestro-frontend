@@ -151,7 +151,6 @@ const ConfiguredSetPage = () => {
       return true;
     }
 
-    
     const hasPlatformBudget = mediaTypes.some((type) =>
       stageData?.[type]?.some(
         (platform) =>
@@ -213,7 +212,7 @@ const ConfiguredSetPage = () => {
     }
 
     // Add platform budgets
-    
+
     mediaTypes.forEach((type) => {
       stageData?.[type]?.forEach((platform) => {
         if (platform?.budget?.fixed_value) {
@@ -248,7 +247,9 @@ const ConfiguredSetPage = () => {
             (ch) => ch?.funnel_stage === stageName
           )?.stage_budget?.fixed_value || 0;
         const percentage = totalBudget ? (stageBudget / totalBudget) * 100 : 0;
-        const stage = campaignFormData?.custom_funnels?.find((s) => s.name === stageName);
+        const stage = campaignFormData?.custom_funnels?.find(
+          (s) => s.name === stageName
+        );
         if (!stage) return null;
         return (
           <div key={index} className="w-full">
@@ -256,19 +257,19 @@ const ConfiguredSetPage = () => {
               className="flex items-center justify-between px-6 py-4 w-full bg-[#FCFCFC] border border-gray-300 rounded-lg cursor-pointer"
               onClick={() => toggleItem(stage.name)}
             >
-              {stage?.icon &&
-              <div className="flex items-center gap-4">
-                <Image
-                  src={stage.icon.src || "/placeholder.svg"}
-                  alt={stage.name}
-                  width={20}
-                  height={20}
-                />
-                <p className="text-md font-semibold text-[#061237]">
-                  {stage.name}
-                </p>
-              </div>
-              }
+              {stage?.icon && (
+                <div className="flex items-center gap-4">
+                  <Image
+                    src={stage.icon.src || "/placeholder.svg"}
+                    alt={stage.name}
+                    width={20}
+                    height={20}
+                  />
+                  <p className="text-md font-semibold text-[#061237]">
+                    {stage.name}
+                  </p>
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <p
                   className={`font-semibold text-base ${
@@ -456,13 +457,15 @@ const ConfiguredSetPage = () => {
                                     />
                                     <span>{platform?.outlet}</span>
                                   </div>
-                                  {campaignFormData?.campaign_budget?.level === "Adset level" &&platform?.ad_sets?.length > 0 && (
-                                    <Image
-                                      src={down2 || "/placeholder.svg"}
-                                      className="size-5"
-                                      alt="arrow down"
-                                    />
-                                  )}
+                                  {campaignFormData?.campaign_budget?.level ===
+                                    "Adset level" &&
+                                    platform?.ad_sets?.length > 0 && (
+                                      <Image
+                                        src={down2 || "/placeholder.svg"}
+                                        className="size-5"
+                                        alt="arrow down"
+                                      />
+                                    )}
                                 </div>
                               </div>
                             </div>
@@ -597,7 +600,9 @@ const ConfiguredSetPage = () => {
                                   of {stage.name} budget
                                 </p>
                                 {stageName?.funnel_stage === stage.name &&
-                                  platform?.ad_sets?.length > 0 && campaignFormData?.campaign_budget?.level === "Adset level" && (
+                                  platform?.ad_sets?.length > 0 &&
+                                  campaignFormData?.campaign_budget?.level ===
+                                    "Adset level" && (
                                     <div
                                       className="flex items-center gap-2"
                                       onClick={(e) => {
@@ -720,211 +725,428 @@ const ConfiguredSetPage = () => {
                             </div>
                           </div>
                           <div className="pb-8 space-y-6">
-                            {campaignFormData?.campaign_budget?.level === "Adset level" && platform?.ad_sets?.map((ad_set, index) => {
-                              console.log("fdfd", ad_set);
-                              const getAdSetBudget = (adSet) => {
-                                return adSet?.budget?.fixed_value &&
-                                  platform.ad_sets?.length
-                                  ? Number(adSet?.budget?.fixed_value).toFixed(
-                                      2
-                                    )
-                                  : "0";
-                              };
-                              const adSetPercentage =
-                                (ad_set?.budget?.percentage_value ||
-                                  platform?.budget?.fixed_value) &&
-                                Number(getAdSetBudget(ad_set))
-                                  ? (
-                                      (Number(getAdSetBudget(ad_set)) /
-                                        Number(platform?.budget?.fixed_value)) *
-                                      100
-                                    ).toFixed(1)
-                                  : "0";
-                              return (
-                                <div
-                                  key={index}
-                                  className="flex gap-3 items-end"
-                                >
-                                  <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[50px] rounded-[10px] items-center gap-2">
-                                    <div className="flex justify-between w-full px-4 items-center">
-                                      <div className="flex items-center gap-2">
-                                        <span>{ad_set?.name}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[200px] h-[50px] rounded-[10px] items-center gap-2">
-                                    <div className="flex justify-between w-full px-4 items-center">
-                                      <div className="flex items-center gap-2">
-                                        <span>{ad_set?.audience_type}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[50px] rounded-[10px] items-center gap-2">
-                                    <div className="flex justify-between w-full px-4 items-center">
-                                      <div className="flex items-center gap-2">
-                                        <span>{ad_set?.size}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-start flex-col gap-4">
-                                    <h2 className="text-center font-bold">
-                                      Budget
-                                    </h2>
-                                    <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
-                                      <p className="font-bold">
-                                        {getCurrencySymbol(
-                                          campaignFormData?.campaign_budget
-                                            ?.currency
-                                        )}
-                                      </p>
-                                      <input
-                                        type="text"
-                                        className="w-full px-4 focus:outline-none"
-                                        value={formatNumberWithCommas(
-                                          getAdSetBudget(ad_set)
-                                        )}
-                                        onChange={(e) => {
-                                          const inputValue =
-                                            e.target.value.replace(/,/g, "");
-                                          const newBudget = inputValue;
-                                          setCampaignFormData((prevData) => {
-                                            const updatedChannelMix =
-                                              prevData.channel_mix.map((ch) => {
-                                                if (
-                                                  ch.funnel_stage === stageName
-                                                ) {
-                                                  const updatedChannelType =
-                                                    channelTypes.find((type) =>
-                                                      ch[type]?.some(
-                                                        (p) =>
-                                                          p.platform_name ===
-                                                          platform.outlet
-                                                      )
-                                                    );
-
-                                                  if (updatedChannelType) {
-                                                    return {
-                                                      ...ch,
-                                                      [updatedChannelType]: ch[
-                                                        updatedChannelType
-                                                      ].map((p) => {
-                                                        if (
-                                                          p.platform_name ===
-                                                          platform.outlet
-                                                        ) {
-                                                          const updatedAdSets =
-                                                            p.ad_sets?.map(
-                                                              (adSet, idx) => {
-                                                                if (
-                                                                  idx === index
-                                                                ) {
-                                                                  return {
-                                                                    ...adSet,
-                                                                    budget: {
-                                                                      fixed_value:
-                                                                        newBudget,
-                                                                      percentage_value:
-                                                                        p.budget
-                                                                          ?.fixed_value
-                                                                          ? (
-                                                                              (Number(
-                                                                                newBudget
-                                                                              ) /
-                                                                                Number(
-                                                                                  p
-                                                                                    .budget
-                                                                                    .fixed_value
-                                                                                )) *
-                                                                              100
-                                                                            ).toFixed(
-                                                                              1
-                                                                            )
-                                                                          : "0",
-                                                                    },
-                                                                  };
-                                                                }
-                                                                return adSet;
-                                                              }
-                                                            );
-
-                                                          const totalAdSetBudget =
-                                                            updatedAdSets?.reduce(
-                                                              (sum, adSet) =>
-                                                                sum +
-                                                                Number(
-                                                                  adSet.budget
-                                                                    ?.fixed_value ||
-                                                                    0
-                                                                ),
-                                                              0
-                                                            );
-
-                                                          if (
-                                                            totalAdSetBudget >
-                                                            Number(
-                                                              p.budget
-                                                                ?.fixed_value
-                                                            )
-                                                          ) {
-                                                            toast(
-                                                              "The sum of all ad set budgets cannot exceed the platform budget.",
-                                                              {
-                                                                position:
-                                                                  "bottom-right",
-                                                                type: "error",
-                                                                theme:
-                                                                  "colored",
-                                                              }
-                                                            );
-                                                            return p;
-                                                          }
-
-                                                          return {
-                                                            ...p,
-                                                            ad_sets:
-                                                              updatedAdSets,
-                                                          };
-                                                        }
-                                                        return p;
-                                                      }),
-                                                    };
-                                                  }
-                                                }
-                                                return ch;
-                                              });
-
-                                            return {
-                                              ...prevData,
-                                              channel_mix: updatedChannelMix,
-                                            };
-                                          });
-                                        }}
-                                      />
-                                      {
-                                        campaignFormData?.campaign_budget
-                                          ?.currency
-                                      }
-                                    </div>
-                                  </div>
-                                  <div className="flex items-start flex-col gap-3">
-                                    <h2 className="text-center font-bold">
-                                      Percentage
-                                    </h2>
-                                    <div className="flex items-center gap-4">
-                                      <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
+                            {campaignFormData?.campaign_budget?.level ===
+                              "Adset level" &&
+                              platform?.ad_sets?.map((ad_set, index) => {
+                                // console.log("fdfd", ad_set);
+                                const getAdSetBudget = (adSet) => {
+                                  return adSet?.budget?.fixed_value &&
+                                    platform.ad_sets?.length
+                                    ? Number(
+                                        adSet?.budget?.fixed_value
+                                      ).toFixed(2)
+                                    : "0";
+                                };
+                                const adSetPercentage =
+                                  (ad_set?.budget?.percentage_value ||
+                                    platform?.budget?.fixed_value) &&
+                                  Number(getAdSetBudget(ad_set))
+                                    ? (
+                                        (Number(getAdSetBudget(ad_set)) /
+                                          Number(
+                                            platform?.budget?.fixed_value
+                                          )) *
+                                        100
+                                      ).toFixed(1)
+                                    : "0";
+                                return (
+                                  <>
+                                  <div
+                                    key={index}
+                                    className="flex gap-3 items-end"
+                                  >
+                                    <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[50px] rounded-[10px] items-center gap-2">
+                                      <div className="flex justify-between w-full px-4 items-center">
                                         <div className="flex items-center gap-2">
-                                          <p>{adSetPercentage}</p>
-                                          <span> %</span>
+                                          <span>{ad_set?.name}</span>
                                         </div>
                                       </div>
-                                      <p className="whitespace-nowrap tracking-tight">
-                                        of {platform?.outlet} budget
-                                      </p>
+                                    </div>
+                                    <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[200px] h-[50px] rounded-[10px] items-center gap-2">
+                                      <div className="flex justify-between w-full px-4 items-center">
+                                        <div className="flex items-center gap-2">
+                                          <span>{ad_set?.audience_type}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[50px] rounded-[10px] items-center gap-2">
+                                      <div className="flex justify-between w-full px-4 items-center">
+                                        <div className="flex items-center gap-2">
+                                          <span>{ad_set?.size}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-start flex-col gap-4">
+                                      <h2 className="text-center font-bold">
+                                        Budget
+                                      </h2>
+                                      <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
+                                        <p className="font-bold">
+                                          {getCurrencySymbol(
+                                            campaignFormData?.campaign_budget
+                                              ?.currency
+                                          )}
+                                        </p>
+                                        <input
+                                          type="text"
+                                          className="w-full px-4 focus:outline-none"
+                                          value={formatNumberWithCommas(
+                                            getAdSetBudget(ad_set)
+                                          )}
+                                          onChange={(e) => {
+                                            const inputValue =
+                                              e.target.value.replace(/,/g, "");
+                                            const newBudget = inputValue;
+                                            setCampaignFormData((prevData) => {
+                                              const updatedChannelMix =
+                                                prevData.channel_mix.map(
+                                                  (ch) => {
+                                                    if (
+                                                      ch.funnel_stage ===
+                                                      stageName
+                                                    ) {
+                                                      const updatedChannelType =
+                                                        channelTypes.find(
+                                                          (type) =>
+                                                            ch[type]?.some(
+                                                              (p) =>
+                                                                p.platform_name ===
+                                                                platform.outlet
+                                                            )
+                                                        );
+
+                                                      if (updatedChannelType) {
+                                                        return {
+                                                          ...ch,
+                                                          [updatedChannelType]:
+                                                            ch[
+                                                              updatedChannelType
+                                                            ].map((p) => {
+                                                              if (
+                                                                p.platform_name ===
+                                                                platform.outlet
+                                                              ) {
+                                                                const updatedAdSets =
+                                                                  p.ad_sets?.map(
+                                                                    (
+                                                                      adSet,
+                                                                      idx
+                                                                    ) => {
+                                                                      if (
+                                                                        idx ===
+                                                                        index
+                                                                      ) {
+                                                                        return {
+                                                                          ...adSet,
+                                                                          budget:
+                                                                            {
+                                                                              fixed_value:
+                                                                                newBudget,
+                                                                              percentage_value:
+                                                                                p
+                                                                                  .budget
+                                                                                  ?.fixed_value
+                                                                                  ? (
+                                                                                      (Number(
+                                                                                        newBudget
+                                                                                      ) /
+                                                                                        Number(
+                                                                                          p
+                                                                                            .budget
+                                                                                            .fixed_value
+                                                                                        )) *
+                                                                                      100
+                                                                                    ).toFixed(
+                                                                                      1
+                                                                                    )
+                                                                                  : "0",
+                                                                            },
+                                                                        };
+                                                                      }
+                                                                      return adSet;
+                                                                    }
+                                                                  );
+
+                                                                const totalAdSetBudget =
+                                                                  updatedAdSets?.reduce(
+                                                                    (
+                                                                      sum,
+                                                                      adSet
+                                                                    ) =>
+                                                                      sum +
+                                                                      Number(
+                                                                        adSet
+                                                                          .budget
+                                                                          ?.fixed_value ||
+                                                                          0
+                                                                      ),
+                                                                    0
+                                                                  );
+
+                                                                if (
+                                                                  totalAdSetBudget >
+                                                                  Number(
+                                                                    p.budget
+                                                                      ?.fixed_value
+                                                                  )
+                                                                ) {
+                                                                  toast(
+                                                                    "The sum of all ad set budgets cannot exceed the platform budget.",
+                                                                    {
+                                                                      position:
+                                                                        "bottom-right",
+                                                                      type: "error",
+                                                                      theme:
+                                                                        "colored",
+                                                                    }
+                                                                  );
+                                                                  return p;
+                                                                }
+
+                                                                return {
+                                                                  ...p,
+                                                                  ad_sets:
+                                                                    updatedAdSets,
+                                                                };
+                                                              }
+                                                              return p;
+                                                            }),
+                                                        };
+                                                      }
+                                                    }
+                                                    return ch;
+                                                  }
+                                                );
+
+                                              return {
+                                                ...prevData,
+                                                channel_mix: updatedChannelMix,
+                                              };
+                                            });
+                                          }}
+                                        />
+                                        {
+                                          campaignFormData?.campaign_budget
+                                            ?.currency
+                                        }
+                                      </div>
+                                    </div>
+                                    <div className="flex items-start flex-col gap-3">
+                                      <h2 className="text-center font-bold">
+                                        Percentage
+                                      </h2>
+                                      <div className="flex items-center gap-4">
+                                        <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
+                                          <div className="flex items-center gap-2">
+                                            <p>{adSetPercentage}</p>
+                                            <span> %</span>
+                                          </div>
+                                        </div>
+                                        <p className="whitespace-nowrap tracking-tight">
+                                          of {platform?.outlet} budget
+                                        </p>
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              );
-                            })}
+                                  {ad_set?.extra_audiences?.length > 0 && ad_set?.extra_audiences?.map((addSet, iid)=>{return(
+                                    <div key={iid} className="flex gap-3 items-end">
+                                       <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[50px] rounded-[10px] items-center gap-2">
+                                      <div className="flex justify-between w-full px-4 items-center">
+                                        <div className="flex items-center gap-2">
+                                          <span>{addSet?.name}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[200px] h-[50px] rounded-[10px] items-center gap-2">
+                                      <div className="flex justify-between w-full px-4 items-center">
+                                        <div className="flex items-center gap-2">
+                                          <span>{addSet?.audience_type}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[50px] rounded-[10px] items-center gap-2">
+                                      <div className="flex justify-between w-full px-4 items-center">
+                                        <div className="flex items-center gap-2">
+                                          <span>{addSet?.size}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-start flex-col gap-4">
+                                      <h2 className="text-center font-bold">
+                                        Budget
+                                      </h2>
+                                      <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
+                                        <p className="font-bold">
+                                          {getCurrencySymbol(
+                                            campaignFormData?.campaign_budget
+                                              ?.currency
+                                          )}
+                                        </p>
+                                        <input
+                                          type="text"
+                                          className="w-full px-4 focus:outline-none"
+                                          value={formatNumberWithCommas(
+                                            getAdSetBudget(ad_set)
+                                          )}
+                                          onChange={(e) => {
+                                            const inputValue =
+                                              e.target.value.replace(/,/g, "");
+                                            const newBudget = inputValue;
+                                            setCampaignFormData((prevData) => {
+                                              const updatedChannelMix =
+                                                prevData.channel_mix.map(
+                                                  (ch) => {
+                                                    if (
+                                                      ch.funnel_stage ===
+                                                      stageName
+                                                    ) {
+                                                      const updatedChannelType =
+                                                        channelTypes.find(
+                                                          (type) =>
+                                                            ch[type]?.some(
+                                                              (p) =>
+                                                                p.platform_name ===
+                                                                platform.outlet
+                                                            )
+                                                        );
+
+                                                      if (updatedChannelType) {
+                                                        return {
+                                                          ...ch,
+                                                          [updatedChannelType]:
+                                                            ch[
+                                                              updatedChannelType
+                                                            ].map((p) => {
+                                                              if (
+                                                                p.platform_name ===
+                                                                platform.outlet
+                                                              ) {
+                                                                const updatedAdSets =
+                                                                  p.ad_sets?.map(
+                                                                    (
+                                                                      adSet,
+                                                                      idx
+                                                                    ) => {
+                                                                      if (
+                                                                        idx ===
+                                                                        index
+                                                                      ) {
+                                                                        return {
+                                                                          ...adSet,
+                                                                          budget:
+                                                                            {
+                                                                              fixed_value:
+                                                                                newBudget,
+                                                                              percentage_value:
+                                                                                p
+                                                                                  .budget
+                                                                                  ?.fixed_value
+                                                                                  ? (
+                                                                                      (Number(
+                                                                                        newBudget
+                                                                                      ) /
+                                                                                        Number(
+                                                                                          p
+                                                                                            .budget
+                                                                                            .fixed_value
+                                                                                        )) *
+                                                                                      100
+                                                                                    ).toFixed(
+                                                                                      1
+                                                                                    )
+                                                                                  : "0",
+                                                                            },
+                                                                        };
+                                                                      }
+                                                                      return adSet;
+                                                                    }
+                                                                  );
+
+                                                                const totalAdSetBudget =
+                                                                  updatedAdSets?.reduce(
+                                                                    (
+                                                                      sum,
+                                                                      adSet
+                                                                    ) =>
+                                                                      sum +
+                                                                      Number(
+                                                                        adSet
+                                                                          .budget
+                                                                          ?.fixed_value ||
+                                                                          0
+                                                                      ),
+                                                                    0
+                                                                  );
+
+                                                                if (
+                                                                  totalAdSetBudget >
+                                                                  Number(
+                                                                    p.budget
+                                                                      ?.fixed_value
+                                                                  )
+                                                                ) {
+                                                                  toast(
+                                                                    "The sum of all ad set budgets cannot exceed the platform budget.",
+                                                                    {
+                                                                      position:
+                                                                        "bottom-right",
+                                                                      type: "error",
+                                                                      theme:
+                                                                        "colored",
+                                                                    }
+                                                                  );
+                                                                  return p;
+                                                                }
+
+                                                                return {
+                                                                  ...p,
+                                                                  ad_sets:
+                                                                    updatedAdSets,
+                                                                };
+                                                              }
+                                                              return p;
+                                                            }),
+                                                        };
+                                                      }
+                                                    }
+                                                    return ch;
+                                                  }
+                                                );
+
+                                              return {
+                                                ...prevData,
+                                                channel_mix: updatedChannelMix,
+                                              };
+                                            });
+                                          }}
+                                        />
+                                        {
+                                          campaignFormData?.campaign_budget
+                                            ?.currency
+                                        }
+                                      </div>
+                                    </div>
+                                    <div className="flex items-start flex-col gap-3">
+                                      <h2 className="text-center font-bold">
+                                        Percentage
+                                      </h2>
+                                      <div className="flex items-center gap-4">
+                                        <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
+                                          <div className="flex items-center gap-2">
+                                            <p>{adSetPercentage}</p>
+                                            <span> %</span>
+                                          </div>
+                                        </div>
+                                        <p className="whitespace-nowrap tracking-tight">
+                                          of {platform?.outlet} budget
+                                        </p>
+                                      </div>
+                                    </div>
+                                    </div>
+                                  )})}
+                                  </>
+                                );
+                              })}
                           </div>
                           <hr className="text-gray-200 w-full p-1" />
                         </div>

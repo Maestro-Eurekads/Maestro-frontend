@@ -150,7 +150,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
                 populate: ['budget_fees'],
               },
               channel_mix: {
-                populate: channelMixPopulate,
+                populate: {
+                  ...channelMixPopulate,
+                  stage_budget: "*"
+                },
               },
             },
           },
