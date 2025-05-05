@@ -112,7 +112,7 @@ const OverviewofyourCampaign = () => {
 			result[funnelStage] = [];
 
 			const socialMedia = stage?.social_media || [];
-			socialMedia.forEach((platform) => {
+			socialMedia?.forEach((platform) => {
 				const platformName = platform?.platform_name;
 				const kpi = platform?.kpi || {};
 				const groupedKPIs = {};
@@ -244,8 +244,8 @@ const OverviewofyourCampaign = () => {
 	// 		}
 	// 	}, [createKpisSuccess, error]);
 
-	console.log("aggregatedStats-aggregatedStats", Object.keys(aggregatedStats).length);
-	console.log("aggregatedStats-aggregatedStats", showalert);
+	// console.log("aggregatedStats-aggregatedStats", Object.keys(aggregatedStats));
+	console.log("clientCampaignData-clientCampaignData", clientCampaignData);
 
 
 	useEffect(() => {
