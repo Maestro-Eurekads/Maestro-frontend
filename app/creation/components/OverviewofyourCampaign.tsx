@@ -99,6 +99,7 @@ const OverviewofyourCampaign = () => {
 
 
 
+	console.log("clientCampaignData-clientCampaignData", campaignData);
 
 
 
@@ -233,19 +234,10 @@ const OverviewofyourCampaign = () => {
 	// console.log('aggregatedStats-aggregatedStats-aggregatedStats', aggregatedStats);
 	// console.log('statsData-statsData-statsData', statsData);
 
-	// useEffect(() => {
-	// 		if (createKpisSuccess) {
-	// 			setAlert({ variant: "success", message: "Kpi created!", position: "bottom-right" });
-	// 		}
-	// 		if (error) {
-	// 			setAlert({
-	// 				variant: "error", message: error.response?.data || error.response?.data?.error?.message || error?.message, position: "bottom-right"
-	// 			});
-	// 		}
-	// 	}, [createKpisSuccess, error]);
+
 
 	// console.log("aggregatedStats-aggregatedStats", Object.keys(aggregatedStats));
-	console.log("clientCampaignData-clientCampaignData", clientCampaignData);
+
 
 
 	useEffect(() => {
