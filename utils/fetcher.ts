@@ -39,7 +39,7 @@ const nestedAdSetPopulate = {
       format: {
         populate: ["previews"],
       },
-      kpi: "*",
+      // kpi: "*",
       budget: "*",
     },
   },
@@ -53,7 +53,7 @@ channelKeys.forEach((key) => {
         populate: ["previews"],
       },
       budget: "*",
-      kpi: "*",
+      // kpi: "*",
       ad_sets: "*",
       ...nestedAdSetPopulate,
     },
