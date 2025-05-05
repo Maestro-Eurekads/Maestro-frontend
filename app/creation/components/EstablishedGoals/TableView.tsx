@@ -379,7 +379,7 @@ const TableView = () => {
                             <>
                               {channel?.ad_sets?.map((awareness, Aindex) => (
                                 <tr key={Aindex} className="bg-white">
-                                  <td className="py-6 px-6 border-none">
+                                  <td className="py-6 px-3 border-none">
                                     <div className="flex gap-2">
                                       <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
                                         {Aindex + 1}.

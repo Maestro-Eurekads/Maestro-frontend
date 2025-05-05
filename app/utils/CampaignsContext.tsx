@@ -150,7 +150,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
                 populate: ['budget_fees'],
               },
               channel_mix: {
-                populate: channelMixPopulate,
+                populate: {
+                  ...channelMixPopulate,
+                  stage_budget: "*"
+                },
               },
             },
           },
@@ -160,6 +163,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       const data = res?.data?.data;
+      console.log("🚀 ~ getActiveCampaign ~ data:", JSON.stringify(data, null, 2))
 
       setCampaignData(data);
       setCampaignFormData((prev) => ({

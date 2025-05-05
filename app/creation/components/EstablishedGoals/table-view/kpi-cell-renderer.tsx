@@ -17,7 +17,7 @@ export const KPICellRenderer = ({
   adSetIndex,
   adSet,
   nrAdCells,
-  toggleNRAdCell
+  toggleNRAdCell,
 }) => {
   const { campaignFormData } = useCampaigns();
 
@@ -50,18 +50,30 @@ export const KPICellRenderer = ({
     return new Intl.NumberFormat("en-US").format(num);
   };
 
-  if (body === "channel") {
+  if (body === "adsets") {
     return (
       <div className="flex gap-2 indent-[20px]">
         <div className="l-shape-container-ad">
           <div className="l-vertical-ad"></div>
           <div className="l-horizontal-ad"></div>
         </div>
-
+      </div>
+    );
+  }
+  if (body === "audience") {
+    return (
+      <div className="flex gap-2">
         <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
-          {1}.
+          {adSetIndex + 2}.
         </span>
-        <span>{adSet? adSet: "-"}</span>
+        <span>{adSet ? adSet?.audience_type : "-"}</span>
+      </div>
+    );
+  }
+  if (body === "audience_size") {
+    return (
+      <div className="flex gap-2">
+        <span>{adSet ? adSet?.size : "-"}</span>
       </div>
     );
   }

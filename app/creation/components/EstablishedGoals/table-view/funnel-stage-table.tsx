@@ -57,7 +57,7 @@ export const FunnelStageTable = ({
                 {tableHeaders?.map((header, hIndex) => (
                   <th
                     key={hIndex}
-                    className={`py-4 px-6 cursor-pointer ${
+                    className={`py-4 px-3 cursor-pointer ${
                       nrColumns?.includes(
                         header.name
                           .toLowerCase()
@@ -70,7 +70,7 @@ export const FunnelStageTable = ({
                     }`}
                     onClick={() => toggleNRColumn(stage.name, header.name)}
                   >
-                    {header?.name}
+                    {header?.name === "Audience" ? "" :header?.name}
                     {nrColumns?.includes(
                       header.name
                         .toLowerCase()

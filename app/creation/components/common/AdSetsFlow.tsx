@@ -31,7 +31,7 @@ import tictok from "../../../../public/tictok.svg";
 import { Plus } from "lucide-react";
 import { useActive } from "app/utils/ActiveContext";
 import { removeKeysRecursively } from "utils/removeID";
-import { getPlatformIcon } from "components/data";
+import { getPlatformIcon, mediaTypes } from "components/data";
 
 // Types
 interface AdSetType {
@@ -58,7 +58,11 @@ interface AdSetData {
   name: string;
   audience_type: string;
   size?: string;
-  extra_audiences?: string[]; // 👈 Add this
+  extra_audiences?: {
+    audience_type: string;
+    name?: string;
+    size?: string;
+  }[];
 }
 
 interface Format {
@@ -127,11 +131,7 @@ const findPlatform = (
   const stage = campaignData.find((stage) => stage.funnel_stage === stageName);
   if (!stage) return null;
 
-  const channelTypes = [
-    "search_engines",
-    "display_networks",
-    "social_media",
-  ] as const;
+  const channelTypes = mediaTypes;
   for (const channelType of channelTypes) {
     const platform = stage[channelType].find(
       (p) => p.platform_name === platformName
@@ -158,11 +158,7 @@ const updateMultipleAdSets = (
   }
 
   const stage = updatedCampaignData[stageIndex];
-  const channelTypes = [
-    "search_engines",
-    "display_networks",
-    "social_media",
-  ] as const;
+  const channelTypes = mediaTypes
   let platformFound = false;
 
   for (const channelType of channelTypes) {
@@ -199,7 +195,7 @@ const AdSet = memo(function AdSet({
   adSetSize,
   onInteraction,
   adsets,
-  extraAudiences,
+  extra_audiences,
   onUpdateExtraAudiences,
 }: {
   adset: AdSetType;
@@ -212,15 +208,26 @@ const AdSet = memo(function AdSet({
   adSetSize?: string;
   onInteraction: () => void;
   adsets: AdSetType[];
-  extraAudiences: string[];
-  onUpdateExtraAudiences: (audiences: string[]) => void;
+  extra_audiences?: {
+    audience_type: string;
+    name?: string;
+    size?: string;
+  }[];
+
+  onUpdateExtraAudiences: (
+    audiences: {
+      audience_type: string;
+      name?: string;
+      size?: string;
+    }[]
+  ) => void;
 }) {
   const [audience, setAudience] = useState<string>(audienceType || "");
   const [name, setName] = useState<string>(adSetName || "");
   const [size, setSize] = useState<string>(adSetSize || "");
-  const [extraAudience, setExtraAudience] = useState<{ value?: string }[]>(
-    extraAudiences.map((val) => ({ value: val }))
-  );
+  const [extraAudience, setExtraAudience] = useState<
+    { audience_type: string; name?: string; size?: string }[]
+  >(extra_audiences || []);
 
   useEffect(() => {
     if (audienceType !== undefined) setAudience(audienceType);
@@ -228,12 +235,12 @@ const AdSet = memo(function AdSet({
     if (adSetSize !== undefined) setSize(adSetSize);
   }, [audienceType, adSetName, adSetSize]);
 
-  const updateExtraAudienceMap = (updatedList: { value?: string }[]) => {
+  const updateExtraAudienceMap = (
+    updatedList: { audience_type: string; name?: string; size?: string }[]
+  ) => {
     setExtraAudience(updatedList);
-    const cleaned = updatedList
-      .map((item) => item?.value?.trim())
-      .filter((val) => !!val) as string[];
-    onUpdateExtraAudiences(cleaned); // this updates adSetDataMap
+    const cleaned = updatedList.filter((item) => item.audience_type?.trim());
+    onUpdateExtraAudiences(cleaned);
     onInteraction(); // notify form system
   };
 
@@ -248,8 +255,12 @@ const AdSet = memo(function AdSet({
 
   const handleExtraAudienceSelect = (selected: string, idx: number) => {
     if (!selected) return;
+    console.log(selected)
     const updated = [...extraAudience];
-    updated[idx] = { value: selected };
+    updated[idx] = {
+      ...updated[idx],
+      audience_type: selected,
+    };
     updateExtraAudienceMap(updated);
   };
 
@@ -286,7 +297,7 @@ const AdSet = memo(function AdSet({
     isParentFilled &&
     (extraAudience.length === 0 ||
       (extraAudience.length > 0 &&
-        extraAudience[extraAudience.length - 1]?.value?.trim()));
+        extraAudience[extraAudience.length - 1]?.audience_type?.trim()));
 
   return (
     <div className="flex gap-2 items-start w-full px-4">
@@ -295,7 +306,7 @@ const AdSet = memo(function AdSet({
           {`Ad set n°${adset.addsetNumber}`}
         </p>
       </div>
-      <div>
+      <div className="w-[200px]">
         <AudienceDropdownWithCallback
           onSelect={handleAudienceSelect}
           initialValue={audience}
@@ -313,9 +324,35 @@ const AdSet = memo(function AdSet({
                   onSelect={(value: string) =>
                     handleExtraAudienceSelect(value, index)
                   }
-                  initialValue={audi?.value}
+                  initialValue={audi?.audience_type}
                   dropdownId={`${adset.id}-${index}`}
                 />
+                <input
+                  type="text"
+                  placeholder="Name"
+                  value={audi.name || ""}
+                  onChange={(e) => {
+                    const updated = [...extraAudience];
+                    updated[index].name = e.target.value;
+                    updateExtraAudienceMap(updated);
+                  }}
+                  disabled={!isEditing}
+                  className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[160px]"
+                />
+
+                <input
+                  type="text"
+                  placeholder="Size"
+                  value={audi.size || ""}
+                  onChange={(e) => {
+                    const updated = [...extraAudience];
+                    updated[index].size = e.target.value;
+                    updateExtraAudienceMap(updated);
+                  }}
+                  disabled={!isEditing}
+                  className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[100px]"
+                />
+
                 <button
                   disabled={!isEditing}
                   onClick={() => handleDeleteExtraAudience(index)}
@@ -336,7 +373,7 @@ const AdSet = memo(function AdSet({
             }`}
             onClick={() => {
               if (canAddNewAudience) {
-                const updated = [...extraAudience, {}];
+                const updated = [...extraAudience, { audience_type: "" }];
                 updateExtraAudienceMap(updated);
               }
             }}
@@ -522,10 +559,13 @@ const AdsetSettings = memo(function AdsetSettings({
   outlet,
   stageName,
   onInteraction,
+  defaultOpen
 }: {
   outlet: OutletType;
   stageName: string;
   onInteraction: () => void;
+  defaultOpen?: boolean;
+
 }) {
   const { isEditing } = useEditing();
   const { campaignFormData, setCampaignFormData } = useCampaigns();
@@ -534,33 +574,31 @@ const AdsetSettings = memo(function AdsetSettings({
   const [adSetDataMap, setAdSetDataMap] = useState<Record<number, AdSetData>>(
     {}
   );
+
   const [openDropdownId, setOpenDropdownId] = useState<number | string | null>(
     null
   );
   const initialized = useRef(false);
 
   useEffect(() => {
-    if (
-      !campaignFormData?.channel_mix ||
-      !selectedPlatforms.includes(outlet.outlet)
-    )
-      return;
+    if (!campaignFormData?.channel_mix) return;
     if (initialized.current) return;
     initialized.current = true;
-
+  
     const result = findPlatform(
       campaignFormData.channel_mix,
       stageName,
       outlet.outlet
     );
-    // Handle null case explicitly
-    if (!result) {
-      console.warn(
-        `No platform found for ${outlet.outlet} in stage ${stageName}`
-      );
-      if (!selectedPlatforms.includes(outlet.outlet)) {
-        setSelectedPlatforms((prev) => [...prev, outlet.outlet]);
-      }
+  
+    const platform = result?.platform;
+  
+    // 🟢 Open this platform (outlet) by default if requested
+    if (defaultOpen && !selectedPlatforms.includes(outlet.outlet)) {
+      setSelectedPlatforms((prev) => [...prev, outlet.outlet]);
+    }
+  
+    if (!platform) {
       const newAdSetId = Date.now();
       setAdSets([{ id: newAdSetId, addsetNumber: 1 }]);
       setAdSetDataMap({
@@ -568,8 +606,7 @@ const AdsetSettings = memo(function AdsetSettings({
       });
       return;
     }
-
-    const { platform } = result;
+  
     if (platform.ad_sets && platform.ad_sets.length > 0) {
       const newAdSets = platform.ad_sets.map((adSet, index) => ({
         id: adSet.id || Date.now() + index,
@@ -594,8 +631,8 @@ const AdsetSettings = memo(function AdsetSettings({
         [newAdSetId]: { name: "", audience_type: "", size: "" },
       });
     }
-  }, [campaignFormData, stageName, outlet.outlet, selectedPlatforms]);
-
+  }, [campaignFormData, stageName, outlet.outlet, selectedPlatforms, defaultOpen]);
+  
   const addNewAddset = useCallback(() => {
     // Check if we've reached the maximum limit of 10 ad sets
     if (adsets.length >= 10) {
@@ -809,7 +846,13 @@ const AdsetSettings = memo(function AdsetSettings({
                       audienceType={adSetData.audience_type}
                       adSetName={adSetData.name}
                       adSetSize={adSetData.size}
-                      extraAudiences={adSetData.extra_audiences || []}
+                      extra_audiences={
+                        (adSetData.extra_audiences as {
+                          audience_type: string;
+                          name?: string;
+                          size?: string;
+                        }[]) || []
+                      }
                       onUpdateExtraAudiences={(extraAudienceArray) =>
                         updateAdSetData(adset.id, {
                           extra_audiences: extraAudienceArray,
@@ -844,6 +887,8 @@ const AdSetFlow = memo(function AdSetFlow({
   const [platforms, setPlatforms] = useState<Record<string, OutletType[]>>({});
   const [hasInteraction, setHasInteraction] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [autoOpen, setAutoOpen] = useState<Record<string, string[]>>({});
+
 
   const getPlatformsFromStage = useCallback(() => {
     const platformsByStage: Record<string, OutletType[]> = {};
@@ -884,7 +929,7 @@ const AdSetFlow = memo(function AdSetFlow({
             platformsByStage[funnel_stage].push({
               id: Math.floor(Math.random() * 1000000),
               outlet: platform.platform_name,
-              icon: icon ,
+              icon: icon,
             });
           });
         }
@@ -897,8 +942,35 @@ const AdSetFlow = memo(function AdSetFlow({
     if (campaignFormData) {
       const data = getPlatformsFromStage();
       setPlatforms(data);
+  
+      const autoOpenPlatforms = {};
+  
+      for (const stage of campaignFormData.channel_mix) {
+        const platformsWithAdsets = [
+          ...stage.search_engines,
+          ...stage.display_networks,
+          ...stage.social_media,
+          ...stage.streaming,
+          ...stage.ooh,
+          ...stage.broadcast,
+          ...stage.messaging,
+          ...stage.print,
+          ...stage.e_commerce,
+          ...stage.in_game,
+          ...stage.mobile,
+        ]
+          .filter((p) => p.ad_sets && p.ad_sets.length > 0)
+          .map((p) => p.platform_name);
+  
+        if (platformsWithAdsets.length > 0) {
+          autoOpenPlatforms[stage.funnel_stage] = platformsWithAdsets;
+        }
+      }
+  
+      setAutoOpen(autoOpenPlatforms); // 👈 create a new state for this
     }
   }, []);
+  
 
   const handleInteraction = useCallback(() => {
     setHasInteraction(true);
@@ -967,6 +1039,7 @@ const AdSetFlow = memo(function AdSetFlow({
           outlet={outlet}
           stageName={stageName}
           onInteraction={handleInteraction}
+          defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
         />
       ))}
     </div>

@@ -39,6 +39,8 @@ const CampaignBudget = () => {
   const { campaignFormData, setCampaignFormData, campaignData } =
     useCampaigns();
 
+  const [feeStepValidated, setFeeStepValidated] = useState(false);
+
   const selectCurrency = [
     { value: "USD", label: "USD" },
     { value: "EUR", label: "EUR" },
@@ -201,11 +203,14 @@ const CampaignBudget = () => {
 
       {budgetStyle !== "" && budgetStyle === "top_down" && step > 0 && (
         <>
-          <FeeSelectionStep num1={2} num2={3} />
+          <FeeSelectionStep num1={2} num2={3} isValidated={feeStepValidated} />
           {campaignFormData?.campaign_budget?.sub_budget_type && (
             <div className="flex justify-end mt-[20px]">
               <button
-                onClick={() => setStep(2)}
+                onClick={() => {
+                  setFeeStepValidated(!feeStepValidated);
+                  setStep(2)
+                }}
                 className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
                   loading
                     ? "bg-gray-400 cursor-not-allowed"
@@ -215,6 +220,8 @@ const CampaignBudget = () => {
               >
                 {loading ? (
                   <SVGLoader width={"24px"} height={"24px"} color={"#fff"} />
+                ) : feeStepValidated ? (
+                  "Edit"
                 ) : (
                   "Validate"
                 )}
@@ -225,7 +232,7 @@ const CampaignBudget = () => {
       )}
       {budgetStyle !== "" && budgetStyle === "top_down" && step > 1 && (
         <>
-          <PageHeaderWrapper t4="Choose granularity level" span={4} />
+          <PageHeaderWrapper t4="Choose granularity level" span={feeStepValidated ? 3 : 4} />
           <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
             <form method="dialog" className="flex justify-center p-2 !pb-0">
               <span></span>
@@ -363,7 +370,7 @@ const CampaignBudget = () => {
                           }));
                         }}
                       >
-                        Select
+                        {campaignFormData?.campaign_budget?.level === item.label ? "Selected" :"Select"}
                       </button>
                     </div>
                   </div>

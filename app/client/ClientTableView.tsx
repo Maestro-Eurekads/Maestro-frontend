@@ -390,22 +390,22 @@ const ClientTableView = ({ channels }) => {
 											<>
 												{campaignData.phases.awareness.channels.map((awareness, index) => (
 													<tr key={index} className="bg-white">
-														<td className="py-6 px-6 border-none">
+														<td className="py-6 px-3 border-none">
 															<div className='flex gap-2'>
 																<span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
 																	{index + 1}.</span>
 																<span>{awareness.channel}</span>
 															</div>
 														</td>
-														<td className="py-6 px-6 border-none">{awareness.audience} </td>
-														<td className="py-6 px-6 border-none">{awareness.startDate} </td>
-														<td className="py-6 px-6 border-none">{awareness.endDate}  </td>
-														<td className="py-6 px-6 border-none">{awareness.audienceSize}  </td>
-														<td className="py-6 px-6 border-none">{awareness.budget}  </td>
-														<td className="py-6 px-6 border-none"><div className="cpm_bg"> {awareness.cpm}</div>  </td>
-														<td className="py-6 px-6 border-none">{awareness.audience} </td>
-														<td className="py-6 px-6 border-none">{awareness.frequency}  </td>
-														<td className="py-6 px-6 border-none">{awareness.reach}</td>
+														<td className="py-6 px-3 border-none">{awareness.audience} </td>
+														<td className="py-6 px-3 border-none">{awareness.startDate} </td>
+														<td className="py-6 px-3 border-none">{awareness.endDate}  </td>
+														<td className="py-6 px-3 border-none">{awareness.audienceSize}  </td>
+														<td className="py-6 px-3 border-none">{awareness.budget}  </td>
+														<td className="py-6 px-3 border-none"><div className="cpm_bg"> {awareness.cpm}</div>  </td>
+														<td className="py-6 px-3 border-none">{awareness.audience} </td>
+														<td className="py-6 px-3 border-none">{awareness.frequency}  </td>
+														<td className="py-6 px-3 border-none">{awareness.reach}</td>
 													</tr>
 												))}
 
