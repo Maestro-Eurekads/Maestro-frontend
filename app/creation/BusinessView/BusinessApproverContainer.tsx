@@ -37,8 +37,8 @@ const BusinessApproverContainer = ({ campaign, loading, isLoadingCampaign }) => 
 		},
 		{
 			label: "Campaign builder",
-			name: "-",
-			initials: getInitials("-"),
+			name: campaign?.user?.username || "-",
+			initials: getInitials(campaign?.user?.username),
 		},
 	];
 

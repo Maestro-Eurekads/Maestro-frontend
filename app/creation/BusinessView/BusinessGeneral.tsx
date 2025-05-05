@@ -4,11 +4,12 @@ import React, { useMemo } from "react";
 import Image from "next/image";
 import info from "../../../public/info-circle.svg";
 import Skeleton from "react-loading-skeleton";
+import { getCurrencySymbol } from "components/data";
 
 // Component to display general campaign information like budget, impressions, and CPM
 const BusinessGeneral = ({ campaign, loading, isLoadingCampaign }) => {
 	const budget = campaign?.campaign_budget?.amount || "0";
-	const currency = campaign?.budget_details?.currency || "USD";
+	const currency = getCurrencySymbol(campaign?.budget_details?.currency) || "";
 
 	// Extract and calculate total impressions and average CPM
 	const { totalImpressions, averageCpm } = useMemo(() => {
@@ -44,9 +45,12 @@ const BusinessGeneral = ({ campaign, loading, isLoadingCampaign }) => {
 		};
 	}, [campaign]);
 
-	const budgetChange = "+2.5%";
-	const impressionsChange = "+3.1%";
-	const cpmChange = "-1.2%";
+	const budgetChange = "0%";
+	const impressionsChange = "0%";
+	const cpmChange = "0%";
+	// const budgetChange = "+2.5%";
+	// const impressionsChange = "+3.1%";
+	// const cpmChange = "-1.2%";
 
 	const formatNumber = (value) => {
 		if (!value) return "0";

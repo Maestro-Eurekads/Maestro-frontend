@@ -161,7 +161,7 @@ export default function PlatformSpending() {
   useEffect(() => {
     if (campaignFormData?.channel_mix) {
       const data = extractPhasesData(campaignFormData?.channel_mix);
-      console.log("data", data);
+      // console.log("data", data);
       setPhaseData(data);
     }
   }, [campaignFormData]);
@@ -169,8 +169,8 @@ export default function PlatformSpending() {
   return (
     <div className="flex flex-col gap-6">
       {phaseData?.map((phase, index) => {
-        const values = phase.platforms.map((p) => p.value);
-        const colors = phase.platforms.map((p) => p.color);
+        const values = phase?.platforms?.map((p) => p?.value);
+        const colors = phase?.platforms?.map((p) => p?.color);
 
         return (
           <div key={index} className="flex flex-col gap-4">

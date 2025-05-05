@@ -11,10 +11,8 @@ import { getCurrencySymbol } from 'components/data';
 const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 	const [open, setOpen] = useState(false);
 	const [opens, setOpens] = useState(false);
-	const [openBudget, setOpenBudget] = useState(false);
 	const [channelData, setChannelData] = useState(null);
-	//   const [selectedGoal, setSelectedGoal] = useState("");
-	const { setCampaignFormData, campaignFormData } = useCampaigns();
+	const { campaignFormData } = useCampaigns();
 
 
 
@@ -144,7 +142,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 										Campaign phases
 									</p>
 
-									<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">3 phases</h3>
+									<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">{campaignPhases?.length} phases</h3>
 								</div>
 							</div>
 

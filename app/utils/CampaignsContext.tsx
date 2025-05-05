@@ -146,6 +146,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
               media_plan_details: '*',
               budget_details: '*',
               client_selection: '*',
+              user: true,
               campaign_budget: {
                 populate: ['budget_fees'],
               },
@@ -198,7 +199,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         campaign_budget: data?.campaign_budget || prev.campaign_budget,
         goal_level: data?.goal_level || prev.goal_level,
         progress_percent: data?.progress_percent,
-        custom_funnels: data?.custom_funnels
+        custom_funnels: data?.custom_funnels,
+        user: data?.user
       }));
     } catch (error) {
       console.error("Error fetching active campaign:", error);
