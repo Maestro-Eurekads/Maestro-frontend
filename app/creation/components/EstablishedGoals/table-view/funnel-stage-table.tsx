@@ -125,11 +125,12 @@ export const FunnelStageTable = ({
                           toggleNRAdCell={toggleNRAdCell}
                         />
                         {
-                          adSet?.extra_audiences?.map((adSet, adSetIndex) => (
+                          adSet?.extra_audiences?.map((adSet, exIndex) => (
                             <KPIRow
                               key={adSetIndex}
                               adSet={adSet}
                               adSetIndex={adSetIndex}
+                              extraAdSetindex={exIndex}
                               channel={channel}
                               stage={stage}
                               tableBody={tableBody}

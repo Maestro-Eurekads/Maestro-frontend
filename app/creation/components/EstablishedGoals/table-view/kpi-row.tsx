@@ -37,6 +37,7 @@ export const KPIRow = ({
   tableBody,
   adSet,
   adSetIndex,
+  extraAdSetindex,
   // goalLevel,
   // expandedRows,
   // toggleRow,
@@ -53,7 +54,7 @@ export const KPIRow = ({
 
   const chData = campaignFormData?.channel_mix
     ?.find((ch) => ch?.funnel_stage === stage.name)
-    ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name);
+    ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)?.ad_sets[adSetIndex]?.extra_audiences[extraAdSetindex];
 
   const tHeaders = tableHeaders?.[chData?.objective_type];
 
@@ -161,9 +162,9 @@ export const KPIRow = ({
 
   const getNestedValue = (obj, ...paths) => {
     for (const path of paths) {
-      console.log("path", path);
+      // console.log("path", path);
       let value = path.split(".").reduce((acc, key) => acc?.[key], obj);
-      console.log("🚀 ~ getNestedValue ~ value:", value);
+      // console.log("🚀 ~ getNestedValue ~ value:", value);
       if (value !== undefined) {
         // Check if this is a percentage field
         if (isPercentageField(path, tableHeaders)) {
@@ -208,7 +209,8 @@ export const KPIRow = ({
           channel?.name,
           key,
           value,
-          ""
+          adSetIndex,
+          extraAdSetindex
         );
       }
     });
@@ -250,6 +252,7 @@ export const KPIRow = ({
             bodyIndex={bodyIndex}
             stage={stage}
              adSetIndex={adSetIndex}
+             extraAdSetindex={extraAdSetindex}
              adSet={adSet}
             handleEditInfo={handleEditInfo}
              nrAdCells={nrAdCells}

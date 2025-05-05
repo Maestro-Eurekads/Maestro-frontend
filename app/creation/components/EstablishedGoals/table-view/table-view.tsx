@@ -224,32 +224,68 @@ const TableView = () => {
     platformName,
     fieldName,
     value,
-    adSetIndex
+    adSetIndex,
+    extraAdSetindex
   ) => {
     setCampaignFormData((prevData) => {
       const updatedData = { ...prevData };
       const channelMix = updatedData.channel_mix?.find(
         (ch) => ch.funnel_stage === stageName
       );
-
+  
       if (channelMix) {
         const platform = channelMix[channelName]?.find(
           (platform) => platform.platform_name === platformName
         );
-
+  
         if (platform) {
+          // console.log("fieldName", fieldName)
           if (fieldName === "budget_size") {
-            if (adSetIndex !== "") {
+            // debugger
+            if (extraAdSetindex !== "") {
+              // Ensure ad_sets exists
+              if (!platform.ad_sets?.[adSetIndex]) return updatedData;
+  
+              // Ensure extra_audiences is initialized
+              platform.ad_sets[adSetIndex]["extra_audiences"] =
+                platform.ad_sets[adSetIndex]["extra_audiences"] || [];
+  
+              // Ensure specific extra audience object exists
+              platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex] =
+                platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex] || {};
+  
+              // Ensure budget object exists
+              platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex]["budget"] =
+                platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex]["budget"] || {};
+  
+              // Set value
+              platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex]["budget"]["fixed_value"] =
+                value.toString();
+            } else if (adSetIndex !== "") {
+              // console.log("hgh")
               platform.ad_sets[adSetIndex]["budget"] =
                 platform.ad_sets[adSetIndex]["budget"] || {};
-              platform.ad_sets[adSetIndex]["budget"]["fixed_value"] =
-                value.toString();
+              platform.ad_sets[adSetIndex]["budget"]["fixed_value"] = value.toString();
             } else {
               platform["budget"] = platform["budget"] || {};
               platform["budget"]["fixed_value"] = value.toString();
             }
           } else {
-            if (adSetIndex !== "") {
+            if (extraAdSetindex !== "") {
+              if (!platform.ad_sets?.[adSetIndex]) return updatedData;
+  
+              platform.ad_sets[adSetIndex]["extra_audiences"] =
+                platform.ad_sets[adSetIndex]["extra_audiences"] || [];
+  
+              platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex] =
+                platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex] || {};
+  
+              platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex]["kpi"] =
+                platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex]["kpi"] || {};
+  
+              platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex]["kpi"][fieldName] =
+                Number(value);
+            } else if (adSetIndex !== "") {
               platform.ad_sets[adSetIndex]["kpi"] =
                 platform.ad_sets[adSetIndex]["kpi"] || {};
               platform.ad_sets[adSetIndex]["kpi"][fieldName] = Number(value);
@@ -260,10 +296,11 @@ const TableView = () => {
           }
         }
       }
-
+  
       return updatedData;
     });
   };
+  
 
   // Process data once at the top level
   const processedData = extractPlatforms(campaignFormData);

@@ -195,7 +195,8 @@ export const AdSetRow = ({
           channel?.name,
           key,
           value,
-          adSetIndex
+          adSetIndex,
+          ""
         );
       }
     });

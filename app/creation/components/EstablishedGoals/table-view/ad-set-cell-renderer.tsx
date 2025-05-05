@@ -167,6 +167,13 @@ export const AdSetCellRenderer = ({
 
   // Get the raw value from the form data
   const kpiValue =
+  body === "budget_size"
+  ? campaignFormData?.channel_mix
+      ?.find((ch) => ch?.funnel_stage === stage.name)
+      ?.[channel?.channel_name]?.find(
+        (c) => c?.platform_name === channel?.name
+      )?.ad_sets[adSetIndex]?.budget?.fixed_value || ""
+  : 
     campaignFormData?.channel_mix
       ?.find((ch) => ch?.funnel_stage === stage.name)
       [channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)
@@ -218,6 +225,7 @@ export const AdSetCellRenderer = ({
                 channel?.name,
                 body,
                 newValue,
+                adSetIndex,
                 ""
               );
               return;
@@ -230,6 +238,7 @@ export const AdSetCellRenderer = ({
               channel?.name,
               body,
               newValue,
+              adSetIndex,
               ""
             );
           }}

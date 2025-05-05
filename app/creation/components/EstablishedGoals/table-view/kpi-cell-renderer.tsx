@@ -16,6 +16,7 @@ export const KPICellRenderer = ({
   handleEditInfo,
   adSetIndex,
   adSet,
+  extraAdSetindex,
   nrAdCells,
   toggleNRAdCell,
 }) => {
@@ -64,7 +65,7 @@ export const KPICellRenderer = ({
     return (
       <div className="flex gap-2">
         <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
-          {adSetIndex + 2}.
+          {extraAdSetindex + 2}.
         </span>
         <span>{adSet ? adSet?.audience_type : "-"}</span>
       </div>
@@ -121,12 +122,12 @@ export const KPICellRenderer = ({
     "cpp",
   ];
 
-  // if (calculatedFields.includes(body)) {
-  //   return getCalculatedValue(body);
-  // }
   if (calculatedFields.includes(body)) {
-    return "";
+    return getCalculatedValue(body);
   }
+  // if (calculatedFields.includes(body)) {
+  //   return "";
+  // }
 
   // Handle input fields and static values
   const showInput = tableHeaders[bodyIndex]?.showInput;
@@ -149,15 +150,19 @@ export const KPICellRenderer = ({
           ?.find((ch) => ch?.funnel_stage === stage.name)
           ?.[channel?.channel_name]?.find(
             (c) => c?.platform_name === channel?.name
-          )?.budget?.fixed_value || ""
+          )?.ad_sets[adSetIndex]?.extra_audiences[extraAdSetindex]?.budget
+          ?.fixed_value || ""
       : campaignFormData?.channel_mix
           ?.find((ch) => ch?.funnel_stage === stage.name)
           ?.[channel?.channel_name]?.find(
             (c) => c?.platform_name === channel?.name
-          )?.kpi?.[body] || "";
+          )?.ad_sets[adSetIndex]?.extra_audiences[extraAdSetindex].kpi?.[
+          body
+        ] || "";
 
   // Format display value for percentage fields - keep the raw input value for UI
   let displayValue = kpiValue;
+  console.log({ kpi: body, value: kpiValue });
   if (isPercentType && displayValue) {
     // If it's a number (already converted to decimal), convert back to percentage for display
     if (
@@ -177,44 +182,46 @@ export const KPICellRenderer = ({
     }
   }
 
-  // return (
-  //   <input
-  //     value={displayValue}
-  //     onChange={(e) => {
-  //       let newValue = e.target.value;
+  return (
+    <input
+      value={displayValue}
+      onChange={(e) => {
+        let newValue = e.target.value;
 
-  //       // Allow only valid characters: numbers, '.', ',', ':', and '%'
-  //       newValue = newValue.replace(/[^0-9.,:%]/g, "");
+        // Allow only valid characters: numbers, '.', ',', ':', and '%'
+        newValue = newValue.replace(/[^0-9.,:%]/g, "");
 
-  //       // Handle percentage input
-  //       if (isPercentType) {
-  //         // Remove % if present
-  //         newValue = newValue.replace(/%/g, "");
-  //         newValue = (parseFloat(newValue) / 100).toString();
-  //         // Store the raw percentage value (not converted to decimal)
-  //         handleEditInfo(
-  //           stage.name,
-  //           channel?.channel_name,
-  //           channel?.name,
-  //           body,
-  //           newValue,
-  //           ""
-  //         );
-  //         return;
-  //       }
+        // Handle percentage input
+        if (isPercentType) {
+          // Remove % if present
+          newValue = newValue.replace(/%/g, "");
+          newValue = (parseFloat(newValue) / 100).toString();
+          // Store the raw percentage value (not converted to decimal)
+          handleEditInfo(
+            stage.name,
+            channel?.channel_name,
+            channel?.name,
+            body,
+            newValue,
+            adSetIndex,
+            extraAdSetindex
+          );
+          return;
+        }
 
-  //       // Handle non-percentage input normally
-  //       handleEditInfo(
-  //         stage.name,
-  //         channel?.channel_name,
-  //         channel?.name,
-  //         body,
-  //         newValue,
-  //         ""
-  //       );
-  //     }}
-  //     className="cpm-bg border-none outline-none w-[100px] p-1"
-  //     placeholder={body ? body?.toUpperCase() : "Insert value"}
-  //   />
-  // );
+        // Handle non-percentage input normally
+        handleEditInfo(
+          stage.name,
+          channel?.channel_name,
+          channel?.name,
+          body,
+          newValue,
+          adSetIndex,
+          extraAdSetindex
+        );
+      }}
+      className="cpm-bg border-none outline-none w-[100px] p-1"
+      placeholder={body ? body?.toUpperCase() : "Insert value"}
+    />
+  );
 };

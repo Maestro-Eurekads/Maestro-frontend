@@ -200,6 +200,7 @@ export const ChannelRow = ({
           channel?.name,
           key,
           value,
+          "",
           ""
         );
       }
