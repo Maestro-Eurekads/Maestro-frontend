@@ -107,7 +107,7 @@ const ResizableChannels = ({
 
 
     const calculatedDate = new Date(startDate);
-    calculatedDate.setDate(startDate.getDate() + dayIndex);
+    calculatedDate.setDate(startDate?.getDate() + dayIndex);
 
 
     const updatedCampaignFormData = { ...campaignFormData };
