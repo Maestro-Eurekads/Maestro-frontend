@@ -7,6 +7,7 @@ import ChannelDistributionChatOne from '../../../../components/ChannelDistributi
 import CampaignPhases from '../CampaignPhases';
 import { useCampaigns } from 'app/utils/CampaignsContext';
 import { getCurrencySymbol } from 'components/data';
+import CampaignPhasesColor from '../CampaignPhasesColor';
 
 const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 	const [open, setOpen] = useState(false);
@@ -210,6 +211,9 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 									<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
 										{channelData?.length}</h3>
 								</div>}
+
+
+							{opens && <CampaignPhasesColor campaignPhases={campaignPhases} />}
 
 							{/* <PlatformSpending /> */}
 							{opens && <ChannelDistributionChatOne channelData={channelData} currency={getCurrencySymbol(
