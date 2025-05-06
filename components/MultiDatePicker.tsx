@@ -87,9 +87,7 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
   };
 
   const resetDates = () => {
-    
-      setSelectedDates({ from: null, to: null });
-    
+    setSelectedDates({ from: null, to: null });
   };
 
   const months = [getMonthData(monthOffset), getMonthData(monthOffset + 1)];
@@ -104,7 +102,7 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
       <div className="flex justify-between w-full">
         <button
           className={`flex items-center gap-3 `}
-          onClick={() =>  setMonthOffset(monthOffset - 1)}
+          onClick={() => setMonthOffset(monthOffset - 1)}
           // disabled={!isEditing}
         >
           <Image src={left} alt="left" />

@@ -11,6 +11,8 @@ import moment from "moment";
 import { getCurrencySymbol } from "components/data";
 import arrowUp from "../../../../../public/arrow-g-up.svg";
 import arrowDown from "../../../../../public/arrow-g-down.svg";
+import axios from "axios";
+import { removeKeysRecursively } from "utils/removeID";
 
 interface Channel {
   name: string;
@@ -40,7 +42,8 @@ const ResizableChannels = ({
   dateList,
   disableDrag = false,
 }: ResizableChannelsProps) => {
-  const { campaignFormData, setCampaignFormData, setCopy } = useCampaigns();
+  const { campaignFormData, setCampaignFormData, setCopy, cId } =
+    useCampaigns();
   const { funnelWidths } = useFunnelContext(); // Get parent widths
   const draggingDataRef = useRef(null);
   const isDraggingRef = useRef(false);
@@ -72,23 +75,21 @@ const ResizableChannels = ({
     (ch) => ch?.funnel_stage === parentId
   )?.funnel_stage_timeline_start_date
     ? new Date(
-      campaignFormData?.channel_mix?.find(
-        (ch) => ch?.funnel_stage === parentId
-      )?.funnel_stage_timeline_start_date
-    )
+        campaignFormData?.channel_mix?.find(
+          (ch) => ch?.funnel_stage === parentId
+        )?.funnel_stage_timeline_start_date
+      )
     : campaignFormData?.campaign_time_start_date;
 
   const endDate = campaignFormData?.channel_mix?.find(
     (ch) => ch?.funnel_stage === parentId
   )?.funnel_stage_timeline_end_date
     ? new Date(
-      campaignFormData?.channel_mix?.find(
-        (ch) => ch?.funnel_stage === parentId
-      )?.funnel_stage_timeline_end_date
-    )
+        campaignFormData?.channel_mix?.find(
+          (ch) => ch?.funnel_stage === parentId
+        )?.funnel_stage_timeline_end_date
+      )
     : campaignFormData?.campaign_time_end_date;
-
-
 
   const dRange = eachDayOfInterval({
     start: startDate,
@@ -96,8 +97,6 @@ const ResizableChannels = ({
   });
 
   const pixelToDate = (pixel, containerWidth, index, fieldName) => {
-
-
     const totalDays = dRange?.length - 1;
 
     const dayIndex = Math.min(
@@ -105,10 +104,8 @@ const ResizableChannels = ({
       Math.max(0, Math.round((pixel / containerWidth) * totalDays))
     );
 
-
     const calculatedDate = new Date(startDate);
     calculatedDate.setDate(startDate?.getDate() + dayIndex);
-
 
     const updatedCampaignFormData = { ...campaignFormData };
 
@@ -139,7 +136,6 @@ const ResizableChannels = ({
   };
 
   const handleDragStart = (index) => (event) => {
-
     if (disableDrag) return;
     event.preventDefault();
     setDraggingPosition({
@@ -182,7 +178,6 @@ const ResizableChannels = ({
         "startDate"
       );
       const endDate = pixelToDate(endPixel, parentWidth, index, "endDate");
-
 
       draggingDataRef.current = { index };
     };
@@ -237,7 +232,7 @@ const ResizableChannels = ({
     setDragging({ index, direction, startX: event.clientX });
   };
 
-  const handleDeleteChannel = (indexToDelete) => {
+  const handleDeleteChannel = async (indexToDelete) => {
     setChannels(channels.filter((_, index) => index !== indexToDelete));
     setChannelState(channelState.filter((_, index) => index !== indexToDelete));
     setCampaignFormData((prev) => {
@@ -262,8 +257,39 @@ const ResizableChannels = ({
         }
       }
 
+      // Call the API with the updated data
+      sendUpdatedDataToAPI(updatedData);
+
       return updatedData;
     });
+  };
+
+  const sendUpdatedDataToAPI = async (updatedData) => {
+    try {
+      const response = await axios.put(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
+        {
+          data: {
+            ...removeKeysRecursively(updatedData, [
+              "id",
+              "documentId",
+              "createdAt",
+              "publishedAt",
+              "updatedAt",
+            ]),
+          },
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Campaign data updated successfully", response.data);
+    } catch (error) {
+      console.error("Error updating campaign data:", error);
+    }
   };
 
   // Update channel positions when parent position changes
@@ -287,14 +313,14 @@ const ResizableChannels = ({
           const existingState = prev[index];
           return existingState
             ? {
-              ...existingState,
-              // Update left position to match parent when it moves
-              left: parentLeft,
-            }
+                ...existingState,
+                // Update left position to match parent when it moves
+                left: parentLeft,
+              }
             : {
-              left: parentLeft,
-              width: Math.min(150, parentWidth), // Default width for new channels
-            };
+                left: parentLeft,
+                width: Math.min(150, parentWidth), // Default width for new channels
+              };
         });
         return newState;
       });
@@ -349,7 +375,6 @@ const ResizableChannels = ({
           const startPixel = newLeft - parentLeft; // Adjusted to be relative
           const endPixel = startPixel - 1 + newWidth;
 
-
           // Convert pixel positions to dates
           const startDate = pixelToDate(
             startPixel,
@@ -363,7 +388,6 @@ const ResizableChannels = ({
             index,
             "endDate"
           );
-
 
           // setCopy(updatedCampaignFormData);
 
@@ -442,8 +466,11 @@ const ResizableChannels = ({
           >
             <div>
               <div
-                className={` ${disableDrag ? "relative" : "absolute"} top-0 h-full flex ${disableDrag ? "justify-between" : "justify-center cursor-move"
-                  }  items-center text-white px-4 gap-2 border shadow-md min-w-[150px] overflow-x-hidden `}
+                className={` ${
+                  disableDrag ? "relative" : "absolute"
+                } top-0 h-full flex ${
+                  disableDrag ? "justify-between" : "justify-center cursor-move"
+                }  items-center text-white px-4 gap-2 border shadow-md min-w-[150px] overflow-x-hidden `}
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
                   width: disableDrag
@@ -483,60 +510,65 @@ const ResizableChannels = ({
                 )}
               </div>
               {/* Ad sets */}
-              {campaignFormData?.goal_level === "Adset level" && disableDrag && channel?.ad_sets?.length > 0 && (
-                <>
-                  <div
-                    className="bg-[#EBFEF4] py-[10px] px-[12px] w-fit mt-[5px] border border-[#00A36C1A] rounded-[8px] flex items-center cursor-pointer"
-                    onClick={() => toggleChannel(`${channel?.name}${index}`)}
-                  >
-                    <p className="text-[14px] font-medium text-[#00A36C]">
-                      {channel?.ad_sets?.length} ad sets
-                    </p>
-                    <Image
-                      src={
-                        openItems && openItems[`${channel?.name}${index}`]
-                          ? arrowUp
-                          : arrowDown
-                      }
-                      alt=""
-                      width={24}
-                      height={24}
-                    />
-                  </div>
-                  {/* Adset_display */}
-                  {openItems && openItems[`${channel?.name}${index}`] && (
-                    <div className="ml-[20px] flex w-full">
-                      <div>
-                        {/* Headers */}
-                        <div className="flex text-[12px] text-[#061237B2] font-medium gap-[5px]">
-                          <p className="w-[30px]">#</p>
-                          <p className="w-[150px]">Type</p>
-                          <p className="w-[100px]">Name</p>
-                          <p className="w-[100px]">Audience size</p>
-                          <p className="w-[100px]">Budget</p>
-                        </div>
-                        {channel?.ad_sets?.map((set, index) => (
-                          <div className="flex gap-[5px] text-[14px] font-medium text-[#061237B2] mb-[10px]">
-                            <p className="w-[30px] text-[#3175FF] font-bold">{index + 1}.</p>
-                            <p className="w-[150px]">{set?.audience_type}</p>
-                            <p className="w-[100px]">{set?.name}</p>
-                            <p className="w-[100px]">{set?.size}</p>
-                            <p>{set?.budget}</p>
-                          </div>
-                        ))}
-                      </div>
-                      <div></div>
+              {campaignFormData?.goal_level === "Adset level" &&
+                disableDrag &&
+                channel?.ad_sets?.length > 0 && (
+                  <>
+                    <div
+                      className="bg-[#EBFEF4] py-[10px] px-[12px] w-fit mt-[5px] border border-[#00A36C1A] rounded-[8px] flex items-center cursor-pointer"
+                      onClick={() => toggleChannel(`${channel?.name}${index}`)}
+                    >
+                      <p className="text-[14px] font-medium text-[#00A36C]">
+                        {channel?.ad_sets?.length} ad sets
+                      </p>
+                      <Image
+                        src={
+                          openItems && openItems[`${channel?.name}${index}`]
+                            ? arrowUp
+                            : arrowDown
+                        }
+                        alt=""
+                        width={24}
+                        height={24}
+                      />
                     </div>
-                  )}
-                </>
-              )}
+                    {/* Adset_display */}
+                    {openItems && openItems[`${channel?.name}${index}`] && (
+                      <div className="ml-[20px] flex w-full">
+                        <div>
+                          {/* Headers */}
+                          <div className="flex text-[12px] text-[#061237B2] font-medium gap-[5px]">
+                            <p className="w-[30px]">#</p>
+                            <p className="w-[150px]">Type</p>
+                            <p className="w-[100px]">Name</p>
+                            <p className="w-[100px]">Audience size</p>
+                            <p className="w-[100px]">Budget</p>
+                          </div>
+                          {channel?.ad_sets?.map((set, index) => (
+                            <div className="flex gap-[5px] text-[14px] font-medium text-[#061237B2] mb-[10px]">
+                              <p className="w-[30px] text-[#3175FF] font-bold">
+                                {index + 1}.
+                              </p>
+                              <p className="w-[150px]">{set?.audience_type}</p>
+                              <p className="w-[100px]">{set?.name}</p>
+                              <p className="w-[100px]">{set?.size}</p>
+                              <p>{set?.budget}</p>
+                            </div>
+                          ))}
+                        </div>
+                        <div></div>
+                      </div>
+                    )}
+                  </>
+                )}
             </div>
             {/* Controls */}
             {!disableDrag && (
               <>
                 <div
-                  className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${disableDrag && "hidden"
-                    }`}
+                  className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
+                    disableDrag && "hidden"
+                  }`}
                   style={{
                     left: `${channelState[index]?.left || parentLeft}px`,
                     backgroundColor: channel.color,
@@ -548,12 +580,14 @@ const ResizableChannels = ({
                   <MdDragHandle className="rotate-90" />
                 </div>
                 <div
-                  className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${disableDrag && "hidden"
-                    }`}
+                  className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
+                    disableDrag && "hidden"
+                  }`}
                   style={{
-                    left: `${(channelState[index]?.left || parentLeft) +
+                    left: `${
+                      (channelState[index]?.left || parentLeft) +
                       (channelState[index]?.width + 22 || 150)
-                      }px`,
+                    }px`,
                     backgroundColor: channel.color,
                   }}
                   onMouseDown={handleMouseDown(index, "right")}

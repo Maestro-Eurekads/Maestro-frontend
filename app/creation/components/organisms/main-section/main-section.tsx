@@ -77,14 +77,14 @@ const MainSection = () => {
       case "Day":
         return (
           <>
-            <DayInterval daysCount={dayDifference} src="campaign"/>
+            <DayInterval daysCount={dayDifference + 1} src="campaign"/>
             {/* <DayTimeline daysCount={dayDifference} funnels={funnelsData} /> */}
           </>
         );
       case "Month":
         return (
           <>
-            <MonthInterval monthsCount={monthDifference} />
+            <MonthInterval monthsCount={monthDifference === 0 ? 1 : monthDifference} />
             {/* <MonthTimeline monthsCount={monthDifference} funnels={funnelsData} /> */}
           </>
         );
