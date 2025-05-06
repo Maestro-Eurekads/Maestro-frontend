@@ -1,5 +1,3 @@
-"use client"
-
 import Image from "next/image"
 import { useState, useEffect } from "react"
 import { FaCheck, FaSpinner } from "react-icons/fa"
@@ -644,8 +642,7 @@ export const Platforms = ({
   stageName: string
   view?: "channel" | "adset"
 }) => {
-  const [channelQuantities, setChannelQuantities] = useState<QuantitiesType>({})
-  const [adsetQuantities, setAdsetQuantities] = useState<QuantitiesType>({})
+  const [quantities, setQuantities] = useState<QuantitiesType>({})
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalContext, setModalContext] = useState<{
     platform: string
@@ -659,25 +656,22 @@ export const Platforms = ({
   const { campaignFormData, setCampaignFormData } = useCampaigns()
 
   useEffect(() => {
-    const channelKey = `channel_quantities_${stageName}_${view}`
-    const adsetKey = `adset_quantities_${stageName}_${view}`
-    setChannelQuantities(getLocalStorageItem(channelKey, {}))
-    setAdsetQuantities(getLocalStorageItem(adsetKey, {}))
+    const quantitiesKey = `quantities_${stageName}_${view}`
+    setQuantities(getLocalStorageItem(quantitiesKey, {}))
   }, [stageName, view])
 
   useEffect(() => {
     const stage = campaignFormData?.channel_mix?.find((chan) => chan.funnel_stage === stageName)
 
     if (stage) {
-      const initialChannelQuantities: QuantitiesType = {}
-      const initialAdsetQuantities: QuantitiesType = {}
+      const initialQuantities: QuantitiesType = {}
 
       CHANNEL_TYPES.forEach(({ key }) => {
         stage[key]?.forEach((platform) => {
           if (view === "channel" && platform.format && platform.format.length > 0) {
-            initialChannelQuantities[platform.platform_name] = {}
+            initialQuantities[platform.platform_name] = {}
             platform.format.forEach((f) => {
-              initialChannelQuantities[platform.platform_name][f.format_type] = Number.parseInt(f.num_of_visuals || "1")
+              initialQuantities[platform.platform_name][f.format_type] = Number.parseInt(f.num_of_visuals || "1")
             })
           }
 
@@ -685,9 +679,9 @@ export const Platforms = ({
             platform.ad_sets?.forEach((adset, adsetIndex) => {
               if (adset.format && adset.format.length > 0) {
                 const adsetKey = `${platform.platform_name}_adset_${adsetIndex}`
-                initialAdsetQuantities[adsetKey] = {}
+                initialQuantities[adsetKey] = {}
                 adset.format.forEach((f) => {
-                  initialAdsetQuantities[adsetKey][f.format_type] = Number.parseInt(f.num_of_visuals || "1")
+                  initialQuantities[adsetKey][f.format_type] = Number.parseInt(f.num_of_visuals || "1")
                 })
               }
             })
@@ -695,23 +689,14 @@ export const Platforms = ({
         })
       })
 
-      if (Object.keys(initialChannelQuantities).length > 0 && view === "channel") {
-        setChannelQuantities(initialChannelQuantities)
-        setLocalStorageItem(`channel_quantities_${stageName}_${view}`, initialChannelQuantities)
-      }
-
-      if (Object.keys(initialAdsetQuantities).length > 0 && view === "adset") {
-        setAdsetQuantities(initialAdsetQuantities)
-        setLocalStorageItem(`adset_quantities_${stageName}_${view}`, initialAdsetQuantities)
+      if (Object.keys(initialQuantities).length > 0) {
+        setQuantities(initialQuantities)
+        setLocalStorageItem(`quantities_${stageName}_${view}`, initialQuantities)
       }
     }
   }, [campaignFormData, stageName, view])
 
   const handleQuantityChange = (key: string, formatName: string, change: number) => {
-    const quantities = view === "channel" ? channelQuantities : adsetQuantities
-    const setQuantities = view === "channel" ? setChannelQuantities : setAdsetQuantities
-    const localStorageKey = view === "channel" ? `channel_quantities_${stageName}_${view}` : `adset_quantities_${stageName}_${view}`
-
     const newQuantity = Math.max(1, (quantities[key]?.[formatName] || 1) + change)
     const newQuantities = {
       ...quantities,
@@ -722,7 +707,7 @@ export const Platforms = ({
     }
 
     setQuantities(newQuantities)
-    setLocalStorageItem(localStorageKey, newQuantities)
+    setLocalStorageItem(`quantities_${stageName}_${view}`, newQuantities)
 
     const copy = [...campaignFormData.channel_mix]
     const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName)
@@ -799,7 +784,7 @@ export const Platforms = ({
           channelTitle={channel.title}
           platforms={channel.platforms}
           stageName={stageName}
-          quantities={view === "channel" ? channelQuantities : adsetQuantities}
+          quantities={quantities}
           onQuantityChange={handleQuantityChange}
           onOpenModal={openModal}
           view={view}
@@ -845,34 +830,6 @@ export const FormatSelection = () => {
       setLocalStorageItem("formatSelectionOpenTabs", initialTab)
     }
   }, [campaignFormData])
-
-  useEffect(() => {
-    if (view === "adset") {
-      const copy = [...campaignFormData.channel_mix]
-      copy.forEach(stage => {
-        CHANNEL_TYPES.forEach(({ key }) => {
-          stage[key]?.forEach(platform => {
-            platform.format = []
-          })
-        })
-      })
-      setCampaignFormData({ ...campaignFormData, channel_mix: copy })
-      setLocalStorageItem(`channel_quantities_${campaignFormData.channel_mix[0]?.funnel_stage}_${view}`, {})
-    } else {
-      const copy = [...campaignFormData.channel_mix]
-      copy.forEach(stage => {
-        CHANNEL_TYPES.forEach(({ key }) => {
-          stage[key]?.forEach(platform => {
-            platform.ad_sets?.forEach(adset => {
-              adset.format = []
-            })
-          })
-        })
-      })
-      setCampaignFormData({ ...campaignFormData, channel_mix: copy })
-      setLocalStorageItem(`adset_quantities_${campaignFormData.channel_mix[0]?.funnel_stage}_${view}`, {})
-    }
-  }, [view, campaignFormData, setCampaignFormData])
 
   const toggleTab = (stageName: string) => {
     const newOpenTabs = openTabs.includes(stageName)
