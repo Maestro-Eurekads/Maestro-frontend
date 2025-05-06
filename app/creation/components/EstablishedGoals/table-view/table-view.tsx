@@ -199,16 +199,18 @@ const TableView = () => {
         body.forEach((b) => bodyFieldsSet.add(b));
       });
 
-      // Add selected metrics
-      selectedMetrics.forEach((metric) => {
-        headersSet.set(metric.name, metric);
-        const bodyField = metric.name
-          .toLowerCase()
-          .replace(/ /g, "_")
-          .replace(/\//g, "")
-          .replace(/-/g, "_");
-        bodyFieldsSet.add(bodyField);
-      });
+      // Add selected metrics only for the current editing stage when metrics are applied
+      if (stageName === currentEditingStage) {
+        selectedMetrics.forEach((metric) => {
+          headersSet.set(metric.name, metric);
+          const bodyField = metric.name
+            .toLowerCase()
+            .replace(/ /g, "_")
+            .replace(/\//g, "")
+            .replace(/-/g, "_");
+          bodyFieldsSet.add(bodyField);
+        });
+      }
 
       headersByStage[stageName] = Array.from(headersSet.values());
       bodyByStage[stageName] = Array.from(bodyFieldsSet);
@@ -216,7 +218,7 @@ const TableView = () => {
 
     setMergedTableHeadersByStage(headersByStage);
     setMergedTableBodyByStage(bodyByStage);
-  }, [campaignFormData, selectedMetrics]);
+  }, [campaignFormData, selectedMetrics, currentEditingStage]);
 
   const handleEditInfo = (
     stageName,
@@ -232,12 +234,12 @@ const TableView = () => {
       const channelMix = updatedData.channel_mix?.find(
         (ch) => ch.funnel_stage === stageName
       );
-  
+
       if (channelMix) {
         const platform = channelMix[channelName]?.find(
           (platform) => platform.platform_name === platformName
         );
-  
+
         if (platform) {
           // console.log("fieldName", fieldName)
           if (fieldName === "budget_size") {
@@ -245,27 +247,35 @@ const TableView = () => {
             if (extraAdSetindex !== "") {
               // Ensure ad_sets exists
               if (!platform.ad_sets?.[adSetIndex]) return updatedData;
-  
+
               // Ensure extra_audiences is initialized
               platform.ad_sets[adSetIndex]["extra_audiences"] =
                 platform.ad_sets[adSetIndex]["extra_audiences"] || [];
-  
+
               // Ensure specific extra audience object exists
               platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex] =
-                platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex] || {};
-  
+                platform.ad_sets[adSetIndex]["extra_audiences"][
+                  extraAdSetindex
+                ] || {};
+
               // Ensure budget object exists
-              platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex]["budget"] =
-                platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex]["budget"] || {};
-  
+              platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex][
+                "budget"
+              ] =
+                platform.ad_sets[adSetIndex]["extra_audiences"][
+                  extraAdSetindex
+                ]["budget"] || {};
+
               // Set value
-              platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex]["budget"]["fixed_value"] =
-                value.toString();
+              platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex][
+                "budget"
+              ]["fixed_value"] = value.toString();
             } else if (adSetIndex !== "") {
               // console.log("hgh")
               platform.ad_sets[adSetIndex]["budget"] =
                 platform.ad_sets[adSetIndex]["budget"] || {};
-              platform.ad_sets[adSetIndex]["budget"]["fixed_value"] = value.toString();
+              platform.ad_sets[adSetIndex]["budget"]["fixed_value"] =
+                value.toString();
             } else {
               platform["budget"] = platform["budget"] || {};
               platform["budget"]["fixed_value"] = value.toString();
@@ -273,18 +283,25 @@ const TableView = () => {
           } else {
             if (extraAdSetindex !== "") {
               if (!platform.ad_sets?.[adSetIndex]) return updatedData;
-  
+
               platform.ad_sets[adSetIndex]["extra_audiences"] =
                 platform.ad_sets[adSetIndex]["extra_audiences"] || [];
-  
+
               platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex] =
-                platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex] || {};
-  
-              platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex]["kpi"] =
-                platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex]["kpi"] || {};
-  
-              platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex]["kpi"][fieldName] =
-                Number(value);
+                platform.ad_sets[adSetIndex]["extra_audiences"][
+                  extraAdSetindex
+                ] || {};
+
+              platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex][
+                "kpi"
+              ] =
+                platform.ad_sets[adSetIndex]["extra_audiences"][
+                  extraAdSetindex
+                ]["kpi"] || {};
+
+              platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex][
+                "kpi"
+              ][fieldName] = Number(value);
             } else if (adSetIndex !== "") {
               platform.ad_sets[adSetIndex]["kpi"] =
                 platform.ad_sets[adSetIndex]["kpi"] || {};
@@ -296,11 +313,10 @@ const TableView = () => {
           }
         }
       }
-  
+
       return updatedData;
     });
   };
-  
 
   // Process data once at the top level
   const processedData = extractPlatforms(campaignFormData);
@@ -342,74 +358,6 @@ const TableView = () => {
           />
         );
       })}
-      {/* <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
-        <div className="w-[700px] bg-white rounded-[10px] shadow-lg p-4">
-          <p className="text-[20px] font-medium mb-4">Select Metrics</p>
-          <p>Add specific metrics to your existing table</p>
-          <div className="mt-4 max-h-[400px] overflow-y-auto">
-            {Object.keys(tableHeaders)
-              .filter(
-                (header) =>
-                  header !== campaignFormData?.campaign_objective &&
-                  header !== "Brand Awareness"
-              )
-              .map((kpiCategory, index) => (
-                <div key={index} className="mb-4">
-                  <p className="font-medium text-[16px] mb-2">{kpiCategory}</p>
-                  <div className="grid grid-cols-2 gap-2 pl-4">
-                    {tableHeaders[kpiCategory]
-                      .filter(
-                        (header) =>
-                          // Filter out headers that are already in the current campaign objective
-                          !tableHeaders[
-                            campaignFormData?.campaign_objectives
-                          ]?.some(
-                            (existingHeader) =>
-                              existingHeader.name === header.name
-                          )
-                      )
-                      .map((metric, metricIndex) => (
-                        <div
-                          key={metricIndex}
-                          className="flex items-center mb-2"
-                        >
-                          <input
-                            type="checkbox"
-                            id={`metric-${kpiCategory}-${metricIndex}`}
-                            className="mr-2"
-                            checked={selectedMetrics.some(
-                              (m) => m.name === metric.name
-                            )}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedMetrics((prev) => [...prev, metric]);
-                              } else {
-                                setSelectedMetrics((prev) =>
-                                  prev.filter((m) => m.name !== metric.name)
-                                );
-                              }
-                            }}
-                          />
-                          <label
-                            htmlFor={`metric-${kpiCategory}-${metricIndex}`}
-                            className="text-sm"
-                          >
-                            {metric.name}
-                          </label>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              ))}
-          </div>
-          <div
-            className="p-3 bg-[#3175FF] rounded-[10px] text-white w-fit ml-auto mt-4 flex justify-end font-medium cursor-pointer"
-            onClick={mergeAdditionalKPIs}
-          >
-            {selectedMetrics?.length < 1 ? "Close" : "Update Table"}
-          </div>
-        </div>
-      </Modal> */}
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <div className="w-[700px] bg-white rounded-[10px] shadow-lg p-4">
           <p className="text-[20px] font-medium mb-4">
@@ -447,11 +395,29 @@ const TableView = () => {
               };
 
               return filteredObjectives.map((objective, index) => {
-                const availableMetrics =
-                  tableHeaders[objective]?.filter(
-                    (metric) => !existingHeaderNames.has(metric.name)
-                  ) || [];
-
+                const defaultHeaders = [
+                  "Channel",
+                  "AdSets",
+                  "Audience",
+                  "Start Date",
+                  "End Date",
+                  "Audience Size",
+                  "Budget Size",
+                  "CPM",
+                  "Impressions",
+                  "Frequency",
+                  "Reach",
+                ];
+                const availableMetrics = tableHeaders[objective] || [];
+                const filterAvailableMetrics = availableMetrics?.filter(
+                  (mm) =>
+                    !defaultHeaders.includes(mm?.name) &&
+                    !Object.entries(mergedTableHeadersByStage).some(([stage, headers]) => {
+                      if (stage === currentEditingStage) return false; // ignore current stage
+                      return (headers as { name: string }[]).some((h) => h.name === mm?.name);
+                    })
+                );
+                
                 if (availableMetrics.length === 0) return null;
 
                 return (
@@ -463,7 +429,7 @@ const TableView = () => {
                         type="checkbox"
                         id={`select-all-${objective}`}
                         className="mr-2"
-                        checked={areAllSelected(objective, availableMetrics)}
+                        checked={areAllSelected(objective, filterAvailableMetrics)}
                         onChange={(e) => {
                           if (e.target.checked) {
                             // Safely add all
@@ -471,7 +437,7 @@ const TableView = () => {
                               const existing = new Map(
                                 prev.map((m) => [m.name, m])
                               );
-                              availableMetrics.forEach((m) =>
+                              filterAvailableMetrics.forEach((m) =>
                                 existing.set(m.name, m)
                               );
                               return Array.from(existing.values());
@@ -481,7 +447,7 @@ const TableView = () => {
                             setSelectedMetrics((prev) =>
                               prev.filter(
                                 (m) =>
-                                  !availableMetrics.some(
+                                  !filterAvailableMetrics.some(
                                     (metric) => metric.name === m.name
                                   )
                               )
@@ -498,7 +464,7 @@ const TableView = () => {
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 pl-4">
-                      {availableMetrics.map((metric, metricIndex) => (
+                      {filterAvailableMetrics.map((metric, metricIndex) => (
                         <div
                           key={metricIndex}
                           className="flex items-center mb-2"
@@ -512,7 +478,15 @@ const TableView = () => {
                             )}
                             onChange={(e) => {
                               if (e.target.checked) {
-                                setSelectedMetrics((prev) => [...prev, metric]);
+                                setSelectedMetrics((prev) => {
+                                  // Check if metric is already selected
+                                  if (
+                                    prev.some((m) => m.name === metric.name)
+                                  ) {
+                                    return prev;
+                                  }
+                                  return [...prev, metric];
+                                });
                               } else {
                                 setSelectedMetrics((prev) =>
                                   prev.filter((m) => m.name !== metric.name)
