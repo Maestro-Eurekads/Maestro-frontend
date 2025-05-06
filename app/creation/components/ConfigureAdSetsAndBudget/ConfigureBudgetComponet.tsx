@@ -106,8 +106,6 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 		return colorMap[color]?.[shade] || "#000000";
 	}
 
-
-
 	const hexColors = colors?.map(cls => tailwindBgClassToHex(cls));
 
 
