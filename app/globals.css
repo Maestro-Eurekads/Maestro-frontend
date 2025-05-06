@@ -333,3 +333,41 @@ main {
   bottom: -1px;
   left: 0px;
 }
+.l-shape-container-cb {
+  position: relative;
+}
+
+.l-vertical-cb {
+  position: absolute;
+  width: 1px;
+  height: 106px;
+  background-color: blue;
+  left: 0px;
+  top: 45px;
+}
+
+.l-vertical-cb-long {
+  position: absolute;
+  width: 1px;
+  height: 330px;
+  background-color: blue;
+  left: 0px;
+  top: 45px;
+}
+
+.l-horizontal-cb {
+  position: absolute;
+  width: 20px;
+  height: 1px;
+  background-color: blue;
+  bottom: -152px;
+  left: 0px;
+}
+.l-horizontal-cb-long {
+  position: absolute;
+  width: 20px;
+  height: 1px;
+  background-color: blue;
+  bottom: -375px;
+  left: 0px;
+}

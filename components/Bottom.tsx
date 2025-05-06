@@ -12,6 +12,7 @@ import { removeKeysRecursively } from "../utils/removeID";
 import { useSelectedDates } from "../app/utils/SelectedDatesContext";
 import { useVerification } from "app/utils/VerificationContext";
 import toast, { Toaster } from "react-hot-toast";
+import dayjs from "dayjs";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -481,7 +482,46 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "isValidated",
           "documentId",
         ]),
-        campaign_budget: removeKeysRecursively(campaignFormData?.campaign_budget, ["id"]),
+        campaign_budget: removeKeysRecursively(
+          campaignFormData?.campaign_budget,
+          ["id"]
+        ),
+        goal_level: campaignFormData?.goal_level,
+      });
+    };
+
+    const handleDateStep = async () => {
+      const currentYear = new Date().getFullYear();
+      if (!campaignData) return;
+      const campaign_timeline_start_date = dayjs(
+        new Date(
+          currentYear,
+          selectedDates?.from?.month,
+          selectedDates.from.day
+        )
+      ).format("YYYY-MM-DD");
+
+      const campaign_timeline_end_date = dayjs(
+        new Date(
+          currentYear,
+          selectedDates?.to?.month,
+          selectedDates.to.day
+        )
+      ).format("YYYY-MM-DD");
+      await updateCampaignData({
+        ...cleanData,
+        campaign_timeline_start_date,
+        campaign_timeline_end_date,
+        funnel_stages: campaignFormData?.funnel_stages,
+        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+          "id",
+          "isValidated",
+          "documentId",
+        ]),
+        campaign_budget: removeKeysRecursively(
+          campaignFormData?.campaign_budget,
+          ["id"]
+        ),
         goal_level: campaignFormData?.goal_level,
       });
     };
@@ -497,6 +537,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         await handleStepSeven();
       } else if (active === 6) {
         await handleStepSeven();
+      } else if (active === 7) {
+        await handleDateStep();
       } else if (active > 3 && subStep < 2) {
         await handleStepFour();
       }

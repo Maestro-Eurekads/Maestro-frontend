@@ -188,16 +188,15 @@ const ConfigureAdSetsAndBudget = ({ num }) => {
                           ch?.funnel_stage === "Awareness"
                             ? "#3175FF"
                             : ch?.funnel_stage === "Consideration"
-                            ? "#00A36C"
-                            : ch?.funnel_stage === "Conversion"
-                            ? "#FF9037"
-                            : "#F05406"
+                              ? "#00A36C"
+                              : ch?.funnel_stage === "Conversion"
+                                ? "#FF9037"
+                                : "#F05406"
                         )}
-                        insideText={`${
-                          campaignFormData?.campaign_budget?.amount
-                        } ${getCurrencySymbol(
-                          campaignFormData?.campaign_budget?.currency
-                        )}`}
+                        insideText={`${campaignFormData?.campaign_budget?.amount
+                          } ${getCurrencySymbol(
+                            campaignFormData?.campaign_budget?.currency
+                          )}`}
                       />
                     </div>
 
@@ -215,10 +214,10 @@ const ConfigureAdSetsAndBudget = ({ num }) => {
                             ch?.funnel_stage === "Awareness"
                               ? "#3175FF"
                               : ch?.funnel_stage === "Consideration"
-                              ? "#00A36C"
-                              : ch?.funnel_stage === "Conversion"
-                              ? "#FF9037"
-                              : "#F05406",
+                                ? "#00A36C"
+                                : ch?.funnel_stage === "Conversion"
+                                  ? "#FF9037"
+                                  : "#F05406",
                         }))}
                     />
                   </div>
