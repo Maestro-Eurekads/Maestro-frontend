@@ -99,17 +99,19 @@ const UploadModal: React.FC<UploadModalProps> = ({
         throw new Error("Target platform not found")
       }
 
-      // Handle both channel and ad set formats
+      // Create a deep copy of the target platform to avoid direct mutations
+      const updatedPlatform = JSON.parse(JSON.stringify(targetPlatform))
+
       if (adSetIndex !== undefined) {
         // Update ad set format
-        if (!targetPlatform.ad_sets?.[adSetIndex]) {
+        if (!updatedPlatform.ad_sets?.[adSetIndex]) {
           throw new Error(`Ad set not found at index ${adSetIndex}`)
         }
         
-        const adSet = targetPlatform.ad_sets[adSetIndex]
+        const adSet = updatedPlatform.ad_sets[adSetIndex]
         adSet.format = adSet.format || []
         
-        let targetFormatIndex = adSet.format.findIndex((fo) => fo.format_type === format)
+        let targetFormatIndex = adSet.format.findIndex((fo: any) => fo.format_type === format)
         if (targetFormatIndex === -1) {
           adSet.format.push({
             format_type: format,
@@ -124,22 +126,26 @@ const UploadModal: React.FC<UploadModalProps> = ({
         adSet.format[targetFormatIndex].previews = [...validFiles]
       } else {
         // Update platform format
-        targetPlatform.format = targetPlatform.format || []
+        updatedPlatform.format = updatedPlatform.format || []
         
-        let targetFormatIndex = targetPlatform.format.findIndex((fo) => fo.format_type === format)
+        let targetFormatIndex = updatedPlatform.format.findIndex((fo: any) => fo.format_type === format)
         if (targetFormatIndex === -1) {
-          targetPlatform.format.push({
+          updatedPlatform.format.push({
             format_type: format,
             num_of_visuals: quantities.toString(),
             previews: [],
           })
-          targetFormatIndex = targetPlatform.format.length - 1
+          targetFormatIndex = updatedPlatform.format.length - 1
         }
 
         // Filter out any null uploads and only keep the successfully uploaded files
         const validFiles = uploadedFiles.filter(file => file !== null)
-        targetPlatform.format[targetFormatIndex].previews = [...validFiles]
+        updatedPlatform.format[targetFormatIndex].previews = [...validFiles]
       }
+
+      // Update the platform in the channel mix
+      const platformIndex = platforms.findIndex((pl: any) => pl.platform_name === platform)
+      platforms[platformIndex] = updatedPlatform
 
       const updatedState = {
         ...campaignData,
