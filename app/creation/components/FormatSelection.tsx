@@ -214,9 +214,7 @@ const MediaOption = ({
     }
   }
 
-  const isDecreaseDisabled = 
-    (quantity === 3 && localPreviews.length >= 3) || 
-    (quantity <= 2 && localPreviews.length >= quantity)
+  const isDecreaseDisabled = quantity === 1 || localPreviews.length >= quantity
 
   return (
     <div>
