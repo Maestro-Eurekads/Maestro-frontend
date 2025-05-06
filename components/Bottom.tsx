@@ -12,18 +12,30 @@ import { removeKeysRecursively } from "../utils/removeID";
 import { useSelectedDates } from "../app/utils/SelectedDatesContext";
 import { useVerification } from "app/utils/VerificationContext";
 import toast, { Toaster } from "react-hot-toast";
-import { hasFormatEntered } from "./data";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
 }
 
+const CHANNEL_TYPES = [
+  { key: "social_media", title: "Social media" },
+  { key: "display_networks", title: "Display Networks" },
+  { key: "search_engines", title: "Search Engines" },
+  { key: "streaming", title: "Streaming" },
+  { key: "ooh", title: "OOH" },
+  { key: "broadcast", title: "Broadcast" },
+  { key: "messaging", title: "Messaging" },
+  { key: "print", title: "Print" },
+  { key: "e_commerce", title: "E Commerce" },
+  { key: "in_game", title: "In Game" },
+  { key: "mobile", title: "Mobile" },
+];
+
 const Bottom = ({ setIsOpen }: BottomProps) => {
   const { verifybeforeMove, hasChanges } = useVerification();
   const { active, setActive, subStep, setSubStep } = useActive();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
-  const [setupyournewcampaignError, setSetupyournewcampaignError] =
-    useState(false);
+  const [setupyournewcampaignError, setSetupyournewcampaignError] = useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
   const [selectedDatesError, setSelectedDatesError] = useState(false);
   const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
@@ -32,8 +44,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [validateStep, setValidateStep] = useState(false);
   const { selectedDates } = useSelectedDates();
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
-  const [triggerBuyObjectiveError, setTriggerBuyObjectiveError] =
-    useState(false);
+  const [triggerBuyObjectiveError, setTriggerBuyObjectiveError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
@@ -47,6 +58,26 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     copy,
   } = useCampaigns();
 
+  // Function to check if any previews are uploaded in Channel or Ad Set View
+  const hasUploadedPreviews = () => {
+    const stages = campaignFormData?.channel_mix || [];
+    return stages.some((stage) => {
+      return CHANNEL_TYPES.some(({ key }) => {
+        return stage[key]?.some((platform) => {
+          // Check Channel View (platform.format.previews)
+          if (platform.format?.some((f) => f.previews?.length > 0)) {
+            return true;
+          }
+          // Check Ad Set View (platform.ad_sets[].format.previews)
+          if (platform.ad_sets?.some((adset) => adset.format?.some((f) => f.previews?.length > 0))) {
+            return true;
+          }
+          return false;
+        });
+      });
+    });
+  };
+
   useEffect(() => {
     if (typeof window !== "undefined" && cId) {
       const storedValue = localStorage.getItem(`triggerFormatError_${cId}`);
@@ -56,10 +87,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   useEffect(() => {
     if (typeof window !== "undefined" && cId) {
-      localStorage.setItem(
-        `triggerFormatError_${cId}`,
-        triggerFormatError.toString()
-      );
+      localStorage.setItem(`triggerFormatError_${cId}`, triggerFormatError.toString());
     }
   }, [triggerFormatError, cId]);
 
@@ -105,9 +133,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     let hasValidFormat = false;
 
     for (const stage of selectedStages) {
-      const stageData = campaignFormData?.channel_mix?.find(
-        (mix) => mix.funnel_stage === stage
-      );
+      const stageData = campaignFormData?.channel_mix?.find((mix) => mix.funnel_stage === stage);
 
       if (stageData) {
         const hasFormatSelected = [
@@ -125,7 +151,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         ].some(
           (platform) =>
             platform.format?.length > 0 &&
-            platform.format.some((f) => f.format_type && f.num_of_visuals)
+            platform.format.some((f) => f.format_type && f.num_of_visuals) ||
+            platform.ad_sets?.some((adset) =>
+              adset.format?.some((f) => f.format_type && f.num_of_visuals)
+            )
         );
 
         const isStageValidated = validatedStages[stage];
@@ -148,9 +177,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
 
     for (const stage of selectedStages) {
-      const stageData = campaignFormData.channel_mix.find(
-        (mix) => mix.funnel_stage === stage
-      );
+      const stageData = campaignFormData.channel_mix.find((mix) => mix.funnel_stage === stage);
 
       if (stageData && validatedStages[stage]) {
         const hasValidChannel = [
@@ -620,8 +647,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                   <p>
                     {active === 0
                       ? "Start"
-                      : active === 4 &&
-                        !hasFormatEntered(campaignFormData?.channel_mix)
+                      : active === 4 && !hasUploadedPreviews()
                       ? "Skip"
                       : isHovered
                       ? "Next Step"
