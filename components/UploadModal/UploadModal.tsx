@@ -41,8 +41,19 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const [loading, setLoading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<number[]>([])
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null)
-  const MAX_RETRIES = 2
-  const CONCURRENT_UPLOADS = 3
+  const MAX_RETRIES = 3
+  const CONCURRENT_UPLOADS = 2
+  const UPLOAD_TIMEOUT = 30000 // 30 seconds
+
+  // Validate environment variables
+  const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
+  const STRAPI_TOKEN = process.env.NEXT_PUBLIC_STRAPI_TOKEN
+  useEffect(() => {
+    if (!STRAPI_URL || !STRAPI_TOKEN) {
+      console.error("Missing Strapi configuration:", { STRAPI_URL, STRAPI_TOKEN })
+      toast.error("Server configuration error. Please contact support.")
+    }
+  }, [STRAPI_URL, STRAPI_TOKEN])
 
   // Initialize uploadBlobs and uploadProgress
   useEffect(() => {
@@ -99,17 +110,17 @@ const UploadModal: React.FC<UploadModalProps> = ({
         throw new Error("Target platform not found")
       }
 
-      // Handle both channel and ad set formats
+      const updatedPlatform = JSON.parse(JSON.stringify(targetPlatform))
+
       if (adSetIndex !== undefined) {
-        // Update ad set format
-        if (!targetPlatform.ad_sets?.[adSetIndex]) {
+        if (!updatedPlatform.ad_sets?.[adSetIndex]) {
           throw new Error(`Ad set not found at index ${adSetIndex}`)
         }
         
-        const adSet = targetPlatform.ad_sets[adSetIndex]
+        const adSet = updatedPlatform.ad_sets[adSetIndex]
         adSet.format = adSet.format || []
         
-        let targetFormatIndex = adSet.format.findIndex((fo) => fo.format_type === format)
+        let targetFormatIndex = adSet.format.findIndex((fo: any) => fo.format_type === format)
         if (targetFormatIndex === -1) {
           adSet.format.push({
             format_type: format,
@@ -119,27 +130,27 @@ const UploadModal: React.FC<UploadModalProps> = ({
           targetFormatIndex = adSet.format.length - 1
         }
 
-        // Filter out any null uploads and only keep the successfully uploaded files
         const validFiles = uploadedFiles.filter(file => file !== null)
         adSet.format[targetFormatIndex].previews = [...validFiles]
       } else {
-        // Update platform format
-        targetPlatform.format = targetPlatform.format || []
+        updatedPlatform.format = updatedPlatform.format || []
         
-        let targetFormatIndex = targetPlatform.format.findIndex((fo) => fo.format_type === format)
+        let targetFormatIndex = updatedPlatform.format.findIndex((fo: any) => fo.format_type === format)
         if (targetFormatIndex === -1) {
-          targetPlatform.format.push({
+          updatedPlatform.format.push({
             format_type: format,
             num_of_visuals: quantities.toString(),
             previews: [],
           })
-          targetFormatIndex = targetPlatform.format.length - 1
+          targetFormatIndex = updatedPlatform.format.length - 1
         }
 
-        // Filter out any null uploads and only keep the successfully uploaded files
         const validFiles = uploadedFiles.filter(file => file !== null)
-        targetPlatform.format[targetFormatIndex].previews = [...validFiles]
+        updatedPlatform.format[targetFormatIndex].previews = [...validFiles]
       }
+
+      const platformIndex = platforms.findIndex((pl: any) => pl.platform_name === platform)
+      platforms[platformIndex] = updatedPlatform
 
       const updatedState = {
         ...campaignData,
@@ -162,13 +173,13 @@ const UploadModal: React.FC<UploadModalProps> = ({
         : format === "Video" 
           ? ["video/mp4", "video/mov", "video/quicktime"] 
           : ["image/jpeg", "image/png", "image/jpg"]
-      const maxSizeInMB = 20
+      const maxSizeInMB = 10 // Reduced to 10MB to align with common server limits
       const maxSizeInBytes = maxSizeInMB * 1024 * 1024
 
       if (!allowedTypes.includes(file.type)) {
         toast.error(
           format === "Video"
-            ? "Invalid file type. Please upload a MP4 or MOV file."
+            ? "Invalid file type. Please upload an MP4 or MOV file."
             : format === "Slideshow"
             ? "Invalid file type. Please upload a PDF file."
             : "Invalid file type. Please upload a JPEG, PNG, or JPG file.",
@@ -215,18 +226,19 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const handleDelete = useCallback(
     async (index: number) => {
       try {
-        // If there was a previously uploaded file (not just a blob), we need to delete it from Strapi
         if (previews?.[index]?.id) {
           setLoading(true)
-          await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/upload/files/${previews[index].id}`, {
+          const response = await fetch(`${STRAPI_URL}/upload/files/${previews[index].id}`, {
             method: "DELETE",
             headers: {
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+              Authorization: `Bearer ${STRAPI_TOKEN}`,
             },
           })
+          if (!response.ok) {
+            throw new Error(`Failed to delete file: ${response.statusText}`)
+          }
         }
 
-        // Update local state
         setUploads((prev) => {
           const updated = [...prev]
           updated[index] = null
@@ -246,7 +258,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
           return updated
         })
 
-        // Update global state by removing the deleted file
         const updatedPreviews = [...previews]
         updatedPreviews.splice(index, 1)
         await updateGlobalState(updatedPreviews)
@@ -259,27 +270,34 @@ const UploadModal: React.FC<UploadModalProps> = ({
         setLoading(false)
       }
     },
-    [previews, updateGlobalState]
+    [previews, updateGlobalState, STRAPI_URL, STRAPI_TOKEN],
   )
 
   const uploadSingleFile = useCallback(
     async (file: File, index: number, attempt = 0): Promise<any> => {
       try {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT)
+
         const formData = new FormData()
         formData.append("files", file)
         formData.append("fileSize", file.size.toString())
         formData.append("fileType", file.type)
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/upload`, {
+        const response = await fetch(`${STRAPI_URL}/upload`, {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${STRAPI_TOKEN}`,
           },
           body: formData,
+          signal: controller.signal,
         })
 
+        clearTimeout(timeoutId)
+
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
+          const errorText = await response.text()
+          throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`)
         }
 
         const result = await response.json()
@@ -288,18 +306,21 @@ const UploadModal: React.FC<UploadModalProps> = ({
           updated[index] = 100
           return updated
         })
-        return result[0] // Return the first file from the response array
-      } catch (error) {
+        return result[0]
+      } catch (error: any) {
         console.error(`Upload attempt ${attempt + 1} failed for file "${file.name}":`, error)
+        if (error.name === "AbortError") {
+          throw new Error("Upload timed out")
+        }
         if (attempt < MAX_RETRIES) {
-          const delay = 500 * (attempt + 1)
+          const delay = Math.pow(2, attempt) * 1000 // Exponential backoff: 1s, 2s, 4s
           await new Promise((resolve) => setTimeout(resolve, delay))
           return uploadSingleFile(file, index, attempt + 1)
         }
         throw error
       }
     },
-    [],
+    [STRAPI_URL, STRAPI_TOKEN],
   )
 
   const uploadFilesToStrapi = useCallback(async () => {
@@ -316,11 +337,14 @@ const UploadModal: React.FC<UploadModalProps> = ({
         .filter((item): item is { file: File; index: number } => item.file !== null)
 
       const uploadedFiles: any[] = []
+      const failedFiles: string[] = []
+
       for (let i = 0; i < filesToUpload.length; i += CONCURRENT_UPLOADS) {
         const batch = filesToUpload.slice(i, i + CONCURRENT_UPLOADS)
         const batchPromises = batch.map(({ file, index }) =>
           uploadSingleFile(file, index).catch((error) => {
-            console.error(`Failed to upload file at index ${index}:`, error)
+            console.error(`Failed to upload file "${file.name}" at index ${index}:`, error)
+            failedFiles.push(file.name)
             return null
           }),
         )
@@ -332,12 +356,15 @@ const UploadModal: React.FC<UploadModalProps> = ({
         throw new Error("All file uploads failed")
       }
 
+      if (failedFiles.length > 0) {
+        toast.error(`Failed to upload: ${failedFiles.join(", ")}`)
+      }
+
       const formattedFiles = uploadedFiles.map((file) => ({
         id: file.id.toString(),
         url: file.url,
       }))
 
-      // Combine existing previews with new uploads
       const allPreviews = [...previews]
       formattedFiles.forEach((file, index) => {
         const uploadIndex = filesToUpload[index].index

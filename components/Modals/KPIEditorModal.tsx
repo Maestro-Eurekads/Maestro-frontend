@@ -205,7 +205,7 @@ const KPIEditorModal = ({ aggregatedStats, campaign_id, finalCategoryOrder }) =>
 						</div>
 
 						<DndProvider backend={HTML5Backend}>
-							<div className="space-y-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+							<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
 								{orderedKpis?.map(({ category, kpis }, index) => (
 									<CategoryCard
 										key={category}
@@ -224,11 +224,11 @@ const KPIEditorModal = ({ aggregatedStats, campaign_id, finalCategoryOrder }) =>
 							{kpisData?.isCreated ? <button
 								className="px-[20px] py-4 bg-[#3175FF] text-white rounded-lg hover:bg-[#3176ffcf] transition"
 								onClick={handleUpdateKpis}>
-								{isLoading ? <SVGLoader width={"25px"} height={"25px"} color={"#FFF"} /> : "	Update KPIs"}
+								{isLoading ? <SVGLoader width={"20px"} height={"20px"} color={"#FFF"} /> : "	Update KPIs"}
 							</button> : <button
 								className="px-[20px] py-4 bg-[#3175FF] text-white rounded-lg hover:bg-[#3176ffcf] transition"
 								onClick={handleAddKpis}>
-								{isLoading ? <SVGLoader width={"25px"} height={"25px"} color={"#FFF"} /> : "	Save KPIs"}
+								{isLoading ? <SVGLoader width={"20px"} height={"20px"} color={"#FFF"} /> : "	Save KPIs"}
 							</button>}
 
 						</div>

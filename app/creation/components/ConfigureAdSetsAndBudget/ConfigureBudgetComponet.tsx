@@ -9,24 +9,11 @@ import { useCampaigns } from 'app/utils/CampaignsContext';
 import { getCurrencySymbol } from 'components/data';
 import CampaignPhasesColor from '../CampaignPhasesColor';
 
-const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
+const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 	const [open, setOpen] = useState(false);
 	const [opens, setOpens] = useState(false);
 	const [channelData, setChannelData] = useState(null);
 	const { campaignFormData } = useCampaigns();
-
-
-
-
-	// useEffect(() => {
-	// 		if (campaignFormData) {
-	// 				if (campaignFormData?.goal_level) {
-	// 						setIsModalOpen(false);
-	// 				} else {
-	// 						setIsModalOpen(true);
-	// 				}
-	// 		}
-	// }, [campaignFormData]);
 
 	function extractPlatforms(data) {
 		const platforms = [];
@@ -67,18 +54,32 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 	}
 
 
-	function mapCampaignPhases(phases) {
-		return phases?.map(phase => ({
-			name: phase?.name,
-			percentage: phase?.percentage ?? 0,
-			colorClass: phase?.color
-		}));
+	function mapCampaignPhases(phases, campaignFormData) {
+		return phases?.map(phase => {
+			const phaseName = phase?.name?.toLowerCase().trim();
+
+			// Find matching stage from channel_mix
+			const matchingChannel = campaignFormData?.channel_mix?.find(
+				(ch) => ch?.funnel_stage?.toLowerCase().trim() === phaseName
+			);
+
+			// Safely get percentage value
+			const rawValue = matchingChannel?.stage_budget?.percentage_value;
+			const percentage = Number(rawValue);
+
+			return {
+				name: phase?.name,
+				percentage: isNaN(percentage) ? 0 : Number(percentage.toFixed(0)),
+				colorClass: phase?.color,
+			};
+		});
 	}
 
 
-	const campaignPhases = mapCampaignPhases(campaignFormData?.custom_funnels);
-	const data = campaignPhases?.map((phase) => Number(phase?.percentage?.toFixed(0)));
-	const colors = campaignPhases?.map((phase) => phase.colorClass);
+
+	const filteredPhases = mapCampaignPhases(campaignFormData?.custom_funnels, campaignFormData);
+	const colors = filteredPhases?.map((phase) => phase.colorClass);
+	const campaignPhases = filteredPhases?.filter(phase => funnelData.hasOwnProperty(phase.name));
 
 
 	function tailwindBgClassToHex(className: string): string {
@@ -106,11 +107,9 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 		return colorMap[color]?.[shade] || "#000000";
 	}
 
-
-
 	const hexColors = colors?.map(cls => tailwindBgClassToHex(cls));
-	// console.log("hexColors-hexColors", hexColors);
 
+	console.log("🚀 ~ extractedData-extractedData:", filteredPhases);
 
 	return (
 		<div>
@@ -151,13 +150,25 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 							<div className='campaign_phases_container mt-[24px]'>
 								<div className='campaign_phases_container_one'>
 									<DoughnutChat
-										data={data}
+										data={campaignFormData?.channel_mix
+											?.filter(
+												(c) => Number(c?.stage_budget?.percentage_value) > 0
+											)
+											?.map((ch) =>
+												Number(ch?.stage_budget?.percentage_value)?.toFixed(
+													0
+												)
+											)
+										}
 										color={hexColors}
+
 										insideText={`${campaignFormData?.campaign_budget?.amount ?? 0} ${getCurrencySymbol(campaignFormData?.campaign_budget?.currency ?? '')}`}
 									/>
 								</div>
 								{/* Campaign Phases */}
-								<CampaignPhases campaignPhases={campaignPhases} />
+								<CampaignPhases
+									campaignPhases={campaignPhases}
+								/>
 							</div>
 
 							{/* Phase distribution */}
@@ -213,7 +224,9 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 								</div>}
 
 
-							{opens && <CampaignPhasesColor campaignPhases={campaignPhases} />}
+							{opens && <CampaignPhasesColor
+								campaignPhases={campaignPhases}
+							/>}
 
 							{/* <PlatformSpending /> */}
 							{opens && <ChannelDistributionChatOne channelData={channelData} currency={getCurrencySymbol(

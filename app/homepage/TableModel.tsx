@@ -255,7 +255,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     setLoading(true);
 
     try {
-      await addNewClient({
+      const res = await addNewClient({
         client_name: inputs.name,
         client_emails: emailList,
         responsible: inputs.responsiblePerson,
@@ -266,6 +266,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         fee_type: inputs.feeType,
         user: profile?.id,
       });
+      localStorage.setItem("selectedClient", res?.data?.data?.id);
       getProfile()
       // Fetch clients after successfully adding a new one
       //@ts-ignore
@@ -388,7 +389,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                     <button
                       className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white"
                       onClick={handleAddEmail}
-                      // disabled={emailList.length >= 5}
+                    // disabled={emailList.length >= 5}
                     >
                       Add
                     </button>
