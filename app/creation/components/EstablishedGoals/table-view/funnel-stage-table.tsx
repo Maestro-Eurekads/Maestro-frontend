@@ -90,6 +90,7 @@ export const FunnelStageTable = ({
                 <React.Fragment key={index}>
                   {/* Parent Row */}
                   <ChannelRow
+                    key={index}
                     channel={channel}
                     index={index}
                     stage={stage}
@@ -127,7 +128,7 @@ export const FunnelStageTable = ({
                         {
                           adSet?.extra_audiences?.map((adSet, exIndex) => (
                             <KPIRow
-                              key={adSetIndex}
+                              key={`${adSetIndex}-${exIndex}`}
                               adSet={adSet}
                               adSetIndex={adSetIndex}
                               extraAdSetindex={exIndex}

@@ -497,7 +497,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         new Date(
           currentYear,
           selectedDates?.from?.month,
-          selectedDates.from.day
+          selectedDates.from?.day
         )
       ).format("YYYY-MM-DD");
 
@@ -505,7 +505,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         new Date(
           currentYear,
           selectedDates?.to?.month,
-          selectedDates.to.day
+          selectedDates.to?.day
         )
       ).format("YYYY-MM-DD");
       await updateCampaignData({

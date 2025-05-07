@@ -51,9 +51,9 @@ export const KPICellRenderer = ({
     return new Intl.NumberFormat("en-US").format(num);
   };
 
-  if (body === "adsets") {
+  if (body === "channel") {
     return (
-      <div className="flex gap-2 indent-[20px]">
+      <div className="flex gap-2">
         <div className="l-shape-container-ad">
           <div className="l-vertical-ad"></div>
           <div className="l-horizontal-ad"></div>
@@ -61,12 +61,22 @@ export const KPICellRenderer = ({
       </div>
     );
   }
+  if (body === "adsets") {
+    return (
+      <div className="flex gap-2 indent-[20px]">
+        {/* <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
+          {adSetIndex + 1}.
+        </span> */}
+        <span>{adSet ? adSet?.name : "-"}</span>
+      </div>
+    );
+  }
   if (body === "audience") {
     return (
       <div className="flex gap-2">
-        <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
+        {/* <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
           {extraAdSetindex + 2}.
-        </span>
+        </span> */}
         <span>{adSet ? adSet?.audience_type : "-"}</span>
       </div>
     );
@@ -162,7 +172,7 @@ export const KPICellRenderer = ({
 
   // Format display value for percentage fields - keep the raw input value for UI
   let displayValue = kpiValue;
-  console.log({ kpi: body, value: kpiValue });
+  // console.log({ kpi: body, value: kpiValue });
   if (isPercentType && displayValue) {
     // If it's a number (already converted to decimal), convert back to percentage for display
     if (

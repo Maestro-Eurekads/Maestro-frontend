@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image, { type StaticImageData } from "next/image";
 import Button from "./common/button";
 import up from "../../../public/arrow-down.svg";
@@ -420,10 +420,20 @@ const ConfiguredSetPage = () => {
                       const platformPercentage = totalStageBudge
                         ? Number(Number(budgetValue) / totalStageBudge) * 100
                         : 0;
+
+                      console.log(
+                        platform?.ad_sets[0]?.extra_audiences?.length > 1
+                          ? `${Number(
+                              110 *
+                                platform?.ad_sets[0]?.extra_audiences?.length
+                            )}px`
+                          : "330px"
+                      );
                       return (
                         <div
                           key={`${stageName}${platform?.outlet}${index}`}
                           className="w-full"
+                          id={`${stageName}${platform?.outlet}${index}`}
                         >
                           <div className="flex mb-8 items-end justify- gap-3">
                             <div className="flex items-start flex-col gap-2">
@@ -442,8 +452,50 @@ const ConfiguredSetPage = () => {
                                     <div className="l-horizontal-cb"></div>
                                     {platform?.ad_sets?.length > 1 && (
                                       <>
-                                        <div className="l-vertical-cb-long"></div>
-                                        <div className="l-horizontal-cb-long"></div>
+                                        <div
+                                          className="l-vertical-cb-long"
+                                          style={{
+                                          height:
+                                            platform?.ad_sets[0]
+                                            ?.extra_audiences?.length > 0
+                                            ? `${Number(
+                                              110 *
+                                                (platform?.ad_sets[0]
+                                                ?.extra_audiences
+                                                ?.length +
+                                                2)
+                                              )}px`
+                                            : platform?.ad_sets?.length > 1
+                                            ? `${Number(
+                                              110 *
+                                                (platform?.ad_sets
+                                                ?.length)
+                                              )}px`
+                                            : "330px",
+                                          }}
+                                        ></div>
+                                        <div
+                                          className="l-horizontal-cb-long"
+                                          style={{
+                                          bottom:
+                                            platform?.ad_sets[0]
+                                            ?.extra_audiences?.length > 0
+                                            ? `-${Number(
+                                              121 *
+                                                (platform?.ad_sets[0]
+                                                ?.extra_audiences
+                                                ?.length +
+                                                2)
+                                              )}px`
+                                            : platform?.ad_sets?.length > 1
+                                            ? `-${Number(
+                                              132 *
+                                                (platform?.ad_sets
+                                                ?.length)
+                                              )}px`
+                                            : "-375px",
+                                          }}
+                                        ></div>
                                       </>
                                     )}
                                   </div>
@@ -726,7 +778,7 @@ const ConfiguredSetPage = () => {
                               </div>
                             </div>
                           </div>
-                          <div className="pb-8 space-y-6">
+                          <div className="pb-8 space-y-6" id="setContainer">
                             {campaignFormData?.campaign_budget?.level ===
                               "Adset level" &&
                               platform?.ad_sets?.map((ad_set, index) => {
@@ -764,8 +816,6 @@ const ConfiguredSetPage = () => {
                                       )?.toFixed(2)
                                     : "0";
                                 };
-
-                                // Write the logic to get the percentageValue fro adset extra budget using the function getAdSetExtraBudget as reference
                                 const getAdSetExtraBudgetPercentage = (
                                   adSet,
                                   extraIndex
@@ -786,7 +836,7 @@ const ConfiguredSetPage = () => {
                                   return "0";
                                 };
                                 return (
-                                  <div className="ml-[20px]">
+                                  <div className="ml-[20px]" key={index}>
                                     {ad_set?.extra_audiences?.length > 0 && (
                                       <div className="flex gap-2 indent-[10px]">
                                         <div className="l-shape-container-cb">
