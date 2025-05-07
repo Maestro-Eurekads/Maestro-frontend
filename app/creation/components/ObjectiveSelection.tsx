@@ -265,25 +265,38 @@ const ObjectiveSelection = () => {
     });
     setIsEditable((prev) => ({ ...prev, [stageName]: true }));
 
+    // Get all platforms from channel_mix for this stage
+    const channelMix = Array.isArray(campaignFormData?.channel_mix)
+      ? campaignFormData.channel_mix.find((ch) => ch.funnel_stage === stageName)
+      : null;
+
     const validatedPlatformsSet = new Set();
-    Array.from(selectedNetworks[stageName] || []).forEach((platformName) => {
-      if (
-        hasCompletePlatformSelection(platformName, "social_media", stageName) ||
-        hasCompletePlatformSelection(
-          platformName,
-          "display_networks",
-          stageName
-        ) ||
-        hasCompletePlatformSelection(platformName, "search_engines", stageName)
-      ) {
-        validatedPlatformsSet.add(platformName);
-      }
-    });
+    if (channelMix) {
+      [
+        "social_media",
+        "display_networks",
+        "search_engines",
+        "streaming",
+        "mobile",
+        "messaging",
+        "in_game",
+        "e_commerce",
+        "broadcast",
+        "print",
+        "ooh",
+      ].forEach((category) => {
+        const platforms = channelMix[category] || [];
+        platforms.forEach((platform) => {
+          validatedPlatformsSet.add(platform.platform_name);
+        });
+      });
+    }
 
     setValidatedPlatforms((prev) => ({
       ...prev,
       [stageName]: validatedPlatformsSet,
     }));
+
     setCampaignFormData((prev) => ({
       ...prev,
       validatedStages: { ...prev.validatedStages, [stageName]: true },
@@ -323,9 +336,8 @@ const ObjectiveSelection = () => {
       .find((ch) => ch.funnel_stage === stageName)
       ?.[normalizedCategory]?.find((p) => p.platform_name === platformName);
 
-    // Only render if platform is validated, even if format is empty
-    if (!validatedPlatforms[stageName]?.has(platformName) || !platformData)
-      return null;
+    // Only render if platform exists in the category
+    if (!platformData) return null;
 
     return (
       <div
@@ -358,14 +370,8 @@ const ObjectiveSelection = () => {
     const channelMix = Array.isArray(campaignFormData?.channel_mix)
       ? campaignFormData.channel_mix
       : [];
-    const platformsInCategory =
-      channelMix
-        .find((ch) => ch.funnel_stage === stageName)
-        ?.[category]?.map((p) => p.platform_name) || [];
-    // Show category if any platform in it is validated, regardless of format
-    return platformsInCategory.some((platform) =>
-      validatedPlatforms[stageName]?.has(platform)
-    );
+    const stageData = channelMix.find((ch) => ch.funnel_stage === stageName);
+    return stageData && stageData[category]?.length > 0;
   };
 
   const handleSaveCustomValue = async (field) => {
