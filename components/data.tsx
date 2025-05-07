@@ -244,8 +244,7 @@ export const getPlatformIcon = (platformName: string): StaticImageData => {
     normalizedName,
     platformName.toLowerCase(),
     platformName.charAt(0).toUpperCase() + platformName.slice(1).toLowerCase(),
-    normalizedName.charAt(0).toUpperCase() +
-    normalizedName.slice(1).toLowerCase(),
+    normalizedName.charAt(0).toUpperCase() + normalizedName.slice(1).toLowerCase(),
   ];
 
   for (const variation of variations) {
@@ -541,7 +540,8 @@ export const platformStyles = [
     bg: "#F0F5FF",
   },
   { name: "BuySell", color: "#FF5722", icon: buysell, bg: "#FFF2EE" },
-  { name: "Mozilla Tiles", color: "#C13832", icon: mozilla, bg: "#FEF2F1" },
+  { name: "Mozilla Tiles", color: "#C13832", icon: mozilla, bg: "#FEF2F2" },
+
   { name: "Telegram", color: "#0088CC", icon: telegram, bg: "#F0F7FF" },
   { name: "WhatsApp", color: "#25D366", icon: whatsapp, bg: "#F2FBF5" },
   { name: "Twitch", color: "#9146FF", icon: twitch, bg: "#F7F2FF" },
@@ -589,62 +589,98 @@ export const platformStyles = [
   { name: "Sponsor", color: "#10B981", icon: sponsor, bg: "#F0FAF5" },
   { name: "News", color: "#374151", icon: news, bg: "#F5F6F6" },
   { name: "Magazine", color: "#EC4899", icon: magazine, bg: "#FFF0F6" },
-  { name: "Circular", color: "#FBBF24", icon: circular, bg: "#FFF8ED" }, // Changed from "Circulars"
+  { name: "Circular", color: "#FBBF24", icon: circular, bg: "#FFF8ED" },
   { name: "Door", color: "#EF4444", icon: door, bg: "#FFF0F0" },
   { name: "DirectMail", color: "#6D28D9", icon: directmail, bg: "#F6F0FF" },
-  { name: "Brochure", color: "#059669", icon: brochure, bg: "#F0FAF5" }, // Corrected from "bronchure"
+  { name: "Brochure", color: "#059669", icon: brochure, bg: "#F0FAF5" },
   { name: "Cinema", color: "#8B5CF6", icon: cinema, bg: "#F6F2FF" },
   { name: "Television", color: "#1E3A8A", icon: television, bg: "#F0F3F6" },
   { name: "Radio", color: "#EA580C", icon: radio, bg: "#FFF3ED" },
   { name: "FilmTV", color: "#7C3AED", icon: filmtv, bg: "#F6F0FF" },
 ];
 
-export const renderUploadedFile = (uploadBlobs, format, index: number, ext?: any) => {
-  if (!uploadBlobs[index]) return null;
+export const renderUploadedFile = (uploadBlobs: string[], format: string, index: number) => {
+  const url = uploadBlobs[index];
+  if (!url) return null;
 
-  if (format === "Video") {
+  if (format === "Slideshow") {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-gray-100">
+        <object
+          data={url}
+          type="application/pdf"
+          width="100%"
+          height="100%"
+          className="rounded-lg"
+        >
+          <div className="flex flex-col items-center justify-center h-full">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+                stroke="#3175FF"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M14 2V8H20"
+                stroke="#3175FF"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M16 13H8"
+                stroke="#3175FF"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M16 17H8"
+                stroke="#3175FF"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M10 9H9H8"
+                stroke="#3175FF"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <p className="text-sm text-gray-600">PDF Preview</p>
+          </div>
+        </object>
+      </div>
+    );
+  } else if (format === "Video") {
     return (
       <video
-        src={uploadBlobs[index]}
-        controls
+        src={url}
         className="w-full h-full object-cover rounded-lg"
+        controls
+      />
+    );
+  } else {
+    return (
+      <Image
+        src={url}
+        alt={`Uploaded visual ${index + 1}`}
+        className="w-full h-full object-cover rounded-lg"
+        width={225}
+        height={105}
       />
     );
   }
-
-  if (format === "Slideshow") {
-    console.log("hr", ext?.name)
-    return (
-      <>
-        {typeof uploadBlobs[index] === "string" &&
-          ext && ext?.name?.includes("pptx") ? (
-          <iframe
-            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-              uploadBlobs[index]
-            )}`}
-            className="w-full h-full rounded-lg"
-            title={`Slideshow ${index}`}
-          />
-        ) : (
-          <iframe
-            src={uploadBlobs[index]}
-            className="w-full h-full rounded-lg"
-            title={`Slideshow ${index}`}
-          />
-        )}
-      </>
-    );
-  }
-
-  return (
-    <Image
-      src={uploadBlobs[index]}
-      alt={`Image ${index}`}
-      className="w-full h-full object-cover rounded-lg"
-      width={225}
-      height={105}
-    />
-  );
 };
 
 export function hasFormatEntered(channelMix) {
@@ -680,8 +716,6 @@ export function hasFormatEntered(channelMix) {
   return false; // No format found for any platform
 }
 
-
-
 export const selectCurrency = [
   { value: "USD", label: "US Dollar (USD)", sign: "$" },
   { value: "EUR", label: "Euro (EUR)", sign: "€" },
@@ -690,7 +724,6 @@ export const selectCurrency = [
   { value: "JPY", label: "Japanese Yen (JPY)", sign: "¥" },
   { value: "CAD", label: "Canadian Dollar (CAD)", sign: "C$" },
 ];
-
 
 export const statusOption = [
   { value: "open", label: "Open" },
@@ -725,8 +758,6 @@ export const PPTXRenderer = ({ file }: { file: string }) => {
     />
   );
 };
-
-
 
 export const mediaTypes = [
   "social_media",
