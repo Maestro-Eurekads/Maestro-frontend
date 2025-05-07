@@ -993,18 +993,38 @@ const ConfiguredSetPage = () => {
 
                                                                     const totalAdSetBudget =
                                                                       updatedAdSets?.reduce(
-                                                                        (
-                                                                          sum,
-                                                                          adSet
-                                                                        ) =>
-                                                                          sum +
+                                                                      (
+                                                                        sum,
+                                                                        adSet
+                                                                      ) => {
+                                                                        const extraAudiencesTotal =
+                                                                        adSet.extra_audiences?.reduce(
+                                                                          (
+                                                                          extraSum,
+                                                                          extraAudience
+                                                                          ) =>
+                                                                          extraSum +
                                                                           Number(
-                                                                            adSet
-                                                                              .budget
-                                                                              ?.fixed_value ||
-                                                                              0
+                                                                            extraAudience
+                                                                            .budget
+                                                                            ?.fixed_value ||
+                                                                            0
                                                                           ),
-                                                                        0
+                                                                          0
+                                                                        ) || 0;
+
+                                                                        return (
+                                                                        sum +
+                                                                        Number(
+                                                                          adSet
+                                                                          .budget
+                                                                          ?.fixed_value ||
+                                                                          0
+                                                                        ) +
+                                                                        extraAudiencesTotal
+                                                                        );
+                                                                      },
+                                                                      0
                                                                       );
 
                                                                     if (
