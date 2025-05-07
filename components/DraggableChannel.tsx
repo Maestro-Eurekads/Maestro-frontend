@@ -7,6 +7,7 @@ import icroundadd from "../public/ic_round-add.svg";
 import { useFunnelContext } from "../app/utils/FunnelContextType";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import moment from "moment";
+import { useDateRange } from "src/date-context";
 
 interface DraggableChannelProps {
   id?: string;
@@ -53,6 +54,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   } | null>(null);
   const isDragging = useRef<{ startX: number; startPos: number } | null>(null);
   const { campaignFormData, setCampaignFormData } = useCampaigns();
+  const { range } = useDateRange();
 
   const pixelToDate = (pixel: number, containerWidth: number) => {
     const startDate = dateList[0]; // First date in the range
@@ -88,7 +90,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   // };
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    const baseStep = 100; // Base grid size
+    const baseStep = range !== "Day" ? parentWidth : 100; // Base grid size
     const adjustmentPerStep = 0; // Decrease each next step by 10
     const snapPoints = [];
 
@@ -96,17 +98,13 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     let step = baseStep;
 
     // Generate snap points with decreasing step size
-    while (currentSnap <= containerWidth) {
+    while (
+      currentSnap <= (range !== "Day" ? containerWidth - 75 : containerWidth)
+    ) {
       snapPoints.push(currentSnap);
       currentSnap += step;
-      step = Math.max(100, step - adjustmentPerStep);
+      step = Math.max(range !== "Day" ? parentWidth : 100, step - adjustmentPerStep);
     }
-
-    console.log("Custom snap points:", {
-      snapPoints,
-      containerWidth,
-      currentPosition,
-    });
 
     const closestSnap = snapPoints.reduce((prev, curr) =>
       Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition)
