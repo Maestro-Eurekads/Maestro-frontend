@@ -306,11 +306,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         return;
       }
       if (!campaignFormData?.campaign_budget?.amount) {
-        setAlert({
-          variant: "error",
-          message: "Please input a budget amount",
-          position: "bottom-right",
-        });
         toast("Please input a budget amount", {
           style: {
             background: "#FFEBEE",
