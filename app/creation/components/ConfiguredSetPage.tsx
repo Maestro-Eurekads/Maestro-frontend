@@ -1022,6 +1022,7 @@ const ConfiguredSetPage = () => {
                                                                           type: "error",
                                                                           theme:
                                                                             "colored",
+                                                                            toastId: "sum"
                                                                         }
                                                                       );
                                                                       return p;
