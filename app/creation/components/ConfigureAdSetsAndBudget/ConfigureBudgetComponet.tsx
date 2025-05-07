@@ -9,7 +9,7 @@ import { useCampaigns } from 'app/utils/CampaignsContext';
 import { getCurrencySymbol } from 'components/data';
 import CampaignPhasesColor from '../CampaignPhasesColor';
 
-const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
+const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 	const [open, setOpen] = useState(false);
 	const [opens, setOpens] = useState(false);
 	const [channelData, setChannelData] = useState(null);
@@ -77,8 +77,9 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 
 
 
-	const campaignPhases = mapCampaignPhases(campaignFormData?.custom_funnels, campaignFormData);
-	const colors = campaignPhases?.map((phase) => phase.colorClass);
+	const filteredPhases = mapCampaignPhases(campaignFormData?.custom_funnels, campaignFormData);
+	const colors = filteredPhases?.map((phase) => phase.colorClass);
+	const campaignPhases = filteredPhases?.filter(phase => funnelData.hasOwnProperty(phase.name));
 
 
 	function tailwindBgClassToHex(className: string): string {
@@ -108,7 +109,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2 }) => {
 
 	const hexColors = colors?.map(cls => tailwindBgClassToHex(cls));
 
-
+	console.log("🚀 ~ extractedData-extractedData:", filteredPhases);
 
 	return (
 		<div>

@@ -8,8 +8,11 @@ import { getCurrencySymbol } from "components/data";
 
 // Component to display general campaign information like budget, impressions, and CPM
 const BusinessGeneral = ({ campaign, loading, isLoadingCampaign }) => {
-	const budget = campaign?.campaign_budget?.amount || "0";
-	const currency = getCurrencySymbol(campaign?.budget_details?.currency) || "";
+	const budget = campaign?.campaign_budget?.amount ?? "0";
+	const currency = getCurrencySymbol(campaign?.campaign_budget.currency) ?? "";
+
+
+	console.log("currency-currency-currency", getCurrencySymbol(campaign?.campaign_budget.currency));
 
 	// Extract and calculate total impressions and average CPM
 	const { totalImpressions, averageCpm } = useMemo(() => {

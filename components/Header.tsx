@@ -72,7 +72,7 @@ const Header = ({ setIsOpen }) => {
       const clientId = localStorage.getItem("profileclients") || "";
       setSelectedId(clientId);
     }
-  }, [isAdmin, selected]);
+  }, [isAdmin, selected, getCreateClientIsLoading]);
 
   // const selectedId =
   //   typeof window !== "undefined"
@@ -127,8 +127,8 @@ const Header = ({ setIsOpen }) => {
 
   function getFirstLetters(str) {
     const words = str?.trim().split(/\s+/);
-    const first = words?.length > 0&& words[0]?.[0] || '';
-    const second = words?.length > 0&& words[1]?.[0] || '';
+    const first = words?.length > 0 && words[0]?.[0] || '';
+    const second = words?.length > 0 && words[1]?.[0] || '';
     return (first + second).toUpperCase();
   }
 
