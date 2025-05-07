@@ -23,6 +23,8 @@ interface OutletType {
   color: string;
   bg: string;
   channelName: string;
+  ad_sets: any[];
+  format: any[]
 }
 
 const ResizeableElements = ({ funnelData }) => {
@@ -122,6 +124,8 @@ const ResizeableElements = ({ funnelData }) => {
                 color: style.color,
                 bg: style.bg,
                 channelName,
+                ad_sets: platform.ad_sets,
+                format: platform.format
               });
             }
           });

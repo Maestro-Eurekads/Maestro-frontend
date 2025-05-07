@@ -24,7 +24,7 @@ interface OutletType {
   };
 }
 
-const ConfiguredSetPage = () => {
+const ConfiguredSetPage = ({netAmount}) => {
   const [openItems, setOpenItems] = useState({
     Awareness: false,
     Consideration: false,
@@ -228,7 +228,7 @@ const ConfiguredSetPage = () => {
   return (
     <div className="mt-12 flex items-start flex-col gap-12 w-full">
       {campaignFormData?.funnel_stages.map((stageName, index) => {
-        const totalBudget = campaignFormData?.campaign_budget?.amount || 0;
+        const totalBudget = netAmount || 0;
         const stageBudget =
           campaignFormData?.channel_mix?.find(
             (ch) => ch?.funnel_stage === stageName
