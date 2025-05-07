@@ -148,7 +148,6 @@ const ResizableChannels = ({
 
   const handleDragStart = (index) => (event) => {
     if (disableDrag) return;
-    setOpenItems(null)
     event.preventDefault();
     setDraggingPosition({
       index,
@@ -241,7 +240,6 @@ const ResizableChannels = ({
 
   const handleMouseDown = (index, direction) => (event) => {
     event.preventDefault();
-    setOpenItems(null)
     setDragging({ index, direction, startX: event.clientX });
   };
 
