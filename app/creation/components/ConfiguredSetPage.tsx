@@ -446,60 +446,68 @@ const ConfiguredSetPage = () => {
                               )}
 
                               <div className="flex gap-2 indent-[10px]">
-                                {platform?.ad_sets?.length > 0 && (
-                                  <div className="l-shape-container-cb">
-                                    <div className="l-vertical-cb"></div>
-                                    <div className="l-horizontal-cb"></div>
-                                    {platform?.ad_sets?.length > 1 && (
-                                      <>
-                                        <div
-                                          className="l-vertical-cb-long"
-                                          style={{
-                                          height:
-                                            platform?.ad_sets[0]
-                                            ?.extra_audiences?.length > 0
-                                            ? `${Number(
-                                              110 *
-                                                (platform?.ad_sets[0]
-                                                ?.extra_audiences
-                                                ?.length +
-                                                2)
-                                              )}px`
-                                            : platform?.ad_sets?.length > 1
-                                            ? `${Number(
-                                              110 *
-                                                (platform?.ad_sets
-                                                ?.length)
-                                              )}px`
-                                            : "330px",
-                                          }}
-                                        ></div>
-                                        <div
-                                          className="l-horizontal-cb-long"
-                                          style={{
-                                          bottom:
-                                            platform?.ad_sets[0]
-                                            ?.extra_audiences?.length > 0
-                                            ? `-${Number(
-                                              121 *
-                                                (platform?.ad_sets[0]
-                                                ?.extra_audiences
-                                                ?.length +
-                                                2)
-                                              )}px`
-                                            : platform?.ad_sets?.length > 1
-                                            ? `-${Number(
-                                              132 *
-                                                (platform?.ad_sets
-                                                ?.length)
-                                              )}px`
-                                            : "-375px",
-                                          }}
-                                        ></div>
-                                      </>
-                                    )}
-                                  </div>
-                                )}
+                                {campaignFormData?.campaign_budget?.level ===
+                                  "Adset level" &&
+                                  platform?.ad_sets?.length > 0 && (
+                                    <div className="l-shape-container-cb">
+                                      <div className="l-vertical-cb"></div>
+                                      <div className="l-horizontal-cb"></div>
+                                      {campaignFormData?.campaign_budget
+                                        ?.level === "Adset level" &&
+                                        platform?.ad_sets?.length > 1 && (
+                                          <>
+                                            <div
+                                              className="l-vertical-cb-long"
+                                              style={{
+                                                height:
+                                                  platform?.ad_sets[0]
+                                                    ?.extra_audiences?.length >
+                                                  0
+                                                    ? `${Number(
+                                                        110 *
+                                                          (platform?.ad_sets[0]
+                                                            ?.extra_audiences
+                                                            ?.length +
+                                                            2)
+                                                      )}px`
+                                                    : platform?.ad_sets
+                                                        ?.length > 1
+                                                    ? `${Number(
+                                                        110 *
+                                                          platform?.ad_sets
+                                                            ?.length
+                                                      )}px`
+                                                    : "330px",
+                                              }}
+                                            ></div>
+                                            <div
+                                              className="l-horizontal-cb-long"
+                                              style={{
+                                                bottom:
+                                                  platform?.ad_sets[0]
+                                                    ?.extra_audiences?.length >
+                                                  0
+                                                    ? `-${Number(
+                                                        121 *
+                                                          (platform?.ad_sets[0]
+                                                            ?.extra_audiences
+                                                            ?.length +
+                                                            2)
+                                                      )}px`
+                                                    : platform?.ad_sets
+                                                        ?.length > 1
+                                                    ? `-${Number(
+                                                        132 *
+                                                          platform?.ad_sets
+                                                            ?.length
+                                                      )}px`
+                                                    : "-375px",
+                                              }}
+                                            ></div>
+                                          </>
+                                        )}
+                                    </div>
+                                  )}
                               </div>
                               <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[200px] h-[50px] rounded-[10px] items-center gap-2">
                                 <div className="flex justify-between w-full px-4 items-center">
@@ -837,28 +845,30 @@ const ConfiguredSetPage = () => {
                                 };
                                 return (
                                   <div className="ml-[20px]" key={index}>
-                                    {ad_set?.extra_audiences?.length > 0 && (
-                                      <div className="flex gap-2 indent-[10px]">
-                                        <div className="l-shape-container-cb">
-                                          <div
-                                            className="l-vertical-cb"
-                                            style={{
-                                              height: "120px",
-                                              top: "61px",
-                                              left: "-5px",
-                                            }}
-                                          ></div>
-                                          <div
-                                            className="l-horizontal-cb"
-                                            style={{
-                                              bottom: "-182px",
-                                              left: "-5px",
-                                              width: "25px",
-                                            }}
-                                          ></div>
+                                    {campaignFormData?.campaign_budget
+                                      ?.level === "Adset level" &&
+                                      ad_set?.extra_audiences?.length > 0 && (
+                                        <div className="flex gap-2 indent-[10px]">
+                                          <div className="l-shape-container-cb">
+                                            <div
+                                              className="l-vertical-cb"
+                                              style={{
+                                                height: "120px",
+                                                top: "61px",
+                                                left: "-5px",
+                                              }}
+                                            ></div>
+                                            <div
+                                              className="l-horizontal-cb"
+                                              style={{
+                                                bottom: "-182px",
+                                                left: "-5px",
+                                                width: "25px",
+                                              }}
+                                            ></div>
+                                          </div>
                                         </div>
-                                      </div>
-                                    )}
+                                      )}
                                     <div
                                       key={index}
                                       className="flex gap-3 items-end"
