@@ -23,7 +23,7 @@ interface Channel {
   bg: string;
   color: string;
   ad_sets?: any[];
-  format: any[];
+  format?: any[];
 }
 
 interface ResizableChannelsProps {
