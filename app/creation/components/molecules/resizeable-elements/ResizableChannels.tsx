@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { MdDragHandle } from "react-icons/md";
 import reddelete from "../../../../../public/red-delete.svg";
 import Image from "next/image";
@@ -8,11 +8,13 @@ import whiteplus from "../../../../../public/white-plus.svg";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { eachDayOfInterval } from "date-fns";
 import moment from "moment";
-import { getCurrencySymbol } from "components/data";
+import { getCurrencySymbol, renderUploadedFile } from "components/data";
 import arrowUp from "../../../../../public/arrow-g-up.svg";
 import arrowDown from "../../../../../public/arrow-g-down.svg";
 import axios from "axios";
 import { removeKeysRecursively } from "utils/removeID";
+import Modal from "components/Modals/Modal";
+import AdSetsFlow from "../../../components/common/AdSetsFlow";
 
 interface Channel {
   name: string;
@@ -21,6 +23,7 @@ interface Channel {
   bg: string;
   color: string;
   ad_sets?: any[];
+  format?: any[];
 }
 
 interface ResizableChannelsProps {
@@ -32,6 +35,14 @@ interface ResizableChannelsProps {
   dateList: Date[];
   disableDrag?: boolean;
 }
+
+const DEFAULT_MEDIA_OPTIONS = [
+  { name: "Carousel", icon: "/carousel.svg" },
+  { name: "Image", icon: "/Image_format.svg" },
+  { name: "Video", icon: "/video_format.svg" },
+  { name: "Slideshow", icon: "/slideshow_format.svg" },
+  { name: "Collection", icon: "/collection_format.svg" },
+];
 
 const ResizableChannels = ({
   channels: initialChannels,
@@ -51,6 +62,9 @@ const ResizableChannels = ({
   const [channels, setChannels] = useState(initialChannels);
 
   const [openItems, setOpenItems] = useState(null);
+  const [openCreatives, setOpenCreatives] = useState(false);
+  const [selectedCreative, setSelectedCreative] = useState(null);
+  const [openAdset, setOpenAdset] = useState(false);
 
   // Initialize child width based on available parent space and position
   const [channelState, setChannelState] = useState(
@@ -65,10 +79,7 @@ const ResizableChannels = ({
   const [draggingPosition, setDraggingPosition] = useState(null);
 
   const toggleChannel = (id) => {
-    setOpenItems((prev: Record<string, boolean>) => ({
-      ...prev,
-      [id]: !prev?.[id],
-    }));
+    setOpenItems((prev) => (prev === id ? null : id));
   };
 
   const startDate = campaignFormData?.channel_mix?.find(
@@ -509,58 +520,6 @@ const ResizableChannels = ({
                   </div>
                 )}
               </div>
-              {/* Ad sets */}
-              {campaignFormData?.goal_level === "Adset level" &&
-                disableDrag &&
-                channel?.ad_sets?.length > 0 && (
-                  <>
-                    <div
-                      className="bg-[#EBFEF4] py-[10px] px-[12px] w-fit mt-[5px] border border-[#00A36C1A] rounded-[8px] flex items-center cursor-pointer"
-                      onClick={() => toggleChannel(`${channel?.name}${index}`)}
-                    >
-                      <p className="text-[14px] font-medium text-[#00A36C]">
-                        {channel?.ad_sets?.length} ad sets
-                      </p>
-                      <Image
-                        src={
-                          openItems && openItems[`${channel?.name}${index}`]
-                            ? arrowUp
-                            : arrowDown
-                        }
-                        alt=""
-                        width={24}
-                        height={24}
-                      />
-                    </div>
-                    {/* Adset_display */}
-                    {openItems && openItems[`${channel?.name}${index}`] && (
-                      <div className="ml-[20px] flex w-full">
-                        <div>
-                          {/* Headers */}
-                          <div className="flex text-[12px] text-[#061237B2] font-medium gap-[5px]">
-                            <p className="w-[30px]">#</p>
-                            <p className="w-[150px]">Type</p>
-                            <p className="w-[100px]">Name</p>
-                            <p className="w-[100px]">Audience size</p>
-                            <p className="w-[100px]">Budget</p>
-                          </div>
-                          {channel?.ad_sets?.map((set, index) => (
-                            <div className="flex gap-[5px] text-[14px] font-medium text-[#061237B2] mb-[10px]">
-                              <p className="w-[30px] text-[#3175FF] font-bold">
-                                {index + 1}.
-                              </p>
-                              <p className="w-[150px]">{set?.audience_type}</p>
-                              <p className="w-[100px]">{set?.name}</p>
-                              <p className="w-[100px]">{set?.size}</p>
-                              <p>{set?.budget}</p>
-                            </div>
-                          ))}
-                        </div>
-                        <div></div>
-                      </div>
-                    )}
-                  </>
-                )}
             </div>
             {/* Controls */}
             {!disableDrag && (
@@ -593,6 +552,116 @@ const ResizableChannels = ({
                   onMouseDown={handleMouseDown(index, "right")}
                 >
                   <MdDragHandle className="rotate-90" />
+                  {channel?.ad_sets?.length > 0 && (
+                    <div className="relative">
+                      <div
+                        className="absolute top-[-30px] right-[-180px] bg-[#EBFEF4] py-[10px] px-[12px] w-fit mt-[5px] border border-[#00A36C1A] rounded-[8px] flex items-center cursor-pointer"
+                        onClick={() => {
+                          toggleChannel(`${channel?.name}${index}`);
+                          setSelectedCreative(channel?.format);
+                        }}
+                      >
+                        <p className="text-[14px] font-medium text-[#00A36C]">
+                          {channel?.ad_sets?.length} ad sets
+                        </p>
+                        <Image
+                          src={
+                            openItems &&
+                            openItems === `${channel?.name}${index}`
+                              ? arrowUp
+                              : arrowDown
+                          }
+                          alt=""
+                          width={24}
+                          height={24}
+                        />
+                      </div>
+                      {openItems &&
+                        openItems === `${channel?.name}${index}` && (
+                          <div className=" min-w-[500px] shrink-0 absolute top-[30px] bg-white z-20 left-[70px] rounded-md border shadow-md">
+                            <table className="table-auto w-full text-left text-[12px] text-[#061237B2] font-medium border-none hover:cursor-default">
+                              <thead className="bg-transparent">
+                                <tr>
+                                  <th className="px-4 py-2">#</th>
+                                  <th className="px-4 py-2">Audience Type</th>
+                                  <th className="px-4 py-2">Name</th>
+                                  <th className="px-4 py-2 whitespace-nowrap">
+                                    Audience size
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {channel?.ad_sets?.map((set, index) => (
+                                  <React.Fragment key={index}>
+                                    <tr className="border-none">
+                                      <td className="px-4 py-2 text-[#3175FF] font-bold whitespace-nowrap border-none">
+                                        Ad Set No.{index + 1}.
+                                      </td>
+                                      <td className="px-4 py-2 whitespace-nowrap border-none">
+                                        {set?.audience_type}
+                                      </td>
+                                      <td className="px-4 py-2 whitespace-nowrap border-none">
+                                        {set?.name}
+                                      </td>
+                                      <td className="px-4 py-2 whitespace-nowrap border-none">
+                                        {set?.size}
+                                      </td>
+                                    </tr>
+                                    {set?.extra_audiences?.map(
+                                      (extra, extraIndex) => (
+                                        <tr
+                                          key={`${index}-${extraIndex}`}
+                                          className="border-none"
+                                        >
+                                          <td className="px-4 py-2 text-[#3175FF] font-bold whitespace-nowrap border-none">
+                                            <div className="l-shape-container-ad">
+                                              <div
+                                                className={`absolute w-[1px] ${
+                                                  extraIndex > 0
+                                                    ? "h-[35px] top-[-35px]"
+                                                    : "h-[20px] top-[-20px]"
+                                                } bg-blue-500 left-[60px] `}
+                                              ></div>
+                                              <div
+                                                className={`absolute w-[60px] h-[1px] bg-blue-500 bottom-[-1px] left-[60px]`}
+                                              ></div>
+                                            </div>
+                                          </td>
+                                          <td className="px-4 py-2 whitespace-nowrap border-none">
+                                            {extra?.audience_type}
+                                          </td>
+                                          <td className="px-4 py-2 whitespace-nowrap border-none">
+                                            {extra?.name}
+                                          </td>
+                                          <td className="px-4 py-2 whitespace-nowrap border-none">
+                                            {extra?.size}
+                                          </td>
+                                        </tr>
+                                      )
+                                    )}
+                                  </React.Fragment>
+                                ))}
+                              </tbody>
+                            </table>
+                            <div className="p-2 mt-2 flex justify-between items-center">
+                              {/* {channel?.} */}
+                              <button
+                                className="bg-blue-500 text-white p-2 rounded-md"
+                                onClick={() => setOpenCreatives(true)}
+                              >
+                                View Creatives
+                              </button>
+                              <button
+                                className="bg-blue-500 text-white p-2 rounded-md"
+                                onClick={() => setOpenAdset(true)}
+                              >
+                                Add Adsets
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                    </div>
+                  )}
                   {!disableDrag && (
                     <button
                       className="delete-resizeableBar"
@@ -606,12 +675,113 @@ const ResizableChannels = ({
                       />
                     </button>
                   )}
+                  {/* Adset_display */}
                 </div>
               </>
             )}
+            {/* Ad sets */}
           </div>
         );
       })}
+      <Modal isOpen={openCreatives} onClose={() => setOpenCreatives(false)}>
+        <div className="bg-white w-[900px] p-2 rounded-lg">
+          <button
+            className="flex justify-end w-fit ml-auto"
+            onClick={() => setOpenCreatives(false)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="25"
+              height="25"
+              viewBox="0 0 25 25"
+              fill="none"
+            >
+              <path
+                d="M18.7266 6.5L6.72656 18.5M6.72656 6.5L18.7266 18.5"
+                stroke="#717680"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          <div className="flex gap-5 overflow-x-auto">
+            {selectedCreative
+              ?.filter((cre) => cre?.previews?.length > 0)
+              ?.map((format, index) => {
+                const option = DEFAULT_MEDIA_OPTIONS?.find(
+                  (opt) => opt?.name === format?.format_type
+                );
+                return (
+                  <div key={index} className="shrink-0">
+                    <div
+                      // onClick={onSelect}
+                      className={`relative text-center p-2 rounded-lg border transition border-blue-500 shadow-lg cursor-pointer w-fit`}
+                    >
+                      <Image
+                        src={option.icon || "/placeholder.svg"}
+                        width={168}
+                        height={132}
+                        alt={option.name}
+                      />
+                      <p className="text-sm font-medium text-gray-700 mt-2">
+                        {option.name}
+                      </p>
+                    </div>
+                    <div className="flex max-w-[500px] flex-wrap gap-2 mt-3">
+                      {format?.previews?.map((prec, pIndex) => (
+                        <div className="w-[168px] h-[150px] border rounded-md">
+                          {renderUploadedFile(
+                            format?.previews?.map((pre) => pre?.url),
+                            format?.format_type,
+                            pIndex
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      </Modal>
+      <Modal isOpen={openAdset} onClose={() => setOpenAdset(false)}>
+        <div className="bg-white w-[900px] p-2 rounded-lg">
+          <button
+            className="flex justify-end w-fit ml-auto"
+            onClick={() => setOpenAdset(false)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="25"
+              height="25"
+              viewBox="0 0 25 25"
+              fill="none"
+            >
+              <path
+                d="M18.7266 6.5L6.72656 18.5M6.72656 6.5L18.7266 18.5"
+                stroke="#717680"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          <AdSetsFlow
+            stageName={parentId}
+            // onEditStart={() => resetInteraction(stage.name)}
+            platformName="Facebook"
+          />
+          <div className="w-fit ml-auto">
+            <button
+              className="bg-blue-500 text-white rounded-md p-2"
+              onClick={() => setOpenAdset(false)}
+            >
+              Confirm Changes
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

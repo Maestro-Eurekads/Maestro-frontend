@@ -17,6 +17,7 @@ import BudgetInput from "./BudgetInput";
 import adset from "../../../public/adset_level.svg";
 import channel from "../../../public/channel_level.svg";
 import ConfigureAdSetsAndBudget from "./ ConfigureadSetsAndbudget";
+import toast from "react-hot-toast";
 
 const CampaignBudget = () => {
   const [budgetStyle, setBudgetStyle] = useState("");
@@ -24,6 +25,7 @@ const CampaignBudget = () => {
   const { setIsDrawerOpen, setClose } = useComments();
   const { isEditing, setIsEditing } = useEditing();
   const [loading, setLoading] = useState(false);
+  const [netAmount, setNetAmount] = useState("");
 
   useEffect(() => {
     setIsDrawerOpen(false);
@@ -203,11 +205,17 @@ const CampaignBudget = () => {
 
       {budgetStyle !== "" && budgetStyle === "top_down" && step > 0 && (
         <>
-          <FeeSelectionStep num1={2} num2={3} isValidated={feeStepValidated} />
+          <FeeSelectionStep num1={2} num2={3} isValidated={feeStepValidated} netAmount={netAmount} setNetAmount={setNetAmount} />
           {campaignFormData?.campaign_budget?.sub_budget_type && (
             <div className="flex justify-end mt-[20px]">
               <button
                 onClick={() => {
+                  if (!campaignFormData?.campaign_budget?.amount) {
+                    toast("Please set the overall campaign budget first", {
+                      style: { background: "red", color: "white" },
+                    });
+                    return;
+                  }
                   setFeeStepValidated(!feeStepValidated);
                   setStep(2)
                 }}
@@ -382,7 +390,7 @@ const CampaignBudget = () => {
       )}
       {budgetStyle !== "" && budgetStyle === "top_down" && step > 2 && (
         <>
-          <ConfigureAdSetsAndBudget num={5} />
+          <ConfigureAdSetsAndBudget num={5} netAmount={netAmount} />
         </>
       )}
       {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 0 && (
@@ -537,8 +545,8 @@ const CampaignBudget = () => {
       )}
       {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 1 && (
         <>
-          <ConfigureAdSetsAndBudget num={3} />
-          <FeeSelectionStep num1={4} num2={5} />
+          <ConfigureAdSetsAndBudget num={3} netAmount={netAmount} />
+          <FeeSelectionStep num1={4} num2={5} netAmount={netAmount} setNetAmount={setNetAmount} />
         </>
       )}
     </div>

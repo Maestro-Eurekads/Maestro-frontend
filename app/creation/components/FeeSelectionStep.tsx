@@ -24,10 +24,14 @@ function FeeSelectionStep({
   num1,
   num2,
   isValidated,
+  netAmount,
+  setNetAmount
 }: {
   num1: number;
   num2: number;
   isValidated?: boolean;
+  netAmount: any;
+  setNetAmount: any
 }) {
   const [active, setActive] = useState(null);
   const { campaignFormData, setCampaignFormData } = useCampaigns();
@@ -39,7 +43,7 @@ function FeeSelectionStep({
   const [fees, setFees] = useState([]);
   const [feeType, setFeeType] = useState(null);
   const [feeAmount, setFeeAmount] = useState("");
-  const [netAmount, setNetAmount] = useState("");
+  // const [netAmount, setNetAmount] = useState("");
 
   const selectCurrency = [
     { value: "USD", label: "USD" },
@@ -88,21 +92,31 @@ function FeeSelectionStep({
     feesList = fees,
     budget = campaignFormData?.campaign_budget?.amount
   ) => {
+    console.log("here")
     const budgetAmount = parseFloat(budget || "0");
+    console.log("🚀 ~ budgetAmount:", budgetAmount)
     const totalFees = feesList.reduce(
       (total, fee) => total + parseFloat(fee.amount),
       0
     );
+    console.log("🚀 ~ totalFees:", totalFees)
 
     const net =
       active === 1
         ? (budgetAmount - totalFees).toFixed(2)
         : (budgetAmount + totalFees).toFixed(2);
+    console.log("🚀 ~ net:", net)
 
     setNetAmount(net);
   };
 
   const handleAddFee = () => {
+    if (!campaignFormData?.campaign_budget?.amount) {
+      toast("Please set the overall campaign budget first", {
+        style: { background: "red", color: "white" },
+      });
+      return;
+    }
     if (!feeType || !feeAmount) {
       toast("Fee type and value is required", {
         style: { background: "red", color: "white" },
@@ -232,6 +246,7 @@ function FeeSelectionStep({
       });
 
       setFees(updatedFees);
+      console.log("fees", updatedFees)
 
       const budgetFees = updatedFees.map((fee) => ({
         fee_type: fee.type,
@@ -239,6 +254,7 @@ function FeeSelectionStep({
         percentValue: fee?.percentValue,
         isPercent: fee?.isPercent,
       }));
+      updateNetAmount(updatedFees);
 
       setCampaignFormData((prev) => ({
         ...prev,
@@ -248,15 +264,13 @@ function FeeSelectionStep({
         },
       }));
     }
-
-    updateNetAmount(fees);
   }, [campaignFormData?.campaign_budget?.amount, active]);
 
   const calculateRemainingBudget = () => {
     const totalBudget =
       Number(netAmount) > 0
         ? parseInt(netAmount)
-        : parseInt(campaignFormData?.campaign_budget?.fixed_value);
+        : parseInt(campaignFormData?.campaign_budget?.amount);
     const subBudgets =
       campaignFormData?.channel_mix?.reduce((acc, stage) => {
         return acc + (Number(stage?.stage_budget?.fixed_value) || 0);
@@ -776,11 +790,11 @@ function FeeSelectionStep({
                   {Number(netAmount) > 0
                     ? netAmount
                     : isNaN(
-                        parseInt(campaignFormData?.campaign_budget?.fixed_value)
+                        parseInt(campaignFormData?.campaign_budget?.amount)
                       )
                     ? ""
                     : parseInt(
-                        campaignFormData?.campaign_budget?.fixed_value
+                        campaignFormData?.campaign_budget?.amount
                       ).toLocaleString()}
                 </p>
               </div>
@@ -800,12 +814,12 @@ function FeeSelectionStep({
                 {Number(netAmount) > 0
                   ? netAmount
                   : isNaN(
-                      parseInt(campaignFormData?.campaign_budget?.fixed_value)
+                      parseInt(campaignFormData?.campaign_budget?.amount)
                     )
                   ? ""
                   : formatNumberWithCommas(
                       Number(
-                        campaignFormData?.campaign_budget?.fixed_value
+                        campaignFormData?.campaign_budget?.amount
                       ).toLocaleString()
                     )}
               </p>
