@@ -28,44 +28,6 @@ const TableView = () => {
 
   const processedData = extractPlatforms(campaignFormData)
 
-  // Initialize merged headers and body when campaign objectives change
-  // useEffect(() => {
-  //   const existingHeaderNames = new Set(
-  //     tableHeaders[campaignFormData?.campaign_objective]?.map(
-  //       (header) => header.name
-  //     ) || tableHeaders["Brand Awareness"]
-  //   );
-  //   const newHeaders = [
-  //     ...(tableHeaders[campaignFormData?.campaign_objective] ||
-  //       tableHeaders["Brand Awareness"]),
-  //   ];
-  //   console.log("🚀 ~ useEffect ~ newHeaders:", newHeaders);
-  //   const newBody = [
-  //     ...(tableBody[campaignFormData?.campaign_objective] ||
-  //       tableBody["Brand Awareness"]),
-  //   ];
-  //   console.log("🚀 ~ useEffect ~ newBody:", tableBody);
-
-  //   selectedMetrics.forEach((metric) => {
-  //     if (!existingHeaderNames.has(metric.name)) {
-  //       newHeaders.push(metric);
-  //       existingHeaderNames.add(metric.name);
-
-  //       const bodyField = metric.name
-  //         .toLowerCase()
-  //         .replace(/ /g, "_")
-  //         .replace(/\//g, "")
-  //         .replace(/-/g, "_");
-  //       if (!newBody.includes(bodyField)) {
-  //         newBody.push(bodyField);
-  //       }
-  //     }
-  //   });
-
-  //   setMergedTableHeaders(newHeaders);
-  //   setMergedTableBody(newBody);
-  // }, [selectedMetrics, campaignFormData?.campaign_objectives]);
-
   const toggleRow = (index) => {
     setExpandedRows((prev) => ({
       ...prev,
@@ -147,7 +109,8 @@ const TableView = () => {
           const metricKey = header.name.toLowerCase().replace(/ /g, "_").replace(/\//g, "").replace(/-/g, "_")
           kpiMetrics.add(metricKey)
         })
-
+        
+        // console.log("🚀 ~ stageData.forEach ~ kpiMetrics:", kpiMetrics)
         // For each KPI metric, aggregate values
         Array.from(kpiMetrics).forEach((metric) => {
           let sum = 0
@@ -156,7 +119,7 @@ const TableView = () => {
           // Sum up values from ad sets
           adSets.forEach((adSet, adSetIndex) => {
             // Get the value from the ad set
-            const adSetValue = adSet?.kpi?.[metric]
+            const adSetValue = adSet?.kpi?.[metric as string]
             if (!isNaN(adSetValue) && isFinite(adSetValue)) {
               sum += Number(adSetValue)
               hasValidValues = true
@@ -165,7 +128,7 @@ const TableView = () => {
             // Also include values from extra audiences
             const extraAudiences = adSet?.extra_audiences || []
             extraAudiences.forEach((extraAudience) => {
-              const extraValue = extraAudience?.kpi?.[metric]
+              const extraValue = extraAudience?.kpi?.[metric as string]
               if (!isNaN(extraValue) && isFinite(extraValue)) {
                 sum += Number(extraValue)
                 hasValidValues = true
@@ -181,7 +144,7 @@ const TableView = () => {
 
             if (channelData) {
               channelData.kpi = channelData.kpi || {}
-              channelData.kpi[metric] = sum
+              channelData.kpi[metric as string] = sum
             }
           }
         })
@@ -276,11 +239,11 @@ const TableView = () => {
   }, [campaignFormData, selectedMetrics, currentEditingStage])
 
   // Add this useEffect after the existing useEffects
-  useEffect(() => {
-    if (campaignFormData) {
-      aggregateKPIMetrics()
-    }
-  }, [processedData, mergedTableHeadersByStage])
+  // useEffect(() => {
+  //   if (campaignFormData) {
+  //     aggregateKPIMetrics()
+  //   }
+  // }, [processedData, mergedTableHeadersByStage])
 
   const handleEditInfo = (stageName, channelName, platformName, fieldName, value, adSetIndex, extraAdSetindex) => {
     setCampaignFormData((prevData) => {

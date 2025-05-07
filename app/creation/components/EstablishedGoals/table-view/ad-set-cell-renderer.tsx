@@ -53,8 +53,14 @@ export const AdSetCellRenderer = ({
     return (
       <div className="flex gap-2 indent-[10px]">
         <div className="l-shape-container">
-          <div className="l-vertical"></div>
-          <div className="l-horizontal"></div>
+          <div
+            className="l-vertical"
+            style={{
+              height: adSetIndex > 0 ? "160px" : "56px",
+              top: adSetIndex > 0 ? "-160px" : "-55px",
+            }}
+          ></div>
+          <div className="l-horizontal" style={{ width: "150px" }}></div>
         </div>
       </div>
     );
@@ -65,7 +71,7 @@ export const AdSetCellRenderer = ({
         {/* <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
           {adSetIndex + 1}.
         </span>*/}
-        <span>{adSet?.name ? adSet?.name : "-"}</span> 
+        <span>{adSet?.name ? adSet?.name : "-"}</span>
       </div>
     );
   }
@@ -73,9 +79,9 @@ export const AdSetCellRenderer = ({
   if (body === "audience") {
     return (
       <div className="flex gap-2 ">
-        <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
+        {/* <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
           {1}.
-        </span>
+        </span> */}
         {!adSet?.audience_type ? "-" : adSet?.audience_type}
       </div>
     );
@@ -167,17 +173,17 @@ export const AdSetCellRenderer = ({
 
   // Get the raw value from the form data
   const kpiValue =
-  body === "budget_size"
-  ? campaignFormData?.channel_mix
-      ?.find((ch) => ch?.funnel_stage === stage.name)
-      ?.[channel?.channel_name]?.find(
-        (c) => c?.platform_name === channel?.name
-      )?.ad_sets[adSetIndex]?.budget?.fixed_value || ""
-  : 
-    campaignFormData?.channel_mix
-      ?.find((ch) => ch?.funnel_stage === stage.name)
-      [channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)
-      ?.ad_sets[adSetIndex]?.kpi?.[body] || "";
+    body === "budget_size"
+      ? campaignFormData?.channel_mix
+          ?.find((ch) => ch?.funnel_stage === stage.name)
+          ?.[channel?.channel_name]?.find(
+            (c) => c?.platform_name === channel?.name
+          )?.ad_sets[adSetIndex]?.budget?.fixed_value || ""
+      : campaignFormData?.channel_mix
+          ?.find((ch) => ch?.funnel_stage === stage.name)
+          [channel?.channel_name]?.find(
+            (c) => c?.platform_name === channel?.name
+          )?.ad_sets[adSetIndex]?.kpi?.[body] || "";
 
   // Format display value for percentage fields - keep the raw input value for UI
   let displayValue = kpiValue;
