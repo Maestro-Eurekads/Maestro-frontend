@@ -48,7 +48,7 @@ const OverviewofyourCampaign = () => {
 	const [alert, setAlert] = useState(null);
 	const [showalert, setshowAlert] = useState(false);
 	const { range } = useDateRange();
-	const { clientCampaignData, campaignData, isLoading: isLoadingCampaign } = useCampaigns();
+	const { clientCampaignData, campaignData, isLoading: isLoadingCampaign, campaignFormData } = useCampaigns();
 	const dispatch = useAppDispatch();
 	const query = useSearchParams();
 	const commentId = query.get("campaignId");
@@ -99,7 +99,6 @@ const OverviewofyourCampaign = () => {
 
 
 
-	console.log("clientCampaignData-clientCampaignData", campaignData);
 
 
 
@@ -208,6 +207,9 @@ const OverviewofyourCampaign = () => {
 	const statsData = mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, { upfull, downfull, downoffline, upoffline }, finalCategoryOrder);
 
 
+	console.log("currency-currency-currency", campaignData?.campaign_budget.currency);
+
+
 	const fetchCategories = async (campaign_id) => {
 		const kpiData = await getKpis(campaign_id);
 		if (kpiData) {
@@ -229,14 +231,7 @@ const OverviewofyourCampaign = () => {
 			setFinalCategoryOrder(categoryOrder);
 		}
 	}, [kpiCategory]);
-	// console.log("kpiData-kpiData", kpiCategory?.aggregated_kpis)
 
-	// console.log('aggregatedStats-aggregatedStats-aggregatedStats', aggregatedStats);
-	// console.log('statsData-statsData-statsData', statsData);
-
-
-
-	// console.log("aggregatedStats-aggregatedStats", Object.keys(aggregatedStats));
 
 
 
@@ -305,7 +300,7 @@ const OverviewofyourCampaign = () => {
 			</div>
 			<div className="creation_continer">
 				<div >
-					<ConfigureBudgetComponet show={show} t1={"Your budget by campaign phase"} t2={undefined} />
+					<ConfigureBudgetComponet show={show} t1={"Your budget by campaign phase"} t2={undefined} funnelData={extractedData} />
 				</div>
 			</div>
 			<div>
