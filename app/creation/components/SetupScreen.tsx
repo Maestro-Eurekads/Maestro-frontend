@@ -17,6 +17,7 @@ import {
 import ClientSelectionInputbudget from "components/ClientSelectionInputbudget";
 import { useComments } from "app/utils/CommentProvider";
 import { useUserPrivileges } from "utils/userPrivileges";
+import { useRouter } from "next/navigation";
 
 export const SetupScreen = () => {
   const {
@@ -52,6 +53,12 @@ export const SetupScreen = () => {
     hasChanges,
   } = useVerification();
   const { isAgencyCreator } = useUserPrivileges();
+
+  const router = useRouter();
+
+  useEffect(() => {
+    router.refresh(); // Forces a refresh of the current page
+  }, [router]);
 
   useEffect(() => {
     setIsDrawerOpen(false);
@@ -125,8 +132,8 @@ export const SetupScreen = () => {
 
   useEffect(() => {
     if (isAgencyCreator) {
-      if(profile?.clients){
-        const options = profile?.clients?.map((c)=>({
+      if (profile?.clients) {
+        const options = profile?.clients?.map((c) => ({
           id: c?.documentId,
           value: c?.client_name,
           label: c?.client_name,
