@@ -17,6 +17,7 @@
     "@reduxjs/toolkit": "^2.6.0",
     "@types/react-date-range": "^1.4.9",
     "axios": "^1.8.1",
+    "browser-image-compression": "^2.0.2",
     "chart.js": "^4.4.8",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",

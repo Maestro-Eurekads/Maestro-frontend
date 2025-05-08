@@ -599,55 +599,7 @@ export const platformStyles = [
   { name: "FilmTV", color: "#7C3AED", icon: filmtv, bg: "#F6F0FF" },
 ];
 
-// export const renderUploadedFile = (uploadBlobs, format, index: number, ext?: any) => {
-//   if (!uploadBlobs[index]) return null;
-
-//   if (format === "Video") {
-//     return (
-//       <video
-//         src={uploadBlobs[index]}
-//         controls
-//         className="w-full h-full object-cover rounded-lg"
-//       />
-//     );
-//   }
-
-//   if (format === "Slideshow") {
-//     console.log("hr", ext?.name)
-//     return (
-//       <>
-//         {typeof uploadBlobs[index] === "string" &&
-//           ext && ext?.name?.includes("pptx") ? (
-//           <iframe
-//             src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-//               uploadBlobs[index]
-//             )}`}
-//             className="w-full h-full rounded-lg"
-//             title={`Slideshow ${index}`}
-//           />
-//         ) : (
-//           <iframe
-//             src={uploadBlobs[index]}
-//             className="w-full h-full rounded-lg"
-//             title={`Slideshow ${index}`}
-//           />
-//         )}
-//       </>
-//     );
-//   }
-
-//   return (
-//     <Image
-//       src={uploadBlobs[index]}
-//       alt={`Image ${index}`}
-//       className="w-full h-full object-cover rounded-lg"
-//       width={225}
-//       height={105}
-//     />
-//   );
-// };
-
-export const renderUploadedFile = (uploadBlobs: string[], format: string, index: number, ext?: any) => {
+export const renderUploadedFile = (uploadBlobs, format, index: number, ext?: any) => {
   if (!uploadBlobs[index]) return null;
 
   if (format === "Video") {
@@ -661,24 +613,11 @@ export const renderUploadedFile = (uploadBlobs: string[], format: string, index:
   }
 
   if (format === "Slideshow") {
-    // Check if the file is a PDF based on the blob URL or ext
-    const isPDF = ext?.name?.toLowerCase().endsWith(".pdf") || uploadBlobs[index].includes("application/pdf");
-    
-    if (isPDF) {
-      return (
-        <embed
-          src={uploadBlobs[index]}
-          type="application/pdf"
-          className="w-full h-full rounded-lg"
-          title={`Slideshow ${index}`}
-        />
-      );
-    }
-
-    // Handle other slideshow formats (e.g., PPTX)
+    console.log("hr", ext?.name)
     return (
       <>
-        {typeof uploadBlobs[index] === "string" && ext?.name?.includes("pptx") ? (
+        {typeof uploadBlobs[index] === "string" &&
+          ext && ext?.name?.includes("pptx") ? (
           <iframe
             src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
               uploadBlobs[index]
@@ -707,6 +646,8 @@ export const renderUploadedFile = (uploadBlobs: string[], format: string, index:
     />
   );
 };
+
+
 
 export function hasFormatEntered(channelMix) {
   // Loop through each funnel stage
