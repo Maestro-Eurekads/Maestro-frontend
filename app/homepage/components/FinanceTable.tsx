@@ -26,7 +26,7 @@ function FinanceTable({
     setExpandedPO(po);
   };
 
-  console.log('clientCampaignData-clientCampaignData', clientCampaignData)
+
 
   return (
     <table className="w-full">

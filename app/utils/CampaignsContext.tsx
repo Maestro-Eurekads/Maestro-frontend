@@ -83,7 +83,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   });
   const [selectedFilters, setSelectedFilters] = useState({});
 
-  console.log('selectedFilters-selectedFilters', selectedFilters)
+
 
   const reduxClients = useSelector(
     (state: any) => state.client?.getCreateClientData?.data || []

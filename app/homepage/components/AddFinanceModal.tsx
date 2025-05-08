@@ -252,39 +252,78 @@ const AddFinanceModal = ({
     return true;
   };
 
+  // const checkPONumberExists = async (poNumber: number) => {
+  //   try {
+  //     const response = await axios.get(
+  //       `${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders?filters[PO_number][$eq]=${poNumber}`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+  //         },
+  //       }
+  //     );
+  //     return response.data.data.length > 0;
+  //   } catch (err) {
+  //     console.error("Error checking PO number:", err);
+  //     return false;
+  //   }
+  // };
+  // const checkPONumberExists = async (poNumber: number, clientId: string) => {
+  //   try {
+  //     const response = await axios.get(
+  //       `${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders?filters[PO_number][$eq]=${poNumber}&filters[client][id][$eq]=${clientId}`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+  //         },
+  //       }
+  //     );
+  //     return response.data.data.length > 0;
+  //   } catch (err) {
+  //     console.error("Error checking PO number:", err);
+  //     return false;
+  //   }
+  // };
   const checkPONumberExists = async (poNumber: number) => {
     try {
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders?filters[PO_number][$eq]=${poNumber}`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders?filters[PO_number][$eq]=${poNumber}&populate=client`,
         {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
           },
         }
       );
-      return response.data.data.length > 0;
+      return response.data.data; // An array of POs with the same PO_number
     } catch (err) {
       console.error("Error checking PO number:", err);
-      return false;
+      return [];
     }
   };
 
+
   const addPOToDB = async () => {
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setUploading(true);
+
     try {
-      const poExists = await checkPONumberExists(poForm.PO_number);
-      if (poExists) {
-        toast("PO number already exists. Please use a different number.", {
+      const existingPOs = await checkPONumberExists(poForm.PO_number);
+
+      // Check if any existing PO belongs to a DIFFERENT client
+      const poConflict = existingPOs.some(
+        (po: any) => po?.client?.id !== Number(poForm.client)
+      );
+
+      if (poConflict) {
+        toast("PO number already exists for a different client. Please use a unique PO number.", {
           style: { background: "red", color: "white", textAlign: "center" },
           duration: 3000,
         });
         return;
       }
 
+      // Safe to create new PO
       const payload = {
         data: {
           ...poForm,
@@ -331,21 +370,173 @@ const AddFinanceModal = ({
       console.error("Error creating PO:", err);
       const errorMessage =
         err?.response?.data?.error?.message || "An unexpected error occurred";
-      if (errorMessage.includes("This attribute must be unique")) {
-        toast("PO number already exists. Please use a different number.", {
-          style: { background: "red", color: "white", textAlign: "center" },
-          duration: 3000,
-        });
-      } else {
-        toast(`Error: ${errorMessage}`, {
-          style: { background: "red", color: "white", textAlign: "center" },
-          duration: 3000,
-        });
-      }
+
+      toast(`Error: ${errorMessage}`, {
+        style: { background: "red", color: "white", textAlign: "center" },
+        duration: 3000,
+      });
     } finally {
       setUploading(false);
     }
   };
+
+
+
+  // const addPOToDB = async () => {
+  //   if (!validateForm()) {
+  //     return;
+  //   }
+
+  //   setUploading(true);
+  //   try {
+  //     const poExists = await checkPONumberExists(poForm.PO_number, poForm.client);
+  //     console.log('poExists-poExists-poExists', poExists)
+  //     if (poExists) {
+  //       toast("PO number already exists. Please use a different number.", {
+  //         style: { background: "red", color: "white", textAlign: "center" },
+  //         duration: 3000,
+  //       });
+  //       return;
+  //     }
+
+  //     const payload = {
+  //       data: {
+  //         ...poForm,
+  //         assigned_media_plans: mediaPlans?.map((mp) => ({
+  //           campaign: mp?.name,
+  //           amount:
+  //             mp?.type === "total_po_amount_percent"
+  //               ? (Number(mp?.amount) / 100) * Number(poForm?.PO_total_amount)
+  //               : Number(mp?.amount),
+  //           amount_type: mp?.type,
+  //           percentage: mp?.type === "total_po_amount_percent" ? Number(mp?.amount) : null,
+  //         })),
+  //       },
+  //     };
+
+  //     const response = await axios.post(
+  //       `${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders?populate[0]=assigned_media_plans.campaign`,
+  //       payload,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+  //         },
+  //       }
+  //     );
+
+  //     const newPO = response.data.data;
+  //     setClientPOs((prevPOs) => [newPO, ...(prevPOs || [])]);
+  //     dispatch(getCreateClient());
+
+  //     if (selected) {
+  //       localStorage.setItem("selectedClient", selected);
+  //     }
+
+  //     toast("Purchase Order created successfully!", {
+  //       style: { background: "green", color: "white", textAlign: "center" },
+  //       duration: 3000,
+  //     });
+
+  //     handleClose();
+  //     fetchClientPOS(poForm.client).then((res) => {
+  //       setClientPOs(res?.data?.data || []);
+  //     });
+  //   } catch (err: any) {
+  //     console.error("Error creating PO:", err);
+  //     const errorMessage =
+  //       err?.response?.data?.error?.message || "An unexpected error occurred";
+  //     if (errorMessage.includes("This attribute must be unique")) {
+  //       toast("PO number already exists. Please use a different number.", {
+  //         style: { background: "red", color: "white", textAlign: "center" },
+  //         duration: 3000,
+  //       });
+  //     } else {
+  //       toast(`Error: ${errorMessage}`, {
+  //         style: { background: "red", color: "white", textAlign: "center" },
+  //         duration: 3000,
+  //       });
+  //     }
+  //   } finally {
+  //     setUploading(false);
+  //   }
+  // };
+
+  // const addPOToDB = async () => {
+  //   if (!validateForm()) return;
+
+  //   setUploading(true);
+  //   try {
+  //     const matchingPOs = await checkPONumberExists(poForm.PO_number);
+  //     console.log('clientCampaignData-clientCampaignData', matchingPOs)
+  //     console.log('response-matchingPOs-matchingPOs', poForm.client)
+
+  //     const conflictingPO = matchingPOs.find(
+  //       (po: any) => po?.attributes?.client?.data?.id !== poForm.client
+  //     );
+  //     console.log('attributes-attributes-attributes', conflictingPO)
+  //     if (conflictingPO) {
+  //       toast("PO number already exists for another client. Please use a different number.", {
+  //         style: { background: "red", color: "white", textAlign: "center" },
+  //         duration: 3000,
+  //       });
+  //       return;
+  //     }
+
+  //     const payload = {
+  //       data: {
+  //         ...poForm,
+  //         assigned_media_plans: mediaPlans?.map((mp) => ({
+  //           campaign: mp?.name,
+  //           amount:
+  //             mp?.type === "total_po_amount_percent"
+  //               ? (Number(mp?.amount) / 100) * Number(poForm?.PO_total_amount)
+  //               : Number(mp?.amount),
+  //           amount_type: mp?.type,
+  //           percentage: mp?.type === "total_po_amount_percent" ? Number(mp?.amount) : null,
+  //         })),
+  //       },
+  //     };
+
+  //     const response = await axios.post(
+  //       `${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders?populate[0]=assigned_media_plans.campaign`,
+  //       payload,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+  //         },
+  //       }
+  //     );
+
+  //     const newPO = response.data.data;
+  //     setClientPOs((prevPOs) => [newPO, ...(prevPOs || [])]);
+  //     dispatch(getCreateClient());
+
+  //     if (selected) {
+  //       localStorage.setItem("selectedClient", selected);
+  //     }
+
+  //     toast("Purchase Order created successfully!", {
+  //       style: { background: "green", color: "white", textAlign: "center" },
+  //       duration: 3000,
+  //     });
+
+  //     handleClose();
+  //     fetchClientPOS(poForm.client).then((res) => {
+  //       setClientPOs(res?.data?.data || []);
+  //     });
+  //   } catch (err: any) {
+  //     console.error("Error creating PO:", err);
+  //     const errorMessage =
+  //       err?.response?.data?.error?.message || "An unexpected error occurred";
+  //     toast(`Error: ${errorMessage}`, {
+  //       style: { background: "red", color: "white", textAlign: "center" },
+  //       duration: 3000,
+  //     });
+  //   } finally {
+  //     setUploading(false);
+  //   }
+  // };
+
 
   const updatePOInDB = async () => {
     if (!validateForm()) {
