@@ -8,17 +8,21 @@ import down2 from "../../public/arrow-down-2.svg";
 import checkmark from "../../public/mingcute_check-fill.svg";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import customicon from "../../public/social/customicon.png";
+import Modal from "./Modal";
+import AdSetsFlow from "../../app/creation/components/common/AdSetsFlow";
 
 const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
   const [selected, setSelected] = useState({});
   const [validatedStages, setValidatedStages] = useState({});
-  const { campaignFormData, setCampaignFormData, platformList } =
+  const { campaignFormData, setCampaignFormData, platformList, campaignData } =
     useCampaigns();
   const [openChannelTypes, setOpenChannelTypes] = useState({});
   const [showMoreMap, setShowMoreMap] = useState({});
   const [stageStatuses, setStageStatuses] = useState({});
   const ITEMS_TO_SHOW = 6;
+  const [newlySelected, setNewlySelected] = useState([])
+  const [openAdset, setOpenAdset] = useState(false);
 
   useEffect(() => {
     if (campaignFormData?.funnel_stages?.length > 0) {
@@ -172,6 +176,30 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
       };
     });
 
+    // Track newly added platforms
+    setNewlySelected((prevNewlySelected) => {
+      const originalPlatforms =
+        campaignData.channel_mix
+          ?.find((item) => item.funnel_stage === stageName)?.[
+          category.toLowerCase().replaceAll(" ", "_")
+        ]?.map((platform) => platform.platform_name) || [];
+
+      const isNewlyAdded = !originalPlatforms.includes(platformName);
+
+      if (isNewlyAdded) {
+        return [...prevNewlySelected, { stageName, category, platformName }];
+      }
+
+      return prevNewlySelected.filter(
+        (item) =>
+          !(
+            item.stageName === stageName &&
+            item.category === category &&
+            item.platformName === platformName
+          )
+      );
+    });
+
     // Sync with server
   };
   const toggleChannelType = (e, stageName, type) => {
@@ -213,9 +241,9 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
   };
 
   return (
-    <div className="z-50">
+    <div className="relative z-[70]">
       {isOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 w-full">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 w-full z-[70]">
           <div className="flex flex-col items-start p-6 gap-6 bg-white rounded-[10px] w-[65%]">
             <button className="self-end" onClick={() => setIsOpen(false)}>
               <svg
@@ -515,13 +543,51 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
               </div>
             </div>
             <div className="w-fit ml-auto">
-              <button className="w-fit bg-blue-500 text-white rounded-md p-2 text-[16px]">
+              <button className="w-fit bg-blue-500 text-white rounded-md p-2 text-[16px]" onClick={()=>setOpenAdset(true)}>
                 Configure Adset and Audiences
               </button>
             </div>
           </div>
         </div>
       )}
+      <Modal isOpen={openAdset} onClose={() => setOpenAdset(false)}>
+        <div className="bg-white w-[900px] p-2 rounded-lg">
+          <button
+            className="flex justify-end w-fit ml-auto"
+            onClick={() => setOpenAdset(false)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="25"
+              height="25"
+              viewBox="0 0 25 25"
+              fill="none"
+            >
+              <path
+                d="M18.7266 6.5L6.72656 18.5M6.72656 6.5L18.7266 18.5"
+                stroke="#717680"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          <AdSetsFlow
+            stageName={selectedStage}
+            // onEditStart={() => resetInteraction(stage.name)}
+            platformName={newlySelected?.map((nn)=>nn?.platformName)}
+            modalOpen={openAdset}
+          />
+          <div className="w-fit ml-auto">
+            <button
+              className="bg-blue-500 text-white rounded-md p-2"
+              onClick={() => setOpenAdset(false)}
+            >
+              Confirm Changes
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

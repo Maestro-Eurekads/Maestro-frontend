@@ -24,6 +24,7 @@ import downfull from "../../../public/arrow-down-full.svg";
 import upoffline from "../../../public/arrow-up-offline.svg";
 import { useKpis } from 'app/utils/KpiProvider';
 import AlertMain from 'components/Alert/AlertMain';
+import MainSection from './organisms/main-section/main-section';
 
 interface Comment {
 	documentId: string;
@@ -311,7 +312,8 @@ const OverviewofyourCampaign = () => {
 				</div>
 
 				<MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
-				<OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} setIsDrawerOpen={setIsDrawerOpen} openComments={isDrawerOpen} />
+				{/* <OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} setIsDrawerOpen={setIsDrawerOpen} openComments={isDrawerOpen} /> */}
+				<MainSection hideDate={true}/>
 			</div>
 
 		</div>
