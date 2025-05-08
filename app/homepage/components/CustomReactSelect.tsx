@@ -21,6 +21,7 @@ export interface CustomSelectProps extends Props<SelectOption, false> {
 }
 
 export function CustomSelect({
+  required,
   options,
   value,
   onChange,
@@ -60,8 +61,8 @@ export function CustomSelect({
       backgroundColor: state.isSelected
         ? "#f3f4f6"
         : state.isFocused
-        ? "#f9fafb"
-        : "white",
+          ? "#f9fafb"
+          : "white",
       color: state.isDisabled ? "#9ca3af" : "#111827",
       fontWeight: state.isSelected ? "500" : "400",
       padding: "8px 12px",
@@ -109,6 +110,7 @@ export function CustomSelect({
       )}
 
       <Select
+        required={required}
         options={options}
         value={value}
         onChange={onChange as any}

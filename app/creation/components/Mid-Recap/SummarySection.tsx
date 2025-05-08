@@ -55,18 +55,20 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
     setLoading(false);
     closeEditStep();
   };
+
   const handleConfirmClick = async (step) => {
     switch (step) {
       case "Your funnel stages":
       case "Your channel mix":
-        case "Your Adset and Audiences":
+      case "Your Adset and Audiences":
+      case "Your format selections": // Added to fix the Confirm Changes button
         await handleConfirmStep();
         break;
-
       default:
         break;
     }
   };
+
   return (
     <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full">
       <div className="flex justify-between items-center mb-4">

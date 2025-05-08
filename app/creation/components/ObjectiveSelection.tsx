@@ -62,14 +62,14 @@ const ObjectiveSelection = () => {
     const savedPlatforms = localStorage.getItem("validatedPlatforms");
     return savedPlatforms
       ? JSON.parse(savedPlatforms, (key, value) =>
-        value.dataType === "Set" ? new Set(value.value) : value
-      )
+          value.dataType === "Set" ? new Set(value.value) : value
+        )
       : {
-        Awareness: new Set(),
-        Consideration: new Set(),
-        Conversion: new Set(),
-        Loyalty: new Set(),
-      };
+          Awareness: new Set(),
+          Consideration: new Set(),
+          Conversion: new Set(),
+          Loyalty: new Set(),
+        };
   });
   const [dropdownOpen, setDropdownOpen] = useState({});
   const [showInput, setShowInput] = useState("");
@@ -128,38 +128,12 @@ const ObjectiveSelection = () => {
   }, [campaignFormData?.funnel_stages, campaignFormData?.channel_mix]);
 
   // Update statuses based on selectedOptions and validatedPlatforms
-  // useEffect(() => {
-  //   if (campaignFormData?.funnel_stages) {
-  //     const updatedStatuses = {};
-  //     campaignFormData.funnel_stages.forEach((stageName) => {
-  //       if (validatedPlatforms[stageName]?.size > 0) {
-  //         updatedStatuses[stageName] = "Completed";
-  //       } else if (hasCompleteSelection(stageName)) {
-  //         updatedStatuses[stageName] = "In Progress";
-  //       } else {
-  //         updatedStatuses[stageName] = "Not Started";
-  //       }
-  //     });
-  //     setStatuses(updatedStatuses);
-  //     localStorage.setItem(
-  //       "funnelStageStatuses",
-  //       JSON.stringify(updatedStatuses)
-  //     );
-  //   }
-  // }, [selectedOptions, validatedPlatforms, campaignFormData?.funnel_stages]);
-
-  // // Persist selectedOptions to localStorage
-  // useEffect(() => {
-  //   localStorage.setItem("selectedOptions", JSON.stringify(selectedOptions));
-  // }, [selectedOptions]);
-
   useEffect(() => {
     if (campaignFormData?.funnel_stages) {
       const updatedStatuses = {};
-
       campaignFormData.funnel_stages.forEach((stageName) => {
         const hasValidated = validatedPlatforms[stageName]?.size > 0;
-        const hasSelected = hasCompleteSelection(stageName); // Your function for checking selections
+        const hasSelected = hasCompleteSelection(stageName);
 
         if (hasValidated) {
           updatedStatuses[stageName] = "Completed";
@@ -169,7 +143,6 @@ const ObjectiveSelection = () => {
           updatedStatuses[stageName] = "Not Started";
         }
       });
-
       setStatuses(updatedStatuses);
       localStorage.setItem(
         "funnelStageStatuses",
@@ -178,6 +151,10 @@ const ObjectiveSelection = () => {
     }
   }, [selectedOptions, validatedPlatforms, campaignFormData?.funnel_stages]);
 
+  // Persist selectedOptions to localStorage
+  useEffect(() => {
+    localStorage.setItem("selectedOptions", JSON.stringify(selectedOptions));
+  }, [selectedOptions]);
 
   // Persist validatedPlatforms to localStorage
   useEffect(() => {
@@ -199,30 +176,34 @@ const ObjectiveSelection = () => {
       : [];
     channelMix.forEach((stage) => {
       const stageName = stage.funnel_stage;
-      ["social_media", "display_networks", "search_engines", "streaming", "ooh", "print", "in_game", "e_commerce", "broadcast", "messaging", "mobile"].forEach(
-        (category) => {
-          const platforms = Array.isArray(stage[category])
-            ? stage[category]
-            : [];
-          platforms.forEach((platform) => {
-
-            const platformName = platform.platform_name;
-            const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`;
-            const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`;
-            if (platform.buy_type && !selectedOptions[buyTypeKey]) {
-              initialSelectedOptions[buyTypeKey] = platform.buy_type;
-            }
-            if (
-              platform.objective_type &&
-              !selectedOptions[buyObjectiveKey]
-            ) {
-              initialSelectedOptions[buyObjectiveKey] =
-                platform.objective_type;
-            }
-
-          });
-        }
-      );
+      [
+        "social_media",
+        "display_networks",
+        "search_engines",
+        "streaming",
+        "ooh",
+        "print",
+        "in_game",
+        "e_commerce",
+        "broadcast",
+        "messaging",
+        "mobile",
+      ].forEach((category) => {
+        const platforms = Array.isArray(stage[category])
+          ? stage[category]
+          : [];
+        platforms.forEach((platform) => {
+          const platformName = platform.platform_name;
+          const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`;
+          const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`;
+          if (platform.buy_type && !selectedOptions[buyTypeKey]) {
+            initialSelectedOptions[buyTypeKey] = platform.buy_type;
+          }
+          if (platform.objective_type && !selectedOptions[buyObjectiveKey]) {
+            initialSelectedOptions[buyObjectiveKey] = platform.objective_type;
+          }
+        });
+      });
     });
     setSelectedOptions((prev) => ({ ...prev, ...initialSelectedOptions }));
   }, [campaignFormData?.channel_mix]);
@@ -284,25 +265,38 @@ const ObjectiveSelection = () => {
     });
     setIsEditable((prev) => ({ ...prev, [stageName]: true }));
 
+    // Get all platforms from channel_mix for this stage
+    const channelMix = Array.isArray(campaignFormData?.channel_mix)
+      ? campaignFormData.channel_mix.find((ch) => ch.funnel_stage === stageName)
+      : null;
+
     const validatedPlatformsSet = new Set();
-    Array.from(selectedNetworks[stageName] || []).forEach((platformName) => {
-      if (
-        hasCompletePlatformSelection(platformName, "social_media", stageName) ||
-        hasCompletePlatformSelection(
-          platformName,
-          "display_networks",
-          stageName
-        ) ||
-        hasCompletePlatformSelection(platformName, "search_engines", stageName)
-      ) {
-        validatedPlatformsSet.add(platformName);
-      }
-    });
+    if (channelMix) {
+      [
+        "social_media",
+        "display_networks",
+        "search_engines",
+        "streaming",
+        "mobile",
+        "messaging",
+        "in_game",
+        "e_commerce",
+        "broadcast",
+        "print",
+        "ooh",
+      ].forEach((category) => {
+        const platforms = channelMix[category] || [];
+        platforms.forEach((platform) => {
+          validatedPlatformsSet.add(platform.platform_name);
+        });
+      });
+    }
 
     setValidatedPlatforms((prev) => ({
       ...prev,
       [stageName]: validatedPlatformsSet,
     }));
+
     setCampaignFormData((prev) => ({
       ...prev,
       validatedStages: { ...prev.validatedStages, [stageName]: true },
@@ -333,8 +327,6 @@ const ObjectiveSelection = () => {
     );
   };
 
-
-
   const renderCompletedPlatform = (platformName, category, stageName) => {
     const normalizedCategory = category.toLowerCase().replaceAll(" ", "_");
     const channelMix = Array.isArray(campaignFormData?.channel_mix)
@@ -344,8 +336,8 @@ const ObjectiveSelection = () => {
       .find((ch) => ch.funnel_stage === stageName)
       ?.[normalizedCategory]?.find((p) => p.platform_name === platformName);
 
-    if (!validatedPlatforms[stageName]?.has(platformName) || !platformData)
-      return null;
+    // Only render if platform exists in the category
+    if (!platformData) return null;
 
     return (
       <div
@@ -378,55 +370,16 @@ const ObjectiveSelection = () => {
     const channelMix = Array.isArray(campaignFormData?.channel_mix)
       ? campaignFormData.channel_mix
       : [];
-    const platformsInCategory =
-      channelMix
-        .find((ch) => ch.funnel_stage === stageName)
-        ?.[category]?.filter((p) => p.format?.length > 0)
-        .map((p) => p.platform_name) || [];
-    return platformsInCategory.some((platform) =>
-      validatedPlatforms[stageName]?.has(platform)
-    );
+    const stageData = channelMix.find((ch) => ch.funnel_stage === stageName);
+    return stageData && stageData[category]?.length > 0;
   };
 
-  // const handleSaveCustomValue = async (field) => {
-  //   if (!customValue.trim()) {
-  //     toast.error("Please enter a value");
-  //     return;
-  //   }
-    
-  //   const endpoint = field === "obj" ? "/buy-objectives" : "/buy-types";
-  //   setLoading(true);
-  //   try {
-  //     const res = await axios.post(
-  //       `${process.env.NEXT_PUBLIC_STRAPI_URL}${endpoint}`,
-  //       { data: { text: customValue } },
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-  //         },
-  //       }
-  //     );
-  //     const data = res?.data?.data;
-  //     if (field === "obj") {
-  //       setBuyObj((prev) => [...prev, data]);
-  //     } else {
-  //       setBuyType((prev) => [...prev, data]);
-  //     }
-  //     setCustomValue("");
-  //     setShowInput("");
-  //   } catch (error) {
-  //     console.error("Error saving custom value:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
- 
   const handleSaveCustomValue = async (field) => {
     if (!customValue.trim()) {
-      toast.error("Please enter a value", { id: "custom-value-error" }); // Add unique toast ID
+      toast.error("Please enter a value", { id: "custom-value-error" });
       return;
     }
-    
+
     const endpoint = field === "obj" ? "/buy-objectives" : "/buy-types";
     setLoading(true);
     try {
@@ -457,8 +410,6 @@ const ObjectiveSelection = () => {
 
   return (
     <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
-      {/* <Toaster position="top-right" reverseOrder={false} /> */}
-
       {campaignFormData?.funnel_stages?.map((stageName) => {
         const stage = campaignFormData?.custom_funnels?.find(
           (s) => s?.name === stageName
@@ -469,7 +420,7 @@ const ObjectiveSelection = () => {
           <div key={stageName} className="w-full">
             <div
               className={`flex justify-between items-center p-6 gap-3 max-w-[950px] h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-    rounded-t-[10px] ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
+              rounded-t-[10px] ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
               onClick={() => toggleItem(stage.name)}
             >
               <div className="flex items-center gap-4">
@@ -483,7 +434,7 @@ const ObjectiveSelection = () => {
                 </p>
               </div>
               <div
-                id={`status-${stageName}`} // Added unique id based on stageName
+                id={`status-${stageName}`}
                 className="flex items-center gap-2"
               >
                 {statuses[stageName] === "Completed" ? (
@@ -493,7 +444,9 @@ const ObjectiveSelection = () => {
                       src={checkmark}
                       alt="Completed"
                     />
-                    <p className="text-green-500 font-semibold text-base">Completed</p>
+                    <p className="text-green-500 font-semibold text-base">
+                      Completed
+                    </p>
                   </>
                 ) : statuses[stageName] === "In Progress" ? (
                   <p className="text-[#3175FF] font-semibold text-base whitespace-nowrap">
@@ -572,8 +525,8 @@ const ObjectiveSelection = () => {
                       campaignFormData?.channel_mix
                     )
                       ? campaignFormData.channel_mix
-                        .find((ch) => ch.funnel_stage === stageName)
-                      ?.[normalizedCategory] || []
+                          .find((ch) => ch.funnel_stage === stageName)
+                          ?.[normalizedCategory] || []
                       : [];
                     if (platforms.length === 0) return null;
 
@@ -590,11 +543,11 @@ const ObjectiveSelection = () => {
                             const platformKey = `${stage.name}-${category}-${platform.platform_name}`;
                             const selectedObj =
                               selectedOptions[
-                              `${stageName}-${category}-${platform.platform_name}-objective_type`
+                                `${stageName}-${category}-${platform.platform_name}-objective_type`
                               ];
                             const selectedBuy =
                               selectedOptions[
-                              `${stageName}-${category}-${platform.platform_name}-buy_type`
+                                `${stageName}-${category}-${platform.platform_name}-buy_type`
                               ];
 
                             return (
@@ -651,7 +604,7 @@ const ObjectiveSelection = () => {
                                           </li>
                                         ))}
                                         {showInput !==
-                                          `${platformKey}+custom` ? (
+                                        `${platformKey}+custom` ? (
                                           <li
                                             className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
                                             onClick={() =>
@@ -729,7 +682,7 @@ const ObjectiveSelection = () => {
                                           </li>
                                         ))}
                                         {showInput !==
-                                          `${platformKey}+custom+buy` ? (
+                                        `${platformKey}+custom+buy` ? (
                                           <li
                                             className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
                                             onClick={() =>

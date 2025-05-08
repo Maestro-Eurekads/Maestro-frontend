@@ -163,9 +163,9 @@ const AddFinanceModal = ({
       });
 
       const mp = selectedRow?.assigned_media_plans?.map((mp: any) => {
-        const campaignId = mp?.campaign?.id?.toString() || 
-                         (typeof mp?.campaign === 'string' ? mp.campaign : '');
-        
+        const campaignId = mp?.campaign?.id?.toString() ||
+          (typeof mp?.campaign === 'string' ? mp.campaign : '');
+
         return {
           name: campaignId,
           amount: mp?.amount_type === "total_po_amount_percent"
@@ -176,7 +176,7 @@ const AddFinanceModal = ({
           originalCampaign: mp?.campaign
         };
       }) || [];
-      
+
       setMediaPlans(mp);
     }
   }, [selectedRow, isOpen]);
@@ -378,8 +378,8 @@ const AddFinanceModal = ({
       );
 
       const updatedPO = response.data.data;
-      setClientPOs((prevPOs) => 
-        prevPOs?.map(po => 
+      setClientPOs((prevPOs) =>
+        prevPOs?.map(po =>
           po.id === updatedPO.id ? updatedPO : po
         ) || []
       );
@@ -388,7 +388,7 @@ const AddFinanceModal = ({
         style: { background: "green", color: "white", textAlign: "center" },
         duration: 3000,
       });
-      
+
       handleClose();
       setFetchingPO(true);
       fetchClientPOS(selectedRow?.client?.id)
@@ -444,6 +444,7 @@ const AddFinanceModal = ({
                   ) : (
                     clients?.data && (
                       <CustomSelect
+                        required={true}
                         options={clients?.data?.map((c: any) => ({
                           label: c?.client_name,
                           value: c?.id?.toString(),
@@ -479,6 +480,7 @@ const AddFinanceModal = ({
                     </div>
                   ) : (
                     <CustomSelect
+                      required={true}
                       className="mt-2"
                       placeholder="Select responsible"
                       options={users}
@@ -504,6 +506,7 @@ const AddFinanceModal = ({
                   </div>
                 ) : (
                   <CustomSelect
+                    required={true}
                     className="mt-2"
                     placeholder="Select responsible"
                     options={users}
@@ -540,6 +543,7 @@ const AddFinanceModal = ({
                 <div className="w-1/2">
                   <label htmlFor="">PO Currency</label>
                   <CustomSelect
+                    required={true}
                     className="mt-2"
                     placeholder="Select currency"
                     options={selectCurrency}
@@ -580,6 +584,7 @@ const AddFinanceModal = ({
                   <div className="w-1/2 mt-3">
                     <label htmlFor="">PO Status</label>
                     <CustomSelect
+                      required={true}
                       className="mt-2"
                       placeholder="Select status"
                       options={statusOption}
@@ -611,18 +616,19 @@ const AddFinanceModal = ({
                         ) : (
                           <div className="flex gap-3 items-center">
                             <CustomSelect
+                              required={true}
                               placeholder="Select media plan"
                               className="rounded-3xl"
                               options={clientCampaigns.filter(
                                 (campaign: any) =>
                                   !mediaPlans.some(
-                                    (plan: MediaPlan, i: number) => 
+                                    (plan: MediaPlan, i: number) =>
                                       plan?.name === campaign?.value && i !== index
                                   )
                               )}
                               value={
-                                clientCampaigns.find((cc: any) => 
-                                  cc.value === plan?.name || 
+                                clientCampaigns.find((cc: any) =>
+                                  cc.value === plan?.name ||
                                   (plan?.originalCampaign && cc.value === plan.originalCampaign.id?.toString())
                                 ) || null
                               }
@@ -644,6 +650,7 @@ const AddFinanceModal = ({
                               }}
                             />
                             <CustomSelect
+                              required={true}
                               placeholder="Select amount"
                               className="rounded-3xl"
                               options={[
@@ -660,10 +667,10 @@ const AddFinanceModal = ({
                                   plan?.type === "total_po_amount"
                                     ? "Total PO amount"
                                     : plan?.type === "fixed_amount"
-                                    ? "Fixed amount"
-                                    : plan?.type === "total_po_amount_percent"
-                                    ? "Percentage of PO total amount"
-                                    : "",
+                                      ? "Fixed amount"
+                                      : plan?.type === "total_po_amount_percent"
+                                        ? "Percentage of PO total amount"
+                                        : "",
                               }}
                               onChange={(value: { label: string; value: string } | null) => {
                                 if (value) {
@@ -782,22 +789,22 @@ const AddFinanceModal = ({
                           Non-assigned Budget:{" "}
                           {poForm?.PO_total_amount
                             ? Math.max(
-                                0,
-                                poForm.PO_total_amount -
-                                  mediaPlans.reduce((acc, plan) => {
-                                    if (plan?.amount > 0) {
-                                      if (plan?.type !== "total_po_amount_percent") {
-                                        return acc + Number(plan?.amount);
-                                      } else if (plan?.type === "total_po_amount_percent") {
-                                        return (
-                                          acc +
-                                          (Number(plan?.amount) / 100) * Number(poForm?.PO_total_amount)
-                                        );
-                                      }
-                                    }
-                                    return acc;
-                                  }, 0)
-                              )
+                              0,
+                              poForm.PO_total_amount -
+                              mediaPlans.reduce((acc, plan) => {
+                                if (plan?.amount > 0) {
+                                  if (plan?.type !== "total_po_amount_percent") {
+                                    return acc + Number(plan?.amount);
+                                  } else if (plan?.type === "total_po_amount_percent") {
+                                    return (
+                                      acc +
+                                      (Number(plan?.amount) / 100) * Number(poForm?.PO_total_amount)
+                                    );
+                                  }
+                                }
+                                return acc;
+                              }, 0)
+                            )
                             : 0}
                         </p>
                       </div>
