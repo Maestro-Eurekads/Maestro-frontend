@@ -290,9 +290,13 @@ const SelectChannelMix = () => {
       const newCategorySelection = isAlreadySelected
         ? categorySelection.filter((p) => p !== platformName)
         : [...categorySelection, platformName];
-      const platformObjects = newCategorySelection.map((name) => ({
-        platform_name: name,
-      }));
+        const platformObjects = newCategorySelection.map((name) => {
+          const existingPlatform = prevFormData.channel_mix
+            ?.find((item) => item.funnel_stage === stageName)?.[categoryKey]
+            ?.find((platform) => platform.platform_name === name);
+  
+          return existingPlatform || { platform_name: name };
+        });
 
       const existingChannelMixIndex = prevFormData.channel_mix?.findIndex(
         (item) => item.funnel_stage === stageName

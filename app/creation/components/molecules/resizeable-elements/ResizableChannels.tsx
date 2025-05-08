@@ -34,6 +34,7 @@ interface ResizableChannelsProps {
   setIsOpen: (isOpen: boolean) => void;
   dateList: Date[];
   disableDrag?: boolean;
+  setSelectedStage?:any
 }
 
 const DEFAULT_MEDIA_OPTIONS = [
@@ -52,6 +53,7 @@ const ResizableChannels = ({
   setIsOpen,
   dateList,
   disableDrag = false,
+  setSelectedStage
 }: ResizableChannelsProps) => {
   const { campaignFormData, setCampaignFormData, setCopy, cId } =
     useCampaigns();
@@ -434,6 +436,7 @@ const ResizableChannels = ({
           className="channel-btn-blue mt-[12px] mb-[12px] relative w-fit"
           onClick={() => {
             setIsOpen(true);
+            setSelectedStage(parentId)
           }}
           style={{
             left: `${parentLeft}px`,
