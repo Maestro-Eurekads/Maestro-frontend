@@ -34,6 +34,7 @@ const ResizeableElements = ({ funnelData }) => {
   const { range } = useDateRange();
   const { range: rrange } = useRange();
   const { campaignFormData } = useCampaigns();
+  const [selectedStage, setSelectedStage] = useState("")
   // console.log("rr", rrange, funnelData);
   // Replace single parentWidth with a map of widths per channel
   const [channelWidths, setChannelWidths] = useState<Record<string, number>>(
@@ -267,6 +268,7 @@ const ResizeableElements = ({ funnelData }) => {
                 setParentLeft={(left) =>
                   updateChannelPosition(stage?.name, left)
                 }
+                setSelectedStage={setSelectedStage}
               />
 
               {isOpen && ( // Only show this if the specific channel is open
@@ -278,6 +280,7 @@ const ResizeableElements = ({ funnelData }) => {
                     parentLeft={currentChannelPosition} // Pass parent's left position
                     setIsOpen={setIsOpen}
                     dateList={range}
+                    setSelectedStage={setSelectedStage}
                   />
                 </div>
               )}
@@ -288,7 +291,7 @@ const ResizeableElements = ({ funnelData }) => {
       <AddNewChennelsModel
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        setPlatforms={setPlatforms}
+        selectedStage={selectedStage}
       />
     </div>
   );

@@ -9,7 +9,7 @@ import checkmark from "../../public/mingcute_check-fill.svg";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import customicon from "../../public/social/customicon.png";
 
-const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
+const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
   const [selected, setSelected] = useState({});
   const [validatedStages, setValidatedStages] = useState({});
@@ -140,9 +140,13 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
       const newCategorySelection = isAlreadySelected
         ? categorySelection.filter((p) => p !== platformName)
         : [...categorySelection, platformName];
-      const platformObjects = newCategorySelection.map((name) => ({
-        platform_name: name,
-      }));
+      const platformObjects = newCategorySelection.map((name) => {
+        const existingPlatform = prevFormData.channel_mix
+          ?.find((item) => item.funnel_stage === stageName)?.[categoryKey]
+          ?.find((platform) => platform.platform_name === name);
+
+        return existingPlatform || { platform_name: name };
+      });
 
       const existingChannelMixIndex = prevFormData.channel_mix?.findIndex(
         (item) => item.funnel_stage === stageName
@@ -232,105 +236,113 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
             </button>
             <div className="card bg-base-100 overflow-y-auto max-h-[60vh] w-full">
               <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
-                {campaignFormData.funnel_stages.map((stageName, index) => {
-                  const stage = campaignFormData?.custom_funnels?.find(
-                    (s) => s.name === stageName
-                  );
-                  const funn = funnelStages?.find((f) => f.name === stageName);
-                  if (!stage) return null;
+                {campaignFormData.funnel_stages
+                  .filter((st) => st === selectedStage)
+                  .map((stageName, index) => {
+                    const stage = campaignFormData?.custom_funnels?.find(
+                      (s) => s.name === selectedStage
+                    );
+                    const funn = funnelStages?.find(
+                      (f) => f.name === stageName
+                    );
+                    if (!stage) return null;
 
-                  return (
-                    <div key={index}>
-                      <div
-                        className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
+                    return (
+                      <div key={index}>
+                        <div
+                          className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
                   ${
                     openItems[stage.name]
                       ? "rounded-t-[10px]"
                       : "rounded-[10px]"
                   }`}
-                        onClick={() => toggleItem(stage.name)}
-                      >
-                        <div className="flex items-center gap-2">
-                        {funn?.icon ? (
-                    <Image
-                      src={funn.icon}
-                      alt={stage.name}
-                      width={20}
-                      height={20}
-                    />
-                  ) : (
-                    <Image
-                      src={customicon}
-                      alt={stage.name}
-                      width={20}
-                      height={20}
-                    />
-                  )}
-                          <p className="w-[119px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
-                            {stage.name}
-                          </p>
-                        </div>
-                        {validatedStages[stage.name] ? (
+                          onClick={() => toggleItem(stage.name)}
+                        >
                           <div className="flex items-center gap-2">
-                            <Image
-                              className="w-5 h-5 rounded-full p-1 bg-green-500"
-                              src={checkmark}
-                              alt="Completed"
-                            />
-                            <p className="text-green-500 font-semibold">
-                              Completed
+                            {funn?.icon ? (
+                              <Image
+                                src={funn.icon}
+                                alt={stage.name}
+                                width={20}
+                                height={20}
+                              />
+                            ) : (
+                              <Image
+                                src={customicon}
+                                alt={stage.name}
+                                width={20}
+                                height={20}
+                              />
+                            )}
+                            <p className="w-[119px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
+                              {stage.name}
                             </p>
                           </div>
-                        ) : stage.statusIsActive ? (
-                          <p className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF]">
-                            {stage.status}
-                          </p>
-                        ) : (
-                          <p className="mx-auto w-[86px] h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] opacity-50">
-                            Not started
-                          </p>
-                        )}
-                        <div>
-                          <Image
-                            src={openItems[stage.name] ? up : down2}
-                            alt={openItems[stage.name] ? "up" : "down"}
-                          />
+                          {validatedStages[stage.name] ? (
+                            <div className="flex items-center gap-2">
+                              <Image
+                                className="w-5 h-5 rounded-full p-1 bg-green-500"
+                                src={checkmark}
+                                alt="Completed"
+                              />
+                              <p className="text-green-500 font-semibold">
+                                Completed
+                              </p>
+                            </div>
+                          ) : stage.statusIsActive ? (
+                            <p className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF]">
+                              {stage.status}
+                            </p>
+                          ) : (
+                            <p className="mx-auto w-[86px] h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] opacity-50">
+                              Not started
+                            </p>
+                          )}
+                          <div>
+                            <Image
+                              src={openItems[stage.name] ? up : down2}
+                              alt={openItems[stage.name] ? "up" : "down"}
+                            />
+                          </div>
                         </div>
-                      </div>
 
-                      {openItems[stage.name] && (
-                        <div className="card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px]">
-                          {Object.entries(platformList).map(
-                            ([type, channels]) => (
-                              <div
-                                key={type}
-                                className="card_bucket_container_main p-6"
-                              >
+                        {openItems[stage.name] && (
+                          <div className="card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px]">
+                            {Object.entries(platformList).map(
+                              ([type, channels]) => (
                                 <div
-                                  className="flex justify-between items-center cursor-pointer rounded-md mb-4"
-                                  onClick={(e) =>
-                                    toggleChannelType(e, stage.name, type)
-                                  }
+                                  key={type}
+                                  className="card_bucket_container_main p-6"
                                 >
-                                  <h2 className="font-bold capitalize text-[18px]">
-                                    {type} Channels
-                                  </h2>
-                                  <Image
-                                    src={
-                                      openChannelTypes[`${stage.name}-${type}`]
-                                        ? up
-                                        : down2
+                                  <div
+                                    className="flex justify-between items-center cursor-pointer rounded-md mb-4"
+                                    onClick={(e) =>
+                                      toggleChannelType(e, stage.name, type)
                                     }
-                                    alt={
-                                      openChannelTypes[`${stage.name}-${type}`]
-                                        ? "up"
-                                        : "down"
-                                    }
-                                    width={24}
-                                    height={24}
-                                  />
-                                </div>
-                                {openChannelTypes[`${stage.name}-${type}`] && (
+                                  >
+                                    <h2 className="font-bold capitalize text-[18px]">
+                                      {type} Channels
+                                    </h2>
+                                    <Image
+                                      src={
+                                        openChannelTypes[
+                                          `${stage.name}-${type}`
+                                        ]
+                                          ? up
+                                          : down2
+                                      }
+                                      alt={
+                                        openChannelTypes[
+                                          `${stage.name}-${type}`
+                                        ]
+                                          ? "up"
+                                          : "down"
+                                      }
+                                      width={24}
+                                      height={24}
+                                    />
+                                  </div>
+
                                   <>
                                     {Object.entries(channels).length === 0 ? (
                                       <p>No channels available for {type}</p>
@@ -492,16 +504,20 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, setPlatforms }) => {
                                       )
                                     )}
                                   </>
-                                )}
-                              </div>
-                            )
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                                </div>
+                              )
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
               </div>
+            </div>
+            <div className="w-fit ml-auto">
+              <button className="w-fit bg-blue-500 text-white rounded-md p-2 text-[16px]">
+                Configure Adset and Audiences
+              </button>
             </div>
           </div>
         </div>

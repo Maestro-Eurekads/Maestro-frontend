@@ -25,6 +25,7 @@ interface DraggableChannelProps {
   setParentLeft?: any;
   disableDrag?: boolean;
   budget?: number | string;
+  setSelectedStage?: any;
 }
 
 const DraggableChannel: React.FC<DraggableChannelProps> = ({
@@ -43,6 +44,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   setParentLeft,
   disableDrag = false, // Default to false
   budget,
+  setSelectedStage,
 }) => {
   const { funnelWidths, setFunnelWidth } = useFunnelContext();
   const [position, setPosition] = useState(0);
@@ -103,7 +105,10 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     ) {
       snapPoints.push(currentSnap);
       currentSnap += step;
-      step = Math.max(range !== "Day" ? parentWidth : 100, step - adjustmentPerStep);
+      step = Math.max(
+        range !== "Day" ? parentWidth : 100,
+        step - adjustmentPerStep
+      );
     }
 
     const closestSnap = snapPoints.reduce((prev, curr) =>
@@ -301,7 +306,13 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         </button>
 
         {!disableDrag && parentWidth >= 350 ? (
-          <button className="channel-btn" onClick={() => setIsOpen?.(true)}>
+          <button
+            className="channel-btn"
+            onClick={() => {
+              setIsOpen?.(true);
+              setSelectedStage(description)
+            }}
+          >
             <Image src={icroundadd} alt="icroundadd" />
             <p className="whitespace-nowrap text-[11px]">Add channel</p>
           </button>
