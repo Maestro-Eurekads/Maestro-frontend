@@ -50,9 +50,7 @@ const Header = ({ setIsOpen }) => {
 
 
 
-  // console.log("🚀 ~ profile ~ profile:", profile?.clients);
-  // console.log("🚀 ~ profile ~ profile:", isAdmin);
-  // console.log("🚀 ~ profile ~ profile:", clients?.data);
+
 
   useEffect(() => {
     dispatch(getCreateClient());
