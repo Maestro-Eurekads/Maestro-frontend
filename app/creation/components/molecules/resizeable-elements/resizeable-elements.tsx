@@ -27,7 +27,7 @@ interface OutletType {
   format: any[]
 }
 
-const ResizeableElements = ({ funnelData }) => {
+const ResizeableElements = ({ funnelData, disableDrag }) => {
   const { funnelWidths } = useFunnelContext(); // Get width for all channels
   const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({}); // Track open state per channel
   const [isOpen, setIsOpen] = useState(false);
@@ -269,6 +269,7 @@ const ResizeableElements = ({ funnelData }) => {
                   updateChannelPosition(stage?.name, left)
                 }
                 setSelectedStage={setSelectedStage}
+                disableDrag={disableDrag}
               />
 
               {isOpen && ( // Only show this if the specific channel is open
@@ -281,6 +282,7 @@ const ResizeableElements = ({ funnelData }) => {
                     setIsOpen={setIsOpen}
                     dateList={range}
                     setSelectedStage={setSelectedStage}
+                    disableDrag={disableDrag}
                   />
                 </div>
               )}

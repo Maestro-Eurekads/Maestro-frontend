@@ -17,7 +17,7 @@ import DayInterval from "../../atoms/date-interval/DayInterval";
 import MonthInterval from "../../atoms/date-interval/MonthInterval";
 import WeekInterval from "../../atoms/date-interval/WeekInterval";
 
-const MainSection = ({ hideDate }: { hideDate?: boolean }) => {
+const MainSection = ({ hideDate, disableDrag }: { hideDate?: boolean, disableDrag?:boolean }) => {
   const { clientCampaignData, campaignFormData } = useCampaigns();
   const { range } = useDateRange();
   const startDates = campaignFormData?.campaign_timeline_start_date
@@ -34,7 +34,7 @@ const MainSection = ({ hideDate }: { hideDate?: boolean }) => {
   // Calculate the week difference
   const dayDifference = differenceInCalendarDays(endDates, startDates);
   const weekDifference = differenceInCalendarWeeks(endDates, startDates);
-  console.log("🚀 ~ MainSection ~ weekDifference:", weekDifference);
+  // console.log("🚀 ~ MainSection ~ weekDifference:", weekDifference);
   const monthDifference = differenceInCalendarMonths(endDates, startDates);
 
   const start = campaignFormData?.campaign_timeline_start_date
@@ -106,7 +106,7 @@ const MainSection = ({ hideDate }: { hideDate?: boolean }) => {
                 <div className="absolute left-0 top-18 w-1 bg-orange-500 h-screen"></div>
               </div>
             </div>
-            <ResizeableElements funnelData={funnelsData} />
+            <ResizeableElements funnelData={funnelsData} disableDrag={disableDrag} />
           </div>
         </div>
       </div>

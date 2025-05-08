@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import DateComponent from './molecules/date-component/date-component';
 import ConfigureBudgetComponet from './ConfigureAdSetsAndBudget/ConfigureBudgetComponet';
 import OverviewOfYourCampaigntimeline from './OverviewOfYourCampaign/OverviewOfYourCampaigntimeline';
-import { useDateRange } from '../../../src/date-range-context';
+import { useDateRange } from '../../../src/date-context';
 import { categoryOrder, kpiCategories, mapKPIStatsToStatsDataDynamic, parseApiDate } from '../../../components/Options';
 import { useCampaigns } from '../../utils/CampaignsContext';
 import MessageContainer from 'components/Drawer/MessageContainer';
@@ -48,7 +48,7 @@ const OverviewofyourCampaign = () => {
 	const [generalComment, setGeneralComment] = useState(false);
 	const [alert, setAlert] = useState(null);
 	const [showalert, setshowAlert] = useState(false);
-	const { range } = useDateRange();
+	const { range, setRange } = useDateRange();
 	const { clientCampaignData, campaignData, isLoading: isLoadingCampaign, campaignFormData } = useCampaigns();
 	const dispatch = useAppDispatch();
 	const query = useSearchParams();
@@ -70,6 +70,7 @@ const OverviewofyourCampaign = () => {
 
 	useEffect(() => {
 		setClose(true);
+		setRange("Day")
 	}, []);
 
 	const mapCampaignsToFunnels = (campaigns: any[]) => {
@@ -208,7 +209,7 @@ const OverviewofyourCampaign = () => {
 	const statsData = mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, { upfull, downfull, downoffline, upoffline }, finalCategoryOrder);
 
 
-	console.log("currency-currency-currency", campaignData?.campaign_budget.currency);
+	// console.log("currency-currency-currency", campaignData?.campaign_budget.currency);
 
 
 	const fetchCategories = async (campaign_id) => {
@@ -312,7 +313,7 @@ const OverviewofyourCampaign = () => {
 
 				<MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
 				{/* <OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} setIsDrawerOpen={setIsDrawerOpen} openComments={isDrawerOpen} /> */}
-				<MainSection hideDate={true}/>
+				<MainSection hideDate={true} disableDrag={true}/>
 			</div>
 
 		</div>
