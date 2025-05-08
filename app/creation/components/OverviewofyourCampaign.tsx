@@ -207,7 +207,7 @@ const OverviewofyourCampaign = () => {
 	const statsData = mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, { upfull, downfull, downoffline, upoffline }, finalCategoryOrder);
 
 
-	console.log("currency-currency-currency", campaignData?.campaign_budget.currency);
+
 
 
 	const fetchCategories = async (campaign_id) => {
@@ -258,7 +258,8 @@ const OverviewofyourCampaign = () => {
 			<div className={`px-[20px]  ${isDrawerOpen ? 'md:px-[30px]' : 'xl:px-[60px]'}`}>
 				<div className='flex	flex-col gap-[24px]'>
 					<BusinessApproverContainer campaign={campaignData} loading={undefined} isLoadingCampaign={isLoadingCampaign} />
-					<BusinessGeneral campaign={campaignData} loading={undefined} isLoadingCampaign={isLoadingCampaign} />
+					<BusinessGeneral campaign={campaignData} loading={undefined} isLoadingCampaign={isLoadingCampaign}
+						campaign_id={commentId} />
 					<BusinessBrandAwareness statsData={statsData} aggregatedStats={aggregatedStats} loading={isLoadingKpis} isLoadingCampaign={isLoadingCampaign} />
 					<div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
 						<div className="flex gap-[12px] md:flex-row">

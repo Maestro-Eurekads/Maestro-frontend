@@ -167,7 +167,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       );
       const data = res?.data?.data;
       // console.log("🚀 ~ getActiveCampaign ~ data:", JSON.stringify(data, null, 2))
-
+      setLoadingCampaign(false);
       setCampaignData(data);
       setCampaignFormData((prev) => ({
         ...prev,
@@ -204,8 +204,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         custom_funnels: data?.custom_funnels,
         user: data?.user
       }));
+
     } catch (error) {
       console.error("Error fetching active campaign:", error);
+      setLoadingCampaign(false);
     } finally {
       setLoadingCampaign(false);
     }

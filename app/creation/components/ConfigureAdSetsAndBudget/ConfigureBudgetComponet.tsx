@@ -109,7 +109,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 
 	const hexColors = colors?.map(cls => tailwindBgClassToHex(cls));
 
-	console.log("🚀 ~ extractedData-extractedData:", filteredPhases);
+
 
 	return (
 		<div>
