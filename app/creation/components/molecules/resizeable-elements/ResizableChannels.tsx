@@ -15,6 +15,7 @@ import axios from "axios";
 import { removeKeysRecursively } from "utils/removeID";
 import Modal from "components/Modals/Modal";
 import AdSetsFlow from "../../../components/common/AdSetsFlow";
+import FormatSelection from "../../FormatSelection";
 
 interface Channel {
   name: string;
@@ -34,7 +35,7 @@ interface ResizableChannelsProps {
   setIsOpen: (isOpen: boolean) => void;
   dateList: Date[];
   disableDrag?: boolean;
-  setSelectedStage?:any
+  setSelectedStage?: any;
 }
 
 const DEFAULT_MEDIA_OPTIONS = [
@@ -53,7 +54,7 @@ const ResizableChannels = ({
   setIsOpen,
   dateList,
   disableDrag = false,
-  setSelectedStage
+  setSelectedStage,
 }: ResizableChannelsProps) => {
   const { campaignFormData, setCampaignFormData, setCopy, cId } =
     useCampaigns();
@@ -67,6 +68,7 @@ const ResizableChannels = ({
   const [openCreatives, setOpenCreatives] = useState(false);
   const [selectedCreative, setSelectedCreative] = useState(null);
   const [openAdset, setOpenAdset] = useState(false);
+  const [selectedChannel, setSelectedChannel] = useState("");
 
   // Initialize child width based on available parent space and position
   const [channelState, setChannelState] = useState(
@@ -436,7 +438,7 @@ const ResizableChannels = ({
           className="channel-btn-blue mt-[12px] mb-[12px] relative w-fit"
           onClick={() => {
             setIsOpen(true);
-            setSelectedStage(parentId)
+            setSelectedStage(parentId);
           }}
           style={{
             left: `${parentLeft}px`,
@@ -650,13 +652,20 @@ const ResizableChannels = ({
                               {/* {channel?.} */}
                               <button
                                 className="bg-blue-500 text-white p-2 rounded-md"
-                                onClick={() => setOpenCreatives(true)}
+                                onClick={() => {
+                                  setOpenCreatives(true);
+                                  setSelectedChannel(channel?.name)
+                                  
+                                }}
                               >
                                 View Creatives
                               </button>
                               <button
                                 className="bg-blue-500 text-white p-2 rounded-md"
-                                onClick={() => setOpenAdset(true)}
+                                onClick={() => {
+                                  setOpenAdset(true);
+                                  setSelectedChannel(channel?.name);
+                                }}
                               >
                                 Add Adsets
                               </button>
@@ -687,7 +696,7 @@ const ResizableChannels = ({
         );
       })}
       <Modal isOpen={openCreatives} onClose={() => setOpenCreatives(false)}>
-        <div className="bg-white w-[900px] p-2 rounded-lg">
+        <div className="bg-white w-[900px] p-6 rounded-lg h-[600px] overflow-y-auto">
           <button
             className="flex justify-end w-fit ml-auto"
             onClick={() => setOpenCreatives(false)}
@@ -708,44 +717,12 @@ const ResizableChannels = ({
               />
             </svg>
           </button>
-          <div className="flex gap-5 overflow-x-auto">
-            {selectedCreative
-              ?.filter((cre) => cre?.previews?.length > 0)
-              ?.map((format, index) => {
-                const option = DEFAULT_MEDIA_OPTIONS?.find(
-                  (opt) => opt?.name === format?.format_type
-                );
-                return (
-                  <div key={index} className="shrink-0">
-                    <div
-                      // onClick={onSelect}
-                      className={`relative text-center p-2 rounded-lg border transition border-blue-500 shadow-lg cursor-pointer w-fit`}
-                    >
-                      <Image
-                        src={option.icon || "/placeholder.svg"}
-                        width={168}
-                        height={132}
-                        alt={option.name}
-                      />
-                      <p className="text-sm font-medium text-gray-700 mt-2">
-                        {option.name}
-                      </p>
-                    </div>
-                    <div className="flex max-w-[500px] flex-wrap gap-2 mt-3">
-                      {format?.previews?.map((prec, pIndex) => (
-                        <div className="w-[168px] h-[150px] border rounded-md">
-                          {renderUploadedFile(
-                            format?.previews?.map((pre) => pre?.url),
-                            format?.format_type,
-                            pIndex
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
+          <FormatSelection
+            stageName={parentId}
+            platformName={selectedChannel}
+          />
+          {/*
+           */}
         </div>
       </Modal>
       <Modal isOpen={openAdset} onClose={() => setOpenAdset(false)}>
@@ -773,7 +750,7 @@ const ResizableChannels = ({
           <AdSetsFlow
             stageName={parentId}
             // onEditStart={() => resetInteraction(stage.name)}
-            platformName="Facebook"
+            platformName={selectedChannel}
           />
           <div className="w-fit ml-auto">
             <button
