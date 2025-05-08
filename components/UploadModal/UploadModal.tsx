@@ -173,8 +173,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
         : format === "Video" 
           ? ["video/mp4", "video/mov", "video/quicktime"] 
           : ["image/jpeg", "image/png", "image/jpg"]
-      const maxSizeInMB = 10 // Reduced to 10MB to align with common server limits
-      const maxSizeInBytes = maxSizeInMB * 1024 * 1024
 
       if (!allowedTypes.includes(file.type)) {
         toast.error(
@@ -184,11 +182,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
             ? "Invalid file type. Please upload a PDF file."
             : "Invalid file type. Please upload a JPEG, PNG, or JPG file.",
         )
-        return
-      }
-
-      if (file.size > maxSizeInBytes) {
-        toast.error(`File size exceeds ${maxSizeInMB}MB. Please upload a smaller file.`)
         return
       }
 
