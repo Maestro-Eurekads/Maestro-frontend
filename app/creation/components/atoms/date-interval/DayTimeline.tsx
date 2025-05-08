@@ -1,5 +1,5 @@
 import { useCampaigns } from "app/utils/CampaignsContext"
-import { getPlatformIcon, platformStyles } from "components/data"
+import { getPlatformIcon, mediaTypes, platformStyles } from "components/data"
 import Image from "next/image"
 import type React from "react"
 import { useState } from "react"
@@ -38,7 +38,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({ daysCount, funnels }) => {
             data.channel_mix.forEach((stage) => {
               const stageName = stage.funnel_stage;
               const stageBudget = parseFloat(stage.stage_budget?.fixed_value);
-              ["search_engines", "display_networks", "social_media"].forEach(
+              mediaTypes.forEach(
                 (channelType) => {
                   stage[channelType].forEach((platform) => {
                     const platformName = platform.platform_name;

@@ -35,11 +35,13 @@ const Header = ({ setIsOpen }) => {
     setClientPOs,
     setFetchingPO,
     setFilterOptions,
-    profile
+    profile,
+    setSelectedFilters
   } = useCampaigns();
   const { setActive, setSubStep } = useActive()
   const [selected, setSelected] = useState("");
-  const { fetchClientCampaign, fetchClientPOS } = useCampaignHook(); // Removed unused 'fetchAllClients'
+  const { fetchClientCampaign, fetchClientPOS } = useCampaignHook();
+
   const dispatch = useAppDispatch();
   const [alert, setAlert] = useState(null);
   const [show, setShow] = useState(false);
@@ -115,11 +117,11 @@ const Header = ({ setIsOpen }) => {
         if (isMounted) setLoading(false);
       });
     setFetchingPO(true);
-
+    setSelectedFilters({})
     return () => {
       isMounted = false; // Cleanup function to avoid memory leaks
     };
-  }, [clients, selectedId, profile?.client?.id]); // Removed unused 'profile?.client?.id'
+  }, [clients, selectedId, profile?.client?.id]);
 
 
 

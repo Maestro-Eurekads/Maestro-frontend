@@ -485,8 +485,8 @@ const ResizableChannels = ({
                 className={` ${
                   disableDrag ? "relative" : "absolute"
                 } top-0 h-full flex ${
-                  disableDrag ? "justify-between" : "justify-center cursor-move"
-                }  items-center text-white py-[10px] px-4 gap-2 border shadow-md min-w-[300px] overflow-x-hidden `}
+                  disableDrag ? "justify-between min-w-[300px]" : "justify-center cursor-move min-w-[150px]"
+                }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden `}
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
                   width: disableDrag
