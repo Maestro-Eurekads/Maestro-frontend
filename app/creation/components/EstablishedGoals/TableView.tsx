@@ -8,6 +8,7 @@ import {
   funnelStages,
   getCurrencySymbol,
   getPlatformIcon,
+  mediaTypes,
   platformStyles,
 } from "components/data";
 import moment from "moment";
@@ -25,7 +26,7 @@ const TableView = () => {
       data.channel_mix.forEach((stage) => {
         const stageName = stage.funnel_stage;
         platforms[stageName] = platforms[stageName] || [];
-        ["search_engines", "display_networks", "social_media"].forEach(
+        mediaTypes.forEach(
           (channelType) => {
             stage[channelType].forEach((platform) => {
               const platformName = platform.platform_name;

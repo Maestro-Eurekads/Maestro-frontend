@@ -13,7 +13,7 @@ import TableLoader from "../../creation/components/TableLoader"
 // import { useDateRange } from "../../../src/date-range-context"
 import { processCampaignData } from "components/processCampaignData"
 import ChannelDistributionChatTwo from "components/ChannelDistribution/ChannelDistributionChatTwo"
-import { getCurrencySymbol, getPlatformIcon, platformIcons } from "components/data"
+import { getCurrencySymbol, getPlatformIcon, mediaTypes, platformIcons } from "components/data"
 import {
   differenceInCalendarDays,
   differenceInCalendarMonths,
@@ -186,7 +186,7 @@ const Dashboard = () => {
       data.channel_mix.forEach((stage) => {
         const stageName = stage.funnel_stage
         const stageBudget = Number.parseFloat(stage.stage_budget?.fixed_value)
-          ;["search_engines", "display_networks", "social_media"].forEach((channelType) => {
+          mediaTypes.forEach((channelType) => {
             stage[channelType].forEach((platform) => {
               const platformName = platform.platform_name
               const platformBudget = Number.parseFloat(platform.budget?.fixed_value || 0)

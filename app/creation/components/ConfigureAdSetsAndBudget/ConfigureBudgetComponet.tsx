@@ -6,7 +6,7 @@ import PhasedistributionProgress from '../../../../components/PhasedistributionP
 import ChannelDistributionChatOne from '../../../../components/ChannelDistribution/ChannelDistributionChatOne';
 import CampaignPhases from '../CampaignPhases';
 import { useCampaigns } from 'app/utils/CampaignsContext';
-import { getCurrencySymbol } from 'components/data';
+import { getCurrencySymbol, mediaTypes } from 'components/data';
 import CampaignPhasesColor from '../CampaignPhasesColor';
 
 const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
@@ -20,7 +20,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 		data.channel_mix.forEach((stage) => {
 			const stageName = stage.funnel_stage;
 			const stageBudget = parseFloat(stage.stage_budget?.fixed_value);
-			["search_engines", "display_networks", "social_media"].forEach(
+			mediaTypes.forEach(
 				(channelType) => {
 					stage[channelType].forEach((platform) => {
 						const platformName = platform?.platform_name;
