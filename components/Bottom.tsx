@@ -680,10 +680,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                 "bottom_black_next_btn whitespace-nowrap",
                 active === 10 && "opacity-50 cursor-not-allowed",
                 active < 10 && "hover:bg-blue-500",
-                active === 5 && isEditingBuyingObjective && "opacity-50 cursor-not-allowed"
+                // active === 5 && isEditingBuyingObjective && "opacity-50 cursor-not-allowed"
               )}
               onClick={handleContinue}
-              disabled={active === 10 || (active === 5 && isEditingBuyingObjective)}
+              disabled={active === 10}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
             >
