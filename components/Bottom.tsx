@@ -236,6 +236,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         message: "Please confirm or cancel your changes before proceeding",
         position: "bottom-right",
       });
+      setLoading(false);
       return;
     }
 
@@ -679,8 +680,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
               className={clsx(
                 "bottom_black_next_btn whitespace-nowrap",
                 active === 10 && "opacity-50 cursor-not-allowed",
-                active < 10 && "hover:bg-blue-500",
-                // active === 5 && isEditingBuyingObjective && "opacity-50 cursor-not-allowed"
+                active < 10 && "hover:bg-blue-500"
               )}
               onClick={handleContinue}
               disabled={active === 10}
