@@ -319,10 +319,10 @@ main {
 .l-vertical-ad {
   position: absolute;
   width: 1px;
-  height: 56px;
+  height: 76px;
   background-color: blue;
-  left: 0px;
-  top: -55px;
+  left: 180px;
+  top: -75px;
 }
 
 .l-horizontal-ad {
@@ -331,7 +331,7 @@ main {
   height: 1px;
   background-color: blue;
   bottom: -1px;
-  left: 0px;
+  left: 180px;
 }
 .l-shape-container-cb {
   position: relative;
@@ -349,7 +349,7 @@ main {
 .l-vertical-cb-long {
   position: absolute;
   width: 1px;
-  height: 330px;
+  /* height: 440px; */
   background-color: blue;
   left: 0px;
   top: 45px;
@@ -368,6 +368,6 @@ main {
   width: 20px;
   height: 1px;
   background-color: blue;
-  bottom: -375px;
+  bottom: -485px;
   left: 0px;
 }

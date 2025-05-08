@@ -15,7 +15,7 @@ import FeeSelectionStep from "./FeeSelectionStep";
 import { mediaTypes } from "components/data";
 import PhasedistributionProgress from "../../../components/PhasedistributionProgress";
 
-const ConfigureAdSetsAndBudget = ({ num }) => {
+const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
   const [show, setShow] = useState(false); // Start with budget shown
   const { setIsDrawerOpen, setClose } = useComments();
   const [step, setStep] = useState(1);
@@ -136,7 +136,7 @@ const ConfigureAdSetsAndBudget = ({ num }) => {
               </p>
               <p>
                 Total Fees Amount:{" "}
-                {campaignFormData?.campaign_budget?.fixed_value}
+                {campaignFormData?.campaign_budget?.amount}
                 {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
               </p>
             </div>
@@ -250,7 +250,7 @@ const ConfigureAdSetsAndBudget = ({ num }) => {
             </div>
           </div>
         )}
-        <ConfiguredSetPage />
+        <ConfiguredSetPage netAmount={netAmount} />
       </div>
     </div>
   );

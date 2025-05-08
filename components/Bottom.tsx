@@ -306,11 +306,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         return;
       }
       if (!campaignFormData?.campaign_budget?.amount) {
-        setAlert({
-          variant: "error",
-          message: "Please input a budget amount",
-          position: "bottom-right",
-        });
         toast("Please input a budget amount", {
           style: {
             background: "#FFEBEE",
@@ -497,7 +492,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         new Date(
           currentYear,
           selectedDates?.from?.month,
-          selectedDates.from.day
+          selectedDates.from?.day
         )
       ).format("YYYY-MM-DD");
 
@@ -505,7 +500,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         new Date(
           currentYear,
           selectedDates?.to?.month,
-          selectedDates.to.day
+          selectedDates.to?.day
         )
       ).format("YYYY-MM-DD");
       await updateCampaignData({

@@ -216,6 +216,7 @@ const DefineAdSetPage = () => {
                   onValidate={() => handleValidate(stage.name)}
                   isValidateDisabled={!hasInteracted[stage.name]}
                   onEditStart={() => resetInteraction(stage.name)}
+                  // platformName="Facebook"
                 />
               </div>
             )}

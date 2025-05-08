@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import left from "../public/left.svg";
 import right from "../public/right.svg";
@@ -91,6 +91,17 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
   };
 
   const months = [getMonthData(monthOffset), getMonthData(monthOffset + 1)];
+
+  // write a useEffect that get the campaign_timeline_start and end date and initialize the selectedDates states
+
+  useEffect(() => {
+    const startDate = parseApiDate(campaignData?.campaign_timeline_start_date);
+    const endDate = parseApiDate(campaignData?.campaign_timeline_end_date);
+
+    if (startDate && endDate) {
+      setSelectedDates({ from: startDate, to: endDate });
+    }
+  }, [campaignData]);
 
   return (
     <div

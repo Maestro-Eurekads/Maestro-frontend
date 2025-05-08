@@ -47,10 +47,11 @@ interface OutletType {
 
 interface AdSetFlowProps {
   stageName: string;
-  onInteraction: () => void;
-  onValidate: () => void;
-  isValidateDisabled: boolean;
-  onEditStart: () => void;
+  onInteraction?: () => void;
+  onValidate?: () => void;
+  isValidateDisabled?: boolean;
+  onEditStart?: () => void;
+  platformName?: string;
 }
 
 interface AdSetData {
@@ -158,7 +159,7 @@ const updateMultipleAdSets = (
   }
 
   const stage = updatedCampaignData[stageIndex];
-  const channelTypes = mediaTypes
+  const channelTypes = mediaTypes;
   let platformFound = false;
 
   for (const channelType of channelTypes) {
@@ -255,7 +256,7 @@ const AdSet = memo(function AdSet({
 
   const handleExtraAudienceSelect = (selected: string, idx: number) => {
     if (!selected) return;
-    console.log(selected)
+    console.log(selected);
     const updated = [...extraAudience];
     updated[idx] = {
       ...updated[idx],
@@ -559,13 +560,12 @@ const AdsetSettings = memo(function AdsetSettings({
   outlet,
   stageName,
   onInteraction,
-  defaultOpen
+  defaultOpen,
 }: {
   outlet: OutletType;
   stageName: string;
   onInteraction: () => void;
   defaultOpen?: boolean;
-
 }) {
   const { isEditing } = useEditing();
   const { campaignFormData, setCampaignFormData } = useCampaigns();
@@ -584,20 +584,20 @@ const AdsetSettings = memo(function AdsetSettings({
     if (!campaignFormData?.channel_mix) return;
     if (initialized.current) return;
     initialized.current = true;
-  
+
     const result = findPlatform(
       campaignFormData.channel_mix,
       stageName,
       outlet.outlet
     );
-  
+
     const platform = result?.platform;
-  
+
     // 🟢 Open this platform (outlet) by default if requested
     if (defaultOpen && !selectedPlatforms.includes(outlet.outlet)) {
       setSelectedPlatforms((prev) => [...prev, outlet.outlet]);
     }
-  
+
     if (!platform) {
       const newAdSetId = Date.now();
       setAdSets([{ id: newAdSetId, addsetNumber: 1 }]);
@@ -606,7 +606,7 @@ const AdsetSettings = memo(function AdsetSettings({
       });
       return;
     }
-  
+
     if (platform.ad_sets && platform.ad_sets.length > 0) {
       const newAdSets = platform.ad_sets.map((adSet, index) => ({
         id: adSet.id || Date.now() + index,
@@ -631,8 +631,14 @@ const AdsetSettings = memo(function AdsetSettings({
         [newAdSetId]: { name: "", audience_type: "", size: "" },
       });
     }
-  }, [campaignFormData, stageName, outlet.outlet, selectedPlatforms, defaultOpen]);
-  
+  }, [
+    campaignFormData,
+    stageName,
+    outlet.outlet,
+    selectedPlatforms,
+    defaultOpen,
+  ]);
+
   const addNewAddset = useCallback(() => {
     // Check if we've reached the maximum limit of 10 ad sets
     if (adsets.length >= 10) {
@@ -879,6 +885,7 @@ const AdSetFlow = memo(function AdSetFlow({
   onValidate,
   isValidateDisabled,
   onEditStart,
+  platformName,
 }: AdSetFlowProps) {
   const { isEditing, setIsEditing } = useEditing();
   const { active } = useActive();
@@ -888,7 +895,6 @@ const AdSetFlow = memo(function AdSetFlow({
   const [hasInteraction, setHasInteraction] = useState(false);
   const [loading, setLoading] = useState(false);
   const [autoOpen, setAutoOpen] = useState<Record<string, string[]>>({});
-
 
   const getPlatformsFromStage = useCallback(() => {
     const platformsByStage: Record<string, OutletType[]> = {};
@@ -942,9 +948,9 @@ const AdSetFlow = memo(function AdSetFlow({
     if (campaignFormData) {
       const data = getPlatformsFromStage();
       setPlatforms(data);
-  
+
       const autoOpenPlatforms = {};
-  
+
       for (const stage of campaignFormData.channel_mix) {
         const platformsWithAdsets = [
           ...stage.search_engines,
@@ -961,16 +967,15 @@ const AdSetFlow = memo(function AdSetFlow({
         ]
           .filter((p) => p.ad_sets && p.ad_sets.length > 0)
           .map((p) => p.platform_name);
-  
+
         if (platformsWithAdsets.length > 0) {
           autoOpenPlatforms[stage.funnel_stage] = platformsWithAdsets;
         }
       }
-  
+
       setAutoOpen(autoOpenPlatforms); // 👈 create a new state for this
     }
   }, []);
-  
 
   const handleInteraction = useCallback(() => {
     setHasInteraction(true);
@@ -1027,21 +1032,39 @@ const AdSetFlow = memo(function AdSetFlow({
 
   useEffect(() => {
     if (isEditing) {
-      onEditStart();
+      onEditStart && onEditStart();
     }
   }, [isEditing]);
 
+  useEffect(() => {
+    if (platformName) {
+      setIsEditing(true);
+    }
+  }, [platformName]);
+
   return (
     <div className="w-full space-y-4 p-4">
-      {platforms[stageName]?.map((outlet) => (
-        <AdsetSettings
-          key={outlet.id}
-          outlet={outlet}
-          stageName={stageName}
-          onInteraction={handleInteraction}
-          defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
-        />
-      ))}
+      {platformName
+        ? platforms[stageName]
+            ?.filter((outlet) => outlet.outlet === platformName)
+            .map((outlet) => (
+              <AdsetSettings
+                key={outlet.id}
+                outlet={outlet}
+                stageName={stageName}
+                onInteraction={handleInteraction}
+                defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
+              />
+            ))
+        : platforms[stageName]?.map((outlet) => (
+            <AdsetSettings
+              key={outlet.id}
+              outlet={outlet}
+              stageName={stageName}
+              onInteraction={handleInteraction}
+              defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
+            />
+          ))}
     </div>
   );
 });

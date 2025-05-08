@@ -23,6 +23,8 @@ interface OutletType {
   color: string;
   bg: string;
   channelName: string;
+  ad_sets: any[];
+  format: any[]
 }
 
 const ResizeableElements = ({ funnelData }) => {
@@ -32,7 +34,8 @@ const ResizeableElements = ({ funnelData }) => {
   const { range } = useDateRange();
   const { range: rrange } = useRange();
   const { campaignFormData } = useCampaigns();
-  console.log("rr", rrange, funnelData);
+  const [selectedStage, setSelectedStage] = useState("")
+  // console.log("rr", rrange, funnelData);
   // Replace single parentWidth with a map of widths per channel
   const [channelWidths, setChannelWidths] = useState<Record<string, number>>(
     {}
@@ -122,6 +125,8 @@ const ResizeableElements = ({ funnelData }) => {
                 color: style.color,
                 bg: style.bg,
                 channelName,
+                ad_sets: platform.ad_sets,
+                format: platform.format
               });
             }
           });
@@ -167,28 +172,47 @@ const ResizeableElements = ({ funnelData }) => {
     if (campaignFormData?.funnel_stages) {
       const initialWidths: Record<string, number> = {};
       const initialPositions: Record<string, number> = {};
+      const gridContainer = document.querySelector(
+        ".grid-container"
+      ) as HTMLElement;
+      if (!gridContainer) return;
+
+      // Get container boundaries
+      const containerRect = gridContainer.getBoundingClientRect();
+      const containerWidth = containerRect.width -75;
+      console.log("🚀 ~ useEffect ~ containerWidth:", containerWidth);
 
       campaignFormData?.funnel_stages?.map((stageName, index) => {
         const stage = campaignFormData?.custom_funnels?.find(
           (s) => s?.name === stageName
         );
         if (stage) {
-          initialWidths[stage.name] = 360; // Default width
+          initialWidths[stage.name] =
+            rrange === "Day"
+              ? 360
+              : rrange === "Week"
+              ? containerWidth / (funnelData?.endWeek - 1)
+              : containerWidth / funnelData?.endMonth; // Default width
           initialPositions[stage.name] = 0; // Default left position
         }
       });
-
+      console.log("intitial width", initialWidths);
       setChannelWidths(initialWidths);
       setChannelPositions(initialPositions);
     }
-  }, [campaignFormData?.funnel_stages]);
+  }, [campaignFormData?.funnel_stages, rrange]);
 
   return (
     <div
       className="w-full min-h-[494px] relative pb-5 grid-container"
       style={{
         backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-        backgroundSize: rrange === "Day" ? `calc(100px) 100%` : rrange === "Week" ? `calc(100% / ${funnelData?.endWeek -1}) 100%` : `calc(100% / ${funnelData?.endMonth -1}) 100%`,
+        backgroundSize:
+          rrange === "Day"
+            ? `calc(100px) 100%`
+            : rrange === "Week"
+            ? `calc(100% / ${funnelData?.endWeek - 1}) 100%`
+            : `calc(100% / ${funnelData?.endMonth - 1}) 100%`,
       }}
     >
       {campaignFormData?.funnel_stages?.map((stageName, index) => {
@@ -210,7 +234,12 @@ const ResizeableElements = ({ funnelData }) => {
             key={index}
             style={{
               display: "grid",
-              gridTemplateColumns: rrange === "Day" ? `repeat(${funnelData?.endDay -1 || 1}, 100px)` : rrange === "Week" ? `repeat(${funnelData?.endWeek -1 || 1}, 100%)` : `repeat(${funnelData?.endMonth -1 || 1}, 1fr)`,
+              gridTemplateColumns:
+                rrange === "Day"
+                  ? `repeat(${funnelData?.endDay - 1 || 1}, 100px)`
+                  : rrange === "Week"
+                  ? `repeat(${funnelData?.endWeek - 1 || 1}, 100%)`
+                  : `repeat(${funnelData?.endMonth - 1 || 1}, 1fr)`,
             }}
           >
             <div
@@ -239,6 +268,7 @@ const ResizeableElements = ({ funnelData }) => {
                 setParentLeft={(left) =>
                   updateChannelPosition(stage?.name, left)
                 }
+                setSelectedStage={setSelectedStage}
               />
 
               {isOpen && ( // Only show this if the specific channel is open
@@ -250,6 +280,7 @@ const ResizeableElements = ({ funnelData }) => {
                     parentLeft={currentChannelPosition} // Pass parent's left position
                     setIsOpen={setIsOpen}
                     dateList={range}
+                    setSelectedStage={setSelectedStage}
                   />
                 </div>
               )}
@@ -260,7 +291,7 @@ const ResizeableElements = ({ funnelData }) => {
       <AddNewChennelsModel
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        setPlatforms={setPlatforms}
+        selectedStage={selectedStage}
       />
     </div>
   );
