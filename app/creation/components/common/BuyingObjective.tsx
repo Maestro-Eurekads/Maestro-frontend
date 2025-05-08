@@ -28,6 +28,7 @@ const BuyingObjective = () => {
     updateCampaign,
     getActiveCampaign,
     campaignData,
+    setIsEditingBuyingObjective,
   } = useCampaigns();
   const campaignFormData = rawCampaignFormData || defaultCampaignData; // Fallback to default
   const [updatedData, setUpdatedData] = useState(null);
@@ -51,10 +52,14 @@ const BuyingObjective = () => {
     }
   }, [updatedData]);
 
+  useEffect(() => {
+    // Update the global editing state when local edit state changes
+    setIsEditingBuyingObjective(edit);
+  }, [edit, setIsEditingBuyingObjective]);
+
   const getFilteredChannelMix = (channelMix, funnelStages) => {
     if (!Array.isArray(channelMix)) return [];
     
-    // Ensure all funnel stages are represented, even if channel_mix is incomplete
     const stageMap = funnelStages.map((stageName) => {
       const stage = channelMix.find((s) => s.funnel_stage === stageName) || {
         funnel_stage: stageName,
@@ -86,7 +91,6 @@ const BuyingObjective = () => {
       };
     });
 
-    // Filter stages with at least one platform
     return stageMap.filter(
       (stage) =>
         stage.social_media.length > 0 ||
@@ -100,7 +104,7 @@ const BuyingObjective = () => {
         stage.broadcast.length > 0 ||
         stage.mobile.length > 0 ||
         stage.messaging.length > 0 ||
-        funnelStages.includes(stage.funnel_stage) // Include even if no platforms, to show empty state
+        funnelStages.includes(stage.funnel_stage)
     );
   };
 
@@ -190,6 +194,7 @@ const BuyingObjective = () => {
     setUpdatedData(null);
     setIsLoyalty(false);
     setShowLoyaltyField(false);
+    setIsEditingBuyingObjective(false);
   };
 
   const cleanData = campaignData
@@ -290,6 +295,7 @@ const BuyingObjective = () => {
                 setIsLoyalty(false);
                 setShowLoyaltyField(false);
                 setEdit(false);
+                setIsEditingBuyingObjective(false);
               }}
             />
           </div>
@@ -301,6 +307,7 @@ const BuyingObjective = () => {
             onClick={() => {
               setEdit(true);
               setUpdatedData(campaignFormData);
+              setIsEditingBuyingObjective(true);
             }}
           />
         )}
