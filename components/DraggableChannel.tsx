@@ -8,6 +8,7 @@ import { useFunnelContext } from "../app/utils/FunnelContextType";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import moment from "moment";
 import { useDateRange } from "src/date-context";
+import { getCurrencySymbol } from "./data";
 
 interface DraggableChannelProps {
   id?: string;
@@ -261,6 +262,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       }));
     }
   };
+  const stageBudget = campaignFormData?.channel_mix?.find((fs)=>fs?.funnel_stage === description)?.stage_budget
+  console.log("🚀 ~ stageBudget:", stageBudget)
 
   return (
     <div
@@ -320,9 +323,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           <div />
         )}
 
-        {disableDrag && (
+        {disableDrag && stageBudget?.fixed_value > 0 && (
           <div className="bg-[#FFFFFF26] rounded-[5px] py-[10px] px-[12px] font-medium">
-            6,000
+            {stageBudget?.fixed_value} {getCurrencySymbol(stageBudget?.currency)}
           </div>
         )}
       </div>
