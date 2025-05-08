@@ -58,6 +58,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingCampaign, setLoadingCampaign] = useState(true)
   const [profile, setGetProfile] = useState(null);
+  const [isEditingBuyingObjective, setIsEditingBuyingObjective] = useState(false);
+
   const query = useSearchParams();
   const cId = query.get("campaignId");
   const { loadingClients: hookLoadingClients, allClients: hookAllClients } =
@@ -165,7 +167,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       );
       const data = res?.data?.data;
       // console.log("🚀 ~ getActiveCampaign ~ data:", JSON.stringify(data, null, 2))
-
+      setLoadingCampaign(false);
       setCampaignData(data);
       setCampaignFormData((prev) => ({
         ...prev,
@@ -202,8 +204,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         custom_funnels: data?.custom_funnels,
         user: data?.user
       }));
+
     } catch (error) {
       console.error("Error fetching active campaign:", error);
+      setLoadingCampaign(false);
     } finally {
       setLoadingCampaign(false);
     }
@@ -549,7 +553,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         profile,
         loadingCampaign,
         setLoadingCampaign,
-        getProfile
+        getProfile,
+        isEditingBuyingObjective,
+        setIsEditingBuyingObjective,
       }}
     >
       {children}

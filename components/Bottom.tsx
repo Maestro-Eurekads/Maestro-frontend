@@ -57,6 +57,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     cId,
     getActiveCampaign,
     copy,
+    isEditingBuyingObjective,
   } = useCampaigns();
 
   // Function to check if any previews are uploaded in Channel or Ad Set View
@@ -228,6 +229,16 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   };
 
   const handleContinue = async () => {
+    // Prevent proceeding if in edit mode for Buying Objectives
+    if (active === 6 && isEditingBuyingObjective) {
+      setAlert({
+        variant: "error",
+        message: "Please confirm or cancel your changes before proceeding",
+        position: "bottom-right",
+      });
+      return;
+    }
+
     setLoading(true);
     let hasError = false;
 
@@ -668,7 +679,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
               className={clsx(
                 "bottom_black_next_btn whitespace-nowrap",
                 active === 10 && "opacity-50 cursor-not-allowed",
-                active < 10 && "hover:bg-blue-500"
+                active < 10 && "hover:bg-blue-500",
+                // active === 5 && isEditingBuyingObjective && "opacity-50 cursor-not-allowed"
               )}
               onClick={handleContinue}
               disabled={active === 10}
