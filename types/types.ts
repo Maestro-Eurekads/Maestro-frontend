@@ -1,4 +1,3 @@
-
 export interface client {
   id: number;
   documentId: string;
@@ -9,7 +8,7 @@ import type { StaticImageData } from "next/image"
 export interface OutletType {
   id: number
   outlet: string
-  icon: StaticImageData
+  icon?: string | StaticImageData
   adSets: AdSet[]
   formats: Format[]
 }
