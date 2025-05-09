@@ -114,6 +114,7 @@ import mdi_leads from "../public/mdi_leads.svg";
 import apple from "../public/social/apple.jpeg";
 import Image, { StaticImageData } from "next/image";
 import DocViewer, { DocViewerRenderers } from "react-doc-viewer";
+import Link from "next/link";
 
 export const platformIcons: Record<string, StaticImageData> = {
   Facebook: facebook,

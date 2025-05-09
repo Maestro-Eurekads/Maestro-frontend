@@ -206,26 +206,39 @@ const BuyingObjective = () => {
 
   const handleConfirmStep = async () => {
     setLoading(true);
-    await updateCampaign({
-      ...cleanData,
-      funnel_stages: updatedData?.funnel_stages,
-      channel_mix: removeKeysRecursively(
-        updatedData?.channel_mix,
-        [
-          "id",
-          "isValidated",
-          "formatValidated",
-          "validatedStages",
-          "documentId",
-        ],
-        ["preview"]
-      ),
-      custom_funnels: updatedData?.custom_funnels,
-      funnel_type: updatedData?.funnel_type,
-    });
-    await getActiveCampaign();
-    setLoading(false);
-    closeEditStep();
+    
+    try {
+      // Set a timeout to ensure minimum loading time of 2 seconds
+      const updatePromise = updateCampaign({
+        ...cleanData,
+        funnel_stages: updatedData?.funnel_stages,
+        channel_mix: removeKeysRecursively(
+          updatedData?.channel_mix,
+          [
+            "id",
+            "isValidated", 
+            "formatValidated",
+            "validatedStages",
+            "documentId",
+          ],
+          ["preview"]
+        ),
+        custom_funnels: updatedData?.custom_funnels,
+        funnel_type: updatedData?.funnel_type,
+      });
+
+      const timeoutPromise = new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Wait for both the update and the minimum timeout
+      await Promise.all([updatePromise, timeoutPromise]);
+      await getActiveCampaign();
+      
+    } catch (error) {
+      console.error('Error updating campaign:', error);
+    } finally {
+      setLoading(false);
+      closeEditStep();
+    }
   };
 
   if (!isMounted) {
