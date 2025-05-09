@@ -1008,6 +1008,11 @@ export const FormatSelection = ({ stageName, platformName }: { stageName?: strin
   useEffect(() => {
     setIsDrawerOpen(false);
     setClose(false);
+    if(campaignFormData?.goal_level === "Adset level"){
+      setView("adset")
+    } else {
+      setView("channel")
+    }
   }, []);
 
   useEffect(() => {
@@ -1057,6 +1062,10 @@ export const FormatSelection = ({ stageName, platformName }: { stageName?: strin
 
   const handleToggleChange = (checked: boolean) => {
     setView(checked ? "adset" : "channel");
+    setCampaignFormData((prev)=>({
+      ...prev,
+      goal_level: checked ? "Adset level" : "Channel level"
+    }))
   };
 
   return (

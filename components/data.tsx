@@ -648,8 +648,7 @@ export const platformStyles = [
 //   );
 // };
 
-
-export const renderUploadedFile = (uploadBlobs, format, index: number, ext?: any) => {
+export const renderUploadedFile = (uploadBlobs: string[], format: string, index: number, ext?: any) => {
   if (!uploadBlobs[index]) return null;
 
   if (format === "Video") {
@@ -663,34 +662,30 @@ export const renderUploadedFile = (uploadBlobs, format, index: number, ext?: any
   }
 
   if (format === "Slideshow") {
-    console.log("File extension:", ext?.name);
+    // Check if the file is a PDF based on the blob URL or ext
+    const isPDF = ext?.name?.toLowerCase().endsWith(".pdf") || uploadBlobs[index].includes("application/pdf");
+    
+    if (isPDF) {
+      return (
+        <iframe
+          src={uploadBlobs[index]}
+          className="w-full h-full rounded-lg"
+          title={`Slideshow ${index}`}
+        />
+      );
+    }
+
+    // Handle other slideshow formats (e.g., PPTX)
     return (
       <>
-        {typeof uploadBlobs[index] === "string" && ext?.name ? (
-          <>
-            {ext.name.includes("pptx") ? (
-              <iframe
-                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-                  uploadBlobs[index]
-                )}`}
-                className="w-full h-full rounded-lg"
-                title={`Slideshow ${index}`}
-              />
-            ) : ext.name.includes("pdf") ? (
-              <DocViewer
-                documents={[{ uri: uploadBlobs[index] }]}
-                pluginRenderers={DocViewerRenderers}
-                className="w-full h-full rounded-lg"
-                config={{
-                  header: {
-                    disableHeader: true,
-                  },
-                }}
-              />
-            ) : (
-              <div>Error: Unsupported file type for Slideshow</div>
-            )}
-          </>
+        {typeof uploadBlobs[index] === "string" && ext?.name?.includes("pptx") ? (
+          <iframe
+            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+              uploadBlobs[index]
+            )}`}
+            className="w-full h-full rounded-lg"
+            title={`Slideshow ${index}`}
+          />
         ) : (
           <iframe
             src={uploadBlobs[index]}
