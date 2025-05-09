@@ -385,7 +385,7 @@ const ConfiguredSetPage = ({netAmount}) => {
                         <div className="flex items-center gap-4">
                           <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
                             <div className="flex items-center gap-2">
-                              <p>{percentage?.toFixed(1)}</p>
+                              <p>{isNaN(percentage) ? "0.0" : percentage?.toFixed(1)}</p>
                               <span> %</span>
                             </div>
                           </div>
@@ -396,7 +396,7 @@ const ConfiguredSetPage = ({netAmount}) => {
 
                     <hr className="text-gray-200 w-full p-1" />
 
-                    {platforms[stage.name].map((platform, index) => {
+                    {platforms[stage.name]?.map((platform, index) => {
                       const stage = campaignFormData?.channel_mix?.find(
                         (stage) => stage.funnel_stage === stageName
                       );
@@ -654,7 +654,7 @@ const ConfiguredSetPage = ({netAmount}) => {
                               <div className="flex items-center gap-4">
                                 <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
                                   <div className="flex items-center gap-2">
-                                    <p>{platformPercentage?.toFixed(1)}</p>
+                                    <p>{isNaN(platformPercentage) ? "0.0" :platformPercentage?.toFixed(1)}</p>
                                     <span> %</span>
                                   </div>
                                 </div>
@@ -662,7 +662,7 @@ const ConfiguredSetPage = ({netAmount}) => {
                                   of {stage.name} budget
                                 </p>
                                 {stageName?.funnel_stage === stage.name &&
-                                  platform?.ad_sets?.length > 0 &&
+                                  platform?.ad_sets?.length > 1 &&
                                   campaignFormData?.campaign_budget?.level ===
                                     "Adset level" && (
                                     <div
