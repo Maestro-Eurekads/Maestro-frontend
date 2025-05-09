@@ -15,9 +15,11 @@ export interface OutletType {
 }
 
 export interface AdSet {
+  id: any
   name: string
   audience_type: string
   size: string
+  format: any[]
 }
 
 export interface Format {

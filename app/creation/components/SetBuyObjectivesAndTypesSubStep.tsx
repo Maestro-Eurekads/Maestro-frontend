@@ -10,8 +10,9 @@ import { OutletType } from "types/types"
 import { FunnelStagesSection } from "./Mid-Recap/FunnelStage"
 import { ChannelMixSection } from "./Mid-Recap/ChannelMixSection"
 import { AdSetsSection } from "./Mid-Recap/AdSetSection"
-import { FormatSelectionsSection } from "./Mid-Recap/FormatSelection"
+// import { FormatSelectionsSection } from "./Mid-Recap/FormatSelection"
 import { useEditing } from "app/utils/EditingContext"
+import FormatSelectionsSection from "./Mid-Recap/FormatSelection"
 
 const SetBuyObjectivesAndTypesSubStep = () => {
   const [platforms, setPlatforms] = useState<Record<string, OutletType[]>>({})

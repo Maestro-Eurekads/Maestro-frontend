@@ -179,6 +179,7 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
 
       // Get container boundaries
       const containerRect = gridContainer.getBoundingClientRect();
+      console.log("🚀 ~ useEffect ~ containerRect:", containerRect)
       const containerWidth = containerRect.width -75;
       console.log("🚀 ~ useEffect ~ containerWidth:", containerWidth);
 
