@@ -396,7 +396,7 @@ const ConfiguredSetPage = ({netAmount}) => {
 
                     <hr className="text-gray-200 w-full p-1" />
 
-                    {platforms[stage.name].map((platform, index) => {
+                    {platforms[stage.name]?.map((platform, index) => {
                       const stage = campaignFormData?.channel_mix?.find(
                         (stage) => stage.funnel_stage === stageName
                       );
@@ -662,7 +662,7 @@ const ConfiguredSetPage = ({netAmount}) => {
                                   of {stage.name} budget
                                 </p>
                                 {stageName?.funnel_stage === stage.name &&
-                                  platform?.ad_sets?.length > 0 &&
+                                  platform?.ad_sets?.length > 1 &&
                                   campaignFormData?.campaign_budget?.level ===
                                     "Adset level" && (
                                     <div
