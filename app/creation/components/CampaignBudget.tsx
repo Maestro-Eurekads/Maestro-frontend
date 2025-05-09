@@ -38,6 +38,9 @@ const CampaignBudget = () => {
     label: "EUR",
   });
 
+  const [feeType, setFeeType] = useState(null);
+  const [feeAmount, setFeeAmount] = useState("");
+
   const { campaignFormData, setCampaignFormData, campaignData } =
     useCampaigns();
 
@@ -205,7 +208,17 @@ const CampaignBudget = () => {
 
       {budgetStyle !== "" && budgetStyle === "top_down" && step > 0 && (
         <>
-          <FeeSelectionStep num1={2} num2={3} isValidated={feeStepValidated} netAmount={netAmount} setNetAmount={setNetAmount} />
+          <FeeSelectionStep
+            num1={2}
+            num2={3}
+            isValidated={feeStepValidated}
+            netAmount={netAmount}
+            setNetAmount={setNetAmount}
+            feeType={feeType}
+            setFeeType={setFeeType}
+            feeAmount={feeAmount}
+            setFeeAmount={setFeeAmount}
+          />
           {campaignFormData?.campaign_budget?.sub_budget_type && (
             <div className="flex justify-end mt-[20px]">
               <button
@@ -216,8 +229,20 @@ const CampaignBudget = () => {
                     });
                     return;
                   }
+                  if (!feeType && feeAmount) {
+                    toast("Please select a fee type", {
+                      style: { background: "red", color: "white" },
+                    });
+                    return;
+                  }
+                  if (feeType && !feeAmount) {
+                    toast("Please enter the fee amount", {
+                      style: { background: "red", color: "white" },
+                    });
+                    return;
+                  }
                   setFeeStepValidated(!feeStepValidated);
-                  setStep(2)
+                  setStep(2);
                 }}
                 className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
                   loading
@@ -240,7 +265,10 @@ const CampaignBudget = () => {
       )}
       {budgetStyle !== "" && budgetStyle === "top_down" && step > 1 && (
         <>
-          <PageHeaderWrapper t4="Choose granularity level" span={feeStepValidated ? 3 : 4} />
+          <PageHeaderWrapper
+            t4="Choose granularity level"
+            span={feeStepValidated ? 3 : 4}
+          />
           <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
             <form method="dialog" className="flex justify-center p-2 !pb-0">
               <span></span>
@@ -378,7 +406,9 @@ const CampaignBudget = () => {
                           }));
                         }}
                       >
-                        {campaignFormData?.campaign_budget?.level === item.label ? "Selected" :"Select"}
+                        {campaignFormData?.campaign_budget?.level === item.label
+                          ? "Selected"
+                          : "Select"}
                       </button>
                     </div>
                   </div>
@@ -546,7 +576,16 @@ const CampaignBudget = () => {
       {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 1 && (
         <>
           <ConfigureAdSetsAndBudget num={3} netAmount={netAmount} />
-          <FeeSelectionStep num1={4} num2={5} netAmount={netAmount} setNetAmount={setNetAmount} />
+          <FeeSelectionStep
+            num1={4}
+            num2={5}
+            netAmount={netAmount}
+            setNetAmount={setNetAmount}
+            feeType={feeType}
+            setFeeType={setFeeType}
+            feeAmount={feeAmount}
+            setFeeAmount={setFeeAmount}
+          />
         </>
       )}
     </div>
