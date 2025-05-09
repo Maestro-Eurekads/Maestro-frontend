@@ -29,13 +29,8 @@ const MainSection = ({ hideDate, disableDrag }: { hideDate?: boolean, disableDra
     ? campaignFormData?.campaign_timeline_end_date
     : null;
 
-  // Find the earliest startDate and latest endDate
-  // const earliestStartDate = min(startDates);
-  // const latestEndDate = max(endDates);
-  // Calculate the week difference
   const dayDifference = differenceInCalendarDays(endDates, startDates);
   const weekDifference = differenceInCalendarWeeks(endDates, startDates);
-  // console.log("🚀 ~ MainSection ~ weekDifference:", weekDifference);
   const monthDifference = differenceInCalendarMonths(endDates, startDates);
 
   const start = campaignFormData?.campaign_timeline_start_date

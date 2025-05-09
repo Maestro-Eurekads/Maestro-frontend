@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { MdDragHandle, MdOutlineKeyboardArrowDown } from "react-icons/md";
 import Image from "next/image";
 import icroundadd from "../public/ic_round-add.svg";
@@ -59,6 +59,10 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   const { range } = useDateRange();
 
+  useEffect(() => {
+    setPosition(parentLeft);
+  }, [parentLeft]);
+
   const pixelToDate = (pixel: number, containerWidth: number) => {
     const startDate = dateList[0]; // First date in the range
     const totalDays = dateList.length - 1; // Use totalDays - 1 to match grid intervals
@@ -94,10 +98,10 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     const baseStep = range !== "Day" ? parentWidth : 100; // Base grid size
-    console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
+    // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
     const adjustmentPerStep = 0; // Decrease each next step by 10
     const snapPoints = [];
-    console.log("🚀 ~ snapToTimeline ~ snapPoints:", snapPoints);
+    // console.log("🚀 ~ snapToTimeline ~ snapPoints:", snapPoints);
 
     let currentSnap = 0;
     let step = baseStep;
@@ -105,7 +109,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     // Generate snap points with decreasing step size
     while (currentSnap <= (range !== "Day" ? containerWidth : containerWidth)) {
       snapPoints.push(currentSnap);
-      console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
+      // console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
       currentSnap += step;
       step = Math.max(
         range !== "Day" ? parentWidth : 100,
@@ -119,7 +123,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         : prev
     );
 
-    console.log("Closest custom snap:", closestSnap);
+    // console.log("Closest custom snap:", closestSnap);
     return range !== "Day"
       ? closestSnap > 0
         ? closestSnap + 35
