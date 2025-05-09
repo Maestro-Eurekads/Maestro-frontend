@@ -193,6 +193,17 @@ const MapFunnelStages = () => {
   const handleSelect = (id: string) => {
     setHasChanges(true);
 
+    // Check if this would unselect the last selected funnel
+    if (
+      campaignFormData?.funnel_stages?.includes(id) &&
+      campaignFormData?.funnel_stages?.length === 1
+    ) {
+      toast.error("You can't unselect all funnel stages at least one", {
+        duration: 3000,
+      });
+      return;
+    }
+
     const newFunnelStages = campaignFormData?.funnel_stages
       ? campaignFormData.funnel_stages.includes(id)
         ? campaignFormData.funnel_stages.filter((name: string) => name !== id)
