@@ -25,13 +25,21 @@ function FeeSelectionStep({
   num2,
   isValidated,
   netAmount,
-  setNetAmount
+  setNetAmount,
+  feeType,
+  setFeeType,
+  feeAmount,
+  setFeeAmount
 }: {
   num1: number;
   num2: number;
   isValidated?: boolean;
   netAmount: any;
-  setNetAmount: any
+  setNetAmount: any;
+  feeType:any;
+  setFeeType: any;
+  feeAmount: any;
+  setFeeAmount:any
 }) {
   const [active, setActive] = useState(null);
   const { campaignFormData, setCampaignFormData } = useCampaigns();
@@ -41,8 +49,8 @@ function FeeSelectionStep({
   });
   const [selectedFees, setSelectedFees] = useState([]);
   const [fees, setFees] = useState([]);
-  const [feeType, setFeeType] = useState(null);
-  const [feeAmount, setFeeAmount] = useState("");
+  // const [feeType, setFeeType] = useState(null);
+  // const [feeAmount, setFeeAmount] = useState("");
   // const [netAmount, setNetAmount] = useState("");
 
   const selectCurrency = [
@@ -382,6 +390,7 @@ function FeeSelectionStep({
                           onChange={(option) => setFeeType(option)}
                           value={feeType}
                           className="w-full max-w-[300px]"
+                          isClearable
                           styles={{
                             control: (provided) => ({
                               ...provided,

@@ -390,12 +390,16 @@ const TableView = () => {
                 const availableMetrics = tableHeaders[objective] || []
                 const filterAvailableMetrics = availableMetrics?.filter(
                   (mm) =>
-                    !defaultHeaders.includes(mm?.name) &&
-                    !Object.entries(mergedTableHeadersByStage).some(([stage, headers]) => {
-                      if (stage === currentEditingStage) return false // ignore current stage
-                      return (headers as { name: string }[]).some((h) => h.name === mm?.name)
-                    }),
-                )
+                  !defaultHeaders.includes(mm?.name) &&
+                  !Object.entries(mergedTableHeadersByStage).some(([stage, headers]) => {
+                    if (stage === currentEditingStage) return false // ignore current stage
+                    return (headers as { name: string }[]).some((h) => h.name === mm?.name)
+                  }),
+                ).map((metric) => ({
+                  ...metric,
+                  obj: objective, // Add the new property 'obj' with the current objective
+                }))
+                // console.log("here", JSON.stringify(filterAvailableMetrics))
 
                 if (availableMetrics.length === 0) return null
 
@@ -437,18 +441,19 @@ const TableView = () => {
                             type="checkbox"
                             id={`metric-${objective}-${metricIndex}`}
                             className="mr-2"
-                            checked={selectedMetrics.some((m) => m.name === metric.name)}
+                            checked={selectedMetrics.some((m) => m.name === metric.name && m.obj === objective)}
                             onChange={(e) => {
-                              if (e.target.checked) {
+                              console.log("fdfdfd", e.target.checked)
+                              if (metric?.obj === objective && e.target.checked) {
                                 setSelectedMetrics((prev) => {
                                   // Check if metric is already selected
-                                  if (prev.some((m) => m.name === metric.name)) {
+                                  if (prev.some((m) => m.name === metric.name && m.obj === objective)) {
                                     return prev
                                   }
-                                  return [...prev, metric]
+                                  return [...prev, {...metric, obj: objective}]
                                 })
                               } else {
-                                setSelectedMetrics((prev) => prev.filter((m) => m.name !== metric.name))
+                                setSelectedMetrics((prev) => prev.filter((m) => metric.obj === objective && m.name !== metric.name))
                               }
                             }}
                           />
