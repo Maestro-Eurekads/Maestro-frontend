@@ -243,30 +243,78 @@ export const fetchFilteredCampaigns = async (clientID, filters) => {
   }
 
   // Handle month filtering with $or logic
-  if (filters.month) {
-    const year = filters.year || new Date().getFullYear()
-    const monthOrder = {
-      January: 0,
-      February: 1,
-      March: 2,
-      April: 3,
-      May: 4,
-      June: 5,
-      July: 6,
-      August: 7,
-      September: 8,
-      October: 9,
-      November: 10,
-      December: 11,
-    }
-    let month = monthOrder[filters.month] + 1
-    month = month.toString().padStart(2, "0")
-    const start = `${year}-${month}-01`
-    const end = new Date(year, Number.parseInt(month), 0).toISOString().slice(0, 10) // last day of month
-    filterQuery += `&filters[$or][${orFilterIndex}][campaign_timeline_start_date][$gte]=${start}&filters[$or][${orFilterIndex}][campaign_timeline_start_date][$lte]=${end}`
-    hasOrFilters = true
-    orFilterIndex++
+  // if (filters.month) {
+  //   const year = filters.year || new Date().getFullYear()
+  //   const monthOrder = {
+  //     January: 0,
+  //     February: 1,
+  //     March: 2,
+  //     April: 3,
+  //     May: 4,
+  //     June: 5,
+  //     July: 6,
+  //     August: 7,
+  //     September: 8,
+  //     October: 9,
+  //     November: 10,
+  //     December: 11,
+  //   }
+  //   let month = monthOrder[filters.month] + 1
+  //   month = month.toString().padStart(2, "0")
+  //   const start = `${year}-${month}-01`
+  //   const end = new Date(year, Number.parseInt(month), 0).toISOString().slice(0, 10) // last day of month
+  //   filterQuery += `&filters[$or][${orFilterIndex}][campaign_timeline_start_date][$gte]=${start}&filters[$or][${orFilterIndex}][campaign_timeline_start_date][$lte]=${end}`
+  //   hasOrFilters = true
+  //   orFilterIndex++
+  // }
+
+  const monthOrder = {
+    January: 0,
+    February: 1,
+    March: 2,
+    April: 3,
+    May: 4,
+    June: 5,
+    July: 6,
+    August: 7,
+    September: 8,
+    October: 9,
+    November: 10,
+    December: 11,
   }
+
+if (filters.month) {
+  const monthIndex = monthOrder[filters.month] ?? -1
+  if (monthIndex !== -1) {
+    const year = filters.year || new Date().getFullYear()
+    const start = new Date(year, monthIndex, 1).toISOString()
+    const end = new Date(year, monthIndex + 1, 0, 23, 59, 59).toISOString()
+
+    if (!filters.quarter && !filters.year) {
+      // Use direct AND filtering on createdAt
+      filterQuery += `&filters[createdAt][$gte]=${start}&filters[createdAt][$lte]=${end}`
+    } else {
+      // Use $or when combined with other filters
+      filterQuery += `&filters[$or][${orFilterIndex}][createdAt][$gte]=${start}&filters[$or][${orFilterIndex}][createdAt][$lte]=${end}`
+      hasOrFilters = true
+      orFilterIndex++
+    }
+  }
+}
+
+
+//   if (filters.month) {
+//   const year = filters.year || new Date().getFullYear()
+
+//   const monthIndex = monthOrder[filters.month] // 0-based month index
+//   const start = new Date(year, monthIndex, 1).toISOString().slice(0, 10)
+//   const end = new Date(year, monthIndex + 1, 0).toISOString().slice(0, 10) // last day of the month
+
+//   filterQuery += `&filters[$or][${orFilterIndex}][campaign_timeline_start_date][$gte]=${start}&filters[$or][${orFilterIndex}][campaign_timeline_start_date][$lte]=${end}`
+//   hasOrFilters = true
+//   orFilterIndex++
+// }
+
 
   // Add other filters with $or logic
   if (filters.category) {
