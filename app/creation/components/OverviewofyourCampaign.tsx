@@ -1,13 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import DateComponent from './molecules/date-component/date-component';
 import ConfigureBudgetComponet from './ConfigureAdSetsAndBudget/ConfigureBudgetComponet';
-<<<<<<< HEAD
-import OverviewOfYourCampaigntimeline from './OverviewOfYourCampaign/OverviewOfYourCampaignDayTimeline';
-import { useDateRange } from '../../../src/date-range-context';
-=======
-import OverviewOfYourCampaigntimeline from './OverviewOfYourCampaign/OverviewOfYourCampaigntimeline';
+// import OverviewOfYourCampaigntimeline from './OverviewOfYourCampaign/OverviewOfYourCampaigntimeline';
 import { useDateRange } from '../../../src/date-context';
->>>>>>> 3c91bcc87e39cc4ceaa09cdb1a3c669e15bc5fa4
 import { categoryOrder, kpiCategories, mapKPIStatsToStatsDataDynamic, parseApiDate } from '../../../components/Options';
 import { useCampaigns } from '../../utils/CampaignsContext';
 import MessageContainer from 'components/Drawer/MessageContainer';
@@ -29,22 +24,17 @@ import downfull from "../../../public/arrow-down-full.svg";
 import upoffline from "../../../public/arrow-up-offline.svg";
 import { useKpis } from 'app/utils/KpiProvider';
 import AlertMain from 'components/Alert/AlertMain';
-<<<<<<< HEAD
-import OverViewTimelineContainer from './OverviewOfYourCampaign/OverViewTimelineContainer';
-import { getCurrencySymbol, getPlatformIcon, platformIcons } from 'components/data';
-import {
-	differenceInCalendarDays,
-	differenceInCalendarMonths,
-	differenceInCalendarWeeks,
-	differenceInDays,
-	max,
-	min,
-	parseISO,
-} from "date-fns"
-import { processCampaignData } from 'components/processCampaignData';
-=======
 import MainSection from './organisms/main-section/main-section';
->>>>>>> 3c91bcc87e39cc4ceaa09cdb1a3c669e15bc5fa4
+import differenceInCalendarDays from 'date-fns/differenceInCalendarDays';
+import differenceInCalendarWeeks from 'date-fns/differenceInCalendarWeeks';
+import differenceInCalendarMonths from 'date-fns/differenceInCalendarMonths';
+import { min } from 'date-fns';
+import { max } from 'moment';
+import { differenceInDays } from 'date-fns';
+import { parseISO } from 'date-fns';
+import { processCampaignData } from 'components/processCampaignData';
+import { getCurrencySymbol, getPlatformIcon } from 'components/data';
+
 
 interface Comment {
 	documentId: string;
@@ -95,6 +85,7 @@ const OverviewofyourCampaign = () => {
 
 	useEffect(() => {
 		setClose(true);
+		//@ts-ignore
 		setRange("Day")
 	}, []);
 
@@ -377,8 +368,7 @@ const OverviewofyourCampaign = () => {
 	const earliestStartDate = min(startDates)
 	const latestEndDate = max(endDates)
 	// Calculate the week difference
-	const dayDifference = differenceInCalendarDays(latestEndDate, earliestStartDate)
-	const weekDifference = differenceInCalendarWeeks(latestEndDate, earliestStartDate)
+
 	// const monthDifference = differenceInCalendarMonths(latestEndDate, earliestStartDate)
 	const daysDiff = differenceInDays(endDates, startDates);
 	const monthDifference = daysDiff / 30.44;
@@ -416,7 +406,7 @@ const OverviewofyourCampaign = () => {
 		}
 	})
 
-	const processedCampaigns = processCampaignData(clientCampaignData, platformIcons)
+
 
 	function extractPlatforms(data) {
 		const platforms = []
@@ -515,15 +505,7 @@ const OverviewofyourCampaign = () => {
 
 				<MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
 				{/* <OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} setIsDrawerOpen={setIsDrawerOpen} openComments={isDrawerOpen} /> */}
-<<<<<<< HEAD
-				<OverViewTimelineContainer range={range}
-					dayDifference={dayDifference}
-					weekDifference={weekDifference}
-					monthDifference={Math.round(monthDifference)}
-					funnelsData={funnelsData} />
-=======
-				<MainSection hideDate={true} disableDrag={true}/>
->>>>>>> 3c91bcc87e39cc4ceaa09cdb1a3c669e15bc5fa4
+				<MainSection hideDate={true} disableDrag={true} />
 			</div>
 
 		</div>

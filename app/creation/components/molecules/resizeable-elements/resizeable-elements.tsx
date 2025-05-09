@@ -179,13 +179,9 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
 
       // Get container boundaries
       const containerRect = gridContainer.getBoundingClientRect();
-<<<<<<< HEAD
-      const containerWidth = containerRect.width - 75;
-=======
       console.log("🚀 ~ useEffect ~ containerRect:", containerRect)
-      const containerWidth = containerRect.width -75;
+      const containerWidth = containerRect.width - 75;
       console.log("🚀 ~ useEffect ~ containerWidth:", containerWidth);
->>>>>>> 3c91bcc87e39cc4ceaa09cdb1a3c669e15bc5fa4
 
       campaignFormData?.funnel_stages?.map((stageName, index) => {
         const stage = campaignFormData?.custom_funnels?.find(

@@ -19,7 +19,6 @@ const DayTimeline: React.FC<DayTimelineProps> = ({ daysCount, funnels }) => {
   const [openSections, setOpenSections] = useState({});
 
 
-<<<<<<< HEAD
   // Function to toggle campaign dropdown
   const toggleShow = (index) => {
     setExpanded((prev) => ({ ...prev, [index]: !prev[index] }));
@@ -45,41 +44,6 @@ const DayTimeline: React.FC<DayTimelineProps> = ({ daysCount, funnels }) => {
               const platformName = platform.platform_name;
               const platformBudget = parseFloat(
                 platform.budget?.fixed_value || 0
-=======
-        function extractPlatforms(data) {
-          const platforms = [];
-          data?.channel_mix?.length > 0 &&
-            data.channel_mix.forEach((stage) => {
-              const stageName = stage.funnel_stage;
-              const stageBudget = parseFloat(stage.stage_budget?.fixed_value);
-              mediaTypes.forEach(
-                (channelType) => {
-                  stage[channelType].forEach((platform) => {
-                    const platformName = platform.platform_name;
-                    const platformBudget = parseFloat(
-                      platform.budget?.fixed_value || 0
-                    );
-                    const percentage = (platformBudget / stageBudget) * 100 || 0;
-                    const existingPlatform = platforms.find(
-                      (p) => p.platform_name === platformName
-                    );
-                    if (!existingPlatform) {
-                      const style =
-                        platformStyles.find((style) => style.name === platformName) ||
-                        platformStyles[
-                        Math.floor(Math.random() * platformStyles.length)
-                        ];
-                      platforms.push({
-                        platform_name: platformName,
-                        amount: platformBudget,
-                        stageName,
-                        icon: getPlatformIcon(platformName),
-                        bg: style?.bg,
-                      });
-                    }
-                  });
-                }
->>>>>>> 3c91bcc87e39cc4ceaa09cdb1a3c669e15bc5fa4
               );
               const percentage = (platformBudget / stageBudget) * 100 || 0;
               const existingPlatform = platforms.find(

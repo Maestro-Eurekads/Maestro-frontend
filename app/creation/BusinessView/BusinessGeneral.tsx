@@ -423,7 +423,7 @@ async function updateTrendData(budgetChange, impressionsChange, cpmChange, campa
 		if (records.length > 1) {
 			console.log(`Found ${records.length} duplicate records for campaign_id: ${campaign_id}`);
 			// Keep the most recent record, delete others
-			const sortedRecords = records.sort((a, b) =>
+			const sortedRecords = records.sort((a, b) =>	//@ts-ignore
 				new Date(b.attributes.updatedAt) - new Date(a.attributes.updatedAt)
 			);
 			storedData = sortedRecords[0].attributes;
@@ -634,6 +634,7 @@ const BusinessGeneral = ({ campaign, loading, isLoadingCampaign, campaign_id }) 
 			// Calculate initial trends based on current values (assuming previous values are 0 if no data)
 			const calculateInitialTrend = (current, previous = 0) => {
 				const currentValue = parseFloat(current) || 0;
+				//@ts-ignore
 				const previousValue = parseFloat(previous) || 0;
 				if (previousValue === 0) return currentValue > 0 ? "+100%" : "0%";
 				const difference = ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
