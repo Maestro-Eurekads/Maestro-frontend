@@ -78,6 +78,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     category: [],
     product: [],
     select_plans: [],
+    // level_1: [],
+    // level_2: [],
+    // level_3: [],
     made_by: [],
     approved_by: [],
   });

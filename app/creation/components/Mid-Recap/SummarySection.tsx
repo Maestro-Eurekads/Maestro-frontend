@@ -1,10 +1,9 @@
 import type React from "react";
 import Button from "../common/button";
-import { useEditing } from "app/utils/EditingContext";
-import axios from "axios";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { removeKeysRecursively } from "utils/removeID";
 import { useState } from "react";
+import { useEditing } from "app/utils/EditingContext";
 
 interface SummarySectionProps {
   title: string;
@@ -18,13 +17,24 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
   children,
 }) => {
   const [loading, setLoading] = useState(false);
-  const { midcapEditing, setMidcapEditing, setIsEditing } = useEditing();
-  const { updateCampaign, getActiveCampaign, campaignData, campaignFormData } =
-    useCampaigns();
+  const { midcapEditing, setMidcapEditing } = useEditing();
+  const {
+    updateCampaign,
+    getActiveCampaign,
+    campaignData,
+    campaignFormData,
+    isEditingBuyingObjective,
+    setIsEditingBuyingObjective,
+  } = useCampaigns();
 
   const closeEditStep = () => {
-    setMidcapEditing({ step: "", isEditing: false });
-    setIsEditing(false); // Also reset the global editing state
+    if (title === "Your buying objectives") {
+      setIsEditingBuyingObjective(false);
+    }
+    setMidcapEditing({
+      isEditing: false,
+      step: "",
+    });
   };
 
   const cleanData = campaignData
@@ -48,7 +58,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
           "isValidated",
           "formatValidated",
           "validatedStages",
-          "documentId"
+          "documentId",
         ], ["preview"]),
         custom_funnels: campaignFormData?.custom_funnels,
         funnel_type: campaignFormData?.funnel_type,
@@ -62,10 +72,10 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
     }
   };
 
-  const handleConfirmClick = async (step) => {
+  const handleConfirmClick = async (step: string) => {
     switch (step) {
       case "Your funnel stages":
-      case "Your channel mix": 
+      case "Your channel mix":
       case "Your Adset and Audiences":
       case "Your format selections":
       case "Your buying objectives":
@@ -76,6 +86,9 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
     }
   };
 
+  const isEditing = (title === "Your buying objectives" && isEditingBuyingObjective) || 
+                    (midcapEditing.isEditing && midcapEditing.step === title);
+
   return (
     <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full">
       <div className="flex justify-between items-center mb-4">
@@ -85,25 +98,23 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
           </div>
           <h1 className="text-blue-500 font-semibold text-base">{title}</h1>
         </div>
-        {midcapEditing?.step === title && midcapEditing?.isEditing ? (
-          <>
-            <div className="flex items-center gap-[15px]">
-              <Button
-                text={loading ? "Loading..." : "Confirm Changes"}
-                variant="primary"
-                className="!w-[180px] !h-[40px] !rounded-[8px] !hover:ease-in-out"
-                onClick={() => !loading && handleConfirmClick(title)}
-                loading={loading}
-                disabled={loading}
-              />
-              <Button
-                text="Cancel"
-                variant="secondary"
-                className="!w-[180px] !h-[40px] !rounded-[8px] !hover:ease-in-out"
-                onClick={closeEditStep}
-              />
-            </div>
-          </>
+        {isEditing ? (
+          <div className="flex items-center gap-[15px]">
+            <Button
+              text={loading ? "Loading..." : "Confirm Changes"}
+              variant="primary"
+              className="!w-[180px] !h-[40px] !rounded-[8px] !hover:ease-in-out"
+              onClick={() => !loading && handleConfirmClick(title)}
+              loading={loading}
+              disabled={loading}
+            />
+            <Button
+              text="Cancel"
+              variant="secondary"
+              className="!w-[180px] !h-[40px] !rounded-[8px] !hover:ease-in-out"
+              onClick={closeEditStep}
+            />
+          </div>
         ) : (
           <Button
             text="Edit"
@@ -111,8 +122,14 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
             className="!w-[85px] !h-[40px]"
             onClick={() => {
               if (!loading) {
-                setMidcapEditing({ step: title, isEditing: true });
-                setIsEditing(true);
+                if (title === "Your buying objectives") {
+                  setIsEditingBuyingObjective(true);
+                } else {
+                  setMidcapEditing({
+                    isEditing: true,
+                    step: title,
+                  });
+                }
               }
             }}
           />

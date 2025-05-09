@@ -83,26 +83,41 @@ const Header = ({ setIsOpen }) => {
 
   useEffect(() => {
     if (!clients?.data || clients.data.length === 0) {
-      setLoading(false); // Ensure loading is stopped if no clients
+      setLoading(false);
       return;
     }
 
     setLoading(true);
-    let isMounted = true; // Prevent setting state after unmount
-    const clientId = selectedId || clients.data[0]?.id; // Use selected client ID or default to the first client
+    let isMounted = true;
+    const clientId = selectedId || clients.data[0]?.id;
     if (!clientId) {
-      setLoading(false); // If no valid client ID, stop loading
+      setLoading(false);
       return;
     }
 
-    setSelected(selectedId ? selectedId : clients?.data[0]?.id?.toString() || profile?.clients[0]?.id?.toString());
+    setSelected(
+      selectedId ? selectedId : clients?.data[0]?.id?.toString() || profile?.clients[0]?.id?.toString()
+    );
+
     fetchClientCampaign(clientId)
       .then((res) => {
-        if (isMounted) setClientCampaignData(res?.data?.data || []); // Ensure data fallback
-        const dateData = extractDateFilters(res?.data?.data)
-        const mediaData = extractAprroverFilters(res?.data?.data)
-        const channelData = extractChannelAndPhase(res?.data?.data)
-        setFilterOptions((prev) => ({ ...prev, ...dateData, ...mediaData, ...channelData }))
+        const campaigns = res?.data?.data || [];
+
+        if (isMounted) setClientCampaignData(campaigns);
+
+        const dateData = extractDateFilters(campaigns);
+        const mediaData = extractAprroverFilters(campaigns);
+        const channelData = extractChannelAndPhase(campaigns);
+        // const levelData = extractLevelFilters(campaigns);
+
+        setFilterOptions((prev) => ({
+          ...prev,
+          ...dateData,
+          ...mediaData,
+          ...channelData,
+          // ...levelData,
+        }));
+
         fetchClientPOS(clientId)
           .then((res) => {
             setClientPOs(res?.data?.data || []);
@@ -116,12 +131,16 @@ const Header = ({ setIsOpen }) => {
       .finally(() => {
         if (isMounted) setLoading(false);
       });
+
     setFetchingPO(true);
-    setSelectedFilters({})
+    setSelectedFilters({});
+
     return () => {
-      isMounted = false; // Cleanup function to avoid memory leaks
+      isMounted = false;
     };
   }, [clients, selectedId, profile?.client?.id]);
+
+
 
 
 

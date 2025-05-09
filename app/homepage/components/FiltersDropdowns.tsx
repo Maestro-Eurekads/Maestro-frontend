@@ -101,12 +101,13 @@ const defaultFilters = [
       "July", "August", "September", "October", "November", "December"
     ],
   },
-  { label: "Category", options: ["Electronics", "Fashion", "Home", "Sports"] },
-  { label: "Product", options: ["Laptop", "T-Shirt", "Sofa", "Bicycle"] },
-  { label: "Select Plans", options: ["Plan A", "Plan B", "Plan C", "Plan D"] },
+  // { label: "Level 1", options: ["Level 1"] },
+  // { label: "Level 2", options: ["Level 2"] },
+  // { label: "Level 3", options: ["Level 3"] },
   { label: "Made By", options: ["User 1", "User 2", "User 3", "User 4"] },
   { label: "Approved By", options: ["Manager 1", "Manager 2", "Manager 3", "Manager 4"] },
 ]
+
 
 const FiltersDropdowns = ({ hideTitle }: Props) => {
   useEffect(() => {
@@ -193,7 +194,7 @@ const FiltersDropdowns = ({ hideTitle }: Props) => {
       setLoading(true)
 
       try {
-        const res = allEmpty
+        const res = allEmpty //@ts-ignore
           ? await fetchFilteredCampaigns(clientID, {}) // Fetch all data
           : await fetchFilteredCampaigns(clientID, selectedFilters) // Fetch filtered
 
