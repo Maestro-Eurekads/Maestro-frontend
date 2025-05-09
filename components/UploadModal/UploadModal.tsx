@@ -221,18 +221,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
       try {
         setLoading(true)
 
-        if (previews?.[index]?.id) {
-          const response = await fetch(`${STRAPI_URL}/upload/files/${previews[index].id}`, {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${STRAPI_TOKEN}`,
-            },
-          })
-          if (!response.ok) {
-            throw new Error(`Failed to delete file: ${response.statusText}`)
-          }
-        }
-
+        // Immediately update UI
         setUploads((prev) => {
           const updated = [...prev]
           updated[index] = null
@@ -252,16 +241,35 @@ const UploadModal: React.FC<UploadModalProps> = ({
           return updated
         })
 
+        // Show success message immediately
+        toast.success("File deleted successfully!")
+
+        // Delete from Strapi in background
+        if (previews?.[index]?.id) {
+          fetch(`${STRAPI_URL}/upload/files/${previews[index].id}`, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${STRAPI_TOKEN}`,
+            },
+          }).catch(error => {
+            console.error("Background deletion failed:", error)
+          })
+        }
+
         const updatedPreviews = [...previews]
         updatedPreviews.splice(index, 1)
-        await updateGlobalState(updatedPreviews)
-        toast.success("File deleted successfully!")
+        
+        // Update global state in background
+        updateGlobalState(updatedPreviews).catch(error => {
+          console.error("Error updating global state:", error)
+        })
 
       } catch (error) {
         console.error("Error deleting file:", error)
         toast.error("Failed to delete file. Please try again.")
       } finally {
-        setLoading(false)
+        // Quick loading state
+        setTimeout(() => setLoading(false), 2000)
       }
     },
     [previews, updateGlobalState, STRAPI_URL, STRAPI_TOKEN],
@@ -408,9 +416,11 @@ const UploadModal: React.FC<UploadModalProps> = ({
       const uploadTime = (Date.now() - uploadStartTime) / 1000
       toast.success(`Files uploaded in ${uploadTime.toFixed(1)}s!`)
       
-      // Close modal and trigger success callback
-      onUploadSuccess?.()
-      onClose()
+      // Close modal and trigger success callback after 4s
+      setTimeout(() => {
+        onUploadSuccess?.()
+        onClose()
+      }, 4000)
 
       // Update global state in background
       updateGlobalState(validPreviews).catch(error => {
@@ -422,7 +432,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
       console.error("Error in uploadFilesToStrapi:", error)
       toast.error("Upload failed. Please try again.")
     } finally {
-      setLoading(false)
+      // Keep loading state for 4s
+      setTimeout(() => setLoading(false), 4000)
     }
   }, [uploads, previews, updateGlobalState, onUploadSuccess, onClose, uploadSingleFile])
 
