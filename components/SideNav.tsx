@@ -151,8 +151,8 @@ const SideNav: React.FC = () => {
     },
   ];
 
-  console.log('oading', loading)
-  console.log('loadingCampaign ', loadingCampaign)
+  // console.log('oading', loading)
+  // console.log('loadingCampaign ', loadingCampaign)
 
   return (
     <div

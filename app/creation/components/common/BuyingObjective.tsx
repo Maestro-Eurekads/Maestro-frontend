@@ -28,6 +28,7 @@ const BuyingObjective = () => {
     updateCampaign,
     getActiveCampaign,
     campaignData,
+    setIsEditingBuyingObjective,
   } = useCampaigns();
   const campaignFormData = rawCampaignFormData || defaultCampaignData; // Fallback to default
   const [updatedData, setUpdatedData] = useState(null);
@@ -190,6 +191,7 @@ const BuyingObjective = () => {
     setUpdatedData(null);
     setIsLoyalty(false);
     setShowLoyaltyField(false);
+    setIsEditingBuyingObjective(false);
   };
 
   const cleanData = campaignData
@@ -290,6 +292,7 @@ const BuyingObjective = () => {
                 setIsLoyalty(false);
                 setShowLoyaltyField(false);
                 setEdit(false);
+                setIsEditingBuyingObjective(false);
               }}
             />
           </div>
@@ -301,6 +304,7 @@ const BuyingObjective = () => {
             onClick={() => {
               setEdit(true);
               setUpdatedData(campaignFormData);
+              setIsEditingBuyingObjective(true);
             }}
           />
         )}
