@@ -250,26 +250,26 @@ export function extractChannelAndPhase(campaigns: any[]) {
   }
 }
 
-export function extractLevelFilters(campaigns: any[]) {
-  const level_1 = new Set<string>();
-  const level_2 = new Set<string>();
-  const level_3 = new Set<string>();
+// export function extractLevelFilters(campaigns: any[]) {
+//   const level_1 = new Set<string>();
+//   const level_2 = new Set<string>();
+//   const level_3 = new Set<string>();
 
-  campaigns.forEach((campaign) => {
-    const clientSelection = campaign.client_selection;
-    if (!clientSelection) return;
+//   campaigns.forEach((campaign) => {
+//     const clientSelection = campaign.client_selection;
+//     if (!clientSelection) return;
 
-    if (clientSelection.level_1) level_1.add(clientSelection.level_1);
-    if (clientSelection.level_2) level_2.add(clientSelection.level_2);
-    if (clientSelection.level_3) level_3.add(clientSelection.level_3);
-  });
+//     if (clientSelection.level_1) level_1.add(clientSelection.level_1);
+//     if (clientSelection.level_2) level_2.add(clientSelection.level_2);
+//     if (clientSelection.level_3) level_3.add(clientSelection.level_3);
+//   });
 
-  return {
-    level_1: Array.from(level_1).sort(),
-    level_2: Array.from(level_2).sort(),
-    level_3: Array.from(level_3).sort(),
-  };
-}
+//   return {
+//     level_1: Array.from(level_1).sort(),
+//     level_2: Array.from(level_2).sort(),
+//     level_3: Array.from(level_3).sort(),
+//   };
+// }
 
 
 
