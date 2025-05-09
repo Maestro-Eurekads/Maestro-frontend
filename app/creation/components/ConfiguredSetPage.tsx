@@ -22,9 +22,10 @@ interface OutletType {
     fixed_value;
     percetage_value;
   };
+  channel: any;
 }
 
-const ConfiguredSetPage = ({netAmount}) => {
+const ConfiguredSetPage = ({ netAmount }) => {
   const [openItems, setOpenItems] = useState({
     Awareness: false,
     Consideration: false,
@@ -75,6 +76,7 @@ const ConfiguredSetPage = ({netAmount}) => {
                     ad_sets: platform?.ad_sets,
                     icon,
                     budget: platform?.budget,
+                    channel,
                   });
                 }
               });
@@ -223,6 +225,136 @@ const ConfiguredSetPage = ({netAmount}) => {
     });
 
     setResults((prev) => ({ ...prev, [stage]: newResults }));
+  };
+
+  const handleAutoSplitBudget = (stage, channel, platform) => {
+    const stageData = campaignFormData.channel_mix.find(
+      (ch) => ch.funnel_stage === stage.funnel_stage
+    );
+    const findPlatform = stageData[channel]?.find(
+      (ch) => ch?.platform_name === platform
+    );
+    console.log("🚀 ~ handleAutoSplitBudget ~ findPlatform:", findPlatform);
+    // console.log("🚀 ~ handleAutoSplitBudget ~ stageData:", stageData);
+    if (stageData) {
+      const totalStageBudget = Number(findPlatform?.budget?.fixed_value);
+      console.log(
+        "🚀 ~ handleAutoSplitBudget ~ totalStageBudget:",
+        totalStageBudget
+      );
+      const totalAdSetCount = findPlatform?.ad_sets?.reduce((acc, ad) => {
+        const extraAudienceCount = ad?.extra_audiences?.length || 0;
+        return acc + 1 + extraAudienceCount;
+      }, 0);
+      console.log(
+        "🚀 ~ handleAutoSplitBudget ~ totalAdSetCount:",
+        totalAdSetCount
+      );
+      const splitBudget = (totalStageBudget / totalAdSetCount).toFixed(2);
+      console.log("🚀 ~ handleAutoSplitBudget ~ splitBudget:", splitBudget);
+
+      const updatedChannelMix = campaignFormData.channel_mix.map((ch) => {
+        if (ch.funnel_stage === stage.funnel_stage) {
+          if (ch[channel]) {
+            ch[channel] = ch[channel].map((p) => {
+              if (p.platform_name === platform) {
+                const updatedPlatform = {
+                  ...p,
+                  ad_sets: p.ad_sets?.map((adSet) => {
+                    const updatedExtraAudiences = adSet.extra_audiences?.map(
+                      (extraAudience) => ({
+                        ...extraAudience,
+                        budget: {
+                          fixed_value: splitBudget,
+                          percentage_value: (
+                            (Number(splitBudget) /
+                              Number(findPlatform?.budget?.fixed_value)) *
+                            100
+                          ).toFixed(1),
+                        },
+                      })
+                    );
+
+                    return {
+                      ...adSet,
+                      budget: {
+                        fixed_value: splitBudget,
+                        percentage_value: (
+                          (Number(splitBudget) /
+                            Number(findPlatform?.budget?.fixed_value)) *
+                          100
+                        ).toFixed(1),
+                      },
+                      extra_audiences: updatedExtraAudiences,
+                    };
+                  }),
+                };
+                return updatedPlatform;
+              }
+              return p;
+            });
+          }
+        }
+        return ch;
+      });
+      setCampaignFormData({
+        ...campaignFormData,
+        channel_mix: updatedChannelMix,
+      });
+    }
+  };
+
+  const handleResetBudget = (stage, channel, platform) => {
+    const stageData = campaignFormData.channel_mix.find(
+      (ch) => ch.funnel_stage === stage.funnel_stage
+    );
+    const findPlatform = stageData[channel]?.find(
+      (ch) => ch?.platform_name === platform
+    );
+
+    if (stageData) {
+      const updatedChannelMix = campaignFormData.channel_mix.map((ch) => {
+        if (ch.funnel_stage === stage.funnel_stage) {
+          if (ch[channel]) {
+            ch[channel] = ch[channel].map((p) => {
+              if (p.platform_name === platform) {
+                const updatedPlatform = {
+                  ...p,
+                  ad_sets: p.ad_sets?.map((adSet) => {
+                    const updatedExtraAudiences = adSet.extra_audiences?.map(
+                      (extraAudience) => ({
+                        ...extraAudience,
+                        budget: {
+                          fixed_value: "",
+                          percentage_value: "",
+                        },
+                      })
+                    );
+
+                    return {
+                      ...adSet,
+                      budget: {
+                        fixed_value: "",
+                        percentage_value: "",
+                      },
+                      extra_audiences: updatedExtraAudiences,
+                    };
+                  }),
+                };
+                return updatedPlatform;
+              }
+              return p;
+            });
+          }
+        }
+        return ch;
+      });
+
+      setCampaignFormData({
+        ...campaignFormData,
+        channel_mix: updatedChannelMix,
+      });
+    }
   };
 
   return (
@@ -385,7 +517,11 @@ const ConfiguredSetPage = ({netAmount}) => {
                         <div className="flex items-center gap-4">
                           <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
                             <div className="flex items-center gap-2">
-                              <p>{isNaN(percentage) ? "0.0" : percentage?.toFixed(1)}</p>
+                              <p>
+                                {isNaN(percentage)
+                                  ? "0.0"
+                                  : percentage?.toFixed(1)}
+                              </p>
                               <span> %</span>
                             </div>
                           </div>
@@ -654,7 +790,11 @@ const ConfiguredSetPage = ({netAmount}) => {
                               <div className="flex items-center gap-4">
                                 <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
                                   <div className="flex items-center gap-2">
-                                    <p>{isNaN(platformPercentage) ? "0.0" :platformPercentage?.toFixed(1)}</p>
+                                    <p>
+                                      {isNaN(platformPercentage)
+                                        ? "0.0"
+                                        : platformPercentage?.toFixed(1)}
+                                    </p>
                                     <span> %</span>
                                   </div>
                                 </div>
@@ -667,105 +807,13 @@ const ConfiguredSetPage = ({netAmount}) => {
                                     "Adset level" && (
                                     <div
                                       className="flex items-center gap-2"
-                                      onClick={(e) => {
-                                        const stageData =
-                                          campaignFormData.channel_mix.find(
-                                            (ch) =>
-                                              ch.funnel_stage ===
-                                              stage.funnel_stage
-                                          );
-                                        if (stageData) {
-                                          const totalStageBudget = Number(
-                                            stageData.stage_budget.fixed_value
-                                          );
-                                          const totalAdSetCount = platforms[
-                                            stage.funnel_stage
-                                          ]?.reduce((acc, platform) => {
-                                            return (
-                                              acc +
-                                              (platform.ad_sets?.length || 1)
-                                            );
-                                          }, 0);
-                                          const splitBudget = (
-                                            totalStageBudget / totalAdSetCount
-                                          ).toFixed(2);
-
-                                          const updatedChannelMix =
-                                            campaignFormData.channel_mix.map(
-                                              (ch) => {
-                                                if (
-                                                  ch.funnel_stage ===
-                                                  stage.funnel_stage
-                                                ) {
-                                                  channelTypes.forEach(
-                                                    (type) => {
-                                                      if (ch[type]) {
-                                                        ch[type] = ch[type].map(
-                                                          (p) => {
-                                                            const platformAdSetCount =
-                                                              p.ad_sets
-                                                                ?.length || 1;
-                                                            const platformBudget =
-                                                              (
-                                                                platformAdSetCount *
-                                                                Number(
-                                                                  splitBudget
-                                                                )
-                                                              ).toFixed(2);
-                                                            const updatedPlatform =
-                                                              {
-                                                                ...p,
-                                                                budget: {
-                                                                  ...p.budget,
-                                                                  fixed_value:
-                                                                    platformBudget,
-                                                                },
-                                                              };
-                                                            if (
-                                                              p.ad_sets &&
-                                                              p.ad_sets.length >
-                                                                0
-                                                            ) {
-                                                              updatedPlatform.ad_sets =
-                                                                p.ad_sets.map(
-                                                                  (adSet) => ({
-                                                                    ...adSet,
-                                                                    budget: {
-                                                                      fixed_value:
-                                                                        splitBudget,
-                                                                      percentage_value:
-                                                                        (
-                                                                          (Number(
-                                                                            splitBudget
-                                                                          ) /
-                                                                            Number(
-                                                                              platformBudget
-                                                                            )) *
-                                                                          100
-                                                                        ).toFixed(
-                                                                          1
-                                                                        ),
-                                                                    },
-                                                                  })
-                                                                );
-                                                            }
-                                                            return updatedPlatform;
-                                                          }
-                                                        );
-                                                      }
-                                                    }
-                                                  );
-                                                  return ch;
-                                                }
-                                                return ch;
-                                              }
-                                            );
-                                          setCampaignFormData({
-                                            ...campaignFormData,
-                                            channel_mix: updatedChannelMix,
-                                          });
-                                        }
-                                      }}
+                                      // onClick={(e) => {
+                                      //   handleAutoSplitBudget(
+                                      //     stage,
+                                      //     platform?.channel,
+                                      //     platform?.outlet
+                                      //   );
+                                      // }}
                                     >
                                       <label
                                         htmlFor={`${stage.name}AcceptConditions`}
@@ -775,6 +823,24 @@ const ConfiguredSetPage = ({netAmount}) => {
                                           type="checkbox"
                                           id={`${stage.name}AcceptConditions`}
                                           className="peer sr-only"
+                                          onChange={(e) => {
+                                            if (e.target.checked) {
+                                              // Function to call when toggle is turned ON
+                                              handleAutoSplitBudget(
+                                                stage,
+                                                platform?.channel,
+                                                platform?.outlet
+                                              );
+                                            } else {
+                                              // Function to call when toggle is turned OFF
+                                              handleResetBudget(
+                                                stage,
+                                                platform?.channel,
+                                                platform?.outlet
+                                              );
+                                              // console.log("hhrer")
+                                            }
+                                          }}
                                         />
                                         <span className="absolute inset-y-0 left-0 w-6 h-6 rounded-full bg-white transition-transform duration-200 transform peer-checked:translate-x-6"></span>
                                       </label>
@@ -993,38 +1059,39 @@ const ConfiguredSetPage = ({netAmount}) => {
 
                                                                     const totalAdSetBudget =
                                                                       updatedAdSets?.reduce(
-                                                                      (
-                                                                        sum,
-                                                                        adSet
-                                                                      ) => {
-                                                                        const extraAudiencesTotal =
-                                                                        adSet.extra_audiences?.reduce(
-                                                                          (
-                                                                          extraSum,
-                                                                          extraAudience
-                                                                          ) =>
-                                                                          extraSum +
-                                                                          Number(
-                                                                            extraAudience
-                                                                            .budget
-                                                                            ?.fixed_value ||
-                                                                            0
-                                                                          ),
-                                                                          0
-                                                                        ) || 0;
-
-                                                                        return (
-                                                                        sum +
-                                                                        Number(
+                                                                        (
+                                                                          sum,
                                                                           adSet
-                                                                          .budget
-                                                                          ?.fixed_value ||
-                                                                          0
-                                                                        ) +
-                                                                        extraAudiencesTotal
-                                                                        );
-                                                                      },
-                                                                      0
+                                                                        ) => {
+                                                                          const extraAudiencesTotal =
+                                                                            adSet.extra_audiences?.reduce(
+                                                                              (
+                                                                                extraSum,
+                                                                                extraAudience
+                                                                              ) =>
+                                                                                extraSum +
+                                                                                Number(
+                                                                                  extraAudience
+                                                                                    .budget
+                                                                                    ?.fixed_value ||
+                                                                                    0
+                                                                                ),
+                                                                              0
+                                                                            ) ||
+                                                                            0;
+
+                                                                          return (
+                                                                            sum +
+                                                                            Number(
+                                                                              adSet
+                                                                                .budget
+                                                                                ?.fixed_value ||
+                                                                                0
+                                                                            ) +
+                                                                            extraAudiencesTotal
+                                                                          );
+                                                                        },
+                                                                        0
                                                                       );
 
                                                                     if (
@@ -1042,7 +1109,8 @@ const ConfiguredSetPage = ({netAmount}) => {
                                                                           type: "error",
                                                                           theme:
                                                                             "colored",
-                                                                            toastId: "sum"
+                                                                          toastId:
+                                                                            "sum",
                                                                         }
                                                                       );
                                                                       return p;
