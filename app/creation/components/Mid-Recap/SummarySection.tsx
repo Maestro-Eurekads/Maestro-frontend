@@ -3,6 +3,7 @@ import Button from "../common/button";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { removeKeysRecursively } from "utils/removeID";
 import { useState } from "react";
+import { useEditing } from "app/utils/EditingContext";
 
 interface SummarySectionProps {
   title: string;
@@ -16,6 +17,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
   children,
 }) => {
   const [loading, setLoading] = useState(false);
+  const { midcapEditing, setMidcapEditing } = useEditing();
   const {
     updateCampaign,
     getActiveCampaign,
@@ -29,6 +31,10 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
     if (title === "Your buying objectives") {
       setIsEditingBuyingObjective(false);
     }
+    setMidcapEditing({
+      isEditing: false,
+      step: "",
+    });
   };
 
   const cleanData = campaignData
@@ -80,7 +86,8 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
     }
   };
 
-  const isEditing = title === "Your buying objectives" && isEditingBuyingObjective;
+  const isEditing = (title === "Your buying objectives" && isEditingBuyingObjective) || 
+                    (midcapEditing.isEditing && midcapEditing.step === title);
 
   return (
     <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full">
@@ -114,8 +121,15 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
             variant="primary"
             className="!w-[85px] !h-[40px]"
             onClick={() => {
-              if (!loading && title === "Your buying objectives") {
-                setIsEditingBuyingObjective(true);
+              if (!loading) {
+                if (title === "Your buying objectives") {
+                  setIsEditingBuyingObjective(true);
+                } else {
+                  setMidcapEditing({
+                    isEditing: true,
+                    step: title,
+                  });
+                }
               }
             }}
           />
