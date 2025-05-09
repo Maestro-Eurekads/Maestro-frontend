@@ -820,17 +820,7 @@ function FeeSelectionStep({
                 }`}
               >
                 Remaining budget:{" "}
-                {Number(netAmount) > 0
-                  ? netAmount
-                  : isNaN(
-                      parseInt(campaignFormData?.campaign_budget?.amount)
-                    )
-                  ? ""
-                  : formatNumberWithCommas(
-                      Number(
-                        campaignFormData?.campaign_budget?.amount
-                      ).toLocaleString()
-                    )}
+                {calculateRemainingBudget()}
               </p>
             </div>
           </div>

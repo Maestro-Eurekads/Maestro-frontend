@@ -385,7 +385,7 @@ const ConfiguredSetPage = ({netAmount}) => {
                         <div className="flex items-center gap-4">
                           <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
                             <div className="flex items-center gap-2">
-                              <p>{percentage?.toFixed(1)}</p>
+                              <p>{isNaN(percentage) ? "0.0" : percentage?.toFixed(1)}</p>
                               <span> %</span>
                             </div>
                           </div>
@@ -654,7 +654,7 @@ const ConfiguredSetPage = ({netAmount}) => {
                               <div className="flex items-center gap-4">
                                 <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
                                   <div className="flex items-center gap-2">
-                                    <p>{platformPercentage?.toFixed(1)}</p>
+                                    <p>{isNaN(platformPercentage) ? "0.0" :platformPercentage?.toFixed(1)}</p>
                                     <span> %</span>
                                   </div>
                                 </div>
