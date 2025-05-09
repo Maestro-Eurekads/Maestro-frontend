@@ -150,6 +150,46 @@ export const CAMPAIGN_POPULATE_QUERY = `&populate[media_plan_details]=*&populate
 //   }
 // }
 
+// export function extractDateFilters(campaigns: any[]) {
+//   const year = new Set<string>();
+//   const quarter = new Set<string>();
+//   const month = new Set<string>();
+
+//   const monthNames = [
+//     "January", "February", "March", "April", "May", "June",
+//     "July", "August", "September", "October", "November", "December",
+//   ];
+
+//   campaigns.forEach((campaign) => {
+//     if (!campaign.createdAt) return;
+
+//     const createdDate = new Date(campaign.createdAt);
+
+//     // Extract year
+//     const createdYear = createdDate.getFullYear().toString();
+//     year.add(createdYear);
+
+//     // Extract quarter
+//     const createdQuarter = `Q${Math.floor(createdDate.getMonth() / 3) + 1}`;
+//     quarter.add(createdQuarter);
+
+//     // Extract month
+//     const createdMonth = monthNames[createdDate.getMonth()];
+//     month.add(createdMonth);
+//   });
+
+//   return {
+//     year: Array.from(year).sort(),
+//     quarter: Array.from(quarter).sort(),
+//     month: Array.from(month).sort((a, b) => {
+//       const monthOrder = {
+//         January: 0, February: 1, March: 2, April: 3, May: 4, June: 5,
+//         July: 6, August: 7, September: 8, October: 9, November: 10, December: 11,
+//       };
+//       return monthOrder[a as keyof typeof monthOrder] - monthOrder[b as keyof typeof monthOrder];
+//     }),
+//   };
+// }
 export function extractDateFilters(campaigns: any[]) {
   const year = new Set<string>();
   const quarter = new Set<string>();
@@ -161,21 +201,56 @@ export function extractDateFilters(campaigns: any[]) {
   ];
 
   campaigns.forEach((campaign) => {
-    if (!campaign.createdAt) return;
+    // Try to use campaign_timeline_start_date and campaign_timeline_end_date
+    const hasTimelineDates =
+      campaign.campaign_timeline_start_date &&
+      campaign.campaign_timeline_end_date &&
+      !isNaN(new Date(campaign.campaign_timeline_start_date).getTime()) &&
+      !isNaN(new Date(campaign.campaign_timeline_end_date).getTime());
 
-    const createdDate = new Date(campaign.createdAt);
+    if (hasTimelineDates) {
+      const startDate = new Date(campaign.campaign_timeline_start_date);
+      const endDate = new Date(campaign.campaign_timeline_end_date);
 
-    // Extract year
-    const createdYear = createdDate.getFullYear().toString();
-    year.add(createdYear);
+      // Extract year
+      const startYear = startDate.getFullYear().toString();
+      const endYear = endDate.getFullYear().toString();
+      year.add(startYear);
+      if (startYear !== endYear) {
+        year.add(endYear);
+      }
 
-    // Extract quarter
-    const createdQuarter = `Q${Math.floor(createdDate.getMonth() / 3) + 1}`;
-    quarter.add(createdQuarter);
+      // Extract quarter
+      const startQuarter = `Q${Math.floor(startDate.getMonth() / 3) + 1}`;
+      const endQuarter = `Q${Math.floor(endDate.getMonth() / 3) + 1}`;
+      quarter.add(startQuarter);
+      if (startQuarter !== endQuarter || startYear !== endYear) {
+        quarter.add(endQuarter);
+      }
 
-    // Extract month
-    const createdMonth = monthNames[createdDate.getMonth()];
-    month.add(createdMonth);
+      // Extract month
+      const startMonth = monthNames[startDate.getMonth()];
+      const endMonth = monthNames[endDate.getMonth()];
+      month.add(startMonth);
+      if (startMonth !== endMonth || startYear !== endYear) {
+        month.add(endMonth);
+      }
+    } else if (campaign.createdAt && !isNaN(new Date(campaign.createdAt).getTime())) {
+      // Fallback to createdAt
+      const createdDate = new Date(campaign.createdAt);
+
+      // Extract year
+      const createdYear = createdDate.getFullYear().toString();
+      year.add(createdYear);
+
+      // Extract quarter
+      const createdQuarter = `Q${Math.floor(createdDate.getMonth() / 3) + 1}`;
+      quarter.add(createdQuarter);
+
+      // Extract month
+      const createdMonth = monthNames[createdDate.getMonth()];
+      month.add(createdMonth);
+    }
   });
 
   return {
@@ -190,7 +265,6 @@ export function extractDateFilters(campaigns: any[]) {
     }),
   };
 }
-
 
 export function extractAprroverFilters(campaigns: any[]) {
   const made_by = new Set<string>()
