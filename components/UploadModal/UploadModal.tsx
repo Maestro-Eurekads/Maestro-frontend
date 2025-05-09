@@ -41,9 +41,9 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const [loading, setLoading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<number[]>([])
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null)
-  const MAX_RETRIES = 2
-  const CONCURRENT_UPLOADS = 6
-  const UPLOAD_TIMEOUT = 10000
+  const MAX_RETRIES = 3 // Increased retries
+  const CONCURRENT_UPLOADS = 3 // Reduced concurrent uploads
+  const UPLOAD_TIMEOUT = 30000 // Increased timeout to 30s
 
   // Validate environment variables
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
@@ -288,7 +288,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
   )
 
   const uploadSingleFile = useCallback(
-    async (file: File, index: number): Promise<any> => {
+    async (file: File, index: number, retryCount = 0): Promise<any> => {
       try {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT)
@@ -366,6 +366,13 @@ const UploadModal: React.FC<UploadModalProps> = ({
         })
         return result[0]
       } catch (error) {
+        if (retryCount < MAX_RETRIES) {
+          console.log(`Retrying upload for file "${file.name}" (attempt ${retryCount + 1}/${MAX_RETRIES})`)
+          // Exponential backoff delay
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000))
+          return uploadSingleFile(file, index, retryCount + 1)
+        }
+
         if (error instanceof Error) {
           if (error.name === "AbortError") {
             throw new Error("Upload timed out")
@@ -391,22 +398,29 @@ const UploadModal: React.FC<UploadModalProps> = ({
         .map((file, index) => ({ file, index }))
         .filter((item): item is { file: File; index: number } => item.file !== null)
 
-      const uploadPromises = filesToUpload.map(async ({ file, index }) => {
-        try {
-          const result = await uploadSingleFile(file, index)
-          setUploadProgress((prev) => {
-            const updated = [...prev]
-            updated[index] = 100
-            return updated
+      // Process files in chunks
+      const results = []
+      for (let i = 0; i < filesToUpload.length; i += CONCURRENT_UPLOADS) {
+        const chunk = filesToUpload.slice(i, i + CONCURRENT_UPLOADS)
+        const chunkResults = await Promise.all(
+          chunk.map(async ({ file, index }) => {
+            try {
+              const result = await uploadSingleFile(file, index)
+              setUploadProgress((prev) => {
+                const updated = [...prev]
+                updated[index] = 100
+                return updated
+              })
+              return result
+            } catch (error) {
+              console.error(`Failed to upload file "${file.name}"`, error)
+              return null
+            }
           })
-          return result
-        } catch (error) {
-          console.error(`Failed to upload file "${file.name}"`, error)
-          return null
-        }
-      })
+        )
+        results.push(...chunkResults)
+      }
 
-      const results = await Promise.all(uploadPromises)
       const uploadedFiles = results.filter((result) => result !== null)
 
       if (uploadedFiles.length === 0) {
