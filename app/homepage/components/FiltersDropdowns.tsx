@@ -101,9 +101,9 @@ const defaultFilters = [
       "July", "August", "September", "October", "November", "December"
     ],
   },
-  { label: "Level 1", options: ["Level 1"] },
-  { label: "Level 2", options: ["Level 2"] },
-  { label: "Level 3", options: ["Level 3"] },
+  // { label: "Level 1", options: ["Level 1"] },
+  // { label: "Level 2", options: ["Level 2"] },
+  // { label: "Level 3", options: ["Level 3"] },
   { label: "Made By", options: ["User 1", "User 2", "User 3", "User 4"] },
   { label: "Approved By", options: ["Manager 1", "Manager 2", "Manager 3", "Manager 4"] },
 ]
