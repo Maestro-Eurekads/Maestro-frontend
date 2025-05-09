@@ -444,7 +444,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
       // Show success message immediately
       const uploadTime = (Date.now() - uploadStartTime) / 1000
-      toast.success(`Files uploaded in ${uploadTime.toFixed(1)}s!`)
+      toast.success("Files uploaded successfully!")
 
       // Close modal and trigger success callback after 4s
       setTimeout(() => {
