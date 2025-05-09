@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import DateComponent from './molecules/date-component/date-component';
 import ConfigureBudgetComponet from './ConfigureAdSetsAndBudget/ConfigureBudgetComponet';
-import OverviewOfYourCampaigntimeline from './OverviewOfYourCampaign/OverviewOfYourCampaigntimeline';
+import OverviewOfYourCampaigntimeline from './OverviewOfYourCampaign/OverviewOfYourCampaignDayTimeline';
 import { useDateRange } from '../../../src/date-range-context';
 import { categoryOrder, kpiCategories, mapKPIStatsToStatsDataDynamic, parseApiDate } from '../../../components/Options';
 import { useCampaigns } from '../../utils/CampaignsContext';
@@ -24,6 +24,18 @@ import downfull from "../../../public/arrow-down-full.svg";
 import upoffline from "../../../public/arrow-up-offline.svg";
 import { useKpis } from 'app/utils/KpiProvider';
 import AlertMain from 'components/Alert/AlertMain';
+import OverViewTimelineContainer from './OverviewOfYourCampaign/OverViewTimelineContainer';
+import { getCurrencySymbol, getPlatformIcon, platformIcons } from 'components/data';
+import {
+	differenceInCalendarDays,
+	differenceInCalendarMonths,
+	differenceInCalendarWeeks,
+	differenceInDays,
+	max,
+	min,
+	parseISO,
+} from "date-fns"
+import { processCampaignData } from 'components/processCampaignData';
 
 interface Comment {
 	documentId: string;
@@ -54,6 +66,11 @@ const OverviewofyourCampaign = () => {
 	const commentId = query.get("campaignId");
 	const [finalCategoryOrder, setFinalCategoryOrder] = useState(categoryOrder); // default fallback
 	const { getKpis, isLoadingKpis, kpiCategory, setkpiCategory, refresh, setRefresh } = useKpis();
+	const [channels, setChannels] = useState<IChannel[]>([])
+
+
+
+	const [channelData, setChannelData] = useState(null)
 
 	const comments: Comment[] = clientCampaignData
 		?.filter((comment: Comment) => comment?.addcomment_as !== "Internal")
@@ -71,20 +88,20 @@ const OverviewofyourCampaign = () => {
 		setClose(true);
 	}, []);
 
-	const mapCampaignsToFunnels = (campaigns: any[]) => {
-		return campaigns?.map((campaign, index) => {
-			const fromDate = parseApiDate(campaign?.campaign_timeline_start_date);
-			const toDate = parseApiDate(campaign?.campaign_timeline_end_date);
+	// const mapCampaignsToFunnels = (campaigns: any[]) => {
+	// 	return campaigns?.map((campaign, index) => {
+	// 		const fromDate = parseApiDate(campaign?.campaign_timeline_start_date);
+	// 		const toDate = parseApiDate(campaign?.campaign_timeline_end_date);
 
-			return {
-				startWeek: fromDate?.day ?? 0, // Default to 0 if null
-				endWeek: toDate?.day ?? 0,
-				label: `Campaign ${index + 1}`,
-			};
-		});
-	};
+	// 		return {
+	// 			startWeek: fromDate?.day ?? 0, // Default to 0 if null
+	// 			endWeek: toDate?.day ?? 0,
+	// 			label: `Campaign ${index + 1}`,
+	// 		};
+	// 	});
+	// };
 
-	const funnelsData = mapCampaignsToFunnels(clientCampaignData);
+	// const funnelsData = mapCampaignsToFunnels(clientCampaignData);
 
 
 	const handleDrawerOpen = () => {
@@ -252,6 +269,184 @@ const OverviewofyourCampaign = () => {
 	}, [showalert]);
 
 
+
+
+
+
+
+	const currencySymbols: Record<string, string> = {
+		"Euro (EUR)": "€",
+		"US Dollar (USD)": "$",
+		"British Pound (GBP)": "£",
+		"Nigerian Naira (NGN)": "₦",
+		"Japanese Yen (JPY)": "¥",
+		"Canadian Dollar (CAD)": "C$",
+	}
+
+	// Types for platforms and channels
+	type IPlatform = {
+		name: string
+		icon: any
+		style?: string
+		mediaOptions?: any[]
+		isExpanded?: boolean
+	}
+	type IChannel = {
+		title: string
+		platforms: IPlatform[]
+		style?: string
+	}
+
+	const mapCampaignsToFunnels = (campaigns: any[]) => {
+		useEffect(() => {
+			if (clientCampaignData?.channel_mix) {
+				const newChannels = clientCampaignData?.funnel_stages
+					.flatMap((stageName) => {
+						const stage = clientCampaignData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName)
+						if (!stage) return null
+
+						return [
+							{
+								title: "Social media",
+								platforms: stage?.social_media?.map((platform) => ({
+									name: platform?.platform_name,
+									icon: getPlatformIcon(platform?.platform_name),
+								})),
+								style: "max-w-[150px] w-full h-[52px]",
+							},
+							{
+								title: "Display Networks",
+								platforms: stage?.display_networks?.map((platform) => ({
+									name: platform?.platform_name,
+									icon: getPlatformIcon(platform?.platform_name),
+								})),
+								style: "max-w-[200px] w-full",
+							},
+							{
+								title: "Search Engines",
+								platforms: stage.search_engines?.map((platform) => ({
+									name: platform?.platform_name,
+									icon: getPlatformIcon(platform?.platform_name),
+								})),
+								style: "max-w-[180px] w-full",
+							},
+						]
+					})
+					.filter(Boolean) // Flatten array and remove null values
+
+				// **Fix: Prevent re-render loop**
+				if (JSON.stringify(channels) !== JSON.stringify(newChannels)) {
+					setChannels(newChannels)
+				}
+			}
+		}, [campaignFormData])
+
+		return campaigns?.map((campaign, index) => {
+			const fromDate = parseApiDate(campaign?.campaign_timeline_start_date)
+			const toDate = parseApiDate(campaign?.campaign_timeline_end_date)
+
+			const budgetDetails = campaign?.budget_details
+			const currencySymbol = currencySymbols[budgetDetails?.currency] || ""
+			const budgetValue = budgetDetails?.value ? `${budgetDetails.value} ${currencySymbol}` : "N/A"
+
+			return {
+				startWeek: fromDate?.day ?? 0, // Default to 0 if null
+				endWeek: toDate?.day ?? 0,
+				label: `Campaign ${index + 1}`,
+				budget: budgetValue,
+			}
+		})
+	}
+
+	const startDates = clientCampaignData
+		?.filter((c) => c?.campaign_timeline_start_date)
+		?.map((ch) => ch?.campaign_timeline_start_date !== null && parseISO(ch?.campaign_timeline_start_date))
+	const endDates = clientCampaignData
+		?.filter((c) => c?.campaign_timeline_end_date)
+		?.map((ch) => ch?.campaign_timeline_end_date !== null && parseISO(ch?.campaign_timeline_end_date))
+
+	// Find the earliest startDate and latest endDate
+	const earliestStartDate = min(startDates)
+	const latestEndDate = max(endDates)
+	// Calculate the week difference
+	const dayDifference = differenceInCalendarDays(latestEndDate, earliestStartDate)
+	const weekDifference = differenceInCalendarWeeks(latestEndDate, earliestStartDate)
+	// const monthDifference = differenceInCalendarMonths(latestEndDate, earliestStartDate)
+	const daysDiff = differenceInDays(endDates, startDates);
+	const monthDifference = daysDiff / 30.44;
+
+	const funnelsData = clientCampaignData?.map((ch) => {
+		const start = ch?.campaign_timeline_start_date ? parseISO(ch.campaign_timeline_start_date) : null
+		const end = ch?.campaign_timeline_end_date ? parseISO(ch.campaign_timeline_end_date) : null
+
+		// Calculate positions for different time ranges
+		const startDay = differenceInCalendarDays(start, earliestStartDate) + 1
+		const endDay = differenceInCalendarDays(end, earliestStartDate) + 1
+
+		// console.log("🚀 ~ Dashboard ~ funnelDtaa:", ch?.media_plan_details?.plan_name, startDay, endDay)
+
+		const startWeek = differenceInCalendarWeeks(start, earliestStartDate) + 1
+		const endWeek = differenceInCalendarWeeks(end, earliestStartDate) + 1
+
+		const startMonth = differenceInCalendarMonths(start, earliestStartDate) + 1
+		const endMonth = differenceInCalendarMonths(end, earliestStartDate) + 1
+
+		const funnels = ch?.funnel_stages
+		return {
+			startDay,
+			endDay,
+			startWeek,
+			endWeek,
+			startMonth,
+			endMonth,
+			label: ch?.media_plan_details?.plan_name,
+			stages: ch?.channel_mix?.map((d) => ({
+				name: d?.funnel_stage,
+				budget: d?.stage_budget?.fixed_value,
+			})),
+			budget: `${ch?.campaign_budget?.amount} ${getCurrencySymbol(ch?.campaign_budget?.currency)}`,
+		}
+	})
+
+	const processedCampaigns = processCampaignData(clientCampaignData, platformIcons)
+
+	function extractPlatforms(data) {
+		const platforms = []
+		data?.channel_mix?.length > 0 &&
+			data.channel_mix.forEach((stage) => {
+				const stageName = stage.funnel_stage
+				const stageBudget = Number.parseFloat(stage.stage_budget?.fixed_value)
+					;["search_engines", "display_networks", "social_media"].forEach((channelType) => {
+						stage[channelType].forEach((platform) => {
+							const platformName = platform.platform_name
+							const platformBudget = Number.parseFloat(platform.budget?.fixed_value || 0)
+							const percentage = (platformBudget / stageBudget) * 100 || 0
+							const existingPlatform = platforms.find((p) => p.platform_name === platformName)
+							if (existingPlatform) {
+								existingPlatform.stages_it_was_found.push({
+									stage_name: stageName,
+									percentage: percentage,
+								})
+							} else {
+								platforms.push({
+									platform_name: platformName,
+									platform_budegt: platformBudget,
+									stages_it_was_found: [
+										{
+											stage_name: stageName,
+											percentage: percentage,
+										},
+									],
+								})
+							}
+						})
+					})
+			})
+		return platforms
+	}
+
+
+
 	return (
 		<div>
 			{alert && <AlertMain alert={alert} />}
@@ -311,7 +506,12 @@ const OverviewofyourCampaign = () => {
 				</div>
 
 				<MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
-				<OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} setIsDrawerOpen={setIsDrawerOpen} openComments={isDrawerOpen} />
+				{/* <OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} setIsDrawerOpen={setIsDrawerOpen} openComments={isDrawerOpen} /> */}
+				<OverViewTimelineContainer range={range}
+					dayDifference={dayDifference}
+					weekDifference={weekDifference}
+					monthDifference={Math.round(monthDifference)}
+					funnelsData={funnelsData} />
 			</div>
 
 		</div>

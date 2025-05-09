@@ -2,6 +2,7 @@
 import { MdOutlineErrorOutline } from "react-icons/md";
 import { SVGLoader } from "./SVGLoader";
 import React from "react";
+import { getPlatformIcon, platformStyles } from "./data";
 
 
 
@@ -339,10 +340,49 @@ const getInitials = (name: string | null | undefined) => {
 };
 
 
+function extractPlatforms(data) {
+  const platforms = [];
+  data?.channel_mix?.length > 0 &&
+    data.channel_mix.forEach((stage) => {
+      const stageName = stage.funnel_stage;
+      const stageBudget = parseFloat(stage.stage_budget?.fixed_value);
+      ["search_engines", "display_networks", "social_media"].forEach(
+        (channelType) => {
+          stage[channelType].forEach((platform) => {
+            const platformName = platform.platform_name;
+            const platformBudget = parseFloat(
+              platform.budget?.fixed_value || 0
+            );
+            const percentage = (platformBudget / stageBudget) * 100 || 0;
+            const existingPlatform = platforms.find(
+              (p) => p.platform_name === platformName
+            );
+            if (!existingPlatform) {
+              const style =
+                platformStyles.find((style) => style.name === platformName) ||
+                platformStyles[
+                Math.floor(Math.random() * platformStyles.length)
+                ];
+              platforms.push({
+                platform_name: platformName,
+                amount: platformBudget,
+                stageName,
+                icon: getPlatformIcon(platformName),
+                bg: style?.bg,
+              });
+            }
+          });
+        }
+      );
+    });
+  return platforms;
+}
+
 
 export {
   kpiCategories,
   categoryOrder,
+  extractPlatforms,
   NoRecordFound,
   SVGLoaderFetch,
   NoRecordFoundD,

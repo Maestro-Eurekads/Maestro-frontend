@@ -116,7 +116,7 @@ const ResizeableElements = ({ funnelData }) => {
                   (style) => style.name === platform.platform_name
                 ) ||
                 platformStyles[
-                  Math.floor(Math.random() * platformStyles.length)
+                Math.floor(Math.random() * platformStyles.length)
                 ];
 
               platformsByStage[funnel_stage].push({
@@ -179,8 +179,7 @@ const ResizeableElements = ({ funnelData }) => {
 
       // Get container boundaries
       const containerRect = gridContainer.getBoundingClientRect();
-      const containerWidth = containerRect.width -75;
-      console.log("🚀 ~ useEffect ~ containerWidth:", containerWidth);
+      const containerWidth = containerRect.width - 75;
 
       campaignFormData?.funnel_stages?.map((stageName, index) => {
         const stage = campaignFormData?.custom_funnels?.find(
@@ -191,12 +190,11 @@ const ResizeableElements = ({ funnelData }) => {
             rrange === "Day"
               ? 360
               : rrange === "Week"
-              ? containerWidth / (funnelData?.endWeek - 1)
-              : containerWidth / funnelData?.endMonth; // Default width
+                ? containerWidth / (funnelData?.endWeek - 1)
+                : containerWidth / funnelData?.endMonth; // Default width
           initialPositions[stage.name] = 0; // Default left position
         }
       });
-      console.log("intitial width", initialWidths);
       setChannelWidths(initialWidths);
       setChannelPositions(initialPositions);
     }
@@ -211,8 +209,8 @@ const ResizeableElements = ({ funnelData }) => {
           rrange === "Day"
             ? `calc(100px) 100%`
             : rrange === "Week"
-            ? `calc(100% / ${funnelData?.endWeek - 1}) 100%`
-            : `calc(100% / ${funnelData?.endMonth - 1}) 100%`,
+              ? `calc(100% / ${funnelData?.endWeek - 1}) 100%`
+              : `calc(100% / ${funnelData?.endMonth - 1}) 100%`,
       }}
     >
       {campaignFormData?.funnel_stages?.map((stageName, index) => {
@@ -238,8 +236,8 @@ const ResizeableElements = ({ funnelData }) => {
                 rrange === "Day"
                   ? `repeat(${funnelData?.endDay - 1 || 1}, 100px)`
                   : rrange === "Week"
-                  ? `repeat(${funnelData?.endWeek - 1 || 1}, 100%)`
-                  : `repeat(${funnelData?.endMonth - 1 || 1}, 1fr)`,
+                    ? `repeat(${funnelData?.endWeek - 1 || 1}, 100%)`
+                    : `repeat(${funnelData?.endMonth - 1 || 1}, 1fr)`,
             }}
           >
             <div

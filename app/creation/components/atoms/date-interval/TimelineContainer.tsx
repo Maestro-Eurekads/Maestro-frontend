@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useRef, useState, useEffect } from "react"
 import { ChevronRight } from "lucide-react"
 import DayInterval from "./DayInterval"
@@ -43,6 +42,8 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
     window.addEventListener("resize", checkScroll)
     return () => window.removeEventListener("resize", checkScroll)
   }, [range, dayDifference, weekDifference, monthDifference])
+
+
 
   // Render the appropriate timeline components based on the range
   const renderTimeline = () => {
