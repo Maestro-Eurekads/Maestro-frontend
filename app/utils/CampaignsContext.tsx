@@ -58,6 +58,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingCampaign, setLoadingCampaign] = useState(true)
   const [profile, setGetProfile] = useState(null);
+  const [isEditingBuyingObjective, setIsEditingBuyingObjective] = useState(false);
+
   const query = useSearchParams();
   const cId = query.get("campaignId");
   const { loadingClients: hookLoadingClients, allClients: hookAllClients } =
@@ -553,7 +555,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         profile,
         loadingCampaign,
         setLoadingCampaign,
-        getProfile
+        getProfile,
+        isEditingBuyingObjective,
+        setIsEditingBuyingObjective,
       }}
     >
       {children}

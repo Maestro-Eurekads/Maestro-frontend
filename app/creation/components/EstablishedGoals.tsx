@@ -17,7 +17,7 @@ import Image from "next/image";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import TableView from "./EstablishedGoals/table-view/table-view";
 import ChannelDistributionChatTwo from "components/ChannelDistribution/ChannelDistributionChatTwo";
-import { getCurrencySymbol } from "components/data";
+import { getCurrencySymbol, mediaTypes } from "components/data";
 import CampaignPhases from "./CampaignPhases";
 import DoughnutChart from "components/DoughnutChat";
 import { useComments } from "app/utils/CommentProvider";
@@ -54,7 +54,7 @@ export const EstablishedGoals = () => {
     data.channel_mix.forEach((stage) => {
       const stageName = stage.funnel_stage;
       const stageBudget = parseFloat(stage.stage_budget?.fixed_value);
-      ["search_engines", "display_networks", "social_media"].forEach(
+      mediaTypes.forEach(
         (channelType) => {
           stage[channelType].forEach((platform) => {
             const platformName = platform.platform_name;

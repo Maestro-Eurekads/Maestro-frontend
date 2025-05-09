@@ -15,6 +15,7 @@ import axios from "axios";
 import { removeKeysRecursively } from "utils/removeID";
 import Modal from "components/Modals/Modal";
 import AdSetsFlow from "../../../components/common/AdSetsFlow";
+import FormatSelection from "../../FormatSelection";
 
 interface Channel {
   name: string;
@@ -34,7 +35,7 @@ interface ResizableChannelsProps {
   setIsOpen: (isOpen: boolean) => void;
   dateList: Date[];
   disableDrag?: boolean;
-  setSelectedStage?:any
+  setSelectedStage?: any;
 }
 
 const DEFAULT_MEDIA_OPTIONS = [
@@ -53,7 +54,7 @@ const ResizableChannels = ({
   setIsOpen,
   dateList,
   disableDrag = false,
-  setSelectedStage
+  setSelectedStage,
 }: ResizableChannelsProps) => {
   const { campaignFormData, setCampaignFormData, setCopy, cId } =
     useCampaigns();
@@ -67,6 +68,7 @@ const ResizableChannels = ({
   const [openCreatives, setOpenCreatives] = useState(false);
   const [selectedCreative, setSelectedCreative] = useState(null);
   const [openAdset, setOpenAdset] = useState(false);
+  const [selectedChannel, setSelectedChannel] = useState("");
 
   // Initialize child width based on available parent space and position
   const [channelState, setChannelState] = useState(
@@ -436,7 +438,7 @@ const ResizableChannels = ({
           className="channel-btn-blue mt-[12px] mb-[12px] relative w-fit"
           onClick={() => {
             setIsOpen(true);
-            setSelectedStage(parentId)
+            setSelectedStage(parentId);
           }}
           style={{
             left: `${parentLeft}px`,
@@ -483,12 +485,12 @@ const ResizableChannels = ({
                 className={` ${
                   disableDrag ? "relative" : "absolute"
                 } top-0 h-full flex ${
-                  disableDrag ? "justify-between" : "justify-center cursor-move"
-                }  items-center text-white px-4 gap-2 border shadow-md min-w-[150px] overflow-x-hidden `}
+                  disableDrag ? "justify-between min-w-[300px]" : "justify-center cursor-move min-w-[150px]"
+                }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden `}
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
                   width: disableDrag
-                    ? "100%"
+                    ? "fit-content"
                     : `${channelState[index]?.width + 30 || 150}px`,
                   backgroundColor: channel.bg,
                   color: channel.color,
@@ -510,22 +512,22 @@ const ResizableChannels = ({
                 </div>
                 {disableDrag && (
                   <div
-                    className="rounded-[5px] py-[10px] px-[12px] font-medium bg-opacity-15 text-[15px]"
+                    className="rounded-[5px] px-[12px] font-medium bg-opacity-15 text-[15px]"
                     style={{
                       color: "#061237",
                     }}
                   >
-                    {Number(budget)?.toFixed(0)}
-                    {Number(budget) > 0 &&
-                      getCurrencySymbol(
-                        campaignFormData?.campaign_budget?.amount
-                      )}
+                    {isNaN(Number(budget)) || Number(budget) <= 0
+                      ? ""
+                      : `${Number(budget)?.toFixed(0)} ${getCurrencySymbol(
+                          campaignFormData?.campaign_budget?.amount
+                        )}`}
                   </div>
                 )}
               </div>
             </div>
             {/* Controls */}
-            {!disableDrag && (
+            {
               <>
                 <div
                   className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
@@ -650,13 +652,19 @@ const ResizableChannels = ({
                               {/* {channel?.} */}
                               <button
                                 className="bg-blue-500 text-white p-2 rounded-md"
-                                onClick={() => setOpenCreatives(true)}
+                                onClick={() => {
+                                  setOpenCreatives(true);
+                                  setSelectedChannel(channel?.name);
+                                }}
                               >
                                 View Creatives
                               </button>
                               <button
                                 className="bg-blue-500 text-white p-2 rounded-md"
-                                onClick={() => setOpenAdset(true)}
+                                onClick={() => {
+                                  setOpenAdset(true);
+                                  setSelectedChannel(channel?.name);
+                                }}
                               >
                                 Add Adsets
                               </button>
@@ -681,13 +689,125 @@ const ResizableChannels = ({
                   {/* Adset_display */}
                 </div>
               </>
-            )}
+            }
             {/* Ad sets */}
+            {disableDrag && channel?.ad_sets?.length > 0 && (
+              <div className="relative">
+                <div
+                  className="relative bg-[#EBFEF4] py-[8px] px-[12px] w-fit mt-[5px] border border-[#00A36C1A] rounded-[8px] flex items-center cursor-pointer"
+                  onClick={() => {
+                    toggleChannel(`${channel?.name}${index}`);
+                    setSelectedCreative(channel?.format);
+                  }}
+                >
+                  <p className="text-[14px] font-medium text-[#00A36C]">
+                    {channel?.ad_sets?.length} ad sets
+                  </p>
+                  <Image
+                    src={
+                      openItems && openItems === `${channel?.name}${index}`
+                        ? arrowUp
+                        : arrowDown
+                    }
+                    alt=""
+                    width={24}
+                    height={24}
+                  />
+                </div>
+                {openItems && openItems === `${channel?.name}${index}` && (
+                  <div className="relative min-w-[500px] shrink-0 mt-4 ml-4 bg-white z-20 rounded-md border shadow-md">
+                    <table className="table-auto w-full text-left text-[12px] text-[#061237B2] font-medium border-none hover:cursor-default">
+                      <thead className="bg-transparent">
+                        <tr>
+                          <th className="px-4 py-2">#</th>
+                          <th className="px-4 py-2">Audience Type</th>
+                          <th className="px-4 py-2">Name</th>
+                          <th className="px-4 py-2 whitespace-nowrap">
+                            Audience size
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {channel?.ad_sets?.map((set, index) => (
+                          <React.Fragment key={index}>
+                            <tr className="border-none">
+                              <td className="px-4 py-2 text-[#3175FF] font-bold whitespace-nowrap border-none">
+                                Ad Set No.{index + 1}.
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap border-none">
+                                {set?.audience_type}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap border-none">
+                                {set?.name}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap border-none">
+                                {set?.size}
+                              </td>
+                            </tr>
+                            {set?.extra_audiences?.map((extra, extraIndex) => (
+                              <tr
+                                key={`${index}-${extraIndex}`}
+                                className="border-none"
+                              >
+                                <td className="px-4 py-2 text-[#3175FF] font-bold whitespace-nowrap border-none">
+                                  <div className="l-shape-container-ad">
+                                    <div
+                                      className={`absolute w-[1px] ${
+                                        extraIndex > 0
+                                          ? "h-[35px] top-[-35px]"
+                                          : "h-[20px] top-[-20px]"
+                                      } bg-blue-500 left-[60px] `}
+                                    ></div>
+                                    <div
+                                      className={`absolute w-[60px] h-[1px] bg-blue-500 bottom-[-1px] left-[60px]`}
+                                    ></div>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-2 whitespace-nowrap border-none">
+                                  {extra?.audience_type}
+                                </td>
+                                <td className="px-4 py-2 whitespace-nowrap border-none">
+                                  {extra?.name}
+                                </td>
+                                <td className="px-4 py-2 whitespace-nowrap border-none">
+                                  {extra?.size}
+                                </td>
+                              </tr>
+                            ))}
+                          </React.Fragment>
+                        ))}
+                      </tbody>
+                    </table>
+                    <div className="p-2 mt-2 flex justify-between items-center">
+                      {/* {channel?.} */}
+                      <button
+                        className="bg-blue-500 text-white p-2 rounded-md"
+                        onClick={() => {
+                          setOpenCreatives(true);
+                          setSelectedChannel(channel?.name);
+                        }}
+                      >
+                        View Creatives
+                      </button>
+                      <button
+                        className="bg-blue-500 text-white p-2 rounded-md"
+                        onClick={() => {
+                          setOpenAdset(true);
+                          setSelectedChannel(channel?.name);
+                        }}
+                      >
+                        Add Adsets
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         );
       })}
       <Modal isOpen={openCreatives} onClose={() => setOpenCreatives(false)}>
-        <div className="bg-white w-[900px] p-2 rounded-lg">
+        <div className="bg-white w-[900px] p-6 rounded-lg h-[600px] overflow-y-auto">
           <button
             className="flex justify-end w-fit ml-auto"
             onClick={() => setOpenCreatives(false)}
@@ -708,44 +828,12 @@ const ResizableChannels = ({
               />
             </svg>
           </button>
-          <div className="flex gap-5 overflow-x-auto">
-            {selectedCreative
-              ?.filter((cre) => cre?.previews?.length > 0)
-              ?.map((format, index) => {
-                const option = DEFAULT_MEDIA_OPTIONS?.find(
-                  (opt) => opt?.name === format?.format_type
-                );
-                return (
-                  <div key={index} className="shrink-0">
-                    <div
-                      // onClick={onSelect}
-                      className={`relative text-center p-2 rounded-lg border transition border-blue-500 shadow-lg cursor-pointer w-fit`}
-                    >
-                      <Image
-                        src={option.icon || "/placeholder.svg"}
-                        width={168}
-                        height={132}
-                        alt={option.name}
-                      />
-                      <p className="text-sm font-medium text-gray-700 mt-2">
-                        {option.name}
-                      </p>
-                    </div>
-                    <div className="flex max-w-[500px] flex-wrap gap-2 mt-3">
-                      {format?.previews?.map((prec, pIndex) => (
-                        <div className="w-[168px] h-[150px] border rounded-md">
-                          {renderUploadedFile(
-                            format?.previews?.map((pre) => pre?.url),
-                            format?.format_type,
-                            pIndex
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
+          <FormatSelection
+            stageName={parentId}
+            platformName={selectedChannel}
+          />
+          {/*
+           */}
         </div>
       </Modal>
       <Modal isOpen={openAdset} onClose={() => setOpenAdset(false)}>
@@ -773,7 +861,7 @@ const ResizableChannels = ({
           <AdSetsFlow
             stageName={parentId}
             // onEditStart={() => resetInteraction(stage.name)}
-            platformName="Facebook"
+            platformName={selectedChannel}
           />
           <div className="w-fit ml-auto">
             <button

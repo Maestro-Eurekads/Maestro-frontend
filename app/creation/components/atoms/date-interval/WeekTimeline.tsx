@@ -9,7 +9,7 @@ import TheTradeDesk from "../../../../../public/TheTradeDesk.svg";
 import instagram from "../../../../../public/ig.svg";
 import { TbZoomFilled, TbCreditCardFilled } from "react-icons/tb";
 import { useCampaigns } from "app/utils/CampaignsContext";
-import { getPlatformIcon, platformStyles } from "components/data";
+import { getPlatformIcon, mediaTypes, platformStyles } from "components/data";
 
 const WeekTimeline = ({ weeksCount, funnels }) => {
   // Manage state separately for each funnel
@@ -36,7 +36,7 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
       data.channel_mix.forEach((stage) => {
         const stageName = stage.funnel_stage;
         const stageBudget = parseFloat(stage.stage_budget?.fixed_value);
-        ["search_engines", "display_networks", "social_media"].forEach(
+        mediaTypes.forEach(
           (channelType) => {
             stage[channelType].forEach((platform) => {
               const platformName = platform.platform_name;

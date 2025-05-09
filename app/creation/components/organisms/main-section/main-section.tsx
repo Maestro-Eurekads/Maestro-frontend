@@ -18,18 +18,28 @@ import DayInterval from "../../atoms/date-interval/DayInterval";
 import MonthInterval from "../../atoms/date-interval/MonthInterval";
 import WeekInterval from "../../atoms/date-interval/WeekInterval";
 
-const MainSection = () => {
+const MainSection = ({ hideDate, disableDrag }: { hideDate?: boolean, disableDrag?:boolean }) => {
   const { clientCampaignData, campaignFormData } = useCampaigns();
   const { range } = useDateRange();
+<<<<<<< HEAD
   const startDates = campaignFormData?.campaign_timeline_start_date ? campaignFormData?.campaign_timeline_start_date : null
 
   const endDates = campaignFormData?.campaign_timeline_end_date ? campaignFormData?.campaign_timeline_end_date : null
+=======
+  const startDates = campaignFormData?.campaign_timeline_start_date
+    ? campaignFormData?.campaign_timeline_start_date
+    : null;
+>>>>>>> 3c91bcc87e39cc4ceaa09cdb1a3c669e15bc5fa4
 
+  const endDates = campaignFormData?.campaign_timeline_end_date
+    ? campaignFormData?.campaign_timeline_end_date
+    : null;
 
   // Find the earliest startDate and latest endDate
   // const earliestStartDate = min(startDates);
   // const latestEndDate = max(endDates);
   // Calculate the week difference
+<<<<<<< HEAD
   const dayDifference = differenceInCalendarDays(
     endDates,
     startDates
@@ -63,6 +73,29 @@ const MainSection = () => {
   const startWeek = differenceInCalendarWeeks(start, startDates) + 1;
   const endWeek = differenceInCalendarWeeks(end, startDates) + 1;
 
+=======
+  const dayDifference = differenceInCalendarDays(endDates, startDates);
+  const weekDifference = differenceInCalendarWeeks(endDates, startDates);
+  // console.log("🚀 ~ MainSection ~ weekDifference:", weekDifference);
+  const monthDifference = differenceInCalendarMonths(endDates, startDates);
+
+  const start = campaignFormData?.campaign_timeline_start_date
+    ? parseISO(campaignFormData.campaign_timeline_start_date)
+    : null;
+  const end = campaignFormData?.campaign_timeline_end_date
+    ? parseISO(campaignFormData.campaign_timeline_end_date)
+    : null;
+
+  // Calculate positions for different time ranges
+  const startDay = differenceInCalendarDays(start, startDates) + 1;
+  const endDay = differenceInCalendarDays(end, startDates) + 1;
+
+  // console.log("🚀 ~ Dashboard ~ funnelDtaa:", ch?.media_plan_details?.plan_name, startDay, endDay)
+
+  const startWeek = differenceInCalendarWeeks(start, startDates) + 1;
+  const endWeek = differenceInCalendarWeeks(end, startDates) + 1;
+
+>>>>>>> 3c91bcc87e39cc4ceaa09cdb1a3c669e15bc5fa4
   const startMonth = differenceInCalendarMonths(start, startDates) + 1;
   const endMonth = differenceInCalendarMonths(end, startDates) + 1;
 
@@ -72,8 +105,13 @@ const MainSection = () => {
     startWeek,
     endWeek,
     startMonth,
+<<<<<<< HEAD
     endMonth
   }
+=======
+    endMonth,
+  };
+>>>>>>> 3c91bcc87e39cc4ceaa09cdb1a3c669e15bc5fa4
 
   const renderTimeline = () => {
     switch (range) {
@@ -87,7 +125,13 @@ const MainSection = () => {
       case "Month":
         return (
           <>
+<<<<<<< HEAD
             <MonthInterval monthsCount={monthDifference === 0 ? 1 : Math.round(monthDifference)} />
+=======
+            <MonthInterval
+              monthsCount={monthDifference === 0 ? 1 : monthDifference}
+            />
+>>>>>>> 3c91bcc87e39cc4ceaa09cdb1a3c669e15bc5fa4
             {/* <MonthTimeline monthsCount={monthDifference} funnels={funnelsData} /> */}
           </>
         );
@@ -102,7 +146,7 @@ const MainSection = () => {
   };
   return (
     <div className="mt-[32px] ">
-      <DateComponent useDate={true} />
+      {!hideDate && <DateComponent useDate={true} />}
       <div className="box-border w-full min-h-[519px] bg-white border-b-2 relative mt-4">
         <div className="overflow-x-auto w-full">
           <div className="min-w-max">
@@ -110,11 +154,11 @@ const MainSection = () => {
               <div className="bg-white">
                 {/* <DateInterval /> */}
                 {renderTimeline()}
-                <div className="absolute right-[2px] top-18 w-1 bg-orange-500 h-screen"></div>
+                <div className="absolute right-[2px] top-18 w-1 bg-orange-500 min-h-screen"></div>
                 <div className="absolute left-0 top-18 w-1 bg-orange-500 h-screen"></div>
               </div>
             </div>
-            <ResizeableElements funnelData={funnelsData} />
+            <ResizeableElements funnelData={funnelsData} disableDrag={disableDrag} />
           </div>
         </div>
       </div>

@@ -1,8 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import DateComponent from './molecules/date-component/date-component';
 import ConfigureBudgetComponet from './ConfigureAdSetsAndBudget/ConfigureBudgetComponet';
+<<<<<<< HEAD
 import OverviewOfYourCampaigntimeline from './OverviewOfYourCampaign/OverviewOfYourCampaignDayTimeline';
 import { useDateRange } from '../../../src/date-range-context';
+=======
+import OverviewOfYourCampaigntimeline from './OverviewOfYourCampaign/OverviewOfYourCampaigntimeline';
+import { useDateRange } from '../../../src/date-context';
+>>>>>>> 3c91bcc87e39cc4ceaa09cdb1a3c669e15bc5fa4
 import { categoryOrder, kpiCategories, mapKPIStatsToStatsDataDynamic, parseApiDate } from '../../../components/Options';
 import { useCampaigns } from '../../utils/CampaignsContext';
 import MessageContainer from 'components/Drawer/MessageContainer';
@@ -24,6 +29,7 @@ import downfull from "../../../public/arrow-down-full.svg";
 import upoffline from "../../../public/arrow-up-offline.svg";
 import { useKpis } from 'app/utils/KpiProvider';
 import AlertMain from 'components/Alert/AlertMain';
+<<<<<<< HEAD
 import OverViewTimelineContainer from './OverviewOfYourCampaign/OverViewTimelineContainer';
 import { getCurrencySymbol, getPlatformIcon, platformIcons } from 'components/data';
 import {
@@ -36,6 +42,9 @@ import {
 	parseISO,
 } from "date-fns"
 import { processCampaignData } from 'components/processCampaignData';
+=======
+import MainSection from './organisms/main-section/main-section';
+>>>>>>> 3c91bcc87e39cc4ceaa09cdb1a3c669e15bc5fa4
 
 interface Comment {
 	documentId: string;
@@ -59,7 +68,7 @@ const OverviewofyourCampaign = () => {
 	const [generalComment, setGeneralComment] = useState(false);
 	const [alert, setAlert] = useState(null);
 	const [showalert, setshowAlert] = useState(false);
-	const { range } = useDateRange();
+	const { range, setRange } = useDateRange();
 	const { clientCampaignData, campaignData, isLoading: isLoadingCampaign, campaignFormData } = useCampaigns();
 	const dispatch = useAppDispatch();
 	const query = useSearchParams();
@@ -86,6 +95,7 @@ const OverviewofyourCampaign = () => {
 
 	useEffect(() => {
 		setClose(true);
+		setRange("Day")
 	}, []);
 
 	// const mapCampaignsToFunnels = (campaigns: any[]) => {
@@ -222,8 +232,6 @@ const OverviewofyourCampaign = () => {
 	const extractedData = extractKPIByFunnelStage(campaignData, kpiCategories);
 	const aggregatedStats = aggregateKPIStatsFromExtracted(extractedData, kpiCategories)
 	const statsData = mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, { upfull, downfull, downoffline, upoffline }, finalCategoryOrder);
-
-
 
 
 
@@ -507,11 +515,15 @@ const OverviewofyourCampaign = () => {
 
 				<MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
 				{/* <OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} setIsDrawerOpen={setIsDrawerOpen} openComments={isDrawerOpen} /> */}
+<<<<<<< HEAD
 				<OverViewTimelineContainer range={range}
 					dayDifference={dayDifference}
 					weekDifference={weekDifference}
 					monthDifference={Math.round(monthDifference)}
 					funnelsData={funnelsData} />
+=======
+				<MainSection hideDate={true} disableDrag={true}/>
+>>>>>>> 3c91bcc87e39cc4ceaa09cdb1a3c669e15bc5fa4
 			</div>
 
 		</div>

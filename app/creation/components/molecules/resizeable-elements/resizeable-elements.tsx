@@ -27,7 +27,7 @@ interface OutletType {
   format: any[]
 }
 
-const ResizeableElements = ({ funnelData }) => {
+const ResizeableElements = ({ funnelData, disableDrag }) => {
   const { funnelWidths } = useFunnelContext(); // Get width for all channels
   const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({}); // Track open state per channel
   const [isOpen, setIsOpen] = useState(false);
@@ -179,7 +179,13 @@ const ResizeableElements = ({ funnelData }) => {
 
       // Get container boundaries
       const containerRect = gridContainer.getBoundingClientRect();
+<<<<<<< HEAD
       const containerWidth = containerRect.width - 75;
+=======
+      console.log("🚀 ~ useEffect ~ containerRect:", containerRect)
+      const containerWidth = containerRect.width -75;
+      console.log("🚀 ~ useEffect ~ containerWidth:", containerWidth);
+>>>>>>> 3c91bcc87e39cc4ceaa09cdb1a3c669e15bc5fa4
 
       campaignFormData?.funnel_stages?.map((stageName, index) => {
         const stage = campaignFormData?.custom_funnels?.find(
@@ -267,6 +273,7 @@ const ResizeableElements = ({ funnelData }) => {
                   updateChannelPosition(stage?.name, left)
                 }
                 setSelectedStage={setSelectedStage}
+                disableDrag={disableDrag}
               />
 
               {isOpen && ( // Only show this if the specific channel is open
@@ -279,6 +286,7 @@ const ResizeableElements = ({ funnelData }) => {
                     setIsOpen={setIsOpen}
                     dateList={range}
                     setSelectedStage={setSelectedStage}
+                    disableDrag={disableDrag}
                   />
                 </div>
               )}

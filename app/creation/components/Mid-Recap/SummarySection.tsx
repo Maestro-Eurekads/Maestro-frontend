@@ -24,6 +24,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
 
   const closeEditStep = () => {
     setMidcapEditing({ step: "", isEditing: false });
+    setIsEditing(false); // Also reset the global editing state
   };
 
   const cleanData = campaignData
@@ -37,36 +38,43 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
     : {};
 
   const handleConfirmStep = async () => {
-    setLoading(true);
-    await updateCampaign({
-      ...cleanData,
-      funnel_stages: campaignFormData?.funnel_stages,
-      channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
-        "id",
-        "isValidated",
-        "formatValidated",
-        "validatedStages",
-        "documentId"
-      ], ["preview"]),
-      custom_funnels: campaignFormData?.custom_funnels,
-      funnel_type: campaignFormData?.funnel_type,
-    });
-    await getActiveCampaign();
-    setLoading(false);
-    closeEditStep();
+    try {
+      setLoading(true);
+      await updateCampaign({
+        ...cleanData,
+        funnel_stages: campaignFormData?.funnel_stages,
+        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+          "id",
+          "isValidated",
+          "formatValidated",
+          "validatedStages",
+          "documentId"
+        ], ["preview"]),
+        custom_funnels: campaignFormData?.custom_funnels,
+        funnel_type: campaignFormData?.funnel_type,
+      });
+      await getActiveCampaign();
+      closeEditStep();
+    } catch (error) {
+      console.error("Error updating campaign:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
   const handleConfirmClick = async (step) => {
     switch (step) {
       case "Your funnel stages":
       case "Your channel mix":
-        case "Your Adset and Audiences":
+      case "Your Adset and Audiences":
+      case "Your format selections":
         await handleConfirmStep();
         break;
-
       default:
         break;
     }
   };
+
   return (
     <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full">
       <div className="flex justify-between items-center mb-4">

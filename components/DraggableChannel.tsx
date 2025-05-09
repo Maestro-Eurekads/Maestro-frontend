@@ -8,6 +8,7 @@ import { useFunnelContext } from "../app/utils/FunnelContextType";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import moment from "moment";
 import { useDateRange } from "src/date-context";
+import { getCurrencySymbol } from "./data";
 
 interface DraggableChannelProps {
   id?: string;
@@ -93,17 +94,18 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     const baseStep = range !== "Day" ? parentWidth : 100; // Base grid size
+    console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
     const adjustmentPerStep = 0; // Decrease each next step by 10
     const snapPoints = [];
+    console.log("🚀 ~ snapToTimeline ~ snapPoints:", snapPoints);
 
     let currentSnap = 0;
     let step = baseStep;
 
     // Generate snap points with decreasing step size
-    while (
-      currentSnap <= (range !== "Day" ? containerWidth - 75 : containerWidth)
-    ) {
+    while (currentSnap <= (range !== "Day" ? containerWidth : containerWidth)) {
       snapPoints.push(currentSnap);
+      console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
       currentSnap += step;
       step = Math.max(
         range !== "Day" ? parentWidth : 100,
@@ -118,7 +120,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     );
 
     console.log("Closest custom snap:", closestSnap);
-    return closestSnap;
+    return range !== "Day"
+      ? closestSnap > 0
+        ? closestSnap + 35
+        : closestSnap
+      : closestSnap;
   };
 
   const handleMouseDownResize = (
@@ -261,6 +267,10 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       }));
     }
   };
+  const stageBudget = campaignFormData?.channel_mix?.find(
+    (fs) => fs?.funnel_stage === description
+  )?.stage_budget;
+  // console.log("🚀 ~ stageBudget:", stageBudget)
 
   return (
     <div
@@ -285,7 +295,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           disableDrag ? "cursor-default rounded-[10px] relative" : "cursor-move"
         }`}
         style={{
-          width: disableDrag ? "100%" : parentWidth,
+          width: disableDrag ? "300px" : parentWidth,
           backgroundColor: bg,
           transition: "transform 0.2s ease-out",
         }}
@@ -310,7 +320,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
             className="channel-btn"
             onClick={() => {
               setIsOpen?.(true);
-              setSelectedStage(description)
+              setSelectedStage(description);
             }}
           >
             <Image src={icroundadd} alt="icroundadd" />
@@ -320,9 +330,10 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           <div />
         )}
 
-        {disableDrag && (
+        {disableDrag && stageBudget?.fixed_value > 0 && (
           <div className="bg-[#FFFFFF26] rounded-[5px] py-[10px] px-[12px] font-medium">
-            6,000
+            {stageBudget?.fixed_value}{" "}
+            {getCurrencySymbol(stageBudget?.currency)}
           </div>
         )}
       </div>
