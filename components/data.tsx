@@ -666,9 +666,8 @@ export const renderUploadedFile = (uploadBlobs: string[], format: string, index:
     
     if (isPDF) {
       return (
-        <embed
+        <iframe
           src={uploadBlobs[index]}
-          type="application/pdf"
           className="w-full h-full rounded-lg"
           title={`Slideshow ${index}`}
         />
