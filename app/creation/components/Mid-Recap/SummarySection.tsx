@@ -65,9 +65,10 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
   const handleConfirmClick = async (step) => {
     switch (step) {
       case "Your funnel stages":
-      case "Your channel mix":
+      case "Your channel mix": 
       case "Your Adset and Audiences":
       case "Your format selections":
+      case "Your buying objectives":
         await handleConfirmStep();
         break;
       default:
