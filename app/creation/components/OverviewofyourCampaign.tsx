@@ -89,20 +89,7 @@ const OverviewofyourCampaign = () => {
 		setRange("Day")
 	}, []);
 
-	// const mapCampaignsToFunnels = (campaigns: any[]) => {
-	// 	return campaigns?.map((campaign, index) => {
-	// 		const fromDate = parseApiDate(campaign?.campaign_timeline_start_date);
-	// 		const toDate = parseApiDate(campaign?.campaign_timeline_end_date);
 
-	// 		return {
-	// 			startWeek: fromDate?.day ?? 0, // Default to 0 if null
-	// 			endWeek: toDate?.day ?? 0,
-	// 			label: `Campaign ${index + 1}`,
-	// 		};
-	// 	});
-	// };
-
-	// const funnelsData = mapCampaignsToFunnels(clientCampaignData);
 
 
 	const handleDrawerOpen = () => {
