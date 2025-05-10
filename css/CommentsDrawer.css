@@ -1,0 +1,89 @@
+ 
+
+ .drawer-container {
+  grid-area: drawer; 
+  width:0px;  
+  background-color: var(--accent-white); 
+  transition: right 0.3s ease-in-out;
+  border-left: 1px solid rgba(28, 28, 28, 0.1);
+   overflow: hidden;  
+}
+
+/* .drawer-open {
+  width: 420px
+}
+
+@media screen and (max-width: 1300px) {
+    .drawer-open {
+  width: 380px
+}
+}
+@media screen and (max-width: 1080px) {
+      .drawer-open {
+  width:360px
+}
+}
+@media screen and (max-width: 780px) {
+       .drawer-open {
+  width:340px
+}
+}
+@media screen and (max-width: 480px) {
+        .drawer-open {
+  width:320px
+}
+} */
+
+/* Drawer open state with responsive widths */
+.drawer-container.drawer-open {
+  width: 380px;
+}
+
+@media screen and (max-width: 1300px) {
+  .drawer-container.drawer-open {
+    width: 360px;
+  }
+}
+
+@media screen and (max-width: 1080px) {
+  .drawer-container.drawer-open {
+    width: 340px;
+  }
+}
+
+@media screen and (max-width: 780px) {
+  .drawer-container.drawer-open {
+    width: 320px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .drawer-container.drawer-open {
+    width: 300px;
+  }
+}
+
+
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.drawer-content {
+  padding: 20px;
+}
+
+
+ 
+ 
+
+.edit-container svg {
+  color: var(--black);
+}
+ 

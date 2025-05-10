@@ -81,3 +81,24 @@ border-top:2px solid #EBEBEB;
 padding: 10px;
 width: 100%; 
 }
+
+
+ 
+/* .draggable-container {
+  text-align: center;
+  padding: 20px;
+}
+
+.draggable-box {
+  width: 200px;
+  height: 100px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: move; 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  margin: 0 auto;
+} */

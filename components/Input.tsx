@@ -26,8 +26,7 @@ const Input: React.FC<InputProps> = ({
 			</div>
 			<input
 				id="input-field"
-				className="flex items-center px-4 py-2 w-full h-[40px] bg-white border border-[#EFEFEF] rounded-[10px] cursor-pointer mt-[8px] outline-none transition-all duration-300 
-				focus:border-[#3176ff62]   focus:bg-[#f8fbff6d]"
+				className="flex items-center px-4 py-2 w-full h-[40px] bg-white border border-[#EFEFEF] rounded-[10px] mt-[8px] outline-none transition-all duration-300"
 				type={type}
 				placeholder={placeholder}
 				value={value}

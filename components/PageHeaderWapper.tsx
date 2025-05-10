@@ -1,8 +1,8 @@
 import React from "react";
 
 interface PageHeaderWrapperProps {
-	t1: string;
-	t2: string;
+	t1?: string;
+	t2?: string;
 	t3?: string; // Optional prop
 	t4?: string; // Optional prop
 	span?: number; // Optional prop

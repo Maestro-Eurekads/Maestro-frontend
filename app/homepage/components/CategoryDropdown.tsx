@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import mdEdit from "../../../public/line-md_edit.svg";
 import blueSmallPlue from "../../../public/blueSmallPlue.svg";
 import Image from "next/image";
 import { MdOutlineCancel } from "react-icons/md";
@@ -57,23 +56,20 @@ const EditInput = ({
     <div className="relative w-full">
       <div className="mb-4">
         <label className="font-medium text-[15px] leading-5 text-gray-600">
-          {label || placeholder}
+          {label}
         </label>
         {fields.map((field, index) => (
           <div
             key={field.id}
-            className="mt-[8px] flex items-center px-4 py-2 w-full h-[40px] border border-[#EFEFEF] rounded-[10px]"
+            className={`mt-[8px] flex items-center px-4 py-2  h-[40px] border border-[#EFEFEF] rounded-[10px] ${index > 0 ? "ml-4 w-[85%]" : "w-full"}`}
           >
             <input
               type="text"
               className="w-full bg-transparent outline-none text-gray-600"
-              placeholder={placeholder}
+              placeholder={index === 0 ? "Business Level 3" : `Parameter ${index}`}
               value={field.text}
               onChange={(e) => handleInputChange(index, e.target.value)}
             />
-            <span className="ml-auto text-gray-500 cursor-pointer">
-              <Image src={mdEdit} alt="edit" />
-            </span>
             {fields.length > 1 && (
               <MdOutlineCancel
                 size={18}
@@ -113,4 +109,3 @@ const CategoryDropdown = ({ setInputs, setAlert }) => {
 };
 
 export default CategoryDropdown;
-

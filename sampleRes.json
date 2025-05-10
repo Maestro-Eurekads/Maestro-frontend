@@ -1,0 +1,1532 @@
+{
+  "id": 1688,
+  "documentId": "o55lx0j1bi1374rkeg19spva",
+  "createdAt": "2025-04-09T16:03:16.200Z",
+  "updatedAt": "2025-05-05T11:23:55.141Z",
+  "publishedAt": "2025-05-05T11:20:38.836Z",
+  "campaign_objective": "Brand Awareness",
+  "funnel_stages": [
+    "Conversion",
+    "Loyalty",
+    "Awareness",
+    "Test Funnel"
+  ],
+  "campaign_timeline_start_date": "2025-04-01",
+  "campaign_timeline_end_date": "2025-04-11",
+  "campaign_summary_comment": null,
+  "goal_level": "Adset level",
+  "progress_percent": 90,
+  "copyCount": 0,
+  "custom_funnels": [
+    {
+      "icon": {
+        "src": "/_next/static/media/mdi_megaphone.c936419f.svg",
+        "width": 24,
+        "height": 24,
+        "blurWidth": 0,
+        "blurHeight": 0,
+        "blurDataURL": null
+      },
+      "name": "Awareness",
+      "color": "bg-blue-500",
+      "activeIcon": {
+        "src": "/_next/static/media/mdi_megaphonewhite.5aecb8b9.svg",
+        "width": 24,
+        "height": 24,
+        "blurWidth": 0,
+        "blurHeight": 0,
+        "blurDataURL": null
+      }
+    },
+    {
+      "icon": {
+        "src": "/_next/static/media/tabler_zoom-filled.b3cbfde0.svg",
+        "width": 25,
+        "height": 25,
+        "blurWidth": 0,
+        "blurHeight": 0,
+        "blurDataURL": null
+      },
+      "name": "Consideration",
+      "color": "bg-green-500",
+      "activeIcon": {
+        "src": "/_next/static/media/tabler_zoom-filledwhite.0f8b2297.svg",
+        "width": 25,
+        "height": 25,
+        "blurWidth": 0,
+        "blurHeight": 0,
+        "blurDataURL": null
+      }
+    },
+    {
+      "icon": {
+        "src": "/_next/static/media/mdi_credit-card.e3bd7bf1.svg",
+        "width": 24,
+        "height": 25,
+        "blurWidth": 0,
+        "blurHeight": 0,
+        "blurDataURL": null
+      },
+      "name": "Conversion",
+      "color": "bg-orange-500 border border-orange-500",
+      "activeIcon": {
+        "src": "/_next/static/media/mdi_credit-cardwhite.65ff2e56.svg",
+        "width": 24,
+        "height": 25,
+        "blurWidth": 0,
+        "blurHeight": 0,
+        "blurDataURL": null
+      }
+    },
+    {
+      "icon": {
+        "src": "/_next/static/media/addPlus.eed8cb27.svg",
+        "width": 24,
+        "height": 25,
+        "blurWidth": 0,
+        "blurHeight": 0,
+        "blurDataURL": null
+      },
+      "name": "Loyalty",
+      "color": "bg-red-500 border border-red-500",
+      "activeIcon": {
+        "src": "/_next/static/media/addPlusWhite.3a0d9407.svg",
+        "width": 24,
+        "height": 25,
+        "blurWidth": 0,
+        "blurHeight": 0,
+        "blurDataURL": null
+      }
+    },
+    {
+      "icon": "",
+      "name": "Test Funnel",
+      "color": "bg-orange-500",
+      "activeIcon": ""
+    }
+  ],
+  "funnel_type": "custom",
+  "client": {
+    "id": 237,
+    "documentId": "fu6qhr7dst7zdzcgk24hhblh",
+    "client_name": "Samsung",
+    "client_emails": [
+      "samsung@mailto.plus"
+    ],
+    "responsible": "Responsible Person 1",
+    "approver": "Approver 1",
+    "fee_type": "Advertising Fee",
+    "createdAt": "2025-04-09T14:38:55.970Z",
+    "updatedAt": "2025-04-09T14:38:55.970Z",
+    "publishedAt": "2025-04-09T14:38:55.967Z",
+    "level_1": [
+      "Sam Test 1"
+    ],
+    "level_2": [
+      "Sam Test 2"
+    ],
+    "level_3": [
+      "Sam Test 3"
+    ]
+  },
+  "media_plan_details": {
+    "id": 5590,
+    "plan_name": "Samsung Media Plan",
+    "internal_approver": "Approver 1",
+    "client_approver": "Client 1"
+  },
+  "budget_details": null,
+  "client_selection": {
+    "id": 7639,
+    "client": "Samsung",
+    "level_1": "Sam Test 1",
+    "level_2": "Sam Test 2",
+    "level_3": "Sam Test 3"
+  },
+  "campaign_budget": {
+    "id": 1944,
+    "budget_type": "top_down",
+    "currency": "CAD",
+    "amount": "50000",
+    "sub_budget_type": "gross",
+    "level": "Adset level",
+    "budget_fees": []
+  },
+  "channel_mix": [
+    {
+      "id": 12883,
+      "funnel_stage": "Conversion",
+      "funnel_stage_timeline_start_date": "2025-04-01",
+      "funnel_stage_timeline_end_date": "2025-04-06",
+      "social_media": [
+        {
+          "id": 56476,
+          "platform_name": "Facebook",
+          "buy_type": "dCPM",
+          "objective_type": "Website Traffic",
+          "campaign_start_date": "2025-04-02",
+          "campaign_end_date": "2025-04-03",
+          "format": [
+            {
+              "id": 15966,
+              "format_type": "Carousel",
+              "num_of_visuals": "2",
+              "previews": [
+                {
+                  "id": 284,
+                  "documentId": "sak3wgdv7vfuuvbx8nwx89gm",
+                  "name": "house.png",
+                  "alternativeText": null,
+                  "caption": null,
+                  "width": 313,
+                  "height": 313,
+                  "formats": {
+                    "thumbnail": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/thumbnail_house.png-87316c04a3c6ccc98c62c7b6866581ff.png",
+                      "hash": "87316c04a3c6ccc98c62c7b6866581ff",
+                      "mime": "image/png",
+                      "name": "thumbnail_house.png",
+                      "path": null,
+                      "size": 50.4,
+                      "width": 156,
+                      "height": 156,
+                      "sizeInBytes": 50397
+                    }
+                  },
+                  "hash": "271db2bcc37e3e4f28199a1eb13a29d2",
+                  "ext": ".png",
+                  "mime": "image/png",
+                  "size": 42.14,
+                  "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/house.png-271db2bcc37e3e4f28199a1eb13a29d2.png",
+                  "previewUrl": null,
+                  "provider": "strapi-provider-upload-supabase",
+                  "provider_metadata": null,
+                  "createdAt": "2025-04-24T14:42:00.021Z",
+                  "updatedAt": "2025-04-24T14:42:00.021Z",
+                  "publishedAt": "2025-04-24T14:42:00.022Z"
+                },
+                {
+                  "id": 482,
+                  "documentId": "anu9g3un3zj72osshcbyzxbg",
+                  "name": "Dashboard 1 (2).png",
+                  "alternativeText": null,
+                  "caption": null,
+                  "width": 4680,
+                  "height": 2452,
+                  "formats": {
+                    "large": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/large_Dashboard 1 (2).png-68b05b5e9194e85e204e276a6d959e7f.png",
+                      "hash": "68b05b5e9194e85e204e276a6d959e7f",
+                      "mime": "image/png",
+                      "name": "large_Dashboard 1 (2).png",
+                      "path": null,
+                      "size": 112.68,
+                      "width": 1000,
+                      "height": 524,
+                      "sizeInBytes": 112682
+                    },
+                    "small": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/small_Dashboard 1 (2).png-f7394480b00884d8658602fd89e9528a.png",
+                      "hash": "f7394480b00884d8658602fd89e9528a",
+                      "mime": "image/png",
+                      "name": "small_Dashboard 1 (2).png",
+                      "path": null,
+                      "size": 41.04,
+                      "width": 500,
+                      "height": 262,
+                      "sizeInBytes": 41038
+                    },
+                    "medium": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/medium_Dashboard 1 (2).png-e7fd1b021c996e74d919291f247cd619.png",
+                      "hash": "e7fd1b021c996e74d919291f247cd619",
+                      "mime": "image/png",
+                      "name": "medium_Dashboard 1 (2).png",
+                      "path": null,
+                      "size": 74.57,
+                      "width": 750,
+                      "height": 393,
+                      "sizeInBytes": 74570
+                    },
+                    "thumbnail": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/thumbnail_Dashboard 1 (2).png-39fb49b81da03268401b3f9f812a382d.png",
+                      "hash": "39fb49b81da03268401b3f9f812a382d",
+                      "mime": "image/png",
+                      "name": "thumbnail_Dashboard 1 (2).png",
+                      "path": null,
+                      "size": 14.35,
+                      "width": 245,
+                      "height": 128,
+                      "sizeInBytes": 14350
+                    }
+                  },
+                  "hash": "26ff1883adf364213e945f09e33567e0",
+                  "ext": ".png",
+                  "mime": "image/png",
+                  "size": 336.7,
+                  "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/Dashboard 1 (2).png-26ff1883adf364213e945f09e33567e0.png",
+                  "previewUrl": null,
+                  "provider": "strapi-provider-upload-supabase",
+                  "provider_metadata": null,
+                  "createdAt": "2025-04-28T18:51:22.987Z",
+                  "updatedAt": "2025-04-28T18:51:22.987Z",
+                  "publishedAt": "2025-04-28T18:51:22.987Z"
+                }
+              ]
+            },
+            {
+              "id": 15967,
+              "format_type": "Video",
+              "num_of_visuals": "1",
+              "previews": [
+                {
+                  "id": 269,
+                  "documentId": "igdf1y7fw4nhgod6uvhqg682",
+                  "name": "six pack exercises at home_six pack abs kaise banaye_ six abs workout at home_#sixpack #shorts.mp4",
+                  "alternativeText": null,
+                  "caption": null,
+                  "width": null,
+                  "height": null,
+                  "formats": null,
+                  "hash": "0c6a2800fb56109ecd2f414315574b72",
+                  "ext": ".mp4",
+                  "mime": "video/mp4",
+                  "size": 826.06,
+                  "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/six pack exercises at home_six pack abs kaise banaye_ six abs workout at home_#sixpack #shorts.mp4-0c6a2800fb56109ecd2f414315574b72.mp4",
+                  "previewUrl": null,
+                  "provider": "strapi-provider-upload-supabase",
+                  "provider_metadata": null,
+                  "createdAt": "2025-04-24T12:35:25.983Z",
+                  "updatedAt": "2025-04-24T12:35:25.983Z",
+                  "publishedAt": "2025-04-24T12:35:25.984Z"
+                }
+              ]
+            },
+            {
+              "id": 15968,
+              "format_type": "Slideshow",
+              "num_of_visuals": "1",
+              "previews": null
+            },
+            {
+              "id": 15969,
+              "format_type": "Image",
+              "num_of_visuals": "6",
+              "previews": [
+                {
+                  "id": 449,
+                  "documentId": "mit29j5jjf5z020yqg2esqf1",
+                  "name": "logo300.png",
+                  "alternativeText": null,
+                  "caption": null,
+                  "width": 1296,
+                  "height": 513,
+                  "formats": {
+                    "large": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/large_logo300.png-619a42ef7f5b63ac089789e050b3c723.png",
+                      "hash": "619a42ef7f5b63ac089789e050b3c723",
+                      "mime": "image/png",
+                      "name": "large_logo300.png",
+                      "path": null,
+                      "size": 68.13,
+                      "width": 1000,
+                      "height": 396,
+                      "sizeInBytes": 68128
+                    },
+                    "small": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/small_logo300.png-23ec286aeb5ef120070ac6524a7cce18.png",
+                      "hash": "23ec286aeb5ef120070ac6524a7cce18",
+                      "mime": "image/png",
+                      "name": "small_logo300.png",
+                      "path": null,
+                      "size": 27.06,
+                      "width": 500,
+                      "height": 198,
+                      "sizeInBytes": 27057
+                    },
+                    "medium": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/medium_logo300.png-47bbf1c360790f3b52a2cc4ab6e1b411.png",
+                      "hash": "47bbf1c360790f3b52a2cc4ab6e1b411",
+                      "mime": "image/png",
+                      "name": "medium_logo300.png",
+                      "path": null,
+                      "size": 45.72,
+                      "width": 750,
+                      "height": 297,
+                      "sizeInBytes": 45723
+                    },
+                    "thumbnail": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/thumbnail_logo300.png-1c86ac45a2bebc2f6e0092ac977dd7c6.png",
+                      "hash": "1c86ac45a2bebc2f6e0092ac977dd7c6",
+                      "mime": "image/png",
+                      "name": "thumbnail_logo300.png",
+                      "path": null,
+                      "size": 11.7,
+                      "width": 245,
+                      "height": 97,
+                      "sizeInBytes": 11697
+                    }
+                  },
+                  "hash": "fa13ef89c71e2192727685ebef3b0844",
+                  "ext": ".png",
+                  "mime": "image/png",
+                  "size": 21.18,
+                  "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/logo300.png-fa13ef89c71e2192727685ebef3b0844.png",
+                  "previewUrl": null,
+                  "provider": "strapi-provider-upload-supabase",
+                  "provider_metadata": null,
+                  "createdAt": "2025-04-28T14:00:05.500Z",
+                  "updatedAt": "2025-04-28T14:00:05.500Z",
+                  "publishedAt": "2025-04-28T14:00:05.501Z"
+                },
+                {
+                  "id": 446,
+                  "documentId": "ih19o71rtk40t28fuvk208as",
+                  "name": "mickey.jpeg",
+                  "alternativeText": null,
+                  "caption": null,
+                  "width": 177,
+                  "height": 285,
+                  "formats": {
+                    "thumbnail": {
+                      "ext": ".jpeg",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/thumbnail_mickey.jpeg-adda92a9dcc3964c31df8f6d48cb8bd0.jpeg",
+                      "hash": "adda92a9dcc3964c31df8f6d48cb8bd0",
+                      "mime": "image/jpeg",
+                      "name": "thumbnail_mickey.jpeg",
+                      "path": null,
+                      "size": 5.03,
+                      "width": 97,
+                      "height": 156,
+                      "sizeInBytes": 5027
+                    }
+                  },
+                  "hash": "1432accf54970e0114eb6c2eaf14891f",
+                  "ext": ".jpeg",
+                  "mime": "image/jpeg",
+                  "size": 10.47,
+                  "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/mickey.jpeg-1432accf54970e0114eb6c2eaf14891f.jpeg",
+                  "previewUrl": null,
+                  "provider": "strapi-provider-upload-supabase",
+                  "provider_metadata": null,
+                  "createdAt": "2025-04-28T13:59:58.097Z",
+                  "updatedAt": "2025-04-28T13:59:58.097Z",
+                  "publishedAt": "2025-04-28T13:59:58.098Z"
+                },
+                {
+                  "id": 448,
+                  "documentId": "rrhp4zwig0fzjckgvuifhpps",
+                  "name": "image 1202 (2).png",
+                  "alternativeText": null,
+                  "caption": null,
+                  "width": 680,
+                  "height": 288,
+                  "formats": {
+                    "small": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/small_image 1202 (2).png-b248e77ccac07b7fe297d0796a2ceb94.png",
+                      "hash": "b248e77ccac07b7fe297d0796a2ceb94",
+                      "mime": "image/png",
+                      "name": "small_image 1202 (2).png",
+                      "path": null,
+                      "size": 39.86,
+                      "width": 500,
+                      "height": 212,
+                      "sizeInBytes": 39859
+                    },
+                    "thumbnail": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/thumbnail_image 1202 (2).png-a784db07b83c02edbf92b34dd78f0341.png",
+                      "hash": "a784db07b83c02edbf92b34dd78f0341",
+                      "mime": "image/png",
+                      "name": "thumbnail_image 1202 (2).png",
+                      "path": null,
+                      "size": 14.33,
+                      "width": 245,
+                      "height": 104,
+                      "sizeInBytes": 14331
+                    }
+                  },
+                  "hash": "30dacfcf0660a7746fe01592cb734371",
+                  "ext": ".png",
+                  "mime": "image/png",
+                  "size": 12.85,
+                  "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/image 1202 (2).png-30dacfcf0660a7746fe01592cb734371.png",
+                  "previewUrl": null,
+                  "provider": "strapi-provider-upload-supabase",
+                  "provider_metadata": null,
+                  "createdAt": "2025-04-28T14:00:02.314Z",
+                  "updatedAt": "2025-04-28T14:00:02.314Z",
+                  "publishedAt": "2025-04-28T14:00:02.314Z"
+                },
+                {
+                  "id": 451,
+                  "documentId": "e0lw703dwlnqauakkkkdsetn",
+                  "name": "Dashboard 1 (2).png",
+                  "alternativeText": null,
+                  "caption": null,
+                  "width": 4680,
+                  "height": 2452,
+                  "formats": {
+                    "large": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/large_Dashboard 1 (2).png-62bb88c347e6e999e919f60d0371c1fd.png",
+                      "hash": "62bb88c347e6e999e919f60d0371c1fd",
+                      "mime": "image/png",
+                      "name": "large_Dashboard 1 (2).png",
+                      "path": null,
+                      "size": 112.68,
+                      "width": 1000,
+                      "height": 524,
+                      "sizeInBytes": 112682
+                    },
+                    "small": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/small_Dashboard 1 (2).png-c3709b5bd1e1120784629f6665ef8427.png",
+                      "hash": "c3709b5bd1e1120784629f6665ef8427",
+                      "mime": "image/png",
+                      "name": "small_Dashboard 1 (2).png",
+                      "path": null,
+                      "size": 41.04,
+                      "width": 500,
+                      "height": 262,
+                      "sizeInBytes": 41038
+                    },
+                    "medium": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/medium_Dashboard 1 (2).png-dcc22955bddf0ddc637bca44331e66e8.png",
+                      "hash": "dcc22955bddf0ddc637bca44331e66e8",
+                      "mime": "image/png",
+                      "name": "medium_Dashboard 1 (2).png",
+                      "path": null,
+                      "size": 74.57,
+                      "width": 750,
+                      "height": 393,
+                      "sizeInBytes": 74570
+                    },
+                    "thumbnail": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/thumbnail_Dashboard 1 (2).png-740128af607b31cb4295cd71fcd4a163.png",
+                      "hash": "740128af607b31cb4295cd71fcd4a163",
+                      "mime": "image/png",
+                      "name": "thumbnail_Dashboard 1 (2).png",
+                      "path": null,
+                      "size": 14.35,
+                      "width": 245,
+                      "height": 128,
+                      "sizeInBytes": 14350
+                    }
+                  },
+                  "hash": "7761fa1cd1af94c1caeff5688b70103a",
+                  "ext": ".png",
+                  "mime": "image/png",
+                  "size": 336.7,
+                  "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/Dashboard 1 (2).png-7761fa1cd1af94c1caeff5688b70103a.png",
+                  "previewUrl": null,
+                  "provider": "strapi-provider-upload-supabase",
+                  "provider_metadata": null,
+                  "createdAt": "2025-04-28T14:00:23.266Z",
+                  "updatedAt": "2025-04-28T14:00:23.266Z",
+                  "publishedAt": "2025-04-28T14:00:23.266Z"
+                },
+                {
+                  "id": 447,
+                  "documentId": "mhwepv4lmn5215qw771hhi2q",
+                  "name": "mediamath.jpeg",
+                  "alternativeText": null,
+                  "caption": null,
+                  "width": 400,
+                  "height": 400,
+                  "formats": {
+                    "thumbnail": {
+                      "ext": ".jpeg",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/thumbnail_mediamath.jpeg-0bca40ae3c8e0afd25a5c22bbbd58f13.jpeg",
+                      "hash": "0bca40ae3c8e0afd25a5c22bbbd58f13",
+                      "mime": "image/jpeg",
+                      "name": "thumbnail_mediamath.jpeg",
+                      "path": null,
+                      "size": 2,
+                      "width": 156,
+                      "height": 156,
+                      "sizeInBytes": 1998
+                    }
+                  },
+                  "hash": "1b71b3961d3c21185e46bac5b447858b",
+                  "ext": ".jpeg",
+                  "mime": "image/jpeg",
+                  "size": 6.87,
+                  "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/mediamath.jpeg-1b71b3961d3c21185e46bac5b447858b.jpeg",
+                  "previewUrl": null,
+                  "provider": "strapi-provider-upload-supabase",
+                  "provider_metadata": null,
+                  "createdAt": "2025-04-28T14:00:02.101Z",
+                  "updatedAt": "2025-04-28T14:00:02.101Z",
+                  "publishedAt": "2025-04-28T14:00:02.101Z"
+                }
+              ]
+            }
+          ],
+          "budget": {
+            "id": 2750,
+            "currency": null,
+            "fixed_value": "1000",
+            "percentage_value": null
+          },
+          "kpi": null,
+          "ad_sets": [
+            {
+              "id": 3232,
+              "audience_type": "Lookalike audience",
+              "name": "New set",
+              "size": "100",
+              "extra_audiences": [
+                {
+                  "0": "B",
+                  "1": "r",
+                  "2": "o",
+                  "3": "a",
+                  "4": "d",
+                  "5": " ",
+                  "6": "a",
+                  "7": "u",
+                  "8": "d",
+                  "9": "i",
+                  "10": "e",
+                  "11": "n",
+                  "12": "c",
+                  "13": "e",
+                  "name": "New",
+                  "size": "80",
+                  "budget": {
+                    "fixed_value": 400,
+                    "percentage_value": "40.0"
+                  },
+                  "audience_type": "Behavioral audience"
+                }
+              ],
+              "format": [],
+              "kpi": null,
+              "budget": {
+                "id": 2747,
+                "currency": null,
+                "fixed_value": "500",
+                "percentage_value": "50.0"
+              }
+            },
+            {
+              "id": 3233,
+              "audience_type": "Retargeting audience",
+              "name": "Set 2",
+              "size": "300",
+              "extra_audiences": [
+                {
+                  "0": "L",
+                  "1": "o",
+                  "2": "o",
+                  "3": "k",
+                  "4": "a",
+                  "5": "l",
+                  "6": "i",
+                  "7": "k",
+                  "8": "e",
+                  "9": " ",
+                  "10": "a",
+                  "11": "u",
+                  "12": "d",
+                  "13": "i",
+                  "14": "e",
+                  "15": "n",
+                  "16": "c",
+                  "17": "e",
+                  "name": "Ster",
+                  "size": "10",
+                  "budget": {
+                    "fixed_value": 50,
+                    "percentage_value": "5.0"
+                  },
+                  "audience_type": "Broad audience"
+                }
+              ],
+              "format": [],
+              "kpi": null,
+              "budget": {
+                "id": 2748,
+                "currency": null,
+                "fixed_value": "10",
+                "percentage_value": "1.0"
+              }
+            }
+          ]
+        },
+        {
+          "id": 56473,
+          "platform_name": "Quora",
+          "buy_type": "CPC",
+          "objective_type": "Conversions",
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [
+            {
+              "id": 15970,
+              "format_type": "Image",
+              "num_of_visuals": "5",
+              "previews": [
+                {
+                  "id": 468,
+                  "documentId": "opzskgaz9v0wzbq3z6m6j5km",
+                  "name": "logo300.png",
+                  "alternativeText": null,
+                  "caption": null,
+                  "width": 1296,
+                  "height": 513,
+                  "formats": {
+                    "large": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/large_logo300.png-1a46c106abf7ab07104fa1586ed4a555.png",
+                      "hash": "1a46c106abf7ab07104fa1586ed4a555",
+                      "mime": "image/png",
+                      "name": "large_logo300.png",
+                      "path": null,
+                      "size": 68.13,
+                      "width": 1000,
+                      "height": 396,
+                      "sizeInBytes": 68128
+                    },
+                    "small": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/small_logo300.png-d8da1ddb91899f0233d606aaeda26c4d.png",
+                      "hash": "d8da1ddb91899f0233d606aaeda26c4d",
+                      "mime": "image/png",
+                      "name": "small_logo300.png",
+                      "path": null,
+                      "size": 27.06,
+                      "width": 500,
+                      "height": 198,
+                      "sizeInBytes": 27057
+                    },
+                    "medium": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/medium_logo300.png-bbf3c41f6de1599963f5e3b16c44f5a5.png",
+                      "hash": "bbf3c41f6de1599963f5e3b16c44f5a5",
+                      "mime": "image/png",
+                      "name": "medium_logo300.png",
+                      "path": null,
+                      "size": 45.72,
+                      "width": 750,
+                      "height": 297,
+                      "sizeInBytes": 45723
+                    },
+                    "thumbnail": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/thumbnail_logo300.png-6f19bd3e27c369ff31db303b04beaa0f.png",
+                      "hash": "6f19bd3e27c369ff31db303b04beaa0f",
+                      "mime": "image/png",
+                      "name": "thumbnail_logo300.png",
+                      "path": null,
+                      "size": 11.7,
+                      "width": 245,
+                      "height": 97,
+                      "sizeInBytes": 11697
+                    }
+                  },
+                  "hash": "4cabed3fa75a2be51c0d9a81ff217f3c",
+                  "ext": ".png",
+                  "mime": "image/png",
+                  "size": 21.18,
+                  "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/logo300.png-4cabed3fa75a2be51c0d9a81ff217f3c.png",
+                  "previewUrl": null,
+                  "provider": "strapi-provider-upload-supabase",
+                  "provider_metadata": null,
+                  "createdAt": "2025-04-28T14:28:02.401Z",
+                  "updatedAt": "2025-04-28T14:28:02.401Z",
+                  "publishedAt": "2025-04-28T14:28:02.402Z"
+                },
+                {
+                  "id": 467,
+                  "documentId": "y7dix6x6ar6ur3s5lwz7pd9g",
+                  "name": "image 1202 (2).png",
+                  "alternativeText": null,
+                  "caption": null,
+                  "width": 680,
+                  "height": 288,
+                  "formats": {
+                    "small": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/small_image 1202 (2).png-19bbf1f4e55f01ca41ff0905257efb11.png",
+                      "hash": "19bbf1f4e55f01ca41ff0905257efb11",
+                      "mime": "image/png",
+                      "name": "small_image 1202 (2).png",
+                      "path": null,
+                      "size": 39.86,
+                      "width": 500,
+                      "height": 212,
+                      "sizeInBytes": 39859
+                    },
+                    "thumbnail": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/thumbnail_image 1202 (2).png-acae1e2d7a516cb5c74204ee997ee3e5.png",
+                      "hash": "acae1e2d7a516cb5c74204ee997ee3e5",
+                      "mime": "image/png",
+                      "name": "thumbnail_image 1202 (2).png",
+                      "path": null,
+                      "size": 14.33,
+                      "width": 245,
+                      "height": 104,
+                      "sizeInBytes": 14331
+                    }
+                  },
+                  "hash": "c46858d6b0c6d9e9a69511c18ad042be",
+                  "ext": ".png",
+                  "mime": "image/png",
+                  "size": 12.85,
+                  "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/image 1202 (2).png-c46858d6b0c6d9e9a69511c18ad042be.png",
+                  "previewUrl": null,
+                  "provider": "strapi-provider-upload-supabase",
+                  "provider_metadata": null,
+                  "createdAt": "2025-04-28T14:28:00.601Z",
+                  "updatedAt": "2025-04-28T14:28:00.601Z",
+                  "publishedAt": "2025-04-28T14:28:00.602Z"
+                },
+                {
+                  "id": 465,
+                  "documentId": "cadvexli3ildlrovqluzxp13",
+                  "name": "mickey.jpeg",
+                  "alternativeText": null,
+                  "caption": null,
+                  "width": 177,
+                  "height": 285,
+                  "formats": {
+                    "thumbnail": {
+                      "ext": ".jpeg",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/thumbnail_mickey.jpeg-02dcd942ee4c6d79ce5606e140d7087a.jpeg",
+                      "hash": "02dcd942ee4c6d79ce5606e140d7087a",
+                      "mime": "image/jpeg",
+                      "name": "thumbnail_mickey.jpeg",
+                      "path": null,
+                      "size": 5.03,
+                      "width": 97,
+                      "height": 156,
+                      "sizeInBytes": 5027
+                    }
+                  },
+                  "hash": "2c33a4f38b62844d3fa6acf08ff92bda",
+                  "ext": ".jpeg",
+                  "mime": "image/jpeg",
+                  "size": 10.47,
+                  "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/mickey.jpeg-2c33a4f38b62844d3fa6acf08ff92bda.jpeg",
+                  "previewUrl": null,
+                  "provider": "strapi-provider-upload-supabase",
+                  "provider_metadata": null,
+                  "createdAt": "2025-04-28T14:27:58.105Z",
+                  "updatedAt": "2025-04-28T14:27:58.105Z",
+                  "publishedAt": "2025-04-28T14:27:58.202Z"
+                },
+                {
+                  "id": 466,
+                  "documentId": "x9ix9hptee74dbxc753pz96r",
+                  "name": "mediamath.jpeg",
+                  "alternativeText": null,
+                  "caption": null,
+                  "width": 400,
+                  "height": 400,
+                  "formats": {
+                    "thumbnail": {
+                      "ext": ".jpeg",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/thumbnail_mediamath.jpeg-6607151ffaf59332b73e616520d6a2d7.jpeg",
+                      "hash": "6607151ffaf59332b73e616520d6a2d7",
+                      "mime": "image/jpeg",
+                      "name": "thumbnail_mediamath.jpeg",
+                      "path": null,
+                      "size": 2,
+                      "width": 156,
+                      "height": 156,
+                      "sizeInBytes": 1998
+                    }
+                  },
+                  "hash": "09253b21e3db83f7c8e706fe16bfb5bd",
+                  "ext": ".jpeg",
+                  "mime": "image/jpeg",
+                  "size": 6.87,
+                  "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/mediamath.jpeg-09253b21e3db83f7c8e706fe16bfb5bd.jpeg",
+                  "previewUrl": null,
+                  "provider": "strapi-provider-upload-supabase",
+                  "provider_metadata": null,
+                  "createdAt": "2025-04-28T14:27:59.206Z",
+                  "updatedAt": "2025-04-28T14:27:59.206Z",
+                  "publishedAt": "2025-04-28T14:27:59.206Z"
+                },
+                {
+                  "id": 473,
+                  "documentId": "gnezhlz2alk953rgwloo36zi",
+                  "name": "Frame 1432.png",
+                  "alternativeText": null,
+                  "caption": null,
+                  "width": 1170,
+                  "height": 982,
+                  "formats": {
+                    "large": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/large_Frame 1432.png-2893e3fd25ecc5bfa7f1969cc7cdfdc4.png",
+                      "hash": "2893e3fd25ecc5bfa7f1969cc7cdfdc4",
+                      "mime": "image/png",
+                      "name": "large_Frame 1432.png",
+                      "path": null,
+                      "size": 557.5,
+                      "width": 1000,
+                      "height": 839,
+                      "sizeInBytes": 557496
+                    },
+                    "small": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/small_Frame 1432.png-be8050476a2dbfa15b4b810ce53f7967.png",
+                      "hash": "be8050476a2dbfa15b4b810ce53f7967",
+                      "mime": "image/png",
+                      "name": "small_Frame 1432.png",
+                      "path": null,
+                      "size": 149.87,
+                      "width": 500,
+                      "height": 420,
+                      "sizeInBytes": 149869
+                    },
+                    "medium": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/medium_Frame 1432.png-7b511180ff8fe6fff85ee7be734f3f0a.png",
+                      "hash": "7b511180ff8fe6fff85ee7be734f3f0a",
+                      "mime": "image/png",
+                      "name": "medium_Frame 1432.png",
+                      "path": null,
+                      "size": 324.96,
+                      "width": 750,
+                      "height": 629,
+                      "sizeInBytes": 324955
+                    },
+                    "thumbnail": {
+                      "ext": ".png",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/thumbnail_Frame 1432.png-dc48df12a5a798fb5a97e65aff3ec66b.png",
+                      "hash": "dc48df12a5a798fb5a97e65aff3ec66b",
+                      "mime": "image/png",
+                      "name": "thumbnail_Frame 1432.png",
+                      "path": null,
+                      "size": 29.3,
+                      "width": 186,
+                      "height": 156,
+                      "sizeInBytes": 29302
+                    }
+                  },
+                  "hash": "3b6dc60edb37016c55db0ff7552df05b",
+                  "ext": ".png",
+                  "mime": "image/png",
+                  "size": 155.99,
+                  "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/Frame 1432.png-3b6dc60edb37016c55db0ff7552df05b.png",
+                  "previewUrl": null,
+                  "provider": "strapi-provider-upload-supabase",
+                  "provider_metadata": null,
+                  "createdAt": "2025-04-28T14:41:17.576Z",
+                  "updatedAt": "2025-04-28T14:41:17.576Z",
+                  "publishedAt": "2025-04-28T14:41:17.577Z"
+                }
+              ]
+            }
+          ],
+          "budget": {
+            "id": 2749,
+            "currency": null,
+            "fixed_value": "2000",
+            "percentage_value": null
+          },
+          "kpi": null,
+          "ad_sets": []
+        },
+        {
+          "id": 56466,
+          "platform_name": "Instagram",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": {
+            "id": 2743,
+            "currency": null,
+            "fixed_value": "300",
+            "percentage_value": null
+          },
+          "kpi": null,
+          "ad_sets": []
+        },
+        {
+          "id": 56467,
+          "platform_name": "Snapchat",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": {
+            "id": 2744,
+            "currency": null,
+            "fixed_value": "400",
+            "percentage_value": null
+          },
+          "kpi": null,
+          "ad_sets": []
+        },
+        {
+          "id": 56468,
+          "platform_name": "Reddit",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": {
+            "id": 2745,
+            "currency": null,
+            "fixed_value": "1000",
+            "percentage_value": null
+          },
+          "kpi": null,
+          "ad_sets": []
+        },
+        {
+          "id": 56472,
+          "platform_name": "Twitter (X)",
+          "buy_type": "CPV",
+          "objective_type": "Website Traffic",
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": {
+            "id": 2746,
+            "currency": null,
+            "fixed_value": "30",
+            "percentage_value": null
+          },
+          "kpi": null,
+          "ad_sets": [
+            {
+              "id": 3231,
+              "audience_type": "Lookalike audience",
+              "name": "set",
+              "size": "100",
+              "extra_audiences": [],
+              "format": [],
+              "kpi": null,
+              "budget": null
+            }
+          ]
+        }
+      ],
+      "display_networks": [
+        {
+          "id": 56481,
+          "platform_name": "Adroll",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [
+            {
+              "id": 15971,
+              "format_type": "Image",
+              "num_of_visuals": "1",
+              "previews": [
+                {
+                  "id": 483,
+                  "documentId": "bfmjklo8yuiurh5qi1k7l1vx",
+                  "name": "mickey.jpeg",
+                  "alternativeText": null,
+                  "caption": null,
+                  "width": 177,
+                  "height": 285,
+                  "formats": {
+                    "thumbnail": {
+                      "ext": ".jpeg",
+                      "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/thumbnail_mickey.jpeg-de2d4daaaece13c72d16dee540e9f4d4.jpeg",
+                      "hash": "de2d4daaaece13c72d16dee540e9f4d4",
+                      "mime": "image/jpeg",
+                      "name": "thumbnail_mickey.jpeg",
+                      "path": null,
+                      "size": 5.03,
+                      "width": 97,
+                      "height": 156,
+                      "sizeInBytes": 5027
+                    }
+                  },
+                  "hash": "70c7b6d369a668f5615276ff07d9f409",
+                  "ext": ".jpeg",
+                  "mime": "image/jpeg",
+                  "size": 10.47,
+                  "url": "https://urbikpaalweogcclzyps.supabase.co/storage/v1/object/public/strapi-uploads/mickey.jpeg-70c7b6d369a668f5615276ff07d9f409.jpeg",
+                  "previewUrl": null,
+                  "provider": "strapi-provider-upload-supabase",
+                  "provider_metadata": null,
+                  "createdAt": "2025-04-28T19:25:14.220Z",
+                  "updatedAt": "2025-04-28T19:25:14.220Z",
+                  "publishedAt": "2025-04-28T19:25:14.220Z"
+                }
+              ]
+            }
+          ],
+          "budget": {
+            "id": 2756,
+            "currency": null,
+            "fixed_value": "100",
+            "percentage_value": null
+          },
+          "kpi": null,
+          "ad_sets": [
+            {
+              "id": 3234,
+              "audience_type": "Lookalike audience",
+              "name": "New ad set name",
+              "size": "1000",
+              "extra_audiences": [],
+              "format": [],
+              "kpi": null,
+              "budget": {
+                "id": 2755,
+                "currency": null,
+                "fixed_value": "3000",
+                "percentage_value": "60.0"
+              }
+            }
+          ]
+        },
+        {
+          "id": 56477,
+          "platform_name": "PopAds",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": {
+            "id": 2751,
+            "currency": null,
+            "fixed_value": "20",
+            "percentage_value": null
+          },
+          "kpi": null,
+          "ad_sets": []
+        },
+        {
+          "id": 56478,
+          "platform_name": "Taboola",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": {
+            "id": 2752,
+            "currency": null,
+            "fixed_value": "100",
+            "percentage_value": null
+          },
+          "kpi": null,
+          "ad_sets": []
+        },
+        {
+          "id": 56479,
+          "platform_name": "Epom",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": {
+            "id": 2753,
+            "currency": null,
+            "fixed_value": "10",
+            "percentage_value": null
+          },
+          "kpi": null,
+          "ad_sets": []
+        },
+        {
+          "id": 56480,
+          "platform_name": "DV360",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": {
+            "id": 2754,
+            "currency": null,
+            "fixed_value": "40",
+            "percentage_value": null
+          },
+          "kpi": null,
+          "ad_sets": []
+        }
+      ],
+      "search_engines": [
+        {
+          "id": 56482,
+          "platform_name": "Naver",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": {
+            "id": 2757,
+            "currency": null,
+            "fixed_value": "",
+            "percentage_value": null
+          },
+          "kpi": null,
+          "ad_sets": [
+            {
+              "id": 3235,
+              "audience_type": "Retargeting audience",
+              "name": "New set",
+              "size": "100",
+              "extra_audiences": [
+                "Retargeting audience"
+              ],
+              "format": [],
+              "kpi": null,
+              "budget": null
+            }
+          ]
+        }
+      ],
+      "streaming": [
+        {
+          "id": 56484,
+          "platform_name": "Twitch",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        },
+        {
+          "id": 56485,
+          "platform_name": "Podcast Ad Network",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        }
+      ],
+      "ooh": [
+        {
+          "id": 56487,
+          "platform_name": "Transit",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        },
+        {
+          "id": 56488,
+          "platform_name": "Events sponsorships",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        }
+      ],
+      "broadcast": [
+        {
+          "id": 56489,
+          "platform_name": "Television",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        }
+      ],
+      "messaging": [
+        {
+          "id": 56483,
+          "platform_name": "WhatsApp",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        }
+      ],
+      "print": [
+        {
+          "id": 56490,
+          "platform_name": "Magazine",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        },
+        {
+          "id": 56491,
+          "platform_name": "Door Hangers",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        }
+      ],
+      "e_commerce": [
+        {
+          "id": 56486,
+          "platform_name": "Newegg",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        }
+      ],
+      "in_game": [],
+      "mobile": [
+        {
+          "id": 56492,
+          "platform_name": "ironSource",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        },
+        {
+          "id": 56493,
+          "platform_name": "MoPub",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        }
+      ],
+      "stage_budget": {
+        "id": 2758,
+        "currency": null,
+        "fixed_value": "5000",
+        "percentage_value": "10"
+      }
+    },
+    {
+      "id": 12882,
+      "funnel_stage": "Loyalty",
+      "funnel_stage_timeline_start_date": null,
+      "funnel_stage_timeline_end_date": null,
+      "social_media": [
+        {
+          "id": 56460,
+          "platform_name": "Facebook",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        },
+        {
+          "id": 56461,
+          "platform_name": "TikTok",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        },
+        {
+          "id": 56462,
+          "platform_name": "Quora",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        },
+        {
+          "id": 56463,
+          "platform_name": "Reddit",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        },
+        {
+          "id": 56464,
+          "platform_name": "Snapchat",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        },
+        {
+          "id": 56465,
+          "platform_name": "Instagram",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        }
+      ],
+      "display_networks": [
+        {
+          "id": 56469,
+          "platform_name": "Epom",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        }
+      ],
+      "search_engines": [
+        {
+          "id": 56470,
+          "platform_name": "Naver",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        },
+        {
+          "id": 56471,
+          "platform_name": "Seznam",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        }
+      ],
+      "streaming": [],
+      "ooh": [],
+      "broadcast": [],
+      "messaging": [],
+      "print": [],
+      "e_commerce": [
+        {
+          "id": 56474,
+          "platform_name": "Newegg",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        },
+        {
+          "id": 56475,
+          "platform_name": "Amazon",
+          "buy_type": null,
+          "objective_type": null,
+          "campaign_start_date": null,
+          "campaign_end_date": null,
+          "format": [],
+          "budget": null,
+          "kpi": null,
+          "ad_sets": []
+        }
+      ],
+      "in_game": [],
+      "mobile": [],
+      "stage_budget": null
+    },
+    {
+      "id": 12881,
+      "funnel_stage": "Test Funnel",
+      "funnel_stage_timeline_start_date": null,
+      "funnel_stage_timeline_end_date": null,
+      "social_media": [],
+      "display_networks": [],
+      "search_engines": [],
+      "streaming": [],
+      "ooh": [],
+      "broadcast": [],
+      "messaging": [],
+      "print": [],
+      "e_commerce": [],
+      "in_game": [],
+      "mobile": [],
+      "stage_budget": null
+    }
+  ]
+}

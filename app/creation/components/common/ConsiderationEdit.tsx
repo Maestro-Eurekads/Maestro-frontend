@@ -30,7 +30,7 @@ const ConsiderationEdit = ({ onDelete }) => {
     displayBuyType2: "CPV",
     searchBuyType: "CPM"
   });
-  
+
   const [showDropdowns, setShowDropdowns] = useState({
     socialVideoView: false,
     socialTraffic: false,
@@ -87,7 +87,7 @@ const ConsiderationEdit = ({ onDelete }) => {
 
   const DropdownButton = ({ type, defaultText }) => (
     <div className="relative">
-      <button 
+      <button
         className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
         onClick={() => toggleDropdown(type)}
       >
@@ -115,7 +115,7 @@ const ConsiderationEdit = ({ onDelete }) => {
 
   const BuyTypeDropdown = ({ type }) => (
     <div className="relative">
-      <button 
+      <button
         className="flex justify-between items-center bg-[#FFFFFF] rounded-[10px] border border-solid border-[#0000001A] w-[150px] h-[52px] px-4"
         onClick={() => toggleDropdown(type)}
       >
@@ -143,7 +143,7 @@ const ConsiderationEdit = ({ onDelete }) => {
 
   if (!showConsideration) {
     return (
-      <button 
+      <button
         onClick={() => setShowConsideration(true)}
         className="w-full h-[52px] bg-[#3175FF] rounded-[8px] border border-[#0000001A] border-solid text-white"
       >

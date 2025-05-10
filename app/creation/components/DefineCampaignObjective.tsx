@@ -6,25 +6,168 @@ import { campaignObjectives } from "../../../components/data";
 import AlertMain from "../../../components/Alert/AlertMain";
 import { useObjectives } from "../../utils/useObjectives";
 import { useCampaigns } from "../../utils/CampaignsContext";
+import {
+  useVerification,
+  validationRules,
+} from "app/utils/VerificationContext";
+import { removeKeysRecursively } from "utils/removeID";
+import { SVGLoader } from "components/SVGLoader";
+import { useSearchParams } from "next/navigation";
+import { FaSpinner } from "react-icons/fa";
+import { useComments } from "app/utils/CommentProvider";
 
 const DefineCampaignObjective = () => {
+  const {
+    campaignData,
+    campaignFormData,
+    updateCampaign,
+    setCampaignFormData,
+    getActiveCampaign,
+    cId,
+  } = useCampaigns();
+  const searchParams = useSearchParams();
   const { selectedObjectives, setSelectedObjectives } = useObjectives();
+  const { verifyStep, validateStep, setHasChanges, hasChanges } =
+    useVerification();
+  const { loadingObj, objectives } = useCampaigns();
+  const campaignId = searchParams.get("campaignId");
   const [isEditing, setIsEditing] = useState(false);
-  const [alert, setIsAlert] = useState(false);
-  const { setCampaignFormData, campaignFormData } = useCampaigns();
-
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState(null);
+  const { setIsDrawerOpen, setClose } = useComments();
   useEffect(() => {
-    if (campaignFormData?.campaign_objectives) {
-      const f = campaignObjectives?.find(
-        (ff) => ff?.title === campaignFormData?.campaign_objectives
+    setIsDrawerOpen(false);
+    setClose(false);
+  }, []);
+  const [previousValidationState, setPreviousValidationState] = useState<
+    boolean | null
+  >(null);
+  const [tempSelectedObjective, setTempSelectedObjective] = useState<
+    { id: number; title: string }[]
+  >([]);
+
+  // Load initial campaign data and validation state from localStorage
+  useEffect(() => {
+    if (campaignId) {
+      getActiveCampaign(campaignId);
+      const savedValidationState = localStorage.getItem(
+        `step1_validated_${campaignId}`
       );
-      console.log([{ id: f.id, title: f?.title }]);
-	  setSelectedObjectives([{ id: f.id, title: f?.title }]);
+      if (savedValidationState) {
+        setPreviousValidationState(JSON.parse(savedValidationState));
+      }
     }
-  }, [campaignFormData?.campaign_objectives]);
+  }, [campaignId]);
+
+  // Auto-hide alert after 3 seconds
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => setAlert(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
+
+  // Validate step and persist validation state
+  useEffect(() => {
+    const isValid = validationRules["step1"](campaignData);
+    if (isValid !== previousValidationState && campaignId) {
+      verifyStep("step1", isValid, cId);
+      setPreviousValidationState(isValid);
+      localStorage.setItem(
+        `step1_validated_${campaignId}`,
+        JSON.stringify(isValid)
+      );
+    }
+  }, [campaignData, cId, previousValidationState, verifyStep, campaignId]);
+
+  // Load saved objective on mount
+  useEffect(() => {
+    if (campaignData?.campaign_objective) {
+      const matchingObjective = objectives?.find(
+        obj => obj?.title === campaignData?.campaign_objective
+      );
+      if (matchingObjective) {
+        setSelectedObjectives([
+          {
+            id: matchingObjective?.id,
+            title: matchingObjective?.title,
+          },
+        ]);
+        setTempSelectedObjective([
+          {
+            id: matchingObjective.id,
+            title: matchingObjective.title,
+          },
+        ]);
+        setCampaignFormData((prev) => ({
+          ...prev,
+          campaign_objectives: matchingObjective?.title,
+        }));
+      }
+    }
+  }, [campaignData, setCampaignFormData, setSelectedObjectives, objectives]);
+
+  const handleStepOne = async () => {
+    if (tempSelectedObjective?.length === 0) {
+      setAlert({
+        variant: "error",
+        message: "Please select at least one campaign objective!",
+        position: "bottom-right",
+      });
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
+    if (!campaignFormData) {
+      setAlert({
+        variant: "error",
+        message: "Campaign data is missing.",
+        position: "bottom-right",
+      });
+      setLoading(false);
+      return;
+    }
+
+    const cleanData = removeKeysRecursively(campaignData, [
+      "id",
+      "documentId",
+      "createdAt",
+      "publishedAt",
+      "updatedAt",
+    ]);
+
+    try {
+      await updateCampaign({
+        ...cleanData,
+        campaign_objective: campaignFormData?.campaign_objectives,
+      });
+      await getActiveCampaign(cleanData);
+
+      // Update the actual selected objectives after validation
+      setSelectedObjectives(tempSelectedObjective);
+
+      setAlert({ variant: "success", message: "Campaign Objective successfully updated!", position: "bottom-right" });
+      setIsEditing(false);
+      setHasChanges(false);
+
+      // Save validation state after successful update
+      if (campaignId) {
+        localStorage.setItem(`step1_validated_${campaignId}`, JSON.stringify(true));
+      }
+
+    } catch (error) {
+      const errors: any = error.response?.data?.error?.details?.errors || error.response?.data?.error?.message || error.message || [];
+      setAlert({ variant: "error", message: errors, position: "bottom-right" });
+    }
+
+    setHasChanges(false);
+    setLoading(false);
+  };
 
   const handleSelect = (id: number, title: string) => {
-    setSelectedObjectives((prev) => {
+    setTempSelectedObjective((prev) => {
       const alreadySelected = prev.some((obj) => obj.id === id);
 
       if (alreadySelected) {
@@ -38,12 +181,20 @@ const DefineCampaignObjective = () => {
     }));
   };
 
-  const handleAlert = () => {
-    setIsAlert(true);
-    setTimeout(() => {
-      setIsAlert(false);
-    }, 3000);
+  const handleEditClick = () => {
+    setIsEditing(true);
+    setHasChanges(true);
+    // Initialize temp selection with current selection
+    setTempSelectedObjective([...selectedObjectives]);
   };
+
+  if (loadingObj) {
+    return (
+      <center>
+        <FaSpinner size={40} className="animate-spin" color="#3175FF" />
+      </center>
+    );
+  }
 
   return (
     <div>
@@ -53,41 +204,32 @@ const DefineCampaignObjective = () => {
           t2={"Please select only one objective."}
         />
 
-        {isEditing ? (
-          ""
-        ) : (
-          <button
-            className="model_button_blue"
-            onClick={() => setIsEditing(true)}
-          >
+        {!isEditing && (
+          <button className="model_button_blue" onClick={handleEditClick}>
             Edit
           </button>
         )}
       </div>
+      {alert && <AlertMain alert={alert} />}
       {/* Alert Notification */}
-      {/* {alert && (
-				<AlertMain
-					alert={{
-						variant: 'info',
-						message: 'Please click on Edit!',
-						position: 'bottom-right',
-					}}
-				/>
-			)} */}
       <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-[80px] mt-[50px] place-items-center">
-        {campaignObjectives.map((item) => {
-          const isSelected = selectedObjectives.some(
-            (obj) => obj.id === item.id
-          );
-
+        {objectives?.map((item) => {
+          const isSelected = isEditing
+            ? tempSelectedObjective.some((obj) => obj.title === item.title)
+            : selectedObjectives.some((obj) => obj.title === item.title);
           return (
             <div
               key={item.id}
-              className={`relative p-4 rounded-lg transition-all duration-300 ${
-                isSelected ? "creation_card_active shadow-lg" : "creation_card"
-              } ${isEditing ? "cursor-pointer" : "cursor-not-allowed"}`}
+              className={`relative p-4 rounded-lg transition-all duration-300 ${isSelected ? "creation_card_active shadow-lg" : "creation_card"
+                } ${isEditing ? "cursor-pointer" : "cursor-not-allowed"}`}
               onClick={() =>
-                isEditing ? handleSelect(item.id, item.title) : handleAlert()
+                isEditing
+                  ? handleSelect(item.id, item.title)
+                  : setAlert({
+                    variant: "info",
+                    message: "Please click on Edit!",
+                    position: "bottom-right",
+                  })
               }
             >
               {isSelected && (
@@ -96,7 +238,12 @@ const DefineCampaignObjective = () => {
                 </div>
               )}
               <div className="flex items-center gap-2">
-                <Image src={item.icon} alt={item.title} />
+                <Image
+                  src={item.icon}
+                  alt={item.title}
+                  width={24}
+                  height={24}
+                />
                 <h6 className="text-[18px] font-semibold text-[#061237]">
                   {item.title}
                 </h6>
@@ -109,17 +256,20 @@ const DefineCampaignObjective = () => {
         })}
       </div>
 
-      <div className="flex justify-end mt-[30px]">
-        {isEditing && (
+      {hasChanges && (
+        <div className="flex justify-end pr-6 mt-[50px]">
           <button
-            disabled={selectedObjectives.length === 0}
-            onClick={() => setIsEditing(false)}
-            className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 rounded-lg bg-[#3175FF] text-white font-semibold text-base leading-6 disabled:opacity-50 hover:bg-[#2557D6] transition-colors"
+            onClick={handleStepOne}
+            className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg text-white font-semibold text-base leading-6 transition-colors bg-[#3175FF] hover:bg-[#2557D6]"
           >
-            Validate
+            {loading ? (
+              <SVGLoader width="30px" height="30px" color="#FFF" />
+            ) : (
+              "Validate"
+            )}
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
