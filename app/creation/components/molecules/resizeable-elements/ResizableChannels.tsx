@@ -26,8 +26,8 @@ interface Channel {
   color: string;
   ad_sets?: any[];
   format?: any[];
-  start_date: any;
-  end_date: any;
+  start_date?: any;
+  end_date?: any;
 }
 
 interface ResizableChannelsProps {
