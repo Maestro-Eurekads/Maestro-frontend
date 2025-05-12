@@ -10,7 +10,7 @@ export const useComments = () => {
 	return useContext(CommentContext);
 };
 
-export const CommentProvider = ({ children }) => {
+export const CommentProvider = ({ children}) => {
 	const [close, setClose] = useState(false);
 	const [comments, setComments] = useState([]);
 	const [comment, setComment] = useState("");

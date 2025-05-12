@@ -1,5 +1,7 @@
+"use client";
+
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FaCheck, FaSpinner } from "react-icons/fa";
 import Switch from "react-switch";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
@@ -136,97 +138,259 @@ const MediaOption = ({
   format: string;
   adSetIndex?: number;
 }) => {
-  const { campaignFormData, updateCampaign } = useCampaigns();
+  const { campaignFormData, updateCampaign, campaignData } = useCampaigns();
   const [loading, setLoading] = useState(false);
   const [localPreviews, setLocalPreviews] = useState<
     Array<{ id: string; url: string }>
   >([]);
   const [idToDel, setIdToDel] = useState<string | null>(null);
 
+  // Environment variables
+  const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
+  const STRAPI_TOKEN = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
+
   useEffect(() => {
+    if (!STRAPI_URL || !STRAPI_TOKEN) {
+      console.error("Missing Strapi configuration:", { STRAPI_URL, STRAPI_TOKEN });
+      toast.error("Server configuration error. Please contact support.");
+    }
     const shownPreviews = (previews || []).slice(0, quantity);
     setLocalPreviews(shownPreviews);
-  }, [previews, quantity]);
+  }, [previews, quantity, STRAPI_URL, STRAPI_TOKEN]);
 
-  const uploadUpdatedCampaignToStrapi = async (data: any) => {
-    try {
-      const cleanData = removeKeysRecursively(
-        data,
-        ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
-        ["previews"]
-      );
-      await updateCampaign(cleanData);
-    } catch (error) {
-      console.error("Error in uploadUpdatedCampaignToStrapi:", error);
-      toast.error("Failed to save campaign data.");
-      throw error;
-    }
-  };
+  const uploadUpdatedCampaignToStrapi = useCallback(
+    async (data: any) => {
+      try {
+        // Deep clone the data to avoid mutating the original
+        const cleanData = JSON.parse(JSON.stringify(data));
 
-  const handleDelete = async (previewId: string) => {
-    if (!previewId) return;
-
-    setLoading(true);
-    setIdToDel(previewId);
-
-    try {
-      const updatedPreviews = localPreviews.filter(
-        (prv) => prv.id !== previewId
-      );
-      setLocalPreviews(updatedPreviews);
-
-      const updatedChannelMix = [...(campaignFormData?.channel_mix || [])];
-      const stageIndex = updatedChannelMix.findIndex(
-        (ch) => ch.funnel_stage === stageName
-      );
-      if (stageIndex === -1) return;
-
-      const platformKey = channelName.toLowerCase().replace(/\s+/g, "_");
-      const platforms = updatedChannelMix[stageIndex][platformKey];
-      if (!platforms) return;
-
-      const platformIndex = platforms.findIndex(
-        (pl) => pl.platform_name === platformName
-      );
-      if (platformIndex === -1) return;
-
-      if (adSetIndex !== undefined) {
-        const adSet = platforms[platformIndex].ad_sets?.[adSetIndex];
-        if (!adSet?.format) return;
-
-        const formatIndex = adSet.format.findIndex(
-          (f) => f.format_type === format
+        // Remove unwanted keys, preserving previews structure
+        const sanitizedData = removeKeysRecursively(
+          cleanData,
+          ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
+          ["previews"]
         );
-        if (formatIndex === -1) return;
 
-        adSet.format[formatIndex].previews = adSet.format[
-          formatIndex
-        ].previews.filter((prv) => prv.id !== previewId);
-      } else {
-        const formatIndex = platforms[platformIndex].format?.findIndex(
-          (f) => f.format_type === format
+        // Explicitly validate and format previews
+        sanitizedData.channel_mix?.forEach((channel: any) => {
+          CHANNEL_TYPES.forEach(({ key }) => {
+            channel[key]?.forEach((platform: any) => {
+              if (platform.format) {
+                platform.format = platform.format.map((fmt: any) => ({
+                  format_type: fmt.format_type,
+                  num_of_visuals: fmt.num_of_visuals,
+                  previews: Array.isArray(fmt.previews)
+                    ? fmt.previews.map((preview: any) => ({
+                        id: String(preview.id),
+                        url: String(preview.url),
+                      }))
+                    : [],
+                }));
+              }
+              if (platform.ad_sets) {
+                platform.ad_sets = platform.ad_sets.map((adSet: any) => ({
+                  ...adSet,
+                  format: adSet.format
+                    ? adSet.format.map((fmt: any) => ({
+                        format_type: fmt.format_type,
+                        num_of_visuals: fmt.num_of_visuals,
+                        previews: Array.isArray(fmt.previews)
+                          ? fmt.previews.map((preview: any) => ({
+                              id: String(preview.id),
+                              url: String(preview.url),
+                            }))
+                          : [],
+                      }))
+                    : [],
+                }));
+              }
+            });
+          });
+        });
+
+        // Log the sanitized data for debugging
+        console.log(
+          "Sanitized data sent to Strapi:",
+          JSON.stringify(sanitizedData, null, 2)
         );
-        if (formatIndex === -1 || !platforms[platformIndex].format) return;
 
-        platforms[platformIndex].format[formatIndex].previews = platforms[
-          platformIndex
-        ].format[formatIndex].previews.filter((prv) => prv.id !== previewId);
+        await updateCampaign(sanitizedData);
+      } catch (error: any) {
+        console.error("Error in uploadUpdatedCampaignToStrapi:", {
+          message: error.message,
+          details: error.details,
+          response: error.response?.data,
+          status: error.response?.status,
+        });
+        toast.error("Failed to save campaign data.");
+        throw error;
+      }
+    },
+    [updateCampaign]
+  );
+
+  const updateGlobalState = useCallback(
+    async (updatedPreviews: Array<{ id: string; url: string }>) => {
+      if (!campaignFormData?.channel_mix) {
+        throw new Error("campaignFormData or channel_mix is undefined");
       }
 
+      const updatedChannelMix = JSON.parse(
+        JSON.stringify(campaignFormData.channel_mix)
+      );
+      const stage = updatedChannelMix.find(
+        (ch: any) => ch.funnel_stage === stageName
+      );
+      if (!stage) {
+        throw new Error(`Stage "${stageName}" not found`);
+      }
+
+      const platformKey = channelName.toLowerCase().replace(/\s+/g, "_");
+      const platforms = stage[platformKey];
+      if (!platforms) {
+        throw new Error(`Platform key "${platformKey}" not found`);
+      }
+
+      const targetPlatform = platforms.find(
+        (pl: any) => pl.platform_name === platformName
+      );
+      if (!targetPlatform) {
+        throw new Error(`Target platform "${platformName}" not found`);
+      }
+
+      const updatedPlatform = JSON.parse(JSON.stringify(targetPlatform));
+
+      if (adSetIndex !== undefined) {
+        if (!updatedPlatform.ad_sets?.[adSetIndex]) {
+          throw new Error(`Ad set not found at index ${adSetIndex}`);
+        }
+
+        const adSet = updatedPlatform.ad_sets[adSetIndex];
+        adSet.format = adSet.format || [];
+
+        let targetFormatIndex = adSet.format.findIndex(
+          (fo: any) => fo.format_type === format
+        );
+        if (targetFormatIndex === -1) {
+          adSet.format.push({
+            format_type: format,
+            num_of_visuals: quantity.toString(),
+            previews: [],
+          });
+          targetFormatIndex = adSet.format.length - 1;
+        }
+
+        adSet.format[targetFormatIndex].previews = [...updatedPreviews];
+      } else {
+        updatedPlatform.format = updatedPlatform.format || [];
+
+        let targetFormatIndex = updatedPlatform.format.findIndex(
+          (fo: any) => fo.format_type === format
+        );
+        if (targetFormatIndex === -1) {
+          updatedPlatform.format.push({
+            format_type: format,
+            num_of_visuals: quantity.toString(),
+            previews: [],
+          });
+          targetFormatIndex = updatedPlatform.format.length - 1;
+        }
+
+        updatedPlatform.format[targetFormatIndex].previews = [...updatedPreviews];
+      }
+
+      const platformIndex = platforms.findIndex(
+        (pl: any) => pl.platform_name === platformName
+      );
+      platforms[platformIndex] = updatedPlatform;
+
       const updatedState = {
-        ...campaignFormData,
+        ...campaignData,
         channel_mix: updatedChannelMix,
       };
 
       await uploadUpdatedCampaignToStrapi(updatedState);
-    } catch (error) {
-      console.error("Error deleting preview:", error);
-      toast.error("Failed to delete preview");
-    } finally {
-      setLoading(false);
-      setIdToDel(null);
-    }
-  };
+    },
+    [
+      campaignFormData,
+      campaignData,
+      stageName,
+      channelName,
+      platformName,
+      format,
+      quantity,
+      adSetIndex,
+      uploadUpdatedCampaignToStrapi,
+    ]
+  );
+
+  const handleDelete = useCallback(
+    async (previewId: string) => {
+      if (!previewId || !STRAPI_URL || !STRAPI_TOKEN) {
+        toast.error("Invalid preview ID or server configuration.");
+        return;
+      }
+
+      setLoading(true);
+      setIdToDel(previewId);
+
+      try {
+        // Store original previews for rollback
+        const originalPreviews = [...localPreviews];
+
+        // Optimistically update UI
+        const updatedPreviews = localPreviews.filter(
+          (prv) => prv.id !== previewId
+        );
+        setLocalPreviews(updatedPreviews);
+
+        // Delete file from Strapi
+        const deleteResponse = await fetch(
+          `${STRAPI_URL}/upload/files/${previewId}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${STRAPI_TOKEN}`,
+            },
+          }
+        );
+
+        if (!deleteResponse.ok) {
+          throw new Error(
+            `Failed to delete file from Strapi: ${deleteResponse.statusText}`
+          );
+        }
+
+        // Update global state with the new previews array
+        await updateGlobalState(updatedPreviews);
+
+        toast.success("Preview deleted successfully!");
+      } catch (error: any) {
+        console.error("Error deleting preview:", {
+          message: error.message,
+          details: error.details,
+          response: error.response?.data,
+          status: error.response?.status,
+        });
+        toast.error(`Failed to delete preview: ${error.message}`);
+        // Revert to original previews on error
+        // Revert to original previews on error
+        const originalPreviews = localPreviews.find(preview => preview.id === previewId);
+        if (originalPreviews) {
+          setLocalPreviews(prev => [...prev, originalPreviews]);
+        }
+      } finally {
+        setLoading(false);
+        setIdToDel(null);
+      }
+    },
+    [
+      localPreviews,
+      updateGlobalState,
+      STRAPI_URL,
+      STRAPI_TOKEN,
+    ]
+  );
 
   const isDecreaseDisabled = quantity === 1 || localPreviews.length >= quantity;
 
@@ -783,11 +947,11 @@ const ChannelSection = ({
 export const Platforms = ({
   stageName,
   view = "channel",
-  platformName
+  platformName,
 }: {
   stageName: string;
   view?: "channel" | "adset";
-  platformName?: string
+  platformName?: string;
 }) => {
   const [quantities, setQuantities] = useState<QuantitiesType>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -973,7 +1137,13 @@ export const Platforms = ({
         <ChannelSection
           key={`${channel.title}-${index}`}
           channelTitle={channel.title}
-          platforms={platformName ? channel.platforms?.filter((fdj)=>fdj?.platform_name === platformName) : channel.platforms}
+          platforms={
+            platformName
+              ? channel.platforms?.filter(
+                  (fdj) => fdj?.platform_name === platformName
+                )
+              : channel.platforms
+          }
           stageName={stageName}
           quantities={quantities}
           onQuantityChange={handleQuantityChange}
@@ -999,7 +1169,7 @@ export const Platforms = ({
   );
 };
 
-export const FormatSelection = ({ stageName, platformName }: { stageName?: string, platformName?:string }) => {
+export const FormatSelection = ({ stageName, platformName }: { stageName?: string; platformName?: string }) => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
   const [view, setView] = useState<"channel" | "adset">("channel");
   const { campaignFormData, setCampaignFormData } = useCampaigns();
@@ -1008,12 +1178,12 @@ export const FormatSelection = ({ stageName, platformName }: { stageName?: strin
   useEffect(() => {
     setIsDrawerOpen(false);
     setClose(false);
-    if(campaignFormData?.goal_level === "Adset level"){
-      setView("adset")
+    if (campaignFormData?.goal_level === "Adset level") {
+      setView("adset");
     } else {
-      setView("channel")
+      setView("channel");
     }
-  }, []);
+  }, [campaignFormData, setIsDrawerOpen, setClose]);
 
   useEffect(() => {
     const savedOpenTabs = getLocalStorageItem("formatSelectionOpenTabs");
@@ -1062,10 +1232,10 @@ export const FormatSelection = ({ stageName, platformName }: { stageName?: strin
 
   const handleToggleChange = (checked: boolean) => {
     setView(checked ? "adset" : "channel");
-    setCampaignFormData((prev)=>({
+    setCampaignFormData((prev) => ({
       ...prev,
-      goal_level: checked ? "Adset level" : "Channel level"
-    }))
+      goal_level: checked ? "Adset level" : "Channel level",
+    }));
   };
 
   return (
@@ -1116,55 +1286,55 @@ export const FormatSelection = ({ stageName, platformName }: { stageName?: strin
 
             return (
               <div key={index}>
-          <div
-            className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${
-              isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
-            }`}
-            onClick={() => toggleTab(stage.name)}
-          >
-            <div className="flex items-center gap-2">
-              {funnelStage?.icon ? (
-                <Image
-            loading="lazy"
-            src={funnelStage.icon || "/placeholder.svg"}
-            alt={stage.name}
-            width={24}
-            height={24}
-                />
-              ) : (
-                <Image
-            loading="lazy"
-            src={customicon || "/placeholder.svg"}
-            alt={stage.name}
-            width={24}
-            height={24}
-                />
-              )}
-              <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#06371a]">
-                {stage.name}
-              </p>
-            </div>
-            {status === "In progress" ? (
-              <p className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF]">
-                In Progress
-              </p>
-            ) : (
-              <p className="font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] opacity-50">
-                Not started
-              </p>
-            )}
-            <Image
-              src={isOpen ? "/arrow-down.svg" : "/arrow-down-2.svg"}
-              alt={isOpen ? "up" : "down"}
-              width={24}
-              height={24}
-            />
-          </div>
-          {isOpen && (
-            <div className="card-body bg-white border border-[#E5E5E5]">
-              <Platforms stageName={stage?.name} view={view} platformName={platformName} />
-            </div>
-          )}
+                <div
+                  className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${
+                    isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
+                  }`}
+                  onClick={() => toggleTab(stage.name)}
+                >
+                  <div className="flex items-center gap-2">
+                    {funnelStage?.icon ? (
+                      <Image
+                        loading="lazy"
+                        src={funnelStage.icon || "/placeholder.svg"}
+                        alt={stage.name}
+                        width={24}
+                        height={24}
+                      />
+                    ) : (
+                      <Image
+                        loading="lazy"
+                        src={customicon || "/placeholder.svg"}
+                        alt={stage.name}
+                        width={24}
+                        height={24}
+                      />
+                    )}
+                    <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#06371a]">
+                      {stage.name}
+                    </p>
+                  </div>
+                  {status === "In progress" ? (
+                    <p className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF]">
+                      In Progress
+                    </p>
+                  ) : (
+                    <p className="font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] opacity-50">
+                      Not started
+                    </p>
+                  )}
+                  <Image
+                    src={isOpen ? "/arrow-down.svg" : "/arrow-down-2.svg"}
+                    alt={isOpen ? "up" : "down"}
+                    width={24}
+                    height={24}
+                  />
+                </div>
+                {isOpen && (
+                  <div className="card-body bg-white border border-[#E5E5E5]">
+                    <Platforms stageName={stage?.name} view={view} platformName={platformName} />
+                  </div>
+                )}
               </div>
             );
           })}
