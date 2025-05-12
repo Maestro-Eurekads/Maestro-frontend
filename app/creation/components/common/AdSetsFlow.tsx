@@ -356,8 +356,8 @@ const AdSet = memo(function AdSet({
                     !isEditing ? "cursor-not-allowed opacity-50" : ""
                   }`}
                 >
-                  <MdDelete />
-                  <span>Delete</span>
+                  <MdDelete /> <span>Delete</span>
+                  
                 </button>
               </div>
             ))}

@@ -42,6 +42,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const [uploadProgress, setUploadProgress] = useState<number[]>([])
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null)
   const [fileSizeErrors, setFileSizeErrors] = useState<string[]>([])
+  const [localPreviews, setLocalPreviews] = useState<Array<{ id: string; url: string }>>([])
   const MAX_RETRIES = 3
   const CONCURRENT_UPLOADS = 3
   const UPLOAD_TIMEOUT = 60000 // 60 seconds
@@ -58,14 +59,16 @@ const UploadModal: React.FC<UploadModalProps> = ({
     }
   }, [STRAPI_URL, STRAPI_TOKEN])
 
-  // Initialize uploadBlobs and uploadProgress
+  // Initialize uploadBlobs, uploadProgress and localPreviews
   useEffect(() => {
     if (previews && previews.length > 0) {
+      setLocalPreviews(previews)
       setUploadBlobs(previews.map((preview) => preview.url))
       setUploads(previews.map(() => null))
       setUploadProgress(previews.map(() => 100))
       setFileSizeErrors(Array(previews.length).fill(""))
     } else {
+      setLocalPreviews([])
       setUploadBlobs(Array(quantities).fill(""))
       setUploads(Array(quantities).fill(null))
       setUploadProgress(Array(quantities).fill(0))
@@ -268,12 +271,22 @@ const UploadModal: React.FC<UploadModalProps> = ({
           return updated
         })
 
-        // Immediately update UI
+        // Get the file ID before updating UI
+        const fileToDelete = localPreviews[index]?.id
+
+        // Update local state
+        setLocalPreviews(prev => {
+          const updated = [...prev]
+          updated.splice(index, 1)
+          return updated
+        })
+
         setUploads((prev) => {
           const updated = [...prev]
           updated[index] = null
           return updated
         })
+
         setUploadBlobs((prev) => {
           const updated = [...prev]
           if (updated[index] && updated[index].startsWith("blob:")) {
@@ -282,42 +295,40 @@ const UploadModal: React.FC<UploadModalProps> = ({
           updated[index] = ""
           return updated
         })
+
         setUploadProgress((prev) => {
           const updated = [...prev]
           updated[index] = 0
           return updated
         })
 
-        // Delete from Strapi in background
-        if (previews?.[index]?.id) {
-          fetch(`${STRAPI_URL}/upload/files/${previews[index].id}`, {
+        // Delete from Strapi if file exists
+        if (fileToDelete) {
+          const response = await fetch(`${STRAPI_URL}/upload/files/${fileToDelete}`, {
             method: "DELETE",
             headers: {
               Authorization: `Bearer ${STRAPI_TOKEN}`,
             },
-          }).catch((error) => {
-            console.error("Background deletion failed:", error)
           })
+
+          if (!response.ok) {
+            console.warn(`File deletion returned status ${response.status}`)
+          }
         }
 
-        const updatedPreviews = [...previews]
-        updatedPreviews.splice(index, 1)
-
-        try {
-          await updateGlobalState(updatedPreviews)
-          toast.success("File deleted successfully!")
-        } catch (error) {
-          console.error("Error updating global state:", error)
-          toast.error("Failed to update campaign data.")
-        }
+        // Update global state with remaining previews
+        const updatedPreviews = localPreviews.filter((_, i) => i !== index)
+        await updateGlobalState(updatedPreviews)
+        
+        toast.success("File deleted successfully!")
       } catch (error) {
         console.error("Error deleting file:", error)
         toast.error("Failed to delete file. Please try again.")
       } finally {
-        setTimeout(() => setLoading(false), 2000)
+        setLoading(false)
       }
     },
-    [previews, updateGlobalState, STRAPI_URL, STRAPI_TOKEN],
+    [localPreviews, updateGlobalState, STRAPI_URL, STRAPI_TOKEN],
   )
 
   const uploadChunk = useCallback(
@@ -576,7 +587,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
         url: file.url || file.formats?.thumbnail?.url || file.url, // Fallback for video thumbnails
       }))
 
-      const allPreviews = [...previews]
+      const allPreviews = [...localPreviews]
       filesToUpload.forEach(({ index }, i) => {
         if (formattedFiles[i]) {
           allPreviews[index] = formattedFiles[i]
@@ -584,6 +595,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
       })
 
       const validPreviews = allPreviews.filter((preview) => preview)
+      setLocalPreviews(validPreviews)
 
       toast.success("Files uploaded successfully!")
 
@@ -599,7 +611,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
     } finally {
       setLoading(false)
     }
-  }, [uploads, previews, updateGlobalState, onUploadSuccess, onClose, uploadSingleFile, fileSizeErrors])
+  }, [uploads, localPreviews, updateGlobalState, onUploadSuccess, onClose, uploadSingleFile, fileSizeErrors])
 
   if (!isOpen) return null
 
