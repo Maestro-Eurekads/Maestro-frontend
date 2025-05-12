@@ -6,6 +6,8 @@ import React, {
   ReactNode,
   useState,
   useEffect,
+  useCallback,
+  useMemo,
 } from "react";
 import useCampaignHook from "./useCampaignHook";
 import axios from "axios";
@@ -16,8 +18,8 @@ import { useSession } from "next-auth/react";
 
 // Get initial state from localStorage if available
 const getInitialState = () => {
-  if (typeof window !== 'undefined') {
-    const savedState = localStorage.getItem('campaignFormData');
+  if (typeof window !== "undefined") {
+    const savedState = localStorage.getItem("campaignFormData");
     if (savedState) {
       return JSON.parse(savedState);
     }
@@ -49,21 +51,20 @@ const getInitialState = () => {
 const CampaignContext = createContext<any>(null);
 
 export const CampaignProvider = ({ children }: { children: ReactNode }) => {
-  const token = useSession();
-  const id = (token?.data?.user as { id?: string })?.id;
+  const { data: session } = useSession();
+  const id = (session?.user as { id?: string })?.id;
   const [campaignFormData, setCampaignFormData] = useState(getInitialState());
   const [campaignData, setCampaignData] = useState(null);
   const [clientCampaignData, setClientCampaignData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingCampaign, setLoadingCampaign] = useState(true)
+  const [loadingCampaign, setLoadingCampaign] = useState(false);
   const [profile, setGetProfile] = useState(null);
   const [isEditingBuyingObjective, setIsEditingBuyingObjective] = useState(false);
 
   const query = useSearchParams();
   const cId = query.get("campaignId");
-  const { loadingClients: hookLoadingClients, allClients: hookAllClients } =
-    useCampaignHook();
+  const { loadingClients: hookLoadingClients, allClients: hookAllClients } = useCampaignHook();
   const [loadingObj, setLoadingObj] = useState(false);
   const [platformList, setPlatformList] = useState({});
   const [objectives, setObjectives] = useState([]);
@@ -78,53 +79,27 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     category: [],
     product: [],
     select_plans: [],
-    // level_1: [],
-    // level_2: [],
-    // level_3: [],
     made_by: [],
     approved_by: [],
   });
   const [selectedFilters, setSelectedFilters] = useState({});
 
-
-
-  const reduxClients = useSelector(
-    (state: any) => state.client?.getCreateClientData?.data || []
-  );
-  const reduxLoadingClients = useSelector(
-    (state: any) => state.client?.getCreateClientIsLoading || false
-  );
+  const reduxClients = useSelector((state: any) => state.client?.getCreateClientData?.data || []);
+  const reduxLoadingClients = useSelector((state: any) => state.client?.getCreateClientIsLoading || false);
 
   const allClients = reduxClients.length > 0 ? reduxClients : hookAllClients;
   const loadingClients = reduxLoadingClients || hookLoadingClients || false;
 
-  // Save form data to localStorage whenever it changes
+  // Save form data to localStorage with debounce
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('campaignFormData', JSON.stringify(campaignFormData));
+    if (typeof window !== "undefined") {
+      const timeout = setTimeout(() => {
+        localStorage.setItem("campaignFormData", JSON.stringify(campaignFormData));
+      }, 300);
+      return () => clearTimeout(timeout);
     }
   }, [campaignFormData]);
 
-  // Initialize data on mount
-  // useEffect(() => {
-  //   const initializeData = async () => {
-  //     if (cId) {
-  //       await getActiveCampaign();
-  //     }
-  //     setLoading(false);
-  //   };
-
-  //   initializeData();
-  // }, []);
-
-
-
-  useEffect(() => {
-    if (!loadingClients && allClients?.length > 0) {
-    }
-  }, [allClients, loadingClients]);
-
-  const [copy, setCopy] = useState(campaignFormData);
   const [businessLevelOptions, setBusinessLevelOptions] = useState({
     level1: [],
     level2: [],
@@ -132,37 +107,22 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const getActiveCampaign = async (docId?: string) => {
+  const getActiveCampaign = useCallback(async (docId?: string) => {
+    if (!cId && !docId) return;
     try {
       setLoadingCampaign(true);
-      // const res = await axios.get(
-      //   `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId
-      //   }?populate=client&populate[media_plan_details]=*&populate[budget_details]=*&populate[client_selection]=*&populate[campaign_budget][populate][budget_fees]=*&populate[channel_mix][populate][social_media][populate]=*&populate[channel_mix][populate][display_networks][populate]=*&populate[channel_mix][populate][search_engines][populate]=*&populate[channel_mix][populate][streaming][populate]=*&populate[channel_mix][populate][ooh][populate]=*&populate[channel_mix][populate][broadcast][populate]=*&populate[channel_mix][populate][messaging][populate]=*&populate[channel_mix][populate][print][populate]=*&populate[channel_mix][populate][e_commerce][populate]=*&populate[channel_mix][populate][in_game][populate]=*&populate[channel_mix][populate][mobile][populate]=*`,
-      //   {
-      //     headers: {
-      //       Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-      //     },
-      //   }
-      // );
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}`,
         {
           params: {
             populate: {
               client: true,
-              media_plan_details: '*',
-              budget_details: '*',
-              client_selection: '*',
+              media_plan_details: "*",
+              budget_details: "*",
+              client_selection: "*",
               user: true,
-              campaign_budget: {
-                populate: ['budget_fees'],
-              },
-              channel_mix: {
-                populate: {
-                  ...channelMixPopulate,
-                  stage_budget: "*"
-                },
-              },
+              campaign_budget: { populate: ["budget_fees"] },
+              channel_mix: { populate: { ...channelMixPopulate, stage_budget: "*" } },
             },
           },
           headers: {
@@ -171,8 +131,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       const data = res?.data?.data;
-      // console.log("🚀 ~ getActiveCampaign ~ data:", JSON.stringify(data, null, 2))
-      setLoadingCampaign(false);
       setCampaignData(data);
       setCampaignFormData((prev) => ({
         ...prev,
@@ -180,45 +138,30 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           id: data?.client?.documentId || prev?.client_selection?.id,
           value: data?.client?.client_name || prev.client_selection.value,
         },
-        level_1: {
-          id: data?.client_selection?.level_1 || prev.level_1.id,
-          value: data?.client_selection?.level_1 || prev.level_1.value,
-        },
-        level_2: {
-          id: data?.client_selection?.level_2 || prev.level_2.id,
-          value: data?.client_selection?.level_2 || prev.level_2.value,
-        },
-        level_3: {
-          id: data?.client_selection?.level_3 || prev.level_3.id,
-          value: data?.client_selection?.level_3 || prev.level_3.value,
-        },
+        level_1: { id: data?.client_selection?.level_1 || prev.level_1.id, value: data?.client_selection?.level_1 || prev.level_1.value },
+        level_2: { id: data?.client_selection?.level_2 || prev.level_2.id, value: data?.client_selection?.level_2 || prev.level_2.value },
+        level_3: { id: data?.client_selection?.level_3 || prev.level_3.id, value: data?.client_selection?.level_3 || prev.level_3.value },
         media_plan: data?.media_plan_details?.plan_name || prev.media_plan,
         approver: data?.media_plan_details?.internal_approver || prev.approver,
-        campaign_objectives:
-          data?.campaign_objective || prev.campaign_objectives,
+        campaign_objectives: data?.campaign_objective || prev.campaign_objectives,
         funnel_stages: data?.funnel_stages || prev.funnel_stages,
         channel_mix: data?.channel_mix || prev.channel_mix,
-        campaign_timeline_start_date:
-          data?.campaign_timeline_start_date ||
-          prev.campaign_timeline_start_date,
-        campaign_timeline_end_date:
-          data?.campaign_timeline_end_date || prev.campaign_timeline_end_date,
+        campaign_timeline_start_date: data?.campaign_timeline_start_date || prev.campaign_timeline_start_date,
+        campaign_timeline_end_date: data?.campaign_timeline_end_date || prev.campaign_timeline_end_date,
         campaign_budget: data?.campaign_budget || prev.campaign_budget,
         goal_level: data?.goal_level || prev.goal_level,
         progress_percent: data?.progress_percent,
         custom_funnels: data?.custom_funnels,
-        user: data?.user
+        user: data?.user,
       }));
-
     } catch (error) {
       console.error("Error fetching active campaign:", error);
-      setLoadingCampaign(false);
     } finally {
       setLoadingCampaign(false);
     }
-  };
+  }, [cId]);
 
-  const createCampaign = async () => {
+  const createCampaign = useCallback(async () => {
     try {
       setLoading(true);
       const response = await axios.post(
@@ -245,7 +188,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-      const data = response?.data?.data;
       return response;
     } catch (error) {
       console.error("Error creating campaign:", error);
@@ -253,10 +195,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [campaignFormData]);
 
-
-  const getProfile = async () => {
+  const getProfile = useCallback(async () => {
+    if (!id) return;
     try {
       setLoading(true);
       const response = await axios.get(
@@ -267,20 +209,17 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-
-      const responseData = response?.data;
-      setGetProfile(responseData);
+      setGetProfile(response?.data);
       return response;
     } catch (error) {
-      console.error("Error updating campaign:", error);
+      console.error("Error fetching profile:", error);
       throw error;
     } finally {
       setLoading(false);
     }
-  }
+  }, [id]);
 
-
-  const updateCampaign = async (data) => {
+  const updateCampaign = useCallback(async (data) => {
     try {
       setLoading(true);
       const response = await axios.put(
@@ -292,8 +231,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-
-      const responseData = response?.data?.data;
       return response;
     } catch (error) {
       console.error("Error updating campaign:", error);
@@ -301,9 +238,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [cId]);
 
-  const fetchBusinessLevelOptions = async (clientId: string) => {
+  const fetchBusinessLevelOptions = useCallback(async (clientId: string) => {
+    if (!clientId) return;
     try {
       setLoading(true);
       const response = await axios.get(
@@ -316,24 +254,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       );
       const data = response?.data?.data || {};
       setBusinessLevelOptions({
-        level1:
-          data?.level_1?.map((item: string) => ({
-            id: item,
-            value: item,
-            label: item,
-          })) || [],
-        level2:
-          data?.level_2?.map((item: string) => ({
-            id: item,
-            value: item,
-            label: item,
-          })) || [],
-        level3:
-          data?.level_3?.map((item: string) => ({
-            id: item,
-            value: item,
-            label: item,
-          })) || [],
+        level1: data?.level_1?.map((item: string) => ({ id: item, value: item, label: item })) || [],
+        level2: data?.level_2?.map((item: string) => ({ id: item, value: item, label: item })) || [],
+        level3: data?.level_3?.map((item: string) => ({ id: item, value: item, label: item })) || [],
       });
     } catch (error) {
       console.error("Error fetching business level options:", error);
@@ -341,9 +264,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchObjectives = async () => {
+  const fetchObjectives = useCallback(async () => {
     setLoadingObj(true);
     try {
       const res = await axios.get(
@@ -355,23 +278,21 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       const data = res?.data?.data;
-
       const formattedData = data?.map((d: any) => ({
         id: d?.id,
         title: d?.title,
         description: d?.subtitle,
         icon: d?.icon?.url,
       }));
-
       setObjectives(formattedData);
     } catch (err) {
       console.error("Error fetching objectives:", err);
     } finally {
       setLoadingObj(false);
     }
-  };
+  }, []);
 
-  const fetchBuyObjectives = async () => {
+  const fetchBuyObjectives = useCallback(async () => {
     setLoadingObj(true);
     try {
       const res = await axios.get(
@@ -382,16 +303,15 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-      const data = res?.data?.data;
-      setBuyObj(data);
+      setBuyObj(res?.data?.data);
     } catch (err) {
       console.error("Error fetching buy objectives:", err);
     } finally {
       setLoadingObj(false);
     }
-  };
+  }, []);
 
-  const fetchBuyTypes = async () => {
+  const fetchBuyTypes = useCallback(async () => {
     setLoadingObj(true);
     try {
       const res = await axios.get(
@@ -402,16 +322,15 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-      const data = res?.data?.data;
-      setBuyType(data);
+      setBuyType(res?.data?.data);
     } catch (err) {
-      console.error("Error fetching buy objectives:", err);
+      console.error("Error fetching buy types:", err);
     } finally {
       setLoadingObj(false);
     }
-  };
+  }, []);
 
-  function organizeAdvertisingPlatforms(data) {
+  const organizeAdvertisingPlatforms = useCallback((data) => {
     const result = {
       online: {
         social_media: [],
@@ -443,18 +362,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
     data.forEach((platform) => {
       const typeCategory = platform.type.toLowerCase();
-      let channelType = platform.channel_type
-        .toLowerCase()
-        .replace(/\s+/g, "_");
-
-      if (channelType === "in-game") {
-        channelType = "in_game";
-      }
-
-      if (channelType === "e-commerce") {
-        channelType = "e_commerce";
-      }
-
+      let channelType = platform.channel_type.toLowerCase().replace(/\s+/g, "_");
+      if (channelType === "in-game") channelType = "in_game";
+      if (channelType === "e-commerce") channelType = "e_commerce";
       if (result[typeCategory] && result[typeCategory][channelType]) {
         result[typeCategory][channelType].push({
           id: platform.id,
@@ -466,9 +376,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return result;
-  }
+  }, []);
 
-  const fetchPlatformLists = async () => {
+  const fetchPlatformLists = useCallback(async () => {
     setLoadingObj(true);
     try {
       const res = await axios.get(
@@ -483,12 +393,13 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       const organizedPlatforms = organizeAdvertisingPlatforms(data);
       setPlatformList(organizedPlatforms);
     } catch (err) {
-      console.error("Error fetching buy objectives:", err);
+      console.error("Error fetching platform lists:", err);
     } finally {
       setLoadingObj(false);
     }
-  };
+  }, [organizeAdvertisingPlatforms]);
 
+  // Fetch business level options when client selection changes
   useEffect(() => {
     const clientId = campaignFormData.client_selection?.id;
     if (clientId) {
@@ -500,77 +411,102 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         level_3: { id: "", value: "" },
       }));
     }
-  }, [campaignFormData.client_selection?.id]);
+  }, [campaignFormData.client_selection?.id, fetchBusinessLevelOptions]);
 
+  // Initial data fetching
   useEffect(() => {
-    getProfile();
+    const fetchInitialData = async () => {
+      try {
+        await Promise.all([
+          id && getProfile(),
+          cId && getActiveCampaign(),
+          fetchBuyObjectives(),
+          fetchObjectives(),
+          fetchPlatformLists(),
+          fetchBuyTypes(),
+        ]);
+      } catch (error) {
+        console.error("Error during initial data fetch:", error);
+      }
+    };
 
-    if (cId) {
-      getActiveCampaign();
-    }
-    fetchBuyObjectives();
-    fetchObjectives();
-    fetchPlatformLists();
-    fetchBuyTypes();
-  }, [cId]);
+    fetchInitialData();
+  }, [cId, id, getProfile, getActiveCampaign, fetchBuyObjectives, fetchObjectives, fetchPlatformLists, fetchBuyTypes]);
 
-
-
-  return (
-    <CampaignContext.Provider
-      value={{
-        loadingClients,
-        allClients,
-        campaignFormData,
-        setCampaignFormData,
-        createCampaign,
-        updateCampaign,
-        campaignData,
-        cId,
-        getActiveCampaign,
-        clientCampaignData,
-        setClientCampaignData,
-        loading,
-        setLoading,
-        setCampaignData,
-        copy,
-        setCopy,
-        businessLevelOptions,
-        isLoggedIn,
-        setIsLoggedIn,
-        platformList,
-        loadingObj,
-        buyObj,
-        objectives,
-        buyType,
-        setBuyObj,
-        setBuyType,
-        clientPOs,
-        setClientPOs,
-        fetchingPO,
-        setFetchingPO,
-        filterOptions,
-        setFilterOptions,
-        selectedFilters,
-        setSelectedFilters,
-        isLoading,
-        setIsLoading,
-        profile,
-        loadingCampaign,
-        setLoadingCampaign,
-        getProfile,
-        isEditingBuyingObjective,
-        setIsEditingBuyingObjective,
-      }}
-    >
-      {children}
-    </CampaignContext.Provider>
+  const contextValue = useMemo(
+    () => ({
+      loadingClients,
+      allClients,
+      campaignFormData,
+      setCampaignFormData,
+      createCampaign,
+      updateCampaign,
+      campaignData,
+      cId,
+      getActiveCampaign,
+      clientCampaignData,
+      setClientCampaignData,
+      loading,
+      setLoading,
+      setCampaignData,
+      businessLevelOptions,
+      isLoggedIn,
+      setIsLoggedIn,
+      platformList,
+      loadingObj,
+      buyObj,
+      objectives,
+      buyType,
+      setBuyObj,
+      setBuyType,
+      clientPOs,
+      setClientPOs,
+      fetchingPO,
+      setFetchingPO,
+      filterOptions,
+      setFilterOptions,
+      selectedFilters,
+      setSelectedFilters,
+      isLoading,
+      setIsLoading,
+      profile,
+      loadingCampaign,
+      setLoadingCampaign,
+      getProfile,
+      isEditingBuyingObjective,
+      setIsEditingBuyingObjective,
+    }),
+    [
+      loadingClients,
+      allClients,
+      campaignFormData,
+      campaignData,
+      cId,
+      clientCampaignData,
+      loading,
+      isLoading,
+      loadingCampaign,
+      businessLevelOptions,
+      isLoggedIn,
+      platformList,
+      loadingObj,
+      buyObj,
+      objectives,
+      buyType,
+      clientPOs,
+      fetchingPO,
+      filterOptions,
+      selectedFilters,
+      profile,
+      isEditingBuyingObjective,
+    ]
   );
+
+  return <CampaignContext.Provider value={contextValue}>{children}</CampaignContext.Provider>;
 };
 
 export const useCampaigns = () => {
   const context = useContext(CampaignContext);
-  if (!context)
-    throw new Error("useCampaigns must be used within a CampaignProvider");
+  if (!context) throw new Error("useCampaigns must be used within a CampaignProvider");
   return context;
 };
