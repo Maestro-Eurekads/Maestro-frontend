@@ -143,6 +143,8 @@ const MediaOption = ({
   const [localPreviews, setLocalPreviews] = useState<
     Array<{ id: string; url: string }>
   >([]);
+  const [deleteQueue, setDeleteQueue] = useState<string[]>([]);
+  const [isProcessingQueue, setIsProcessingQueue] = useState(false);
 
   // Environment variables
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
@@ -156,6 +158,52 @@ const MediaOption = ({
     const shownPreviews = (previews || []).slice(0, quantity);
     setLocalPreviews(shownPreviews);
   }, [previews, quantity, STRAPI_URL, STRAPI_TOKEN]);
+
+  useEffect(() => {
+    const processDeleteQueue = async () => {
+      if (deleteQueue.length === 0 || isProcessingQueue) return;
+
+      setIsProcessingQueue(true);
+      const previewId = deleteQueue[0];
+
+      try {
+        // Delete file from Strapi
+        const deleteResponse = await fetch(
+          `${STRAPI_URL}/upload/files/${previewId}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${STRAPI_TOKEN}`,
+            },
+          }
+        );
+
+        if (!deleteResponse.ok) {
+          throw new Error(
+            `Failed to delete file from Strapi: ${deleteResponse.statusText}`
+          );
+        }
+
+        // Update global state with the new previews array
+        await updateGlobalState(localPreviews.filter((prv) => prv.id !== previewId));
+
+        // Remove from queue
+        setDeleteQueue(prev => prev.filter(id => id !== previewId));
+        toast.success("Preview deleted successfully!");
+
+      } catch (error: any) {
+        console.error("Error deleting preview:", error);
+        toast.error(`Failed to delete preview: ${error.message}`);
+        
+        // Remove failed deletion from queue
+        setDeleteQueue(prev => prev.filter(id => id !== previewId));
+      } finally {
+        setIsProcessingQueue(false);
+      }
+    };
+
+    processDeleteQueue();
+  }, [deleteQueue, isProcessingQueue, STRAPI_URL, STRAPI_TOKEN]);
 
   const uploadUpdatedCampaignToStrapi = useCallback(
     async (data: any) => {
@@ -331,57 +379,25 @@ const MediaOption = ({
       setIsDeleting(true);
 
       try {
-        // Store the preview to be deleted for potential rollback
-        const previewToDelete = localPreviews.find(
-          (prv) => prv.id === previewId
-        );
-        if (!previewToDelete) {
-          throw new Error("Preview not found in local state.");
-        }
-
         // Optimistically update UI
         setLocalPreviews((prev) =>
           prev.filter((prv) => prv.id !== previewId)
         );
 
-        // Delete file from Strapi
-        const deleteResponse = await fetch(
-          `${STRAPI_URL}/upload/files/${previewId}`,
-          {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${STRAPI_TOKEN}`,
-            },
-          }
-        );
+        // Add to delete queue
+        setDeleteQueue(prev => [...prev, previewId]);
 
-        if (!deleteResponse.ok) {
-          throw new Error(
-            `Failed to delete file from Strapi: ${deleteResponse.statusText}`
-          );
-        }
-
-        // Update global state with the new previews array
-        await updateGlobalState(localPreviews.filter((prv) => prv.id !== previewId));
-
-        toast.success("Preview deleted successfully!");
       } catch (error: any) {
-        console.error("Error deleting preview:", {
-          message: error.message,
-          details: error.details,
-          response: error.response?.data,
-          status: error.response?.status,
-        });
-        toast.error(`Failed to delete preview: ${error.message}`);
+        console.error("Error queueing preview deletion:", error);
+        toast.error(`Failed to queue preview deletion: ${error.message}`);
 
-        // Rollback: Restore the deleted preview
-        const previewToRestore = localPreviews.find(
+        // Rollback UI state
+        const previewToRestore = previews.find(
           (prv) => prv.id === previewId
         );
         if (previewToRestore) {
           setLocalPreviews((prev) => {
             const updated = [...prev, previewToRestore];
-            // Sort to maintain original order if necessary
             return updated.sort((a, b) => {
               const indexA = previews.findIndex((p) => p.id === a.id);
               const indexB = previews.findIndex((p) => p.id === b.id);
@@ -395,11 +411,10 @@ const MediaOption = ({
     },
     [
       localPreviews,
-      updateGlobalState,
+      previews,
       STRAPI_URL,
       STRAPI_TOKEN,
-      isDeleting,
-      previews,
+      isDeleting
     ]
   );
 
