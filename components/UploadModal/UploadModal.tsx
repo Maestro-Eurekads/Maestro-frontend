@@ -41,9 +41,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const [loading, setLoading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<number[]>([])
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null)
-  const MAX_RETRIES = 3 // Increased retries
-  const CONCURRENT_UPLOADS = 3 // Reduced concurrent uploads
-  const UPLOAD_TIMEOUT = 30000 // Increased timeout to 30s
+  const MAX_RETRIES = 3
+  const CONCURRENT_UPLOADS = 3
+  const UPLOAD_TIMEOUT = 60000 // Increased to 60s for large files
+  const CHUNK_SIZE = 5 * 1024 * 1024 // 5MB chunks
 
   // Validate environment variables
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
@@ -267,10 +268,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
         const updatedPreviews = [...previews]
         updatedPreviews.splice(index, 1)
 
-        // Update global state and wait for it to complete
         try {
           await updateGlobalState(updatedPreviews)
-          // Show success message after state is updated
           toast.success("File deleted successfully!")
         } catch (error) {
           console.error("Error updating global state:", error)
@@ -280,19 +279,66 @@ const UploadModal: React.FC<UploadModalProps> = ({
         console.error("Error deleting file:", error)
         toast.error("Failed to delete file. Please try again.")
       } finally {
-        // Longer loading state (2 seconds)
         setTimeout(() => setLoading(false), 2000)
       }
     },
     [previews, updateGlobalState, STRAPI_URL, STRAPI_TOKEN],
   )
 
-  const uploadSingleFile = useCallback(
-    async (file: File, index: number, retryCount = 0): Promise<any> => {
+  const uploadChunk = useCallback(
+    async (
+      chunk: Blob,
+      fileName: string,
+      chunkIndex: number,
+      totalChunks: number,
+      fileId: string,
+      retryCount = 0,
+    ): Promise<void> => {
       try {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT)
 
+        const formData = new FormData()
+        formData.append("files", chunk, `${fileName}.part${chunkIndex}`)
+        formData.append("fileInfo", JSON.stringify({
+          name: fileName,
+          chunkIndex,
+          totalChunks,
+          fileId,
+        }))
+
+        const response = await fetch(`${STRAPI_URL}/upload/chunk`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${STRAPI_TOKEN}`,
+          },
+          body: formData,
+          signal: controller.signal,
+        })
+
+        clearTimeout(timeoutId)
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+      } catch (error) {
+        if (retryCount < MAX_RETRIES) {
+          console.log(`Retrying chunk ${chunkIndex} for file "${fileName}" (attempt ${retryCount + 1}/${MAX_RETRIES})`)
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000))
+          return uploadChunk(chunk, fileName, chunkIndex, totalChunks, fileId, retryCount + 1)
+        }
+        if (error instanceof Error && error.name === "AbortError") {
+          throw new Error("Chunk upload timed out")
+        }
+        throw error
+      }
+    },
+    [STRAPI_URL, STRAPI_TOKEN],
+  )
+
+  const uploadSingleFile = useCallback(
+    async (file: File, index: number, retryCount = 0): Promise<any> => {
+      try {
         let fileToUpload = file
         if (file.type.startsWith("image/")) {
           const compressedFile = await new Promise<File>((resolve) => {
@@ -340,48 +386,97 @@ const UploadModal: React.FC<UploadModalProps> = ({
           fileToUpload = compressedFile
         }
 
-        const formData = new FormData()
-        formData.append("files", fileToUpload)
+        const fileId = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
+        const totalChunks = Math.ceil(fileToUpload.size / CHUNK_SIZE)
 
-        const response = await fetch(`${STRAPI_URL}/upload`, {
+        if (totalChunks <= 1) {
+          // Upload small files directly
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT)
+
+          const formData = new FormData()
+          formData.append("files", fileToUpload)
+
+          const response = await fetch(`${STRAPI_URL}/upload`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${STRAPI_TOKEN}`,
+            },
+            body: formData,
+            signal: controller.signal,
+          })
+
+          clearTimeout(timeoutId)
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+          }
+
+          const result = await response.json()
+          setUploadProgress((prev) => {
+            const updated = [...prev]
+            updated[index] = 100
+            return updated
+          })
+          return result[0]
+        }
+
+        // Chunked upload for large files
+        for (let i = 0; i < totalChunks; i++) {
+          const start = i * CHUNK_SIZE
+          const end = Math.min(start + CHUNK_SIZE, fileToUpload.size)
+          const chunk = fileToUpload.slice(start, end)
+
+          await uploadChunk(chunk, fileToUpload.name, i, totalChunks, fileId)
+
+          // Update progress
+          const progress = ((i + 1) / totalChunks) * 100
+          setUploadProgress((prev) => {
+            const updated = [...prev]
+            updated[index] = Math.min(progress, 99) // Keep below 100 until completion
+            return updated
+          })
+        }
+
+        // Finalize upload
+        const finalizeResponse = await fetch(`${STRAPI_URL}/upload/finalize`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${STRAPI_TOKEN}`,
+            "Content-Type": "application/json",
           },
-          body: formData,
-          signal: controller.signal,
+          body: JSON.stringify({
+            fileId,
+            fileName: fileToUpload.name,
+            totalChunks,
+            mimeType: fileToUpload.type,
+          }),
         })
 
-        clearTimeout(timeoutId)
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
+        if (!finalizeResponse.ok) {
+          throw new Error(`HTTP error! status: ${finalizeResponse.status}`)
         }
 
-        const result = await response.json()
+        const result = await finalizeResponse.json()
         setUploadProgress((prev) => {
           const updated = [...prev]
           updated[index] = 100
           return updated
         })
-        return result[0]
+        return result
       } catch (error) {
         if (retryCount < MAX_RETRIES) {
           console.log(`Retrying upload for file "${file.name}" (attempt ${retryCount + 1}/${MAX_RETRIES})`)
-          // Exponential backoff delay
           await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000))
           return uploadSingleFile(file, index, retryCount + 1)
         }
-
-        if (error instanceof Error) {
-          if (error.name === "AbortError") {
-            throw new Error("Upload timed out")
-          }
+        if (error instanceof Error && error.name === "AbortError") {
+          throw new Error("Upload timed out")
         }
         throw error
       }
     },
-    [STRAPI_URL, STRAPI_TOKEN],
+    [STRAPI_URL, STRAPI_TOKEN, uploadChunk],
   )
 
   const uploadFilesToStrapi = useCallback(async () => {
@@ -398,7 +493,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
         .map((file, index) => ({ file, index }))
         .filter((item): item is { file: File; index: number } => item.file !== null)
 
-      // Process files in chunks
       const results = []
       for (let i = 0; i < filesToUpload.length; i += CONCURRENT_UPLOADS) {
         const chunk = filesToUpload.slice(i, i + CONCURRENT_UPLOADS)
@@ -416,7 +510,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
               console.error(`Failed to upload file "${file.name}"`, error)
               return null
             }
-          })
+          }),
         )
         results.push(...chunkResults)
       }
@@ -442,17 +536,13 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
       const validPreviews = allPreviews.filter((preview) => preview)
 
-      // Show success message immediately
-      const uploadTime = (Date.now() - uploadStartTime) / 1000
       toast.success("Files uploaded successfully!")
 
-      // Close modal and trigger success callback after 4s
       setTimeout(() => {
         onUploadSuccess?.()
         onClose()
       }, 4000)
 
-      // Update global state in background
       updateGlobalState(validPreviews).catch((error) => {
         console.error("Error updating global state:", error)
         toast.error("Files uploaded but failed to update campaign.")
@@ -461,7 +551,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
       console.error("Error in uploadFilesToStrapi:", error)
       toast.error("Upload failed. Please try again.")
     } finally {
-      // Keep loading state for 4s
       setTimeout(() => setLoading(false), 4000)
     }
   }, [uploads, previews, updateGlobalState, onUploadSuccess, onClose, uploadSingleFile])
@@ -517,7 +606,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
                   {uploadingIndex === index || (loading && uploadProgress[index] > 0 && uploadProgress[index] < 100) ? (
                     <div className="flex flex-col items-center justify-center">
                       <FaSpinner className="animate-spin text-blue-500 text-2xl" />
-                      <span className="text-sm">{uploadProgress[index]}%</span>
+                      <span className="text-sm">{Math.round(uploadProgress[index])}%</span>
                     </div>
                   ) : uploadBlobs[index] ? (
                     <>
