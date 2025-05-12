@@ -96,6 +96,48 @@ export const ChannelRow = ({
     cpp: [calculateCPP, "budget.fixed_value", "kpi.purchases"],
   }
 
+  // Define calculated fields - these are the only fields that should be aggregated
+  const calculatedFields = [
+    "impressions",
+    "reach",
+    "video_views",
+    "cpv",
+    "completed_view",
+    "cpcv",
+    "link_clicks",
+    "cpc",
+    "installs",
+    "cpi",
+    "engagements",
+    "cpe",
+    "app_open",
+    "cost__app_open",
+    "conversion",
+    "cost__conversion",
+    "forms_open",
+    "cost__opened_form",
+    "leads",
+    "cost__lead",
+    "lands",
+    "cpl",
+    "bounced_visits",
+    "costbounce",
+    "lead_visits",
+    "costlead",
+    "off_funnel_visits",
+    "cost__off_funnel",
+    "conversions",
+    "costconversion",
+    "generated_revenue",
+    "return_on_ad_spent",
+    "add_to_carts",
+    "cpatc",
+    "payment_infos",
+    "cppi",
+    "purchases",
+    "cpp",
+  ]
+
   // Helper function to check if a field is a percentage type
   const isPercentageField = (fieldName, headerGroup) => {
     // Extract the field name from the path (e.g., "kpi.ctr" -> "ctr")
@@ -152,52 +194,15 @@ export const ChannelRow = ({
   )
 
   useEffect(() => {
-    // First calculate the channel's own metrics
+    // Calculate the channel's own metrics
     Object.entries(calculatedValues).forEach(([key, value]) => {
       if (!isNaN(value) && isFinite(value)) {
         handleEditInfo(stage.name, channel?.channel_name, channel?.name, key, value, "", "")
       }
     })
 
-    // Then aggregate values from ad sets
-    if (channel?.ad_sets && channel.ad_sets.length > 0) {
-      // Get all ad sets for this channel
-      const adSets =
-        campaignFormData?.channel_mix
-          ?.find((ch) => ch?.funnel_stage === stage.name)
-          ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)?.ad_sets || []
-
-      // For each KPI metric, sum up values from ad sets
-      Object.keys(formulas).forEach((key) => {
-        let sum = 0
-        let hasValidValues = false
-
-        // Sum up values from ad sets
-        adSets.forEach((adSet, adSetIndex) => {
-          // Get the value from the ad set
-          const adSetValue = adSet?.kpi?.[key]
-          if (!isNaN(adSetValue) && isFinite(adSetValue)) {
-            sum += Number(adSetValue)
-            hasValidValues = true
-          }
-
-          // Also include values from extra audiences
-          const extraAudiences = adSet?.extra_audiences || []
-          extraAudiences.forEach((extraAudience, extraIndex) => {
-            const extraValue = extraAudience?.kpi?.[key]
-            if (!isNaN(extraValue) && isFinite(extraValue)) {
-              sum += Number(extraValue)
-              hasValidValues = true
-            }
-          })
-        })
-
-        // Update the channel's KPI with the aggregated value
-        if (hasValidValues) {
-          handleEditInfo(stage.name, channel?.channel_name, channel?.name, key, sum, "", "")
-        }
-      })
-    }
+    // Note: We no longer need to aggregate values from ad sets here
+    // as this is now handled in the TableView component
   }, [
     chData?.kpi?.cpm,
     chData?.kpi?.frequency,
@@ -222,9 +227,6 @@ export const ChannelRow = ({
     chData?.kpi?.payment_info_rate,
     chData?.kpi?.cppi,
     chData?.kpi?.purchase_rate,
-    // Add dependency on ad sets data
-    JSON.stringify(channel?.ad_sets),
-    campaignFormData?.channel_mix,
   ])
 
   return (

@@ -366,34 +366,34 @@ const ResizableChannels = ({
   };
 
   // Update channel positions when parent position changes
-  useEffect(() => {
-    // console.log("channels", channels);
-    channels?.map((ch, index) => {
-      const stageStartDate = ch?.start_date ? parseISO(ch?.start_date) : null;
-      const stageEndDate = ch?.start_date ? parseISO(ch?.start_date) : null;
-      const startDateIndex = stageStartDate
-        ? dRange?.findIndex((date) => isEqual(date, stageStartDate)) * 100
-        : 0;
-    });
-    setChannelState((prev) =>
-      prev?.map((state, index) => {
-        const stageStartDate = channels[index]?.start_date
-          ? parseISO(channels[index]?.start_date)
-          : null;
-        const startDateIndex = stageStartDate
-          ? dRange?.findIndex((date) => isEqual(date, stageStartDate)) * 100
-          : 0;
+  // useEffect(() => {
+  //   // console.log("channels", channels);
+  //   channels?.map((ch, index) => {
+  //     const stageStartDate = ch?.start_date ? parseISO(ch?.start_date) : null;
+  //     const stageEndDate = ch?.start_date ? parseISO(ch?.start_date) : null;
+  //     const startDateIndex = stageStartDate
+  //       ? dRange?.findIndex((date) => isEqual(date, stageStartDate)) * 100
+  //       : 0;
+  //   });
+  //   setChannelState((prev) =>
+  //     prev?.map((state, index) => {
+  //       const stageStartDate = channels[index]?.start_date
+  //         ? parseISO(channels[index]?.start_date)
+  //         : null;
+  //       const startDateIndex = stageStartDate
+  //         ? dRange?.findIndex((date) => isEqual(date, stageStartDate)) * 100
+  //         : 0;
 
-        console.log(channels[index]?.name, startDateIndex);
+  //       console.log(channels[index]?.name, startDateIndex);
 
-        return {
-          ...state,
-          width: Math.min(state?.width, parentWidth), // Adjust width if it exceeds parent
-          left: parentLeft + startDateIndex, // Update left based on startDateIndex relative to parentLeft
-        };
-      })
-    );
-  }, [openItems]);
+  //       return {
+  //         ...state,
+  //         width: Math.min(state?.width, parentWidth), // Adjust width if it exceeds parent
+  //         left: parentLeft + startDateIndex, // Update left based on startDateIndex relative to parentLeft
+  //       };
+  //     })
+  //   );
+  // }, [openItems]);
 
   // Update channel state when initialChannels changes
   useEffect(() => {
@@ -409,15 +409,16 @@ const ResizableChannels = ({
             ? dateOffset > 0
               ? addDays(stageStartDate, dateOffset) // Add days if offset is positive
               : subDays(stageStartDate, Math.abs(dateOffset)) // Subtract days if offset is negative
-            : null;
+              : null;
+              // console.log("🚀 ~ newState ~ adjustedStageStartDate:", adjustedStageStartDate)
           const stageEndDate = ch?.end_date ? parseISO(ch?.end_date) : null;
           const adjustedStageEndDate = stageEndDate
             ? endDateOffset > 0
               ? addDays(stageStartDate, endDateOffset) // Add days if offset is positive
               : subDays(stageEndDate, Math.abs(endDateOffset)) // Subtract days if offset is negative
             : null;
-          const startDateIndex = adjustedStageStartDate
-            ? dRange?.findIndex((date) => isEqual(date, adjustedStageStartDate)) * 100
+          const startDateIndex = stageStartDate
+            ? dRange?.findIndex((date) => isEqual(date, stageStartDate)) * 100
             : 0;
           const daysBetween =
             eachDayOfInterval({
@@ -427,12 +428,12 @@ const ResizableChannels = ({
           const endDaysDiff = differenceInCalendarDays(endDate, stageEndDate);
           // Check if this channel already exists in prev
           const existingState = prev[index];
-          console.log("moving", {
-            endDaysDiff,
-            parentLeft,
-            startDateIndex,
-            daysBetween,
-          });
+          // console.log("moving", {
+          //   endDaysDiff,
+          //   parentLeft,
+          //   startDateIndex,
+          //   daysBetween,
+          // });
           return existingState
             ? {
                 ...existingState,
@@ -453,7 +454,7 @@ const ResizableChannels = ({
         return newState;
       });
     }
-  }, [initialChannels, parentLeft, parentWidth, campaignFormData]);
+  }, [ parentLeft, parentWidth, campaignFormData]);
 
   useEffect(() => {
     if (!dragging) return;
