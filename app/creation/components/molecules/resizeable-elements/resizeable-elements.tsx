@@ -292,7 +292,11 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
               className="flex flex-col mt-6 rounded-[10px] p-4 px-0 justify-between w-fit"
               style={{
                 gridColumnStart: 1,
-                gridColumnEnd: 8,
+                gridColumnEnd:  rrange === "Day"
+                ? `repeat(${funnelData?.endDay - 1 || 1}, 100px)`
+                : rrange === "Week"
+                ? `repeat(${funnelData?.endWeek - 1 || 1}, 100%)`
+                : `repeat(${funnelData?.endMonth - 1 || 1}, 1fr)`,
               }}
             >
               <DraggableChannel

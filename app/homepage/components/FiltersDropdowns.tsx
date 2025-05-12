@@ -6,6 +6,8 @@ import { BiX } from "react-icons/bi"
 import { useCampaigns } from "app/utils/CampaignsContext"
 import { fetchFilteredCampaigns } from "app/utils/campaign-filter-utils"
 import { toast, Toaster } from "react-hot-toast"
+import { useAppDispatch } from "store/useStore"
+import { getCreateClient } from "features/Client/clientSlice"
 
 // Scrollbar CSS
 const scrollbarStyles = `
@@ -101,15 +103,16 @@ const defaultFilters = [
       "July", "August", "September", "October", "November", "December"
     ],
   },
-  // { label: "Level 1", options: ["Level 1"] },
-  // { label: "Level 2", options: ["Level 2"] },
-  // { label: "Level 3", options: ["Level 3"] },
+  { label: "Level 1", options: ["Level 1"] },
+  { label: "Level 2", options: ["Level 2"] },
+  { label: "Level 3", options: ["Level 3"] },
   { label: "Made By", options: ["User 1", "User 2", "User 3", "User 4"] },
   { label: "Approved By", options: ["Manager 1", "Manager 2", "Manager 3", "Manager 4"] },
 ]
 
 
 const FiltersDropdowns = ({ hideTitle }: Props) => {
+  const dispatch = useAppDispatch();
   useEffect(() => {
     const styleElement = document.createElement("style")
     styleElement.innerHTML = scrollbarStyles
@@ -135,25 +138,27 @@ const FiltersDropdowns = ({ hideTitle }: Props) => {
   const handleSelect = (label, value) => {
     if (value === "") {
       if (label === "year") {
+        dispatch(getCreateClient());
         setSelectedFilters((prev) => ({
           ...prev,
           [label]: value,
           quarter: "",
           month: "",
-        }))
+        }));
       } else {
         setSelectedFilters((prev) => ({
           ...prev,
           [label]: value,
-        }))
+        }));
       }
     } else {
       setSelectedFilters((prev) => ({
         ...prev,
         [label]: value,
-      }))
+      }));
     }
-  }
+  };
+
 
   useEffect(() => {
     if (filterOptions) {

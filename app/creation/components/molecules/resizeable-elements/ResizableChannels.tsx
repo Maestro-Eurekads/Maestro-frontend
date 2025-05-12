@@ -6,7 +6,14 @@ import Image from "next/image";
 import { useFunnelContext } from "../../../../utils/FunnelContextType";
 import whiteplus from "../../../../../public/white-plus.svg";
 import { useCampaigns } from "app/utils/CampaignsContext";
-import { eachDayOfInterval, isEqual, parseISO } from "date-fns";
+import {
+  addDays,
+  differenceInCalendarDays,
+  eachDayOfInterval,
+  isEqual,
+  parseISO,
+  subDays,
+} from "date-fns";
 import moment from "moment";
 import { getCurrencySymbol, renderUploadedFile } from "components/data";
 import arrowUp from "../../../../../public/arrow-g-up.svg";
@@ -73,7 +80,11 @@ const ResizableChannels = ({
   const [selectedCreative, setSelectedCreative] = useState(null);
   const [openAdset, setOpenAdset] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState("");
-
+  
+  // Store the initial start date in a ref
+  const initialStartDateRef = useRef(null);
+  const initialEndDateRef = useRef(null);
+  
   // Initialize child width based on available parent space and position
   const [channelState, setChannelState] = useState(
     channels?.map(() => ({
@@ -81,39 +92,82 @@ const ResizableChannels = ({
       width: Math.min(160, parentWidth),
     }))
   );
-
+  
   const [dragging, setDragging] = useState(null);
-
+  
   const [draggingPosition, setDraggingPosition] = useState(null);
-
+  
   const toggleChannel = (id) => {
     setOpenItems((prev) => (prev === id ? null : id));
   };
+  const [dRange, setDrange] = useState(null);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [dateOffset, setDateOffset] = useState(0);
+  const [endDateOffset, setEndDateOffset] = useState(0);
 
-  const startDate = campaignFormData?.channel_mix?.find(
-    (ch) => ch?.funnel_stage === parentId
-  )?.funnel_stage_timeline_start_date
-    ? new Date(
-        campaignFormData?.channel_mix?.find(
-          (ch) => ch?.funnel_stage === parentId
-        )?.funnel_stage_timeline_start_date
-      )
-    : campaignFormData?.campaign_time_start_date;
+  useEffect(() => {
+    if (campaignFormData) {
+      const start = campaignFormData?.channel_mix?.find(
+        (ch) => ch?.funnel_stage === parentId
+      )?.funnel_stage_timeline_start_date
+        ? new Date(
+            campaignFormData?.channel_mix?.find(
+              (ch) => ch?.funnel_stage === parentId
+            )?.funnel_stage_timeline_start_date
+          )
+        : campaignFormData?.campaign_time_start_date;
 
-  const endDate = campaignFormData?.channel_mix?.find(
-    (ch) => ch?.funnel_stage === parentId
-  )?.funnel_stage_timeline_end_date
-    ? new Date(
-        campaignFormData?.channel_mix?.find(
-          (ch) => ch?.funnel_stage === parentId
-        )?.funnel_stage_timeline_end_date
-      )
-    : campaignFormData?.campaign_time_end_date;
+      if (!initialStartDateRef.current) {
+        // Set the initial date only once
+        initialStartDateRef.current = new Date(start);
+      }
 
-  const dRange = eachDayOfInterval({
-    start: startDate,
-    end: endDate,
-  });
+      setStartDate(start);
+
+      const end = campaignFormData?.channel_mix?.find(
+        (ch) => ch?.funnel_stage === parentId
+      )?.funnel_stage_timeline_end_date
+        ? new Date(
+            campaignFormData?.channel_mix?.find(
+              (ch) => ch?.funnel_stage === parentId
+            )?.funnel_stage_timeline_end_date
+          )
+        : campaignFormData?.campaign_time_end_date;
+
+        if (!initialStartDateRef.current) {
+          // Set the initial date only once
+          initialStartDateRef.current = new Date(end);
+        }
+
+      setEndDate(end);
+
+      setDrange(
+        eachDayOfInterval({
+          start: start,
+          end: end,
+        })
+      );
+    }
+  }, [campaignFormData]);
+
+  // Watch for changes in startDate and calculate the offset
+  useEffect(() => {
+    if (startDate && initialStartDateRef.current) {
+      const difference = differenceInCalendarDays(
+        startDate,
+        initialStartDateRef.current
+      );
+      setDateOffset(difference);
+    }
+    if (endDate && initialEndDateRef.current) {
+      const difference = differenceInCalendarDays(
+        endDate,
+        initialEndDateRef.current
+      );
+      setEndDateOffset(difference);
+    }
+  }, [startDate, endDate]);
 
   const pixelToDate = (pixel, containerWidth, index, fieldName) => {
     const totalDays = dRange?.length - 1;
@@ -313,7 +367,7 @@ const ResizableChannels = ({
 
   // Update channel positions when parent position changes
   useEffect(() => {
-    console.log("channels", channels);
+    // console.log("channels", channels);
     channels?.map((ch, index) => {
       const stageStartDate = ch?.start_date ? parseISO(ch?.start_date) : null;
       const stageEndDate = ch?.start_date ? parseISO(ch?.start_date) : null;
@@ -351,25 +405,47 @@ const ResizableChannels = ({
           const stageStartDate = ch?.start_date
             ? parseISO(ch?.start_date)
             : null;
-          const stageEndDate = ch?.start_date ? parseISO(ch?.start_date) : null;
-          const startDateIndex = stageStartDate
-            ? dRange?.findIndex((date) => isEqual(date, stageStartDate)) * 100
+          const adjustedStageStartDate = stageStartDate
+            ? dateOffset > 0
+              ? addDays(stageStartDate, dateOffset) // Add days if offset is positive
+              : subDays(stageStartDate, Math.abs(dateOffset)) // Subtract days if offset is negative
+            : null;
+          const stageEndDate = ch?.end_date ? parseISO(ch?.end_date) : null;
+          const adjustedStageEndDate = stageEndDate
+            ? endDateOffset > 0
+              ? addDays(stageStartDate, endDateOffset) // Add days if offset is positive
+              : subDays(stageEndDate, Math.abs(endDateOffset)) // Subtract days if offset is negative
+            : null;
+          const startDateIndex = adjustedStageStartDate
+            ? dRange?.findIndex((date) => isEqual(date, adjustedStageStartDate)) * 100
             : 0;
-            const daysBetween = eachDayOfInterval({
+          const daysBetween =
+            eachDayOfInterval({
               start: new Date(ch?.start_date) || null,
-              end: new Date(ch?.end_date) || null
-            })?.length - 1
+              end: new Date(ch?.end_date) || null,
+            })?.length - 1;
+          const endDaysDiff = differenceInCalendarDays(endDate, stageEndDate);
           // Check if this channel already exists in prev
           const existingState = prev[index];
-          console.log("moving", parentLeft, startDateIndex)
+          console.log("moving", {
+            endDaysDiff,
+            parentLeft,
+            startDateIndex,
+            daysBetween,
+          });
           return existingState
             ? {
                 ...existingState,
                 // Update left position to match parent when it moves
-                left: parentLeft + Math.abs(startDateIndex),
-                width: daysBetween > 0 ? Math.min((100 * daysBetween) + 60, parentWidth) : Math.min(existingState?.width, parentWidth)
-                }
-              : {
+                left:
+                  (parentLeft +
+                  Math.abs(startDateIndex)) + (endDaysDiff < 0 ? -100 : 0) ,
+                width:
+                  daysBetween > 0
+                    ? Math.min(100 * daysBetween + 60, parentWidth)
+                    : Math.min(existingState?.width, parentWidth),
+              }
+            : {
                 left: parentLeft,
                 width: Math.min(150, parentWidth), // Default width for new channels
               };
@@ -377,7 +453,7 @@ const ResizableChannels = ({
         return newState;
       });
     }
-  }, [initialChannels, parentLeft, parentWidth]);
+  }, [initialChannels, parentLeft, parentWidth, campaignFormData]);
 
   useEffect(() => {
     if (!dragging) return;
@@ -465,9 +541,9 @@ const ResizableChannels = ({
 
   return (
     <div
-      className={`open_channel_btn_container ${disableDrag && "grid"}`}
+      className={`open_channel_btn_container `}
       style={{
-        gridTemplateColumns: `repeat(${dRange.length}, 1fr)`,
+        gridTemplateColumns: `repeat(${dRange?.length}, 1fr)`,
       }}
     >
       {!disableDrag && parentWidth < 350 && (
@@ -487,7 +563,7 @@ const ResizableChannels = ({
       )}
       {channels?.map((channel, index) => {
         const getColumnIndex = (date) =>
-          dRange.findIndex((d) => d.toISOString().split("T")[0] === date);
+          dRange?.findIndex((d) => d.toISOString().split("T")[0] === date);
 
         const updatedCampaignFormData = { ...campaignFormData };
         const channelMix = updatedCampaignFormData.channel_mix.find(
@@ -511,7 +587,9 @@ const ResizableChannels = ({
         return (
           <div
             key={channel.name}
-            className={`relative w-full ${!disableDrag ? "h-12" : ""}`}
+            className={`relative w-full ${
+              !disableDrag ? "min-h-[47px]" : ""
+            } min-h-[47px]`}
             style={{
               gridColumnStart: startColumn < 1 ? 1 : startColumn,
               gridColumnEnd: endColumn < 1 ? 1 : endColumn,
@@ -520,17 +598,15 @@ const ResizableChannels = ({
             <div>
               <div
                 className={` ${
-                  disableDrag ? "relative" : "absolute"
+                  "relative"
                 } top-0 h-full flex ${
                   disableDrag
-                    ? "justify-between min-w-[300px]"
+                    ? "justify-between min-w-[150px]"
                     : "justify-center cursor-move min-w-[150px]"
                 }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden `}
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
-                  width: disableDrag
-                    ? "fit-content"
-                    : `${channelState[index]?.width + 30 || 150}px`,
+                  width: `${channelState[index]?.width + (disableDrag ? 40 : 30) || 150}px`,
                   backgroundColor: channel.bg,
                   color: channel.color,
                   borderColor: channel.color,
@@ -569,7 +645,7 @@ const ResizableChannels = ({
             {
               <>
                 <div
-                  className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
+                  className={`absolute top-0 w-5 h-[47px] cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
                     disableDrag && "hidden"
                   }`}
                   style={{
@@ -583,7 +659,7 @@ const ResizableChannels = ({
                   <MdDragHandle className="rotate-90" />
                 </div>
                 <div
-                  className={`absolute top-0 w-5 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
+                  className={`absolute top-0 w-5 h-[47px] cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
                     disableDrag && "hidden"
                   }`}
                   style={{
@@ -596,10 +672,10 @@ const ResizableChannels = ({
                   onMouseDown={handleMouseDown(index, "right")}
                 >
                   <MdDragHandle className="rotate-90" />
-                  {channel?.ad_sets?.length > 0 && (
+                  {/* {channel?.ad_sets?.length > 0 && (
                     <div className="relative">
                       <div
-                        className="absolute top-[-30px] right-[-180px] bg-[#EBFEF4] py-[10px] px-[12px] w-fit mt-[5px] border border-[#00A36C1A] rounded-[8px] flex items-center cursor-pointer"
+                        className="relative top-[-30px] right-[-180px] bg-[#EBFEF4] py-[10px] px-[12px] w-fit mt-[5px] border border-[#00A36C1A] rounded-[8px] flex items-center cursor-pointer"
                         onClick={() => {
                           toggleChannel(`${channel?.name}${index}`);
                           setSelectedCreative(channel?.format);
@@ -688,7 +764,7 @@ const ResizableChannels = ({
                               </tbody>
                             </table>
                             <div className="p-2 mt-2 flex justify-between items-center">
-                              {/* {channel?.} */}
+                              
                               <button
                                 className="bg-blue-500 text-white p-2 rounded-md"
                                 onClick={() => {
@@ -711,7 +787,7 @@ const ResizableChannels = ({
                           </div>
                         )}
                     </div>
-                  )}
+                  )} */}
                   {!disableDrag && (
                     <button
                       className="delete-resizeableBar"
@@ -725,15 +801,17 @@ const ResizableChannels = ({
                       />
                     </button>
                   )}
-                  {/* Adset_display */}
                 </div>
               </>
             }
-            {/* Ad sets */}
-            {disableDrag && channel?.ad_sets?.length > 0 && (
+
+            {channel?.ad_sets?.length > 0 && (
               <div className="relative">
                 <div
                   className="relative bg-[#EBFEF4] py-[8px] px-[12px] w-fit mt-[5px] border border-[#00A36C1A] rounded-[8px] flex items-center cursor-pointer"
+                  style={{
+                    left: `${channelState[index]?.left || parentLeft}px`,
+                  }}
                   onClick={() => {
                     toggleChannel(`${channel?.name}${index}`);
                     setSelectedCreative(channel?.format);
@@ -754,7 +832,7 @@ const ResizableChannels = ({
                   />
                 </div>
                 {openItems && openItems === `${channel?.name}${index}` && (
-                  <div className="relative min-w-[500px] shrink-0 mt-4 ml-4 bg-white z-20 rounded-md border shadow-md">
+                  <div className="relative shrink-0 mt-4 ml-4 bg-white z-20 rounded-md border shadow-md">
                     <table className="table-auto w-full text-left text-[12px] text-[#061237B2] font-medium border-none hover:cursor-default">
                       <thead className="bg-transparent">
                         <tr>

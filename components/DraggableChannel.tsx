@@ -299,7 +299,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           disableDrag ? "cursor-default rounded-[10px] relative" : "cursor-move"
         }`}
         style={{
-          width: disableDrag ? "300px" : parentWidth,
+          width: disableDrag ? `${parentWidth + 43}px` : parentWidth,
           backgroundColor: bg,
           transition: "transform 0.2s ease-out",
         }}
