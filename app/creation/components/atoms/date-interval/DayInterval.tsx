@@ -35,12 +35,12 @@ const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src }) => {
                   }}
                 >
                   <span className={`${isEdge ? "text-white" : "text-black"}`}>
-                    {format(date, "E")},&nbsp; {/* Added space here */}
+                    {date && format(date, "E")},&nbsp; {/* Added space here */}
                   </span>
                   <span
                     className={`${isEdge ? "text-white" : "text-blue-500"}`}
                   >
-                    {format(date, "d MMM")}
+                    {date && format(date, "d MMM")}
                   </span>
 
                   {/* Triangle for Edge Dates */}

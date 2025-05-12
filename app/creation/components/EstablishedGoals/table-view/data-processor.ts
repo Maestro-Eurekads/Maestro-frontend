@@ -124,6 +124,7 @@ function createPlatformObject(
       };
     }),
     channel_name: channelType,
+    kpi: platform?.kpi,
     ...rowData,
   };
 }

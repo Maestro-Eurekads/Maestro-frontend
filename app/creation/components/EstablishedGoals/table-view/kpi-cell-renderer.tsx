@@ -55,15 +55,15 @@ export const KPICellRenderer = ({
     return (
       <div className="flex gap-2">
         <div className="l-shape-container-ad">
-          <div className="l-vertical-ad"></div>
-          <div className="l-horizontal-ad"></div>
+          <div className="l-vertical-ad" style={{left: "90px"}}></div>
+          <div className="l-horizontal-ad" style={{left: "90px"}}></div>
         </div>
       </div>
     );
   }
   if (body === "adsets") {
     return (
-      <div className="flex gap-2 indent-[20px]">
+      <div className="flex gap-2 indent-[]">
         {/* <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
           {adSetIndex + 1}.
         </span> */}

@@ -60,7 +60,7 @@ export const AdSetCellRenderer = ({
               top: adSetIndex > 0 ? "-160px" : "-55px",
             }}
           ></div>
-          <div className="l-horizontal" style={{ width: "150px" }}></div>
+          <div className="l-horizontal" style={{ width: "85px" }}></div>
         </div>
       </div>
     );

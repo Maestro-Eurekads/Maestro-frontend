@@ -76,21 +76,21 @@ const TableView = () => {
       [index]: !prev[index],
     }))
   }
-
+  
   const toggleKPIShow = (index) => {
     setExpandedKPI((prev) => ({
       ...prev,
       [index]: !prev[index],
     }))
   }
-
+  
   const toggleAdSetKPIShow = (index) => {
     setExpandedAdsetKPI((prev) => ({
       ...prev,
       [index]: !prev[index],
     }))
   }
-
+  
   const toggleNRCell = (stageName, rowId, metricKey) => {
     setNrCells((prev) => {
       const stage = prev[stageName] || {}
@@ -125,34 +125,39 @@ const TableView = () => {
       return updated
     })
   }
-
+  
   // Add this function after the toggleNRAdCell function
   const aggregateKPIMetrics = () => {
     if (!campaignFormData) return
-
+    
     let hasChanges = false
     const updatedData = { ...campaignFormData }
-
+    
     // Process each funnel stage
     updatedData.funnel_stages?.forEach((stageName) => {
       const stageData = processedData[stageName] || []
+      console.log("🚀 ~ updatedData.funnel_stages?.forEach ~ stageData:", stageData)
 
       // Process each channel in the stage
       stageData.forEach((channel) => {
+        
         // Get all ad sets for this channel
         const channelMix = updatedData.channel_mix?.find((ch) => ch.funnel_stage === stageName)
         if (!channelMix) return
 
         const platform = channelMix[channel?.channel_name]?.find((p) => p.platform_name === channel?.name)
+        // console.log("🚀 ~ platform:", platform)
         if (!platform) return
-
+        
         const adSets = platform.ad_sets || []
-
+        // console.log("🚀  ~ adSets:", adSets)
+        
         // Skip if no ad sets
         if (!adSets.length) return
 
         // For each calculated KPI metric, aggregate values
         calculatedFields.forEach((metric) => {
+          // console.log("🚀 ~ calculatedFields.forEach ~ metric:", metric)
           let sum = 0
           let hasValidValues = false
 
@@ -160,6 +165,7 @@ const TableView = () => {
           adSets.forEach((adSet) => {
             // Get the value from the ad set
             const adSetValue = adSet?.kpi?.[metric]
+            console.log("🚀 ~ adSets.forEach ~ adSetValue:", adSetValue, platform?.platform_name)
             if (!isNaN(adSetValue) && isFinite(adSetValue)) {
               sum += Number(adSetValue)
               hasValidValues = true
@@ -175,6 +181,7 @@ const TableView = () => {
               }
             })
           })
+            
 
           // Update the channel's KPI with the aggregated value only if it's different
           if (hasValidValues) {
@@ -190,6 +197,7 @@ const TableView = () => {
       })
     })
 
+    console.log("uudfs", updatedData)
     // Only update state if there were actual changes
     if (hasChanges) {
       setCampaignFormData(updatedData)
