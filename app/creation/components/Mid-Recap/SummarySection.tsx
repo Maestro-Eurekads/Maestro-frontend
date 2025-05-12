@@ -23,6 +23,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
     getActiveCampaign,
     campaignData,
     campaignFormData,
+    setCampaignFormData
   } = useCampaigns();
 
   const closeEditStep = () => {
@@ -83,6 +84,22 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
 
   const isEditing = midcapEditing.isEditing && midcapEditing.step === title;
 
+  const handleEditClick = () => {
+    if (!loading) {
+      // Preserve the current campaign data before editing
+      if (title === "Your buying objectives") {
+        setCampaignFormData({
+          ...campaignFormData,
+          buying_objectives: campaignData?.buying_objectives || []
+        });
+      }
+      setMidcapEditing({
+        isEditing: true,
+        step: title,
+      });
+    }
+  };
+
   return (
     <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full">
       <div className="flex justify-between items-center mb-4">
@@ -114,14 +131,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
             text="Edit"
             variant="primary"
             className="!w-[85px] !h-[40px]"
-            onClick={() => {
-              if (!loading) {
-                setMidcapEditing({
-                  isEditing: true,
-                  step: title,
-                });
-              }
-            }}
+            onClick={handleEditClick}
           />
         )}
       </div>
