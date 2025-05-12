@@ -23,14 +23,9 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
     getActiveCampaign,
     campaignData,
     campaignFormData,
-    isEditingBuyingObjective,
-    setIsEditingBuyingObjective,
   } = useCampaigns();
 
   const closeEditStep = () => {
-    if (title === "Your buying objectives") {
-      setIsEditingBuyingObjective(false);
-    }
     setMidcapEditing({
       isEditing: false,
       step: "",
@@ -86,8 +81,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
     }
   };
 
-  const isEditing = (title === "Your buying objectives" && isEditingBuyingObjective) || 
-                    (midcapEditing.isEditing && midcapEditing.step === title);
+  const isEditing = midcapEditing.isEditing && midcapEditing.step === title;
 
   return (
     <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full">
@@ -122,14 +116,10 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
             className="!w-[85px] !h-[40px]"
             onClick={() => {
               if (!loading) {
-                if (title === "Your buying objectives") {
-                  setIsEditingBuyingObjective(true);
-                } else {
-                  setMidcapEditing({
-                    isEditing: true,
-                    step: title,
-                  });
-                }
+                setMidcapEditing({
+                  isEditing: true,
+                  step: title,
+                });
               }
             }}
           />
