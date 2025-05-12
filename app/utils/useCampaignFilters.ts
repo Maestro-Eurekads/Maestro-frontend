@@ -49,6 +49,9 @@ export function useCampaignFilters(clientID: string) {
     year: null,
     quarter: null,
     month: null,
+    level_1: null,
+    level_2: null,
+    level_3: null,
     category: null,
     product: null,
     select_plans: null,
@@ -222,19 +225,22 @@ export function useCampaignFilters(clientID: string) {
   };
 
   // Clear all filters
-  const clearFilters = () => {
+ const clearFilters = () => {
     setFilters({
-      year: null,
-      quarter: null,
-      month: null,
-      category: null,
-      product: null,
-      select_plans: null,
-      made_by: null,
-      approved_by: null,
-      channel: null,
-      phase: null,
-      searchQuery: "",
+    year: null,
+    quarter: null,
+    month: null,
+    level_1: null,
+    level_2: null,
+    level_3: null,
+    category: null,
+    product: null,
+    select_plans: null,
+    made_by: null,
+    approved_by: null,
+    channel: null,
+    phase: null,
+    searchQuery: "",
     });
   };
 
