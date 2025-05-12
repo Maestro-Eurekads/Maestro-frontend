@@ -41,9 +41,12 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const [loading, setLoading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<number[]>([])
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null)
-  const MAX_RETRIES = 3 // Increased retries
-  const CONCURRENT_UPLOADS = 3 // Reduced concurrent uploads
-  const UPLOAD_TIMEOUT = 30000 // Increased timeout to 30s
+  const [fileSizeErrors, setFileSizeErrors] = useState<string[]>([])
+  const MAX_RETRIES = 3
+  const CONCURRENT_UPLOADS = 3
+  const UPLOAD_TIMEOUT = 60000 // Increased to 60s for large files
+  const CHUNK_SIZE = 5 * 1024 * 1024 // 5MB chunks
+  const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB maximum file size
 
   // Validate environment variables
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
@@ -61,12 +64,22 @@ const UploadModal: React.FC<UploadModalProps> = ({
       setUploadBlobs(previews.map((preview) => preview.url))
       setUploads(previews.map(() => null))
       setUploadProgress(previews.map(() => 100))
+      setFileSizeErrors(Array(previews.length).fill(""))
     } else {
       setUploadBlobs(Array(quantities).fill(""))
       setUploads(Array(quantities).fill(null))
       setUploadProgress(Array(quantities).fill(0))
+      setFileSizeErrors(Array(quantities).fill(""))
     }
   }, [previews, quantities])
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
 
   const uploadUpdatedCampaignToStrapi = useCallback(
     async (data: any) => {
@@ -178,6 +191,22 @@ const UploadModal: React.FC<UploadModalProps> = ({
       const file = e.target.files?.[0]
       if (!file) return
 
+      // Check file size
+      if (file.size > MAX_FILE_SIZE) {
+        setFileSizeErrors(prev => {
+          const updated = [...prev]
+          updated[index] = `File size (${formatFileSize(file.size)}) exceeds maximum limit of ${formatFileSize(MAX_FILE_SIZE)}`
+          return updated
+        })
+        return
+      } else {
+        setFileSizeErrors(prev => {
+          const updated = [...prev]
+          updated[index] = ""
+          return updated
+        })
+      }
+
       const allowedTypes =
         format === "Video"
           ? ["video/mp4", "video/mov", "video/quicktime"]
@@ -232,6 +261,13 @@ const UploadModal: React.FC<UploadModalProps> = ({
       try {
         setLoading(true)
 
+        // Clear any file size errors
+        setFileSizeErrors(prev => {
+          const updated = [...prev]
+          updated[index] = ""
+          return updated
+        })
+
         // Immediately update UI
         setUploads((prev) => {
           const updated = [...prev]
@@ -267,10 +303,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
         const updatedPreviews = [...previews]
         updatedPreviews.splice(index, 1)
 
-        // Update global state and wait for it to complete
         try {
           await updateGlobalState(updatedPreviews)
-          // Show success message after state is updated
           toast.success("File deleted successfully!")
         } catch (error) {
           console.error("Error updating global state:", error)
@@ -280,19 +314,66 @@ const UploadModal: React.FC<UploadModalProps> = ({
         console.error("Error deleting file:", error)
         toast.error("Failed to delete file. Please try again.")
       } finally {
-        // Longer loading state (2 seconds)
         setTimeout(() => setLoading(false), 2000)
       }
     },
     [previews, updateGlobalState, STRAPI_URL, STRAPI_TOKEN],
   )
 
-  const uploadSingleFile = useCallback(
-    async (file: File, index: number, retryCount = 0): Promise<any> => {
+  const uploadChunk = useCallback(
+    async (
+      chunk: Blob,
+      fileName: string,
+      chunkIndex: number,
+      totalChunks: number,
+      fileId: string,
+      retryCount = 0,
+    ): Promise<void> => {
       try {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT)
 
+        const formData = new FormData()
+        formData.append("files", chunk, `${fileName}.part${chunkIndex}`)
+        formData.append("fileInfo", JSON.stringify({
+          name: fileName,
+          chunkIndex,
+          totalChunks,
+          fileId,
+        }))
+
+        const response = await fetch(`${STRAPI_URL}/upload/chunk`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${STRAPI_TOKEN}`,
+          },
+          body: formData,
+          signal: controller.signal,
+        })
+
+        clearTimeout(timeoutId)
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+      } catch (error) {
+        if (retryCount < MAX_RETRIES) {
+          console.log(`Retrying chunk ${chunkIndex} for file "${fileName}" (attempt ${retryCount + 1}/${MAX_RETRIES})`)
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000))
+          return uploadChunk(chunk, fileName, chunkIndex, totalChunks, fileId, retryCount + 1)
+        }
+        if (error instanceof Error && error.name === "AbortError") {
+          throw new Error("Chunk upload timed out")
+        }
+        throw error
+      }
+    },
+    [STRAPI_URL, STRAPI_TOKEN],
+  )
+
+  const uploadSingleFile = useCallback(
+    async (file: File, index: number, retryCount = 0): Promise<any> => {
+      try {
         let fileToUpload = file
         if (file.type.startsWith("image/")) {
           const compressedFile = await new Promise<File>((resolve) => {
@@ -340,53 +421,108 @@ const UploadModal: React.FC<UploadModalProps> = ({
           fileToUpload = compressedFile
         }
 
-        const formData = new FormData()
-        formData.append("files", fileToUpload)
+        const fileId = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
+        const totalChunks = Math.ceil(fileToUpload.size / CHUNK_SIZE)
 
-        const response = await fetch(`${STRAPI_URL}/upload`, {
+        if (totalChunks <= 1) {
+          // Upload small files directly
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT)
+
+          const formData = new FormData()
+          formData.append("files", fileToUpload)
+
+          const response = await fetch(`${STRAPI_URL}/upload`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${STRAPI_TOKEN}`,
+            },
+            body: formData,
+            signal: controller.signal,
+          })
+
+          clearTimeout(timeoutId)
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+          }
+
+          const result = await response.json()
+          setUploadProgress((prev) => {
+            const updated = [...prev]
+            updated[index] = 100
+            return updated
+          })
+          return result[0]
+        }
+
+        // Chunked upload for large files
+        for (let i = 0; i < totalChunks; i++) {
+          const start = i * CHUNK_SIZE
+          const end = Math.min(start + CHUNK_SIZE, fileToUpload.size)
+          const chunk = fileToUpload.slice(start, end)
+
+          await uploadChunk(chunk, fileToUpload.name, i, totalChunks, fileId)
+
+          // Update progress
+          const progress = ((i + 1) / totalChunks) * 100
+          setUploadProgress((prev) => {
+            const updated = [...prev]
+            updated[index] = Math.min(progress, 99) // Keep below 100 until completion
+            return updated
+          })
+        }
+
+        // Finalize upload
+        const finalizeResponse = await fetch(`${STRAPI_URL}/upload/finalize`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${STRAPI_TOKEN}`,
+            "Content-Type": "application/json",
           },
-          body: formData,
-          signal: controller.signal,
+          body: JSON.stringify({
+            fileId,
+            fileName: fileToUpload.name,
+            totalChunks,
+            mimeType: fileToUpload.type,
+          }),
         })
 
-        clearTimeout(timeoutId)
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
+        if (!finalizeResponse.ok) {
+          throw new Error(`HTTP error! status: ${finalizeResponse.status}`)
         }
 
-        const result = await response.json()
+        const result = await finalizeResponse.json()
         setUploadProgress((prev) => {
           const updated = [...prev]
           updated[index] = 100
           return updated
         })
-        return result[0]
+        return result
       } catch (error) {
         if (retryCount < MAX_RETRIES) {
           console.log(`Retrying upload for file "${file.name}" (attempt ${retryCount + 1}/${MAX_RETRIES})`)
-          // Exponential backoff delay
           await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000))
           return uploadSingleFile(file, index, retryCount + 1)
         }
-
-        if (error instanceof Error) {
-          if (error.name === "AbortError") {
-            throw new Error("Upload timed out")
-          }
+        if (error instanceof Error && error.name === "AbortError") {
+          throw new Error("Upload timed out")
         }
         throw error
       }
     },
-    [STRAPI_URL, STRAPI_TOKEN],
+    [STRAPI_URL, STRAPI_TOKEN, uploadChunk],
   )
 
   const uploadFilesToStrapi = useCallback(async () => {
     if (!uploads.some((file) => file)) {
       toast.error("No files selected for upload.")
+      return
+    }
+
+    // Check for any file size errors before proceeding
+    if (fileSizeErrors.some(error => error !== "")) {
+      toast.error("Please fix file size issues before uploading.")
       return
     }
 
@@ -398,7 +534,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
         .map((file, index) => ({ file, index }))
         .filter((item): item is { file: File; index: number } => item.file !== null)
 
-      // Process files in chunks
       const results = []
       for (let i = 0; i < filesToUpload.length; i += CONCURRENT_UPLOADS) {
         const chunk = filesToUpload.slice(i, i + CONCURRENT_UPLOADS)
@@ -416,7 +551,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
               console.error(`Failed to upload file "${file.name}"`, error)
               return null
             }
-          })
+          }),
         )
         results.push(...chunkResults)
       }
@@ -442,17 +577,13 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
       const validPreviews = allPreviews.filter((preview) => preview)
 
-      // Show success message immediately
-      const uploadTime = (Date.now() - uploadStartTime) / 1000
       toast.success("Files uploaded successfully!")
 
-      // Close modal and trigger success callback after 4s
       setTimeout(() => {
         onUploadSuccess?.()
         onClose()
       }, 4000)
 
-      // Update global state in background
       updateGlobalState(validPreviews).catch((error) => {
         console.error("Error updating global state:", error)
         toast.error("Files uploaded but failed to update campaign.")
@@ -461,10 +592,9 @@ const UploadModal: React.FC<UploadModalProps> = ({
       console.error("Error in uploadFilesToStrapi:", error)
       toast.error("Upload failed. Please try again.")
     } finally {
-      // Keep loading state for 4s
       setTimeout(() => setLoading(false), 4000)
     }
-  }, [uploads, previews, updateGlobalState, onUploadSuccess, onClose, uploadSingleFile])
+  }, [uploads, previews, updateGlobalState, onUploadSuccess, onClose, uploadSingleFile, fileSizeErrors])
 
   if (!isOpen) return null
 
@@ -499,6 +629,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
             <h2 className="font-bold text-xl tracking-tighter">Upload your previews</h2>
             <p className="font-lighter text-balance text-md text-black">
               Upload the visuals for your selected formats. Each visual should have a corresponding preview.
+              Maximum file size: {formatFileSize(MAX_FILE_SIZE)}.
             </p>
           </div>
 
@@ -509,60 +640,64 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
             <div className="flex justify-center gap-6 flex-wrap">
               {Array.from({ length: quantities }).map((_, index) => (
-                <div
-                  key={index}
-                  className={`w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors relative ${loading ? "cursor-not-allowed" : "cursor-pointer"}`}
-                  onClick={() => !loading && document.getElementById(`upload${index}`)?.click()}
-                >
-                  {uploadingIndex === index || (loading && uploadProgress[index] > 0 && uploadProgress[index] < 100) ? (
-                    <div className="flex flex-col items-center justify-center">
-                      <FaSpinner className="animate-spin text-blue-500 text-2xl" />
-                      <span className="text-sm">{uploadProgress[index]}%</span>
-                    </div>
-                  ) : uploadBlobs[index] ? (
-                    <>
-                      <Link
-                        href={uploadBlobs[index]}
-                        target="_blank"
-                        className="w-full h-full"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {renderUploadedFile(uploadBlobs, format, index)}
-                      </Link>
-                      <button
-                        className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          if (!loading) handleDelete(index)
-                        }}
-                        disabled={loading}
-                      >
-                        <Trash color="white" size={10} />
-                      </button>
-                    </>
-                  ) : (
-                    <div className="flex flex-col items-center gap-2 text-center">
-                      <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                          d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
-                          fill="#3175FF"
+                <div key={index} className="flex flex-col gap-2">
+                  <div
+                    className={`w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors relative ${loading ? "cursor-not-allowed" : "cursor-pointer"}`}
+                    onClick={() => !loading && document.getElementById(`upload${index}`)?.click()}
+                  >
+                    {uploadingIndex === index || (loading && uploadProgress[index] > 0 && uploadProgress[index] < 100) ? (
+                      <div className="flex flex-col items-center justify-center">
+                        <FaSpinner className="animate-spin text-blue-500 text-2xl" />
+                        <span className="text-sm">{Math.round(uploadProgress[index])}%</span>
+                      </div>
+                    ) : uploadBlobs[index] ? (
+                      <>
+                        <Link
+                          href={uploadBlobs[index]}
+                          target="_blank"
+                          className="w-full h-full"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {renderUploadedFile(uploadBlobs, format, index)}
+                        </Link>
+                        <button
+                          className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (!loading) handleDelete(index)
+                          }}
+                          disabled={loading}
+                        >
+                          <Trash color="white" size={10} />
+                        </button>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 text-center">
+                        <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path
+                            d="M0.925781 14.8669H15.9258V16.5335H0.925781V14.8669ZM9.25911 3.89055V13.2002H7.59245V3.89055L2.53322 8.94978L1.35471 7.77128L8.42578 0.700195L15.4969 7.77128L14.3184 8.94978L9.25911 3.89055Z"
+                            fill="#3175FF"
+                          />
+                        </svg>
+                        <p className="text-md text-black font-lighter mt-2">Upload visual {index + 1}</p>
+                        <input
+                          type="file"
+                          accept={
+                            format === "Video"
+                              ? "video/mp4,video/mov,video/quicktime"
+                              : format === "Slideshow"
+                                ? "application/pdf"
+                                : "image/jpeg,image/png,image/jpg"
+                          }
+                          id={`upload${index}`}
+                          className="hidden"
+                          onChange={(e) => handleFileChange(e, index)}
                         />
-                      </svg>
-                      <p className="text-md text-black font-lighter mt-2">Upload visual {index + 1}</p>
-                      <input
-                        type="file"
-                        accept={
-                          format === "Video"
-                            ? "video/mp4,video/mov,video/quicktime"
-                            : format === "Slideshow"
-                              ? "application/pdf"
-                              : "image/jpeg,image/png,image/jpg"
-                        }
-                        id={`upload${index}`}
-                        className="hidden"
-                        onChange={(e) => handleFileChange(e, index)}
-                      />
-                    </div>
+                      </div>
+                    )}
+                  </div>
+                  {fileSizeErrors[index] && (
+                    <p className="text-red-500 text-sm text-center">{fileSizeErrors[index]}</p>
                   )}
                 </div>
               ))}
@@ -580,7 +715,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
             <button
               onClick={uploadFilesToStrapi}
               className="px-4 py-2 w-full sm:w-1/2 h-[44px] font-bold bg-blue-600 rounded-[8px] text-white hover:bg-blue-700 transition-colors"
-              disabled={loading}
+              disabled={loading || fileSizeErrors.some(error => error !== "")}
             >
               {loading ? <FaSpinner className="animate-spin mx-auto" /> : "Confirm"}
             </button>
