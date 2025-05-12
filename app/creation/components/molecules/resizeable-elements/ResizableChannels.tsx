@@ -107,7 +107,9 @@ const ResizableChannels = ({
   const [endDateOffset, setEndDateOffset] = useState(0);
 
   useEffect(() => {
+    console.log("herher")
     if (campaignFormData) {
+      console.log("here")
       const start = campaignFormData?.channel_mix?.find(
         (ch) => ch?.funnel_stage === parentId
       )?.funnel_stage_timeline_start_date
@@ -149,7 +151,7 @@ const ResizableChannels = ({
         })
       );
     }
-  }, [campaignFormData]);
+  }, [campaignFormData, openItems]);
 
   // Watch for changes in startDate and calculate the offset
   useEffect(() => {
@@ -398,6 +400,7 @@ const ResizableChannels = ({
   // Update channel state when initialChannels changes
   useEffect(() => {
     if (initialChannels && initialChannels.length > 0) {
+      console.log("🚀 ~ useEffect ~ initialChannels:", initialChannels)
       setChannels(initialChannels);
       // Initialize new channels with parent's position
       setChannelState((prev) => {
@@ -414,11 +417,11 @@ const ResizableChannels = ({
           const stageEndDate = ch?.end_date ? parseISO(ch?.end_date) : null;
           const adjustedStageEndDate = stageEndDate
             ? endDateOffset > 0
-              ? addDays(stageStartDate, endDateOffset) // Add days if offset is positive
+              ? addDays(adjustedStageStartDate, endDateOffset) // Add days if offset is positive
               : subDays(stageEndDate, Math.abs(endDateOffset)) // Subtract days if offset is negative
             : null;
-          const startDateIndex = stageStartDate
-            ? dRange?.findIndex((date) => isEqual(date, stageStartDate)) * 100
+          const startDateIndex = adjustedStageStartDate
+            ? dRange?.findIndex((date) => isEqual(date, adjustedStageStartDate)) * 100
             : 0;
           const daysBetween =
             eachDayOfInterval({
@@ -451,10 +454,11 @@ const ResizableChannels = ({
                 width: Math.min(150, parentWidth), // Default width for new channels
               };
         });
+        console.log("new state", dRange)
         return newState;
       });
     }
-  }, [ parentLeft, parentWidth, campaignFormData]);
+  }, [initialChannels, parentLeft, parentWidth, campaignFormData, openItems, dRange]);
 
   useEffect(() => {
     if (!dragging) return;
