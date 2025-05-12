@@ -627,7 +627,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
               <path d="M32 32H14" stroke="#2E90FA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <h2 className="font-bold text-xl tracking-tighter">Upload your previews</h2>
-            <p className="font-lighter text-balance text-md text-black">
+            <p className="font-lighter text-balance text-md text-black text-center">
               Upload the visuals for your selected formats. Each visual should have a corresponding preview.
               Maximum file size: {formatFileSize(MAX_FILE_SIZE)}.
             </p>
