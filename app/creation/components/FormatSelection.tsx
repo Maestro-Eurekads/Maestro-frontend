@@ -139,11 +139,10 @@ const MediaOption = ({
   adSetIndex?: number;
 }) => {
   const { campaignFormData, updateCampaign, campaignData } = useCampaigns();
-  const [loading, setLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false); // Single state for all deletions
   const [localPreviews, setLocalPreviews] = useState<
     Array<{ id: string; url: string }>
   >([]);
-  const [idToDel, setIdToDel] = useState<string | null>(null);
 
   // Environment variables
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
@@ -207,12 +206,6 @@ const MediaOption = ({
             });
           });
         });
-
-        // Log the sanitized data for debugging
-        console.log(
-          "Sanitized data sent to Strapi:",
-          JSON.stringify(sanitizedData, null, 2)
-        );
 
         await updateCampaign(sanitizedData);
       } catch (error: any) {
@@ -326,23 +319,30 @@ const MediaOption = ({
 
   const handleDelete = useCallback(
     async (previewId: string) => {
-      if (!previewId || !STRAPI_URL || !STRAPI_TOKEN) {
-        toast.error("Invalid preview ID or server configuration.");
+      if (!previewId || !STRAPI_URL || !STRAPI_TOKEN || isDeleting) {
+        if (isDeleting) {
+          toast.error("Please wait until the current deletion is complete.");
+        } else {
+          toast.error("Invalid preview ID or server configuration.");
+        }
         return;
       }
 
-      setLoading(true);
-      setIdToDel(previewId);
+      setIsDeleting(true);
 
       try {
-        // Store original previews for rollback
-        const originalPreviews = [...localPreviews];
+        // Store the preview to be deleted for potential rollback
+        const previewToDelete = localPreviews.find(
+          (prv) => prv.id === previewId
+        );
+        if (!previewToDelete) {
+          throw new Error("Preview not found in local state.");
+        }
 
         // Optimistically update UI
-        const updatedPreviews = localPreviews.filter(
-          (prv) => prv.id !== previewId
+        setLocalPreviews((prev) =>
+          prev.filter((prv) => prv.id !== previewId)
         );
-        setLocalPreviews(updatedPreviews);
 
         // Delete file from Strapi
         const deleteResponse = await fetch(
@@ -362,7 +362,7 @@ const MediaOption = ({
         }
 
         // Update global state with the new previews array
-        await updateGlobalState(updatedPreviews);
+        await updateGlobalState(localPreviews.filter((prv) => prv.id !== previewId));
 
         toast.success("Preview deleted successfully!");
       } catch (error: any) {
@@ -373,15 +373,24 @@ const MediaOption = ({
           status: error.response?.status,
         });
         toast.error(`Failed to delete preview: ${error.message}`);
-        // Revert to original previews on error
-        // Revert to original previews on error
-        const originalPreviews = localPreviews.find(preview => preview.id === previewId);
-        if (originalPreviews) {
-          setLocalPreviews(prev => [...prev, originalPreviews]);
+
+        // Rollback: Restore the deleted preview
+        const previewToRestore = localPreviews.find(
+          (prv) => prv.id === previewId
+        );
+        if (previewToRestore) {
+          setLocalPreviews((prev) => {
+            const updated = [...prev, previewToRestore];
+            // Sort to maintain original order if necessary
+            return updated.sort((a, b) => {
+              const indexA = previews.findIndex((p) => p.id === a.id);
+              const indexB = previews.findIndex((p) => p.id === b.id);
+              return indexA - indexB;
+            });
+          });
         }
       } finally {
-        setLoading(false);
-        setIdToDel(null);
+        setIsDeleting(false);
       }
     },
     [
@@ -389,6 +398,8 @@ const MediaOption = ({
       updateGlobalState,
       STRAPI_URL,
       STRAPI_TOKEN,
+      isDeleting,
+      previews,
     ]
   );
 
@@ -485,14 +496,14 @@ const MediaOption = ({
                   )}
                 </Link>
                 <button
-                  className="absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center cursor-pointer"
+                  className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${
+                    isDeleting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                  }`}
                   onClick={() => handleDelete(prv.id)}
-                  disabled={loading && idToDel === prv.id}
+                  disabled={isDeleting}
                 >
-                  {loading && idToDel === prv.id ? (
-                    <center>
-                      <FaSpinner color="white" className="animate-spin" />
-                    </center>
+                  {isDeleting ? (
+                    <FaSpinner color="white" className="animate-spin" />
                   ) : (
                     <Trash color="white" size={10} />
                   )}

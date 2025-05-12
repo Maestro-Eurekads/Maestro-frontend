@@ -44,9 +44,9 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const [fileSizeErrors, setFileSizeErrors] = useState<string[]>([])
   const MAX_RETRIES = 3
   const CONCURRENT_UPLOADS = 3
-  const UPLOAD_TIMEOUT = 60000 // Increased to 60s for large files
+  const UPLOAD_TIMEOUT = 60000 // 60 seconds
   const CHUNK_SIZE = 5 * 1024 * 1024 // 5MB chunks
-  const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB maximum file size
+  const MAX_FILE_SIZE = format === "Video" ? 50 * 1024 * 1024 : 10 * 1024 * 1024 // 50MB for videos, 10MB for others
 
   // Validate environment variables
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
@@ -253,7 +253,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
       e.target.value = ""
     },
-    [format],
+    [format, MAX_FILE_SIZE],
   )
 
   const handleDelete = useCallback(
@@ -368,12 +368,43 @@ const UploadModal: React.FC<UploadModalProps> = ({
         throw error
       }
     },
-    [STRAPI_URL, STRAPI_TOKEN],
+    [STRAPI_URL, STRAPI_TOKEN, UPLOAD_TIMEOUT, MAX_RETRIES],
+  )
+
+  const finalizeUpload = useCallback(
+    async (fileId: string, fileName: string, totalChunks: number, mimeType: string) => {
+      try {
+        const response = await fetch(`${STRAPI_URL}/upload/finalize`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${STRAPI_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            fileId,
+            fileName,
+            totalChunks,
+            mimeType,
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        return await response.json()
+      } catch (error) {
+        console.error("Error finalizing upload:", error)
+        throw error
+      }
+    },
+    [STRAPI_URL, STRAPI_TOKEN]
   )
 
   const uploadSingleFile = useCallback(
     async (file: File, index: number, retryCount = 0): Promise<any> => {
       try {
+        // Skip compression for videos and PDFs
         let fileToUpload = file
         if (file.type.startsWith("image/")) {
           const compressedFile = await new Promise<File>((resolve) => {
@@ -424,8 +455,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
         const fileId = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
         const totalChunks = Math.ceil(fileToUpload.size / CHUNK_SIZE)
 
+        // For small files or when chunking is not needed
         if (totalChunks <= 1) {
-          // Upload small files directly
           const controller = new AbortController()
           const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT)
 
@@ -473,26 +504,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
           })
         }
 
-        // Finalize upload
-        const finalizeResponse = await fetch(`${STRAPI_URL}/upload/finalize`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${STRAPI_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            fileId,
-            fileName: fileToUpload.name,
-            totalChunks,
-            mimeType: fileToUpload.type,
-          }),
-        })
-
-        if (!finalizeResponse.ok) {
-          throw new Error(`HTTP error! status: ${finalizeResponse.status}`)
-        }
-
-        const result = await finalizeResponse.json()
+        // Finalize the upload
+        const result = await finalizeUpload(fileId, fileToUpload.name, totalChunks, fileToUpload.type)
         setUploadProgress((prev) => {
           const updated = [...prev]
           updated[index] = 100
@@ -511,7 +524,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
         throw error
       }
     },
-    [STRAPI_URL, STRAPI_TOKEN, uploadChunk],
+    [STRAPI_URL, STRAPI_TOKEN, uploadChunk, finalizeUpload, UPLOAD_TIMEOUT, MAX_RETRIES],
   )
 
   const uploadFilesToStrapi = useCallback(async () => {
@@ -541,14 +554,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
           chunk.map(async ({ file, index }) => {
             try {
               const result = await uploadSingleFile(file, index)
-              setUploadProgress((prev) => {
-                const updated = [...prev]
-                updated[index] = 100
-                return updated
-              })
               return result
             } catch (error) {
               console.error(`Failed to upload file "${file.name}"`, error)
+              toast.error(`Failed to upload ${file.name}`)
               return null
             }
           }),
@@ -564,14 +573,13 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
       const formattedFiles = uploadedFiles.map((file) => ({
         id: file.id.toString(),
-        url: file.url,
+        url: file.url || file.formats?.thumbnail?.url || file.url, // Fallback for video thumbnails
       }))
 
       const allPreviews = [...previews]
-      formattedFiles.forEach((file, index) => {
-        const uploadIndex = filesToUpload[index].index
-        if (uploadIndex !== undefined) {
-          allPreviews[uploadIndex] = file
+      filesToUpload.forEach(({ index }, i) => {
+        if (formattedFiles[i]) {
+          allPreviews[index] = formattedFiles[i]
         }
       })
 
@@ -582,17 +590,14 @@ const UploadModal: React.FC<UploadModalProps> = ({
       setTimeout(() => {
         onUploadSuccess?.()
         onClose()
-      }, 4000)
+      }, 2000)
 
-      updateGlobalState(validPreviews).catch((error) => {
-        console.error("Error updating global state:", error)
-        toast.error("Files uploaded but failed to update campaign.")
-      })
+      await updateGlobalState(validPreviews)
     } catch (error) {
       console.error("Error in uploadFilesToStrapi:", error)
       toast.error("Upload failed. Please try again.")
     } finally {
-      setTimeout(() => setLoading(false), 4000)
+      setLoading(false)
     }
   }, [uploads, previews, updateGlobalState, onUploadSuccess, onClose, uploadSingleFile, fileSizeErrors])
 
