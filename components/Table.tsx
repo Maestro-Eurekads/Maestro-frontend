@@ -120,6 +120,8 @@ const Table = () => {
     );
   };
 
+
+
   return (
     <div className="flex flex-col">
       <div className="table-container rounded-[8px] mt-[20px] overflow-x-auto">
