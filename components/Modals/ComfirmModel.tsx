@@ -17,7 +17,7 @@ const setVersionData = (planId, version) => {
 	localStorage.setItem(`mediaPlanVersion`, JSON.stringify({ version }));
 };
 
-const ComfirmModel = ({ isOpen, setIsOpen, planId }) => {
+const ComfirmModel = ({ isOpen, setIsOpen, planId }: {isOpen:boolean, setIsOpen: any, planId?:any}) => {
 	const router = useRouter();
 	const { setActive, setSubStep } = useActive();
 	const [approval, setApproval] = useState(false);
