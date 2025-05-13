@@ -44,6 +44,7 @@ const Dropdown = ({ label, options, selectedFilters, handleSelect, isDisabled = 
   }
 
   const handleOptionSelect = (option) => {
+    console.log('label-label-label', label)
     handleSelect(label.toLowerCase(), option)
     setIsOpen(false)
   }
@@ -215,39 +216,82 @@ const FiltersDropdowns = ({ hideTitle }: Props) => {
 
   const isYearSelected = !!selectedFilters["year"]
 
+
+  // console.log('filters-filters', filters)
+  // {
+  //   filters
+  //     ?.filter((l) => l?.label !== "channel" && l?.label !== "phase")
+  //   .map(({ label, options }) => {
+
   return (
     <div>
       <Toaster />
       {!hideTitle && (
         <h6 className="font-[600] text-[14px] leading-[19px] text-[rgba(6,18,55,0.8)]">Filters</h6>
       )}
+
       <div className="flex items-center gap-4 mt-[5px] flex-wrap">
         {filters
-          ?.filter((l) => l?.label !== "channel" && l?.label !== "phase")
+          ?.filter(
+            (l) =>
+              !["channel", "phase", "Level_1_name", "Level_2_name", "Level_3_name"].includes(l?.label)
+          )
           .map(({ label, options }) => {
-            const lowerLabel = label.toLowerCase()
+            const lowerLabel = label.toLowerCase();
+
+            const selected = selectedFilters[lowerLabel];
+
+            // If selected, show it. Otherwise fallback to dynamic name from *_name
+            const getDisplayLabel = () => {
+              if (selected) return selected;
+
+              if (label === "Level_1") {
+                return filters.find(f => f.label === "Level_1_name")?.options || label;
+              }
+              if (label === "Level_2") {
+                return filters.find(f => f.label === "Level_2_name")?.options || label;
+              }
+              if (label === "Level_3") {
+                return filters.find(f => f.label === "Level_3_name")?.options || label;
+              }
+
+              return label;
+            };
+
+            const displayLabel = getDisplayLabel();
+
             return (
               <div key={label}>
                 <Dropdown
-                  label={label}
+                  label={displayLabel}
                   options={options}
                   selectedFilters={selectedFilters}
-                  handleSelect={handleSelect}
-                  isDisabled={(lowerLabel === "quarter" || lowerLabel === "month") && !isYearSelected}
+                  handleSelect={(key, value) => handleSelect(lowerLabel, value)}
+                  isDisabled={
+                    (lowerLabel === "quarter" || lowerLabel === "month") && !isYearSelected
+                  }
                 />
-                {selectedFilters[lowerLabel] && (
+
+                {selected ? (
                   <div className="mt-2 flex items-center justify-between px-3 py-2 gap-1 min-w-[72px] h-[32px] bg-[#E8F6FF] border border-[#3175FF1A] rounded-[10px]">
                     <p className="h-[20px] text-[15px] leading-[20px] font-medium text-[#3175FF]">
-                      {selectedFilters[lowerLabel]}
+                      {selected}
                     </p>
-                    <BiX color="#3175FF" size={20} className="cursor-pointer" onClick={() => handleSelect(lowerLabel, "")} />
+                    <BiX
+                      color="#3175FF"
+                      size={20}
+                      className="cursor-pointer"
+                      onClick={() => handleSelect(lowerLabel, "")}
+                    />
                   </div>
+                ) : (
+                  <div className="h-[32px]"></div>
                 )}
-                {!selectedFilters[lowerLabel] && <div className="h-[32px]"></div>}
               </div>
-            )
+            );
           })}
       </div>
+
     </div>
   )
 }
