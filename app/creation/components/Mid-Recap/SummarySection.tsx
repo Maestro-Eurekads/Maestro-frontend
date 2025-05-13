@@ -23,7 +23,8 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
     getActiveCampaign,
     campaignData,
     campaignFormData,
-    setCampaignFormData
+    setCampaignFormData,
+    setIsEditingBuyingObjective
   } = useCampaigns();
 
   const closeEditStep = () => {
@@ -31,6 +32,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
       isEditing: false,
       step: "",
     });
+    setIsEditingBuyingObjective(false);
   };
 
   const cleanData = campaignData
@@ -92,6 +94,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
           ...campaignFormData,
           buying_objectives: campaignData?.buying_objectives || []
         });
+        setIsEditingBuyingObjective(true);
       }
       setMidcapEditing({
         isEditing: true,
