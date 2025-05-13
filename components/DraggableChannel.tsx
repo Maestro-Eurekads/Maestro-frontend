@@ -27,6 +27,8 @@ interface DraggableChannelProps {
   disableDrag?: boolean;
   budget?: number | string;
   setSelectedStage?: any;
+  openItems,
+  setOpenItems
 }
 
 const DraggableChannel: React.FC<DraggableChannelProps> = ({
@@ -46,6 +48,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   disableDrag = false, // Default to false
   budget,
   setSelectedStage,
+  openItems,
+  setOpenItems
 }) => {
   const { funnelWidths, setFunnelWidth } = useFunnelContext();
   const [position, setPosition] = useState(0);
@@ -288,7 +292,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         className={`w-5 h-full bg-opacity-80 bg-black ${
           disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
         } rounded-l-lg text-white flex items-center justify-center`}
-        onMouseDown={(e) => !disableDrag && handleMouseDownResize(e, "left")}
+        onMouseDown={(e) => disableDrag || openItems ? undefined : handleMouseDownResize(e, "left")}
       >
         <MdDragHandle className="rotate-90" />
       </div>
@@ -303,7 +307,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           backgroundColor: bg,
           transition: "transform 0.2s ease-out",
         }}
-        onMouseDown={handleMouseDownDrag}
+        onMouseDown={disableDrag || openItems ? undefined :handleMouseDownDrag}
       >
         <div />
         <button
@@ -347,7 +351,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         className={`w-5 h-full bg-opacity-80 bg-black ${
           disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
         } rounded-r-lg text-white flex items-center justify-center`}
-        onMouseDown={(e) => !disableDrag && handleMouseDownResize(e, "right")}
+        onMouseDown={(e) => disableDrag || openItems ? undefined : handleMouseDownResize(e, "right")}
       >
         <MdDragHandle className="rotate-90" />
       </div>
