@@ -80,7 +80,7 @@ const ResizableChannels = ({
 
   const [channels, setChannels] = useState(initialChannels);
   const [deleting, setDeleting] = useState(false);
-  const [id, setId]  = useState(null)
+  const [id, setId] = useState(null);
 
   const [openCreatives, setOpenCreatives] = useState(false);
   const [selectedCreative, setSelectedCreative] = useState(null);
@@ -393,7 +393,7 @@ const ResizableChannels = ({
       console.error("Error updating campaign data:", error);
     } finally {
       setDeleting(false);
-      setId(null)
+      setId(null);
     }
   };
 
@@ -410,7 +410,7 @@ const ResizableChannels = ({
             : null;
           const adjustedStageStartDate = stageStartDate
             ? dateOffset > 0
-              ? addDays(stageStartDate, dateOffset) // Add days if offset is positive
+              ? null // Add days if offset is positive
               : subDays(stageStartDate, Math.abs(dateOffset)) // Subtract days if offset is negative
             : null;
 
@@ -457,10 +457,7 @@ const ResizableChannels = ({
             ? {
                 ...existingState,
                 // Update left position to match parent when it moves
-                left: Math.min(
-                  parentLeft + Math.abs(startDateIndex),
-                  parentWidth
-                ),
+                left: parentLeft + Math.abs(startDateIndex),
                 width:
                   daysBetween > 0
                     ? Math.min(100 * daysBetween + 60, parentWidth)
@@ -844,7 +841,7 @@ const ResizableChannels = ({
                           return;
                         }
                         handleDeleteChannel(index);
-                        setId(index)
+                        setId(index);
                       }}
                     >
                       {deleting && id === index ? (
