@@ -8,9 +8,9 @@ export type FilterState = {
   year: any;
   quarter: string | null;
   month: string | null;
-  category: string | null;
-  product: string | null;
-  select_plans: string | null;
+  category?: string | null;
+  product?: string | null;
+  select_plans?: string | null;
   made_by: string | null;
   approved_by: string | null;
   channel: string | null;
@@ -52,9 +52,9 @@ export function useCampaignFilters(clientID: string) {
     level_1: null,
     level_2: null,
     level_3: null,
-    category: null,
-    product: null,
-    select_plans: null,
+    // category: null,
+    // product: null,
+    // select_plans: null,
     made_by: null,
     approved_by: null,
     channel: null,
@@ -233,9 +233,9 @@ export function useCampaignFilters(clientID: string) {
     level_1: null,
     level_2: null,
     level_3: null,
-    category: null,
-    product: null,
-    select_plans: null,
+    // category: null,
+    // product: null,
+    // select_plans: null,
     made_by: null,
     approved_by: null,
     channel: null,
