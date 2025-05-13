@@ -121,7 +121,7 @@ const EstablishedGoalsTimeline = ({ }) => {
       className="w-full min-h-[494px] relative pb-5 px-[10px]"
       style={{
         backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-        backgroundSize: `calc(100% / ${range.length}) 100%`,
+        // backgroundSize: `calc(100% / ${range.length}) 100%`,
       }}
     >
       {/* Loop through funnel stages */}

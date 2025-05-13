@@ -236,6 +236,14 @@ export function extractLevelFilters(campaigns: any[]) {
   };
 }
 
+export function extractLevelNameFilters(client: any) {
+  return {
+    level_1_name: client?.level_1?.[0] || "",
+    level_2_name: client?.level_2?.[0] || "",
+    level_3_name: client?.level_3?.[0] || "",
+  };
+}
+
 
 
  
@@ -348,22 +356,25 @@ if (dateFilters.length > 0) {
   }
 
   if (filters.level_1) {
-    filterQuery += `&filters[$or][${orFilterIndex}][level_1][$eq]=${filters.level_1}`;
-    hasOrFilters = true;
-    orFilterIndex++;
-  }
+  filterQuery += `&filters[$or][${orFilterIndex}][client_selection][level_1][$eq]=${filters.level_1}`;
+  hasOrFilters = true;
+  orFilterIndex++;
+}
 
-  if (filters.level_2) {
-    filterQuery += `&filters[$or][${orFilterIndex}][level_2][$eq]=${filters.level_2}`;
-    hasOrFilters = true;
-    orFilterIndex++;
-  }
+if (filters.level_2) {
+  filterQuery += `&filters[$or][${orFilterIndex}][client_selection][level_2][$eq]=${filters.level_2}`;
+  hasOrFilters = true;
+  orFilterIndex++;
+}
 
-  if (filters.level_3) {
-    filterQuery += `&filters[$or][${orFilterIndex}][level_3][$eq]=${filters.level_3}`;
-    hasOrFilters = true;
-    orFilterIndex++;
-  }
+if (filters.level_3) {
+  filterQuery += `&filters[$or][${orFilterIndex}][client_selection][level_3][$eq]=${filters.level_3}`;
+  hasOrFilters = true;
+  orFilterIndex++;
+}
+
+
+  console.log('populateQuery-populateQuery',filterQuery)
 
   // Add populate parameters
   const populateQuery = CAMPAIGN_POPULATE_QUERY;

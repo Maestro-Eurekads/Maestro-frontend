@@ -21,7 +21,7 @@ function Layout({ children }: never) {
       <Suspense>
         <main className="!px-0 bg-[#F9FAFB]">{children}</main>
       </Suspense>
-      <ComfirmModel isOpen={isOpen} setIsOpen={setIsOpen} />
+      <ComfirmModel isOpen={isOpen} setIsOpen={setIsOpen} planId={undefined} />
     </div>
   );
 }
