@@ -1007,10 +1007,14 @@ const ResizableChannels = ({
               />
             </svg>
           </button>
-          <FormatSelection
-            stageName={parentId}
-            platformName={selectedChannel}
-          />
+          {disableDrag ? (
+            ""
+          ) : (
+            <FormatSelection
+              stageName={parentId}
+              platformName={selectedChannel}
+            />
+          )}
           {/*
            */}
         </div>

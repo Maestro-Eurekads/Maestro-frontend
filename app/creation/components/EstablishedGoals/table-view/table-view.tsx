@@ -27,6 +27,7 @@ const TableView = () => {
   const [nrAdCells, setNrAdCells] = useState({})
 
   const processedData = extractPlatforms(campaignFormData)
+  console.log("🚀 ~ TableView ~ processedData:", processedData)
 
   // Define calculated fields - these are the only fields that should be aggregated
   const calculatedFields = [
@@ -134,18 +135,18 @@ const TableView = () => {
     const updatedData = { ...campaignFormData }
     
     // Process each funnel stage
-    updatedData.funnel_stages?.forEach((stageName) => {
+    updatedData.funnel_stages?.forEach((stageName: string) => {
       const stageData = processedData[stageName] || []
-      console.log("🚀 ~ updatedData.funnel_stages?.forEach ~ stageData:", stageData)
+      console.log("🚀 ~ stageData:", JSON.stringify(stageData))
 
       // Process each channel in the stage
-      stageData.forEach((channel) => {
+      stageData.forEach((channel: { channel_name: string; name: string }) => {
         
         // Get all ad sets for this channel
-        const channelMix = updatedData.channel_mix?.find((ch) => ch.funnel_stage === stageName)
+        const channelMix = updatedData.channel_mix?.find((ch: { funnel_stage: string }) => ch.funnel_stage === stageName)
         if (!channelMix) return
 
-        const platform = channelMix[channel?.channel_name]?.find((p) => p.platform_name === channel?.name)
+        const platform = channelMix[channel?.channel_name]?.find((p: { platform_name: string }) => p.platform_name === channel?.name)
         // console.log("🚀 ~ platform:", platform)
         if (!platform) return
         
@@ -156,13 +157,13 @@ const TableView = () => {
         if (!adSets.length) return
 
         // For each calculated KPI metric, aggregate values
-        calculatedFields.forEach((metric) => {
+        calculatedFields.forEach((metric: string) => {
           // console.log("🚀 ~ calculatedFields.forEach ~ metric:", metric)
           let sum = 0
           let hasValidValues = false
 
           // Sum up values from ad sets
-          adSets.forEach((adSet) => {
+          adSets.forEach((adSet: { kpi?: Record<string, number>; extra_audiences?: Array<{ kpi?: Record<string, number> }> }) => {
             // Get the value from the ad set
             const adSetValue = adSet?.kpi?.[metric]
             console.log("🚀 ~ adSets.forEach ~ adSetValue:", adSetValue, platform?.platform_name)
@@ -173,8 +174,9 @@ const TableView = () => {
 
             // Also include values from extra audiences
             const extraAudiences = adSet?.extra_audiences || []
-            extraAudiences.forEach((extraAudience) => {
+            extraAudiences.forEach((extraAudience: { kpi?: Record<string, number> }) => {
               const extraValue = extraAudience?.kpi?.[metric]
+              console.log("🚀 ~ extraAudiences.forEach ~ extraValue:", extraValue)
               if (!isNaN(extraValue) && isFinite(extraValue)) {
                 sum += Number(extraValue)
                 hasValidValues = true
@@ -292,10 +294,10 @@ const TableView = () => {
 
   // Add this useEffect with proper dependencies
   useEffect(() => {
-    if (campaignFormData && !hasAggregatedRef.current) {
+    if (campaignFormData) {
       // Only aggregate once per data change
       aggregateKPIMetrics()
-      hasAggregatedRef.current = true
+      // hasAggregatedRef.current = true
     }
   }, [campaignFormData])
 
