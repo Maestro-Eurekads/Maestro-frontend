@@ -12,8 +12,8 @@ const WeekInterval = ({ weeksCount }) => {
         style={{
           display: "grid",
           gridTemplateColumns: `repeat(${weeksCount}, ${
-            weeksCount > 2 ? 100 / 3 : 50
-          }%)`,
+            weeksCount > 2 ? `360px` : `50%`
+          })`,
         }}
       >
         {Array.from({ length: weeksCount }, (_, i) => {

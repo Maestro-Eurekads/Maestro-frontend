@@ -126,7 +126,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     // console.log("Closest custom snap:", closestSnap);
     return range !== "Day"
       ? closestSnap > 0
-        ? closestSnap + 35
+        ? closestSnap + 40
         : closestSnap
       : closestSnap;
   };

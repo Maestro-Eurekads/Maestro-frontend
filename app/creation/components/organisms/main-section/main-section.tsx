@@ -32,6 +32,7 @@ const MainSection = ({ hideDate, disableDrag }: { hideDate?: boolean, disableDra
   const dayDifference = differenceInCalendarDays(endDates, startDates);
   const weekDifference = differenceInCalendarWeeks(endDates, startDates);
   const monthDifference = differenceInCalendarMonths(endDates, startDates);
+  console.log("🚀 ~ MainSection ~ monthDifference:", monthDifference)
 
   const start = campaignFormData?.campaign_timeline_start_date
     ? parseISO(campaignFormData.campaign_timeline_start_date)
@@ -99,7 +100,7 @@ const MainSection = ({ hideDate, disableDrag }: { hideDate?: boolean, disableDra
                 {/* <DateInterval /> */}
                 {renderTimeline()}
                 <div className="absolute right-[2px] top-18 w-1 bg-orange-500 min-h-screen"></div>
-                <div className="absolute left-0 top-18 w-1 bg-orange-500 h-screen"></div>
+                <div className="absolute left-0 top-18 w-1 bg-orange-500 min-h-screen"></div>
               </div>
             </div>
             <ResizeableElements funnelData={funnelsData} disableDrag={disableDrag} />
