@@ -352,12 +352,11 @@ const AdSet = memo(function AdSet({
                 <button
                   disabled={!isEditing}
                   onClick={() => handleDeleteExtraAudience(index)}
-                  className={`flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold ${
+                  className={`flex items-center justify-center rounded-full p-2 bg-[#FF5955] text-white ${
                     !isEditing ? "cursor-not-allowed opacity-50" : ""
                   }`}
                 >
-                  <MdDelete /> <span>Delete</span>
-                  
+                  <MdDelete />
                 </button>
               </div>
             ))}

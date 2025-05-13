@@ -147,7 +147,10 @@ const SideNav: React.FC = () => {
     [campaignData]
   );
 
-  const isCampaignDataLoaded = campaignData?.client?.client_name && campaignData?.media_plan_details?.plan_name;
+  const isCampaignDataLoaded = useMemo(
+    () => campaignData?.client?.client_name && campaignData?.media_plan_details?.plan_name,
+    [campaignData]
+  );
 
   return (
     <div id={close ? "side-nav-active" : "side-nav"} className="!flex !flex-col !h-full">
