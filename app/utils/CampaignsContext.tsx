@@ -16,9 +16,6 @@ import { useSelector } from "react-redux";
 import { channelMixPopulate } from "utils/fetcher";
 import { useSession } from "next-auth/react";
 
-// Cache for API responses to avoid redundant fetches
-const cache = new Map<string, any>();
-
 // Get initial state from localStorage if available
 const getInitialState = () => {
   if (typeof window !== "undefined") {
@@ -79,9 +76,12 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     year: [],
     quarter: [],
     month: [],
-    category: [],
-    product: [],
-    select_plans: [],
+    // category: [],
+    // product: [],
+    // select_plans: [],  
+    level_1: [],
+    level_2: [],
+    level_3: [],
     made_by: [],
     approved_by: [],
   });
@@ -111,42 +111,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const getActiveCampaign = useCallback(async (docId?: string) => {
-    const campaignId = cId || docId;
-    if (!campaignId) return;
-
-    const cacheKey = `campaign_${campaignId}`;
-    if (cache.has(cacheKey)) {
-      const cachedData = cache.get(cacheKey);
-      setCampaignData(cachedData);
-      setCampaignFormData((prev) => ({
-        ...prev,
-        client_selection: {
-          id: cachedData?.client?.documentId || prev?.client_selection?.id,
-          value: cachedData?.client?.client_name || prev.client_selection.value,
-        },
-        level_1: { id: cachedData?.client_selection?.level_1 || prev.level_1.id, value: cachedData?.client_selection?.level_1 || prev.level_1.value },
-        level_2: { id: cachedData?.client_selection?.level_2 || prev.level_2.id, value: cachedData?.client_selection?.level_2 || prev.level_2.value },
-        level_3: { id: cachedData?.client_selection?.level_3 || prev.level_3.id, value: cachedData?.client_selection?.level_3 || prev.level_3.value },
-        media_plan: cachedData?.media_plan_details?.plan_name || prev.media_plan,
-        approver: cachedData?.media_plan_details?.internal_approver || prev.approver,
-        campaign_objectives: cachedData?.campaign_objective || prev.campaign_objectives,
-        funnel_stages: cachedData?.funnel_stages || prev.funnel_stages,
-        channel_mix: cachedData?.channel_mix || prev.channel_mix,
-        campaign_timeline_start_date: cachedData?.campaign_timeline_start_date || prev.campaign_timeline_start_date,
-        campaign_timeline_end_date: cachedData?.campaign_timeline_end_date || prev.campaign_timeline_end_date,
-        campaign_budget: cachedData?.campaign_budget || prev.campaign_budget,
-        goal_level: cachedData?.goal_level || prev.goal_level,
-        progress_percent: cachedData?.progress_percent,
-        custom_funnels: cachedData?.custom_funnels,
-        user: cachedData?.user,
-      }));
-      return;
-    }
-
+    if (!cId && !docId) return;
     try {
       setLoadingCampaign(true);
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignId}`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}`,
         {
           params: {
             populate: {
@@ -165,7 +134,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       const data = res?.data?.data;
-      cache.set(cacheKey, data);
       setCampaignData(data);
       setCampaignFormData((prev) => ({
         ...prev,
@@ -223,8 +191,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-      const data = response?.data?.data;
-      cache.set(`campaign_${data.id}`, data);
       return response;
     } catch (error) {
       console.error("Error creating campaign:", error);
@@ -236,11 +202,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
   const getProfile = useCallback(async () => {
     if (!id) return;
-    const cacheKey = `profile_${id}`;
-    if (cache.has(cacheKey)) {
-      setGetProfile(cache.get(cacheKey));
-      return;
-    }
     try {
       setLoading(true);
       const response = await axios.get(
@@ -251,9 +212,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-      const data = response?.data;
-      cache.set(cacheKey, data);
-      setGetProfile(data);
+      setGetProfile(response?.data);
       return response;
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -275,8 +234,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-      const updatedData = response?.data?.data;
-      cache.set(`campaign_${cId}`, updatedData);
       return response;
     } catch (error) {
       console.error("Error updating campaign:", error);
@@ -288,11 +245,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchBusinessLevelOptions = useCallback(async (clientId: string) => {
     if (!clientId) return;
-    const cacheKey = `business_levels_${clientId}`;
-    if (cache.has(cacheKey)) {
-      setBusinessLevelOptions(cache.get(cacheKey));
-      return;
-    }
     try {
       setLoading(true);
       const response = await axios.get(
@@ -304,13 +256,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       const data = response?.data?.data || {};
-      const options = {
+      setBusinessLevelOptions({
         level1: data?.level_1?.map((item: string) => ({ id: item, value: item, label: item })) || [],
         level2: data?.level_2?.map((item: string) => ({ id: item, value: item, label: item })) || [],
         level3: data?.level_3?.map((item: string) => ({ id: item, value: item, label: item })) || [],
-      };
-      cache.set(cacheKey, options);
-      setBusinessLevelOptions(options);
+      });
     } catch (error) {
       console.error("Error fetching business level options:", error);
       setBusinessLevelOptions({ level1: [], level2: [], level3: [] });
@@ -320,11 +270,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const fetchObjectives = useCallback(async () => {
-    const cacheKey = "objectives";
-    if (cache.has(cacheKey)) {
-      setObjectives(cache.get(cacheKey));
-      return;
-    }
     setLoadingObj(true);
     try {
       const res = await axios.get(
@@ -342,7 +287,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         description: d?.subtitle,
         icon: d?.icon?.url,
       }));
-      cache.set(cacheKey, formattedData);
       setObjectives(formattedData);
     } catch (err) {
       console.error("Error fetching objectives:", err);
@@ -352,11 +296,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const fetchBuyObjectives = useCallback(async () => {
-    const cacheKey = "buy_objectives";
-    if (cache.has(cacheKey)) {
-      setBuyObj(cache.get(cacheKey));
-      return;
-    }
     setLoadingObj(true);
     try {
       const res = await axios.get(
@@ -367,9 +306,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-      const data = res?.data?.data;
-      cache.set(cacheKey, data);
-      setBuyObj(data);
+      setBuyObj(res?.data?.data);
     } catch (err) {
       console.error("Error fetching buy objectives:", err);
     } finally {
@@ -378,11 +315,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const fetchBuyTypes = useCallback(async () => {
-    const cacheKey = "buy_types";
-    if (cache.has(cacheKey)) {
-      setBuyType(cache.get(cacheKey));
-      return;
-    }
     setLoadingObj(true);
     try {
       const res = await axios.get(
@@ -393,9 +325,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-      const data = res?.data?.data;
-      cache.set(cacheKey, data);
-      setBuyType(data);
+      setBuyType(res?.data?.data);
     } catch (err) {
       console.error("Error fetching buy types:", err);
     } finally {
@@ -452,11 +382,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const fetchPlatformLists = useCallback(async () => {
-    const cacheKey = "platform_lists";
-    if (cache.has(cacheKey)) {
-      setPlatformList(cache.get(cacheKey));
-      return;
-    }
     setLoadingObj(true);
     try {
       const res = await axios.get(
@@ -469,7 +394,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       );
       const data = res?.data?.data;
       const organizedPlatforms = organizeAdvertisingPlatforms(data);
-      cache.set(cacheKey, organizedPlatforms);
       setPlatformList(organizedPlatforms);
     } catch (err) {
       console.error("Error fetching platform lists:", err);
@@ -492,15 +416,18 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [campaignFormData.client_selection?.id, fetchBusinessLevelOptions]);
 
-  // Initial data fetching with error handling
+  // Initial data fetching
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const promises = [];
-        if (id) promises.push(getProfile());
-        if (cId) promises.push(getActiveCampaign());
-        promises.push(fetchBuyObjectives(), fetchObjectives(), fetchPlatformLists(), fetchBuyTypes());
-        await Promise.all(promises);
+        await Promise.all([
+          id && getProfile(),
+          cId && getActiveCampaign(),
+          fetchBuyObjectives(),
+          fetchObjectives(),
+          fetchPlatformLists(),
+          fetchBuyTypes(),
+        ]);
       } catch (error) {
         console.error("Error during initial data fetch:", error);
       }

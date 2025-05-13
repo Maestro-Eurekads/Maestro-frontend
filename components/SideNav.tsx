@@ -16,11 +16,11 @@ import workbench from "../public/icon-park-solid_workbench.svg";
 import checkfill from "../public/mingcute_check-fill.svg";
 import Calender from "../public/Calender.svg";
 import { useCampaigns } from "app/utils/CampaignsContext";
-import Skeleton from "react-loading-skeleton";
 import { useComments } from "app/utils/CommentProvider";
 import { useEffect, useMemo } from "react";
 import { useAppDispatch } from "store/useStore";
 import { reset } from "features/Comment/commentSlice";
+import Skeleton from "react-loading-skeleton";
 
 const SideNav: React.FC = () => {
   const { setClose, close, setViewcommentsId, setOpportunities } = useComments();
@@ -147,10 +147,7 @@ const SideNav: React.FC = () => {
     [campaignData]
   );
 
-  const isCampaignDataLoaded = useMemo(
-    () => campaignData?.client?.client_name && campaignData?.media_plan_details?.plan_name,
-    [campaignData]
-  );
+  const isCampaignDataLoaded = campaignData?.client?.client_name && campaignData?.media_plan_details?.plan_name;
 
   return (
     <div id={close ? "side-nav-active" : "side-nav"} className="!flex !flex-col !h-full">
@@ -170,7 +167,10 @@ const SideNav: React.FC = () => {
               <p>Back to Dashboard</p>
             </button>
             {loadingCampaign ? (
-              <Skeleton height={20} width={200} />
+              // Minimize skeleton visibility with a timeout
+              <div className="opacity.cas(0).delay(200ms).duration(300ms)">
+                <Skeleton height={20} width={200} />
+              </div>
             ) : isCampaignDataLoaded ? (
               <div>
                 <h6 className="font-general-sans font-semibold text-[24px] leading-[36px] text-[#152A37]">
@@ -181,7 +181,9 @@ const SideNav: React.FC = () => {
             ) : null}
             <div className="flex items-center gap-[8px]">
               {loadingCampaign ? (
-                <Skeleton height={20} width={150} />
+                <div className="opacity.cas(0).delay(200ms).duration(300ms)">
+                  <Skeleton height={20} width={150} />
+                </div>
               ) : isCampaignDataLoaded ? (
                 <p className="text-[#152A37] text-[15px] font-medium leading-[175%] not-italic">
                   {campaignData.client.client_name.charAt(0).toUpperCase() + campaignData.client.client_name.slice(1)}
