@@ -62,17 +62,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     isEditingBuyingObjective,
   } = useCampaigns();
 
-  // Function to check if any previews are uploaded in Channel or Ad Set View
   const hasUploadedPreviews = () => {
     const stages = campaignFormData?.channel_mix || [];
     return stages.some((stage) => {
       return CHANNEL_TYPES.some(({ key }) => {
         return stage[key]?.some((platform) => {
-          // Check Channel View (platform.format.previews)
           if (platform.format?.some((f) => f.previews?.length > 0)) {
             return true;
           }
-          // Check Ad Set View (platform.ad_sets[].format.previews)
           if (
             platform.ad_sets?.some((adset) =>
               adset.format?.some((f) => f.previews?.length > 0)
@@ -356,6 +353,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         return;
       }
     }
+
     if (active === 4) {
       const isValidFormat = validateFormatSelection();
       if (!isValidFormat) {
@@ -407,8 +405,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
 
       if (hasChanges) {
-        // setValidateStep(true);
-        // hasError = true;
+        setValidateStep(true);
+        hasError = true;
       }
     }
 
@@ -577,7 +575,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   };
 
   const handleSkip = () => {
-    console.log("here");
     setActive((prev) => Math.min(9, prev + 1));
   };
 
@@ -693,11 +690,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                 active < 10 && "hover:bg-blue-500"
               )}
               onClick={() => {
-                console.log("here", active)
                 if (active === 4 && !hasUploadedPreviews()) {
                   handleSkip();
                 } else {
-                  handleContinue()
+                  handleContinue();
                 }
               }}
               disabled={active === 10}
