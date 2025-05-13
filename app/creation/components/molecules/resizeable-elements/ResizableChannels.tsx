@@ -236,6 +236,8 @@ const ResizableChannels = ({
     isDraggingRef.current = true // Set dragging to true
 
     const handleDragMove = (event: MouseEvent) => {
+      if (!isDraggingRef.current) return // Skip if not dragging
+
       event.preventDefault()
       const { index, startX, startLeft } = draggingPosition
 
@@ -259,7 +261,7 @@ const ResizableChannels = ({
       const startDate = pixelToDate(startPixel, parentWidth, index, "startDate")
       const endDate = pixelToDate(endPixel, parentWidth, index, "endDate")
 
-      draggingDataRef.current = { index }
+      draggingDataRef.current = { index, startDate, endDate }
     }
 
     const handleDragEnd = () => {
@@ -290,18 +292,23 @@ const ResizableChannels = ({
         draggingDataRef.current = null // Clear ref after update
       }
 
-      isDraggingRef.current = false // Reset dragging state
+      // Explicitly reset all drag-related states
+      isDraggingRef.current = false
       setDraggingPosition(null)
+      setDragging(null)
     }
 
     document.addEventListener("mousemove", handleDragMove)
     document.addEventListener("mouseup", handleDragEnd)
 
+    // Ensure cleanup happens properly
     return () => {
       document.removeEventListener("mousemove", handleDragMove)
       document.removeEventListener("mouseup", handleDragEnd)
+      isDraggingRef.current = false
+      draggingDataRef.current = null
     }
-  }, [draggingPosition, parentLeft, parentWidth]) //
+  }, [draggingPosition, parentLeft, parentWidth, channelState])
 
   const handleMouseDown = (index, direction) => (event) => {
     event.preventDefault()
