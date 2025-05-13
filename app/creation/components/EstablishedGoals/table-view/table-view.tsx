@@ -7,6 +7,7 @@ import { tableHeaders, tableBody } from "utils/tableHeaders"
 import { FunnelStageTable } from "./funnel-stage-table"
 import { extractObjectives, extractPlatforms } from "./data-processor"
 import Modal from "components/Modals/Modal"
+import { useAggregatedMetrics } from "./aggregated-metrics-calculator"
 
 const TableView = () => {
   const [expandedRows, setExpandedRows] = useState({})
@@ -77,21 +78,21 @@ const TableView = () => {
       [index]: !prev[index],
     }))
   }
-  
+
   const toggleKPIShow = (index) => {
     setExpandedKPI((prev) => ({
       ...prev,
       [index]: !prev[index],
     }))
   }
-  
+
   const toggleAdSetKPIShow = (index) => {
     setExpandedAdsetKPI((prev) => ({
       ...prev,
       [index]: !prev[index],
     }))
   }
-  
+
   const toggleNRCell = (stageName, rowId, metricKey) => {
     setNrCells((prev) => {
       const stage = prev[stageName] || {}
@@ -126,85 +127,9 @@ const TableView = () => {
       return updated
     })
   }
-  
+
   // Add this function after the toggleNRAdCell function
-  const aggregateKPIMetrics = () => {
-    if (!campaignFormData) return
-    
-    let hasChanges = false
-    const updatedData = { ...campaignFormData }
-    
-    // Process each funnel stage
-    updatedData.funnel_stages?.forEach((stageName: string) => {
-      const stageData = processedData[stageName] || []
-      console.log("🚀 ~ stageData:", JSON.stringify(stageData))
-
-      // Process each channel in the stage
-      stageData.forEach((channel: { channel_name: string; name: string }) => {
-        
-        // Get all ad sets for this channel
-        const channelMix = updatedData.channel_mix?.find((ch: { funnel_stage: string }) => ch.funnel_stage === stageName)
-        if (!channelMix) return
-
-        const platform = channelMix[channel?.channel_name]?.find((p: { platform_name: string }) => p.platform_name === channel?.name)
-        // console.log("🚀 ~ platform:", platform)
-        if (!platform) return
-        
-        const adSets = platform.ad_sets || []
-        // console.log("🚀  ~ adSets:", adSets)
-        
-        // Skip if no ad sets
-        if (!adSets.length) return
-
-        // For each calculated KPI metric, aggregate values
-        calculatedFields.forEach((metric: string) => {
-          // console.log("🚀 ~ calculatedFields.forEach ~ metric:", metric)
-          let sum = 0
-          let hasValidValues = false
-
-          // Sum up values from ad sets
-          adSets.forEach((adSet: { kpi?: Record<string, number>; extra_audiences?: Array<{ kpi?: Record<string, number> }> }) => {
-            // Get the value from the ad set
-            const adSetValue = adSet?.kpi?.[metric]
-            console.log("🚀 ~ adSets.forEach ~ adSetValue:", adSetValue, platform?.platform_name)
-            if (!isNaN(adSetValue) && isFinite(adSetValue)) {
-              sum += Number(adSetValue)
-              hasValidValues = true
-            }
-
-            // Also include values from extra audiences
-            const extraAudiences = adSet?.extra_audiences || []
-            extraAudiences.forEach((extraAudience: { kpi?: Record<string, number> }) => {
-              const extraValue = extraAudience?.kpi?.[metric]
-              console.log("🚀 ~ extraAudiences.forEach ~ extraValue:", extraValue)
-              if (!isNaN(extraValue) && isFinite(extraValue)) {
-                sum += Number(extraValue)
-                hasValidValues = true
-              }
-            })
-          })
-            
-
-          // Update the channel's KPI with the aggregated value only if it's different
-          if (hasValidValues) {
-            platform.kpi = platform.kpi || {}
-
-            // Only update if the value has changed
-            if (platform.kpi[metric] !== sum) {
-              platform.kpi[metric] = sum
-              hasChanges = true
-            }
-          }
-        })
-      })
-    })
-
-    console.log("uudfs", updatedData)
-    // Only update state if there were actual changes
-    if (hasChanges) {
-      setCampaignFormData(updatedData)
-    }
-  }
+  const { aggregateMetrics } = useAggregatedMetrics()
 
   const mergeAdditionalKPIs = () => {
     // Create a set of existing header names to avoid duplicates
@@ -291,20 +216,34 @@ const TableView = () => {
 
   // Use a ref to track if we've already aggregated the data
   const hasAggregatedRef = useRef(false)
+  const previousDataSignatureRef = useRef("")
 
   // Add this useEffect with proper dependencies
   useEffect(() => {
     if (campaignFormData) {
-      // Only aggregate once per data change
-      aggregateKPIMetrics()
-      // hasAggregatedRef.current = true
-    }
-  }, [campaignFormData])
+      // Create a signature of the data excluding KPI values to avoid loops
+      const dataSignature = JSON.stringify(
+        campaignFormData.channel_mix?.map((stage) =>
+          Object.entries(stage)
+            .filter(([key]) => key !== "kpi") // Exclude kpi to avoid loops
+            .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {}),
+        ),
+      )
 
-  // Reset the ref when campaign data changes
-  useEffect(() => {
-    hasAggregatedRef.current = false
-  }, [JSON.stringify(campaignFormData?.channel_mix)])
+      // Only aggregate if the data signature has changed
+      if (previousDataSignatureRef.current !== dataSignature) {
+        console.log("here is it")
+        aggregateMetrics()
+        previousDataSignatureRef.current = dataSignature
+        hasAggregatedRef.current = true
+      }
+    }
+  }, [aggregateMetrics, campaignFormData])
+
+  // Remove or comment out the other useEffect that resets hasAggregatedRef
+  // useEffect(() => {
+  //   hasAggregatedRef.current = false
+  // }, [JSON.stringify(campaignFormData?.channel_mix)])
 
   const handleEditInfo = (stageName, channelName, platformName, fieldName, value, adSetIndex, extraAdSetindex) => {
     setCampaignFormData((prevData) => {
