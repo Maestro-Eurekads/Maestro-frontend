@@ -47,8 +47,8 @@ interface ResizableChannelsProps {
   dateList: Date[];
   disableDrag?: boolean;
   setSelectedStage?: any;
-  openItems: any;
-  setOpenItems: any;
+  openItems?: any;
+  setOpenItems?: any;
 }
 
 const DEFAULT_MEDIA_OPTIONS = [

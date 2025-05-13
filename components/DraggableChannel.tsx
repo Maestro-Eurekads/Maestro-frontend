@@ -27,8 +27,8 @@ interface DraggableChannelProps {
   disableDrag?: boolean;
   budget?: number | string;
   setSelectedStage?: any;
-  openItems,
-  setOpenItems
+  openItems?:any,
+  setOpenItems?:any
 }
 
 const DraggableChannel: React.FC<DraggableChannelProps> = ({
