@@ -15,7 +15,7 @@ import {
   subDays,
 } from "date-fns";
 import moment from "moment";
-import { getCurrencySymbol, renderUploadedFile } from "components/data";
+import { getCurrencySymbol } from "components/data";
 import arrowUp from "../../../../../public/arrow-g-up.svg";
 import arrowDown from "../../../../../public/arrow-g-down.svg";
 import axios from "axios";
@@ -24,6 +24,7 @@ import Modal from "components/Modals/Modal";
 import AdSetsFlow from "../../../components/common/AdSetsFlow";
 import FormatSelection from "../../FormatSelection";
 import { useDateRange } from "src/date-range-context";
+import { FaSpinner } from "react-icons/fa";
 
 interface Channel {
   name: string;
@@ -46,6 +47,8 @@ interface ResizableChannelsProps {
   dateList: Date[];
   disableDrag?: boolean;
   setSelectedStage?: any;
+  openItems?: any;
+  setOpenItems?: any;
 }
 
 const DEFAULT_MEDIA_OPTIONS = [
@@ -65,8 +68,10 @@ const ResizableChannels = ({
   dateList,
   disableDrag = false,
   setSelectedStage,
+  openItems,
+  setOpenItems,
 }: ResizableChannelsProps) => {
-  const { campaignFormData, setCampaignFormData, setCopy, cId } =
+  const { campaignFormData, setCampaignFormData, setCopy, cId, campaignData } =
     useCampaigns();
   const { funnelWidths } = useFunnelContext(); // Get parent widths
   const draggingDataRef = useRef(null);
@@ -74,17 +79,18 @@ const ResizableChannels = ({
   const { range } = useDateRange();
 
   const [channels, setChannels] = useState(initialChannels);
+  const [deleting, setDeleting] = useState(false);
+  const [id, setId]  = useState(null)
 
-  const [openItems, setOpenItems] = useState(null);
   const [openCreatives, setOpenCreatives] = useState(false);
   const [selectedCreative, setSelectedCreative] = useState(null);
   const [openAdset, setOpenAdset] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState("");
-  
+
   // Store the initial start date in a ref
   const initialStartDateRef = useRef(null);
   const initialEndDateRef = useRef(null);
-  
+
   // Initialize child width based on available parent space and position
   const [channelState, setChannelState] = useState(
     channels?.map(() => ({
@@ -92,11 +98,11 @@ const ResizableChannels = ({
       width: Math.min(160, parentWidth),
     }))
   );
-  
+
   const [dragging, setDragging] = useState(null);
-  
+
   const [draggingPosition, setDraggingPosition] = useState(null);
-  
+
   const toggleChannel = (id) => {
     setOpenItems((prev) => (prev === id ? null : id));
   };
@@ -135,10 +141,10 @@ const ResizableChannels = ({
           )
         : campaignFormData?.campaign_time_end_date;
 
-        if (!initialStartDateRef.current) {
-          // Set the initial date only once
-          initialStartDateRef.current = new Date(end);
-        }
+      if (!initialStartDateRef.current) {
+        // Set the initial date only once
+        initialStartDateRef.current = new Date(end);
+      }
 
       setEndDate(end);
 
@@ -149,7 +155,7 @@ const ResizableChannels = ({
         })
       );
     }
-  }, [campaignFormData]);
+  }, [campaignFormData, openItems]);
 
   // Watch for changes in startDate and calculate the offset
   useEffect(() => {
@@ -197,11 +203,19 @@ const ResizableChannels = ({
             ? moment(calculatedDate).format("YYYY-MM-DD")
             : null;
         } else {
-          platform.campaign_end_date = calculatedDate
-            ? moment(calculatedDate).format("YYYY-MM-DD")
+          // For end date, ensure it doesn't exceed the parent timeline's end date
+          const endDateToUse =
+            endDate && calculatedDate > endDate ? endDate : calculatedDate;
+          platform.campaign_end_date = endDateToUse
+            ? moment(endDateToUse).format("YYYY-MM-DD")
             : null;
         }
       }
+    }
+
+    // For end date, ensure it doesn't exceed the parent timeline's end date
+    if (fieldName === "endDate" && endDate && calculatedDate > endDate) {
+      return endDate ? moment(endDate).format("YYYY-MM-DD") : null;
     }
 
     // Convert the result back to "yyyy-mm-dd" format
@@ -306,55 +320,70 @@ const ResizableChannels = ({
   };
 
   const handleDeleteChannel = async (indexToDelete) => {
-    setChannels(channels.filter((_, index) => index !== indexToDelete));
-    setChannelState(channelState.filter((_, index) => index !== indexToDelete));
-    setCampaignFormData((prev) => {
-      const updatedData = JSON.parse(JSON.stringify(prev)); // Deep copy
+    const updatedChannels = channels.filter(
+      (_, index) => index !== indexToDelete
+    );
+    const updatedChannelState = channelState.filter(
+      (_, index) => index !== indexToDelete
+    );
 
-      const channelMix = updatedData.channel_mix.find(
-        (ch) => ch.funnel_stage === parentId
-      );
+    const updatedCampaignFormData = JSON.parse(
+      JSON.stringify(campaignFormData)
+    ); // Deep copy
 
-      if (channelMix) {
-        const channelGroup = channelMix[channels[indexToDelete].channelName];
+    const channelMix = updatedCampaignFormData.channel_mix.find(
+      (ch) => ch.funnel_stage === parentId
+    );
 
-        if (Array.isArray(channelGroup)) {
-          const platformIndex = channelGroup.findIndex(
-            (platform) =>
-              platform.platform_name === channels[indexToDelete].name
-          );
+    if (channelMix) {
+      const channelGroup = channelMix[channels[indexToDelete].channelName];
 
-          if (platformIndex !== -1) {
-            channelGroup.splice(platformIndex, 1); // Remove the platform
-          }
+      if (Array.isArray(channelGroup)) {
+        const platformIndex = channelGroup.findIndex(
+          (platform) => platform.platform_name === channels[indexToDelete].name
+        );
+
+        if (platformIndex !== -1) {
+          channelGroup.splice(platformIndex, 1); // Remove the platform
         }
       }
+    }
 
-      // Call the API with the updated data
-      sendUpdatedDataToAPI(updatedData);
+    // Await the API call before updating the state
+    await sendUpdatedDataToAPI(updatedCampaignFormData);
 
-      return updatedData;
-    });
+    // Update the state after the API call is successful
+    setChannels(updatedChannels);
+    setChannelState(updatedChannelState);
+    setCampaignFormData(updatedCampaignFormData);
   };
 
   const sendUpdatedDataToAPI = async (updatedData) => {
     try {
+      setDeleting(true);
       const response = await axios.put(
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
         {
           data: {
-            ...removeKeysRecursively(updatedData, [
+            ...removeKeysRecursively(campaignData, [
               "id",
               "documentId",
               "createdAt",
               "publishedAt",
               "updatedAt",
             ]),
+            channel_mix: removeKeysRecursively(updatedData?.channel_mix, [
+              "id",
+              "isValidated",
+              "validatedStages",
+              "documentId",
+            ]),
           },
         },
         {
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
           },
         }
       );
@@ -362,42 +391,16 @@ const ResizableChannels = ({
       console.log("Campaign data updated successfully", response.data);
     } catch (error) {
       console.error("Error updating campaign data:", error);
+    } finally {
+      setDeleting(false);
+      setId(null)
     }
   };
-
-  // Update channel positions when parent position changes
-  useEffect(() => {
-    // console.log("channels", channels);
-    channels?.map((ch, index) => {
-      const stageStartDate = ch?.start_date ? parseISO(ch?.start_date) : null;
-      const stageEndDate = ch?.start_date ? parseISO(ch?.start_date) : null;
-      const startDateIndex = stageStartDate
-        ? dRange?.findIndex((date) => isEqual(date, stageStartDate)) * 100
-        : 0;
-    });
-    setChannelState((prev) =>
-      prev?.map((state, index) => {
-        const stageStartDate = channels[index]?.start_date
-          ? parseISO(channels[index]?.start_date)
-          : null;
-        const startDateIndex = stageStartDate
-          ? dRange?.findIndex((date) => isEqual(date, stageStartDate)) * 100
-          : 0;
-
-        console.log(channels[index]?.name, startDateIndex);
-
-        return {
-          ...state,
-          width: Math.min(state?.width, parentWidth), // Adjust width if it exceeds parent
-          left: parentLeft + startDateIndex, // Update left based on startDateIndex relative to parentLeft
-        };
-      })
-    );
-  }, [openItems]);
 
   // Update channel state when initialChannels changes
   useEffect(() => {
     if (initialChannels && initialChannels.length > 0) {
+      console.log("🚀 ~ useEffect ~ initialChannels:", initialChannels);
       setChannels(initialChannels);
       // Initialize new channels with parent's position
       setChannelState((prev) => {
@@ -410,36 +413,54 @@ const ResizableChannels = ({
               ? addDays(stageStartDate, dateOffset) // Add days if offset is positive
               : subDays(stageStartDate, Math.abs(dateOffset)) // Subtract days if offset is negative
             : null;
+
           const stageEndDate = ch?.end_date ? parseISO(ch?.end_date) : null;
-          const adjustedStageEndDate = stageEndDate
+
+          // Check if the channel's end date exceeds the parent timeline's end date
+          const isEndDateExceeded =
+            stageEndDate && endDate && stageEndDate > endDate;
+
+          // If the end date exceeds, use the parent timeline's end date instead
+          const adjustedStageEndDate = isEndDateExceeded
+            ? endDate
+            : stageEndDate
             ? endDateOffset > 0
-              ? addDays(stageStartDate, endDateOffset) // Add days if offset is positive
+              ? addDays(adjustedStageStartDate, endDateOffset) // Add days if offset is positive
               : subDays(stageEndDate, Math.abs(endDateOffset)) // Subtract days if offset is negative
             : null;
+
           const startDateIndex = adjustedStageStartDate
-            ? dRange?.findIndex((date) => isEqual(date, adjustedStageStartDate)) * 100
+            ? dRange?.findIndex((date) =>
+                isEqual(date, adjustedStageStartDate)
+              ) * 100
             : 0;
+
+          // Calculate days between using the adjusted end date
           const daysBetween =
-            eachDayOfInterval({
-              start: new Date(ch?.start_date) || null,
-              end: new Date(ch?.end_date) || null,
-            })?.length - 1;
+            adjustedStageStartDate && adjustedStageEndDate
+              ? eachDayOfInterval({
+                  start: adjustedStageStartDate,
+                  end: adjustedStageEndDate,
+                })?.length - 1
+              : eachDayOfInterval({
+                  start: new Date(ch?.start_date) || null,
+                  end: isEndDateExceeded
+                    ? endDate
+                    : new Date(ch?.end_date) || null,
+                })?.length - 1;
+
           const endDaysDiff = differenceInCalendarDays(endDate, stageEndDate);
           // Check if this channel already exists in prev
           const existingState = prev[index];
-          console.log("moving", {
-            endDaysDiff,
-            parentLeft,
-            startDateIndex,
-            daysBetween,
-          });
+
           return existingState
             ? {
                 ...existingState,
                 // Update left position to match parent when it moves
-                left:
-                  (parentLeft +
-                  Math.abs(startDateIndex)) + (endDaysDiff < 0 ? -100 : 0) ,
+                left: Math.min(
+                  parentLeft + Math.abs(startDateIndex),
+                  parentWidth
+                ),
                 width:
                   daysBetween > 0
                     ? Math.min(100 * daysBetween + 60, parentWidth)
@@ -450,10 +471,18 @@ const ResizableChannels = ({
                 width: Math.min(150, parentWidth), // Default width for new channels
               };
         });
+        console.log("new state", dRange);
         return newState;
       });
     }
-  }, [initialChannels, parentLeft, parentWidth, campaignFormData]);
+  }, [
+    initialChannels,
+    parentLeft,
+    parentWidth,
+    campaignFormData,
+    openItems,
+    dRange,
+  ]);
 
   useEffect(() => {
     if (!dragging) return;
@@ -510,14 +539,22 @@ const ResizableChannels = ({
             index,
             "startDate"
           );
-          const endDate = pixelToDate(
+
+          // Ensure end date doesn't exceed parent timeline's end date
+          const rawEndDate = pixelToDate(
             endPixel - parentWidth / totalDays,
             parentWidth,
             index,
             "endDate"
           );
 
-          // setCopy(updatedCampaignFormData);
+          // If the calculated end date exceeds the parent timeline's end date,
+          // adjust the width to match the parent timeline's end date
+          if (endDate && new Date(rawEndDate) > endDate) {
+            const parentEndPixel = parentWidth;
+            const maxWidth = parentEndPixel - startPixel + parentLeft;
+            newWidth = Math.min(newWidth, maxWidth);
+          }
 
           return { ...state, left: newLeft, width: newWidth };
         })
@@ -588,8 +625,8 @@ const ResizableChannels = ({
           <div
             key={channel.name}
             className={`relative w-full ${
-              !disableDrag ? "min-h-[47px]" : ""
-            } min-h-[47px]`}
+              !disableDrag ? "min-h-[46px]" : ""
+            } min-h-[46px]`}
             style={{
               gridColumnStart: startColumn < 1 ? 1 : startColumn,
               gridColumnEnd: endColumn < 1 ? 1 : endColumn,
@@ -597,22 +634,24 @@ const ResizableChannels = ({
           >
             <div>
               <div
-                className={` ${
-                  "relative"
-                } top-0 h-full flex ${
+                className={` ${"relative"} top-0 h-full flex ${
                   disableDrag
                     ? "justify-between min-w-[150px]"
                     : "justify-center cursor-move min-w-[150px]"
                 }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden `}
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
-                  width: `${channelState[index]?.width + (disableDrag ? 40 : 30) || 150}px`,
+                  width: `${
+                    channelState[index]?.width + (disableDrag ? 40 : 30) || 150
+                  }px`,
                   backgroundColor: channel.bg,
                   color: channel.color,
                   borderColor: channel.color,
                   borderRadius: "10px",
                 }}
-                onMouseDown={disableDrag ? undefined : handleDragStart(index)}
+                onMouseDown={
+                  disableDrag || openItems ? undefined : handleDragStart(index)
+                }
               >
                 <div className="flex items-center gap-3">
                   <Image
@@ -645,7 +684,7 @@ const ResizableChannels = ({
             {
               <>
                 <div
-                  className={`absolute top-0 w-5 h-[47px] cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
+                  className={`absolute top-0 w-5 h-[46px] cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
                     disableDrag && "hidden"
                   }`}
                   style={{
@@ -653,13 +692,15 @@ const ResizableChannels = ({
                     backgroundColor: channel.color,
                   }}
                   onMouseDown={
-                    disableDrag ? undefined : handleMouseDown(index, "left")
+                    disableDrag || openItems
+                      ? undefined
+                      : handleMouseDown(index, "left")
                   }
                 >
                   <MdDragHandle className="rotate-90" />
                 </div>
                 <div
-                  className={`absolute top-0 w-5 h-[47px] cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
+                  className={`absolute top-0 w-5 h-[46px] cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
                     disableDrag && "hidden"
                   }`}
                   style={{
@@ -669,7 +710,11 @@ const ResizableChannels = ({
                     }px`,
                     backgroundColor: channel.color,
                   }}
-                  onMouseDown={handleMouseDown(index, "right")}
+                  onMouseDown={
+                    disableDrag || openItems
+                      ? undefined
+                      : handleMouseDown(index, "right")
+                  }
                 >
                   <MdDragHandle className="rotate-90" />
                   {/* {channel?.ad_sets?.length > 0 && (
@@ -687,7 +732,7 @@ const ResizableChannels = ({
                         <Image
                           src={
                             openItems &&
-                            openItems === `${channel?.name}${index}`
+                            openItems === `${channel?.name || "/placeholder.svg"}${index}`
                               ? arrowUp
                               : arrowDown
                           }
@@ -791,14 +836,27 @@ const ResizableChannels = ({
                   {!disableDrag && (
                     <button
                       className="delete-resizeableBar"
-                      onClick={() =>
-                        disableDrag ? undefined : handleDeleteChannel(index)
-                      }
+                      onClick={() => {
+                        if (
+                          disableDrag ||
+                          openItems === `${channel?.name}${index}`
+                        ) {
+                          return;
+                        }
+                        handleDeleteChannel(index);
+                        setId(index)
+                      }}
                     >
-                      <Image
-                        src={reddelete || "/placeholder.svg"}
-                        alt="reddelete"
-                      />
+                      {deleting && id === index ? (
+                        <div className="w-[30px] h-[30px] rounded-full flex items-center justify-center bg-red-600">
+                          <FaSpinner className="animate-spin text-white" />
+                        </div>
+                      ) : (
+                        <Image
+                          src={reddelete || "/placeholder.svg"}
+                          alt="reddelete"
+                        />
+                      )}
                     </button>
                   )}
                 </div>
@@ -832,7 +890,12 @@ const ResizableChannels = ({
                   />
                 </div>
                 {openItems && openItems === `${channel?.name}${index}` && (
-                  <div className="relative shrink-0 mt-4 ml-4 bg-white z-20 rounded-md border shadow-md">
+                  <div
+                    className="relative shrink-0 mt-4 bg-white z-20 rounded-md border shadow-md"
+                    style={{
+                      left: `${channelState[index]?.left || parentLeft}px`,
+                    }}
+                  >
                     <table className="table-auto w-full text-left text-[12px] text-[#061237B2] font-medium border-none hover:cursor-default">
                       <thead className="bg-transparent">
                         <tr>
@@ -906,15 +969,17 @@ const ResizableChannels = ({
                       >
                         View Creatives
                       </button>
-                      <button
-                        className="bg-blue-500 text-white p-2 rounded-md"
-                        onClick={() => {
-                          setOpenAdset(true);
-                          setSelectedChannel(channel?.name);
-                        }}
-                      >
-                        Add Adsets
-                      </button>
+                      {!disableDrag && (
+                        <button
+                          className="bg-blue-500 text-white p-2 rounded-md"
+                          onClick={() => {
+                            setOpenAdset(true);
+                            setSelectedChannel(channel?.name);
+                          }}
+                        >
+                          Add Adsets
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}

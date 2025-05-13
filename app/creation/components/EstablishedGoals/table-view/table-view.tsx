@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useRef } from "react"
 import { useCampaigns } from "app/utils/CampaignsContext"
 import { funnelStages } from "components/data"
 import { tableHeaders, tableBody } from "utils/tableHeaders"
@@ -28,27 +28,69 @@ const TableView = () => {
 
   const processedData = extractPlatforms(campaignFormData)
 
+  // Define calculated fields - these are the only fields that should be aggregated
+  const calculatedFields = [
+    "impressions",
+    "reach",
+    "video_views",
+    "cpv",
+    "completed_view",
+    "cpcv",
+    "link_clicks",
+    "cpc",
+    "installs",
+    "cpi",
+    "engagements",
+    "cpe",
+    "app_open",
+    "cost__app_open",
+    "conversion",
+    "cost__conversion",
+    "forms_open",
+    "cost__opened_form",
+    "leads",
+    "cost__lead",
+    "lands",
+    "cpl",
+    "bounced_visits",
+    "costbounce",
+    "lead_visits",
+    "costlead",
+    "off_funnel_visits",
+    "cost__off_funnel",
+    "conversions",
+    "costconversion",
+    "generated_revenue",
+    "return_on_ad_spent",
+    "add_to_carts",
+    "cpatc",
+    "payment_infos",
+    "cppi",
+    "purchases",
+    "cpp",
+  ]
+
   const toggleRow = (index) => {
     setExpandedRows((prev) => ({
       ...prev,
       [index]: !prev[index],
     }))
   }
-
+  
   const toggleKPIShow = (index) => {
     setExpandedKPI((prev) => ({
       ...prev,
       [index]: !prev[index],
     }))
   }
-
+  
   const toggleAdSetKPIShow = (index) => {
     setExpandedAdsetKPI((prev) => ({
       ...prev,
       [index]: !prev[index],
     }))
   }
-
+  
   const toggleNRCell = (stageName, rowId, metricKey) => {
     setNrCells((prev) => {
       const stage = prev[stageName] || {}
@@ -83,43 +125,47 @@ const TableView = () => {
       return updated
     })
   }
-
+  
   // Add this function after the toggleNRAdCell function
   const aggregateKPIMetrics = () => {
     if (!campaignFormData) return
-
+    
+    let hasChanges = false
+    const updatedData = { ...campaignFormData }
+    
     // Process each funnel stage
-    campaignFormData.funnel_stages?.forEach((stageName) => {
+    updatedData.funnel_stages?.forEach((stageName) => {
       const stageData = processedData[stageName] || []
+      console.log("🚀 ~ updatedData.funnel_stages?.forEach ~ stageData:", stageData)
 
       // Process each channel in the stage
       stageData.forEach((channel) => {
+        
         // Get all ad sets for this channel
-        const adSets =
-          campaignFormData?.channel_mix
-            ?.find((ch) => ch?.funnel_stage === stageName)
-            ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)?.ad_sets || []
+        const channelMix = updatedData.channel_mix?.find((ch) => ch.funnel_stage === stageName)
+        if (!channelMix) return
 
+        const platform = channelMix[channel?.channel_name]?.find((p) => p.platform_name === channel?.name)
+        // console.log("🚀 ~ platform:", platform)
+        if (!platform) return
+        
+        const adSets = platform.ad_sets || []
+        // console.log("🚀  ~ adSets:", adSets)
+        
         // Skip if no ad sets
         if (!adSets.length) return
 
-        // Get all KPI metrics from the table headers
-        const kpiMetrics = new Set()
-        mergedTableHeadersByStage[stageName]?.forEach((header) => {
-          const metricKey = header.name.toLowerCase().replace(/ /g, "_").replace(/\//g, "").replace(/-/g, "_")
-          kpiMetrics.add(metricKey)
-        })
-        
-        // console.log("🚀 ~ stageData.forEach ~ kpiMetrics:", kpiMetrics)
-        // For each KPI metric, aggregate values
-        Array.from(kpiMetrics).forEach((metric) => {
+        // For each calculated KPI metric, aggregate values
+        calculatedFields.forEach((metric) => {
+          // console.log("🚀 ~ calculatedFields.forEach ~ metric:", metric)
           let sum = 0
           let hasValidValues = false
 
           // Sum up values from ad sets
-          adSets.forEach((adSet, adSetIndex) => {
+          adSets.forEach((adSet) => {
             // Get the value from the ad set
-            const adSetValue = adSet?.kpi?.[metric as string]
+            const adSetValue = adSet?.kpi?.[metric]
+            console.log("🚀 ~ adSets.forEach ~ adSetValue:", adSetValue, platform?.platform_name)
             if (!isNaN(adSetValue) && isFinite(adSetValue)) {
               sum += Number(adSetValue)
               hasValidValues = true
@@ -128,31 +174,34 @@ const TableView = () => {
             // Also include values from extra audiences
             const extraAudiences = adSet?.extra_audiences || []
             extraAudiences.forEach((extraAudience) => {
-              const extraValue = extraAudience?.kpi?.[metric as string]
+              const extraValue = extraAudience?.kpi?.[metric]
               if (!isNaN(extraValue) && isFinite(extraValue)) {
                 sum += Number(extraValue)
                 hasValidValues = true
               }
             })
           })
+            
 
-          // Update the channel's KPI with the aggregated value
+          // Update the channel's KPI with the aggregated value only if it's different
           if (hasValidValues) {
-            const channelData = campaignFormData?.channel_mix
-              ?.find((ch) => ch?.funnel_stage === stageName)
-              ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)
+            platform.kpi = platform.kpi || {}
 
-            if (channelData) {
-              channelData.kpi = channelData.kpi || {}
-              channelData.kpi[metric as string] = sum
+            // Only update if the value has changed
+            if (platform.kpi[metric] !== sum) {
+              platform.kpi[metric] = sum
+              hasChanges = true
             }
           }
         })
       })
     })
 
-    // Update the campaign form data to trigger re-render
-    setCampaignFormData({ ...campaignFormData })
+    console.log("uudfs", updatedData)
+    // Only update state if there were actual changes
+    if (hasChanges) {
+      setCampaignFormData(updatedData)
+    }
   }
 
   const mergeAdditionalKPIs = () => {
@@ -238,12 +287,22 @@ const TableView = () => {
     setMergedTableBodyByStage(bodyByStage)
   }, [campaignFormData, selectedMetrics, currentEditingStage])
 
-  // Add this useEffect after the existing useEffects
-  // useEffect(() => {
-  //   if (campaignFormData) {
-  //     aggregateKPIMetrics()
-  //   }
-  // }, [processedData, mergedTableHeadersByStage])
+  // Use a ref to track if we've already aggregated the data
+  const hasAggregatedRef = useRef(false)
+
+  // Add this useEffect with proper dependencies
+  useEffect(() => {
+    if (campaignFormData && !hasAggregatedRef.current) {
+      // Only aggregate once per data change
+      aggregateKPIMetrics()
+      hasAggregatedRef.current = true
+    }
+  }, [campaignFormData])
+
+  // Reset the ref when campaign data changes
+  useEffect(() => {
+    hasAggregatedRef.current = false
+  }, [JSON.stringify(campaignFormData?.channel_mix)])
 
   const handleEditInfo = (stageName, channelName, platformName, fieldName, value, adSetIndex, extraAdSetindex) => {
     setCampaignFormData((prevData) => {
@@ -312,7 +371,16 @@ const TableView = () => {
   }
 
   // Process data once at the top level
-  
+
+  const allObjectives = useMemo(() => Object.keys(tableHeaders), [])
+
+  const objectivesForStage = useMemo(() => {
+    return currentEditingStage ? extractObjectives(campaignFormData)[currentEditingStage] || [] : []
+  }, [campaignFormData, currentEditingStage])
+
+  const existingHeaderNames = useMemo(() => {
+    return currentEditingStage ? mergedTableHeadersByStage[currentEditingStage]?.map((h) => h.name) : []
+  }, [mergedTableHeadersByStage, currentEditingStage])
 
   return (
     <div className="my-5 mx-[40px]">
@@ -352,18 +420,19 @@ const TableView = () => {
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <div className="w-[700px] bg-white rounded-[10px] shadow-lg p-4">
           <p className="text-[20px] font-medium mb-4">Select Metrics for {currentEditingStage}</p>
-          <p>Add specific metrics to this stage’s table</p>
+          <p>Add specific metrics to this stage's table</p>
 
           <div className="mt-4 max-h-[400px] overflow-y-auto">
             {(() => {
-              const allObjectives = Object.keys(tableHeaders)
-              const objectivesForStage = useMemo(() => {
-                return extractObjectives(campaignFormData)[currentEditingStage] || []
-              }, [campaignFormData, currentEditingStage])
+              // const allObjectives = Object.keys(tableHeaders)
 
-              const existingHeaderNames = useMemo(() => {
-                return new Set(mergedTableHeadersByStage[currentEditingStage]?.map((h) => h.name))
-              }, [mergedTableHeadersByStage, currentEditingStage])
+              // const objectivesForStage = useMemo(() => {
+              //   return extractObjectives(campaignFormData)[currentEditingStage] || []
+              // }, [campaignFormData, currentEditingStage])
+
+              // const existingHeaderNames = useMemo(() => {
+              //   return new Set(mergedTableHeadersByStage[currentEditingStage]?.map((h) => h.name))
+              // }, [mergedTableHeadersByStage, currentEditingStage])
 
               const filteredObjectives = allObjectives.filter(
                 (objective) => !objectivesForStage.includes(objective) && objective !== "Brand Awareness",
@@ -388,17 +457,19 @@ const TableView = () => {
                   "Reach",
                 ]
                 const availableMetrics = tableHeaders[objective] || []
-                const filterAvailableMetrics = availableMetrics?.filter(
-                  (mm) =>
-                  !defaultHeaders.includes(mm?.name) &&
-                  !Object.entries(mergedTableHeadersByStage).some(([stage, headers]) => {
-                    if (stage === currentEditingStage) return false // ignore current stage
-                    return (headers as { name: string }[]).some((h) => h.name === mm?.name)
-                  }),
-                ).map((metric) => ({
-                  ...metric,
-                  obj: objective, // Add the new property 'obj' with the current objective
-                }))
+                const filterAvailableMetrics = availableMetrics
+                  ?.filter(
+                    (mm) =>
+                      !defaultHeaders.includes(mm?.name) &&
+                      !Object.entries(mergedTableHeadersByStage).some(([stage, headers]) => {
+                        if (stage === currentEditingStage) return false // ignore current stage
+                        return (headers as { name: string }[]).some((h) => h.name === mm?.name)
+                      }),
+                  )
+                  .map((metric) => ({
+                    ...metric,
+                    obj: objective, // Add the new property 'obj' with the current objective
+                  }))
                 // console.log("here", JSON.stringify(filterAvailableMetrics))
 
                 if (availableMetrics.length === 0) return null
@@ -450,10 +521,12 @@ const TableView = () => {
                                   if (prev.some((m) => m.name === metric.name && m.obj === objective)) {
                                     return prev
                                   }
-                                  return [...prev, {...metric, obj: objective}]
+                                  return [...prev, { ...metric, obj: objective }]
                                 })
                               } else {
-                                setSelectedMetrics((prev) => prev.filter((m) => metric.obj === objective && m.name !== metric.name))
+                                setSelectedMetrics((prev) =>
+                                  prev.filter((m) => metric.obj === objective && m.name !== metric.name),
+                                )
                               }
                             }}
                           />

@@ -1,5 +1,6 @@
 "use client";
-
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 import Image, { type StaticImageData } from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import DraggableChannel from "../../../../../components/DraggableChannel";
@@ -41,13 +42,14 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { range } = useDateRange();
   const { range: rrange } = useRange();
-  const { campaignFormData } = useCampaigns();
+  const { campaignFormData, loadingCampaign } = useCampaigns();
   const [selectedStage, setSelectedStage] = useState("");
   // console.log("rr", rrange, funnelData);
   // Replace single parentWidth with a map of widths per channel
   const [channelWidths, setChannelWidths] = useState<Record<string, number>>(
     {}
   );
+  const [openItems, setOpenItems] = useState(null);
 
   // Track left position for each channel
   const [channelPositions, setChannelPositions] = useState<
@@ -189,15 +191,20 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
 
       // Get container boundaries
       const containerRect = gridContainer.getBoundingClientRect();
-      console.log("🚀 ~ useEffect ~ containerRect:", containerRect);
+      // console.log("🚀 ~ useEffect ~ containerRect:", containerRect);
       const containerWidth = containerRect.width - 75;
-      console.log("🚀 ~ useEffect ~ containerWidth:", containerWidth);
+      console.log("🚀 ~ containerWidth:", containerWidth);
+      console.log("🚀 ~ containerWidth:", funnelData?.endMonth);
+      console.log(
+        "🚀 ~ :",
+        funnelData?.endMonth ? containerWidth / (funnelData?.endMonth - 1) : 320
+      );
 
       campaignFormData?.funnel_stages?.map((stageName, index) => {
         const stage = campaignFormData?.channel_mix?.find(
           (s) => s?.funnel_stage === stageName
         );
-        if (stage) {
+        if (stageName) {
           const stageStartDate = stage?.funnel_stage_timeline_start_date
             ? parseISO(stage?.funnel_stage_timeline_start_date)
             : null;
@@ -225,15 +232,19 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
           // Calculate the week index (1-based)
           const weekIndex = Math.floor(daysFromStart / 7) + 1;
           console.log("fdfd", weekIndex);
-          initialWidths[stage.funnel_stage] =
+          initialWidths[stageName] =
             rrange === "Day"
               ? daysBetween > 0
                 ? 100 * daysBetween + 60
                 : 360
               : rrange === "Week"
-              ? containerWidth / (funnelData?.endWeek - 1)
-              : containerWidth / funnelData?.endMonth; // Default width
-          initialPositions[stage.funnel_stage] =
+              ? funnelData?.endWeek <= 2
+                ? containerWidth / (funnelData?.endWeek - 1)
+                : 320
+              : funnelData?.endMonth
+              ? containerWidth / (funnelData?.endMonth - 1)
+              : 320; // Default width
+          initialPositions[stageName] =
             rrange === "Day"
               ? startDateIndex
               : rrange === "Week"
@@ -257,89 +268,132 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
           rrange === "Day"
             ? `calc(100px) 100%`
             : rrange === "Week"
-            ? `calc(100% / ${funnelData?.endWeek - 1}) 100%`
+            ? funnelData?.endWeek <= 1
+              ? `100% 100%` // If 1 week, full width
+              : funnelData?.endWeek === 2
+              ? `50% 100%` // If 2 weeks, half width
+              : `calc(360px) 100%` // If more than 2 weeks, 1/3 width
             : `calc(100% / ${funnelData?.endMonth - 1}) 100%`,
       }}
     >
-      {campaignFormData?.funnel_stages?.map((stageName, index) => {
-        const stage = campaignFormData?.custom_funnels?.find(
-          (s) => s?.name === stageName
-        );
-        const funn = funnelStages?.find((ff) => ff?.name === stageName);
-        if (!stage) return null;
-        // console.log(stage);
-        const channelWidth = funnelWidths[stage?.name] || 400;
-        const isOpen = openChannels[stage?.name] || false; // Get open state by ID
+      {loadingCampaign ? (
+        // Skeleton loading UI
+        <div className="w-full p-4">
+          {[1, 2, 3].map((item) => (
+            <div key={item} className="mb-8">
+              <Skeleton
+                height={60}
+                width="100%"
+                className="mb-2 rounded-[10px]"
+              />
+              <div className="pl-4 mt-2">
+                {[1, 2].map((channel) => (
+                  <Skeleton
+                    key={channel}
+                    height={40}
+                    width="90%"
+                    className="mb-2 rounded-[10px]"
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        // Original content
+        campaignFormData?.funnel_stages?.map((stageName, index) => {
+          const stage = campaignFormData?.custom_funnels?.find(
+            (s) => s?.name === stageName
+          );
+          const funn = funnelStages?.find((ff) => ff?.name === stageName);
+          if (!stage) return null;
+          // console.log(stage);
+          const channelWidth = funnelWidths[stage?.name] || 400;
+          const isOpen = openChannels[stage?.name] || false; // Get open state by ID
 
-        // Get the specific width and position for this channel or use default
-        const currentChannelWidth = channelWidths[stage?.name] || 350;
-        const currentChannelPosition = channelPositions[stage?.name] || 0;
+          // Get the specific width and position for this channel or use default
+          const currentChannelWidth = channelWidths[stage?.name] || 350;
+          const currentChannelPosition = channelPositions[stage?.name] || 0;
 
-        return (
-          <div
-            key={index}
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                rrange === "Day"
-                  ? `repeat(${funnelData?.endDay - 1 || 1}, 100px)`
-                  : rrange === "Week"
-                  ? `repeat(${funnelData?.endWeek - 1 || 1}, 100%)`
-                  : `repeat(${funnelData?.endMonth - 1 || 1}, 1fr)`,
-            }}
-          >
+          return (
             <div
-              className="flex flex-col mt-6 rounded-[10px] p-4 px-0 justify-between w-fit"
+              key={index}
               style={{
-                gridColumnStart: 1,
-                gridColumnEnd:  rrange === "Day"
-                ? `repeat(${funnelData?.endDay - 1 || 1}, 100px)`
-                : rrange === "Week"
-                ? `repeat(${funnelData?.endWeek - 1 || 1}, 100%)`
-                : `repeat(${funnelData?.endMonth - 1 || 1}, 1fr)`,
+                display: "grid",
+                gridTemplateColumns:
+                  rrange === "Day"
+                    ? `repeat(${funnelData?.endDay - 1 || 1}, 100px)`
+                    : rrange === "Week"
+                    ? funnelData?.endWeek <= 1
+                      ? `1fr` // If 1 week, single column
+                      : funnelData?.endWeek === 2
+                      ? `repeat(2, 1fr)` // If 2 weeks, 2 columns
+                      : `repeat(${funnelData?.endWeek - 1}, 360px)` // If more than 2 weeks, 3 columns
+                    : `repeat(${funnelData?.endMonth - 1 || 1}, 1fr)`,
               }}
             >
-              <DraggableChannel
-                id={stage?.name} // Use description as ID
-                openChannel={isOpen} // Pass specific open state
-                bg={stage?.color?.split("-")[1]}
-                description={stage?.name}
-                setIsOpen={setIsOpen}
-                setOpenChannel={() => toggleChannel(stage?.name)} // Toggle only this channel
-                Icon={stage?.activeIcon}
-                dateList={range}
-                dragConstraints={gridRef}
-                parentWidth={currentChannelWidth} // Use channel-specific width
-                setParentWidth={(width) =>
-                  updateChannelWidth(stage?.name, width)
-                } // Update only this channel's width
-                // Add props to track and update position
-                parentLeft={currentChannelPosition}
-                setParentLeft={(left) =>
-                  updateChannelPosition(stage?.name, left)
-                }
-                setSelectedStage={setSelectedStage}
-                disableDrag={disableDrag}
-              />
+              <div
+                className="flex flex-col mt-6 rounded-[10px] p-4 px-0 justify-between w-fit"
+                style={{
+                  gridColumnStart: 1,
+                  gridColumnEnd:
+                    rrange === "Day"
+                      ? `repeat(${funnelData?.endDay - 1 || 1}, 100px)`
+                      : rrange === "Week"
+                      ? funnelData?.endWeek <= 1
+                        ? `1fr` // If 1 week, single column
+                        : funnelData?.endWeek === 2
+                        ? `repeat(2, 1fr)` // If 2 weeks, 2 columns
+                        : `repeat(${funnelData?.endWeek}, 33.33%)` // If more than 2 weeks, 3 columns
+                      : `repeat(${funnelData?.endMonth - 1 || 1}, 1fr)`,
+                }}
+              >
+                <DraggableChannel
+                  id={stage?.name} // Use description as ID
+                  openChannel={isOpen} // Pass specific open state
+                  bg={stage?.color?.split("-")[1]}
+                  description={stage?.name}
+                  setIsOpen={setIsOpen}
+                  setOpenChannel={() => toggleChannel(stage?.name)} // Toggle only this channel
+                  Icon={stage?.activeIcon}
+                  dateList={range}
+                  dragConstraints={gridRef}
+                  parentWidth={currentChannelWidth} // Use channel-specific width
+                  setParentWidth={(width) =>
+                    updateChannelWidth(stage?.name, width)
+                  } // Update only this channel's width
+                  // Add props to track and update position
+                  parentLeft={currentChannelPosition}
+                  setParentLeft={(left) =>
+                    updateChannelPosition(stage?.name, left)
+                  }
+                  setSelectedStage={setSelectedStage}
+                  disableDrag={disableDrag}
+                  openItems={openItems}
+                  setOpenItems={setOpenItems}
+                />
 
-              {isOpen && ( // Only show this if the specific channel is open
-                <div>
-                  <ResizableChannels
-                    channels={platforms[stage.name]}
-                    parentId={stage?.name}
-                    parentWidth={currentChannelWidth} // Use channel-specific width
-                    parentLeft={currentChannelPosition} // Pass parent's left position
-                    setIsOpen={setIsOpen}
-                    dateList={range}
-                    setSelectedStage={setSelectedStage}
-                    disableDrag={disableDrag}
-                  />
-                </div>
-              )}
+                {isOpen && ( // Only show this if the specific channel is open
+                  <div>
+                    <ResizableChannels
+                      channels={platforms[stage.name]}
+                      parentId={stage?.name}
+                      parentWidth={currentChannelWidth} // Use channel-specific width
+                      parentLeft={currentChannelPosition} // Pass parent's left position
+                      setIsOpen={setIsOpen}
+                      dateList={range}
+                      setSelectedStage={setSelectedStage}
+                      disableDrag={disableDrag}
+                      openItems={openItems}
+                      setOpenItems={setOpenItems}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })
+      )}
       <AddNewChennelsModel
         isOpen={isOpen}
         setIsOpen={setIsOpen}
