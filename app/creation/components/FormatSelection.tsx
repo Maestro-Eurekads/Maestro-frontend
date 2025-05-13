@@ -154,8 +154,7 @@ const MediaOption = ({
       console.error("Missing Strapi configuration:", { STRAPI_URL, STRAPI_TOKEN });
       toast.error("Server configuration error. Please contact support.");
     }
-    const shownPreviews = (previews || []).slice(0, quantity);
-    setLocalPreviews(shownPreviews);
+    setLocalPreviews((previews || []).slice(0, quantity));
   }, [previews, quantity, STRAPI_URL, STRAPI_TOKEN]);
 
   useEffect(() => {
