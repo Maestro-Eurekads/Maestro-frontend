@@ -285,66 +285,7 @@ const OverviewofyourCampaign = () => {
 		style?: string
 	}
 
-	const mapCampaignsToFunnels = (campaigns: any[]) => {
-		useEffect(() => {
-			if (clientCampaignData?.channel_mix) {
-				const newChannels = clientCampaignData?.funnel_stages
-					.flatMap((stageName) => {
-						const stage = clientCampaignData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName)
-						if (!stage) return null
 
-						return [
-							{
-								title: "Social media",
-								platforms: stage?.social_media?.map((platform) => ({
-									name: platform?.platform_name,
-									icon: getPlatformIcon(platform?.platform_name),
-								})),
-								style: "max-w-[150px] w-full h-[52px]",
-							},
-							{
-								title: "Display Networks",
-								platforms: stage?.display_networks?.map((platform) => ({
-									name: platform?.platform_name,
-									icon: getPlatformIcon(platform?.platform_name),
-								})),
-								style: "max-w-[200px] w-full",
-							},
-							{
-								title: "Search Engines",
-								platforms: stage.search_engines?.map((platform) => ({
-									name: platform?.platform_name,
-									icon: getPlatformIcon(platform?.platform_name),
-								})),
-								style: "max-w-[180px] w-full",
-							},
-						]
-					})
-					.filter(Boolean) // Flatten array and remove null values
-
-				// **Fix: Prevent re-render loop**
-				if (JSON.stringify(channels) !== JSON.stringify(newChannels)) {
-					setChannels(newChannels)
-				}
-			}
-		}, [campaignFormData])
-
-		return campaigns?.map((campaign, index) => {
-			const fromDate = parseApiDate(campaign?.campaign_timeline_start_date)
-			const toDate = parseApiDate(campaign?.campaign_timeline_end_date)
-
-			const budgetDetails = campaign?.budget_details
-			const currencySymbol = currencySymbols[budgetDetails?.currency] || ""
-			const budgetValue = budgetDetails?.value ? `${budgetDetails.value} ${currencySymbol}` : "N/A"
-
-			return {
-				startWeek: fromDate?.day ?? 0, // Default to 0 if null
-				endWeek: toDate?.day ?? 0,
-				label: `Campaign ${index + 1}`,
-				budget: budgetValue,
-			}
-		})
-	}
 
 	const startDates = clientCampaignData
 		?.filter((c) => c?.campaign_timeline_start_date)
