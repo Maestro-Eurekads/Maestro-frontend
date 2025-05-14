@@ -183,31 +183,31 @@ const Dashboard = () => {
       data.channel_mix.forEach((stage) => {
         const stageName = stage.funnel_stage
         const stageBudget = Number.parseFloat(stage.stage_budget?.fixed_value)
-          mediaTypes.forEach((channelType) => {
-            stage[channelType].forEach((platform) => {
-              const platformName = platform.platform_name
-              const platformBudget = Number.parseFloat(platform.budget?.fixed_value || 0)
-              const percentage = (platformBudget / stageBudget) * 100 || 0
-              const existingPlatform = platforms.find((p) => p.platform_name === platformName)
-              if (existingPlatform) {
-                existingPlatform.stages_it_was_found.push({
-                  stage_name: stageName,
-                  percentage: percentage,
-                })
-              } else {
-                platforms.push({
-                  platform_name: platformName,
-                  platform_budegt: platformBudget,
-                  stages_it_was_found: [
-                    {
-                      stage_name: stageName,
-                      percentage: percentage,
-                    },
-                  ],
-                })
-              }
-            })
+        mediaTypes.forEach((channelType) => {
+          stage[channelType].forEach((platform) => {
+            const platformName = platform.platform_name
+            const platformBudget = Number.parseFloat(platform.budget?.fixed_value || 0)
+            const percentage = (platformBudget / stageBudget) * 100 || 0
+            const existingPlatform = platforms.find((p) => p.platform_name === platformName)
+            if (existingPlatform) {
+              existingPlatform.stages_it_was_found.push({
+                stage_name: stageName,
+                percentage: percentage,
+              })
+            } else {
+              platforms.push({
+                platform_name: platformName,
+                platform_budegt: platformBudget,
+                stages_it_was_found: [
+                  {
+                    stage_name: stageName,
+                    percentage: percentage,
+                  },
+                ],
+              })
+            }
           })
+        })
       })
     return platforms
   }
@@ -215,7 +215,7 @@ const Dashboard = () => {
   return (
     <div className="mt-[24px] ">
       <div className="flex items-center gap-3 px-[72px] flex-wrap ">
-        <FiltersDropdowns />
+        <FiltersDropdowns router={undefined} />
         <div className="w-[24px] h-0 border border-[rgba(0,0,0,0.1)] rotate-90 self-center " />
         <HighlightViewDropdowns />
       </div>

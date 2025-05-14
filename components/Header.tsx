@@ -19,9 +19,13 @@ import { useActive } from "app/utils/ActiveContext";
 import { extractAprroverFilters, extractChannelAndPhase, extractDateFilters, extractLevelFilters, extractLevelNameFilters } from "app/utils/campaign-filter-utils";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { el } from "date-fns/locale";
+import { useVersionContext } from "app/utils/VersionApprovalContext";
+import { useSearchParams } from "next/navigation";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 const Header = ({ setIsOpen }) => {
+  const query = useSearchParams();
+  const campaignId = query.get("campaignId");
   const { isAdmin } = useUserPrivileges();
   const { data: session } = useSession();
   const {
@@ -49,7 +53,7 @@ const Header = ({ setIsOpen }) => {
   const [currentVersion, setCurrentVersion] = useState(null);
   // Removed unused 'IsError' and 'setIsError'
   const clients: any = getCreateClientData;
-
+  const { getCampaignVersion, version } = useVersionContext();
 
 
 
@@ -148,18 +152,33 @@ const Header = ({ setIsOpen }) => {
   }, [clients, selectedId, profile?.client?.id]);
 
 
+  // const campaignId = query.get("campaignId");
+  // const plan_name = campaignData?.media_plan_details.plan_name
+
+
+  console.log('currentVersion-currentVersion', version)
 
 
   useEffect(() => {
-    const planId = localStorage.getItem("currentPlanId"); // or wherever it's stored
+    const fetchVersionData = async () => {
+      const versions = await getCampaignVersion("o55lx0j1bi1374rkeg19spva");
+      // console.log('versions=versions', versions)
 
-    const versionData = localStorage.getItem(`mediaPlanVersion`);
-    if (versionData) {
-      const parsed = JSON.parse(versionData);
-      setCurrentVersion(parsed.version);
-    }
+    };
 
-  }, []);
+    fetchVersionData();
+  }, [campaignId]);
+
+  // useEffect(() => {
+  //   const planId = localStorage.getItem("currentPlanId"); // or wherever it's stored
+
+  //   const versionData = localStorage.getItem(`mediaPlanVersion`);
+  //   if (versionData) {
+  //     const parsed = JSON.parse(versionData);
+  //     setCurrentVersion(parsed.version);
+  //   }
+
+  // }, []);
 
 
 
@@ -264,9 +283,9 @@ const Header = ({ setIsOpen }) => {
         </div>}
 
       <div className="  transform -translate-x-1/2 top-4 z-10">
-        {currentVersion && (
+        {version && (
           <div className="px-4 py-[6px] rounded-full bg-green-100 text-green-700 text-sm font-semibold shadow-sm">
-            Media Plan Version: {currentVersion}
+            Media Plan Version: {version[0]?.version?.version_number}
           </div>
         )}
       </div>
