@@ -150,8 +150,8 @@ const CampaignBudget = () => {
         {/* Top‑down Option */}
         <div
           className={`relative cursor-pointer ${budgetStyle === "top_down"
-              ? "top_and_bottom_down_container_active"
-              : "top_and_bottom_down_container"
+            ? "top_and_bottom_down_container_active"
+            : "top_and_bottom_down_container"
             }`}
           onClick={() => {
             handleBudgetEdit("budget_type", "top_down");
@@ -199,8 +199,8 @@ const CampaignBudget = () => {
         {/* Bottom‑up Option */}
         <div
           className={`relative cursor-pointer ${budgetStyle === "bottom_up"
-              ? "top_and_bottom_down_container_active"
-              : "top_and_bottom_down_container"
+            ? "top_and_bottom_down_container_active"
+            : "top_and_bottom_down_container"
             }`}
           onClick={() => {
             handleBudgetEdit("budget_type", "bottom_up");
@@ -265,8 +265,8 @@ const CampaignBudget = () => {
                   }
                 }}
                 className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${loading
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-[#3175FF] hover:bg-[#2563eb]"
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-[#3175FF] hover:bg-[#2563eb]"
                   }`}
                 disabled={loading}
               >
