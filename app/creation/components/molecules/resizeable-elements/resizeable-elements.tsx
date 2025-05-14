@@ -254,8 +254,8 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
         rrange === "Day"
         ? `calc(100px) 100%, calc(700px) 100%` // Every 7th line is darker
         : rrange === "Week"
-        ? `calc(${funnelData?.endWeek - 1} * 7) 100%, calc(${funnelData?.endWeek - 1} * 7 * 7) 100%`
-        : `calc(${funnelData?.endMonth - 1} * 31) 100%, calc(${funnelData?.endMonth - 1} * 31 * 7) 100%`,
+        ? `calc(${funnelData?.endWeek - 1} * 7) 100%, calc(${funnelData?.endWeek - 1} * 7 * 7 * 7) 100%`
+        : `calc(${funnelData?.endMonth - 1} * 31) 100%, calc(${funnelData?.endMonth - 1} * 31 * 7 * 7) 100%`,
       }}
     >
       {loadingCampaign ? (

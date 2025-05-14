@@ -271,6 +271,7 @@ const TableView = () => {
     adSetIndex,
     extraAdSetindex
   ) => {
+    console.log("here is hte")
     setCampaignFormData((prevData) => {
       const updatedData = { ...prevData };
       const channelMix = updatedData.channel_mix?.find(
