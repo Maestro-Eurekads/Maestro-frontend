@@ -12,7 +12,7 @@ import { useCampaigns } from 'app/utils/CampaignsContext';
 
 
 const ComfirmModel = ({ isOpen, setIsOpen }) => {
-	const { createCampaignVersion, getCampaignVersion, isLoading, version, getLoading, documentId, setdocumentId, updateCampaignVersion, createsSuccess, updateSuccess, updateLoading } = useVersionContext();
+	const { createCampaignVersion, getCampaignVersion, isLoading, version, getLoading, setdocumentId, updateCampaignVersion, createsSuccess, updateSuccess, updateLoading } = useVersionContext();
 	const router = useRouter();
 	const { setActive, setSubStep } = useActive();
 	const [showVersionPrompt, setShowVersionPrompt] = useState(false);
