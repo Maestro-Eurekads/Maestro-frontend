@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   calculateAdReturn,
   calculateBouncedVisits,
@@ -44,6 +44,12 @@ export const ChannelRow = ({
   toggleNRCell,
 }) => {
   const { campaignFormData } = useCampaigns()
+
+  // Use a state to track if we've already processed this channel
+  const [hasProcessed, setHasProcessed] = useState(false)
+
+  // Use a ref to store the previous channel data for comparison
+  const prevChannelDataRef = useRef(null)
 
   const chData = campaignFormData?.channel_mix
     ?.find((ch) => ch?.funnel_stage === stage.name)
@@ -137,31 +143,108 @@ export const ChannelRow = ({
     return undefined
   }
 
-  const calculatedValues = Object.fromEntries(
-    Object.entries(formulas).map(([key, [fn, ...args]]) => [
-      key,
-      typeof fn === "function"
-        ? fn.apply(
-            null,
-            args.map((arg) =>
-              Array.isArray(arg) ? Number(getNestedValue(chData, ...arg)) : Number(getNestedValue(chData, arg)),
-            ),
-          )
-        : null,
-    ]),
-  )
+  // Function to check if channel data has changed in a way that requires recalculation
+  const hasRelevantChanges = (prevData, currentData) => {
+    if (!prevData || !currentData) return true
 
+    // Check if budget has changed
+    if (prevData.budget?.fixed_value !== currentData.budget?.fixed_value) return true
+
+    // Check if any KPI input values have changed
+    const inputFields = [
+      "cpm",
+      "frequency",
+      "vtr",
+      "completion_rate",
+      "ctr",
+      "install_rate",
+      "eng_rate",
+      "open_rate",
+      "cvr",
+      "click_to_land_rate",
+      "bounce_rate",
+      "lead_rate",
+      "off_funnel_rate",
+      "clv_of_associated_product",
+      "add_to_cart_rate",
+      "payment_info_rate",
+      "purchase_rate",
+    ]
+
+    for (const field of inputFields) {
+      if (prevData.kpi?.[field] !== currentData.kpi?.[field]) return true
+    }
+
+    return false
+  }
+
+  // Memoize calculated values to prevent unnecessary recalculations
+  const getCalculatedValues = () => {
+    if (!chData) return {}
+
+    return Object.fromEntries(
+      Object.entries(formulas).map(([key, [fn, ...args]]) => [
+        key,
+        typeof fn === "function"
+          ? fn.apply(
+              null,
+              args.map((arg) =>
+                Array.isArray(arg) ? Number(getNestedValue(chData, ...arg)) : Number(getNestedValue(chData, arg)),
+              ),
+            )
+          : null,
+      ]),
+    )
+  }
+
+  // Calculate values only when needed
+  const calculatedValues = getCalculatedValues()
+
+  // Effect to handle calculations and updates
   useEffect(() => {
-    // Calculate the channel's own metrics
-    Object.entries(calculatedValues).forEach(([key, value]) => {
-      if (!isNaN(value) && isFinite(value)) {
-        handleEditInfo(stage.name, channel?.channel_name, channel?.name, key, value, "", "")
-      }
-    })
+    // Skip if we don't have channel data
+    if (!chData) return
 
-    // Note: We no longer need to aggregate values here
-    // This is now handled by the useAggregatedMetrics hook
+    // Check if we need to recalculate (data has changed)
+    const needsRecalculation = hasRelevantChanges(prevChannelDataRef.current, chData)
+
+    // Only process if we haven't processed this data yet or if relevant data has changed
+    if (!hasProcessed || needsRecalculation) {
+      // Store current channel data for future comparison
+      prevChannelDataRef.current = JSON.parse(JSON.stringify(chData))
+
+      // Calculate the channel's own metrics
+      const updates = []
+
+      Object.entries(calculatedValues).forEach(([key, value]) => {
+        if (!isNaN(value) && isFinite(value)) {
+          updates.push([key, value])
+        }
+      })
+
+      // Only update if we have valid calculations
+      if (updates.length > 0) {
+        // Create a copy of the current KPI object or initialize a new one
+        const updatedKpi = { ...(chData.kpi || {}) }
+
+        // Apply all updates
+        updates.forEach(([key, value]) => {
+          updatedKpi[key] = value
+        })
+
+        // Mark this KPI object as manually calculated
+        updatedKpi._calculated = true
+
+        // Update the form data with all changes at once
+        handleEditInfo(stage.name, channel?.channel_name, channel?.name, "kpi", updatedKpi, "", "")
+
+        // Mark as processed to prevent infinite loops
+        setHasProcessed(true)
+      }
+    }
   }, [
+    // Only include dependencies that should trigger recalculation
+    chData?.budget?.fixed_value,
     chData?.kpi?.cpm,
     chData?.kpi?.frequency,
     chData?.kpi?.vtr,
@@ -171,21 +254,31 @@ export const ChannelRow = ({
     chData?.kpi?.eng_rate,
     chData?.kpi?.open_rate,
     chData?.kpi?.cvr,
-    chData?.kpi?.lands,
     chData?.kpi?.click_to_land_rate,
-    chData?.kpi?.bounced_visits,
     chData?.kpi?.bounce_rate,
     chData?.kpi?.lead_rate,
-    chData?.kpi?.lead_visits,
     chData?.kpi?.off_funnel_rate,
     chData?.kpi?.clv_of_associated_product,
     chData?.kpi?.add_to_cart_rate,
-    chData?.kpi?.add_to_carts,
-    chData?.kpi?.payment_infos,
     chData?.kpi?.payment_info_rate,
-    chData?.kpi?.cppi,
     chData?.kpi?.purchase_rate,
+    // Include these dependencies but NOT campaignFormData
+    stage.name,
+    channel?.channel_name,
+    channel?.name,
+    // Include hasProcessed to ensure we only run once per state change
+    hasProcessed,
+    chData,
   ])
+
+  // Reset processed state when channel changes
+  useEffect(() => {
+    // This effect runs when the component mounts or when the channel changes
+    return () => {
+      // Reset processed state when component unmounts or channel changes
+      setHasProcessed(false)
+    }
+  }, [channel?.name, stage.name])
 
   return (
     <tr key={index} className="border-t bg-white hover:bg-gray-100">

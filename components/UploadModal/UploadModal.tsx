@@ -89,7 +89,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
       try {
         const cleanData = removeKeysRecursively(
           data,
-          ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
+          ["id", "documentId", "createdAt", "publishedAt", "updatedAt", "_aggregated"],
           ["previews"],
         )
         await updateCampaign(cleanData)

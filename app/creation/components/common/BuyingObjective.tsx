@@ -201,6 +201,7 @@ const BuyingObjective = () => {
         "createdAt",
         "publishedAt",
         "updatedAt",
+        "_aggregated"
       ])
     : {};
 
@@ -220,6 +221,7 @@ const BuyingObjective = () => {
             "formatValidated",
             "validatedStages",
             "documentId",
+            "_aggregated"
           ],
           ["preview"]
         ),

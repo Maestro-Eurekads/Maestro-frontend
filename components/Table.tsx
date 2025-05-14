@@ -62,6 +62,7 @@ const Table = () => {
       "createdAt",
       "publishedAt",
       "updatedAt",
+      "_aggregated"
     ]);
     const clientId = localStorage.getItem("selectedClient");
     setLoading(true);

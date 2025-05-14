@@ -437,6 +437,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "createdAt",
           "publishedAt",
           "updatedAt",
+          "_aggregated"
         ])
       : {};
 
@@ -451,6 +452,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "formatValidated",
           "validatedStages",
           "documentId",
+          "_aggregated"
         ]),
         custom_funnels: campaignFormData?.custom_funnels,
         funnel_type: campaignFormData?.funnel_type,
@@ -466,6 +468,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "isValidated",
           "validatedStages",
           "documentId",
+          "_aggregated"
         ]),
       });
     };
@@ -480,6 +483,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "formatValidated",
           "validatedStages",
           "documentId",
+          "_aggregated"
         ]),
       });
     };
@@ -493,6 +497,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "id",
           "isValidated",
           "documentId",
+          "_aggregated"
         ]),
         campaign_budget: removeKeysRecursively(
           campaignFormData?.campaign_budget,
@@ -529,6 +534,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "id",
           "isValidated",
           "documentId",
+          "_aggregated"
         ]),
         campaign_budget: removeKeysRecursively(
           campaignFormData?.campaign_budget,

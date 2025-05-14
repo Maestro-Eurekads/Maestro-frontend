@@ -331,12 +331,14 @@ const SelectChannelMix = () => {
           "createdAt",
           "publishedAt",
           "updatedAt",
+          "_aggregated"
         ]),
         channel_mix: removeKeysRecursively(updatedFormData.channel_mix, [
           "id",
           "isValidated",
           "formatValidated",
           "validatedStages",
+          "_aggregated"
         ]),
       });
     }

@@ -203,7 +203,7 @@ const MediaOption = ({
         const cleanData = JSON.parse(JSON.stringify(data));
         const sanitizedData = removeKeysRecursively(
           cleanData,
-          ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
+          ["id", "documentId", "createdAt", "publishedAt", "updatedAt", "_aggregated"],
           ["previews"]
         );
 

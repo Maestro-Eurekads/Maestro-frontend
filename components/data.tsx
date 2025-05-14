@@ -802,3 +802,6 @@ export const mediaTypes = [
   "in_game",
   "mobile",
 ];
+
+
+export const kpis = ["cpm","impressions","frequency","reach","vtr","video_views","cpv","completion_rate","completed_view","cpcv","eng_rate","engagements","cpe","ctr","link_clicks","cpc","click_to_land_rate","lands","cpl","avg_visit_time","avg_pages__visit","bounce_rate","bounced_visits","costbounce","lead_rate","lead_visits","costlead","off_funnel_rate","off_funnel_visits","cost__off_funnel","forms_open","cost__opened_form","cvr","leads","cost__lead","conversions","costconversion","clv_of_associated_product","generated_revenue","return_on_ad_spent","add_to_cart_rate","add_to_carts","cpatc","payment_info_rate","payment_infos","cppi","purchase_rate","purchases","cpp","install_rate","installs","cpi","open_rate","app_open","cost__app_open","conversion","cost__conversion"]
