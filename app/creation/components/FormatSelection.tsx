@@ -17,8 +17,9 @@ import { useComments } from "app/utils/CommentProvider";
 import { Trash } from "lucide-react";
 import Link from "next/link";
 import { removeKeysRecursively } from "utils/removeID";
-import customicon from "../../../public/social/customicon.png";
 import toast from "react-hot-toast";
+import { debounce } from "lodash";
+import customicon from "../../../public/social/customicon.png";
 
 // Types
 type FormatType = {
@@ -110,6 +111,15 @@ const setLocalStorageItem = (key: string, value: any) => {
   localStorage.setItem(key, JSON.stringify(value));
 };
 
+// Debounced toast notification
+const debouncedToast = debounce((message: string, type: "success" | "error") => {
+  if (type === "success") {
+    toast.success(message);
+  } else {
+    toast.error(message);
+  }
+}, 300);
+
 // Components
 const MediaOption = ({
   option,
@@ -124,39 +134,55 @@ const MediaOption = ({
   stageName,
   format,
   adSetIndex,
+  onPreviewsUpdate,
 }: {
   option: MediaOptionType;
   isSelected: boolean;
   quantity: number;
   onSelect: () => void;
   onQuantityChange: (change: number) => void;
-  onOpenModal: () => void;
+  onOpenModal: (previews: Array<{ id: string; url: string }>) => void;
   platformName: string;
   channelName: string;
   previews: Array<{ id: string; url: string }>;
   stageName: string;
   format: string;
   adSetIndex?: number;
+  onPreviewsUpdate: (previews: Array<{ id: string; url: string }>) => void;
 }) => {
   const { campaignFormData, updateCampaign, campaignData } = useCampaigns();
   const [isDeleting, setIsDeleting] = useState(false);
-  const [localPreviews, setLocalPreviews] = useState<
-    Array<{ id: string; url: string }>
-  >([]);
+  const [localPreviews, setLocalPreviews] = useState<Array<{ id: string; url: string }>>([]);
   const [deleteQueue, setDeleteQueue] = useState<string[]>([]);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
+  const [deletingPreviewId, setDeletingPreviewId] = useState<string | null>(null);
 
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
   const STRAPI_TOKEN = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
 
+  // Sync localPreviews with previews prop, but only if they differ
   useEffect(() => {
     if (!STRAPI_URL || !STRAPI_TOKEN) {
       console.error("Missing Strapi configuration:", { STRAPI_URL, STRAPI_TOKEN });
-      toast.error("Server configuration error. Please contact support.");
+      debouncedToast("Server configuration error. Please contact support.", "error");
+      return;
     }
-    setLocalPreviews((previews || []).slice(0, quantity));
+
+    const newPreviews = (previews || []).slice(0, quantity);
+    setLocalPreviews((prev) => {
+      if (JSON.stringify(prev) !== JSON.stringify(newPreviews)) {
+        return newPreviews;
+      }
+      return prev;
+    });
   }, [previews, quantity, STRAPI_URL, STRAPI_TOKEN]);
 
+  // Notify parent of localPreviews changes
+  useEffect(() => {
+    onPreviewsUpdate(localPreviews);
+  }, [localPreviews, onPreviewsUpdate]);
+
+  // Process delete queue
   useEffect(() => {
     const processDeleteQueue = async () => {
       if (deleteQueue.length === 0 || isProcessingQueue) return;
@@ -165,36 +191,40 @@ const MediaOption = ({
       const previewId = deleteQueue[0];
 
       try {
-        const deleteResponse = await fetch(
-          `${STRAPI_URL}/upload/files/${previewId}`,
-          {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${STRAPI_TOKEN}`,
-            },
-          }
-        );
+        const deleteResponse = await fetch(`${STRAPI_URL}/upload/files/${previewId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${STRAPI_TOKEN}`,
+          },
+        });
 
         if (!deleteResponse.ok) {
-          throw new Error(
-            `Failed to delete file from Strapi: ${deleteResponse.statusText}`
-          );
+          throw new Error(`Failed to delete file from Strapi: ${deleteResponse.statusText}`);
         }
 
-        await updateGlobalState(localPreviews.filter((prv) => prv.id !== previewId));
+        // Update UI after successful deletion
+        setLocalPreviews((prev) => {
+          const updated = prev.filter((prv) => prv.id !== previewId);
+          onPreviewsUpdate(updated); // Update parent state
+          debouncedUpdateGlobalState(updated); // Update global state
+          return updated;
+        });
+
         setDeleteQueue((prev) => prev.filter((id) => id !== previewId));
-        toast.success("Preview deleted successfully!");
+        debouncedToast("Preview deleted successfully!", "success");
       } catch (error: any) {
         console.error("Error deleting preview:", error);
-        toast.error(`Failed to delete preview: ${error.message}`);
+        debouncedToast(`Failed to delete preview: ${error.message}`, "error");
         setDeleteQueue((prev) => prev.filter((id) => id !== previewId));
       } finally {
         setIsProcessingQueue(false);
+        setIsDeleting(false); // Re-enable all delete buttons
+        setDeletingPreviewId(null); // Clear spinner
       }
     };
 
     processDeleteQueue();
-  }, [deleteQueue, isProcessingQueue, STRAPI_URL, STRAPI_TOKEN]);
+  }, [deleteQueue, isProcessingQueue, STRAPI_URL, STRAPI_TOKEN, onPreviewsUpdate]);
 
   const uploadUpdatedCampaignToStrapi = useCallback(
     async (data: any) => {
@@ -250,7 +280,7 @@ const MediaOption = ({
           response: error.response?.data,
           status: error.response?.status,
         });
-        toast.error("Failed to save campaign data.");
+        debouncedToast("Failed to save campaign data.", "error");
         throw error;
       }
     },
@@ -263,12 +293,8 @@ const MediaOption = ({
         throw new Error("campaignFormData or channel_mix is undefined");
       }
 
-      const updatedChannelMix = JSON.parse(
-        JSON.stringify(campaignFormData.channel_mix)
-      );
-      const stage = updatedChannelMix.find(
-        (ch: any) => ch.funnel_stage === stageName
-      );
+      const updatedChannelMix = JSON.parse(JSON.stringify(campaignFormData.channel_mix));
+      const stage = updatedChannelMix.find((ch: any) => ch.funnel_stage === stageName);
       if (!stage) {
         throw new Error(`Stage "${stageName}" not found`);
       }
@@ -279,9 +305,7 @@ const MediaOption = ({
         throw new Error(`Platform key "${platformKey}" not found`);
       }
 
-      const targetPlatform = platforms.find(
-        (pl: any) => pl.platform_name === platformName
-      );
+      const targetPlatform = platforms.find((pl: any) => pl.platform_name === platformName);
       if (!targetPlatform) {
         throw new Error(`Target platform "${platformName}" not found`);
       }
@@ -296,9 +320,7 @@ const MediaOption = ({
         const adSet = updatedPlatform.ad_sets[adSetIndex];
         adSet.format = adSet.format || [];
 
-        let targetFormatIndex = adSet.format.findIndex(
-          (fo: any) => fo.format_type === format
-        );
+        let targetFormatIndex = adSet.format.findIndex((fo: any) => fo.format_type === format);
         if (targetFormatIndex === -1) {
           adSet.format.push({
             format_type: format,
@@ -312,9 +334,7 @@ const MediaOption = ({
       } else {
         updatedPlatform.format = updatedPlatform.format || [];
 
-        let targetFormatIndex = updatedPlatform.format.findIndex(
-          (fo: any) => fo.format_type === format
-        );
+        let targetFormatIndex = updatedPlatform.format.findIndex((fo: any) => fo.format_type === format);
         if (targetFormatIndex === -1) {
           updatedPlatform.format.push({
             format_type: format,
@@ -327,9 +347,7 @@ const MediaOption = ({
         updatedPlatform.format[targetFormatIndex].previews = [...updatedPreviews];
       }
 
-      const platformIndex = platforms.findIndex(
-        (pl: any) => pl.platform_name === platformName
-      );
+      const platformIndex = platforms.findIndex((pl: any) => pl.platform_name === platformName);
       platforms[platformIndex] = updatedPlatform;
 
       const updatedState = {
@@ -352,41 +370,42 @@ const MediaOption = ({
     ]
   );
 
+  // Debounced version of updateGlobalState to prevent rapid updates
+  const debouncedUpdateGlobalState = useCallback(
+    debounce((previews: Array<{ id: string; url: string }>) => {
+      updateGlobalState(previews).catch((error) => {
+        console.error("Error in debouncedUpdateGlobalState:", error);
+      });
+    }, 500),
+    [updateGlobalState]
+  );
+
   const handleDelete = useCallback(
     async (previewId: string) => {
       if (!previewId || !STRAPI_URL || !STRAPI_TOKEN || isDeleting) {
         if (isDeleting) {
-          toast.error("Please wait until the current deletion is complete.");
+          debouncedToast("Please wait until the current deletion is complete.", "error");
         } else {
-          toast.error("Invalid preview ID or server configuration.");
+          debouncedToast("Invalid preview ID or server configuration.", "error");
         }
         return;
       }
 
       setIsDeleting(true);
+      setDeletingPreviewId(previewId);
 
       try {
-        setLocalPreviews((prev) => prev.filter((prv) => prv.id !== previewId));
+        // Brief delay to show spinner
+        await new Promise((resolve) => setTimeout(resolve, 500));
         setDeleteQueue((prev) => [...prev, previewId]);
       } catch (error: any) {
-        console.error("Error queueing preview deletion:", error);
-        toast.error(`Failed to queue preview deletion: ${error.message}`);
-        const previewToRestore = previews.find((prv) => prv.id === previewId);
-        if (previewToRestore) {
-          setLocalPreviews((prev) => {
-            const updated = [...prev, previewToRestore];
-            return updated.sort((a, b) => {
-              const indexA = previews.findIndex((p) => p.id === a.id);
-              const indexB = previews.findIndex((p) => p.id === b.id);
-              return indexA - indexB;
-            });
-          });
-        }
-      } finally {
+        console.error("Error initiating deletion:", error);
+        debouncedToast(`Failed to initiate deletion: ${error.message}`, "error");
+        setDeletingPreviewId(null);
         setIsDeleting(false);
       }
     },
-    [localPreviews, previews, STRAPI_URL, STRAPI_TOKEN, isDeleting]
+    [STRAPI_URL, STRAPI_TOKEN, isDeleting]
   );
 
   const isDecreaseDisabled = quantity === 1 || localPreviews.length >= quantity;
@@ -407,9 +426,7 @@ const MediaOption = ({
               height={132}
               alt={option.name}
             />
-            <p className="text-sm font-medium text-gray-700 mt-2">
-              {option.name}
-            </p>
+            <p className="text-sm font-medium text-gray-700 mt-2">{option.name}</p>
             {isSelected && (
               <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
                 <FaCheck />
@@ -439,7 +456,7 @@ const MediaOption = ({
         </div>
         {isSelected && (
           <div
-            onClick={onOpenModal}
+            onClick={() => onOpenModal(localPreviews)}
             className="w-[225px] h-[150px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 transition-colors"
           >
             <div className="flex flex-col items-center gap-2 text-center">
@@ -455,9 +472,7 @@ const MediaOption = ({
                   fill="#3175FF"
                 />
               </svg>
-              <p className="text-md font-lighter text-black mt-2">
-                Upload your previews
-              </p>
+              <p className="text-md font-lighter text-black mt-2">Upload your previews</p>
             </div>
           </div>
         )}
@@ -475,21 +490,19 @@ const MediaOption = ({
                   target="_blank"
                   className="w-[225px] h-[150px] rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors border border-gray-500 cursor-pointer"
                 >
-                  {renderUploadedFile(
-                    localPreviews.map((lp) => lp.url),
-                    option.name,
-                    index
-                  )}
+                  {renderUploadedFile(localPreviews.map((lp) => lp.url), option.name, index)}
                 </Link>
                 <button
                   className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${
-                    isDeleting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                    isDeleting || deletingPreviewId !== null
+                      ? "opacity-50 cursor-not-allowed"
+                      : "cursor-pointer"
                   }`}
                   onClick={() => handleDelete(prv.id)}
-                  disabled={isDeleting}
+                  disabled={isDeleting || deletingPreviewId !== null}
                 >
-                  {isDeleting ? (
-                    <FaSpinner color="white" className="animate-spin" />
+                  {deletingPreviewId === prv.id ? (
+                    <FaSpinner color="white" className="animate-spin" size={10} />
                   ) : (
                     <Trash color="white" size={10} />
                   )}
@@ -536,14 +549,40 @@ const MediaSelectionGrid = ({
   const { campaignFormData } = useCampaigns();
   const channelKey = channelName.toLowerCase().replace(/\s+/g, "_");
 
-  const stage = campaignFormData?.channel_mix?.find(
-    (ch) => ch?.funnel_stage === stageName
+  const stage = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName);
+  const platform = stage?.[channelKey]?.find((pl) => pl?.platform_name === platformName);
+  const adSet = adSetIndex !== undefined ? platform?.ad_sets?.[adSetIndex] : null;
+
+  const [previewsMap, setPreviewsMap] = useState<{
+    [format: string]: Array<{ id: string; url: string }>;
+  }>({});
+
+  const handlePreviewsUpdate = useCallback(
+    (format: string, previews: Array<{ id: string; url: string }>) => {
+      setPreviewsMap((prev) => {
+        if (JSON.stringify(prev[format]) !== JSON.stringify(previews)) {
+          return { ...prev, [format]: previews };
+        }
+        return prev;
+      });
+    },
+    []
   );
-  const platform = stage?.[channelKey]?.find(
-    (pl) => pl?.platform_name === platformName
+
+  // Memoized onOpenModal to prevent recreation
+  const memoizedOnOpenModal = useCallback(
+    (
+      platform: string,
+      channel: string,
+      format: string,
+      previews: any[],
+      quantities: any,
+      adSetIndex?: number
+    ) => {
+      onOpenModal(platform, channel, format, previews, quantities, adSetIndex);
+    },
+    [onOpenModal]
   );
-  const adSet =
-    adSetIndex !== undefined ? platform?.ad_sets?.[adSetIndex] : null;
 
   return (
     <div className="w-full h-full overflow-x-auto overflow-y-clip">
@@ -556,17 +595,13 @@ const MediaSelectionGrid = ({
 
           const previews =
             adSet && view === "adset"
-              ? adSet.format?.find((f) => f.format_type === option.name)
-                  ?.previews || []
-              : platform?.format?.find((f) => f.format_type === option.name)
-                  ?.previews || [];
+              ? adSet.format?.find((f) => f.format_type === option.name)?.previews || []
+              : platform?.format?.find((f) => f.format_type === option.name)?.previews || [];
 
           const q =
             adSet && view === "adset"
-              ? adSet.format?.find((f) => f.format_type === option.name)
-                  ?.num_of_visuals
-              : platform?.format?.find((f) => f.format_type === option.name)
-                  ?.num_of_visuals;
+              ? adSet.format?.find((f) => f.format_type === option.name)?.num_of_visuals
+              : platform?.format?.find((f) => f.format_type === option.name)?.num_of_visuals;
 
           return (
             <MediaOption
@@ -575,11 +610,9 @@ const MediaSelectionGrid = ({
               isSelected={!!isSelected}
               quantity={quantities[option.name] || Number.parseInt(q) || 1}
               onSelect={() => onFormatSelect(index, adSetIndex)}
-              onQuantityChange={(change) =>
-                onQuantityChange(option.name, change)
-              }
-              onOpenModal={() =>
-                onOpenModal(
+              onQuantityChange={(change) => onQuantityChange(option.name, change)}
+              onOpenModal={(previews) =>
+                memoizedOnOpenModal(
                   platformName,
                   channelName,
                   option.name,
@@ -594,6 +627,7 @@ const MediaSelectionGrid = ({
               stageName={stageName}
               format={option.name}
               adSetIndex={adSetIndex}
+              onPreviewsUpdate={(previews) => handlePreviewsUpdate(option.name, previews)}
             />
           );
         })}
@@ -615,11 +649,7 @@ const PlatformItem = ({
   channelTitle: string;
   stageName: string;
   quantities: QuantitiesType;
-  onQuantityChange: (
-    platformName: string,
-    formatName: string,
-    change: number
-  ) => void;
+  onQuantityChange: (platformName: string, formatName: string, change: number) => void;
   onOpenModal: (
     platform: string,
     channel: string,
@@ -631,9 +661,7 @@ const PlatformItem = ({
   view: "channel" | "adset";
 }) => {
   const [isExpanded, setIsExpanded] = useState<{ [key: string]: boolean }>({});
-  const [expandedAdsets, setExpandedAdsets] = useState<{
-    [key: string]: boolean;
-  }>({});
+  const [expandedAdsets, setExpandedAdsets] = useState<{ [key: string]: boolean }>({});
   const { campaignFormData, setCampaignFormData } = useCampaigns();
 
   useEffect(() => {
@@ -643,10 +671,7 @@ const PlatformItem = ({
         [`${platform.platform_name}-${platform.id}`]: true,
       }));
     }
-    if (
-      view === "adset" &&
-      platform.ad_sets?.some((adset) => adset.format?.length > 0)
-    ) {
+    if (view === "adset" && platform.ad_sets?.some((adset) => adset.format?.length > 0)) {
       platform.ad_sets?.forEach((_, index) => {
         setExpandedAdsets((prev) => ({
           ...prev,
@@ -654,92 +679,77 @@ const PlatformItem = ({
         }));
       });
     }
-  }, [
-    platform.format,
-    platform.platform_name,
-    platform.id,
-    platform.ad_sets,
-    view,
-  ]);
+  }, [platform.format, platform.platform_name, platform.id, platform.ad_sets, view]);
 
-  const toggleExpansion = (id: string) => {
+  const toggleExpansion = useCallback((id: string) => {
     setIsExpanded((prev) => ({
       ...prev,
       [id]: !prev[id],
     }));
-  };
+  }, []);
 
-  const toggleAdsetExpansion = (adsetId: string) => {
+  const toggleAdsetExpansion = useCallback((adsetId: string) => {
     setExpandedAdsets((prev) => ({
       ...prev,
       [adsetId]: !prev[adsetId],
     }));
-  };
+  }, []);
 
-  const handleFormatSelection = (index: number, adsetIndex?: number) => {
-    const formatName = DEFAULT_MEDIA_OPTIONS[index].name;
-    const copy = [...campaignFormData.channel_mix];
+  const handleFormatSelection = useCallback(
+    (index: number, adsetIndex?: number) => {
+      const formatName = DEFAULT_MEDIA_OPTIONS[index].name;
+      const copy = [...campaignFormData.channel_mix];
 
-    const stageIndex = copy.findIndex(
-      (item) => item.funnel_stage === stageName
-    );
-    if (stageIndex === -1) return;
+      const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName);
+      if (stageIndex === -1) return;
 
-    const channelKey = channelTitle.toLowerCase().replace(/\s+/g, "_");
-    const channel = copy[stageIndex][channelKey];
-    const platformIndex = channel?.findIndex(
-      (item) => item.platform_name === platform.platform_name
-    );
-    if (platformIndex === -1) return;
+      const channelKey = channelTitle.toLowerCase().replace(/\s+/g, "_");
+      const channel = copy[stageIndex][channelKey];
+      const platformIndex = channel?.findIndex((item) => item.platform_name === platform.platform_name);
+      if (platformIndex === -1) return;
 
-    const platformCopy = channel[platformIndex];
+      const platformCopy = channel[platformIndex];
 
-    if (
-      view === "adset" &&
-      typeof adsetIndex === "number" &&
-      platformCopy.ad_sets?.length > 0
-    ) {
-      const adset = platformCopy.ad_sets[adsetIndex];
-      if (!adset) return;
+      if (view === "adset" && typeof adsetIndex === "number" && platformCopy.ad_sets?.length > 0) {
+        const adset = platformCopy.ad_sets[adsetIndex];
+        if (!adset) return;
 
-      if (!adset.format) adset.format = [];
+        if (!adset.format) adset.format = [];
 
-      const adsetFormatIndex = adset.format.findIndex(
-        (f) => f.format_type === formatName
-      );
+        const adsetFormatIndex = adset.format.findIndex((f) => f.format_type === formatName);
 
-      if (adsetFormatIndex !== -1) {
-        adset.format.splice(adsetFormatIndex, 1);
-      } else {
-        adset.format.push({
-          format_type: formatName,
-          num_of_visuals: "1",
-          previews: [],
-        });
+        if (adsetFormatIndex !== -1) {
+          adset.format.splice(adsetFormatIndex, 1);
+        } else {
+          adset.format.push({
+            format_type: formatName,
+            num_of_visuals: "1",
+            previews: [],
+          });
+        }
+      } else if (view === "channel") {
+        if (!platformCopy.format) platformCopy.format = [];
+
+        const formatIndex = platformCopy.format.findIndex((f) => f.format_type === formatName);
+
+        if (formatIndex !== -1) {
+          platformCopy.format.splice(formatIndex, 1);
+        } else {
+          platformCopy.format.push({
+            format_type: formatName,
+            num_of_visuals: "1",
+            previews: [],
+          });
+        }
       }
-    } else if (view === "channel") {
-      if (!platformCopy.format) platformCopy.format = [];
 
-      const formatIndex = platformCopy.format.findIndex(
-        (f) => f.format_type === formatName
-      );
-
-      if (formatIndex !== -1) {
-        platformCopy.format.splice(formatIndex, 1);
-      } else {
-        platformCopy.format.push({
-          format_type: formatName,
-          num_of_visuals: "1",
-          previews: [],
-        });
-      }
-    }
-
-    setCampaignFormData((prev) => ({
-      ...prev,
-      channel_mix: copy,
-    }));
-  };
+      setCampaignFormData((prev) => ({
+        ...prev,
+        channel_mix: copy,
+      }));
+    },
+    [campaignFormData, setCampaignFormData, channelTitle, stageName, platform.platform_name, view]
+  );
 
   return (
     <div>
@@ -747,9 +757,7 @@ const PlatformItem = ({
         <div className="flex items-center gap-[8px] font-[500] border p-3 rounded-[10px] min-w-[150px] max-w-[180px] w-full">
           {platformIcons[platform.platform_name] && (
             <Image
-              src={
-                getPlatformIcon(platform.platform_name) || "/placeholder.svg"
-              }
+              src={getPlatformIcon(platform.platform_name) || "/placeholder.svg"}
               alt={platform.platform_name}
               width={20}
               height={20}
@@ -760,14 +768,10 @@ const PlatformItem = ({
         {view !== "adset" && (
           <div
             className="flex gap-3 items-center font-semibold cursor-pointer"
-            onClick={() =>
-              toggleExpansion(`${platform.platform_name}-${platform.id}`)
-            }
+            onClick={() => toggleExpansion(`${platform.platform_name}-${platform.id}`)}
           >
             {isExpanded[`${platform.platform_name}-${platform.id}`] ? (
-              <span className="text-gray-500">
-                Choose the number of visuals for this format
-              </span>
+              <span className="text-gray-500">Choose the number of visuals for this format</span>
             ) : (
               <>
                 <p className="font-bold text-[18px] text-[#3175FF]">
@@ -785,66 +789,51 @@ const PlatformItem = ({
         )}
       </div>
 
-      {view === "channel" &&
-        isExpanded[`${platform.platform_name}-${platform.id}`] && (
-          <div className="py-6">
-            <MediaSelectionGrid
-              mediaOptions={DEFAULT_MEDIA_OPTIONS}
-              platformName={platform.platform_name}
-              channelName={channelTitle}
-              stageName={stageName}
-              quantities={quantities[platform.platform_name] || {}}
-              onFormatSelect={handleFormatSelection}
-              onQuantityChange={(formatName, change) =>
-                onQuantityChange(platform.platform_name, formatName, change)
-              }
-              onOpenModal={onOpenModal}
-              view={view}
-            />
-          </div>
-        )}
+      {view === "channel" && isExpanded[`${platform.platform_name}-${platform.id}`] && (
+        <div className="py-6">
+          <MediaSelectionGrid
+            mediaOptions={DEFAULT_MEDIA_OPTIONS}
+            platformName={platform.platform_name}
+            channelName={channelTitle}
+            stageName={stageName}
+            quantities={quantities[platform.platform_name] || {}}
+            onFormatSelect={handleFormatSelection}
+            onQuantityChange={(formatName, change) =>
+              onQuantityChange(platform.platform_name, formatName, change)
+            }
+            onOpenModal={onOpenModal}
+            view={view}
+          />
+        </div>
+      )}
 
       {view === "adset" && platform.ad_sets?.length > 0 && (
         <>
           {platform.ad_sets.map((adset, index) => {
             const adsetKey = `${adset.id}-${index}`;
-            const isAdsetExpanded =
-              expandedAdsets[`${platform.platform_name}-${index}`];
+            const isAdsetExpanded = expandedAdsets[`${platform.platform_name}-${index}`];
 
             return (
               <div key={adsetKey}>
                 <div className="my-3 flex items-center gap-8">
-                  <div className="p-3 border w-fit rounded-md">
-                    {adset.audience_type}
-                  </div>
+                  <div className="p-3 border w-fit rounded-md">{adset.audience_type}</div>
                   <div
                     className="flex items-center gap-2 cursor-pointer"
-                    onClick={() =>
-                      toggleAdsetExpansion(`${platform.platform_name}-${index}`)
-                    }
+                    onClick={() => toggleAdsetExpansion(`${platform.platform_name}-${index}`)}
                   >
                     {isAdsetExpanded ? (
-                      <span className="text-gray-500">
-                        Choose the number of visuals for this format
-                      </span>
+                      <span className="text-gray-500">Choose the number of visuals for this format</span>
                     ) : (
                       <>
                         <p className="font-bold text-[18px] text-[#3175FF]">
-                          <svg
-                            width="13"
-                            height="12"
-                            viewBox="0 0 13 12"
-                            fill="none"
-                          >
+                          <svg width="13" height="12" viewBox="0 0 13 12" fill="none">
                             <path
                               d="M5.87891 5.16675V0.166748H7.54557V5.16675H12.5456V6.83342H7.54557V11.8334H5.87891V6.83342H0.878906V5.16675H5.87891Z"
                               fill="#3175FF"
                             />
                           </svg>
                         </p>
-                        <h3 className="text-[#3175FF] font-semibold">
-                          Add format
-                        </h3>
+                        <h3 className="text-[#3175FF] font-semibold">Add format</h3>
                       </>
                     )}
                   </div>
@@ -857,18 +846,10 @@ const PlatformItem = ({
                       platformName={platform.platform_name}
                       channelName={channelTitle}
                       stageName={stageName}
-                      quantities={
-                        quantities[
-                          `${platform.platform_name}_adset_${index}`
-                        ] || {}
-                      }
+                      quantities={quantities[`${platform.platform_name}_adset_${index}`] || {}}
                       onFormatSelect={handleFormatSelection}
                       onQuantityChange={(formatName, change) =>
-                        onQuantityChange(
-                          `${platform.platform_name}_adset_${index}`,
-                          formatName,
-                          change
-                        )
+                        onQuantityChange(`${platform.platform_name}_adset_${index}`, formatName, change)
                       }
                       onOpenModal={onOpenModal}
                       adSetIndex={index}
@@ -898,11 +879,7 @@ const ChannelSection = ({
   platforms: PlatformType[];
   stageName: string;
   quantities: QuantitiesType;
-  onQuantityChange: (
-    platformName: string,
-    formatName: string,
-    change: number
-  ) => void;
+  onQuantityChange: (platformName: string, formatName: string, change: number) => void;
   onOpenModal: (
     platform: string,
     channel: string,
@@ -969,24 +946,17 @@ export const Platforms = ({
   }, [stageName, view]);
 
   useEffect(() => {
-    const stage = campaignFormData?.channel_mix?.find(
-      (chan) => chan.funnel_stage === stageName
-    );
+    const stage = campaignFormData?.channel_mix?.find((chan) => chan.funnel_stage === stageName);
 
     if (stage) {
       const initialQuantities: QuantitiesType = {};
 
       CHANNEL_TYPES.forEach(({ key }) => {
         stage[key]?.forEach((platform) => {
-          if (
-            view === "channel" &&
-            platform.format &&
-            platform.format.length > 0
-          ) {
+          if (view === "channel" && platform.format && platform.format.length > 0) {
             initialQuantities[platform.platform_name] = {};
             platform.format.forEach((f) => {
-              initialQuantities[platform.platform_name][f.format_type] =
-                Number.parseInt(f.num_of_visuals || "1");
+              initialQuantities[platform.platform_name][f.format_type] = Number.parseInt(f.num_of_visuals || "1");
             });
           }
 
@@ -996,9 +966,7 @@ export const Platforms = ({
                 const adsetKey = `${platform.platform_name}_adset_${adsetIndex}`;
                 initialQuantities[adsetKey] = {};
                 adset.format.forEach((f) => {
-                  initialQuantities[adsetKey][f.format_type] = Number.parseInt(
-                    f.num_of_visuals || "1"
-                  );
+                  initialQuantities[adsetKey][f.format_type] = Number.parseInt(f.num_of_visuals || "1");
                 });
               }
             });
@@ -1007,116 +975,109 @@ export const Platforms = ({
       });
 
       if (Object.keys(initialQuantities).length > 0) {
-        setQuantities(initialQuantities);
-        setLocalStorageItem(
-          `quantities_${stageName}_${view}`,
-          initialQuantities
-        );
+        setQuantities((prev) => {
+          if (JSON.stringify(prev) !== JSON.stringify(initialQuantities)) {
+            return initialQuantities;
+          }
+          return prev;
+        });
+        setLocalStorageItem(`quantities_${stageName}_${view}`, initialQuantities);
       }
     }
   }, [campaignFormData, stageName, view]);
 
-  const handleQuantityChange = (
-    key: string,
-    formatName: string,
-    change: number
-  ) => {
-    const newQuantity = Math.max(
-      1,
-      (quantities[key]?.[formatName] || 1) + change
-    );
-    const newQuantities = {
-      ...quantities,
-      [key]: {
-        ...quantities[key],
-        [formatName]: newQuantity,
-      },
-    };
+  const handleQuantityChange = useCallback(
+    (key: string, formatName: string, change: number) => {
+      const newQuantity = Math.max(1, (quantities[key]?.[formatName] || 1) + change);
+      const newQuantities = {
+        ...quantities,
+        [key]: {
+          ...quantities[key],
+          [formatName]: newQuantity,
+        },
+      };
 
-    setQuantities(newQuantities);
-    setLocalStorageItem(`quantities_${stageName}_${view}`, newQuantities);
+      setQuantities(newQuantities);
+      setLocalStorageItem(`quantities_${stageName}_${view}`, newQuantities);
 
-    const copy = [...campaignFormData.channel_mix];
-    const stageIndex = copy.findIndex(
-      (item) => item.funnel_stage === stageName
-    );
-    if (stageIndex === -1) return;
+      const copy = [...campaignFormData.channel_mix];
+      const stageIndex = copy.findIndex((item) => item.funnel_stage === stageName);
+      if (stageIndex === -1) return;
 
-    for (const channelType of CHANNEL_TYPES) {
-      const platforms = copy[stageIndex][channelType.key];
-      if (!platforms) continue;
+      for (const channelType of CHANNEL_TYPES) {
+        const platforms = copy[stageIndex][channelType.key];
+        if (!platforms) continue;
 
-      let platformName = key;
-      let adSetIndex: number | undefined;
+        let platformName = key;
+        let adSetIndex: number | undefined;
 
-      if (view === "adset") {
-        const match = key.match(/^(.*)_adset_(\d+)$/);
-        if (match) {
-          platformName = match[1];
-          adSetIndex = Number.parseInt(match[2]);
-        }
-      }
-
-      const platform = platforms.find((p) => p.platform_name === platformName);
-      if (!platform) continue;
-
-      if (view === "channel") {
-        if (platform.format) {
-          const format = platform.format.find(
-            (f) => f.format_type === formatName
-          );
-          if (format) {
-            format.num_of_visuals = newQuantity.toString();
-            if (format.previews && format.previews.length > newQuantity) {
-              format.previews = format.previews.slice(0, newQuantity);
-            }
+        if (view === "adset") {
+          const match = key.match(/^(.*)_adset_(\d+)$/);
+          if (match) {
+            platformName = match[1];
+            adSetIndex = Number.parseInt(match[2]);
           }
         }
-      } else if (view === "adset" && adSetIndex !== undefined) {
-        const adSet = platform.ad_sets?.[adSetIndex];
-        if (adSet && adSet.format) {
-          const adSetFormat = adSet.format.find(
-            (f) => f.format_type === formatName
-          );
-          if (adSetFormat) {
-            adSetFormat.num_of_visuals = newQuantity.toString();
-            if (
-              adSetFormat.previews &&
-              adSetFormat.previews.length > newQuantity
-            ) {
-              adSetFormat.previews = adSetFormat.previews.slice(0, newQuantity);
+
+        const platform = platforms.find((p) => p.platform_name === platformName);
+        if (!platform) continue;
+
+        if (view === "channel") {
+          if (platform.format) {
+            const format = platform.format.find((f) => f.format_type === formatName);
+            if (format) {
+              format.num_of_visuals = newQuantity.toString();
+              if (format.previews && format.previews.length > newQuantity) {
+                format.previews = format.previews.slice(0, newQuantity);
+              }
+            }
+          }
+        } else if (view === "adset" && adSetIndex !== undefined) {
+          const adSet = platform.ad_sets?.[adSetIndex];
+          if (adSet && adSet.format) {
+            const adSetFormat = adSet.format.find((f) => f.format_type === formatName);
+            if (adSetFormat) {
+              adSetFormat.num_of_visuals = newQuantity.toString();
+              if (adSetFormat.previews && adSetFormat.previews.length > newQuantity) {
+                adSetFormat.previews = adSetFormat.previews.slice(0, newQuantity);
+              }
             }
           }
         }
       }
-    }
 
-    setCampaignFormData({ ...campaignFormData, channel_mix: copy });
-  };
+      setCampaignFormData((prev) => ({
+        ...prev,
+        channel_mix: copy,
+      }));
+    },
+    [quantities, campaignFormData, setCampaignFormData, stageName, view]
+  );
 
-  const openModal = (
-    platform: string,
-    channel: string,
-    format: string,
-    previews: any[],
-    quantities: any,
-    adSetIndex?: number
-  ) => {
-    setModalContext({
-      platform,
-      channel,
-      format,
-      previews,
-      quantities,
-      adSetIndex,
-    });
-    setIsModalOpen(true);
-  };
+  const openModal = useCallback(
+    (
+      platform: string,
+      channel: string,
+      format: string,
+      previews: any[],
+      quantities: any,
+      adSetIndex?: number
+    ) => {
+      setModalContext({
+        platform,
+        channel,
+        format,
+        previews,
+        quantities,
+        adSetIndex,
+      });
+      setIsModalOpen(true);
+    },
+    []
+  );
 
-  const getChannelPlatforms = () => {
-    const stage = campaignFormData?.channel_mix?.find(
-      (chan) => chan?.funnel_stage === stageName
-    );
+  const getChannelPlatforms = useCallback(() => {
+    const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName);
 
     if (!stage) return [];
 
@@ -1124,7 +1085,7 @@ export const Platforms = ({
       title,
       platforms: stage[key]?.filter((p: PlatformType) => p.platform_name) || [],
     })).filter((channel) => channel.platforms.length > 0);
-  };
+  }, [campaignFormData, stageName]);
 
   const channelSections = getChannelPlatforms();
 
@@ -1136,9 +1097,7 @@ export const Platforms = ({
           channelTitle={channel.title}
           platforms={
             platformName
-              ? channel.platforms?.filter(
-                  (fdj) => fdj?.platform_name === platformName
-                )
+              ? channel.platforms?.filter((fdj) => fdj?.platform_name === platformName)
               : channel.platforms
           }
           stageName={stageName}
@@ -1152,7 +1111,10 @@ export const Platforms = ({
       {isModalOpen && modalContext && (
         <UploadModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            setModalContext(null);
+          }}
           platform={modalContext.platform}
           channel={modalContext.channel}
           format={modalContext.format}
@@ -1160,6 +1122,10 @@ export const Platforms = ({
           quantities={modalContext.quantities}
           stageName={stageName}
           adSetIndex={modalContext.adSetIndex}
+          onUploadSuccess={() => {
+            setIsModalOpen(false);
+            setModalContext(null);
+          }}
         />
       )}
     </div>
@@ -1179,7 +1145,6 @@ export const FormatSelection = ({
   const { setIsDrawerOpen, setClose } = useComments();
 
   useEffect(() => {
-    // Initialize view and goal_level on mount
     setView("channel");
     setIsDrawerOpen(false);
     setClose(false);
@@ -1201,47 +1166,51 @@ export const FormatSelection = ({
     }
   }, [campaignFormData]);
 
-  const toggleTab = (stageName: string) => {
+  const toggleTab = useCallback((stageName: string) => {
     const newOpenTabs = openTabs.includes(stageName)
       ? openTabs.filter((tab) => tab !== stageName)
       : [...openTabs, stageName];
 
     setOpenTabs(newOpenTabs);
     setLocalStorageItem("formatSelectionOpenTabs", newOpenTabs);
-  };
+  }, [openTabs]);
 
-  const hasSelectedFormatsForStage = (stageName: string) => {
-    const stage = campaignFormData?.channel_mix?.find(
-      (chan) => chan?.funnel_stage === stageName
-    );
+  const hasSelectedFormatsForStage = useCallback(
+    (stageName: string) => {
+      const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName);
 
-    return (
-      stage &&
-      CHANNEL_TYPES.some(({ key }) =>
-        stage[key]?.some((platform: PlatformType) =>
-          view === "channel"
-            ? platform.format?.length > 0
-            : platform.ad_sets?.some((adset) => adset.format?.length > 0)
+      return (
+        stage &&
+        CHANNEL_TYPES.some(({ key }) =>
+          stage[key]?.some((platform: PlatformType) =>
+            view === "channel"
+              ? platform.format?.length > 0
+              : platform.ad_sets?.some((adset) => adset.format?.length > 0)
+          )
         )
-      )
-    );
-  };
+      );
+    },
+    [campaignFormData, view]
+  );
 
-  const getStageStatus = (stageName: string) => {
-    const hasFormats = hasSelectedFormatsForStage(stageName);
+  const getStageStatus = useCallback(
+    (stageName: string) => {
+      const hasFormats = hasSelectedFormatsForStage(stageName);
 
-    if (hasFormats) return "In progress";
-    return "Not started";
-  };
+      if (hasFormats) return "In progress";
+      return "Not started";
+    },
+    [hasSelectedFormatsForStage]
+  );
 
-  const handleToggleChange = (checked: boolean) => {
+  const handleToggleChange = useCallback((checked: boolean) => {
     const newView = checked ? "adset" : "channel";
     setView(newView);
     setCampaignFormData((prev) => ({
       ...prev,
       goal_level: checked ? "Adset level" : "Channel level",
     }));
-  };
+  }, [setCampaignFormData]);
 
   return (
     <div>
