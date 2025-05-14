@@ -1,8 +1,10 @@
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { formatNumberWithCommas, getCurrencySymbol } from "components/data";
+import PropTypes from "prop-types";
 import React, { useEffect } from "react";
 import Select from "react-select";
 
+// Component to handle budget input and currency selection
 function BudgetInput({
   selectedOption,
   handleBudgetEdit,
@@ -10,19 +12,14 @@ function BudgetInput({
   setSelectedOption,
 }) {
   const { campaignFormData, setCampaignFormData } = useCampaigns();
+
+  // Handle currency change from dropdown
   const handleCurrencyChange = (option) => {
     setSelectedOption(option);
     handleBudgetEdit("currency", option.value);
   };
-  const calculateRemainingBudget = () => {
-    const totalBudget = Number(campaignFormData?.campaign_budget?.amount) || 0;
-    const subBudgets =
-      campaignFormData?.channel_mix?.reduce((acc, stage) => {
-        return acc + (Number(stage?.stage_budget?.fixed_value) || 0);
-      }, 0) || 0;
-    return totalBudget - subBudgets;
-  };
 
+  // Sync selected currency with campaign form data
   useEffect(() => {
     if (campaignFormData?.campaign_budget) {
       setSelectedOption({
@@ -30,7 +27,7 @@ function BudgetInput({
         value: campaignFormData?.campaign_budget?.currency,
       });
     }
-  }, [campaignFormData]);
+  }, [campaignFormData, setSelectedOption]);
 
   return (
     <div className="flex flex-row items-center gap-[16px] px-0 bg-[#F9FAFB] border-[rgba(6,18,55,0.1)] box-border">
@@ -46,12 +43,13 @@ function BudgetInput({
               ) || ""
             }
             onChange={(e) => {
-              const inputValue = e.target.value.replace(/,/g, ""); // Remove commas
+              const inputValue = e.target.value.replace(/,/g, "");
               const newBudget = Number(inputValue);
               if (/^\d*\.?\d*$/.test(newBudget.toString())) {
                 handleBudgetEdit("amount", newBudget.toString());
               }
             }}
+            aria-label="Budget amount input"
           />
         </div>
         <div className="w-[120px]">
@@ -60,7 +58,7 @@ function BudgetInput({
             options={selectCurrency}
             onChange={handleCurrencyChange}
             value={selectedOption}
-            defaultValue={{label: "EUR", value: "EUR"}}
+            defaultValue={{ label: "EUR", value: "EUR" }}
             styles={{
               control: (provided) => ({
                 ...provided,
@@ -88,29 +86,28 @@ function BudgetInput({
                 padding: 0,
               }),
             }}
+            aria-label="Currency selector"
           />
         </div>
       </div>
-      {/* <div>
-        <p
-          className={`font-[600] text-[15px] leading-[20px] ${
-            Number(calculateRemainingBudget()) < 1
-              ? "text-red-500"
-              : "text-[#00A36C]"
-          }`}
-        >
-          Remaining budget:{" "}
-          {Number(campaignFormData?.campaign_budget?.amount) > 0
-            ? getCurrencySymbol(
-                campaignFormData?.campaign_budget?.currency ||
-                  selectedOption?.value
-              )
-            : ""}
-          {Number(calculateRemainingBudget())?.toLocaleString()}
-        </p>
-      </div> */}
     </div>
   );
 }
+
+// Define PropTypes for type checking
+BudgetInput.propTypes = {
+  selectedOption: PropTypes.shape({
+    value: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
+  }).isRequired,
+  handleBudgetEdit: PropTypes.func.isRequired,
+  selectCurrency: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  setSelectedOption: PropTypes.func.isRequired,
+};
 
 export default BudgetInput;
