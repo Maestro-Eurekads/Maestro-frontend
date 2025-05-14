@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import CampaignBudget from "./CampaignBudget";
 import Image from "next/image";
 import Selectstatus from "../../../public/Select-status.svg";
 import { formatNumberWithCommas, getCurrencySymbol } from "components/data";
@@ -12,7 +11,6 @@ import PageHeaderWrapper from "components/PageHeaderWapper";
 import BudgetInput from "./BudgetInput";
 import PropTypes from "prop-types";
 
-// Fee options for the dropdown
 const feeOptions = [
   { label: "VAT", value: "vat", type: "percent" },
   { label: "Media Fee", value: "media_fee", type: "percent" },
@@ -22,11 +20,11 @@ const feeOptions = [
   { label: "Fixed Fee", value: "fixed_fee", type: "fixed" },
 ];
 
-// Main component for fee selection and budget type selection
 function FeeSelectionStep({
   num1,
   num2,
-  isValidated: initialIsValidated,
+  isValidated,
+  setIsValidated,
   netAmount,
   setNetAmount,
   feeType,
@@ -36,7 +34,6 @@ function FeeSelectionStep({
 }) {
   const [active, setActive] = useState(null);
   const [showSelection, setShowSelection] = useState(true);
-  const [isValidated, setIsValidated] = useState(initialIsValidated); // Manage local validation state
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   const [selectedOption, setSelectedOption] = useState({
     value: "EUR",
@@ -53,7 +50,6 @@ function FeeSelectionStep({
     { value: "CAD", label: "CAD" },
   ];
 
-  // Handle budget updates
   const handleBudgetEdit = (param, type) => {
     setCampaignFormData((prev) => ({
       ...prev,
@@ -64,7 +60,6 @@ function FeeSelectionStep({
     }));
   };
 
-  // Calculate net amount based on fees
   const calculateNetAmount = () => {
     if (!campaignFormData?.campaign_budget?.amount) return "";
 
@@ -89,7 +84,6 @@ function FeeSelectionStep({
     return "";
   };
 
-  // Update net amount based on fees and budget
   const updateNetAmount = (
     feesList = fees,
     budget = campaignFormData?.campaign_budget?.amount
@@ -108,7 +102,6 @@ function FeeSelectionStep({
     setNetAmount(net);
   };
 
-  // Handle adding a new fee
   const handleAddFee = () => {
     if (!campaignFormData?.campaign_budget?.amount) {
       toast("Please set the overall campaign budget first", {
@@ -183,17 +176,11 @@ function FeeSelectionStep({
       },
     }));
 
-    const net =
-      active === 1
-        ? (budgetAmount - newTotalFees).toFixed(2)
-        : (budgetAmount + newTotalFees).toFixed(2);
-
     updateNetAmount(updatedFees);
     setFeeType(null);
     setFeeAmount("");
   };
 
-  // Sync fees and active state with campaignFormData
   useEffect(() => {
     if (campaignFormData) {
       const feesData = campaignFormData?.campaign_budget?.budget_fees?.map(
@@ -222,7 +209,6 @@ function FeeSelectionStep({
     }
   }, [campaignFormData]);
 
-  // Recalculate fees when budget amount changes
   useEffect(() => {
     if (fees?.some((fee) => fee?.isPercent)) {
       const budgetAmount = Number.parseFloat(
@@ -260,7 +246,6 @@ function FeeSelectionStep({
     }
   }, [campaignFormData?.campaign_budget?.amount, active]);
 
-  // Calculate remaining budget
   const calculateRemainingBudget = () => {
     const totalBudget =
       Number(netAmount) > 0
@@ -273,16 +258,16 @@ function FeeSelectionStep({
     return totalBudget - subBudgets;
   };
 
-  // Handle edit click to return to selection mode
   const handleEditClick = () => {
     setShowSelection(true);
-    setIsValidated(false); // Exit validated mode to allow editing
+    setIsValidated(false);
+    setFeeType(null);
+    setFeeAmount("");
   };
 
   return (
     <>
       <div className="relative">
-        {/* Sticky Total Budget */}
         {campaignFormData?.campaign_budget?.sub_budget_type && (
           <div className="fixed top-0 left-0 right-0 bg-white shadow-md p-2 z-50 border-b border-gray-100">
             <div className="flex items-center justify-between max-w-[1200px] mx-auto">
@@ -520,7 +505,7 @@ function FeeSelectionStep({
                           </div>
                         )}
                         <button
-                          className="mt-6 bg-blue-500 text-white px-2 py-1 rounded"
+                          className="mt-4 bg-blue-500 text-white px-2 py-1 rounded"
                           onClick={handleAddFee}
                           aria-label="Add fee"
                         >
@@ -575,20 +560,6 @@ function FeeSelectionStep({
                                       budget_fees: budgetFees,
                                     },
                                   }));
-
-                                  const budgetAmount = parseFloat(
-                                    campaignFormData?.campaign_budget?.amount ||
-                                      "0"
-                                  );
-                                  const totalFees = updatedFees.reduce(
-                                    (total, fee) =>
-                                      total + parseFloat(fee.amount),
-                                    0
-                                  );
-                                  const newNetAmount =
-                                    active === 1
-                                      ? (budgetAmount - totalFees).toFixed(2)
-                                      : (budgetAmount + totalFees).toFixed(2);
 
                                   updateNetAmount(updatedFees);
                                 }}
@@ -729,7 +700,7 @@ function FeeSelectionStep({
                             </div>
                           )}
                           <button
-                            className="mt-6 bg-blue-500 text-white px-2 py-1 rounded"
+                            className="mt-4 bg-blue-500 text-white px-2 py-1 rounded"
                             onClick={handleAddFee}
                             aria-label="Add fee"
                           >
@@ -788,20 +759,6 @@ function FeeSelectionStep({
                                         budget_fees: budgetFees,
                                       },
                                     }));
-
-                                    const budgetAmount = parseFloat(
-                                      campaignFormData?.campaign_budget?.amount ||
-                                        "0"
-                                    );
-                                    const totalFees = updatedFees.reduce(
-                                      (total, fee) =>
-                                        total + parseFloat(fee.amount),
-                                      0
-                                    );
-                                    const newNetAmount =
-                                      active === 1
-                                        ? (budgetAmount - totalFees).toFixed(2)
-                                        : (budgetAmount + totalFees).toFixed(2);
 
                                     updateNetAmount(updatedFees);
                                   }}
@@ -886,11 +843,11 @@ function FeeSelectionStep({
   );
 }
 
-// Define PropTypes for type checking
 FeeSelectionStep.propTypes = {
   num1: PropTypes.number.isRequired,
   num2: PropTypes.number.isRequired,
   isValidated: PropTypes.bool.isRequired,
+  setIsValidated: PropTypes.func.isRequired,
   netAmount: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
     .isRequired,
   setNetAmount: PropTypes.func.isRequired,
