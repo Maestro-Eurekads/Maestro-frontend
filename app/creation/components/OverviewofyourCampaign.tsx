@@ -34,6 +34,7 @@ import { differenceInDays } from 'date-fns';
 import { parseISO } from 'date-fns';
 import { processCampaignData } from 'components/processCampaignData';
 import { getCurrencySymbol, getPlatformIcon } from 'components/data';
+import { useVersionContext } from 'app/utils/VersionApprovalContext';
 
 
 interface Comment {
@@ -54,6 +55,7 @@ interface Reply {
 
 const OverviewofyourCampaign = () => {
 	const { isDrawerOpen, setIsDrawerOpen, isCreateOpen, setClose, close } = useComments();
+	const { createsSuccess, updateSuccess } = useVersionContext();
 	const [show, setShow] = useState(false);
 	const [generalComment, setGeneralComment] = useState(false);
 	const [alert, setAlert] = useState(null);
@@ -402,6 +404,25 @@ const OverviewofyourCampaign = () => {
 	return (
 		<div>
 			{alert && <AlertMain alert={alert} />}
+			{/* Alert */}
+			{createsSuccess && (
+				<AlertMain
+					alert={{
+						variant: 'success',
+						message: 'Media plan version created!',
+						position: 'bottom-right',
+					}}
+				/>
+			)}
+			{updateSuccess && (
+				<AlertMain
+					alert={{
+						variant: 'success',
+						message: 'Media plan version updated!',
+						position: 'bottom-right',
+					}}
+				/>
+			)}
 			<div className={`px-[20px]  ${isDrawerOpen ? 'md:px-[30px]' : 'xl:px-[60px]'}`}>
 				<div className='flex	flex-col gap-[24px]'>
 					<BusinessApproverContainer campaign={campaignData} loading={undefined} isLoadingCampaign={isLoadingCampaign} />

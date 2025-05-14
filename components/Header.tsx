@@ -50,10 +50,9 @@ const Header = ({ setIsOpen }) => {
   const [alert, setAlert] = useState(null);
   const [show, setShow] = useState(false);
   const [selectedId, setSelectedId] = useState<string>("");
-  const [currentVersion, setCurrentVersion] = useState(null);
   // Removed unused 'IsError' and 'setIsError'
   const clients: any = getCreateClientData;
-  const { getCampaignVersion, version } = useVersionContext();
+  const { getCampaignVersionByclientID, versions } = useVersionContext();
 
 
 
@@ -152,33 +151,17 @@ const Header = ({ setIsOpen }) => {
   }, [clients, selectedId, profile?.client?.id]);
 
 
-  // const campaignId = query.get("campaignId");
-  // const plan_name = campaignData?.media_plan_details.plan_name
 
-
-  console.log('currentVersion-currentVersion', version)
 
 
   useEffect(() => {
     const fetchVersionData = async () => {
-      const versions = await getCampaignVersion("o55lx0j1bi1374rkeg19spva");
-      // console.log('versions=versions', versions)
-
+      const versions = await getCampaignVersionByclientID(selectedId)
     };
-
     fetchVersionData();
-  }, [campaignId]);
+  }, [selectedId]);
 
-  // useEffect(() => {
-  //   const planId = localStorage.getItem("currentPlanId"); // or wherever it's stored
 
-  //   const versionData = localStorage.getItem(`mediaPlanVersion`);
-  //   if (versionData) {
-  //     const parsed = JSON.parse(versionData);
-  //     setCurrentVersion(parsed.version);
-  //   }
-
-  // }, []);
 
 
 
@@ -283,9 +266,9 @@ const Header = ({ setIsOpen }) => {
         </div>}
 
       <div className="  transform -translate-x-1/2 top-4 z-10">
-        {version && (
+        {versions?.length > 0 && (
           <div className="px-4 py-[6px] rounded-full bg-green-100 text-green-700 text-sm font-semibold shadow-sm">
-            Media Plan Version: {version[0]?.version?.version_number}
+            Media Plan Version: {versions[0]?.version?.version_number}
           </div>
         )}
       </div>
