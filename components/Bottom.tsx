@@ -36,8 +36,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const { verifybeforeMove, hasChanges } = useVerification();
   const { active, setActive, subStep, setSubStep } = useActive();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
-  const [setupyournewcampaignError, setSetupyournewcampaignError] =
-    useState(false);
+  const [setupyournewcampaignError, setSetupyournewcampaignError] = useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
   const [selectedDatesError, setSelectedDatesError] = useState(false);
   const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
@@ -46,8 +45,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [validateStep, setValidateStep] = useState(false);
   const { selectedDates } = useSelectedDates();
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
-  const [triggerBuyObjectiveError, setTriggerBuyObjectiveError] =
-    useState(false);
+  const [triggerBuyObjectiveError, setTriggerBuyObjectiveError] = useState(false);
+  const [isBuyingObjectiveError, setIsBuyingObjectiveError] = useState(false); // New state for active === 6
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
@@ -73,11 +72,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             return true;
           }
           // Check Ad Set View (platform.ad_sets[].format.previews)
-          if (
-            platform.ad_sets?.some((adset) =>
-              adset.format?.some((f) => f.previews?.length > 0)
-            )
-          ) {
+          if (platform.ad_sets?.some((adset) => adset.format?.some((f) => f.previews?.length > 0))) {
             return true;
           }
           return false;
@@ -95,10 +90,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   useEffect(() => {
     if (typeof window !== "undefined" && cId) {
-      localStorage.setItem(
-        `triggerFormatError_${cId}`,
-        triggerFormatError.toString()
-      );
+      localStorage.setItem(`triggerFormatError_${cId}`, triggerFormatError.toString());
     }
   }, [triggerFormatError, cId]);
 
@@ -111,6 +103,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       triggerChannelMixError ||
       incompleteFieldsError ||
       triggerBuyObjectiveError ||
+      isBuyingObjectiveError ||
       validateStep
     ) {
       const timer = setTimeout(() => {
@@ -121,6 +114,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setTriggerChannelMixError(false);
         setIncompleteFieldsError(false);
         setTriggerBuyObjectiveError(false);
+        setIsBuyingObjectiveError(false);
         setValidateStep(false);
         setAlert(null);
       }, 3000);
@@ -134,6 +128,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     triggerChannelMixError,
     incompleteFieldsError,
     triggerBuyObjectiveError,
+    isBuyingObjectiveError,
     validateStep,
     campaignFormData,
   ]);
@@ -144,9 +139,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     let hasValidFormat = false;
 
     for (const stage of selectedStages) {
-      const stageData = campaignFormData?.channel_mix?.find(
-        (mix) => mix.funnel_stage === stage
-      );
+      const stageData = campaignFormData?.channel_mix?.find((mix) => mix.funnel_stage === stage);
 
       if (stageData) {
         const hasFormatSelected = [
@@ -163,8 +156,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           ...(stageData.mobile || []),
         ].some(
           (platform) =>
-            (platform.format?.length > 0 &&
-              platform.format.some((f) => f.format_type && f.num_of_visuals)) ||
+            platform.format?.length > 0 &&
+            platform.format.some((f) => f.format_type && f.num_of_visuals) ||
             platform.ad_sets?.some((adset) =>
               adset.format?.some((f) => f.format_type && f.num_of_visuals)
             )
@@ -190,9 +183,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
 
     for (const stage of selectedStages) {
-      const stageData = campaignFormData.channel_mix.find(
-        (mix) => mix.funnel_stage === stage
-      );
+      const stageData = campaignFormData.channel_mix.find((mix) => mix.funnel_stage === stage);
 
       if (stageData && validatedStages[stage]) {
         const hasValidChannel = [
@@ -244,6 +235,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const handleContinue = async () => {
     // Prevent proceeding if in edit mode for Buying Objectives
     if (active === 6 && isEditingBuyingObjective) {
+      setIsBuyingObjectiveError(true);
       setAlert({
         variant: "error",
         message: "Please confirm or cancel your changes before proceeding",
@@ -522,7 +514,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       ).format("YYYY-MM-DD");
 
       const campaign_timeline_end_date = dayjs(
-        new Date(currentYear, selectedDates?.to?.month, selectedDates.to?.day)
+        new Date(
+          currentYear,
+          selectedDates?.to?.month,
+          selectedDates.to?.day
+        )
       ).format("YYYY-MM-DD");
       await updateCampaignData({
         ...cleanData,
@@ -577,7 +573,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   };
 
   const handleSkip = () => {
-    console.log("here");
     setActive((prev) => Math.min(9, prev + 1));
   };
 
@@ -658,6 +653,15 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
+      {isBuyingObjectiveError && active === 6 && (
+        <AlertMain
+          alert={{
+            variant: "error",
+            message: "Please confirm or cancel your changes before proceeding",
+            position: "bottom-right",
+          }}
+        />
+      )}
 
       <div className="flex justify-between w-full">
         {active === 0 ? (
@@ -692,14 +696,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                 active === 10 && "opacity-50 cursor-not-allowed",
                 active < 10 && "hover:bg-blue-500"
               )}
-              onClick={() => {
-                console.log("here", active)
-                if (active === 4 && !hasUploadedPreviews()) {
-                  handleSkip();
-                } else {
-                  handleContinue()
-                }
-              }}
+              onClick={handleContinue}
               disabled={active === 10}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}

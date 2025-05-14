@@ -96,48 +96,6 @@ export const ChannelRow = ({
     cpp: [calculateCPP, "budget.fixed_value", "kpi.purchases"],
   }
 
-  // Define calculated fields - these are the only fields that should be aggregated
-  const calculatedFields = [
-    "impressions",
-    "reach",
-    "video_views",
-    "cpv",
-    "completed_view",
-    "cpcv",
-    "link_clicks",
-    "cpc",
-    "installs",
-    "cpi",
-    "engagements",
-    "cpe",
-    "app_open",
-    "cost__app_open",
-    "conversion",
-    "cost__conversion",
-    "forms_open",
-    "cost__opened_form",
-    "leads",
-    "cost__lead",
-    "lands",
-    "cpl",
-    "bounced_visits",
-    "costbounce",
-    "lead_visits",
-    "costlead",
-    "off_funnel_visits",
-    "cost__off_funnel",
-    "conversions",
-    "costconversion",
-    "generated_revenue",
-    "return_on_ad_spent",
-    "add_to_carts",
-    "cpatc",
-    "payment_infos",
-    "cppi",
-    "purchases",
-    "cpp",
-  ]
-
   // Helper function to check if a field is a percentage type
   const isPercentageField = (fieldName, headerGroup) => {
     // Extract the field name from the path (e.g., "kpi.ctr" -> "ctr")
@@ -201,8 +159,8 @@ export const ChannelRow = ({
       }
     })
 
-    // Note: We no longer need to aggregate values from ad sets here
-    // as this is now handled in the TableView component
+    // Note: We no longer need to aggregate values here
+    // This is now handled by the useAggregatedMetrics hook
   }, [
     chData?.kpi?.cpm,
     chData?.kpi?.frequency,
@@ -253,21 +211,6 @@ export const ChannelRow = ({
           </div>
         </td>
       ))}
-      {/* {chData?.objective_type &&
-        chData?.objective_type !== "Brand Awareness" && (
-          <td className="py-6 px-6 text-[15px]">
-            <span
-              className="flex items-center gap-2 text-blue-500 cursor-pointer"
-              onClick={() => toggleKPIShow(`${stage.name}${index}`)}
-            >
-              <p>
-                {expandedKPI[`${stage.name}${index}`] ? "Hide" : "View"}{" "}
-                Objective KPI
-              </p>
-              <ArrowRight size={14} />
-            </span>
-          </td>
-        )} */}
     </tr>
   )
 }

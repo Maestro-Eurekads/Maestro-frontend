@@ -139,14 +139,13 @@ const MediaOption = ({
   adSetIndex?: number;
 }) => {
   const { campaignFormData, updateCampaign, campaignData } = useCampaigns();
-  const [isDeleting, setIsDeleting] = useState(false); // Single state for all deletions
+  const [isDeleting, setIsDeleting] = useState(false);
   const [localPreviews, setLocalPreviews] = useState<
     Array<{ id: string; url: string }>
   >([]);
   const [deleteQueue, setDeleteQueue] = useState<string[]>([]);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
 
-  // Environment variables
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
   const STRAPI_TOKEN = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
 
@@ -155,8 +154,7 @@ const MediaOption = ({
       console.error("Missing Strapi configuration:", { STRAPI_URL, STRAPI_TOKEN });
       toast.error("Server configuration error. Please contact support.");
     }
-    const shownPreviews = (previews || []).slice(0, quantity);
-    setLocalPreviews(shownPreviews);
+    setLocalPreviews((previews || []).slice(0, quantity));
   }, [previews, quantity, STRAPI_URL, STRAPI_TOKEN]);
 
   useEffect(() => {
@@ -167,7 +165,6 @@ const MediaOption = ({
       const previewId = deleteQueue[0];
 
       try {
-        // Delete file from Strapi
         const deleteResponse = await fetch(
           `${STRAPI_URL}/upload/files/${previewId}`,
           {
@@ -184,19 +181,13 @@ const MediaOption = ({
           );
         }
 
-        // Update global state with the new previews array
         await updateGlobalState(localPreviews.filter((prv) => prv.id !== previewId));
-
-        // Remove from queue
-        setDeleteQueue(prev => prev.filter(id => id !== previewId));
+        setDeleteQueue((prev) => prev.filter((id) => id !== previewId));
         toast.success("Preview deleted successfully!");
-
       } catch (error: any) {
         console.error("Error deleting preview:", error);
         toast.error(`Failed to delete preview: ${error.message}`);
-        
-        // Remove failed deletion from queue
-        setDeleteQueue(prev => prev.filter(id => id !== previewId));
+        setDeleteQueue((prev) => prev.filter((id) => id !== previewId));
       } finally {
         setIsProcessingQueue(false);
       }
@@ -208,17 +199,13 @@ const MediaOption = ({
   const uploadUpdatedCampaignToStrapi = useCallback(
     async (data: any) => {
       try {
-        // Deep clone the data to avoid mutating the original
         const cleanData = JSON.parse(JSON.stringify(data));
-
-        // Remove unwanted keys, preserving previews structure
         const sanitizedData = removeKeysRecursively(
           cleanData,
           ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
           ["previews"]
         );
 
-        // Explicitly validate and format previews
         sanitizedData.channel_mix?.forEach((channel: any) => {
           CHANNEL_TYPES.forEach(({ key }) => {
             channel[key]?.forEach((platform: any) => {
@@ -379,22 +366,12 @@ const MediaOption = ({
       setIsDeleting(true);
 
       try {
-        // Optimistically update UI
-        setLocalPreviews((prev) =>
-          prev.filter((prv) => prv.id !== previewId)
-        );
-
-        // Add to delete queue
-        setDeleteQueue(prev => [...prev, previewId]);
-
+        setLocalPreviews((prev) => prev.filter((prv) => prv.id !== previewId));
+        setDeleteQueue((prev) => [...prev, previewId]);
       } catch (error: any) {
         console.error("Error queueing preview deletion:", error);
         toast.error(`Failed to queue preview deletion: ${error.message}`);
-
-        // Rollback UI state
-        const previewToRestore = previews.find(
-          (prv) => prv.id === previewId
-        );
+        const previewToRestore = previews.find((prv) => prv.id === previewId);
         if (previewToRestore) {
           setLocalPreviews((prev) => {
             const updated = [...prev, previewToRestore];
@@ -409,13 +386,7 @@ const MediaOption = ({
         setIsDeleting(false);
       }
     },
-    [
-      localPreviews,
-      previews,
-      STRAPI_URL,
-      STRAPI_TOKEN,
-      isDeleting
-    ]
+    [localPreviews, previews, STRAPI_URL, STRAPI_TOKEN, isDeleting]
   );
 
   const isDecreaseDisabled = quantity === 1 || localPreviews.length >= quantity;
@@ -1195,21 +1166,28 @@ export const Platforms = ({
   );
 };
 
-export const FormatSelection = ({ stageName, platformName }: { stageName?: string; platformName?: string }) => {
+export const FormatSelection = ({
+  stageName,
+  platformName,
+}: {
+  stageName?: string;
+  platformName?: string;
+}) => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
   const [view, setView] = useState<"channel" | "adset">("channel");
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   const { setIsDrawerOpen, setClose } = useComments();
 
   useEffect(() => {
+    // Initialize view and goal_level on mount
+    setView("channel");
     setIsDrawerOpen(false);
     setClose(false);
-    if (campaignFormData?.goal_level === "Adset level") {
-      setView("adset");
-    } else {
-      setView("channel");
-    }
-  }, [campaignFormData, setIsDrawerOpen, setClose]);
+    setCampaignFormData((prev) => ({
+      ...prev,
+      goal_level: "Channel level",
+    }));
+  }, [setIsDrawerOpen, setClose, setCampaignFormData]);
 
   useEffect(() => {
     const savedOpenTabs = getLocalStorageItem("formatSelectionOpenTabs");
@@ -1257,7 +1235,8 @@ export const FormatSelection = ({ stageName, platformName }: { stageName?: strin
   };
 
   const handleToggleChange = (checked: boolean) => {
-    setView(checked ? "adset" : "channel");
+    const newView = checked ? "adset" : "channel";
+    setView(newView);
     setCampaignFormData((prev) => ({
       ...prev,
       goal_level: checked ? "Adset level" : "Channel level",
@@ -1358,7 +1337,11 @@ export const FormatSelection = ({ stageName, platformName }: { stageName?: strin
                 </div>
                 {isOpen && (
                   <div className="card-body bg-white border border-[#E5E5E5]">
-                    <Platforms stageName={stage?.name} view={view} platformName={platformName} />
+                    <Platforms
+                      stageName={stage?.name}
+                      view={view}
+                      platformName={platformName}
+                    />
                   </div>
                 )}
               </div>

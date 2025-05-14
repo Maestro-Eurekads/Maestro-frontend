@@ -353,7 +353,7 @@ const OverviewofyourCampaign = () => {
 
 	// Find the earliest startDate and latest endDate
 	const earliestStartDate = min(startDates)
-	const latestEndDate = max(endDates)
+	// const latestEndDate = max(endDates)
 	// Calculate the week difference
 
 	// const monthDifference = differenceInCalendarMonths(latestEndDate, earliestStartDate)
