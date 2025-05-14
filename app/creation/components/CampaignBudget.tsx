@@ -605,7 +605,8 @@ const CampaignBudget = () => {
             feeType={feeType}
             setFeeType={setFeeType}
             feeAmount={feeAmount}
-            setFeeAmount={setFeeAmount} isValidated={undefined} />
+            setFeeAmount={setFeeAmount}
+          />
         </>
       )}
     </div>
