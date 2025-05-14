@@ -10,7 +10,7 @@ export function buildStrapiFilterQuery(clientID: string, filters: FilterState): 
   let hasOrFilters = false
   let orFilterIndex = 0
 
- 
+ console.log('filters-filters-filters',filters)
 
   // Add filters using $or logic between different filter types
   if (filters.year) {
@@ -374,23 +374,32 @@ if (filters.level_3) {
 }
 
 
-  console.log('populateQuery-populateQuery',filterQuery)
+  // console.log('populateQuery-populateQuery',filterQuery)
 
   // Add populate parameters
   const populateQuery = CAMPAIGN_POPULATE_QUERY;
 
+  const baseUrl = `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`;
+
+const defaultFilter = "filters[client][$eq]=264&filters[campaign_timeline_start_date][$notNull]=true";
+const fullUrl =
+  filterQuery === defaultFilter
+    ? `${baseUrl}?${populateQuery}`
+    : `${baseUrl}?${filterQuery}&${populateQuery}`;
   try {
     const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns?${filterQuery}${populateQuery}`,
+      `${fullUrl}`,
       {
         headers: {
           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
         },
       }
     );
+    
     return response.data.data;
   } catch (error) {
     console.error("Error fetching filtered campaigns:", error);
     return [];
   }
 };
+

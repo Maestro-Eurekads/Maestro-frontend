@@ -176,7 +176,7 @@ const OverviewofyourCampaign = () => {
 
 					kpiList.forEach((kpiName) => {
 						if (categoryData[kpiName] !== undefined && categoryData[kpiName] !== null) {
-							kpiAccumulator[category][kpiName].values.push(categoryData[kpiName]);
+							kpiAccumulator[category][kpiName]?.values.push(categoryData[kpiName]);
 						}
 					});
 				});
@@ -395,40 +395,7 @@ const OverviewofyourCampaign = () => {
 
 
 
-	function extractPlatforms(data) {
-		const platforms = []
-		data?.channel_mix?.length > 0 &&
-			data.channel_mix.forEach((stage) => {
-				const stageName = stage.funnel_stage
-				const stageBudget = Number.parseFloat(stage.stage_budget?.fixed_value)
-					;["search_engines", "display_networks", "social_media"].forEach((channelType) => {
-						stage[channelType].forEach((platform) => {
-							const platformName = platform.platform_name
-							const platformBudget = Number.parseFloat(platform.budget?.fixed_value || 0)
-							const percentage = (platformBudget / stageBudget) * 100 || 0
-							const existingPlatform = platforms.find((p) => p.platform_name === platformName)
-							if (existingPlatform) {
-								existingPlatform.stages_it_was_found.push({
-									stage_name: stageName,
-									percentage: percentage,
-								})
-							} else {
-								platforms.push({
-									platform_name: platformName,
-									platform_budegt: platformBudget,
-									stages_it_was_found: [
-										{
-											stage_name: stageName,
-											percentage: percentage,
-										},
-									],
-								})
-							}
-						})
-					})
-			})
-		return platforms
-	}
+
 
 
 
@@ -446,7 +413,7 @@ const OverviewofyourCampaign = () => {
 							<button className="overview-budget-conponent"
 								onClick={() => setShow(!show)}>{!show ? "See" : "Hide"} budget overview</button>
 
-							{Object.keys(aggregatedStats).length === 0 ? <button
+							{Object.keys(aggregatedStats)?.length === 0 ? <button
 								className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
 								style={{ border: "1px solid #3175FF" }}
 								onClick={() => setshowAlert(true)}

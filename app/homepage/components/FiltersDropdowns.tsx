@@ -28,7 +28,8 @@ const scrollbarStyles = `
 `
 
 type Props = {
-  hideTitle?: boolean
+  hideTitle?: boolean,
+  router: any // Replace 'any' with the appropriate type if known
 }
 
 const Dropdown = ({ label, options, selectedFilters, handleSelect, isDisabled = false }) => {
@@ -112,7 +113,7 @@ const defaultFilters = [
 ]
 
 
-const FiltersDropdowns = ({ hideTitle }: Props) => {
+const FiltersDropdowns = ({ hideTitle, router }: Props) => {
   const dispatch = useAppDispatch();
   useEffect(() => {
     const styleElement = document.createElement("style")
@@ -134,11 +135,14 @@ const FiltersDropdowns = ({ hideTitle }: Props) => {
     allClients,
   } = useCampaigns()
 
+
+
   const [filters, setFilters] = useState(defaultFilters)
 
   const handleSelect = (label, value) => {
     if (value === "") {
       if (label === "year") {
+        router.refresh();
         dispatch(getCreateClient());
         setSelectedFilters((prev) => ({
           ...prev,

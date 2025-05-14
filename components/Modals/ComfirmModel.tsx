@@ -1,36 +1,52 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useActive } from '../../app/utils/ActiveContext';
 import AlertMain from '../Alert/AlertMain';
 import { CheckCircle, X } from "lucide-react";
+import { useVersionContext } from 'app/utils/VersionApprovalContext';
+import { SVGLoader } from 'components/SVGLoader';
+import { useCampaigns } from 'app/utils/CampaignsContext';
 
 
-// Version management
-const getVersionData = (planId) => {
-	const data = localStorage.getItem(`mediaPlanVersion`);
-	return data ? JSON.parse(data) : null;
-};
 
-const setVersionData = (planId, version) => {
-	localStorage.setItem(`mediaPlanVersion`, JSON.stringify({ version }));
-};
 
-const ComfirmModel = ({ isOpen, setIsOpen, planId }) => {
+const ComfirmModel = ({ isOpen, setIsOpen }) => {
+	const { createCampaignVersion, getCampaignVersion, isLoading, version, getLoading, id, setid, updateCampaignVersion } = useVersionContext();
 	const router = useRouter();
 	const { setActive, setSubStep } = useActive();
 	const [approval, setApproval] = useState(false);
 	const [showVersionPrompt, setShowVersionPrompt] = useState(false);
-	const [currentVersion, setCurrentVersion] = useState('v1');
+	const [currentVersion, setCurrentVersion] = useState(null);
+	const getNextVersion = (v) => {
+		const number = parseInt(v?.replace('v', '')) || 1;
+		return `v${number + 1}`;
+	};
+	const newVersion = getNextVersion(currentVersion);
+	const { campaignData, } = useCampaigns();
+	const query = useSearchParams();
+	const campaignId = query.get("campaignId");
+	const plan_name = campaignData?.media_plan_details.plan_name
+
+
+	console.log('currentVersion-currentVersion', version)
+
 
 	useEffect(() => {
-		const versionData = getVersionData(planId);
-		if (versionData) {
-			setCurrentVersion(versionData.version);
-			setShowVersionPrompt(true);
-		}
-	}, [planId]);
+		const fetchVersionData = async () => {
+			const versions = await getCampaignVersion(campaignId);
+			// console.log('versions=versions', versions)
+			if (version && version.length > 0) {
+				setCurrentVersion(version[version.length - 1].version.version_number);
+				setid(version[0]?.id);
+				setShowVersionPrompt(true);
+			}
+		};
+
+		fetchVersionData();
+	}, [isOpen, campaignId]);
+
 
 	const handleBackClick = () => {
 		setActive(0);
@@ -39,21 +55,10 @@ const ComfirmModel = ({ isOpen, setIsOpen, planId }) => {
 		router.push('/');
 	};
 
-	const getNextVersion = (v) => {
-		const number = parseInt(v.replace('v', '')) || 1;
-		return `v${number + 1}`;
-	};
+
 
 	const handleApproval = () => {
-		const versionData = getVersionData(planId);
-		if (!versionData) {
-			setVersionData(planId, 'v1');
-			setCurrentVersion('v1');
-			setApproval(true);
-		} else {
-			setShowVersionPrompt(true);
-		}
-		setTimeout(() => setApproval(false), 3000);
+		setShowVersionPrompt(true);
 	};
 
 	const handleKeepVersion = () => {
@@ -63,13 +68,37 @@ const ComfirmModel = ({ isOpen, setIsOpen, planId }) => {
 	};
 
 	const handleCreateNewVersion = () => {
-		const newVersion = getNextVersion(currentVersion);
-		setVersionData(planId, newVersion);
-		setCurrentVersion(newVersion);
+		createCampaignVersion(
+			campaignId,
+			{
+				version_number: newVersion,
+				plan_name: plan_name,
+				approved: true,
+			},
+		);
+
 		setApproval(true);
 		setShowVersionPrompt(false);
-		setTimeout(() => setApproval(false), 3000);
 	};
+
+
+
+	const handleUpdateVersion = () => {
+		updateCampaignVersion(
+			campaignId,
+			{
+				version_number: newVersion,
+				plan_name: plan_name,
+				approved: true,
+			}
+		);
+
+		setApproval(true);
+		setShowVersionPrompt(false);
+	};
+
+
+
 
 	if (!isOpen) return null;
 
@@ -101,21 +130,9 @@ const ComfirmModel = ({ isOpen, setIsOpen, planId }) => {
 
 				{/* Version info */}
 				<div className="flex items-center justify-center gap-2 text-sm text-gray-600 mb-4">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						strokeWidth={1.5}
-						stroke="currentColor"
-						className="w-5 h-5 text-gray-500"
-					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							d="M12 6v6l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-						/>
-					</svg>
-					<span className="font-medium">Version: {currentVersion}</span>
+					{getLoading ? <SVGLoader width={"40px"} height={"40px"} color={"#0866FF"} /> :
+						<span className="font-medium">Version: {currentVersion ?? 0}</span>}
+
 				</div>
 
 				{/* Actions */}
@@ -153,9 +170,12 @@ const ComfirmModel = ({ isOpen, setIsOpen, planId }) => {
 								<button className="btn_model_outline w-full" onClick={handleKeepVersion}>
 									Keep Current
 								</button>
-								<button className="btn_model_active w-full" onClick={handleCreateNewVersion}>
-									New Version
-								</button>
+								{currentVersion ? <button className="btn_model_active w-full" onClick={handleUpdateVersion}>
+									{isLoading ? <SVGLoader width={"30px"} height={"30px"} color={"#fff"} /> : "Update Version"}
+								</button> : <button className="btn_model_active w-full" onClick={handleCreateNewVersion}>
+									{isLoading ? <SVGLoader width={"30px"} height={"30px"} color={"#fff"} /> : "New Version"}
+								</button>}
+
 							</div>
 						</div>
 					</div>
