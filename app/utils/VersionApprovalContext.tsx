@@ -41,7 +41,8 @@ export const VersionApprovalProvider = ({ children }) => {
 					},
 				}
 			);
-			setCreatesSuccess(false);
+			setCreatesSuccess(true);
+			setIsLoading(false);
 		} catch (error) {
 			setIsError(error);
 		} finally {
