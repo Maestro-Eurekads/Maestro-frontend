@@ -34,6 +34,7 @@ import { differenceInDays } from 'date-fns';
 import { parseISO } from 'date-fns';
 import { processCampaignData } from 'components/processCampaignData';
 import { getCurrencySymbol, getPlatformIcon } from 'components/data';
+import { useVersionContext } from 'app/utils/VersionApprovalContext';
 
 
 interface Comment {
@@ -54,6 +55,7 @@ interface Reply {
 
 const OverviewofyourCampaign = () => {
 	const { isDrawerOpen, setIsDrawerOpen, isCreateOpen, setClose, close } = useComments();
+	const { createsSuccess, updateSuccess } = useVersionContext();
 	const [show, setShow] = useState(false);
 	const [generalComment, setGeneralComment] = useState(false);
 	const [alert, setAlert] = useState(null);
@@ -283,66 +285,7 @@ const OverviewofyourCampaign = () => {
 		style?: string
 	}
 
-	const mapCampaignsToFunnels = (campaigns: any[]) => {
-		useEffect(() => {
-			if (clientCampaignData?.channel_mix) {
-				const newChannels = clientCampaignData?.funnel_stages
-					.flatMap((stageName) => {
-						const stage = clientCampaignData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName)
-						if (!stage) return null
 
-						return [
-							{
-								title: "Social media",
-								platforms: stage?.social_media?.map((platform) => ({
-									name: platform?.platform_name,
-									icon: getPlatformIcon(platform?.platform_name),
-								})),
-								style: "max-w-[150px] w-full h-[52px]",
-							},
-							{
-								title: "Display Networks",
-								platforms: stage?.display_networks?.map((platform) => ({
-									name: platform?.platform_name,
-									icon: getPlatformIcon(platform?.platform_name),
-								})),
-								style: "max-w-[200px] w-full",
-							},
-							{
-								title: "Search Engines",
-								platforms: stage.search_engines?.map((platform) => ({
-									name: platform?.platform_name,
-									icon: getPlatformIcon(platform?.platform_name),
-								})),
-								style: "max-w-[180px] w-full",
-							},
-						]
-					})
-					.filter(Boolean) // Flatten array and remove null values
-
-				// **Fix: Prevent re-render loop**
-				if (JSON.stringify(channels) !== JSON.stringify(newChannels)) {
-					setChannels(newChannels)
-				}
-			}
-		}, [campaignFormData])
-
-		return campaigns?.map((campaign, index) => {
-			const fromDate = parseApiDate(campaign?.campaign_timeline_start_date)
-			const toDate = parseApiDate(campaign?.campaign_timeline_end_date)
-
-			const budgetDetails = campaign?.budget_details
-			const currencySymbol = currencySymbols[budgetDetails?.currency] || ""
-			const budgetValue = budgetDetails?.value ? `${budgetDetails.value} ${currencySymbol}` : "N/A"
-
-			return {
-				startWeek: fromDate?.day ?? 0, // Default to 0 if null
-				endWeek: toDate?.day ?? 0,
-				label: `Campaign ${index + 1}`,
-				budget: budgetValue,
-			}
-		})
-	}
 
 	const startDates = clientCampaignData
 		?.filter((c) => c?.campaign_timeline_start_date)
@@ -402,6 +345,25 @@ const OverviewofyourCampaign = () => {
 	return (
 		<div>
 			{alert && <AlertMain alert={alert} />}
+			{/* Alert */}
+			{createsSuccess && (
+				<AlertMain
+					alert={{
+						variant: 'success',
+						message: 'Media plan version created!',
+						position: 'bottom-right',
+					}}
+				/>
+			)}
+			{updateSuccess && (
+				<AlertMain
+					alert={{
+						variant: 'success',
+						message: 'Media plan version updated!',
+						position: 'bottom-right',
+					}}
+				/>
+			)}
 			<div className={`px-[20px]  ${isDrawerOpen ? 'md:px-[30px]' : 'xl:px-[60px]'}`}>
 				<div className='flex	flex-col gap-[24px]'>
 					<BusinessApproverContainer campaign={campaignData} loading={undefined} isLoadingCampaign={isLoadingCampaign} />
