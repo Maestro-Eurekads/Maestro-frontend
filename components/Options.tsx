@@ -246,7 +246,7 @@ function extractKPIByFunnelStage(data, kpiCategories) {
 
       result[funnelStage].push({
         platform_name: platformName,
-        kpi: groupedKPIs, // Fixed: Changed zonedKPIs to groupedKPIs
+        kpi: groupedKPIs,
       });
     });
   });
@@ -255,6 +255,60 @@ function extractKPIByFunnelStage(data, kpiCategories) {
 }
 
 
+// function aggregateKPIStatsFromExtracted(extractedData, kpiCategories) {
+//   const kpiAccumulator = {};
+
+//   Object.keys(kpiCategories).forEach((category) => {
+//     kpiAccumulator[category] = {};
+//     kpiCategories[category].forEach((kpiName) => {
+//       kpiAccumulator[category][kpiName] = {
+//         values: [],
+//         displayName: kpiName,
+//       };
+//     });
+//   });
+
+//   Object.keys(extractedData).forEach((funnelStage) => {
+//     const platforms = extractedData[funnelStage] || [];
+
+//     platforms.forEach((platform) => {
+//       const kpi = platform?.kpi || {};
+
+//       Object.keys(kpiCategories).forEach((category) => {
+//         const kpiList = kpiCategories[category];
+//         const categoryData = kpi[category] || {};
+
+//         kpiList.forEach((kpiName) => {
+//           if (categoryData[kpiName] !== undefined && categoryData[kpiName] !== null) {
+//             kpiAccumulator[category][kpiName]?.values?.push(categoryData[kpiName]);
+//           }
+//         });
+//       });
+//     });
+//   });
+
+//   const aggregatedStats = {};
+
+//   Object.keys(kpiAccumulator).forEach((category) => {
+//     aggregatedStats[category] = {};
+
+//     Object.keys(kpiAccumulator[category]).forEach((kpiName) => {
+//       const kpiData = kpiAccumulator[category][kpiName];
+//       const values = kpiData?.values;
+
+//       if (values.length > 0) {
+//         const average = values.reduce((sum, val) => sum + val, 0) / values?.length;
+//         aggregatedStats[category][kpiData?.displayName] = Number(average.toFixed(2));
+//       }
+//     });
+
+//     if (Object.keys(aggregatedStats[category])?.length === 0) {
+//       delete aggregatedStats[category];
+//     }
+//   });
+
+//   return aggregatedStats;
+// }
 function aggregateKPIStatsFromExtracted(extractedData, kpiCategories) {
   const kpiAccumulator = {};
 
@@ -268,9 +322,8 @@ function aggregateKPIStatsFromExtracted(extractedData, kpiCategories) {
     });
   });
 
-  Object.keys(extractedData).forEach((funnelStage) => {
-    const platforms = extractedData[funnelStage] || [];
-
+  Object.keys(extractedData || {}).forEach((funnelStage) => {
+    const platforms = Array.isArray(extractedData[funnelStage]) ? extractedData[funnelStage] : [];
     platforms.forEach((platform) => {
       const kpi = platform?.kpi || {};
 
@@ -298,7 +351,7 @@ function aggregateKPIStatsFromExtracted(extractedData, kpiCategories) {
 
       if (values.length > 0) {
         const average = values.reduce((sum, val) => sum + val, 0) / values?.length;
-        aggregatedStats[category][kpiData?.displayName] = Number(average.toFixed(2));
+        aggregatedStats[category][kpiData?.displayName] = average;
       }
     });
 
