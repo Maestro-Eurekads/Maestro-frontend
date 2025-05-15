@@ -228,6 +228,8 @@ const ClientView = () => {
 	const aggregatedStats = aggregateKPIStatsFromExtracted(extractedData, kpiCategories)
 	const statsData = mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, { upfull, downfull, downoffline, upoffline }, finalCategoryOrder);
 
+
+
 	const processedCampaigns = processCampaignData(clientCampaignData, platformIcons)
 
 	return (

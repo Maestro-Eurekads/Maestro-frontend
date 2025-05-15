@@ -98,6 +98,51 @@ const categoryOrder = [
   "In-App Conversion",
   "Video Views",
 ];
+export const kpiFormatMap = {
+  // Currency
+  "Budget": { type: "Currency", decimals: 2 },
+  "CPM": { type: "Currency", decimals: 2 },
+  "CPV": { type: "Currency", decimals: 2 },
+  "CPCV": { type: "Currency", decimals: 2 },
+  "CPE": { type: "Currency", decimals: 2 },
+  "CPC": { type: "Currency", decimals: 2 },
+  "Cost/bounce": { type: "Currency", decimals: 2 },
+  "Cost/lead": { type: "Currency", decimals: 2 },
+
+  // Percentage
+  "VTR": { type: "Percentage", decimals: 1 },
+  "Comp. rate": { type: "Percentage", decimals: 1 },
+  "Eng rate": { type: "Percentage", decimals: 1 },
+  "CTR": { type: "Percentage", decimals: 1 },
+  "Click to land rate": { type: "Percentage", decimals: 1 },
+  "Bounce rate": { type: "Percentage", decimals: 1 },
+  "lead rate": { type: "Percentage", decimals: 1 },
+  "CVR lead": { type: "Percentage", decimals: 1 },
+  "CVR": { type: "Percentage", decimals: 1 },
+  "Off-funnel rate": { type: "Percentage", decimals: 1 },
+  "ATC rate": { type: "Percentage", decimals: 1 },
+  "PI rate": { type: "Percentage", decimals: 1 },
+  "Purchase rate": { type: "Percentage", decimals: 1 },
+  "App open rate": { type: "Percentage", decimals: 1 },
+  "Install rate": { type: "Percentage", decimals: 1 },
+  "CVR app": { type: "Percentage", decimals: 1 },
+
+  // Seconds
+  "Avg visit time": { type: "Seconds", decimals: 1 },
+
+  // Volume/Numbers
+  "Audience size": { type: "Number", decimals: 0 },
+  "Impressions": { type: "Number", decimals: 0 },
+  "Frequency": { type: "Number", decimals: 0 },
+  "Reach": { type: "Number", decimals: 0 },
+  "Video Views": { type: "Number", decimals: 0 },
+  "Completed views": { type: "Number", decimals: 0 },
+  "Link Clicks": { type: "Number", decimals: 0 },
+  "Avg page / visit": { type: "Number", decimals: 0 },
+  "Bounced Visits": { type: "Number", decimals: 0 },
+  "Leads": { type: "Number", decimals: 0 },
+  "Conversion value": { type: "Number", decimals: 0 },
+};
 
 
 function mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, icons, finalCategoryOrder) {
@@ -159,26 +204,80 @@ function mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, icons, fi
   };
 
 
+  // const formatKPIValue = (value, kpiName) => {
+  //   if (value === undefined || value === null) {
+  //     // Currency defaults
+  //     const currencyKPIs = ["Budget", "CPM", "CPV", "CPCV", "CPE", "CPC", "Cost/bounce", "Cost/lead"];
+  //     if (currencyKPIs.includes(kpiName)) return "€ 0,00";
+
+  //     // Percentage defaults
+  //     const percentageKPIs = [
+  //       "VTR", "Comp. rate", "Eng rate", "CTR", "Click to land rate", "Bounce rate", "lead rate",
+  //       "CVR lead", "CVR", "Off-funnel rate", "ATC rate", "PI rate", "Purchase rate", "App open rate", "Install rate", "CVR app"
+  //     ];
+  //     if (percentageKPIs.includes(kpiName)) return "0,0%";
+
+  //     // Time default
+  //     if (kpiName === "Avg visit time") return "0,0 Sec";
+
+  //     // Number default
+  //     return "0";
+  //   }
+
+  //   // Format Currency
+  //   const currencyKPIs = ["Budget", "CPM", "CPV", "CPCV", "CPE", "CPC", "Cost/bounce", "Cost/lead"];
+  //   if (currencyKPIs.includes(kpiName)) {
+  //     return `€ ${value.toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, " ")}`;
+  //   }
+
+  //   // Format Percentage
+  //   const percentageKPIs = [
+  //     "VTR", "Comp. rate", "Eng rate", "CTR", "Click to land rate", "Bounce rate", "lead rate",
+  //     "CVR lead", "CVR", "Off-funnel rate", "ATC rate", "PI rate", "Purchase rate", "App open rate", "Install rate", "CVR app"
+  //   ];
+  //   if (percentageKPIs.includes(kpiName)) {
+  //     return `${value.toFixed(1).replace(".", ",")}%`;
+  //   }
+
+  //   // Format Time
+  //   if (kpiName === "Avg visit time") {
+  //     return `${value.toFixed(1).replace(".", ",")} Sec`;
+  //   }
+
+  //   // Format Number (Volume or Count)
+  //   return Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  // };
   const formatKPIValue = (value, kpiName) => {
-    if (value === undefined || value === null) {
-      if (kpiName?.toLowerCase().includes("cost") || kpiName === "CPM" || kpiName === "CPCV" || kpiName?.includes("CPL")) return "€ 0,00";
-      if (kpiName?.toLowerCase().includes("rate") || ["CTR", "CVR", "Frequency", "VTR", "Completion Rate", "Eng Rate", "Click to land rate", "Bounce Rate", "Lead Rate", "Add to cart rate", "Payment info rate", "Purchase Rate", "App open rate", "Install Rate"].includes(kpiName)) return "0,0%";
-      if (kpiName === "Avg Visit Time") return "0,0 Sec";
+    const format = kpiFormatMap[kpiName];
+
+    if (!format || value === undefined || value === null) {
+      // Default fallback formatting
+      if (format?.type === "Currency") return "€ 0,00";
+      if (format?.type === "Percentage") return "0,0%";
+      if (format?.type === "Seconds") return "0,0 Sec";
       return "0";
     }
 
-    if (kpiName?.toLowerCase().includes("cost") || kpiName === "CPM" || kpiName === "CPCV" || kpiName?.includes("CPL")) {
-      return `€ ${value?.toFixed(2).replace(".", ",")}`; // e.g., € 5,00
+    const numberWithSeparators = (val) =>
+      val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+    const rounded = (val, decimals) =>
+      val.toFixed(decimals).replace(".", ",");
+
+    switch (format.type) {
+      case "Currency":
+        return `€ ${numberWithSeparators(rounded(value, format.decimals))}`;
+      case "Percentage":
+        return `${rounded(value, format.decimals)}%`;
+      case "Seconds":
+        return `${rounded(value, format.decimals)} Sec`;
+      case "Number":
+        return numberWithSeparators(Math.round(value));
+      default:
+        return value.toString();
     }
-    if (kpiName?.toLowerCase().includes("rate") || ["CTR", "CVR", "Frequency", "VTR", "Completion Rate", "Eng Rate", "Click to land rate", "Bounce Rate", "Lead Rate", "Add to cart rate", "Payment info rate", "Purchase Rate", "App open rate", "Install Rate"].includes(kpiName)) {
-      return `${value?.toFixed(1).replace(".", ",")}%`; // e.g., 5,0%
-    }
-    if (kpiName === "Avg Visit Time") {
-      return `${value?.toFixed(1).replace(".", ",")} Sec`; // e.g., 34,5 Sec
-    }
-    const formattedNumber = Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " "); // e.g., 1 000 000
-    return formattedNumber;
   };
+
 
 
   return React.useMemo(() => {
@@ -246,7 +345,7 @@ function extractKPIByFunnelStage(data, kpiCategories) {
 
       result[funnelStage].push({
         platform_name: platformName,
-        kpi: groupedKPIs, // Fixed: Changed zonedKPIs to groupedKPIs
+        kpi: groupedKPIs,
       });
     });
   });
@@ -255,6 +354,60 @@ function extractKPIByFunnelStage(data, kpiCategories) {
 }
 
 
+// function aggregateKPIStatsFromExtracted(extractedData, kpiCategories) {
+//   const kpiAccumulator = {};
+
+//   Object.keys(kpiCategories).forEach((category) => {
+//     kpiAccumulator[category] = {};
+//     kpiCategories[category].forEach((kpiName) => {
+//       kpiAccumulator[category][kpiName] = {
+//         values: [],
+//         displayName: kpiName,
+//       };
+//     });
+//   });
+
+//   Object.keys(extractedData).forEach((funnelStage) => {
+//     const platforms = extractedData[funnelStage] || [];
+
+//     platforms.forEach((platform) => {
+//       const kpi = platform?.kpi || {};
+
+//       Object.keys(kpiCategories).forEach((category) => {
+//         const kpiList = kpiCategories[category];
+//         const categoryData = kpi[category] || {};
+
+//         kpiList.forEach((kpiName) => {
+//           if (categoryData[kpiName] !== undefined && categoryData[kpiName] !== null) {
+//             kpiAccumulator[category][kpiName]?.values?.push(categoryData[kpiName]);
+//           }
+//         });
+//       });
+//     });
+//   });
+
+//   const aggregatedStats = {};
+
+//   Object.keys(kpiAccumulator).forEach((category) => {
+//     aggregatedStats[category] = {};
+
+//     Object.keys(kpiAccumulator[category]).forEach((kpiName) => {
+//       const kpiData = kpiAccumulator[category][kpiName];
+//       const values = kpiData?.values;
+
+//       if (values.length > 0) {
+//         const average = values.reduce((sum, val) => sum + val, 0) / values?.length;
+//         aggregatedStats[category][kpiData?.displayName] = Number(average.toFixed(2));
+//       }
+//     });
+
+//     if (Object.keys(aggregatedStats[category])?.length === 0) {
+//       delete aggregatedStats[category];
+//     }
+//   });
+
+//   return aggregatedStats;
+// }
 function aggregateKPIStatsFromExtracted(extractedData, kpiCategories) {
   const kpiAccumulator = {};
 
@@ -268,9 +421,8 @@ function aggregateKPIStatsFromExtracted(extractedData, kpiCategories) {
     });
   });
 
-  Object.keys(extractedData).forEach((funnelStage) => {
-    const platforms = extractedData[funnelStage] || [];
-
+  Object.keys(extractedData || {}).forEach((funnelStage) => {
+    const platforms = Array.isArray(extractedData[funnelStage]) ? extractedData[funnelStage] : [];
     platforms.forEach((platform) => {
       const kpi = platform?.kpi || {};
 
@@ -298,7 +450,7 @@ function aggregateKPIStatsFromExtracted(extractedData, kpiCategories) {
 
       if (values.length > 0) {
         const average = values.reduce((sum, val) => sum + val, 0) / values?.length;
-        aggregatedStats[category][kpiData?.displayName] = Number(average.toFixed(2));
+        aggregatedStats[category][kpiData?.displayName] = average;
       }
     });
 
