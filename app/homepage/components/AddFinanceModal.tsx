@@ -40,12 +40,14 @@ const AddFinanceModal = ({
   mode,
   selectedRow,
   setSelectedRow,
+  userRole,
 }: {
   isOpen: boolean;
   setIsOpen: any;
   mode?: string;
   selectedRow?: any;
   setSelectedRow?: any;
+  userRole: string;
 }) => {
   const [mediaPlans, setMediaPlans] = useState<MediaPlan[]>([]);
   const { fetchClientCampaign, fetchUserByType, fetchClientPOS } = useCampaignHook();
@@ -372,6 +374,14 @@ const AddFinanceModal = ({
 
   const updatePOInDB = async () => {
     if (!validateForm()) {
+      return;
+    }
+
+    if (userRole !== "admin" && userRole !== "financial_approver") {
+      toast("You are not authorized to update this Purchase Order.", {
+        style: { background: "red", color: "white", textAlign: "center" },
+        duration: 3000,
+      });
       return;
     }
 

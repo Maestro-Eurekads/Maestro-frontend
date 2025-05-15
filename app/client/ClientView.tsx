@@ -35,7 +35,13 @@ import upfull from "../../public/arrow-up-full.svg";
 import downfull from "../../public/arrow-down-full.svg";
 import upoffline from "../../public/arrow-up-offline.svg";
 import { useKpis } from 'app/utils/KpiProvider';
-import { aggregateKPIStatsFromExtracted, categoryOrder, extractKPIByFunnelStage, kpiCategories, mapKPIStatsToStatsDataDynamic } from 'components/Options';
+import { aggregateKPIStatsFromExtracted, categoryOrder, extractKPIByFunnelStage, extractPlatforms, kpiCategories, mapKPIStatsToStatsDataDynamic } from 'components/Options';
+import MainSection from './compoment/Timeline/main-section';
+import ChannelDistributionChatTwo from 'components/ChannelDistribution/ChannelDistributionChatTwo';
+import { getCurrencySymbol, platformIcons } from 'components/data';
+import CampaignPhases from 'app/creation/components/CampaignPhases';
+import DoughnutChat from 'components/DoughnutChat';
+import { processCampaignData } from 'components/processCampaignData';
 
 
 const channels = [
@@ -139,6 +145,7 @@ const ClientView = () => {
 	const client_commentId = session?.user?.id;
 	const campaign = !campaignDetails ? [] : campaignDetails[0];
 	const commentId = campaign?.documentId
+	const campaignId = campaign?.documentId
 	const { getKpis, isLoadingKpis, kpiCategory, setkpiCategory } = useKpis();
 
 
@@ -189,103 +196,7 @@ const ClientView = () => {
 
 
 
-	// function extractKPIByFunnelStage(data, kpiCategories) {
-	// 	const result = {};
-	// 	const channelMix = data?.channel_mix;
 
-	// 	channelMix?.forEach((stage) => {
-	// 		const funnelStage = stage?.funnel_stage;
-	// 		result[funnelStage] = [];
-
-	// 		const socialMedia = stage?.social_media || [];
-	// 		socialMedia.forEach((platform) => {
-	// 			const platformName = platform?.platform_name;
-	// 			const kpi = platform?.kpi || {};
-	// 			const groupedKPIs = {};
-
-	// 			Object.keys(kpiCategories).forEach((category) => {
-	// 				groupedKPIs[category] = {};
-	// 				const kpiList = kpiCategories[category];
-
-	// 				kpiList?.forEach((kpiName) => {
-	// 					const kpiKey = kpiName
-	// 						.toLowerCase()
-	// 						.replace(/ /g, "_")
-	// 						.replace("/", "__");
-	// 					if (kpi[kpiKey] !== undefined && kpi[kpiKey] !== null) {
-	// 						groupedKPIs[category][kpiName] = kpi[kpiKey];
-	// 					}
-	// 				});
-
-	// 				if (Object.keys(groupedKPIs[category])?.length === 0) {
-	// 					delete groupedKPIs[category];
-	// 				}
-	// 			});
-
-	// 			result[funnelStage].push({
-	// 				platform_name: platformName,
-	// 				kpi: groupedKPIs, // Fixed: Changed zonedKPIs to groupedKPIs
-	// 			});
-	// 		});
-	// 	});
-
-	// 	return result;
-	// }
-
-	// function aggregateKPIStatsFromExtracted(extractedData, kpiCategories) {
-	// 	const kpiAccumulator = {};
-
-	// 	Object.keys(kpiCategories).forEach((category) => {
-	// 		kpiAccumulator[category] = {};
-	// 		kpiCategories[category].forEach((kpiName) => {
-	// 			kpiAccumulator[category][kpiName] = {
-	// 				values: [],
-	// 				displayName: kpiName,
-	// 			};
-	// 		});
-	// 	});
-
-	// 	Object.keys(extractedData).forEach((funnelStage) => {
-	// 		const platforms = extractedData[funnelStage] || [];
-
-	// 		platforms.forEach((platform) => {
-	// 			const kpi = platform?.kpi || {};
-
-	// 			Object.keys(kpiCategories).forEach((category) => {
-	// 				const kpiList = kpiCategories[category];
-	// 				const categoryData = kpi[category] || {};
-
-	// 				kpiList.forEach((kpiName) => {
-	// 					if (categoryData[kpiName] !== undefined && categoryData[kpiName] !== null) {
-	// 						kpiAccumulator[category][kpiName]?.values?.push(categoryData[kpiName]);
-	// 					}
-	// 				});
-	// 			});
-	// 		});
-	// 	});
-
-	// 	const aggregatedStats = {};
-
-	// 	Object.keys(kpiAccumulator).forEach((category) => {
-	// 		aggregatedStats[category] = {};
-
-	// 		Object.keys(kpiAccumulator[category]).forEach((kpiName) => {
-	// 			const kpiData = kpiAccumulator[category][kpiName];
-	// 			const values = kpiData?.values;
-
-	// 			if (values.length > 0) {
-	// 				const average = values.reduce((sum, val) => sum + val, 0) / values?.length;
-	// 				aggregatedStats[category][kpiData?.displayName] = Number(average.toFixed(2));
-	// 			}
-	// 		});
-
-	// 		if (Object.keys(aggregatedStats[category])?.length === 0) {
-	// 			delete aggregatedStats[category];
-	// 		}
-	// 	});
-
-	// 	return aggregatedStats;
-	// }
 
 
 	const fetchCategories = async (campaign_id) => {
@@ -317,6 +228,7 @@ const ClientView = () => {
 	const aggregatedStats = aggregateKPIStatsFromExtracted(extractedData, kpiCategories)
 	const statsData = mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, { upfull, downfull, downoffline, upoffline }, finalCategoryOrder);
 
+	const processedCampaigns = processCampaignData(clientCampaignData, platformIcons)
 
 	return (
 		<>
@@ -327,11 +239,12 @@ const ClientView = () => {
 					<div className={`px-[20px]  ${isDrawerOpen ? 'md:px-[50px]' : 'xl:px-[100px]'}`}>
 						<div className='flex	flex-col gap-[24px]'>
 							<ApproverContainer campaign={campaign} loading={loading} isLoadingCampaign={isLoadingCampaign} />
-							<General campaign={campaign} loading={loading} isLoadingCampaign={isLoadingCampaign} />
+							<General campaign={campaign} loading={loading} isLoadingCampaign={isLoadingCampaign} campaign_id={campaignId} />
 							<BrandAwareness statsData={statsData} aggregatedStats={aggregatedStats} loading={isLoadingKpis} isLoadingCampaign={isLoadingCampaign} />
 							<ClientMessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} campaign={campaign} />
 							<div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
-								<ClientToggleSwitch active={active} setActive={setActive} />
+								<div></div>
+								{/* <ClientToggleSwitch active={active} setActive={setActive} /> */}
 
 								<div className="flex gap-[12px] md:flex-row">
 									<button
@@ -363,14 +276,110 @@ const ClientView = () => {
 					<div className='mt-[50px]'>
 						{isLoadingCampaign ? <TableLoader isLoading={isLoadingCampaign} /> : ""}
 					</div>
-					<div >
-						{active === "Timeline view" && <TimelineView />}
+					<MainSection hideDate={true} disableDrag={true} campaignData={campaignData} />
+					{/* <div >
+						{active === "Timeline view" && }
 						<div className="md:px-[150px] xl:px-[200px]">
 							{active === "Table" && <ClientTableView channels={channels} />}
 						</div>
 
-					</div>
+					</div> */}
+					{processedCampaigns?.map((campaign, index) => {
+						const channelD = extractPlatforms(campaign)
+
+						return (
+							<div key={index} className="flex justify-center gap-[48px] mt-[100px]">
+								<div className="box-border flex flex-row items-start p-6 gap-[72px] w-[493px] h-[403px] bg-[#F9FAFB] rounded-lg">
+									<div className="flex flex-col">
+										<h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
+											Your budget by phase for {campaign?.media_plan_details?.plan_name}
+										</h3>
+										<div className="flex items-center gap-5">
+											<div className="mt-[16px]">
+												<p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
+													Total budget
+												</p>
+
+												<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
+													{campaign?.campaign_budget?.amount} {campaign?.campaign_budget?.currency}
+												</h3>
+											</div>
+											<div className="mt-[16px]">
+												<p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
+													Campaign phases
+												</p>
+
+												<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
+													{campaign?.channel_mix?.length} phases
+												</h3>
+											</div>
+										</div>
+
+										<div className="flex items-center gap-6 mt-[24px] w-full">
+											{/* Doughnut Chat */}
+											<DoughnutChat
+												data={campaign?.channel_mix?.map((ch) =>
+													Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0),
+												)}
+												color={campaign?.channel_mix?.map((ch) =>
+													ch?.funnel_stage === "Awareness"
+														? "#3175FF"
+														: ch?.funnel_stage === "Consideration"
+															? "#00A36C"
+															: ch?.funnel_stage === "Conversion"
+																? "#FF9037"
+																: "#F05406",
+												)}
+												insideText={`${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency ? getCurrencySymbol(campaign?.campaign_budget?.currency) : ""
+													}`}
+											/>
+											{/* Campaign Phases */}
+											<CampaignPhases
+												campaignPhases={campaign?.channel_mix?.map((ch) => ({
+													name: ch?.funnel_stage,
+													percentage: Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0),
+													color:
+														ch?.funnel_stage === "Awareness"
+															? "#3175FF"
+															: ch?.funnel_stage === "Consideration"
+																? "#00A36C"
+																: ch?.funnel_stage === "Conversion"
+																	? "#FF9037"
+																	: "#F05406",
+												}))}
+											/>
+										</div>
+									</div>
+								</div>
+
+								<div className="flex flex-col">
+									<div
+										key={index}
+										className="box-border flex flex-col items-start p-6 gap-[5px] w-[493px] min-h-[545px] bg-[#F9FAFB] rounded-lg"
+									>
+										<h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
+											Your budget by channel
+										</h3>
+										<div className="mt-[16px]">
+											<p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
+												Channels
+											</p>
+											<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
+												{channelD?.length} channels
+											</h3>
+										</div>
+										<ChannelDistributionChatTwo
+											channelData={channelD}
+											currency={getCurrencySymbol(campaign?.campaign_budget?.currency)}
+										/>
+									</div>
+								</div>
+							</div>
+						)
+					})}
+					ffff
 				</main>
+
 				<SignatureModal
 					isOpen={modalOpen}
 					onClose={() => setModalOpen(false)}
