@@ -158,38 +158,28 @@ function mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, icons, fi
     }
   };
 
-  // const formatKPIValue = (value, kpiName) => {
-  //   if (value === undefined || value === null) {
-  //     if (kpiName.includes("Cost") || kpiName.includes("CPL")) return "$0";
-  //     if (kpiName.includes("Rate") || ["CTR", "CVR", "Frequency"].includes(kpiName)) return "0%";
-  //     return "0";
-  //   }
-  //   const formattedValue = value.toString();
-  //   if (kpiName.includes("Cost") || kpiName.includes("CPL")) return `$${formattedValue}`;
-  //   if (kpiName.includes("Rate") || ["CTR", "CVR", "Frequency"].includes(kpiName)) return `${formattedValue}%`;
-  //   return formattedValue;
-  // };
 
   const formatKPIValue = (value, kpiName) => {
     if (value === undefined || value === null) {
-      if (kpiName.toLowerCase().includes("cost") || kpiName === "CPM" || kpiName === "CPCV" || kpiName?.includes("CPL")) return "€ 0,00";
-      if (kpiName.toLowerCase().includes("rate") || ["CTR", "CVR", "Frequency", "VTR", "Completion Rate", "Eng Rate", "Click to land rate", "Bounce Rate", "Lead Rate", "Add to cart rate", "Payment info rate", "Purchase Rate", "App open rate", "Install Rate"].includes(kpiName)) return "0,0%";
+      if (kpiName?.toLowerCase().includes("cost") || kpiName === "CPM" || kpiName === "CPCV" || kpiName?.includes("CPL")) return "€ 0,00";
+      if (kpiName?.toLowerCase().includes("rate") || ["CTR", "CVR", "Frequency", "VTR", "Completion Rate", "Eng Rate", "Click to land rate", "Bounce Rate", "Lead Rate", "Add to cart rate", "Payment info rate", "Purchase Rate", "App open rate", "Install Rate"].includes(kpiName)) return "0,0%";
       if (kpiName === "Avg Visit Time") return "0,0 Sec";
       return "0";
     }
 
-    if (kpiName.toLowerCase().includes("cost") || kpiName === "CPM" || kpiName === "CPCV" || kpiName.includes("CPL")) {
+    if (kpiName?.toLowerCase().includes("cost") || kpiName === "CPM" || kpiName === "CPCV" || kpiName?.includes("CPL")) {
       return `€ ${value?.toFixed(2).replace(".", ",")}`; // e.g., € 5,00
     }
-    if (kpiName.toLowerCase().includes("rate") || ["CTR", "CVR", "Frequency", "VTR", "Completion Rate", "Eng Rate", "Click to land rate", "Bounce Rate", "Lead Rate", "Add to cart rate", "Payment info rate", "Purchase Rate", "App open rate", "Install Rate"].includes(kpiName)) {
+    if (kpiName?.toLowerCase().includes("rate") || ["CTR", "CVR", "Frequency", "VTR", "Completion Rate", "Eng Rate", "Click to land rate", "Bounce Rate", "Lead Rate", "Add to cart rate", "Payment info rate", "Purchase Rate", "App open rate", "Install Rate"].includes(kpiName)) {
       return `${value?.toFixed(1).replace(".", ",")}%`; // e.g., 5,0%
     }
     if (kpiName === "Avg Visit Time") {
-      return `${value.toFixed(1).replace(".", ",")} Sec`; // e.g., 34,5 Sec
+      return `${value?.toFixed(1).replace(".", ",")} Sec`; // e.g., 34,5 Sec
     }
     const formattedNumber = Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " "); // e.g., 1 000 000
     return formattedNumber;
   };
+
 
   return React.useMemo(() => {
     return finalCategoryOrder?.filter((kpiCategory) => aggregatedStats[kpiCategory]) // Only include if data exists
