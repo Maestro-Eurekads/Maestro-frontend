@@ -1,11 +1,11 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import Topdown from "../../../public/Top-down.svg";
 import backdown from "../../../public/back-down.svg";
 import Selectstatus from "../../../public/Select-status.svg";
-import ecurrencyeur from "../../../public/e_currency-eur.svg";
 import Image from "next/image";
-import Input from "components/Input";
 import Select from "react-select";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { useComments } from "app/utils/CommentProvider";
@@ -16,8 +16,8 @@ import { SVGLoader } from "components/SVGLoader";
 import BudgetInput from "./BudgetInput";
 import adset from "../../../public/adset_level.svg";
 import channel from "../../../public/channel_level.svg";
-import ConfigureAdSetsAndBudget from "./ ConfigureadSetsAndbudget";
 import toast from "react-hot-toast";
+import ConfigureAdSetsAndBudget from "./ ConfigureadSetsAndbudget";
 
 const CampaignBudget = () => {
   const [budgetStyle, setBudgetStyle] = useState("");
@@ -26,6 +26,7 @@ const CampaignBudget = () => {
   const { isEditing, setIsEditing } = useEditing();
   const [loading, setLoading] = useState(false);
   const [netAmount, setNetAmount] = useState("");
+  const [feeStepValidated, setFeeStepValidated] = useState(false);
 
   useEffect(() => {
     setIsDrawerOpen(false);
@@ -41,10 +42,7 @@ const CampaignBudget = () => {
   const [feeType, setFeeType] = useState(null);
   const [feeAmount, setFeeAmount] = useState("");
 
-  const { campaignFormData, setCampaignFormData, campaignData } =
-    useCampaigns();
-
-  const [feeStepValidated, setFeeStepValidated] = useState(false);
+  const { campaignFormData, setCampaignFormData, campaignData } = useCampaigns();
 
   const selectCurrency = [
     { value: "USD", label: "USD" },
@@ -67,7 +65,7 @@ const CampaignBudget = () => {
     return symbols[currency] || "";
   };
 
-  const handleBudgetEdit = (param: string, type: string) => {
+  const handleBudgetEdit = (param, type) => {
     if (!isEditing) return;
     setCampaignFormData((prev) => ({
       ...prev,
@@ -79,7 +77,44 @@ const CampaignBudget = () => {
     if (param === "budget_type") {
       setStep(1);
       setBudgetStyle(type);
+      setFeeStepValidated(false);
     }
+  };
+
+  const handleValidate = () => {
+    if (!campaignFormData?.campaign_budget?.amount) {
+      toast("Please set the overall campaign budget first", {
+        style: { background: "red", color: "white" },
+      });
+      return false;
+    }
+    if (campaignFormData?.campaign_budget?.budget_fees?.length > 0 || (!feeType && !feeAmount)) {
+      setFeeStepValidated(true);
+      setStep(budgetStyle === "top_down" ? 2 : 3);
+      return true;
+    }
+    if (feeType && !feeAmount) {
+      toast("Please enter the fee amount", {
+        style: { background: "red", color: "white" },
+      });
+      return false;
+    }
+    if (!feeType && feeAmount) {
+      toast("Please select a fee type", {
+        style: { background: "red", color: "white" },
+      });
+      return false;
+    }
+    setFeeStepValidated(true);
+    setStep(budgetStyle === "top_down" ? 2 : 3);
+    return true;
+  };
+
+  const handleEdit = () => {
+    setFeeStepValidated(false);
+    setStep(1);
+    setFeeType(null);
+    setFeeAmount("");
   };
 
   useEffect(() => {
@@ -90,6 +125,7 @@ const CampaignBudget = () => {
         setStep(1);
       }
       if (campaignData?.campaign_budget?.budget_fees?.length > 0) {
+        setFeeStepValidated(true);
         setStep(2);
       }
       if (campaignData?.campaign_budget?.level) {
@@ -113,11 +149,10 @@ const CampaignBudget = () => {
       <div className="mt-[24px] flex gap-5">
         {/* Top‑down Option */}
         <div
-          className={`relative cursor-pointer ${
-            budgetStyle === "top_down"
-              ? "top_and_bottom_down_container_active"
-              : "top_and_bottom_down_container"
-          }`}
+          className={`relative cursor-pointer ${budgetStyle === "top_down"
+            ? "top_and_bottom_down_container_active"
+            : "top_and_bottom_down_container"
+            }`}
           onClick={() => {
             handleBudgetEdit("budget_type", "top_down");
             setCampaignFormData((prev) => ({
@@ -163,11 +198,10 @@ const CampaignBudget = () => {
 
         {/* Bottom‑up Option */}
         <div
-          className={`relative cursor-pointer ${
-            budgetStyle === "bottom_up"
-              ? "top_and_bottom_down_container_active"
-              : "top_and_bottom_down_container"
-          }`}
+          className={`relative cursor-pointer ${budgetStyle === "bottom_up"
+            ? "top_and_bottom_down_container_active"
+            : "top_and_bottom_down_container"
+            }`}
           onClick={() => {
             handleBudgetEdit("budget_type", "bottom_up");
             setCampaignFormData((prev) => ({
@@ -212,6 +246,7 @@ const CampaignBudget = () => {
             num1={2}
             num2={3}
             isValidated={feeStepValidated}
+            setIsValidated={setFeeStepValidated}
             netAmount={netAmount}
             setNetAmount={setNetAmount}
             feeType={feeType}
@@ -223,32 +258,16 @@ const CampaignBudget = () => {
             <div className="flex justify-end mt-[20px]">
               <button
                 onClick={() => {
-                  if (!campaignFormData?.campaign_budget?.amount) {
-                    toast("Please set the overall campaign budget first", {
-                      style: { background: "red", color: "white" },
-                    });
-                    return;
+                  if (feeStepValidated) {
+                    handleEdit();
+                  } else if (handleValidate()) {
+                    setFeeStepValidated(true);
                   }
-                  if (!feeType && feeAmount) {
-                    toast("Please select a fee type", {
-                      style: { background: "red", color: "white" },
-                    });
-                    return;
-                  }
-                  if (feeType && !feeAmount) {
-                    toast("Please enter the fee amount", {
-                      style: { background: "red", color: "white" },
-                    });
-                    return;
-                  }
-                  setFeeStepValidated(!feeStepValidated);
-                  setStep(2);
                 }}
-                className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-                  loading
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-[#3175FF] hover:bg-[#2563eb]"
-                }`}
+                className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${loading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-[#3175FF] hover:bg-[#2563eb]"
+                  }`}
                 disabled={loading}
               >
                 {loading ? (
@@ -579,6 +598,8 @@ const CampaignBudget = () => {
           <FeeSelectionStep
             num1={4}
             num2={5}
+            isValidated={feeStepValidated}
+            setIsValidated={setFeeStepValidated}
             netAmount={netAmount}
             setNetAmount={setNetAmount}
             feeType={feeType}

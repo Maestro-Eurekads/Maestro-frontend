@@ -664,7 +664,7 @@ export const renderUploadedFile = (uploadBlobs: string[], format: string, index:
   if (format === "Slideshow") {
     // Check if the file is a PDF based on the blob URL or ext
     const isPDF = ext?.name?.toLowerCase().endsWith(".pdf") || uploadBlobs[index].includes("application/pdf");
-    
+
     if (isPDF) {
       return (
         <iframe
@@ -805,3 +805,19 @@ export const mediaTypes = [
 
 
 export const kpis = ["cpm","impressions","frequency","reach","vtr","video_views","cpv","completion_rate","completed_view","cpcv","eng_rate","engagements","cpe","ctr","link_clicks","cpc","click_to_land_rate","lands","cpl","avg_visit_time","avg_pages__visit","bounce_rate","bounced_visits","costbounce","lead_rate","lead_visits","costlead","off_funnel_rate","off_funnel_visits","cost__off_funnel","forms_open","cost__opened_form","cvr","leads","cost__lead","conversions","costconversion","clv_of_associated_product","generated_revenue","return_on_ad_spent","add_to_cart_rate","add_to_carts","cpatc","payment_info_rate","payment_infos","cppi","purchase_rate","purchases","cpp","install_rate","installs","cpi","open_rate","app_open","cost__app_open","conversion","cost__conversion"]
+export const defaultFilters = [
+  { label: "Year", options: ["2022", "2023", "2024", "2025"] },
+  { label: "Quarter", options: ["Q1", "Q2", "Q3", "Q4"] },
+  {
+    label: "Month",
+    options: [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ],
+  },
+  { label: "Level 1", options: ["Level 1"] },
+  { label: "Level 2", options: ["Level 2"] },
+  { label: "Level 3", options: ["Level 3"] },
+  { label: "Made By", options: ["User 1", "User 2", "User 3", "User 4"] },
+  { label: "Approved By", options: ["Manager 1", "Manager 2", "Manager 3", "Manager 4"] },
+]

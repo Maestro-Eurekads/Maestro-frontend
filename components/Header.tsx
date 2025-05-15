@@ -19,9 +19,13 @@ import { useActive } from "app/utils/ActiveContext";
 import { extractAprroverFilters, extractChannelAndPhase, extractDateFilters, extractLevelFilters, extractLevelNameFilters } from "app/utils/campaign-filter-utils";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { el } from "date-fns/locale";
+import { useVersionContext } from "app/utils/VersionApprovalContext";
+import { useSearchParams } from "next/navigation";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 const Header = ({ setIsOpen }) => {
+  const query = useSearchParams();
+  const campaignId = query.get("campaignId");
   const { isAdmin } = useUserPrivileges();
   const { data: session } = useSession();
   const {
@@ -46,10 +50,9 @@ const Header = ({ setIsOpen }) => {
   const [alert, setAlert] = useState(null);
   const [show, setShow] = useState(false);
   const [selectedId, setSelectedId] = useState<string>("");
-  const [currentVersion, setCurrentVersion] = useState(null);
   // Removed unused 'IsError' and 'setIsError'
   const clients: any = getCreateClientData;
-
+  const { getCampaignVersionByclientID, versions } = useVersionContext();
 
 
 
@@ -80,7 +83,7 @@ const Header = ({ setIsOpen }) => {
   //     ? localStorage.getItem("selectedClient") || localStorage.getItem("profileclients")
   //     : "";
 
-  // console.log("🚀 ~ selected ~ selectedId:", selectedId);
+
 
   useEffect(() => {
     if (!clients?.data || clients.data.length === 0) {
@@ -150,16 +153,15 @@ const Header = ({ setIsOpen }) => {
 
 
 
+
   useEffect(() => {
-    const planId = localStorage.getItem("currentPlanId"); // or wherever it's stored
+    const fetchVersionData = async () => {
+      const versions = await getCampaignVersionByclientID(selectedId)
+    };
+    fetchVersionData();
+  }, [selectedId]);
 
-    const versionData = localStorage.getItem(`mediaPlanVersion`);
-    if (versionData) {
-      const parsed = JSON.parse(versionData);
-      setCurrentVersion(parsed.version);
-    }
 
-  }, []);
 
 
 
@@ -264,9 +266,9 @@ const Header = ({ setIsOpen }) => {
         </div>}
 
       <div className="  transform -translate-x-1/2 top-4 z-10">
-        {currentVersion && (
+        {versions?.length > 0 && (
           <div className="px-4 py-[6px] rounded-full bg-green-100 text-green-700 text-sm font-semibold shadow-sm">
-            Media Plan Version: {currentVersion}
+            Media Plan Version: {versions[0]?.version?.version_number}
           </div>
         )}
       </div>

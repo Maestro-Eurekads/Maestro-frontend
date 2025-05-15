@@ -13,6 +13,22 @@ import { removeKeysRecursively } from "utils/removeID";
 import { SVGLoader } from "components/SVGLoader";
 import { useComments } from "app/utils/CommentProvider";
 
+// Simple Toast Component
+const Toast = ({ message, onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className="fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50">
+      {message}
+    </div>
+  );
+};
+
 // Utility functions for localStorage with campaign-specific scoping
 const loadStateFromLocalStorage = (key, defaultValue, cId) => {
   if (typeof window === "undefined") return defaultValue;
@@ -54,9 +70,10 @@ const SelectChannelMix = () => {
   const [openChannelTypes, setOpenChannelTypes] = useState({});
   const [isDataReady, setIsDataReady] = useState(false);
   const [showMoreMap, setShowMoreMap] = useState({});
+  const [toast, setToast] = useState(null);
   const ITEMS_TO_SHOW = 6;
 
-  // Fallback metadata for Targeting/Retargeting, using same icons as MapFunnelStages
+  // Fallback metadata for Targeting/Retargeting
   const fallbackFunnelMetadata = {
     Targeting: { name: "Targeting", icon: zoom },
     Retargeting: { name: "Retargeting", icon: credit },
@@ -112,7 +129,7 @@ const SelectChannelMix = () => {
     }
   }, [cId, isMounted]);
 
-  // Initialize states from localStorage based on cId
+  // Initialize states from localStorage
   useEffect(() => {
     if (isMounted) {
       setOpenItems(loadStateFromLocalStorage("openItems", {}, cId));
@@ -125,7 +142,7 @@ const SelectChannelMix = () => {
     }
   }, [isMounted, cId]);
 
-  // Sync state to localStorage whenever it changes
+  // Sync state to localStorage
   useEffect(() => {
     if (isMounted) saveStateToLocalStorage("openItems", openItems, cId);
   }, [openItems, isMounted, cId]);
@@ -256,6 +273,28 @@ const SelectChannelMix = () => {
       const categorySelection = stageSelection[category] || [];
       const isAlreadySelected = categorySelection.includes(platformName);
 
+      // If deselecting, check if this is the last selected platform in the stage
+      if (isAlreadySelected) {
+        const newCategorySelection = categorySelection.filter(
+          (p) => p !== platformName
+        );
+        const updatedStageSelection = {
+          ...stageSelection,
+          [category]: newCategorySelection,
+        };
+        // Count total selected platforms in the stage
+        const totalSelected = Object.values(updatedStageSelection).reduce(
+          (count: number, arr: unknown[]) => count + (Array.isArray(arr) ? arr.length : 0),
+          0
+        );
+
+        if (totalSelected === 0) {
+          // Show toast and prevent deselection
+          setToast("At least one channel must be selected for each stage.");
+          return prevSelected; // No state change
+        }
+      }
+
       const newCategorySelection = isAlreadySelected
         ? categorySelection.filter((p) => p !== platformName)
         : [...categorySelection, platformName];
@@ -270,7 +309,7 @@ const SelectChannelMix = () => {
         [stageName]: updatedStageSelection,
       };
 
-      // Compute new stage status immediately
+      // Compute new stage status
       const hasSelections = Object.values(updatedStageSelection).some(
         (arr) => Array.isArray(arr) && arr.length > 0
       );
@@ -287,16 +326,32 @@ const SelectChannelMix = () => {
       const stageSelection = selected[stageName] || {};
       const categorySelection = stageSelection[category] || [];
       const isAlreadySelected = categorySelection.includes(platformName);
+      
+      // Skip update if deselection was blocked
+      if (
+        isAlreadySelected &&
+        Object.values({
+          ...stageSelection,
+          [category]: categorySelection.filter((p) => p !== platformName),
+        }).reduce(
+          (count: number, arr: unknown) => count + (Array.isArray(arr) ? arr.length : 0),
+          0
+        ) === 0
+      ) {
+        return prevFormData;
+      }
+
       const newCategorySelection = isAlreadySelected
         ? categorySelection.filter((p) => p !== platformName)
         : [...categorySelection, platformName];
-        const platformObjects = newCategorySelection.map((name) => {
-          const existingPlatform = prevFormData.channel_mix
-            ?.find((item) => item.funnel_stage === stageName)?.[categoryKey]
-            ?.find((platform) => platform.platform_name === name);
-  
-          return existingPlatform || { platform_name: name };
-        });
+
+      const platformObjects = newCategorySelection.map((name) => {
+        const existingPlatform = prevFormData.channel_mix
+          ?.find((item) => item.funnel_stage === stageName)?.[categoryKey]
+          ?.find((platform) => platform.platform_name === name);
+
+        return existingPlatform || { platform_name: name };
+      });
 
       const existingChannelMixIndex = prevFormData.channel_mix?.findIndex(
         (item) => item.funnel_stage === stageName
@@ -322,8 +377,11 @@ const SelectChannelMix = () => {
       };
     });
 
-    // Sync with server
-    if (cId) {
+    // Sync with server if form data was updated
+    if (
+      cId &&
+      updatedFormData !== campaignFormData // Only update if form data changed
+    ) {
       await updateCampaign({
         ...removeKeysRecursively(campaignData, [
           "id",
@@ -393,7 +451,6 @@ const SelectChannelMix = () => {
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
         {campaignFormData.funnel_stages.map((stageName, index) => {
-          // Find stage metadata: prioritize funnelStages, then custom_funnels, then fallback
           const stageFromFunnelStages = funnelStages?.find(
             (f) => f.name === stageName
           );
@@ -414,7 +471,6 @@ const SelectChannelMix = () => {
             );
           }
 
-          // Use stage.icon if available, else fallback to custom icon from funnelStages or custom_funnels
           const icon =
             stage.icon ||
             stageFromFunnelStages?.icon ||
@@ -641,6 +697,9 @@ const SelectChannelMix = () => {
           );
         })}
       </div>
+      {toast && (
+        <Toast message={toast} onClose={() => setToast(null)} />
+      )}
     </div>
   );
 };

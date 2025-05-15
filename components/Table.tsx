@@ -121,7 +121,7 @@ const Table = () => {
     );
   };
 
-  console.log('clientCampaignData-clientCampaignData', clientCampaignData)
+
 
   return (
     <div className="flex flex-col">
@@ -208,18 +208,15 @@ const Table = () => {
                       {POs?.length > 0 ? (
                         <div className="space-y-2">
                           {POs?.map((p) => (
-                            <div className="flex gap-2">
+                            <div key={p.PO_number} className="flex gap-2">
                               <p
-                                className={`${p?.status === "fully_paid" ||
-                                  p?.status === "reconcilled"
+                                className={`${p?.status === "fully_paid" || p?.status === "reconcilled"
                                   ? "bg-green-400"
                                   : p?.status === "open"
                                     ? "bg-blue-400"
                                     : "bg-orange-400"
-                                  }  text-white text-xs px-3 py-1 rounded-full`}
-                                title={p?.status
-                                  ?.replace("_", " ")
-                                  ?.toUpperCase()}
+                                  } text-white text-xs px-3 py-1 rounded-full`}
+                                title={p?.status?.replace("_", " ")?.toUpperCase()}
                               >
                                 {p?.PO_number}
                               </p>
@@ -228,6 +225,7 @@ const Table = () => {
                               </p>
                             </div>
                           ))}
+
                         </div>
                       ) : (
                         <p className="text-center">-</p>
