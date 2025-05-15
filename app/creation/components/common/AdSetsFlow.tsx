@@ -7,7 +7,7 @@ import {
   useRef,
   createContext,
   useContext,
-} from "react";
+} from "react"
 import Image, { type StaticImageData } from "next/image";
 import { FaAngleRight, FaSpinner } from "react-icons/fa";
 import { MdDelete, MdAdd } from "react-icons/md";
@@ -352,11 +352,11 @@ const AdSet = memo(function AdSet({
                 <button
                   disabled={!isEditing}
                   onClick={() => handleDeleteExtraAudience(index)}
-                  className={`flex items-center justify-center rounded-full px-6 py-2 bg-[#FF5955] w-[200px] text-white font-bold ${
+                  className={`flex items-center justify-center rounded-full px-6 py-2 bg-[#FF5955] text-white ${
                     !isEditing ? "cursor-not-allowed opacity-50" : ""
                   }`}
                 >
-                  <MdDelete /> <span>Delete</span>
+                  <MdDelete /> <span className="text-white font-bold">Delete</span>
                 </button>
               </div>
             ))}
@@ -404,8 +404,11 @@ const AdSet = memo(function AdSet({
         }`}
       />
       <button
+        disabled={!isEditing}
         onClick={() => onDelete(adset.id)}
-        className={`flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold`}
+        className={`flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold ${
+          !isEditing ? "cursor-not-allowed opacity-50" : ""
+        }`}
       >
         <MdDelete /> <span>Delete</span>
       </button>
@@ -531,7 +534,7 @@ const NonFacebookOutlet = memo(function NonFacebookOutlet({
   return (
     <div className="flex items-center gap-4">
       <div
-        className="relative border border-[#0000001A] rounded-[10px] cursor-pointer"
+        className="relative border border-[#0000001A] rounded-[10px]"
         onClick={handleSelect}
       >
         <button className="relative min-w-[150px] w-fit max-w-[300px] z-20 flex gap-4 justify-between items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
@@ -656,11 +659,21 @@ const AdsetSettings = memo(function AdsetSettings({
   const deleteAdSet = useCallback((id: number) => {
     setAdSets((prev) => {
       const newAdSets = prev.filter((adset) => adset.id !== id);
-      // Renumber remaining adsets
-      return newAdSets.map((adset, index) => ({
-        ...adset,
-        addsetNumber: index + 1,
-      }));
+      // Only remove from selectedPlatforms if this was the last ad set
+      if (newAdSets.length === 0) {
+        setSelectedPlatforms((prevPlatforms) => 
+          prevPlatforms.filter(p => p !== outlet.outlet)
+        );
+        // Add back initial adset when all are deleted
+        const newAdSetId = Date.now();
+        setTimeout(() => {
+          setAdSets([{ id: newAdSetId, addsetNumber: 1 }]);
+          setAdSetDataMap({
+            [newAdSetId]: { name: "", audience_type: "", size: "" },
+          });
+        }, 0);
+      }
+      return newAdSets;
     });
     
     setAdSetDataMap((prev) => {
@@ -668,24 +681,7 @@ const AdsetSettings = memo(function AdsetSettings({
       delete newMap[id];
       return newMap;
     });
-
-    // Update campaign form data
-    if (campaignFormData?.channel_mix) {
-      const updatedChannelMix = updateMultipleAdSets(
-        campaignFormData.channel_mix,
-        stageName,
-        outlet.outlet,
-        Object.entries(adSetDataMap)
-          .filter(([adsetId]) => Number(adsetId) !== id)
-          .map(([_, data]) => data)
-      );
-
-      setCampaignFormData((prev) => ({
-        ...prev,
-        channel_mix: updatedChannelMix,
-      }));
-    }
-  }, [adsets, adSetDataMap, campaignFormData, stageName, outlet.outlet, setCampaignFormData]);
+  }, [outlet.outlet]);
 
   const updateAdSetData = useCallback(
     (id: number, data: Partial<AdSetData>) => {
@@ -803,15 +799,7 @@ const AdsetSettings = memo(function AdsetSettings({
   return (
     <div className="flex items-center gap-8 w-full max-w-[1024px]">
       <div className="relative">
-        <button 
-          onClick={() => {
-            // Only close if there are ad sets, otherwise keep it open
-            if (adsets.length > 0) {
-              setSelectedPlatforms(prev => prev.filter(p => p !== outlet.outlet));
-            }
-          }}
-          className="relative min-w-[150px] max-w-[300px] w-fit z-20 flex gap-4 justify-between cursor-pointer items-center bg-[#F9FAFB] border border-[#0000001A] border-solid py-4 px-4 rounded-[10px]"
-        >
+        <button className="relative min-w-[150px] max-w-[300px] w-fit z-20 flex gap-4 justify-between cursor-pointer items-center bg-[#F9FAFB] border border-[#0000001A] border-solid py-4 px-4 rounded-[10px]">
           <Image
             src={outlet.icon || "/placeholder.svg"}
             alt={outlet.outlet}
@@ -1023,7 +1011,6 @@ const AdSetFlow = memo(function AdSetFlow({
         "createdAt",
         "publishedAt",
         "updatedAt",
-        "_aggregated"
       ])
     : {};
 
@@ -1034,7 +1021,6 @@ const AdSetFlow = memo(function AdSetFlow({
         "id",
         "isValidated",
         "validatedStages",
-        "_aggregated"
       ]),
     })
       .then(() => {
