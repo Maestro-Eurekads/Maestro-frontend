@@ -1,5 +1,6 @@
 "use client";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import { getCurrencySymbol } from "components/data";
 import { Ban } from "lucide-react";
 import Image from "next/image";
 
@@ -48,7 +49,7 @@ export const CellRenderer = ({
       case "percent":
         return `${numValue.toFixed(2)}%`;
       case "currency":
-        return `$${numValue.toFixed(2)}`;
+        return `${numValue.toFixed(2)}`;
       case "seconds":
         return `${numValue.toFixed(2)}s`;
       case "number":
@@ -194,7 +195,7 @@ export const CellRenderer = ({
                   : getCalculatedValue(body);
               // console.log("sdd", {body, value})
               return value && value !== "-"
-                ? `${isCurrencyType ? "$" : isSecondsType ? "secs" : ""}${formatNumber(
+                ? `${isCurrencyType ? `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}` : isSecondsType ? "secs" : ""}${formatNumber(
                     Number(value)
                   )}`
                 : "-";
@@ -279,7 +280,7 @@ export const CellRenderer = ({
       }
     } else if (isCurrencyType) {
       // Format as currency
-      if (!displayValue.toString().includes("$")) {
+      if (!displayValue.toString().includes(`${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}`)) {
         displayValue = `${Number.parseFloat(displayValue).toFixed(2)}`;
       }
     } else if (isSecondsType) {
