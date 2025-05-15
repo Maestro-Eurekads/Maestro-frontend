@@ -75,7 +75,7 @@ const MainSection = ({ hideDate, disableDrag }: { hideDate?: boolean, disableDra
         return (
           <>
             <MonthInterval
-              monthsCount={monthDifference === 0 ? 1 : monthDifference}
+              monthsCount={monthDifference === 0 ? 1 : monthDifference + 1}
             />
             {/* <MonthTimeline monthsCount={monthDifference} funnels={funnelsData} /> */}
           </>

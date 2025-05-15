@@ -101,7 +101,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   // };
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    const baseStep = 100; // Base grid size
+    const baseStep = range !== "Day" ? 50 : 100;
     // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
     const adjustmentPerStep = 0; // Decrease each next step by 10
     const snapPoints = [];
@@ -116,7 +116,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       // console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
       currentSnap += step;
       step = Math.max(
-        100,
+        range !== "Day" ? 50 : 100,
         step - adjustmentPerStep
       );
     }
