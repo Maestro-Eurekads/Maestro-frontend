@@ -33,7 +33,7 @@ export const CellRenderer = ({
     "impressions",
     "frequency",
     "reach",
-    "adsets"
+    "adsets",
   ];
 
   const isNR = nrCells[channel?.name]?.[body];
@@ -83,7 +83,11 @@ export const CellRenderer = ({
                   strokeWidth="1.33333"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  transform={expandedRows[index] ? "rotate(180 8.5 8)" : ""}
+                  transform={
+                    expandedRows[`${stage.name}${index}`]
+                      ? "rotate(180 8.5 8)"
+                      : ""
+                  }
                 />
               </svg>
             </span>
@@ -105,8 +109,8 @@ export const CellRenderer = ({
     );
   }
 
-  if (body === "audience"){
-    return ""
+  if (body === "audience") {
+    return "";
   }
 
   // Handle calculated fields
@@ -157,7 +161,19 @@ export const CellRenderer = ({
         className="flex justify-center items-center gap-5 w-fit group"
         onClick={() => toggleNRCell(stage.name, channel?.name, body)}
       >
-        {isNR ? <p className="text-gray-300 font-semibold">NR</p> : <p>{getCalculatedValue(body)}</p>}
+        {isNR ? (
+          <p className="text-gray-300 font-semibold">NR</p>
+        ) : (
+          <p>
+            {formatNumber(
+              Number(
+                campaignFormData?.goal_level === "Adset level"
+                  ? channel?.kpi?.[body]
+                  : getCalculatedValue(body)
+              )
+            )}
+          </p>
+        )}
         <Ban
           size={10}
           className="hidden group-hover:block shrink-0 cursor-pointer"
@@ -265,7 +281,7 @@ export const CellRenderer = ({
               ""
             );
           }}
-          disabled={isNR}
+          disabled={isNR || goalLevel === "Adset level"}
           className={`cpm-bg border-none outline-none max-w-[90px] p-1 ${
             isNR ? "text-gray-400" : ""
           }`}

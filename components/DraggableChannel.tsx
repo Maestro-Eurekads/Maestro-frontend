@@ -101,7 +101,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   // };
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    const baseStep = range !== "Day" ? parentWidth : 100; // Base grid size
+    const baseStep = 100; // Base grid size
     // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
     const adjustmentPerStep = 0; // Decrease each next step by 10
     const snapPoints = [];
@@ -116,7 +116,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       // console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
       currentSnap += step;
       step = Math.max(
-        range !== "Day" ? parentWidth : 100,
+        100,
         step - adjustmentPerStep
       );
     }
@@ -128,11 +128,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     );
 
     // console.log("Closest custom snap:", closestSnap);
-    return range !== "Day"
-      ? closestSnap > 0
-        ? closestSnap + 40
-        : closestSnap
-      : closestSnap;
+    return closestSnap;
   };
 
   const handleMouseDownResize = (
@@ -141,6 +137,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   ) => {
     if (disableDrag) return;
     e.preventDefault();
+    e.stopPropagation()
+    // setOpenChannel(false)
     isResizing.current = {
       startX: e.clientX,
       startWidth: parentWidth,
@@ -311,7 +309,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       >
         <div />
         <button
-          className="flex items-center gap-3"
+          className="flex items-center gap-3 w-fit"
           onClick={() => setOpenChannel?.(!openChannel)}
         >
           {Icon?.src ? (

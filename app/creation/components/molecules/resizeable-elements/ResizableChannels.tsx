@@ -353,12 +353,12 @@ const ResizableChannels = ({
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
         {
           data: {
-            ...removeKeysRecursively(campaignData, ["id", "documentId", "createdAt", "publishedAt", "updatedAt"]),
+            ...removeKeysRecursively(campaignData, ["id", "documentId", "createdAt", "publishedAt", "updatedAt", "_aggregated"]),
             channel_mix: removeKeysRecursively(updatedData?.channel_mix, [
               "id",
               "isValidated",
               "validatedStages",
-              "documentId",
+              "documentId",, "_aggregated"
             ]),
           },
         },
@@ -423,7 +423,7 @@ const ResizableChannels = ({
                   start: new Date(ch?.start_date) || null,
                   end: isEndDateExceeded ? endDate : new Date(ch?.end_date) || null,
                 })?.length - 1
-
+                console.log("🚀 ~ newState ~ daysBetween:", daysBetween)
           const endDaysDiff = differenceInCalendarDays(endDate, stageEndDate)
           // Check if this channel already exists in prev
           const existingState = prev[index]
@@ -443,7 +443,8 @@ const ResizableChannels = ({
                 width: Math.min(150, parentWidth), // Default width for new channels
               }
         })
-        console.log("new state", dRange)
+          
+        // console.log("new state", dRange)
         return newState
       })
     }

@@ -15,6 +15,8 @@ export const AdSetCellRenderer = ({
   handleEditInfo,
   nrAdCells,
   toggleNRAdCell,
+  expandedAdsetKPI,
+  toggleAdSetKPIShow,
 }) => {
   const { campaignFormData } = useCampaigns();
 
@@ -43,8 +45,8 @@ export const AdSetCellRenderer = ({
   };
 
   // Helper function to format numbers with commas
-  const formatNumber = (num) => {
-    if (isNaN(num) || num === null || num === undefined) return "-";
+  const formatNumber = (num: number): string => {
+    if (isNaN(num)) return "-";
     return new Intl.NumberFormat("en-US").format(num);
   };
 
@@ -52,26 +54,85 @@ export const AdSetCellRenderer = ({
   if (body === "channel") {
     return (
       <div className="flex gap-2 indent-[10px]">
-        <div className="l-shape-container">
+        <div className="l-shape-container-cb">
           <div
-            className="l-vertical"
+            className="l-vertical-ad"
             style={{
-              height: adSetIndex > 0 ? "160px" : "56px",
-              top: adSetIndex > 0 ? "-160px" : "-55px",
+              left: "30px",
+              height: `${
+                adSetIndex < 1
+                  ? "50px"
+                  : expandedAdsetKPI[`${stage.name}${adSetIndex - 1}`] &&
+                    channel?.ad_sets[adSetIndex - 1]?.extra_audiences?.length >
+                      0
+                  ? `${
+                      channel?.ad_sets[adSetIndex - 1]?.extra_audiences
+                        ?.length > 1
+                        ? 215
+                        : 155 *
+                          channel?.ad_sets[adSetIndex - 1]?.extra_audiences
+                            ?.length
+                    }px`
+                  : "75px"
+              }`,
+              top: `${
+                adSetIndex < 1
+                  ? "-50px"
+                  : expandedAdsetKPI[`${stage.name}${adSetIndex - 1}`] &&
+                    channel?.ad_sets[adSetIndex - 1]?.extra_audiences?.length >
+                      0
+                  ? `-${
+                      channel?.ad_sets[adSetIndex - 1]?.extra_audiences
+                        ?.length > 1
+                        ? 215
+                        : 155 *
+                          channel?.ad_sets[adSetIndex - 1]?.extra_audiences
+                            ?.length
+                    }px`
+                  : "-75px"
+              }`,
             }}
           ></div>
-          <div className="l-horizontal" style={{ width: "85px" }}></div>
+          <div className="l-horizontal-ad" style={{ left: "30px" }}></div>
         </div>
       </div>
     );
   }
   if (body === "adsets") {
     return (
-      <div className="flex gap-2 ">
+      <div
+        className="flex gap-2 cursor-pointer items-center"
+        onClick={() => toggleAdSetKPIShow(`${stage?.name}${adSetIndex}`)}
+      >
         {/* <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
           {adSetIndex + 1}.
         </span>*/}
         <span>{adSet?.name ? adSet?.name : "-"}</span>
+        {adSet?.extra_audiences?.length > 0 && (
+          <span className="shrink-0">
+            <svg
+              width="17"
+              height="16"
+              viewBox="0 0 17 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5.38021 6.66667L8.71354 10L12.0469 6.66667 6.66667"
+                stroke="#061237"
+                strokeOpacity="0.8"
+                strokeWidth="1.33333"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                transform={
+                  expandedAdsetKPI[`${stage?.name}${adSetIndex}`]
+                    ? "rotate(180 8.5 8)"
+                    : ""
+                }
+              />
+            </svg>
+          </span>
+        )}
       </div>
     );
   }
@@ -82,7 +143,12 @@ export const AdSetCellRenderer = ({
         {/* <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
           {1}.
         </span> */}
-        {!adSet?.audience_type ? "-" : adSet?.audience_type}
+        {!expandedAdsetKPI[`${stage.name}${adSetIndex}`] &&
+        adSet?.extra_audiences?.length > 0
+          ? ""
+          : !adSet?.audience_type
+          ? "-"
+          : adSet?.audience_type}
       </div>
     );
   }
@@ -147,7 +213,7 @@ export const AdSetCellRenderer = ({
         {isNR ? (
           <p className="text-gray-300 font-semibold">NR</p>
         ) : (
-          <p>{getCalculatedValue(body)}</p>
+            <p>{formatNumber(Number(getCalculatedValue(body)))}</p>
         )}
         <Ban
           size={10}
@@ -166,7 +232,7 @@ export const AdSetCellRenderer = ({
     }
     return value === "Invalid date"
       ? "-"
-      : formatNumber(parseFloat(value)?.toFixed(2));
+      : formatNumber(Number(parseFloat(value)?.toFixed(2)));
   }
 
   const isPercentType = tableHeaders[bodyIndex]?.type === "percent";

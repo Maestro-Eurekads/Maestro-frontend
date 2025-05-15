@@ -1023,6 +1023,7 @@ const AdSetFlow = memo(function AdSetFlow({
         "createdAt",
         "publishedAt",
         "updatedAt",
+        "_aggregated"
       ])
     : {};
 
@@ -1033,6 +1034,7 @@ const AdSetFlow = memo(function AdSetFlow({
         "id",
         "isValidated",
         "validatedStages",
+        "_aggregated"
       ]),
     })
       .then(() => {

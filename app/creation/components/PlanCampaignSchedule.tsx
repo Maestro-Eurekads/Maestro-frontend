@@ -77,6 +77,7 @@ const PlanCampaignSchedule: React.FC = () => {
 			"createdAt",
 			"publishedAt",
 			"updatedAt",
+			"_aggregated"
 		]);
 
 		try {
