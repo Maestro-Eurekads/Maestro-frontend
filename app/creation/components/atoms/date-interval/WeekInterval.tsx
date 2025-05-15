@@ -7,29 +7,26 @@ const WeekInterval = ({ weeksCount }) => {
   const { campaignFormData } = useCampaigns();
   const { range } = useDateRange();
   return (
-    <div className="w-full border-y py-5">
+    <div className="w-full border-y">
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${weeksCount}, ${
-            weeksCount > 2 ? `360px` : `50%`
-          })`,
+          gridTemplateColumns: `repeat(${weeksCount}, 700px)`,
+          backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.2) 1px, transparent 1px)`,
+          backgroundSize: `calc(700px) 100%`,
         }}
       >
-        {Array.from({ length: weeksCount }, (_, i) => {
-          const isEdge = i === 0 || i === range?.length - 1;
-          return (
-            <div key={i} className="flex flex-col items-center relative">
-              {/* Week Label */}
-              <div className="flex flex-row gap-2 items-center">
-                <span className="font-[500] text-[13px] text-[rgba(0,0,0,0.5)]">
-                  Week
-                </span>
-                <p className="font-[500] text-[13px] text-blue-500">{i + 1}</p>
-              </div>
-            </div>
-          );
-        })}
+        {Array.from({ length: weeksCount }, (_, i) => (
+          <div key={i} className="flex flex-col items-center relative py-5">
+        {/* Week Label */}
+        <div className="flex flex-row gap-2 items-center mb-2">
+          <span className="font-[500] text-[13px] text-[rgba(0,0,255,0.5)]">
+            Week
+          </span>
+          <p className="font-[500] text-[13px] text-blue-500">{i + 1}</p>
+        </div>
+          </div>
+        ))}
       </div>
     </div>
   );

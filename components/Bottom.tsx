@@ -38,7 +38,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const { active, setActive, subStep, setSubStep } = useActive();
   const { midcapEditing } = useEditing();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
-  const [setupyournewcampaignError, setSetupyournewcampaignError] = useState(false);
+  const [setupyournewcampaignError, setSetupyournewcampaignError] =
+    useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
   const [selectedDatesError, setSelectedDatesError] = useState(false);
   const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
@@ -90,7 +91,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   useEffect(() => {
     if (typeof window !== "undefined" && cId) {
-      localStorage.setItem(`triggerFormatError_${cId}`, triggerFormatError.toString());
+      localStorage.setItem(
+        `triggerFormatError_${cId}`,
+        triggerFormatError.toString()
+      );
     }
   }, [triggerFormatError, cId]);
 
@@ -139,7 +143,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     let hasValidFormat = false;
 
     for (const stage of selectedStages) {
-      const stageData = campaignFormData?.channel_mix?.find((mix) => mix.funnel_stage === stage);
+      const stageData = campaignFormData?.channel_mix?.find(
+        (mix) => mix.funnel_stage === stage
+      );
 
       if (stageData) {
         const hasFormatSelected = [
@@ -156,8 +162,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           ...(stageData.mobile || []),
         ].some(
           (platform) =>
-            platform.format?.length > 0 &&
-            platform.format.some((f) => f.format_type && f.num_of_visuals) ||
+            (platform.format?.length > 0 &&
+              platform.format.some((f) => f.format_type && f.num_of_visuals)) ||
             platform.ad_sets?.some((adset) =>
               adset.format?.some((f) => f.format_type && f.num_of_visuals)
             )
@@ -183,7 +189,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
 
     for (const stage of selectedStages) {
-      const stageData = campaignFormData.channel_mix.find((mix) => mix.funnel_stage === stage);
+      const stageData = campaignFormData.channel_mix.find(
+        (mix) => mix.funnel_stage === stage
+      );
 
       if (stageData && validatedStages[stage]) {
         const hasValidChannel = [
@@ -478,6 +486,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "createdAt",
           "publishedAt",
           "updatedAt",
+          "_aggregated",
         ])
       : {};
 
@@ -492,6 +501,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "formatValidated",
           "validatedStages",
           "documentId",
+          "_aggregated",
         ]),
         custom_funnels: campaignFormData?.custom_funnels,
         funnel_type: campaignFormData?.funnel_type,
@@ -507,6 +517,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "isValidated",
           "validatedStages",
           "documentId",
+          "_aggregated",
         ]),
       });
     };
@@ -521,6 +532,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "formatValidated",
           "validatedStages",
           "documentId",
+          "_aggregated",
         ]),
       });
     };
@@ -534,6 +546,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "id",
           "isValidated",
           "documentId",
+          "_aggregated",
         ]),
         campaign_budget: removeKeysRecursively(
           campaignFormData?.campaign_budget,
@@ -544,32 +557,38 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     };
 
     const handleDateStep = async () => {
+      console.log("her")
       const currentYear = new Date().getFullYear();
       if (!campaignData) return;
-      const campaign_timeline_start_date = dayjs(
-        new Date(
-          currentYear,
-          selectedDates?.from?.month,
-          selectedDates.from?.day
-        )
-      ).format("YYYY-MM-DD");
+      const campaign_timeline_start_date =
+        dayjs(
+          new Date(
+            currentYear,
+            selectedDates?.from?.month,
+            selectedDates.from?.day
+          )
+        ).format("YYYY-MM-DD") ||
+        campaignFormData?.campaign_timeline_start_date;
 
-      const campaign_timeline_end_date = dayjs(
-        new Date(
-          currentYear,
-          selectedDates?.to?.month,
-          selectedDates.to?.day
-        )
-      ).format("YYYY-MM-DD");
+      const campaign_timeline_end_date =
+        dayjs(
+          new Date(currentYear, selectedDates?.to?.month, selectedDates.to?.day)
+        ).format("YYYY-MM-DD") || campaignFormData?.campaign_timeline_end_date;
       await updateCampaignData({
         ...cleanData,
-        campaign_timeline_start_date,
-        campaign_timeline_end_date,
+        campaign_timeline_start_date:
+          campaign_timeline_start_date === "Invalid Date"
+            ? campaignFormData?.campaign_timeline_start_date
+            : campaign_timeline_start_date,
+        campaign_timeline_end_date: campaign_timeline_end_date === "Invalid Date"
+        ? campaignFormData?.campaign_timeline_end_date
+        : campaign_timeline_end_date,
         funnel_stages: campaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
           "isValidated",
           "documentId",
+          "_aggregated",
         ]),
         campaign_budget: removeKeysRecursively(
           campaignFormData?.campaign_budget,

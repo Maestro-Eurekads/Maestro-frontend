@@ -1,5 +1,5 @@
 "use client"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useMemo } from "react"
 import down from "../../../public/down.svg"
 import Image from "next/image"
 import { BiX } from "react-icons/bi"
@@ -8,6 +8,8 @@ import { fetchFilteredCampaigns } from "app/utils/campaign-filter-utils"
 import { toast, Toaster } from "react-hot-toast"
 import { useAppDispatch } from "store/useStore"
 import { getCreateClient } from "features/Client/clientSlice"
+import { defaultFilters } from "components/data"
+import { fetchFilteredCampaignsSub } from "app/utils/campaign-filter-utils-sub"
 
 // Scrollbar CSS
 const scrollbarStyles = `
@@ -45,7 +47,6 @@ const Dropdown = ({ label, options, selectedFilters, handleSelect, isDisabled = 
   }
 
   const handleOptionSelect = (option) => {
-    console.log('label-label-label', label)
     handleSelect(label.toLowerCase(), option)
     setIsOpen(false)
   }
@@ -95,22 +96,7 @@ const Dropdown = ({ label, options, selectedFilters, handleSelect, isDisabled = 
   )
 }
 
-const defaultFilters = [
-  { label: "Year", options: ["2022", "2023", "2024", "2025"] },
-  { label: "Quarter", options: ["Q1", "Q2", "Q3", "Q4"] },
-  {
-    label: "Month",
-    options: [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ],
-  },
-  { label: "Level 1", options: ["Level 1"] },
-  { label: "Level 2", options: ["Level 2"] },
-  { label: "Level 3", options: ["Level 3"] },
-  { label: "Made By", options: ["User 1", "User 2", "User 3", "User 4"] },
-  { label: "Approved By", options: ["Manager 1", "Manager 2", "Manager 3", "Manager 4"] },
-]
+
 
 
 const FiltersDropdowns = ({ hideTitle, router }: Props) => {
@@ -138,6 +124,10 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
 
   const [filters, setFilters] = useState(defaultFilters)
+  const allFiltersEmpty = useMemo(
+    () => Object.values(selectedFilters).every((val) => !val),
+    [selectedFilters]
+  );
 
   const handleSelect = (label, value) => {
     if (value === "") {
@@ -178,23 +168,50 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     }
   }, [filterOptions])
 
-  useEffect(() => {
-    if (Object.values(selectedFilters).some((val) => val !== null && val !== "")) {
-      const fetchData = async () => {
-        const clientID = localStorage.getItem("selectedClient") || allClients[0]?.id
-        setLoading(true)
-        const data = await fetchFilteredCampaigns(clientID, selectedFilters)
-          .then((res) => {
-            setClientCampaignData(res)
-          })
-          .finally(() => {
-            setLoading(false)
-          })
-      }
-      fetchData()
-    }
 
-  }, [selectedFilters])
+  useEffect(() => {
+    const fetchData = async () => {
+      const clientID = localStorage.getItem("selectedClient") || allClients[0]?.id;
+
+      if (!clientID) return;
+
+      setLoading(true);
+
+      const allEmpty = Object.values(selectedFilters).every((val) => !val);
+
+      try {
+        const res = allEmpty
+          ? await fetchFilteredCampaignsSub(clientID)
+          : await fetchFilteredCampaigns(clientID, selectedFilters);
+
+        setClientCampaignData(res);
+      } catch (err) {
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [selectedFilters]);
+
+
+  // useEffect(() => {
+  //   if (Object.values(selectedFilters).some((val) => val !== null && val !== "")) {
+  //     const fetchData = async () => {
+  //       const clientID = localStorage.getItem("selectedClient") || allClients[0]?.id
+  //       setLoading(true)
+  //       const data = await fetchFilteredCampaigns(clientID, selectedFilters)
+  //         .then((res) => {
+  //           setClientCampaignData(res)
+  //         })
+  //         .finally(() => {
+  //           setLoading(false)
+  //         })
+  //     }
+  //     fetchData()
+  //   }
+
+  // }, [selectedFilters])
 
   useEffect(() => {
     const allEmpty = Object.values(selectedFilters).every((val) => !val)
@@ -221,7 +238,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
   const isYearSelected = !!selectedFilters["year"]
 
 
-  // console.log('filters-filters', filters)
+
   // {
   //   filters
   //     ?.filter((l) => l?.label !== "channel" && l?.label !== "phase")

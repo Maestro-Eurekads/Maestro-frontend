@@ -77,12 +77,31 @@ const UploadModal: React.FC<UploadModalProps> = ({
   }, [previews, quantities]);
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
+  const uploadUpdatedCampaignToStrapi = useCallback(
+    async (data: any) => {
+      try {
+        const cleanData = removeKeysRecursively(
+          data,
+          ["id", "documentId", "createdAt", "publishedAt", "updatedAt", "_aggregated"],
+          ["previews"],
+        )
+        await updateCampaign(cleanData)
+        await getActiveCampaign()
+      } catch (error) {
+        console.error("Error in uploadUpdatedCampaignToStrapi:", error)
+        toast.error("Failed to save campaign data.")
+        throw error
+      }
+    },
+    [updateCampaign, getActiveCampaign],
+  )
 
   const updateGlobalState = useCallback(
     async (uploadedFiles: Array<{ id: string; url: string }>) => {

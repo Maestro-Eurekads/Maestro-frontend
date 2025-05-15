@@ -42,6 +42,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
         "createdAt",
         "publishedAt",
         "updatedAt",
+        "_aggregated"
       ])
     : {};
 
@@ -57,6 +58,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
           "formatValidated",
           "validatedStages",
           "documentId",
+          "_aggregated"
         ], ["preview"]),
         custom_funnels: campaignFormData?.custom_funnels,
         funnel_type: campaignFormData?.funnel_type,

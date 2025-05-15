@@ -116,7 +116,7 @@ function createPlatformObject(
       );
       return {
         ...ad,
-        size: baseSize + extraSize, // ✅ assign per-adset audience size
+        // size: baseSize + extraSize, 
         budget:
           ad?.budget === null || ad?.budget === undefined
             ? { fixed_value: platform?.budget?.fixed_value }
