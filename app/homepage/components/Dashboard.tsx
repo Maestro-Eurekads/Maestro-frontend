@@ -139,7 +139,7 @@ const Dashboard = () => {
   const dayDifference = differenceInCalendarDays(latestEndDate, earliestStartDate)
   const weekDifference = differenceInCalendarWeeks(latestEndDate, earliestStartDate)
   // const monthDifference = differenceInCalendarMonths(latestEndDate, earliestStartDate)
-  const daysDiff = differenceInDays(endDates, startDates);
+  const daysDiff = differenceInDays(latestEndDate, earliestStartDate);
   const monthDifference = daysDiff / 30.44;
 
   const funnelsData = clientCampaignData?.map((ch) => {
@@ -211,6 +211,8 @@ const Dashboard = () => {
       })
     return platforms
   }
+
+
 
   return (
     <div className="mt-[24px] ">

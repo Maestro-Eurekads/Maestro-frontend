@@ -664,7 +664,7 @@ export const renderUploadedFile = (uploadBlobs: string[], format: string, index:
   if (format === "Slideshow") {
     // Check if the file is a PDF based on the blob URL or ext
     const isPDF = ext?.name?.toLowerCase().endsWith(".pdf") || uploadBlobs[index].includes("application/pdf");
-    
+
     if (isPDF) {
       return (
         <iframe
@@ -802,3 +802,21 @@ export const mediaTypes = [
   "in_game",
   "mobile",
 ];
+
+
+export const defaultFilters = [
+  { label: "Year", options: ["2022", "2023", "2024", "2025"] },
+  { label: "Quarter", options: ["Q1", "Q2", "Q3", "Q4"] },
+  {
+    label: "Month",
+    options: [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ],
+  },
+  { label: "Level 1", options: ["Level 1"] },
+  { label: "Level 2", options: ["Level 2"] },
+  { label: "Level 3", options: ["Level 3"] },
+  { label: "Made By", options: ["User 1", "User 2", "User 3", "User 4"] },
+  { label: "Approved By", options: ["Manager 1", "Manager 2", "Manager 3", "Manager 4"] },
+]
