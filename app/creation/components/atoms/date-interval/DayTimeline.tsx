@@ -70,8 +70,6 @@ const DayTimeline: React.FC<DayTimelineProps> = ({ daysCount, funnels }) => {
     return platforms;
   }
 
-  console.log('funnels', funnels)
-  console.log('monthsCount', daysCount)
 
   return (
     <div className="w-full min-h-[519px] pb-10" style={{

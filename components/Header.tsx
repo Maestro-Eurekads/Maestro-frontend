@@ -83,7 +83,7 @@ const Header = ({ setIsOpen }) => {
   //     ? localStorage.getItem("selectedClient") || localStorage.getItem("profileclients")
   //     : "";
 
-  // console.log("🚀 ~ selected ~ selectedId:", selectedId);
+
 
   useEffect(() => {
     if (!clients?.data || clients.data.length === 0) {
