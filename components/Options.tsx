@@ -158,17 +158,7 @@ function mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, icons, fi
     }
   };
 
-  // const formatKPIValue = (value, kpiName) => {
-  //   if (value === undefined || value === null) {
-  //     if (kpiName.includes("Cost") || kpiName.includes("CPL")) return "$0";
-  //     if (kpiName.includes("Rate") || ["CTR", "CVR", "Frequency"].includes(kpiName)) return "0%";
-  //     return "0";
-  //   }
-  //   const formattedValue = value.toString();
-  //   if (kpiName.includes("Cost") || kpiName.includes("CPL")) return `$${formattedValue}`;
-  //   if (kpiName.includes("Rate") || ["CTR", "CVR", "Frequency"].includes(kpiName)) return `${formattedValue}%`;
-  //   return formattedValue;
-  // };
+
 
   const formatKPIValue = (value, kpiName) => {
     if (value === undefined || value === null) {
