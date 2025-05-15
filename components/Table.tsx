@@ -9,7 +9,7 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 import { useRouter } from "next/navigation";
 import { NoRecordFound, SVGLoaderFetch } from "./Options";
 import { useCampaignSelection } from "../app/utils/CampaignSelectionContext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Modal from "./Modals/Modal";
 import { removeKeysRecursively } from "utils/removeID";
 import axios from "axios";
@@ -120,6 +120,11 @@ const Table = () => {
     );
   };
 
+  useEffect(() => {
+    if (clientCampaignData?.length <= itemsPerPage && currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [clientCampaignData, itemsPerPage]);
 
 
   return (
