@@ -70,18 +70,21 @@ const DayTimeline: React.FC<DayTimelineProps> = ({ daysCount, funnels }) => {
     return platforms;
   }
 
+  console.log('funnels', funnels)
+  console.log('monthsCount', daysCount)
+
   return (
-    <div className="w-full min-h-[519px]" style={{
+    <div className="w-full min-h-[519px] pb-10" style={{
       backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-      backgroundSize: `calc(100% / ${daysCount}) 100%`,
+      backgroundSize: `calc(100% / ${daysCount + 1}) 100%`,
     }}>
-      {funnels.map(({ startDay, endDay, label, budget, stages }, index) => {
+      {funnels?.map(({ startDay, endDay, label, budget, stages }, index) => {
         return (
           <div
             key={index}
             style={{
               display: "grid",
-              gridTemplateColumns: `repeat(${daysCount}, 50px)`,
+              gridTemplateColumns: `repeat(${daysCount + 1}, 100px)`,
 
             }}
           >
@@ -89,7 +92,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({ daysCount, funnels }) => {
               className="flex flex-col min-h-[69px] bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px]  justify-between"
               style={{
                 gridColumnStart: startDay,
-                gridColumnEnd: endDay,
+                gridColumnEnd: endDay + 1,
               }}
             >
               <div

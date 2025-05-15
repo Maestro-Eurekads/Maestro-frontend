@@ -14,10 +14,10 @@ const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src }) => {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${daysCount}, 100px)`,
+          gridTemplateColumns: `repeat(${daysCount + 1},100px )`,
         }}
       >
-        {Array.from({ length: daysCount }, (_, i) => {
+        {Array.from({ length: daysCount + 1 }, (_, i) => {
           const isEdge = i === 0 || i === range?.length - 1;
           const date = range[i]
           return (
