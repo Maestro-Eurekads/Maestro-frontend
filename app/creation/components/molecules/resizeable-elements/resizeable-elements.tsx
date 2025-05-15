@@ -193,12 +193,7 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
       const containerRect = gridContainer.getBoundingClientRect();
       // console.log("🚀 ~ useEffect ~ containerRect:", containerRect);
       const containerWidth = containerRect.width - 75;
-      console.log("🚀 ~ containerWidth:", containerWidth);
-      console.log("🚀 ~ containerWidth:", funnelData?.endMonth);
-      console.log(
-        "🚀 ~ :",
-        funnelData?.endMonth ? containerWidth / (funnelData?.endMonth - 1) : 320
-      );
+     
 
       campaignFormData?.funnel_stages?.map((stageName, index) => {
         const stage = campaignFormData?.channel_mix?.find(
