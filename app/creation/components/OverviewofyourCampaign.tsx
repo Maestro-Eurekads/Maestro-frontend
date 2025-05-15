@@ -178,7 +178,7 @@ const OverviewofyourCampaign = () => {
 
 					kpiList.forEach((kpiName) => {
 						if (categoryData[kpiName] !== undefined && categoryData[kpiName] !== null) {
-							kpiAccumulator[category][kpiName]?.values.push(categoryData[kpiName]);
+							kpiAccumulator[category][kpiName]?.values?.push(categoryData[kpiName]);
 						}
 					});
 				});
@@ -196,7 +196,7 @@ const OverviewofyourCampaign = () => {
 
 				if (values.length > 0) {
 					const average = values.reduce((sum, val) => sum + val, 0) / values?.length;
-					aggregatedStats[category][kpiData?.displayName] = Number(average.toFixed(2));
+					aggregatedStats[category][kpiData?.displayName] = average; // No toFixed here
 				}
 			});
 
@@ -207,7 +207,6 @@ const OverviewofyourCampaign = () => {
 
 		return aggregatedStats;
 	}
-
 
 	const extractedData = extractKPIByFunnelStage(campaignData, kpiCategories);
 	const aggregatedStats = aggregateKPIStatsFromExtracted(extractedData, kpiCategories)
