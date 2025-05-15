@@ -9,7 +9,7 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 import { useRouter } from "next/navigation";
 import { NoRecordFound, SVGLoaderFetch } from "./Options";
 import { useCampaignSelection } from "../app/utils/CampaignSelectionContext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Modal from "./Modals/Modal";
 import { removeKeysRecursively } from "utils/removeID";
 import axios from "axios";
@@ -62,6 +62,7 @@ const Table = () => {
       "createdAt",
       "publishedAt",
       "updatedAt",
+      "_aggregated"
     ]);
     const clientId = localStorage.getItem("selectedClient");
     setLoading(true);
@@ -119,6 +120,13 @@ const Table = () => {
       }
     );
   };
+
+  useEffect(() => {
+    if (clientCampaignData?.length <= itemsPerPage && currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [clientCampaignData, itemsPerPage]);
+
 
   return (
     <div className="flex flex-col">
@@ -205,18 +213,15 @@ const Table = () => {
                       {POs?.length > 0 ? (
                         <div className="space-y-2">
                           {POs?.map((p) => (
-                            <div className="flex gap-2">
+                            <div key={p.PO_number} className="flex gap-2">
                               <p
-                                className={`${p?.status === "fully_paid" ||
-                                  p?.status === "reconcilled"
+                                className={`${p?.status === "fully_paid" || p?.status === "reconcilled"
                                   ? "bg-green-400"
                                   : p?.status === "open"
                                     ? "bg-blue-400"
                                     : "bg-orange-400"
-                                  }  text-white text-xs px-3 py-1 rounded-full`}
-                                title={p?.status
-                                  ?.replace("_", " ")
-                                  ?.toUpperCase()}
+                                  } text-white text-xs px-3 py-1 rounded-full`}
+                                title={p?.status?.replace("_", " ")?.toUpperCase()}
                               >
                                 {p?.PO_number}
                               </p>
@@ -225,6 +230,7 @@ const Table = () => {
                               </p>
                             </div>
                           ))}
+
                         </div>
                       ) : (
                         <p className="text-center">-</p>
@@ -290,71 +296,77 @@ const Table = () => {
       </div>
 
       {/* Pagination Controls */}
-      {!loading && clientCampaignData?.length > 0 && (
-        <div className="flex items-center justify-between mt-4 px-4">
-          <div className="text-sm text-gray-600">
-            Showing {indexOfFirstItem + 1} to{" "}
-            {Math.min(indexOfLastItem, clientCampaignData.length)} of{" "}
-            {clientCampaignData.length} entries
-          </div>
+      {loadingg ? "" :
+        <div>
 
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={prevPage}
-              disabled={currentPage === 1}
-              className={`p-2 rounded-md ${currentPage === 1
-                ? "text-gray-400 cursor-not-allowed"
-                : "text-blue-500 hover:bg-blue-50"
-                }`}
-            >
-              <ChevronLeft size={18} />
-            </button>
+          {!loading && clientCampaignData?.length > 0 && (
+            <div className="flex items-center justify-between mt-4 px-4">
+              <div className="text-sm text-gray-600">
+                Showing {indexOfFirstItem + 1} to{" "}
+                {Math.min(indexOfLastItem, clientCampaignData.length)} of{" "}
+                {clientCampaignData.length} entries
+              </div>
 
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-              (number) => (
+              <div className="flex items-center space-x-2">
                 <button
-                  key={number}
-                  onClick={() => paginate(number)}
-                  className={`w-8 h-8 flex items-center justify-center rounded-md ${currentPage === number
-                    ? "bg-blue-500 text-white"
-                    : "text-gray-700 hover:bg-blue-50"
+                  onClick={prevPage}
+                  disabled={currentPage === 1}
+                  className={`p-2 rounded-md ${currentPage === 1
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "text-blue-500 hover:bg-blue-50"
                     }`}
                 >
-                  {number}
+                  <ChevronLeft size={18} />
                 </button>
-              )
-            )}
 
-            <button
-              onClick={nextPage}
-              disabled={currentPage === totalPages}
-              className={`p-2 rounded-md ${currentPage === totalPages
-                ? "text-gray-400 cursor-not-allowed"
-                : "text-blue-500 hover:bg-blue-50"
-                }`}
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (number) => (
+                    <button
+                      key={number}
+                      onClick={() => paginate(number)}
+                      className={`w-8 h-8 flex items-center justify-center rounded-md ${currentPage === number
+                        ? "bg-blue-500 text-white"
+                        : "text-gray-700 hover:bg-blue-50"
+                        }`}
+                    >
+                      {number}
+                    </button>
+                  )
+                )}
 
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">Items per page:</span>
-            <select
-              value={itemsPerPage}
-              onChange={(e) => {
-                setItemsPerPage(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="border rounded-md p-1 text-sm"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-            </select>
-          </div>
-        </div>
-      )}
+                <button
+                  onClick={nextPage}
+                  disabled={currentPage === totalPages}
+                  className={`p-2 rounded-md ${currentPage === totalPages
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "text-blue-500 hover:bg-blue-50"
+                    }`}
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Items per page:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="border rounded-md p-1 text-sm"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+            </div>
+          )
+          }
+        </div>}
+
 
       {openModal === "copy" && (
         <Modal isOpen={openModal === "copy"} onClose={() => setOpenModal("")}>

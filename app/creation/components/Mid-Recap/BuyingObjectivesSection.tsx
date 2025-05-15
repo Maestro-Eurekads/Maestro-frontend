@@ -2,10 +2,10 @@ import type React from "react";
 import Image from "next/image";
 import { SummarySection } from "./SummarySection";
 import { useEditing } from "app/utils/EditingContext";
-import ObjectiveSelection from "../ObjectiveSelection";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { getPlatformIcon } from "components/data";
 import { StaticImageData } from "next/image";
+import ObjectiveSelection from "../ObjectiveSelection";
 
 // Define a type for the platform data to ensure type safety
 interface PlatformData {

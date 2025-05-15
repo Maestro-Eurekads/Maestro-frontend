@@ -13,6 +13,7 @@ const Homepage = () => {
   const [active, setActive] = useState("Overview");
   const [openModal, setOpenModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
+  const [userRole, setUserRole] = useState("guest"); // Assuming a default role
 
   return (
     <>
@@ -24,7 +25,7 @@ const Homepage = () => {
               <ToggleSwitch active={active} setActive={setActive} />
             </div>
             {active === "Finance" ? (
-              <FinanceView setOpenModal={setOpenModal} />
+              <FinanceView setOpenModal={setOpenModal} userRole={userRole} />
             ) : active === "Dashboard" ? (
               <Dashboard />
             ) : (
@@ -38,6 +39,7 @@ const Homepage = () => {
           setIsOpen={setOpenModal}
           setSelectedRow={setSelectedRow}
           selectedRow={selectedRow}
+          userRole={userRole}
         />
       </div>
     </>

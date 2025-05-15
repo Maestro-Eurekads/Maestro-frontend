@@ -11,6 +11,7 @@ import { BiLoader } from "react-icons/bi";
 import { removeKeysRecursively } from "../utils/removeID";
 import { useSelectedDates } from "../app/utils/SelectedDatesContext";
 import { useVerification } from "app/utils/VerificationContext";
+import { useEditing } from "app/utils/EditingContext";
 import toast, { Toaster } from "react-hot-toast";
 import dayjs from "dayjs";
 
@@ -35,6 +36,7 @@ const CHANNEL_TYPES = [
 const Bottom = ({ setIsOpen }: BottomProps) => {
   const { verifybeforeMove, hasChanges } = useVerification();
   const { active, setActive, subStep, setSubStep } = useActive();
+  const { midcapEditing } = useEditing();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
   const [setupyournewcampaignError, setSetupyournewcampaignError] =
     useState(false);
@@ -46,8 +48,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [validateStep, setValidateStep] = useState(false);
   const { selectedDates } = useSelectedDates();
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
-  const [triggerBuyObjectiveError, setTriggerBuyObjectiveError] =
-    useState(false);
+  const [triggerBuyObjectiveError, setTriggerBuyObjectiveError] = useState(false);
+  const [isBuyingObjectiveError, setIsBuyingObjectiveError] = useState(false);
+  const [isEditingError, setIsEditingError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
@@ -62,22 +65,15 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     isEditingBuyingObjective,
   } = useCampaigns();
 
-  // Function to check if any previews are uploaded in Channel or Ad Set View
   const hasUploadedPreviews = () => {
     const stages = campaignFormData?.channel_mix || [];
     return stages.some((stage) => {
       return CHANNEL_TYPES.some(({ key }) => {
         return stage[key]?.some((platform) => {
-          // Check Channel View (platform.format.previews)
           if (platform.format?.some((f) => f.previews?.length > 0)) {
             return true;
           }
-          // Check Ad Set View (platform.ad_sets[].format.previews)
-          if (
-            platform.ad_sets?.some((adset) =>
-              adset.format?.some((f) => f.previews?.length > 0)
-            )
-          ) {
+          if (platform.ad_sets?.some((adset) => adset.format?.some((f) => f.previews?.length > 0))) {
             return true;
           }
           return false;
@@ -111,6 +107,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       triggerChannelMixError ||
       incompleteFieldsError ||
       triggerBuyObjectiveError ||
+      isBuyingObjectiveError ||
       validateStep
     ) {
       const timer = setTimeout(() => {
@@ -121,6 +118,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setTriggerChannelMixError(false);
         setIncompleteFieldsError(false);
         setTriggerBuyObjectiveError(false);
+        setIsBuyingObjectiveError(false);
         setValidateStep(false);
         setAlert(null);
       }, 3000);
@@ -134,6 +132,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     triggerChannelMixError,
     incompleteFieldsError,
     triggerBuyObjectiveError,
+    isBuyingObjectiveError,
     validateStep,
     campaignFormData,
   ]);
@@ -242,15 +241,53 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   };
 
   const handleContinue = async () => {
-    // Prevent proceeding if in edit mode for Buying Objectives
-    if (active === 6 && isEditingBuyingObjective) {
-      setAlert({
-        variant: "error",
-        message: "Please confirm or cancel your changes before proceeding",
-        position: "bottom-right",
-      });
-      setLoading(false);
-      return;
+    console.log("handleContinue called", {
+      active,
+      midcapEditing,
+      campaignFormData,
+      isEditingBuyingObjective,
+    });
+
+    // Only check editing state if we're on step 6
+    if (active === 6) {
+      if (midcapEditing.isEditing) {
+        let errorMessage = "";
+        switch(midcapEditing.step) {
+          case "Your channel mix":
+            errorMessage = "Please confirm or cancel your channel mix changes before proceeding";
+            break;
+          case "Your funnel stages":
+            errorMessage = "Please confirm or cancel your funnel changes before proceeding";
+            break;
+          case "Your format selections":
+            errorMessage = "Please confirm or cancel your format selection changes before proceeding";
+            break;
+          case "Your Adset and Audiences":
+            errorMessage = "Please confirm or cancel your Adset and Audiences changes before proceeding";
+            break;
+        }
+        if (errorMessage) {
+          setIsEditingError(true);
+          setAlert({
+            variant: "error",
+            message: errorMessage,
+            position: "bottom-right",
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      if (isEditingBuyingObjective) {
+        setIsBuyingObjectiveError(true);
+        setAlert({
+          variant: "error",
+          message: "Please confirm or cancel your buying objective changes before proceeding",
+          position: "bottom-right",
+        });
+        setLoading(false);
+        return;
+      }
     }
 
     setLoading(true);
@@ -310,6 +347,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           position: "bottom-right",
         });
         hasError = true;
+      }
+      else {
+        setTriggerChannelMixError(false);
+        setAlert(null);
       }
     }
 
@@ -445,6 +486,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "createdAt",
           "publishedAt",
           "updatedAt",
+          "_aggregated",
         ])
       : {};
 
@@ -459,6 +501,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "formatValidated",
           "validatedStages",
           "documentId",
+          "_aggregated",
         ]),
         custom_funnels: campaignFormData?.custom_funnels,
         funnel_type: campaignFormData?.funnel_type,
@@ -474,6 +517,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "isValidated",
           "validatedStages",
           "documentId",
+          "_aggregated",
         ]),
       });
     };
@@ -488,6 +532,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "formatValidated",
           "validatedStages",
           "documentId",
+          "_aggregated",
         ]),
       });
     };
@@ -501,6 +546,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           "id",
           "isValidated",
           "documentId",
+          "_aggregated",
         ]),
         campaign_budget: removeKeysRecursively(
           campaignFormData?.campaign_budget,
@@ -511,28 +557,38 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     };
 
     const handleDateStep = async () => {
+      console.log("her")
       const currentYear = new Date().getFullYear();
       if (!campaignData) return;
-      const campaign_timeline_start_date = dayjs(
-        new Date(
-          currentYear,
-          selectedDates?.from?.month,
-          selectedDates.from?.day
-        )
-      ).format("YYYY-MM-DD");
+      const campaign_timeline_start_date =
+        dayjs(
+          new Date(
+            currentYear,
+            selectedDates?.from?.month,
+            selectedDates.from?.day
+          )
+        ).format("YYYY-MM-DD") ||
+        campaignFormData?.campaign_timeline_start_date;
 
-      const campaign_timeline_end_date = dayjs(
-        new Date(currentYear, selectedDates?.to?.month, selectedDates.to?.day)
-      ).format("YYYY-MM-DD");
+      const campaign_timeline_end_date =
+        dayjs(
+          new Date(currentYear, selectedDates?.to?.month, selectedDates.to?.day)
+        ).format("YYYY-MM-DD") || campaignFormData?.campaign_timeline_end_date;
       await updateCampaignData({
         ...cleanData,
-        campaign_timeline_start_date,
-        campaign_timeline_end_date,
+        campaign_timeline_start_date:
+          campaign_timeline_start_date === "Invalid Date"
+            ? campaignFormData?.campaign_timeline_start_date
+            : campaign_timeline_start_date,
+        campaign_timeline_end_date: campaign_timeline_end_date === "Invalid Date"
+        ? campaignFormData?.campaign_timeline_end_date
+        : campaign_timeline_end_date,
         funnel_stages: campaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
           "isValidated",
           "documentId",
+          "_aggregated",
         ]),
         campaign_budget: removeKeysRecursively(
           campaignFormData?.campaign_budget,
@@ -577,7 +633,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   };
 
   const handleSkip = () => {
-    console.log("here");
     setActive((prev) => Math.min(9, prev + 1));
   };
 
@@ -658,6 +713,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
+    
 
       <div className="flex justify-between w-full">
         {active === 0 ? (
@@ -692,14 +748,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                 active === 10 && "opacity-50 cursor-not-allowed",
                 active < 10 && "hover:bg-blue-500"
               )}
-              onClick={() => {
-                console.log("here", active)
-                if (active === 4 && !hasUploadedPreviews()) {
-                  handleSkip();
-                } else {
-                  handleContinue()
-                }
-              }}
+              onClick={handleContinue}
               disabled={active === 10}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}

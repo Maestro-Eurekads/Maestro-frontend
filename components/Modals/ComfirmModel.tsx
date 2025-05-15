@@ -1,133 +1,199 @@
-"use client"
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useActive } from "../../app/utils/ActiveContext";
-import AlertMain from "../Alert/AlertMain";
+'use client';
+
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useActive } from '../../app/utils/ActiveContext';
+import { CheckCircle, X } from "lucide-react";
+import { useVersionContext } from 'app/utils/VersionApprovalContext';
+import { SVGLoader } from 'components/SVGLoader';
+import { useCampaigns } from 'app/utils/CampaignsContext';
+
 
 
 
 const ComfirmModel = ({ isOpen, setIsOpen }) => {
+	const { createCampaignVersion, getCampaignVersion, isLoading, version, getLoading, setdocumentId, updateCampaignVersion, createsSuccess, updateSuccess, updateLoading } = useVersionContext();
 	const router = useRouter();
 	const { setActive, setSubStep } = useActive();
-	const [approval, setApproval] = useState(false);
+	const [showVersionPrompt, setShowVersionPrompt] = useState(false);
+	const [currentVersion, setCurrentVersion] = useState(null);
+	const [clientId, setClientId] = useState<number | null>(null);
+	const [KeepVersionLoading, setKeepVersionLoading] = useState(false);
+
+
+	const getNextVersion = (v) => {
+		const number = parseInt(v?.replace('v', '')) || 1;
+		return `v${number + 1}`;
+	};
+	const newVersion = getNextVersion(currentVersion);
+	const { campaignData, } = useCampaigns();
+	const query = useSearchParams();
+	const campaignId = query.get("campaignId");
+	const plan_name = campaignData?.media_plan_details.plan_name
+
+
+	// Set client ID from campaignData in useEffect
+	useEffect(() => {
+		if (createsSuccess || updateSuccess) {
+			setShowVersionPrompt(false)
+			setIsOpen(false)
+		}
+	}, [createsSuccess || updateSuccess]);
+
+
+	useEffect(() => {
+		if (campaignData?.client?.id) {
+			setClientId(campaignData?.client?.id?.toString());
+		}
+	}, [campaignData]);
+	useEffect(() => {
+		const fetchVersionData = async () => {
+			const versions = await getCampaignVersion(campaignId);
+			if (version && version.length > 0) {
+				setCurrentVersion(version[version.length - 1].version.version_number);
+				setdocumentId(version[0]?.documentId);
+				setShowVersionPrompt(true);
+			}
+		};
+
+		fetchVersionData();
+	}, [isOpen, campaignId]);
 
 
 	const handleBackClick = () => {
-		setActive(0); // Reset state
+		setActive(0);
 		setSubStep(0);
-		router.push("/"); // Navigate to home
+		setIsOpen(false);
+		router.push('/');
 	};
+
+
 
 	const handleApproval = () => {
-		setApproval(true)
-		setTimeout(() => {
-			setApproval(false)
-		}, 3000);
+		setShowVersionPrompt(true);
+	};
 
+	const handleKeepVersion = () => {
+		setKeepVersionLoading(true);
+		setTimeout(() => {
+			setActive(0);
+			setSubStep(0);
+			setIsOpen(false);
+			router.push('/');
+			setKeepVersionLoading(false);
+		}, 3000);
+	};
+
+
+	const handleCreateNewVersion = () => {
+		createCampaignVersion(
+			campaignId,
+			clientId,
+			{
+				version_number: newVersion,
+				plan_name: plan_name,
+				approved: true,
+			},
+		);
 
 	};
 
+
+
+	const handleUpdateVersion = () => {
+		updateCampaignVersion(
+
+			campaignId,
+			{
+				version_number: newVersion,
+				plan_name: plan_name,
+				approved: true,
+			}
+		);
+
+	};
+
+
+
+
+	if (!isOpen) return null;
+
 	return (
-		<div className="z-50">
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+			<div className="relative bg-white rounded-lg w-[440px] max-w-full p-6 shadow-xl text-center">
 
-			{isOpen && (
-				<div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-					<div className="flex flex-col items-start p-6 gap-6   bg-white rounded-[10px]">
-						<div className="card bg-base-100 h-[160px] w-[418px]">
-							<div className="flex justify-between p-6 !pb-0">
-								<span></span>
-								<span className="w-[44px]   grid place-items-center">
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="25"
-										height="25"
-										viewBox="0 0 25 25"
-										fill="none"
-									>
-										<g clipPath="url(#clip0_1_23349)">
-											<rect
-												x="0.710938"
-												y="0.5"
-												width="24"
-												height="24"
-												rx="12"
-												fill="white"
-											/>
-											<path
-												d="M12.7109 24.5C15.8935 24.5 18.9458 23.2357 21.1962 20.9853C23.4467 18.7348 24.7109 15.6826 24.7109 12.5C24.7109 9.3174 23.4467 6.26516 21.1962 4.01472C18.9458 1.76428 15.8935 0.5 12.7109 0.5C9.52834 0.5 6.47609 1.76428 4.22566 4.01472C1.97522 6.26516 0.710938 9.3174 0.710938 12.5C0.710938 15.6826 1.97522 18.7348 4.22566 20.9853C6.47609 23.2357 9.52834 24.5 12.7109 24.5ZM18.0078 10.2969L12.0078 16.2969C11.5672 16.7375 10.8547 16.7375 10.4188 16.2969L7.41875 13.2969C6.97813 12.8562 6.97813 12.1438 7.41875 11.7078C7.85938 11.2719 8.57188 11.2672 9.00781 11.7078L11.2109 13.9109L16.4141 8.70312C16.8547 8.2625 17.5672 8.2625 18.0031 8.70312C18.4391 9.14375 18.4438 9.85625 18.0031 10.2922L18.0078 10.2969Z"
-												fill="#0ABF7E"
-											/>
-										</g>
-										<defs>
-											<clipPath id="clip0_1_23349">
-												<rect
-													x="0.710938"
-													y="0.5"
-													width="24"
-													height="24"
-													rx="12"
-													fill="white"
-												/>
-											</clipPath>
-										</defs>
-									</svg>
-								</span>
-								<button className="self-start" onClick={() => setIsOpen(false)}>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="25"
-										height="25"
-										viewBox="0 0 25 25"
-										fill="none"
-									>
-										<path
-											d="M18.7266 6.5L6.72656 18.5M6.72656 6.5L18.7266 18.5"
-											stroke="#717680"
-											strokeWidth="2"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-										/>
-									</svg>
+				{/* Cancel button */}
+				<button onClick={() => setIsOpen(false)} className="absolute top-4 right-4">
+					<X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+				</button>
+
+
+				{/* Green check icon */}
+				<div className="w-full flex justify-center pt-2">
+					<div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+						<CheckCircle className="text-green-600 w-7 h-7" />
+					</div>
+				</div>
+
+
+				{/* Title & Description */}
+				<h2 className="text-xl font-semibold text-[#181D27] mb-2">
+					Media plan completed, well done!
+				</h2>
+				<p className="text-sm text-[#535862] mb-4">
+					You’ve successfully completed the setup of your media plan. Ready to move forward?
+				</p>
+
+				{/* Version info */}
+				<div className="flex items-center justify-center gap-2 text-sm text-gray-600 mb-4">
+					{getLoading ? <SVGLoader width={"40px"} height={"40px"} color={"#0866FF"} /> :
+						<span className="font-medium">Version: {currentVersion ?? 0}</span>}
+
+				</div>
+
+				{/* Actions */}
+				<div className="flex justify-between gap-4">
+					<button className="btn_model_outline w-full" onClick={handleBackClick}>
+						Back to Dashboard
+					</button>
+					<button className="btn_model_active w-full" onClick={handleApproval}>
+						Request approval
+					</button>
+				</div>
+
+
+
+				{/* Version choice prompt */}
+				{showVersionPrompt && (
+					<div className=" fixed inset-0  bg-black bg-opacity-40 flex items-center justify-center z-50">
+						<div className="bg-white p-6 rounded-lg shadow-lg w-[400px] relative">
+							<button onClick={() => setShowVersionPrompt(false)} className="absolute top-4 right-4">
+								<X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+							</button>
+							<h3 className="text-lg font-semibold mb-3">
+								This plan is already approved
+							</h3>
+							<p className="text-sm text-gray-600 mb-4">
+								(Current version: <strong>{currentVersion}</strong>). Would you like to keep it or create a new one?
+							</p>
+							<div className="flex gap-4">
+								<button className="btn_model_outline w-full" onClick={handleKeepVersion}>
+									{KeepVersionLoading ? <SVGLoader width={"30px"} height={"30px"} color={"#fff"} /> : "	Keep Current"}
 								</button>
-							</div>
+								{currentVersion ? <button className="btn_model_active w-full" onClick={handleUpdateVersion}>
+									{updateLoading ? <SVGLoader width={"30px"} height={"30px"} color={"#fff"} /> : "Update Version"}
+								</button> : <button className="btn_model_active w-full" onClick={handleCreateNewVersion}>
+									{isLoading ? <SVGLoader width={"30px"} height={"30px"} color={"#fff"} /> : "New Version"}
+								</button>}
 
-							<div className="p-6 pb-0 text-center">
-								<h2 className="text-xl mb-4 text-[#181D27] font-[500]">
-									Media plan completed, well done!
-								</h2>
-								<p className="text-[15px] font-[500] text-[#535862]">
-									You’ve successfully completed the setup of your media plan. Ready to move forward?
-								</p>
-							</div>
-
-							{approval && (
-								<AlertMain
-									alert={{
-										variant: 'info',
-										message: 'Request approval not available!',
-										position: 'bottom-right',
-									}}
-								/>
-							)}
-						</div>
-
-
-						<div className=" w-full mt-1 pt-4">
-
-							<div className="flex items-center justify-between gap-5 w-full">
-								<button className="btn_model_outline w-full" onClick={handleBackClick}>Back to Dashboard</button>
-								<button className="btn_model_active w-full" onClick={handleApproval}>Request approval</button>
 							</div>
 						</div>
 					</div>
-				</div>
-			)
-			}
-		</div >
-	)
-}
+				)}
 
-export default ComfirmModel
+			</div>
+		</div>
+	);
+};
 
-
-
+export default ComfirmModel;

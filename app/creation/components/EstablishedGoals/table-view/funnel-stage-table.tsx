@@ -125,7 +125,7 @@ export const FunnelStageTable = ({
                           nrAdCells={nrAdCells}
                           toggleNRAdCell={toggleNRAdCell}
                         />
-                        {
+                        {expandedAdsetKPI[`${stage.name}${adSetIndex}`] &&
                           adSet?.extra_audiences?.map((adSet, exIndex) => (
                             <KPIRow
                               key={`${adSetIndex}-${exIndex}`}

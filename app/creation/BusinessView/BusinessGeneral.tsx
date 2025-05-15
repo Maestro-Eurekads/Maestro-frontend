@@ -583,7 +583,7 @@ function calculateTrend(current, previous) {
 // Component to display general campaign information like budget, impressions, and CPM
 const BusinessGeneral = ({ campaign, loading, isLoadingCampaign, campaign_id }) => {
 	const budget = campaign?.campaign_budget?.amount ?? "0";
-	const currency = getCurrencySymbol(campaign?.campaign_budget.currency) ?? "";
+	const currency = getCurrencySymbol(campaign?.campaign_budget?.currency) ?? "";
 
 	// State for trend data
 	const [trendData, setTrendData] = useState({

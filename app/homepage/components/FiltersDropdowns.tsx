@@ -1,11 +1,15 @@
 "use client"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useMemo } from "react"
 import down from "../../../public/down.svg"
 import Image from "next/image"
 import { BiX } from "react-icons/bi"
 import { useCampaigns } from "app/utils/CampaignsContext"
 import { fetchFilteredCampaigns } from "app/utils/campaign-filter-utils"
 import { toast, Toaster } from "react-hot-toast"
+import { useAppDispatch } from "store/useStore"
+import { getCreateClient } from "features/Client/clientSlice"
+import { defaultFilters } from "components/data"
+import { fetchFilteredCampaignsSub } from "app/utils/campaign-filter-utils-sub"
 
 // Scrollbar CSS
 const scrollbarStyles = `
@@ -26,7 +30,8 @@ const scrollbarStyles = `
 `
 
 type Props = {
-  hideTitle?: boolean
+  hideTitle?: boolean,
+  router: any // Replace 'any' with the appropriate type if known
 }
 
 const Dropdown = ({ label, options, selectedFilters, handleSelect, isDisabled = false }) => {
@@ -91,25 +96,11 @@ const Dropdown = ({ label, options, selectedFilters, handleSelect, isDisabled = 
   )
 }
 
-const defaultFilters = [
-  { label: "Year", options: ["2022", "2023", "2024", "2025"] },
-  { label: "Quarter", options: ["Q1", "Q2", "Q3", "Q4"] },
-  {
-    label: "Month",
-    options: [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ],
-  },
-  // { label: "Level 1", options: ["Level 1"] },
-  // { label: "Level 2", options: ["Level 2"] },
-  // { label: "Level 3", options: ["Level 3"] },
-  { label: "Made By", options: ["User 1", "User 2", "User 3", "User 4"] },
-  { label: "Approved By", options: ["Manager 1", "Manager 2", "Manager 3", "Manager 4"] },
-]
 
 
-const FiltersDropdowns = ({ hideTitle }: Props) => {
+
+const FiltersDropdowns = ({ hideTitle, router }: Props) => {
+  const dispatch = useAppDispatch();
   useEffect(() => {
     const styleElement = document.createElement("style")
     styleElement.innerHTML = scrollbarStyles
@@ -130,30 +121,39 @@ const FiltersDropdowns = ({ hideTitle }: Props) => {
     allClients,
   } = useCampaigns()
 
+
+
   const [filters, setFilters] = useState(defaultFilters)
+  const allFiltersEmpty = useMemo(
+    () => Object.values(selectedFilters).every((val) => !val),
+    [selectedFilters]
+  );
 
   const handleSelect = (label, value) => {
     if (value === "") {
       if (label === "year") {
+        router.refresh();
+        dispatch(getCreateClient());
         setSelectedFilters((prev) => ({
           ...prev,
           [label]: value,
           quarter: "",
           month: "",
-        }))
+        }));
       } else {
         setSelectedFilters((prev) => ({
           ...prev,
           [label]: value,
-        }))
+        }));
       }
     } else {
       setSelectedFilters((prev) => ({
         ...prev,
         [label]: value,
-      }))
+      }));
     }
-  }
+  };
+
 
   useEffect(() => {
     if (filterOptions) {
@@ -168,23 +168,50 @@ const FiltersDropdowns = ({ hideTitle }: Props) => {
     }
   }, [filterOptions])
 
-  useEffect(() => {
-    if (Object.values(selectedFilters).some((val) => val !== null && val !== "")) {
-      const fetchData = async () => {
-        const clientID = localStorage.getItem("selectedClient") || allClients[0]?.id
-        setLoading(true)
-        const data = await fetchFilteredCampaigns(clientID, selectedFilters)
-          .then((res) => {
-            setClientCampaignData(res)
-          })
-          .finally(() => {
-            setLoading(false)
-          })
-      }
-      fetchData()
-    }
 
-  }, [selectedFilters])
+  useEffect(() => {
+    const fetchData = async () => {
+      const clientID = localStorage.getItem("selectedClient") || allClients[0]?.id;
+
+      if (!clientID) return;
+
+      setLoading(true);
+
+      const allEmpty = Object.values(selectedFilters).every((val) => !val);
+
+      try {
+        const res = allEmpty
+          ? await fetchFilteredCampaignsSub(clientID)
+          : await fetchFilteredCampaigns(clientID, selectedFilters);
+
+        setClientCampaignData(res);
+      } catch (err) {
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [selectedFilters]);
+
+
+  // useEffect(() => {
+  //   if (Object.values(selectedFilters).some((val) => val !== null && val !== "")) {
+  //     const fetchData = async () => {
+  //       const clientID = localStorage.getItem("selectedClient") || allClients[0]?.id
+  //       setLoading(true)
+  //       const data = await fetchFilteredCampaigns(clientID, selectedFilters)
+  //         .then((res) => {
+  //           setClientCampaignData(res)
+  //         })
+  //         .finally(() => {
+  //           setLoading(false)
+  //         })
+  //     }
+  //     fetchData()
+  //   }
+
+  // }, [selectedFilters])
 
   useEffect(() => {
     const allEmpty = Object.values(selectedFilters).every((val) => !val)
@@ -210,39 +237,82 @@ const FiltersDropdowns = ({ hideTitle }: Props) => {
 
   const isYearSelected = !!selectedFilters["year"]
 
+
+
+  // {
+  //   filters
+  //     ?.filter((l) => l?.label !== "channel" && l?.label !== "phase")
+  //   .map(({ label, options }) => {
+
   return (
     <div>
       <Toaster />
       {!hideTitle && (
         <h6 className="font-[600] text-[14px] leading-[19px] text-[rgba(6,18,55,0.8)]">Filters</h6>
       )}
+
       <div className="flex items-center gap-4 mt-[5px] flex-wrap">
         {filters
-          ?.filter((l) => l?.label !== "channel" && l?.label !== "phase")
+          ?.filter(
+            (l) =>
+              !["channel", "phase", "Level_1_name", "Level_2_name", "Level_3_name"].includes(l?.label)
+          )
           .map(({ label, options }) => {
-            const lowerLabel = label.toLowerCase()
+            const lowerLabel = label.toLowerCase();
+
+            const selected = selectedFilters[lowerLabel];
+
+            // If selected, show it. Otherwise fallback to dynamic name from *_name
+            const getDisplayLabel = () => {
+              if (selected) return selected;
+
+              if (label === "Level_1") {
+                return filters.find(f => f.label === "Level_1_name")?.options || label;
+              }
+              if (label === "Level_2") {
+                return filters.find(f => f.label === "Level_2_name")?.options || label;
+              }
+              if (label === "Level_3") {
+                return filters.find(f => f.label === "Level_3_name")?.options || label;
+              }
+
+              return label;
+            };
+
+            const displayLabel = getDisplayLabel();
+
             return (
               <div key={label}>
                 <Dropdown
-                  label={label}
+                  label={displayLabel}
                   options={options}
                   selectedFilters={selectedFilters}
-                  handleSelect={handleSelect}
-                  isDisabled={(lowerLabel === "quarter" || lowerLabel === "month") && !isYearSelected}
+                  handleSelect={(key, value) => handleSelect(lowerLabel, value)}
+                  isDisabled={
+                    (lowerLabel === "quarter" || lowerLabel === "month") && !isYearSelected
+                  }
                 />
-                {selectedFilters[lowerLabel] && (
+
+                {selected ? (
                   <div className="mt-2 flex items-center justify-between px-3 py-2 gap-1 min-w-[72px] h-[32px] bg-[#E8F6FF] border border-[#3175FF1A] rounded-[10px]">
                     <p className="h-[20px] text-[15px] leading-[20px] font-medium text-[#3175FF]">
-                      {selectedFilters[lowerLabel]}
+                      {selected}
                     </p>
-                    <BiX color="#3175FF" size={20} className="cursor-pointer" onClick={() => handleSelect(lowerLabel, "")} />
+                    <BiX
+                      color="#3175FF"
+                      size={20}
+                      className="cursor-pointer"
+                      onClick={() => handleSelect(lowerLabel, "")}
+                    />
                   </div>
+                ) : (
+                  <div className="h-[32px]"></div>
                 )}
-                {!selectedFilters[lowerLabel] && <div className="h-[32px]"></div>}
               </div>
-            )
+            );
           })}
       </div>
+
     </div>
   )
 }

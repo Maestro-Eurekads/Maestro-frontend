@@ -55,15 +55,15 @@ export const KPICellRenderer = ({
     return (
       <div className="flex gap-2">
         <div className="l-shape-container-ad">
-          <div className="l-vertical-ad"></div>
-          <div className="l-horizontal-ad"></div>
+          <div className="l-vertical-ad" style={{left: "80px", top:"-72px"}}></div>
+          <div className="l-horizontal-ad" style={{left: "80px", bottom:"-5px"}}></div>
         </div>
       </div>
     );
   }
   if (body === "adsets") {
     return (
-      <div className="flex gap-2 indent-[20px]">
+      <div className="flex gap-2 indent-[]">
         {/* <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
           {adSetIndex + 1}.
         </span> */}
@@ -132,12 +132,12 @@ export const KPICellRenderer = ({
     "cpp",
   ];
 
-  if (calculatedFields.includes(body)) {
-    return getCalculatedValue(body);
-  }
   // if (calculatedFields.includes(body)) {
-  //   return "";
+  //   return getCalculatedValue(body);
   // }
+  if (calculatedFields.includes(body)) {
+    return "";
+  }
 
   // Handle input fields and static values
   const showInput = tableHeaders[bodyIndex]?.showInput;
@@ -192,46 +192,46 @@ export const KPICellRenderer = ({
     }
   }
 
-  return (
-    <input
-      value={displayValue}
-      onChange={(e) => {
-        let newValue = e.target.value;
+  // return (
+  //   <input
+  //     value={displayValue}
+  //     onChange={(e) => {
+  //       let newValue = e.target.value;
 
-        // Allow only valid characters: numbers, '.', ',', ':', and '%'
-        newValue = newValue.replace(/[^0-9.,:%]/g, "");
+  //       // Allow only valid characters: numbers, '.', ',', ':', and '%'
+  //       newValue = newValue.replace(/[^0-9.,:%]/g, "");
 
-        // Handle percentage input
-        if (isPercentType) {
-          // Remove % if present
-          newValue = newValue.replace(/%/g, "");
-          newValue = (parseFloat(newValue) / 100).toString();
-          // Store the raw percentage value (not converted to decimal)
-          handleEditInfo(
-            stage.name,
-            channel?.channel_name,
-            channel?.name,
-            body,
-            newValue,
-            adSetIndex,
-            extraAdSetindex
-          );
-          return;
-        }
+  //       // Handle percentage input
+  //       if (isPercentType) {
+  //         // Remove % if present
+  //         newValue = newValue.replace(/%/g, "");
+  //         newValue = (parseFloat(newValue) / 100).toString();
+  //         // Store the raw percentage value (not converted to decimal)
+  //         handleEditInfo(
+  //           stage.name,
+  //           channel?.channel_name,
+  //           channel?.name,
+  //           body,
+  //           newValue,
+  //           adSetIndex,
+  //           extraAdSetindex
+  //         );
+  //         return;
+  //       }
 
-        // Handle non-percentage input normally
-        handleEditInfo(
-          stage.name,
-          channel?.channel_name,
-          channel?.name,
-          body,
-          newValue,
-          adSetIndex,
-          extraAdSetindex
-        );
-      }}
-      className="cpm-bg border-none outline-none w-[100px] p-1"
-      placeholder={body ? body?.toUpperCase() : "Insert value"}
-    />
-  );
+  //       // Handle non-percentage input normally
+  //       handleEditInfo(
+  //         stage.name,
+  //         channel?.channel_name,
+  //         channel?.name,
+  //         body,
+  //         newValue,
+  //         adSetIndex,
+  //         extraAdSetindex
+  //       );
+  //     }}
+  //     className="cpm-bg border-none outline-none w-[100px] p-1"
+  //     placeholder={body ? body?.toUpperCase() : "Insert value"}
+  //   />
+  // );
 };

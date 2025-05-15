@@ -7,10 +7,9 @@ import {
   useRef,
   createContext,
   useContext,
-} from "react";
+} from "react"
 import Image, { type StaticImageData } from "next/image";
 import { FaAngleRight, FaSpinner } from "react-icons/fa";
-
 import { MdDelete, MdAdd } from "react-icons/md";
 import { useEditing } from "../../../utils/EditingContext";
 import { useCampaigns } from "../../../utils/CampaignsContext";
@@ -52,7 +51,7 @@ interface AdSetFlowProps {
   isValidateDisabled?: boolean;
   onEditStart?: () => void;
   platformName?: any;
-  modalOpen?:boolean
+  modalOpen?: boolean;
 }
 
 interface AdSetData {
@@ -170,7 +169,6 @@ const updateMultipleAdSets = (
     if (platformIndex !== -1) {
       const platform = stage[channelType][platformIndex];
       platform.ad_sets = adSets;
-
       platformFound = true;
       break;
     }
@@ -215,7 +213,6 @@ const AdSet = memo(function AdSet({
     name?: string;
     size?: string;
   }[];
-
   onUpdateExtraAudiences: (
     audiences: {
       audience_type: string;
@@ -257,7 +254,6 @@ const AdSet = memo(function AdSet({
 
   const handleExtraAudienceSelect = (selected: string, idx: number) => {
     if (!selected) return;
-    console.log(selected);
     const updated = [...extraAudience];
     updated[idx] = {
       ...updated[idx],
@@ -341,7 +337,6 @@ const AdSet = memo(function AdSet({
                   disabled={!isEditing}
                   className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[160px]"
                 />
-
                 <input
                   type="text"
                   placeholder="Size"
@@ -354,15 +349,14 @@ const AdSet = memo(function AdSet({
                   disabled={!isEditing}
                   className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[100px]"
                 />
-
                 <button
                   disabled={!isEditing}
                   onClick={() => handleDeleteExtraAudience(index)}
-                  className={`text-sm font-bold ${
-                    !isEditing ? "cursor-not-allowed" : ""
+                  className={`flex items-center justify-center rounded-full px-6 py-2 bg-[#FF5955] text-white ${
+                    !isEditing ? "cursor-not-allowed opacity-50" : ""
                   }`}
                 >
-                  <MdDelete color="red" size={18} />
+                  <MdDelete /> <span className="text-white font-bold">Delete</span>
                 </button>
               </div>
             ))}
@@ -375,7 +369,10 @@ const AdSet = memo(function AdSet({
             }`}
             onClick={() => {
               if (canAddNewAudience) {
-                const updated = [...extraAudience, { audience_type: "" }];
+                const updated = [
+                  ...extraAudience,
+                  { audience_type: "", name: "", size: "" },
+                ];
                 updateExtraAudienceMap(updated);
               }
             }}
@@ -410,7 +407,7 @@ const AdSet = memo(function AdSet({
         disabled={!isEditing}
         onClick={() => onDelete(adset.id)}
         className={`flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold ${
-          !isEditing ? "cursor-not-allowed" : ""
+          !isEditing ? "cursor-not-allowed opacity-50" : ""
         }`}
       >
         <MdDelete /> <span>Delete</span>
@@ -633,7 +630,6 @@ const AdsetSettings = memo(function AdsetSettings({
       });
     }
   }, [
-    // campaignFormData,
     stageName,
     outlet.outlet,
     selectedPlatforms,
@@ -657,25 +653,35 @@ const AdsetSettings = memo(function AdsetSettings({
       ...prev,
       [newAdSetId]: { name: "", audience_type: "", size: "" },
     }));
-    onInteraction &&onInteraction();
-  }, [onInteraction &&onInteraction, adsets.length]);
+    onInteraction && onInteraction();
+  }, [onInteraction, adsets.length]);
 
   const deleteAdSet = useCallback((id: number) => {
     setAdSets((prev) => {
       const newAdSets = prev.filter((adset) => adset.id !== id);
+      // Only remove from selectedPlatforms if this was the last ad set
       if (newAdSets.length === 0) {
-        setSelectedPlatforms([]);
-        setAdSetDataMap({});
-        initialized.current = false;
+        setSelectedPlatforms((prevPlatforms) => 
+          prevPlatforms.filter(p => p !== outlet.outlet)
+        );
+        // Add back initial adset when all are deleted
+        const newAdSetId = Date.now();
+        setTimeout(() => {
+          setAdSets([{ id: newAdSetId, addsetNumber: 1 }]);
+          setAdSetDataMap({
+            [newAdSetId]: { name: "", audience_type: "", size: "" },
+          });
+        }, 0);
       }
       return newAdSets;
     });
+    
     setAdSetDataMap((prev) => {
       const newMap = { ...prev };
       delete newMap[id];
       return newMap;
     });
-  }, []);
+  }, [outlet.outlet]);
 
   const updateAdSetData = useCallback(
     (id: number, data: Partial<AdSetData>) => {
@@ -685,11 +691,10 @@ const AdsetSettings = memo(function AdsetSettings({
       }));
       onInteraction && onInteraction();
     },
-    [onInteraction && onInteraction]
+    [onInteraction]
   );
 
   const saveChangesToCampaign = useCallback(() => {
-    console.log("hrere");
     if (!campaignFormData?.channel_mix) return;
     const adSetsToSave = adsets
       .map((adset) => {
@@ -803,7 +808,6 @@ const AdsetSettings = memo(function AdsetSettings({
           <span className="text-[#061237] font-medium">{outlet.outlet}</span>
           <FaAngleRight />
         </button>
-        {/* <hr className="border border-[#0000001A] w-[100px] absolute bottom-1/2 translate-y-1/2 -right-0 translate-x-3/4" /> */}
       </div>
       <DropdownContext.Provider value={{ openDropdownId, setOpenDropdownId }}>
         <div
@@ -887,7 +891,7 @@ const AdSetFlow = memo(function AdSetFlow({
   isValidateDisabled,
   onEditStart,
   platformName,
-  modalOpen
+  modalOpen,
 }: AdSetFlowProps) {
   const { isEditing, setIsEditing } = useEditing();
   const { active } = useActive();
@@ -944,7 +948,7 @@ const AdSetFlow = memo(function AdSetFlow({
       });
     });
     return platformsByStage;
-  }, [campaignFormData, modalOpen && modalOpen]);
+  }, [campaignFormData, modalOpen]);
 
   useEffect(() => {
     if (campaignFormData) {
@@ -977,17 +981,16 @@ const AdSetFlow = memo(function AdSetFlow({
 
       setAutoOpen(autoOpenPlatforms); // 👈 create a new state for this
     }
-  }, [modalOpen && modalOpen]);
+  }, [modalOpen]);
 
   const handleInteraction = useCallback(() => {
     setHasInteraction(true);
-    onInteraction &&onInteraction();
+    onInteraction && onInteraction();
   }, [onInteraction]);
 
   const updateCampaignData = async (data) => {
     const calcPercent = Math.ceil((active / 10) * 100);
     try {
-      console.log("herer", data);
       await updateCampaign({
         ...data,
         progress_percent:
@@ -1046,12 +1049,23 @@ const AdSetFlow = memo(function AdSetFlow({
 
   return (
     <div className="w-full space-y-4 p-4">
-    {platformName
-      ? platforms[stageName]
-          ?.filter((outlet) =>
-            Array.isArray(platformName) ? platformName.includes(outlet.outlet) : outlet.outlet === platformName,
-          )
-          .map((outlet) => (
+      {platformName
+        ? platforms[stageName]
+            ?.filter((outlet) =>
+              Array.isArray(platformName)
+                ? platformName.includes(outlet.outlet)
+                : outlet.outlet === platformName
+            )
+            .map((outlet) => (
+              <AdsetSettings
+                key={outlet.id}
+                outlet={outlet}
+                stageName={stageName}
+                onInteraction={handleInteraction}
+                defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
+              />
+            ))
+        : platforms[stageName]?.map((outlet) => (
             <AdsetSettings
               key={outlet.id}
               outlet={outlet}
@@ -1059,17 +1073,8 @@ const AdSetFlow = memo(function AdSetFlow({
               onInteraction={handleInteraction}
               defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
             />
-          ))
-      : platforms[stageName]?.map((outlet) => (
-          <AdsetSettings
-            key={outlet.id}
-            outlet={outlet}
-            stageName={stageName}
-            onInteraction={handleInteraction}
-            defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
-          />
-        ))}
-  </div>
+          ))}
+    </div>
   );
 });
 

@@ -16,12 +16,16 @@ import { signOut, useSession } from "next-auth/react";
 import ClientSelection from "./ClientSelection";
 import { CustomSelect } from "app/homepage/components/CustomReactSelect";
 import { useActive } from "app/utils/ActiveContext";
-import { extractAprroverFilters, extractChannelAndPhase, extractDateFilters } from "app/utils/campaign-filter-utils";
+import { extractAprroverFilters, extractChannelAndPhase, extractDateFilters, extractLevelFilters, extractLevelNameFilters } from "app/utils/campaign-filter-utils";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { el } from "date-fns/locale";
+import { useVersionContext } from "app/utils/VersionApprovalContext";
+import { useSearchParams } from "next/navigation";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 const Header = ({ setIsOpen }) => {
+  const query = useSearchParams();
+  const campaignId = query.get("campaignId");
   const { isAdmin } = useUserPrivileges();
   const { data: session } = useSession();
   const {
@@ -48,7 +52,7 @@ const Header = ({ setIsOpen }) => {
   const [selectedId, setSelectedId] = useState<string>("");
   // Removed unused 'IsError' and 'setIsError'
   const clients: any = getCreateClientData;
-
+  const { getCampaignVersionByclientID, versions } = useVersionContext();
 
 
 
@@ -79,7 +83,7 @@ const Header = ({ setIsOpen }) => {
   //     ? localStorage.getItem("selectedClient") || localStorage.getItem("profileclients")
   //     : "";
 
-  // console.log("🚀 ~ selected ~ selectedId:", selectedId);
+
 
   useEffect(() => {
     if (!clients?.data || clients.data.length === 0) {
@@ -99,23 +103,29 @@ const Header = ({ setIsOpen }) => {
       selectedId ? selectedId : clients?.data[0]?.id?.toString() || profile?.clients[0]?.id?.toString()
     );
 
+    // Find the matching client
+    const filteredClient = clients?.data?.find(client => client?.id === Number(clientId));
+
+
     fetchClientCampaign(clientId)
       .then((res) => {
         const campaigns = res?.data?.data || [];
 
         if (isMounted) setClientCampaignData(campaigns);
-
         const dateData = extractDateFilters(campaigns);
         const mediaData = extractAprroverFilters(campaigns);
         const channelData = extractChannelAndPhase(campaigns);
-        // const levelData = extractLevelFilters(campaigns);
+        const levelData = extractLevelFilters(campaigns);
+        const levelNames = extractLevelNameFilters(filteredClient);
+
 
         setFilterOptions((prev) => ({
           ...prev,
           ...dateData,
           ...mediaData,
           ...channelData,
-          // ...levelData,
+          ...levelData,
+          ...levelNames
         }));
 
         fetchClientPOS(clientId)
@@ -144,6 +154,17 @@ const Header = ({ setIsOpen }) => {
 
 
 
+  useEffect(() => {
+    const fetchVersionData = async () => {
+      const versions = await getCampaignVersionByclientID(selectedId)
+    };
+    fetchVersionData();
+  }, [selectedId]);
+
+
+
+
+
   function getFirstLetters(str) {
     const words = str?.trim().split(/\s+/);
     const first = words?.length > 0 && words[0]?.[0] || '';
@@ -153,7 +174,7 @@ const Header = ({ setIsOpen }) => {
 
 
   return (
-    <div id="header">
+    <div id="header" className="relative w-full">
       {isAdmin ?
         <div className="flex items-center">
           {getCreateClientIsLoading === true ? (
@@ -243,6 +264,15 @@ const Header = ({ setIsOpen }) => {
             New Client
           </button>
         </div>}
+
+      <div className="  transform -translate-x-1/2 top-4 z-10">
+        {versions?.length > 0 && (
+          <div className="px-4 py-[6px] rounded-full bg-green-100 text-green-700 text-sm font-semibold shadow-sm">
+            Media Plan Version: {versions[0]?.version?.version_number}
+          </div>
+        )}
+      </div>
+
       {alert && <AlertMain alert={alert} />}
       <div className="profiledropdown_container_main">
         <div className="profiledropdown_container">

@@ -136,6 +136,7 @@ const DefineCampaignObjective = () => {
       "createdAt",
       "publishedAt",
       "updatedAt",
+      "_aggregated"
     ]);
 
     try {

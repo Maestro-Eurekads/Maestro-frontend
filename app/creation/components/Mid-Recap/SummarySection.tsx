@@ -23,18 +23,16 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
     getActiveCampaign,
     campaignData,
     campaignFormData,
-    isEditingBuyingObjective,
-    setIsEditingBuyingObjective,
+    setCampaignFormData,
+    setIsEditingBuyingObjective
   } = useCampaigns();
 
   const closeEditStep = () => {
-    if (title === "Your buying objectives") {
-      setIsEditingBuyingObjective(false);
-    }
     setMidcapEditing({
       isEditing: false,
       step: "",
     });
+    setIsEditingBuyingObjective(false);
   };
 
   const cleanData = campaignData
@@ -44,6 +42,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
         "createdAt",
         "publishedAt",
         "updatedAt",
+        "_aggregated"
       ])
     : {};
 
@@ -59,6 +58,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
           "formatValidated",
           "validatedStages",
           "documentId",
+          "_aggregated"
         ], ["preview"]),
         custom_funnels: campaignFormData?.custom_funnels,
         funnel_type: campaignFormData?.funnel_type,
@@ -86,8 +86,24 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
     }
   };
 
-  const isEditing = (title === "Your buying objectives" && isEditingBuyingObjective) || 
-                    (midcapEditing.isEditing && midcapEditing.step === title);
+  const isEditing = midcapEditing.isEditing && midcapEditing.step === title;
+
+  const handleEditClick = () => {
+    if (!loading) {
+      // Preserve the current campaign data before editing
+      if (title === "Your buying objectives") {
+        setCampaignFormData({
+          ...campaignFormData,
+          buying_objectives: campaignData?.buying_objectives || []
+        });
+        setIsEditingBuyingObjective(true);
+      }
+      setMidcapEditing({
+        isEditing: true,
+        step: title,
+      });
+    }
+  };
 
   return (
     <div className="p-6 bg-white flex flex-col rounded-lg shadow-md w-full">
@@ -120,18 +136,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
             text="Edit"
             variant="primary"
             className="!w-[85px] !h-[40px]"
-            onClick={() => {
-              if (!loading) {
-                if (title === "Your buying objectives") {
-                  setIsEditingBuyingObjective(true);
-                } else {
-                  setMidcapEditing({
-                    isEditing: true,
-                    step: title,
-                  });
-                }
-              }
-            }}
+            onClick={handleEditClick}
           />
         )}
       </div>

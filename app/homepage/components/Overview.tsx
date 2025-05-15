@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import blueBtn from '../../../public/blueBtn.svg';
 import Image from 'next/image'
@@ -20,6 +20,13 @@ const Overview = () => {
     router.push('/creation')
   }
 
+
+
+
+  useEffect(() => {
+    router.refresh();
+  }, [router]);
+
   return (
     <div className='px-[72px]'>
       <div className='flex items-center gap-2 mt-[36.5px]'>
@@ -29,7 +36,7 @@ const Overview = () => {
         </button>
       </div>
       <div className='mt-[20px]'>
-        <FiltersDropdowns hideTitle={true}/>
+        <FiltersDropdowns hideTitle={true} router={router} />
       </div>
       <Table />
     </div>

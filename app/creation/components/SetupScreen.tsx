@@ -268,6 +268,7 @@ export const SetupScreen = () => {
             "createdAt",
             "publishedAt",
             "updatedAt",
+            "_aggregated"
           ]),
           client: campaignFormData?.client_selection?.id,
           client_selection: {
