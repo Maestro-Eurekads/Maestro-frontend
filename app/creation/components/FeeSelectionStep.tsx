@@ -282,8 +282,7 @@ function FeeSelectionStep({
                     ? ""
                     : parseInt(
                         campaignFormData?.campaign_budget?.amount
-                      ).toLocaleString()}{" "}
-                  {selectedOption?.value}
+                      ).toLocaleString()}
                 </p>
               </div>
               <p
@@ -499,11 +498,6 @@ function FeeSelectionStep({
                           />
                           {feeType?.type === "percent" && <span>%</span>}
                         </div>
-                        {feeType?.type !== "percent" && (
-                          <div className="w-fit">
-                            <p>{campaignFormData?.campaign_budget?.currency}</p>
-                          </div>
-                        )}
                         <button
                           className="mt-4 bg-blue-500 text-white px-2 py-1 rounded"
                           onClick={handleAddFee}
@@ -598,9 +592,6 @@ function FeeSelectionStep({
                             aria-label="Net gross amount (read-only)"
                           />
                         </div>
-                        <div className="w-[120px]">
-                          <p>{campaignFormData?.campaign_budget?.currency}</p>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -692,13 +683,6 @@ function FeeSelectionStep({
                             />
                             {feeType?.type === "percent" && <span>%</span>}
                           </div>
-                          {feeType?.type !== "percent" && (
-                            <div className="w-[120px]">
-                              <p>
-                                {campaignFormData?.campaign_budget?.currency}
-                              </p>
-                            </div>
-                          )}
                           <button
                             className="mt-4 bg-blue-500 text-white px-2 py-1 rounded"
                             onClick={handleAddFee}
@@ -795,9 +779,6 @@ function FeeSelectionStep({
                               aria-label="Gross amount (read-only)"
                             />
                           </div>
-                          <div className="w-[120px]">
-                            <p>{campaignFormData?.campaign_budget?.currency}</p>
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -823,14 +804,14 @@ function FeeSelectionStep({
               <p className="text-[14px] mb-2">
                 Total Net Amount:{" "}
                 <strong>
-                  {netAmount} {selectedOption.value}
+                  {netAmount} {getCurrencySymbol(selectedOption.value)}
                 </strong>
               </p>
               <p className="text-[14px] mb-2">Fees:</p>
               <ul className="list-disc ml-5 text-[14px]">
                 {fees.map((fee, index) => (
                   <li key={index}>
-                    {fee.label}: {fee.amount} {selectedOption.value}
+                    {fee.label}: {fee.amount} {getCurrencySymbol(selectedOption.value)}
                     {fee.isPercent && ` (${fee.percentValue}%)`}
                   </li>
                 ))}
