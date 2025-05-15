@@ -11,6 +11,7 @@ import { BiLoader } from "react-icons/bi";
 import { removeKeysRecursively } from "../utils/removeID";
 import { useSelectedDates } from "../app/utils/SelectedDatesContext";
 import { useVerification } from "app/utils/VerificationContext";
+import { useEditing } from "app/utils/EditingContext";
 import toast, { Toaster } from "react-hot-toast";
 import dayjs from "dayjs";
 
@@ -35,6 +36,7 @@ const CHANNEL_TYPES = [
 const Bottom = ({ setIsOpen }: BottomProps) => {
   const { verifybeforeMove, hasChanges } = useVerification();
   const { active, setActive, subStep, setSubStep } = useActive();
+  const { midcapEditing } = useEditing();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
   const [setupyournewcampaignError, setSetupyournewcampaignError] = useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
@@ -46,7 +48,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const { selectedDates } = useSelectedDates();
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
   const [triggerBuyObjectiveError, setTriggerBuyObjectiveError] = useState(false);
-  const [isBuyingObjectiveError, setIsBuyingObjectiveError] = useState(false); // New state for active === 6
+  const [isBuyingObjectiveError, setIsBuyingObjectiveError] = useState(false);
+  const [isEditingError, setIsEditingError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
@@ -61,17 +64,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     isEditingBuyingObjective,
   } = useCampaigns();
 
-  // Function to check if any previews are uploaded in Channel or Ad Set View
   const hasUploadedPreviews = () => {
     const stages = campaignFormData?.channel_mix || [];
     return stages.some((stage) => {
       return CHANNEL_TYPES.some(({ key }) => {
         return stage[key]?.some((platform) => {
-          // Check Channel View (platform.format.previews)
           if (platform.format?.some((f) => f.previews?.length > 0)) {
             return true;
           }
-          // Check Ad Set View (platform.ad_sets[].format.previews)
           if (platform.ad_sets?.some((adset) => adset.format?.some((f) => f.previews?.length > 0))) {
             return true;
           }
@@ -233,16 +233,53 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   };
 
   const handleContinue = async () => {
-    // Prevent proceeding if in edit mode for Buying Objectives
-    if (active === 6 && isEditingBuyingObjective) {
-      setIsBuyingObjectiveError(true);
-      setAlert({
-        variant: "error",
-        message: "Please confirm or cancel your changes before proceeding",
-        position: "bottom-right",
-      });
-      setLoading(false);
-      return;
+    console.log("handleContinue called", {
+      active,
+      midcapEditing,
+      campaignFormData,
+      isEditingBuyingObjective,
+    });
+
+    // Only check editing state if we're on step 6
+    if (active === 6) {
+      if (midcapEditing.isEditing) {
+        let errorMessage = "";
+        switch(midcapEditing.step) {
+          case "Your channel mix":
+            errorMessage = "Please confirm or cancel your channel mix changes before proceeding";
+            break;
+          case "Your funnel stages":
+            errorMessage = "Please confirm or cancel your funnel changes before proceeding";
+            break;
+          case "Your format selections":
+            errorMessage = "Please confirm or cancel your format selection changes before proceeding";
+            break;
+          case "Your Adset and Audiences":
+            errorMessage = "Please confirm or cancel your Adset and Audiences changes before proceeding";
+            break;
+        }
+        if (errorMessage) {
+          setIsEditingError(true);
+          setAlert({
+            variant: "error",
+            message: errorMessage,
+            position: "bottom-right",
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      if (isEditingBuyingObjective) {
+        setIsBuyingObjectiveError(true);
+        setAlert({
+          variant: "error",
+          message: "Please confirm or cancel your buying objective changes before proceeding",
+          position: "bottom-right",
+        });
+        setLoading(false);
+        return;
+      }
     }
 
     setLoading(true);
@@ -302,6 +339,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           position: "bottom-right",
         });
         hasError = true;
+      }
+      else {
+        setTriggerChannelMixError(false);
+        setAlert(null);
       }
     }
 
@@ -653,15 +694,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-      {isBuyingObjectiveError && active === 6 && (
-        <AlertMain
-          alert={{
-            variant: "error",
-            message: "Please confirm or cancel your changes before proceeding",
-            position: "bottom-right",
-          }}
-        />
-      )}
+    
 
       <div className="flex justify-between w-full">
         {active === 0 ? (
