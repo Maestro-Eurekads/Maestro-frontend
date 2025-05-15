@@ -120,7 +120,7 @@ const Table = () => {
     );
   };
 
-  // console.log('clientCampaignData-clientCampaignData', clientCampaignData)
+
 
   return (
     <div className="flex flex-col">

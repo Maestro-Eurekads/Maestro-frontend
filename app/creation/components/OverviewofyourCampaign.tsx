@@ -311,7 +311,7 @@ const OverviewofyourCampaign = () => {
 		const startDay = differenceInCalendarDays(start, earliestStartDate) + 1
 		const endDay = differenceInCalendarDays(end, earliestStartDate) + 1
 
-		// console.log("🚀 ~ Dashboard ~ funnelDtaa:", ch?.media_plan_details?.plan_name, startDay, endDay)
+
 
 		const startWeek = differenceInCalendarWeeks(start, earliestStartDate) + 1
 		const endWeek = differenceInCalendarWeeks(end, earliestStartDate) + 1

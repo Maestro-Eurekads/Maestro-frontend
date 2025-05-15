@@ -49,7 +49,6 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	useEffect(() => {
 		const fetchVersionData = async () => {
 			const versions = await getCampaignVersion(campaignId);
-			// console.log('versions=versions', versions)
 			if (version && version.length > 0) {
 				setCurrentVersion(version[version.length - 1].version.version_number);
 				setdocumentId(version[0]?.documentId);

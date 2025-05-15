@@ -1,5 +1,5 @@
 "use client"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useMemo } from "react"
 import down from "../../../public/down.svg"
 import Image from "next/image"
 import { BiX } from "react-icons/bi"
@@ -9,6 +9,7 @@ import { toast, Toaster } from "react-hot-toast"
 import { useAppDispatch } from "store/useStore"
 import { getCreateClient } from "features/Client/clientSlice"
 import { defaultFilters } from "components/data"
+import { fetchFilteredCampaignsSub } from "app/utils/campaign-filter-utils-sub"
 
 // Scrollbar CSS
 const scrollbarStyles = `
@@ -46,7 +47,6 @@ const Dropdown = ({ label, options, selectedFilters, handleSelect, isDisabled = 
   }
 
   const handleOptionSelect = (option) => {
-    console.log('label-label-label', label)
     handleSelect(label.toLowerCase(), option)
     setIsOpen(false)
   }
@@ -124,6 +124,10 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
 
   const [filters, setFilters] = useState(defaultFilters)
+  const allFiltersEmpty = useMemo(
+    () => Object.values(selectedFilters).every((val) => !val),
+    [selectedFilters]
+  );
 
   const handleSelect = (label, value) => {
     if (value === "") {
@@ -164,23 +168,50 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     }
   }, [filterOptions])
 
-  useEffect(() => {
-    if (Object.values(selectedFilters).some((val) => val !== null && val !== "")) {
-      const fetchData = async () => {
-        const clientID = localStorage.getItem("selectedClient") || allClients[0]?.id
-        setLoading(true)
-        const data = await fetchFilteredCampaigns(clientID, selectedFilters)
-          .then((res) => {
-            setClientCampaignData(res)
-          })
-          .finally(() => {
-            setLoading(false)
-          })
-      }
-      fetchData()
-    }
 
-  }, [selectedFilters])
+  useEffect(() => {
+    const fetchData = async () => {
+      const clientID = localStorage.getItem("selectedClient") || allClients[0]?.id;
+
+      if (!clientID) return;
+
+      setLoading(true);
+
+      const allEmpty = Object.values(selectedFilters).every((val) => !val);
+
+      try {
+        const res = allEmpty
+          ? await fetchFilteredCampaignsSub(clientID)
+          : await fetchFilteredCampaigns(clientID, selectedFilters);
+
+        setClientCampaignData(res);
+      } catch (err) {
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [selectedFilters]);
+
+
+  // useEffect(() => {
+  //   if (Object.values(selectedFilters).some((val) => val !== null && val !== "")) {
+  //     const fetchData = async () => {
+  //       const clientID = localStorage.getItem("selectedClient") || allClients[0]?.id
+  //       setLoading(true)
+  //       const data = await fetchFilteredCampaigns(clientID, selectedFilters)
+  //         .then((res) => {
+  //           setClientCampaignData(res)
+  //         })
+  //         .finally(() => {
+  //           setLoading(false)
+  //         })
+  //     }
+  //     fetchData()
+  //   }
+
+  // }, [selectedFilters])
 
   useEffect(() => {
     const allEmpty = Object.values(selectedFilters).every((val) => !val)
@@ -207,7 +238,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
   const isYearSelected = !!selectedFilters["year"]
 
 
-  // console.log('filters-filters', filters)
+
   // {
   //   filters
   //     ?.filter((l) => l?.label !== "channel" && l?.label !== "phase")
