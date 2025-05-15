@@ -12,7 +12,7 @@ import useCampaignHook from "app/utils/useCampaignHook";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import blueBtn from "../../../public/blueBtn.svg";
 
-function FinanceView({ setOpenModal }) {
+function FinanceView({ setOpenModal, userRole }) {
   const [openEdit, setOpenEdit] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openView, setOpenView] = useState(false);
@@ -141,6 +141,7 @@ function FinanceView({ setOpenModal }) {
         mode="edit"
         selectedRow={selectedRow}
         setSelectedRow={setSelectedRow}
+        userRole={userRole}
       />
       <Modal isOpen={openDelete} onClose={() => setOpenDelete(false)}>
         <div className="bg-white shadow-md rounded-md p-4 w-[500px]">
