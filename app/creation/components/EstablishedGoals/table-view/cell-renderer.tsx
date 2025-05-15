@@ -37,6 +37,28 @@ export const CellRenderer = ({
   ];
 
   const isNR = nrCells[channel?.name]?.[body];
+
+  const formatValueByType = (value, type) => {
+    if (value === null || value === undefined || value === "" || isNaN(value))
+      return "-";
+
+    const numValue = Number.parseFloat(value);
+
+    switch (type) {
+      case "percent":
+        return `${numValue.toFixed(2)}%`;
+      case "currency":
+        return `$${numValue.toFixed(2)}`;
+      case "seconds":
+        return `${numValue.toFixed(2)}s`;
+      case "number":
+      default:
+        return numValue.toFixed(2);
+    }
+  };
+  const isPercentType = tableHeaders[bodyIndex]?.type === "percent";
+  const isCurrencyType = tableHeaders[bodyIndex]?.type === "currency";
+  const isSecondsType = tableHeaders[bodyIndex]?.type === "seconds";
   // Helper function to safely get calculated values
   const getCalculatedValue = (key) => {
     const value = calculatedValues[key];
@@ -165,13 +187,18 @@ export const CellRenderer = ({
           <p className="text-gray-300 font-semibold">NR</p>
         ) : (
           <p>
-            {formatNumber(
-              Number(
+            {(() => {
+              const value =
                 campaignFormData?.goal_level === "Adset level"
                   ? channel?.kpi?.[body]
-                  : getCalculatedValue(body)
-              )
-            )}
+                  : getCalculatedValue(body);
+              // console.log("sdd", {body, value})
+              return value && value !== "-"
+                ? `${isCurrencyType ? "$" : isSecondsType ? "secs" : ""}${formatNumber(
+                    Number(value)
+                  )}`
+                : "-";
+            })()}
           </p>
         )}
         <Ban
@@ -202,8 +229,6 @@ export const CellRenderer = ({
     );
   }
 
-  const isPercentType = tableHeaders[bodyIndex]?.type === "percent";
-
   // Get the raw value from the form data
   const kpiValue =
     body === "budget_size"
@@ -220,22 +245,51 @@ export const CellRenderer = ({
 
   // Format display value for percentage fields - keep the raw input value for UI
   let displayValue = kpiValue;
-  if (isPercentType && displayValue) {
-    // If it's a number (already converted to decimal), convert back to percentage for display
-    if (
-      !isNaN(Number.parseFloat(displayValue)) &&
-      !displayValue.toString().includes("%")
-    ) {
-      // Check if it's likely a decimal value (less than 1)
-      if (Number.parseFloat(displayValue) < 1) {
-        displayValue = `${(Number.parseFloat(displayValue) * 100).toFixed(2)}%`;
-      } else {
-        // It's already a percentage value (like 10, 20, etc.)
-        displayValue = `${displayValue}%`;
+  // if (isPercentType && displayValue) {
+  //   // If it's a number (already converted to decimal), convert back to percentage for display
+  //   if (
+  //     !isNaN(Number.parseFloat(displayValue)) &&
+  //     !displayValue.toString().includes("%")
+  //   ) {
+  //     // Check if it's likely a decimal value (less than 1)
+  //     if (Number.parseFloat(displayValue) < 1) {
+  //       displayValue = `${(Number.parseFloat(displayValue) * 100).toFixed(2)}%`;
+  //     } else {
+  //       // It's already a percentage value (like 10, 20, etc.)
+  //       displayValue = `${displayValue}%`;
+  //     }
+  //   } else if (!displayValue.toString().includes("%")) {
+  //     // It's a string without % - add it
+  //     displayValue = `${displayValue}%`;
+  //   }
+  // }
+  if (displayValue && !isNaN(Number.parseFloat(displayValue))) {
+    if (isPercentType) {
+      // If it's a number (already converted to decimal), convert back to percentage for display
+      if (!displayValue.toString().includes("%")) {
+        // Check if it's likely a decimal value (less than 1)
+        if (Number.parseFloat(displayValue) < 1) {
+          displayValue = `${(Number.parseFloat(displayValue) * 100).toFixed(
+            1
+          )}%`;
+        } else {
+          // It's already a percentage value (like 10, 20, etc.)
+          displayValue = `${Number.parseFloat(displayValue).toFixed(1)}%`;
+        }
       }
-    } else if (!displayValue.toString().includes("%")) {
-      // It's a string without % - add it
-      displayValue = `${displayValue}%`;
+    } else if (isCurrencyType) {
+      // Format as currency
+      if (!displayValue.toString().includes("$")) {
+        displayValue = `${Number.parseFloat(displayValue).toFixed(2)}`;
+      }
+    } else if (isSecondsType) {
+      // Format as seconds
+      if (!displayValue.toString().includes("secs")) {
+        displayValue = `${Number.parseFloat(displayValue).toFixed(0)}secs`;
+      }
+    } else {
+      // Format as regular number
+      displayValue = Number.parseFloat(displayValue).toFixed(0);
     }
   }
 
@@ -249,15 +303,52 @@ export const CellRenderer = ({
           onChange={(e) => {
             let newValue = e.target.value;
 
-            // Allow only valid characters: numbers, '.', ',', ':', and '%'
-            newValue = newValue.replace(/[^0-9.,:%]/g, "");
-
-            // Handle percentage input
+            // Allow appropriate characters based on input type
             if (isPercentType) {
-              // Remove % if present
-              newValue = newValue.replace(/%/g, "");
-
-              // Store the raw percentage value (not converted to decimal)
+              // Allow numbers, decimal point, and %
+              newValue = newValue.replace(/[^0-9.%]/g, "");
+              // Remove % if present for storage
+              const valueToStore = newValue.replace(/%/g, "");
+              handleEditInfo(
+                stage.name,
+                channel?.channel_name,
+                channel?.name,
+                body,
+                valueToStore,
+                "",
+                ""
+              );
+            } else if (isCurrencyType) {
+              // Allow numbers, decimal point, and $
+              newValue = newValue.replace(/[^0-9.$]/g, "");
+              // Remove $ if present for storage
+              const valueToStore = newValue.replace(/\$/g, "");
+              handleEditInfo(
+                stage.name,
+                channel?.channel_name,
+                channel?.name,
+                body,
+                valueToStore,
+                "",
+                ""
+              );
+            } else if (isSecondsType) {
+              // Allow numbers, decimal point, and s
+              newValue = newValue.replace(/[^0-9.s]/g, "");
+              // Remove s if present for storage
+              const valueToStore = newValue.replace(/s/g, "");
+              handleEditInfo(
+                stage.name,
+                channel?.channel_name,
+                channel?.name,
+                body,
+                valueToStore,
+                "",
+                ""
+              );
+            } else {
+              // For regular numbers, allow only numbers and decimal point
+              newValue = newValue.replace(/[^0-9.]/g, "");
               handleEditInfo(
                 stage.name,
                 channel?.channel_name,
@@ -267,19 +358,7 @@ export const CellRenderer = ({
                 "",
                 ""
               );
-              return;
             }
-
-            // Handle non-percentage input normally
-            handleEditInfo(
-              stage.name,
-              channel?.channel_name,
-              channel?.name,
-              body,
-              newValue,
-              "",
-              ""
-            );
           }}
           disabled={isNR || goalLevel === "Adset level"}
           className={`cpm-bg border-none outline-none max-w-[90px] p-1 ${
