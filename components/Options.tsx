@@ -172,17 +172,17 @@ function mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, icons, fi
 
   const formatKPIValue = (value, kpiName) => {
     if (value === undefined || value === null) {
-      if (kpiName.toLowerCase().includes("cost") || kpiName === "CPM" || kpiName === "CPCV" || kpiName.includes("CPL")) return "€ 0,00";
+      if (kpiName.toLowerCase().includes("cost") || kpiName === "CPM" || kpiName === "CPCV" || kpiName?.includes("CPL")) return "€ 0,00";
       if (kpiName.toLowerCase().includes("rate") || ["CTR", "CVR", "Frequency", "VTR", "Completion Rate", "Eng Rate", "Click to land rate", "Bounce Rate", "Lead Rate", "Add to cart rate", "Payment info rate", "Purchase Rate", "App open rate", "Install Rate"].includes(kpiName)) return "0,0%";
       if (kpiName === "Avg Visit Time") return "0,0 Sec";
       return "0";
     }
 
     if (kpiName.toLowerCase().includes("cost") || kpiName === "CPM" || kpiName === "CPCV" || kpiName.includes("CPL")) {
-      return `€ ${value.toFixed(2).replace(".", ",")}`; // e.g., € 5,00
+      return `€ ${value?.toFixed(2).replace(".", ",")}`; // e.g., € 5,00
     }
     if (kpiName.toLowerCase().includes("rate") || ["CTR", "CVR", "Frequency", "VTR", "Completion Rate", "Eng Rate", "Click to land rate", "Bounce Rate", "Lead Rate", "Add to cart rate", "Payment info rate", "Purchase Rate", "App open rate", "Install Rate"].includes(kpiName)) {
-      return `${value.toFixed(1).replace(".", ",")}%`; // e.g., 5,0%
+      return `${value?.toFixed(1).replace(".", ",")}%`; // e.g., 5,0%
     }
     if (kpiName === "Avg Visit Time") {
       return `${value.toFixed(1).replace(".", ",")} Sec`; // e.g., 34,5 Sec

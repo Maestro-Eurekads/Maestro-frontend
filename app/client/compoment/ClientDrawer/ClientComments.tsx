@@ -4,6 +4,9 @@ import ClientApproved from "./ClientApproved";
 
 const ClientClientComments = ({ comment, contrastingColor }) => {
 
+	const getInitial = (name) => typeof name === 'string' && name.length > 0 ? name[0] : '';
+
+	const initial = getInitial(comment?.creator?.name);
 
 
 	return (
@@ -14,7 +17,7 @@ const ClientClientComments = ({ comment, contrastingColor }) => {
 						className="flex flex-col justify-center items-center p-2 w-10 h-10 rounded-full text-white"
 						style={{ backgroundColor: contrastingColor }}
 					>
-						{comment?.creator?.name[0] || "?"}
+						{initial}
 					</div>
 					<ClientCommentHeader comment={comment} />
 				</div>
