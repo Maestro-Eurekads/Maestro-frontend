@@ -14,7 +14,7 @@ const Dropdown = ({
   setHasChanges,
 }: {
   label: string;
-  options: { id?: string; value: string; label: string; assignedUserId?: string }[];
+  options: { id?: string; value: string; label: string }[];
   formId: string;
   setHasChanges: (hasChanged: boolean) => void;
 }) => {
@@ -23,23 +23,6 @@ const Dropdown = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { campaignFormData, setCampaignFormData, loadingClients } = useCampaigns();
   const dispatch = useAppDispatch();
-
-  // Hypothetical current user ID and role (replace with actual retrieval logic)
-  const currentUserId = "current-user-id"; // Replace with actual user ID from auth context or store
-  const userRole = "Agency creator"; // Replace with actual role from auth context or store
-
-  // Define roles that should only see assigned clients
-  const restrictedRoles = [
-    "Client approver",
-    "Agency approver",
-    "Agency creator",
-    "Financial approver",
-  ];
-
-  // Filter clients assigned to the current user for restricted roles when label is "Select Client"
-  const filteredClients = label === "Select Client" && restrictedRoles.includes(userRole)
-    ? options.filter(option => option.assignedUserId === currentUserId)
-    : options;
 
   // Fetch clients when dropdown is opened
   const toggleDropdown = () => {
@@ -74,7 +57,7 @@ const Dropdown = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredOptions = filteredClients?.filter(option =>
+  const filteredOptions = options?.filter(option =>
     option.label.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -148,7 +131,7 @@ const ClientSelection = ({
   formId,
   setHasChanges,
 }: {
-  options: { value: string; label: string; assignedUserId?: string }[];
+  options: { value: string; label: string }[];
   label: string;
   formId: string;
   setHasChanges: (hasChanged: boolean) => void;
@@ -159,5 +142,5 @@ const ClientSelection = ({
     </div>
   );
 };
- 
+
 export default ClientSelection;
