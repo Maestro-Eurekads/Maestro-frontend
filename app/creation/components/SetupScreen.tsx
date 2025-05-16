@@ -131,15 +131,26 @@ export const SetupScreen = () => {
   }, [verifybeforeMove]);
 
   useEffect(() => {
-    if (profile?.clients) {
-      const options = profile?.clients?.map((c) => ({
-        id: c?.documentId,
-        value: c?.client_name,
-        label: c?.client_name,
-      }));
-      setClientOptions(options);
+    if (isAgencyCreator) {
+      if (profile?.clients) {
+        const options = profile?.clients?.map((c) => ({
+          id: c?.documentId,
+          value: c?.client_name,
+          label: c?.client_name,
+        }))
+        setClientOptions(options);
+      }
+    } else {
+      if (allClients) {
+        const options = allClients.map((c) => ({
+          id: c?.documentId,
+          value: c?.client_name,
+          label: c?.client_name,
+        }));
+        setClientOptions(options);
+      }
     }
-  }, [profile]);
+  }, [allClients, profile]);
 
   useEffect(() => {
     if (!allClients || !client_selection) return;
