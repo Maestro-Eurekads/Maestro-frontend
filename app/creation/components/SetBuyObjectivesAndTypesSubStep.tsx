@@ -52,7 +52,7 @@ const SetBuyObjectivesAndTypesSubStep = () => {
         if (Array.isArray(platformGroup)) {
           platformGroup.forEach((platform: any) => {
             if (!platform?.platform_name) return
-            
+
             const icon = getPlatformIcon(platform.platform_name) || "/placeholder.svg"
             platformsByStage[funnel_stage].push({
               id: parseInt(Math.floor(Math.random() * 1000000).toString()),
@@ -91,9 +91,9 @@ const SetBuyObjectivesAndTypesSubStep = () => {
 
       <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px] mx-auto">
         <FunnelStagesSection stages={campaignFormData.funnel_stages} />
-        <ChannelMixSection 
-          stages={campaignFormData.funnel_stages} 
-          platforms={platforms} 
+        <ChannelMixSection
+          stages={campaignFormData.funnel_stages}
+          platforms={platforms}
         />
         <AdSetsSection platforms={platforms} />
         <FormatSelectionsSection platforms={platforms} />

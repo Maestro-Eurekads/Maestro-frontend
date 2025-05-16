@@ -108,10 +108,10 @@ const ResizableChannels = ({
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     const baseStep = rrange !== "Day" ? parentWidth : 100 // Base grid size
-    // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
+
     const adjustmentPerStep = 0 // Decrease each next step by 10
     const snapPoints = []
-    // console.log("🚀 ~ snapToTimeline ~ snapPoints:", snapPoints);
+
 
     let currentSnap = 0
     let step = baseStep
@@ -119,7 +119,6 @@ const ResizableChannels = ({
     // Generate snap points with decreasing step size
     while (currentSnap <= (rrange !== "Day" ? containerWidth : containerWidth)) {
       snapPoints.push(currentSnap)
-      // console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
       currentSnap += step
       step = Math.max(rrange !== "Day" ? parentWidth : 100, step - adjustmentPerStep)
     }
@@ -128,7 +127,7 @@ const ResizableChannels = ({
       Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition) ? curr : prev,
     )
 
-    // console.log("Closest custom snap:", closestSnap);
+
     return rrange !== "Day" ? (closestSnap > 0 ? closestSnap + 40 : closestSnap) : closestSnap
   }
 
@@ -137,9 +136,9 @@ const ResizableChannels = ({
       const start = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === parentId)
         ?.funnel_stage_timeline_start_date
         ? new Date(
-            campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === parentId)
-              ?.funnel_stage_timeline_start_date,
-          )
+          campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === parentId)
+            ?.funnel_stage_timeline_start_date,
+        )
         : campaignFormData?.campaign_time_start_date
 
       if (!initialStartDateRef.current) {
@@ -152,8 +151,8 @@ const ResizableChannels = ({
       const end = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === parentId)
         ?.funnel_stage_timeline_end_date
         ? new Date(
-            campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === parentId)?.funnel_stage_timeline_end_date,
-          )
+          campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === parentId)?.funnel_stage_timeline_end_date,
+        )
         : campaignFormData?.campaign_time_end_date
 
       if (!initialStartDateRef.current) {
@@ -358,7 +357,7 @@ const ResizableChannels = ({
               "id",
               "isValidated",
               "validatedStages",
-              "documentId",, "_aggregated"
+              "documentId", , "_aggregated"
             ]),
           },
         },
@@ -370,7 +369,7 @@ const ResizableChannels = ({
         },
       )
 
-      console.log("Campaign data updated successfully", response.data)
+
     } catch (error) {
       console.error("Error updating campaign data:", error)
     } finally {
@@ -382,7 +381,6 @@ const ResizableChannels = ({
   // Update channel state when initialChannels changes
   useEffect(() => {
     if (initialChannels && initialChannels.length > 0) {
-      console.log("🚀 ~ useEffect ~ initialChannels:", initialChannels)
       setChannels(initialChannels)
       // Initialize new channels with parent's position
       setChannelState((prev) => {
@@ -416,35 +414,34 @@ const ResizableChannels = ({
           const daysBetween =
             adjustedStageStartDate && adjustedStageEndDate
               ? eachDayOfInterval({
-                  start: adjustedStageStartDate,
-                  end: adjustedStageEndDate,
-                })?.length - 1
+                start: adjustedStageStartDate,
+                end: adjustedStageEndDate,
+              })?.length - 1
               : eachDayOfInterval({
-                  start: new Date(ch?.start_date) || null,
-                  end: isEndDateExceeded ? endDate : new Date(ch?.end_date) || null,
-                })?.length - 1
-                console.log("🚀 ~ newState ~ daysBetween:", daysBetween)
+                start: new Date(ch?.start_date) || null,
+                end: isEndDateExceeded ? endDate : new Date(ch?.end_date) || null,
+              })?.length - 1
           const endDaysDiff = differenceInCalendarDays(endDate, stageEndDate)
           // Check if this channel already exists in prev
           const existingState = prev[index]
 
           return existingState
             ? {
-                ...existingState,
-                // Update left position to match parent when it moves
-                left: parentLeft + Math.abs(startDateIndex),
-                width:
-                  daysBetween > 0
-                    ? Math.min(100 * daysBetween + 60, parentWidth)
-                    : Math.min(existingState?.width, parentWidth),
-              }
+              ...existingState,
+              // Update left position to match parent when it moves
+              left: parentLeft + Math.abs(startDateIndex),
+              width:
+                daysBetween > 0
+                  ? Math.min(100 * daysBetween + 60, parentWidth)
+                  : Math.min(existingState?.width, parentWidth),
+            }
             : {
-                left: parentLeft,
-                width: Math.min(150, parentWidth), // Default width for new channels
-              }
+              left: parentLeft,
+              width: Math.min(150, parentWidth), // Default width for new channels
+            }
         })
-          
-        // console.log("new state", dRange)
+
+
         return newState
       })
     }
@@ -579,9 +576,8 @@ const ResizableChannels = ({
           >
             <div>
               <div
-                className={` ${"relative"} top-0 h-full flex ${
-                  disableDrag ? "justify-between min-w-[150px]" : "justify-center cursor-move min-w-[150px]"
-                }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden `}
+                className={` ${"relative"} top-0 h-full flex ${disableDrag ? "justify-between min-w-[150px]" : "justify-center cursor-move min-w-[150px]"
+                  }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden `}
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
                   width: `${channelState[index]?.width + (disableDrag ? 40 : 30) || 150}px`,
@@ -614,9 +610,8 @@ const ResizableChannels = ({
             {
               <>
                 <div
-                  className={`absolute top-0 w-5 h-[46px] cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
-                    disableDrag && "hidden"
-                  }`}
+                  className={`absolute top-0 w-5 h-[46px] cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${disableDrag && "hidden"
+                    }`}
                   style={{
                     left: `${channelState[index]?.left || parentLeft}px`,
                     backgroundColor: channel.color,
@@ -626,9 +621,8 @@ const ResizableChannels = ({
                   <MdDragHandle className="rotate-90" />
                 </div>
                 <div
-                  className={`absolute top-0 w-5 h-[46px] cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
-                    disableDrag && "hidden"
-                  }`}
+                  className={`absolute top-0 w-5 h-[46px] cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${disableDrag && "hidden"
+                    }`}
                   style={{
                     left: `${(channelState[index]?.left || parentLeft) + (channelState[index]?.width + 22 || 150)}px`,
                     backgroundColor: channel.color,
@@ -828,9 +822,8 @@ const ResizableChannels = ({
                                 <td className="px-4 py-2 text-[#3175FF] font-bold whitespace-nowrap border-none">
                                   <div className="l-shape-container-ad">
                                     <div
-                                      className={`absolute w-[1px] ${
-                                        extraIndex > 0 ? "h-[35px] top-[-35px]" : "h-[20px] top-[-20px]"
-                                      } bg-blue-500 left-[60px] `}
+                                      className={`absolute w-[1px] ${extraIndex > 0 ? "h-[35px] top-[-35px]" : "h-[20px] top-[-20px]"
+                                        } bg-blue-500 left-[60px] `}
                                     ></div>
                                     <div
                                       className={`absolute w-[60px] h-[1px] bg-blue-500 bottom-[-1px] left-[60px]`}

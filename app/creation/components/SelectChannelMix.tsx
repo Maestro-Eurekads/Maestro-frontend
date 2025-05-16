@@ -81,9 +81,6 @@ const SelectChannelMix = () => {
 
   // Debug data on mount
   useEffect(() => {
-    console.log("SelectChannelMix - platformList:", platformList);
-    console.log("SelectChannelMix - campaignFormData:", campaignFormData);
-    console.log("SelectChannelMix - cId:", cId);
   }, [platformList, campaignFormData, cId]);
 
   // Ensure component is mounted and data is ready
@@ -326,7 +323,7 @@ const SelectChannelMix = () => {
       const stageSelection = selected[stageName] || {};
       const categorySelection = stageSelection[category] || [];
       const isAlreadySelected = categorySelection.includes(platformName);
-      
+
       // Skip update if deselection was blocked
       if (
         isAlreadySelected &&
@@ -496,11 +493,10 @@ const SelectChannelMix = () => {
                   </p>
                 </div>
                 <p
-                  className={`font-general-sans font-semibold text-[16px] leading-[22px] ${
-                    stageStatuses[stage.name] === "In progress"
+                  className={`font-general-sans font-semibold text-[16px] leading-[22px] ${stageStatuses[stage.name] === "In progress"
                       ? "text-[#3175FF]"
                       : "text-[#061237] opacity-50"
-                  }`}
+                    }`}
                 >
                   {stageStatuses[stage.name] || "Not started"}
                 </p>
@@ -574,11 +570,10 @@ const SelectChannelMix = () => {
                                             <div
                                               key={pIndex}
                                               className={`cursor-pointer flex flex-row justify-between items-center p-4 gap-2 w-[250px] min-h-[62px] bg-white 
-                                  border rounded-[10px] ${
-                                    isSelected
-                                      ? "border-[#3175FF]"
-                                      : "border-[rgba(0,0,0,0.1)]"
-                                  }`}
+                                  border rounded-[10px] ${isSelected
+                                                  ? "border-[#3175FF]"
+                                                  : "border-[rgba(0,0,0,0.1)]"
+                                                }`}
                                               onClick={(e) =>
                                                 handlePlatformClick(
                                                   e,
@@ -609,11 +604,10 @@ const SelectChannelMix = () => {
                                                 </p>
                                               </div>
                                               <div
-                                                className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${
-                                                  isSelected
+                                                className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${isSelected
                                                     ? "bg-[#3175FF]"
                                                     : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
-                                                }`}
+                                                  }`}
                                               >
                                                 {isSelected && (
                                                   <Image

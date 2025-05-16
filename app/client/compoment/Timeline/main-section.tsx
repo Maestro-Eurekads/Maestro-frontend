@@ -87,9 +87,9 @@ const MainSection = ({ hideDate, disableDrag, campaignData }: { hideDate?: boole
     }
   };
   return (
-    <div className="mt-[32px] ">
+    <div  >
       {!hideDate && <DateComponent useDate={true} />}
-      <div className="box-border w-full min-h-[519px] bg-white border-b-2 relative mt-4">
+      <div className="box-border w-full min-h-[519px] bg-white border-b-2 relative">
         <div className="overflow-x-auto w-full">
           <div className="min-w-max">
             <div className="relative">

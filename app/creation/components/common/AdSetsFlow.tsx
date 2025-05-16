@@ -118,7 +118,7 @@ const DropdownContext = createContext<{
   setOpenDropdownId: (id: number | null | string) => void;
 }>({
   openDropdownId: null,
-  setOpenDropdownId: () => {},
+  setOpenDropdownId: () => { },
 });
 
 // Utility functions
@@ -350,9 +350,8 @@ const AdSet = memo(function AdSet({
                 <button
                   disabled={!isEditing}
                   onClick={() => handleDeleteExtraAudience(index)}
-                  className={`flex items-center justify-center rounded-full px-6 py-2 bg-[#FF5955] text-white ${
-                    !isEditing ? "cursor-not-allowed opacity-50" : ""
-                  }`}
+                  className={`flex items-center justify-center rounded-full px-6 py-2 bg-[#FF5955] text-white ${!isEditing ? "cursor-not-allowed opacity-50" : ""
+                    }`}
                 >
                   <MdDelete /> <span className="text-white font-bold">Delete</span>
                 </button>
@@ -360,11 +359,10 @@ const AdSet = memo(function AdSet({
             ))}
           </div>
           <button
-            className={`text-[14px] mt-2 font-semibold flex items-center gap-1 ${
-              canAddNewAudience && extraAudience?.length < 10
-                ? "text-[#3175FF] cursor-pointer"
-                : "text-gray-400 cursor-not-allowed"
-            }`}
+            className={`text-[14px] mt-2 font-semibold flex items-center gap-1 ${canAddNewAudience && extraAudience?.length < 10
+              ? "text-[#3175FF] cursor-pointer"
+              : "text-gray-400 cursor-not-allowed"
+              }`}
             onClick={() => {
               if (canAddNewAudience) {
                 const updated = [
@@ -387,9 +385,8 @@ const AdSet = memo(function AdSet({
         value={name}
         onChange={handleNameChange}
         disabled={!isEditing}
-        className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[160px] ${
-          !isEditing ? "cursor-not-allowed" : ""
-        }`}
+        className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[160px] ${!isEditing ? "cursor-not-allowed" : ""
+          }`}
       />
       <input
         type="text"
@@ -397,16 +394,14 @@ const AdSet = memo(function AdSet({
         value={size}
         onChange={handleSizeChange}
         disabled={!isEditing}
-        className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] w-[100px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-          !isEditing ? "cursor-not-allowed" : ""
-        }`}
+        className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] w-[100px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isEditing ? "cursor-not-allowed" : ""
+          }`}
       />
       <button
         disabled={!isEditing}
         onClick={() => onDelete(adset.id)}
-        className={`flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold ${
-          !isEditing ? "cursor-not-allowed opacity-50" : ""
-        }`}
+        className={`flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold ${!isEditing ? "cursor-not-allowed opacity-50" : ""
+          }`}
       >
         <MdDelete /> <span>Delete</span>
       </button>
@@ -479,9 +474,8 @@ const AudienceDropdownWithCallback = memo(
           >
             <span className="truncate">{selected || "Your audience type"}</span>
             <svg
-              className={`h-4 w-4 flex-shrink-0 transition-transform ${
-                isOpen ? "rotate-180" : ""
-              }`}
+              className={`h-4 w-4 flex-shrink-0 transition-transform ${isOpen ? "rotate-180" : ""
+                }`}
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -826,9 +820,8 @@ const AdsetSettings = memo(function AdsetSettings({
                 <button
                   onClick={addNewAddset}
                   disabled={adsets.length >= 10}
-                  className={`flex gap-2 items-center text-white ${
-                    adsets.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
-                  } px-4 py-2 rounded-full text-sm font-bold z-10 relative`}
+                  className={`flex gap-2 items-center text-white ${adsets.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
+                    } px-4 py-2 rounded-full text-sm font-bold z-10 relative`}
                 >
                   <MdAdd />
                   <span>
@@ -1010,12 +1003,12 @@ const AdSetFlow = memo(function AdSetFlow({
 
   const cleanData = campaignData
     ? removeKeysRecursively(campaignData, [
-        "id",
-        "documentId",
-        "createdAt",
-        "publishedAt",
-        "updatedAt",
-      ])
+      "id",
+      "documentId",
+      "createdAt",
+      "publishedAt",
+      "updatedAt",
+    ])
     : {};
 
   const handleStepThree = async () => {
@@ -1032,7 +1025,6 @@ const AdSetFlow = memo(function AdSetFlow({
         onValidate();
       })
       .catch((err) => {
-        console.log(err);
       })
       .finally(() => {
         setLoading(false);
@@ -1055,21 +1047,12 @@ const AdSetFlow = memo(function AdSetFlow({
     <div className="w-full space-y-4 p-4">
       {platformName
         ? platforms[stageName]
-            ?.filter((outlet) =>
-              Array.isArray(platformName)
-                ? platformName.includes(outlet.outlet)
-                : outlet.outlet === platformName
-            )
-            .map((outlet) => (
-              <AdsetSettings
-                key={outlet.id}
-                outlet={outlet}
-                stageName={stageName}
-                onInteraction={handleInteraction}
-                defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
-              />
-            ))
-        : platforms[stageName]?.map((outlet) => (
+          ?.filter((outlet) =>
+            Array.isArray(platformName)
+              ? platformName.includes(outlet.outlet)
+              : outlet.outlet === platformName
+          )
+          .map((outlet) => (
             <AdsetSettings
               key={outlet.id}
               outlet={outlet}
@@ -1077,7 +1060,16 @@ const AdSetFlow = memo(function AdSetFlow({
               onInteraction={handleInteraction}
               defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
             />
-          ))}
+          ))
+        : platforms[stageName]?.map((outlet) => (
+          <AdsetSettings
+            key={outlet.id}
+            outlet={outlet}
+            stageName={stageName}
+            onInteraction={handleInteraction}
+            defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
+          />
+        ))}
     </div>
   );
 });

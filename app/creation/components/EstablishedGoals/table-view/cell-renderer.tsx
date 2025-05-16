@@ -80,9 +80,8 @@ export const CellRenderer = ({
     return (
       <div className="flex items-center gap-5 w-fit pr-6">
         <span
-          className={`flex items-center gap-2 cursor-pointer ${
-            nrColumns?.includes(body) ? "text-gray-400" : ""
-          }`}
+          className={`flex items-center gap-2 cursor-pointer ${nrColumns?.includes(body) ? "text-gray-400" : ""
+            }`}
           onClick={() =>
             goalLevel === "Adset level" &&
             channel?.ad_sets?.length > 0 &&
@@ -193,11 +192,10 @@ export const CellRenderer = ({
                 campaignFormData?.goal_level === "Adset level"
                   ? channel?.kpi?.[body]
                   : getCalculatedValue(body);
-              // console.log("sdd", {body, value})
               return value && value !== "-"
                 ? `${isCurrencyType ? `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}` : isSecondsType ? "secs" : ""}${formatNumber(
-                    Number(value)
-                  )}`
+                  Number(value)
+                )}`
                 : "-";
             })()}
           </p>
@@ -234,15 +232,15 @@ export const CellRenderer = ({
   const kpiValue =
     body === "budget_size"
       ? campaignFormData?.channel_mix
-          ?.find((ch) => ch?.funnel_stage === stage.name)
-          ?.[channel?.channel_name]?.find(
-            (c) => c?.platform_name === channel?.name
-          )?.budget?.fixed_value || ""
+        ?.find((ch) => ch?.funnel_stage === stage.name)
+        ?.[channel?.channel_name]?.find(
+          (c) => c?.platform_name === channel?.name
+        )?.budget?.fixed_value || ""
       : campaignFormData?.channel_mix
-          ?.find((ch) => ch?.funnel_stage === stage.name)
-          ?.[channel?.channel_name]?.find(
-            (c) => c?.platform_name === channel?.name
-          )?.kpi?.[body] || "";
+        ?.find((ch) => ch?.funnel_stage === stage.name)
+        ?.[channel?.channel_name]?.find(
+          (c) => c?.platform_name === channel?.name
+        )?.kpi?.[body] || "";
 
   // Format display value for percentage fields - keep the raw input value for UI
   let displayValue = kpiValue;
@@ -362,9 +360,8 @@ export const CellRenderer = ({
             }
           }}
           disabled={isNR || goalLevel === "Adset level"}
-          className={`cpm-bg border-none outline-none max-w-[90px] p-1 ${
-            isNR ? "text-gray-400" : ""
-          }`}
+          className={`cpm-bg border-none outline-none max-w-[90px] p-1 ${isNR ? "text-gray-400" : ""
+            }`}
           placeholder={body ? body?.toUpperCase() : "Insert value"}
         />
       )}

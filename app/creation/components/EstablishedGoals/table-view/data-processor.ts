@@ -81,8 +81,7 @@ function createPlatformObject(
   platform,
   channelType,
   rowData
-) {
-  // console.log({ platformName, style, platform, channelType, rowData });
+) { 
   return {
     icon: getPlatformIcon(platformName),
     name: platformName,
