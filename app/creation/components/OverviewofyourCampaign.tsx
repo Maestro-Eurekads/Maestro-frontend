@@ -261,14 +261,7 @@ const OverviewofyourCampaign = () => {
 
 
 
-	const currencySymbols: Record<string, string> = {
-		"Euro (EUR)": "€",
-		"US Dollar (USD)": "$",
-		"British Pound (GBP)": "£",
-		"Nigerian Naira (NGN)": "₦",
-		"Japanese Yen (JPY)": "¥",
-		"Canadian Dollar (CAD)": "C$",
-	}
+
 
 	// Types for platforms and channels
 	type IPlatform = {

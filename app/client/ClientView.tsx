@@ -35,82 +35,18 @@ import upfull from "../../public/arrow-up-full.svg";
 import downfull from "../../public/arrow-down-full.svg";
 import upoffline from "../../public/arrow-up-offline.svg";
 import { useKpis } from 'app/utils/KpiProvider';
-import { aggregateKPIStatsFromExtracted, categoryOrder, extractKPIByFunnelStage, extractPlatforms, kpiCategories, mapKPIStatsToStatsDataDynamic } from 'components/Options';
+import { aggregateKPIStatsFromExtracted, categoryOrder, extractKPIByFunnelStage, kpiCategories, mapKPIStatsToStatsDataDynamic } from 'components/Options';
 import MainSection from './compoment/Timeline/main-section';
 import ChannelDistributionChatTwo from 'components/ChannelDistribution/ChannelDistributionChatTwo';
 import { getCurrencySymbol, platformIcons } from 'components/data';
 import CampaignPhases from 'app/creation/components/CampaignPhases';
-import DoughnutChat from 'components/DoughnutChat';
+import { extractPlatforms } from 'app/creation/components/EstablishedGoals/table-view/data-processor';
 import { processCampaignData } from 'components/processCampaignData';
+import DoughnutChat from 'components/DoughnutChat';
+import ConfigureBudgetComponet from 'app/creation/components/ConfigureAdSetsAndBudget/ConfigureBudgetComponet';
 
 
-const channels = [
-	{
-		icon: facebook,
-		name: "Facebook",
-		color: "#0866FF",
-		audience: "Men 25+ Int. Sport",
-		startDate: "01/02/2024",
-		endDate: "01/03/2024",
-		audienceSize: 50000,
-		budgetSize: "1,800 €",
-		impressions: 2000000,
-		reach: 2000000,
-		hasChildren: true,
-	},
-	{
-		icon: instagram,
-		name: "Instagram",
-		color: "#E01389",
-		audience: "Lookalike Buyers 90D",
-		startDate: "01/02/2024",
-		endDate: "01/03/2024",
-		audienceSize: 40000,
-		budgetSize: 8000,
-		impressions: 2000000,
-		reach: 2000000,
-		hasChildren: true,
-	},
-	{
-		icon: youtube,
-		name: "Youtube",
-		color: "#FF0302",
-		audience: "Men 25+ Int. Sport",
-		startDate: "01/02/2024",
-		endDate: "01/03/2024",
-		audienceSize: 60000,
-		budgetSize: 12000,
-		impressions: 2000000,
-		reach: 2000000,
-		hasChildren: false,
-	},
-	{
-		icon: tradedesk,
-		name: "TheTradeDesk",
-		color: "#0099FA",
-		audience: "Lookalike Buyers 90D",
-		startDate: "01/02/2024",
-		endDate: "01/03/2024",
-		audienceSize: 60000,
-		budgetSize: 12000,
-		impressions: 2000000,
-		reach: 2000000,
-		hasChildren: false,
-	},
-	{
-		icon: quantcast,
-		name: "Quantcast",
-		color: "#061237",
-		audience: "Men 25+ Int. Sport",
-		startDate: "01/02/2024",
-		endDate: "01/03/2024",
-		audienceSize: 60000,
-		budgetSize: 12000,
-		impressions: 2000000,
-		reach: 2000000,
-		hasChildren: false,
-	},
-];
+
 
 interface Comment {
 	documentId: string;
@@ -138,6 +74,7 @@ const ClientView = () => {
 		.sort((a: Comment, b: Comment) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 	const allApproved = (comments?.length || 0) > 0 && comments.every((comment: Comment) => comment?.approved === true);
 	const dispatch = useAppDispatch();
+	const [show, setShow] = useState(false);
 	const { campaigns, loading, fetchCampaignsByClientId } = useClientCampaign();
 	const [finalCategoryOrder, setFinalCategoryOrder] = useState(categoryOrder); // default fallback
 	const { data: session }: any = useSession();
@@ -230,8 +167,6 @@ const ClientView = () => {
 
 
 
-	const processedCampaigns = processCampaignData(clientCampaignData, platformIcons)
-
 	return (
 		<>
 			<div id="page-wrapper-client">
@@ -251,8 +186,7 @@ const ClientView = () => {
 								<div className="flex gap-[12px] md:flex-row">
 									<button
 										className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
-										style={{ border: "1px solid #3175FF" }} >
-										See Budget Overview
+										style={{ border: "1px solid #3175FF" }} onClick={() => setShow(!show)}>{!show ? "See" : "Hide"} budget overview
 									</button>
 									<button
 										className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
@@ -275,6 +209,9 @@ const ClientView = () => {
 
 						</div>
 					</div>
+					<div >
+						<ConfigureBudgetComponet show={show} t1={"Your budget by campaign phase"} t2={undefined} funnelData={extractedData} />
+					</div>
 					<div className='mt-[50px]'>
 						{isLoadingCampaign ? <TableLoader isLoading={isLoadingCampaign} /> : ""}
 					</div>
@@ -286,15 +223,15 @@ const ClientView = () => {
 						</div>
 
 					</div> */}
+
 				</main>
-
-
 				<SignatureModal
 					isOpen={modalOpen}
 					onClose={() => setModalOpen(false)}
 				/>
 				<ApproveModel isOpen={isOpen} setIsOpen={setIsOpen} />
 			</div>
+
 		</>
 	)
 }

@@ -235,16 +235,16 @@ const UploadModal: React.FC<UploadModalProps> = ({
         format === "Video"
           ? ["video/mp4", "video/mov", "video/quicktime"]
           : format === "Slideshow"
-          ? ["application/pdf"]
-          : ["image/jpeg", "image/png", "image/jpg"];
+            ? ["application/pdf"]
+            : ["image/jpeg", "image/png", "image/jpg"];
 
       if (!allowedTypes.includes(file.type)) {
         toast.error(
           format === "Video"
             ? "Invalid file type. Please upload an MP4 or MOV file."
             : format === "Slideshow"
-            ? "Invalid file type. Please upload a PDF file."
-            : "Invalid file type. Please upload a JPEG, PNG, or JPG file.",
+              ? "Invalid file type. Please upload a PDF file."
+              : "Invalid file type. Please upload a JPEG, PNG, or JPG file.",
         );
         return;
       }
@@ -389,7 +389,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
         }
       } catch (error) {
         if (retryCount < MAX_RETRIES) {
-          console.log(`Retrying chunk ${chunkIndex} for file "${fileName}" (attempt ${retryCount + 1}/${MAX_RETRIES})`);
           await new Promise((resolve) => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
           return uploadChunk(chunk, fileName, chunkIndex, totalChunks, fileId, retryCount + 1);
         }
@@ -545,7 +544,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
         return result;
       } catch (error) {
         if (retryCount < MAX_RETRIES) {
-          console.log(`Retrying upload for file "${file.name}" (attempt ${retryCount + 1}/${MAX_RETRIES})`);
           await new Promise((resolve) => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
           return uploadSingleFile(file, index, retryCount + 1);
         }
@@ -678,9 +676,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
               {Array.from({ length: quantities }).map((_, index) => (
                 <div key={index} className="flex flex-col gap-2">
                   <div
-                    className={`w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors relative ${
-                      loading ? "cursor-not-allowed" : "cursor-pointer"
-                    }`}
+                    className={`w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors relative ${loading ? "cursor-not-allowed" : "cursor-pointer"
+                      }`}
                     onClick={() => !loading && document.getElementById(`upload${index}`)?.click()}
                   >
                     {uploadingIndex === index || (loading && uploadProgress[index] > 0 && uploadProgress[index] < 100) ? (
@@ -699,9 +696,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
                           {renderUploadedFile(uploadBlobs, format, index)}
                         </Link>
                         <button
-                          className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${
-                            loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-                          }`}
+                          className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                            }`}
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!loading) handleDelete(index);
@@ -726,8 +722,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
                             format === "Video"
                               ? "video/mp4,video/mov,video/quicktime"
                               : format === "Slideshow"
-                              ? "application/pdf"
-                              : "image/jpeg,image/png,image/jpg"
+                                ? "application/pdf"
+                                : "image/jpeg,image/png,image/jpg"
                           }
                           id={`upload${index}`}
                           className="hidden"

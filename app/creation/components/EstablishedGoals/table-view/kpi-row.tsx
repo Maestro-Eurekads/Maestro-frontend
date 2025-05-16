@@ -162,9 +162,7 @@ export const KPIRow = ({
 
   const getNestedValue = (obj, ...paths) => {
     for (const path of paths) {
-      // console.log("path", path);
       let value = path.split(".").reduce((acc, key) => acc?.[key], obj);
-      // console.log("🚀 ~ getNestedValue ~ value:", value);
       if (value !== undefined) {
         // Check if this is a percentage field
         if (isPercentageField(path, tableHeaders)) {
@@ -189,13 +187,13 @@ export const KPIRow = ({
       key,
       typeof fn === "function"
         ? fn.apply(
-            null,
-            args.map((arg) =>
-              Array.isArray(arg)
-                ? Number(getNestedValue(chData, ...arg))
-                : Number(getNestedValue(chData, arg))
-            )
+          null,
+          args.map((arg) =>
+            Array.isArray(arg)
+              ? Number(getNestedValue(chData, ...arg))
+              : Number(getNestedValue(chData, arg))
           )
+        )
         : null,
     ])
   );
@@ -251,12 +249,12 @@ export const KPIRow = ({
             tableHeaders={tableHeaders}
             bodyIndex={bodyIndex}
             stage={stage}
-             adSetIndex={adSetIndex}
-             extraAdSetindex={extraAdSetindex}
-             adSet={adSet}
+            adSetIndex={adSetIndex}
+            extraAdSetindex={extraAdSetindex}
+            adSet={adSet}
             handleEditInfo={handleEditInfo}
-             nrAdCells={nrAdCells}
-             toggleNRAdCell={toggleNRAdCell}
+            nrAdCells={nrAdCells}
+            toggleNRAdCell={toggleNRAdCell}
           />
         </td>
       ))}

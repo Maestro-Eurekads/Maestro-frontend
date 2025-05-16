@@ -25,7 +25,7 @@ export const processCampaignData = (campaigns, platformIcons) => {
 	// };
 
 
-	return campaigns.map((campaign) => ({
+	return campaigns?.map((campaign) => ({
 		...campaign, // Keep full original data
 		funnel_stages: campaign?.funnel_stages?.map((stage) => ({
 			name: stage,

@@ -62,7 +62,7 @@ export default function PlatformSpending() {
   const { campaignFormData } = useCampaigns();
 
   const extractPhasesData = (channel_data) => {
-    console.log("fbjfdf", channel_data);
+
     const phases = [];
 
     // Get custom funnels data from the campaign form data
@@ -161,7 +161,7 @@ export default function PlatformSpending() {
   useEffect(() => {
     if (campaignFormData?.channel_mix) {
       const data = extractPhasesData(campaignFormData?.channel_mix);
-      // console.log("data", data);
+
       setPhaseData(data);
     }
   }, [campaignFormData]);

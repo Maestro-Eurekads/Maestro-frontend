@@ -241,18 +241,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   };
 
   const handleContinue = async () => {
-    console.log("handleContinue called", {
-      active,
-      midcapEditing,
-      campaignFormData,
-      isEditingBuyingObjective,
-    });
+
 
     // Only check editing state if we're on step 6
     if (active === 6) {
       if (midcapEditing.isEditing) {
         let errorMessage = "";
-        switch(midcapEditing.step) {
+        switch (midcapEditing.step) {
           case "Your channel mix":
             errorMessage = "Please confirm or cancel your channel mix changes before proceeding";
             break;
@@ -481,13 +476,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const cleanData = campaignData
       ? removeKeysRecursively(campaignData, [
-          "id",
-          "documentId",
-          "createdAt",
-          "publishedAt",
-          "updatedAt",
-          "_aggregated",
-        ])
+        "id",
+        "documentId",
+        "createdAt",
+        "publishedAt",
+        "updatedAt",
+        "_aggregated",
+      ])
       : {};
 
     const handleStepTwo = async () => {
@@ -557,7 +552,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     };
 
     const handleDateStep = async () => {
-      console.log("her")
       const currentYear = new Date().getFullYear();
       if (!campaignData) return;
       const campaign_timeline_start_date =
@@ -581,8 +575,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             ? campaignFormData?.campaign_timeline_start_date
             : campaign_timeline_start_date,
         campaign_timeline_end_date: campaign_timeline_end_date === "Invalid Date"
-        ? campaignFormData?.campaign_timeline_end_date
-        : campaign_timeline_end_date,
+          ? campaignFormData?.campaign_timeline_end_date
+          : campaign_timeline_end_date,
         funnel_stages: campaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
@@ -713,7 +707,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-    
+
 
       <div className="flex justify-between w-full">
         {active === 0 ? (
@@ -763,10 +757,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                     {active === 0
                       ? "Start"
                       : active === 4 && !hasUploadedPreviews()
-                      ? "Skip"
-                      : isHovered
-                      ? "Next Step"
-                      : "Continue"}
+                        ? "Skip"
+                        : isHovered
+                          ? "Next Step"
+                          : "Continue"}
                   </p>
                   <Image src={Continue} alt="Continue" />
                 </>
