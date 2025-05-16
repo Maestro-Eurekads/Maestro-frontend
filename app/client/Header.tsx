@@ -9,7 +9,6 @@ import Skeleton from "react-loading-skeleton";
 import tickcircles from "../../public/solid_circle-check.svg";
 import ClientsCampaignDropdown from "./compoment/ClientsCampaignDropdown";
 
-
 const Header = ({ setIsOpen, campaigns, loading }) => {
   const { isDrawerOpen, setModalOpen, createApprovalSuccess, setCreateApprovalSuccess, selected, setSelected } = useComments();
   const { dataApprove, isLoadingApprove } = useAppSelector((state) => state.comment);
@@ -33,6 +32,8 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
 
   const isSignature = dataApprove?.[0]?.isSignature || false;
 
+  // Check if user has any assigned campaigns
+  const hasCampaigns = campaigns && campaigns.length > 0;
 
   return (
     <div
@@ -40,27 +41,32 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
       className={`py-[2.8rem] px-[30px] ${isDrawerOpen ? 'md:px-[50px]' : 'xl:px-[100px]'} relative`}>
       <div className="flex items-end">
         {loading ? <Skeleton height={20} width={200} /> :
-          <ClientsCampaignDropdown loadingClients={false} campaigns={campaigns} setSelected={setSelected} selected={selected} />}
+          hasCampaigns ? (
+            <ClientsCampaignDropdown loadingClients={false} campaigns={campaigns} setSelected={setSelected} selected={selected} />
+          ) : (
+            <p className="text-gray-500">No campaigns assigned</p>
+          )}
       </div>
       <div>
         {isLoadingApprove ? <Skeleton height={20} width={200} /> :
-          <div>
-            {isSignature ? <button
-              className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start flex items-center	gap-[10px]"
-              style={{ border: "1px solid #3175FF" }}
-              onClick={handleDrawerOpen}>
-              <Image src={tickcircles} alt="tickcircle" className="w-[18px] " />
-              Approved
-            </button> :
-              <button
-                className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
+          hasCampaigns && (
+            <div>
+              {isSignature ? <button
+                className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start flex items-center	gap-[10px]"
                 style={{ border: "1px solid #3175FF" }}
-                onClick={() => setIsOpen(true)}>
-                Approve & Sign Media plan
-              </button>}
-          </div>
+                onClick={handleDrawerOpen}>
+                <Image src={tickcircles} alt="tickcircle" className="w-[18px] " />
+                Approved
+              </button> :
+                <button
+                  className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
+                  style={{ border: "1px solid #3175FF" }}
+                  onClick={() => setIsOpen(true)}>
+                  Approve & Sign Media plan
+                </button>}
+            </div>
+          )
         }
-
       </div>
       {isDrawerOpen ? "" :
         <div
@@ -73,8 +79,7 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
         >
           Logout
         </div>}
-
-    </div >
+    </div>
   );
 };
 
