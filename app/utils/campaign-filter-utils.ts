@@ -10,7 +10,7 @@ export function buildStrapiFilterQuery(clientID: string, filters: FilterState): 
   let hasOrFilters = false
   let orFilterIndex = 0
 
- console.log('filters-filters-filters',filters)
+ 
 
   // Add filters using $or logic between different filter types
   if (filters.year) {
@@ -374,7 +374,7 @@ if (filters.level_3) {
 }
 
 
-  // console.log('populateQuery-populateQuery',filterQuery)
+ 
 
   // Add populate parameters
   const populateQuery = CAMPAIGN_POPULATE_QUERY;

@@ -71,7 +71,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
     return platforms;
   }
 
-  console.log('monthDifference-monthDifference', funnels)
+
 
 
   return (

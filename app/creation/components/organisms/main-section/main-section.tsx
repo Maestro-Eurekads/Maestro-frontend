@@ -32,7 +32,7 @@ const MainSection = ({ hideDate, disableDrag }: { hideDate?: boolean, disableDra
   const dayDifference = differenceInCalendarDays(endDates, startDates);
   const weekDifference = differenceInCalendarWeeks(endDates, startDates);
   const monthDifference = differenceInCalendarMonths(endDates, startDates);
-  console.log("🚀 ~ MainSection ~ monthDifference:", monthDifference)
+
 
   const start = campaignFormData?.campaign_timeline_start_date
     ? parseISO(campaignFormData.campaign_timeline_start_date)
@@ -45,7 +45,7 @@ const MainSection = ({ hideDate, disableDrag }: { hideDate?: boolean, disableDra
   const startDay = differenceInCalendarDays(start, startDates) + 1;
   const endDay = differenceInCalendarDays(end, startDates) + 1;
 
-  // console.log("🚀 ~ Dashboard ~ funnelDtaa:", ch?.media_plan_details?.plan_name, startDay, endDay)
+
 
   const startWeek = differenceInCalendarWeeks(start, startDates) + 1;
   const endWeek = differenceInCalendarWeeks(end, startDates) + 1;

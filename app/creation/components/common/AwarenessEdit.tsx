@@ -174,11 +174,9 @@ const AwarenessEdit = ({
     category: string,
     stageName: string
   ) => {
-    console.log(category);
     const updatedChannelMix = updatedData.channel_mix.map((stage) => {
       if (stage.funnel_stage === stageName) {
         const updatedStage = { ...stage };
-        console.log(updatedStage);
         updatedStage[category] = stage[category].filter(
           (platform) => platform.platform_name !== platformName
         );
