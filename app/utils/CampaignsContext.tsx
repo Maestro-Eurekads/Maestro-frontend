@@ -61,6 +61,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [loadingCampaign, setLoadingCampaign] = useState(false);
   const [profile, setGetProfile] = useState(null);
   const [isEditingBuyingObjective, setIsEditingBuyingObjective] = useState(false);
+  const [selectedOption, setSelectedOption] = useState("percentage");
+  const [requiredFields, setRequiredFields] = useState([]);
+
 
   const query = useSearchParams();
   const cId = query.get("campaignId");
@@ -72,6 +75,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [buyType, setBuyType] = useState([]);
   const [clientPOs, setClientPOs] = useState([]);
   const [fetchingPO, setFetchingPO] = useState(false);
+  const [isStepZeroValid, setIsStepZeroValid] = useState(false);
+  const [currencySign, setCurrencySign] = useState("");
   const [filterOptions, setFilterOptions] = useState({
     year: [],
     quarter: [],
@@ -478,6 +483,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       getProfile,
       isEditingBuyingObjective,
       setIsEditingBuyingObjective,
+      isStepZeroValid,
+      setIsStepZeroValid,
+      selectedOption,
+      setSelectedOption,
+      requiredFields,
+      setRequiredFields,
+      currencySign,
+      setCurrencySign
     }),
     [
       loadingClients,
@@ -502,6 +515,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       selectedFilters,
       profile,
       isEditingBuyingObjective,
+      isStepZeroValid,
+      setIsStepZeroValid,
+      selectedOption,
+      setSelectedOption,
+      requiredFields,
+      setRequiredFields,
+      currencySign,
+      setCurrencySign
     ]
   );
 
