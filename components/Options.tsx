@@ -545,10 +545,23 @@ const months = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ];
+const selectCurrency = [
+  { value: "US Dollar (USD)", label: "US Dollar (USD)", sign: "$" },
+  { value: "Euro (EUR)", label: "Euro (EUR)", sign: "€" },
+  { value: "British Pound (GBP)", label: "British Pound (GBP)", sign: "£" },
+  { value: "Nigerian Naira (NGN)", label: "Nigerian Naira (NGN)", sign: "₦" },
+  { value: "Japanese Yen (JPY)", label: "Japanese Yen (JPY)", sign: "¥" },
+  {
+    value: "Canadian Dollar (CAD)",
+    label: "Canadian Dollar (CAD)",
+    sign: "C$",
+  },
+];
 export {
   months,
   kpiCategories,
   categoryOrder,
+  selectCurrency,
   extractPlatforms,
   NoRecordFound,
   SVGLoaderFetch,

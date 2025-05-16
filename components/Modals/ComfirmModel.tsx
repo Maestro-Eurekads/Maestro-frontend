@@ -22,13 +22,14 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 
 
 	const getNextVersion = (v) => {
-		const number = parseInt(v?.replace('v', '')) || 1;
+		const number = parseInt(v?.replace('v', '')) || 0;
 		return `v${number + 1}`;
 	};
 	const newVersion = getNextVersion(currentVersion);
-	const { campaignData, } = useCampaigns();
+	const { campaignData } = useCampaigns();
 	const query = useSearchParams();
 	const campaignId = query.get("campaignId");
+	const documentId = campaignData?.documentId;
 	const plan_name = campaignData?.media_plan_details.plan_name
 
 
@@ -67,6 +68,8 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 		router.push('/');
 	};
 
+	console.log('campaignData-campaignData', campaignData)
+
 
 
 	const handleApproval = () => {
@@ -86,30 +89,14 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 
 
 	const handleCreateNewVersion = () => {
-		createCampaignVersion(
-			campaignId,
-			clientId,
-			{
-				version_number: newVersion,
-				plan_name: plan_name,
-				approved: true,
-			},
-		);
+		createCampaignVersion(newVersion, documentId);
 
 	};
 
 
 
 	const handleUpdateVersion = () => {
-		updateCampaignVersion(
-
-			campaignId,
-			{
-				version_number: newVersion,
-				plan_name: plan_name,
-				approved: true,
-			}
-		);
+		updateCampaignVersion(newVersion, documentId);
 
 	};
 
