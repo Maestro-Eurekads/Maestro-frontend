@@ -11,9 +11,9 @@ const WeekInterval = ({ weeksCount }) => {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${weeksCount}, 700px)`,
+          gridTemplateColumns: `repeat(${weeksCount}, 350px)`,
           backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.2) 1px, transparent 1px)`,
-          backgroundSize: `calc(700px) 100%`,
+          backgroundSize: `calc(350px) 100%`,
         }}
       >
         {Array.from({ length: weeksCount }, (_, i) => (
