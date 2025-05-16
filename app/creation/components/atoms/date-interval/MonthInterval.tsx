@@ -14,7 +14,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({ monthsCount }) => {
 
   // Get container boundaries
   const containerRect = gridContainer.getBoundingClientRect();
-  const containerWidth = containerRect.width - 75;
+  const containerWidth = containerRect.width;
   return (
     <div className="w-full border-y">
       <div
@@ -22,7 +22,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({ monthsCount }) => {
           display: "grid",
           gridTemplateColumns: `repeat(${monthsCount}, 1fr)`,
           backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.2) 1px, transparent 1px)`,
-          backgroundSize: `calc(1550px) 100%`,
+          backgroundSize: `calc(100% / ${monthsCount}) 100%`,
         }}
       >
         {Array.from({ length: monthsCount }, (_, i) => (

@@ -297,7 +297,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
       {/* Draggable Content */}
       <div
-        className={`h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[150px] ${
+        className={`h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
           disableDrag ? "cursor-default rounded-[10px] relative" : "cursor-move"
         }`}
         style={{
