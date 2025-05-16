@@ -216,13 +216,7 @@ const ClientView = () => {
 						{isLoadingCampaign ? <TableLoader isLoading={isLoadingCampaign} /> : ""}
 					</div>
 					<MainSection hideDate={true} disableDrag={true} campaignData={campaignData} />
-					{/* <div >
-						{active === "Timeline view" && }
-						<div className="md:px-[150px] xl:px-[200px]">
-							{active === "Table" && <ClientTableView channels={channels} />}
-						</div>
 
-					</div> */}
 
 				</main>
 				<SignatureModal
