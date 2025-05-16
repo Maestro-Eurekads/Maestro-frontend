@@ -76,7 +76,7 @@ const Showcomment = ({ comment, setActiveComment }) => {
 				<div className="flex justify-between items-center gap-2 w-full">
 					<div className="flex items-center gap-2">
 						<div className="flex flex-col justify-center items-center p-[8px] w-[34px] h-[34px] bg-[#00A36C] rounded-full text-[16px] text-white">
-							{comment?.creator?.name[0] || "?"}
+							{comment?.creator?.name[0] ?? ""}
 						</div>
 						<RealCommentHeaderwithClose author={comment?.creator?.name} comment={comment} />
 					</div>

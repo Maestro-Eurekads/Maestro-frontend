@@ -30,7 +30,6 @@ const TableView = () => {
   const [nrAdCells, setNrAdCells] = useState({});
 
   const processedData = extractPlatforms(campaignFormData);
-  // console.log("🚀 ~ TableView ~ processedData:", processedData);
 
   // Define calculated fields - these are the only fields that should be aggregated
   const calculatedFields = [
@@ -249,7 +248,7 @@ const TableView = () => {
 
       // Only aggregate if the data signature has changed
       if (previousDataSignatureRef.current !== dataSignature) {
-        console.log("here is it");
+
         aggregateMetrics();
         previousDataSignatureRef.current = dataSignature;
         hasAggregatedRef.current = true;
@@ -271,7 +270,6 @@ const TableView = () => {
     adSetIndex,
     extraAdSetindex
   ) => {
-    console.log("here is hte")
     setCampaignFormData((prevData) => {
       const updatedData = { ...prevData };
       const channelMix = updatedData.channel_mix?.find(
@@ -284,7 +282,6 @@ const TableView = () => {
         );
 
         if (platform) {
-          // console.log("fieldName", fieldName)
           if (fieldName === "budget_size") {
             // debugger
             if (extraAdSetindex !== "") {
@@ -298,7 +295,7 @@ const TableView = () => {
               // Ensure specific extra audience object exists
               platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex] =
                 platform.ad_sets[adSetIndex]["extra_audiences"][
-                  extraAdSetindex
+                extraAdSetindex
                 ] || {};
 
               // Ensure budget object exists
@@ -306,7 +303,7 @@ const TableView = () => {
                 "budget"
               ] =
                 platform.ad_sets[adSetIndex]["extra_audiences"][
-                  extraAdSetindex
+                extraAdSetindex
                 ]["budget"] || {};
 
               // Set value
@@ -314,7 +311,6 @@ const TableView = () => {
                 "budget"
               ]["fixed_value"] = value.toString();
             } else if (adSetIndex !== "") {
-              // console.log("hgh")
               platform.ad_sets[adSetIndex]["budget"] =
                 platform.ad_sets[adSetIndex]["budget"] || {};
               platform.ad_sets[adSetIndex]["budget"]["fixed_value"] =
@@ -332,14 +328,14 @@ const TableView = () => {
 
               platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex] =
                 platform.ad_sets[adSetIndex]["extra_audiences"][
-                  extraAdSetindex
+                extraAdSetindex
                 ] || {};
 
               platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex][
                 "kpi"
               ] =
                 platform.ad_sets[adSetIndex]["extra_audiences"][
-                  extraAdSetindex
+                extraAdSetindex
                 ]["kpi"] || {};
 
               platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex][
@@ -479,7 +475,6 @@ const TableView = () => {
                     ...metric,
                     obj: objective, // Add the new property 'obj' with the current objective
                   }));
-                // console.log("here", JSON.stringify(filterAvailableMetrics))
 
                 if (availableMetrics.length === 0) return null;
 
@@ -544,7 +539,6 @@ const TableView = () => {
                                 m.name === metric.name && m.obj === objective
                             )}
                             onChange={(e) => {
-                              console.log("fdfdfd", e.target.checked);
                               if (
                                 metric?.obj === objective &&
                                 e.target.checked

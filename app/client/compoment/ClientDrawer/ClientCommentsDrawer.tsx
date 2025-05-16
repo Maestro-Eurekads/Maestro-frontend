@@ -45,7 +45,7 @@ const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
 	const commentId = campaign?.documentId
 
 
-	// console.log("campaign-campaign-campaign-2", campaign)
+
 
 	useEffect(() => {
 		const newColors = {};

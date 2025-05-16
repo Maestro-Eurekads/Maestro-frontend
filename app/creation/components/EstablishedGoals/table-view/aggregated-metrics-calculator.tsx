@@ -6,7 +6,7 @@ import { kpis } from "components/data";
 
 export function useAggregatedMetrics() {
   const { campaignFormData, setCampaignFormData } = useCampaigns();
-  // console.log(JSON.stringify(Array.from(new Set(Object.values(tableBody).flat()))))
+
   // Define calculated fields that should be aggregated
   const calculatedFields = [...kpis];
 

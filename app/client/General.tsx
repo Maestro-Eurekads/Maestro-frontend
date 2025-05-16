@@ -152,7 +152,7 @@ import { months } from "components/Options";
 // 			}
 // 		);
 
-// 		console.log("Strapi response:", response.data);
+
 
 
 
@@ -183,7 +183,7 @@ import { months } from "components/Options";
 // 			},
 // 		};
 
-// 		console.log("Comparison with previous month:", comparison);
+
 // 		return trendData;
 // 	} catch (error) {
 // 		console.error("Error updating trend data:", error.message);
@@ -280,11 +280,7 @@ import { months } from "components/Options";
 // 			const initialImpressionsChange = calculateInitialTrend(totalImpressions);
 // 			const initialCpmChange = calculateInitialTrend(averageCpm);
 
-// 			console.log("Initial trend values:", {
-// 				budgetChange: initialBudgetChange,
-// 				impressionsChange: initialImpressionsChange,
-// 				cpmChange: initialCpmChange
-// 			});
+
 
 // 			updateTrendData(initialBudgetChange, initialImpressionsChange, initialCpmChange, campaign_id)
 // 				.then((data) => {
@@ -292,8 +288,7 @@ import { months } from "components/Options";
 // 						budgetChange: data.budgetChange[currentMonth],
 // 						impressionsChange: data.impressionsChange[currentMonth],
 // 						cpmChange: data.cpmChange[currentMonth]
-// 					});
-// 					console.log("Trend data set:", data);
+// 					}); 
 // 				})
 // 				.catch((err) => console.error("Failed to fetch or create trend data:", err));
 // 		}
@@ -422,7 +417,6 @@ async function getTrendDataOnly(campaign_id) {
 
 		const records = response.data.data;
 		if (!records || records.length === 0) {
-			console.log("No trend data found for campaign_id:", campaign_id);
 			return null;
 		}
 

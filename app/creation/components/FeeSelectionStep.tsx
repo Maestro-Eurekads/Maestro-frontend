@@ -247,15 +247,20 @@ function FeeSelectionStep({
   }, [campaignFormData?.campaign_budget?.amount, active]);
 
   const calculateRemainingBudget = () => {
-    const totalBudget =
-      Number(netAmount) > 0
-        ? parseInt(netAmount)
-        : parseInt(campaignFormData?.campaign_budget?.amount);
-    const subBudgets =
-      campaignFormData?.channel_mix?.reduce((acc, stage) => {
-        return acc + (Number(stage?.stage_budget?.fixed_value) || 0);
-      }, 0) || 0;
-    return totalBudget - subBudgets;
+    const totalBudget = Number(netAmount) > 0 
+      ? parseInt(netAmount) 
+      : parseInt(campaignFormData?.campaign_budget?.amount);
+      
+    const totalFees = fees.reduce((total, fee) => total + Number(fee.amount), 0);
+    const adjustedBudget = active === 1 
+      ? totalBudget - totalFees
+      : totalBudget + totalFees;
+
+    const subBudgets = campaignFormData?.channel_mix?.reduce((acc, stage) => {
+      return acc + (Number(stage?.stage_budget?.fixed_value) || 0);
+    }, 0) || 0;
+
+    return adjustedBudget - subBudgets;
   };
 
   const handleEditClick = () => {

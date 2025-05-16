@@ -127,7 +127,6 @@
 // 							},
 // 						}
 // 					);
-// 					console.log(`Deleted duplicate record with ID: ${sortedRecords[i].id}`);
 // 				}
 // 			} else if (records.length === 1) {
 // 				storedData = records[0].attributes;
@@ -147,7 +146,7 @@
 
 // 			// If data is identical, return early without creating or updating
 // 			if (isDataIdentical) {
-// 				console.log("Fetched data matches static data. No update or creation needed.");
+
 // 				return trendData;
 // 			}
 
@@ -167,14 +166,12 @@
 // 			}
 
 // 			// If no changes are needed and data exists, return early
-// 			if (!shouldUpdate && storedData) {
-// 				console.log("No changes detected for the current month.");
+// 			if (!shouldUpdate && storedData) { 
 // 				return trendData;
 // 			}
 
 // 			// Add 10-second delay if there are changes
-// 			if (shouldUpdate || !storedData) {
-// 				console.log("Initiating 10-second delay before create/update...");
+// 			if (shouldUpdate || !storedData) { 
 // 				await new Promise(resolve => setTimeout(resolve, 10000));
 // 			}
 
@@ -215,8 +212,7 @@
 // 								Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
 // 							},
 // 						}
-// 					);
-// 					console.log(`Deleted duplicate record with ID: ${sortedCheckRecords[i].id}`);
+// 					); 
 // 				}
 // 				// Update storedData and recordId to the most recent record
 // 				storedData = sortedCheckRecords[0].attributes;
@@ -244,7 +240,7 @@
 // 						},
 // 					}
 // 				);
-// 				console.log("Data updated in Strapi successfully.");
+//  
 // 			} else if (shouldUpdate) {
 // 				// Create new record only if there are changes and no existing record
 // 				await axios.post(
@@ -257,9 +253,8 @@
 // 						},
 // 					}
 // 				);
-// 				console.log("New data created in Strapi successfully.");
-// 			} else {
-// 				console.log("No new data to create.");
+// 			 
+// 			} else { 
 // 				return trendData;
 // 			}
 
@@ -285,7 +280,7 @@
 // 				},
 // 			};
 
-// 			console.log("Comparison with previous month:", comparison);
+
 // 			return trendData;
 // 		} catch (error) {
 // 			console.error("Error updating trend data:", error.message);
@@ -303,8 +298,7 @@
 // 		updateTrendData(budgetChange, impressionsChange, cpmChange, campaign_id)
 // 			.then((data) => console.log("Final trend data:", data))
 // 			.catch((err) => console.error(err));
-// 	} else {
-// 		console.log("No data available to update trend data.");
+// 	} else { 
 // 	}
 
 
@@ -402,7 +396,7 @@ async function updateTrendData(budgetChange, impressionsChange, cpmChange, campa
 		};
 
 		// Fetch existing data from Strapi for the campaign_id
-		console.log(`Fetching trend data for campaign_id: ${campaign_id}`);
+
 		const response = await axios.get(
 			`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign-trends?filters[campaign_id][$eq]=${campaign_id}`,
 			{
@@ -413,7 +407,7 @@ async function updateTrendData(budgetChange, impressionsChange, cpmChange, campa
 			}
 		);
 
-		console.log("Strapi response:", response.data);
+
 
 		// Handle duplicates
 		const records = response.data.data;
@@ -421,7 +415,6 @@ async function updateTrendData(budgetChange, impressionsChange, cpmChange, campa
 		let recordId = null;
 
 		if (records.length > 1) {
-			console.log(`Found ${records.length} duplicate records for campaign_id: ${campaign_id}`);
 			// Keep the most recent record, delete others
 			const sortedRecords = records.sort((a, b) =>	//@ts-ignore
 				new Date(b.attributes.updatedAt) - new Date(a.attributes.updatedAt)
@@ -440,20 +433,16 @@ async function updateTrendData(budgetChange, impressionsChange, cpmChange, campa
 						},
 					}
 				);
-				console.log(`Deleted duplicate record with ID: ${sortedRecords[i].id}`);
 			}
 		} else if (records.length === 1) {
 			storedData = records[0].attributes;
 			recordId = records[0].id;
-			console.log(`Found existing record with ID: ${recordId}`);
 		} else {
-			console.log("No existing trend data found in Strapi.");
 		}
 
 		// If data exists, populate trendData with stored values
 		if (storedData && storedData.trendData) {
 			trendData = storedData.trendData;
-			console.log("Loaded stored trendData:", trendData);
 		}
 
 		// Always update with provided values if they exist, or initialize with defaults
@@ -461,28 +450,23 @@ async function updateTrendData(budgetChange, impressionsChange, cpmChange, campa
 		if (budgetChange && budgetChange !== trendData.budgetChange[currentMonth]) {
 			trendData.budgetChange[currentMonth] = budgetChange;
 			shouldUpdate = true;
-			console.log(`Updating budgetChange for ${currentMonth}: ${budgetChange}`);
 		}
 		if (impressionsChange && impressionsChange !== trendData.impressionsChange[currentMonth]) {
 			trendData.impressionsChange[currentMonth] = impressionsChange;
 			shouldUpdate = true;
-			console.log(`Updating impressionsChange for ${currentMonth}: ${impressionsChange}`);
 		}
 		if (cpmChange && cpmChange !== trendData.cpmChange[currentMonth]) {
 			trendData.cpmChange[currentMonth] = cpmChange;
 			shouldUpdate = true;
-			console.log(`Updating cpmChange for ${currentMonth}: ${cpmChange}`);
 		}
 
 		// If no data exists, force creation with provided or default values
 		if (!storedData) {
 			shouldUpdate = true;
-			console.log("No data exists in Strapi, will create new record.");
 		}
 
 		// Add 10-second delay if there are changes or no data
 		if (shouldUpdate) {
-			console.log("Initiating 10-second delay before create/update...");
 			await new Promise(resolve => setTimeout(resolve, 10000));
 		}
 
@@ -498,8 +482,7 @@ async function updateTrendData(budgetChange, impressionsChange, cpmChange, campa
 		};
 
 		if (storedData && recordId) {
-			// Update existing record
-			console.log(`Updating existing record with ID: ${recordId}`);
+			// Update existing record 
 			await axios.put(
 				`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign-trends/${recordId}`,
 				updatePayload,
@@ -510,10 +493,9 @@ async function updateTrendData(budgetChange, impressionsChange, cpmChange, campa
 					},
 				}
 			);
-			console.log("Data updated in Strapi successfully.");
 		} else {
 			// Create new record
-			console.log("Creating new trend record in Strapi.");
+
 			await axios.post(
 				`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign-trends`,
 				updatePayload,
@@ -524,7 +506,7 @@ async function updateTrendData(budgetChange, impressionsChange, cpmChange, campa
 					},
 				}
 			);
-			console.log("New data created in Strapi successfully.");
+
 		}
 
 		// Compare with previous month (if available)
@@ -549,7 +531,7 @@ async function updateTrendData(budgetChange, impressionsChange, cpmChange, campa
 			},
 		};
 
-		console.log("Comparison with previous month:", comparison);
+
 		return trendData;
 	} catch (error) {
 		console.error("Error updating trend data:", error.message);
@@ -646,11 +628,7 @@ const BusinessGeneral = ({ campaign, loading, isLoadingCampaign, campaign_id }) 
 			const initialImpressionsChange = calculateInitialTrend(totalImpressions);
 			const initialCpmChange = calculateInitialTrend(averageCpm);
 
-			console.log("Initial trend values:", {
-				budgetChange: initialBudgetChange,
-				impressionsChange: initialImpressionsChange,
-				cpmChange: initialCpmChange
-			});
+
 
 			updateTrendData(initialBudgetChange, initialImpressionsChange, initialCpmChange, campaign_id)
 				.then((data) => {
@@ -659,7 +637,6 @@ const BusinessGeneral = ({ campaign, loading, isLoadingCampaign, campaign_id }) 
 						impressionsChange: data.impressionsChange[currentMonth],
 						cpmChange: data.cpmChange[currentMonth]
 					});
-					console.log("Trend data set:", data);
 				})
 				.catch((err) => console.error("Failed to fetch or create trend data:", err));
 		}

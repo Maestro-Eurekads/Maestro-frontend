@@ -14,8 +14,8 @@ interface OutletType {
   bg: string;
   channelName: string;
   ad_sets?: any[]
-  start_date?:any
-  end_date?:any
+  start_date?: any
+  end_date?: any
 }
 
 interface PlatformsByStage {
