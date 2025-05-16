@@ -75,7 +75,7 @@ function FeeSelectionStep({
     if (active === 1) {
       return (grossAmount - totalFees).toFixed(2);
     } else if (active === 2) {
-      return (grossAmount + totalFees).toFixed(2);
+      return (grossAmount - totalFees).toFixed(2);
     }
 
     return "";
@@ -91,10 +91,7 @@ function FeeSelectionStep({
       0
     );
 
-    const net =
-      active === 1
-        ? (budgetAmount - totalFees).toFixed(2)
-        : (budgetAmount + totalFees).toFixed(2);
+    const net = (budgetAmount - totalFees).toFixed(2);
 
     setNetAmount(net);
   };
@@ -140,7 +137,7 @@ function FeeSelectionStep({
       fees.reduce((total, fee) => total + parseFloat(fee.amount), 0) +
       calculatedAmount;
 
-    if (active === 1 && newTotalFees > budgetAmount) {
+    if (newTotalFees > budgetAmount) {
       toast("Total fees cannot exceed the gross amount", {
         style: { background: "red", color: "white" },
       });
@@ -249,9 +246,7 @@ function FeeSelectionStep({
       : parseFloat(campaignFormData?.campaign_budget?.amount);
       
     const totalFees = fees.reduce((total, fee) => total + Number(fee.amount), 0);
-    const adjustedBudget = active === 1 
-      ? totalBudget - totalFees
-      : totalBudget;
+    const adjustedBudget = totalBudget - totalFees;
 
     const subBudgets = campaignFormData?.channel_mix?.reduce((acc, stage) => {
       return acc + (Number(stage?.stage_budget?.fixed_value) || 0);
