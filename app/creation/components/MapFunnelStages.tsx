@@ -25,6 +25,18 @@ interface Funnel {
   activeIcon?: any; // Optional for funnels with active icons
 }
 
+// Color palette for dynamic assignment
+const colorPalette = [
+  "bg-blue-500",
+  "bg-green-500",
+  "bg-orange-500 border border-orange-500",
+  "bg-red-500 border border-red-500",
+  "bg-purple-500",
+  "bg-teal-500",
+  "bg-pink-500 border border-pink-500",
+  "bg-indigo-500",
+];
+
 const MapFunnelStages = () => {
   const {
     updateCampaign,
@@ -57,35 +69,35 @@ const MapFunnelStages = () => {
     },
   });
 
-  // Default funnel stages for Custom option
+  // Default funnel stages for Custom option with dynamic colors
   const defaultFunnels: Funnel[] = [
     {
       id: "Awareness",
       name: "Awareness",
       icon: speaker,
       activeIcon: speakerWhite,
-      color: "bg-blue-500",
+      color: colorPalette[0], // Assign first color
     },
     {
       id: "Consideration",
       name: "Consideration",
       icon: zoom,
       activeIcon: zoomWhite,
-      color: "bg-green-500",
+      color: colorPalette[1], // Assign second color
     },
     {
       id: "Conversion",
       name: "Conversion",
       icon: credit,
       activeIcon: creditWhite,
-      color: "bg-orange-500 border border-orange-500",
+      color: colorPalette[2], // Assign third color
     },
     {
       id: "Loyalty",
       name: "Loyalty",
       icon: addPlus,
       activeIcon: addPlusWhite,
-      color: "bg-red-500 border border-red-500",
+      color: colorPalette[3], // Assign fourth color
     },
   ];
 
@@ -96,14 +108,14 @@ const MapFunnelStages = () => {
       name: "Targeting",
       icon: zoom,
       activeIcon: zoomWhite,
-      color: "bg-blue-500",
+      color: colorPalette[0],
     },
     {
       id: "Retargeting",
       name: "Retargeting",
       icon: credit,
       activeIcon: creditWhite,
-      color: "bg-green-500",
+      color: colorPalette[1],
     },
   ];
 
@@ -156,16 +168,20 @@ const MapFunnelStages = () => {
       // Use defaultFunnels if campaignData.custom_funnels is empty or invalid
       const loadedFunnels =
         campaignData?.custom_funnels && campaignData.custom_funnels.length > 0
-          ? campaignData.custom_funnels.map((funnel: any) => {
-              // Check if the funnel is a default funnel to preserve its icons
+          ? campaignData.custom_funnels.map((funnel: any, index: number) => {
+              // Check if the funnel is a default funnel to preserve its icons and color
               const defaultFunnel = defaultFunnels.find(
                 (df) => df.id === funnel.id && df.name === funnel.name
               );
               return {
                 id: funnel.id,
                 name: funnel.name,
-                color: funnel.color || "bg-gray-500",
-                icon: defaultFunnel ? defaultFunnel.icon : undefined, // Only keep icon if it's a default funnel
+                color:
+                  funnel.color ||
+                  (defaultFunnel
+                    ? defaultFunnel.color
+                    : colorPalette[index % colorPalette.length] || "bg-gray-500"), // Assign from palette if no color
+                icon: defaultFunnel ? defaultFunnel.icon : undefined, // Only keep icon if default
                 activeIcon: defaultFunnel ? defaultFunnel.activeIcon : undefined,
               };
             })
@@ -364,20 +380,18 @@ const MapFunnelStages = () => {
       return;
     }
 
-    const colorPalette = [
-      "bg-orange-500 border border-orange-500",
-      "bg-green-500",
-      "bg-red-500 border border-red-500",
-      "bg-blue-500",
-      "bg-purple-500",
-      "bg-teal-500",
-      "bg-pink-500 border border-pink-500",
-      "bg-indigo-500",
-    ];
+    // Find an unused color or cycle through the palette
+    const usedColors = customFunnels.map((f) => f.color);
+    const availableColors = colorPalette.filter((c) => !usedColors.includes(c));
+    const newColor =
+      availableColors.length > 0
+        ? availableColors[Math.floor(Math.random() * availableColors.length)]
+        : colorPalette[Math.floor(Math.random() * colorPalette.length)];
+
     const newFunnel: Funnel = {
       id: name,
       name: name,
-      color: colorPalette[Math.floor(Math.random() * colorPalette.length)],
+      color: newColor,
       // Explicitly exclude icon and activeIcon for new funnels
     };
 
