@@ -15,7 +15,15 @@ import { useVerification } from "app/utils/VerificationContext";
 import { useComments } from "app/utils/CommentProvider";
 import { PlusIcon, Edit2, Trash2, X } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
-import customicon from "../../../public/social/customicon.png";
+
+// Define type for funnel objects
+interface Funnel {
+  id: string;
+  name: string;
+  color: string;
+  icon?: any; // Optional to accommodate funnels without icons
+  activeIcon?: any; // Optional to accommodate funnels without icons
+}
 
 const MapFunnelStages = () => {
   const {
@@ -32,7 +40,7 @@ const MapFunnelStages = () => {
   const [alert, setAlert] = useState(null);
   const { verifyStep, setHasChanges, hasChanges, setverifybeforeMove } =
     useVerification();
-  const [selectedOption, setSelectedOption] = useState<string | null>("");
+  const [selectedOption, setSelectedOption] = useState("");
 
   // Store previous selections for each option type
   const [savedSelections, setSavedSelections] = useState({
@@ -50,7 +58,7 @@ const MapFunnelStages = () => {
   });
 
   // Default funnel stages for Custom option
-  const defaultFunnels = [
+  const defaultFunnels: Funnel[] = [
     {
       id: "Awareness",
       name: "Awareness",
@@ -81,32 +89,29 @@ const MapFunnelStages = () => {
     },
   ];
 
-  // Funnel stages for Targeting-Retargeting option with fixed icons
-  const targetingRetargetingFunnels = [
+  // Funnel stages for Targeting-Retargeting option
+  const targetingRetargetingFunnels: Funnel[] = [
     {
       id: "Targeting",
       name: "Targeting",
-      icon: zoom, // Fixed icon for Targeting
+      icon: zoom,
       activeIcon: zoomWhite,
       color: "bg-blue-500",
     },
     {
       id: "Retargeting",
       name: "Retargeting",
-      icon: credit, // Fixed icon for Retargeting
+      icon: credit,
       activeIcon: creditWhite,
       color: "bg-green-500",
     },
   ];
 
   // State for custom funnels and modal
-  const [customFunnels, setCustomFunnels] = useState(defaultFunnels);
+  const [customFunnels, setCustomFunnels] = useState<Funnel[]>(defaultFunnels);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
-  const [currentFunnel, setCurrentFunnel] = useState<{
-    id: string;
-    name: string;
-  } | null>(null);
+  const [currentFunnel, setCurrentFunnel] = useState<Funnel | null>(null);
   const [newFunnelName, setNewFunnelName] = useState("");
 
   useEffect(() => {
@@ -138,9 +143,9 @@ const MapFunnelStages = () => {
 
     if (initialOption === "targeting_retargeting") {
       setCustomFunnels(targetingRetargetingFunnels);
-      setCampaignFormData((prev) => ({
+      setCampaignFormData((prev: any) => ({
         ...prev,
-        custom_funnels: targetingRetargetingFunnels, // Use fixed icons for Targeting/Retargeting
+        custom_funnels: targetingRetargetingFunnels,
         funnel_stages: ["Targeting", "Retargeting"],
         channel_mix: [
           { funnel_stage: "Targeting" },
@@ -182,7 +187,7 @@ const MapFunnelStages = () => {
 
   // Update campaignFormData when customFunnels or selectedOption change
   useEffect(() => {
-    setCampaignFormData((prev) => ({
+    setCampaignFormData((prev: any) => ({
       ...prev,
       custom_funnels:
         selectedOption === "custom" ? customFunnels : targetingRetargetingFunnels,
@@ -193,7 +198,6 @@ const MapFunnelStages = () => {
   const handleSelect = (id: string) => {
     setHasChanges(true);
 
-    // Check if this would unselect the last selected funnel
     if (
       campaignFormData?.funnel_stages?.includes(id) &&
       campaignFormData?.funnel_stages?.length === 1
@@ -257,7 +261,7 @@ const MapFunnelStages = () => {
         { funnel_stage: "Targeting" },
         { funnel_stage: "Retargeting" },
       ];
-      newFormData.custom_funnels = targetingRetargetingFunnels; // Use fixed icons
+      newFormData.custom_funnels = targetingRetargetingFunnels;
       setCustomFunnels(targetingRetargetingFunnels);
     } else if (option === "custom") {
       newFormData.funnel_stages = savedSelections.custom.funnel_stages;
@@ -345,22 +349,32 @@ const MapFunnelStages = () => {
       "bg-green-500",
       "bg-red-500 border border-red-500",
       "bg-blue-500",
+      "bg-purple-500",
+      "bg-teal-500",
+      "bg-pink-500 border border-pink-500",
+      "bg-indigo-500",
     ];
-    const newFunnel = {
+    const newFunnel: Funnel = {
       id: name,
       name: name,
-      color: colorPalette[customFunnels.length % colorPalette.length],
-      icon: customicon, // Use customicon for new custom funnels only
-      activeIcon: customicon,
+      color: colorPalette[Math.floor(Math.random() * colorPalette.length)],
+      icon: null,
+      activeIcon: null,
     };
 
-    const updatedFunnels = [...customFunnels, newFunnel];
+    const updatedFunnels: Funnel[] = [...customFunnels, newFunnel];
+    console.log("Adding new funnel:", newFunnel);
+    console.log("Updated funnels:", updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
-    setCampaignFormData((prev) => ({
-      ...prev,
-      custom_funnels: updatedFunnels,
-    }));
+    setCampaignFormData((prev: any) => {
+      const updatedFormData = {
+        ...prev,
+        custom_funnels: updatedFunnels,
+      };
+      console.log("Updated campaignFormData:", updatedFormData);
+      return updatedFormData;
+    });
 
     setHasChanges(true);
   };
@@ -396,12 +410,13 @@ const MapFunnelStages = () => {
       return;
     }
 
-    const updatedFunnels = customFunnels.map((f) =>
+    const updatedFunnels: Funnel[] = customFunnels.map((f) =>
       f.name === oldId ? { ...f, name: newName, id: newName } : f
     );
+    console.log("Editing funnel, new funnels:", updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
-    setCampaignFormData((prev) => {
+    setCampaignFormData((prev: any) => {
       const updatedFormData = {
         ...prev,
         custom_funnels: updatedFunnels,
@@ -419,6 +434,7 @@ const MapFunnelStages = () => {
         );
       }
 
+      console.log("Updated campaignFormData after edit:", updatedFormData);
       return updatedFormData;
     });
 
@@ -462,10 +478,11 @@ const MapFunnelStages = () => {
       return;
     }
 
-    const updatedFunnels = customFunnels.filter((f) => f.name !== id);
+    const updatedFunnels: Funnel[] = customFunnels.filter((f) => f.name !== id);
+    console.log("Removing funnel, new funnels:", updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
-    setCampaignFormData((prev) => {
+    setCampaignFormData((prev: any) => {
       const updatedFunnelStages = (prev.funnel_stages || []).filter(
         (name: string) => name !== id
       );
@@ -480,6 +497,7 @@ const MapFunnelStages = () => {
         channel_mix: updatedChannelMix,
       };
 
+      console.log("Updated campaignFormData after remove:", updatedFormData);
       return updatedFormData;
     });
 
@@ -508,7 +526,6 @@ const MapFunnelStages = () => {
 
   return (
     <div>
-      {/* <Toaster /> */}
       <div className="flex items-center justify-between">
         <PageHeaderWrapper
           className={"text-[22px]"}
@@ -587,17 +604,21 @@ const MapFunnelStages = () => {
                     isSelected
                       ? `${funnel.color} text-white`
                       : "bg-white text-black shadow-md hover:bg-gray-100"
-                  } rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200`}
+                  } rounded-lg py-4 flex items-center justify-center ${
+                    funnel.icon && funnel.activeIcon ? "gap-2" : ""
+                  } transition-all duration-200`}
                   onClick={() => handleSelect(funnel.name)}
                   onMouseEnter={() => setHovered(index + 1)}
                   onMouseLeave={() => setHovered(null)}
                 >
-                  <Image
-                    src={isSelected ? funnel.activeIcon : funnel.icon}
-                    alt={`${funnel.name} icon`}
-                    width={24}
-                    height={24}
-                  />
+                  {funnel.icon && funnel.activeIcon && (
+                    <Image
+                      src={isSelected ? funnel.activeIcon : funnel.icon}
+                      alt={`${funnel.name} icon`}
+                      width={24}
+                      height={24}
+                    />
+                  )}
                   <p className="text-[16px]">{funnel.name}</p>
                 </button>
 
