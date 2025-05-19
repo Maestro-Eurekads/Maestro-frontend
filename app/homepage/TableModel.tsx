@@ -16,8 +16,12 @@ import { addNewClient } from "./functions/clients";
 import { getCreateClient } from "features/Client/clientSlice";
 import { useAppDispatch } from "store/useStore";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import { useSession } from "next-auth/react";
 
 const TableModel = ({ isOpen, setIsOpen }) => {
+  const { data: session } = useSession();
+  // @ts-ignore 
+  const userType = session?.user?.data?.user?.id || "";
   const dispatch = useAppDispatch();
   const { profile, getProfile } = useCampaigns();
   const [inputs, setInputs] = useState({
@@ -266,7 +270,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         fee_type: inputs.feeType,
         user: profile?.id,
       });
-      localStorage.setItem("selectedClient", res?.data?.data?.id);
+      localStorage.setItem(userType.toString(), res?.data?.data?.id);
       getProfile()
       // Fetch clients after successfully adding a new one
       //@ts-ignore

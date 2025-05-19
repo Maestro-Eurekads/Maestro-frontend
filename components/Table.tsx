@@ -17,6 +17,7 @@ import { FaSpinner } from "react-icons/fa";
 import { useActive } from "app/utils/ActiveContext";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getCurrencySymbol } from "./data";
+import { useSession } from "next-auth/react";
 
 const Table = () => {
   const {
@@ -27,6 +28,9 @@ const Table = () => {
     fetchingPO,
     clientPOs,
   } = useCampaigns();
+  const { data: session } = useSession();
+  // @ts-ignore 
+  const userType = session?.user?.data?.user?.id || "";
   const { setSelectedCampaignId } = useCampaignSelection();
   const router = useRouter();
   const [openModal, setOpenModal] = useState("");
@@ -71,7 +75,8 @@ const Table = () => {
       "publishedAt",
       "updatedAt",
       "_aggregated",
-    ]);
+    ]); 
+    const clientId = localStorage.getItem(userType.toString()); 
     setLoading(true);
     try {
       const response = await axios.post(
@@ -140,7 +145,13 @@ const Table = () => {
     } else if (clientCampaignData?.length <= itemsPerPage && currentPage !== 1) {
       setCurrentPage(1);
     }
+ 
+  }, [clientCampaignData, itemsPerPage]);
+
+  const clientId = localStorage.getItem(userType.toString());
+ 
   }, [clientId, clientCampaignData, itemsPerPage, setClientCampaignData]);
+ 
 
   return (
     <div className="flex flex-col">
