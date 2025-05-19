@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from "next/image";
@@ -118,7 +119,7 @@ const debouncedToast = debounce((message: string, type: "success" | "error") => 
   } else {
     toast.error(message);
   }
-}, 300);
+}, 100); // Reduced debounce time for faster message display
 
 // Components
 const MediaOption = ({
@@ -135,6 +136,8 @@ const MediaOption = ({
   format,
   adSetIndex,
   onPreviewsUpdate,
+  onDeletePreview,
+  completedDeletions,
 }: {
   option: MediaOptionType;
   isSelected: boolean;
@@ -149,18 +152,15 @@ const MediaOption = ({
   format: string;
   adSetIndex?: number;
   onPreviewsUpdate: (previews: Array<{ id: string; url: string }>) => void;
+  onDeletePreview: (previewId: string, format: string, adSetIndex?: number) => void;
+  completedDeletions: Set<string>;
 }) => {
-  const { campaignFormData, updateCampaign, campaignData } = useCampaigns();
-  const [isDeleting, setIsDeleting] = useState(false);
   const [localPreviews, setLocalPreviews] = useState<Array<{ id: string; url: string }>>([]);
-  const [deleteQueue, setDeleteQueue] = useState<string[]>([]);
-  const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const [deletingPreviewId, setDeletingPreviewId] = useState<string | null>(null);
 
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
   const STRAPI_TOKEN = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
 
-  // Sync localPreviews with previews prop, but only if they differ
   useEffect(() => {
     if (!STRAPI_URL || !STRAPI_TOKEN) {
       console.error("Missing Strapi configuration:", { STRAPI_URL, STRAPI_TOKEN });
@@ -177,213 +177,20 @@ const MediaOption = ({
     });
   }, [previews, quantity, STRAPI_URL, STRAPI_TOKEN]);
 
-  // Notify parent of localPreviews changes
   useEffect(() => {
     onPreviewsUpdate(localPreviews);
   }, [localPreviews, onPreviewsUpdate]);
 
-  // Process delete queue
   useEffect(() => {
-    const processDeleteQueue = async () => {
-      if (deleteQueue.length === 0 || isProcessingQueue) return;
-
-      setIsProcessingQueue(true);
-      const previewId = deleteQueue[0];
-
-      try {
-        const deleteResponse = await fetch(`${STRAPI_URL}/upload/files/${previewId}`, {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${STRAPI_TOKEN}`,
-          },
-        });
-
-        if (!deleteResponse.ok) {
-          throw new Error(`Failed to delete file from Strapi: ${deleteResponse.statusText}`);
-        }
-
-        // Update UI after successful deletion
-        setLocalPreviews((prev) => {
-          const updated = prev.filter((prv) => prv.id !== previewId);
-          onPreviewsUpdate(updated); // Update parent state
-          debouncedUpdateGlobalState(updated); // Update global state
-          return updated;
-        });
-
-        setDeleteQueue((prev) => prev.filter((id) => id !== previewId));
-        debouncedToast("Preview deleted successfully!", "success");
-      } catch (error: any) {
-        console.error("Error deleting preview:", error);
-        debouncedToast(`Failed to delete preview: ${error.message}`, "error");
-        setDeleteQueue((prev) => prev.filter((id) => id !== previewId));
-      } finally {
-        setIsProcessingQueue(false);
-        setIsDeleting(false); // Re-enable all delete buttons
-        setDeletingPreviewId(null); // Clear spinner
-      }
-    };
-
-    processDeleteQueue();
-  }, [deleteQueue, isProcessingQueue, STRAPI_URL, STRAPI_TOKEN, onPreviewsUpdate]);
-
-  const uploadUpdatedCampaignToStrapi = useCallback(
-    async (data: any) => {
-      try {
-        const cleanData = JSON.parse(JSON.stringify(data));
-        const sanitizedData = removeKeysRecursively(
-          cleanData,
-          ["id", "documentId", "createdAt", "publishedAt", "updatedAt", "_aggregated"],
-          ["previews"]
-        );
-
-        sanitizedData.channel_mix?.forEach((channel: any) => {
-          CHANNEL_TYPES.forEach(({ key }) => {
-            channel[key]?.forEach((platform: any) => {
-              if (platform.format) {
-                platform.format = platform.format.map((fmt: any) => ({
-                  format_type: fmt.format_type,
-                  num_of_visuals: fmt.num_of_visuals,
-                  previews: Array.isArray(fmt.previews)
-                    ? fmt.previews.map((preview: any) => ({
-                        id: String(preview.id),
-                        url: String(preview.url),
-                      }))
-                    : [],
-                }));
-              }
-              if (platform.ad_sets) {
-                platform.ad_sets = platform.ad_sets.map((adSet: any) => ({
-                  ...adSet,
-                  format: adSet.format
-                    ? adSet.format.map((fmt: any) => ({
-                        format_type: fmt.format_type,
-                        num_of_visuals: fmt.num_of_visuals,
-                        previews: Array.isArray(fmt.previews)
-                          ? fmt.previews.map((preview: any) => ({
-                              id: String(preview.id),
-                              url: String(preview.url),
-                            }))
-                          : [],
-                      }))
-                    : [],
-                }));
-              }
-            });
-          });
-        });
-
-        await updateCampaign(sanitizedData);
-      } catch (error: any) {
-        console.error("Error in uploadUpdatedCampaignToStrapi:", {
-          message: error.message,
-          details: error.details,
-          response: error.response?.data,
-          status: error.response?.status,
-        });
-        debouncedToast("Failed to save campaign data.", "error");
-        throw error;
-      }
-    },
-    [updateCampaign]
-  );
-
-  const updateGlobalState = useCallback(
-    async (updatedPreviews: Array<{ id: string; url: string }>) => {
-      if (!campaignFormData?.channel_mix) {
-        throw new Error("campaignFormData or channel_mix is undefined");
-      }
-
-      const updatedChannelMix = JSON.parse(JSON.stringify(campaignFormData.channel_mix));
-      const stage = updatedChannelMix.find((ch: any) => ch.funnel_stage === stageName);
-      if (!stage) {
-        throw new Error(`Stage "${stageName}" not found`);
-      }
-
-      const platformKey = channelName.toLowerCase().replace(/\s+/g, "_");
-      const platforms = stage[platformKey];
-      if (!platforms) {
-        throw new Error(`Platform key "${platformKey}" not found`);
-      }
-
-      const targetPlatform = platforms.find((pl: any) => pl.platform_name === platformName);
-      if (!targetPlatform) {
-        throw new Error(`Target platform "${platformName}" not found`);
-      }
-
-      const updatedPlatform = JSON.parse(JSON.stringify(targetPlatform));
-
-      if (adSetIndex !== undefined) {
-        if (!updatedPlatform.ad_sets?.[adSetIndex]) {
-          throw new Error(`Ad set not found at index ${adSetIndex}`);
-        }
-
-        const adSet = updatedPlatform.ad_sets[adSetIndex];
-        adSet.format = adSet.format || [];
-
-        let targetFormatIndex = adSet.format.findIndex((fo: any) => fo.format_type === format);
-        if (targetFormatIndex === -1) {
-          adSet.format.push({
-            format_type: format,
-            num_of_visuals: quantity.toString(),
-            previews: [],
-          });
-          targetFormatIndex = adSet.format.length - 1;
-        }
-
-        adSet.format[targetFormatIndex].previews = [...updatedPreviews];
-      } else {
-        updatedPlatform.format = updatedPlatform.format || [];
-
-        let targetFormatIndex = updatedPlatform.format.findIndex((fo: any) => fo.format_type === format);
-        if (targetFormatIndex === -1) {
-          updatedPlatform.format.push({
-            format_type: format,
-            num_of_visuals: quantity.toString(),
-            previews: [],
-          });
-          targetFormatIndex = updatedPlatform.format.length - 1;
-        }
-
-        updatedPlatform.format[targetFormatIndex].previews = [...updatedPreviews];
-      }
-
-      const platformIndex = platforms.findIndex((pl: any) => pl.platform_name === platformName);
-      platforms[platformIndex] = updatedPlatform;
-
-      const updatedState = {
-        ...campaignData,
-        channel_mix: updatedChannelMix,
-      };
-
-      await uploadUpdatedCampaignToStrapi(updatedState);
-    },
-    [
-      campaignFormData,
-      campaignData,
-      stageName,
-      channelName,
-      platformName,
-      format,
-      quantity,
-      adSetIndex,
-      uploadUpdatedCampaignToStrapi,
-    ]
-  );
-
-  // Debounced version of updateGlobalState to prevent rapid updates
-  const debouncedUpdateGlobalState = useCallback(
-    debounce((previews: Array<{ id: string; url: string }>) => {
-      updateGlobalState(previews).catch((error) => {
-        console.error("Error in debouncedUpdateGlobalState:", error);
-      });
-    }, 500),
-    [updateGlobalState]
-  );
+    if (deletingPreviewId && completedDeletions.has(deletingPreviewId)) {
+      setDeletingPreviewId(null);
+    }
+  }, [completedDeletions, deletingPreviewId]);
 
   const handleDelete = useCallback(
-    async (previewId: string) => {
-      if (!previewId || !STRAPI_URL || !STRAPI_TOKEN || isDeleting) {
-        if (isDeleting) {
+    (previewId: string) => {
+      if (!previewId || !STRAPI_URL || !STRAPI_TOKEN || deletingPreviewId) {
+        if (deletingPreviewId) {
           debouncedToast("Please wait until the current deletion is complete.", "error");
         } else {
           debouncedToast("Invalid preview ID or server configuration.", "error");
@@ -391,21 +198,10 @@ const MediaOption = ({
         return;
       }
 
-      setIsDeleting(true);
       setDeletingPreviewId(previewId);
-
-      try {
-        // Brief delay to show spinner
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        setDeleteQueue((prev) => [...prev, previewId]);
-      } catch (error: any) {
-        console.error("Error initiating deletion:", error);
-        debouncedToast(`Failed to initiate deletion: ${error.message}`, "error");
-        setDeletingPreviewId(null);
-        setIsDeleting(false);
-      }
+      onDeletePreview(previewId, format, adSetIndex);
     },
-    [STRAPI_URL, STRAPI_TOKEN, isDeleting]
+    [STRAPI_URL, STRAPI_TOKEN, format, adSetIndex, onDeletePreview, deletingPreviewId]
   );
 
   const isDecreaseDisabled = quantity === 1 || localPreviews.length >= quantity;
@@ -494,12 +290,10 @@ const MediaOption = ({
                 </Link>
                 <button
                   className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${
-                    isDeleting || deletingPreviewId !== null
-                      ? "opacity-50 cursor-not-allowed"
-                      : "cursor-pointer"
+                    deletingPreviewId === prv.id ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
                   }`}
                   onClick={() => handleDelete(prv.id)}
-                  disabled={isDeleting || deletingPreviewId !== null}
+                  disabled={deletingPreviewId === prv.id}
                 >
                   {deletingPreviewId === prv.id ? (
                     <FaSpinner color="white" className="animate-spin" size={10} />
@@ -527,6 +321,8 @@ const MediaSelectionGrid = ({
   onOpenModal,
   adSetIndex,
   view,
+  onDeletePreview,
+  completedDeletions,
 }: {
   mediaOptions: MediaOptionType[];
   platformName: string;
@@ -545,6 +341,8 @@ const MediaSelectionGrid = ({
   ) => void;
   adSetIndex?: number;
   view: "channel" | "adset";
+  onDeletePreview: (previewId: string, format: string, adSetIndex?: number) => void;
+  completedDeletions: Set<string>;
 }) => {
   const { campaignFormData } = useCampaigns();
   const channelKey = channelName.toLowerCase().replace(/\s+/g, "_");
@@ -569,7 +367,6 @@ const MediaSelectionGrid = ({
     []
   );
 
-  // Memoized onOpenModal to prevent recreation
   const memoizedOnOpenModal = useCallback(
     (
       platform: string,
@@ -628,6 +425,8 @@ const MediaSelectionGrid = ({
               format={option.name}
               adSetIndex={adSetIndex}
               onPreviewsUpdate={(previews) => handlePreviewsUpdate(option.name, previews)}
+              onDeletePreview={onDeletePreview}
+              completedDeletions={completedDeletions}
             />
           );
         })}
@@ -644,6 +443,8 @@ const PlatformItem = ({
   onQuantityChange,
   onOpenModal,
   view,
+  onDeletePreview,
+  completedDeletions,
 }: {
   platform: PlatformType;
   channelTitle: string;
@@ -659,6 +460,8 @@ const PlatformItem = ({
     adSetIndex?: number
   ) => void;
   view: "channel" | "adset";
+  onDeletePreview: (previewId: string, format: string, adSetIndex?: number) => void;
+  completedDeletions: Set<string>;
 }) => {
   const [isExpanded, setIsExpanded] = useState<{ [key: string]: boolean }>({});
   const [expandedAdsets, setExpandedAdsets] = useState<{ [key: string]: boolean }>({});
@@ -803,6 +606,8 @@ const PlatformItem = ({
             }
             onOpenModal={onOpenModal}
             view={view}
+            onDeletePreview={onDeletePreview}
+            completedDeletions={completedDeletions}
           />
         </div>
       )}
@@ -854,6 +659,8 @@ const PlatformItem = ({
                       onOpenModal={onOpenModal}
                       adSetIndex={index}
                       view={view}
+                      onDeletePreview={onDeletePreview}
+                      completedDeletions={completedDeletions}
                     />
                   </div>
                 )}
@@ -874,6 +681,8 @@ const ChannelSection = ({
   onQuantityChange,
   onOpenModal,
   view,
+  onDeletePreview,
+  completedDeletions,
 }: {
   channelTitle: string;
   platforms: PlatformType[];
@@ -889,6 +698,8 @@ const ChannelSection = ({
     adSetIndex?: number
   ) => void;
   view: "channel" | "adset";
+  onDeletePreview: (previewId: string, format: string, adSetIndex?: number) => void;
+  completedDeletions: Set<string>;
 }) => {
   const filteredPlatforms =
     view === "adset"
@@ -911,6 +722,8 @@ const ChannelSection = ({
             onQuantityChange={onQuantityChange}
             onOpenModal={onOpenModal}
             view={view}
+            onDeletePreview={onDeletePreview}
+            completedDeletions={completedDeletions}
           />
         ))}
       </div>
@@ -937,8 +750,17 @@ export const Platforms = ({
     quantities: any;
     adSetIndex?: number;
   } | null>(null);
+  const [deleteQueue, setDeleteQueue] = useState<
+    Array<{ previewId: string; format: string; adSetIndex?: number; platformName: string; channelName: string }>
+  >([]);
+  const [isProcessingQueue, setIsProcessingQueue] = useState(false);
+  const [isUpdatingStrapi, setIsUpdatingStrapi] = useState(false);
+  const [completedDeletions, setCompletedDeletions] = useState<Set<string>>(new Set());
 
-  const { campaignFormData, setCampaignFormData } = useCampaigns();
+  const { campaignFormData, setCampaignFormData, updateCampaign, campaignData } = useCampaigns();
+
+  const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
+  const STRAPI_TOKEN = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
 
   useEffect(() => {
     const quantitiesKey = `quantities_${stageName}_${view}`;
@@ -985,6 +807,296 @@ export const Platforms = ({
       }
     }
   }, [campaignFormData, stageName, view]);
+
+  const uploadUpdatedCampaignToStrapi = useCallback(
+    async (data: any) => {
+      if (isUpdatingStrapi) {
+        console.log("Strapi update already in progress, queuing...");
+        return;
+      }
+
+      setIsUpdatingStrapi(true);
+      try {
+        const cleanData = JSON.parse(JSON.stringify(data));
+        const sanitizedData = removeKeysRecursively(
+          cleanData,
+          ["id", "documentId", "createdAt", "publishedAt", "updatedAt", "_aggregated"],
+          ["previews"]
+        );
+
+        sanitizedData.channel_mix?.forEach((channel: any) => {
+          CHANNEL_TYPES.forEach(({ key }) => {
+            channel[key]?.forEach((platform: any) => {
+              if (platform.format) {
+                platform.format = platform.format.map((fmt: any) => ({
+                  format_type: fmt.format_type,
+                  num_of_visuals: fmt.num_of_visuals,
+                  previews: Array.isArray(fmt.previews)
+                    ? fmt.previews.map((preview: any) => ({
+                        id: String(preview.id),
+                        url: String(preview.url),
+                      }))
+                    : [],
+                }));
+              }
+              if (platform.ad_sets) {
+                platform.ad_sets = platform.ad_sets.map((adSet: any) => ({
+                  ...adSet,
+                  format: adSet.format
+                    ? adSet.format.map((fmt: any) => ({
+                        format_type: fmt.format_type,
+                        num_of_visuals: fmt.num_of_visuals,
+                        previews: Array.isArray(fmt.previews)
+                          ? fmt.previews.map((preview: any) => ({
+                              id: String(preview.id),
+                              url: String(preview.url),
+                            }))
+                          : [],
+                      }))
+                    : [],
+                }));
+              }
+            });
+          });
+        });
+
+        await updateCampaign(sanitizedData);
+        debouncedToast("Campaign data saved successfully!", "success");
+      } catch (error: any) {
+        console.error("Error in uploadUpdatedCampaignToStrapi:", {
+          message: error.message,
+          details: error.details,
+          response: error.response?.data,
+          status: error.response?.status,
+        });
+        debouncedToast(`Failed to save campaign data: ${error.message}`, "error");
+        throw error;
+      } finally {
+        setIsUpdatingStrapi(false);
+      }
+    },
+    [updateCampaign, isUpdatingStrapi]
+  );
+
+  const updateGlobalState = useCallback(
+    async (
+      platformName: string,
+      channelName: string,
+      format: string,
+      updatedPreviews: Array<{ id: string; url: string }>,
+      adSetIndex?: number
+    ) => {
+      if (!campaignFormData?.channel_mix) {
+        throw new Error("campaignFormData or channel_mix is undefined");
+      }
+
+      const updatedChannelMix = JSON.parse(JSON.stringify(campaignFormData.channel_mix));
+      const stage = updatedChannelMix.find((ch: any) => ch.funnel_stage === stageName);
+      if (!stage) {
+        throw new Error(`Stage "${stageName}" not found`);
+      }
+
+      const platformKey = channelName.toLowerCase().replace(/\s+/g, "_");
+      const platforms = stage[platformKey];
+      if (!platforms) {
+        throw new Error(`Platform key "${platformKey}" not found`);
+      }
+
+      const targetPlatform = platforms.find((pl: any) => pl.platform_name === platformName);
+      if (!targetPlatform) {
+        throw new Error(`Target platform "${platformName}" not found`);
+      }
+
+      const updatedPlatform = JSON.parse(JSON.stringify(targetPlatform));
+
+      if (adSetIndex !== undefined) {
+        if (!updatedPlatform.ad_sets?.[adSetIndex]) {
+          throw new Error(`Ad set not found at index ${adSetIndex}`);
+        }
+
+        const adSet = updatedPlatform.ad_sets[adSetIndex];
+        adSet.format = adSet.format || [];
+
+        let targetFormatIndex = adSet.format.findIndex((fo: any) => fo.format_type === format);
+        if (targetFormatIndex === -1) {
+          adSet.format.push({
+            format_type: format,
+            num_of_visuals: quantities[`${platformName}_adset_${adSetIndex}`]?.[format]?.toString() || "1",
+            previews: [],
+          });
+          targetFormatIndex = adSet.format.length - 1;
+        }
+
+        adSet.format[targetFormatIndex].previews = [...updatedPreviews];
+      } else {
+        updatedPlatform.format = updatedPlatform.format || [];
+
+        let targetFormatIndex = updatedPlatform.format.findIndex((fo: any) => fo.format_type === format);
+        if (targetFormatIndex === -1) {
+          updatedPlatform.format.push({
+            format_type: format,
+            num_of_visuals: quantities[platformName]?.[format]?.toString() || "1",
+            previews: [],
+          });
+          targetFormatIndex = updatedPlatform.format.length - 1;
+        }
+
+        updatedPlatform.format[targetFormatIndex].previews = [...updatedPreviews];
+      }
+
+      const platformIndex = platforms.findIndex((pl: any) => pl.platform_name === platformName);
+      platforms[platformIndex] = updatedPlatform;
+
+      setCampaignFormData((prev) => ({
+        ...prev,
+        channel_mix: updatedChannelMix,
+      }));
+
+      await uploadUpdatedCampaignToStrapi({
+        ...campaignData,
+        channel_mix: updatedChannelMix,
+      });
+    },
+    [campaignFormData, campaignData, stageName, quantities, setCampaignFormData, uploadUpdatedCampaignToStrapi]
+  );
+
+  const debouncedUpdateGlobalState = useCallback(
+    debounce(
+      (
+        platformName: string,
+        channelName: string,
+        format: string,
+        previews: Array<{ id: string; url: string }>,
+        adSetIndex?: number
+      ) => {
+        updateGlobalState(platformName, channelName, format, previews, adSetIndex).catch((error) => {
+          console.error("Error in debouncedUpdateGlobalState:", error);
+        });
+      },
+      500,
+      { leading: false, trailing: true }
+    ),
+    [updateGlobalState]
+  );
+
+  const processDeleteQueue = useCallback(async () => {
+    if (deleteQueue.length === 0 || isProcessingQueue) return;
+
+    setIsProcessingQueue(true);
+    const { previewId, format, adSetIndex, platformName, channelName } = deleteQueue[0];
+
+    try {
+      const deleteResponse = await fetch(`${STRAPI_URL}/upload/files/${previewId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${STRAPI_TOKEN}`,
+        },
+      });
+
+      if (!deleteResponse.ok) {
+        throw new Error(`Failed to delete file from Strapi: ${deleteResponse.statusText}`);
+      }
+
+      // Update local state
+      const updatedChannelMix = JSON.parse(JSON.stringify(campaignFormData.channel_mix));
+      const stage = updatedChannelMix.find((ch: any) => ch.funnel_stage === stageName);
+      if (!stage) {
+        throw new Error(`Stage "${stageName}" not found`);
+      }
+
+      const platformKey = channelName.toLowerCase().replace(/\s+/g, "_");
+      const platforms = stage[platformKey];
+      if (!platforms) {
+        throw new Error(`Platform key "${platformKey}" not found`);
+      }
+
+      const targetPlatform = platforms.find((pl: any) => pl.platform_name === platformName);
+      if (!targetPlatform) {
+        throw new Error(`Target platform "${platformName}" not found`);
+      }
+
+      const updatedPlatform = JSON.parse(JSON.stringify(targetPlatform));
+
+      let updatedPreviews: Array<{ id: string; url: string }>;
+      if (adSetIndex !== undefined) {
+        if (!updatedPlatform.ad_sets?.[adSetIndex]) {
+          throw new Error(`Ad set not found at index ${adSetIndex}`);
+        }
+
+        const adSet = updatedPlatform.ad_sets[adSetIndex];
+        adSet.format = adSet.format || [];
+        const targetFormat = adSet.format.find((fo: any) => fo.format_type === format);
+        if (!targetFormat) {
+          throw new Error(`Format "${format}" not found in ad set`);
+        }
+
+        updatedPreviews = targetFormat.previews.filter((prv: any) => prv.id !== previewId);
+        targetFormat.previews = updatedPreviews;
+      } else {
+        updatedPlatform.format = updatedPlatform.format || [];
+        const targetFormat = updatedPlatform.format.find((fo: any) => fo.format_type === format);
+        if (!targetFormat) {
+          throw new Error(`Format "${format}" not found`);
+        }
+
+        updatedPreviews = targetFormat.previews.filter((prv: any) => prv.id !== previewId);
+        targetFormat.previews = updatedPreviews;
+      }
+
+      const platformIndex = platforms.findIndex((pl: any) => pl.platform_name === platformName);
+      platforms[platformIndex] = updatedPlatform;
+
+      setCampaignFormData((prev) => ({
+        ...prev,
+        channel_mix: updatedChannelMix,
+      }));
+
+      await uploadUpdatedCampaignToStrapi({
+        ...campaignData,
+        channel_mix: updatedChannelMix,
+      });
+
+      setDeleteQueue((prev) => prev.slice(1));
+      setCompletedDeletions((prev) => new Set(prev).add(previewId));
+      debouncedToast("Preview deleted successfully!", "success");
+    } catch (error: any) {
+      console.error("Error processing delete queue:", error);
+      debouncedToast(`Failed to delete preview: ${error.message}`, "error");
+      setCompletedDeletions((prev) => new Set(prev).add(previewId)); // Mark as complete to re-enable button
+      setDeleteQueue((prev) => prev.slice(1));
+    } finally {
+      setIsProcessingQueue(false);
+    }
+  }, [
+    deleteQueue,
+    isProcessingQueue,
+    STRAPI_URL,
+    STRAPI_TOKEN,
+    campaignFormData,
+    campaignData,
+    stageName,
+    setCampaignFormData,
+    uploadUpdatedCampaignToStrapi,
+  ]);
+
+  useEffect(() => {
+    processDeleteQueue();
+  }, [deleteQueue, processDeleteQueue]);
+
+  const handleDeletePreview = useCallback(
+    (previewId: string, format: string, adSetIndex?: number, platformName?: string, channelName?: string) => {
+      if (!previewId || !platformName || !channelName) {
+        debouncedToast("Invalid preview ID or context.", "error");
+        return;
+      }
+
+      setDeleteQueue((prev) => [
+        ...prev,
+        { previewId, format, adSetIndex, platformName, channelName },
+      ]);
+    },
+    []
+  );
 
   const handleQuantityChange = useCallback(
     (key: string, formatName: string, change: number) => {
@@ -1105,6 +1217,10 @@ export const Platforms = ({
           onQuantityChange={handleQuantityChange}
           onOpenModal={openModal}
           view={view}
+          onDeletePreview={(previewId, format, adSetIndex) =>
+            handleDeletePreview(previewId, format, adSetIndex, channel.platforms[0]?.platform_name, channel.title)
+          }
+          completedDeletions={completedDeletions}
         />
       ))}
 
