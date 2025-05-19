@@ -13,13 +13,10 @@ export default function SignatureInput({ value, onChange, setSign }) {
 
 
 
-
 	const clearSignature = () => {
 		sigCanvas.current?.clear();
 		onChange("");
 	};
-
-
 
 
 

@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import down from "../public/down.svg";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 
 // Custom Dropdown Component
 const AllClientsCustomDropdown = ({
@@ -16,14 +17,16 @@ const AllClientsCustomDropdown = ({
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
-
+	const { data: session } = useSession();
+	// @ts-ignore 
+	const userType = session?.user?.data?.user?.id || "";
 	const toggleDropdown = () => {
 		setIsOpen(!isOpen);
 	};
 
 	const handleSelect = (option: { id: string; client_name: string }) => {
 		setSelected(option?.id);
-		localStorage.setItem("selectedClient", option?.id);  // Persist selection
+		localStorage.setItem(userType.toString(), option?.id);  // Persist selection
 		setIsOpen(false);
 	};
 
@@ -107,7 +110,7 @@ export default function YourComponent({
 }) {
 	// Load the previously selected client from localStorage
 	// useEffect(() => {
-	// 	const storedClientId = localStorage.getItem("selectedClient");
+	// 	const storedClientId = localStorage.getItem(userType.toString());
 
 	// 	// Check if the stored ID exists in the current options
 	// 	const isValidClient = allClients?.some((client) => client?.id === storedClientId);
@@ -117,7 +120,7 @@ export default function YourComponent({
 	// 	} else if (!selected && allClients?.length > 0) {
 	// 		// If no valid stored selection, default to the first client
 	// 		setSelected(allClients[0].id);
-	// 		localStorage.setItem("selectedClient", allClients[0]?.id); // Persist initial selection
+	// 		localStorage.setItem(userType, allClients[0]?.id); // Persist initial selection
 	// 	}
 	// }, [allClients, selected, setSelected]);
 
