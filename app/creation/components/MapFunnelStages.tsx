@@ -171,6 +171,13 @@ const MapFunnelStages = () => {
             })
           : defaultFunnels;
       setCustomFunnels(loadedFunnels);
+      // Initialize funnel_stages as empty unless campaignData specifies selections
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        custom_funnels: loadedFunnels,
+        funnel_stages: campaignData?.funnel_stages || [],
+        channel_mix: campaignData?.channel_mix || [],
+      }));
     }
 
     if (campaignData?.funnel_stages) {
@@ -255,7 +262,7 @@ const MapFunnelStages = () => {
         ...prev,
         [selectedOption]: {
           funnel_stages: campaignFormData?.funnel_stages || [],
-          channel_mix: campaignData?.channel_mix || [],
+          channel_mix: campaignFormData?.channel_mix || [],
         },
       }));
     }
@@ -276,12 +283,9 @@ const MapFunnelStages = () => {
       newFormData.custom_funnels = targetingRetargetingFunnels;
       setCustomFunnels(targetingRetargetingFunnels);
     } else if (option === "custom") {
-      newFormData.funnel_stages = savedSelections.custom.funnel_stages.length
-        ? savedSelections.custom.funnel_stages
-        : defaultFunnels.map((f) => f.id);
-      newFormData.channel_mix = savedSelections.custom.channel_mix.length
-        ? savedSelections.custom.channel_mix
-        : defaultFunnels.map((f) => ({ funnel_stage: f.id }));
+      // Initialize with empty selections to prevent default selection
+      newFormData.funnel_stages = [];
+      newFormData.channel_mix = [];
       newFormData.custom_funnels = defaultFunnels;
       setCustomFunnels(defaultFunnels);
     }
