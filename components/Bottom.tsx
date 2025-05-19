@@ -656,6 +656,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       });
     };
 
+    // console.log('campaignFormData?.goal_level', campaignFormData?.campaign_budget?.level)
+
     const handleStepSeven = async () => {
       if (!campaignData) return;
       await updateCampaignData({

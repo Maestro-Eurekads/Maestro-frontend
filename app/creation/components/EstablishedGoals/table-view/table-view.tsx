@@ -359,6 +359,8 @@ const TableView = () => {
     });
   };
 
+
+
   // Process data once at the top level
 
   const allObjectives = useMemo(() => Object.keys(tableHeaders), []);
@@ -391,7 +393,7 @@ const TableView = () => {
             stage={stage}
             stageData={stageData}
             campaignObjectives={campaignFormData?.campaign_objectives}
-            goalLevel={campaignFormData?.goal_level}
+            goalLevel={campaignFormData?.campaign_budget?.level}
             expandedRows={expandedRows}
             toggleRow={toggleRow}
             handleEditInfo={handleEditInfo}
