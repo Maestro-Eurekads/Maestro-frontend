@@ -11,8 +11,12 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import useCampaignHook from "app/utils/useCampaignHook";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import blueBtn from "../../../public/blueBtn.svg";
+import { useSession } from "next-auth/react";
 
 function FinanceView({ setOpenModal, userRole }) {
+  const { data: session } = useSession();
+  // @ts-ignore 
+  const userType = session?.user?.data?.user?.id || "";
   const [openEdit, setOpenEdit] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openView, setOpenView] = useState(false);
@@ -60,7 +64,7 @@ function FinanceView({ setOpenModal, userRole }) {
       setFetchingPO(true);
       try {
         const res = await fetchClientPOS(selectedRow?.client?.id);
-        localStorage.setItem("selectedClient", selectedRow?.client?.id);
+        localStorage.setItem(userType.toString(), selectedRow?.client?.id);
         setClientPOs(Array.isArray(res?.data?.data) ? res.data.data : []);
         setCurrentPage(1); // Reset to page 1 after deletion
       } catch (fetchError) {

@@ -10,6 +10,7 @@ import { useAppDispatch } from "store/useStore"
 import { getCreateClient } from "features/Client/clientSlice"
 import { defaultFilters } from "components/data"
 import { fetchFilteredCampaignsSub } from "app/utils/campaign-filter-utils-sub"
+import { useSession } from "next-auth/react"
 
 // Scrollbar CSS
 const scrollbarStyles = `
@@ -120,7 +121,9 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     setClientCampaignData,
     allClients,
   } = useCampaigns()
-
+  const { data: session } = useSession();
+  // @ts-ignore 
+  const userType = session?.user?.data?.user?.id || "";
 
 
   const [filters, setFilters] = useState(defaultFilters)
@@ -171,7 +174,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const clientID = localStorage.getItem("selectedClient") || allClients[0]?.id;
+      const clientID = localStorage.getItem(userType.toString()) || allClients[0]?.id;
 
       if (!clientID) return;
 
@@ -198,7 +201,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
   // useEffect(() => {
   //   if (Object.values(selectedFilters).some((val) => val !== null && val !== "")) {
   //     const fetchData = async () => {
-  //       const clientID = localStorage.getItem("selectedClient") || allClients[0]?.id
+  //       const clientID = localStorage.getItem(userType.toString()) || allClients[0]?.id
   //       setLoading(true)
   //       const data = await fetchFilteredCampaigns(clientID, selectedFilters)
   //         .then((res) => {
@@ -213,12 +216,15 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
   // }, [selectedFilters])
 
+
+
   useEffect(() => {
     const allEmpty = Object.values(selectedFilters).every((val) => !val)
 
     const fetchData = async () => {
-      const clientID = localStorage.getItem("selectedClient") || allClients[0]?.id
+      const clientID = localStorage.getItem(userType.toString()) || allClients[0]?.id
       setLoading(true)
+      console.log('clientID-clientID', clientID)
 
       try {
         const res = allEmpty //@ts-ignore

@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import down from "../../../public/down.svg";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 
 // Type definition including plan name properly
 type CampaignOption = {
@@ -26,14 +27,16 @@ const ClientsCampaignDropdown = ({
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
-
+	const { data: session } = useSession();
+	// @ts-ignore 
+	const userType = session?.user?.data?.user?.id || "";
 	const toggleDropdown = () => {
 		setIsOpen((prev) => !prev);
 	};
 
 	const handleSelect = (option: CampaignOption) => {
 		setSelected(option.documentId);
-		localStorage.setItem("selectedClient", option.documentId);
+		localStorage.setItem(userType.toString(), option.documentId);
 		setIsOpen(false);
 	};
 
@@ -115,8 +118,12 @@ export default function YourComponent({
 	setSelected: (value: string) => void;
 	selected: string;
 }) {
+
+	const { data: session } = useSession();
+	// @ts-ignore 
+	const userType = session?.user?.data?.user?.id || "";
 	useEffect(() => {
-		const storedClientId = localStorage.getItem("selectedClient");
+		const storedClientId = localStorage.getItem(userType.toString());
 
 		const isValidClient = campaigns?.some((client) => client.documentId === storedClientId);
 
@@ -124,7 +131,7 @@ export default function YourComponent({
 			setSelected(storedClientId);
 		} else if (!selected && campaigns?.length > 0) {
 			setSelected(campaigns[0].documentId);
-			localStorage.setItem("selectedClient", campaigns[0].documentId);
+			localStorage.setItem(userType.toString(), campaigns[0].documentId);
 		}
 	}, [campaigns, selected, setSelected]);
 

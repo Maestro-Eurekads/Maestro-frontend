@@ -37,7 +37,8 @@ export const SetupScreen = () => {
     setRequiredFields,
     setCurrencySign,
     getUserByUserType,
-    user
+    user,
+    requiredFields
   } = useCampaigns();
   const { client_selection } = campaignFormData || {}; // Add default empty object
   const [selectedOption, setSelectedOption] = useState("percentage");
@@ -73,7 +74,6 @@ export const SetupScreen = () => {
     setClose(false);
   }, []);
 
-  console.log('user-user-user-user', allClients)
 
   const handleGetUserByUserType = () => {
     getUserByUserType("agency_approver");
@@ -147,6 +147,8 @@ export const SetupScreen = () => {
   }, [verifybeforeMove]);
 
 
+
+  console.log('client_selection-client_selection', requiredFields)
 
   useEffect(() => {
 
@@ -365,8 +367,8 @@ export const SetupScreen = () => {
       fields = [
         campaignFormData?.client_selection?.value,
         campaignFormData?.media_plan,
-        campaignFormData?.approver,
-        campaignFormData?.client_approver,
+        campaignFormData?.approver?.value,
+        campaignFormData?.client_approver?.value,
         campaignFormData?.level_1?.id,
         campaignFormData?.level_2?.id,
         campaignFormData?.level_3?.id,
@@ -375,8 +377,8 @@ export const SetupScreen = () => {
       fields = [
         campaignFormData?.client_selection?.value,
         campaignFormData?.media_plan,
-        campaignFormData?.approver,
-        campaignFormData?.client_approver,
+        campaignFormData?.approver?.value,
+        campaignFormData?.client_approver?.value,
         campaignFormData?.level_1?.id,
         campaignFormData?.level_2?.id,
         campaignFormData?.level_3?.id,
