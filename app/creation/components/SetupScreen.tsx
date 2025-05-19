@@ -19,6 +19,7 @@ import { useComments } from "app/utils/CommentProvider";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { useRouter } from "next/navigation";
 import { selectCurrency } from "components/Options";
+import InternalApproverSelection from "components/InternalApproverSelection";
 
 export const SetupScreen = () => {
   const {
@@ -34,12 +35,15 @@ export const SetupScreen = () => {
     isStepZeroValid,
     setIsStepZeroValid,
     setRequiredFields,
-    setCurrencySign
+    setCurrencySign,
+    getUserByUserType,
+    user
   } = useCampaigns();
   const { client_selection } = campaignFormData || {}; // Add default empty object
   const [selectedOption, setSelectedOption] = useState("percentage");
   const [previousValidationState, setPreviousValidationState] = useState(null);
 
+  const [approvalOptions, setApprovalOptions] = useState([]);
   const [clientOptions, setClientOptions] = useState([]);
   const [level1Options, setlevel1Options] = useState([]);
   const [level2Options, setlevel2Options] = useState([]);
@@ -56,7 +60,7 @@ export const SetupScreen = () => {
     setHasChanges,
     hasChanges,
   } = useVerification();
-  const { isAgencyCreator } = useUserPrivileges();
+  const { isAgencyCreator, isAgencyApprover } = useUserPrivileges();
 
   const router = useRouter();
 
@@ -68,6 +72,13 @@ export const SetupScreen = () => {
     setIsDrawerOpen(false);
     setClose(false);
   }, []);
+
+  console.log('user-user-user-user', allClients)
+
+  const handleGetUserByUserType = () => {
+    getUserByUserType("agency_approver");
+
+  };
 
   // Load saved form data from localStorage on mount
   useEffect(() => {
@@ -100,6 +111,7 @@ export const SetupScreen = () => {
 
   // Save form data to localStorage whenever it changes
   useEffect(() => {
+    handleGetUserByUserType()
     if (campaignFormData) {
       localStorage.setItem(
         "campaignFormData",
@@ -134,7 +146,11 @@ export const SetupScreen = () => {
     localStorage.setItem("verifybeforeMove", JSON.stringify(verifybeforeMove));
   }, [verifybeforeMove]);
 
+
+
   useEffect(() => {
+
+
     if (isAgencyCreator) {
       if (profile?.clients) {
         const options = profile?.clients?.map((c) => ({
@@ -154,7 +170,7 @@ export const SetupScreen = () => {
         setClientOptions(options);
       }
     }
-  }, [allClients, profile]);
+  }, [allClients, profile, isAgencyApprover]);
 
   useEffect(() => {
     if (!allClients || !client_selection) return;
@@ -162,6 +178,14 @@ export const SetupScreen = () => {
     const client = allClients.find(
       (c) => c?.documentId === client_selection?.id
     );
+
+    setApprovalOptions(() => {
+      const options = client?.client_emails?.map((l) => ({
+        value: l.full_name,
+        label: l.full_name,
+      }));
+      return options || [];
+    });
     setlevel1Options(() => {
       const options = client?.level_1?.map((l) => ({
         value: l,
@@ -421,7 +445,19 @@ export const SetupScreen = () => {
               formId="media_plan"
               setHasChanges={setHasChanges}
             />
-            <ClientSelectionInput
+            <InternalApproverSelection
+              options={approvalOptions}
+              label={"Internal Approver"}
+              formId="approver"
+              setHasChanges={setHasChanges}
+            />
+            <ClientSelection
+              options={approvalOptions}
+              label={"Client Approver"}
+              formId="client_approver"
+              setHasChanges={setHasChanges}
+            />
+            {/* <ClientSelectionInput
               label={"Internal Approver"}
               formId="approver"
               setHasChanges={setHasChanges}
@@ -430,7 +466,7 @@ export const SetupScreen = () => {
               label={"Client Approver"}
               formId="client_approver"
               setHasChanges={setHasChanges}
-            />
+            /> */}
           </div>
         </div>
         {/* <div className="pb-1">

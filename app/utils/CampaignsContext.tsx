@@ -59,6 +59,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingCampaign, setLoadingCampaign] = useState(false);
+  const [getloading, setgetLoading] = useState(false);
   const [profile, setGetProfile] = useState(null);
   const [isEditingBuyingObjective, setIsEditingBuyingObjective] = useState(false);
   const [selectedOption, setSelectedOption] = useState("percentage");
@@ -77,6 +78,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [fetchingPO, setFetchingPO] = useState(false);
   const [isStepZeroValid, setIsStepZeroValid] = useState(false);
   const [currencySign, setCurrencySign] = useState("");
+  const [user, setUser] = useState(null);
   const [filterOptions, setFilterOptions] = useState({
     year: [],
     quarter: [],
@@ -338,6 +340,32 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+
+
+
+  const getUserByUserType = async (user_type) => {
+    setgetLoading(true);
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users?filters[user_type][$eq]=${user_type}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+        }
+      );
+      const user = response.data;
+      setUser(user);
+    } catch (error) {
+      console.error("Error fetching users by user_type:", error);
+      // Optionally handle error
+    } finally {
+      setgetLoading(false);
+    }
+  };
+
+
   const organizeAdvertisingPlatforms = useCallback((data) => {
     const result = {
       online: {
@@ -409,7 +437,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
   // Fetch business level options when client selection changes
   useEffect(() => {
-    const clientId = campaignFormData.client_selection?.id;
+    const clientId = campaignFormData?.client_selection?.id;
     if (clientId) {
       fetchBusinessLevelOptions(clientId);
       setCampaignFormData((prev) => ({
@@ -452,6 +480,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       campaignData,
       cId,
       getActiveCampaign,
+      getUserByUserType,
+      getloading,
       clientCampaignData,
       setClientCampaignData,
       loading,
@@ -490,9 +520,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       requiredFields,
       setRequiredFields,
       currencySign,
-      setCurrencySign
+      setCurrencySign,
+      user
     }),
-    [
+    [getUserByUserType,
       loadingClients,
       allClients,
       campaignFormData,
@@ -522,7 +553,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       requiredFields,
       setRequiredFields,
       currencySign,
-      setCurrencySign
+      setCurrencySign,
+      user
     ]
   );
 
