@@ -1,4 +1,3 @@
-
 "use client";
 
 import Image from "next/image";
@@ -20,7 +19,6 @@ import Link from "next/link";
 import { removeKeysRecursively } from "utils/removeID";
 import toast from "react-hot-toast";
 import { debounce } from "lodash";
-import customicon from "../../../public/social/customicon.png";
 
 // Types
 type FormatType = {
@@ -119,7 +117,7 @@ const debouncedToast = debounce((message: string, type: "success" | "error") => 
   } else {
     toast.error(message);
   }
-}, 100); // Reduced debounce time for faster message display
+}, 100);
 
 // Components
 const MediaOption = ({
@@ -1062,7 +1060,7 @@ export const Platforms = ({
     } catch (error: any) {
       console.error("Error processing delete queue:", error);
       debouncedToast(`Failed to delete preview: ${error.message}`, "error");
-      setCompletedDeletions((prev) => new Set(prev).add(previewId)); // Mark as complete to re-enable button
+      setCompletedDeletions((prev) => new Set(prev).add(previewId));
       setDeleteQueue((prev) => prev.slice(1));
     } finally {
       setIsProcessingQueue(false);
@@ -1365,10 +1363,6 @@ export const FormatSelection = ({
             const stage = campaignFormData?.custom_funnels?.find(
               (s) => s.name === stageName
             );
-            const funnelStage = funnelStages?.find(
-              (f) => f?.name === stageName
-            );
-
             if (!stage) return null;
 
             const status = getStageStatus(stageName);
@@ -1383,19 +1377,11 @@ export const FormatSelection = ({
                   onClick={() => toggleTab(stage.name)}
                 >
                   <div className="flex items-center gap-2">
-                    {funnelStage?.icon ? (
+                    {stage.icon && (
                       <Image
                         loading="lazy"
-                        src={funnelStage.icon || "/placeholder.svg"}
-                        alt={stage.name}
-                        width={24}
-                        height={24}
-                      />
-                    ) : (
-                      <Image
-                        loading="lazy"
-                        src={customicon || "/placeholder.svg"}
-                        alt={stage.name}
+                        src={stage.icon}
+                        alt={`${stage.name} icon`}
                         width={24}
                         height={24}
                       />

@@ -21,8 +21,8 @@ interface Funnel {
   id: string;
   name: string;
   color: string;
-  icon?: any; // Optional to accommodate funnels without icons
-  activeIcon?: any; // Optional to accommodate funnels without icons
+  icon?: any; // Optional for funnels with icons
+  activeIcon?: any; // Optional for funnels with icons
 }
 
 const MapFunnelStages = () => {
@@ -156,7 +156,16 @@ const MapFunnelStages = () => {
       campaignData?.custom_funnels &&
       campaignData.custom_funnels.length > 0
     ) {
-      setCustomFunnels(campaignData.custom_funnels);
+      // Ensure loaded funnels conform to Funnel type
+      setCustomFunnels(
+        campaignData.custom_funnels.map((funnel: any) => ({
+          id: funnel.id,
+          name: funnel.name,
+          color: funnel.color,
+          icon: funnel.icon || undefined,
+          activeIcon: funnel.activeIcon || undefined,
+        }))
+      );
     } else {
       setCustomFunnels(defaultFunnels);
     }
@@ -358,8 +367,7 @@ const MapFunnelStages = () => {
       id: name,
       name: name,
       color: colorPalette[Math.floor(Math.random() * colorPalette.length)],
-      icon: null,
-      activeIcon: null,
+      // Explicitly exclude icon and activeIcon
     };
 
     const updatedFunnels: Funnel[] = [...customFunnels, newFunnel];
@@ -574,12 +582,14 @@ const MapFunnelStages = () => {
                   onMouseEnter={() => setHovered(index + 1)}
                   onMouseLeave={() => setHovered(null)}
                 >
-                  <Image
-                    src={isSelected ? funnel.activeIcon : funnel.icon}
-                    alt={`${funnel.name} icon`}
-                    width={24}
-                    height={24}
-                  />
+                  {funnel.icon && funnel.activeIcon && (
+                    <Image
+                      src={isSelected ? funnel.activeIcon : funnel.icon}
+                      alt={`${funnel.name} icon`}
+                      width={24}
+                      height={24}
+                    />
+                  )}
                   <p className="text-[16px]">{funnel.name}</p>
                 </button>
               </div>

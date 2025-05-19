@@ -17,16 +17,11 @@ import { funnels, funnelStages } from "components/data";
 import adset from "../../../public/adset_level.svg";
 import channel from "../../../public/channel_level.svg";
 import Modal from "components/Modals/Modal";
-import customicon from "../../../public/social/customicon.png";
 
 const DefineAdSetPage = () => {
   const [openItems, setOpenItems] = useState({});
-  const [stageStatuses, setStageStatuses] = useState<Record<string, string>>(
-    {}
-  );
-  const [hasInteracted, setHasInteracted] = useState<Record<string, boolean>>(
-    {}
-  );
+  const [stageStatuses, setStageStatuses] = useState<Record<string, string>>({});
+  const [hasInteracted, setHasInteracted] = useState<Record<string, boolean>>({});
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   const [step, setStep] = useState(2);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,7 +42,7 @@ const DefineAdSetPage = () => {
         setIsModalOpen(true);
       }
     }
-  }, []);
+  }, [campaignFormData]);
 
   // Initialize statuses and interaction tracking
   useEffect(() => {
@@ -55,17 +50,17 @@ const DefineAdSetPage = () => {
       const initialStatuses = {};
       const initialInteractions = {};
       const initialOpenItems = {};
-  
+
       for (const stageName of campaignFormData.funnel_stages) {
         initialStatuses[stageName] = "Not started";
         initialInteractions[stageName] = false;
-  
+
         const stage = campaignFormData.channel_mix?.find(
           (s) => s.funnel_stage === stageName
         );
-  
+
         if (stage) {
-            const platforms = [
+          const platforms = [
             ...(stage.search_engines || []),
             ...(stage.display_networks || []),
             ...(stage.social_media || []),
@@ -77,24 +72,23 @@ const DefineAdSetPage = () => {
             ...(stage.e_commerce || []),
             ...(stage.in_game || []),
             ...(stage.mobile || []),
-            ];
-  
+          ];
+
           const hasAdSets = platforms.some(
             (platform) => platform.ad_sets && platform.ad_sets.length > 0
           );
-  
+
           if (hasAdSets) {
             initialOpenItems[stageName] = true;
           }
         }
       }
-  
+
       setStageStatuses(initialStatuses);
       setHasInteracted(initialInteractions);
       setOpenItems(initialOpenItems);
     }
   }, [campaignFormData]);
-  
 
   const toggleItem = (stage: string) => {
     setOpenItems((prev) => {
@@ -146,17 +140,10 @@ const DefineAdSetPage = () => {
               onClick={() => toggleItem(stage.name)}
             >
               <div className="flex items-center gap-4">
-                {funn?.icon ? (
+                {stage.icon && (
                   <Image
-                    src={funn.icon}
-                    alt={stage.name}
-                    width={20}
-                    height={20}
-                  />
-                ) : (
-                  <Image
-                    src={customicon}
-                    alt={stage.name}
+                    src={stage.icon}
+                    alt={`${stage.name} icon`}
                     width={20}
                     height={20}
                   />
@@ -216,7 +203,6 @@ const DefineAdSetPage = () => {
                   onValidate={() => handleValidate(stage.name)}
                   isValidateDisabled={!hasInteracted[stage.name]}
                   onEditStart={() => resetInteraction(stage.name)}
-                  // platformName="Facebook"
                 />
               </div>
             )}
@@ -265,7 +251,7 @@ const DefineAdSetPage = () => {
                   </defs>
                 </svg>
               </span>
-              <button className="self-start">
+              <button onClick={handleCloseModal}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="25"
@@ -289,9 +275,9 @@ const DefineAdSetPage = () => {
                 Congratulations on completing your media plan!
               </h2>
               <p className="text-[15px] font-[500] text-[#535862]">
-                In this last step, we will take take of the numbers behind the
+                In this last step, we will take care of the numbers behind the
                 structure. We will define the objectives and benchmarks for each
-                phase, channel and ad set.
+                phase, channel, and ad set.
               </p>
             </div>
 
@@ -383,7 +369,7 @@ const DefineAdSetPage = () => {
                 </svg>
               </span>
 
-              <button className="self-start">
+              <button onClick={handleCloseModal}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="25"
@@ -438,7 +424,7 @@ const DefineAdSetPage = () => {
                     </figure>
                   </div>
 
-                  <div className="">
+                  <div>
                     <div className="p-2 text-center">
                       <h2 className="text-[16px] mb-4 text-[#181D27] font-[600]">
                         {item.label}
@@ -448,7 +434,7 @@ const DefineAdSetPage = () => {
                       </p>
                     </div>
 
-                    <div className="">
+                    <div>
                       <button
                         className="btn btn-primary w-full text-sm bg-[#3175FF]"
                         onClick={() => {
