@@ -403,57 +403,57 @@ import { months } from "components/Options";
 // 	"July", "August", "September", "October", "November", "December"
 // ];
 
-async function getTrendDataOnly(campaign_id) {
-	try {
-		const response = await axios.get(
-			`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign-trends?filters[campaign_id][$eq]=${campaign_id}`,
-			{
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-				},
-			}
-		);
+// async function getTrendDataOnly(campaign_id) {
+// 	try {
+// 		const response = await axios.get(
+// 			`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign-trends?filters[campaign_id][$eq]=${campaign_id}`,
+// 			{
+// 				headers: {
+// 					"Content-Type": "application/json",
+// 					Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+// 				},
+// 			}
+// 		);
 
-		const records = response.data.data;
-		if (!records || records.length === 0) {
-			return null;
-		}
+// 		const records = response.data.data;
+// 		if (!records || records.length === 0) {
+// 			return null;
+// 		}
 
-		// Use the most recently updated record
-		const sortedRecords = records.sort((a, b) =>
-			new Date(b.attributes.updatedAt).getTime() - new Date(a.attributes.updatedAt).getTime()
-		);
-		const trendData = sortedRecords[0].attributes.trend?.trendData;
+// 		// Use the most recently updated record
+// 		const sortedRecords = records.sort((a, b) =>
+// 			new Date(b.attributes.updatedAt).getTime() - new Date(a.attributes.updatedAt).getTime()
+// 		);
+// 		const trendData = sortedRecords[0].attributes.trend?.trendData;
 
-		if (!trendData) return null;
+// 		if (!trendData) return null;
 
-		const currentMonthIndex = new Date().getMonth();
-		const currentMonth = months[currentMonthIndex];
-		const previousMonth = months[(currentMonthIndex + 11) % 12];
+// 		const currentMonthIndex = new Date().getMonth();
+// 		const currentMonth = months[currentMonthIndex];
+// 		const previousMonth = months[(currentMonthIndex + 11) % 12];
 
-		const calculateTrend = (current, previous) => {
-			const currentValue = parseFloat(current.replace('%', '')) || 0;
-			const previousValue = parseFloat(previous.replace('%', '')) || 0;
+// 		const calculateTrend = (current, previous) => {
+// 			const currentValue = parseFloat(current.replace('%', '')) || 0;
+// 			const previousValue = parseFloat(previous.replace('%', '')) || 0;
 
-			if (currentValue === previousValue) return "0%";
-			if (previousValue === 0) return currentValue > 0 ? "+100%" : "-100%";
+// 			if (currentValue === previousValue) return "0%";
+// 			if (previousValue === 0) return currentValue > 0 ? "+100%" : "-100%";
 
-			const diff = ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
-			const rounded = Math.round(diff * 10) / 10;
-			return (rounded >= 0 ? "+" : "") + rounded + "%";
-		};
+// 			const diff = ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
+// 			const rounded = Math.round(diff * 10) / 10;
+// 			return (rounded >= 0 ? "+" : "") + rounded + "%";
+// 		};
 
-		return {
-			budgetChange: calculateTrend(trendData.budgetChange[currentMonth], trendData.budgetChange[previousMonth]),
-			impressionsChange: calculateTrend(trendData.impressionsChange[currentMonth], trendData.impressionsChange[previousMonth]),
-			cpmChange: calculateTrend(trendData.cpmChange[currentMonth], trendData.cpmChange[previousMonth])
-		};
-	} catch (error) {
-		console.error("Failed to fetch trend data:", error.message);
-		return null;
-	}
-}
+// 		return {
+// 			budgetChange: calculateTrend(trendData.budgetChange[currentMonth], trendData.budgetChange[previousMonth]),
+// 			impressionsChange: calculateTrend(trendData.impressionsChange[currentMonth], trendData.impressionsChange[previousMonth]),
+// 			cpmChange: calculateTrend(trendData.cpmChange[currentMonth], trendData.cpmChange[previousMonth])
+// 		};
+// 	} catch (error) {
+// 		console.error("Failed to fetch trend data:", error.message);
+// 		return null;
+// 	}
+// }
 
 const General = ({ campaign, loading, isLoadingCampaign, campaign_id }) => {
 	const budget = campaign?.campaign_budget?.amount ?? "0";
@@ -498,34 +498,34 @@ const General = ({ campaign, loading, isLoadingCampaign, campaign_id }) => {
 		};
 	}, [campaign]);
 
-	useEffect(() => {
-		if (campaign_id) {
-			getTrendDataOnly(campaign_id)
-				.then(data => {
-					if (data) setTrendData(data);
-				})
-				.catch(err => console.error("Error getting trend data:", err));
-		}
-	}, [campaign_id]);
+	// useEffect(() => {
+	// 	if (campaign_id) {
+	// 		getTrendDataOnly(campaign_id)
+	// 			.then(data => {
+	// 				if (data) setTrendData(data);
+	// 			})
+	// 			.catch(err => console.error("Error getting trend data:", err));
+	// 	}
+	// }, [campaign_id]);
 
 	const formatNumber = (value) => {
 		if (!value) return "0";
 		return Intl.NumberFormat("en-US").format(value);
 	};
 
-	const getTrendStyles = (trend) => {
-		if (!trend || trend === "0%") {
-			return {
-				backgroundColor: "#E5E7EB",
-				color: "#6B7280"
-			};
-		}
-		const isPositive = trend.startsWith("+");
-		return {
-			backgroundColor: isPositive ? "#B8FFE6" : "#FFE1E0",
-			color: isPositive ? "#00A331" : "#FF0302"
-		};
-	};
+	// const getTrendStyles = (trend) => {
+	// 	if (!trend || trend === "0%") {
+	// 		return {
+	// 			backgroundColor: "#E5E7EB",
+	// 			color: "#6B7280"
+	// 		};
+	// 	}
+	// 	const isPositive = trend.startsWith("+");
+	// 	return {
+	// 		backgroundColor: isPositive ? "#B8FFE6" : "#FFE1E0",
+	// 		color: isPositive ? "#00A331" : "#FF0302"
+	// 	};
+	// };
 
 	return (
 		<div className="flex flex-col justify-between w-full h-[153px] bg-white border border-[rgba(49,117,255,0.3)] rounded-[12px] box-border p-[20px] shadow-[0px_4px_14px_rgba(0,38,116,0.15)]">
@@ -542,12 +542,12 @@ const General = ({ campaign, loading, isLoadingCampaign, campaign_id }) => {
 						</div>}
 					{loading || isLoadingCampaign ? <Skeleton height={20} width={200} /> :
 						<div className="flex items-end gap-2">
-							<div
+							{/* <div
 								className="flex justify-center items-center p-[5px] w-[48px] h-[19px] rounded-full text-[12px] leading-[16px] mb-2"
 								style={getTrendStyles(trendData.budgetChange)}
 							>
 								{trendData?.budgetChange}
-							</div>
+							</div> */}
 							<h1 className="font-medium text-[32px] leading-[49px] text-[#101828] whitespace-nowrap">
 								{currency} {formatNumber(budget)}
 							</h1>
@@ -563,12 +563,12 @@ const General = ({ campaign, loading, isLoadingCampaign, campaign_id }) => {
 						</div>}
 					{loading || isLoadingCampaign ? <Skeleton height={20} width={200} /> :
 						<div className="flex items-end gap-2">
-							<div
+							{/* <div
 								className="flex justify-center items-center p-[5px] w-[48px] h-[19px] rounded-full text-[12px] leading-[16px] mb-2"
 								style={getTrendStyles(trendData.impressionsChange)}
 							>
 								{trendData.impressionsChange}
-							</div>
+							</div> */}
 							<h1 className="font-medium text-[32px] leading-[49px] text-[#101828] whitespace-nowrap">
 								{formatNumber(totalImpressions)}
 							</h1>
@@ -584,12 +584,12 @@ const General = ({ campaign, loading, isLoadingCampaign, campaign_id }) => {
 						</div>}
 					{loading || isLoadingCampaign ? <Skeleton height={20} width={200} /> :
 						<div className="flex items-end gap-2">
-							<div
+							{/* <div
 								className="flex justify-center items-center p-[5px] w-[48px] h-[19px] rounded-full text-[12px] leading-[16px] mb-2"
 								style={getTrendStyles(trendData.cpmChange)}
 							>
 								{trendData.cpmChange}
-							</div>
+							</div> */}
 							<h1 className="font-medium text-[32px] leading-[49px] text-[#101828] whitespace-nowrap">
 								{currency} {formatNumber(averageCpm)}
 							</h1>
