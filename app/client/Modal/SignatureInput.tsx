@@ -4,9 +4,9 @@ import SignatureCanvas from "react-signature-canvas";
 
 
 export default function SignatureInput({ value, onChange, setSign }) {
-	const sigCanvas = useRef(null);
+	const sigCanvas = useRef<SignatureCanvas>(null);
 
-	const handleEnd = () => {
+	const handleEnd = (e: MouseEvent) => {
 		const dataURL = sigCanvas?.current?.getTrimmedCanvas()?.toDataURL("image/png");
 		setSign(dataURL);
 	};

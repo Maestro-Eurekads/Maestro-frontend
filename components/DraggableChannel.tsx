@@ -27,8 +27,8 @@ interface DraggableChannelProps {
   disableDrag?: boolean;
   budget?: number | string;
   setSelectedStage?: any;
-  openItems?: any,
-  setOpenItems?: any
+  openItems?:any,
+  setOpenItems?:any
 }
 
 const DraggableChannel: React.FC<DraggableChannelProps> = ({
@@ -90,18 +90,22 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   //     (_, i) => i * 120 // Adjust based on your grid size
   //   );
 
-
+  //   console.log("here is the snappoints", snapPoints)
 
   //   let closestSnap = snapPoints.reduce((prev, curr) =>
   //     Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition) ? curr : prev
-  // ); 
+  // );
+
+  // console.log("here is the closest snap", closestSnap)
   //   return closestSnap;
   // };
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    const baseStep = 100; // Base grid size 
+    const baseStep = range !== "Day" ? 50 : 100;
+    // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
     const adjustmentPerStep = 0; // Decrease each next step by 10
     const snapPoints = [];
+    // console.log("🚀 ~ snapToTimeline ~ snapPoints:", snapPoints);
 
     let currentSnap = 0;
     let step = baseStep;
@@ -109,9 +113,10 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     // Generate snap points with decreasing step size
     while (currentSnap <= (range !== "Day" ? containerWidth : containerWidth)) {
       snapPoints.push(currentSnap);
+      // console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
       currentSnap += step;
       step = Math.max(
-        100,
+        range !== "Day" ? 50 : 100,
         step - adjustmentPerStep
       );
     }
@@ -122,7 +127,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         : prev
     );
 
-
+    // console.log("Closest custom snap:", closestSnap);
     return closestSnap;
   };
 
@@ -271,18 +276,20 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   const stageBudget = campaignFormData?.channel_mix?.find(
     (fs) => fs?.funnel_stage === description
   )?.stage_budget;
-
+  // console.log("🚀 ~ stageBudget:", stageBudget)
 
   return (
     <div
-      className={`relative w-full h-14 flex select-none ${disableDrag ? "rounded-[10px]" : "rounded-none"
-        }`}
+      className={`relative w-full h-14 flex select-none ${
+        disableDrag ? "rounded-[10px]" : "rounded-none"
+      }`}
       style={{ transform: `translateX(${position}px)` }}
     >
       {/* Left Resize Handle */}
       <div
-        className={`w-5 h-full bg-opacity-80 bg-black ${disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-          } rounded-l-lg text-white flex items-center justify-center`}
+        className={`w-5 h-full bg-opacity-80 bg-black ${
+          disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+        } rounded-l-lg text-white flex items-center justify-center`}
         onMouseDown={(e) => disableDrag || openItems ? undefined : handleMouseDownResize(e, "left")}
       >
         <MdDragHandle className="rotate-90" />
@@ -290,14 +297,15 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
       {/* Draggable Content */}
       <div
-        className={`h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[150px] ${disableDrag ? "cursor-default rounded-[10px] relative" : "cursor-move"
-          }`}
+        className={`h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
+          disableDrag ? "cursor-default rounded-[10px] relative" : "cursor-move"
+        }`}
         style={{
           width: disableDrag ? `${parentWidth + 43}px` : parentWidth,
           backgroundColor: bg,
           transition: "transform 0.2s ease-out",
         }}
-        onMouseDown={disableDrag || openItems ? undefined : handleMouseDownDrag}
+        onMouseDown={disableDrag || openItems ? undefined :handleMouseDownDrag}
       >
         <div />
         <button
@@ -338,8 +346,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
       {/* Right Resize Handle */}
       <div
-        className={`w-5 h-full bg-opacity-80 bg-black ${disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-          } rounded-r-lg text-white flex items-center justify-center`}
+        className={`w-5 h-full bg-opacity-80 bg-black ${
+          disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+        } rounded-r-lg text-white flex items-center justify-center`}
         onMouseDown={(e) => disableDrag || openItems ? undefined : handleMouseDownResize(e, "right")}
       >
         <MdDragHandle className="rotate-90" />

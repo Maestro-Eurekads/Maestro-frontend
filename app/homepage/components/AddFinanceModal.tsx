@@ -617,7 +617,7 @@ const AddFinanceModal = ({
                     }}
                   />
                 </div>
-                {mode === "edit" && (
+                {mode === "edit" && (userRole === "admin" || userRole === "financial_approver") && (
                   <div className="w-1/2 mt-3">
                     <label htmlFor="">PO Status</label>
                     <CustomSelect

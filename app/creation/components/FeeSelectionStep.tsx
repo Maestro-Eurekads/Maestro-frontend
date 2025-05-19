@@ -67,18 +67,15 @@ function FeeSelectionStep({
       campaignFormData?.campaign_budget?.amount
     );
 
+    const totalFees = fees.reduce(
+      (total, fee) => total + Number.parseFloat(fee.amount),
+      0
+    );
+
     if (active === 1) {
-      const totalFees = fees.reduce(
-        (total, fee) => total + Number.parseFloat(fee.amount),
-        0
-      );
       return (grossAmount - totalFees).toFixed(2);
     } else if (active === 2) {
-      const totalFees = fees.reduce(
-        (total, fee) => total + Number.parseFloat(fee.amount),
-        0
-      );
-      return (grossAmount + totalFees).toFixed(2);
+      return (grossAmount - totalFees).toFixed(2);
     }
 
     return "";
@@ -94,10 +91,7 @@ function FeeSelectionStep({
       0
     );
 
-    const net =
-      active === 1
-        ? (budgetAmount - totalFees).toFixed(2)
-        : (budgetAmount + totalFees).toFixed(2);
+    const net = (budgetAmount - totalFees).toFixed(2);
 
     setNetAmount(net);
   };
@@ -143,7 +137,7 @@ function FeeSelectionStep({
       fees.reduce((total, fee) => total + parseFloat(fee.amount), 0) +
       calculatedAmount;
 
-    if (active === 1 && newTotalFees > budgetAmount) {
+    if (newTotalFees > budgetAmount) {
       toast("Total fees cannot exceed the gross amount", {
         style: { background: "red", color: "white" },
       });
@@ -247,15 +241,19 @@ function FeeSelectionStep({
   }, [campaignFormData?.campaign_budget?.amount, active]);
 
   const calculateRemainingBudget = () => {
-    const totalBudget =
-      Number(netAmount) > 0
-        ? parseInt(netAmount)
-        : parseInt(campaignFormData?.campaign_budget?.amount);
-    const subBudgets =
-      campaignFormData?.channel_mix?.reduce((acc, stage) => {
-        return acc + (Number(stage?.stage_budget?.fixed_value) || 0);
-      }, 0) || 0;
-    return totalBudget - subBudgets;
+    const totalBudget = Number(netAmount) > 0 
+      ? parseFloat(netAmount) 
+      : parseFloat(campaignFormData?.campaign_budget?.amount);
+      
+    const totalFees = fees.reduce((total, fee) => total + Number(fee.amount), 0);
+    const adjustedBudget = totalBudget - totalFees;
+
+    const subBudgets = campaignFormData?.channel_mix?.reduce((acc, stage) => {
+      return acc + (Number(stage?.stage_budget?.fixed_value) || 0);
+    }, 0) || 0;
+
+    const remainingBudget = adjustedBudget - subBudgets;
+    return remainingBudget > 0 ? remainingBudget : 0;
   };
 
   const handleEditClick = () => {
