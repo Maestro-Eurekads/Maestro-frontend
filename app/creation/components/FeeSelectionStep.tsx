@@ -63,10 +63,9 @@ function FeeSelectionStep({
   const calculateNetAmount = () => {
     if (!campaignFormData?.campaign_budget?.amount) return "0.00";
 
-    const grossAmount = Number.parseFloat(
-      campaignFormData?.campaign_budget?.amount
+    const budgetAmount = Number.parseFloat(
+      campaignFormData?.campaign_budget?.amount || "0"
     );
-
     const totalFees = fees.reduce(
       (total, fee) => total + Number.parseFloat(fee.amount || 0),
       0
@@ -74,10 +73,32 @@ function FeeSelectionStep({
 
     if (active === 1) {
       // Gross budget: Net = Gross - Fees
-      return (grossAmount - totalFees).toFixed(2);
+      return (budgetAmount - totalFees).toFixed(2);
     } else if (active === 2) {
-      // Net budget: Gross = Net + Fees (but display Net as input)
-      return grossAmount.toFixed(2);
+      // Net budget: Net is the input amount
+      return budgetAmount.toFixed(2);
+    }
+
+    return "0.00";
+  };
+
+  const calculateGrossAmount = () => {
+    if (!campaignFormData?.campaign_budget?.amount) return "0.00";
+
+    const budgetAmount = Number.parseFloat(
+      campaignFormData?.campaign_budget?.amount || "0"
+    );
+    const totalFees = fees.reduce(
+      (total, fee) => total + Number.parseFloat(fee.amount || 0),
+      0
+    );
+
+    if (active === 1) {
+      // Gross budget: Gross is the input amount
+      return budgetAmount.toFixed(2);
+    } else if (active === 2) {
+      // Net budget: Gross = Net + Fees
+      return (budgetAmount + totalFees).toFixed(2);
     }
 
     return "0.00";
@@ -98,7 +119,7 @@ function FeeSelectionStep({
       // Gross budget: Net = Gross - Fees
       net = (budgetAmount - totalFees).toFixed(2);
     } else if (active === 2) {
-      // Net budget: Display net amount as is
+      // Net budget: Net is the input amount
       net = budgetAmount.toFixed(2);
     } else {
       net = "0.00";
@@ -258,7 +279,7 @@ function FeeSelectionStep({
     
     let adjustedBudget;
     if (active === 1) {
-      // Gross budget: Start with gross, subtract fees to get net
+      // Gross budget: Net = Gross - Fees
       adjustedBudget = budgetAmount - totalFees;
     } else if (active === 2) {
       // Net budget: Use net amount directly
@@ -292,7 +313,9 @@ function FeeSelectionStep({
                 <p className="font-semibold text-[15px]">
                   Total Budget: {getCurrencySymbol(selectedOption.value)}
                   {formatNumberWithCommas(
-                    parseFloat(campaignFormData?.campaign_budget?.amount || "0").toFixed(2)
+                    active === 1
+                      ? parseFloat(campaignFormData?.campaign_budget?.amount || "0").toFixed(2)
+                      : calculateGrossAmount()
                   )}
                 </p>
               </div>
@@ -580,7 +603,7 @@ function FeeSelectionStep({
                   </div>
                   <div className="flex w-[600px] justify-between mt-[24px] items-center">
                     <p className="font-semibold text-[16px]">
-                      Net Gross Amount
+                      Net Amount
                     </p>
                     <div className="flex flex-row items-center gap-[16px] px-0 bg-[#F9FAFB] border-b border-[rgba(6,18,55,0.1)] box-border">
                       <div className="e_currency-eur items-center">
@@ -683,6 +706,18 @@ function FeeSelectionStep({
                               onChange={(e) => {
                                 const value = e.target.value;
                                 if (/^\d*\.?\d*$/.test(value)) {
+                                  if (
+                                    feeType?.type === "percent" &&
+                                    Number(value) > 100
+                                  ) {
+                                    toast("Percentage cannot exceed 100", {
+                                      style: {
+                                        background: "red",
+                                        color: "white",
+                                      },
+                                    });
+                                    return;
+                                  }
                                   setFeeAmount(value);
                                 }
                               }}
@@ -777,12 +812,10 @@ function FeeSelectionStep({
                               className="text-center outline-none w-[145px]"
                               placeholder="Gross amount"
                               value={
-                                isNaN(Number(netAmount)) ||
-                                Number(netAmount) <= 0
+                                isNaN(Number(calculateGrossAmount())) ||
+                                Number(calculateGrossAmount()) <= 0
                                   ? ""
-                                  : formatNumberWithCommas(
-                                      (Number(netAmount) + fees.reduce((total, fee) => total + Number(fee.amount || 0), 0)).toFixed(2)
-                                    )
+                                  : formatNumberWithCommas(calculateGrossAmount())
                               }
                               readOnly
                               aria-label="Gross amount (read-only)"
@@ -814,6 +847,12 @@ function FeeSelectionStep({
                 Total Net Amount:{" "}
                 <strong>
                   {formatNumberWithCommas(netAmount)} {getCurrencySymbol(selectedOption.value)}
+                </strong>
+              </p>
+              <p className="text-[14px] mb-2">
+                Total Gross Amount:{" "}
+                <strong>
+                  {formatNumberWithCommas(calculateGrossAmount())} {getCurrencySymbol(selectedOption.value)}
                 </strong>
               </p>
               <p className="text-[14px] mb-2">Fees:</p>
