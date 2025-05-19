@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import React, { useEffect } from "react";
 import Select from "react-select";
 
+// Component to handle budget input and currency selection
 function BudgetInput({
   selectedOption,
   handleBudgetEdit,
@@ -20,10 +21,10 @@ function BudgetInput({
 
   // Sync selected currency with campaign form data
   useEffect(() => {
-    if (campaignFormData?.campaign_budget?.currency) {
+    if (campaignFormData?.campaign_budget) {
       setSelectedOption({
-        label: campaignFormData.campaign_budget.currency,
-        value: campaignFormData.campaign_budget.currency,
+        label: campaignFormData?.campaign_budget?.currency,
+        value: campaignFormData?.campaign_budget?.currency,
       });
     }
   }, [campaignFormData, setSelectedOption]);
@@ -37,14 +38,15 @@ function BudgetInput({
             className="text-center outline-none w-[145px]"
             placeholder="Budget value"
             value={
-              campaignFormData?.campaign_budget?.amount
-                ? formatNumberWithCommas(campaignFormData.campaign_budget.amount)
-                : ""
+              formatNumberWithCommas(
+                campaignFormData?.campaign_budget?.amount
+              ) || ""
             }
             onChange={(e) => {
               const inputValue = e.target.value.replace(/,/g, "");
-              if (/^\d*\.?\d*$/.test(inputValue)) {
-                handleBudgetEdit("amount", inputValue);
+              const newBudget = Number(inputValue);
+              if (/^\d*\.?\d*$/.test(newBudget.toString())) {
+                handleBudgetEdit("amount", newBudget.toString());
               }
             }}
             aria-label="Budget amount input"
@@ -65,7 +67,10 @@ function BudgetInput({
                 outline: "none",
                 padding: "0",
               }),
-              indicatorSeparator: () => ({ display: "none" }),
+              indicatorSeparator: (provided) => ({
+                ...provided,
+                display: "none",
+              }),
               indicatorsContainer: (provided) => ({
                 ...provided,
                 scale: "0.7",
@@ -76,7 +81,10 @@ function BudgetInput({
                 outline: "none",
                 fontSize: "14px",
               }),
-              valueContainer: (provided) => ({ padding: 0 }),
+              valueContainer: (provided) => ({
+                ...provided,
+                padding: 0,
+              }),
             }}
             aria-label="Currency selector"
           />
@@ -86,6 +94,7 @@ function BudgetInput({
   );
 }
 
+// Define PropTypes for type checking
 BudgetInput.propTypes = {
   selectedOption: PropTypes.shape({
     value: PropTypes.string.isRequired,
