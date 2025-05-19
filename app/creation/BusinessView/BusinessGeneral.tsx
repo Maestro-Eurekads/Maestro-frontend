@@ -609,58 +609,58 @@ const BusinessGeneral = ({ campaign, loading, isLoadingCampaign, campaign_id }) 
 	}, [campaign]);
 
 	// Fetch or initialize trend data
-	useEffect(() => {
-		if (campaign_id && budget && totalImpressions && averageCpm) {
-			const currentMonth = months[new Date().getMonth()];
+	// useEffect(() => {
+	// 	if (campaign_id && budget && totalImpressions && averageCpm) {
+	// 		const currentMonth = months[new Date().getMonth()];
 
-			// Calculate initial trends based on current values (assuming previous values are 0 if no data)
-			const calculateInitialTrend = (current, previous = 0) => {
-				const currentValue = parseFloat(current) || 0;
-				//@ts-ignore
-				const previousValue = parseFloat(previous) || 0;
-				if (previousValue === 0) return currentValue > 0 ? "+100%" : "0%";
-				const difference = ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
-				const roundedDifference = Math.round(difference * 10) / 10;
-				return roundedDifference >= 0 ? `+${roundedDifference}%` : `${roundedDifference}%`;
-			};
+	// 		// Calculate initial trends based on current values (assuming previous values are 0 if no data)
+	// 		const calculateInitialTrend = (current, previous = 0) => {
+	// 			const currentValue = parseFloat(current) || 0;
+	// 			//@ts-ignore
+	// 			const previousValue = parseFloat(previous) || 0;
+	// 			if (previousValue === 0) return currentValue > 0 ? "+100%" : "0%";
+	// 			const difference = ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
+	// 			const roundedDifference = Math.round(difference * 10) / 10;
+	// 			return roundedDifference >= 0 ? `+${roundedDifference}%` : `${roundedDifference}%`;
+	// 		};
 
-			const initialBudgetChange = calculateInitialTrend(budget);
-			const initialImpressionsChange = calculateInitialTrend(totalImpressions);
-			const initialCpmChange = calculateInitialTrend(averageCpm);
+	// 		const initialBudgetChange = calculateInitialTrend(budget);
+	// 		const initialImpressionsChange = calculateInitialTrend(totalImpressions);
+	// 		const initialCpmChange = calculateInitialTrend(averageCpm);
 
 
 
-			updateTrendData(initialBudgetChange, initialImpressionsChange, initialCpmChange, campaign_id)
-				.then((data) => {
-					setTrendData({
-						budgetChange: data.budgetChange[currentMonth],
-						impressionsChange: data.impressionsChange[currentMonth],
-						cpmChange: data.cpmChange[currentMonth]
-					});
-				})
-				.catch((err) => console.error("Failed to fetch or create trend data:", err));
-		}
-	}, [campaign_id, budget, totalImpressions, averageCpm]);
+	// 		updateTrendData(initialBudgetChange, initialImpressionsChange, initialCpmChange, campaign_id)
+	// 			.then((data) => {
+	// 				setTrendData({
+	// 					budgetChange: data.budgetChange[currentMonth],
+	// 					impressionsChange: data.impressionsChange[currentMonth],
+	// 					cpmChange: data.cpmChange[currentMonth]
+	// 				});
+	// 			})
+	// 			.catch((err) => console.error("Failed to fetch or create trend data:", err));
+	// 	}
+	// }, [campaign_id, budget, totalImpressions, averageCpm]);
 
 	const formatNumber = (value) => {
 		if (!value) return "0";
 		return Intl.NumberFormat("en-US").format(value);
 	};
 
-	// Function to determine trend styles based on value
-	const getTrendStyles = (trend) => {
-		if (!trend || trend === "0%") {
-			return {
-				backgroundColor: "#E5E7EB", // Neutral gray for no change
-				color: "#6B7280" // Neutral gray text
-			};
-		}
-		const isPositive = trend.startsWith("+");
-		return {
-			backgroundColor: isPositive ? "#B8FFE6" : "#FFE1E0",
-			color: isPositive ? "#00A331" : "#FF0302"
-		};
-	};
+	// // Function to determine trend styles based on value
+	// const getTrendStyles = (trend) => {
+	// 	if (!trend || trend === "0%") {
+	// 		return {
+	// 			backgroundColor: "#E5E7EB", // Neutral gray for no change
+	// 			color: "#6B7280" // Neutral gray text
+	// 		};
+	// 	}
+	// 	const isPositive = trend.startsWith("+");
+	// 	return {
+	// 		backgroundColor: isPositive ? "#B8FFE6" : "#FFE1E0",
+	// 		color: isPositive ? "#00A331" : "#FF0302"
+	// 	};
+	// };
 
 	return (
 		<div className="flex flex-col justify-between w-full h-[153px] bg-white border border-[rgba(49,117,255,0.3)] rounded-[12px] box-border p-[20px] shadow-[0px_4px_14px_rgba(0,38,116,0.15)]">
@@ -677,12 +677,12 @@ const BusinessGeneral = ({ campaign, loading, isLoadingCampaign, campaign_id }) 
 						</div>}
 					{loading || isLoadingCampaign ? <Skeleton height={20} width={200} /> :
 						<div className="flex items-end gap-2">
-							<div
+							{/* <div
 								className="flex justify-center items-center p-[5px] w-[48px] h-[19px] rounded-full text-[12px] leading-[16px] mb-2"
 								style={getTrendStyles(trendData.budgetChange)}
 							>
 								{trendData.budgetChange}
-							</div>
+							</div> */}
 							<h1 className="font-medium text-[32px] leading-[49px] text-[#101828] whitespace-nowrap">
 								{currency} {formatNumber(budget)}
 							</h1>
@@ -698,12 +698,12 @@ const BusinessGeneral = ({ campaign, loading, isLoadingCampaign, campaign_id }) 
 						</div>}
 					{loading || isLoadingCampaign ? <Skeleton height={20} width={200} /> :
 						<div className="flex items-end gap-2">
-							<div
+							{/* <div
 								className="flex justify-center items-center p-[5px] w-[48px] h-[19px] rounded-full text-[12px] leading-[16px] mb-2"
 								style={getTrendStyles(trendData.impressionsChange)}
 							>
 								{trendData.impressionsChange}
-							</div>
+							</div> */}
 							<h1 className="font-medium text-[32px] leading-[49px] text-[#101828] whitespace-nowrap">
 								{formatNumber(totalImpressions)}
 							</h1>
@@ -719,12 +719,12 @@ const BusinessGeneral = ({ campaign, loading, isLoadingCampaign, campaign_id }) 
 						</div>}
 					{loading || isLoadingCampaign ? <Skeleton height={20} width={200} /> :
 						<div className="flex items-end gap-2">
-							<div
+							{/* <div
 								className="flex justify-center items-center p-[5px] w-[48px] h-[19px] rounded-full text-[12px] leading-[16px] mb-2"
 								style={getTrendStyles(trendData.cpmChange)}
 							>
 								{trendData.cpmChange}
-							</div>
+							</div> */}
 							<h1 className="font-medium text-[32px] leading-[49px] text-[#101828] whitespace-nowrap">
 								{currency} {averageCpm}
 							</h1>
