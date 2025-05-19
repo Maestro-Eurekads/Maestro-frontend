@@ -61,24 +61,26 @@ function FeeSelectionStep({
   };
 
   const calculateNetAmount = () => {
-    if (!campaignFormData?.campaign_budget?.amount) return "";
+    if (!campaignFormData?.campaign_budget?.amount) return "0.00";
 
     const grossAmount = Number.parseFloat(
       campaignFormData?.campaign_budget?.amount
     );
 
     const totalFees = fees.reduce(
-      (total, fee) => total + Number.parseFloat(fee.amount),
+      (total, fee) => total + Number.parseFloat(fee.amount || 0),
       0
     );
 
     if (active === 1) {
+      // Gross budget: Net = Gross - Fees
       return (grossAmount - totalFees).toFixed(2);
     } else if (active === 2) {
-      return (grossAmount - totalFees).toFixed(2);
+      // Net budget: Gross = Net + Fees (but display Net as input)
+      return grossAmount.toFixed(2);
     }
 
-    return "";
+    return "0.00";
   };
 
   const updateNetAmount = (
@@ -87,11 +89,20 @@ function FeeSelectionStep({
   ) => {
     const budgetAmount = parseFloat(budget || "0");
     const totalFees = feesList.reduce(
-      (total, fee) => total + parseFloat(fee.amount),
+      (total, fee) => total + parseFloat(fee.amount || 0),
       0
     );
 
-    const net = (budgetAmount - totalFees).toFixed(2);
+    let net;
+    if (active === 1) {
+      // Gross budget: Net = Gross - Fees
+      net = (budgetAmount - totalFees).toFixed(2);
+    } else if (active === 2) {
+      // Net budget: Display net amount as is
+      net = budgetAmount.toFixed(2);
+    } else {
+      net = "0.00";
+    }
 
     setNetAmount(net);
   };
@@ -134,10 +145,10 @@ function FeeSelectionStep({
     }
 
     const newTotalFees =
-      fees.reduce((total, fee) => total + parseFloat(fee.amount), 0) +
+      fees.reduce((total, fee) => total + parseFloat(fee.amount || 0), 0) +
       calculatedAmount;
 
-    if (newTotalFees > budgetAmount) {
+    if (active === 1 && newTotalFees > budgetAmount) {
       toast("Total fees cannot exceed the gross amount", {
         style: { background: "red", color: "white" },
       });
@@ -200,6 +211,7 @@ function FeeSelectionStep({
       ) {
         setActive(1);
       }
+      updateNetAmount(feesData);
     }
   }, [campaignFormData]);
 
@@ -241,19 +253,26 @@ function FeeSelectionStep({
   }, [campaignFormData?.campaign_budget?.amount, active]);
 
   const calculateRemainingBudget = () => {
-    const totalBudget = Number(netAmount) > 0 
-      ? parseFloat(netAmount) 
-      : parseFloat(campaignFormData?.campaign_budget?.amount);
-      
-    const totalFees = fees.reduce((total, fee) => total + Number(fee.amount), 0);
-    const adjustedBudget = totalBudget - totalFees;
+    const budgetAmount = parseFloat(campaignFormData?.campaign_budget?.amount || "0");
+    const totalFees = fees.reduce((total, fee) => total + Number(fee.amount || 0), 0);
+    
+    let adjustedBudget;
+    if (active === 1) {
+      // Gross budget: Start with gross, subtract fees to get net
+      adjustedBudget = budgetAmount - totalFees;
+    } else if (active === 2) {
+      // Net budget: Use net amount directly
+      adjustedBudget = budgetAmount;
+    } else {
+      adjustedBudget = 0;
+    }
 
     const subBudgets = campaignFormData?.channel_mix?.reduce((acc, stage) => {
       return acc + (Number(stage?.stage_budget?.fixed_value) || 0);
     }, 0) || 0;
 
     const remainingBudget = adjustedBudget - subBudgets;
-    return remainingBudget > 0 ? remainingBudget : 0;
+    return remainingBudget > 0 ? remainingBudget.toFixed(2) : "0.00";
   };
 
   const handleEditClick = () => {
@@ -272,15 +291,9 @@ function FeeSelectionStep({
               <div className="flex items-center gap-4">
                 <p className="font-semibold text-[15px]">
                   Total Budget: {getCurrencySymbol(selectedOption.value)}
-                  {Number(netAmount) > 0
-                    ? netAmount
-                    : isNaN(
-                        parseInt(campaignFormData?.campaign_budget?.amount)
-                      )
-                    ? ""
-                    : parseInt(
-                        campaignFormData?.campaign_budget?.amount
-                      ).toLocaleString()}
+                  {formatNumberWithCommas(
+                    parseFloat(campaignFormData?.campaign_budget?.amount || "0").toFixed(2)
+                  )}
                 </p>
               </div>
               <p
@@ -291,7 +304,7 @@ function FeeSelectionStep({
                 }`}
               >
                 Remaining budget: {getCurrencySymbol(selectedOption.value)}
-                {Number(calculateRemainingBudget()).toLocaleString()}
+                {formatNumberWithCommas(calculateRemainingBudget())}
               </p>
             </div>
           </div>
@@ -523,7 +536,7 @@ function FeeSelectionStep({
                                 )}
                               </span>
                               <span>
-                                {Number.parseFloat(fee.amount).toLocaleString()}
+                                {formatNumberWithCommas(fee.amount)}
                               </span>
                               {fee.isPercent && (
                                 <span className="ml-2 text-gray-500">
@@ -579,15 +592,15 @@ function FeeSelectionStep({
                           </p>
                           <input
                             className="text-center outline-none w-[145px]"
-                            placeholder="Gross amount"
+                            placeholder="Net amount"
                             value={
                               isNaN(Number(netAmount)) ||
-                              Number(netAmount.toLocaleString()) <= 0
+                              Number(netAmount) <= 0
                                 ? ""
-                                : netAmount
+                                : formatNumberWithCommas(netAmount)
                             }
                             readOnly
-                            aria-label="Net gross amount (read-only)"
+                            aria-label="Net amount (read-only)"
                           />
                         </div>
                       </div>
@@ -708,9 +721,7 @@ function FeeSelectionStep({
                                   )}
                                 </span>
                                 <span>
-                                  {Number.parseFloat(
-                                    fee.amount
-                                  ).toLocaleString()}
+                                  {formatNumberWithCommas(fee.amount)}
                                 </span>
                                 {fee.isPercent && (
                                   <span className="ml-2 text-gray-500">
@@ -727,9 +738,7 @@ function FeeSelectionStep({
                                     const budgetFees = updatedFees.map(
                                       (fee) => ({
                                         fee_type: fee.type,
-                                        value: fee.isPercent
-                                          ? fee.percentValue
-                                          : fee.amount,
+                                        value: fee.amount,
                                         isPercent: fee.isPercent,
                                         percentValue: fee.percentValue,
                                       })
@@ -769,9 +778,11 @@ function FeeSelectionStep({
                               placeholder="Gross amount"
                               value={
                                 isNaN(Number(netAmount)) ||
-                                Number(netAmount.toLocaleString()) <= 0
+                                Number(netAmount) <= 0
                                   ? ""
-                                  : netAmount
+                                  : formatNumberWithCommas(
+                                      (Number(netAmount) + fees.reduce((total, fee) => total + Number(fee.amount || 0), 0)).toFixed(2)
+                                    )
                               }
                               readOnly
                               aria-label="Gross amount (read-only)"
@@ -802,14 +813,14 @@ function FeeSelectionStep({
               <p className="text-[14px] mb-2">
                 Total Net Amount:{" "}
                 <strong>
-                  {netAmount} {getCurrencySymbol(selectedOption.value)}
+                  {formatNumberWithCommas(netAmount)} {getCurrencySymbol(selectedOption.value)}
                 </strong>
               </p>
               <p className="text-[14px] mb-2">Fees:</p>
               <ul className="list-disc ml-5 text-[14px]">
                 {fees.map((fee, index) => (
                   <li key={index}>
-                    {fee.label}: {fee.amount} {getCurrencySymbol(selectedOption.value)}
+                    {fee.label}: {formatNumberWithCommas(fee.amount)} {getCurrencySymbol(selectedOption.value)}
                     {fee.isPercent && ` (${fee.percentValue}%)`}
                   </li>
                 ))}
