@@ -224,13 +224,13 @@ export const ChannelRow = ({
         key,
         typeof fn === "function"
           ? fn.apply(
-              null,
-              args.map((arg) =>
-                Array.isArray(arg)
-                  ? Number(getNestedValue(chData, ...arg))
-                  : Number(getNestedValue(chData, arg))
-              )
+            null,
+            args.map((arg) =>
+              Array.isArray(arg)
+                ? Number(getNestedValue(chData, ...arg))
+                : Number(getNestedValue(chData, arg))
             )
+          )
           : null,
       ])
     );
@@ -351,9 +351,8 @@ export const ChannelRow = ({
       {tableBody?.map((body, bodyIndex) => (
         <td
           key={bodyIndex}
-          className={`py-4 px-3 text-[15px] ${
-            nrColumns?.includes(body) ? "text-gray-400" : ""
-          }`}
+          className={`py-4 px-3 text-[15px] ${nrColumns?.includes(body) ? "text-gray-400" : ""
+            }`}
         >
           <div className="flex items-center gap-2">
             <CellRenderer
