@@ -68,7 +68,6 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 		router.push('/');
 	};
 
-	console.log('campaignData-campaignData', campaignData)
 
 
 
