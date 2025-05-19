@@ -5,9 +5,9 @@ import speaker from "../../../public/mdi_megaphone.svg";
 import zoom from "../../../public/tabler_zoom-filled.svg";
 import credit from "../../../public/mdi_credit-card.svg";
 import addPlus from "../../../public/addPlus.svg";
-import creditWhite from "../../../public/mdi_credit-cardwhite.svg";
-import zoomWhite from "../../../public/tabler_zoom-filledwhite.svg";
 import speakerWhite from "../../../public/mdi_megaphonewhite.svg";
+import zoomWhite from "../../../public/tabler_zoom-filledwhite.svg";
+import creditWhite from "../../../public/mdi_credit-cardwhite.svg";
 import addPlusWhite from "../../../public/addPlusWhite.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { useCampaigns } from "../../utils/CampaignsContext";
@@ -22,7 +22,7 @@ interface Funnel {
   name: string;
   color: string;
   icon?: any; // Optional for funnels with icons
-  activeIcon?: any; // Optional for funnels with icons
+  activeIcon?: any; // Optional for funnels with active icons
 }
 
 const MapFunnelStages = () => {
@@ -152,22 +152,25 @@ const MapFunnelStages = () => {
           { funnel_stage: "Retargeting" },
         ],
       }));
-    } else if (
-      campaignData?.custom_funnels &&
-      campaignData.custom_funnels.length > 0
-    ) {
-      // Ensure loaded funnels conform to Funnel type
-      setCustomFunnels(
-        campaignData.custom_funnels.map((funnel: any) => ({
-          id: funnel.id,
-          name: funnel.name,
-          color: funnel.color,
-          icon: funnel.icon || undefined,
-          activeIcon: funnel.activeIcon || undefined,
-        }))
-      );
     } else {
-      setCustomFunnels(defaultFunnels);
+      // Use defaultFunnels if campaignData.custom_funnels is empty or invalid
+      const loadedFunnels =
+        campaignData?.custom_funnels && campaignData.custom_funnels.length > 0
+          ? campaignData.custom_funnels.map((funnel: any) => {
+              // Check if the funnel is a default funnel to preserve its icons
+              const defaultFunnel = defaultFunnels.find(
+                (df) => df.id === funnel.id && df.name === funnel.name
+              );
+              return {
+                id: funnel.id,
+                name: funnel.name,
+                color: funnel.color || "bg-gray-500",
+                icon: defaultFunnel ? defaultFunnel.icon : undefined, // Only keep icon if it's a default funnel
+                activeIcon: defaultFunnel ? defaultFunnel.activeIcon : undefined,
+              };
+            })
+          : defaultFunnels;
+      setCustomFunnels(loadedFunnels);
     }
 
     if (campaignData?.funnel_stages) {
@@ -192,7 +195,7 @@ const MapFunnelStages = () => {
         }));
       }
     }
-  }, [campaignData]);
+  }, [campaignData, setCampaignFormData]);
 
   // Update campaignFormData when customFunnels or selectedOption change
   useEffect(() => {
@@ -273,9 +276,13 @@ const MapFunnelStages = () => {
       newFormData.custom_funnels = targetingRetargetingFunnels;
       setCustomFunnels(targetingRetargetingFunnels);
     } else if (option === "custom") {
-      newFormData.funnel_stages = savedSelections.custom.funnel_stages;
-      newFormData.channel_mix = savedSelections.custom.channel_mix;
-      newFormData.custom_funnels = customFunnels;
+      newFormData.funnel_stages = savedSelections.custom.funnel_stages.length
+        ? savedSelections.custom.funnel_stages
+        : defaultFunnels.map((f) => f.id);
+      newFormData.channel_mix = savedSelections.custom.channel_mix.length
+        ? savedSelections.custom.channel_mix
+        : defaultFunnels.map((f) => ({ funnel_stage: f.id }));
+      newFormData.custom_funnels = defaultFunnels;
       setCustomFunnels(defaultFunnels);
     }
 
@@ -367,22 +374,16 @@ const MapFunnelStages = () => {
       id: name,
       name: name,
       color: colorPalette[Math.floor(Math.random() * colorPalette.length)],
-      // Explicitly exclude icon and activeIcon
+      // Explicitly exclude icon and activeIcon for new funnels
     };
 
     const updatedFunnels: Funnel[] = [...customFunnels, newFunnel];
-    console.log("Adding new funnel:", newFunnel);
-    console.log("Updated funnels:", updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
-    setCampaignFormData((prev: any) => {
-      const updatedFormData = {
-        ...prev,
-        custom_funnels: updatedFunnels,
-      };
-      console.log("Updated campaignFormData:", updatedFormData);
-      return updatedFormData;
-    });
+    setCampaignFormData((prev: any) => ({
+      ...prev,
+      custom_funnels: updatedFunnels,
+    }));
 
     setHasChanges(true);
   };
@@ -419,9 +420,10 @@ const MapFunnelStages = () => {
     }
 
     const updatedFunnels: Funnel[] = customFunnels.map((f) =>
-      f.name === oldId ? { ...f, name: newName, id: newName } : f
+      f.name === oldId
+        ? { ...f, name: newName, id: newName, icon: undefined, activeIcon: undefined } // Remove icons on edit
+        : f
     );
-    console.log("Editing funnel, new funnels:", updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
     setCampaignFormData((prev: any) => {
@@ -442,7 +444,6 @@ const MapFunnelStages = () => {
         );
       }
 
-      console.log("Updated campaignFormData after edit:", updatedFormData);
       return updatedFormData;
     });
 
@@ -487,7 +488,6 @@ const MapFunnelStages = () => {
     }
 
     const updatedFunnels: Funnel[] = customFunnels.filter((f) => f.name !== id);
-    console.log("Removing funnel, new funnels:", updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
     setCampaignFormData((prev: any) => {
@@ -498,15 +498,12 @@ const MapFunnelStages = () => {
         (ch: any) => ch?.funnel_stage !== id
       );
 
-      const updatedFormData = {
+      return {
         ...prev,
         custom_funnels: updatedFunnels,
         funnel_stages: updatedFunnelStages,
         channel_mix: updatedChannelMix,
       };
-
-      console.log("Updated campaignFormData after remove:", updatedFormData);
-      return updatedFormData;
     });
 
     setSavedSelections((prev) => {
@@ -534,6 +531,7 @@ const MapFunnelStages = () => {
 
   return (
     <div>
+      <Toaster />
       <div className="flex items-center justify-between">
         <PageHeaderWrapper
           className={"text-[22px]"}
