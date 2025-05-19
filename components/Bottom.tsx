@@ -89,7 +89,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     });
   };
 
-  console.log('active-active', campaignData)
+
 
   useEffect(() => {
     if (typeof window !== "undefined" && cId) {
