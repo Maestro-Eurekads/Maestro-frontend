@@ -5,7 +5,7 @@ import Continue from "../public/arrow-back-outline.svg";
 import Back from "../public/eva_arrow-back-outline.svg";
 import { useActive } from "../app/utils/ActiveContext";
 import AlertMain from "../components/Alert/AlertMain";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCampaigns } from "../app/utils/CampaignsContext";
 import { BiLoader } from "react-icons/bi";
 import { removeKeysRecursively } from "../utils/removeID";
@@ -73,6 +73,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     currencySign
   } = useCampaigns();
 
+  // --- Persist format selection for active === 4 ---
+  // We'll use a ref to track if the user has ever selected a format and continued from step 4
+  const hasProceededFromFormatStep = useRef(false);
+
   const validateFormatSelection = () => {
     const selectedStages = campaignFormData?.funnel_stages || [];
     const validatedStages = campaignFormData?.validatedStages || {};
@@ -116,9 +120,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     return hasValidFormat;
   };
 
-  // Reset formats when entering active === 4
+  // Only reset formats when entering active === 4 if the user has NOT already proceeded from step 4 with a valid format
   useEffect(() => {
-    if (active === 4) {
+    if (active === 4 && !hasProceededFromFormatStep.current) {
       setCampaignFormData((prev) => ({
         ...prev,
         channel_mix: prev.channel_mix?.map((mix) => ({
@@ -138,22 +142,23 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         validatedStages: {}
       }));
       setHasFormatSelected(false);
-      console.log("Reset formats for active === 4", { channel_mix: campaignFormData.channel_mix });
+      // console.log("Reset formats for active === 4", { channel_mix: campaignFormData.channel_mix });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
   // Update hasFormatSelected and log state
   useEffect(() => {
     const isFormatSelected = validateFormatSelection();
     setHasFormatSelected(isFormatSelected);
-    console.log({
-      active,
-      validateFormatSelection: isFormatSelected,
-      hasFormatSelected: isFormatSelected,
-      channel_mix: campaignFormData?.channel_mix,
-      funnel_stages: campaignFormData?.funnel_stages,
-      validatedStages: campaignFormData?.validatedStages
-    });
+    // console.log({
+    //   active,
+    //   validateFormatSelection: isFormatSelected,
+    //   hasFormatSelected: isFormatSelected,
+    //   channel_mix: campaignFormData?.channel_mix,
+    //   funnel_stages: campaignFormData?.funnel_stages,
+    //   validatedStages: campaignFormData?.validatedStages
+    // });
   }, [active, campaignFormData]);
 
   useEffect(() => {
@@ -262,7 +267,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     );
   };
 
+  // --- Custom back handler for active === 5 to persist step 4 if user had format selected and continued ---
   const handleBack = () => {
+    // If we are on step 5 and the user had previously proceeded from step 4 with a valid format, go back to 4 and do NOT reset formats
+    if (active === 5 && hasProceededFromFormatStep.current) {
+      setActive(4);
+      // Do not reset formats, so skip the reset logic in useEffect above
+      return;
+    }
     if (subStep > 0) {
       setSubStep((prev) => prev - 1);
     } else {
@@ -405,6 +417,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       } else {
         setTriggerFormatError(false);
         setTriggerFormatErrorCount(0);
+        // Mark that the user has proceeded from step 4 with a valid format
+        hasProceededFromFormatStep.current = true;
       }
     }
 
