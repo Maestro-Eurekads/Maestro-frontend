@@ -127,6 +127,7 @@ const Table = () => {
     }
   }, [clientCampaignData, itemsPerPage]);
 
+  const clientId = localStorage.getItem("selectedClient");
 
   return (
     <div className="flex flex-col">
@@ -153,7 +154,7 @@ const Table = () => {
           <tbody className="data-table-content">
             {loading || fetchingPO ? (
               <SVGLoaderFetch colSpan={9} text={"Loading client campaigns"} />
-            ) : clientCampaignData?.length === 0 ? (
+            ) : clientCampaignData?.length === 0 || !clientId ? (
               <NoRecordFound colSpan={9}>No Client campaigns!</NoRecordFound>
             ) : (
               currentItems.map((data) => {

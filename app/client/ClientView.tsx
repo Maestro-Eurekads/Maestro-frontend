@@ -35,82 +35,18 @@ import upfull from "../../public/arrow-up-full.svg";
 import downfull from "../../public/arrow-down-full.svg";
 import upoffline from "../../public/arrow-up-offline.svg";
 import { useKpis } from 'app/utils/KpiProvider';
-import { aggregateKPIStatsFromExtracted, categoryOrder, extractKPIByFunnelStage, extractPlatforms, kpiCategories, mapKPIStatsToStatsDataDynamic } from 'components/Options';
+import { aggregateKPIStatsFromExtracted, categoryOrder, extractKPIByFunnelStage, kpiCategories, mapKPIStatsToStatsDataDynamic } from 'components/Options';
 import MainSection from './compoment/Timeline/main-section';
 import ChannelDistributionChatTwo from 'components/ChannelDistribution/ChannelDistributionChatTwo';
 import { getCurrencySymbol, platformIcons } from 'components/data';
 import CampaignPhases from 'app/creation/components/CampaignPhases';
-import DoughnutChat from 'components/DoughnutChat';
+import { extractPlatforms } from 'app/creation/components/EstablishedGoals/table-view/data-processor';
 import { processCampaignData } from 'components/processCampaignData';
+import DoughnutChat from 'components/DoughnutChat';
+import ConfigureBudgetComponet from 'app/creation/components/ConfigureAdSetsAndBudget/ConfigureBudgetComponet';
 
 
-const channels = [
-	{
-		icon: facebook,
-		name: "Facebook",
-		color: "#0866FF",
-		audience: "Men 25+ Int. Sport",
-		startDate: "01/02/2024",
-		endDate: "01/03/2024",
-		audienceSize: 50000,
-		budgetSize: "1,800 €",
-		impressions: 2000000,
-		reach: 2000000,
-		hasChildren: true,
-	},
-	{
-		icon: instagram,
-		name: "Instagram",
-		color: "#E01389",
-		audience: "Lookalike Buyers 90D",
-		startDate: "01/02/2024",
-		endDate: "01/03/2024",
-		audienceSize: 40000,
-		budgetSize: 8000,
-		impressions: 2000000,
-		reach: 2000000,
-		hasChildren: true,
-	},
-	{
-		icon: youtube,
-		name: "Youtube",
-		color: "#FF0302",
-		audience: "Men 25+ Int. Sport",
-		startDate: "01/02/2024",
-		endDate: "01/03/2024",
-		audienceSize: 60000,
-		budgetSize: 12000,
-		impressions: 2000000,
-		reach: 2000000,
-		hasChildren: false,
-	},
-	{
-		icon: tradedesk,
-		name: "TheTradeDesk",
-		color: "#0099FA",
-		audience: "Lookalike Buyers 90D",
-		startDate: "01/02/2024",
-		endDate: "01/03/2024",
-		audienceSize: 60000,
-		budgetSize: 12000,
-		impressions: 2000000,
-		reach: 2000000,
-		hasChildren: false,
-	},
-	{
-		icon: quantcast,
-		name: "Quantcast",
-		color: "#061237",
-		audience: "Men 25+ Int. Sport",
-		startDate: "01/02/2024",
-		endDate: "01/03/2024",
-		audienceSize: 60000,
-		budgetSize: 12000,
-		impressions: 2000000,
-		reach: 2000000,
-		hasChildren: false,
-	},
-];
+
 
 interface Comment {
 	documentId: string;
@@ -138,6 +74,7 @@ const ClientView = () => {
 		.sort((a: Comment, b: Comment) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 	const allApproved = (comments?.length || 0) > 0 && comments.every((comment: Comment) => comment?.approved === true);
 	const dispatch = useAppDispatch();
+	const [show, setShow] = useState(false);
 	const { campaigns, loading, fetchCampaignsByClientId } = useClientCampaign();
 	const [finalCategoryOrder, setFinalCategoryOrder] = useState(categoryOrder); // default fallback
 	const { data: session }: any = useSession();
@@ -228,7 +165,7 @@ const ClientView = () => {
 	const aggregatedStats = aggregateKPIStatsFromExtracted(extractedData, kpiCategories)
 	const statsData = mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, { upfull, downfull, downoffline, upoffline }, finalCategoryOrder);
 
-	const processedCampaigns = processCampaignData(clientCampaignData, platformIcons)
+
 
 	return (
 		<>
@@ -249,8 +186,7 @@ const ClientView = () => {
 								<div className="flex gap-[12px] md:flex-row">
 									<button
 										className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
-										style={{ border: "1px solid #3175FF" }} >
-										See Budget Overview
+										style={{ border: "1px solid #3175FF" }} onClick={() => setShow(!show)}>{!show ? "See" : "Hide"} budget overview
 									</button>
 									<button
 										className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
@@ -273,6 +209,9 @@ const ClientView = () => {
 
 						</div>
 					</div>
+					<div >
+						<ConfigureBudgetComponet show={show} t1={"Your budget by campaign phase"} t2={undefined} funnelData={extractedData} />
+					</div>
 					<div className='mt-[50px]'>
 						{isLoadingCampaign ? <TableLoader isLoading={isLoadingCampaign} /> : ""}
 					</div>
@@ -284,108 +223,15 @@ const ClientView = () => {
 						</div>
 
 					</div> */}
-					{processedCampaigns?.map((campaign, index) => {
-						const channelD = extractPlatforms(campaign)
 
-						return (
-							<div key={index} className="flex justify-center gap-[48px] mt-[100px]">
-								<div className="box-border flex flex-row items-start p-6 gap-[72px] w-[493px] h-[403px] bg-[#F9FAFB] rounded-lg">
-									<div className="flex flex-col">
-										<h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
-											Your budget by phase for {campaign?.media_plan_details?.plan_name}
-										</h3>
-										<div className="flex items-center gap-5">
-											<div className="mt-[16px]">
-												<p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-													Total budget
-												</p>
-
-												<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-													{campaign?.campaign_budget?.amount} {campaign?.campaign_budget?.currency}
-												</h3>
-											</div>
-											<div className="mt-[16px]">
-												<p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-													Campaign phases
-												</p>
-
-												<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-													{campaign?.channel_mix?.length} phases
-												</h3>
-											</div>
-										</div>
-
-										<div className="flex items-center gap-6 mt-[24px] w-full">
-											{/* Doughnut Chat */}
-											<DoughnutChat
-												data={campaign?.channel_mix?.map((ch) =>
-													Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0),
-												)}
-												color={campaign?.channel_mix?.map((ch) =>
-													ch?.funnel_stage === "Awareness"
-														? "#3175FF"
-														: ch?.funnel_stage === "Consideration"
-															? "#00A36C"
-															: ch?.funnel_stage === "Conversion"
-																? "#FF9037"
-																: "#F05406",
-												)}
-												insideText={`${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency ? getCurrencySymbol(campaign?.campaign_budget?.currency) : ""
-													}`}
-											/>
-											{/* Campaign Phases */}
-											<CampaignPhases
-												campaignPhases={campaign?.channel_mix?.map((ch) => ({
-													name: ch?.funnel_stage,
-													percentage: Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0),
-													color:
-														ch?.funnel_stage === "Awareness"
-															? "#3175FF"
-															: ch?.funnel_stage === "Consideration"
-																? "#00A36C"
-																: ch?.funnel_stage === "Conversion"
-																	? "#FF9037"
-																	: "#F05406",
-												}))}
-											/>
-										</div>
-									</div>
-								</div>
-
-								<div className="flex flex-col">
-									<div
-										key={index}
-										className="box-border flex flex-col items-start p-6 gap-[5px] w-[493px] min-h-[545px] bg-[#F9FAFB] rounded-lg"
-									>
-										<h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
-											Your budget by channel
-										</h3>
-										<div className="mt-[16px]">
-											<p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-												Channels
-											</p>
-											<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-												{channelD?.length} channels
-											</h3>
-										</div>
-										<ChannelDistributionChatTwo
-											channelData={channelD}
-											currency={getCurrencySymbol(campaign?.campaign_budget?.currency)}
-										/>
-									</div>
-								</div>
-							</div>
-						)
-					})}
-					ffff
 				</main>
-
 				<SignatureModal
 					isOpen={modalOpen}
 					onClose={() => setModalOpen(false)}
 				/>
 				<ApproveModel isOpen={isOpen} setIsOpen={setIsOpen} />
 			</div>
+
 		</>
 	)
 }

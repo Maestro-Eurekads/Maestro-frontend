@@ -15,13 +15,15 @@ const ClientShowcomment = ({ comment, setActiveComment }) => {
 		setViewcommentsId(documentId);
 	};
 
+
+
 	return (
 		<div className='cursor-move'>
 			<div className="w-[395px] flex flex-col items-start p-[10px_20px] bg-white border border-black rounded-[8px]">
 				<div className="flex justify-between items-center gap-3 w-full">
 					<div className="flex items-center gap-2">
 						<div className="flex flex-col justify-center items-center p-[10px] gap-[10px] w-[40px] h-[40px] bg-[#00A36C] rounded-full text-[20px] leading-[27px] text-center text-white">
-							{comment?.creator?.name[0] || "?"}
+							{comment?.creator?.name[0] ?? ""}
 						</div>
 						<CommentHeaderwithClose author={comment?.creator?.name} />
 					</div>
