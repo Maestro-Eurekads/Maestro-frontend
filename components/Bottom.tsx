@@ -55,6 +55,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
+  const [hasFormatSelected, setHasFormatSelected] = useState(false);
   const {
     createCampaign,
     updateCampaign,
@@ -72,24 +73,88 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     currencySign
   } = useCampaigns();
 
-  const hasUploadedPreviews = () => {
-    const stages = campaignFormData?.channel_mix || [];
-    return stages.some((stage) => {
-      return CHANNEL_TYPES.some(({ key }) => {
-        return stage[key]?.some((platform) => {
-          if (platform.format?.some((f) => f.previews?.length > 0)) {
-            return true;
-          }
-          if (platform.ad_sets?.some((adset) => adset.format?.some((f) => f.previews?.length > 0))) {
-            return true;
-          }
-          return false;
-        });
-      });
-    });
+  const validateFormatSelection = () => {
+    const selectedStages = campaignFormData?.funnel_stages || [];
+    const validatedStages = campaignFormData?.validatedStages || {};
+    let hasValidFormat = false;
+
+    for (const stage of selectedStages) {
+      const stageData = campaignFormData?.channel_mix?.find(
+        (mix) => mix.funnel_stage === stage
+      );
+
+      if (stageData) {
+        const hasFormatSelected = [
+          ...(stageData.social_media || []),
+          ...(stageData.display_networks || []),
+          ...(stageData.search_engines || []),
+          ...(stageData.streaming || []),
+          ...(stageData.ooh || []),
+          ...(stageData.broadcast || []),
+          ...(stageData.messaging || []),
+          ...(stageData.print || []),
+          ...(stageData.e_commerce || []),
+          ...(stageData.in_game || []),
+          ...(stageData.mobile || []),
+        ].some(
+          (platform) =>
+            (platform.format?.length > 0 &&
+              platform.format.some((f) => f.format_type && f.num_of_visuals)) ||
+            platform.ad_sets?.some((adset) =>
+              adset.format?.some((f) => f.format_type && f.num_of_visuals)
+            )
+        );
+
+        const isStageValidated = validatedStages[stage];
+
+        if (hasFormatSelected || isStageValidated) {
+          hasValidFormat = true;
+          break;
+        }
+      }
+    }
+    return hasValidFormat;
   };
 
+  // Reset formats when entering active === 4
+  useEffect(() => {
+    if (active === 4) {
+      setCampaignFormData((prev) => ({
+        ...prev,
+        channel_mix: prev.channel_mix?.map((mix) => ({
+          ...mix,
+          social_media: mix.social_media?.map((p) => ({ ...p, format: [] })),
+          display_networks: mix.display_networks?.map((p) => ({ ...p, format: [] })),
+          search_engines: mix.search_engines?.map((p) => ({ ...p, format: [] })),
+          streaming: mix.streaming?.map((p) => ({ ...p, format: [] })),
+          ooh: mix.ooh?.map((p) => ({ ...p, format: [] })),
+          broadcast: mix.broadcast?.map((p) => ({ ...p, format: [] })),
+          messaging: mix.messaging?.map((p) => ({ ...p, format: [] })),
+          print: mix.print?.map((p) => ({ ...p, format: [] })),
+          e_commerce: mix.e_commerce?.map((p) => ({ ...p, format: [] })),
+          in_game: mix.in_game?.map((p) => ({ ...p, format: [] })),
+          mobile: mix.mobile?.map((p) => ({ ...p, format: [] })),
+        })) || [],
+        validatedStages: {}
+      }));
+      setHasFormatSelected(false);
+      console.log("Reset formats for active === 4", { channel_mix: campaignFormData.channel_mix });
+    }
+  }, [active]);
 
+  // Update hasFormatSelected and log state
+  useEffect(() => {
+    const isFormatSelected = validateFormatSelection();
+    setHasFormatSelected(isFormatSelected);
+    console.log({
+      active,
+      validateFormatSelection: isFormatSelected,
+      hasFormatSelected: isFormatSelected,
+      channel_mix: campaignFormData?.channel_mix,
+      funnel_stages: campaignFormData?.funnel_stages,
+      validatedStages: campaignFormData?.validatedStages
+    });
+  }, [active, campaignFormData]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && cId) {
@@ -145,49 +210,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     validateStep,
     campaignFormData,
   ]);
-
-  const validateFormatSelection = () => {
-    const selectedStages = campaignFormData?.funnel_stages || [];
-    const validatedStages = campaignFormData?.validatedStages || {};
-    let hasValidFormat = false;
-
-    for (const stage of selectedStages) {
-      const stageData = campaignFormData?.channel_mix?.find(
-        (mix) => mix.funnel_stage === stage
-      );
-
-      if (stageData) {
-        const hasFormatSelected = [
-          ...(stageData.social_media || []),
-          ...(stageData.display_networks || []),
-          ...(stageData.search_engines || []),
-          ...(stageData.streaming || []),
-          ...(stageData.ooh || []),
-          ...(stageData.broadcast || []),
-          ...(stageData.messaging || []),
-          ...(stageData.print || []),
-          ...(stageData.e_commerce || []),
-          ...(stageData.in_game || []),
-          ...(stageData.mobile || []),
-        ].some(
-          (platform) =>
-            (platform.format?.length > 0 &&
-              platform.format.some((f) => f.format_type && f.num_of_visuals)) ||
-            platform.ad_sets?.some((adset) =>
-              adset.format?.some((f) => f.format_type && f.num_of_visuals)
-            )
-        );
-
-        const isStageValidated = validatedStages[stage];
-
-        if (hasFormatSelected || isStageValidated) {
-          hasValidFormat = true;
-          break;
-        }
-      }
-    }
-    return hasValidFormat;
-  };
 
   const validateBuyObjectiveSelection = () => {
     const selectedStages = campaignFormData?.funnel_stages || [];
@@ -248,14 +270,12 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       if (active === 8) setSubStep(1);
     }
   };
+
   useEffect(() => {
     setIsStepZeroValid(requiredFields.every((field) => field));
   }, [requiredFields]);
 
-
   const handleContinue = async () => {
-
-    // Only check editing state if we're on step 6
     if (active === 6) {
       if (midcapEditing.isEditing) {
         let errorMessage = "";
@@ -300,35 +320,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     setLoading(true);
     let hasError = false;
 
-    // if (active === 0) {
-    //   handleStepZero()
-    // const requiredFields = [
-    //   campaignFormData?.client_selection?.value,
-    //   campaignFormData?.media_plan,
-    //   campaignFormData?.approver,
-    //   campaignFormData?.client_approver,
-    // ];
-
-    // if (!requiredFields.every((field) => field)) {
-    //   setIncompleteFieldsError(true);
-    //   setAlert({
-    //     variant: "error",
-    //     message: "Please complete all required fields before proceeding!",
-    //     position: "bottom-right",
-    //   });
-    //   hasError = true;
-    // }
-
-    // if (hasChanges) {
-    //   setValidateStep(true);
-    //   hasError = true;
-    // }
-
-    // if (!hasError) {
-    //   setActive((prev) => prev + 1);
-    // }
-    // }
-
     if (active === 1) {
       if (
         !campaignFormData?.funnel_stages ||
@@ -355,8 +346,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           position: "bottom-right",
         });
         hasError = true;
-      }
-      else {
+      } else {
         setTriggerChannelMixError(false);
         setAlert(null);
       }
@@ -405,6 +395,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         return;
       }
     }
+
     if (active === 4) {
       const isValidFormat = validateFormatSelection();
       if (!isValidFormat) {
@@ -454,11 +445,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           hasError = true;
         }
       }
-
-      // if (hasChanges) {
-      // setValidateStep(true);
-      // hasError = true;
-      // }
     }
 
     if (hasError) {
@@ -498,9 +484,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       ])
       : {};
 
-
     const handleStepZero = async () => {
-      setLoading(true)
+      setLoading(true);
 
       try {
         if (!isStepZeroValid) {
@@ -557,7 +542,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                   ?.label || budgetDetails.currency,
             },
           }));
-          setLoading(false)
+          setLoading(false);
           setActive((prev) => prev + 1);
           setAlert({
             variant: "success",
@@ -588,7 +573,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             position: "bottom-right",
           });
         }
-        // setHasChanges(false);
         setLoading(false);
       } catch (error) {
         setAlert({
@@ -600,14 +584,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setLoading(false);
       }
     };
-
-
-    // if (active === 0) {
-
-
-    // }
-
-
 
     const handleStepTwo = async () => {
       if (!campaignData || !cId) return;
@@ -656,8 +632,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       });
     };
 
-    // console.log('campaignFormData?.goal_level', campaignFormData?.campaign_budget?.level)
-
     const handleStepSeven = async () => {
       if (!campaignData) return;
       await updateCampaignData({
@@ -702,7 +676,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             : campaign_timeline_start_date,
         campaign_timeline_end_date: campaign_timeline_end_date === "Invalid Date"
           ? campaignFormData?.campaign_timeline_end_date
-          : campaign_timeline_end_date,
+            : campaign_timeline_end_date,
         funnel_stages: campaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
@@ -762,15 +736,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     <footer id="footer" className="w-full">
       <Toaster position="bottom-right" />
       {alert && <AlertMain alert={alert} />}
-      {/* {validateStep && (
-        <AlertMain
-          alert={{
-            variant: "error",
-            message: "Please validate before proceeding!",
-            position: "bottom-right",
-          }}
-        />
-      )} */}
       {setupyournewcampaignError && (
         <AlertMain
           alert={{
@@ -836,7 +801,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         />
       )}
 
-
       <div className="flex justify-between w-full">
         {active === 0 ? (
           <div />
@@ -870,7 +834,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                 active === 10 && "opacity-50 cursor-not-allowed",
                 active < 10 && "hover:bg-blue-500"
               )}
-              onClick={handleContinue}
+              onClick={active === 4 && !hasFormatSelected ? handleSkip : handleContinue}
               disabled={active === 10}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
@@ -884,11 +848,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                   <p>
                     {active === 0
                       ? "Start"
-                      : active === 4 && !hasUploadedPreviews()
-                        ? "Skip"
-                        : isHovered
-                          ? "Next Step"
-                          : "Continue"}
+                      : isHovered && active < 10
+                      ? "Next Step"
+                      : active === 4 && !hasFormatSelected
+                      ? "Skip"
+                      : "Continue"}
                   </p>
                   <Image src={Continue} alt="Continue" />
                 </>
