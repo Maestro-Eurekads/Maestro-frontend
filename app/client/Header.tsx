@@ -10,8 +10,17 @@ import tickcircles from "../../public/solid_circle-check.svg";
 import ClientsCampaignDropdown from "./compoment/ClientsCampaignDropdown";
 
 const Header = ({ setIsOpen, campaigns, loading }) => {
-  const { isDrawerOpen, setModalOpen, createApprovalSuccess, setCreateApprovalSuccess, selected, setSelected } = useComments();
-  const { dataApprove, isLoadingApprove } = useAppSelector((state) => state.comment);
+  const {
+    isDrawerOpen,
+    setModalOpen,
+    createApprovalSuccess,
+    setCreateApprovalSuccess,
+    selected,
+    setSelected,
+  } = useComments();
+  const { dataApprove, isLoadingApprove } = useAppSelector(
+    (state) => state.comment
+  );
   const { data: session }: any = useSession();
   const dispatch = useAppDispatch();
   const id = session?.user?.id;
@@ -38,47 +47,71 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   return (
     <div
       id="client_header"
-      className={`py-[2.8rem] px-[30px] ${isDrawerOpen ? 'md:px-[50px]' : 'xl:px-[100px]'} relative`}>
+      className={`py-[2.8rem] px-[30px] ${
+        isDrawerOpen ? "md:px-[50px]" : "xl:px-[100px]"
+      } relative`}
+    >
       <div className="flex items-end">
-        {loading ? <Skeleton height={20} width={200} /> :
-          hasCampaigns ? (
-            <ClientsCampaignDropdown loadingClients={false} campaigns={campaigns} setSelected={setSelected} selected={selected} />
-          ) : (
-            <p className="text-gray-500">No campaigns assigned</p>
-          )}
+        {loading ? (
+          <Skeleton height={20} width={200} />
+        ) : hasCampaigns ? (
+          <ClientsCampaignDropdown
+            loadingClients={false}
+            campaigns={campaigns}
+            setSelected={setSelected}
+            selected={selected}
+          />
+        ) : (
+          <p className="text-gray-500">No campaigns assigned</p>
+        )}
       </div>
       <div>
-        {isLoadingApprove ? <Skeleton height={20} width={200} /> :
+        {isLoadingApprove ? (
+          <Skeleton height={20} width={200} />
+        ) : (
           hasCampaigns && (
             <div>
-              {isSignature ? <button
-                className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start flex items-center	gap-[10px]"
-                style={{ border: "1px solid #3175FF" }}
-                onClick={handleDrawerOpen}>
-                <Image src={tickcircles} alt="tickcircle" className="w-[18px] " />
-                Approved
-              </button> :
+              {isSignature ? (
+                <button
+                  className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start flex items-center	gap-[10px]"
+                  style={{ border: "1px solid #3175FF" }}
+                  onClick={handleDrawerOpen}
+                >
+                  <Image
+                    src={tickcircles}
+                    alt="tickcircle"
+                    className="w-[18px] "
+                  />
+                  Approved
+                </button>
+              ) : (
                 <button
                   className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
                   style={{ border: "1px solid #3175FF" }}
-                  onClick={() => setIsOpen(true)}>
+                  onClick={() => setIsOpen(true)}
+                >
                   Approve & Sign Media plan
-                </button>}
+                </button>
+              )}
             </div>
           )
-        }
+        )}
       </div>
-      {isDrawerOpen ? "" :
+      {isDrawerOpen ? (
+        ""
+      ) : (
         <div
           className="text-[18px] absolute right-[30px] top-[20px] cursor-pointer"
-          onClick={async () =>
+          onClick={async () => {
+            localStorage.removeItem("campaignFormData");
             await signOut({
               callbackUrl: "/",
-            })
-          }
+            });
+          }}
         >
           Logout
-        </div>}
+        </div>
+      )}
     </div>
   );
 };

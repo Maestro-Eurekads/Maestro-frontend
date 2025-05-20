@@ -310,10 +310,11 @@ const Header = ({ setIsOpen }) => {
               <div className="absolute bg-white border shadow-md rounded-[10px] top-[50px]">
                 <div
                   className="flex items-center gap-2 cursor-pointer p-2"
-                  onClick={async () =>
+                  onClick={async () =>{
+                    localStorage.removeItem("campaignFormData");
                     await signOut({
                       callbackUrl: "/",
-                    })
+                    })}
                   }
                 >
                   <LogOut color="#3175FF" />
