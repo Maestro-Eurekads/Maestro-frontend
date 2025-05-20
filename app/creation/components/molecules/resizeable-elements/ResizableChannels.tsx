@@ -444,6 +444,15 @@ const ResizableChannels = ({
   useEffect(() => {
     if (initialChannels && initialChannels.length > 0) {
       console.log("🚀 ~ useEffect ~ initialChannels:", initialChannels);
+      const gridContainer = document.querySelector(
+        ".grid-container"
+      ) as HTMLElement;
+      if (!gridContainer) return;
+
+      // Get container boundaries
+      const containerRect = gridContainer.getBoundingClientRect();
+      // console.log("🚀 ~ useEffect ~ containerRect:", containerRect);
+      const containerWidth = containerRect.width - 75;
       setChannels(initialChannels);
       // Initialize new channels with parent's position
       setChannelState((prev) => {
@@ -522,7 +531,9 @@ const ResizableChannels = ({
             ? {
                 ...existingState,
                 // Update left position to match parent when it moves
-                left: parentLeft + Math.abs(startDateIndex < 0 ? 0 : startDateIndex),
+                left:
+                  parentLeft +
+                  Math.abs(startDateIndex < 0 ? 0 : startDateIndex),
                 width:
                   rrange === "Day"
                     ? daysBetween > 0
@@ -533,7 +544,7 @@ const ResizableChannels = ({
                       ? 50 * daysBetween + 10
                       : parentWidth
                     : rrange === "Month"
-                    ? Math.min(existingState?.width, parentWidth)
+                    ? Math.round(containerWidth / 2 / 31)
                     : parentWidth,
               }
             : {

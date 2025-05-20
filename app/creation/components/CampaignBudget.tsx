@@ -45,7 +45,7 @@ const CampaignBudget = () => {
 
   const { campaignFormData, setCampaignFormData, campaignData } = useCampaigns();
 
-  console.log('campaignFormData-campaignFormData', campaignFormData)
+  // console.log('campaignFormData-campaignFormData', campaignFormData)
 
   const selectCurrency = [
     { value: "USD", label: "USD" },
