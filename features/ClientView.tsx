@@ -11,6 +11,7 @@ function ClientView() {
         className="text-[18px]"
         onClick={async () => {
           localStorage.removeItem("campaignFormData");
+          localStorage.removeItem("selectedClient");
           await signOut({
             callbackUrl: "/",
           });
