@@ -58,7 +58,7 @@ const Header = ({ setIsOpen }) => {
 
 
 
-  console.log('userType-userType', userType.toString())
+
 
   useEffect(() => {
     dispatch(getCreateClient());
@@ -95,7 +95,7 @@ const Header = ({ setIsOpen }) => {
 
     setLoading(true);
     let isMounted = true;
-    const clientId = selectedId || clients.data[0]?.id;
+    const clientId = selectedId || clients?.data[0]?.id;
     if (!clientId) {
       setLoading(false);
       return;
