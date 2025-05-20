@@ -7,12 +7,10 @@ import { useFunnelContext } from "../../../../utils/FunnelContextType";
 import whiteplus from "../../../../../public/white-plus.svg";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import {
-  addDays,
   differenceInCalendarDays,
   eachDayOfInterval,
   isEqual,
   parseISO,
-  subDays,
 } from "date-fns";
 import moment from "moment";
 import { getCurrencySymbol } from "components/data";
@@ -453,26 +451,29 @@ const ResizableChannels = ({
           const stageStartDate = ch?.start_date
             ? parseISO(ch?.start_date)
             : null;
-          const adjustedStageStartDate = stageStartDate
-            ? dateOffset > 0
-              ? null // Add days if offset is positive
-              : subDays(stageStartDate, Math.abs(dateOffset)) // Subtract days if offset is negative
-            : null;
+          console.log({
+            stageStartDate,
+            startDate,
+          });
 
+          // Only adjust start date if it's earlier than parent start date
+          const adjustedStageStartDate =
+            stageStartDate && stageStartDate < startDate
+              ? stageStartDate
+              : stageStartDate < startDate
+              ? startDate // Use parent start date if channel start date is earlier
+              : stageStartDate; // Otherwise use the actual channel start date
+          console.log(adjustedStageStartDate, ch?.name);
           const stageEndDate = ch?.end_date ? parseISO(ch?.end_date) : null;
 
           // Check if the channel's end date exceeds the parent timeline's end date
           const isEndDateExceeded =
             stageEndDate && endDate && stageEndDate > endDate;
 
-          // If the end date exceeds, use the parent timeline's end date instead
+          // Only adjust end date if it exceeds parent end date
           const adjustedStageEndDate = isEndDateExceeded
-            ? endDate
-            : stageEndDate
-            ? endDateOffset > 0
-              ? addDays(adjustedStageStartDate, endDateOffset) // Add days if offset is positive
-              : subDays(stageEndDate, Math.abs(endDateOffset)) // Subtract days if offset is negative
-            : null;
+            ? endDate // Use parent end date if channel end date exceeds it
+            : stageEndDate; // Otherwise use the actual channel end date
 
           const startDateIndex = adjustedStageStartDate
             ? dRange?.findIndex((date) =>
@@ -481,36 +482,59 @@ const ResizableChannels = ({
             : 0;
 
           // Calculate days between using the adjusted end date
-          const daysBetween =
-            adjustedStageStartDate && adjustedStageEndDate
-              ? eachDayOfInterval({
-                  start: adjustedStageStartDate,
-                  end: adjustedStageEndDate,
-                })?.length - 1
-              : eachDayOfInterval({
-                  start: new Date(ch?.start_date) || null,
-                  end: isEndDateExceeded
-                    ? endDate
-                    : new Date(ch?.end_date) || null,
-                })?.length - 1;
-          console.log("🚀 ~ newState ~ daysBetween:", daysBetween);
+          let daysBetween;
+          if (adjustedStageStartDate && adjustedStageEndDate) {
+            console.log("here1", ch?.name);
+            console.log({
+              start: adjustedStageStartDate,
+              end: adjustedStageEndDate,
+              name: ch?.name,
+            });
+            daysBetween =
+              eachDayOfInterval({
+                start: adjustedStageStartDate,
+                end: adjustedStageEndDate,
+              })?.length - 1;
+          } else {
+            console.log("here2", ch?.name);
+            daysBetween =
+              eachDayOfInterval({
+                start: new Date(ch?.start_date) || null,
+                end: isEndDateExceeded
+                  ? endDate
+                  : new Date(ch?.end_date) || null,
+              })?.length - 1;
+          }
+          console.log("🚀 ~ newState ~ daysBetween:", daysBetween, ch?.name);
+          console.log("🚀 isEndDateExceeded:", {
+            isEndDateExceeded,
+            endDate,
+            adjustedStageEndDate,
+          });
           const endDaysDiff = differenceInCalendarDays(endDate, stageEndDate);
           // Check if this channel already exists in prev
           const existingState = prev[index];
-
+          console.log("startDateIndex", {
+            startDateIndex,
+            left: parentLeft + Math.abs(startDateIndex),
+          });
           return existingState
             ? {
                 ...existingState,
                 // Update left position to match parent when it moves
-                left: parentLeft + Math.abs(startDateIndex),
+                left: parentLeft + Math.abs(startDateIndex < 0 ? 0 : startDateIndex),
                 width:
                   rrange === "Day"
                     ? daysBetween > 0
                       ? 100 * daysBetween + 60
-                      : 360
-                    : daysBetween > 0
-                    ? 50 * daysBetween + 10
-                    : Math.min(existingState?.width, parentWidth),
+                      : parentWidth
+                    : rrange === "Week"
+                    ? daysBetween > 0
+                      ? 50 * daysBetween + 10
+                      : parentWidth
+                    : rrange === "Month"
+                    ? Math.min(existingState?.width, parentWidth)
+                    : parentWidth,
               }
             : {
                 left: parentLeft,
