@@ -799,12 +799,12 @@ console.log(currentTotal)
                   // }}
                   >
                    <label
-                    htmlFor={`${stage.name}AcceptConditions`}
+                    htmlFor={`${stage.name}-${platform?.outlet}`}
                     className="relative inline-block h-6 w-12 cursor-pointer rounded-full bg-gray-300 transition [-webkit-tap-highlight-color:_transparent] has-[:checked]:bg-blue-500 peer-checked:bg-blue-500"
                    >
                     <input
                      type="checkbox"
-                     id={`${stage.name}AcceptConditions`}
+                     id={`${stage.name}-${platform?.outlet}`}
                      className="peer sr-only"
                      onChange={(e) => {
                       if (e.target.checked) {
