@@ -451,7 +451,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
                  },
                  0
                 ) || 0;
-
+console.log(currentTotal)
                if (
                 currentTotal -
                 (Number(stageBudget) || 0) +

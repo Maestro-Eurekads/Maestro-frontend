@@ -236,7 +236,11 @@ const TableView = () => {
 
   // Add this useEffect with proper dependencies
   useEffect(() => {
-    if (campaignFormData && campaignFormData.channel_mix && campaignFormData.channel_mix.length > 0) {
+    if (
+      campaignFormData &&
+      campaignFormData.channel_mix &&
+      campaignFormData.channel_mix.length > 0
+    ) {
       // Create a signature of the data excluding KPI values to avoid loops
       const dataSignature = JSON.stringify(
         campaignFormData.channel_mix?.map((stage) =>
@@ -248,7 +252,6 @@ const TableView = () => {
 
       // Only aggregate if the data signature has changed
       if (previousDataSignatureRef.current !== dataSignature) {
-
         aggregateMetrics();
         previousDataSignatureRef.current = dataSignature;
         hasAggregatedRef.current = true;
@@ -283,30 +286,24 @@ const TableView = () => {
 
         if (platform) {
           if (fieldName === "budget_size") {
-            // debugger
             if (extraAdSetindex !== "") {
-              // Ensure ad_sets exists
               if (!platform.ad_sets?.[adSetIndex]) return updatedData;
 
-              // Ensure extra_audiences is initialized
               platform.ad_sets[adSetIndex]["extra_audiences"] =
                 platform.ad_sets[adSetIndex]["extra_audiences"] || [];
 
-              // Ensure specific extra audience object exists
               platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex] =
                 platform.ad_sets[adSetIndex]["extra_audiences"][
-                extraAdSetindex
+                  extraAdSetindex
                 ] || {};
 
-              // Ensure budget object exists
               platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex][
                 "budget"
               ] =
                 platform.ad_sets[adSetIndex]["extra_audiences"][
-                extraAdSetindex
+                  extraAdSetindex
                 ]["budget"] || {};
 
-              // Set value
               platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex][
                 "budget"
               ]["fixed_value"] = value.toString();
@@ -319,6 +316,14 @@ const TableView = () => {
               platform["budget"] = platform["budget"] || {};
               platform["budget"]["fixed_value"] = value.toString();
             }
+          } else if (fieldName === "audience_size") {
+            console.log("here", {adSetIndex})
+            if (adSetIndex !== "") {
+              platform.ad_sets[adSetIndex]["size"] =
+                platform.ad_sets[adSetIndex]["size"] || "";
+              platform.ad_sets[adSetIndex]["size"] =
+                value.toString();
+            }
           } else {
             if (extraAdSetindex !== "") {
               if (!platform.ad_sets?.[adSetIndex]) return updatedData;
@@ -328,14 +333,14 @@ const TableView = () => {
 
               platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex] =
                 platform.ad_sets[adSetIndex]["extra_audiences"][
-                extraAdSetindex
+                  extraAdSetindex
                 ] || {};
 
               platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex][
                 "kpi"
               ] =
                 platform.ad_sets[adSetIndex]["extra_audiences"][
-                extraAdSetindex
+                  extraAdSetindex
                 ]["kpi"] || {};
 
               platform.ad_sets[adSetIndex]["extra_audiences"][extraAdSetindex][
@@ -359,11 +364,9 @@ const TableView = () => {
     });
   };
 
-
-
   // Process data once at the top level
 
-  const allObjectives = useMemo(() => Object.keys(tableHeaders), []);
+  // const allObjectives = useMemo(() => Object.keys(tableHeaders), []);
 
   const objectivesForStage = useMemo(() => {
     return currentEditingStage
@@ -423,15 +426,15 @@ const TableView = () => {
 
           <div className="mt-4 max-h-[400px] overflow-y-auto">
             {(() => {
-              // const allObjectives = Object.keys(tableHeaders)
+              const allObjectives = Object.keys(tableHeaders)
 
-              // const objectivesForStage = useMemo(() => {
-              //   return extractObjectives(campaignFormData)[currentEditingStage] || []
-              // }, [campaignFormData, currentEditingStage])
+              const objectivesForStage = useMemo(() => {
+                return extractObjectives(campaignFormData)[currentEditingStage] || []
+              }, [campaignFormData, currentEditingStage])
 
-              // const existingHeaderNames = useMemo(() => {
-              //   return new Set(mergedTableHeadersByStage[currentEditingStage]?.map((h) => h.name))
-              // }, [mergedTableHeadersByStage, currentEditingStage])
+              const existingHeaderNames = useMemo(() => {
+                return new Set(mergedTableHeadersByStage[currentEditingStage]?.map((h) => h.name))
+              }, [mergedTableHeadersByStage, currentEditingStage])
 
               const filteredObjectives = allObjectives.filter(
                 (objective) =>
