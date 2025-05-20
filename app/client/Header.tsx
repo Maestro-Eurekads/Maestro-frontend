@@ -104,6 +104,7 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
           className="text-[18px] absolute right-[30px] top-[20px] cursor-pointer"
           onClick={async () => {
             localStorage.removeItem("campaignFormData");
+            localStorage.removeItem("selectedClient");
             await signOut({
               callbackUrl: "/",
             });
