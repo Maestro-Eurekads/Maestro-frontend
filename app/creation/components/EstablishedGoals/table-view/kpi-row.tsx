@@ -241,7 +241,7 @@ export const KPIRow = ({
   return (
     <tr key={`${stage.name}`} className="bg-white ">
       {tableBody?.map((body, bodyIndex) => (
-        <td key={bodyIndex} className="py-6 px-3 border-none">
+        <td key={bodyIndex} className="py-4 px-3 border-none">
           <KPICellRenderer
             body={body}
             channel={channel}

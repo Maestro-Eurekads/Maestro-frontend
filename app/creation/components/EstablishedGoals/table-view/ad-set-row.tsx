@@ -230,7 +230,7 @@ export const AdSetRow = ({
   return (
     <tr key={`${stage.name}${adSetIndex}`} className="bg-white">
       {tableBody?.map((body, bodyIndex) => (
-        <td key={bodyIndex} className="py-6 px-3 border-none">
+        <td key={bodyIndex} className="py-4 px-3 border-none">
           <AdSetCellRenderer
             body={body}
             channel={channel}

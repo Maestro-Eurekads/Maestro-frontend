@@ -108,7 +108,7 @@ export const AdSetCellRenderer = ({
         {/* <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
           {adSetIndex + 1}.
         </span>*/}
-        <span>{adSet?.name ? adSet?.name : "-"}</span>
+        <span>{adSet?.name ? `Adset ${adSetIndex + 1}` : "-"}</span>
         {adSet?.extra_audiences?.length > 0 && (
           <span className="shrink-0">
             <svg
@@ -154,9 +154,9 @@ export const AdSetCellRenderer = ({
     );
   }
 
-  if (body === "audience_size") {
-    return !adSet?.size ? "-" : adSet?.size;
-  }
+  // if (body === "audience_size") {
+  //   return !adSet?.size ? "-" : adSet?.size;
+  // }
 
   // if (body === "budget_size") {
   //   return adSet?.budget?.fixed_value === null || adSet?.budget?.fixed_value === undefined ? "-" : adSet?.budget?.fixed_value;
@@ -252,6 +252,12 @@ export const AdSetCellRenderer = ({
 
   // Get the raw value from the form data
   const kpiValue =
+  body === "audience_size"
+  ? campaignFormData?.channel_mix
+    ?.find((ch) => ch?.funnel_stage === stage.name)
+    ?.[channel?.channel_name]?.find(
+      (c) => c?.platform_name === channel?.name
+    )?.ad_sets[adSetIndex]?.size || "" :
     body === "budget_size"
       ? campaignFormData?.channel_mix
         ?.find((ch) => ch?.funnel_stage === stage.name)
