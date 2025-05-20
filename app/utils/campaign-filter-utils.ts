@@ -43,11 +43,11 @@ export function buildStrapiFilterQuery(clientID: string, filters: FilterState): 
     orFilterIndex++
   }
 
-  if (filters.select_plans) {
-    filterQuery += `&filters[$or][${orFilterIndex}][plan][$eq]=${filters.select_plans}`
-    hasOrFilters = true
-    orFilterIndex++
-  }
+  // if (filters.select_plans) {
+  //   filterQuery += `&filters[$or][${orFilterIndex}][plan][$eq]=${filters.select_plans}`
+  //   hasOrFilters = true
+  //   orFilterIndex++
+  // }
 
   if (filters.made_by) {
     filterQuery += `&filters[$or][${orFilterIndex}][created_by][$eq]=${filters.made_by}`
@@ -171,7 +171,7 @@ export function extractAprroverFilters(campaigns: any[]) {
   return {
     made_by: Array.from(made_by).sort(),
     approved_by: Array.from(approved_by).sort(),
-    select_plans: Array.from(select_plans).sort(),
+    // select_plans: Array.from(select_plans).sort(),
   }
 }
 
@@ -479,11 +479,11 @@ export const fetchFilteredCampaigns = async (clientID: string, filters: FilterSt
     orFilterIndex++;
   }
 
-  if (filters.select_plans) {
-    filterQuery += `&filters[$or][${orFilterIndex}][media_plan_details][plan_name][$eq]=${filters.select_plans}`;
-    hasOrFilters = true;
-    orFilterIndex++;
-  }
+  // if (filters.select_plans) {
+  //   filterQuery += `&filters[$or][${orFilterIndex}][media_plan_details][plan_name][$eq]=${filters.select_plans}`;
+  //   hasOrFilters = true;
+  //   orFilterIndex++;
+  // }
 
   if (filters.made_by) {
     filterQuery += `&filters[$or][${orFilterIndex}][media_plan_details][client_approver][$eq]=${filters.made_by}`;
