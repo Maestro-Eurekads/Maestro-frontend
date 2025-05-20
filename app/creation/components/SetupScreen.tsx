@@ -61,7 +61,7 @@ export const SetupScreen = () => {
     setHasChanges,
     hasChanges,
   } = useVerification();
-  const { isAgencyCreator, isAgencyApprover } = useUserPrivileges();
+  const { isAgencyCreator, isAgencyApprover, isFinancialApprover } = useUserPrivileges();
 
   const router = useRouter();
 
@@ -153,7 +153,7 @@ export const SetupScreen = () => {
   useEffect(() => {
 
 
-    if (isAgencyCreator) {
+    if (isAgencyCreator || isAgencyApprover || isFinancialApprover) {
       if (profile?.clients) {
         const options = profile?.clients?.map((c) => ({
           id: c?.documentId,
