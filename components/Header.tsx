@@ -85,7 +85,9 @@ const Header = ({ setIsOpen }) => {
   //     ? localStorage.getItem(userType.toString()) || localStorage.getItem(userType.toString())
   //     : "";
 
-
+  // console.log('profile-profile', profile)
+  // console.log('clients-clients', clients)
+  // console.log('selectedId-clients', selectedId)
 
   useEffect(() => {
     if (!clients?.data || clients.data.length === 0) {
