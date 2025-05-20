@@ -168,10 +168,10 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     const maxX = containerRect.width - 45;
 
     if (direction === "left") {
-      newWidth = Math.max(150, startWidth - (e.clientX - startX));
+      newWidth = Math.max(50, startWidth - (e.clientX - startX));
       newPos = Math.max(minX, startPos + (e.clientX - startX));
     } else {
-      newWidth = Math.max(150, startWidth + (e.clientX - startX));
+      newWidth = Math.max(50, startWidth + (e.clientX - startX));
     }
 
     if (newPos + newWidth > maxX) {
