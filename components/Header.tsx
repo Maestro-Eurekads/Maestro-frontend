@@ -85,7 +85,9 @@ const Header = ({ setIsOpen }) => {
   //     ? localStorage.getItem(userType.toString()) || localStorage.getItem(userType.toString())
   //     : "";
 
-
+  // console.log('profile-profile', profile)
+  // console.log('clients-clients', clients)
+  // console.log('selectedId-clients', selectedId)
 
   useEffect(() => {
     if (!clients?.data || clients.data.length === 0) {
@@ -310,10 +312,11 @@ const Header = ({ setIsOpen }) => {
               <div className="absolute bg-white border shadow-md rounded-[10px] top-[50px]">
                 <div
                   className="flex items-center gap-2 cursor-pointer p-2"
-                  onClick={async () =>
+                  onClick={async () =>{
+                    localStorage.removeItem("campaignFormData");
                     await signOut({
                       callbackUrl: "/",
-                    })
+                    })}
                   }
                 >
                   <LogOut color="#3175FF" />

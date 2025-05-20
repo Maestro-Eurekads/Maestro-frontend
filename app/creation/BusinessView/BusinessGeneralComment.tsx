@@ -29,7 +29,6 @@ const BusinessGeneralComment = () => {
 	const dispatch = useAppDispatch();
 	const [alert, setAlert] = useState(null);
 	const [isEditing, setIsEditing] = useState(false);
-	const [hasChange, setHasChange] = useState(false);
 	const [id, setid] = useState("");
 
 
@@ -103,7 +102,6 @@ const BusinessGeneralComment = () => {
 	const handleGeneral = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		e.preventDefault();
 		setGeneralComment(e.target.value);
-		setHasChange(true)
 	};
 
 
@@ -143,7 +141,6 @@ const BusinessGeneralComment = () => {
 						)}
 					</button>
 				)}
-
 
 			</div>
 		</div>

@@ -67,11 +67,7 @@ const OverviewofyourCampaign = () => {
 	const commentId = query.get("campaignId");
 	const [finalCategoryOrder, setFinalCategoryOrder] = useState(categoryOrder); // default fallback
 	const { getKpis, isLoadingKpis, kpiCategory, setkpiCategory, refresh, setRefresh } = useKpis();
-	const [channels, setChannels] = useState<IChannel[]>([])
 
-
-
-	const [channelData, setChannelData] = useState(null)
 
 	const comments: Comment[] = clientCampaignData
 		?.filter((comment: Comment) => comment?.addcomment_as !== "Internal")
@@ -103,10 +99,6 @@ const OverviewofyourCampaign = () => {
 		setGeneralComment(!generalComment)
 		dispatch(getGeneralComment(commentId));
 	}
-
-
-
-
 
 
 
@@ -254,11 +246,6 @@ const OverviewofyourCampaign = () => {
 			});
 		}
 	}, [showalert]);
-
-
-
-
-
 
 
 
