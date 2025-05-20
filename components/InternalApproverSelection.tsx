@@ -39,9 +39,7 @@ const Dropdown = ({
   // };
 
   const handleSelect = (id, value: string) => {
-    console.log('handleSelect-handleSelect-handleSelect', value)
     setCampaignFormData((prev) => ({
-
       ...prev,
       [formId]: {
         id,

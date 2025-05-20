@@ -22,7 +22,6 @@ import { useCampaigns } from "../../utils/CampaignsContext"
 import { funnelStages, getPlatformIcon } from "../../../components/data"
 import axios from "axios"
 import { FaSpinner } from "react-icons/fa"
-import customicon from "../../../public/social/customicon.png"
 
 const platformIcons = {
   Facebook: facebook,
@@ -372,7 +371,6 @@ const ObjectiveSelection = () => {
     <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
       {campaignFormData?.funnel_stages?.map((stageName) => {
         const stage = campaignFormData?.custom_funnels?.find((s) => s?.name === stageName)
-        const funn = funnelStages?.find((ff) => ff?.name === stageName)
         if (!stage) return null
         return (
           <div key={stageName} className="w-full">
@@ -382,10 +380,8 @@ const ObjectiveSelection = () => {
               onClick={() => toggleItem(stage.name)}
             >
               <div className="flex items-center gap-4">
-                {funn?.icon ? (
-                  <Image src={funn.icon || "/placeholder.svg"} className="size-5" alt={stage.name} />
-                ) : (
-                  <Image src={customicon || "/placeholder.svg"} className="size-5" alt={stage.name} />
+                {stage.icon && (
+                  <Image src={stage.icon} className="size-5" alt={`${stage.name} icon`} />
                 )}
                 <p className="font-semibold text-[#061237] whitespace-nowrap">{stage.name}</p>
               </div>

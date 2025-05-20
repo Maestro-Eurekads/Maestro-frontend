@@ -27,6 +27,9 @@ export const FunnelStageTable = ({
   nrAdCells,
   toggleNRAdCell,
 }) => {
+
+
+
   return (
     <section className="mb-[30px]">
       <div className="flex items-center justify-between mb-5 w-full">
@@ -57,20 +60,19 @@ export const FunnelStageTable = ({
                 {tableHeaders?.map((header, hIndex) => (
                   <th
                     key={hIndex}
-                    className={`py-4 px-3 cursor-pointer ${
-                      nrColumns?.includes(
-                        header.name
-                          .toLowerCase()
-                          .replace(/ /g, "_")
-                          .replace(/\//g, "")
-                          .replace(/-/g, "_")
-                      )
-                        ? "text-gray-400"
-                        : ""
-                    }`}
+                    className={`py-4 px-3 cursor-pointer ${nrColumns?.includes(
+                      header.name
+                        .toLowerCase()
+                        .replace(/ /g, "_")
+                        .replace(/\//g, "")
+                        .replace(/-/g, "_")
+                    )
+                      ? "text-gray-400"
+                      : ""
+                      }`}
                     onClick={() => toggleNRColumn(stage.name, header.name)}
                   >
-                    {header?.name === "Audience" ? "" :header?.name}
+                    {header?.name === "Audience" ? "" : header?.name}
                     {nrColumns?.includes(
                       header.name
                         .toLowerCase()

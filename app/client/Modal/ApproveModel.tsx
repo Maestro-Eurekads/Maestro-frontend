@@ -24,6 +24,13 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
   });
 
 
+  useEffect(() => {
+    setInputs(prev => ({
+      ...prev,
+      signature: sign
+    }));
+  }, [sign]);
+
 
 
 

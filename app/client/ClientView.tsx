@@ -44,6 +44,7 @@ import { extractPlatforms } from 'app/creation/components/EstablishedGoals/table
 import { processCampaignData } from 'components/processCampaignData';
 import DoughnutChat from 'components/DoughnutChat';
 import ConfigureBudgetComponet from 'app/creation/components/ConfigureAdSetsAndBudget/ConfigureBudgetComponet';
+import Skeleton from 'react-loading-skeleton';
 
 
 
@@ -215,7 +216,22 @@ const ClientView = () => {
 					<div className='mt-[50px]'>
 						{isLoadingCampaign ? <TableLoader isLoading={isLoadingCampaign} /> : ""}
 					</div>
-					<MainSection hideDate={true} disableDrag={true} campaignData={campaignData} />
+
+					<div>
+						{isLoadingCampaign ?
+							<div className='w-full h-[500px] flex flex-col gap-[50px] m-20px'>
+								<Skeleton height={20} width={600} />
+								<Skeleton height={20} width={700} />
+								<Skeleton height={20} width={800} />
+								<Skeleton height={20} width={"100%"} />
+								<Skeleton height={20} width={"100%"} />
+								<Skeleton height={20} width={"100%"} />
+							</div> : !campaignData ? "" :
+
+								<MainSection hideDate={true} disableDrag={true} campaignData={campaignData ?? []} />}
+
+					</div>
+
 					{/* <div >
 						{active === "Timeline view" && }
 						<div className="md:px-[150px] xl:px-[200px]">

@@ -18,6 +18,8 @@ import ClientSelectionInputbudget from "components/ClientSelectionInputbudget";
 import { useComments } from "app/utils/CommentProvider";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { useRouter } from "next/navigation";
+import { selectCurrency } from "components/Options";
+import InternalApproverSelection from "components/InternalApproverSelection";
 
 export const SetupScreen = () => {
   const {
@@ -29,18 +31,25 @@ export const SetupScreen = () => {
     cId,
     getActiveCampaign,
     setCampaignFormData,
-    profile
+    profile,
+    isStepZeroValid,
+    setIsStepZeroValid,
+    setRequiredFields,
+    setCurrencySign,
+    getUserByUserType,
+    user,
+    requiredFields
   } = useCampaigns();
   const { client_selection } = campaignFormData || {}; // Add default empty object
   const [selectedOption, setSelectedOption] = useState("percentage");
   const [previousValidationState, setPreviousValidationState] = useState(null);
-  const [isStepZeroValid, setIsStepZeroValid] = useState(false);
+
+  const [approvalOptions, setApprovalOptions] = useState([]);
   const [clientOptions, setClientOptions] = useState([]);
   const [level1Options, setlevel1Options] = useState([]);
   const [level2Options, setlevel2Options] = useState([]);
   const [level3Options, setlevel3Options] = useState([]);
-  const [requiredFields, setRequiredFields] = useState([]);
-  const [currencySign, setCurrencySign] = useState("");
+
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -52,7 +61,7 @@ export const SetupScreen = () => {
     setHasChanges,
     hasChanges,
   } = useVerification();
-  const { isAgencyCreator } = useUserPrivileges();
+  const { isAgencyCreator, isAgencyApprover } = useUserPrivileges();
 
   const router = useRouter();
 
@@ -64,6 +73,12 @@ export const SetupScreen = () => {
     setIsDrawerOpen(false);
     setClose(false);
   }, []);
+
+
+  const handleGetUserByUserType = () => {
+    getUserByUserType("agency_approver");
+
+  };
 
   // Load saved form data from localStorage on mount
   useEffect(() => {
@@ -96,6 +111,7 @@ export const SetupScreen = () => {
 
   // Save form data to localStorage whenever it changes
   useEffect(() => {
+    handleGetUserByUserType()
     if (campaignFormData) {
       localStorage.setItem(
         "campaignFormData",
@@ -130,16 +146,33 @@ export const SetupScreen = () => {
     localStorage.setItem("verifybeforeMove", JSON.stringify(verifybeforeMove));
   }, [verifybeforeMove]);
 
+
+
+  console.log('client_selection-client_selection', requiredFields)
+
   useEffect(() => {
-    if (profile?.clients) {
-      const options = profile?.clients?.map((c) => ({
-        id: c?.documentId,
-        value: c?.client_name,
-        label: c?.client_name,
-      }));
-      setClientOptions(options);
+
+
+    if (isAgencyCreator) {
+      if (profile?.clients) {
+        const options = profile?.clients?.map((c) => ({
+          id: c?.documentId,
+          value: c?.client_name,
+          label: c?.client_name,
+        }))
+        setClientOptions(options);
+      }
+    } else {
+      if (allClients) {
+        const options = allClients.map((c) => ({
+          id: c?.documentId,
+          value: c?.client_name,
+          label: c?.client_name,
+        }));
+        setClientOptions(options);
+      }
     }
-  }, [profile]);
+  }, [allClients, profile, isAgencyApprover]);
 
   useEffect(() => {
     if (!allClients || !client_selection) return;
@@ -147,6 +180,14 @@ export const SetupScreen = () => {
     const client = allClients.find(
       (c) => c?.documentId === client_selection?.id
     );
+
+    setApprovalOptions(() => {
+      const options = client?.client_emails?.map((l) => ({
+        value: l.full_name,
+        label: l.full_name,
+      }));
+      return options || [];
+    });
     setlevel1Options(() => {
       const options = client?.level_1?.map((l) => ({
         value: l,
@@ -190,18 +231,7 @@ export const SetupScreen = () => {
     return "";
   };
 
-  const selectCurrency = [
-    { value: "US Dollar (USD)", label: "US Dollar (USD)", sign: "$" },
-    { value: "Euro (EUR)", label: "Euro (EUR)", sign: "€" },
-    { value: "British Pound (GBP)", label: "British Pound (GBP)", sign: "£" },
-    { value: "Nigerian Naira (NGN)", label: "Nigerian Naira (NGN)", sign: "₦" },
-    { value: "Japanese Yen (JPY)", label: "Japanese Yen (JPY)", sign: "¥" },
-    {
-      value: "Canadian Dollar (CAD)",
-      label: "Canadian Dollar (CAD)",
-      sign: "C$",
-    },
-  ];
+
 
   // Updated useEffect to handle currencySign dynamically
   useEffect(() => {
@@ -229,108 +259,106 @@ export const SetupScreen = () => {
     selectedOption,
   ]);
 
-  const handleStepZero = async () => {
-    setLoading(true);
-    try {
-      if (!isStepZeroValid) {
-        setAlert({
-          variant: "error",
-          message: "Please complete all required fields before proceeding.",
-          position: "bottom-right",
-        });
-        setLoading(false);
-        return;
-      }
+  // const handleStepZero = async () => {
+  //   setLoading(true);
+  //   try {
+  //     if (!isStepZeroValid) {
+  //       setAlert({
+  //         variant: "error",
+  //         message: "Please complete all required fields before proceeding.",
+  //         position: "bottom-right",
+  //       });
+  //       setLoading(false);
+  //       return;
+  //     }
 
-      const budgetDetails = {
-        currency: campaignFormData?.budget_details_currency?.id,
-        fee_type: campaignFormData?.budget_details_fee_type?.id,
-        sub_fee_type: selectedOption,
-        value: campaignFormData?.budget_details_value,
-      };
+  //     const budgetDetails = {
+  //       currency: campaignFormData?.budget_details_currency?.id,
+  //       fee_type: campaignFormData?.budget_details_fee_type?.id,
+  //       sub_fee_type: selectedOption,
+  //       value: campaignFormData?.budget_details_value,
+  //     };
 
-      if (cId && campaignData) {
-        const updatedData = {
-          ...removeKeysRecursively(campaignData, [
-            "id",
-            "documentId",
-            "createdAt",
-            "publishedAt",
-            "updatedAt",
-            "_aggregated"
-          ]),
-          client: campaignFormData?.client_selection?.id,
-          client_selection: {
-            client: campaignFormData?.client_selection?.value,
-            level_1: campaignFormData?.level_1?.id,
-            level_2: campaignFormData?.level_2?.id,
-            level_3: campaignFormData?.level_3?.id,
-          },
-          media_plan_details: {
-            plan_name: campaignFormData?.media_plan,
-            internal_approver: campaignFormData?.approver,
-            client_approver: campaignFormData?.client_approver,
-          },
-          budget_details: budgetDetails,
-        };
+  //     if (cId && campaignData) {
+  //       const updatedData = {
+  //         ...removeKeysRecursively(campaignData, [
+  //           "id",
+  //           "documentId",
+  //           "createdAt",
+  //           "publishedAt",
+  //           "updatedAt",
+  //           "_aggregated"
+  //         ]),
+  //         client: campaignFormData?.client_selection?.id,
+  //         client_selection: {
+  //           client: campaignFormData?.client_selection?.value,
+  //           level_1: campaignFormData?.level_1?.id,
+  //           level_2: campaignFormData?.level_2?.id,
+  //           level_3: campaignFormData?.level_3?.id,
+  //         },
+  //         media_plan_details: {
+  //           plan_name: campaignFormData?.media_plan,
+  //           internal_approver: campaignFormData?.approver,
+  //           client_approver: campaignFormData?.client_approver,
+  //         },
+  //         budget_details: budgetDetails,
+  //       };
 
-        await updateCampaign(updatedData);
+  //       await updateCampaign(updatedData);
 
-        setCampaignFormData((prev) => ({
-          ...prev,
-          budget_details_currency: {
-            id: budgetDetails.currency,
-            value: budgetDetails.currency,
-            label:
-              selectCurrency.find((c) => c.value === budgetDetails.currency)
-                ?.label || budgetDetails.currency,
-          },
-        }));
+  //       setCampaignFormData((prev) => ({
+  //         ...prev,
+  //         budget_details_currency: {
+  //           id: budgetDetails.currency,
+  //           value: budgetDetails.currency,
+  //           label:
+  //             selectCurrency.find((c) => c.value === budgetDetails.currency)
+  //               ?.label || budgetDetails.currency,
+  //         },
+  //       }));
 
-        setAlert({
-          variant: "success",
-          message: "Campaign updated successfully!",
-          position: "bottom-right",
-        });
-      } else {
-        const res = await createCampaign();
-        const url = new URL(window.location.href);
-        url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
-        window.history.pushState({}, "", url.toString());
-        await getActiveCampaign(res?.data?.data.documentId);
+  //       setAlert({
+  //         variant: "success",
+  //         message: "Campaign updated successfully!",
+  //         position: "bottom-right",
+  //       });
+  //     } else {
+  //       const res = await createCampaign();
+  //       const url = new URL(window.location.href);
+  //       url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
+  //       window.history.pushState({}, "", url.toString());
+  //       await getActiveCampaign(res?.data?.data.documentId);
 
-        setCampaignFormData((prev) => ({
-          ...prev,
-          budget_details_currency: {
-            id: budgetDetails.currency,
-            value: budgetDetails.currency,
-            label:
-              selectCurrency.find((c) => c.value === budgetDetails.currency)
-                ?.label || budgetDetails.currency,
-          },
-        }));
+  //       setCampaignFormData((prev) => ({
+  //         ...prev,
+  //         budget_details_currency: {
+  //           id: budgetDetails.currency,
+  //           value: budgetDetails.currency,
+  //           label:
+  //             selectCurrency.find((c) => c.value === budgetDetails.currency)
+  //               ?.label || budgetDetails.currency,
+  //         },
+  //       }));
 
-        setAlert({
-          variant: "success",
-          message: "Campaign created successfully!",
-          position: "bottom-right",
-        });
-      }
-      setHasChanges(false);
-    } catch (error) {
-      setAlert({
-        variant: "error",
-        message: "Something went wrong. Please try again.",
-        position: "bottom-right",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  //       setAlert({
+  //         variant: "success",
+  //         message: "Campaign created successfully!",
+  //         position: "bottom-right",
+  //       });
+  //     }
+  //     setHasChanges(false);
+  //   } catch (error) {
+  //     setAlert({
+  //       variant: "error",
+  //       message: "Something went wrong. Please try again.",
+  //       position: "bottom-right",
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  useEffect(() => {
-    setIsStepZeroValid(requiredFields.every((field) => field));
-  }, [requiredFields]);
+
 
   useEffect(() => {
     let fields = [];
@@ -339,8 +367,8 @@ export const SetupScreen = () => {
       fields = [
         campaignFormData?.client_selection?.value,
         campaignFormData?.media_plan,
-        campaignFormData?.approver,
-        campaignFormData?.client_approver,
+        campaignFormData?.approver?.value,
+        campaignFormData?.client_approver?.value,
         campaignFormData?.level_1?.id,
         campaignFormData?.level_2?.id,
         campaignFormData?.level_3?.id,
@@ -349,8 +377,8 @@ export const SetupScreen = () => {
       fields = [
         campaignFormData?.client_selection?.value,
         campaignFormData?.media_plan,
-        campaignFormData?.approver,
-        campaignFormData?.client_approver,
+        campaignFormData?.approver?.value,
+        campaignFormData?.client_approver?.value,
         campaignFormData?.level_1?.id,
         campaignFormData?.level_2?.id,
         campaignFormData?.level_3?.id,
@@ -419,7 +447,19 @@ export const SetupScreen = () => {
               formId="media_plan"
               setHasChanges={setHasChanges}
             />
-            <ClientSelectionInput
+            <InternalApproverSelection
+              options={approvalOptions}
+              label={"Internal Approver"}
+              formId="approver"
+              setHasChanges={setHasChanges}
+            />
+            <ClientSelection
+              options={approvalOptions}
+              label={"Client Approver"}
+              formId="client_approver"
+              setHasChanges={setHasChanges}
+            />
+            {/* <ClientSelectionInput
               label={"Internal Approver"}
               formId="approver"
               setHasChanges={setHasChanges}
@@ -428,7 +468,7 @@ export const SetupScreen = () => {
               label={"Client Approver"}
               formId="client_approver"
               setHasChanges={setHasChanges}
-            />
+            /> */}
           </div>
         </div>
         {/* <div className="pb-1">
@@ -488,7 +528,7 @@ export const SetupScreen = () => {
         </div> */}
       </div>
 
-      {hasChanges && (
+      {/* {hasChanges && (
         <div className="flex justify-end pr-6 mt-[20px]">
           <button
             onClick={handleStepZero}
@@ -501,7 +541,7 @@ export const SetupScreen = () => {
             )}
           </button>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

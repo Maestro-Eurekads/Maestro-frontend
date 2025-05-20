@@ -8,11 +8,8 @@ export default function SignatureInput({ value, onChange, setSign }) {
 
 	const handleEnd = (e: MouseEvent) => {
 		const dataURL = sigCanvas?.current?.getTrimmedCanvas()?.toDataURL("image/png");
-		console.log('dataURL', dataURL)
-		onChange(dataURL);
 		setSign(dataURL);
 	};
-
 
 
 
@@ -20,8 +17,6 @@ export default function SignatureInput({ value, onChange, setSign }) {
 		sigCanvas.current?.clear();
 		onChange("");
 	};
-
-
 
 
 

@@ -17,6 +17,7 @@ import { FaSpinner } from "react-icons/fa";
 import { useActive } from "app/utils/ActiveContext";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getCurrencySymbol } from "./data";
+import { useSession } from "next-auth/react";
 
 const Table = () => {
   const {
@@ -27,6 +28,9 @@ const Table = () => {
     fetchingPO,
     clientPOs,
   } = useCampaigns();
+  const { data: session } = useSession();
+  // @ts-ignore 
+  const userType = session?.user?.data?.user?.id || "";
   const { setSelectedCampaignId } = useCampaignSelection();
   const router = useRouter();
   const [openModal, setOpenModal] = useState("");
@@ -34,19 +38,30 @@ const Table = () => {
   const [duplicateName, setDuplicateName] = useState("");
   const [loadingg, setLoading] = useState(false);
   const { setActive } = useActive();
-
+  const [clientId, setClientId] = useState<string | null>(null);
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-
+  const campaignArray = Array.isArray(clientCampaignData) ? clientCampaignData : [];
   // Calculate pagination values
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems =
-    clientCampaignData?.slice(indexOfFirstItem, indexOfLastItem) || [];
-  const totalPages = Math.ceil(
-    (clientCampaignData?.length || 0) / itemsPerPage
-  );
+  const currentItems = campaignArray?.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(campaignArray?.length / itemsPerPage);
+  // const indexOfLastItem = currentPage * itemsPerPage;
+  // const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  // const currentItems = !clientCampaignData ? [] :
+  //   clientCampaignData?.slice(indexOfFirstItem, indexOfLastItem) || [];
+  // const totalPages = Math.ceil(
+  //   (clientCampaignData?.length || 0) / itemsPerPage
+  // );
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedClientId = localStorage.getItem(userType?.toString());
+      setClientId(storedClientId);
+    }
+  }, [userType]);
 
   // Change page
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
@@ -64,7 +79,7 @@ const Table = () => {
       "updatedAt",
       "_aggregated"
     ]);
-    const clientId = localStorage.getItem("selectedClient");
+    const clientId = localStorage.getItem(userType?.toString());
     setLoading(true);
     await axios
       .post(
@@ -127,7 +142,7 @@ const Table = () => {
     }
   }, [clientCampaignData, itemsPerPage]);
 
-  const clientId = localStorage.getItem("selectedClient");
+  // const clientId = localStorage.getItem(userType?.toString());
 
   return (
     <div className="flex flex-col">

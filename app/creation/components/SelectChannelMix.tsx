@@ -30,7 +30,7 @@ const Toast = ({ message, onClose }) => {
 };
 
 // Utility functions for localStorage with campaign-specific scoping
-const loadStateFromLocalStorage = (key, defaultValue, cId) => {
+const loadStateFromLocalStorage = (key: string, defaultValue: any, cId: string) => {
   if (typeof window === "undefined") return defaultValue;
   const storageKey = cId ? `${cId}_${key}` : key;
   try {
@@ -42,7 +42,7 @@ const loadStateFromLocalStorage = (key, defaultValue, cId) => {
   }
 };
 
-const saveStateToLocalStorage = (key, state, cId) => {
+const saveStateToLocalStorage = (key: string, state: any, cId: string) => {
   if (typeof window === "undefined") return;
   const storageKey = cId ? `${cId}_${key}` : key;
   try {
@@ -81,6 +81,8 @@ const SelectChannelMix = () => {
 
   // Debug data on mount
   useEffect(() => {
+    console.log("SelectChannelMix - platformList:", platformList);
+    console.log("SelectChannelMix - campaignFormData:", campaignFormData);
   }, [platformList, campaignFormData, cId]);
 
   // Ensure component is mounted and data is ready
@@ -257,14 +259,14 @@ const SelectChannelMix = () => {
     }
   }, [campaignFormData?.funnel_stages, platformList, isMounted]);
 
-  const toggleItem = (stage) => {
+  const toggleItem = (stage: string) => {
     setOpenItems((prev) => ({
       ...prev,
       [stage]: !prev[stage],
     }));
   };
 
-  const togglePlatform = async (stageName, category, platformName, type) => {
+  const togglePlatform = async (stageName: string, category: string, platformName: string, type: string) => {
     setSelected((prevSelected) => {
       const stageSelection = prevSelected[stageName] || {};
       const categorySelection = stageSelection[category] || [];
@@ -318,7 +320,7 @@ const SelectChannelMix = () => {
       return updatedSelected;
     });
 
-    const updatedFormData = await setCampaignFormData((prevFormData) => {
+    const updatedFormData = await setCampaignFormData((prevFormData: any) => {
       const categoryKey = category.toLowerCase().replaceAll(" ", "_");
       const stageSelection = selected[stageName] || {};
       const categorySelection = stageSelection[category] || [];
@@ -399,19 +401,19 @@ const SelectChannelMix = () => {
     }
   };
 
-  const handlePlatformClick = (e, stageName, category, platformName, type) => {
+  const handlePlatformClick = (e: React.MouseEvent, stageName: string, category: string, platformName: string, type: string) => {
     e.stopPropagation();
     togglePlatform(stageName, category, platformName, type);
   };
 
-  const toggleShowMore = (channelKey) => {
+  const toggleShowMore = (channelKey: string) => {
     setShowMoreMap((prev) => ({
       ...prev,
       [channelKey]: !prev[channelKey],
     }));
   };
 
-  const toggleChannelType = (e, stageName, type) => {
+  const toggleChannelType = (e: React.MouseEvent, stageName: string, type: string) => {
     e.stopPropagation();
     setOpenChannelTypes((prev) => ({
       ...prev,
@@ -455,8 +457,8 @@ const SelectChannelMix = () => {
             (s) => s.name === stageName
           );
           const stage =
-            stageFromFunnelStages ||
             stageFromCustomFunnels ||
+            stageFromFunnelStages ||
             fallbackFunnelMetadata[stageName];
 
           if (!stage) {
@@ -468,12 +470,6 @@ const SelectChannelMix = () => {
             );
           }
 
-          const icon =
-            stage.icon ||
-            stageFromFunnelStages?.icon ||
-            stageFromCustomFunnels?.icon ||
-            "/placeholder.svg";
-
           return (
             <div key={index}>
               <div
@@ -482,12 +478,14 @@ const SelectChannelMix = () => {
                 onClick={() => toggleItem(stage.name)}
               >
                 <div className="flex items-center gap-2">
-                  <Image
-                    src={icon}
-                    alt={stage.name}
-                    width={20}
-                    height={20}
-                  />
+                  {stage.icon && (
+                    <Image
+                      src={stage.icon}
+                      alt={`${stage.name} icon`}
+                      width={20}
+                      height={20}
+                    />
+                  )}
                   <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
                     {stage.name}
                   </p>
@@ -504,6 +502,8 @@ const SelectChannelMix = () => {
                   <Image
                     src={openItems[stage.name] ? up : down2}
                     alt={openItems[stage.name] ? "up" : "down"}
+                    width={24}
+                    height={24}
                   />
                 </div>
               </div>
