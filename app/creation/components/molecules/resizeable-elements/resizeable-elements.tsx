@@ -242,8 +242,7 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
                 ? 50 * daysBetween + 10
                 : 310
               : Math.round(containerWidth / funnelData?.endMonth / 31) *
-                  daysBetween +
-                5;
+                  daysBetween -18;
 
           initialPositions[stageName] = startDateIndex;
         }
