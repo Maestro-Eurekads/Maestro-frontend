@@ -22,7 +22,6 @@ import { useCampaigns } from "../../utils/CampaignsContext"
 import { funnelStages, getPlatformIcon } from "../../../components/data"
 import axios from "axios"
 import { FaSpinner } from "react-icons/fa"
-import customicon from "../../../public/social/customicon.png"
 
 const platformIcons = {
   Facebook: facebook,
@@ -62,11 +61,11 @@ const ObjectiveSelection = () => {
     return savedPlatforms
       ? JSON.parse(savedPlatforms, (key, value) => (value.dataType === "Set" ? new Set(value.value) : value))
       : {
-          Awareness: new Set(),
-          Consideration: new Set(),
-          Conversion: new Set(),
-          Loyalty: new Set(),
-        }
+        Awareness: new Set(),
+        Consideration: new Set(),
+        Conversion: new Set(),
+        Loyalty: new Set(),
+      }
   })
   const [dropdownOpen, setDropdownOpen] = useState({})
   const [showInput, setShowInput] = useState("")
@@ -150,34 +149,34 @@ const ObjectiveSelection = () => {
   useEffect(() => {
     const initialSelectedOptions = {}
     const channelMix = Array.isArray(campaignFormData?.channel_mix) ? campaignFormData.channel_mix : []
-    channelMix.forEach((stage) => {
+    channelMix?.forEach((stage) => {
       const stageName = stage.funnel_stage
-      ;[
-        "social_media",
-        "display_networks",
-        "search_engines",
-        "streaming",
-        "ooh",
-        "print",
-        "in_game",
-        "e_commerce",
-        "broadcast",
-        "messaging",
-        "mobile",
-      ].forEach((category) => {
-        const platforms = Array.isArray(stage[category]) ? stage[category] : []
-        platforms.forEach((platform) => {
-          const platformName = platform.platform_name
-          const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`
-          const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`
-          if (platform.buy_type && !selectedOptions[buyTypeKey]) {
-            initialSelectedOptions[buyTypeKey] = platform.buy_type
-          }
-          if (platform.objective_type && !selectedOptions[buyObjectiveKey]) {
-            initialSelectedOptions[buyObjectiveKey] = platform.objective_type
-          }
+        ;[
+          "social_media",
+          "display_networks",
+          "search_engines",
+          "streaming",
+          "ooh",
+          "print",
+          "in_game",
+          "e_commerce",
+          "broadcast",
+          "messaging",
+          "mobile",
+        ].forEach((category) => {
+          const platforms = Array.isArray(stage[category]) ? stage[category] : []
+          platforms.forEach((platform) => {
+            const platformName = platform.platform_name
+            const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`
+            const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`
+            if (platform.buy_type && !selectedOptions[buyTypeKey]) {
+              initialSelectedOptions[buyTypeKey] = platform.buy_type
+            }
+            if (platform.objective_type && !selectedOptions[buyObjectiveKey]) {
+              initialSelectedOptions[buyObjectiveKey] = platform.objective_type
+            }
+          })
         })
-      })
     })
     setSelectedOptions((prev) => ({ ...prev, ...initialSelectedOptions }))
   }, [campaignFormData?.channel_mix])
@@ -372,7 +371,6 @@ const ObjectiveSelection = () => {
     <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
       {campaignFormData?.funnel_stages?.map((stageName) => {
         const stage = campaignFormData?.custom_funnels?.find((s) => s?.name === stageName)
-        const funn = funnelStages?.find((ff) => ff?.name === stageName)
         if (!stage) return null
         return (
           <div key={stageName} className="w-full">
@@ -382,10 +380,8 @@ const ObjectiveSelection = () => {
               onClick={() => toggleItem(stage.name)}
             >
               <div className="flex items-center gap-4">
-                {funn?.icon ? (
-                  <Image src={funn.icon || "/placeholder.svg"} className="size-5" alt={stage.name} />
-                ) : (
-                  <Image src={customicon || "/placeholder.svg"} className="size-5" alt={stage.name} />
+                {stage.icon && (
+                  <Image src={stage.icon} className="size-5" alt={`${stage.name} icon`} />
                 )}
                 <p className="font-semibold text-[#061237] whitespace-nowrap">{stage.name}</p>
               </div>
@@ -461,8 +457,8 @@ const ObjectiveSelection = () => {
                     const normalizedCategory = category.toLowerCase().replaceAll(" ", "_")
                     const platforms = Array.isArray(campaignFormData?.channel_mix)
                       ? campaignFormData.channel_mix.find((ch) => ch.funnel_stage === stageName)?.[
-                          normalizedCategory
-                        ] || []
+                      normalizedCategory
+                      ] || []
                       : []
                     if (platforms.length === 0) return null
 

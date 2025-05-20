@@ -14,6 +14,7 @@ import { useVerification } from "app/utils/VerificationContext";
 import { useEditing } from "app/utils/EditingContext";
 import toast, { Toaster } from "react-hot-toast";
 import dayjs from "dayjs";
+import { selectCurrency } from "./Options";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -63,6 +64,12 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     getActiveCampaign,
     copy,
     isEditingBuyingObjective,
+    isStepZeroValid,
+    setIsStepZeroValid,
+    selectedOption,
+    setCampaignFormData,
+    requiredFields,
+    currencySign
   } = useCampaigns();
 
   const hasUploadedPreviews = () => {
@@ -81,6 +88,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       });
     });
   };
+
+
 
   useEffect(() => {
     if (typeof window !== "undefined" && cId) {
@@ -239,20 +248,18 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       if (active === 8) setSubStep(1);
     }
   };
+  useEffect(() => {
+    setIsStepZeroValid(requiredFields.every((field) => field));
+  }, [requiredFields]);
+
 
   const handleContinue = async () => {
-    console.log("handleContinue called", {
-      active,
-      midcapEditing,
-      campaignFormData,
-      isEditingBuyingObjective,
-    });
 
     // Only check editing state if we're on step 6
     if (active === 6) {
       if (midcapEditing.isEditing) {
         let errorMessage = "";
-        switch(midcapEditing.step) {
+        switch (midcapEditing.step) {
           case "Your channel mix":
             errorMessage = "Please confirm or cancel your channel mix changes before proceeding";
             break;
@@ -293,33 +300,34 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     setLoading(true);
     let hasError = false;
 
-    if (active === 0) {
-      const requiredFields = [
-        campaignFormData?.client_selection?.value,
-        campaignFormData?.media_plan,
-        campaignFormData?.approver,
-        campaignFormData?.client_approver,
-      ];
+    // if (active === 0) {
+    //   handleStepZero()
+    // const requiredFields = [
+    //   campaignFormData?.client_selection?.value,
+    //   campaignFormData?.media_plan,
+    //   campaignFormData?.approver,
+    //   campaignFormData?.client_approver,
+    // ];
 
-      if (!requiredFields.every((field) => field)) {
-        setIncompleteFieldsError(true);
-        setAlert({
-          variant: "error",
-          message: "Please complete all required fields before proceeding!",
-          position: "bottom-right",
-        });
-        hasError = true;
-      }
+    // if (!requiredFields.every((field) => field)) {
+    //   setIncompleteFieldsError(true);
+    //   setAlert({
+    //     variant: "error",
+    //     message: "Please complete all required fields before proceeding!",
+    //     position: "bottom-right",
+    //   });
+    //   hasError = true;
+    // }
 
-      if (hasChanges) {
-        setValidateStep(true);
-        hasError = true;
-      }
+    // if (hasChanges) {
+    //   setValidateStep(true);
+    //   hasError = true;
+    // }
 
-      if (!hasError) {
-        setActive((prev) => prev + 1);
-      }
-    }
+    // if (!hasError) {
+    //   setActive((prev) => prev + 1);
+    // }
+    // }
 
     if (active === 1) {
       if (
@@ -447,10 +455,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         }
       }
 
-      if (hasChanges) {
-        // setValidateStep(true);
-        // hasError = true;
-      }
+      // if (hasChanges) {
+      // setValidateStep(true);
+      // hasError = true;
+      // }
     }
 
     if (hasError) {
@@ -481,14 +489,125 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const cleanData = campaignData
       ? removeKeysRecursively(campaignData, [
-          "id",
-          "documentId",
-          "createdAt",
-          "publishedAt",
-          "updatedAt",
-          "_aggregated",
-        ])
+        "id",
+        "documentId",
+        "createdAt",
+        "publishedAt",
+        "updatedAt",
+        "_aggregated",
+      ])
       : {};
+
+
+    const handleStepZero = async () => {
+      setLoading(true)
+
+      try {
+        if (!isStepZeroValid) {
+          setAlert({
+            variant: "error",
+            message: "Please complete all required fields before proceeding.",
+            position: "bottom-right",
+          });
+          setLoading(false);
+          return;
+        }
+
+        const budgetDetails = {
+          currency: campaignFormData?.budget_details_currency?.id,
+          fee_type: campaignFormData?.budget_details_fee_type?.id,
+          sub_fee_type: selectedOption,
+          value: campaignFormData?.budget_details_value,
+        };
+
+        if (cId && campaignData) {
+          const updatedData = {
+            ...removeKeysRecursively(campaignData, [
+              "id",
+              "documentId",
+              "createdAt",
+              "publishedAt",
+              "updatedAt",
+              "_aggregated"
+            ]),
+            client: campaignFormData?.client_selection?.id,
+            client_selection: {
+              client: campaignFormData?.client_selection?.value,
+              level_1: campaignFormData?.level_1?.id,
+              level_2: campaignFormData?.level_2?.id,
+              level_3: campaignFormData?.level_3?.id,
+            },
+            media_plan_details: {
+              plan_name: campaignFormData?.media_plan,
+              internal_approver: campaignFormData?.approver?.value,
+              client_approver: campaignFormData?.client_approver?.value,
+            },
+            budget_details: budgetDetails,
+          };
+
+          await updateCampaign(updatedData);
+
+          setCampaignFormData((prev) => ({
+            ...prev,
+            budget_details_currency: {
+              id: budgetDetails.currency,
+              value: budgetDetails.currency,
+              label:
+                selectCurrency.find((c) => c.value === budgetDetails.currency)
+                  ?.label || budgetDetails.currency,
+            },
+          }));
+          setLoading(false)
+          setActive((prev) => prev + 1);
+          setAlert({
+            variant: "success",
+            message: "Campaign updated successfully!",
+            position: "bottom-right",
+          });
+        } else {
+          const res = await createCampaign();
+          const url = new URL(window.location.href);
+          url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
+          window.history.pushState({}, "", url.toString());
+          await getActiveCampaign(res?.data?.data.documentId);
+
+          setCampaignFormData((prev) => ({
+            ...prev,
+            budget_details_currency: {
+              id: budgetDetails.currency,
+              value: budgetDetails.currency,
+              label:
+                selectCurrency.find((c) => c.value === budgetDetails.currency)
+                  ?.label || budgetDetails.currency,
+            },
+          }));
+          setActive((prev) => prev + 1);
+          setAlert({
+            variant: "success",
+            message: "Campaign created successfully!",
+            position: "bottom-right",
+          });
+        }
+        // setHasChanges(false);
+        setLoading(false);
+      } catch (error) {
+        setAlert({
+          variant: "error",
+          message: "Something went wrong. Please try again.",
+          position: "bottom-right",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+
+    // if (active === 0) {
+
+
+    // }
+
+
 
     const handleStepTwo = async () => {
       if (!campaignData || !cId) return;
@@ -537,6 +656,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       });
     };
 
+    // console.log('campaignFormData?.goal_level', campaignFormData?.campaign_budget?.level)
+
     const handleStepSeven = async () => {
       if (!campaignData) return;
       await updateCampaignData({
@@ -557,7 +678,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     };
 
     const handleDateStep = async () => {
-      console.log("her")
       const currentYear = new Date().getFullYear();
       if (!campaignData) return;
       const campaign_timeline_start_date =
@@ -581,8 +701,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             ? campaignFormData?.campaign_timeline_start_date
             : campaign_timeline_start_date,
         campaign_timeline_end_date: campaign_timeline_end_date === "Invalid Date"
-        ? campaignFormData?.campaign_timeline_end_date
-        : campaign_timeline_end_date,
+          ? campaignFormData?.campaign_timeline_end_date
+          : campaign_timeline_end_date,
         funnel_stages: campaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
@@ -599,7 +719,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     };
 
     try {
-      if (active === 1) {
+      if (active === 0) {
+        await handleStepZero();
+      } else if (active === 1) {
         await handleStepTwo();
       } else if (active === 2) {
         await handleStepThree();
@@ -640,7 +762,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     <footer id="footer" className="w-full">
       <Toaster position="bottom-right" />
       {alert && <AlertMain alert={alert} />}
-      {validateStep && (
+      {/* {validateStep && (
         <AlertMain
           alert={{
             variant: "error",
@@ -648,7 +770,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             position: "bottom-right",
           }}
         />
-      )}
+      )} */}
       {setupyournewcampaignError && (
         <AlertMain
           alert={{
@@ -713,7 +835,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-    
+
 
       <div className="flex justify-between w-full">
         {active === 0 ? (
@@ -763,10 +885,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                     {active === 0
                       ? "Start"
                       : active === 4 && !hasUploadedPreviews()
-                      ? "Skip"
-                      : isHovered
-                      ? "Next Step"
-                      : "Continue"}
+                        ? "Skip"
+                        : isHovered
+                          ? "Next Step"
+                          : "Continue"}
                   </p>
                   <Image src={Continue} alt="Continue" />
                 </>

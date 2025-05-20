@@ -55,8 +55,8 @@ export const KPICellRenderer = ({
     return (
       <div className="flex gap-2">
         <div className="l-shape-container-ad">
-          <div className="l-vertical-ad" style={{left: "80px", top:"-72px"}}></div>
-          <div className="l-horizontal-ad" style={{left: "80px", bottom:"-5px"}}></div>
+          <div className="l-vertical-ad" style={{ left: "80px", top: "-72px" }}></div>
+          <div className="l-horizontal-ad" style={{ left: "80px", bottom: "-5px" }}></div>
         </div>
       </div>
     );
@@ -67,7 +67,7 @@ export const KPICellRenderer = ({
         {/* <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
           {adSetIndex + 1}.
         </span> */}
-        <span>{adSet ? adSet?.name : "-"}</span>
+        <span>{""}</span>
       </div>
     );
   }
@@ -157,22 +157,21 @@ export const KPICellRenderer = ({
   const kpiValue =
     body === "budget_size"
       ? campaignFormData?.channel_mix
-          ?.find((ch) => ch?.funnel_stage === stage.name)
-          ?.[channel?.channel_name]?.find(
-            (c) => c?.platform_name === channel?.name
-          )?.ad_sets[adSetIndex]?.extra_audiences[extraAdSetindex]?.budget
-          ?.fixed_value || ""
+        ?.find((ch) => ch?.funnel_stage === stage.name)
+        ?.[channel?.channel_name]?.find(
+          (c) => c?.platform_name === channel?.name
+        )?.ad_sets[adSetIndex]?.extra_audiences[extraAdSetindex]?.budget
+        ?.fixed_value || ""
       : campaignFormData?.channel_mix
-          ?.find((ch) => ch?.funnel_stage === stage.name)
-          ?.[channel?.channel_name]?.find(
-            (c) => c?.platform_name === channel?.name
-          )?.ad_sets[adSetIndex]?.extra_audiences[extraAdSetindex].kpi?.[
-          body
-        ] || "";
+        ?.find((ch) => ch?.funnel_stage === stage.name)
+        ?.[channel?.channel_name]?.find(
+          (c) => c?.platform_name === channel?.name
+        )?.ad_sets[adSetIndex]?.extra_audiences[extraAdSetindex].kpi?.[
+      body
+      ] || "";
 
   // Format display value for percentage fields - keep the raw input value for UI
   let displayValue = kpiValue;
-  // console.log({ kpi: body, value: kpiValue });
   if (isPercentType && displayValue) {
     // If it's a number (already converted to decimal), convert back to percentage for display
     if (

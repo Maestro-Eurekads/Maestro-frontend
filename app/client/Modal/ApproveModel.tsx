@@ -1,4 +1,4 @@
-"use client";
+
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import closefill from "../../../public/close-fill.svg";
@@ -23,6 +23,13 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
     initials: ""
   });
 
+
+  useEffect(() => {
+    setInputs(prev => ({
+      ...prev,
+      signature: sign
+    }));
+  }, [sign]);
 
 
 

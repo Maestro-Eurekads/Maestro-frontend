@@ -4,13 +4,10 @@ import { useEffect, useState } from "react"
 import FiltersDropdowns from "./FiltersDropdowns"
 import HighlightViewDropdowns from "./HighlightViewDropdowns"
 import DoughnutChat from "../../../components/DoughnutChat"
-import WeekInterval from "../../creation/components/atoms/date-interval/WeekInterval"
-import WeekTimeline from "../../creation/components/atoms/date-interval/WeekTimeline"
 import CampaignPhases from "../../creation/components/CampaignPhases"
 import { useCampaigns } from "../../utils/CampaignsContext"
 import { parseApiDate } from "../../../components/Options"
 import TableLoader from "../../creation/components/TableLoader"
-// import { useDateRange } from "../../../src/date-range-context"
 import { processCampaignData } from "components/processCampaignData"
 import ChannelDistributionChatTwo from "components/ChannelDistribution/ChannelDistributionChatTwo"
 import { getCurrencySymbol, getPlatformIcon, mediaTypes, platformIcons } from "components/data"
@@ -23,32 +20,17 @@ import {
   min,
   parseISO,
 } from "date-fns"
-import DayInterval from "../../creation/components/atoms/date-interval/DayInterval"
-import DayTimeline from "../../creation/components/atoms/date-interval/DayTimeline"
-import MonthInterval from "../../creation/components/atoms/date-interval/MonthInterval"
-import MonthTimeline from "../../creation/components/atoms/date-interval/MonthTimeline"
 import { useDateRange } from "src/date-context"
 import Range from "app/creation/components/atoms/date-range/dashboard-date-range"
 import TimelineContainer from "app/creation/components/atoms/date-interval/TimelineContainer"
 
 const Dashboard = () => {
-  const [selected, setSelected] = useState([])
-  const weeksCount = 14 // Dynamic count
   const [channels, setChannels] = useState<IChannel[]>([])
-  const { updateCampaign, campaignData, getActiveCampaign, campaignFormData } = useCampaigns()
+  const { campaignFormData, clientCampaignData, loading } = useCampaigns()
   const { range } = useDateRange()
-  const { clientCampaignData, loading } = useCampaigns()
-  const [channelData, setChannelData] = useState(null)
 
 
-  const currencySymbols: Record<string, string> = {
-    "Euro (EUR)": "€",
-    "US Dollar (USD)": "$",
-    "British Pound (GBP)": "£",
-    "Nigerian Naira (NGN)": "₦",
-    "Japanese Yen (JPY)": "¥",
-    "Canadian Dollar (CAD)": "C$",
-  }
+
 
   // Types for platforms and channels
   type IPlatform = {
@@ -64,66 +46,7 @@ const Dashboard = () => {
     style?: string
   }
 
-  const mapCampaignsToFunnels = (campaigns: any[]) => {
-    useEffect(() => {
-      if (clientCampaignData?.channel_mix) {
-        const newChannels = clientCampaignData?.funnel_stages
-          .flatMap((stageName) => {
-            const stage = clientCampaignData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName)
-            if (!stage) return null
 
-            return [
-              {
-                title: "Social media",
-                platforms: stage?.social_media?.map((platform) => ({
-                  name: platform?.platform_name,
-                  icon: getPlatformIcon(platform?.platform_name),
-                })),
-                style: "max-w-[150px] w-full h-[52px]",
-              },
-              {
-                title: "Display Networks",
-                platforms: stage?.display_networks?.map((platform) => ({
-                  name: platform?.platform_name,
-                  icon: getPlatformIcon(platform?.platform_name),
-                })),
-                style: "max-w-[200px] w-full",
-              },
-              {
-                title: "Search Engines",
-                platforms: stage.search_engines?.map((platform) => ({
-                  name: platform?.platform_name,
-                  icon: getPlatformIcon(platform?.platform_name),
-                })),
-                style: "max-w-[180px] w-full",
-              },
-            ]
-          })
-          .filter(Boolean) // Flatten array and remove null values
-
-        // **Fix: Prevent re-render loop**
-        if (JSON.stringify(channels) !== JSON.stringify(newChannels)) {
-          setChannels(newChannels)
-        }
-      }
-    }, [campaignFormData])
-
-    return campaigns?.map((campaign, index) => {
-      const fromDate = parseApiDate(campaign?.campaign_timeline_start_date)
-      const toDate = parseApiDate(campaign?.campaign_timeline_end_date)
-
-      const budgetDetails = campaign?.budget_details
-      const currencySymbol = currencySymbols[budgetDetails?.currency] || ""
-      const budgetValue = budgetDetails?.value ? `${budgetDetails.value} ${currencySymbol}` : "N/A"
-
-      return {
-        startWeek: fromDate?.day ?? 0, // Default to 0 if null
-        endWeek: toDate?.day ?? 0,
-        label: `Campaign ${index + 1}`,
-        budget: budgetValue,
-      }
-    })
-  }
 
   const startDates = clientCampaignData
     ?.filter((c) => c?.campaign_timeline_start_date)
@@ -150,7 +73,7 @@ const Dashboard = () => {
     const startDay = differenceInCalendarDays(start, earliestStartDate) + 1
     const endDay = differenceInCalendarDays(end, earliestStartDate) + 1
 
-    // console.log("🚀 ~ Dashboard ~ funnelDtaa:", ch?.media_plan_details?.plan_name, startDay, endDay)
+
 
     const startWeek = differenceInCalendarWeeks(start, earliestStartDate) + 1
     const endWeek = differenceInCalendarWeeks(end, earliestStartDate) + 1

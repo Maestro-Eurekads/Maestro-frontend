@@ -10,7 +10,7 @@ export type FilterState = {
   month: string | null;
   category?: string | null;
   product?: string | null;
-  select_plans?: string | null;
+  // select_plans?: string | null;
   made_by: string | null;
   approved_by: string | null;
   channel: string | null;
@@ -131,9 +131,9 @@ export function useCampaignFilters(clientID: string) {
       filterQuery += `&filters[product][$eq]=${filters.product}`;
     }
 
-    if (filters.select_plans) {
-      filterQuery += `&filters[plan][$eq]=${filters.select_plans}`;
-    }
+    // if (filters.select_plans) {
+    //   filterQuery += `&filters[plan][$eq]=${filters.select_plans}`;
+    // }
 
     if (filters.made_by) {
       filterQuery += `&filters[created_by][$eq]=${filters.made_by}`;

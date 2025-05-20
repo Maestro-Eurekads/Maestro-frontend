@@ -127,7 +127,6 @@
 // 							},
 // 						}
 // 					);
-// 					console.log(`Deleted duplicate record with ID: ${sortedRecords[i].id}`);
 // 				}
 // 			} else if (records.length === 1) {
 // 				storedData = records[0].attributes;
@@ -147,7 +146,7 @@
 
 // 			// If data is identical, return early without creating or updating
 // 			if (isDataIdentical) {
-// 				console.log("Fetched data matches static data. No update or creation needed.");
+
 // 				return trendData;
 // 			}
 
@@ -167,14 +166,12 @@
 // 			}
 
 // 			// If no changes are needed and data exists, return early
-// 			if (!shouldUpdate && storedData) {
-// 				console.log("No changes detected for the current month.");
+// 			if (!shouldUpdate && storedData) { 
 // 				return trendData;
 // 			}
 
 // 			// Add 10-second delay if there are changes
-// 			if (shouldUpdate || !storedData) {
-// 				console.log("Initiating 10-second delay before create/update...");
+// 			if (shouldUpdate || !storedData) { 
 // 				await new Promise(resolve => setTimeout(resolve, 10000));
 // 			}
 
@@ -215,8 +212,7 @@
 // 								Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
 // 							},
 // 						}
-// 					);
-// 					console.log(`Deleted duplicate record with ID: ${sortedCheckRecords[i].id}`);
+// 					); 
 // 				}
 // 				// Update storedData and recordId to the most recent record
 // 				storedData = sortedCheckRecords[0].attributes;
@@ -244,7 +240,7 @@
 // 						},
 // 					}
 // 				);
-// 				console.log("Data updated in Strapi successfully.");
+//  
 // 			} else if (shouldUpdate) {
 // 				// Create new record only if there are changes and no existing record
 // 				await axios.post(
@@ -257,9 +253,8 @@
 // 						},
 // 					}
 // 				);
-// 				console.log("New data created in Strapi successfully.");
-// 			} else {
-// 				console.log("No new data to create.");
+// 			 
+// 			} else { 
 // 				return trendData;
 // 			}
 
@@ -285,7 +280,7 @@
 // 				},
 // 			};
 
-// 			console.log("Comparison with previous month:", comparison);
+
 // 			return trendData;
 // 		} catch (error) {
 // 			console.error("Error updating trend data:", error.message);
@@ -303,8 +298,7 @@
 // 		updateTrendData(budgetChange, impressionsChange, cpmChange, campaign_id)
 // 			.then((data) => console.log("Final trend data:", data))
 // 			.catch((err) => console.error(err));
-// 	} else {
-// 		console.log("No data available to update trend data.");
+// 	} else { 
 // 	}
 
 
@@ -388,197 +382,185 @@ const months = [
 	"July", "August", "September", "October", "November", "December"
 ];
 
-async function updateTrendData(budgetChange, impressionsChange, cpmChange, campaign_id) {
-	try {
-		const currentDate = new Date();
-		const currentMonthIndex = currentDate.getMonth();
-		const currentMonth = months[currentMonthIndex];
+// async function updateTrendData(budgetChange, impressionsChange, cpmChange, campaign_id) {
+// 	try {
+// 		const currentDate = new Date();
+// 		const currentMonthIndex = currentDate.getMonth();
+// 		const currentMonth = months[currentMonthIndex];
 
-		// Initialize trendData structure
-		let trendData = {
-			budgetChange: months.reduce((acc, month) => ({ ...acc, [month]: "0%" }), {}),
-			impressionsChange: months.reduce((acc, month) => ({ ...acc, [month]: "0%" }), {}),
-			cpmChange: months.reduce((acc, month) => ({ ...acc, [month]: "0%" }), {}),
-		};
+// 		// Initialize trendData structure
+// 		let trendData = {
+// 			budgetChange: months.reduce((acc, month) => ({ ...acc, [month]: "0%" }), {}),
+// 			impressionsChange: months.reduce((acc, month) => ({ ...acc, [month]: "0%" }), {}),
+// 			cpmChange: months.reduce((acc, month) => ({ ...acc, [month]: "0%" }), {}),
+// 		};
 
-		// Fetch existing data from Strapi for the campaign_id
-		console.log(`Fetching trend data for campaign_id: ${campaign_id}`);
-		const response = await axios.get(
-			`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign-trends?filters[campaign_id][$eq]=${campaign_id}`,
-			{
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-				},
-			}
-		);
+// 		// Fetch existing data from Strapi for the campaign_id
 
-		console.log("Strapi response:", response.data);
+// 		const response = await axios.get(
+// 			`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign-trends?filters[campaign_id][$eq]=${campaign_id}`,
+// 			{
+// 				headers: {
+// 					"Content-Type": "application/json",
+// 					Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+// 				},
+// 			}
+// 		);
 
-		// Handle duplicates
-		const records = response.data.data;
-		let storedData = null;
-		let recordId = null;
 
-		if (records.length > 1) {
-			console.log(`Found ${records.length} duplicate records for campaign_id: ${campaign_id}`);
-			// Keep the most recent record, delete others
-			const sortedRecords = records.sort((a, b) =>	//@ts-ignore
-				new Date(b.attributes.updatedAt) - new Date(a.attributes.updatedAt)
-			);
-			storedData = sortedRecords[0].attributes;
-			recordId = sortedRecords[0].id;
 
-			// Delete duplicate records
-			for (let i = 1; i < sortedRecords.length; i++) {
-				await axios.delete(
-					`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign-trends/${sortedRecords[i].id}`,
-					{
-						headers: {
-							"Content-Type": "application/json",
-							Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-						},
-					}
-				);
-				console.log(`Deleted duplicate record with ID: ${sortedRecords[i].id}`);
-			}
-		} else if (records.length === 1) {
-			storedData = records[0].attributes;
-			recordId = records[0].id;
-			console.log(`Found existing record with ID: ${recordId}`);
-		} else {
-			console.log("No existing trend data found in Strapi.");
-		}
+// 		// Handle duplicates
+// 		const records = response.data.data;
+// 		let storedData = null;
+// 		let recordId = null;
 
-		// If data exists, populate trendData with stored values
-		if (storedData && storedData.trendData) {
-			trendData = storedData.trendData;
-			console.log("Loaded stored trendData:", trendData);
-		}
+// 		if (records.length > 1) {
+// 			// Keep the most recent record, delete others
+// 			const sortedRecords = records.sort((a, b) =>	//@ts-ignore
+// 				new Date(b.attributes.updatedAt) - new Date(a.attributes.updatedAt)
+// 			);
+// 			storedData = sortedRecords[0].attributes;
+// 			recordId = sortedRecords[0].id;
 
-		// Always update with provided values if they exist, or initialize with defaults
-		let shouldUpdate = false;
-		if (budgetChange && budgetChange !== trendData.budgetChange[currentMonth]) {
-			trendData.budgetChange[currentMonth] = budgetChange;
-			shouldUpdate = true;
-			console.log(`Updating budgetChange for ${currentMonth}: ${budgetChange}`);
-		}
-		if (impressionsChange && impressionsChange !== trendData.impressionsChange[currentMonth]) {
-			trendData.impressionsChange[currentMonth] = impressionsChange;
-			shouldUpdate = true;
-			console.log(`Updating impressionsChange for ${currentMonth}: ${impressionsChange}`);
-		}
-		if (cpmChange && cpmChange !== trendData.cpmChange[currentMonth]) {
-			trendData.cpmChange[currentMonth] = cpmChange;
-			shouldUpdate = true;
-			console.log(`Updating cpmChange for ${currentMonth}: ${cpmChange}`);
-		}
+// 			// Delete duplicate records
+// 			for (let i = 1; i < sortedRecords.length; i++) {
+// 				await axios.delete(
+// 					`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign-trends/${sortedRecords[i].id}`,
+// 					{
+// 						headers: {
+// 							"Content-Type": "application/json",
+// 							Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+// 						},
+// 					}
+// 				);
+// 			}
+// 		} else if (records.length === 1) {
+// 			storedData = records[0].attributes;
+// 			recordId = records[0].id;
+// 		} else {
+// 		}
 
-		// If no data exists, force creation with provided or default values
-		if (!storedData) {
-			shouldUpdate = true;
-			console.log("No data exists in Strapi, will create new record.");
-		}
+// 		// If data exists, populate trendData with stored values
+// 		if (storedData && storedData.trendData) {
+// 			trendData = storedData.trendData;
+// 		}
 
-		// Add 10-second delay if there are changes or no data
-		if (shouldUpdate) {
-			console.log("Initiating 10-second delay before create/update...");
-			await new Promise(resolve => setTimeout(resolve, 10000));
-		}
+// 		// Always update with provided values if they exist, or initialize with defaults
+// 		let shouldUpdate = false;
+// 		if (budgetChange && budgetChange !== trendData.budgetChange[currentMonth]) {
+// 			trendData.budgetChange[currentMonth] = budgetChange;
+// 			shouldUpdate = true;
+// 		}
+// 		if (impressionsChange && impressionsChange !== trendData.impressionsChange[currentMonth]) {
+// 			trendData.impressionsChange[currentMonth] = impressionsChange;
+// 			shouldUpdate = true;
+// 		}
+// 		if (cpmChange && cpmChange !== trendData.cpmChange[currentMonth]) {
+// 			trendData.cpmChange[currentMonth] = cpmChange;
+// 			shouldUpdate = true;
+// 		}
 
-		// Create or update record
-		const updatePayload = {
-			data: {
-				campaign_id,
-				trend: {
-					trendData,
-					lastUpdatedMonth: currentMonth,
-				},
-			},
-		};
+// 		// If no data exists, force creation with provided or default values
+// 		if (!storedData) {
+// 			shouldUpdate = true;
+// 		}
 
-		if (storedData && recordId) {
-			// Update existing record
-			console.log(`Updating existing record with ID: ${recordId}`);
-			await axios.put(
-				`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign-trends/${recordId}`,
-				updatePayload,
-				{
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-					},
-				}
-			);
-			console.log("Data updated in Strapi successfully.");
-		} else {
-			// Create new record
-			console.log("Creating new trend record in Strapi.");
-			await axios.post(
-				`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign-trends`,
-				updatePayload,
-				{
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-					},
-				}
-			);
-			console.log("New data created in Strapi successfully.");
-		}
+// 		// Add 10-second delay if there are changes or no data
+// 		if (shouldUpdate) {
+// 			await new Promise(resolve => setTimeout(resolve, 10000));
+// 		}
 
-		// Compare with previous month (if available)
-		const previousMonthIndex = currentMonthIndex === 0 ? 11 : currentMonthIndex - 1;
-		const previousMonth = months[previousMonthIndex];
+// 		// Create or update record
+// 		const updatePayload = {
+// 			data: {
+// 				campaign_id,
+// 				trend: {
+// 					trendData,
+// 					lastUpdatedMonth: currentMonth,
+// 				},
+// 			},
+// 		};
 
-		const comparison = {
-			budgetChange: {
-				current: trendData.budgetChange[currentMonth],
-				previous: trendData.budgetChange[previousMonth],
-				trend: calculateTrend(trendData.budgetChange[currentMonth], trendData.budgetChange[previousMonth]),
-			},
-			impressionsChange: {
-				current: trendData.impressionsChange[currentMonth],
-				previous: trendData.impressionsChange[previousMonth],
-				trend: calculateTrend(trendData.impressionsChange[currentMonth], trendData.impressionsChange[previousMonth]),
-			},
-			cpmChange: {
-				current: trendData.cpmChange[currentMonth],
-				previous: trendData.cpmChange[previousMonth],
-				trend: calculateTrend(trendData.cpmChange[currentMonth], trendData.cpmChange[previousMonth]),
-			},
-		};
+// 		if (storedData && recordId) {
+// 			// Update existing record 
+// 			await axios.put(
+// 				`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign-trends/${recordId}`,
+// 				updatePayload,
+// 				{
+// 					headers: {
+// 						"Content-Type": "application/json",
+// 						Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+// 					},
+// 				}
+// 			);
+// 		} else {
+// 			// Create new record
 
-		console.log("Comparison with previous month:", comparison);
-		return trendData;
-	} catch (error) {
-		console.error("Error updating trend data:", error.message);
-		throw error;
-	}
-}
+// 			await axios.post(
+// 				`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign-trends`,
+// 				updatePayload,
+// 				{
+// 					headers: {
+// 						"Content-Type": "application/json",
+// 						Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+// 					},
+// 				}
+// 			);
 
-function calculateTrend(current, previous) {
-	// Remove percentage signs and convert to numbers
-	const currentValue = parseFloat(current.replace('%', '')) || 0;
-	// If previous month data is not available (i.e., "0%"), use current value as previous
-	const previousValue = previous === "0%" ? currentValue : parseFloat(previous.replace('%', '')) || 0;
+// 		}
 
-	if (currentValue === previousValue) return "0%";
+// 		// Compare with previous month (if available)
+// 		const previousMonthIndex = currentMonthIndex === 0 ? 11 : currentMonthIndex - 1;
+// 		const previousMonth = months[previousMonthIndex];
 
-	// Calculate percentage difference
-	let trend;
-	if (previousValue === 0) {
-		trend = currentValue > 0 ? "+100%" : "-100%";
-	} else {
-		const difference = ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
-		const roundedDifference = Math.round(difference * 10) / 10; // Round to 1 decimal place
-		trend = roundedDifference >= 0
-			? `+${roundedDifference}%`
-			: `${roundedDifference}%`; // Negative values already include the minus sign
-	}
+// 		const comparison = {
+// 			budgetChange: {
+// 				current: trendData.budgetChange[currentMonth],
+// 				previous: trendData.budgetChange[previousMonth],
+// 				trend: calculateTrend(trendData.budgetChange[currentMonth], trendData.budgetChange[previousMonth]),
+// 			},
+// 			impressionsChange: {
+// 				current: trendData.impressionsChange[currentMonth],
+// 				previous: trendData.impressionsChange[previousMonth],
+// 				trend: calculateTrend(trendData.impressionsChange[currentMonth], trendData.impressionsChange[previousMonth]),
+// 			},
+// 			cpmChange: {
+// 				current: trendData.cpmChange[currentMonth],
+// 				previous: trendData.cpmChange[previousMonth],
+// 				trend: calculateTrend(trendData.cpmChange[currentMonth], trendData.cpmChange[previousMonth]),
+// 			},
+// 		};
 
-	return trend;
-}
+
+// 		return trendData;
+// 	} catch (error) {
+// 		console.error("Error updating trend data:", error.message);
+// 		throw error;
+// 	}
+// }
+
+// function calculateTrend(current, previous) {
+// 	// Remove percentage signs and convert to numbers
+// 	const currentValue = parseFloat(current.replace('%', '')) || 0;
+// 	// If previous month data is not available (i.e., "0%"), use current value as previous
+// 	const previousValue = previous === "0%" ? currentValue : parseFloat(previous.replace('%', '')) || 0;
+
+// 	if (currentValue === previousValue) return "0%";
+
+// 	// Calculate percentage difference
+// 	let trend;
+// 	if (previousValue === 0) {
+// 		trend = currentValue > 0 ? "+100%" : "-100%";
+// 	} else {
+// 		const difference = ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
+// 		const roundedDifference = Math.round(difference * 10) / 10; // Round to 1 decimal place
+// 		trend = roundedDifference >= 0
+// 			? `+${roundedDifference}%`
+// 			: `${roundedDifference}%`; // Negative values already include the minus sign
+// 	}
+
+// 	return trend;
+// }
 
 // Component to display general campaign information like budget, impressions, and CPM
 const BusinessGeneral = ({ campaign, loading, isLoadingCampaign, campaign_id }) => {
@@ -627,63 +609,58 @@ const BusinessGeneral = ({ campaign, loading, isLoadingCampaign, campaign_id }) 
 	}, [campaign]);
 
 	// Fetch or initialize trend data
-	useEffect(() => {
-		if (campaign_id && budget && totalImpressions && averageCpm) {
-			const currentMonth = months[new Date().getMonth()];
+	// useEffect(() => {
+	// 	if (campaign_id && budget && totalImpressions && averageCpm) {
+	// 		const currentMonth = months[new Date().getMonth()];
 
-			// Calculate initial trends based on current values (assuming previous values are 0 if no data)
-			const calculateInitialTrend = (current, previous = 0) => {
-				const currentValue = parseFloat(current) || 0;
-				//@ts-ignore
-				const previousValue = parseFloat(previous) || 0;
-				if (previousValue === 0) return currentValue > 0 ? "+100%" : "0%";
-				const difference = ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
-				const roundedDifference = Math.round(difference * 10) / 10;
-				return roundedDifference >= 0 ? `+${roundedDifference}%` : `${roundedDifference}%`;
-			};
+	// 		// Calculate initial trends based on current values (assuming previous values are 0 if no data)
+	// 		const calculateInitialTrend = (current, previous = 0) => {
+	// 			const currentValue = parseFloat(current) || 0;
+	// 			//@ts-ignore
+	// 			const previousValue = parseFloat(previous) || 0;
+	// 			if (previousValue === 0) return currentValue > 0 ? "+100%" : "0%";
+	// 			const difference = ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
+	// 			const roundedDifference = Math.round(difference * 10) / 10;
+	// 			return roundedDifference >= 0 ? `+${roundedDifference}%` : `${roundedDifference}%`;
+	// 		};
 
-			const initialBudgetChange = calculateInitialTrend(budget);
-			const initialImpressionsChange = calculateInitialTrend(totalImpressions);
-			const initialCpmChange = calculateInitialTrend(averageCpm);
+	// 		const initialBudgetChange = calculateInitialTrend(budget);
+	// 		const initialImpressionsChange = calculateInitialTrend(totalImpressions);
+	// 		const initialCpmChange = calculateInitialTrend(averageCpm);
 
-			console.log("Initial trend values:", {
-				budgetChange: initialBudgetChange,
-				impressionsChange: initialImpressionsChange,
-				cpmChange: initialCpmChange
-			});
 
-			updateTrendData(initialBudgetChange, initialImpressionsChange, initialCpmChange, campaign_id)
-				.then((data) => {
-					setTrendData({
-						budgetChange: data.budgetChange[currentMonth],
-						impressionsChange: data.impressionsChange[currentMonth],
-						cpmChange: data.cpmChange[currentMonth]
-					});
-					console.log("Trend data set:", data);
-				})
-				.catch((err) => console.error("Failed to fetch or create trend data:", err));
-		}
-	}, [campaign_id, budget, totalImpressions, averageCpm]);
+
+	// 		updateTrendData(initialBudgetChange, initialImpressionsChange, initialCpmChange, campaign_id)
+	// 			.then((data) => {
+	// 				setTrendData({
+	// 					budgetChange: data.budgetChange[currentMonth],
+	// 					impressionsChange: data.impressionsChange[currentMonth],
+	// 					cpmChange: data.cpmChange[currentMonth]
+	// 				});
+	// 			})
+	// 			.catch((err) => console.error("Failed to fetch or create trend data:", err));
+	// 	}
+	// }, [campaign_id, budget, totalImpressions, averageCpm]);
 
 	const formatNumber = (value) => {
 		if (!value) return "0";
 		return Intl.NumberFormat("en-US").format(value);
 	};
 
-	// Function to determine trend styles based on value
-	const getTrendStyles = (trend) => {
-		if (!trend || trend === "0%") {
-			return {
-				backgroundColor: "#E5E7EB", // Neutral gray for no change
-				color: "#6B7280" // Neutral gray text
-			};
-		}
-		const isPositive = trend.startsWith("+");
-		return {
-			backgroundColor: isPositive ? "#B8FFE6" : "#FFE1E0",
-			color: isPositive ? "#00A331" : "#FF0302"
-		};
-	};
+	// // Function to determine trend styles based on value
+	// const getTrendStyles = (trend) => {
+	// 	if (!trend || trend === "0%") {
+	// 		return {
+	// 			backgroundColor: "#E5E7EB", // Neutral gray for no change
+	// 			color: "#6B7280" // Neutral gray text
+	// 		};
+	// 	}
+	// 	const isPositive = trend.startsWith("+");
+	// 	return {
+	// 		backgroundColor: isPositive ? "#B8FFE6" : "#FFE1E0",
+	// 		color: isPositive ? "#00A331" : "#FF0302"
+	// 	};
+	// };
 
 	return (
 		<div className="flex flex-col justify-between w-full h-[153px] bg-white border border-[rgba(49,117,255,0.3)] rounded-[12px] box-border p-[20px] shadow-[0px_4px_14px_rgba(0,38,116,0.15)]">
@@ -700,12 +677,12 @@ const BusinessGeneral = ({ campaign, loading, isLoadingCampaign, campaign_id }) 
 						</div>}
 					{loading || isLoadingCampaign ? <Skeleton height={20} width={200} /> :
 						<div className="flex items-end gap-2">
-							<div
+							{/* <div
 								className="flex justify-center items-center p-[5px] w-[48px] h-[19px] rounded-full text-[12px] leading-[16px] mb-2"
 								style={getTrendStyles(trendData.budgetChange)}
 							>
 								{trendData.budgetChange}
-							</div>
+							</div> */}
 							<h1 className="font-medium text-[32px] leading-[49px] text-[#101828] whitespace-nowrap">
 								{currency} {formatNumber(budget)}
 							</h1>
@@ -721,12 +698,12 @@ const BusinessGeneral = ({ campaign, loading, isLoadingCampaign, campaign_id }) 
 						</div>}
 					{loading || isLoadingCampaign ? <Skeleton height={20} width={200} /> :
 						<div className="flex items-end gap-2">
-							<div
+							{/* <div
 								className="flex justify-center items-center p-[5px] w-[48px] h-[19px] rounded-full text-[12px] leading-[16px] mb-2"
 								style={getTrendStyles(trendData.impressionsChange)}
 							>
 								{trendData.impressionsChange}
-							</div>
+							</div> */}
 							<h1 className="font-medium text-[32px] leading-[49px] text-[#101828] whitespace-nowrap">
 								{formatNumber(totalImpressions)}
 							</h1>
@@ -742,12 +719,12 @@ const BusinessGeneral = ({ campaign, loading, isLoadingCampaign, campaign_id }) 
 						</div>}
 					{loading || isLoadingCampaign ? <Skeleton height={20} width={200} /> :
 						<div className="flex items-end gap-2">
-							<div
+							{/* <div
 								className="flex justify-center items-center p-[5px] w-[48px] h-[19px] rounded-full text-[12px] leading-[16px] mb-2"
 								style={getTrendStyles(trendData.cpmChange)}
 							>
 								{trendData.cpmChange}
-							</div>
+							</div> */}
 							<h1 className="font-medium text-[32px] leading-[49px] text-[#101828] whitespace-nowrap">
 								{currency} {averageCpm}
 							</h1>

@@ -15,6 +15,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { selectCurrency, statusOption } from "components/data";
 import { getCreateClient } from "features/Client/clientSlice";
+import { useSession } from "next-auth/react";
 
 interface MediaPlan {
   name: string;
@@ -62,6 +63,9 @@ const AddFinanceModal = ({
     PO_total_amount: 0,
     PO_status: "open",
   });
+  const { data: session } = useSession();
+  // @ts-ignore 
+  const userType = session?.user?.data?.user?.id || "";
   const [clientCampaigns, setClientCampaigns] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [financialUsers, setFinancialUsers] = useState<any[]>([]);
@@ -346,7 +350,7 @@ const AddFinanceModal = ({
       dispatch(getCreateClient());
 
       if (selected) {
-        localStorage.setItem("selectedClient", selected);
+        localStorage.setItem(userType.toString(), selected);
       }
 
       toast("Purchase Order created successfully!", {
@@ -426,7 +430,7 @@ const AddFinanceModal = ({
       setFetchingPO(true);
       fetchClientPOS(selectedRow?.client?.id)
         .then((res) => {
-          localStorage.setItem("selectedClient", selectedRow?.client?.id);
+          localStorage.setItem(userType.toString(), selectedRow?.client?.id);
           setClientPOs(res?.data?.data || []);
         })
         .finally(() => setFetchingPO(false));
@@ -613,7 +617,7 @@ const AddFinanceModal = ({
                     }}
                   />
                 </div>
-                {mode === "edit" && (
+                {mode === "edit" && (userRole === "admin" || userRole === "financial_approver") && (
                   <div className="w-1/2 mt-3">
                     <label htmlFor="">PO Status</label>
                     <CustomSelect
@@ -864,7 +868,7 @@ const AddFinanceModal = ({
                         "You have a plan that is set to total PO amount, please remove it or change the amount type, before adding a new plan.",
                         {
                           style: { background: "red", color: "white", textAlign: "center" },
-                          duration: 3000, 
+                          duration: 3000,
                         }
                       );
                     } else if (poForm?.PO_total_amount > 0) {

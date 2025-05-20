@@ -10,6 +10,8 @@ import { useAppDispatch } from "store/useStore"
 import { getCreateClient } from "features/Client/clientSlice"
 import { defaultFilters } from "components/data"
 import { fetchFilteredCampaignsSub } from "app/utils/campaign-filter-utils-sub"
+import { useSession } from "next-auth/react"
+import { FilterState } from "app/utils/useCampaignFilters"
 
 // Scrollbar CSS
 const scrollbarStyles = `
@@ -120,7 +122,9 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     setClientCampaignData,
     allClients,
   } = useCampaigns()
-
+  const { data: session } = useSession();
+  // @ts-ignore 
+  const userType = session?.user?.data?.user?.id || "";
 
 
   const [filters, setFilters] = useState(defaultFilters)
@@ -168,10 +172,12 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     }
   }, [filterOptions])
 
+  console.log('selectedFilters-selectedFilters', Object.values(selectedFilters).every((val) => !val))
+
 
   useEffect(() => {
     const fetchData = async () => {
-      const clientID = localStorage.getItem("selectedClient") || allClients[0]?.id;
+      const clientID = localStorage.getItem(userType?.toString()) || allClients[0]?.id;
 
       if (!clientID) return;
 
@@ -194,11 +200,18 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     fetchData();
   }, [selectedFilters]);
 
+  const areAllFiltersEmpty = (filters: FilterState): boolean => {
+    return Object.values(filters).every((val) => {
+      if (Array.isArray(val)) return val.length === 0;
+      if (typeof val === "object" && val !== null) return Object.keys(val).length === 0;
+      return !val;
+    });
+  };
 
   // useEffect(() => {
   //   if (Object.values(selectedFilters).some((val) => val !== null && val !== "")) {
   //     const fetchData = async () => {
-  //       const clientID = localStorage.getItem("selectedClient") || allClients[0]?.id
+  //       const clientID = localStorage.getItem(userType.toString()) || allClients[0]?.id
   //       setLoading(true)
   //       const data = await fetchFilteredCampaigns(clientID, selectedFilters)
   //         .then((res) => {
@@ -214,25 +227,53 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
   // }, [selectedFilters])
 
   useEffect(() => {
-    const allEmpty = Object.values(selectedFilters).every((val) => !val)
-
     const fetchData = async () => {
-      const clientID = localStorage.getItem("selectedClient") || allClients[0]?.id
-      setLoading(true)
+      const clientID = localStorage.getItem(userType?.toString()) || allClients[0]?.id;
+
+      if (!clientID) return;
+
+      setLoading(true);
+
+      const allEmpty = areAllFiltersEmpty(selectedFilters);
 
       try {
-        const res = allEmpty //@ts-ignore
-          ? await fetchFilteredCampaigns(clientID, {}) // Fetch all data
-          : await fetchFilteredCampaigns(clientID, selectedFilters) // Fetch filtered
+        const res = allEmpty
+          ? await fetchFilteredCampaignsSub(clientID)
+          : await fetchFilteredCampaigns(clientID, selectedFilters);
 
-        setClientCampaignData(res)
+        setClientCampaignData(res);
+      } catch (err) {
+        console.error("Campaign fetch failed", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [selectedFilters])
+    fetchData();
+  }, [selectedFilters]);
+
+
+  // useEffect(() => {
+  //   const allEmpty = Object.values(selectedFilters).every((val) => !val)
+
+  //   const fetchData = async () => {
+  //     const clientID = localStorage.getItem(userType.toString()) || allClients[0]?.id
+  //     setLoading(true)
+  //     console.log('clientID-clientID', clientID)
+
+  //     try {
+  //       const res = allEmpty //@ts-ignore
+  //         ? await fetchFilteredCampaigns(clientID, {}) // Fetch all data
+  //         : await fetchFilteredCampaigns(clientID, selectedFilters) // Fetch filtered
+
+  //       setClientCampaignData(res)
+  //     } finally {
+  //       setLoading(false)
+  //     }
+  //   }
+
+  //   fetchData()
+  // }, [selectedFilters])
 
 
   const isYearSelected = !!selectedFilters["year"]

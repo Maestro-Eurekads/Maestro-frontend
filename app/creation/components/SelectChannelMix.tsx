@@ -30,7 +30,7 @@ const Toast = ({ message, onClose }) => {
 };
 
 // Utility functions for localStorage with campaign-specific scoping
-const loadStateFromLocalStorage = (key, defaultValue, cId) => {
+const loadStateFromLocalStorage = (key: string, defaultValue: any, cId: string) => {
   if (typeof window === "undefined") return defaultValue;
   const storageKey = cId ? `${cId}_${key}` : key;
   try {
@@ -42,7 +42,7 @@ const loadStateFromLocalStorage = (key, defaultValue, cId) => {
   }
 };
 
-const saveStateToLocalStorage = (key, state, cId) => {
+const saveStateToLocalStorage = (key: string, state: any, cId: string) => {
   if (typeof window === "undefined") return;
   const storageKey = cId ? `${cId}_${key}` : key;
   try {
@@ -83,7 +83,6 @@ const SelectChannelMix = () => {
   useEffect(() => {
     console.log("SelectChannelMix - platformList:", platformList);
     console.log("SelectChannelMix - campaignFormData:", campaignFormData);
-    console.log("SelectChannelMix - cId:", cId);
   }, [platformList, campaignFormData, cId]);
 
   // Ensure component is mounted and data is ready
@@ -260,14 +259,14 @@ const SelectChannelMix = () => {
     }
   }, [campaignFormData?.funnel_stages, platformList, isMounted]);
 
-  const toggleItem = (stage) => {
+  const toggleItem = (stage: string) => {
     setOpenItems((prev) => ({
       ...prev,
       [stage]: !prev[stage],
     }));
   };
 
-  const togglePlatform = async (stageName, category, platformName, type) => {
+  const togglePlatform = async (stageName: string, category: string, platformName: string, type: string) => {
     setSelected((prevSelected) => {
       const stageSelection = prevSelected[stageName] || {};
       const categorySelection = stageSelection[category] || [];
@@ -321,12 +320,12 @@ const SelectChannelMix = () => {
       return updatedSelected;
     });
 
-    const updatedFormData = await setCampaignFormData((prevFormData) => {
+    const updatedFormData = await setCampaignFormData((prevFormData: any) => {
       const categoryKey = category.toLowerCase().replaceAll(" ", "_");
       const stageSelection = selected[stageName] || {};
       const categorySelection = stageSelection[category] || [];
       const isAlreadySelected = categorySelection.includes(platformName);
-      
+
       // Skip update if deselection was blocked
       if (
         isAlreadySelected &&
@@ -402,19 +401,19 @@ const SelectChannelMix = () => {
     }
   };
 
-  const handlePlatformClick = (e, stageName, category, platformName, type) => {
+  const handlePlatformClick = (e: React.MouseEvent, stageName: string, category: string, platformName: string, type: string) => {
     e.stopPropagation();
     togglePlatform(stageName, category, platformName, type);
   };
 
-  const toggleShowMore = (channelKey) => {
+  const toggleShowMore = (channelKey: string) => {
     setShowMoreMap((prev) => ({
       ...prev,
       [channelKey]: !prev[channelKey],
     }));
   };
 
-  const toggleChannelType = (e, stageName, type) => {
+  const toggleChannelType = (e: React.MouseEvent, stageName: string, type: string) => {
     e.stopPropagation();
     setOpenChannelTypes((prev) => ({
       ...prev,
@@ -458,8 +457,8 @@ const SelectChannelMix = () => {
             (s) => s.name === stageName
           );
           const stage =
-            stageFromFunnelStages ||
             stageFromCustomFunnels ||
+            stageFromFunnelStages ||
             fallbackFunnelMetadata[stageName];
 
           if (!stage) {
@@ -471,12 +470,6 @@ const SelectChannelMix = () => {
             );
           }
 
-          const icon =
-            stage.icon ||
-            stageFromFunnelStages?.icon ||
-            stageFromCustomFunnels?.icon ||
-            "/placeholder.svg";
-
           return (
             <div key={index}>
               <div
@@ -485,22 +478,23 @@ const SelectChannelMix = () => {
                 onClick={() => toggleItem(stage.name)}
               >
                 <div className="flex items-center gap-2">
-                  <Image
-                    src={icon}
-                    alt={stage.name}
-                    width={20}
-                    height={20}
-                  />
+                  {stage.icon && (
+                    <Image
+                      src={stage.icon}
+                      alt={`${stage.name} icon`}
+                      width={20}
+                      height={20}
+                    />
+                  )}
                   <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
                     {stage.name}
                   </p>
                 </div>
                 <p
-                  className={`font-general-sans font-semibold text-[16px] leading-[22px] ${
-                    stageStatuses[stage.name] === "In progress"
+                  className={`font-general-sans font-semibold text-[16px] leading-[22px] ${stageStatuses[stage.name] === "In progress"
                       ? "text-[#3175FF]"
                       : "text-[#061237] opacity-50"
-                  }`}
+                    }`}
                 >
                   {stageStatuses[stage.name] || "Not started"}
                 </p>
@@ -508,6 +502,8 @@ const SelectChannelMix = () => {
                   <Image
                     src={openItems[stage.name] ? up : down2}
                     alt={openItems[stage.name] ? "up" : "down"}
+                    width={24}
+                    height={24}
                   />
                 </div>
               </div>
@@ -574,11 +570,10 @@ const SelectChannelMix = () => {
                                             <div
                                               key={pIndex}
                                               className={`cursor-pointer flex flex-row justify-between items-center p-4 gap-2 w-[250px] min-h-[62px] bg-white 
-                                  border rounded-[10px] ${
-                                    isSelected
-                                      ? "border-[#3175FF]"
-                                      : "border-[rgba(0,0,0,0.1)]"
-                                  }`}
+                                  border rounded-[10px] ${isSelected
+                                                  ? "border-[#3175FF]"
+                                                  : "border-[rgba(0,0,0,0.1)]"
+                                                }`}
                                               onClick={(e) =>
                                                 handlePlatformClick(
                                                   e,
@@ -609,11 +604,10 @@ const SelectChannelMix = () => {
                                                 </p>
                                               </div>
                                               <div
-                                                className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${
-                                                  isSelected
+                                                className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${isSelected
                                                     ? "bg-[#3175FF]"
                                                     : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
-                                                }`}
+                                                  }`}
                                               >
                                                 {isSelected && (
                                                   <Image

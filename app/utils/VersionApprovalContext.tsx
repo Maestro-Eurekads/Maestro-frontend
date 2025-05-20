@@ -22,16 +22,14 @@ export const VersionApprovalProvider = ({ children }) => {
 	const [documentId, setdocumentId] = useState(null);
 
 	// Create campaign version
-	const createCampaignVersion = async (campaign_id, clientId, version) => {
+	const createCampaignVersion = async (newVersion, documentId) => {
 		setIsLoading(true);
 		try {
-			await axios.post(
-				`${process.env.NEXT_PUBLIC_STRAPI_URL}/client-campaign-versions`,
+			await axios.put(
+				`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign/${documentId}`,
 				{
 					data: {
-						campaign_id: campaign_id,
-						clientId: clientId,
-						version: version
+						campaign_version: newVersion
 					},
 				},
 				{
@@ -49,13 +47,40 @@ export const VersionApprovalProvider = ({ children }) => {
 			setIsLoading(false);
 		}
 	};
+	// const createCampaignVersion = async (campaign_id, clientId, version) => {
+	// 	setIsLoading(true);
+	// 	try {
+	// 		await axios.post(
+	// 			`${process.env.NEXT_PUBLIC_STRAPI_URL}/client-campaign-versions`,
+	// 			{
+	// 				data: {
+	// 					campaign_id: campaign_id,
+	// 					clientId: clientId,
+	// 					version: version
+	// 				},
+	// 			},
+	// 			{
+	// 				headers: {
+	// 					"Content-Type": "application/json",
+	// 					Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+	// 				},
+	// 			}
+	// 		);
+	// 		setCreatesSuccess(true);
+	// 		setIsLoading(false);
+	// 	} catch (error) {
+	// 		setIsError(error);
+	// 	} finally {
+	// 		setIsLoading(false);
+	// 	}
+	// };
 
 	// get Campaign Version
 	const getCampaignVersion = async (campaign_id) => {
 		setgetLoading(true);
 		try {
 			const response = await axios.get(
-				`${process.env.NEXT_PUBLIC_STRAPI_URL}/client-campaign-versions?filters[campaign_id][$eq]=${campaign_id}`,
+				`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign?filters[campaign_id][$eq]=${campaign_id}`,
 				{
 					headers: {
 						"Content-Type": "application/json",
@@ -78,7 +103,7 @@ export const VersionApprovalProvider = ({ children }) => {
 		setgetLoading(true);
 		try {
 			const response = await axios.get(
-				`${process.env.NEXT_PUBLIC_STRAPI_URL}/client-campaign-versions?filters[clientId][$eq]=${clientId}`,
+				`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign?filters[clientId][$eq]=${clientId}`,
 				{
 					headers: {
 						"Content-Type": "application/json",
@@ -98,15 +123,14 @@ export const VersionApprovalProvider = ({ children }) => {
 
 
 	// Update general note
-	const updateCampaignVersion = async (campaign_id, version) => {
+	const updateCampaignVersion = async (newVersion, documentId) => {
 		setupdateLoading(true);
 		try {
 			await axios.put(
-				`${process.env.NEXT_PUBLIC_STRAPI_URL}/client-campaign-versions/${documentId}`,
+				`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign/${documentId}`,
 				{
 					data: {
-						campaign_id: campaign_id,
-						version
+						campaign_version: newVersion
 					},
 				},
 				{

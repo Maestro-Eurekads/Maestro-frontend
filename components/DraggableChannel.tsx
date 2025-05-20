@@ -101,7 +101,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   // };
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    const baseStep = 100; // Base grid size
+    const baseStep = range !== "Day" ? 50 : 100;
     // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
     const adjustmentPerStep = 0; // Decrease each next step by 10
     const snapPoints = [];
@@ -116,7 +116,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       // console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
       currentSnap += step;
       step = Math.max(
-        100,
+        range !== "Day" ? 50 : 100,
         step - adjustmentPerStep
       );
     }
@@ -168,10 +168,10 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     const maxX = containerRect.width - 45;
 
     if (direction === "left") {
-      newWidth = Math.max(150, startWidth - (e.clientX - startX));
+      newWidth = Math.max(50, startWidth - (e.clientX - startX));
       newPos = Math.max(minX, startPos + (e.clientX - startX));
     } else {
-      newWidth = Math.max(150, startWidth + (e.clientX - startX));
+      newWidth = Math.max(50, startWidth + (e.clientX - startX));
     }
 
     if (newPos + newWidth > maxX) {
@@ -297,7 +297,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
       {/* Draggable Content */}
       <div
-        className={`h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[150px] ${
+        className={`h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
           disableDrag ? "cursor-default rounded-[10px] relative" : "cursor-move"
         }`}
         style={{

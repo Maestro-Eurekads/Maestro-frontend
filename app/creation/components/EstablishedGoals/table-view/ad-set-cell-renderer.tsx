@@ -64,38 +64,34 @@ export const AdSetCellRenderer = ({
             className="l-vertical-ad"
             style={{
               left: "30px",
-              height: `${
-                adSetIndex < 1
+              height: `${adSetIndex < 1
                   ? "50px"
                   : expandedAdsetKPI[`${stage.name}${adSetIndex - 1}`] &&
                     channel?.ad_sets[adSetIndex - 1]?.extra_audiences?.length >
-                      0
-                  ? `${
+                    0
+                    ? `${channel?.ad_sets[adSetIndex - 1]?.extra_audiences
+                      ?.length > 1
+                      ? 215
+                      : 155 *
                       channel?.ad_sets[adSetIndex - 1]?.extra_audiences
-                        ?.length > 1
-                        ? 215
-                        : 155 *
-                          channel?.ad_sets[adSetIndex - 1]?.extra_audiences
-                            ?.length
+                        ?.length
                     }px`
-                  : "75px"
-              }`,
-              top: `${
-                adSetIndex < 1
+                    : "75px"
+                }`,
+              top: `${adSetIndex < 1
                   ? "-50px"
                   : expandedAdsetKPI[`${stage.name}${adSetIndex - 1}`] &&
                     channel?.ad_sets[adSetIndex - 1]?.extra_audiences?.length >
-                      0
-                  ? `-${
+                    0
+                    ? `-${channel?.ad_sets[adSetIndex - 1]?.extra_audiences
+                      ?.length > 1
+                      ? 215
+                      : 155 *
                       channel?.ad_sets[adSetIndex - 1]?.extra_audiences
-                        ?.length > 1
-                        ? 215
-                        : 155 *
-                          channel?.ad_sets[adSetIndex - 1]?.extra_audiences
-                            ?.length
+                        ?.length
                     }px`
-                  : "-75px"
-              }`,
+                    : "-75px"
+                }`,
             }}
           ></div>
           <div className="l-horizontal-ad" style={{ left: "30px" }}></div>
@@ -112,7 +108,7 @@ export const AdSetCellRenderer = ({
         {/* <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
           {adSetIndex + 1}.
         </span>*/}
-        <span>{adSet?.name ? adSet?.name : "-"}</span>
+        <span>{adSet?.name ? `Adset ${adSetIndex + 1}` : "-"}</span>
         {adSet?.extra_audiences?.length > 0 && (
           <span className="shrink-0">
             <svg
@@ -149,18 +145,18 @@ export const AdSetCellRenderer = ({
           {1}.
         </span> */}
         {!expandedAdsetKPI[`${stage.name}${adSetIndex}`] &&
-        adSet?.extra_audiences?.length > 0
+          adSet?.extra_audiences?.length > 0
           ? ""
           : !adSet?.audience_type
-          ? "-"
-          : adSet?.audience_type}
+            ? "-"
+            : adSet?.audience_type}
       </div>
     );
   }
 
-  if (body === "audience_size") {
-    return !adSet?.size ? "-" : adSet?.size;
-  }
+  // if (body === "audience_size") {
+  //   return !adSet?.size ? "-" : adSet?.size;
+  // }
 
   // if (body === "budget_size") {
   //   return adSet?.budget?.fixed_value === null || adSet?.budget?.fixed_value === undefined ? "-" : adSet?.budget?.fixed_value;
@@ -219,19 +215,18 @@ export const AdSetCellRenderer = ({
           <p className="text-gray-300 font-semibold">NR</p>
         ) : (
           <p>
-          {(() => {
-            const value =
-              campaignFormData?.goal_level === "Adset level"
-                ? channel?.kpi?.[body]
-                : getCalculatedValue(body);
-            // console.log("sdd", {body, value})
-            return value && value !== "-"
-              ? `${isCurrencyType ? `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}` : isSecondsType ? "secs" : ""}${formatNumber(
+            {(() => {
+              const value =
+                campaignFormData?.goal_level === "Adset level"
+                  ? channel?.kpi?.[body]
+                  : getCalculatedValue(body);
+              return value && value !== "-"
+                ? `${isCurrencyType ? `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}` : isSecondsType ? "secs" : ""}${formatNumber(
                   Number(value)
                 )}`
-              : "-";
-          })()}
-        </p>
+                : "-";
+            })()}
+          </p>
         )}
         <Ban
           size={10}
@@ -253,21 +248,27 @@ export const AdSetCellRenderer = ({
       : formatNumber(Number(parseFloat(value)?.toFixed(2)));
   }
 
-  
+
 
   // Get the raw value from the form data
   const kpiValue =
+  body === "audience_size"
+  ? campaignFormData?.channel_mix
+    ?.find((ch) => ch?.funnel_stage === stage.name)
+    ?.[channel?.channel_name]?.find(
+      (c) => c?.platform_name === channel?.name
+    )?.ad_sets[adSetIndex]?.size || "" :
     body === "budget_size"
       ? campaignFormData?.channel_mix
-          ?.find((ch) => ch?.funnel_stage === stage.name)
-          ?.[channel?.channel_name]?.find(
-            (c) => c?.platform_name === channel?.name
-          )?.ad_sets[adSetIndex]?.budget?.fixed_value || ""
+        ?.find((ch) => ch?.funnel_stage === stage.name)
+        ?.[channel?.channel_name]?.find(
+          (c) => c?.platform_name === channel?.name
+        )?.ad_sets[adSetIndex]?.budget?.fixed_value || ""
       : campaignFormData?.channel_mix
-          ?.find((ch) => ch?.funnel_stage === stage.name)
-          [channel?.channel_name]?.find(
-            (c) => c?.platform_name === channel?.name
-          )?.ad_sets[adSetIndex]?.kpi?.[body] || "";
+        ?.find((ch) => ch?.funnel_stage === stage.name)
+      [channel?.channel_name]?.find(
+        (c) => c?.platform_name === channel?.name
+      )?.ad_sets[adSetIndex]?.kpi?.[body] || "";
 
   // Format display value for percentage fields - keep the raw input value for UI
   let displayValue = kpiValue;
@@ -368,9 +369,8 @@ export const AdSetCellRenderer = ({
             }
           }}
           disabled={isNR}
-          className={`cpm-bg border-none outline-none max-w-[90px] p-1 ${
-            isNR ? "text-gray-400" : ""
-          }`}
+          className={`cpm-bg border-none outline-none max-w-[90px] p-1 ${isNR ? "text-gray-400" : ""
+            }`}
           placeholder={body ? body?.toUpperCase() : "Insert value"}
         />
       )}

@@ -24,10 +24,12 @@ import { useSearchParams } from "next/navigation";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 const Header = ({ setIsOpen }) => {
+  const { data: session } = useSession();
+  // @ts-ignore 
+  const userType = session?.user?.data?.user?.id || "";
   const query = useSearchParams();
   const campaignId = query.get("campaignId");
   const { isAdmin } = useUserPrivileges();
-  const { data: session } = useSession();
   const {
     getCreateClientData,
     getCreateClientIsLoading,
@@ -69,18 +71,18 @@ const Header = ({ setIsOpen }) => {
 
   useEffect(() => {
     if (isAdmin) {
-      const clientId = localStorage.getItem("selectedClient") || "";
+      const clientId = localStorage.getItem(userType.toString()) || "";
       setSelectedId(clientId);
 
     } else {
-      const clientId = localStorage.getItem("profileclients") || "";
+      const clientId = localStorage.getItem(userType.toString()) || "";
       setSelectedId(clientId);
     }
   }, [isAdmin, selected, getCreateClientIsLoading]);
 
   // const selectedId =
   //   typeof window !== "undefined"
-  //     ? localStorage.getItem("selectedClient") || localStorage.getItem("profileclients")
+  //     ? localStorage.getItem(userType.toString()) || localStorage.getItem(userType.toString())
   //     : "";
 
 
@@ -93,7 +95,7 @@ const Header = ({ setIsOpen }) => {
 
     setLoading(true);
     let isMounted = true;
-    const clientId = selectedId || clients.data[0]?.id;
+    const clientId = selectedId || clients?.data[0]?.id;
     if (!clientId) {
       setLoading(false);
       return;
@@ -194,7 +196,7 @@ const Header = ({ setIsOpen }) => {
                   placeholder="Select client"
                   onChange={(value: { label: string; value: string } | null) => {
                     if (value) {
-                      localStorage.setItem("selectedClient", value.value);
+                      localStorage.setItem(userType.toString(), value.value);
                       setSelected(value.value);
                     }
                   }}
@@ -238,7 +240,7 @@ const Header = ({ setIsOpen }) => {
                   placeholder="Select client"
                   onChange={(value: { label: string; value: string } | null) => {
                     if (value) {
-                      localStorage.setItem("profileclients", value.value);
+                      localStorage.setItem(userType.toString(), value.value);
                       setSelected(value.value);
                     }
                   }}
