@@ -314,6 +314,7 @@ const Header = ({ setIsOpen }) => {
                   className="flex items-center gap-2 cursor-pointer p-2"
                   onClick={async () =>{
                     localStorage.removeItem("campaignFormData");
+                    localStorage.removeItem("selectedClient");
                     await signOut({
                       callbackUrl: "/",
                     })}
