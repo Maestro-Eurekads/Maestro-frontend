@@ -6,6 +6,7 @@ import { OutletType } from "types/types";
 import { useEditing } from "app/utils/EditingContext";
 import FormatSelection from "../FormatSelection";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import { useRef } from "react";
 
 interface FormatSelectionsSectionProps {
   platforms: Record<string, OutletType[]>;
@@ -37,67 +38,85 @@ const FormatSelectionsSection: React.FC<FormatSelectionsSectionProps> = ({
   }: {
     format: { format_type: string; num_of_visuals: string; previews?: Array<{ id: string; url: string }> };
     formatIndex: number;
-  }) => (
-    <div key={formatIndex} className="mb-2">
-      <div className="font-semibold text-xs">{format.format_type}</div>
-      <div className="font-semibold text-xs">Number of visuals - {format.num_of_visuals}</div>
-      {format?.previews?.length > 0 ? (
-        <div className="mt-2">
-          <h4 className="font-medium text-xs mb-1">Previews:</h4>
-          <div className="grid grid-cols-2 gap-2">
-            {format.previews.map((preview, idx) => {
-              const fileType = getFileType(preview.url);
-              return (
-                <div key={idx} className="flex flex-col">
-                  {fileType === "image" && preview.url ? (
-                    <div className="relative aspect-square w-full">
-                      <Image
-                        src={preview.url || "/placeholder.svg"}
-                        alt={`Preview ${idx + 1}`}
-                        fill
-                        className="object-cover rounded"
-                      />
-                    </div>
-                  ) : fileType === "video" && preview.url ? (
-                    <div className="relative aspect-square w-full">
-                      <video
-                        controls
-                        className="object-cover rounded w-full h-full"
+  }) => {
+    // Create a ref for the video element to control playback
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+
+    // Function to play video when the container is clicked
+    const handleVideoClick = () => {
+      if (videoRef.current) {
+        videoRef.current.play().catch((error) => {
+          console.error("Error playing video:", error);
+        });
+      }
+    };
+
+    return (
+      <div key={formatIndex} className="mb-2">
+        <div className="font-semibold text-xs">{format.format_type}</div>
+        <div className="font-semibold text-xs">Number of visuals - {format.num_of_visuals}</div>
+        {format?.previews?.length > 0 ? (
+          <div className="mt-2">
+            <h4 className="font-medium text-xs mb-1">Previews:</h4>
+            <div className="grid grid-cols-2 gap-2">
+              {format.previews.map((preview, idx) => {
+                const fileType = getFileType(preview.url);
+                return (
+                  <div key={idx} className="flex flex-col">
+                    {fileType === "image" && preview.url ? (
+                      <div className="relative aspect-square w-full">
+                        <Image
+                          src={preview.url || "/placeholder.svg"}
+                          alt={`Preview ${idx + 1}`}
+                          fill
+                          className="object-cover rounded"
+                        />
+                      </div>
+                    ) : fileType === "video" && preview.url ? (
+                      <div
+                        className="relative aspect-square w-full cursor-pointer"
+                        onClick={handleVideoClick}
                       >
-                        <source src={preview.url} type={`video/${preview.url.split(".").pop()?.toLowerCase()}`} />
-                        Your browser does not support the video tag.
-                      </video>
-                    </div>
-                  ) : fileType === "pdf" && preview.url ? (
-                    <div className="relative aspect-square w-full">
-                      <iframe
-                        src={preview.url}
-                        title={`Preview ${idx + 1}`}
-                        className="w-full h-full rounded"
-                      />
-                    </div>
-                  ) : (
-                    <div className="bg-gray-200 aspect-square flex items-center justify-center rounded">
-                      <span className="text-xs">Unsupported or missing preview</span>
-                    </div>
-                  )}
-                  <Link
-                    href={preview.url || "#"}
-                    target="_blank"
-                    className="text-xs text-blue-500 mt-1"
-                  >
-                    View {idx + 1}
-                  </Link>
-                </div>
-              );
-            })}
+                        <video
+                          ref={videoRef}
+                          controls
+                          className="object-cover rounded w-full h-full"
+                        >
+                          <source src={preview.url} type={`video/${preview.url.split(".").pop()?.toLowerCase()}`} />
+                          Your browser does not support the video tag.
+                        </video>
+                      </div>
+                    ) : fileType === "pdf" && preview.url ? (
+                      <div className="relative aspect-square w-full">
+                        <iframe
+                          src={preview.url}
+                          title={`Preview ${idx + 1}`}
+                          className="w-full h-full rounded"
+                        />
+                      </div>
+                    ) : (
+                      <div className="bg-gray-200 aspect-square flex items-center justify-center rounded">
+                        <span className="text-xs">Unsupported or missing preview</span>
+                      </div>
+                    )}
+                    <Link
+                      href={preview.url || "#"}
+                      target="_blank"
+                      className="text-xs text-blue-500 mt-1"
+                    >
+                      View {idx + 1}
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="text-xs text-gray-500 mt-2">No previews uploaded</div>
-      )}
-    </div>
-  );
+        ) : (
+          <div className="text-xs text-gray-500 mt-2">No previews uploaded</div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <SummarySection title="Your format selections" number={4}>
@@ -196,3 +215,5 @@ const FormatSelectionsSection: React.FC<FormatSelectionsSectionProps> = ({
 };
 
 export default FormatSelectionsSection;
+
+
