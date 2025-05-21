@@ -395,7 +395,7 @@ const OverviewofyourCampaign = () => {
 			<div>
 
 				<div className='mt-[30px]'>
-					<DateComponent useDate={false} />
+					<DateComponent useDate={true} />
 				</div>
 
 				<MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />

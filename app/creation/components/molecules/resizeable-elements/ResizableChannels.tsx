@@ -95,7 +95,7 @@ const ResizableChannels = ({
   const [channelState, setChannelState] = useState(
     channels?.map(() => ({
       left: parentLeft, // Start at parent's left position
-      width: Math.min(160, parentWidth),
+      width: Math.min(10, parentWidth),
     }))
   );
 
@@ -111,9 +111,10 @@ const ResizableChannels = ({
   const [endDate, setEndDate] = useState(null);
   const [dateOffset, setDateOffset] = useState(0);
   const [endDateOffset, setEndDateOffset] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(null);
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    const baseStep = rrange !== "Day" ? 50 : 100; // Base grid size
+    const baseStep = rrange === "Month" ? 18  : rrange === "Week" ? 50 : 100; // Base grid size
     // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
     const adjustmentPerStep = 0; // Decrease each next step by 10
     const snapPoints = [];
@@ -124,12 +125,12 @@ const ResizableChannels = ({
 
     // Generate snap points with decreasing step size
     while (
-      currentSnap <= (rrange !== "Day" ? containerWidth : containerWidth)
+      currentSnap <= baseStep
     ) {
       snapPoints.push(currentSnap);
       // console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
       currentSnap += step;
-      step = Math.max(rrange !== "Day" ? 50 : 100, step - adjustmentPerStep);
+      step = Math.max(baseStep, step - adjustmentPerStep);
     }
 
     const closestSnap = snapPoints.reduce((prev, curr) =>
@@ -452,7 +453,8 @@ const ResizableChannels = ({
       // Get container boundaries
       const containerRect = gridContainer.getBoundingClientRect();
       // console.log("🚀 ~ useEffect ~ containerRect:", containerRect);
-      const containerWidth = containerRect.width - 75;
+      const contWidth = containerRect.width - 75;
+      setContainerWidth(containerWidth + 75);
       setChannels(initialChannels);
       // Initialize new channels with parent's position
       setChannelState((prev) => {
@@ -487,7 +489,12 @@ const ResizableChannels = ({
           const startDateIndex = adjustedStageStartDate
             ? dRange?.findIndex((date) =>
                 isEqual(date, adjustedStageStartDate)
-              ) * (rrange === "Day" ? 100 : rrange === "Week" ?  50 : Math.round(containerWidth / 2 / 31) - 7) 
+              ) *
+              (rrange === "Day"
+                ? 100
+                : rrange === "Week"
+                ? 50
+                : Math.round(contWidth / 2 / 31))
             : 0;
 
           // Calculate days between using the adjusted end date
@@ -521,7 +528,7 @@ const ResizableChannels = ({
                 left:
                   parentLeft +
                   Math.abs(startDateIndex < 0 ? 0 : startDateIndex),
-                width:
+                width: Math.min(
                   rrange === "Day"
                     ? daysBetween > 0
                       ? 100 * daysBetween + 60
@@ -531,8 +538,20 @@ const ResizableChannels = ({
                       ? 50 * daysBetween + 10
                       : parentWidth
                     : rrange === "Month"
-                    ? (Math.round(containerWidth / 2 / 31) - 5) * daysBetween + 5
+                    ? (Math.round(contWidth / 2 / 31)) * daysBetween
                     : parentWidth,
+                  rrange === "Day"
+                    ? daysBetween > 0
+                      ? 100 * daysBetween + 60
+                      : parentWidth
+                    : rrange === "Week"
+                    ? daysBetween > 0
+                      ? 50 * daysBetween + 10
+                      : parentWidth
+                    : rrange === "Month"
+                    ? (Math.round(contWidth / 2 / 31) - 5) * daysBetween
+                    : parentWidth
+                ),
               }
             : {
                 left: parentLeft,
@@ -722,13 +741,19 @@ const ResizableChannels = ({
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
                   width: `${
-                    channelState[index]?.width + (disableDrag ? 40 : 30) || 150
+                    channelState[index]?.width +
+                      (disableDrag ? 40 : rrange === "Month" ? 30 : 30) || 150
                   }px`,
                   backgroundColor: channel.bg,
                   color: channel.color,
                   borderColor: channel.color,
                   borderRadius: "10px",
-                  minWidth: rrange === "Day" ? "100px" : rrange === "Week"? "50px" : `${channelState[index]?.width}px` ,
+                  minWidth:
+                    rrange === "Day"
+                      ? "100px"
+                      : rrange === "Week"
+                      ? "50px"
+                      : `${channelState[index]?.width}px`,
                 }}
                 onMouseDown={
                   disableDrag || openItems ? undefined : handleDragStart(index)
@@ -765,7 +790,9 @@ const ResizableChannels = ({
             {
               <>
                 <div
-                  className={`absolute top-0 ${rrange === "Month" ? "w-2" : "w-5"} h-[46px] cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
+                  className={`absolute top-0 ${
+                    rrange === "Month" ? "w-2" : "w-5"
+                  } h-[46px] cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
                     disableDrag && "hidden"
                   }`}
                   style={{
@@ -781,7 +808,9 @@ const ResizableChannels = ({
                   <MdDragHandle className="rotate-90" />
                 </div>
                 <div
-                  className={`absolute top-0 ${rrange === "Month" ? "w-2" : "w-5"} h-[46px] cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
+                  className={`absolute top-0 ${
+                    rrange === "Month" ? "w-2" : "w-5"
+                  } h-[46px] cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
                     disableDrag && "hidden"
                   }`}
                   style={{

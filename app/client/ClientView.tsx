@@ -1,15 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import Header from './Header';
-import ClientToggleSwitch from './ClientToggleSwitch';
-import ClientTableView from './ClientTableView';
-import ClientEstablishedGoals from './ClientEstablishedGoals';
-import facebook from "../../public/facebook.svg";
-import instagram from "../../public/instagram.svg";
-import youtube from "../../public/youtube.svg";
-import tradedesk from "../../public/tradedesk.svg";
-import quantcast from "../../public/quantcast.svg";
-import TimelineView from './TimelineView';
 import ApproverContainer from './ApproverContainer';
 import General from './General';
 import BrandAwareness from './BrandAwareness';
@@ -17,8 +8,6 @@ import ApproveModel from './Modal/ApproveModel';
 import GeneralComment from './GeneralComment';
 import { RxDotFilled } from "react-icons/rx";
 import { useComments } from 'app/utils/CommentProvider';
-import MessageContainer from 'components/Drawer/MessageContainer';
-import CommentsDrawer from 'components/Drawer/CommentsDrawer';
 import { useAppDispatch, useAppSelector } from 'store/useStore';
 import { useCampaigns } from 'app/utils/CampaignsContext';
 import { getCampaignById, getComment, getGeneralComment } from 'features/Comment/commentSlice';
@@ -36,15 +25,9 @@ import downfull from "../../public/arrow-down-full.svg";
 import upoffline from "../../public/arrow-up-offline.svg";
 import { useKpis } from 'app/utils/KpiProvider';
 import { aggregateKPIStatsFromExtracted, categoryOrder, extractKPIByFunnelStage, kpiCategories, mapKPIStatsToStatsDataDynamic } from 'components/Options';
-import MainSection from './compoment/Timeline/main-section';
-import ChannelDistributionChatTwo from 'components/ChannelDistribution/ChannelDistributionChatTwo';
-import { getCurrencySymbol, platformIcons } from 'components/data';
-import CampaignPhases from 'app/creation/components/CampaignPhases';
-import { extractPlatforms } from 'app/creation/components/EstablishedGoals/table-view/data-processor';
-import { processCampaignData } from 'components/processCampaignData';
-import DoughnutChat from 'components/DoughnutChat';
 import ConfigureBudgetComponet from 'app/creation/components/ConfigureAdSetsAndBudget/ConfigureBudgetComponet';
 import Skeleton from 'react-loading-skeleton';
+import MainSection from 'app/creation/components/organisms/main-section/main-section';
 
 
 
@@ -228,7 +211,7 @@ const ClientView = () => {
 								<Skeleton height={20} width={"100%"} />
 							</div> : !campaignData ? "" :
 
-								<MainSection hideDate={true} disableDrag={true} campaignData={campaignData ?? []} />}
+								<MainSection hideDate={false} disableDrag={true} />}
 
 					</div>
 

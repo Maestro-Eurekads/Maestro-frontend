@@ -438,6 +438,30 @@ const SelectChannelMix = () => {
     return <div>No platforms available. Please contact support.</div>;
   }
 
+  // --- Funnel List Order Fix ---
+  // This block ensures the funnel stages are rendered in the same order as mapped in the funnelStages array (or custom_funnels if present)
+  // If custom_funnels is present and has a non-empty array, use its order, else use funnelStages order, else fallback to campaignFormData.funnel_stages order.
+  let orderedFunnelStages = [];
+  if (Array.isArray(campaignFormData?.custom_funnels) && campaignFormData.custom_funnels.length > 0) {
+    // Use custom_funnels order
+    orderedFunnelStages = campaignFormData.custom_funnels
+      .map((f) => f.name)
+      .filter((name) => campaignFormData.funnel_stages.includes(name));
+  } else if (Array.isArray(funnelStages) && funnelStages.length > 0) {
+    // Use funnelStages order
+    orderedFunnelStages = funnelStages
+      .map((f) => f.name)
+      .filter((name) => campaignFormData.funnel_stages.includes(name));
+  }
+  // Add any funnel_stages not found in the above to the end (to avoid missing any)
+  if (Array.isArray(campaignFormData?.funnel_stages)) {
+    campaignFormData.funnel_stages.forEach((name) => {
+      if (!orderedFunnelStages.includes(name)) {
+        orderedFunnelStages.push(name);
+      }
+    });
+  }
+
   return (
     <div className="overflow-hidden">
       <div className="flex items-center justify-between">
@@ -449,7 +473,7 @@ const SelectChannelMix = () => {
       </div>
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
-        {campaignFormData.funnel_stages.map((stageName, index) => {
+        {(orderedFunnelStages.length > 0 ? orderedFunnelStages : campaignFormData.funnel_stages).map((stageName, index) => {
           const stageFromFunnelStages = funnelStages?.find(
             (f) => f.name === stageName
           );
