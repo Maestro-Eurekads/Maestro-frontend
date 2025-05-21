@@ -460,7 +460,7 @@ const CampaignBudget = () => {
       )}
       {budgetStyle !== "" && budgetStyle === "top_down" && step > 2 && (
         <>
-          <ConfigureAdSetsAndBudget num={5} netAmount={netAmount} />
+          <ConfigureAdSetsAndBudget num={4} netAmount={netAmount} />
         </>
       )}
       {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 0 && (

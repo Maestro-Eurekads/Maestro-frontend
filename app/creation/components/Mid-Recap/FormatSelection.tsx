@@ -6,7 +6,7 @@ import { OutletType } from "types/types";
 import { useEditing } from "app/utils/EditingContext";
 import FormatSelection from "../FormatSelection";
 import { useCampaigns } from "app/utils/CampaignsContext";
-import { useRef } from "react";
+import { useRef, useCallback } from "react";
 
 interface FormatSelectionsSectionProps {
   platforms: Record<string, OutletType[]>;
@@ -42,14 +42,18 @@ const FormatSelectionsSection: React.FC<FormatSelectionsSectionProps> = ({
     // Create a ref for the video element to control playback
     const videoRef = useRef<HTMLVideoElement | null>(null);
 
-    // Function to play video when the container is clicked
-    const handleVideoClick = () => {
+    // Function to play/pause video when the container is clicked
+    const handleVideoClick = useCallback(() => {
       if (videoRef.current) {
-        videoRef.current.play().catch((error) => {
-          console.error("Error playing video:", error);
-        });
+        if (videoRef.current.paused) {
+          videoRef.current.play().catch((error) => {
+            console.error("Error playing video:", error);
+          });
+        } else {
+          videoRef.current.pause();
+        }
       }
-    };
+    }, []);
 
     return (
       <div key={formatIndex} className="mb-2">
@@ -79,8 +83,10 @@ const FormatSelectionsSection: React.FC<FormatSelectionsSectionProps> = ({
                       >
                         <video
                           ref={videoRef}
-                          controls
                           className="object-cover rounded w-full h-full"
+                          controls
+                          muted
+                          playsInline
                         >
                           <source src={preview.url} type={`video/${preview.url.split(".").pop()?.toLowerCase()}`} />
                           Your browser does not support the video tag.
@@ -215,5 +221,3 @@ const FormatSelectionsSection: React.FC<FormatSelectionsSectionProps> = ({
 };
 
 export default FormatSelectionsSection;
-
-

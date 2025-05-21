@@ -330,7 +330,7 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
                     rrange === "Day"
                       ? `repeat(${funnelData?.endDay - 1 || 1}, 100px)`
                       : rrange === "Week"
-                      ? `repeat(${(funnelData?.endWeek || 1) * 7}, 50px)` // 7 columns per week
+                      ? `repeat(${(funnelData?.endWeek -1|| 1) * 7}, 50px)` // 7 columns per week
                       : `repeat(${funnelData?.endMonth - 1 || 1}, 1fr)`,
                 }}
               >

@@ -16,26 +16,17 @@ import { mediaTypes } from "components/data";
 import PhasedistributionProgress from "../../../components/PhasedistributionProgress";
 
 const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
-  const [show, setShow] = useState(false); // Start with budget shown
+  const [show, setShow] = useState(false);
   const { setIsDrawerOpen, setClose } = useComments();
   const [step, setStep] = useState(1);
+  const [channelData, setChannelData] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { campaignFormData, setCampaignFormData } = useCampaigns();
 
   useEffect(() => {
     setIsDrawerOpen(false);
     setClose(false);
   }, []);
-
-  const [channelData, setChannelData] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const { campaignFormData, setCampaignFormData } = useCampaigns();
-
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
 
   useEffect(() => {
     if (campaignFormData) {
@@ -66,6 +57,21 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
     }
   };
 
+  // Map Tailwind bg- classes to hex colors for charts
+  const tailwindToHex = (tailwindClass: string): string => {
+    const colorMap = {
+      "bg-blue-500": "#3B82F6",
+      "bg-green-500": "#10B981",
+      "bg-orange-500 border border-orange-500": "#F97316",
+      "bg-red-500 border border-red-500": "#EF4444",
+      "bg-purple-500": "#8B5CF6",
+      "bg-teal-500": "#14B8A6",
+      "bg-pink-500 border border-pink-500": "#EC4899",
+      "bg-indigo-500": "#6366F1",
+    };
+    return colorMap[tailwindClass] || "#6B7280"; // Default to gray if not found
+  };
+
   function extractPlatforms(data) {
     const platforms = [];
     data.channel_mix.forEach((stage) => {
@@ -87,7 +93,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
           } else {
             platforms.push({
               platform_name: platformName,
-              platform_budegt: platformBudget,
+              platform_budget: platformBudget,
               stages_it_was_found: [
                 {
                   stage_name: stageName,
@@ -102,156 +108,143 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
     setChannelData(platforms);
   }
 
+  // Get colors from custom_funnels
+  const getFunnelColor = (funnelStage: string): string => {
+    const funnel = campaignFormData?.custom_funnels?.find(
+      (f: any) => f.name === funnelStage
+    );
+    return funnel ? tailwindToHex(funnel.color) : "#6B7280"; // Default gray if not found
+  };
+
   return (
     <div>
-      {/* <CampaignBudget /> */}
-      {/* <FeeSelectionStep/> */}
-      <div>
-        <div className="flex justify-between items-baseline">
-          <PageHeaderWrapper
-            t4="Allocate your budget across channels and ad sets of each phase"
-            span={num}
-            t1={""}
-            t2={""}
-          />
+      <div className="flex justify-between items-baseline">
+        <PageHeaderWrapper
+          t4="Allocate your budget across channels and ad sets of each phase"
+          span={num}
+          t1={""}
+          t2={""}
+        />
 
-          <button
-            onClick={() => {
-              setShow(!show);
-              extractPlatforms(campaignFormData);
-            }}
-          >
-            <p className="font-semibold text-[16px] leading-[22px] flex items-center underline text-[#061237]">
-              {show ? "Hide your budget overview" : "Show your budget overview"}
+        <button
+          onClick={() => {
+            setShow(!show);
+            extractPlatforms(campaignFormData);
+          }}
+        >
+          <p className="font-semibold text-[16px] leading-[22px] flex items-center underline text-[#061237]">
+            {show ? "Hide your budget overview" : "Show your budget overview"}
+          </p>
+        </button>
+      </div>
+
+      {show && (
+        <div className="w-[100%] items-start p-[24px] gap-[10px] bg-white border border-[rgba(6,18,55,0.1)] rounded-[8px] box-border mt-[20px]">
+          <div className="flex items-center gap-[30px]">
+            <p>
+              Media Budget Amount: {campaignFormData?.campaign_budget?.amount}
+              {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
             </p>
-          </button>
-        </div>
+            <p>
+              Total Fees Amount: {netAmount}
+              {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+            </p>
+          </div>
 
-        {show && (
-          <div className="w-[100%] items-start p-[24px] gap-[10px] bg-white border border-[rgba(6,18,55,0.1)] rounded-[8px] box-border mt-[20px]">
-            <div className="flex items-center gap-[30px]">
-              <p>
-                Media Budget Amount: {campaignFormData?.campaign_budget?.amount}
-                {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+          <div className="allocate_budget_phase gap-[40px]">
+            <div className="allocate_budget_phase_one">
+              <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
+                Your budget by campaign phase
+              </h3>
+              <p className="font-medium text-[15px] leading-[175%] text-[rgba(0,0,0,0.9)] order-1 self-stretch flex-none">
+                Here is a percentage of the total budget allocated to each
+                campaign phase.
               </p>
-              <p>
-                Total Fees Amount:{" "}
-                {campaignFormData?.campaign_budget?.amount}
-                {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
-              </p>
-            </div>
-
-            <div className="allocate_budget_phase gap-[40px]">
-              <div className="allocate_budget_phase_one">
-                <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
-                  Your budget by campaign phase
-                </h3>
-                <p className="font-medium text-[15px] leading-[175%] text-[rgba(0,0,0,0.9)] order-1 self-stretch flex-none">
-                  Here is a percentage of the total budget allocated to each
-                  campaign phase.
-                </p>
-                <div className="flex items-center gap-5 mt-[16px]">
-                  <div>
-                    <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-                      Total budget
-                    </p>
-                    <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-                      {campaignFormData?.campaign_budget?.amount}{" "}
-                      {getCurrencySymbol(
-                        campaignFormData?.campaign_budget?.currency
-                      )}
-                    </h3>
-                  </div>
-                  <div>
-                    <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-                      Campaign phases
-                    </p>
-                    <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-                      {campaignFormData?.funnel_stages?.length} phases
-                    </h3>
-                  </div>
+              <div className="flex items-center gap-5 mt-[16px]">
+                <div>
+                  <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
+                    Total budget
+                  </p>
+                  <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
+                    {campaignFormData?.campaign_budget?.amount}{" "}
+                    {getCurrencySymbol(
+                      campaignFormData?.campaign_budget?.currency
+                    )}
+                  </h3>
                 </div>
-                <>
-                  <div className="campaign_phases_container mt-[24px]">
-                    <div className="campaign_phases_container_one">
-                      <DoughnutChat
-                        data={campaignFormData?.channel_mix
-                          ?.filter(
-                            (c) => Number(c?.stage_budget?.percentage_value) > 0
-                          )
-                          ?.map((ch) =>
-                            Number(ch?.stage_budget?.percentage_value)?.toFixed(
-                              0
-                            )
-                          )}
-                        color={campaignFormData?.channel_mix?.map((ch) =>
-                          ch?.funnel_stage === "Awareness"
-                            ? "#3175FF"
-                            : ch?.funnel_stage === "Consideration"
-                              ? "#00A36C"
-                              : ch?.funnel_stage === "Conversion"
-                                ? "#FF9037"
-                                : "#F05406"
-                        )}
-                        insideText={`${campaignFormData?.campaign_budget?.amount
-                          } ${getCurrencySymbol(
-                            campaignFormData?.campaign_budget?.currency
-                          )}`}
-                      />
-                    </div>
-
-                    <CampaignPhases
-                      campaignPhases={campaignFormData?.channel_mix
+                <div>
+                  <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
+                    Campaign phases
+                  </p>
+                  <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
+                    {campaignFormData?.funnel_stages?.length} phases
+                  </h3>
+                </div>
+              </div>
+              <>
+                <div className="campaign_phases_container mt-[24px]">
+                  <div className="campaign_phases_container_one">
+                    <DoughnutChat
+                      data={campaignFormData?.channel_mix
                         ?.filter(
                           (c) => Number(c?.stage_budget?.percentage_value) > 0
                         )
-                        ?.map((ch) => ({
-                          name: ch?.funnel_stage,
-                          percentage: Number(
-                            ch?.stage_budget?.percentage_value
-                          )?.toFixed(0),
-                          color:
-                            ch?.funnel_stage === "Awareness"
-                              ? "#3175FF"
-                              : ch?.funnel_stage === "Consideration"
-                                ? "#00A36C"
-                                : ch?.funnel_stage === "Conversion"
-                                  ? "#FF9037"
-                                  : "#F05406",
-                        }))}
+                        ?.map((ch) =>
+                          Number(ch?.stage_budget?.percentage_value)?.toFixed(0)
+                        )}
+                      color={campaignFormData?.channel_mix?.map((ch) =>
+                        getFunnelColor(ch?.funnel_stage)
+                      )}
+                      insideText={`${campaignFormData?.campaign_budget?.amount} ${getCurrencySymbol(
+                        campaignFormData?.campaign_budget?.currency
+                      )}`}
                     />
                   </div>
-                  <PhasedistributionProgress />
-                </>
-              </div>
-              <div className="allocate_budget_phase_two">
-                <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
-                  Channel distribution
-                </h3>
-                <p className="font-medium text-[15px] leading-[175%] text-[rgba(0,0,0,0.9)] order-1 self-stretch flex-none">
-                  Graph showing the total budget spent and its breakdown across
-                  the three phases.
-                </p>
-                <div className="mt-[16px]">
-                  <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-                    Channels
-                  </p>
-                  <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-                    {channelData?.length} channels
-                  </h3>
+
+                  <CampaignPhases
+                    campaignPhases={campaignFormData?.channel_mix
+                      ?.filter(
+                        (c) => Number(c?.stage_budget?.percentage_value) > 0
+                      )
+                      ?.map((ch) => ({
+                        name: ch?.funnel_stage,
+                        percentage: Number(
+                          ch?.stage_budget?.percentage_value
+                        )?.toFixed(0),
+                        color: getFunnelColor(ch?.funnel_stage),
+                      }))}
+                  />
                 </div>
-                <ChannelDistributionChatTwo
-                  channelData={channelData}
-                  currency={getCurrencySymbol(
-                    campaignFormData?.campaign_budget?.currency
-                  )}
-                />
+                <PhasedistributionProgress />
+              </>
+            </div>
+            <div className="allocate_budget_phase_two">
+              <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
+                Channel distribution
+              </h3>
+              <p className="font-medium text-[15px] leading-[175%] text-[rgba(0,0,0,0.9)] order-1 self-stretch flex-none">
+                Graph showing the total budget spent and its breakdown across
+                the channels.
+              </p>
+              <div className="mt-[16px]">
+                <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
+                  Channels
+                </p>
+                <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
+                  {channelData?.length} channels
+                </h3>
               </div>
+              <ChannelDistributionChatTwo
+                channelData={channelData}
+                currency={getCurrencySymbol(
+                  campaignFormData?.campaign_budget?.currency
+                )}
+              />
             </div>
           </div>
-        )}
-        <ConfiguredSetPage netAmount={netAmount} />
-      </div>
+        </div>
+      )}
+      <ConfiguredSetPage netAmount={netAmount} />
     </div>
   );
 };
