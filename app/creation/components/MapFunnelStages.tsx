@@ -38,6 +38,7 @@ const MapFunnelStages = () => {
   const [previousValidationState, setPreviousValidationState] = useState<boolean | null>(null);
   const [selectedOption, setSelectedOption] = useState<string>("custom");
   const [customFunnels, setCustomFunnels] = useState<Funnel[]>([]);
+  const [persistentCustomFunnels, setPersistentCustomFunnels] = useState<Funnel[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
   const [currentFunnel, setCurrentFunnel] = useState<Funnel | null>(null);
@@ -85,18 +86,15 @@ const MapFunnelStages = () => {
   // Store selections for each option type
   const [savedSelections, setSavedSelections] = useState<{
     custom: {
-      custom_funnels: Funnel[];
       funnel_stages: string[];
       channel_mix: { funnel_stage: string }[];
     };
     targeting_retargeting: {
-      custom_funnels: Funnel[];
       funnel_stages: string[];
       channel_mix: { funnel_stage: string }[];
     };
   }>({
     custom: {
-      custom_funnels: defaultFunnels,
       funnel_stages: ["Awareness", "Consideration", "Conversion", "Loyalty"],
       channel_mix: [
         { funnel_stage: "Awareness" },
@@ -106,7 +104,6 @@ const MapFunnelStages = () => {
       ],
     },
     targeting_retargeting: {
-      custom_funnels: targetingRetargetingFunnels,
       funnel_stages: ["Targeting", "Retargeting"],
       channel_mix: [
         { funnel_stage: "Targeting" },
@@ -134,13 +131,18 @@ const MapFunnelStages = () => {
 
   // Initialize funnel data from campaignData
   useEffect(() => {
-    const initialOption = campaignData?.funnel_type || "custom";
-    setSelectedOption(initialOption);
+    // Check if campaignData.custom_funnels contains Targeting/Retargeting
+    const isTargetingRetargeting = campaignData?.custom_funnels?.every((funnel: any) =>
+      ["Targeting", "Retargeting"].includes(funnel.name)
+    );
 
-    const loadedFunnels =
-      campaignData?.custom_funnels && campaignData.custom_funnels.length > 0
+    // Load custom funnels, excluding Targeting/Retargeting
+    const loadedCustomFunnels =
+      campaignData?.custom_funnels &&
+      campaignData.custom_funnels.length > 0 &&
+      !isTargetingRetargeting
         ? campaignData.custom_funnels.map((funnel: any, index: number) => ({
-            id: funnel.id,
+            id: funnel.id || funnel.name,
             name: funnel.name,
             color:
               funnel.color ||
@@ -149,62 +151,64 @@ const MapFunnelStages = () => {
           }))
         : defaultFunnels;
 
+    // Set persistent custom funnels
+    setPersistentCustomFunnels(loadedCustomFunnels);
+
+    // Determine initial funnel type
+    const initialOption = campaignData?.funnel_type || "custom";
+    setSelectedOption(initialOption);
+
+    // Load funnel stages and channel mix
     const initialFunnelStages =
       campaignData?.funnel_stages && campaignData.funnel_stages.length > 0
         ? campaignData.funnel_stages
-        : defaultFunnels.map((f) => f.name);
+        : initialOption === "targeting_retargeting"
+        ? ["Targeting", "Retargeting"]
+        : loadedCustomFunnels.map((f) => f.name);
 
     const initialChannelMix =
       campaignData?.channel_mix && campaignData.channel_mix.length > 0
         ? campaignData.channel_mix
-        : defaultFunnels.map((f) => ({ funnel_stage: f.name }));
+        : initialOption === "targeting_retargeting"
+        ? [
+            { funnel_stage: "Targeting" },
+            { funnel_stage: "Retargeting" },
+          ]
+        : loadedCustomFunnels.map((f) => ({ funnel_stage: f.name }));
 
+    // Initialize state based on funnel type
     if (initialOption === "targeting_retargeting") {
       setCustomFunnels(targetingRetargetingFunnels);
       setCampaignFormData((prev: any) => ({
         ...prev,
         funnel_type: "targeting_retargeting",
-        custom_funnels: targetingRetargetingFunnels,
-        funnel_stages: ["Targeting", "Retargeting"],
-        channel_mix: [
-          { funnel_stage: "Targeting" },
-          { funnel_stage: "Retargeting" },
-        ],
-      }));
-      setSavedSelections((prev) => ({
-        ...prev,
-        targeting_retargeting: {
-          custom_funnels: targetingRetargetingFunnels,
-          funnel_stages: ["Targeting", "Retargeting"],
-          channel_mix: [
-            { funnel_stage: "Targeting" },
-            { funnel_stage: "Retargeting" },
-          ],
-        },
-        custom: {
-          custom_funnels: loadedFunnels,
-          funnel_stages: initialFunnelStages,
-          channel_mix: initialChannelMix,
-        },
+        funnel_stages: initialFunnelStages,
+        channel_mix: initialChannelMix,
+        custom_funnels: loadedCustomFunnels, // Preserve custom funnels
       }));
     } else {
-      setCustomFunnels(loadedFunnels);
+      setCustomFunnels(loadedCustomFunnels);
       setCampaignFormData((prev: any) => ({
         ...prev,
         funnel_type: "custom",
-        custom_funnels: loadedFunnels,
+        custom_funnels: loadedCustomFunnels,
         funnel_stages: initialFunnelStages,
         channel_mix: initialChannelMix,
       }));
-      setSavedSelections((prev) => ({
-        ...prev,
-        custom: {
-          custom_funnels: loadedFunnels,
-          funnel_stages: initialFunnelStages,
-          channel_mix: initialChannelMix,
-        },
-      }));
     }
+
+    // Update savedSelections
+    setSavedSelections((prev) => ({
+      ...prev,
+      custom: {
+        funnel_stages: initialOption === "custom" ? initialFunnelStages : prev.custom.funnel_stages,
+        channel_mix: initialOption === "custom" ? initialChannelMix : prev.custom.channel_mix,
+      },
+      targeting_retargeting: {
+        funnel_stages: initialOption === "targeting_retargeting" ? initialFunnelStages : prev.targeting_retargeting.funnel_stages,
+        channel_mix: initialOption === "targeting_retargeting" ? initialChannelMix : prev.targeting_retargeting.channel_mix,
+      },
+    }));
   }, [campaignData, setCampaignFormData]);
 
   // Handle clicks outside modal to close it
@@ -228,13 +232,13 @@ const MapFunnelStages = () => {
 
   // Get an available color from the palette
   const getAvailableColor = (excludeColor?: string): string => {
-    const usedColors = customFunnels
+    const usedColors = persistentCustomFunnels
       .filter((f) => f.color !== excludeColor)
       .map((f) => f.color);
     const availableColors = colorPalette.filter((c) => !usedColors.includes(c));
     return availableColors.length > 0
       ? availableColors[0]
-      : colorPalette[customFunnels.length % colorPalette.length];
+      : colorPalette[persistentCustomFunnels.length % colorPalette.length];
   };
 
   // Handle funnel selection
@@ -268,7 +272,6 @@ const MapFunnelStages = () => {
     setSavedSelections((prev) => ({
       ...prev,
       [selectedOption]: {
-        ...prev[selectedOption],
         funnel_stages: newFunnelStages,
         channel_mix: newChannelMix,
       },
@@ -278,11 +281,10 @@ const MapFunnelStages = () => {
 
   // Handle option change (Custom vs Targeting-Retargeting)
   const handleOptionChange = (option: string) => {
-    // Save current state before switching
+    // Save current funnel_stages and channel_mix
     setSavedSelections((prev) => ({
       ...prev,
       [selectedOption]: {
-        custom_funnels: customFunnels,
         funnel_stages: campaignFormData?.funnel_stages || [],
         channel_mix: campaignFormData?.channel_mix || [],
       },
@@ -295,15 +297,23 @@ const MapFunnelStages = () => {
       setCampaignFormData((prev: any) => ({
         ...prev,
         funnel_type: "targeting_retargeting",
-        custom_funnels: targetingRetargetingFunnels,
-        funnel_stages: savedSelections.targeting_retargeting.funnel_stages,
-        channel_mix: savedSelections.targeting_retargeting.channel_mix,
+        funnel_stages:
+          savedSelections.targeting_retargeting.funnel_stages.length > 0
+            ? savedSelections.targeting_retargeting.funnel_stages
+            : ["Targeting", "Retargeting"],
+        channel_mix:
+          savedSelections.targeting_retargeting.channel_mix.length > 0
+            ? savedSelections.targeting_retargeting.channel_mix
+            : [
+                { funnel_stage: "Targeting" },
+                { funnel_stage: "Retargeting" },
+              ],
+        // Do not overwrite custom_funnels
       }));
     } else {
+      // Restore custom funnels from persistentCustomFunnels
       const restoredFunnels =
-        savedSelections.custom.custom_funnels.length > 0
-          ? savedSelections.custom.custom_funnels
-          : defaultFunnels;
+        persistentCustomFunnels.length > 0 ? persistentCustomFunnels : defaultFunnels;
       setCustomFunnels(restoredFunnels);
       setCampaignFormData((prev: any) => ({
         ...prev,
@@ -347,7 +357,7 @@ const MapFunnelStages = () => {
       return;
     }
     if (
-      customFunnels.some(
+      persistentCustomFunnels.some(
         (funnel) => funnel.name.toLowerCase() === name.toLowerCase()
       )
     ) {
@@ -365,7 +375,8 @@ const MapFunnelStages = () => {
       color: newColor,
     };
 
-    const updatedFunnels = [...customFunnels, newFunnel];
+    const updatedFunnels = [...persistentCustomFunnels, newFunnel];
+    setPersistentCustomFunnels(updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
     setCampaignFormData((prev: any) => ({
@@ -378,7 +389,6 @@ const MapFunnelStages = () => {
     setSavedSelections((prev) => ({
       ...prev,
       custom: {
-        custom_funnels: updatedFunnels,
         funnel_stages: [...(prev.custom.funnel_stages || []), name],
         channel_mix: [...(prev.custom.channel_mix || []), { funnel_stage: name }],
       },
@@ -398,7 +408,7 @@ const MapFunnelStages = () => {
       return;
     }
     if (
-      customFunnels.some(
+      persistentCustomFunnels.some(
         (funnel) =>
           funnel.name.toLowerCase() === newName.toLowerCase() &&
           funnel.name !== oldId
@@ -411,7 +421,7 @@ const MapFunnelStages = () => {
       return;
     }
 
-    const updatedFunnels = customFunnels.map((f) =>
+    const updatedFunnels = persistentCustomFunnels.map((f) =>
       f.name === oldId
         ? {
             ...f,
@@ -422,6 +432,7 @@ const MapFunnelStages = () => {
         : f
     );
 
+    setPersistentCustomFunnels(updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
     setCampaignFormData((prev: any) => ({
@@ -438,7 +449,6 @@ const MapFunnelStages = () => {
     setSavedSelections((prev) => ({
       ...prev,
       custom: {
-        custom_funnels: updatedFunnels,
         funnel_stages: prev.custom.funnel_stages.map((stage: string) =>
           stage === oldId ? newName : stage
         ),
@@ -454,7 +464,7 @@ const MapFunnelStages = () => {
 
   // Remove a funnel
   const handleRemoveFunnel = (id: string) => {
-    if (customFunnels.length <= 1) {
+    if (persistentCustomFunnels.length <= 1) {
       toast.error("You must have at least one funnel stage", {
         style: { background: "red", color: "white", textAlign: "center" },
         duration: 3000,
@@ -462,7 +472,8 @@ const MapFunnelStages = () => {
       return;
     }
 
-    const updatedFunnels = customFunnels.filter((f) => f.name !== id);
+    const updatedFunnels = persistentCustomFunnels.filter((f) => f.name !== id);
+    setPersistentCustomFunnels(updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
     setCampaignFormData((prev: any) => ({
@@ -475,7 +486,6 @@ const MapFunnelStages = () => {
     setSavedSelections((prev) => ({
       ...prev,
       custom: {
-        custom_funnels: updatedFunnels,
         funnel_stages: prev.custom.funnel_stages.filter((stage: string) => stage !== id),
         channel_mix: prev.custom.channel_mix.filter((ch: any) => ch?.funnel_stage !== id),
       },
