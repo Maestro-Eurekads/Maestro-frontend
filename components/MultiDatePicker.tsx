@@ -5,6 +5,7 @@ import right from "../public/right.svg";
 import moveright from "../public/lucide_move-right.svg";
 import { useSelectedDates } from "../app/utils/SelectedDatesContext";
 import { parseApiDate } from "./Options";
+import { useCampaigns } from "app/utils/CampaignsContext";
 
 interface MultiDatePickerProps {
   isEditing: boolean;
@@ -18,6 +19,7 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
   const weekdays = ["M", "T", "W", "Th", "F", "S", "S"];
   const { selectedDates, setSelectedDates } = useSelectedDates();
   const [monthOffset, setMonthOffset] = useState(0);
+  const {setCampaignFormData, campaignFormData} = useCampaigns()
 
   const getMonthData = (offset: number) => {
     const today = new Date();
@@ -55,9 +57,9 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
   // Use selected dates if set, otherwise fallback to API dates
   const fromDate =
     selectedDates.from ||
-    parseApiDate(campaignData?.campaign_timeline_start_date);
+    parseApiDate(campaignFormData?.campaign_timeline_start_date);
   const toDate =
-    selectedDates.to || parseApiDate(campaignData?.campaign_timeline_end_date);
+    selectedDates.to || parseApiDate(campaignFormData?.campaign_timeline_end_date);
 
   const isPastDate = (day: number, monthIndex: number, year: number) => {
     const today = new Date();
@@ -87,7 +89,13 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
   };
 
   const resetDates = () => {
+    console.log("reset dates");
     setSelectedDates({ from: null, to: null });
+    setCampaignFormData((prev)=>({
+      ...prev,
+      campaign_timeline_start_date: null,
+      campaign_timeline_end_date: null
+    }))
   };
 
   const months = [getMonthData(monthOffset), getMonthData(monthOffset + 1)];
@@ -95,13 +103,13 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
   // write a useEffect that get the campaign_timeline_start and end date and initialize the selectedDates states
 
   useEffect(() => {
-    const startDate = parseApiDate(campaignData?.campaign_timeline_start_date);
-    const endDate = parseApiDate(campaignData?.campaign_timeline_end_date);
+    const startDate = parseApiDate(campaignFormData?.campaign_timeline_start_date);
+    const endDate = parseApiDate(campaignFormData?.campaign_timeline_end_date);
 
     if (startDate && endDate) {
       setSelectedDates({ from: startDate, to: endDate });
     }
-  }, [campaignData]);
+  }, [campaignFormData]);
 
   return (
     <div

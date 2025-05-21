@@ -487,25 +487,18 @@ const ResizableChannels = ({
           const startDateIndex = adjustedStageStartDate
             ? dRange?.findIndex((date) =>
                 isEqual(date, adjustedStageStartDate)
-              ) * (rrange === "Day" ? 100 : 50)
+              ) * (rrange === "Day" ? 100 : rrange === "Week" ?  50 : Math.round(containerWidth / 2 / 31) - 7) 
             : 0;
 
           // Calculate days between using the adjusted end date
           let daysBetween;
           if (adjustedStageStartDate && adjustedStageEndDate) {
-            console.log("here1", ch?.name);
-            console.log({
-              start: adjustedStageStartDate,
-              end: adjustedStageEndDate,
-              name: ch?.name,
-            });
             daysBetween =
               eachDayOfInterval({
                 start: adjustedStageStartDate,
                 end: adjustedStageEndDate,
               })?.length - 1;
           } else {
-            console.log("here2", ch?.name);
             daysBetween =
               eachDayOfInterval({
                 start: new Date(ch?.start_date) || null,
@@ -514,12 +507,6 @@ const ResizableChannels = ({
                   : new Date(ch?.end_date) || null,
               })?.length - 1;
           }
-          console.log("🚀 ~ newState ~ daysBetween:", daysBetween, ch?.name);
-          console.log("🚀 isEndDateExceeded:", {
-            isEndDateExceeded,
-            endDate,
-            adjustedStageEndDate,
-          });
           const endDaysDiff = differenceInCalendarDays(endDate, stageEndDate);
           // Check if this channel already exists in prev
           const existingState = prev[index];
@@ -544,7 +531,7 @@ const ResizableChannels = ({
                       ? 50 * daysBetween + 10
                       : parentWidth
                     : rrange === "Month"
-                    ? Math.round(containerWidth / 2 / 31)
+                    ? (Math.round(containerWidth / 2 / 31) - 5) * daysBetween + 5
                     : parentWidth,
               }
             : {
@@ -730,7 +717,7 @@ const ResizableChannels = ({
                 className={` ${"relative"} top-0 h-full flex ${
                   disableDrag
                     ? "justify-between min-w-[50px]"
-                    : "justify-center cursor-move min-w-[50px]"
+                    : "justify-center cursor-move"
                 }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden `}
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
@@ -741,6 +728,7 @@ const ResizableChannels = ({
                   color: channel.color,
                   borderColor: channel.color,
                   borderRadius: "10px",
+                  minWidth: rrange === "Day" ? "100px" : rrange === "Week"? "50px" : `${channelState[index]?.width}px` ,
                 }}
                 onMouseDown={
                   disableDrag || openItems ? undefined : handleDragStart(index)
@@ -777,7 +765,7 @@ const ResizableChannels = ({
             {
               <>
                 <div
-                  className={`absolute top-0 w-5 h-[46px] cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
+                  className={`absolute top-0 ${rrange === "Month" ? "w-2" : "w-5"} h-[46px] cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
                     disableDrag && "hidden"
                   }`}
                   style={{
@@ -793,7 +781,7 @@ const ResizableChannels = ({
                   <MdDragHandle className="rotate-90" />
                 </div>
                 <div
-                  className={`absolute top-0 w-5 h-[46px] cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
+                  className={`absolute top-0 ${rrange === "Month" ? "w-2" : "w-5"} h-[46px] cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
                     disableDrag && "hidden"
                   }`}
                   style={{

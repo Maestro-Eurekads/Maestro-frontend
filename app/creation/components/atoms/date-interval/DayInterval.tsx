@@ -14,7 +14,7 @@ const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src }) => {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${daysCount + 1},100px )`,
+          gridTemplateColumns: `repeat(${daysCount},100px )`,
         }}
       >
         {Array.from({ length: daysCount + 1 }, (_, i) => {

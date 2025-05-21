@@ -9,7 +9,7 @@ export default async function Home() {
   const token = await getServerSession(authOptions);
 
   // @ts-ignore
-  return token?.user?.data?.user?.user_type === "client" || token?.user?.data?.user?.user_type === "client_approver" ? (
+  return token?.user?.data?.user?.user_type === "client" ? (
     <ClientView />
   ) : (
     <Homepage />

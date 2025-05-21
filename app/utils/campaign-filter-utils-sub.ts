@@ -1,5 +1,7 @@
 import axios from "axios";
 import type { FilterState } from "./useCampaignFilters";
+import { getServerSession } from "next-auth";
+import { authOptions } from "utils/auth";
 
 // Standard populate query for campaigns
 export const CAMPAIGN_POPULATE_QUERY = [
@@ -53,6 +55,8 @@ export const CAMPAIGN_POPULATE_QUERY = [
 //   }
 // };
 export const fetchFilteredCampaignsSub = async (clientID: string) => {
+  const session = await getServerSession(authOptions)
+  console.log("🚀 ~ fetchFilteredCampaignsSub ~ session:", session)
   if (!clientID) {
     console.error("Client ID is required.");
     return [];
@@ -67,7 +71,8 @@ export const fetchFilteredCampaignsSub = async (clientID: string) => {
   }
 
   // Add filter to ensure media_plan_details is not null
-  const filterQuery = `filters[client][$eq]=${clientID}&filters[media_plan_details][$notNull]=true`;
+  // @ts-ignore
+  const filterQuery = `filters[client][$eq]=${clientID}${session?.user?.data?.user?.user_type !== "admin" ? `&filters[user][$eq]=${session?.user?.id}` : ""}&filters[media_plan_details][$notNull]=true`;
   const fullUrl = `${baseUrl}/campaigns?${filterQuery}&${CAMPAIGN_POPULATE_QUERY}`;
 
   try {

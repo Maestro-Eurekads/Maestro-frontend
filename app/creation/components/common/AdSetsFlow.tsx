@@ -30,6 +30,28 @@ import { useActive } from "app/utils/ActiveContext";
 import { removeKeysRecursively } from "utils/removeID";
 import { getPlatformIcon, mediaTypes } from "components/data";
 
+// Helper for thousand separator
+function formatWithThousandSeparator(value: string | number) {
+  if (value === undefined || value === null) return "";
+  // Remove all non-digit except dot
+  const cleaned = String(value).replace(/,/g, "");
+  if (cleaned === "") return "";
+  // Only format if it's a valid number
+  if (!isNaN(Number(cleaned))) {
+    // If decimal, keep decimals
+    if (cleaned.includes(".")) {
+      const [int, dec] = cleaned.split(".");
+      return (
+        Number(int).toLocaleString("en-US") +
+        "." +
+        dec.replace(/[^0-9]/g, "")
+      );
+    }
+    return Number(cleaned).toLocaleString("en-US");
+  }
+  return value;
+}
+
 // Types
 interface AdSetType {
   id: number;
@@ -276,15 +298,32 @@ const AdSet = memo(function AdSet({
     [adset.id, onUpdate, onInteraction]
   );
 
+  // For main ad set size field
   const handleSizeChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newSize = e.target.value;
-      setSize(newSize);
-      onUpdate(adset.id, { size: newSize });
+      let inputValue = e.target.value.replace(/,/g, "");
+      // Only allow numbers and optional decimal
+      if (!/^\d*\.?\d*$/.test(inputValue)) {
+        return;
+      }
+      setSize(inputValue);
+      onUpdate(adset.id, { size: inputValue });
       onInteraction();
     },
     [adset.id, onUpdate, onInteraction]
   );
+
+  // For extra audiences size field
+  const handleExtraAudienceSizeChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    let inputValue = e.target.value.replace(/,/g, "");
+    // Only allow numbers and optional decimal
+    if (!/^\d*\.?\d*$/.test(inputValue)) {
+      return;
+    }
+    const updated = [...extraAudience];
+    updated[index].size = inputValue;
+    updateExtraAudienceMap(updated);
+  };
 
   const isParentFilled =
     name.trim() !== "" && audience.trim() !== "" && size.trim() !== "";
@@ -338,14 +377,12 @@ const AdSet = memo(function AdSet({
                 <input
                   type="text"
                   placeholder="Size"
-                  value={audi.size || ""}
-                  onChange={(e) => {
-                    const updated = [...extraAudience];
-                    updated[index].size = e.target.value;
-                    updateExtraAudienceMap(updated);
-                  }}
+                  value={formatWithThousandSeparator(audi.size || "")}
+                  onChange={(e) => handleExtraAudienceSizeChange(e, index)}
                   disabled={!isEditing}
                   className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[100px]"
+                  inputMode="numeric"
+                  pattern="[0-9,]*"
                 />
                 <button
                   disabled={!isEditing}
@@ -391,11 +428,13 @@ const AdSet = memo(function AdSet({
       <input
         type="text"
         placeholder="Enter size"
-        value={size}
+        value={formatWithThousandSeparator(size)}
         onChange={handleSizeChange}
         disabled={!isEditing}
         className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] w-[100px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isEditing ? "cursor-not-allowed" : ""
           }`}
+        inputMode="numeric"
+        pattern="[0-9,]*"
       />
       <button
         disabled={!isEditing}
