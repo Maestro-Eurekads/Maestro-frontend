@@ -459,12 +459,9 @@ const General = ({ campaign, loading, isLoadingCampaign, campaign_id }) => {
 	const budget = campaign?.campaign_budget?.amount ?? "0";
 	const currency = getCurrencySymbol(campaign?.campaign_budget?.currency) ?? "";
 
-	const [trendData, setTrendData] = useState({
-		budgetChange: "0%",
-		impressionsChange: "0%",
-		cpmChange: "0%"
-	});
 
+
+	// Extract and calculate total impressions and average CPM
 	const { totalImpressions, averageCpm } = useMemo(() => {
 		let impressions = 0;
 		let cpmValues = [];
@@ -498,35 +495,12 @@ const General = ({ campaign, loading, isLoadingCampaign, campaign_id }) => {
 		};
 	}, [campaign]);
 
-	// useEffect(() => {
-	// 	if (campaign_id) {
-	// 		getTrendDataOnly(campaign_id)
-	// 			.then(data => {
-	// 				if (data) setTrendData(data);
-	// 			})
-	// 			.catch(err => console.error("Error getting trend data:", err));
-	// 	}
-	// }, [campaign_id]);
+
 
 	const formatNumber = (value) => {
 		if (!value) return "0";
 		return Intl.NumberFormat("en-US").format(value);
 	};
-
-	// const getTrendStyles = (trend) => {
-	// 	if (!trend || trend === "0%") {
-	// 		return {
-	// 			backgroundColor: "#E5E7EB",
-	// 			color: "#6B7280"
-	// 		};
-	// 	}
-	// 	const isPositive = trend.startsWith("+");
-	// 	return {
-	// 		backgroundColor: isPositive ? "#B8FFE6" : "#FFE1E0",
-	// 		color: isPositive ? "#00A331" : "#FF0302"
-	// 	};
-	// };
-
 	return (
 		<div className="flex flex-col justify-between w-full h-[153px] bg-white border border-[rgba(49,117,255,0.3)] rounded-[12px] box-border p-[20px] shadow-[0px_4px_14px_rgba(0,38,116,0.15)]">
 			{loading || isLoadingCampaign ? <Skeleton height={20} width={100} /> :

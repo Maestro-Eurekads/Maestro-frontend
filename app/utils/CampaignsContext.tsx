@@ -343,11 +343,39 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
 
 
-  const getUserByUserType = async (user_type) => {
+  // const getUserByUserType = async (user_type) => {
+  //   setgetLoading(true);
+  //   try {
+  //     const response = await axios.get(
+  //       `${process.env.NEXT_PUBLIC_STRAPI_URL}/users?filters[user_type][$eq]=${user_type}`,
+  //       {
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+  //         },
+  //       }
+  //     );
+  //     const user = response.data;
+  //     setUser(user);
+  //   } catch (error) {
+  //     console.error("Error fetching users by user_type:", error);
+  //     // Optionally handle error
+  //   } finally {
+  //     setgetLoading(false);
+  //   }
+  // };
+  const getUserByUserType = async (userTypes) => {
     setgetLoading(true);
+
+
+
     try {
+      const queryString = userTypes
+        .map(type => `filters[user_type][$in]=${type}`)
+        .join("&");
+
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users?filters[user_type][$eq]=${user_type}`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users?${queryString}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -355,8 +383,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-      const user = response.data;
-      setUser(user);
+
+      const users = response.data;
+      setUser(users);
     } catch (error) {
       console.error("Error fetching users by user_type:", error);
       // Optionally handle error
@@ -364,6 +393,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setgetLoading(false);
     }
   };
+
 
 
   const organizeAdvertisingPlatforms = useCallback((data) => {

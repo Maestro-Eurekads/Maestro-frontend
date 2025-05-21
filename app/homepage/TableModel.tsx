@@ -17,19 +17,20 @@ import { getCreateClient } from "features/Client/clientSlice";
 import { useAppDispatch } from "store/useStore";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 const TableModel = ({ isOpen, setIsOpen }) => {
   const { data: session } = useSession();
   // @ts-ignore 
   const userType = session?.user?.data?.user?.id || "";
   const dispatch = useAppDispatch();
-  const { profile, getProfile } = useCampaigns();
+  const { profile, getProfile, user, getUserByUserType } = useCampaigns();
   const [inputs, setInputs] = useState({
     name: "",
     email: "",
     full_name: "",
-    responsiblePerson: "",
-    approver: "",
+    responsiblePerson: [],
+    approver: [],
     sports: [],
     categories: [],
     businessUnits: [],
@@ -38,6 +39,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   const [emailList, setEmailList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
+
+  console.log('profile-user-user', user)
 
   //  Automatically reset alert after showing
   useEffect(() => {
@@ -48,11 +51,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   }, [alert]);
   const handleAddEmail = () => {
     if (emailList.length >= 5) {
-      setAlert({
-        variant: "error",
-        message: "You can only add up to 5 email addresses.",
-        position: "bottom-right",
-      });
+      toast.error("You can only add up to 5 email addresses.");
       return;
     }
     const trimmedEmail = inputs.email.trim();
@@ -68,39 +67,22 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     const isValidFullName = fullNameRegex.test(fullName);
 
     if (!trimmedEmail) {
-      setAlert({
-        variant: "error",
-        message: "Email cannot be empty",
-        position: "bottom-right",
-      });
+      toast.error("Email cannot be empty");
       return;
     }
 
     if (!emailRegex.test(trimmedEmail)) {
-      setAlert({
-        variant: "error",
-        message: "Invalid email format",
-        position: "bottom-right",
-      });
+      toast.error("Invalid email format");
       return;
     }
 
     if (!onlyLettersRegex.test(fullName)) {
-      setAlert({
-        variant: "error",
-        message:
-          "Full name must contain only alphabetic characters and spaces.",
-        position: "bottom-right",
-      });
+      toast.error("Full name must contain only alphabetic characters and spaces.");
       return;
     }
 
     if (!hasTwoWords) {
-      setAlert({
-        variant: "error",
-        message: "Full name must include both first and last name.",
-        position: "bottom-right",
-      });
+      toast.error("Full name must include both first and last name.");
       return;
     }
 
@@ -109,20 +91,12 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       (item) => item.email.toLowerCase() === trimmedEmail.toLowerCase()
     );
     if (emailExists) {
-      setAlert({
-        variant: "warning",
-        message: "This email address is already added",
-        position: "bottom-right",
-      });
+      toast.error("This email address is already added");
       return;
     }
 
     if (emailList.length >= 5) {
-      setAlert({
-        variant: "warning",
-        message: "Maximum 5 emails allowed",
-        position: "bottom-right",
-      });
+      toast.error("Maximum 5 emails allowed");
       return;
     }
 
@@ -157,92 +131,143 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   }, [isOpen]);
 
   // Add a validation function before the handleSubmit function
+  // const validateForm = () => {
+  //   // Check if client name is empty
+  //   if (!inputs.name.trim()) {
+  //     setAlert({
+  //       variant: "error",
+  //       message: "Client Name is required",
+  //       position: "bottom-right",
+  //     });
+  //     return false;
+  //   }
+
+  //   // Check if at least one email is added
+  //   if (emailList.length === 0) {
+  //     setAlert({
+  //       variant: "error",
+  //       message: "At least one client email is required",
+  //       position: "bottom-right",
+  //     });
+  //     return false;
+  //   }
+
+  //   // Check if responsible person is selected
+  //   if (!inputs.responsiblePerson) {
+  //     setAlert({
+  //       variant: "error",
+  //       message: "Responsible Person is required",
+  //       position: "bottom-right",
+  //     });
+  //     return false;
+  //   }
+
+  //   // Check if approver is selected
+  //   if (!inputs.approver) {
+  //     setAlert({
+  //       variant: "error",
+  //       message: "Approver is required",
+  //       position: "bottom-right",
+  //     });
+  //     return false;
+  //   }
+
+  //   // Check if at least two business level 1 (sports) are added
+  //   if (inputs.sports.length < 2 || !inputs.sports[0] || !inputs.sports[1]) {
+  //     setAlert({
+  //       variant: "error",
+  //       message: "At least two Business Level 1 entries are required",
+  //       position: "bottom-right",
+  //     });
+  //     return false;
+  //   }
+
+  //   // Check if at least two business level 2 (business units) are added
+  //   if (
+  //     inputs.businessUnits.length < 2 ||
+  //     !inputs.businessUnits[0] ||
+  //     !inputs.businessUnits[1]
+  //   ) {
+  //     setAlert({
+  //       variant: "error",
+  //       message: "At least two Business Level 2 entries are required",
+  //       position: "bottom-right",
+  //     });
+  //     return false;
+  //   }
+
+  //   // Check if at least two business level 3 (categories) are added
+  //   if (
+  //     inputs.categories.length < 2 ||
+  //     !inputs.categories[0] ||
+  //     !inputs.categories[1]
+  //   ) {
+  //     setAlert({
+  //       variant: "error",
+  //       message: "At least two Business Level 3 entries are required",
+  //       position: "bottom-right",
+  //     });
+  //     return false;
+  //   }
+
+  //   // Check if fee type is selected
+  //   if (!inputs.feeType) {
+  //     setAlert({
+  //       variant: "error",
+  //       message: "Fee Type is required",
+  //       position: "bottom-right",
+  //     });
+  //     return false;
+  //   }
+
+  //   return true;
+  // };
   const validateForm = () => {
-    // Check if client name is empty
     if (!inputs.name.trim()) {
-      setAlert({
-        variant: "error",
-        message: "Client Name is required",
-        position: "bottom-right",
-      });
+      toast.error("Client Name is required");
       return false;
     }
 
-    // Check if at least one email is added
     if (emailList.length === 0) {
-      setAlert({
-        variant: "error",
-        message: "At least one client email is required",
-        position: "bottom-right",
-      });
+      toast.error("At least one client email is required");
       return false;
     }
 
-    // Check if responsible person is selected
     if (!inputs.responsiblePerson) {
-      setAlert({
-        variant: "error",
-        message: "Responsible Person is required",
-        position: "bottom-right",
-      });
+      toast.error("Responsible Person is required");
       return false;
     }
 
-    // Check if approver is selected
     if (!inputs.approver) {
-      setAlert({
-        variant: "error",
-        message: "Approver is required",
-        position: "bottom-right",
-      });
+      toast.error("Approver is required");
       return false;
     }
 
-    // Check if at least two business level 1 (sports) are added
     if (inputs.sports.length < 2 || !inputs.sports[0] || !inputs.sports[1]) {
-      setAlert({
-        variant: "error",
-        message: "At least two Business Level 1 entries are required",
-        position: "bottom-right",
-      });
+      toast.error("At least two Business Level 1 entries are required");
       return false;
     }
 
-    // Check if at least two business level 2 (business units) are added
     if (
       inputs.businessUnits.length < 2 ||
       !inputs.businessUnits[0] ||
       !inputs.businessUnits[1]
     ) {
-      setAlert({
-        variant: "error",
-        message: "At least two Business Level 2 entries are required",
-        position: "bottom-right",
-      });
+      toast.error("At least two Business Level 2 entries are required");
       return false;
     }
 
-    // Check if at least two business level 3 (categories) are added
     if (
       inputs.categories.length < 2 ||
       !inputs.categories[0] ||
       !inputs.categories[1]
     ) {
-      setAlert({
-        variant: "error",
-        message: "At least two Business Level 3 entries are required",
-        position: "bottom-right",
-      });
+      toast.error("At least two Business Level 3 entries are required");
       return false;
     }
 
-    // Check if fee type is selected
     if (!inputs.feeType) {
-      setAlert({
-        variant: "error",
-        message: "Fee Type is required",
-        position: "bottom-right",
-      });
+      toast.error("Fee Type is required");
       return false;
     }
 
@@ -268,7 +293,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         level_2: inputs.businessUnits,
         level_3: inputs.categories,
         fee_type: inputs.feeType,
-        user: profile?.id,
+        users: profile?.id,
       });
       localStorage.setItem(userType.toString(), res?.data?.data?.id);
       getProfile()
@@ -279,8 +304,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       setInputs({
         name: "",
         email: "",
-        responsiblePerson: "",
-        approver: "",
+        responsiblePerson: [],
+        approver: [],
         sports: [],
         categories: [],
         businessUnits: [],
@@ -306,8 +331,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     setInputs({
       name: "",
       email: "",
-      responsiblePerson: "",
-      approver: "",
+      responsiblePerson: [],
+      approver: [],
       sports: [],
       categories: [],
       businessUnits: [],
@@ -316,6 +341,21 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     });
     setEmailList([]);
   };
+
+  const userTypes = ["agency_creator", "agency_approver", "client_approver"];
+
+
+  useEffect(() => {
+    if (isOpen) {
+      getUserByUserType(userTypes);
+    }
+
+
+  }, [isOpen]);
+
+  const options = user?.map(user => user?.username);
+  const option = user?.filter(user => user?.user_type !== "agency_creator")
+    .map(user => user.username);
 
   return (
     <div className="z-50">
@@ -442,6 +482,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                 <ResponsibleApproverDropdowns
                   right={true}
                   setInputs={setInputs}
+                  options={!options ? [] : options}
+                  option={!option ? [] : option}
                 />
               </div>
               <div className="w-full flex items-start gap-3">
