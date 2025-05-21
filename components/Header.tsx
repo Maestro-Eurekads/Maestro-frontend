@@ -13,7 +13,6 @@ import AlertMain from "./Alert/AlertMain";
 import { getCreateClient } from "features/Client/clientSlice"; // Removed unused 'reset'
 import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
-import ClientSelection from "./ClientSelection";
 import { CustomSelect } from "app/homepage/components/CustomReactSelect";
 import { useActive } from "app/utils/ActiveContext";
 import { extractAprroverFilters, extractChannelAndPhase, extractDateFilters, extractLevelFilters, extractLevelNameFilters } from "app/utils/campaign-filter-utils";
@@ -217,15 +216,16 @@ const Header = ({ setIsOpen }) => {
             {show && (
               <div className="absolute bg-white border shadow-md rounded-[10px] top-[50px]">
                 <div
-                  className="flex items-center gap-2 cursor-pointer p-2"  
-                  onClick={async () =>{
+                  className="flex items-center gap-2 cursor-pointer p-2"
+                  onClick={async () => {
                     localStorage.removeItem("campaignFormData");
                     localStorage.removeItem("selectedClient");
                     localStorage.removeItem("profileclients");
                     await signOut({
                       callbackUrl: "/",
-                    })}
-                  } 
+                    })
+                  }
+                  }
                 >
                   <LogOut color="#3175FF" />
                   <p>Logout</p>

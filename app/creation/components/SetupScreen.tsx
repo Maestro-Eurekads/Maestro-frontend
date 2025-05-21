@@ -1,20 +1,15 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import { Title } from "../../../components/Title";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import ClientSelection from "../../../components/ClientSelection";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import ClientSelectionInput from "../../../components/ClientSelectionInput";
-import Checkbox from "../../../components/Checkbox";
-import { removeKeysRecursively } from "utils/removeID";
 import AlertMain from "components/Alert/AlertMain";
-import { SVGLoader } from "components/SVGLoader";
 import {
   useVerification,
   validationRules,
 } from "app/utils/VerificationContext";
-import ClientSelectionInputbudget from "components/ClientSelectionInputbudget";
 import { useComments } from "app/utils/CommentProvider";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { useRouter } from "next/navigation";
@@ -52,7 +47,6 @@ export const SetupScreen = () => {
   const [level3Options, setlevel3Options] = useState([]);
 
   const [alert, setAlert] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const { setIsDrawerOpen, setClose } = useComments();
   const {
@@ -75,14 +69,8 @@ export const SetupScreen = () => {
     setClose(false);
   }, []);
 
-  // console.log('user-user', user)
 
-  const userTypes = ["agency_creator", "agency_approver", "client_approver", "client_creator"];
 
-  const handleGetUserByUserType = () => {
-    getUserByUserType(userTypes);
-
-  };
 
   // Load saved form data from localStorage on mount
   useEffect(() => {
@@ -155,8 +143,6 @@ export const SetupScreen = () => {
 
 
   useEffect(() => {
-
-
     if (isAgencyCreator || isAgencyApprover || isFinancialApprover) {
       if (profile?.clients) {
         const options = profile?.clients?.map((c) => ({
@@ -184,7 +170,7 @@ export const SetupScreen = () => {
     const client = allClients.find(
       (c) => c?.documentId === client_selection?.id
     );
-    console.log('user-clientOptions', client)
+    // console.log('user-clientOptions', client)
     setApprovalOptions(() => {
       const options = client?.approver?.map((l) => ({
         value: l,
@@ -226,21 +212,21 @@ export const SetupScreen = () => {
     }));
   }, [client_selection, allClients, setCampaignFormData]);
 
-  const getInputValue = () => {
-    if (campaignFormData?.budget_details_fee_type?.id === "Fix budget fee") {
-      return "Enter amount";
-    }
+  // const getInputValue = () => {
+  //   if (campaignFormData?.budget_details_fee_type?.id === "Fix budget fee") {
+  //     return "Enter amount";
+  //   }
 
-    if (campaignFormData?.budget_details_fee_type?.id === "Tooling") {
-      if (selectedOption === "fix-amount") {
-        return "Enter amount";
-      } else if (selectedOption === "percentage") {
-        return "Enter percentage";
-      }
-    }
+  //   if (campaignFormData?.budget_details_fee_type?.id === "Tooling") {
+  //     if (selectedOption === "fix-amount") {
+  //       return "Enter amount";
+  //     } else if (selectedOption === "percentage") {
+  //       return "Enter percentage";
+  //     }
+  //   }
 
-    return "";
-  };
+  //   return "";
+  // };
 
 
 
