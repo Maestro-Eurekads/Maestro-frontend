@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import React, { useState, useEffect, useRef } from "react";
+import Image, { type StaticImageData } from "next/image";
 import speaker from "../../../public/mdi_megaphone.svg";
 import zoom from "../../../public/tabler_zoom-filled.svg";
 import credit from "../../../public/mdi_credit-card.svg";
@@ -20,9 +20,9 @@ import toast, { Toaster } from "react-hot-toast";
 interface Funnel {
   id: string;
   name: string;
-  color: string;
-  icon?: any; // Optional for funnels with icons
-  activeIcon?: any; // Optional for funnels with active icons
+  color: string; // Required to ensure color is always defined
+  icon?: StaticImageData; // Optional for funnels with icons
+  activeIcon?: StaticImageData; // Optional for active icons
 }
 
 // Color palette for dynamic assignment
@@ -39,37 +39,23 @@ const colorPalette = [
 
 const MapFunnelStages = () => {
   const {
-    updateCampaign,
     campaignData,
     campaignFormData,
     cId,
     setCampaignFormData,
   } = useCampaigns();
-  const [previousValidationState, setPreviousValidationState] = useState(null);
   const { setIsDrawerOpen, setClose } = useComments();
-  const [isEditing, setIsEditing] = useState(false);
-  const [hovered, setHovered] = React.useState<number | null>(null);
-  const [alert, setAlert] = useState(null);
-  const { verifyStep, setHasChanges, hasChanges, setverifybeforeMove } =
-    useVerification();
-  const [selectedOption, setSelectedOption] = useState("");
+  const { verifyStep, setHasChanges } = useVerification();
+  const [previousValidationState, setPreviousValidationState] = useState<boolean | null>(null);
+  const [selectedOption, setSelectedOption] = useState<string>("");
+  const [customFunnels, setCustomFunnels] = useState<Funnel[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"add" | "edit">("add");
+  const [currentFunnel, setCurrentFunnel] = useState<Funnel | null>(null);
+  const [newFunnelName, setNewFunnelName] = useState("");
+  const modalRef = useRef<HTMLDivElement>(null);
 
-  // Store previous selections for each option type
-  const [savedSelections, setSavedSelections] = useState({
-    custom: {
-      funnel_stages: [],
-      channel_mix: [],
-    },
-    targeting_retargeting: {
-      funnel_stages: ["Targeting", "Retargeting"],
-      channel_mix: [
-        { funnel_stage: "Targeting" },
-        { funnel_stage: "Retargeting" },
-      ],
-    },
-  });
-
-  // Default funnel stages for Custom option with dynamic colors
+  // Default funnel stages for Custom option
   const defaultFunnels: Funnel[] = [
     {
       id: "Awareness",
@@ -119,18 +105,28 @@ const MapFunnelStages = () => {
     },
   ];
 
-  // State for custom funnels and modal
-  const [customFunnels, setCustomFunnels] = useState<Funnel[]>(defaultFunnels);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<"add" | "edit">("add");
-  const [currentFunnel, setCurrentFunnel] = useState<Funnel | null>(null);
-  const [newFunnelName, setNewFunnelName] = useState("");
+  // Store previous selections for each option type
+  const [savedSelections, setSavedSelections] = useState({
+    custom: {
+      funnel_stages: [] as string[],
+      channel_mix: [] as { funnel_stage: string }[],
+    },
+    targeting_retargeting: {
+      funnel_stages: ["Targeting", "Retargeting"],
+      channel_mix: [
+        { funnel_stage: "Targeting" },
+        { funnel_stage: "Retargeting" },
+      ],
+    },
+  });
 
+  // Initialize comments drawer
   useEffect(() => {
     setIsDrawerOpen(false);
     setClose(false);
-  }, []);
+  }, [setIsDrawerOpen, setClose]);
 
+  // Validate funnel stages for step verification
   useEffect(() => {
     const isValid =
       Array.isArray(campaignData?.funnel_stages) &&
@@ -139,18 +135,11 @@ const MapFunnelStages = () => {
       verifyStep("step2", isValid, cId);
       setPreviousValidationState(isValid);
     }
-  }, [campaignData, cId, verifyStep]);
+  }, [campaignData, cId, verifyStep, previousValidationState]);
 
+  // Initialize funnel data from campaignData
   useEffect(() => {
-    if (alert) {
-      const timer = setTimeout(() => setAlert(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [alert]);
-
-  // Initialize from campaignData
-  useEffect(() => {
-    const initialOption = campaignData?.funnel_type || "";
+    const initialOption = campaignData?.funnel_type || "custom";
     setSelectedOption(initialOption);
 
     if (initialOption === "targeting_retargeting") {
@@ -178,8 +167,10 @@ const MapFunnelStages = () => {
                   funnel.color ||
                   colorPalette[index % colorPalette.length] ||
                   "bg-gray-500",
-                icon: defaultFunnel ? defaultFunnel.icon : undefined,
-                activeIcon: defaultFunnel ? defaultFunnel.activeIcon : undefined,
+                icon: defaultFunnel ? defaultFunnel.icon : funnel.icon,
+                activeIcon: defaultFunnel
+                  ? defaultFunnel.activeIcon
+                  : funnel.activeIcon,
               };
             })
           : defaultFunnels;
@@ -193,29 +184,17 @@ const MapFunnelStages = () => {
     }
 
     if (campaignData?.funnel_stages) {
-      if (initialOption === "custom") {
-        setSavedSelections((prev) => ({
-          ...prev,
-          custom: {
-            funnel_stages: campaignData.funnel_stages || [],
-            channel_mix: campaignData.channel_mix || [],
-          },
-        }));
-      } else if (initialOption === "targeting_retargeting") {
-        setSavedSelections((prev) => ({
-          ...prev,
-          targeting_retargeting: {
-            funnel_stages: ["Targeting", "Retargeting"],
-            channel_mix: [
-              { funnel_stage: "Targeting" },
-              { funnel_stage: "Retargeting" },
-            ],
-          },
-        }));
-      }
+      setSavedSelections((prev) => ({
+        ...prev,
+        [initialOption]: {
+          funnel_stages: campaignData.funnel_stages || [],
+          channel_mix: campaignData.channel_mix || [],
+        },
+      }));
     }
   }, [campaignData, setCampaignFormData]);
 
+  // Update campaignFormData when customFunnels or selectedOption changes
   useEffect(() => {
     setCampaignFormData((prev: any) => ({
       ...prev,
@@ -223,11 +202,40 @@ const MapFunnelStages = () => {
         selectedOption === "custom" ? customFunnels : targetingRetargetingFunnels,
     }));
     setHasChanges(true);
-  }, [customFunnels, selectedOption, setCampaignFormData]);
+  }, [customFunnels, selectedOption, setCampaignFormData, setHasChanges]);
 
+  // Handle clicks outside modal to close it
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
+        setIsModalOpen(false);
+      }
+    }
+
+    if (isModalOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isModalOpen]);
+
+  // Get an available color from the palette
+  const getAvailableColor = (excludeColor?: string): string => {
+    const usedColors = customFunnels
+      .filter((f) => f.color !== excludeColor)
+      .map((f) => f.color);
+    const availableColors = colorPalette.filter((c) => !usedColors.includes(c));
+    return availableColors.length > 0
+      ? availableColors[0]
+      : colorPalette[customFunnels.length % colorPalette.length];
+  };
+
+  // Handle funnel selection
   const handleSelect = (id: string) => {
-    setHasChanges(true);
-
     if (
       campaignFormData?.funnel_stages?.includes(id) &&
       campaignFormData?.funnel_stages?.length === 1
@@ -265,8 +273,10 @@ const MapFunnelStages = () => {
         channel_mix: newChannelMix,
       },
     }));
+    setHasChanges(true);
   };
 
+  // Handle option change (Custom vs Targeting-Retargeting)
   const handleOptionChange = (option: string) => {
     if (selectedOption) {
       setSavedSelections((prev) => ({
@@ -293,144 +303,96 @@ const MapFunnelStages = () => {
       ];
       newFormData.custom_funnels = targetingRetargetingFunnels;
       setCustomFunnels(targetingRetargetingFunnels);
-    } else if (option === "custom") {
-      newFormData.funnel_stages = [];
-      newFormData.channel_mix = [];
-      newFormData.custom_funnels = defaultFunnels;
-      setCustomFunnels(defaultFunnels);
+    } else {
+      newFormData.funnel_stages = savedSelections.custom.funnel_stages || [];
+      newFormData.channel_mix = savedSelections.custom.channel_mix || [];
+      newFormData.custom_funnels = customFunnels.length > 0 ? customFunnels : defaultFunnels;
+      setCustomFunnels(customFunnels.length > 0 ? customFunnels : defaultFunnels);
     }
 
     setCampaignFormData(newFormData);
     setHasChanges(true);
   };
 
-  const modalRef = React.useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        modalRef.current &&
-        !modalRef.current.contains(event.target as Node)
-      ) {
-        setIsModalOpen(false);
-      }
-    }
-
-    if (isModalOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isModalOpen]);
-
-  const getAvailableColor = (excludeColor?: string) => {
-    const usedColors = customFunnels
-      .filter((f) => f.color !== excludeColor)
-      .map((f) => f.color);
-    const availableColors = colorPalette.filter((c) => !usedColors.includes(c));
-    return availableColors.length > 0
-      ? availableColors[0]
-      : colorPalette[customFunnels.length % colorPalette.length];
-  };
-
+  // Add a new funnel
   const handleAddFunnel = (name: string) => {
     if (!name.trim()) {
-      toast("Funnel name cannot be empty", {
-        style: {
-          background: "red",
-          color: "white",
-          textAlign: "center",
-        },
+      toast.error("Funnel name cannot be empty", {
+        style: { background: "red", color: "white", textAlign: "center" },
         duration: 3000,
       });
       return;
     }
     if (name.trim().length < 2) {
-      toast("Funnel name cannot be less than 2 characters", {
-        style: {
-          background: "red",
-          color: "white",
-          textAlign: "center",
-        },
+      toast.error("Funnel name must be at least 2 characters", {
+        style: { background: "red", color: "white", textAlign: "center" },
         duration: 3000,
       });
       return;
     }
     if (!/[a-zA-Z]/.test(name)) {
-      toast("Funnel name must include at least one alphabet", {
-        style: {
-          background: "red",
-          color: "white",
-          textAlign: "center",
-        },
+      toast.error("Funnel name must include at least one letter", {
+        style: { background: "red", color: "white", textAlign: "center" },
         duration: 3000,
       });
       return;
     }
     if (
       customFunnels.some(
-        (funnel) => funnel.name?.toLowerCase() === name?.toLowerCase()
+        (funnel) => funnel.name.toLowerCase() === name.toLowerCase()
       )
     ) {
-      toast("A funnel with this name already exists", {
-        style: {
-          background: "red",
-          color: "white",
-          textAlign: "center",
-        },
+      toast.error("A funnel with this name already exists", {
+        style: { background: "red", color: "white", textAlign: "center" },
         duration: 3000,
       });
       return;
     }
 
     const newColor = getAvailableColor();
-
     const newFunnel: Funnel = {
       id: name,
       name: name,
       color: newColor,
     };
 
-    const updatedFunnels: Funnel[] = [...customFunnels, newFunnel];
-    setCustomFunnels(updatedFunnels);
+    try {
+      const updatedFunnels = [...customFunnels, newFunnel];
+      setCustomFunnels(updatedFunnels);
 
-    // Automatically select the new funnel stage
-    setCampaignFormData((prev: any) => ({
-      ...prev,
-      custom_funnels: updatedFunnels,
-      funnel_stages: [...(prev.funnel_stages || []), name],
-      channel_mix: [...(prev.channel_mix || []), { funnel_stage: name }],
-    }));
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        custom_funnels: updatedFunnels,
+        funnel_stages: [...(prev.funnel_stages || []), name],
+        channel_mix: [...(prev.channel_mix || []), { funnel_stage: name }],
+      }));
 
-    setHasChanges(true);
+      setHasChanges(true);
+      toast.success("Funnel added successfully", { duration: 3000 });
+    } catch (error) {
+      console.error("Failed to add funnel:", error);
+      toast.error("Failed to add funnel. Please try again.", { duration: 3000 });
+    }
   };
 
+  // Edit an existing funnel
   const handleEditFunnel = (oldId: string, newName: string) => {
     if (!newName.trim()) {
-      toast("Funnel name cannot be empty", {
-        style: {
-          background: "red",
-          color: "white",
-          textAlign: "center",
-        },
+      toast.error("Funnel name cannot be empty", {
+        style: { background: "red", color: "white", textAlign: "center" },
         duration: 3000,
       });
       return;
     }
-
     if (
       customFunnels.some(
         (funnel) =>
-          funnel.name?.toLowerCase() === newName?.toLowerCase() &&
+          funnel.name.toLowerCase() === newName.toLowerCase() &&
           funnel.name !== oldId
       )
     ) {
-      toast("A funnel with this name already exists", {
-        style: {
-          background: "red",
-          color: "white",
-          textAlign: "center",
-        },
+      toast.error("A funnel with this name already exists", {
+        style: { background: "red", color: "white", textAlign: "center" },
         duration: 3000,
       });
       return;
@@ -440,117 +402,97 @@ const MapFunnelStages = () => {
       f.name === oldId
         ? {
             ...f,
-            name: newName,
             id: newName,
-            icon: undefined,
-            activeIcon: undefined,
+            name: newName,
+            icon: defaultFunnels.find((df) => df.name === newName)?.icon || f.icon,
+            activeIcon:
+              defaultFunnels.find((df) => df.name === newName)?.activeIcon ||
+              f.activeIcon,
             color: f.color || getAvailableColor(),
           }
         : f
     );
-    setCustomFunnels(updatedFunnels);
 
-    setCampaignFormData((prev: any) => {
-      const updatedFormData = {
-        ...prev,
-        custom_funnels: updatedFunnels,
-      };
+    try {
+      setCustomFunnels(updatedFunnels);
 
-      if (prev.funnel_stages?.includes(oldId)) {
-        updatedFormData.funnel_stages = prev.funnel_stages.map(
-          (stage: string) => (stage === oldId ? newName : stage)
-        );
-      }
-
-      if (prev.channel_mix?.some((ch: any) => ch.funnel_stage === oldId)) {
-        updatedFormData.channel_mix = prev.channel_mix.map((ch: any) =>
-          ch.funnel_stage === oldId ? { ...ch, funnel_stage: newName } : ch
-        );
-      }
-
-      return updatedFormData;
-    });
-
-    setSavedSelections((prev) => {
-      const updatedCustomSelections = { ...prev.custom };
-
-      if (updatedCustomSelections.funnel_stages.includes(oldId)) {
-        updatedCustomSelections.funnel_stages =
-          updatedCustomSelections.funnel_stages.map((stage: string) =>
+      setCampaignFormData((prev: any) => {
+        const updatedFormData = {
+          ...prev,
+          custom_funnels: updatedFunnels,
+          funnel_stages: prev.funnel_stages?.map((stage: string) =>
             stage === oldId ? newName : stage
-          );
-      }
-
-      if (
-        updatedCustomSelections.channel_mix.some(
-          (ch: any) => ch.funnel_stage === oldId
-        )
-      ) {
-        updatedCustomSelections.channel_mix =
-          updatedCustomSelections.channel_mix.map((ch: any) =>
+          ) || [],
+          channel_mix: prev.channel_mix?.map((ch: any) =>
             ch.funnel_stage === oldId ? { ...ch, funnel_stage: newName } : ch
-          );
-      }
+          ) || [],
+        };
+        return updatedFormData;
+      });
 
-      return {
+      setSavedSelections((prev) => ({
         ...prev,
-        custom: updatedCustomSelections,
-      };
-    });
+        custom: {
+          funnel_stages: prev.custom.funnel_stages.map((stage: string) =>
+            stage === oldId ? newName : stage
+          ),
+          channel_mix: prev.custom.channel_mix.map((ch: any) =>
+            ch.funnel_stage === oldId ? { ...ch, funnel_stage: newName } : ch
+          ),
+        },
+      }));
 
-    setHasChanges(true);
+      setHasChanges(true);
+      toast.success("Funnel updated successfully", { duration: 3000 });
+    } catch (error) {
+      console.error("Failed to update funnel:", error);
+      toast.error("Failed to edit funnel. Please try again.", { duration: 3000 });
+    }
   };
 
+  // Remove a funnel
   const handleRemoveFunnel = (id: string) => {
     if (customFunnels.length <= 1) {
-      setAlert({
-        variant: "error",
-        message: "You must have at least one funnel stage",
-        position: "bottom-right",
+      toast.error("You must have at least one funnel stage", {
+        style: { background: "red", color: "white", textAlign: "center" },
+        duration: 3000,
       });
       return;
     }
 
-    const updatedFunnels: Funnel[] = customFunnels.filter((f) => f.name !== id);
-    setCustomFunnels(updatedFunnels);
+    try {
+      const updatedFunnels = customFunnels.filter((f) => f.name !== id);
+      setCustomFunnels(updatedFunnels);
 
-    setCampaignFormData((prev: any) => {
-      const updatedFunnelStages = (prev.funnel_stages || []).filter(
-        (name: string) => name !== id
-      );
-      const updatedChannelMix = (prev.channel_mix || []).filter(
-        (ch: any) => ch?.funnel_stage !== id
-      );
-
-      return {
+      setCampaignFormData((prev: any) => ({
         ...prev,
         custom_funnels: updatedFunnels,
-        funnel_stages: updatedFunnelStages,
-        channel_mix: updatedChannelMix,
-      };
-    });
-
-    setSavedSelections((prev) => {
-      const updatedCustomSelections = {
-        funnel_stages: prev.custom.funnel_stages.filter(
-          (stage: string) => stage !== id
+        funnel_stages: (prev.funnel_stages || []).filter(
+          (name: string) => name !== id
         ),
-        channel_mix: prev.custom.channel_mix.filter(
+        channel_mix: (prev.channel_mix || []).filter(
           (ch: any) => ch?.funnel_stage !== id
         ),
-      };
+      }));
 
-      return {
+      setSavedSelections((prev) => ({
         ...prev,
-        custom: updatedCustomSelections,
-      };
-    });
+        custom: {
+          funnel_stages: prev.custom.funnel_stages.filter(
+            (stage: string) => stage !== id
+          ),
+          channel_mix: prev.custom.channel_mix.filter(
+            (ch: any) => ch?.funnel_stage !== id
+          ),
+        },
+      }));
 
-    setHasChanges(true);
-  };
-
-  const handleEditing = () => {
-    setIsEditing(!isEditing);
+      setHasChanges(true);
+      toast.success("Funnel removed successfully", { duration: 3000 });
+    } catch (error) {
+      console.error("Failed to remove funnel:", error);
+      toast.error("Failed to remove funnel. Please try again.", { duration: 3000 });
+    }
   };
 
   return (
@@ -558,10 +500,8 @@ const MapFunnelStages = () => {
       <Toaster />
       <div className="flex items-center justify-between">
         <PageHeaderWrapper
-          className={"text-[22px]"}
-          t1={
-            "How many funnel stage(s) would you like to activate to achieve your objective ?"
-          }
+          className="text-[22px]"
+          t1="How many funnel stage(s) would you like to activate to achieve your objective?"
         />
       </div>
       <div className="mt-[56px] flex items-center gap-[32px]">
@@ -589,9 +529,7 @@ const MapFunnelStages = () => {
       {selectedOption === "targeting_retargeting" && (
         <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
           {targetingRetargetingFunnels.map((funnel, index) => {
-            const isSelected = campaignFormData.funnel_stages?.includes(
-              funnel.name
-            );
+            const isSelected = campaignFormData.funnel_stages?.includes(funnel.name);
             return (
               <div key={funnel.id} className="relative w-full max-w-[685px]">
                 <button
@@ -601,8 +539,6 @@ const MapFunnelStages = () => {
                       : "bg-white text-black shadow-md hover:bg-gray-100"
                   } rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200`}
                   onClick={() => handleSelect(funnel.name)}
-                  onMouseEnter={() => setHovered(index + 1)}
-                  onMouseLeave={() => setHovered(null)}
                 >
                   {funnel.icon && funnel.activeIcon && (
                     <Image
@@ -623,9 +559,7 @@ const MapFunnelStages = () => {
       {selectedOption === "custom" && (
         <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
           {customFunnels.map((funnel, index) => {
-            const isSelected = campaignFormData.funnel_stages?.includes(
-              funnel.name
-            );
+            const isSelected = campaignFormData.funnel_stages?.includes(funnel.name);
             return (
               <div
                 key={`${funnel.id}-${index}`}
@@ -638,8 +572,6 @@ const MapFunnelStages = () => {
                       : "bg-white text-black shadow-md hover:bg-gray-100"
                   }`}
                   onClick={() => handleSelect(funnel.name)}
-                  onMouseEnter={() => setHovered(index + 1)}
-                  onMouseLeave={() => setHovered(null)}
                 >
                   {funnel.icon && funnel.activeIcon ? (
                     <Image
@@ -649,11 +581,10 @@ const MapFunnelStages = () => {
                       height={24}
                     />
                   ) : (
-                    <div className="w-6 h-6" /> // Placeholder for no icon
+                    <div className="w-6 h-6" />
                   )}
                   <p className="text-[16px]">{funnel.name}</p>
                 </button>
-
                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
                   <button
                     className="p-1 bg-white rounded-full shadow-sm"
@@ -680,7 +611,6 @@ const MapFunnelStages = () => {
               </div>
             );
           })}
-
           <button
             className="flex items-center gap-2 text-blue-500 cursor-pointer text-[16px]"
             onClick={() => {
@@ -713,7 +643,6 @@ const MapFunnelStages = () => {
                 <X size={20} />
               </button>
             </div>
-
             <div className="mb-4">
               <label
                 htmlFor="funnelName"
@@ -730,7 +659,6 @@ const MapFunnelStages = () => {
                 placeholder="Enter funnel name"
               />
             </div>
-
             <div className="flex justify-end gap-2 mt-6">
               <button
                 onClick={() => setIsModalOpen(false)}
