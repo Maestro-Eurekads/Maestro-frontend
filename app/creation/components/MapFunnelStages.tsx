@@ -176,9 +176,8 @@ const MapFunnelStages = () => {
                 name: funnel.name,
                 color:
                   funnel.color ||
-                  (defaultFunnel
-                    ? defaultFunnel.color
-                    : colorPalette[index % colorPalette.length] || "bg-gray-500"),
+                  colorPalette[index % colorPalette.length] ||
+                  "bg-gray-500",
                 icon: defaultFunnel ? defaultFunnel.icon : undefined,
                 activeIcon: defaultFunnel ? defaultFunnel.activeIcon : undefined,
               };
@@ -253,11 +252,11 @@ const MapFunnelStages = () => {
       newChannelMix.push({ funnel_stage: id });
     }
 
-    setCampaignFormData({
-      ...campaignFormData,
+    setCampaignFormData((prev: any) => ({
+      ...prev,
       funnel_stages: newFunnelStages,
       channel_mix: newChannelMix,
-    });
+    }));
 
     setSavedSelections((prev) => ({
       ...prev,
@@ -324,6 +323,16 @@ const MapFunnelStages = () => {
     };
   }, [isModalOpen]);
 
+  const getAvailableColor = (excludeColor?: string) => {
+    const usedColors = customFunnels
+      .filter((f) => f.color !== excludeColor)
+      .map((f) => f.color);
+    const availableColors = colorPalette.filter((c) => !usedColors.includes(c));
+    return availableColors.length > 0
+      ? availableColors[0]
+      : colorPalette[customFunnels.length % colorPalette.length];
+  };
+
   const handleAddFunnel = (name: string) => {
     if (!name.trim()) {
       toast("Funnel name cannot be empty", {
@@ -374,12 +383,7 @@ const MapFunnelStages = () => {
       return;
     }
 
-    const usedColors = customFunnels.map((f) => f.color);
-    const availableColors = colorPalette.filter((c) => !usedColors.includes(c));
-    const newColor =
-      availableColors.length > 0
-        ? availableColors[Math.floor(Math.random() * availableColors.length)]
-        : colorPalette[Math.floor(Math.random() * colorPalette.length)];
+    const newColor = getAvailableColor();
 
     const newFunnel: Funnel = {
       id: name,
@@ -390,9 +394,12 @@ const MapFunnelStages = () => {
     const updatedFunnels: Funnel[] = [...customFunnels, newFunnel];
     setCustomFunnels(updatedFunnels);
 
+    // Automatically select the new funnel stage
     setCampaignFormData((prev: any) => ({
       ...prev,
       custom_funnels: updatedFunnels,
+      funnel_stages: [...(prev.funnel_stages || []), name],
+      channel_mix: [...(prev.channel_mix || []), { funnel_stage: name }],
     }));
 
     setHasChanges(true);
@@ -431,7 +438,14 @@ const MapFunnelStages = () => {
 
     const updatedFunnels: Funnel[] = customFunnels.map((f) =>
       f.name === oldId
-        ? { ...f, name: newName, id: newName, icon: undefined, activeIcon: undefined }
+        ? {
+            ...f,
+            name: newName,
+            id: newName,
+            icon: undefined,
+            activeIcon: undefined,
+            color: f.color || getAvailableColor(),
+          }
         : f
     );
     setCustomFunnels(updatedFunnels);
@@ -618,24 +632,24 @@ const MapFunnelStages = () => {
                 className="relative w-full max-w-[685px]"
               >
                 <button
-                  className={`cursor-pointer w-full ${
+                  className={`cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 ${
                     isSelected
                       ? `${funnel.color} text-white`
                       : "bg-white text-black shadow-md hover:bg-gray-100"
-                  } rounded-lg py-4 flex items-center justify-center ${
-                    funnel.icon && funnel.activeIcon ? "gap-2" : ""
-                  } transition-all duration-200`}
+                  }`}
                   onClick={() => handleSelect(funnel.name)}
                   onMouseEnter={() => setHovered(index + 1)}
                   onMouseLeave={() => setHovered(null)}
                 >
-                  {funnel.icon && funnel.activeIcon && (
+                  {funnel.icon && funnel.activeIcon ? (
                     <Image
                       src={isSelected ? funnel.activeIcon : funnel.icon}
                       alt={`${funnel.name} icon`}
                       width={24}
                       height={24}
                     />
+                  ) : (
+                    <div className="w-6 h-6" /> // Placeholder for no icon
                   )}
                   <p className="text-[16px]">{funnel.name}</p>
                 </button>
