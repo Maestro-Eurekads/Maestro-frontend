@@ -45,6 +45,7 @@ export const SetupScreen = () => {
   const [previousValidationState, setPreviousValidationState] = useState(null);
 
   const [approvalOptions, setApprovalOptions] = useState([]);
+  const [clientapprovalOptions, setClientApprovalOptions] = useState([]);
   const [clientOptions, setClientOptions] = useState([]);
   const [level1Options, setlevel1Options] = useState([]);
   const [level2Options, setlevel2Options] = useState([]);
@@ -74,9 +75,12 @@ export const SetupScreen = () => {
     setClose(false);
   }, []);
 
+  // console.log('user-user', user)
+
+  const userTypes = ["agency_creator", "agency_approver", "client_approver", "client_creator"];
 
   const handleGetUserByUserType = () => {
-    getUserByUserType("agency_approver");
+    getUserByUserType(userTypes);
 
   };
 
@@ -111,7 +115,7 @@ export const SetupScreen = () => {
 
   // Save form data to localStorage whenever it changes
   useEffect(() => {
-    handleGetUserByUserType()
+
     if (campaignFormData) {
       localStorage.setItem(
         "campaignFormData",
@@ -148,7 +152,7 @@ export const SetupScreen = () => {
 
 
 
-  console.log('client_selection-client_selection', requiredFields)
+
 
   useEffect(() => {
 
@@ -164,7 +168,7 @@ export const SetupScreen = () => {
       }
     } else {
       if (allClients) {
-        const options = allClients.map((c) => ({
+        const options = allClients?.map((c) => ({
           id: c?.documentId,
           value: c?.client_name,
           label: c?.client_name,
@@ -180,8 +184,15 @@ export const SetupScreen = () => {
     const client = allClients.find(
       (c) => c?.documentId === client_selection?.id
     );
-
+    console.log('user-clientOptions', client)
     setApprovalOptions(() => {
+      const options = client?.approver?.map((l) => ({
+        value: l,
+        label: l,
+      }));
+      return options || [];
+    });
+    setClientApprovalOptions(() => {
       const options = client?.client_emails?.map((l) => ({
         value: l.full_name,
         label: l.full_name,
@@ -259,7 +270,7 @@ export const SetupScreen = () => {
     selectedOption,
   ]);
 
-  // const handleStepZero = async () => {
+
   //   setLoading(true);
   //   try {
   //     if (!isStepZeroValid) {
@@ -454,7 +465,7 @@ export const SetupScreen = () => {
               setHasChanges={setHasChanges}
             />
             <ClientSelection
-              options={approvalOptions}
+              options={clientapprovalOptions}
               label={"Client Approver"}
               formId="client_approver"
               setHasChanges={setHasChanges}

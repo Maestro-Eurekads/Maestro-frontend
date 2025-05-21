@@ -6,6 +6,7 @@ import { store } from '../store/store';
 import { ProgressProvider } from '@bprogress/next/dist/app';
 import "react-loading-skeleton/dist/skeleton.css";
 
+
 const NewProvider = ({ children, session }: React.PropsWithChildren<{ session: any }>) => {
 	return (
 		<SessionProvider session={session}>
