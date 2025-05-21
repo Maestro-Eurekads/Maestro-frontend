@@ -356,8 +356,11 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   }, [isOpen]);
 
   const options = user?.map(user => user?.username);
-  const option = user?.filter(user => user?.user_type !== "agency_creator")
-    .map(user => user.username);
+  const excludedTypes = ["agency_creator", "client_approver"];
+
+  const option = user
+    ?.filter(user => !excludedTypes.includes(user?.user_type))
+    .map(user => user?.username);
 
   return (
     <div className="z-50">
