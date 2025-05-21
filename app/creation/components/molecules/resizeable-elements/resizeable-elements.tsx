@@ -193,8 +193,8 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
       // Get container boundaries
       const containerRect = gridContainer.getBoundingClientRect();
       // console.log("🚀 ~ useEffect ~ containerRect:", containerRect);
-      const containerWidth = containerRect.width - 75;
-      setContainerWidth(containerWidth + 75);
+      const contWidth = containerRect.width - 75;
+      setContainerWidth(contWidth + 75);
       campaignFormData?.funnel_stages?.map((stageName, index) => {
         const stage = campaignFormData?.channel_mix?.find(
           (s) => s?.funnel_stage === stageName
@@ -212,7 +212,7 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
                 ? 100
                 : rrange === "Week"
                 ? 50
-                : Math.floor(containerWidth / funnelData?.endMonth / 31))
+                : Math.floor(containerWidth / funnelData?.endMonth / 31) + 15)
             : 0;
           // console.log("🚀 ~ startDateIndex:", {
           //   stageStartDate,
@@ -241,8 +241,9 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
               ? daysBetween > 0
                 ? 50 * daysBetween + 10
                 : 310
-              : Math.round(containerWidth / funnelData?.endMonth / 31) *
-                  daysBetween -18;
+              : daysBetween > 0 ? Math.round(contWidth / funnelData?.endMonth / 31) *
+                  daysBetween -
+                30 : 50;
 
           initialPositions[stageName] = startDateIndex;
         }
@@ -330,7 +331,7 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
                     rrange === "Day"
                       ? `repeat(${funnelData?.endDay - 1 || 1}, 100px)`
                       : rrange === "Week"
-                      ? `repeat(${(funnelData?.endWeek -1|| 1) * 7}, 50px)` // 7 columns per week
+                      ? `repeat(${(funnelData?.endWeek - 1 || 1) * 7}, 50px)` // 7 columns per week
                       : `repeat(${funnelData?.endMonth - 1 || 1}, 1fr)`,
                 }}
               >
