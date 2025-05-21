@@ -342,7 +342,9 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     setEmailList([]);
   };
 
-  const userTypes = ["agency_creator", "agency_approver", "client_approver ,financial_approver"];
+  const userTypes = ["agency_creator", "agency_approver", "client_approver", "financial_approver"];
+
+
 
 
   useEffect(() => {

@@ -366,16 +366,13 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   // };
   const getUserByUserType = async (userTypes) => {
     setgetLoading(true);
-
-
-
     try {
       const queryString = userTypes
         .map(type => `filters[user_type][$in]=${type}`)
         .join("&");
 
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users?${queryString}`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users?${queryString}&pagination[page]=1&pagination[pageSize]=100`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -388,11 +385,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setUser(users);
     } catch (error) {
       console.error("Error fetching users by user_type:", error);
-      // Optionally handle error
     } finally {
       setgetLoading(false);
     }
   };
+
 
 
 
