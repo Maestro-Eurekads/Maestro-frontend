@@ -76,28 +76,28 @@ const MapFunnelStages = () => {
       name: "Awareness",
       icon: speaker,
       activeIcon: speakerWhite,
-      color: colorPalette[0], // Assign first color
+      color: colorPalette[0],
     },
     {
       id: "Consideration",
       name: "Consideration",
       icon: zoom,
       activeIcon: zoomWhite,
-      color: colorPalette[1], // Assign second color
+      color: colorPalette[1],
     },
     {
       id: "Conversion",
       name: "Conversion",
       icon: credit,
       activeIcon: creditWhite,
-      color: colorPalette[2], // Assign third color
+      color: colorPalette[2],
     },
     {
       id: "Loyalty",
       name: "Loyalty",
       icon: addPlus,
       activeIcon: addPlusWhite,
-      color: colorPalette[3], // Assign fourth color
+      color: colorPalette[3],
     },
   ];
 
@@ -165,11 +165,9 @@ const MapFunnelStages = () => {
         ],
       }));
     } else {
-      // Use defaultFunnels if campaignData.custom_funnels is empty or invalid
       const loadedFunnels =
         campaignData?.custom_funnels && campaignData.custom_funnels.length > 0
           ? campaignData.custom_funnels.map((funnel: any, index: number) => {
-              // Check if the funnel is a default funnel to preserve its icons and color
               const defaultFunnel = defaultFunnels.find(
                 (df) => df.id === funnel.id && df.name === funnel.name
               );
@@ -180,14 +178,13 @@ const MapFunnelStages = () => {
                   funnel.color ||
                   (defaultFunnel
                     ? defaultFunnel.color
-                    : colorPalette[index % colorPalette.length] || "bg-gray-500"), // Assign from palette if no color
-                icon: defaultFunnel ? defaultFunnel.icon : undefined, // Only keep icon if default
+                    : colorPalette[index % colorPalette.length] || "bg-gray-500"),
+                icon: defaultFunnel ? defaultFunnel.icon : undefined,
                 activeIcon: defaultFunnel ? defaultFunnel.activeIcon : undefined,
               };
             })
           : defaultFunnels;
       setCustomFunnels(loadedFunnels);
-      // Initialize funnel_stages as empty unless campaignData specifies selections
       setCampaignFormData((prev: any) => ({
         ...prev,
         custom_funnels: loadedFunnels,
@@ -220,7 +217,6 @@ const MapFunnelStages = () => {
     }
   }, [campaignData, setCampaignFormData]);
 
-  // Update campaignFormData when customFunnels or selectedOption change
   useEffect(() => {
     setCampaignFormData((prev: any) => ({
       ...prev,
@@ -299,7 +295,6 @@ const MapFunnelStages = () => {
       newFormData.custom_funnels = targetingRetargetingFunnels;
       setCustomFunnels(targetingRetargetingFunnels);
     } else if (option === "custom") {
-      // Initialize with empty selections to prevent default selection
       newFormData.funnel_stages = [];
       newFormData.channel_mix = [];
       newFormData.custom_funnels = defaultFunnels;
@@ -310,7 +305,6 @@ const MapFunnelStages = () => {
     setHasChanges(true);
   };
 
-  // Close modal when clicking outside
   const modalRef = React.useRef<HTMLDivElement>(null);
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -380,7 +374,6 @@ const MapFunnelStages = () => {
       return;
     }
 
-    // Find an unused color or cycle through the palette
     const usedColors = customFunnels.map((f) => f.color);
     const availableColors = colorPalette.filter((c) => !usedColors.includes(c));
     const newColor =
@@ -392,7 +385,6 @@ const MapFunnelStages = () => {
       id: name,
       name: name,
       color: newColor,
-      // Explicitly exclude icon and activeIcon for new funnels
     };
 
     const updatedFunnels: Funnel[] = [...customFunnels, newFunnel];
@@ -439,7 +431,7 @@ const MapFunnelStages = () => {
 
     const updatedFunnels: Funnel[] = customFunnels.map((f) =>
       f.name === oldId
-        ? { ...f, name: newName, id: newName, icon: undefined, activeIcon: undefined } // Remove icons on edit
+        ? { ...f, name: newName, id: newName, icon: undefined, activeIcon: undefined }
         : f
     );
     setCustomFunnels(updatedFunnels);
