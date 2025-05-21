@@ -530,7 +530,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
               "_aggregated"
             ]),
             client: campaignFormData?.client_selection?.id,
-            // campaign_builder: campaignFormData?.client_selection?.id,
             client_selection: {
               client: campaignFormData?.client_selection?.value,
               level_1: campaignFormData?.level_1?.id,

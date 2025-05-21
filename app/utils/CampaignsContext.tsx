@@ -55,7 +55,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const { data: session } = useSession();
   const id = (session?.user as { id?: string })?.id;
   const campaign_builder = session?.user
-  console.log('session-session', campaign_builder?.name)
   const [campaignFormData, setCampaignFormData] = useState(getInitialState());
   const [campaignData, setCampaignData] = useState(null);
   const [clientCampaignData, setClientCampaignData] = useState([]);
@@ -132,7 +131,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
               budget_details: "*",
               client_selection: "*",
               user: true,
-              campaign_builder: true,
               campaign_budget: { populate: ["budget_fees"] },
               channel_mix: { populate: { ...channelMixPopulate, stage_budget: "*" } },
             },
