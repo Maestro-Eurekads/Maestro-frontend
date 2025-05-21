@@ -344,9 +344,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
   const userTypes = ["agency_creator", "agency_approver", "financial_approver"];
 
-
-
-
   useEffect(() => {
     if (isOpen) {
       getUserByUserType(userTypes);

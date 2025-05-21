@@ -144,7 +144,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       setHasFormatSelected(false);
       // console.log("Reset formats for active === 4", { channel_mix: campaignFormData.channel_mix });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
   // Update hasFormatSelected and log state
@@ -530,6 +530,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
               "_aggregated"
             ]),
             client: campaignFormData?.client_selection?.id,
+            // campaign_builder: campaignFormData?.client_selection?.id,
             client_selection: {
               client: campaignFormData?.client_selection?.value,
               level_1: campaignFormData?.level_1?.id,
@@ -690,7 +691,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             : campaign_timeline_start_date,
         campaign_timeline_end_date: campaign_timeline_end_date === "Invalid Date"
           ? campaignFormData?.campaign_timeline_end_date
-            : campaign_timeline_end_date,
+          : campaign_timeline_end_date,
         funnel_stages: campaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
@@ -863,10 +864,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                     {active === 0
                       ? "Start"
                       : isHovered && active < 10
-                      ? "Next Step"
-                      : active === 4 && !hasFormatSelected
-                      ? "Skip"
-                      : "Continue"}
+                        ? "Next Step"
+                        : active === 4 && !hasFormatSelected
+                          ? "Skip"
+                          : "Continue"}
                   </p>
                   <Image src={Continue} alt="Continue" />
                 </>
