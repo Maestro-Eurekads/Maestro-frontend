@@ -21,6 +21,7 @@ import { ClientCampaignProvider } from "./client/ClientCampaignContext";
 import { KpiProvider } from "./utils/KpiProvider";
 import { DashboardDateRangeProvider } from "src/date-context";
 import { VersionApprovalProvider } from "./utils/VersionApprovalContext";
+import { Toaster } from "sonner";
 
 // Load fonts
 const roboto = Roboto({
@@ -70,6 +71,7 @@ export default async function RootLayout({
         />
       </head>
       <body className={`${roboto.variable} ${inter.variable} antialiased`}>
+        <Toaster richColors position="bottom-right" />
         <NewProvider session={session}>
           <Suspense>
             <ClientCampaignProvider>

@@ -595,6 +595,8 @@ const Table = () => {
     }
   };
 
+
+
   return (
     <div className="flex flex-col">
       <div className="table-container rounded-[8px] mt-[20px] overflow-x-auto">
@@ -621,7 +623,7 @@ const Table = () => {
             ) : campaignArray.length === 0 ? (
               <NoRecordFound colSpan={9}>No Client campaigns!</NoRecordFound>
             ) : (
-              currentItems.map((data: Campaign) => {
+              currentItems?.map((data: Campaign) => {
                 const POs = clientPOs?.reduce((acc: any[], po: ClientPO) => {
                   const matchedPlan = po?.assigned_media_plans?.find(
                     (plan) => plan?.campaign?.id === data?.id

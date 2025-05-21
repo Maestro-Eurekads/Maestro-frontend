@@ -45,6 +45,7 @@ export const SetupScreen = () => {
   const [previousValidationState, setPreviousValidationState] = useState(null);
 
   const [approvalOptions, setApprovalOptions] = useState([]);
+  const [clientapprovalOptions, setClientApprovalOptions] = useState([]);
   const [clientOptions, setClientOptions] = useState([]);
   const [level1Options, setlevel1Options] = useState([]);
   const [level2Options, setlevel2Options] = useState([]);
@@ -148,7 +149,7 @@ export const SetupScreen = () => {
 
 
 
-  console.log('client_selection-client_selection', requiredFields)
+  console.log('profile-profile-profile', allClients)
 
   useEffect(() => {
 
@@ -164,7 +165,7 @@ export const SetupScreen = () => {
       }
     } else {
       if (allClients) {
-        const options = allClients.map((c) => ({
+        const options = allClients?.map((c) => ({
           id: c?.documentId,
           value: c?.client_name,
           label: c?.client_name,
@@ -182,6 +183,13 @@ export const SetupScreen = () => {
     );
 
     setApprovalOptions(() => {
+      const options = client?.client_emails?.map((l) => ({
+        value: l.full_name,
+        label: l.full_name,
+      }));
+      return options || [];
+    });
+    setClientApprovalOptions(() => {
       const options = client?.client_emails?.map((l) => ({
         value: l.full_name,
         label: l.full_name,
@@ -259,7 +267,7 @@ export const SetupScreen = () => {
     selectedOption,
   ]);
 
-  // const handleStepZero = async () => {
+
   //   setLoading(true);
   //   try {
   //     if (!isStepZeroValid) {
