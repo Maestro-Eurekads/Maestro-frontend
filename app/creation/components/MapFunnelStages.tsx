@@ -1,14 +1,5 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import Image, { type StaticImageData } from "next/image";
-import speaker from "../../../public/mdi_megaphone.svg";
-import zoom from "../../../public/tabler_zoom-filled.svg";
-import credit from "../../../public/mdi_credit-card.svg";
-import addPlus from "../../../public/addPlus.svg";
-import speakerWhite from "../../../public/mdi_megaphonewhite.svg";
-import zoomWhite from "../../../public/tabler_zoom-filledwhite.svg";
-import creditWhite from "../../../public/mdi_credit-cardwhite.svg";
-import addPlusWhite from "../../../public/addPlusWhite.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import { useVerification } from "app/utils/VerificationContext";
@@ -21,8 +12,6 @@ interface Funnel {
   id: string;
   name: string;
   color: string;
-  icon?: StaticImageData;
-  activeIcon?: StaticImageData;
 }
 
 // Color palette for dynamic assignment
@@ -55,52 +44,40 @@ const MapFunnelStages = () => {
   const [newFunnelName, setNewFunnelName] = useState("");
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Default funnel stages for Custom option
+  // Default funnel stages for Custom option (no icons)
   const defaultFunnels: Funnel[] = [
     {
       id: "Awareness",
       name: "Awareness",
-      icon: speaker,
-      activeIcon: speakerWhite,
       color: colorPalette[0],
     },
     {
       id: "Consideration",
       name: "Consideration",
-      icon: zoom,
-      activeIcon: zoomWhite,
       color: colorPalette[1],
     },
     {
       id: "Conversion",
       name: "Conversion",
-      icon: credit,
-      activeIcon: creditWhite,
       color: colorPalette[2],
     },
     {
       id: "Loyalty",
       name: "Loyalty",
-      icon: addPlus,
-      activeIcon: addPlusWhite,
       color: colorPalette[3],
     },
   ];
 
-  // Funnel stages for Targeting-Retargeting option
+  // Funnel stages for Targeting-Retargeting option (no icons)
   const targetingRetargetingFunnels: Funnel[] = [
     {
       id: "Targeting",
       name: "Targeting",
-      icon: zoom,
-      activeIcon: zoomWhite,
       color: colorPalette[0],
     },
     {
       id: "Retargeting",
       name: "Retargeting",
-      icon: credit,
-      activeIcon: creditWhite,
       color: colorPalette[1],
     },
   ];
@@ -162,23 +139,14 @@ const MapFunnelStages = () => {
 
     const loadedFunnels =
       campaignData?.custom_funnels && campaignData.custom_funnels.length > 0
-        ? campaignData.custom_funnels.map((funnel: any, index: number) => {
-            const defaultFunnel = defaultFunnels.find(
-              (df) => df.id === funnel.id && df.name === funnel.name
-            );
-            return {
-              id: funnel.id,
-              name: funnel.name,
-              color:
-                funnel.color ||
-                colorPalette[index % colorPalette.length] ||
-                "bg-gray-500",
-              icon: defaultFunnel ? defaultFunnel.icon : funnel.icon,
-              activeIcon: defaultFunnel
-                ? defaultFunnel.activeIcon
-                : funnel.activeIcon,
-            };
-          })
+        ? campaignData.custom_funnels.map((funnel: any, index: number) => ({
+            id: funnel.id,
+            name: funnel.name,
+            color:
+              funnel.color ||
+              colorPalette[index % colorPalette.length] ||
+              "bg-gray-500",
+          }))
         : defaultFunnels;
 
     const initialFunnelStages =
@@ -237,10 +205,26 @@ const MapFunnelStages = () => {
         },
       }));
     }
-
-    // Debugging log (commented out)
-    // console.log("Initialized with option:", initialOption, "Funnels:", loadedFunnels);
   }, [campaignData, setCampaignFormData]);
+
+  // Handle clicks outside modal to close it
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
+        setIsModalOpen(false);
+      }
+    }
+
+    if (isModalOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isModalOpen]);
 
   // Get an available color from the palette
   const getAvailableColor = (excludeColor?: string): string => {
@@ -290,9 +274,6 @@ const MapFunnelStages = () => {
       },
     }));
     setHasChanges(true);
-
-    // Debugging log (commented out)
-    // console.log("Selected funnel:", id, "New stages:", newFunnelStages);
   };
 
   // Handle option change (Custom vs Targeting-Retargeting)
@@ -340,9 +321,6 @@ const MapFunnelStages = () => {
     }
 
     setHasChanges(true);
-
-    // Debugging log (commented out)
-    // console.log("Switched to option:", option, "Funnels:", option === "custom" ? savedSelections.custom.custom_funnels : targetingRetargetingFunnels);
   };
 
   // Add a new funnel
@@ -408,9 +386,6 @@ const MapFunnelStages = () => {
 
     setHasChanges(true);
     toast.success("Funnel added successfully", { duration: 3000 });
-
-    // Debugging log (commented out)
-    // console.log("Added funnel:", name, "New funnels:", updatedFunnels);
   };
 
   // Edit an existing funnel
@@ -442,10 +417,6 @@ const MapFunnelStages = () => {
             ...f,
             id: newName,
             name: newName,
-            icon: defaultFunnels.find((df) => df.name === newName)?.icon || f.icon,
-            activeIcon:
-              defaultFunnels.find((df) => df.name === newName)?.activeIcon ||
-              f.activeIcon,
             color: f.color,
           }
         : f
@@ -479,9 +450,6 @@ const MapFunnelStages = () => {
 
     setHasChanges(true);
     toast.success("Funnel updated successfully", { duration: 3000 });
-
-    // Debugging log (commented out)
-    // console.log("Edited funnel from", oldId, "to", newName);
   };
 
   // Remove a funnel
@@ -515,9 +483,6 @@ const MapFunnelStages = () => {
 
     setHasChanges(true);
     toast.success("Funnel removed successfully", { duration: 3000 });
-
-    // Debugging log (commented out)
-    // console.log("Removed funnel:", id);
   };
 
   return (
@@ -565,14 +530,7 @@ const MapFunnelStages = () => {
                   } rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200`}
                   onClick={() => handleSelect(funnel.name)}
                 >
-                  {funnel.icon && funnel.activeIcon && (
-                    <Image
-                      src={isSelected ? funnel.activeIcon : funnel.icon}
-                      alt={`${funnel.name} icon`}
-                      width={24}
-                      height={24}
-                    />
-                  )}
+                  <div className="w-6 h-6" />
                   <p className="text-[16px]">{funnel.name}</p>
                 </button>
               </div>
@@ -598,16 +556,7 @@ const MapFunnelStages = () => {
                   }`}
                   onClick={() => handleSelect(funnel.name)}
                 >
-                  {funnel.icon && funnel.activeIcon ? (
-                    <Image
-                      src={isSelected ? funnel.activeIcon : funnel.icon}
-                      alt={`${funnel.name} icon`}
-                      width={24}
-                      height={24}
-                    />
-                  ) : (
-                    <div className="w-6 h-6" />
-                  )}
+                  <div className="w-6 h-6" />
                   <p className="text-[16px]">{funnel.name}</p>
                 </button>
                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
