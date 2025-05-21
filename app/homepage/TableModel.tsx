@@ -342,7 +342,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     setEmailList([]);
   };
 
-  const userTypes = ["agency_creator", "agency_approver", "client_approver", "financial_approver"];
+  const userTypes = ["agency_creator", "agency_approver", "financial_approver"];
 
 
 
@@ -356,7 +356,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   }, [isOpen]);
 
   const options = user?.map(user => user?.username);
-  const excludedTypes = ["agency_creator", "client_approver"];
+  const excludedTypes = ["agency_creator"];
 
   const option = user
     ?.filter(user => !excludedTypes.includes(user?.user_type))
