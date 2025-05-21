@@ -19,21 +19,27 @@ import { useActive } from "app/utils/ActiveContext";
 import { extractAprroverFilters, extractChannelAndPhase, extractDateFilters, extractLevelFilters, extractLevelNameFilters } from "app/utils/campaign-filter-utils";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { el } from "date-fns/locale";
-import { useVersionContext } from "app/utils/VersionApprovalContext";
 import { useSearchParams } from "next/navigation";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
+
+
+
 const Header = ({ setIsOpen }) => {
   const { data: session } = useSession();
-  // @ts-ignore 
-  const userType = session?.user?.data?.user?.id || "";
   const query = useSearchParams();
   const campaignId = query.get("campaignId");
-  const { isAdmin } = useUserPrivileges();
+
+  if (!session) return null;
+  // @ts-ignore 
+  const userType = session?.user?.data?.user?.id?.toString() || "";
+  const isAdmin = useUserPrivileges().isAdmin;
+
   const {
     getCreateClientData,
     getCreateClientIsLoading,
   } = useAppSelector((state) => state.client);
+
   const {
     setClientCampaignData,
     setLoading,
@@ -44,84 +50,69 @@ const Header = ({ setIsOpen }) => {
     profile,
     setSelectedFilters
   } = useCampaigns();
-  const { setActive, setSubStep } = useActive()
-  const [selected, setSelected] = useState("");
-  const { fetchClientCampaign, fetchClientPOS } = useCampaignHook();
 
+  const { setActive, setSubStep } = useActive();
+  const { fetchClientCampaign, fetchClientPOS } = useCampaignHook();
   const dispatch = useAppDispatch();
+
   const [alert, setAlert] = useState(null);
   const [show, setShow] = useState(false);
+  const [selected, setSelected] = useState("");
   const [selectedId, setSelectedId] = useState<string>("");
-  // Removed unused 'IsError' and 'setIsError'
+
   const clients: any = getCreateClientData;
-  const { getCampaignVersionByclientID, versions } = useVersionContext();
-
-
-
-
 
   useEffect(() => {
     dispatch(getCreateClient());
+
     const timer = setTimeout(() => {
-      setAlert(null); // Ensure alert is reset properly
+      setAlert(null);
     }, 5000);
+
     return () => clearTimeout(timer);
   }, [dispatch]);
 
-
+  //  LocalStorage prioritized
   useEffect(() => {
-    if (isAdmin) {
-      const clientId = localStorage.getItem(userType.toString()) || "";
-      setSelectedId(clientId);
+    if (!userType) return;
 
+    const storedClientId = localStorage.getItem(userType);
+    if (storedClientId) {
+      setSelectedId(storedClientId);
     } else {
-      const clientId = localStorage.getItem(userType.toString()) || "";
-      setSelectedId(clientId);
+      const fallbackId =
+        profile?.clients?.[0]?.id?.toString() || getCreateClientData?.data?.[0]?.id?.toString();
+      if (fallbackId) {
+        setSelectedId(fallbackId);
+      }
     }
-  }, [isAdmin, selected, getCreateClientIsLoading]);
-
-  // const selectedId =
-  //   typeof window !== "undefined"
-  //     ? localStorage.getItem(userType.toString()) || localStorage.getItem(userType.toString())
-  //     : "";
-
-  // console.log('profile-profile', profile)
-  // console.log('clients-clients', clients)
-  // console.log('selectedId-clients', selectedId)
+  }, [userType, getCreateClientIsLoading, profile?.clients]);
 
   useEffect(() => {
-    if (!clients?.data || clients.data.length === 0) {
+    if (!clients?.data || clients.data.length === 0 || !selectedId) {
       setLoading(false);
       return;
     }
 
     setLoading(true);
     let isMounted = true;
-    const clientId = selectedId || clients?.data[0]?.id;
-    if (!clientId) {
-      setLoading(false);
-      return;
-    }
 
-    setSelected(
-      selectedId ? selectedId : clients?.data[0]?.id?.toString() || profile?.clients[0]?.id?.toString()
-    );
+    const clientId = selectedId;
+    setSelected(clientId);
 
-    // Find the matching client
     const filteredClient = clients?.data?.find(client => client?.id === Number(clientId));
-
 
     fetchClientCampaign(clientId)
       .then((res) => {
         const campaigns = res?.data?.data || [];
 
         if (isMounted) setClientCampaignData(campaigns);
+
         const dateData = extractDateFilters(campaigns);
         const mediaData = extractAprroverFilters(campaigns);
         const channelData = extractChannelAndPhase(campaigns);
         const levelData = extractLevelFilters(campaigns);
         const levelNames = extractLevelNameFilters(filteredClient);
-
 
         setFilterOptions((prev) => ({
           ...prev,
@@ -137,9 +128,7 @@ const Header = ({ setIsOpen }) => {
             setClientPOs(res?.data?.data || []);
           })
           .catch((err) => console.error("Error fetching client POS:", err))
-          .finally(() => {
-            setFetchingPO(false);
-          });
+          .finally(() => setFetchingPO(false));
       })
       .catch((err) => console.error("Error fetching client campaigns:", err))
       .finally(() => {
@@ -152,173 +141,90 @@ const Header = ({ setIsOpen }) => {
     return () => {
       isMounted = false;
     };
-  }, [clients, selectedId, profile?.client?.id]);
-
-
-
-
-
-  useEffect(() => {
-    const fetchVersionData = async () => {
-      const versions = await getCampaignVersionByclientID(selectedId)
-    };
-    fetchVersionData();
-  }, [selectedId]);
-
-
-
-
+  }, [clients, selectedId]);
 
   function getFirstLetters(str) {
     const words = str?.trim().split(/\s+/);
-    const first = words?.length > 0 && words[0]?.[0] || '';
-    const second = words?.length > 0 && words[1]?.[0] || '';
+    const first = words?.[0]?.[0] || '';
+    const second = words?.[1]?.[0] || '';
     return (first + second).toUpperCase();
   }
 
-
   return (
     <div id="header" className="relative w-full">
-      {isAdmin ?
-        <div className="flex items-center">
-          {getCreateClientIsLoading === true ? (
-            <div className="flex items-center gap-2">
-              <FiLoader className="animate-spin" />
-              <p>Loading clients...</p>
-            </div>
-          ) : (
-            clients?.data && (
-              <>
-                <CustomSelect
-                  options={clients?.data?.map((c) => ({
-                    label: c?.client_name,
-                    value: c?.id,
-                  }))}
-                  className="min-w-[150px] z-[20]"
-                  placeholder="Select client"
-                  onChange={(value: { label: string; value: string } | null) => {
-                    if (value) {
-                      localStorage.setItem(userType.toString(), value.value);
-                      setSelected(value.value);
-                    }
-                  }}
-                  value={clients?.data
-                    ?.map((c) => ({
-                      label: c.client_name,
-                      value: c.id?.toString(),
-                    }))
-                    .find(
-                      (option: { label: string; value: string }) =>
-                        option.value === selectedId || option.value === selected
-                    )}
-                />
-              </>
-            )
-          )}
-
-          <button
-            className="client_btn_text whitespace-nowrap w-fit"
-            onClick={() => setIsOpen(true)}
-          >
-            <Image src={plus} alt="plus" />
-            New Client
-          </button>
-        </div> :
-        <div className="flex items-center">
-          {getCreateClientIsLoading === true ? (
-            <div className="flex items-center gap-2">
-              <FiLoader className="animate-spin" />
-              <p>Loading clients...</p>
-            </div>
-          ) : (
-            profile?.clients && (
-              <>
-                <CustomSelect
-                  options={profile?.clients?.map((c) => ({
-                    label: c?.client_name,
-                    value: c?.id,
-                  }))}
-                  className="min-w-[150px] z-[20]"
-                  placeholder="Select client"
-                  onChange={(value: { label: string; value: string } | null) => {
-                    if (value) {
-                      localStorage.setItem(userType.toString(), value.value);
-                      setSelected(value.value);
-                    }
-                  }}
-                  value={profile?.clients
-                    ?.map((c) => ({
-                      label: c?.client_name,
-                      value: c?.id?.toString(),
-                    }))
-                    .find(
-                      (option: { label: string; value: string }) =>
-                        option?.value === selectedId || option?.value === selected
-                    )}
-                />
-              </>
-            )
-          )}
-
-          <button
-            className="client_btn_text whitespace-nowrap w-fit"
-            onClick={() => setIsOpen(true)}
-          >
-            <Image src={plus} alt="plus" />
-            New Client
-          </button>
-        </div>}
-
-      <div className="  transform -translate-x-1/2 top-4 z-10">
-        {versions?.length > 0 && (
-          <div className="px-4 py-[6px] rounded-full bg-green-100 text-green-700 text-sm font-semibold shadow-sm">
-            Media Plan Version: {versions[0]?.version?.version_number}
+      <div className="flex items-center">
+        {getCreateClientIsLoading ? (
+          <div className="flex items-center gap-2">
+            <FiLoader className="animate-spin" />
+            <p>Loading clients...</p>
           </div>
+        ) : (
+          <>
+            <CustomSelect
+              options={(isAdmin ? clients?.data : profile?.clients)?.map((c) => ({
+                label: c?.client_name,
+                value: c?.id,
+              }))}
+              className="min-w-[150px] z-[20]"
+              placeholder="Select client"
+              onChange={(value) => {
+                if (value) {
+                  localStorage.setItem(userType, value.value);
+                  setSelected(value.value);
+                  setSelectedId(value.value);
+                }
+              }}
+              value={(isAdmin ? clients?.data : profile?.clients)
+                ?.map((c) => ({
+                  label: c.client_name,
+                  value: c.id?.toString(),
+                }))
+                .find((option) =>
+                  option.value === selectedId || option.value === selected
+                )}
+            />
+            <button className="client_btn_text whitespace-nowrap w-fit" onClick={() => setIsOpen(true)}>
+              <Image src={plus} alt="plus" />
+              New Client
+            </button>
+          </>
         )}
       </div>
 
       {alert && <AlertMain alert={alert} />}
+
       <div className="profiledropdown_container_main">
         <div className="profiledropdown_container">
           <Link
             href={`/creation`}
             onClick={() => {
               setCampaignFormData({});
-              setActive(0)
-              setSubStep(0)
+              setActive(0);
+              setSubStep(0);
             }}
           >
-
-            {profile?.clients[0]?.id || isAdmin ?
-              <button className="new_plan_btn">
-                <Image src={white} alt="white" />
-                <p className="new_plan_btn_text">New media plan</p>
-              </button>
-              : <button
-                className={`new_plan_btn ${!profile?.clients[0]?.id || !isAdmin ? '!bg-[gray]' : 'new_plan_btn'}`}
-                disabled={!profile?.clients[0]?.id || !isAdmin}
-              >
-                <Image src={white} alt="white" />
-                <p className="new_plan_btn_text">New media plan</p>
-              </button>}
-
+            <button
+              className={`new_plan_btn ${!profile?.clients?.[0]?.id && !isAdmin ? '!bg-[gray]' : ''}`}
+              disabled={!profile?.clients?.[0]?.id && !isAdmin}
+            >
+              <Image src={white} alt="white" />
+              <p className="new_plan_btn_text">New media plan</p>
+            </button>
           </Link>
-          <div
-            className="profile_container"
-            onClick={() => setShow((prev) => !prev)}
-          >
+
+          <div className="profile_container" onClick={() => setShow((prev) => !prev)}>
             {getFirstLetters(session?.user?.name)}
             {show && (
               <div className="absolute bg-white border shadow-md rounded-[10px] top-[50px]">
                 <div
-                  className="flex items-center gap-2 cursor-pointer p-2"
+                  className="flex items-center gap-2 cursor-pointer p-2"  
                   onClick={async () =>{
                     localStorage.removeItem("campaignFormData");
                     localStorage.removeItem("selectedClient");
                     await signOut({
                       callbackUrl: "/",
                     })}
-                  }
+                  } 
                 >
                   <LogOut color="#3175FF" />
                   <p>Logout</p>
