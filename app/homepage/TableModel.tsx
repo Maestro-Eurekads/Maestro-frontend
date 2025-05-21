@@ -24,7 +24,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   // @ts-ignore 
   const userType = session?.user?.data?.user?.id || "";
   const dispatch = useAppDispatch();
-  const { profile, getProfile } = useCampaigns();
+  const { profile, getProfile, user, getUserByUserType } = useCampaigns();
   const [inputs, setInputs] = useState({
     name: "",
     email: "",
@@ -40,7 +40,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
 
-  console.log('inputs-inputs', inputs)
+  console.log('profile-user-user', user)
 
   //  Automatically reset alert after showing
   useEffect(() => {
@@ -293,7 +293,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         level_2: inputs.businessUnits,
         level_3: inputs.categories,
         fee_type: inputs.feeType,
-        // user: profile?.id,
+        users: profile?.id,
       });
       localStorage.setItem(userType.toString(), res?.data?.data?.id);
       getProfile()
@@ -341,6 +341,21 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     });
     setEmailList([]);
   };
+
+  const userTypes = ["agency_creator", "agency_approver", "client_approver"];
+
+
+  useEffect(() => {
+    if (isOpen) {
+      getUserByUserType(userTypes);
+    }
+
+
+  }, [isOpen]);
+
+  const options = user?.map(user => user?.username);
+  const option = user?.filter(user => user?.user_type !== "agency_creator")
+    .map(user => user.username);
 
   return (
     <div className="z-50">
@@ -467,6 +482,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                 <ResponsibleApproverDropdowns
                   right={true}
                   setInputs={setInputs}
+                  options={!options ? [] : options}
+                  option={!option ? [] : option}
                 />
               </div>
               <div className="w-full flex items-start gap-3">

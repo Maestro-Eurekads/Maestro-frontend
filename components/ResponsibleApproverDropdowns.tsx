@@ -228,8 +228,12 @@ const MultiSelectDropdown = ({
 const ResponsibleApproverDropdowns = ({
 	right,
 	setInputs,
+	options,
+	option
 }: {
 	right: boolean;
+	options: string[];
+	option: string[];
 	setInputs: React.Dispatch<
 		React.SetStateAction<{
 			responsiblePerson?: string[];
@@ -248,7 +252,7 @@ const ResponsibleApproverDropdowns = ({
 		<div className="flex items-center gap-4 mt-[20px] w-full">
 			<MultiSelectDropdown
 				label="Select Responsible"
-				options={["Responsible Person 1", "Responsible Person 2", "Responsible Person 3"]}
+				options={options}
 				right={right}
 				islabelone="Responsible"
 				islabeltwo=""
@@ -256,7 +260,7 @@ const ResponsibleApproverDropdowns = ({
 			/>
 			<MultiSelectDropdown
 				label="Select Approver"
-				options={["Approver 1", "Approver 2", "Approver 3"]}
+				options={option}
 				right={right}
 				islabelone=""
 				islabeltwo="Approver"

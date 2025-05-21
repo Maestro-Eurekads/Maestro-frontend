@@ -75,9 +75,12 @@ export const SetupScreen = () => {
     setClose(false);
   }, []);
 
+  // console.log('user-user', user)
+
+  const userTypes = ["agency_creator", "agency_approver", "client_approver", "client_creator"];
 
   const handleGetUserByUserType = () => {
-    getUserByUserType("agency_approver");
+    getUserByUserType(userTypes);
 
   };
 
@@ -112,7 +115,7 @@ export const SetupScreen = () => {
 
   // Save form data to localStorage whenever it changes
   useEffect(() => {
-    handleGetUserByUserType()
+
     if (campaignFormData) {
       localStorage.setItem(
         "campaignFormData",
@@ -149,7 +152,7 @@ export const SetupScreen = () => {
 
 
 
-  console.log('profile-profile-profile', allClients)
+
 
   useEffect(() => {
 
@@ -181,11 +184,11 @@ export const SetupScreen = () => {
     const client = allClients.find(
       (c) => c?.documentId === client_selection?.id
     );
-
+    console.log('user-clientOptions', client)
     setApprovalOptions(() => {
-      const options = client?.client_emails?.map((l) => ({
-        value: l.full_name,
-        label: l.full_name,
+      const options = client?.approver?.map((l) => ({
+        value: l,
+        label: l,
       }));
       return options || [];
     });
@@ -462,7 +465,7 @@ export const SetupScreen = () => {
               setHasChanges={setHasChanges}
             />
             <ClientSelection
-              options={approvalOptions}
+              options={clientapprovalOptions}
               label={"Client Approver"}
               formId="client_approver"
               setHasChanges={setHasChanges}

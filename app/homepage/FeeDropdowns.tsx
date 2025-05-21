@@ -76,7 +76,7 @@ const CustomDropdown = ({
 	);
 };
 
-const FeeDropdowns = ({
+const FeeDropdowns: any = ({
 	labelone,
 	islabelone,
 	inputs,
@@ -84,14 +84,14 @@ const FeeDropdowns = ({
 }: {
 	labelone: string;
 	islabelone: string;
-	inputs: {
+	inputs?: {
 		feeType: string;
 	};
 	setInputs: React.Dispatch<
 		React.SetStateAction<{
-			feeType: string;
-			responsiblePerson: string;
-			approver: string;
+			feeType?: string;
+			responsiblePerson?: string;
+			approver?: string;
 		}>
 	>;
 }) => {
