@@ -482,7 +482,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
               <div className="w-full">
                 <ResponsibleApproverDropdowns
-                  right={true}
+                  right={false}
                   setInputs={setInputs}
                   options={!options ? [] : options}
                   option={!option ? [] : option}

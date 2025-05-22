@@ -444,7 +444,7 @@ import line from "../public/ri-file-copy-line.svg";
 import ProgressBar from "./ProgressBar";
 import { useCampaigns } from "../app/utils/CampaignsContext";
 import { useRouter } from "next/navigation";
-import { NoRecordFound, SVGLoaderFetch } from "./Options";
+import { getFirstLetters, NoRecordFound, SVGLoaderFetch } from "./Options";
 import { useCampaignSelection } from "../app/utils/CampaignSelectionContext";
 import { useEffect, useState } from "react";
 import Modal from "./Modals/Modal";
@@ -718,13 +718,15 @@ const Table = () => {
                     </td>
                     <td className="py-[12px] px-[16px]">
                       <div className="flex items-center whitespace-nowrap gap-3">
-                        <div className="view_content_table">MD</div>
+                        <div className="view_content_table">
+                          {getFirstLetters(data?.media_plan_details?.client_approver || "-")}
+                        </div>
                         {data?.media_plan_details?.client_approver || "N/A"}
                       </div>
                     </td>
                     <td className="py-[12px] px-[16px]">
                       <div className="flex items-center whitespace-nowrap gap-3">
-                        <div className="view_content_table">JB</div>
+                        <div className="view_content_table">{getFirstLetters(data?.media_plan_details?.client_approver || "-")}</div>
                         <p>{data?.media_plan_details?.internal_approver || "N/A"}</p>
                       </div>
                     </td>

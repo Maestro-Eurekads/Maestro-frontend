@@ -61,7 +61,7 @@ const BusinessApproverContainer = ({ campaign, loading, isLoadingCampaign }) => 
 										{item?.initials?.toUpperCase()}
 									</div>
 								)}
-								<p className="font-medium text-[20px] leading-[27px] text-[#061237]">
+								<p className="font-medium text-[20px] leading-[27px] text-[#061237] truncate">
 									{item?.name}
 								</p>
 							</div>}
