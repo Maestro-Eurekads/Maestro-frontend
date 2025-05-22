@@ -3,9 +3,10 @@ import { useState } from "react";
 
 interface MonthIntervalProps {
   monthsCount: number;
+  view?: boolean;
 }
 
-const MonthInterval: React.FC<MonthIntervalProps> = ({ monthsCount }) => {
+const MonthInterval: React.FC<MonthIntervalProps> = ({ monthsCount, view }) => {
   // const [containerWidth, setContainerWidth] = useState(0)
   const gridContainer = document.querySelector(
     ".grid-container"
@@ -20,13 +21,15 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({ monthsCount }) => {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${monthsCount}, 1fr)`,
+          gridTemplateColumns: `repeat(${monthsCount}, ${100 / monthsCount}%)`,
           backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.2) 1px, transparent 1px)`,
-          backgroundSize: `calc(100% / ${monthsCount}) 100%`,
+          backgroundSize: !view
+            ? `calc(100% / ${monthsCount}) 100%`
+            : `calc( ${100 / monthsCount}%) ${100 / monthsCount}%`,
         }}
       >
         {Array.from({ length: monthsCount }, (_, i) => (
-          <div key={i} className="flex flex-col items-center relative py-5">
+          <div key={i} className="flex flex-col items-center relative py-2">
             {/* Week Label */}
             <div className="flex flex-row gap-2 items-center">
               <span className="font-[500] text-[13px] text-[rgba(0,0,0,0.5)]">

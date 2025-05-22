@@ -18,7 +18,7 @@ import DayInterval from "../../atoms/date-interval/DayInterval";
 import MonthInterval from "../../atoms/date-interval/MonthInterval";
 import WeekInterval from "../../atoms/date-interval/WeekInterval";
 
-const MainSection = ({ hideDate, disableDrag }: { hideDate?: boolean, disableDrag?: boolean }) => {
+const MainSection = ({ hideDate, disableDrag, view }: { hideDate?: boolean, disableDrag?: boolean, view?:boolean }) => {
   const { clientCampaignData, campaignFormData } = useCampaigns();
   const { range } = useDateRange();
   const startDates = campaignFormData?.campaign_timeline_start_date
@@ -76,6 +76,7 @@ const MainSection = ({ hideDate, disableDrag }: { hideDate?: boolean, disableDra
           <>
             <MonthInterval
               monthsCount={monthDifference === 0 ? 1 : monthDifference + 1}
+              view={view}
             />
             {/* <MonthTimeline monthsCount={monthDifference} funnels={funnelsData} /> */}
           </>
@@ -103,7 +104,7 @@ const MainSection = ({ hideDate, disableDrag }: { hideDate?: boolean, disableDra
                 <div className="absolute left-0 top-18 w-1 bg-orange-500 min-h-screen"></div>
               </div>
             </div>
-            <ResizeableElements funnelData={funnelsData} disableDrag={disableDrag} />
+            <ResizeableElements funnelData={funnelsData} disableDrag={disableDrag} view={view} />
           </div>
         </div>
       </div>
