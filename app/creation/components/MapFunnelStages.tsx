@@ -485,7 +485,6 @@ const MapFunnelStages = () => {
 
   return (
     <div>
-      <Toaster />
       <div className="flex items-center justify-between">
         <PageHeaderWrapper
           className="text-[22px]"

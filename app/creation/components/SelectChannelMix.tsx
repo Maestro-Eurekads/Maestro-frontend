@@ -433,12 +433,25 @@ const SelectChannelMix = () => {
   // Get all selected platforms for a stage
   const getSelectedPlatforms = (stageName) => {
     const stageSelection = selected[stageName] || {};
-    const selectedPlatforms = [];
-    Object.values(stageSelection).forEach(platforms => {
+    const selectedPlatforms = {
+      online: [],
+      offline: []
+    };
+    
+    // Define online and offline channel types
+    const onlineTypes = ['social_media', 'display_networks', 'search_engines', 'streaming', 'mobile', 'messaging', 'in_game', 'e_commerce'];
+    const offlineTypes = ['broadcast', 'print', 'ooh'];
+    
+    Object.entries(stageSelection).forEach(([category, platforms]) => {
       if (Array.isArray(platforms)) {
-        selectedPlatforms.push(...platforms);
+        if (onlineTypes.includes(category)) {
+          selectedPlatforms.online.push(...platforms);
+        } else if (offlineTypes.includes(category)) {
+          selectedPlatforms.offline.push(...platforms);
+        }
       }
     });
+    
     return selectedPlatforms;
   };
 
@@ -566,21 +579,48 @@ const SelectChannelMix = () => {
                 </div>
 
                 {/* Selected Platforms Row */}
-                {selectedPlatforms.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2 pb-2">
-                    {selectedPlatforms.map((platform, idx) => (
-                      <div key={idx} className="flex items-center gap-1 bg-blue-100 rounded-full px-3 py-1">
-                        {getPlatformIcon(platform) && (
-                          <Image
-                            src={getPlatformIcon(platform)}
-                            alt={platform}
-                            width={16}
-                            height={16}
-                          />
-                        )}
-                        <span className="text-sm text-blue-700">{platform}</span>
+                {(selectedPlatforms.online.length > 0 || selectedPlatforms.offline.length > 0) && (
+                  <div className="flex flex-col gap-2 mt-2 pb-2">
+                    {selectedPlatforms.online.length > 0 && (
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">Online Channels:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedPlatforms.online.map((platform, idx) => (
+                            <div key={idx} className="flex items-center gap-1 bg-blue-100 rounded-full px-3 py-1">
+                              {getPlatformIcon(platform) && (
+                                <Image
+                                  src={getPlatformIcon(platform)}
+                                  alt={platform}
+                                  width={16}
+                                  height={16}
+                                />
+                              )}
+                              <span className="text-sm text-blue-700">{platform}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    ))}
+                    )}
+                    {selectedPlatforms.offline.length > 0 && (
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">Offline Channels:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedPlatforms.offline.map((platform, idx) => (
+                            <div key={idx} className="flex items-center gap-1 bg-green-100 rounded-full px-3 py-1">
+                              {getPlatformIcon(platform) && (
+                                <Image
+                                  src={getPlatformIcon(platform)}
+                                  alt={platform}
+                                  width={16}
+                                  height={16}
+                                />
+                              )}
+                              <span className="text-sm text-green-700">{platform}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
