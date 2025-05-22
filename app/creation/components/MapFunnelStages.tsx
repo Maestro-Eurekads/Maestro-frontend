@@ -274,21 +274,21 @@ const MapFunnelStages = () => {
 
     if (option === "targeting_retargeting") {
       setCustomFunnels(targetingRetargetingFunnels);
+      
+      // Initialize with both stages selected by default for targeting-retargeting
+      const defaultStages = ["Targeting", "Retargeting"];
+      const defaultChannelMix = defaultStages.map(stage => ({ funnel_stage: stage }));
+      
       setCampaignFormData((prev: any) => ({
         ...prev,
         funnel_type: "targeting_retargeting",
-        funnel_stages:
-          savedSelections.targeting_retargeting.funnel_stages.length > 0
-            ? savedSelections.targeting_retargeting.funnel_stages
-            : ["Targeting", "Retargeting"],
-        channel_mix:
-          savedSelections.targeting_retargeting.channel_mix.length > 0
-            ? savedSelections.targeting_retargeting.channel_mix
-            : [
-                { funnel_stage: "Targeting" },
-                { funnel_stage: "Retargeting" },
-              ],
-        custom_funnels: persistentCustomFunnels,
+        funnel_stages: savedSelections.targeting_retargeting.funnel_stages.length > 0
+          ? savedSelections.targeting_retargeting.funnel_stages
+          : defaultStages,
+        channel_mix: savedSelections.targeting_retargeting.channel_mix.length > 0
+          ? savedSelections.targeting_retargeting.channel_mix
+          : defaultChannelMix,
+        custom_funnels: targetingRetargetingFunnels,
       }));
     } else {
       const restoredFunnels =
