@@ -154,14 +154,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   useEffect(() => {
     const isFormatSelected = validateFormatSelection();
     setHasFormatSelected(isFormatSelected);
-    // console.log({
-    //   active,
-    //   validateFormatSelection: isFormatSelected,
-    //   hasFormatSelected: isFormatSelected,
-    //   channel_mix: campaignFormData?.channel_mix,
-    //   funnel_stages: campaignFormData?.funnel_stages,
-    //   validatedStages: campaignFormData?.validatedStages
-    // });
   }, [active, campaignFormData]);
 
   useEffect(() => {

@@ -469,6 +469,10 @@ interface Campaign {
     value: number;
     currency: string;
   };
+  campaign_budget?: {
+    amount: number;
+    currency: string;
+  };
   progress_percent: number;
   copyCount: number;
 }
@@ -596,7 +600,10 @@ const Table = () => {
     }
   };
 
+
   console.log('clientCampaignData-clientCampaignData', clientCampaignData)
+
+
 
   return (
     <div className="flex flex-col">
@@ -666,10 +673,22 @@ const Table = () => {
                         {data?.isApprove ? "Approved" : "Not Approved"}</div>
                     </td>
                     <td className="py-[12px] px-[16px]">
-                      {data?.budget_details?.value || "N/A"}{" "}
-                      {data?.budget_details?.currency && !data?.budget_details?.currency.includes("%")
-                        ? getCurrencySymbol(data?.budget_details?.currency)
-                        : ""}
+                      <div className="flex felx-row  gap-1">
+                        <div>
+                          {data?.campaign_budget
+                            ?.amount || "N/A"}{" "}
+                        </div>
+                        <div>
+                          {data?.campaign_budget?.currency
+                            && !data?.campaign_budget
+                              ?.currency.includes("%")
+                            ? getCurrencySymbol(data?.campaign_budget
+                              ?.currency)
+                            : ""}
+                        </div>
+                      </div>
+
+
                     </td>
                     <td className="py-[12px] px-[16px]">
                       {POs.length > 0 ? (
