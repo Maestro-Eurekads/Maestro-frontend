@@ -71,6 +71,7 @@ const SelectChannelMix = () => {
   const [isDataReady, setIsDataReady] = useState(false);
   const [showMoreMap, setShowMoreMap] = useState({});
   const [toast, setToast] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const ITEMS_TO_SHOW = 6;
 
   // Fallback metadata for Targeting/Retargeting
@@ -421,6 +422,14 @@ const SelectChannelMix = () => {
     }));
   };
 
+  // Filter platforms based on search term
+  const filterPlatforms = (platforms) => {
+    if (!searchTerm) return platforms;
+    return platforms.filter(platform => 
+      platform.platform_name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
+
   // Early return if not mounted or data not ready
   if (!isMounted || !isDataReady) {
     return <div>Loading channels...</div>;
@@ -469,6 +478,16 @@ const SelectChannelMix = () => {
           t1="Which platforms would you like to activate for each funnel stage?"
           t2="Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time."
           span={1}
+        />
+      </div>
+
+      <div className="mt-4 mb-6">
+        <input
+          type="text"
+          placeholder="Search channels..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
@@ -564,20 +583,21 @@ const SelectChannelMix = () => {
                             <p>No channels available for {type}</p>
                           ) : (
                             Object.entries(channels).map(
-                              ([channelName, platforms]) =>
-                                platforms?.length > 0 ? (
+                              ([channelName, platforms]) => {
+                                const filteredPlatforms = filterPlatforms(platforms);
+                                return filteredPlatforms?.length > 0 ? (
                                   <div key={channelName} className="mb-6">
                                     <p className="capitalize font-semibold mb-4">
                                       {channelName.replace("_", " ")}
                                     </p>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                                      {platforms
+                                      {filteredPlatforms
                                         .slice(
                                           0,
                                           showMoreMap[
                                             `${stage.name}-${channelName}`
                                           ]
-                                            ? platforms.length
+                                            ? filteredPlatforms.length
                                             : ITEMS_TO_SHOW
                                         )
                                         .map((platform, pIndex) => {
@@ -651,7 +671,7 @@ const SelectChannelMix = () => {
                                         })
                                       }
                                     </div>
-                                    {platforms.length > ITEMS_TO_SHOW && (
+                                    {filteredPlatforms.length > ITEMS_TO_SHOW && (
                                       <div className="flex justify-center mt-4">
                                         <button
                                           onClick={() =>
@@ -703,6 +723,7 @@ const SelectChannelMix = () => {
                                     )}
                                   </div>
                                 ) : null
+                              }
                             )
                           )}
                         </>
