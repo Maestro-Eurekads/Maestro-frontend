@@ -66,8 +66,7 @@ export const SetupScreen = () => {
   }, []);
 
 
-  console.log('campaignFormData-campaignFormData', campaignFormData)
-  console.log('approvalOptions-approvalOptions', approvalOptions)
+
 
 
   // Load saved form data from localStorage on mount

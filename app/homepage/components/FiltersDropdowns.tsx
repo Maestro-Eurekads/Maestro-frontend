@@ -172,7 +172,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     }
   }, [filterOptions])
 
-  console.log('selectedFilters-selectedFilters', Object.values(selectedFilters).every((val) => !val))
+
 
 
   useEffect(() => {
