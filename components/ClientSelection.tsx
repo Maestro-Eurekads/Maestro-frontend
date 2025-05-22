@@ -11,12 +11,11 @@ const Dropdown = ({
   label,
   options,
   formId,
-  setHasChanges,
+
 }: {
   label: string;
   options: { id?: string; value: string; label: string }[];
   formId: string;
-  setHasChanges: (hasChanged: boolean) => void;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,13 +32,9 @@ const Dropdown = ({
   };
 
 
-  // const handleCreateNewVersion = () => {
-  //   createCampaignVersion(newVersion, documentId);
 
-  // };
 
   const handleSelect = (id, value: string) => {
-    console.log('handleSelect-handleSelect-handleSelect', value)
     setCampaignFormData((prev) => ({
 
       ...prev,
@@ -48,7 +43,6 @@ const Dropdown = ({
         value,
       },
     }));
-    setHasChanges(true); // Mark form as changed
     setIsOpen(false);
     setSearchTerm("");
   };
@@ -137,16 +131,15 @@ const ClientSelection = ({
   options,
   label,
   formId,
-  setHasChanges,
+
 }: {
   options: { value: string; label: string }[];
   label: string;
   formId: string;
-  setHasChanges: (hasChanged: boolean) => void;
 }) => {
   return (
     <div className="flex items-center gap-4 mt-[20px]">
-      <Dropdown label={label} options={options} formId={formId} setHasChanges={setHasChanges} />
+      <Dropdown label={label} options={options} formId={formId} />
     </div>
   );
 };
