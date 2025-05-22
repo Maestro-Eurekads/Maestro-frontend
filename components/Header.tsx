@@ -19,6 +19,7 @@ import { extractAprroverFilters, extractChannelAndPhase, extractDateFilters, ext
 import { useUserPrivileges } from "utils/userPrivileges";
 import { el } from "date-fns/locale";
 import { useSearchParams } from "next/navigation";
+import { getFirstLetters } from "./Options";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 
@@ -142,12 +143,7 @@ const Header = ({ setIsOpen }) => {
     };
   }, [clients, selectedId]);
 
-  function getFirstLetters(str) {
-    const words = str?.trim().split(/\s+/);
-    const first = words?.[0]?.[0] || '';
-    const second = words?.[1]?.[0] || '';
-    return (first + second).toUpperCase();
-  }
+
 
   return (
     <div id="header" className="relative w-full">
