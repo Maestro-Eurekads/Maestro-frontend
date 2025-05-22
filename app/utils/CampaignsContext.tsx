@@ -141,7 +141,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       const data = res?.data?.data;
-      console.log('data-data-data', data)
       setCampaignData(data);
       setCampaignFormData((prev) => ({
         ...prev,
