@@ -40,7 +40,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
 
-  console.log('profile-user-user', user)
+  // console.log('profile-user-user', user)
 
   //  Automatically reset alert after showing
   useEffect(() => {
