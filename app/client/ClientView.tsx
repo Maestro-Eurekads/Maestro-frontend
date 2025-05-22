@@ -51,7 +51,7 @@ const ClientView = () => {
 	const { isDrawerOpen, setIsDrawerOpen, isCreateOpen, setClose, modalOpen, setModalOpen, selected, isOpen, setIsOpen } = useComments();
 	const [generalComment, setGeneralComment] = useState(false);
 	const [active, setActive] = useState("Timeline view");
-	const { clientCampaignData, campaignData, getActiveCampaign } = useCampaigns();
+	const { clientCampaignData, campaignData, getActiveCampaign, campaignFormData } = useCampaigns();
 	const { data, campaignDetails, isLoadingCampaign } = useAppSelector((state) => state.comment);
 	const comments: Comment[] = data
 		?.filter((comment: Comment) => comment?.addcomment_as !== "Internal")
@@ -151,6 +151,8 @@ const ClientView = () => {
 
 
 
+
+
 	return (
 		<>
 			<div id="page-wrapper-client">
@@ -160,7 +162,7 @@ const ClientView = () => {
 					<div className={`px-[20px]  ${isDrawerOpen ? 'md:px-[50px]' : 'xl:px-[100px]'}`}>
 						<div className='flex	flex-col gap-[24px]'>
 							<ApproverContainer campaign={campaign} loading={loading} isLoadingCampaign={isLoadingCampaign} />
-							<General campaign={campaign} loading={loading} isLoadingCampaign={isLoadingCampaign} campaign_id={campaignId} />
+							<General campaign={campaignFormData} loading={loading} isLoadingCampaign={isLoadingCampaign} />
 							<BrandAwareness statsData={statsData} aggregatedStats={aggregatedStats} loading={isLoadingKpis} isLoadingCampaign={isLoadingCampaign} />
 							<ClientMessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} campaign={campaign} />
 							<div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
