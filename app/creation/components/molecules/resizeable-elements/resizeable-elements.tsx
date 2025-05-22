@@ -192,7 +192,7 @@ const ResizeableElements = ({ funnelData, disableDrag, view }) => {
 
       // Get container boundaries
       const containerRect = gridContainer.getBoundingClientRect();
-      // console.log("🚀 ~ useEffect ~ containerRect:", containerRect);
+      console.log("🚀 ~ useEffect ~ containerRect:", containerRect);
       const contWidth = containerRect.width - 75;
       setContainerWidth(contWidth + 75);
       campaignFormData?.funnel_stages?.map((stageName, index) => {
@@ -212,7 +212,9 @@ const ResizeableElements = ({ funnelData, disableDrag, view }) => {
                 ? 100
                 : rrange === "Week"
                 ? 50
-                : Math.floor(containerWidth / funnelData?.endMonth / 31) + 15)
+                : rrange === "Month"
+                ? Math.floor(containerWidth / funnelData?.endMonth / 31) + 15
+                : 0)
             : 0;
           // console.log("🚀 ~ startDateIndex:", {
           //   stageStartDate,
@@ -241,9 +243,25 @@ const ResizeableElements = ({ funnelData, disableDrag, view }) => {
               ? daysBetween > 0
                 ? 50 * daysBetween + 10
                 : 310
-              : daysBetween > 0 ? Math.round(contWidth / funnelData?.endMonth / 31) *
-                  daysBetween -
-                30 : 50;
+              : (() => {
+                  const endMonth = funnelData?.endMonth || 1;
+                  let monthBaseWidth;
+                  if (endMonth === 1) {
+                    monthBaseWidth = contWidth;
+                  } else if (endMonth === 2 || endMonth === 3) {
+                    monthBaseWidth = Math.round(contWidth / endMonth);
+                  } else {
+                    monthBaseWidth = Math.round(contWidth / 3);
+                  }
+                  console.log(
+                    "here",
+                    { monthBaseWidth, contWidth, daysBetween },
+                    Math.round(monthBaseWidth / 31)
+                  );
+                  return daysBetween > 0
+                    ? Math.round(monthBaseWidth / 31) * daysBetween - 30
+                    : 50;
+                })();
 
           initialPositions[stageName] = startDateIndex;
         }
@@ -252,6 +270,42 @@ const ResizeableElements = ({ funnelData, disableDrag, view }) => {
       setChannelPositions(initialPositions);
     }
   }, [campaignFormData?.funnel_stages, rrange]);
+  
+  useEffect(() => {
+    if (rrange === 'Month') {
+      const gridContainer = document.querySelector(".grid-container") as HTMLElement;
+      if (!gridContainer) return;
+      const containerRect = gridContainer.getBoundingClientRect();
+      const contWidth = containerRect.width - 75;
+      setContainerWidth(contWidth + 75);
+
+      // Force re-initialization of widths and positions
+      if (campaignFormData?.funnel_stages) {
+        const initialWidths: Record<string, number> = {};
+        const initialPositions: Record<string, number> = {};
+
+        campaignFormData?.funnel_stages.forEach((stageName) => {
+          const stage = campaignFormData?.channel_mix?.find((s) => s?.funnel_stage === stageName);
+          const daysBetween = eachDayOfInterval({
+            start: new Date(stage?.funnel_stage_timeline_start_date),
+            end: new Date(stage?.funnel_stage_timeline_end_date)
+          })?.length - 1;
+
+          const endMonth = funnelData?.endMonth || 1;
+          let monthBaseWidth;
+          if (endMonth === 1) monthBaseWidth = contWidth;
+          else if (endMonth === 2 || endMonth === 3) monthBaseWidth = contWidth / endMonth;
+          else monthBaseWidth = contWidth / 3;
+
+          initialWidths[stageName] = Math.round(monthBaseWidth / 31) * daysBetween - 30;
+          initialPositions[stageName] = 0;
+        });
+
+        setChannelWidths(initialWidths);
+        setChannelPositions(initialPositions);
+      }
+    }
+  }, [rrange]);
 
   return (
     <div
@@ -263,12 +317,21 @@ const ResizeableElements = ({ funnelData, disableDrag, view }) => {
             ? `calc(100px) 100%, calc(700px) 100%` // Every 7th line is darker
             : rrange === "Week"
             ? `calc(50px) 100%, calc(350px) 100%`
-            : `calc(${Math.floor(
-                (containerWidth + 25) / funnelData?.endMonth / 31
-              )}px) 100%, calc(${
-                Math.floor((containerWidth + 25) / funnelData?.endMonth / 31) *
-                31
-              }px) 100%`,
+            : (() => {
+                const endMonth = funnelData?.endMonth || 1;
+                let monthBaseWidth;
+                if (endMonth === 1) {
+                  monthBaseWidth = containerWidth;
+                } else if (endMonth === 2 || endMonth === 3) {
+                  monthBaseWidth = containerWidth / endMonth;
+                } else {
+                  monthBaseWidth = containerWidth / 3;
+                }
+                const dailyWidth = Math.floor(monthBaseWidth / 31);
+                return `calc(${dailyWidth}px) 33%, calc(${
+                  dailyWidth * 31
+                }px) 33%`;
+              })(),
       }}
     >
       {loadingCampaign ? (
@@ -320,7 +383,13 @@ const ResizeableElements = ({ funnelData, disableDrag, view }) => {
                     ? `repeat(${funnelData?.endDay - 1 || 1}, 100px)`
                     : rrange === "Week"
                     ? `repeat(${(funnelData?.endWeek - 1 || 1) * 7}, 50px)` // 7 columns per week
-                    : `repeat(${funnelData?.endMonth - 1 || 1}, 1fr)`,
+                    : (() => {
+                        const endMonth = funnelData?.endMonth || 1;
+                        if (endMonth === 1) return `1fr`;
+                        if (endMonth === 2 || endMonth === 3)
+                          return `repeat(${endMonth}, ${100 / endMonth}%)`;
+                        return `repeat(${endMonth}, 33%)`;
+                      })(),
               }}
             >
               <div
@@ -332,7 +401,13 @@ const ResizeableElements = ({ funnelData, disableDrag, view }) => {
                       ? `repeat(${funnelData?.endDay - 1 || 1}, 100px)`
                       : rrange === "Week"
                       ? `repeat(${(funnelData?.endWeek - 1 || 1) * 7}, 50px)` // 7 columns per week
-                      : `repeat(${funnelData?.endMonth - 1 || 1}, 1fr)`,
+                      : (() => {
+                          const endMonth = funnelData?.endMonth || 1;
+                          if (endMonth === 1) return `1fr`;
+                          if (endMonth === 2 || endMonth === 3)
+                            return `repeat(${endMonth}, ${100 / endMonth}%)`;
+                          return `repeat(${endMonth}, 33%)`;
+                        })(),
                 }}
               >
                 <DraggableChannel
