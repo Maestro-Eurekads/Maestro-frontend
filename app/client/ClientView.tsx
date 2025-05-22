@@ -151,7 +151,7 @@ const ClientView = () => {
 
 
 
-
+	console.log('campaignFormData-campaignFormData', Array.isArray(campaignFormData))
 
 	return (
 		<>
@@ -162,7 +162,17 @@ const ClientView = () => {
 					<div className={`px-[20px]  ${isDrawerOpen ? 'md:px-[50px]' : 'xl:px-[100px]'}`}>
 						<div className='flex	flex-col gap-[24px]'>
 							<ApproverContainer campaign={campaign} loading={loading} isLoadingCampaign={isLoadingCampaign} />
-							<General campaign={campaignFormData} loading={loading} isLoadingCampaign={isLoadingCampaign} />
+							<General
+								campaign={Array.isArray(campaignFormData) ? campaignFormData[0] || {} : campaignFormData || {}}
+								loading={loading}
+								isLoadingCampaign={isLoadingCampaign}
+							/>
+							{/* <General
+								campaign={Array.isArray(campaignFormData) ? campaignFormData : campaignFormData ? [campaignFormData] : []}
+								loading={loading}
+								isLoadingCampaign={isLoadingCampaign}
+							/> */}
+
 							<BrandAwareness statsData={statsData} aggregatedStats={aggregatedStats} loading={isLoadingKpis} isLoadingCampaign={isLoadingCampaign} />
 							<ClientMessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} campaign={campaign} />
 							<div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
