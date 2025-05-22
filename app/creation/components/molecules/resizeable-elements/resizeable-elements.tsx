@@ -37,82 +37,45 @@ interface OutletType {
 }
 
 const ResizeableElements = ({ funnelData, disableDrag, view }) => {
-  const { funnelWidths } = useFunnelContext(); // Get width for all channels
-  const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({}); // Track open state per channel
+  const { funnelWidths } = useFunnelContext();
+  const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({});
   const [isOpen, setIsOpen] = useState(false);
   const { range } = useDateRange();
   const { range: rrange } = useRange();
   const { campaignFormData, loadingCampaign } = useCampaigns();
   const [selectedStage, setSelectedStage] = useState("");
-  // console.log("rr", rrange, funnelData);
-  // Replace single parentWidth with a map of widths per channel
   const [channelWidths, setChannelWidths] = useState<Record<string, number>>(
     {}
   );
   const [containerWidth, setContainerWidth] = useState(null);
   const [openItems, setOpenItems] = useState(null);
-
-  // Track left position for each channel
   const [channelPositions, setChannelPositions] = useState<
     Record<string, number>
   >({});
-
   const [platforms, setPlatforms] = useState({});
-
-  const gridRef = useRef(null); // Create a reference for the grid container
+  const gridRef = useRef(null);
   const parentRef = useRef<HTMLDivElement | null>(null);
-  const [parentBounds, setParentBounds] = useState<{
-    left: number;
-    right: number;
-  }>({
-    left: 0,
-    right: 0,
-  });
+  const [parentBounds, setParentBounds] = useState({ left: 0, right: 0 });
 
   const toggleChannel = (id: string) => {
-    setOpenChannels((prev) => ({
-      ...prev,
-      [id]: !prev[id], // Toggle only the clicked channel
-    }));
+    setOpenChannels((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Function to update width for a specific channel
   const updateChannelWidth = (channelId: string, width: number) => {
-    setChannelWidths((prev) => ({
-      ...prev,
-      [channelId]: width,
-    }));
+    setChannelWidths((prev) => ({ ...prev, [channelId]: width }));
   };
 
-  // Function to update position for a specific channel
   const updateChannelPosition = (channelId: string, left: number) => {
-    setChannelPositions((prev) => ({
-      ...prev,
-      [channelId]: left,
-    }));
+    setChannelPositions((prev) => ({ ...prev, [channelId]: left }));
   };
 
   const getPlatformsFromStage = useCallback(() => {
     const platformsByStage: Record<string, OutletType[]> = {};
     const channelMix = campaignFormData?.channel_mix || [];
 
-    if (channelMix && channelMix?.length > 0) {
+    if (channelMix.length > 0) {
       channelMix.forEach((stage: any) => {
-        const {
-          funnel_stage,
-          search_engines,
-          display_networks,
-          social_media,
-          streaming,
-          ooh,
-          broadcast,
-          messaging,
-          print,
-          e_commerce,
-          in_game,
-          mobile,
-        } = stage;
-
+        const { funnel_stage } = stage;
         if (!platformsByStage[funnel_stage]) {
           platformsByStage[funnel_stage] = [];
         }
@@ -121,7 +84,6 @@ const ResizeableElements = ({ funnelData, disableDrag, view }) => {
           platforms.forEach((platform: any) => {
             const icon = getPlatformIcon(platform?.platform_name);
             if (icon) {
-              // Find a matching style or get a random one from platformStyles
               const style =
                 platformStyles.find(
                   (style) => style.name === platform.platform_name
@@ -129,7 +91,6 @@ const ResizeableElements = ({ funnelData, disableDrag, view }) => {
                 platformStyles[
                   Math.floor(Math.random() * platformStyles.length)
                 ];
-
               platformsByStage[funnel_stage].push({
                 name: platform.platform_name,
                 icon,
@@ -145,8 +106,7 @@ const ResizeableElements = ({ funnelData, disableDrag, view }) => {
           });
         };
 
-        // Process search engines
-        const channels = [
+        [
           "social_media",
           "display_networks",
           "search_engines",
@@ -158,9 +118,7 @@ const ResizeableElements = ({ funnelData, disableDrag, view }) => {
           "e_commerce",
           "in_game",
           "mobile",
-        ];
-
-        channels.forEach((channel) => {
+        ].forEach((channel) => {
           if (Array.isArray(stage[channel])) {
             processPlatforms(stage[channel], channel);
           }
@@ -172,68 +130,55 @@ const ResizeableElements = ({ funnelData, disableDrag, view }) => {
   }, [campaignFormData]);
 
   useEffect(() => {
-    if (campaignFormData) {
-      if (campaignFormData?.channel_mix) {
-        const data = getPlatformsFromStage();
-        setPlatforms(data);
-      }
+    if (campaignFormData?.channel_mix) {
+      const data = getPlatformsFromStage();
+      setPlatforms(data);
     }
   }, [campaignFormData, getPlatformsFromStage]);
 
-  // Initialize default widths and positions for each channel
   useEffect(() => {
-    if (campaignFormData?.funnel_stages) {
+    setChannelWidths({});
+    setChannelPositions({});
+  }, [rrange]);
+
+  useEffect(() => {
+    if (rrange === "Month") {
+      requestAnimationFrame(() => {
+        const gridContainer = document.querySelector(
+          ".grid-container"
+        ) as HTMLElement;
+        if (!gridContainer) return;
+        const containerRect = gridContainer.getBoundingClientRect();
+        const contWidth = containerRect.width - 75;
+        setContainerWidth(contWidth + 75);
+      });
+    }
+  }, [rrange]);
+
+  useEffect(() => {
+    if (campaignFormData?.funnel_stages && containerWidth) {
       const initialWidths: Record<string, number> = {};
       const initialPositions: Record<string, number> = {};
-      const gridContainer = document.querySelector(
-        ".grid-container"
-      ) as HTMLElement;
-      if (!gridContainer) return;
+      const contWidth = containerWidth - 75;
 
-      // Get container boundaries
-      const containerRect = gridContainer.getBoundingClientRect();
-      console.log("🚀 ~ useEffect ~ containerRect:", containerRect);
-      const contWidth = containerRect.width - 75;
-      setContainerWidth(contWidth + 75);
-      campaignFormData?.funnel_stages?.map((stageName, index) => {
+      campaignFormData.funnel_stages.forEach((stageName) => {
         const stage = campaignFormData?.channel_mix?.find(
           (s) => s?.funnel_stage === stageName
         );
-        if (stageName) {
-          const stageStartDate = stage?.funnel_stage_timeline_start_date
-            ? parseISO(stage?.funnel_stage_timeline_start_date)
-            : null;
-          const stageEndDate = stage?.funnel_stage_timeline_end_date
-            ? parseISO(stage?.funnel_stage_timeline_end_date)
-            : null;
-          const startDateIndex = stageStartDate
-            ? range?.findIndex((date) => isEqual(date, stageStartDate)) *
-              (rrange === "Day"
-                ? 100
-                : rrange === "Week"
-                ? 50
-                : rrange === "Month"
-                ? Math.floor(containerWidth / funnelData?.endMonth / 31) + 15
-                : 0)
-            : 0;
-          // console.log("🚀 ~ startDateIndex:", {
-          //   stageStartDate,
-          //   startDateIndex,
-          //   range,
-          // });
+        if (stageName && stage) {
+          const stageStartDate = parseISO(
+            stage?.funnel_stage_timeline_start_date
+          );
+          const stageEndDate = parseISO(stage?.funnel_stage_timeline_end_date);
           const daysBetween =
-            eachDayOfInterval({
-              start: new Date(stage?.funnel_stage_timeline_start_date) || null,
-              end: new Date(stage?.funnel_stage_timeline_end_date) || null,
-            })?.length - 1;
+            eachDayOfInterval({ start: stageStartDate, end: stageEndDate })
+              .length - 1;
           const daysFromStart = differenceInCalendarDays(
             stageStartDate,
             campaignFormData?.campaign_timeline_start_date
           );
-
-          // Calculate the week index (1-based)
           const weekIndex = Math.floor(daysFromStart / 7) + 1;
-          // console.log("fdfd", daysBetween);
+
           initialWidths[stageName] =
             rrange === "Day"
               ? daysBetween > 0
@@ -246,66 +191,22 @@ const ResizeableElements = ({ funnelData, disableDrag, view }) => {
               : (() => {
                   const endMonth = funnelData?.endMonth || 1;
                   let monthBaseWidth;
-                  if (endMonth === 1) {
-                    monthBaseWidth = contWidth;
-                  } else if (endMonth === 2 || endMonth === 3) {
-                    monthBaseWidth = Math.round(contWidth / endMonth);
-                  } else {
-                    monthBaseWidth = Math.round(contWidth / 3);
-                  }
-                  console.log(
-                    "here",
-                    { monthBaseWidth, contWidth, daysBetween },
-                    Math.round(monthBaseWidth / 31)
-                  );
+                  if (endMonth === 1) monthBaseWidth = contWidth;
+                  else if (endMonth <= 3) monthBaseWidth = contWidth / endMonth;
+                  else monthBaseWidth = contWidth / 3;
                   return daysBetween > 0
                     ? Math.round(monthBaseWidth / 31) * daysBetween - 30
                     : 50;
                 })();
 
-          initialPositions[stageName] = startDateIndex;
+          initialPositions[stageName] = 0;
         }
       });
+
       setChannelWidths(initialWidths);
       setChannelPositions(initialPositions);
     }
-  }, [campaignFormData?.funnel_stages, rrange]);
-  
-  useEffect(() => {
-    if (rrange === 'Month') {
-      const gridContainer = document.querySelector(".grid-container") as HTMLElement;
-      if (!gridContainer) return;
-      const containerRect = gridContainer.getBoundingClientRect();
-      const contWidth = containerRect.width - 75;
-      setContainerWidth(contWidth + 75);
-
-      // Force re-initialization of widths and positions
-      if (campaignFormData?.funnel_stages) {
-        const initialWidths: Record<string, number> = {};
-        const initialPositions: Record<string, number> = {};
-
-        campaignFormData?.funnel_stages.forEach((stageName) => {
-          const stage = campaignFormData?.channel_mix?.find((s) => s?.funnel_stage === stageName);
-          const daysBetween = eachDayOfInterval({
-            start: new Date(stage?.funnel_stage_timeline_start_date),
-            end: new Date(stage?.funnel_stage_timeline_end_date)
-          })?.length - 1;
-
-          const endMonth = funnelData?.endMonth || 1;
-          let monthBaseWidth;
-          if (endMonth === 1) monthBaseWidth = contWidth;
-          else if (endMonth === 2 || endMonth === 3) monthBaseWidth = contWidth / endMonth;
-          else monthBaseWidth = contWidth / 3;
-
-          initialWidths[stageName] = Math.round(monthBaseWidth / 31) * daysBetween - 30;
-          initialPositions[stageName] = 0;
-        });
-
-        setChannelWidths(initialWidths);
-        setChannelPositions(initialPositions);
-      }
-    }
-  }, [rrange]);
+  }, [campaignFormData?.funnel_stages, rrange, containerWidth]);
 
   return (
     <div
@@ -314,23 +215,26 @@ const ResizeableElements = ({ funnelData, disableDrag, view }) => {
         backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(0,0,0,0.2) 1px, transparent 1px)`,
         backgroundSize:
           rrange === "Day"
-            ? `calc(100px) 100%, calc(700px) 100%` // Every 7th line is darker
+            ? `calc(100px) 100%, calc(700px) 100%`
             : rrange === "Week"
             ? `calc(50px) 100%, calc(350px) 100%`
             : (() => {
+                const gridContainer = document.querySelector(
+                  ".grid-container"
+                ) as HTMLElement;
+                if (!gridContainer) return;
+                const containerRect = gridContainer.getBoundingClientRect();
+                const contWidth = containerRect.width - 75;
                 const endMonth = funnelData?.endMonth || 1;
                 let monthBaseWidth;
-                if (endMonth === 1) {
-                  monthBaseWidth = containerWidth;
-                } else if (endMonth === 2 || endMonth === 3) {
-                  monthBaseWidth = containerWidth / endMonth;
-                } else {
-                  monthBaseWidth = containerWidth / 3;
-                }
+                if (endMonth === 1) monthBaseWidth = contWidth + 25;
+                else if (endMonth <= 3)
+                  monthBaseWidth = (contWidth + 25) / endMonth;
+                else monthBaseWidth = (contWidth + 25) / 3;
                 const dailyWidth = Math.floor(monthBaseWidth / 31);
-                return `calc(${dailyWidth}px) 33%, calc(${
+                return `calc(${dailyWidth}px) 100%, calc(${
                   dailyWidth * 31
-                }px) 33%`;
+                }px) 100%`;
               })(),
       }}
     >
@@ -456,11 +360,6 @@ const ResizeableElements = ({ funnelData, disableDrag, view }) => {
           );
         })
       )}
-      <AddNewChennelsModel
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-        selectedStage={selectedStage}
-      />
     </div>
   );
 };
