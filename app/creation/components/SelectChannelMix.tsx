@@ -175,7 +175,7 @@ const SelectChannelMix = () => {
         }
         const channelTypes = [
           "social_media",
-          "display_networks",
+          "display_networks", 
           "search_engines",
           "streaming",
           "mobile",
@@ -430,6 +430,18 @@ const SelectChannelMix = () => {
     );
   };
 
+  // Get all selected platforms for a stage
+  const getSelectedPlatforms = (stageName) => {
+    const stageSelection = selected[stageName] || {};
+    const selectedPlatforms = [];
+    Object.values(stageSelection).forEach(platforms => {
+      if (Array.isArray(platforms)) {
+        selectedPlatforms.push(...platforms);
+      }
+    });
+    return selectedPlatforms;
+  };
+
   // Early return if not mounted or data not ready
   if (!isMounted || !isDataReady) {
     return <div>Loading channels...</div>;
@@ -513,42 +525,64 @@ const SelectChannelMix = () => {
             );
           }
 
+          const selectedPlatforms = getSelectedPlatforms(stage.name);
+
           return (
             <div key={index}>
               <div
-                className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
+                className={`flex flex-col p-6 gap-3 w-full bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
                   ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
-                onClick={() => toggleItem(stage.name)}
               >
-                <div className="flex items-center gap-2">
-                  {stage.icon && (
+                <div className="flex justify-between items-center" onClick={() => toggleItem(stage.name)}>
+                  <div className="flex items-center gap-2">
+                    {stage.icon && (
+                      <Image
+                        src={stage.icon}
+                        alt={`${stage.name} icon`}
+                        width={20}
+                        height={20}
+                      />
+                    )}
+                    <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
+                      {stage.name}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <p
+                      className={`font-general-sans font-semibold text-[16px] leading-[22px] ${stageStatuses[stage.name] === "In progress"
+                          ? "text-[#3175FF]"
+                          : "text-[#061237] opacity-50"
+                        }`}
+                    >
+                      {stageStatuses[stage.name] || "Not started"}
+                    </p>
                     <Image
-                      src={stage.icon}
-                      alt={`${stage.name} icon`}
-                      width={20}
-                      height={20}
+                      src={openItems[stage.name] ? up : down2}
+                      alt={openItems[stage.name] ? "up" : "down"}
+                      width={24}
+                      height={24}
                     />
-                  )}
-                  <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
-                    {stage.name}
-                  </p>
+                  </div>
                 </div>
-                <p
-                  className={`font-general-sans font-semibold text-[16px] leading-[22px] ${stageStatuses[stage.name] === "In progress"
-                      ? "text-[#3175FF]"
-                      : "text-[#061237] opacity-50"
-                    }`}
-                >
-                  {stageStatuses[stage.name] || "Not started"}
-                </p>
-                <div>
-                  <Image
-                    src={openItems[stage.name] ? up : down2}
-                    alt={openItems[stage.name] ? "up" : "down"}
-                    width={24}
-                    height={24}
-                  />
-                </div>
+
+                {/* Selected Platforms Row */}
+                {selectedPlatforms.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2 pb-2">
+                    {selectedPlatforms.map((platform, idx) => (
+                      <div key={idx} className="flex items-center gap-1 bg-blue-100 rounded-full px-3 py-1">
+                        {getPlatformIcon(platform) && (
+                          <Image
+                            src={getPlatformIcon(platform)}
+                            alt={platform}
+                            width={16}
+                            height={16}
+                          />
+                        )}
+                        <span className="text-sm text-blue-700">{platform}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {openItems[stage.name] && (
