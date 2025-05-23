@@ -13,7 +13,7 @@ import {
   parseISO,
 } from "date-fns";
 import moment from "moment";
-import { getCurrencySymbol } from "components/data";
+import { getCurrencySymbol, renderUploadedFile } from "components/data";
 import arrowUp from "../../../../../public/arrow-g-up.svg";
 import arrowDown from "../../../../../public/arrow-g-down.svg";
 import axios from "axios";
@@ -48,6 +48,7 @@ interface ResizableChannelsProps {
   setSelectedStage?: any;
   openItems?: any;
   setOpenItems?: any;
+  endMonth?: any;
 }
 
 const DEFAULT_MEDIA_OPTIONS = [
@@ -69,6 +70,7 @@ const ResizableChannels = ({
   setSelectedStage,
   openItems,
   setOpenItems,
+  endMonth,
 }: ResizableChannelsProps) => {
   const { campaignFormData, setCampaignFormData, setCopy, cId, campaignData } =
     useCampaigns();
@@ -113,8 +115,24 @@ const ResizableChannels = ({
   const [endDateOffset, setEndDateOffset] = useState(0);
   const [containerWidth, setContainerWidth] = useState(null);
 
+  function calculateDailyWidth(
+    containerWidth: number,
+    endMonth: number
+  ): number {
+    const adjustedWidth = containerWidth; // adjust for padding/margin if needed
+    const totalDays = endMonth * 31;
+
+    // Base daily width without factor
+    const baseDailyWidth = adjustedWidth / totalDays;
+
+    // Final adjusted daily width
+    return baseDailyWidth;
+  }
+
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    const baseStep = rrange === "Month" ? 18  : rrange === "Week" ? 50 : 100; // Base grid size
+    const dailyWidth = calculateDailyWidth(containerWidth, endMonth);
+    console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth);
+    const baseStep = rrange === "Month" ? dailyWidth : 50;
     // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
     const adjustmentPerStep = 0; // Decrease each next step by 10
     const snapPoints = [];
@@ -124,13 +142,14 @@ const ResizableChannels = ({
     let step = baseStep;
 
     // Generate snap points with decreasing step size
-    while (
-      currentSnap <= baseStep
-    ) {
+    while (currentSnap <= containerWidth) {
       snapPoints.push(currentSnap);
       // console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
       currentSnap += step;
-      step = Math.max(baseStep, step - adjustmentPerStep);
+      step = Math.max(
+        rrange === "Month" ? dailyWidth : 50,
+        step - adjustmentPerStep
+      );
     }
 
     const closestSnap = snapPoints.reduce((prev, curr) =>
@@ -142,7 +161,6 @@ const ResizableChannels = ({
     // console.log("Closest custom snap:", closestSnap);
     return closestSnap;
   };
-
   useEffect(() => {
     if (campaignFormData) {
       const start = campaignFormData?.channel_mix?.find(
@@ -491,7 +509,7 @@ const ResizableChannels = ({
                 isEqual(date, adjustedStageStartDate)
               ) *
               (rrange === "Day"
-                ? 100
+                ? 50
                 : rrange === "Week"
                 ? 50
                 : Math.round(contWidth / 2 / 31))
@@ -531,18 +549,18 @@ const ResizableChannels = ({
                 width: Math.min(
                   rrange === "Day"
                     ? daysBetween > 0
-                      ? 100 * daysBetween + 60
+                      ? 50 * daysBetween + 60
                       : parentWidth
                     : rrange === "Week"
                     ? daysBetween > 0
                       ? 50 * daysBetween + 10
                       : parentWidth
                     : rrange === "Month"
-                    ? (Math.round(contWidth / 2 / 31)) * daysBetween
+                    ? Math.round(contWidth / 2 / 31) * daysBetween
                     : parentWidth,
                   rrange === "Day"
                     ? daysBetween > 0
-                      ? 100 * daysBetween + 60
+                      ? 50 * daysBetween + 60
                       : parentWidth
                     : rrange === "Week"
                     ? daysBetween > 0
@@ -592,7 +610,7 @@ const ResizableChannels = ({
           if (direction === "left") {
             // Move the left side while keeping the right side fixed
             newWidth = Math.max(
-              150,
+              50,
               Math.min(
                 state.width - deltaX,
                 parentWidth - (state.left - parentLeft)
@@ -600,32 +618,31 @@ const ResizableChannels = ({
             );
             newLeft = state.left + deltaX; // Move the left boundary
 
-            // Snap left edge to timeline
-            newLeft =
-              snapToTimeline(newLeft - parentLeft, parentWidth) + parentLeft;
-            // Recalculate width after snapping
+            // Prevent movement out of bounds
+            newLeft = Math.max(
+              parentLeft,
+              Math.min(newLeft, parentLeft + parentWidth - newWidth)
+            );
+
+            // Recalculate width after adjusting left boundary
             newWidth = state.left + state.width - newLeft;
           } else {
             // Move the right side, increasing width
             const rightEdge = state.left + state.width + deltaX;
-            const snappedRightEdge =
-              snapToTimeline(rightEdge - parentLeft, parentWidth) + parentLeft;
 
-            // Calculate new width based on snapped right edge
+            // Prevent movement out of bounds
+            const maxRightEdge = parentLeft + parentWidth;
+            const adjustedRightEdge = Math.min(rightEdge, maxRightEdge);
+
+            // Calculate new width based on adjusted right edge
             newWidth = Math.max(
-              150,
+              50,
               Math.min(
-                snappedRightEdge - state.left,
+                adjustedRightEdge - state.left,
                 parentWidth - (state.left - parentLeft)
               )
             );
           }
-
-          // Prevent movement out of bounds
-          newLeft = Math.max(
-            parentLeft,
-            Math.min(newLeft, parentLeft + parentWidth - newWidth)
-          );
 
           // Calculate start and end pixel positions
           const startPixel = newLeft - parentLeft; // Adjusted to be relative
@@ -979,6 +996,22 @@ const ResizableChannels = ({
                 )}
               </div>
             )}
+            {channel?.format?.some(
+              (format) => format?.previews?.length > 0
+            ) && (
+              <button
+                className="bg-blue-500 text-white p-2 rounded-md relative mt-2"
+                style={{
+                  left: `${channelState[index]?.left || parentLeft}px`,
+                }}
+                onClick={() => {
+                  setOpenCreatives(true);
+                  setSelectedChannel(channel?.name);
+                }}
+              >
+                View Creatives
+              </button>
+            )}
           </div>
         );
       })}
@@ -1005,7 +1038,39 @@ const ResizableChannels = ({
             </svg>
           </button>
           {disableDrag ? (
-            ""
+            <div>
+              {channels?.filter((ch)=>ch?.name === selectedChannel)?.map((channel) => (
+                <div key={channel.name} className="mb-6">
+                  <h2 className="font-semibold text-lg mb-2">{channel.name}</h2>
+                  <div className="flex flex-wrap gap-4">
+                    {channel?.format?.length > 0 && (
+                      <div className="mb-4">
+                        <h3 className="font-semibold text-sm mb-2">Channel Formats</h3>
+                        <div className="text-sm text-gray-600">
+                          {channel.format.map((format, index) => (
+                            <div key={index} className="p-4 bg-gray-100 rounded-lg shadow-sm">
+                              <p className="font-medium">Format Type: {format?.format_type}</p>
+                              <p className="text-sm text-gray-500">Previews:</p>
+                              <div className="grid grid-cols-2 gap-2 mt-2">
+                                {format?.previews?.map((preview, id) => (
+                                  <div key={id} className="block w-[140px] h-[140px]">
+                                    {renderUploadedFile(
+                                      format?.previews?.map((pp) => pp?.url),
+                                      format?.format_type,
+                                      id
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
             <FormatSelection
               stageName={parentId}

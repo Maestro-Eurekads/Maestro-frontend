@@ -60,11 +60,11 @@ import tickcircle from "../../public/tick-circle.svg";
 import tickcircles from "../../public/tick-circle-green.svg";
 import { SVGLoader } from "components/SVGLoader";
 
-const Approved = ({ comment, commentId, setAlert, isFinancialApprover, isAgencyApprover, isAdmin }) => {
+const Approved = ({ comment, commentId, setAlert, isFinancialApprover, isAgencyApprover, isAdmin, isAgencyCreator }) => {
 	const { approval, approvedIsLoading } = useComments();
 
 	const handleApproval = () => {
-		if (!isAgencyApprover && !isFinancialApprover && !isAdmin) {
+		if (!isAgencyApprover && !isFinancialApprover && !isAdmin && !isAgencyCreator) {
 			setAlert({
 				variant: "error",
 				message: "Not authorized to approve this comment.",

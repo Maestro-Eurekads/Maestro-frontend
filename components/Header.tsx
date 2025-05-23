@@ -19,6 +19,7 @@ import { extractAprroverFilters, extractChannelAndPhase, extractDateFilters, ext
 import { useUserPrivileges } from "utils/userPrivileges";
 import { el } from "date-fns/locale";
 import { useSearchParams } from "next/navigation";
+import { getFirstLetters } from "./Options";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 
@@ -142,12 +143,7 @@ const Header = ({ setIsOpen }) => {
     };
   }, [clients, selectedId]);
 
-  function getFirstLetters(str) {
-    const words = str?.trim().split(/\s+/);
-    const first = words?.[0]?.[0] || '';
-    const second = words?.[1]?.[0] || '';
-    return (first + second).toUpperCase();
-  }
+
 
   return (
     <div id="header" className="relative w-full">
@@ -213,7 +209,7 @@ const Header = ({ setIsOpen }) => {
 
           <div className="profile_container" onClick={() => setShow((prev) => !prev)}>
             {getFirstLetters(session?.user?.name)}
-            {show && (
+            {/* {show && (
               <div className="absolute bg-white border shadow-md rounded-[10px] top-[50px]">
                 <div
                   className="flex items-center gap-2 cursor-pointer p-2"
@@ -231,7 +227,33 @@ const Header = ({ setIsOpen }) => {
                   <p>Logout</p>
                 </div>
               </div>
-            )}
+            )} */}
+
+            {/* Dropdown Menu */}
+            {show && (
+              <div className="absolute right-0 top-[60px] w-[200px] bg-white border border-gray-200   shadow-lg z-50 !rounded-[5px]">
+                <div className="absolute top-[-4px] right-5 w-3 h-3 bg-white rotate-45 border-t border-l border-gray-200"></div>
+                <div className="p-4">
+                  <p className="text-sm text-gray-700 mb-1">Signed in as</p>
+                  <p className="text-sm font-medium text-gray-900 truncate mb-3">
+                    {session?.user?.email || "??"}
+                  </p>
+                  <button
+                    onClick={async () => {
+                      localStorage.removeItem("campaignFormData");
+                      localStorage.removeItem("selectedClient");
+                      localStorage.removeItem("profileclients");
+                      await signOut({
+                        callbackUrl: "/",
+                      })
+                    }
+                    }
+                    className="w-full px-4 py-2 text-sm text-white !bg-[#3175FF]   hover:bg-blue-700 !rounded-[5px]"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>)}
           </div>
         </div>
       </div>
