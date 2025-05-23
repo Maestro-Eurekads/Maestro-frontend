@@ -163,7 +163,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
                   Total budget
                 </p>
                 <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-                  {campaignFormData?.campaign_budget?.amount}{" "}
+                  {parseInt(campaignFormData?.campaign_budget?.amount)?.toLocaleString()}{" "}
                   {getCurrencySymbol(
                     campaignFormData?.campaign_budget?.currency
                   )}
@@ -192,7 +192,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
                     color={campaignFormData?.channel_mix?.map((ch) =>
                       getFunnelColor(ch?.funnel_stage)
                     )}
-                    insideText={`${campaignFormData?.campaign_budget?.amount} ${getCurrencySymbol(
+                    insideText={`${parseInt(campaignFormData?.campaign_budget?.amount).toLocaleString()} ${getCurrencySymbol(
                       campaignFormData?.campaign_budget?.currency
                     )}`}
                   />
@@ -216,7 +216,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
             </>
           </div>
           <div className="allocate_budget_phase_two">
-            <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
+            <h3 className="font-semibold text-[22px] leading-[24px] flex items-center text-[#061237]">
               Channel distribution
             </h3>
             <p className="font-medium text-[15px] leading-[175%] text-[rgba(0,0,0,0.9)] order-1 self-stretch flex-none">

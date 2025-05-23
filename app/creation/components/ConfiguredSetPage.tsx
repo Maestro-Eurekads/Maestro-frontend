@@ -438,6 +438,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
              <input
               type="text"
               className="w-full px-4 focus:outline-none"
+              disabled={validatedStages[stageName]}
               value={
                formatNumberWithCommas(
                 campaignFormData?.channel_mix?.find(
@@ -659,6 +660,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
                  type="text"
                  className="w-full px-4 focus:outline-none"
                  value={formatNumberWithCommas(budgetValue)}
+                 disabled={validatedStages[stageName]}
                  onChange={(e) => {
                   const inputValue = e.target.value.replace(/,/g, "");
                   const newBudget = inputValue;
@@ -743,7 +745,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
                  </div>
                 </div>
                 <p className="whitespace-nowrap tracking-tight">
-                 of {stage.name} budget
+                 of {stageName} budget
                 </p>
                 {stageName?.funnel_stage === stage.name &&
                  platform?.ad_sets?.length > 1 &&
@@ -756,6 +758,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
                     <input
                      type="checkbox"
                      id={`${stage.name}-${platform?.outlet}`}
+                     disabled={validatedStages[stageName]}
                      className="peer sr-only"
                      onChange={(e) => {
                       if (e.target.checked) {
@@ -879,6 +882,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
                       type="text"
                       className="w-full px-4 focus:outline-none"
                       value={formatNumberWithCommas(getAdSetBudget(ad_set))}
+                      disabled={validatedStages[stageName]}
                       onChange={(e) => {
                        const inputValue = e.target.value.replace(/,/g, "");
                        const newBudget = inputValue;
@@ -1045,6 +1049,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
                         <input
                          type="text"
                          className="w-full px-4 focus:outline-none"
+                         disabled={validatedStages[stageName]}
                          value={formatNumberWithCommas(
                           getAdSetExtraBudget(ad_set, iid)
                          )}
@@ -1234,20 +1239,6 @@ const ConfiguredSetPage = ({ netAmount }) => {
            className="h-[52px] rounded-md px-6 py-2"
           />
          </div>
-
-         {validatedStages[stage.name] && results[stage.name].length > 0 && (
-          <div className="mt-6">
-           <h2 className="font-bold">Results:</h2>
-           <ul>
-            {results[stage.name].map((result, index) => (
-             <li key={index}>
-              {result.platform}: {result.budget}{" "}
-              {getCurrencySymbol(result.currency)}
-             </li>
-            ))}
-           </ul>
-          </div>
-         )}
         </div>
        </>
       )}

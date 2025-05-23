@@ -864,8 +864,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                   <p>
                     {active === 0
                       ? "Start"
-                      : isHovered && active < 10
-                        ? "Next Step"
                         : active === 4 && !hasFormatSelected
                           ? "Skip"
                           : "Continue"}
