@@ -37,8 +37,8 @@ const BusinessApproverContainer = ({ campaign, loading, isLoadingCampaign }) => 
 		},
 		{
 			label: "Campaign builder",
-			name: campaign?.user?.username || "-",
-			initials: getInitials(campaign?.user?.username),
+			name: campaign?.campaign_builder || "-",
+			initials: getInitials(campaign?.campaign_builder),
 		},
 	];
 
@@ -61,7 +61,7 @@ const BusinessApproverContainer = ({ campaign, loading, isLoadingCampaign }) => 
 										{item?.initials?.toUpperCase()}
 									</div>
 								)}
-								<p className="font-medium text-[20px] leading-[27px] text-[#061237]">
+								<p className="font-medium text-[20px] leading-[27px] text-[#061237] truncate">
 									{item?.name}
 								</p>
 							</div>}

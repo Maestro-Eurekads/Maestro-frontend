@@ -6,9 +6,6 @@ import ig from "../public/ig.svg";
 import quantcast from "../public/quantcast.svg";
 import youtube from "../public/youtube.svg";
 import tradedesk from "../public/tradedesk.svg";
-import speaker from "../public/mdi_megaphone.svg";
-import zoom from "../public/tabler_zoom-filled.svg";
-import credit from "../public/mdi_credit-card.svg";
 import { useEffect, useState } from "react";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { getPlatformIcon, platformStyles } from "./data";
@@ -22,17 +19,16 @@ interface Platform {
 }
 
 interface Phase {
-  img?: any;
   name: string;
   amount: string;
   platforms: Platform[];
 }
 
-// Define default funnels with their icons
+// Define default funnels without icons
 const defaultFunnels = [
-  { name: "Awareness", icon: speaker },
-  { name: "Consideration", icon: zoom },
-  { name: "Conversion", icon: credit },
+  { name: "Awareness" },
+  { name: "Consideration" },
+  { name: "Conversion" },
 ];
 
 export default function PlatformSpending() {
@@ -58,8 +54,6 @@ export default function PlatformSpending() {
       // Find the custom funnel data for this stage
       const customFunnel = customFunnels.find((cc: any) => cc?.name === stageName);
       const defaultFunnel = defaultFunnels.find((df) => df.name === stageName);
-      // Only use icon if it's a default funnel
-      const stageIcon = defaultFunnel?.icon || null;
 
       const platformMap: { [key: string]: Platform } = {};
 
@@ -121,7 +115,6 @@ export default function PlatformSpending() {
         : totalBudget;
 
       phases.push({
-        img: stageIcon,
         name: stageName,
         amount: `${stageBudgetValue.toLocaleString("en-EU", { currency: "EUR" })} €`,
         platforms: platformList,
@@ -144,27 +137,17 @@ export default function PlatformSpending() {
       {phaseData.map((phase, index) => {
         const values = phase.platforms.map((p) => p.value);
         const colors = phase.platforms.map((p) => p.color);
-        const isDefaultFunnel = defaultFunnels.some((df) => df.name === phase.name);
 
         return (
           <div key={index} className="flex flex-col gap-4">
             {/* Phase Name & Amount */}
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center gap-2">
-                {isDefaultFunnel && phase.img && (
-                  <Image
-                    src={phase.img}
-                    alt={`${phase.name} icon`}
-                    width={24}
-                    height={24}
-                    className="shrink-0"
-                  />
-                )}
                 <p className="text-[#061237] font-semibold text-lg">
                   {phase.name}
                 </p>
               </div>
-              <div className="h-[29px] flex justify-center items-center px-4 bg-[#E8F6FF] border border-[rgba(49,117,255,0.1)] rounded-full">
+              <div className="h-[29px] flex justify-center items-center px-4 bg-[#E8F6FF] border border-[ usługi(49,117,255,0.1)] rounded-full">
                 <p className="font-semibold text-[14px] text-[#3175FF]">
                   {phase.amount}
                 </p>
@@ -181,7 +164,7 @@ export default function PlatformSpending() {
                   {platform.img && (
                     <Image
                       src={platform.img}
-                      alt={`${platform.name} icon`}
+                      alt={`${platform.name} icon `}
                       width={20}
                       height={20}
                       className="shrink-0 w-[20px] h-[20px]"

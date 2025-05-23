@@ -5,11 +5,9 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 const TextInput = ({
   label,
   formId,
-  setHasChanges
 }: {
   label: string;
   formId: string;
-  setHasChanges: (hasChanged: boolean) => void;
 }) => {
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   return (
@@ -22,7 +20,7 @@ const TextInput = ({
         value={campaignFormData[formId] || ""}
         onChange={(e) => {
           setCampaignFormData((prev) => ({ ...prev, [formId]: e.target.value }));
-          setHasChanges(true); // Trigger change tracking
+
         }}
       />
     </div>
@@ -32,15 +30,13 @@ const TextInput = ({
 const ClientSelectionInput = ({
   label,
   formId,
-  setHasChanges
 }: {
   label: string;
   formId: string;
-  setHasChanges: (hasChanged: boolean) => void;
 }) => {
   return (
     <div className="flex items-center gap-4 mt-[20px]">
-      <TextInput label={label} formId={formId} setHasChanges={setHasChanges} />
+      <TextInput label={label} formId={formId} />
     </div>
   );
 };
