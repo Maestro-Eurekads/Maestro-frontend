@@ -526,11 +526,13 @@ const ObjectiveSelection = () => {
                 )}
               </div>
             </div>
-            {/* Recap line below each stage */}
-            <div className="w-full px-6 py-2 bg-[#F5F7FA] border-x border-b border-[rgba(0,0,0,0.07)] text-sm text-[#061237] rounded-b-none rounded-t-none">
-              <span className="font-semibold">Recap: </span>
-              {getStageRecap(stageName)}
-            </div>
+            {/* Recap line below each stage - only show when collapsed */}
+            {!openItems[stage.name] && (
+              <div className="w-full px-6 py-2 bg-[#F5F7FA] border-x border-b border-[rgba(0,0,0,0.07)] text-sm text-[#061237] rounded-b-none rounded-t-none">
+                <span className="font-semibold">Recap: </span>
+                {getStageRecap(stageName)}
+              </div>
+            )}
             {openItems[stage.name] && (
               <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
                 {statuses[stageName] === "Completed" ? (
