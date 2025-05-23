@@ -357,12 +357,12 @@ function FeeSelectionStep({
                       setShowSelection(false);
                     }}
                     role="button"
-                    aria-label="Select Gross Media Budget (Channel Level)"
+                    aria-label="Select Gross Media Budget"
                   >
                     <div className="flex items-start gap-2">
                       <div>
                         <h3 className="font-semibold whitespace-nowrap text-[15px] leading-[175%] flex items-center text-[#061237]">
-                          Gross Media Budget (Channel Level)
+                          Gross Media Budget
                         </h3>
                       </div>
                     </div>
@@ -393,12 +393,12 @@ function FeeSelectionStep({
                       setShowSelection(false);
                     }}
                     role="button"
-                    aria-label="Select Net Media Budget (Adset Level)"
+                    aria-label="Select Net Media Budget"
                   >
                     <div className="flex items-start gap-2">
                       <div>
                         <h3 className="font-semibold whitespace-nowrap text-[15px] leading-[175%] flex items-center text-[#061237]">
-                          Net Media Budget (Adset Level)
+                          Net Media Budget
                         </h3>
                       </div>
                     </div>
