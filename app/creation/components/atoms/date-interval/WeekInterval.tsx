@@ -17,7 +17,7 @@ const WeekInterval = ({ weeksCount }) => {
         }}
       >
         {Array.from({ length: weeksCount }, (_, i) => (
-          <div key={i} className="flex flex-col items-center relative py-5">
+          <div key={i} className="flex flex-col items-center relative py-2">
         {/* Week Label */}
         <div className="flex flex-row gap-2 items-center mb-2">
           <span className="font-[500] text-[13px] text-[rgba(0,0,255,0.5)]">

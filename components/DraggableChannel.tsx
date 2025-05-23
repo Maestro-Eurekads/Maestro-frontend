@@ -27,8 +27,9 @@ interface DraggableChannelProps {
   disableDrag?: boolean;
   budget?: number | string;
   setSelectedStage?: any;
-  openItems?: any,
-  setOpenItems?: any
+  openItems?: any;
+  setOpenItems?: any;
+  endMonth?: any;
 }
 
 const DraggableChannel: React.FC<DraggableChannelProps> = ({
@@ -49,7 +50,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   budget,
   setSelectedStage,
   openItems,
-  setOpenItems
+  setOpenItems,
+  endMonth,
 }) => {
   const { funnelWidths, setFunnelWidth } = useFunnelContext();
   const [position, setPosition] = useState(0);
@@ -83,25 +85,24 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     return calculatedDate;
   };
 
-  // Snap to the nearest grid position
-  // const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-  //   const snapPoints = Array.from(
-  //     { length: Math.round(containerWidth / 120) },
-  //     (_, i) => i * 120 // Adjust based on your grid size
-  //   );
+  function calculateDailyWidth(
+    containerWidth: number,
+    endMonth: number
+  ): number {
+    const adjustedWidth = containerWidth; // adjust for padding/margin if needed
+    const totalDays = endMonth * 31;
 
-  //   console.log("here is the snappoints", snapPoints)
+    // Base daily width without factor
+    const baseDailyWidth = adjustedWidth / totalDays;
 
-  //   let closestSnap = snapPoints.reduce((prev, curr) =>
-  //     Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition) ? curr : prev
-  // );
-
-
-  //   return closestSnap;
-  // };
+    // Final adjusted daily width
+    return baseDailyWidth;
+  }
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    const baseStep = range !== "Day" ? 50 : 100;
+    const dailyWidth = calculateDailyWidth(containerWidth, endMonth);
+    console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth);
+    const baseStep = range === "Month" ? dailyWidth : 50;
     // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
     const adjustmentPerStep = 0; // Decrease each next step by 10
     const snapPoints = [];
@@ -111,12 +112,12 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     let step = baseStep;
 
     // Generate snap points with decreasing step size
-    while (currentSnap <= (range !== "Day" ? containerWidth : containerWidth)) {
+    while (currentSnap <= containerWidth) {
       snapPoints.push(currentSnap);
       // console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
       currentSnap += step;
       step = Math.max(
-        range !== "Day" ? 50 : 100,
+        range === "Month" ? dailyWidth : 50,
         step - adjustmentPerStep
       );
     }
@@ -137,7 +138,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   ) => {
     if (disableDrag) return;
     e.preventDefault();
-    e.stopPropagation()
+    e.stopPropagation();
     // setOpenChannel(false)
     isResizing.current = {
       startX: e.clientX,
@@ -280,25 +281,36 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
   return (
     <div
-      className={`relative w-full h-14 flex select-none ${disableDrag ? "rounded-[10px]" : "rounded-none"
-        }`}
-      style={{ transform: `translateX(${position}px)` }}
+      className={`relative w-full h-14 flex select-none ${
+        disableDrag ? "rounded-[10px]" : "rounded-none"
+      }`}
+      style={{
+        transform: `translateX(${position + (range === "Month" ? 4 : 0)}px)`,
+      }}
     >
       {/* Left Resize Handle */}
       <div
-        className={`w-5 h-full bg-opacity-80 bg-black ${disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-          } rounded-l-lg text-white flex items-center justify-center`}
-        onMouseDown={(e) => disableDrag || openItems ? undefined : handleMouseDownResize(e, "left")}
+        className={`w-5 h-full bg-opacity-80 bg-black ${
+          disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+        } rounded-l-lg text-white flex items-center justify-center`}
+        onMouseDown={(e) =>
+          disableDrag || openItems
+            ? undefined
+            : handleMouseDownResize(e, "left")
+        }
       >
         <MdDragHandle className="rotate-90" />
       </div>
 
       {/* Draggable Content */}
       <div
-        className={`h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${disableDrag ? "cursor-default rounded-[10px] relative" : "cursor-move"
-          }`}
+        className={`h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
+          disableDrag ? "cursor-default rounded-[10px] relative" : "cursor-move"
+        }`}
         style={{
-          width: disableDrag ? `${parentWidth + 43}px` : parentWidth,
+          width: disableDrag
+            ? `${parentWidth + (range === "Month" ? 53 : 43)}px`
+            : parentWidth,
           backgroundColor: bg,
           transition: "transform 0.2s ease-out",
         }}
@@ -343,9 +355,14 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
       {/* Right Resize Handle */}
       <div
-        className={`w-5 h-full bg-opacity-80 bg-black ${disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-          } rounded-r-lg text-white flex items-center justify-center`}
-        onMouseDown={(e) => disableDrag || openItems ? undefined : handleMouseDownResize(e, "right")}
+        className={`w-5 h-full bg-opacity-80 bg-black ${
+          disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+        } rounded-r-lg text-white flex items-center justify-center`}
+        onMouseDown={(e) =>
+          disableDrag || openItems
+            ? undefined
+            : handleMouseDownResize(e, "right")
+        }
       >
         <MdDragHandle className="rotate-90" />
       </div>
