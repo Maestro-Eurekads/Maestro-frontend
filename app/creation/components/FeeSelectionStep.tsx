@@ -109,16 +109,18 @@ function FeeSelectionStep({
     budget = campaignFormData?.campaign_budget?.amount
   ) => {
     const budgetAmount = parseFloat(budget || "0");
+    console.log("🚀 ~ budgetAmount:", budgetAmount)
     const totalFees = feesList.reduce(
       (total, fee) => total + parseFloat(fee.amount || 0),
       0
     );
+    console.log("🚀 ~ totalFees:", active)
 
     let net;
-    if (active === 1) {
+    if (campaignFormData?.campaign_budget?.sub_budget_type === "gross") {
       // Gross budget: Net = Gross - Fees
       net = (budgetAmount - totalFees).toFixed(2);
-    } else if (active === 2) {
+    } else if (campaignFormData?.campaign_budget?.sub_budget_type === "net") {
       // Net budget: Net is the input amount
       net = budgetAmount.toFixed(2);
     } else {
@@ -357,12 +359,12 @@ function FeeSelectionStep({
                       setShowSelection(false);
                     }}
                     role="button"
-                    aria-label="Select Gross Media Budget (Channel Level)"
+                    aria-label="Select Gross Media Budget"
                   >
                     <div className="flex items-start gap-2">
                       <div>
                         <h3 className="font-semibold whitespace-nowrap text-[15px] leading-[175%] flex items-center text-[#061237]">
-                          Gross Media Budget (Channel Level)
+                          Gross Media Budget
                         </h3>
                       </div>
                     </div>
@@ -393,12 +395,12 @@ function FeeSelectionStep({
                       setShowSelection(false);
                     }}
                     role="button"
-                    aria-label="Select Net Media Budget (Adset Level)"
+                    aria-label="Select Net Media Budget"
                   >
                     <div className="flex items-start gap-2">
                       <div>
                         <h3 className="font-semibold whitespace-nowrap text-[15px] leading-[175%] flex items-center text-[#061237]">
-                          Net Media Budget (Adset Level)
+                          Net Media Budget
                         </h3>
                       </div>
                     </div>
@@ -417,8 +419,7 @@ function FeeSelectionStep({
               ) : (
                 <div className="mt-[24px] flex items-center gap-4">
                   <p className="text-[16px] font-semibold">
-                    Selected: {campaignFormData?.campaign_budget?.sub_budget_type} (
-                    {campaignFormData?.campaign_budget?.level} Level)
+                    Selected: {campaignFormData?.campaign_budget?.sub_budget_type}
                   </p>
                   <button
                     className="text-[14px] text-[#3175FF] font-semibold cursor-pointer"

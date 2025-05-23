@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import Image from "next/image"
 import toast from "react-hot-toast"
 import up from "../../../public/arrow-down.svg"
@@ -78,19 +78,77 @@ const ObjectiveSelection = () => {
 
   const { campaignFormData, setCampaignFormData, buyObj, buyType, setBuyObj, setBuyType } = useCampaigns()
 
+  // --- Track if this is the first time the user is seeing the current funnel_stages set ---
+  // We'll use a ref to persist the "seen" set of funnel_stages across reloads
+  const seenStagesRef = useRef(new Set())
+
+  // On mount, load seen stages from localStorage
+  useEffect(() => {
+    const seen = localStorage.getItem("seenFunnelStages")
+    if (seen) {
+      try {
+        seenStagesRef.current = new Set(JSON.parse(seen))
+      } catch {
+        seenStagesRef.current = new Set()
+      }
+    }
+  }, [])
+
+  // Whenever funnel_stages changes, add them to the seen set and persist
+  useEffect(() => {
+    if (campaignFormData?.funnel_stages) {
+      let changed = false
+      campaignFormData.funnel_stages.forEach((stage) => {
+        if (!seenStagesRef.current.has(stage)) {
+          seenStagesRef.current.add(stage)
+          changed = true
+        }
+      })
+      if (changed) {
+        localStorage.setItem("seenFunnelStages", JSON.stringify(Array.from(seenStagesRef.current)))
+      }
+    }
+  }, [campaignFormData?.funnel_stages])
+
   // Initialize statuses and sync selectedNetworks
   useEffect(() => {
     if (campaignFormData?.funnel_stages) {
-      // Clear previous localStorage statuses to avoid conflicts
-      localStorage.removeItem("funnelStageStatuses")
+      // Only clear statuses if this is the first time seeing these stages
+      // Otherwise, keep previous statuses (from localStorage or validatedStages)
+      let initialStatuses = {}
+      let shouldInit = false
 
-      // Initialize all stages as "Not Started"
-      const initialStatuses = {}
+      // Try to load from localStorage first
+      const storedStatuses = localStorage.getItem("funnelStageStatuses")
+      if (storedStatuses) {
+        try {
+          initialStatuses = JSON.parse(storedStatuses)
+        } catch {
+          initialStatuses = {}
+        }
+      }
+
+      // If a stage is not in localStorage, set to Not Started
       campaignFormData.funnel_stages.forEach((stage) => {
-        initialStatuses[stage] = "Not Started"
+        if (!(stage in initialStatuses)) {
+          initialStatuses[stage] = "Not Started"
+          shouldInit = true
+        }
       })
+
+      // If a stage is in validatedStages, always set to Completed
+      if (campaignFormData.validatedStages) {
+        Object.entries(campaignFormData.validatedStages).forEach(([stage, completed]) => {
+          if (completed) {
+            initialStatuses[stage] = "Completed"
+          }
+        })
+      }
+
       setStatuses(initialStatuses)
-      localStorage.setItem("funnelStageStatuses", JSON.stringify(initialStatuses))
+      if (shouldInit) {
+        localStorage.setItem("funnelStageStatuses", JSON.stringify(initialStatuses))
+      }
 
       // Sync selectedNetworks with channel_mix
       const channelMix = Array.isArray(campaignFormData?.channel_mix) ? campaignFormData.channel_mix : []
@@ -113,17 +171,21 @@ const ObjectiveSelection = () => {
       }, {})
       setSelectedNetworks((prev) => ({ ...prev, ...updatedNetworks }))
     }
-  }, [campaignFormData?.funnel_stages, campaignFormData?.channel_mix])
+  }, [campaignFormData?.funnel_stages, campaignFormData?.channel_mix, campaignFormData?.validatedStages])
 
   // Update statuses based on selectedOptions and validatedPlatforms
   useEffect(() => {
     if (campaignFormData?.funnel_stages) {
-      const updatedStatuses = {}
+      // Always prefer "Completed" if validatedStages or validatedPlatforms has it
+      const updatedStatuses = { ...statuses }
       campaignFormData.funnel_stages.forEach((stageName) => {
-        const hasValidated = validatedPlatforms[stageName]?.size > 0
+        // If validatedStages or validatedPlatforms has this stage, always "Completed"
+        const isValidated =
+          (campaignFormData.validatedStages && campaignFormData.validatedStages[stageName]) ||
+          (validatedPlatforms[stageName] && validatedPlatforms[stageName].size > 0)
         const hasSelected = hasCompleteSelection(stageName)
 
-        if (hasValidated) {
+        if (isValidated) {
           updatedStatuses[stageName] = "Completed"
         } else if (hasSelected) {
           updatedStatuses[stageName] = "In Progress"
@@ -134,7 +196,8 @@ const ObjectiveSelection = () => {
       setStatuses(updatedStatuses)
       localStorage.setItem("funnelStageStatuses", JSON.stringify(updatedStatuses))
     }
-  }, [selectedOptions, validatedPlatforms, campaignFormData?.funnel_stages])
+    // eslint-disable-next-line
+  }, [selectedOptions, validatedPlatforms, campaignFormData?.funnel_stages, campaignFormData?.validatedStages])
 
   // Persist selectedOptions to localStorage
   useEffect(() => {
@@ -183,6 +246,7 @@ const ObjectiveSelection = () => {
         })
     })
     setSelectedOptions((prev) => ({ ...prev, ...initialSelectedOptions }))
+    // eslint-disable-next-line
   }, [campaignFormData?.channel_mix])
 
   const toggleItem = (stage) => {
@@ -462,11 +526,13 @@ const ObjectiveSelection = () => {
                 )}
               </div>
             </div>
-            {/* Recap line below each stage */}
-            <div className="w-full px-6 py-2 bg-[#F5F7FA] border-x border-b border-[rgba(0,0,0,0.07)] text-sm text-[#061237] rounded-b-none rounded-t-none">
-              <span className="font-semibold">Recap: </span>
-              {getStageRecap(stageName)}
-            </div>
+            {/* Recap line below each stage - only show when collapsed */}
+            {!openItems[stage.name] && (
+              <div className="w-full px-6 py-2 bg-[#F5F7FA] border-x border-b border-[rgba(0,0,0,0.07)] text-sm text-[#061237] rounded-b-none rounded-t-none">
+                <span className="font-semibold">Recap: </span>
+                {getStageRecap(stageName)}
+              </div>
+            )}
             {openItems[stage.name] && (
               <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
                 {statuses[stageName] === "Completed" ? (
@@ -748,6 +814,10 @@ const ObjectiveSelection = () => {
                         setValidatedPlatforms((prev) => ({
                           ...prev,
                           [stageName]: new Set(),
+                        }))
+                        setCampaignFormData((prev) => ({
+                          ...prev,
+                          validatedStages: { ...prev.validatedStages, [stageName]: false },
                         }))
                       }}
                     />

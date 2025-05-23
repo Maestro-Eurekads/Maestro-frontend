@@ -591,8 +591,8 @@ const SelectChannelMix = () => {
                   </div>
                 )}
 
-                {/* Selected Platforms Row */}
-                {(selectedPlatforms.online.length > 0 || selectedPlatforms.offline.length > 0) && (
+                {/* Selected Platforms Row (recap) - only show when collapsed */}
+                {!openItems[stage.name] && (selectedPlatforms.online.length > 0 || selectedPlatforms.offline.length > 0) && (
                   <div className="flex flex-col gap-2 mt-2 pb-2">
                     {selectedPlatforms.online.length > 0 && (
                       <div>
@@ -611,6 +611,10 @@ const SelectChannelMix = () => {
                               <span className="text-sm text-blue-700">{platform}</span>
                             </div>
                           ))}
+                        </div>
+                        {/* Recap line for online */}
+                        <div className="mt-1 text-xs text-gray-500">
+                          {selectedPlatforms.online.length} online channel{selectedPlatforms.online.length !== 1 ? "s" : ""} selected
                         </div>
                       </div>
                     )}
@@ -631,6 +635,10 @@ const SelectChannelMix = () => {
                               <span className="text-sm text-green-700">{platform}</span>
                             </div>
                           ))}
+                        </div>
+                        {/* Recap line for offline */}
+                        <div className="mt-1 text-xs text-gray-500">
+                          {selectedPlatforms.offline.length} offline channel{selectedPlatforms.offline.length !== 1 ? "s" : ""} selected
                         </div>
                       </div>
                     )}
