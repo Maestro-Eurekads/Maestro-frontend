@@ -366,7 +366,7 @@ export const CellRenderer = ({
           disabled={isNR || goalLevel === "Adset level"}
           className={`cpm-bg border-none outline-none max-w-[90px] p-1 ${isNR ? "text-gray-400" : ""
             }`}
-          placeholder={body ? body?.toUpperCase() : "Insert value"}
+          placeholder={body === "budget_size" ? "BUDGET": body ? body?.toUpperCase() : "Insert value"}
         />
       )}
       <Ban
