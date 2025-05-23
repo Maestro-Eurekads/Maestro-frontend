@@ -776,7 +776,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         <AlertMain
           alert={{
             variant: "error",
-            message: "Please select at least one funnel stage!",
+            message: "Please select at least one stage!",
             position: "bottom-right",
           }}
         />
