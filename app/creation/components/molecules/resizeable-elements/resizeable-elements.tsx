@@ -36,7 +36,7 @@ interface OutletType {
   end_date: any;
 }
 
-const ResizeableElements = ({ funnelData, disableDrag, view }) => {
+const ResizeableElements = ({ funnelData, disableDrag }) => {
   const { funnelWidths } = useFunnelContext();
   const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({});
   const [isOpen, setIsOpen] = useState(false);

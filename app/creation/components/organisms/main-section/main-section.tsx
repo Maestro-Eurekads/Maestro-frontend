@@ -104,7 +104,7 @@ const MainSection = ({ hideDate, disableDrag, view }: { hideDate?: boolean, disa
                 <div className="absolute left-0 top-18 w-1 bg-orange-500 min-h-screen"></div>
               </div>
             </div>
-            <ResizeableElements funnelData={funnelsData} disableDrag={disableDrag} view={view} />
+            <ResizeableElements funnelData={funnelsData} disableDrag={disableDrag} />
           </div>
         </div>
       </div>
