@@ -12,6 +12,8 @@ import useCampaignHook from "app/utils/useCampaignHook";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import blueBtn from "../../../public/blueBtn.svg";
 import { useSession } from "next-auth/react";
+import { useUserPrivileges } from "utils/userPrivileges";
+import { toast } from "sonner";
 
 function FinanceView({ setOpenModal, userRole }) {
   const { data: session } = useSession();
@@ -26,6 +28,7 @@ function FinanceView({ setOpenModal, userRole }) {
   const itemsPerPage = 10; // Number of items per page
   const { fetchClientPOS } = useCampaignHook();
   const { clientPOs, setClientPOs, setFetchingPO } = useCampaigns();
+  const { isFinancialApprover } = useUserPrivileges();
 
   // Calculate paginated data with safety checks
   const totalItems = Array.isArray(clientPOs) ? clientPOs.length : 0;
@@ -87,13 +90,20 @@ function FinanceView({ setOpenModal, userRole }) {
     }
   };
 
+
+  ;
+
   return (
     <div className="px-[72px]">
       <div className="flex items-center gap-2 mt-[36.5px]">
         <h1 className="media_text">Purchase Order Library</h1>
-        <button onClick={() => setOpenModal(true)}>
-          <Image src={blueBtn} alt="menu" />
-        </button>
+        {isFinancialApprover ?
+          <button onClick={() => setOpenModal(true)}>
+            <Image src={blueBtn} alt="menu" />
+          </button> : <button onClick={() => toast.error("Only  Financial Approver can create PO")}>
+            <Image src={blueBtn} alt="menu" />
+          </button>}
+
       </div>
       <div className="mt-[20px]">
         {/* <FiltersDropdowns hideTitle={true}/> */}

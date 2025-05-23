@@ -15,6 +15,7 @@ import { useEditing } from "app/utils/EditingContext";
 import toast, { Toaster } from "react-hot-toast";
 import dayjs from "dayjs";
 import { selectCurrency } from "./Options";
+import { useUserPrivileges } from "utils/userPrivileges";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -56,6 +57,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const [hasFormatSelected, setHasFormatSelected] = useState(false);
+  const { isFinancialApprover, isAgencyApprover } = useUserPrivileges();
   const {
     createCampaign,
     updateCampaign,
@@ -72,6 +74,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     requiredFields,
     currencySign
   } = useCampaigns();
+
 
   // --- Persist format selection for active === 4 ---
   // We'll use a ref to track if the user has ever selected a format and continued from step 4
@@ -144,21 +147,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       setHasFormatSelected(false);
       // console.log("Reset formats for active === 4", { channel_mix: campaignFormData.channel_mix });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
   // Update hasFormatSelected and log state
   useEffect(() => {
     const isFormatSelected = validateFormatSelection();
     setHasFormatSelected(isFormatSelected);
-    // console.log({
-    //   active,
-    //   validateFormatSelection: isFormatSelected,
-    //   hasFormatSelected: isFormatSelected,
-    //   channel_mix: campaignFormData?.channel_mix,
-    //   funnel_stages: campaignFormData?.funnel_stages,
-    //   validatedStages: campaignFormData?.validatedStages
-    // });
   }, [active, campaignFormData]);
 
   useEffect(() => {
@@ -690,7 +685,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             : campaign_timeline_start_date,
         campaign_timeline_end_date: campaign_timeline_end_date === "Invalid Date"
           ? campaignFormData?.campaign_timeline_end_date
-            : campaign_timeline_end_date,
+          : campaign_timeline_end_date,
         funnel_stages: campaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
@@ -833,13 +828,20 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           </button>
         )}
         {active === 10 ? (
-          <button
-            className="bottom_black_next_btn hover:bg-blue-500"
-            onClick={() => setIsOpen(true)}
-          >
-            <p>Confirm</p>
-            <Image src={Continue} alt="Continue" />
-          </button>
+          isFinancialApprover || isAgencyApprover ?
+            <button
+              className="bottom_black_next_btn hover:bg-blue-500"
+              onClick={() => setIsOpen(true)}
+            >
+              <p>Confirm</p>
+              <Image src={Continue} alt="Continue" />
+            </button> : <button
+              className="bottom_black_next_btn hover:bg-blue-500"
+              onClick={() => toast.error("Role doesn't have permission!")}
+            >
+              <p>Confirm</p>
+              <Image src={Continue} alt="Continue" />
+            </button>
         ) : (
           <div className="flex justify-center items-center gap-3">
             <button
@@ -863,10 +865,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                     {active === 0
                       ? "Start"
                       : isHovered && active < 10
-                      ? "Next Step"
-                      : active === 4 && !hasFormatSelected
-                      ? "Skip"
-                      : "Continue"}
+                        ? "Next Step"
+                        : active === 4 && !hasFormatSelected
+                          ? "Skip"
+                          : "Continue"}
                   </p>
                   <Image src={Continue} alt="Continue" />
                 </>

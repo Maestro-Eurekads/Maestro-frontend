@@ -557,11 +557,20 @@ const selectCurrency = [
     sign: "C$",
   },
 ];
+
+
+function getFirstLetters(str) {
+  const words = str?.trim().split(/\s+/);
+  const first = words?.[0]?.[0] || '';
+  const second = words?.[1]?.[0] || '';
+  return (first + second).toUpperCase();
+}
 export {
   months,
   kpiCategories,
   categoryOrder,
   selectCurrency,
+  getFirstLetters,
   extractPlatforms,
   NoRecordFound,
   SVGLoaderFetch,

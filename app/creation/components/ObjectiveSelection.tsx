@@ -72,6 +72,10 @@ const ObjectiveSelection = () => {
   const [customValue, setCustomValue] = useState("")
   const [loading, setLoading] = useState(false)
 
+  // New: Search states for buy objectives and buy types
+  const [buyObjSearch, setBuyObjSearch] = useState("")
+  const [buyTypeSearch, setBuyTypeSearch] = useState("")
+
   const { campaignFormData, setCampaignFormData, buyObj, buyType, setBuyObj, setBuyType } = useCampaigns()
 
   // Initialize statuses and sync selectedNetworks
@@ -187,6 +191,9 @@ const ObjectiveSelection = () => {
 
   const toggleDropdown = (key) => {
     setDropdownOpen((prev) => (prev === key ? "" : key))
+    // Reset search fields when opening a dropdown
+    setBuyObjSearch("")
+    setBuyTypeSearch("")
   }
 
   const handleSelectOption = (platformName, option, category, stageName, dropDownName) => {
@@ -367,6 +374,52 @@ const ObjectiveSelection = () => {
     }
   }
 
+  // Filtered buyObj and buyType based on search
+  const filteredBuyObj = buyObj?.filter((option) =>
+    option?.text?.toLowerCase().includes(buyObjSearch.toLowerCase())
+  )
+  const filteredBuyType = buyType?.filter((option) =>
+    option?.text?.toLowerCase().includes(buyTypeSearch.toLowerCase())
+  )
+
+  // Recap line helper: returns a string summary of selections for a stage
+  const getStageRecap = (stageName) => {
+    // Find all platforms for this stage
+    const channelMix = Array.isArray(campaignFormData?.channel_mix) ? campaignFormData.channel_mix : []
+    const stageData = channelMix.find((ch) => ch.funnel_stage === stageName)
+    if (!stageData) return "No selections made yet."
+
+    const categories = [
+      "social_media",
+      "display_networks",
+      "search_engines",
+      "streaming",
+      "mobile",
+      "messaging",
+      "in_game",
+      "e_commerce",
+      "broadcast",
+      "print",
+      "ooh",
+    ]
+
+    let recapArr = []
+    categories.forEach((category) => {
+      const platforms = Array.isArray(stageData[category]) ? stageData[category] : []
+      platforms.forEach((platform) => {
+        const buyType = platform.buy_type || selectedOptions[`${stageName}-${category}-${platform.platform_name}-buy_type`]
+        const objectiveType = platform.objective_type || selectedOptions[`${stageName}-${category}-${platform.platform_name}-objective_type`]
+        if (buyType || objectiveType) {
+          recapArr.push(
+            `${platform.platform_name}: ${objectiveType || "No objective"}, ${buyType || "No buy type"}`
+          )
+        }
+      })
+    })
+    if (recapArr.length === 0) return "No selections made yet."
+    return recapArr.join(" | ")
+  }
+
   return (
     <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
       {campaignFormData?.funnel_stages?.map((stageName) => {
@@ -408,6 +461,11 @@ const ObjectiveSelection = () => {
                   <Image src={down2 || "/placeholder.svg"} alt="expand" />
                 )}
               </div>
+            </div>
+            {/* Recap line below each stage */}
+            <div className="w-full px-6 py-2 bg-[#F5F7FA] border-x border-b border-[rgba(0,0,0,0.07)] text-sm text-[#061237] rounded-b-none rounded-t-none">
+              <span className="font-semibold">Recap: </span>
+              {getStageRecap(stageName)}
             </div>
             {openItems[stage.name] && (
               <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">
@@ -504,11 +562,25 @@ const ObjectiveSelection = () => {
                                   {dropdownOpen === platformKey + "obj" && (
                                     <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
                                       <ul>
-                                        {buyObj?.map((option, i) => (
+                                        {/* Search input for buy objectives */}
+                                        <li className="px-2 py-2">
+                                          <input
+                                            type="text"
+                                            className="w-full p-2 border rounded-[5px] outline-none"
+                                            placeholder="Search objectives..."
+                                            value={buyObjSearch}
+                                            onChange={e => setBuyObjSearch(e.target.value)}
+                                            autoFocus
+                                          />
+                                        </li>
+                                        {filteredBuyObj?.length === 0 && (
+                                          <li className="px-4 py-2 text-gray-400">No objectives found</li>
+                                        )}
+                                        {filteredBuyObj?.map((option, i) => (
                                           <li
                                             key={`${platformKey}-objective-${i}`}
                                             className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                                            onClick={() =>
+                                            onClick={() => {
                                               handleSelectOption(
                                                 platform.platform_name,
                                                 option?.text,
@@ -516,7 +588,8 @@ const ObjectiveSelection = () => {
                                                 stage.name,
                                                 "objective_type",
                                               )
-                                            }
+                                              setBuyObjSearch("")
+                                            }}
                                           >
                                             {option?.text}
                                           </li>
@@ -567,11 +640,25 @@ const ObjectiveSelection = () => {
                                   {dropdownOpen === platformKey && (
                                     <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
                                       <ul>
-                                        {buyType.map((option, i) => (
+                                        {/* Search input for buy types */}
+                                        <li className="px-2 py-2">
+                                          <input
+                                            type="text"
+                                            className="w-full p-2 border rounded-[5px] outline-none"
+                                            placeholder="Search types..."
+                                            value={buyTypeSearch}
+                                            onChange={e => setBuyTypeSearch(e.target.value)}
+                                            autoFocus
+                                          />
+                                        </li>
+                                        {filteredBuyType?.length === 0 && (
+                                          <li className="px-4 py-2 text-gray-400">No types found</li>
+                                        )}
+                                        {filteredBuyType.map((option, i) => (
                                           <li
                                             key={`${platformKey}-type-${i}`}
                                             className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                                            onClick={() =>
+                                            onClick={() => {
                                               handleSelectOption(
                                                 platform.platform_name,
                                                 option?.text,
@@ -579,7 +666,8 @@ const ObjectiveSelection = () => {
                                                 stage.name,
                                                 "buy_type",
                                               )
-                                            }
+                                              setBuyTypeSearch("")
+                                            }}
                                           >
                                             {option?.text}
                                           </li>

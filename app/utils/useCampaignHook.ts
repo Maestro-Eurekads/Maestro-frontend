@@ -10,7 +10,7 @@ const useCampaignHook = () => {
   const [error, setError] = useState(null);
   const [allClients, setAllClients] = useState([]);
   const { data: session } = useSession();
-  console.log(session);
+ 
   // Fetch all clients
   const fetchAllClients = useCallback(async () => {
     setLoadingClients(true);

@@ -1,14 +1,5 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import Image, { type StaticImageData } from "next/image";
-import speaker from "../../../public/mdi_megaphone.svg";
-import zoom from "../../../public/tabler_zoom-filled.svg";
-import credit from "../../../public/mdi_credit-card.svg";
-import addPlus from "../../../public/addPlus.svg";
-import speakerWhite from "../../../public/mdi_megaphonewhite.svg";
-import zoomWhite from "../../../public/tabler_zoom-filledwhite.svg";
-import creditWhite from "../../../public/mdi_credit-cardwhite.svg";
-import addPlusWhite from "../../../public/addPlusWhite.svg";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import { useVerification } from "app/utils/VerificationContext";
@@ -21,8 +12,6 @@ interface Funnel {
   id: string;
   name: string;
   color: string;
-  icon?: StaticImageData;
-  activeIcon?: StaticImageData;
 }
 
 // Color palette for dynamic assignment
@@ -47,8 +36,9 @@ const MapFunnelStages = () => {
   const { setIsDrawerOpen, setClose } = useComments();
   const { verifyStep, setHasChanges } = useVerification();
   const [previousValidationState, setPreviousValidationState] = useState<boolean | null>(null);
-  const [selectedOption, setSelectedOption] = useState<string>("custom");
+  const [selectedOption, setSelectedOption] = useState<string>("");
   const [customFunnels, setCustomFunnels] = useState<Funnel[]>([]);
+  const [persistentCustomFunnels, setPersistentCustomFunnels] = useState<Funnel[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
   const [currentFunnel, setCurrentFunnel] = useState<Funnel | null>(null);
@@ -57,85 +47,31 @@ const MapFunnelStages = () => {
 
   // Default funnel stages for Custom option
   const defaultFunnels: Funnel[] = [
-    {
-      id: "Awareness",
-      name: "Awareness",
-      icon: speaker,
-      activeIcon: speakerWhite,
-      color: colorPalette[0],
-    },
-    {
-      id: "Consideration",
-      name: "Consideration",
-      icon: zoom,
-      activeIcon: zoomWhite,
-      color: colorPalette[1],
-    },
-    {
-      id: "Conversion",
-      name: "Conversion",
-      icon: credit,
-      activeIcon: creditWhite,
-      color: colorPalette[2],
-    },
-    {
-      id: "Loyalty",
-      name: "Loyalty",
-      icon: addPlus,
-      activeIcon: addPlusWhite,
-      color: colorPalette[3],
-    },
+    { id: "Awareness", name: "Awareness", color: colorPalette[0] },
+    { id: "Consideration", name: "Consideration", color: colorPalette[1] },
+    { id: "Conversion", name: "Conversion", color: colorPalette[2] },
+    { id: "Loyalty", name: "Loyalty", color: colorPalette[3] },
   ];
 
   // Funnel stages for Targeting-Retargeting option
   const targetingRetargetingFunnels: Funnel[] = [
-    {
-      id: "Targeting",
-      name: "Targeting",
-      icon: zoom,
-      activeIcon: zoomWhite,
-      color: colorPalette[0],
-    },
-    {
-      id: "Retargeting",
-      name: "Retargeting",
-      icon: credit,
-      activeIcon: creditWhite,
-      color: colorPalette[1],
-    },
+    { id: "Targeting", name: "Targeting", color: colorPalette[0] },
+    { id: "Retargeting", name: "Retargeting", color: colorPalette[1] },
   ];
 
   // Store selections for each option type
   const [savedSelections, setSavedSelections] = useState<{
     custom: {
-      custom_funnels: Funnel[];
       funnel_stages: string[];
       channel_mix: { funnel_stage: string }[];
     };
     targeting_retargeting: {
-      custom_funnels: Funnel[];
       funnel_stages: string[];
       channel_mix: { funnel_stage: string }[];
     };
   }>({
-    custom: {
-      custom_funnels: defaultFunnels,
-      funnel_stages: ["Awareness", "Consideration", "Conversion", "Loyalty"],
-      channel_mix: [
-        { funnel_stage: "Awareness" },
-        { funnel_stage: "Consideration" },
-        { funnel_stage: "Conversion" },
-        { funnel_stage: "Loyalty" },
-      ],
-    },
-    targeting_retargeting: {
-      custom_funnels: targetingRetargetingFunnels,
-      funnel_stages: ["Targeting", "Retargeting"],
-      channel_mix: [
-        { funnel_stage: "Targeting" },
-        { funnel_stage: "Retargeting" },
-      ],
-    },
+    custom: { funnel_stages: [], channel_mix: [] },
+    targeting_retargeting: { funnel_stages: [], channel_mix: [] },
   });
 
   // Initialize comments drawer
@@ -157,100 +93,116 @@ const MapFunnelStages = () => {
 
   // Initialize funnel data from campaignData
   useEffect(() => {
-    const initialOption = campaignData?.funnel_type || "custom";
-    setSelectedOption(initialOption);
+    // Check if campaignData.custom_funnels contains Targeting/Retargeting
+    const isTargetingRetargeting = campaignData?.custom_funnels?.every((funnel: any) =>
+      ["Targeting", "Retargeting"].includes(funnel.name)
+    );
 
-    const loadedFunnels =
-      campaignData?.custom_funnels && campaignData.custom_funnels.length > 0
-        ? campaignData.custom_funnels.map((funnel: any, index: number) => {
-            const defaultFunnel = defaultFunnels.find(
-              (df) => df.id === funnel.id && df.name === funnel.name
-            );
-            return {
-              id: funnel.id,
-              name: funnel.name,
-              color:
-                funnel.color ||
-                colorPalette[index % colorPalette.length] ||
-                "bg-gray-500",
-              icon: defaultFunnel ? defaultFunnel.icon : funnel.icon,
-              activeIcon: defaultFunnel
-                ? defaultFunnel.activeIcon
-                : funnel.activeIcon,
-            };
-          })
-        : defaultFunnels;
+    // Load custom funnels from campaignData, preserving order
+    let loadedCustomFunnels: Funnel[] = [];
+    if (
+      campaignData?.custom_funnels &&
+      campaignData.custom_funnels.length > 0 &&
+      !isTargetingRetargeting
+    ) {
+      loadedCustomFunnels = campaignData.custom_funnels.map((funnel: any, index: number) => ({
+        id: funnel.id || funnel.name,
+        name: funnel.name,
+        color: funnel.color || colorPalette[index % colorPalette.length] || "bg-gray-500",
+      }));
+    } else {
+      loadedCustomFunnels = defaultFunnels;
+    }
 
+    // Set persistent custom funnels to maintain order
+    setPersistentCustomFunnels(loadedCustomFunnels);
+
+    // Restore saved state from campaignData
+    const initialFunnelType = campaignData?.funnel_type || "";
     const initialFunnelStages =
       campaignData?.funnel_stages && campaignData.funnel_stages.length > 0
         ? campaignData.funnel_stages
-        : defaultFunnels.map((f) => f.name);
-
+        : [];
     const initialChannelMix =
       campaignData?.channel_mix && campaignData.channel_mix.length > 0
         ? campaignData.channel_mix
-        : defaultFunnels.map((f) => ({ funnel_stage: f.name }));
+        : [];
 
-    if (initialOption === "targeting_retargeting") {
+    setSelectedOption(initialFunnelType);
+
+    if (initialFunnelType === "targeting_retargeting") {
       setCustomFunnels(targetingRetargetingFunnels);
-      setCampaignFormData((prev: any) => ({
-        ...prev,
-        funnel_type: "targeting_retargeting",
-        custom_funnels: targetingRetargetingFunnels,
-        funnel_stages: ["Targeting", "Retargeting"],
-        channel_mix: [
-          { funnel_stage: "Targeting" },
-          { funnel_stage: "Retargeting" },
-        ],
-      }));
       setSavedSelections((prev) => ({
         ...prev,
         targeting_retargeting: {
-          custom_funnels: targetingRetargetingFunnels,
-          funnel_stages: ["Targeting", "Retargeting"],
-          channel_mix: [
-            { funnel_stage: "Targeting" },
-            { funnel_stage: "Retargeting" },
-          ],
-        },
-        custom: {
-          custom_funnels: loadedFunnels,
           funnel_stages: initialFunnelStages,
           channel_mix: initialChannelMix,
         },
       }));
-    } else {
-      setCustomFunnels(loadedFunnels);
-      setCampaignFormData((prev: any) => ({
-        ...prev,
-        funnel_type: "custom",
-        custom_funnels: loadedFunnels,
-        funnel_stages: initialFunnelStages,
-        channel_mix: initialChannelMix,
-      }));
+    } else if (initialFunnelType === "custom") {
+      setCustomFunnels(loadedCustomFunnels);
       setSavedSelections((prev) => ({
         ...prev,
         custom: {
-          custom_funnels: loadedFunnels,
           funnel_stages: initialFunnelStages,
           channel_mix: initialChannelMix,
         },
       }));
     }
 
-    // Debugging log (commented out)
-    // console.log("Initialized with option:", initialOption, "Funnels:", loadedFunnels);
+    // Update campaignFormData with restored values, ensuring funnel_stages order matches loadedCustomFunnels
+    setCampaignFormData((prev: any) => {
+      const orderedFunnelStages =
+        initialFunnelType === "custom" && initialFunnelStages.length > 0
+          ? loadedCustomFunnels
+              .map((f) => f.name)
+              .filter((name) => initialFunnelStages.includes(name))
+          : initialFunnelStages;
+      const orderedChannelMix =
+        initialFunnelType === "custom" && initialChannelMix.length > 0
+          ? loadedCustomFunnels
+              .map((f) => initialChannelMix.find((ch: any) => ch.funnel_stage === f.name))
+              .filter((ch): ch is { funnel_stage: string } => ch !== undefined)
+          : initialChannelMix;
+
+      return {
+        ...prev,
+        funnel_type: initialFunnelType,
+        funnel_stages: orderedFunnelStages,
+        channel_mix: orderedChannelMix,
+        custom_funnels: loadedCustomFunnels,
+      };
+    });
   }, [campaignData, setCampaignFormData]);
+
+  // Handle clicks outside modal to close it
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
+        setIsModalOpen(false);
+      }
+    }
+
+    if (isModalOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isModalOpen]);
 
   // Get an available color from the palette
   const getAvailableColor = (excludeColor?: string): string => {
-    const usedColors = customFunnels
+    const usedColors = persistentCustomFunnels
       .filter((f) => f.color !== excludeColor)
       .map((f) => f.color);
     const availableColors = colorPalette.filter((c) => !usedColors.includes(c));
     return availableColors.length > 0
       ? availableColors[0]
-      : colorPalette[customFunnels.length % colorPalette.length];
+      : colorPalette[persistentCustomFunnels.length % colorPalette.length];
   };
 
   // Handle funnel selection
@@ -275,74 +227,98 @@ const MapFunnelStages = () => {
       ? campaignFormData.channel_mix.filter((ch: any) => ch?.funnel_stage !== id)
       : [...(campaignFormData?.channel_mix || []), { funnel_stage: id }];
 
+    // Ensure funnel_stages order matches persistentCustomFunnels when adding a new stage
+    const orderedFunnelStages = selectedOption === "custom"
+      ? persistentCustomFunnels
+          .map((f) => f.name)
+          .filter((name) => newFunnelStages.includes(name))
+      : newFunnelStages;
+
+    // Ensure channel_mix order matches persistentCustomFunnels
+    const orderedChannelMix = selectedOption === "custom"
+      ? persistentCustomFunnels
+          .map((f) => newChannelMix.find((ch: any) => ch.funnel_stage === f.name))
+          .filter((ch): ch is { funnel_stage: string } => ch !== undefined)
+      : newChannelMix;
+
     setCampaignFormData((prev: any) => ({
       ...prev,
-      funnel_stages: newFunnelStages,
-      channel_mix: newChannelMix,
+      funnel_stages: orderedFunnelStages,
+      channel_mix: orderedChannelMix,
     }));
 
     setSavedSelections((prev) => ({
       ...prev,
       [selectedOption]: {
-        ...prev[selectedOption],
-        funnel_stages: newFunnelStages,
-        channel_mix: newChannelMix,
+        funnel_stages: orderedFunnelStages,
+        channel_mix: orderedChannelMix,
       },
     }));
     setHasChanges(true);
-
-    // Debugging log (commented out)
-    // console.log("Selected funnel:", id, "New stages:", newFunnelStages);
   };
 
   // Handle option change (Custom vs Targeting-Retargeting)
   const handleOptionChange = (option: string) => {
-    // Save current state before switching
-    setSavedSelections((prev) => ({
-      ...prev,
-      [selectedOption]: {
-        custom_funnels: customFunnels,
-        funnel_stages: campaignFormData?.funnel_stages || [],
-        channel_mix: campaignFormData?.channel_mix || [],
-      },
-    }));
+    // Save current funnel_stages and channel_mix
+    if (selectedOption) {
+      setSavedSelections((prev) => ({
+        ...prev,
+        [selectedOption]: {
+          funnel_stages: campaignFormData?.funnel_stages || [],
+          channel_mix: campaignFormData?.channel_mix || [],
+        },
+      }));
+    }
 
     setSelectedOption(option);
 
     if (option === "targeting_retargeting") {
       setCustomFunnels(targetingRetargetingFunnels);
+      
+      // Initialize with both stages selected by default for targeting-retargeting
+      const defaultStages = ["Targeting", "Retargeting"];
+      const defaultChannelMix = defaultStages.map(stage => ({ funnel_stage: stage }));
+      
       setCampaignFormData((prev: any) => ({
         ...prev,
         funnel_type: "targeting_retargeting",
+        funnel_stages: savedSelections.targeting_retargeting.funnel_stages.length > 0
+          ? savedSelections.targeting_retargeting.funnel_stages
+          : defaultStages,
+        channel_mix: savedSelections.targeting_retargeting.channel_mix.length > 0
+          ? savedSelections.targeting_retargeting.channel_mix
+          : defaultChannelMix,
         custom_funnels: targetingRetargetingFunnels,
-        funnel_stages: savedSelections.targeting_retargeting.funnel_stages,
-        channel_mix: savedSelections.targeting_retargeting.channel_mix,
       }));
     } else {
       const restoredFunnels =
-        savedSelections.custom.custom_funnels.length > 0
-          ? savedSelections.custom.custom_funnels
-          : defaultFunnels;
+        persistentCustomFunnels.length > 0 ? persistentCustomFunnels : defaultFunnels;
       setCustomFunnels(restoredFunnels);
-      setCampaignFormData((prev: any) => ({
-        ...prev,
-        funnel_type: "custom",
-        custom_funnels: restoredFunnels,
-        funnel_stages:
+      setCampaignFormData((prev: any) => {
+        const funnelStages =
           savedSelections.custom.funnel_stages.length > 0
-            ? savedSelections.custom.funnel_stages
-            : restoredFunnels.map((f) => f.name),
-        channel_mix:
+            ? restoredFunnels
+                .map((f) => f.name)
+                .filter((name) => savedSelections.custom.funnel_stages.includes(name))
+            : restoredFunnels.map((f) => f.name);
+        const channelMix =
           savedSelections.custom.channel_mix.length > 0
-            ? savedSelections.custom.channel_mix
-            : restoredFunnels.map((f) => ({ funnel_stage: f.name })),
-      }));
+            ? restoredFunnels
+                .map((f) => savedSelections.custom.channel_mix.find((ch: any) => ch.funnel_stage === f.name))
+                .filter((ch): ch is { funnel_stage: string } => ch !== undefined)
+            : restoredFunnels.map((f) => ({ funnel_stage: f.name }));
+
+        return {
+          ...prev,
+          funnel_type: "custom",
+          custom_funnels: restoredFunnels,
+          funnel_stages: funnelStages,
+          channel_mix: channelMix,
+        };
+      });
     }
 
     setHasChanges(true);
-
-    // Debugging log (commented out)
-    // console.log("Switched to option:", option, "Funnels:", option === "custom" ? savedSelections.custom.custom_funnels : targetingRetargetingFunnels);
   };
 
   // Add a new funnel
@@ -369,7 +345,7 @@ const MapFunnelStages = () => {
       return;
     }
     if (
-      customFunnels.some(
+      persistentCustomFunnels.some(
         (funnel) => funnel.name.toLowerCase() === name.toLowerCase()
       )
     ) {
@@ -387,7 +363,8 @@ const MapFunnelStages = () => {
       color: newColor,
     };
 
-    const updatedFunnels = [...customFunnels, newFunnel];
+    const updatedFunnels = [...persistentCustomFunnels, newFunnel];
+    setPersistentCustomFunnels(updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
     setCampaignFormData((prev: any) => ({
@@ -400,7 +377,6 @@ const MapFunnelStages = () => {
     setSavedSelections((prev) => ({
       ...prev,
       custom: {
-        custom_funnels: updatedFunnels,
         funnel_stages: [...(prev.custom.funnel_stages || []), name],
         channel_mix: [...(prev.custom.channel_mix || []), { funnel_stage: name }],
       },
@@ -408,9 +384,6 @@ const MapFunnelStages = () => {
 
     setHasChanges(true);
     toast.success("Funnel added successfully", { duration: 3000 });
-
-    // Debugging log (commented out)
-    // console.log("Added funnel:", name, "New funnels:", updatedFunnels);
   };
 
   // Edit an existing funnel
@@ -423,7 +396,7 @@ const MapFunnelStages = () => {
       return;
     }
     if (
-      customFunnels.some(
+      persistentCustomFunnels.some(
         (funnel) =>
           funnel.name.toLowerCase() === newName.toLowerCase() &&
           funnel.name !== oldId
@@ -436,21 +409,18 @@ const MapFunnelStages = () => {
       return;
     }
 
-    const updatedFunnels = customFunnels.map((f) =>
+    const updatedFunnels = persistentCustomFunnels.map((f) =>
       f.name === oldId
         ? {
             ...f,
             id: newName,
             name: newName,
-            icon: defaultFunnels.find((df) => df.name === newName)?.icon || f.icon,
-            activeIcon:
-              defaultFunnels.find((df) => df.name === newName)?.activeIcon ||
-              f.activeIcon,
             color: f.color,
           }
         : f
     );
 
+    setPersistentCustomFunnels(updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
     setCampaignFormData((prev: any) => ({
@@ -467,7 +437,6 @@ const MapFunnelStages = () => {
     setSavedSelections((prev) => ({
       ...prev,
       custom: {
-        custom_funnels: updatedFunnels,
         funnel_stages: prev.custom.funnel_stages.map((stage: string) =>
           stage === oldId ? newName : stage
         ),
@@ -479,14 +448,11 @@ const MapFunnelStages = () => {
 
     setHasChanges(true);
     toast.success("Funnel updated successfully", { duration: 3000 });
-
-    // Debugging log (commented out)
-    // console.log("Edited funnel from", oldId, "to", newName);
   };
 
   // Remove a funnel
   const handleRemoveFunnel = (id: string) => {
-    if (customFunnels.length <= 1) {
+    if (persistentCustomFunnels.length <= 1) {
       toast.error("You must have at least one funnel stage", {
         style: { background: "red", color: "white", textAlign: "center" },
         duration: 3000,
@@ -494,7 +460,8 @@ const MapFunnelStages = () => {
       return;
     }
 
-    const updatedFunnels = customFunnels.filter((f) => f.name !== id);
+    const updatedFunnels = persistentCustomFunnels.filter((f) => f.name !== id);
+    setPersistentCustomFunnels(updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
     setCampaignFormData((prev: any) => ({
@@ -507,7 +474,6 @@ const MapFunnelStages = () => {
     setSavedSelections((prev) => ({
       ...prev,
       custom: {
-        custom_funnels: updatedFunnels,
         funnel_stages: prev.custom.funnel_stages.filter((stage: string) => stage !== id),
         channel_mix: prev.custom.channel_mix.filter((ch: any) => ch?.funnel_stage !== id),
       },
@@ -515,14 +481,10 @@ const MapFunnelStages = () => {
 
     setHasChanges(true);
     toast.success("Funnel removed successfully", { duration: 3000 });
-
-    // Debugging log (commented out)
-    // console.log("Removed funnel:", id);
   };
 
   return (
     <div>
-      <Toaster />
       <div className="flex items-center justify-between">
         <PageHeaderWrapper
           className="text-[22px]"
@@ -565,14 +527,7 @@ const MapFunnelStages = () => {
                   } rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200`}
                   onClick={() => handleSelect(funnel.name)}
                 >
-                  {funnel.icon && funnel.activeIcon && (
-                    <Image
-                      src={isSelected ? funnel.activeIcon : funnel.icon}
-                      alt={`${funnel.name} icon`}
-                      width={24}
-                      height={24}
-                    />
-                  )}
+                  <div className="w-6 h-6" />
                   <p className="text-[16px]">{funnel.name}</p>
                 </button>
               </div>
@@ -598,16 +553,7 @@ const MapFunnelStages = () => {
                   }`}
                   onClick={() => handleSelect(funnel.name)}
                 >
-                  {funnel.icon && funnel.activeIcon ? (
-                    <Image
-                      src={isSelected ? funnel.activeIcon : funnel.icon}
-                      alt={`${funnel.name} icon`}
-                      width={24}
-                      height={24}
-                    />
-                  ) : (
-                    <div className="w-6 h-6" />
-                  )}
+                  <div className="w-6 h-6" />
                   <p className="text-[16px]">{funnel.name}</p>
                 </button>
                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">

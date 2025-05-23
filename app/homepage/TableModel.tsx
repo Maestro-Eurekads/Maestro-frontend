@@ -40,7 +40,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
 
-  console.log('profile-user-user', user)
+  // console.log('profile-user-user', user)
 
   //  Automatically reset alert after showing
   useEffect(() => {
@@ -342,10 +342,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     setEmailList([]);
   };
 
-  const userTypes = ["agency_creator", "agency_approver", "client_approver", "financial_approver"];
-
-
-
+  const userTypes = ["agency_creator", "agency_approver", "financial_approver"];
 
   useEffect(() => {
     if (isOpen) {
@@ -356,8 +353,11 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   }, [isOpen]);
 
   const options = user?.map(user => user?.username);
-  const option = user?.filter(user => user?.user_type !== "agency_creator")
-    .map(user => user.username);
+  const excludedTypes = ["agency_creator"];
+
+  const option = user
+    ?.filter(user => !excludedTypes.includes(user?.user_type))
+    .map(user => user?.username);
 
   return (
     <div className="z-50">
@@ -482,7 +482,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
               <div className="w-full">
                 <ResponsibleApproverDropdowns
-                  right={true}
+                  right={false}
                   setInputs={setInputs}
                   options={!options ? [] : options}
                   option={!option ? [] : option}

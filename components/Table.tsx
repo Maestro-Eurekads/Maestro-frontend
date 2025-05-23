@@ -444,7 +444,7 @@ import line from "../public/ri-file-copy-line.svg";
 import ProgressBar from "./ProgressBar";
 import { useCampaigns } from "../app/utils/CampaignsContext";
 import { useRouter } from "next/navigation";
-import { NoRecordFound, SVGLoaderFetch } from "./Options";
+import { getFirstLetters, NoRecordFound, SVGLoaderFetch } from "./Options";
 import { useCampaignSelection } from "../app/utils/CampaignSelectionContext";
 import { useEffect, useState } from "react";
 import Modal from "./Modals/Modal";
@@ -457,6 +457,7 @@ import { getCurrencySymbol } from "./data";
 import { useSession } from "next-auth/react";
 
 interface Campaign {
+  isApprove: any;
   id: string;
   documentId: string;
   media_plan_details: {
@@ -466,6 +467,10 @@ interface Campaign {
   };
   budget_details: {
     value: number;
+    currency: string;
+  };
+  campaign_budget?: {
+    amount: number;
     currency: string;
   };
   progress_percent: number;
@@ -596,6 +601,9 @@ const Table = () => {
   };
 
 
+  console.log('clientCampaignData-clientCampaignData', clientCampaignData)
+
+
 
   return (
     <div className="flex flex-col">
@@ -661,13 +669,26 @@ const Table = () => {
                       <ProgressBar progress={data?.progress_percent || 0} />
                     </td>
                     <td className="py-[12px] px-[16px]">
-                      <div className="approved">Approved</div>
+                      <div className={data?.isApprove ? "approved" : "Not_Approved"}>
+                        {data?.isApprove ? "Approved" : "Not Approved"}</div>
                     </td>
                     <td className="py-[12px] px-[16px]">
-                      {data?.budget_details?.value || "N/A"}{" "}
-                      {data?.budget_details?.currency && !data?.budget_details?.currency.includes("%")
-                        ? getCurrencySymbol(data?.budget_details?.currency)
-                        : ""}
+                      <div className="flex felx-row  gap-1">
+                        <div>
+                          {data?.campaign_budget
+                            ?.amount || "N/A"}{" "}
+                        </div>
+                        <div>
+                          {data?.campaign_budget?.currency
+                            && !data?.campaign_budget
+                              ?.currency.includes("%")
+                            ? getCurrencySymbol(data?.campaign_budget
+                              ?.currency)
+                            : ""}
+                        </div>
+                      </div>
+
+
                     </td>
                     <td className="py-[12px] px-[16px]">
                       {POs.length > 0 ? (
@@ -697,13 +718,15 @@ const Table = () => {
                     </td>
                     <td className="py-[12px] px-[16px]">
                       <div className="flex items-center whitespace-nowrap gap-3">
-                        <div className="view_content_table">MD</div>
+                        <div className="view_content_table">
+                          {getFirstLetters(data?.media_plan_details?.client_approver || "-")}
+                        </div>
                         {data?.media_plan_details?.client_approver || "N/A"}
                       </div>
                     </td>
                     <td className="py-[12px] px-[16px]">
                       <div className="flex items-center whitespace-nowrap gap-3">
-                        <div className="view_content_table">JB</div>
+                        <div className="view_content_table">{getFirstLetters(data?.media_plan_details?.client_approver || "-")}</div>
                         <p>{data?.media_plan_details?.internal_approver || "N/A"}</p>
                       </div>
                     </td>

@@ -1,20 +1,15 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import { Title } from "../../../components/Title";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import ClientSelection from "../../../components/ClientSelection";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import ClientSelectionInput from "../../../components/ClientSelectionInput";
-import Checkbox from "../../../components/Checkbox";
-import { removeKeysRecursively } from "utils/removeID";
 import AlertMain from "components/Alert/AlertMain";
-import { SVGLoader } from "components/SVGLoader";
 import {
   useVerification,
   validationRules,
 } from "app/utils/VerificationContext";
-import ClientSelectionInputbudget from "components/ClientSelectionInputbudget";
 import { useComments } from "app/utils/CommentProvider";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { useRouter } from "next/navigation";
@@ -32,8 +27,6 @@ export const SetupScreen = () => {
     getActiveCampaign,
     setCampaignFormData,
     profile,
-    isStepZeroValid,
-    setIsStepZeroValid,
     setRequiredFields,
     setCurrencySign,
     getUserByUserType,
@@ -52,15 +45,12 @@ export const SetupScreen = () => {
   const [level3Options, setlevel3Options] = useState([]);
 
   const [alert, setAlert] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const { setIsDrawerOpen, setClose } = useComments();
   const {
     verifyStep,
     verifybeforeMove,
     setverifybeforeMove,
-    setHasChanges,
-    hasChanges,
   } = useVerification();
   const { isAgencyCreator, isAgencyApprover, isFinancialApprover } = useUserPrivileges();
 
@@ -75,14 +65,9 @@ export const SetupScreen = () => {
     setClose(false);
   }, []);
 
-  // console.log('user-user', user)
 
-  const userTypes = ["agency_creator", "agency_approver", "client_approver", "client_creator"];
 
-  const handleGetUserByUserType = () => {
-    getUserByUserType(userTypes);
 
-  };
 
   // Load saved form data from localStorage on mount
   useEffect(() => {
@@ -155,8 +140,6 @@ export const SetupScreen = () => {
 
 
   useEffect(() => {
-
-
     if (isAgencyCreator || isAgencyApprover || isFinancialApprover) {
       if (profile?.clients) {
         const options = profile?.clients?.map((c) => ({
@@ -184,7 +167,7 @@ export const SetupScreen = () => {
     const client = allClients.find(
       (c) => c?.documentId === client_selection?.id
     );
-    console.log('user-clientOptions', client)
+    // console.log('user-clientOptions', client)
     setApprovalOptions(() => {
       const options = client?.approver?.map((l) => ({
         value: l,
@@ -226,23 +209,8 @@ export const SetupScreen = () => {
     }));
   }, [client_selection, allClients, setCampaignFormData]);
 
-  const getInputValue = () => {
-    if (campaignFormData?.budget_details_fee_type?.id === "Fix budget fee") {
-      return "Enter amount";
-    }
 
-    if (campaignFormData?.budget_details_fee_type?.id === "Tooling") {
-      if (selectedOption === "fix-amount") {
-        return "Enter amount";
-      } else if (selectedOption === "percentage") {
-        return "Enter percentage";
-      }
-    }
-
-    return "";
-  };
-
-
+  console.log('approvalOptions-approvalOptions', approvalOptions)
 
   // Updated useEffect to handle currencySign dynamically
   useEffect(() => {
@@ -271,103 +239,6 @@ export const SetupScreen = () => {
   ]);
 
 
-  //   setLoading(true);
-  //   try {
-  //     if (!isStepZeroValid) {
-  //       setAlert({
-  //         variant: "error",
-  //         message: "Please complete all required fields before proceeding.",
-  //         position: "bottom-right",
-  //       });
-  //       setLoading(false);
-  //       return;
-  //     }
-
-  //     const budgetDetails = {
-  //       currency: campaignFormData?.budget_details_currency?.id,
-  //       fee_type: campaignFormData?.budget_details_fee_type?.id,
-  //       sub_fee_type: selectedOption,
-  //       value: campaignFormData?.budget_details_value,
-  //     };
-
-  //     if (cId && campaignData) {
-  //       const updatedData = {
-  //         ...removeKeysRecursively(campaignData, [
-  //           "id",
-  //           "documentId",
-  //           "createdAt",
-  //           "publishedAt",
-  //           "updatedAt",
-  //           "_aggregated"
-  //         ]),
-  //         client: campaignFormData?.client_selection?.id,
-  //         client_selection: {
-  //           client: campaignFormData?.client_selection?.value,
-  //           level_1: campaignFormData?.level_1?.id,
-  //           level_2: campaignFormData?.level_2?.id,
-  //           level_3: campaignFormData?.level_3?.id,
-  //         },
-  //         media_plan_details: {
-  //           plan_name: campaignFormData?.media_plan,
-  //           internal_approver: campaignFormData?.approver,
-  //           client_approver: campaignFormData?.client_approver,
-  //         },
-  //         budget_details: budgetDetails,
-  //       };
-
-  //       await updateCampaign(updatedData);
-
-  //       setCampaignFormData((prev) => ({
-  //         ...prev,
-  //         budget_details_currency: {
-  //           id: budgetDetails.currency,
-  //           value: budgetDetails.currency,
-  //           label:
-  //             selectCurrency.find((c) => c.value === budgetDetails.currency)
-  //               ?.label || budgetDetails.currency,
-  //         },
-  //       }));
-
-  //       setAlert({
-  //         variant: "success",
-  //         message: "Campaign updated successfully!",
-  //         position: "bottom-right",
-  //       });
-  //     } else {
-  //       const res = await createCampaign();
-  //       const url = new URL(window.location.href);
-  //       url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
-  //       window.history.pushState({}, "", url.toString());
-  //       await getActiveCampaign(res?.data?.data.documentId);
-
-  //       setCampaignFormData((prev) => ({
-  //         ...prev,
-  //         budget_details_currency: {
-  //           id: budgetDetails.currency,
-  //           value: budgetDetails.currency,
-  //           label:
-  //             selectCurrency.find((c) => c.value === budgetDetails.currency)
-  //               ?.label || budgetDetails.currency,
-  //         },
-  //       }));
-
-  //       setAlert({
-  //         variant: "success",
-  //         message: "Campaign created successfully!",
-  //         position: "bottom-right",
-  //       });
-  //     }
-  //     setHasChanges(false);
-  //   } catch (error) {
-  //     setAlert({
-  //       variant: "error",
-  //       message: "Something went wrong. Please try again.",
-  //       position: "bottom-right",
-  //     });
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
 
 
@@ -415,7 +286,6 @@ export const SetupScreen = () => {
             options={clientOptions}
             label={"Select Client"}
             formId="client_selection"
-            setHasChanges={setHasChanges}
           />
         </div>
         <div className="flex items-center flex-wrap gap-4 pb-12">
@@ -427,7 +297,6 @@ export const SetupScreen = () => {
                 : "Business Level 1"
             }
             formId="level_1"
-            setHasChanges={setHasChanges}
           />
           <ClientSelection
             options={level2Options?.slice(1)}
@@ -437,7 +306,6 @@ export const SetupScreen = () => {
                 : "Business Level 2"
             }
             formId="level_2"
-            setHasChanges={setHasChanges}
           />
           <ClientSelection
             options={level3Options?.slice(1)}
@@ -447,7 +315,6 @@ export const SetupScreen = () => {
                 : "Business Level 3"
             }
             formId="level_3"
-            setHasChanges={setHasChanges}
           />
         </div>
         <div className="pb-12">
@@ -456,29 +323,24 @@ export const SetupScreen = () => {
             <ClientSelectionInput
               label={"Enter media plan name"}
               formId="media_plan"
-              setHasChanges={setHasChanges}
             />
             <InternalApproverSelection
               options={approvalOptions}
               label={"Internal Approver"}
               formId="approver"
-              setHasChanges={setHasChanges}
             />
             <ClientSelection
               options={clientapprovalOptions}
               label={"Client Approver"}
               formId="client_approver"
-              setHasChanges={setHasChanges}
             />
             {/* <ClientSelectionInput
               label={"Internal Approver"}
-              formId="approver"
-              setHasChanges={setHasChanges}
+              formId="approver" 
             />
             <ClientSelectionInput
               label={"Client Approver"}
-              formId="client_approver"
-              setHasChanges={setHasChanges}
+              formId="client_approver" 
             /> */}
           </div>
         </div>
@@ -488,14 +350,12 @@ export const SetupScreen = () => {
             <ClientSelection
               options={selectCurrency}
               label={"Select currency"}
-              formId="budget_details_currency"
-              setHasChanges={setHasChanges}
+              formId="budget_details_currency" 
             />
             <ClientSelection
               options={mediaBudgetPercentage}
               label={"% of media budget"}
-              formId="budget_details_fee_type"
-              setHasChanges={setHasChanges}
+              formId="budget_details_fee_type" 
             />
             {campaignFormData?.budget_details_fee_type?.id === "Tooling" && (
               <div className="flex gap-6 mt-[20px]">
@@ -524,8 +384,7 @@ export const SetupScreen = () => {
               </div>
             )}
             <div className="w-full">
-              <ClientSelectionInputbudget
-                setHasChanges={setHasChanges}
+              <ClientSelectionInputbudget 
                 label={getInputValue()}
                 formId="budget_details_value"
                 currencySign={currencySign}
