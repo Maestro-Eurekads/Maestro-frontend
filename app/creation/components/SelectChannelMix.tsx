@@ -612,6 +612,10 @@ const SelectChannelMix = () => {
                             </div>
                           ))}
                         </div>
+                        {/* Recap line for online */}
+                        <div className="mt-1 text-xs text-gray-500">
+                          {selectedPlatforms.online.length} online channel{selectedPlatforms.online.length !== 1 ? "s" : ""} selected
+                        </div>
                       </div>
                     )}
                     {selectedPlatforms.offline.length > 0 && (
@@ -631,6 +635,10 @@ const SelectChannelMix = () => {
                               <span className="text-sm text-green-700">{platform}</span>
                             </div>
                           ))}
+                        </div>
+                        {/* Recap line for offline */}
+                        <div className="mt-1 text-xs text-gray-500">
+                          {selectedPlatforms.offline.length} offline channel{selectedPlatforms.offline.length !== 1 ? "s" : ""} selected
                         </div>
                       </div>
                     )}
