@@ -139,11 +139,20 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
       <div className="w-[100%] items-start p-[24px] gap-[10px] bg-white border border-[rgba(6,18,55,0.1)] rounded-[8px] box-border mt-[20px]">
         <div className="flex items-center gap-[30px]">
           <p>
-            Media Budget Amount: {campaignFormData?.campaign_budget?.amount}
+            Media Budget Amount:{" "}
+            {parseInt(
+              campaignFormData?.campaign_budget?.amount
+            ).toLocaleString()}
             {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
           </p>
           <p>
-            Total Fees Amount: {netAmount}
+            Total Fees Amount:{" "}
+            {parseInt(
+              campaignFormData?.campaign_budget?.budget_fees?.reduce(
+                (total, fee) => total + Number(fee.amount || 0),
+                0
+              )
+            ).toLocaleString()}
             {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
           </p>
         </div>
@@ -163,7 +172,9 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
                   Total budget
                 </p>
                 <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-                  {parseInt(campaignFormData?.campaign_budget?.amount)?.toLocaleString()}{" "}
+                  {parseInt(
+                    campaignFormData?.campaign_budget?.amount
+                  )?.toLocaleString()}{" "}
                   {getCurrencySymbol(
                     campaignFormData?.campaign_budget?.currency
                   )}
@@ -192,7 +203,9 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
                     color={campaignFormData?.channel_mix?.map((ch) =>
                       getFunnelColor(ch?.funnel_stage)
                     )}
-                    insideText={`${parseInt(campaignFormData?.campaign_budget?.amount).toLocaleString()} ${getCurrencySymbol(
+                    insideText={`${parseInt(
+                      campaignFormData?.campaign_budget?.amount
+                    ).toLocaleString()} ${getCurrencySymbol(
                       campaignFormData?.campaign_budget?.currency
                     )}`}
                   />
@@ -220,8 +233,8 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
               Channel distribution
             </h3>
             <p className="font-medium text-[15px] leading-[175%] text-[rgba(0,0,0,0.9)] order-1 self-stretch flex-none">
-              Graph showing the total budget spent and its breakdown across
-              the channels.
+              Graph showing the total budget spent and its breakdown across the
+              channels.
             </p>
             <div className="mt-[16px]">
               <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">

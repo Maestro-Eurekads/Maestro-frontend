@@ -371,11 +371,11 @@ const ConfiguredSetPage = ({ netAmount }) => {
      (s) => s.name === stageName
     );
     if (!stage) {
-     console.warn(`Stage not found in custom_funnels: ${stageName}`);
+    //  console.warn(`Stage not found in custom_funnels: ${stageName}`);
      return null;
     }
     // Log stage icon data
-    console.log(`Stage: ${stage.name}, Icon: ${stage.icon}, ActiveIcon: ${stage.activeIcon}`);
+    // console.log(`Stage: ${stage.name}, Icon: ${stage.icon}, ActiveIcon: ${stage.activeIcon}`);
     return (
      <div key={index} className="w-full">
       <div
