@@ -779,29 +779,52 @@ const StageRecapLine = ({
   const hasAny = Object.values(grouped).some((arr) => arr.length > 0);
   if (!hasAny) return null;
 
-  // Render: Selection: Social media - Reddit: Image | TikTok: Image | Vkontakte: Image | Display Networks - Google: Image
-  return (
-    <div className="text-sm text-gray-700 bg-[#f7f7fa] border border-[#e5e5e5] rounded-b-[10px] px-6 py-3">
-      <span className="font-semibold">Selection:</span>{" "}
-      {Object.entries(grouped).map(([channel, items], idx, arr) => (
-        <span key={channel}>
-          <span className="font-medium">{channel}</span>
-          {" - "}
-          {items.map((item, i, itemsArr) => (
+  // Render: Selection: Social media - Facebook: Image, Video, Slideshow | Broadcast - DVD: Image, Slideshow
+  // (Use | to separate channels, comma to separate formats)
+  const recapString = Object.entries(grouped)
+    .map(([channel, items]) => {
+      if (!items.length) return null;
+      // For each platform in the channel, join formats with comma
+      const platformsStr = items
+        .map((item) => {
+          return (
             <span key={item.platform}>
               <span className="font-medium">{item.platform}</span>
               {": "}
               <span>
                 {item.formats.length > 0
-                  ? item.formats.join(" | ")
+                  ? item.formats.join(", ")
                   : <span className="italic text-gray-400">No formats</span>}
               </span>
-              {i < itemsArr.length - 1 ? " | " : ""}
             </span>
-          ))}
-          {idx < arr.length - 1 ? " | " : ""}
+          );
+        })
+        // Insert " | " between platforms
+        .reduce((acc: any[], curr, idx, arr) => {
+          acc.push(curr);
+          if (idx < arr.length - 1) acc.push(<span key={`sep-${idx}`}> | </span>);
+          return acc;
+        }, []);
+      // Channel name, then platforms
+      return (
+        <span key={channel}>
+          <span className="font-medium">{channel}</span>
+          {" - "}
+          {platformsStr}
         </span>
-      ))}
+      );
+    })
+    // Insert " | " between channels
+    .reduce((acc: any[], curr, idx, arr) => {
+      acc.push(curr);
+      if (idx < arr.length - 1) acc.push(<span key={`ch-sep-${idx}`}> | </span>);
+      return acc;
+    }, []);
+
+  return (
+    <div className="text-sm text-gray-700 bg-[#f7f7fa] border border-[#e5e5e5] rounded-b-[10px] px-6 py-3">
+      <span className="font-semibold">Selection:</span>{" "}
+      {recapString}
     </div>
   );
 };
