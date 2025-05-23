@@ -772,7 +772,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-      {triggerFunnelError && (
+      {/* {triggerFunnelError && (
         <AlertMain
           alert={{
             variant: "error",
@@ -780,7 +780,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             position: "bottom-right",
           }}
         />
-      )}
+      )} */}
+      
       {selectedDatesError && (
         <AlertMain
           alert={{
