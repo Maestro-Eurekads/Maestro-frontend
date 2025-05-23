@@ -83,20 +83,52 @@ const DraggableComment = ({ comment, commentId }) => {
 	);
 };
 
+// const Message = () => {
+// 	const { data } = useAppSelector((state) => state.comment);
+// 	const comments = data?.filter(
+// 		(comment) => comment?.client_commentID === null
+// 	);
+
+// 	return (
+// 		<NoSSR>
+// 			{comments?.map((comment) => (
+// 				<DraggableComment key={comment?.documentId} comment={comment} commentId={comment?.commentId} />
+// 			))}
+// 		</NoSSR>
+// 	);
+// };
+
 const Message = () => {
 	const { data } = useAppSelector((state) => state.comment);
-	const comments = data?.filter(
-		(comment) => comment?.client_commentID === null
-	);
+	const comments = data?.filter(comment => comment?.client_commentID === null);
+
+	const positionTracker = new Map();
 
 	return (
 		<NoSSR>
-			{comments?.map((comment) => (
-				<DraggableComment key={comment?.documentId} comment={comment} commentId={comment?.commentId} />
-			))}
+			{comments?.map((comment, index) => {
+				let position = comment?.position || { x: 200, y: 200 };
+				const key = `${position.x}-${position.y}`;
+
+				if (positionTracker.has(key)) {
+					const offset = positionTracker.get(key) + 1;
+					position = {
+						x: position.x + offset * 20,
+						y: position.y + offset * 20
+					};
+					positionTracker.set(key, offset);
+				} else {
+					positionTracker.set(key, 0);
+				}
+
+				return (
+					<DraggableComment key={comment?.documentId} comment={{ ...comment, position }} commentId={comment?.commentId} />
+				);
+			})}
 		</NoSSR>
 	);
 };
+
 
 export default Message;
 
