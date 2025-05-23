@@ -71,6 +71,8 @@ const SelectChannelMix = () => {
   const [isDataReady, setIsDataReady] = useState(false);
   const [showMoreMap, setShowMoreMap] = useState({});
   const [toast, setToast] = useState(null);
+  // Per-stage search terms
+  const [searchTerms, setSearchTerms] = useState({});
   const ITEMS_TO_SHOW = 6;
 
   // Fallback metadata for Targeting/Retargeting
@@ -421,6 +423,40 @@ const SelectChannelMix = () => {
     }));
   };
 
+  // Filter platforms based on search term (now per-stage)
+  const filterPlatforms = (platforms, stageName) => {
+    const term = searchTerms[stageName] || "";
+    if (!term) return platforms;
+    return platforms.filter(platform => 
+      platform.platform_name.toLowerCase().includes(term.toLowerCase())
+    );
+  };
+
+  // Get all selected platforms for a stage
+  const getSelectedPlatforms = (stageName) => {
+    const stageSelection = selected[stageName] || {};
+    const selectedPlatforms = {
+      online: [],
+      offline: []
+    };
+    
+    // Define online and offline channel types
+    const onlineTypes = ['social_media', 'display_networks', 'search_engines', 'streaming', 'mobile', 'messaging', 'in_game', 'e_commerce'];
+    const offlineTypes = ['broadcast', 'print', 'ooh'];
+    
+    Object.entries(stageSelection).forEach(([category, platforms]) => {
+      if (Array.isArray(platforms)) {
+        if (onlineTypes.includes(category)) {
+          selectedPlatforms.online.push(...platforms);
+        } else if (offlineTypes.includes(category)) {
+          selectedPlatforms.offline.push(...platforms);
+        }
+      }
+    });
+    
+    return selectedPlatforms;
+  };
+
   // Early return if not mounted or data not ready
   if (!isMounted || !isDataReady) {
     return <div>Loading channels...</div>;
@@ -494,42 +530,112 @@ const SelectChannelMix = () => {
             );
           }
 
+          const selectedPlatforms = getSelectedPlatforms(stage.name);
+
           return (
             <div key={index}>
               <div
-                className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
+                className={`flex flex-col p-6 gap-3 w-full bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
                   ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
-                onClick={() => toggleItem(stage.name)}
               >
-                <div className="flex items-center gap-2">
-                  {stage.icon && (
+                <div className="flex items-center" onClick={() => toggleItem(stage.name)}>
+                  <div className="flex items-center gap-2 flex-1">
+                    {stage.icon && (
+                      <Image
+                        src={stage.icon}
+                        alt={`${stage.name} icon`}
+                        width={20}
+                        height={20}
+                      />
+                    )}
+                    <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
+                      {stage.name}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-center flex-1">
+                    <p
+                      className={`font-general-sans font-semibold text-[16px] leading-[22px] ${
+                        stageStatuses[stage.name] === "In progress"
+                          ? "text-[#3175FF]"
+                          : "text-[#061237] opacity-50"
+                      }`}
+                    >
+                      {stageStatuses[stage.name] || "Not started"}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-end flex-1">
                     <Image
-                      src={stage.icon}
-                      alt={`${stage.name} icon`}
-                      width={20}
-                      height={20}
+                      src={openItems[stage.name] ? up : down2}
+                      alt={openItems[stage.name] ? "up" : "down"}
+                      width={24}
+                      height={24}
                     />
-                  )}
-                  <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
-                    {stage.name}
-                  </p>
+                  </div>
                 </div>
-                <p
-                  className={`font-general-sans font-semibold text-[16px] leading-[22px] ${stageStatuses[stage.name] === "In progress"
-                      ? "text-[#3175FF]"
-                      : "text-[#061237] opacity-50"
-                    }`}
-                >
-                  {stageStatuses[stage.name] || "Not started"}
-                </p>
-                <div>
-                  <Image
-                    src={openItems[stage.name] ? up : down2}
-                    alt={openItems[stage.name] ? "up" : "down"}
-                    width={24}
-                    height={24}
-                  />
-                </div>
+
+                {/* Per-stage search input */}
+                {openItems[stage.name] && (
+                  <div className="mt-4 mb-6">
+                    <input
+                      type="text"
+                      placeholder={`Search channels for ${stage.name}...`}
+                      value={searchTerms[stage.name] || ""}
+                      onChange={(e) =>
+                        setSearchTerms((prev) => ({
+                          ...prev,
+                          [stage.name]: e.target.value,
+                        }))
+                      }
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                )}
+
+                {/* Selected Platforms Row */}
+                {(selectedPlatforms.online.length > 0 || selectedPlatforms.offline.length > 0) && (
+                  <div className="flex flex-col gap-2 mt-2 pb-2">
+                    {selectedPlatforms.online.length > 0 && (
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">Online Channels:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedPlatforms.online.map((platform, idx) => (
+                            <div key={idx} className="flex items-center gap-1 bg-blue-100 rounded-full px-3 py-1">
+                              {getPlatformIcon(platform) && (
+                                <Image
+                                  src={getPlatformIcon(platform)}
+                                  alt={platform}
+                                  width={16}
+                                  height={16}
+                                />
+                              )}
+                              <span className="text-sm text-blue-700">{platform}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {selectedPlatforms.offline.length > 0 && (
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">Offline Channels:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedPlatforms.offline.map((platform, idx) => (
+                            <div key={idx} className="flex items-center gap-1 bg-green-100 rounded-full px-3 py-1">
+                              {getPlatformIcon(platform) && (
+                                <Image
+                                  src={getPlatformIcon(platform)}
+                                  alt={platform}
+                                  width={16}
+                                  height={16}
+                                />
+                              )}
+                              <span className="text-sm text-green-700">{platform}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {openItems[stage.name] && (
@@ -564,20 +670,21 @@ const SelectChannelMix = () => {
                             <p>No channels available for {type}</p>
                           ) : (
                             Object.entries(channels).map(
-                              ([channelName, platforms]) =>
-                                platforms?.length > 0 ? (
+                              ([channelName, platforms]) => {
+                                const filteredPlatforms = filterPlatforms(platforms, stage.name);
+                                return filteredPlatforms?.length > 0 ? (
                                   <div key={channelName} className="mb-6">
                                     <p className="capitalize font-semibold mb-4">
                                       {channelName.replace("_", " ")}
                                     </p>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                                      {platforms
+                                      {filteredPlatforms
                                         .slice(
                                           0,
                                           showMoreMap[
                                             `${stage.name}-${channelName}`
                                           ]
-                                            ? platforms.length
+                                            ? filteredPlatforms.length
                                             : ITEMS_TO_SHOW
                                         )
                                         .map((platform, pIndex) => {
@@ -651,7 +758,7 @@ const SelectChannelMix = () => {
                                         })
                                       }
                                     </div>
-                                    {platforms.length > ITEMS_TO_SHOW && (
+                                    {filteredPlatforms.length > ITEMS_TO_SHOW && (
                                       <div className="flex justify-center mt-4">
                                         <button
                                           onClick={() =>
@@ -703,6 +810,7 @@ const SelectChannelMix = () => {
                                     )}
                                   </div>
                                 ) : null
+                              }
                             )
                           )}
                         </>

@@ -223,7 +223,7 @@ const ClientView = () => {
 								<Skeleton height={20} width={"100%"} />
 							</div> : !campaignData ? "" :
 
-								<MainSection hideDate={false} disableDrag={true} />}
+								<MainSection hideDate={false} disableDrag={true} view={true} />}
 
 					</div>
 
