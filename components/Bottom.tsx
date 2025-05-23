@@ -335,7 +335,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setTriggerFunnelError(true);
         setAlert({
           variant: "error",
-          message: "Please select at least one funnel stage before continuing!",
+          message: "Please select at least one stage before continuing!",
           position: "bottom-right",
         });
         hasError = true;

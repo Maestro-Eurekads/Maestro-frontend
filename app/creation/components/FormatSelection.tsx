@@ -729,6 +729,72 @@ const ChannelSection = ({
   );
 };
 
+// Recap line component
+const StageRecapLine = ({
+  stageName,
+  campaignFormData,
+  view,
+}: {
+  stageName: string;
+  campaignFormData: any;
+  view: "channel" | "adset";
+}) => {
+  // Find the stage in channel_mix
+  const stage = campaignFormData?.channel_mix?.find((chan: any) => chan?.funnel_stage === stageName);
+
+  if (!stage) return null;
+
+  // For each channel type, get platforms and their selected formats
+  const recapItems: Array<{ channel: string; platform: string; formats: string[] }> = [];
+
+  CHANNEL_TYPES.forEach(({ key, title }) => {
+    const platforms: PlatformType[] = stage[key] || [];
+    platforms.forEach((platform) => {
+      if (view === "channel") {
+        if (platform.format && platform.format.length > 0) {
+          recapItems.push({
+            channel: title,
+            platform: platform.platform_name,
+            formats: platform.format.map((f) => f.format_type),
+          });
+        }
+      } else if (view === "adset" && platform.ad_sets && platform.ad_sets.length > 0) {
+        platform.ad_sets.forEach((adset) => {
+          if (adset.format && adset.format.length > 0) {
+            recapItems.push({
+              channel: title,
+              platform: `${platform.platform_name} (${adset.audience_type})`,
+              formats: adset.format.map((f) => f.format_type),
+            });
+          }
+        });
+      }
+    });
+  });
+
+  if (recapItems.length === 0) return null;
+
+  return (
+    <div className="text-sm text-gray-700 bg-[#f7f7fa] border border-[#e5e5e5] rounded-b-[10px] px-6 py-3">
+      <span className="font-semibold">Selection:</span>{" "}
+      {recapItems.map((item, idx) => (
+        <span key={idx}>
+          <span className="font-medium">{item.channel}</span>
+          {" - "}
+          <span className="font-medium">{item.platform}</span>
+          {": "}
+          <span>
+            {item.formats.length > 0
+              ? item.formats.join(", ")
+              : <span className="italic text-gray-400">No formats</span>}
+          </span>
+          {idx < recapItems.length - 1 ? "; " : ""}
+        </span>
+      ))}
+    </div>
+  );
+};
+
 export const Platforms = ({
   stageName,
   view = "channel",
@@ -1406,6 +1472,12 @@ export const FormatSelection = ({
                     height={24}
                   />
                 </div>
+                {/* Recap line below each stage with selection */}
+                <StageRecapLine
+                  stageName={stage.name}
+                  campaignFormData={campaignFormData}
+                  view={view}
+                />
                 {isOpen && (
                   <div className="card-body bg-white border border-[#E5E5E5]">
                     <Platforms
