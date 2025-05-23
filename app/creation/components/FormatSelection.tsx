@@ -1472,12 +1472,14 @@ export const FormatSelection = ({
                     height={24}
                   />
                 </div>
-                {/* Recap line below each stage with selection */}
-                <StageRecapLine
-                  stageName={stage.name}
-                  campaignFormData={campaignFormData}
-                  view={view}
-                />
+                {/* Recap line below each stage with selection, only when collapsed */}
+                {!isOpen && (
+                  <StageRecapLine
+                    stageName={stage.name}
+                    campaignFormData={campaignFormData}
+                    view={view}
+                  />
+                )}
                 {isOpen && (
                   <div className="card-body bg-white border border-[#E5E5E5]">
                     <Platforms
