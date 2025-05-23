@@ -1338,7 +1338,7 @@ export const FormatSelection = ({
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
         {!stageName && (
           <div className="flex justify-center gap-3">
-            <p className="font-medium">Channel View</p>
+            <p className="font-medium">Channel Granularity</p>
             <Switch
               checked={view === "adset"}
               onChange={handleToggleChange}
@@ -1353,7 +1353,7 @@ export const FormatSelection = ({
               activeBoxShadow="0 0 2px 3px rgba(37, 99, 235, 0.2)"
               className="react-switch"
             />
-            <p className="font-medium">AdSet View</p>
+            <p className="font-medium">Ad Set Granularity</p>
           </div>
         )}
 
