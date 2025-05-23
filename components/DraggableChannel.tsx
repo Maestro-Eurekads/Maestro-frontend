@@ -101,7 +101,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     const dailyWidth = calculateDailyWidth(containerWidth, endMonth);
-    console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth)
+    console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth);
     const baseStep = range === "Month" ? dailyWidth : 50;
     // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
     const adjustmentPerStep = 0; // Decrease each next step by 10
@@ -112,11 +112,14 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     let step = baseStep;
 
     // Generate snap points with decreasing step size
-    while (currentSnap <= (range !== "Day" ? containerWidth : containerWidth)) {
+    while (currentSnap <= containerWidth) {
       snapPoints.push(currentSnap);
       // console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
       currentSnap += step;
-      step = Math.max(range !== "Day" ? 50 : 100, step - adjustmentPerStep);
+      step = Math.max(
+        range === "Month" ? dailyWidth : 50,
+        step - adjustmentPerStep
+      );
     }
 
     const closestSnap = snapPoints.reduce((prev, curr) =>
@@ -281,7 +284,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       className={`relative w-full h-14 flex select-none ${
         disableDrag ? "rounded-[10px]" : "rounded-none"
       }`}
-      style={{ transform: `translateX(${position}px)` }}
+      style={{
+        transform: `translateX(${position + (range === "Month" ? 4 : 0)}px)`,
+      }}
     >
       {/* Left Resize Handle */}
       <div
@@ -303,7 +308,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           disableDrag ? "cursor-default rounded-[10px] relative" : "cursor-move"
         }`}
         style={{
-          width: disableDrag ? `${parentWidth + 43}px` : parentWidth,
+          width: disableDrag
+            ? `${parentWidth + (range === "Month" ? 53 : 43)}px`
+            : parentWidth,
           backgroundColor: bg,
           transition: "transform 0.2s ease-out",
         }}
