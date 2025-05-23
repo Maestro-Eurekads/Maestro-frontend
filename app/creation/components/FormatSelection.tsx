@@ -730,6 +730,7 @@ const ChannelSection = ({
 };
 
 // Recap line component (rewritten to group by channel and only show channel name once)
+// MODIFIED: Use | to separate channels and formats instead of commas/semicolons
 const StageRecapLine = ({
   stageName,
   campaignFormData,
@@ -778,27 +779,27 @@ const StageRecapLine = ({
   const hasAny = Object.values(grouped).some((arr) => arr.length > 0);
   if (!hasAny) return null;
 
-  // Render: Selection: Social media - Reddit: Image, TikTok: Image, Vkontakte: Image; Display Networks - Google: Image
+  // Render: Selection: Social media - Reddit: Image | TikTok: Image | Vkontakte: Image | Display Networks - Google: Image
   return (
     <div className="text-sm text-gray-700 bg-[#f7f7fa] border border-[#e5e5e5] rounded-b-[10px] px-6 py-3">
       <span className="font-semibold">Selection:</span>{" "}
-      {Object.entries(grouped).map(([channel, items], idx) => (
+      {Object.entries(grouped).map(([channel, items], idx, arr) => (
         <span key={channel}>
           <span className="font-medium">{channel}</span>
           {" - "}
-          {items.map((item, i) => (
+          {items.map((item, i, itemsArr) => (
             <span key={item.platform}>
               <span className="font-medium">{item.platform}</span>
               {": "}
               <span>
                 {item.formats.length > 0
-                  ? item.formats.join(", ")
+                  ? item.formats.join(" | ")
                   : <span className="italic text-gray-400">No formats</span>}
               </span>
-              {i < items.length - 1 ? ", " : ""}
+              {i < itemsArr.length - 1 ? " | " : ""}
             </span>
           ))}
-          {idx < Object.entries(grouped).length - 1 ? "; " : ""}
+          {idx < arr.length - 1 ? " | " : ""}
         </span>
       ))}
     </div>
