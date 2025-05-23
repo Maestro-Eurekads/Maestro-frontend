@@ -114,7 +114,7 @@ const ResizableChannels = ({
   const [containerWidth, setContainerWidth] = useState(null);
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    const baseStep = rrange === "Month" ? 18  : rrange === "Week" ? 50 : 100; // Base grid size
+    const baseStep = rrange === "Month" ? 18  : rrange === "Week" ? 50 : 50; // Base grid size
     // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
     const adjustmentPerStep = 0; // Decrease each next step by 10
     const snapPoints = [];

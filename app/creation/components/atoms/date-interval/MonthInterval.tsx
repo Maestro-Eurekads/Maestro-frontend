@@ -24,16 +24,16 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({ monthsCount, view }) => {
           gridTemplateColumns: `repeat(${monthsCount}, ${
             monthsCount === 1
               ? "100%"
-              : monthsCount < 3
+              : monthsCount > 1
               ? `${100 / monthsCount}%`
-              : "33.33%"
+              : `${100 / monthsCount}%`
           })`,
           backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.2) 1px, transparent 1px)`,
           backgroundSize: !view
             ? `calc(100% / ${monthsCount}) 100%`
             : monthsCount === 1
             ? "100%"
-            : monthsCount < 3
+            : monthsCount <= 3
             ? `calc(${100 / monthsCount}%)`
             : "33.33%",
         }}

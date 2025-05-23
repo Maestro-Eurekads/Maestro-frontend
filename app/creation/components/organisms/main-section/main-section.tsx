@@ -95,7 +95,7 @@ const MainSection = ({ hideDate, disableDrag, view }: { hideDate?: boolean, disa
       {!hideDate && <DateComponent useDate={true} />}
       <div className="box-border w-full min-h-[519px] bg-white border-b-2 relative mt-4">
         <div className="overflow-x-auto w-full">
-          <div className="min-w-fit">
+          <div className="min-w-max">
             <div className="relative">
               <div className="bg-white">
                 {/* <DateInterval /> */}
