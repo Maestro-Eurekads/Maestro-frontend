@@ -591,8 +591,8 @@ const SelectChannelMix = () => {
                   </div>
                 )}
 
-                {/* Selected Platforms Row */}
-                {(selectedPlatforms.online.length > 0 || selectedPlatforms.offline.length > 0) && (
+                {/* Selected Platforms Row (recap) - only show when collapsed */}
+                {!openItems[stage.name] && (selectedPlatforms.online.length > 0 || selectedPlatforms.offline.length > 0) && (
                   <div className="flex flex-col gap-2 mt-2 pb-2">
                     {selectedPlatforms.online.length > 0 && (
                       <div>
