@@ -380,7 +380,7 @@ const OverviewofyourCampaign = () => {
         }`}
       >
         <div className="flex	flex-col gap-[24px]">
-          <div className="bg-white shadow-sm w-fit p-2 rounded-md shadow-[0px_4px_14px_rgba(0,38,116,0.15)]">
+          <div className="bg-white w-fit p-2 rounded-md shadow-[0px_4px_14px_rgba(0,38,116,0.15)]">
             {campaignFormData?.media_plan && (
               <p>{campaignFormData?.media_plan}</p>
             )}
