@@ -112,15 +112,33 @@ const ClientMessage = () => {
 		?.filter((comment: Comment) => comment?.addcomment_as !== "Internal")
 		.sort((a: Comment, b: Comment) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
+	const positionTracker = new Map();
 
 	return (
 		<NoSSR>
-			{comments?.map((comment) => (
-				<ClientDraggableComment key={comment?.documentId} comment={comment} commentId={comment?.commentId} />
-			))}
+			{comments?.map((comment: any, index) => {
+				let position = comment?.position || { x: 200, y: 200 };
+				const key = `${position.x}-${position.y}`;
+
+				if (positionTracker.has(key)) {
+					const offset = positionTracker.get(key) + 1;
+					position = {
+						x: position.x + offset * 20,
+						y: position.y + offset * 20
+					};
+					positionTracker.set(key, offset);
+				} else {
+					positionTracker.set(key, 0);
+				}
+
+				return (
+					<ClientDraggableComment key={comment?.documentId} comment={{ ...comment, position }} commentId={comment?.commentId} />
+				);
+			})}
 		</NoSSR>
 	);
 };
+
 
 export default ClientMessage;
 

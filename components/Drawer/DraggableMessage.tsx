@@ -58,7 +58,7 @@ const DraggableComment = ({ opportunity }) => {
 					<AddAsInternalcomment position={opportunity?.position} setShow={setShow} />
 				</div>
 			) : (
-				<div ref={commentRef} className="absolute cursor-move drag-handle z-20">
+				<div ref={commentRef} className="absolute cursor-move drag-handle z-30">
 					<button
 						onClick={handleClick}
 						className="drag-handle flex items-center justify-center p-[-2px] bg-transparent border-none"
@@ -75,17 +75,36 @@ const DraggableComment = ({ opportunity }) => {
 	);
 };
 
-const DraggableMessage = () => {
-	const { opportunities } = useComments(); // Use opportunities instead of comments
 
+
+const DraggableMessage = () => {
+	const { opportunities } = useComments();
+
+	// Track existing positions to avoid overlap
+	const positionTracker = new Map();
 
 	return (
 		<NoSSR>
-			{opportunities?.map((opportunity) => (
-				<DraggableComment key={opportunity?.commentId} opportunity={opportunity} />
-			))}
+			{opportunities?.map((opportunity, index) => {
+				let position = opportunity?.position || { x: 100, y: 100 }; // Default position
+				const key = `${position.x}-${position.y}`;
+
+				if (positionTracker.has(key)) {
+					const offset = positionTracker.get(key) + 1;
+					position = {
+						x: position.x + offset * 20,
+						y: position.y + offset * 20
+					};
+					positionTracker.set(key, offset);
+				} else {
+					positionTracker.set(key, 0);
+				}
+
+				return (
+					<DraggableComment key={opportunity?.commentId} opportunity={{ ...opportunity, position }} />
+				);
+			})}
 		</NoSSR>
 	);
 };
-
 export default DraggableMessage;
