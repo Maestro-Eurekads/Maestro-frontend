@@ -209,27 +209,7 @@ const Header = ({ setIsOpen }) => {
 
           <div className="profile_container" onClick={() => setShow((prev) => !prev)}>
             {getFirstLetters(session?.user?.name)}
-            {/* {show && (
-              <div className="absolute bg-white border shadow-md rounded-[10px] top-[50px]">
-                <div
-                  className="flex items-center gap-2 cursor-pointer p-2"
-                  onClick={async () => {
-                    localStorage.removeItem("campaignFormData");
-                    localStorage.removeItem("selectedClient");
-                    localStorage.removeItem("profileclients");
-                    await signOut({
-                      callbackUrl: "/",
-                    })
-                  }
-                  }
-                >
-                  <LogOut color="#3175FF" />
-                  <p>Logout</p>
-                </div>
-              </div>
-            )} */}
 
-            {/* Dropdown Menu */}
             {show && (
               <div className="absolute right-0 top-[60px] w-[200px] bg-white border border-gray-200   shadow-lg z-50 !rounded-[5px]">
                 <div className="absolute top-[-4px] right-5 w-3 h-3 bg-white rotate-45 border-t border-l border-gray-200"></div>
