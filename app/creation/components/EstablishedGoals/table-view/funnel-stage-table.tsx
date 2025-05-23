@@ -27,23 +27,20 @@ export const FunnelStageTable = ({
   nrAdCells,
   toggleNRAdCell,
 }) => {
-
-
+  // Fallback color if stage.color is undefined
+  const stageColor = stage?.color || "#3175FF";
 
   return (
     <section className="mb-[30px]">
       <div className="flex items-center justify-between mb-5 w-full">
-        <h1 className="text-[#061237] text-[18px] font-[600] flex gap-2">
-          <Image
-            src={stage?.icon || "/placeholder.svg"}
-            width={30}
-            height={30}
-            alt=""
-          />
+        <h1
+          className="text-[18px] font-[600]"
+          style={{ color: stageColor }}
+        >
           {stage?.name}
         </h1>
         <div
-          className="p-3 bg-[#3175FF] rounded-[10px] text-white w-fit  font-medium cursor-pointer"
+          className="p-3 bg-[#3175FF] rounded-[10px] text-white w-fit font-medium cursor-pointer"
           onClick={() => {
             setIsOpen(true);
             setCurrentEditingStage(stage?.name);
@@ -60,16 +57,17 @@ export const FunnelStageTable = ({
                 {tableHeaders?.map((header, hIndex) => (
                   <th
                     key={hIndex}
-                    className={`py-4 px-3 cursor-pointer ${nrColumns?.includes(
-                      header.name
-                        .toLowerCase()
-                        .replace(/ /g, "_")
-                        .replace(/\//g, "")
-                        .replace(/-/g, "_")
-                    )
-                      ? "text-gray-400"
-                      : ""
-                      }`}
+                    className={`py-4 px-3 cursor-pointer ${
+                      nrColumns?.includes(
+                        header.name
+                          .toLowerCase()
+                          .replace(/ /g, "_")
+                          .replace(/\//g, "")
+                          .replace(/-/g, "_")
+                      )
+                        ? "text-gray-400"
+                        : ""
+                    }`}
                     onClick={() => toggleNRColumn(stage.name, header.name)}
                   >
                     {header?.name === "Audience" ? "" : header?.name}
@@ -84,7 +82,6 @@ export const FunnelStageTable = ({
                       : ""}
                   </th>
                 ))}
-                {/* <th className="py-4 px-6">Other</th> */}
               </tr>
             </thead>
             <tbody className="whitespace-nowrap">

@@ -31,8 +31,9 @@ const getInitialState = () => {
     level_2: { id: "", value: "" },
     level_3: { id: "", value: "" },
     media_plan: "",
-    approver: "",
-    client_approver: "",
+    approver: [],
+    client_approver: [],
+    campaign_builder: "",
     budget_details_currency: { id: "", value: "", label: "" },
     budget_details_fee_type: { id: "", value: "" },
     budget_details_sub_fee_type: "",
@@ -53,6 +54,7 @@ const CampaignContext = createContext<any>(null);
 export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const { data: session } = useSession();
   const id = (session?.user as { id?: string })?.id;
+  const campaign_builder = session?.user
   const [campaignFormData, setCampaignFormData] = useState(getInitialState());
   const [campaignData, setCampaignData] = useState(null);
   const [clientCampaignData, setClientCampaignData] = useState([]);
@@ -64,8 +66,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [isEditingBuyingObjective, setIsEditingBuyingObjective] = useState(false);
   const [selectedOption, setSelectedOption] = useState("percentage");
   const [requiredFields, setRequiredFields] = useState([]);
-
-
   const query = useSearchParams();
   const cId = query.get("campaignId");
   const { loadingClients: hookLoadingClients, allClients: hookAllClients } = useCampaignHook();
@@ -162,6 +162,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         goal_level: data?.goal_level || prev.goal_level,
         progress_percent: data?.progress_percent,
         custom_funnels: data?.custom_funnels,
+        campaign_builder: data?.campaign_builder,
         user: data?.user,
       }));
     } catch (error) {
@@ -178,6 +179,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`,
         {
           data: {
+            campaign_builder: campaign_builder?.name,
             client: campaignFormData?.client_selection?.id,
             client_selection: {
               client: campaignFormData?.client_selection?.value,
@@ -343,11 +345,16 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
 
 
-  const getUserByUserType = async (user_type) => {
+
+  const getUserByUserType = async (userTypes) => {
     setgetLoading(true);
     try {
+      const queryString = userTypes
+        .map(type => `filters[user_type][$in]=${type}`)
+        .join("&");
+
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users?filters[user_type][$eq]=${user_type}`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users?${queryString}&pagination[page]=1&pagination[pageSize]=100`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -355,15 +362,17 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-      const user = response.data;
-      setUser(user);
+
+      const users = response.data;
+      setUser(users);
     } catch (error) {
       console.error("Error fetching users by user_type:", error);
-      // Optionally handle error
     } finally {
       setgetLoading(false);
     }
   };
+
+
 
 
   const organizeAdvertisingPlatforms = useCallback((data) => {

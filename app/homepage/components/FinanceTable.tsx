@@ -5,6 +5,8 @@ import { ChevronDown, ChevronUp, Edit, Trash, Eye } from "lucide-react";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { NoRecordFound, SVGLoaderFetch } from "components/Options";
 import { getCurrencySymbol } from "components/data";
+import { toast } from "sonner";
+import { useUserPrivileges } from "utils/userPrivileges";
 
 function FinanceTable({
   data, // Paginated data from FinanceView
@@ -20,7 +22,7 @@ function FinanceTable({
   const [expanded, setExpanded] = useState("");
   const { fetchingPO, clientCampaignData, loading } = useCampaigns();
   const [expandedPO, setExpandedPO] = useState(null);
-
+  const { isFinancialApprover, isAdmin } = useUserPrivileges();
   const toggleExpand = (po) => {
     setExpanded((prev) => (prev === po?.id ? "" : po?.id));
     setExpandedPO(po);
@@ -124,9 +126,14 @@ function FinanceTable({
                       className="flex space-x-2"
                       onClick={() => setSelectedRow(po)}
                     >
-                      <button className="text-gray-500 hover:text-gray-700">
-                        <Edit size={18} onClick={() => setOpenEdit(true)} />
-                      </button>
+                      {isFinancialApprover || isAdmin ?
+                        <button className="text-gray-500 hover:text-gray-700">
+                          <Edit size={18} onClick={() => setOpenEdit(true)} />
+                        </button> :
+                        <button className="text-gray-500 hover:text-gray-700">
+                          <Edit size={18} onClick={() => toast.error("This can only meant to be done by the Admin and Financial approver")} />
+                        </button>}
+
                       <button
                         className="text-gray-500 hover:text-gray-700"
                         onClick={() => setOpenDelete(true)}

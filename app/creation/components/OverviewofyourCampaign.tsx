@@ -186,7 +186,7 @@ const OverviewofyourCampaign = () => {
 				const kpiData = kpiAccumulator[category][kpiName];
 				const values = kpiData?.values;
 
-				if (values.length > 0) {
+				if (values?.length > 0) {
 					const average = values.reduce((sum, val) => sum + val, 0) / values?.length;
 					aggregatedStats[category][kpiData?.displayName] = average; // No toFixed here
 				}
@@ -395,7 +395,7 @@ const OverviewofyourCampaign = () => {
 			<div>
 
 				<div className='mt-[30px]'>
-					<DateComponent useDate={false} />
+					<DateComponent useDate={true} />
 				</div>
 
 				<MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />

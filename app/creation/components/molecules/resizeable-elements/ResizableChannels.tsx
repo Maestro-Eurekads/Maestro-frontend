@@ -48,6 +48,7 @@ interface ResizableChannelsProps {
   setSelectedStage?: any;
   openItems?: any;
   setOpenItems?: any;
+  endMonth?:any
 }
 
 const DEFAULT_MEDIA_OPTIONS = [
@@ -69,6 +70,7 @@ const ResizableChannels = ({
   setSelectedStage,
   openItems,
   setOpenItems,
+  endMonth
 }: ResizableChannelsProps) => {
   const { campaignFormData, setCampaignFormData, setCopy, cId, campaignData } =
     useCampaigns();
@@ -95,7 +97,7 @@ const ResizableChannels = ({
   const [channelState, setChannelState] = useState(
     channels?.map(() => ({
       left: parentLeft, // Start at parent's left position
-      width: Math.min(160, parentWidth),
+      width: Math.min(10, parentWidth),
     }))
   );
 
@@ -111,9 +113,26 @@ const ResizableChannels = ({
   const [endDate, setEndDate] = useState(null);
   const [dateOffset, setDateOffset] = useState(0);
   const [endDateOffset, setEndDateOffset] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(null);
+
+  function calculateDailyWidth(
+    containerWidth: number,
+    endMonth: number
+  ): number {
+    const adjustedWidth = containerWidth; // adjust for padding/margin if needed
+    const totalDays = endMonth * 31;
+
+    // Base daily width without factor
+    const baseDailyWidth = adjustedWidth / totalDays;
+
+    // Final adjusted daily width
+    return baseDailyWidth;
+  }
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    const baseStep = rrange !== "Day" ? 50 : 100; // Base grid size
+    const dailyWidth = calculateDailyWidth(containerWidth, endMonth);
+    console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth)
+    const baseStep = rrange === "Month" ? dailyWidth : 50;
     // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
     const adjustmentPerStep = 0; // Decrease each next step by 10
     const snapPoints = [];
@@ -123,13 +142,12 @@ const ResizableChannels = ({
     let step = baseStep;
 
     // Generate snap points with decreasing step size
-    while (
-      currentSnap <= (rrange !== "Day" ? containerWidth : containerWidth)
-    ) {
+    while (currentSnap <= (
+    containerWidth)) {
       snapPoints.push(currentSnap);
       // console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
       currentSnap += step;
-      step = Math.max(rrange !== "Day" ? 50 : 100, step - adjustmentPerStep);
+      step = Math.max( rrange === "Month" ? dailyWidth : 50, step - adjustmentPerStep);
     }
 
     const closestSnap = snapPoints.reduce((prev, curr) =>
@@ -141,7 +159,6 @@ const ResizableChannels = ({
     // console.log("Closest custom snap:", closestSnap);
     return closestSnap;
   };
-
   useEffect(() => {
     if (campaignFormData) {
       const start = campaignFormData?.channel_mix?.find(
@@ -452,7 +469,8 @@ const ResizableChannels = ({
       // Get container boundaries
       const containerRect = gridContainer.getBoundingClientRect();
       // console.log("🚀 ~ useEffect ~ containerRect:", containerRect);
-      const containerWidth = containerRect.width - 75;
+      const contWidth = containerRect.width - 75;
+      setContainerWidth(containerWidth + 75);
       setChannels(initialChannels);
       // Initialize new channels with parent's position
       setChannelState((prev) => {
@@ -487,7 +505,12 @@ const ResizableChannels = ({
           const startDateIndex = adjustedStageStartDate
             ? dRange?.findIndex((date) =>
                 isEqual(date, adjustedStageStartDate)
-              ) * (rrange === "Day" ? 100 : rrange === "Week" ?  50 : Math.round(containerWidth / 2 / 31) - 7) 
+              ) *
+              (rrange === "Day"
+                ? 50
+                : rrange === "Week"
+                ? 50
+                : Math.round(contWidth / 2 / 31))
             : 0;
 
           // Calculate days between using the adjusted end date
@@ -521,18 +544,30 @@ const ResizableChannels = ({
                 left:
                   parentLeft +
                   Math.abs(startDateIndex < 0 ? 0 : startDateIndex),
-                width:
+                width: Math.min(
                   rrange === "Day"
                     ? daysBetween > 0
-                      ? 100 * daysBetween + 60
+                      ? 50 * daysBetween + 60
                       : parentWidth
                     : rrange === "Week"
                     ? daysBetween > 0
                       ? 50 * daysBetween + 10
                       : parentWidth
                     : rrange === "Month"
-                    ? (Math.round(containerWidth / 2 / 31) - 5) * daysBetween + 5
+                    ? (Math.round(contWidth / 2 / 31)) * daysBetween
                     : parentWidth,
+                  rrange === "Day"
+                    ? daysBetween > 0
+                      ? 50 * daysBetween + 60
+                      : parentWidth
+                    : rrange === "Week"
+                    ? daysBetween > 0
+                      ? 50 * daysBetween + 10
+                      : parentWidth
+                    : rrange === "Month"
+                    ? (Math.round(contWidth / 2 / 31) - 5) * daysBetween
+                    : parentWidth
+                ),
               }
             : {
                 left: parentLeft,
@@ -555,63 +590,62 @@ const ResizableChannels = ({
 
   useEffect(() => {
     if (!dragging) return;
-
+  
     const totalDays = dateList.length - 1; // Define totalDays within the scope
-
+  
     const handleMouseMove = (event) => {
       event.preventDefault();
       const { index, direction, startX } = dragging;
       const deltaX = event.clientX - startX;
-
+  
       setChannelState((prev) =>
         prev.map((state, i) => {
           if (i !== index) return state;
-
+  
           let newWidth,
             newLeft = state.left;
-
+  
           if (direction === "left") {
             // Move the left side while keeping the right side fixed
             newWidth = Math.max(
-              150,
+              50,
               Math.min(
                 state.width - deltaX,
                 parentWidth - (state.left - parentLeft)
               )
             );
             newLeft = state.left + deltaX; // Move the left boundary
-
-            // Snap left edge to timeline
-            newLeft =
-              snapToTimeline(newLeft - parentLeft, parentWidth) + parentLeft;
-            // Recalculate width after snapping
+  
+            // Prevent movement out of bounds
+            newLeft = Math.max(
+              parentLeft,
+              Math.min(newLeft, parentLeft + parentWidth - newWidth)
+            );
+  
+            // Recalculate width after adjusting left boundary
             newWidth = state.left + state.width - newLeft;
           } else {
             // Move the right side, increasing width
             const rightEdge = state.left + state.width + deltaX;
-            const snappedRightEdge =
-              snapToTimeline(rightEdge - parentLeft, parentWidth) + parentLeft;
-
-            // Calculate new width based on snapped right edge
+  
+            // Prevent movement out of bounds
+            const maxRightEdge = parentLeft + parentWidth;
+            const adjustedRightEdge = Math.min(rightEdge, maxRightEdge);
+  
+            // Calculate new width based on adjusted right edge
             newWidth = Math.max(
-              150,
+              50,
               Math.min(
-                snappedRightEdge - state.left,
+                adjustedRightEdge - state.left,
                 parentWidth - (state.left - parentLeft)
               )
             );
           }
-
-          // Prevent movement out of bounds
-          newLeft = Math.max(
-            parentLeft,
-            Math.min(newLeft, parentLeft + parentWidth - newWidth)
-          );
-
+  
           // Calculate start and end pixel positions
           const startPixel = newLeft - parentLeft; // Adjusted to be relative
           const endPixel = startPixel - 1 + newWidth;
-
+  
           // Convert pixel positions to dates
           const startDate = pixelToDate(
             startPixel,
@@ -619,7 +653,7 @@ const ResizableChannels = ({
             index,
             "startDate"
           );
-
+  
           // Ensure end date doesn't exceed parent timeline's end date
           const rawEndDate = pixelToDate(
             endPixel - parentWidth / totalDays,
@@ -627,7 +661,7 @@ const ResizableChannels = ({
             index,
             "endDate"
           );
-
+  
           // If the calculated end date exceeds the parent timeline's end date,
           // adjust the width to match the parent timeline's end date
           if (endDate && new Date(rawEndDate) > endDate) {
@@ -635,26 +669,27 @@ const ResizableChannels = ({
             const maxWidth = parentEndPixel - startPixel + parentLeft;
             newWidth = Math.min(newWidth, maxWidth);
           }
-
+  
           return { ...state, left: newLeft, width: newWidth };
         })
       );
-
+  
       setDragging((prev) => ({ ...prev, startX: event.clientX }));
     };
-
+  
     const handleMouseUp = () => {
       setDragging(null);
     };
-
+  
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
-
+  
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [dragging, parentWidth]); // React when parent width changes
+  
 
   return (
     <div
@@ -722,13 +757,19 @@ const ResizableChannels = ({
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
                   width: `${
-                    channelState[index]?.width + (disableDrag ? 40 : 30) || 150
+                    channelState[index]?.width +
+                      (disableDrag ? 40 : rrange === "Month" ? 30 : 30) || 150
                   }px`,
                   backgroundColor: channel.bg,
                   color: channel.color,
                   borderColor: channel.color,
                   borderRadius: "10px",
-                  minWidth: rrange === "Day" ? "100px" : rrange === "Week"? "50px" : `${channelState[index]?.width}px` ,
+                  minWidth:
+                    rrange === "Day"
+                      ? "100px"
+                      : rrange === "Week"
+                      ? "50px"
+                      : `${channelState[index]?.width}px`,
                 }}
                 onMouseDown={
                   disableDrag || openItems ? undefined : handleDragStart(index)
@@ -765,7 +806,9 @@ const ResizableChannels = ({
             {
               <>
                 <div
-                  className={`absolute top-0 ${rrange === "Month" ? "w-2" : "w-5"} h-[46px] cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
+                  className={`absolute top-0 ${
+                    rrange === "Month" ? "w-2" : "w-5"
+                  } h-[46px] cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
                     disableDrag && "hidden"
                   }`}
                   style={{
@@ -781,7 +824,9 @@ const ResizableChannels = ({
                   <MdDragHandle className="rotate-90" />
                 </div>
                 <div
-                  className={`absolute top-0 ${rrange === "Month" ? "w-2" : "w-5"} h-[46px] cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
+                  className={`absolute top-0 ${
+                    rrange === "Month" ? "w-2" : "w-5"
+                  } h-[46px] cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
                     disableDrag && "hidden"
                   }`}
                   style={{

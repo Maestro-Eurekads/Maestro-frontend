@@ -10,11 +10,11 @@ interface DayIntervalProps {
 const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src }) => {
   const { range } = useDateRange();
   return (
-    <div className="w-full border-y py-5">
+    <div className="w-full border-y py-2">
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${daysCount + 1},100px )`,
+          gridTemplateColumns: `repeat(${daysCount},50px )`,
         }}
       >
         {Array.from({ length: daysCount + 1 }, (_, i) => {
@@ -26,7 +26,7 @@ const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src }) => {
               {src && src === "campaign" ? (
                 <div
                   key={i}
-                  className={`relative min-w-[100px] text-center text-sm font-medium px-1 py-1 rounded-md
+                  className={`relative min-w-[50px] text-center text-sm font-medium px-1 py-1 rounded-md
                           ${isEdge ? "bg-[#f05406] text-white" : "#fff"}
                         `}
                   style={{
@@ -35,12 +35,12 @@ const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src }) => {
                   }}
                 >
                   <span className={`${isEdge ? "text-white" : "text-black"}`}>
-                    {date && format(date, "E")},&nbsp; {/* Added space here */}
+                    {date && format(date, "d")} 
                   </span>
                   <span
                     className={`${isEdge ? "text-white" : "text-blue-500"}`}
                   >
-                    {date && format(date, "d MMM")}
+                    {date && format(date, "MMM")}
                   </span>
 
                   {/* Triangle for Edge Dates */}

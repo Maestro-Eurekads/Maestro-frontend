@@ -92,8 +92,27 @@ padding: 4px 12px;
 gap: 6px; 
 width: 92px;
 height: 28px;
-
 background: #EBFEF4;
 border-radius: 16px; 
 
 }
+.Not_Approved {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 20px;
+  text-align: center;
+  color: #fff;  
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 4px 12px;
+  gap: 6px;
+  min-width: 92px;
+  height: auto;
+  background: #dfa908;  
+  border-radius: 16px;
+  white-space: nowrap;
+}
+

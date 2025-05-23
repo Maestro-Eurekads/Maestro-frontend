@@ -35,7 +35,7 @@ interface Comment {
 const CommentsDrawer = ({ isOpen, onClose }) => {
 	const { opportunities, setViewcommentsId, viewcommentsId, addCommentOpportunity, setOpportunities, createCommentsError, createCommentsSuccess, approvedError, replyError, setIsCreateOpen, setClose, showbyID } = useComments();
 
-	const { isAgencyApprover, isFinancialApprover, isAdmin } = useUserPrivileges();
+	const { isAgencyApprover, isFinancialApprover, isAdmin, isAgencyCreator } = useUserPrivileges();
 
 	const { data, isLoading } = useAppSelector((state) => state.comment);
 	const dispatch = useAppDispatch();
@@ -197,6 +197,7 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 									isAgencyApprover={isAgencyApprover}
 									isFinancialApprover={isFinancialApprover}
 									isAdmin={isAdmin}
+									isAgencyCreator={isAgencyCreator}
 								/>
 								<AddCommentReply
 									documentId={comment?.documentId}
