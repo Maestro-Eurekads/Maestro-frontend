@@ -729,7 +729,7 @@ const ChannelSection = ({
   );
 };
 
-// Recap line component
+// Recap line component (rewritten to group by channel and only show channel name once)
 const StageRecapLine = ({
   stageName,
   campaignFormData,
@@ -744,16 +744,18 @@ const StageRecapLine = ({
 
   if (!stage) return null;
 
-  // For each channel type, get platforms and their selected formats
-  const recapItems: Array<{ channel: string; platform: string; formats: string[] }> = [];
+  // Group platforms and their selected formats by channel
+  const grouped: {
+    [channel: string]: Array<{ platform: string; formats: string[] }>;
+  } = {};
 
   CHANNEL_TYPES.forEach(({ key, title }) => {
     const platforms: PlatformType[] = stage[key] || [];
     platforms.forEach((platform) => {
       if (view === "channel") {
         if (platform.format && platform.format.length > 0) {
-          recapItems.push({
-            channel: title,
+          if (!grouped[title]) grouped[title] = [];
+          grouped[title].push({
             platform: platform.platform_name,
             formats: platform.format.map((f) => f.format_type),
           });
@@ -761,8 +763,8 @@ const StageRecapLine = ({
       } else if (view === "adset" && platform.ad_sets && platform.ad_sets.length > 0) {
         platform.ad_sets.forEach((adset) => {
           if (adset.format && adset.format.length > 0) {
-            recapItems.push({
-              channel: title,
+            if (!grouped[title]) grouped[title] = [];
+            grouped[title].push({
               platform: `${platform.platform_name} (${adset.audience_type})`,
               formats: adset.format.map((f) => f.format_type),
             });
@@ -772,23 +774,31 @@ const StageRecapLine = ({
     });
   });
 
-  if (recapItems.length === 0) return null;
+  // If nothing selected, return null
+  const hasAny = Object.values(grouped).some((arr) => arr.length > 0);
+  if (!hasAny) return null;
 
+  // Render: Selection: Social media - Reddit: Image, TikTok: Image, Vkontakte: Image; Display Networks - Google: Image
   return (
     <div className="text-sm text-gray-700 bg-[#f7f7fa] border border-[#e5e5e5] rounded-b-[10px] px-6 py-3">
       <span className="font-semibold">Selection:</span>{" "}
-      {recapItems.map((item, idx) => (
-        <span key={idx}>
-          <span className="font-medium">{item.channel}</span>
+      {Object.entries(grouped).map(([channel, items], idx) => (
+        <span key={channel}>
+          <span className="font-medium">{channel}</span>
           {" - "}
-          <span className="font-medium">{item.platform}</span>
-          {": "}
-          <span>
-            {item.formats.length > 0
-              ? item.formats.join(", ")
-              : <span className="italic text-gray-400">No formats</span>}
-          </span>
-          {idx < recapItems.length - 1 ? "; " : ""}
+          {items.map((item, i) => (
+            <span key={item.platform}>
+              <span className="font-medium">{item.platform}</span>
+              {": "}
+              <span>
+                {item.formats.length > 0
+                  ? item.formats.join(", ")
+                  : <span className="italic text-gray-400">No formats</span>}
+              </span>
+              {i < items.length - 1 ? ", " : ""}
+            </span>
+          ))}
+          {idx < Object.entries(grouped).length - 1 ? "; " : ""}
         </span>
       ))}
     </div>
