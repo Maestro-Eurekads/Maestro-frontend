@@ -71,7 +71,8 @@ const SelectChannelMix = () => {
   const [isDataReady, setIsDataReady] = useState(false);
   const [showMoreMap, setShowMoreMap] = useState({});
   const [toast, setToast] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  // Per-stage search terms
+  const [searchTerms, setSearchTerms] = useState({});
   const ITEMS_TO_SHOW = 6;
 
   // Fallback metadata for Targeting/Retargeting
@@ -175,7 +176,7 @@ const SelectChannelMix = () => {
         }
         const channelTypes = [
           "social_media",
-          "display_networks", 
+          "display_networks",
           "search_engines",
           "streaming",
           "mobile",
@@ -422,11 +423,12 @@ const SelectChannelMix = () => {
     }));
   };
 
-  // Filter platforms based on search term
-  const filterPlatforms = (platforms) => {
-    if (!searchTerm) return platforms;
+  // Filter platforms based on search term (now per-stage)
+  const filterPlatforms = (platforms, stageName) => {
+    const term = searchTerms[stageName] || "";
+    if (!term) return platforms;
     return platforms.filter(platform => 
-      platform.platform_name.toLowerCase().includes(searchTerm.toLowerCase())
+      platform.platform_name.toLowerCase().includes(term.toLowerCase())
     );
   };
 
@@ -506,16 +508,6 @@ const SelectChannelMix = () => {
         />
       </div>
 
-      <div className="mt-4 mb-6">
-        <input
-          type="text"
-          placeholder="Search channels..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
         {(orderedFunnelStages.length > 0 ? orderedFunnelStages : campaignFormData.funnel_stages).map((stageName, index) => {
           const stageFromFunnelStages = funnelStages?.find(
@@ -546,8 +538,8 @@ const SelectChannelMix = () => {
                 className={`flex flex-col p-6 gap-3 w-full bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
                   ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
               >
-                <div className="flex justify-between items-center" onClick={() => toggleItem(stage.name)}>
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center" onClick={() => toggleItem(stage.name)}>
+                  <div className="flex items-center gap-2 flex-1">
                     {stage.icon && (
                       <Image
                         src={stage.icon}
@@ -560,15 +552,18 @@ const SelectChannelMix = () => {
                       {stage.name}
                     </p>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-center flex-1">
                     <p
-                      className={`font-general-sans font-semibold text-[16px] leading-[22px] ${stageStatuses[stage.name] === "In progress"
+                      className={`font-general-sans font-semibold text-[16px] leading-[22px] ${
+                        stageStatuses[stage.name] === "In progress"
                           ? "text-[#3175FF]"
                           : "text-[#061237] opacity-50"
-                        }`}
+                      }`}
                     >
                       {stageStatuses[stage.name] || "Not started"}
                     </p>
+                  </div>
+                  <div className="flex items-center justify-end flex-1">
                     <Image
                       src={openItems[stage.name] ? up : down2}
                       alt={openItems[stage.name] ? "up" : "down"}
@@ -577,6 +572,24 @@ const SelectChannelMix = () => {
                     />
                   </div>
                 </div>
+
+                {/* Per-stage search input */}
+                {openItems[stage.name] && (
+                  <div className="mt-4 mb-6">
+                    <input
+                      type="text"
+                      placeholder={`Search channels for ${stage.name}...`}
+                      value={searchTerms[stage.name] || ""}
+                      onChange={(e) =>
+                        setSearchTerms((prev) => ({
+                          ...prev,
+                          [stage.name]: e.target.value,
+                        }))
+                      }
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                )}
 
                 {/* Selected Platforms Row */}
                 {(selectedPlatforms.online.length > 0 || selectedPlatforms.offline.length > 0) && (
@@ -658,7 +671,7 @@ const SelectChannelMix = () => {
                           ) : (
                             Object.entries(channels).map(
                               ([channelName, platforms]) => {
-                                const filteredPlatforms = filterPlatforms(platforms);
+                                const filteredPlatforms = filterPlatforms(platforms, stage.name);
                                 return filteredPlatforms?.length > 0 ? (
                                   <div key={channelName} className="mb-6">
                                     <p className="capitalize font-semibold mb-4">
