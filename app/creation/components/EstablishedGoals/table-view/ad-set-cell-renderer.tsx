@@ -308,7 +308,7 @@ export const AdSetCellRenderer = ({
         <p className="text-gray-300 font-semibold">NR</p>
       ) : (
         <input
-          value={displayValue}
+          value={Number(displayValue).toLocaleString()}
           onChange={(e) => {
             let newValue = e.target.value;
 
