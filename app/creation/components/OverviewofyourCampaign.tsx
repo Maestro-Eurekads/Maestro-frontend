@@ -375,9 +375,8 @@ const OverviewofyourCampaign = () => {
         />
       )}
       <div
-        className={`px-[20px]  ${
-          isDrawerOpen ? "md:px-[30px]" : "xl:px-[60px]"
-        }`}
+        className={`px-[20px]  ${isDrawerOpen ? "md:px-[30px]" : "xl:px-[60px]"
+          }`}
       >
         <div className="flex	flex-col gap-[24px]">
           <div className="bg-white w-fit p-2 rounded-md shadow-[0px_4px_14px_rgba(0,38,116,0.15)]">
