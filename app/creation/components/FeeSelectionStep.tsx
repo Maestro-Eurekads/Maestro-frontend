@@ -832,9 +832,8 @@ function FeeSelectionStep({
           ) : (
             <div className="p-4 bg-gray-50 rounded-lg w-[600px] mt-6">
               <div className="flex items-center gap-4 mb-4">
-                <h3 className="text-[16px] font-semibold">
-                  Budget Type: {campaignFormData?.campaign_budget?.sub_budget_type} (
-                  {campaignFormData?.campaign_budget?.level} Level)
+                <h3 className="text-[16px] font-semibold capitalize">
+                  Budget Type: {campaignFormData?.campaign_budget?.sub_budget_type}
                 </h3>
                 <button
                   className="text-[14px] text-[#3175FF] font-semibold cursor-pointer"

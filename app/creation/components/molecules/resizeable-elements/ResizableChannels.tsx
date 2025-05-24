@@ -931,7 +931,7 @@ const ResizableChannels = ({
                               <td className="px-4 py-2 whitespace-nowrap border-none">
                                 {set?.name}
                               </td>
-                              <td className="px-4 py-2 whitespace-nowrap border-none">
+                              <td className="px-4 py-2 whitespace-nowrap border-none hover:no-underline">
                                 {set?.size}
                               </td>
                             </tr>

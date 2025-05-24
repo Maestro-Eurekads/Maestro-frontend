@@ -134,7 +134,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 									</p>
 
 									<h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-										{campaignFormData?.campaign_budget?.amount ?? 0}{" "}{getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+										{parseInt(campaignFormData?.campaign_budget?.amount && campaignFormData?.campaign_budget?.amount).toLocaleString() ?? 0}{" "}{getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
 									</h3>
 								</div>
 								<div className='mt-[16px]'>
@@ -162,7 +162,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 										}
 										color={hexColors}
 
-										insideText={`${campaignFormData?.campaign_budget?.amount ?? 0} ${getCurrencySymbol(campaignFormData?.campaign_budget?.currency ?? '')}`}
+										insideText={`${parseInt(campaignFormData?.campaign_budget?.amount && campaignFormData?.campaign_budget?.amount).toLocaleString() ?? 0} ${getCurrencySymbol(campaignFormData?.campaign_budget?.currency ?? '')}`}
 									/>
 								</div>
 								{/* Campaign Phases */}
@@ -198,7 +198,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 						<div className='allocate_budget_phase_two'>
 							<button
 								onClick={() => (setOpens(!opens), extractPlatforms(campaignFormData))}
-								className="flex flex-row items-center p-0 gap-2 h-[24px] font-[600] text-[18px] leading-[24px] text-[#061237]"
+								className="flex flex-row items-center p-0 gap-2 h-[24px] font-[600] text-[22px] leading-[24px] text-[#061237]"
 							>
 								<Image
 									src={down}
