@@ -12,12 +12,14 @@ import {
 } from "app/utils/VerificationContext";
 import { useComments } from "app/utils/CommentProvider";
 import { useUserPrivileges } from "utils/userPrivileges";
-import { useRouter } from "next/navigation";
 import { selectCurrency } from "components/Options";
-import InternalApproverSelection from "components/InternalApproverSelection";
-import ResponsibleApproverDropdowns from "components/ResponsibleApproverDropdowns";
 import ClientApproverDropdowns from "components/ClientApproverDropdowns";
 
+
+interface DropdownOption {
+  label: string;
+  value: string;
+}
 export const SetupScreen = () => {
   const {
     createCampaign,
@@ -33,51 +35,47 @@ export const SetupScreen = () => {
     setCurrencySign,
     getUserByUserType,
     user,
-    requiredFields
+    requiredFields,
   } = useCampaigns();
-  const { client_selection } = campaignFormData || {}; // Add default empty object
+  const { client_selection } = campaignFormData || {};
   const [selectedOption, setSelectedOption] = useState("percentage");
   const [previousValidationState, setPreviousValidationState] = useState(null);
-
-  const [approvalOptions, setApprovalOptions] = useState([]);
-  const [clientapprovalOptions, setClientApprovalOptions] = useState([]);
-  const [clientOptions, setClientOptions] = useState([]);
-  const [level1Options, setlevel1Options] = useState([]);
-  const [level2Options, setlevel2Options] = useState([]);
-  const [level3Options, setlevel3Options] = useState([]);
-
   const [alert, setAlert] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const { setIsDrawerOpen, setClose } = useComments();
-  const {
-    verifyStep,
-    verifybeforeMove,
-    setverifybeforeMove,
-  } = useVerification();
+  const { verifyStep, verifybeforeMove, setverifybeforeMove } = useVerification();
   const { isAgencyCreator, isAgencyApprover, isFinancialApprover } = useUserPrivileges();
 
-  const router = useRouter();
 
-  useEffect(() => {
-    router.refresh(); // Forces a refresh of the current page
-  }, [router]);
+
+  const [approvalOptions, setApprovalOptions] = useState<DropdownOption[]>([]);
+  const [clientapprovalOptions, setClientApprovalOptions] = useState<DropdownOption[]>([]);
+  const [clientOptions, setClientOptions] = useState<DropdownOption[]>([]);
+  const [level1Options, setlevel1Options] = useState<DropdownOption[]>([]);
+  const [level2Options, setlevel2Options] = useState<DropdownOption[]>([]);
+  const [level3Options, setlevel3Options] = useState<DropdownOption[]>([]);
 
   useEffect(() => {
     setIsDrawerOpen(false);
     setClose(false);
   }, []);
 
-
-
-
-
   // Load saved form data from localStorage on mount
   useEffect(() => {
     const savedFormData = localStorage.getItem("campaignFormData");
     if (savedFormData) {
-      setCampaignFormData(JSON.parse(savedFormData));
+      const parsedData = JSON.parse(savedFormData);
+      setCampaignFormData({
+        ...parsedData,
+        approver: Array.isArray(parsedData?.approver)
+          ? parsedData?.approver?.filter((v: string | null) => v != null)
+          : [],
+        client_approver: Array.isArray(parsedData?.client_approver)
+          ? parsedData?.client_approver?.filter((v: string | null) => v != null)
+          : [],
+      });
     }
-  }, []);
+  }, [setCampaignFormData]);
 
   // Initialize campaignFormData if empty
   useEffect(() => {
@@ -100,14 +98,20 @@ export const SetupScreen = () => {
     }
   }, [campaignFormData, setCampaignFormData, isInitialized]);
 
-  // Save form data to localStorage whenever it changes
+  // Save form data to localStorage whenever it changes, cleaning null values
   useEffect(() => {
-
     if (campaignFormData) {
-      localStorage.setItem(
-        "campaignFormData",
-        JSON.stringify(campaignFormData)
-      );
+      const cleanedData = {
+        ...campaignFormData,
+        approver: Array.isArray(campaignFormData.approver)
+          ? campaignFormData.approver.filter((v: string | null) => v != null)
+          : [],
+        client_approver: Array.isArray(campaignFormData.client_approver)
+          ? campaignFormData.client_approver.filter((v: string | null) => v != null)
+          : [],
+      };
+      console.log("Saving to localStorage:", cleanedData);
+      localStorage.setItem("campaignFormData", JSON.stringify(cleanedData));
     }
   }, [campaignFormData]);
 
@@ -137,10 +141,6 @@ export const SetupScreen = () => {
     localStorage.setItem("verifybeforeMove", JSON.stringify(verifybeforeMove));
   }, [verifybeforeMove]);
 
-  console.log('approvalOptions-approvalOptions', approvalOptions)
-
-
-
   useEffect(() => {
     if (isAgencyCreator || isAgencyApprover || isFinancialApprover) {
       if (profile?.clients) {
@@ -148,7 +148,7 @@ export const SetupScreen = () => {
           id: c?.documentId,
           value: c?.client_name,
           label: c?.client_name,
-        }))
+        }));
         setClientOptions(options);
       }
     } else {
@@ -161,76 +161,74 @@ export const SetupScreen = () => {
         setClientOptions(options);
       }
     }
-  }, [allClients, profile, isAgencyApprover]);
+  }, [allClients, profile, isAgencyCreator, isAgencyApprover, isFinancialApprover]);
 
   useEffect(() => {
     if (!allClients || !client_selection) return;
 
-    const client = allClients?.find(
-      (c) => c?.documentId === client_selection?.id
-    );
-    // console.log('user-clientOptions', client)
+    const client = allClients?.find((c) => c?.documentId === client_selection?.id);
+
     setApprovalOptions(() => {
       const options = client?.approver?.map((l) => ({
         value: l,
         label: l,
       }));
-      return options || [];
+      return options?.filter((opt) => opt?.value != null && opt?.label != null) || [];
     });
+
     setClientApprovalOptions(() => {
       const options = client?.client_emails?.map((l) => ({
-        value: l.full_name,
-        label: l.full_name,
+        value: l?.full_name,
+        label: l?.full_name,
       }));
-      return options || [];
+      return options?.filter((opt) => opt?.value != null && opt?.label != null) || [];
     });
+
     setlevel1Options(() => {
       const options = client?.level_1?.map((l) => ({
         value: l,
         label: l,
       }));
-      return options || [];
+      return options?.filter((opt) => opt?.value != null && opt?.label != null) || [];
     });
+
     setlevel2Options(() => {
       const options = client?.level_2?.map((l) => ({
         value: l,
         label: l,
       }));
-      return options || [];
+      return options?.filter((opt) => opt?.value != null && opt?.label != null) || [];
     });
+
     setlevel3Options(() => {
       const options = client?.level_3?.map((l) => ({
         value: l,
         label: l,
       }));
-      return options || [];
+      return options?.filter((opt) => opt?.value != null && opt?.label != null) || [];
     });
+
     setCampaignFormData((prev) => ({
       ...prev,
-      approver: client?.approver,
+      approver: Array.isArray(prev.approver) && prev.approver.length > 0
+        ? prev.approver.filter((v: string | null) => v != null)
+        : (client?.approver?.filter((v: string | null) => v != null) || []),
+      client_approver: Array.isArray(prev.client_approver) && prev.client_approver.length > 0
+        ? prev.client_approver.filter((v: string | null) => v != null)
+        : (client?.client_emails?.map((e) => e?.full_name).filter((v: string | null) => v != null) || []),
     }));
   }, [client_selection, allClients, setCampaignFormData]);
 
-
-
-
-  // Updated useEffect to handle currencySign dynamically
   useEffect(() => {
     if (campaignFormData?.budget_details_currency?.id) {
       const currency = selectCurrency.find(
         (c) => c.value === campaignFormData.budget_details_currency.id
       );
       if (currency) {
-        if (
-          campaignFormData?.budget_details_fee_type?.id === "Fix budget fee"
-        ) {
-          setCurrencySign(currency.sign); // Currency symbol for Fix budget fee
-        } else if (
-          campaignFormData?.budget_details_fee_type?.id === "Tooling"
-        ) {
-          setCurrencySign(
-            selectedOption === "percentage" ? "%" : currency.sign
-          ); // % for percentage, currency for fix-amount
+        if (campaignFormData?.budget_details_fee_type?.id === "Fix budget fee") {
+          setCurrencySign(currency.sign);
+        } else if (campaignFormData?.budget_details_fee_type?.id === "Tooling") {
+          setCurrencySign(selectedOption === "percentage" ? "%" : currency.sign);
         }
       }
     }
@@ -238,47 +236,16 @@ export const SetupScreen = () => {
     campaignFormData?.budget_details_currency?.id,
     campaignFormData?.budget_details_fee_type?.id,
     selectedOption,
+    setCurrencySign,
   ]);
 
-
-
-
-
-  // useEffect(() => {
-  //   let fields = [];
-
-  //   if (cId) {
-  //     fields = [
-  //       campaignFormData?.client_selection?.value,
-  //       campaignFormData?.media_plan,
-  //       campaignFormData?.approver?.value,
-  //       campaignFormData?.client_approver?.value,
-  //       campaignFormData?.level_1?.id,
-  //       campaignFormData?.level_2?.id,
-  //       campaignFormData?.level_3?.id,
-  //     ];
-  //   } else {
-  //     fields = [
-  //       campaignFormData?.client_selection?.value,
-  //       campaignFormData?.media_plan,
-  //       campaignFormData?.approver?.value,
-  //       campaignFormData?.client_approver?.value,
-  //       campaignFormData?.level_1?.id,
-  //       campaignFormData?.level_2?.id,
-  //       campaignFormData?.level_3?.id,
-  //     ];
-  //   }
-
-  //   setRequiredFields(fields);
-  // }, [campaignFormData, cId]);
-
   useEffect(() => {
-    const getFieldValue = (field: any) => {
+    const getFieldValue = (field) => {
       if (Array.isArray(field)) {
-        return field.length > 0;
+        return field?.length > 0;
       }
       if (typeof field === "object" && field !== null) {
-        return Object.keys(field).length > 0;
+        return Object.keys(field)?.length > 0;
       }
       return Boolean(field);
     };
@@ -286,18 +253,16 @@ export const SetupScreen = () => {
     const fieldsToCheck = [
       campaignFormData?.client_selection?.value,
       campaignFormData?.media_plan,
-      campaignFormData?.approver, // now array
-      campaignFormData?.client_approver, // now array
+      campaignFormData?.approver,
+      campaignFormData?.client_approver,
       campaignFormData?.level_1?.id,
       campaignFormData?.level_2?.id,
       campaignFormData?.level_3?.id,
     ];
 
     const evaluatedFields = fieldsToCheck.map(getFieldValue);
-
     setRequiredFields(evaluatedFields);
-  }, [campaignFormData, cId]);
-
+  }, [campaignFormData, cId, setRequiredFields]);
 
   if (!campaignFormData) {
     return <div>Loading...</div>;
@@ -346,110 +311,36 @@ export const SetupScreen = () => {
             formId="level_3"
           />
         </div>
-        <div className="pb-12">
+        <div className="pb-12 w-full ">
           <Title>Media Plan details</Title>
-          <div className="client_selection_flow gap-4">
+          <div className="w-full flex items-center flex-row flex-wrap gap-4 pb-12">
             <ClientSelectionInput
               label={"Enter media plan name"}
               formId="media_plan"
             />
             <ClientApproverDropdowns
-              options={!approvalOptions ? [] : approvalOptions}
-              option={!clientapprovalOptions ? [] : clientapprovalOptions}
-            />
-            {/* <InternalApproverSelection
               options={approvalOptions}
-              label={"Internal Approver"}
-              formId="approver"
-            /> */}
-            {/* <InternalApproverSelection
-              options={approvalOptions}
-              label={"Internal Approver"}
-              formId="approver"
+              option={clientapprovalOptions}
+              value={{
+                approver: campaignFormData?.approver?.map((val) => ({
+                  value: val,
+                  label: val,
+                })),
+                client_approver: campaignFormData?.client_approver?.map((val) => ({
+                  value: val,
+                  label: val,
+                })),
+              }}
+              onChange={(field, selected) => {
+                setCampaignFormData((prev) => ({
+                  ...prev,
+                  [field]: selected?.map((opt) => opt?.value)?.filter((v: string | null) => v != null),
+                }));
+              }}
             />
-            <ClientSelection
-              options={clientapprovalOptions}
-              label={"Client Approver"}
-              formId="client_approver"
-            /> */}
-            {/* <ClientSelectionInput
-              label={"Internal Approver"}
-              formId="approver" 
-            />
-            <ClientSelectionInput
-              label={"Client Approver"}
-              formId="client_approver" 
-            /> */}
           </div>
         </div>
-        {/* <div className="pb-1">
-          <Title className="mb-1">Budget details</Title>
-          <div className="flex items-center flex-wrap gap-4">
-            <ClientSelection
-              options={selectCurrency}
-              label={"Select currency"}
-              formId="budget_details_currency" 
-            />
-            <ClientSelection
-              options={mediaBudgetPercentage}
-              label={"% of media budget"}
-              formId="budget_details_fee_type" 
-            />
-            {campaignFormData?.budget_details_fee_type?.id === "Tooling" && (
-              <div className="flex gap-6 mt-[20px]">
-                <div className="flex items-center gap-3">
-                  <Checkbox
-                    id="fix-amount"
-                    selectedOption={selectedOption}
-                    setSelectedOption={setSelectedOption}
-                    formId="budget_details_sub_fee_type"
-                  />
-                  <p className="whitespace-nowrap font-medium text-[16px] text-[#061237] mb-1">
-                    Fix amount
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Checkbox
-                    id="percentage"
-                    selectedOption={selectedOption}
-                    setSelectedOption={setSelectedOption}
-                    formId="budget_details_sub_fee_type"
-                  />
-                  <p className="font-medium text-[16px] text-[#061237] mb-1">
-                    Percentage
-                  </p>
-                </div>
-              </div>
-            )}
-            <div className="w-full">
-              <ClientSelectionInputbudget 
-                label={getInputValue()}
-                formId="budget_details_value"
-                currencySign={currencySign}
-                isSuffix={
-                  campaignFormData?.budget_details_fee_type?.id === "Tooling" &&
-                  selectedOption === "percentage"
-                }
-              />
-            </div>
-          </div>
-        </div> */}
       </div>
-
-      {/* {hasChanges && (
-        <div className="flex justify-end pr-6 mt-[20px]">
-          <button
-            onClick={handleStepZero}
-            className="flex items-center justify-center w-[142px] h-[52px] px-10 py-4 gap-2 rounded-lg text-white font-semibold text-base leading-6 transition-colors bg-[#3175FF] hover:bg-[#2557D6]"
-          >
-            {loading ? (
-              <SVGLoader width="30px" height="30px" color="#FFF" />
-            ) : (
-              "Validate"
-            )}
-          </button>
-        </div>
-      )} */}
     </div>
   );
 };

@@ -623,13 +623,31 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           value: campaignFormData?.budget_details_value,
         };
 
+        // Handle approver and client_approver as arrays of strings
         const internalApprovers = Array.isArray(campaignFormData?.approver)
-          ? campaignFormData.approver.map((a) => a.value)
+          ? campaignFormData.approver.filter((a: string | null) => a != null)
           : [];
 
         const clientApprovers = Array.isArray(campaignFormData?.client_approver)
-          ? campaignFormData.client_approver.map((a) => a.value)
+          ? campaignFormData.client_approver.filter((a: string | null) => a != null)
           : [];
+
+        // Update campaignFormData with cleaned values and save to localStorage
+        const cleanedFormData = {
+          ...campaignFormData,
+          approver: internalApprovers,
+          client_approver: clientApprovers,
+          budget_details_currency: {
+            id: budgetDetails.currency,
+            value: budgetDetails.currency,
+            label:
+              selectCurrency.find((c) => c.value === budgetDetails.currency)?.label ||
+              budgetDetails.currency,
+          },
+        };
+        setCampaignFormData(cleanedFormData);
+        console.log("Saving to localStorage before submission:", cleanedFormData);
+        localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData));
 
         if (cId && campaignData) {
           const updatedData = {
@@ -658,16 +676,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
           await updateCampaign(updatedData);
 
-          setCampaignFormData((prev) => ({
-            ...prev,
-            budget_details_currency: {
-              id: budgetDetails.currency,
-              value: budgetDetails.currency,
-              label:
-                selectCurrency.find((c) => c.value === budgetDetails.currency)
-                  ?.label || budgetDetails.currency,
-            },
-          }));
           setActive((prev) => prev + 1);
           setAlert({
             variant: "success",
@@ -681,16 +689,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           window.history.pushState({}, "", url.toString());
           await getActiveCampaign(res?.data?.data.documentId);
 
-          setCampaignFormData((prev) => ({
-            ...prev,
-            budget_details_currency: {
-              id: budgetDetails.currency,
-              value: budgetDetails.currency,
-              label:
-                selectCurrency.find((c) => c.value === budgetDetails.currency)
-                  ?.label || budgetDetails.currency,
-            },
-          }));
           setActive((prev) => prev + 1);
           setAlert({
             variant: "success",
@@ -699,6 +697,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           });
         }
       } catch (error) {
+        console.error("Error in handleStepZero:", error);
         setAlert({
           variant: "error",
           message: "Something went wrong. Please try again.",
