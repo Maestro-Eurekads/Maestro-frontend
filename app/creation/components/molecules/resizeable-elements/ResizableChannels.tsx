@@ -13,7 +13,7 @@ import {
   parseISO,
 } from "date-fns";
 import moment from "moment";
-import { getCurrencySymbol } from "components/data";
+import { getCurrencySymbol, renderUploadedFile } from "components/data";
 import arrowUp from "../../../../../public/arrow-g-up.svg";
 import arrowDown from "../../../../../public/arrow-g-down.svg";
 import axios from "axios";
@@ -48,7 +48,7 @@ interface ResizableChannelsProps {
   setSelectedStage?: any;
   openItems?: any;
   setOpenItems?: any;
-  endMonth?:any
+  endMonth?: any;
 }
 
 const DEFAULT_MEDIA_OPTIONS = [
@@ -70,7 +70,7 @@ const ResizableChannels = ({
   setSelectedStage,
   openItems,
   setOpenItems,
-  endMonth
+  endMonth,
 }: ResizableChannelsProps) => {
   const { campaignFormData, setCampaignFormData, setCopy, cId, campaignData } =
     useCampaigns();
@@ -131,7 +131,7 @@ const ResizableChannels = ({
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     const dailyWidth = calculateDailyWidth(containerWidth, endMonth);
-    console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth)
+    console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth);
     const baseStep = rrange === "Month" ? dailyWidth : 50;
     // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
     const adjustmentPerStep = 0; // Decrease each next step by 10
@@ -142,12 +142,14 @@ const ResizableChannels = ({
     let step = baseStep;
 
     // Generate snap points with decreasing step size
-    while (currentSnap <= (
-    containerWidth)) {
+    while (currentSnap <= containerWidth) {
       snapPoints.push(currentSnap);
       // console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
       currentSnap += step;
-      step = Math.max( rrange === "Month" ? dailyWidth : 50, step - adjustmentPerStep);
+      step = Math.max(
+        rrange === "Month" ? dailyWidth : 50,
+        step - adjustmentPerStep
+      );
     }
 
     const closestSnap = snapPoints.reduce((prev, curr) =>
@@ -554,7 +556,7 @@ const ResizableChannels = ({
                       ? 50 * daysBetween + 10
                       : parentWidth
                     : rrange === "Month"
-                    ? (Math.round(contWidth / 2 / 31)) * daysBetween
+                    ? Math.round(contWidth / 2 / 31) * daysBetween
                     : parentWidth,
                   rrange === "Day"
                     ? daysBetween > 0
@@ -590,21 +592,21 @@ const ResizableChannels = ({
 
   useEffect(() => {
     if (!dragging) return;
-  
+
     const totalDays = dateList.length - 1; // Define totalDays within the scope
-  
+
     const handleMouseMove = (event) => {
       event.preventDefault();
       const { index, direction, startX } = dragging;
       const deltaX = event.clientX - startX;
-  
+
       setChannelState((prev) =>
         prev.map((state, i) => {
           if (i !== index) return state;
-  
+
           let newWidth,
             newLeft = state.left;
-  
+
           if (direction === "left") {
             // Move the left side while keeping the right side fixed
             newWidth = Math.max(
@@ -615,23 +617,23 @@ const ResizableChannels = ({
               )
             );
             newLeft = state.left + deltaX; // Move the left boundary
-  
+
             // Prevent movement out of bounds
             newLeft = Math.max(
               parentLeft,
               Math.min(newLeft, parentLeft + parentWidth - newWidth)
             );
-  
+
             // Recalculate width after adjusting left boundary
             newWidth = state.left + state.width - newLeft;
           } else {
             // Move the right side, increasing width
             const rightEdge = state.left + state.width + deltaX;
-  
+
             // Prevent movement out of bounds
             const maxRightEdge = parentLeft + parentWidth;
             const adjustedRightEdge = Math.min(rightEdge, maxRightEdge);
-  
+
             // Calculate new width based on adjusted right edge
             newWidth = Math.max(
               50,
@@ -641,11 +643,11 @@ const ResizableChannels = ({
               )
             );
           }
-  
+
           // Calculate start and end pixel positions
           const startPixel = newLeft - parentLeft; // Adjusted to be relative
           const endPixel = startPixel - 1 + newWidth;
-  
+
           // Convert pixel positions to dates
           const startDate = pixelToDate(
             startPixel,
@@ -653,7 +655,7 @@ const ResizableChannels = ({
             index,
             "startDate"
           );
-  
+
           // Ensure end date doesn't exceed parent timeline's end date
           const rawEndDate = pixelToDate(
             endPixel - parentWidth / totalDays,
@@ -661,7 +663,7 @@ const ResizableChannels = ({
             index,
             "endDate"
           );
-  
+
           // If the calculated end date exceeds the parent timeline's end date,
           // adjust the width to match the parent timeline's end date
           if (endDate && new Date(rawEndDate) > endDate) {
@@ -669,27 +671,26 @@ const ResizableChannels = ({
             const maxWidth = parentEndPixel - startPixel + parentLeft;
             newWidth = Math.min(newWidth, maxWidth);
           }
-  
+
           return { ...state, left: newLeft, width: newWidth };
         })
       );
-  
+
       setDragging((prev) => ({ ...prev, startX: event.clientX }));
     };
-  
+
     const handleMouseUp = () => {
       setDragging(null);
     };
-  
+
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
-  
+
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [dragging, parentWidth]); // React when parent width changes
-  
 
   return (
     <div
@@ -930,7 +931,7 @@ const ResizableChannels = ({
                               <td className="px-4 py-2 whitespace-nowrap border-none">
                                 {set?.name}
                               </td>
-                              <td className="px-4 py-2 whitespace-nowrap border-none">
+                              <td className="px-4 py-2 whitespace-nowrap border-none hover:no-underline">
                                 {set?.size}
                               </td>
                             </tr>
@@ -995,6 +996,22 @@ const ResizableChannels = ({
                 )}
               </div>
             )}
+            {channel?.format?.some(
+              (format) => format?.previews?.length > 0
+            ) && (
+              <button
+                className="bg-blue-500 text-white p-2 rounded-md relative mt-2"
+                style={{
+                  left: `${channelState[index]?.left || parentLeft}px`,
+                }}
+                onClick={() => {
+                  setOpenCreatives(true);
+                  setSelectedChannel(channel?.name);
+                }}
+              >
+                View Creatives
+              </button>
+            )}
           </div>
         );
       })}
@@ -1021,7 +1038,39 @@ const ResizableChannels = ({
             </svg>
           </button>
           {disableDrag ? (
-            ""
+            <div>
+              {channels?.filter((ch)=>ch?.name === selectedChannel)?.map((channel) => (
+                <div key={channel.name} className="mb-6">
+                  <h2 className="font-semibold text-lg mb-2">{channel.name}</h2>
+                  <div className="flex flex-wrap gap-4">
+                    {channel?.format?.length > 0 && (
+                      <div className="mb-4">
+                        <h3 className="font-semibold text-sm mb-2">Channel Formats</h3>
+                        <div className="text-sm text-gray-600">
+                          {channel.format.map((format, index) => (
+                            <div key={index} className="p-4 bg-gray-100 rounded-lg shadow-sm">
+                              <p className="font-medium">Format Type: {format?.format_type}</p>
+                              <p className="text-sm text-gray-500">Previews:</p>
+                              <div className="grid grid-cols-2 gap-2 mt-2">
+                                {format?.previews?.map((preview, id) => (
+                                  <div key={id} className="block w-[140px] h-[140px]">
+                                    {renderUploadedFile(
+                                      format?.previews?.map((pp) => pp?.url),
+                                      format?.format_type,
+                                      id
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
             <FormatSelection
               stageName={parentId}

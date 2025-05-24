@@ -52,6 +52,18 @@ const saveStateToLocalStorage = (key: string, state: any, cId: string) => {
   }
 };
 
+const ONLINE_TYPES = [
+  "social_media",
+  "display_networks",
+  "search_engines",
+  "streaming",
+  "mobile",
+  "messaging",
+  "in_game",
+  "e_commerce",
+];
+const OFFLINE_TYPES = ["broadcast", "print", "ooh"];
+
 const SelectChannelMix = () => {
   const { setIsDrawerOpen, setClose } = useComments();
   const {
@@ -71,7 +83,8 @@ const SelectChannelMix = () => {
   const [isDataReady, setIsDataReady] = useState(false);
   const [showMoreMap, setShowMoreMap] = useState({});
   const [toast, setToast] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  // Per-stage search terms
+  const [searchTerms, setSearchTerms] = useState({});
   const ITEMS_TO_SHOW = 6;
 
   // Fallback metadata for Targeting/Retargeting
@@ -82,8 +95,8 @@ const SelectChannelMix = () => {
 
   // Debug data on mount
   useEffect(() => {
-    console.log("SelectChannelMix - platformList:", platformList);
-    console.log("SelectChannelMix - campaignFormData:", campaignFormData);
+    // console.log("SelectChannelMix - platformList:", platformList);
+    // console.log("SelectChannelMix - campaignFormData:", campaignFormData);
   }, [platformList, campaignFormData, cId]);
 
   // Ensure component is mounted and data is ready
@@ -95,10 +108,10 @@ const SelectChannelMix = () => {
     ) {
       setIsDataReady(true);
     } else {
-      console.warn("SelectChannelMix - Data not ready:", {
-        funnel_stages: campaignFormData?.funnel_stages,
-        platformList: Object.keys(platformList),
-      });
+      // console.warn("SelectChannelMix - Data not ready:", {
+      //   funnel_stages: campaignFormData?.funnel_stages,
+      //   platformList: Object.keys(platformList),
+      // });
     }
   }, [campaignFormData, platformList]);
 
@@ -175,7 +188,7 @@ const SelectChannelMix = () => {
         }
         const channelTypes = [
           "social_media",
-          "display_networks", 
+          "display_networks",
           "search_engines",
           "streaming",
           "mobile",
@@ -422,37 +435,35 @@ const SelectChannelMix = () => {
     }));
   };
 
-  // Filter platforms based on search term
-  const filterPlatforms = (platforms) => {
-    if (!searchTerm) return platforms;
+  // Filter platforms based on search term (now per-stage)
+  const filterPlatforms = (platforms, stageName) => {
+    const term = searchTerms[stageName] || "";
+    if (!term) return platforms;
     return platforms.filter(platform => 
-      platform.platform_name.toLowerCase().includes(searchTerm.toLowerCase())
+      platform.platform_name.toLowerCase().includes(term.toLowerCase())
     );
   };
 
-  // Get all selected platforms for a stage
-  const getSelectedPlatforms = (stageName) => {
+  // Get all selected platforms for a stage, grouped by online/offline type
+  // This version ensures only platforms that are actually in the correct type are shown
+  const getSelectedPlatformsByType = (stageName) => {
     const stageSelection = selected[stageName] || {};
-    const selectedPlatforms = {
-      online: [],
-      offline: []
-    };
-    
-    // Define online and offline channel types
-    const onlineTypes = ['social_media', 'display_networks', 'search_engines', 'streaming', 'mobile', 'messaging', 'in_game', 'e_commerce'];
-    const offlineTypes = ['broadcast', 'print', 'ooh'];
-    
-    Object.entries(stageSelection).forEach(([category, platforms]) => {
-      if (Array.isArray(platforms)) {
-        if (onlineTypes.includes(category)) {
-          selectedPlatforms.online.push(...platforms);
-        } else if (offlineTypes.includes(category)) {
-          selectedPlatforms.offline.push(...platforms);
-        }
-      }
+    const selectedByType = {};
+    Object.entries(platformList).forEach(([type, channels]) => {
+      selectedByType[type] = [];
+      Object.entries(channels).forEach(([channelName, platforms]) => {
+        const normalizedChannelName = channelName.replace(/[\s-]/g, "").toLowerCase();
+        const selectedPlatforms = stageSelection[normalizedChannelName] || [];
+        // Only include platforms that are actually in this channel's platform list
+        const validPlatformNames = platforms.map((p) => p.platform_name);
+        selectedPlatforms.forEach((platformName) => {
+          if (validPlatformNames.includes(platformName)) {
+            selectedByType[type].push(platformName);
+          }
+        });
+      });
     });
-    
-    return selectedPlatforms;
+    return selectedByType;
   };
 
   // Early return if not mounted or data not ready
@@ -473,21 +484,16 @@ const SelectChannelMix = () => {
   }
 
   // --- Funnel List Order Fix ---
-  // This block ensures the funnel stages are rendered in the same order as mapped in the funnelStages array (or custom_funnels if present)
-  // If custom_funnels is present and has a non-empty array, use its order, else use funnelStages order, else fallback to campaignFormData.funnel_stages order.
   let orderedFunnelStages = [];
   if (Array.isArray(campaignFormData?.custom_funnels) && campaignFormData.custom_funnels.length > 0) {
-    // Use custom_funnels order
     orderedFunnelStages = campaignFormData.custom_funnels
       .map((f) => f.name)
       .filter((name) => campaignFormData.funnel_stages.includes(name));
   } else if (Array.isArray(funnelStages) && funnelStages.length > 0) {
-    // Use funnelStages order
     orderedFunnelStages = funnelStages
       .map((f) => f.name)
       .filter((name) => campaignFormData.funnel_stages.includes(name));
   }
-  // Add any funnel_stages not found in the above to the end (to avoid missing any)
   if (Array.isArray(campaignFormData?.funnel_stages)) {
     campaignFormData.funnel_stages.forEach((name) => {
       if (!orderedFunnelStages.includes(name)) {
@@ -496,6 +502,53 @@ const SelectChannelMix = () => {
     });
   }
 
+  // --- Recap component for a stage ---
+  const StageRecap = ({ selectedByType }) => {
+    // Only show if there are any selections
+    const hasAny = Object.values(selectedByType).some(arr => Array.isArray(arr) && arr.length > 0);
+    if (!hasAny) return null;
+    return (
+      <div className="flex flex-wrap gap-4 p-4 bg-[#F5F8FF] border border-[rgba(49,117,255,0.08)] rounded-b-[10px]">
+        {Object.entries(selectedByType).map(([type, platforms]) =>
+          Array.isArray(platforms) && platforms.length > 0 ? (
+            <div key={type} className="flex flex-col min-w-[180px]">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-semibold capitalize text-[15px]">
+                  {type.replace("_", " ")}
+                </span>
+                <span className="text-xs text-gray-500">
+                  ({platforms.length} {ONLINE_TYPES.includes(type) ? "online" : "offline"} channel{platforms.length !== 1 ? "s" : ""})
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {platforms.map((platform, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex items-center gap-1 ${
+                      ONLINE_TYPES.includes(type)
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-green-100 text-green-700"
+                    } rounded-full px-3 py-1`}
+                  >
+                    {getPlatformIcon(platform) && (
+                      <Image
+                        src={getPlatformIcon(platform)}
+                        alt={platform}
+                        width={16}
+                        height={16}
+                      />
+                    )}
+                    <span className="text-sm">{platform}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="overflow-hidden">
       <div className="flex items-center justify-between">
@@ -503,16 +556,6 @@ const SelectChannelMix = () => {
           t1="Which platforms would you like to activate for each funnel stage?"
           t2="Choose the platforms for each stage to ensure your campaign reaches the right audience at the right time."
           span={1}
-        />
-      </div>
-
-      <div className="mt-4 mb-6">
-        <input
-          type="text"
-          placeholder="Search channels..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
@@ -530,7 +573,7 @@ const SelectChannelMix = () => {
             fallbackFunnelMetadata[stageName];
 
           if (!stage) {
-            console.warn(`Stage metadata not found for: ${stageName}`);
+            // console.warn(`Stage metadata not found for: ${stageName}`);
             return (
               <div key={index}>
                 Stage "{stageName}" not found. Please check configuration.
@@ -538,7 +581,8 @@ const SelectChannelMix = () => {
             );
           }
 
-          const selectedPlatforms = getSelectedPlatforms(stage.name);
+          // For recap at the channel type level
+          const selectedByType = getSelectedPlatformsByType(stage.name);
 
           return (
             <div key={index}>
@@ -546,8 +590,8 @@ const SelectChannelMix = () => {
                 className={`flex flex-col p-6 gap-3 w-full bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
                   ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
               >
-                <div className="flex justify-between items-center" onClick={() => toggleItem(stage.name)}>
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center" onClick={() => toggleItem(stage.name)}>
+                  <div className="flex items-center gap-2 flex-1">
                     {stage.icon && (
                       <Image
                         src={stage.icon}
@@ -560,15 +604,18 @@ const SelectChannelMix = () => {
                       {stage.name}
                     </p>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-center flex-1">
                     <p
-                      className={`font-general-sans font-semibold text-[16px] leading-[22px] ${stageStatuses[stage.name] === "In progress"
+                      className={`font-general-sans font-semibold text-[16px] leading-[22px] ${
+                        stageStatuses[stage.name] === "In progress"
                           ? "text-[#3175FF]"
                           : "text-[#061237] opacity-50"
-                        }`}
+                      }`}
                     >
                       {stageStatuses[stage.name] || "Not started"}
                     </p>
+                  </div>
+                  <div className="flex items-center justify-end flex-1">
                     <Image
                       src={openItems[stage.name] ? up : down2}
                       alt={openItems[stage.name] ? "up" : "down"}
@@ -578,232 +625,241 @@ const SelectChannelMix = () => {
                   </div>
                 </div>
 
-                {/* Selected Platforms Row */}
-                {(selectedPlatforms.online.length > 0 || selectedPlatforms.offline.length > 0) && (
-                  <div className="flex flex-col gap-2 mt-2 pb-2">
-                    {selectedPlatforms.online.length > 0 && (
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Online Channels:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedPlatforms.online.map((platform, idx) => (
-                            <div key={idx} className="flex items-center gap-1 bg-blue-100 rounded-full px-3 py-1">
-                              {getPlatformIcon(platform) && (
-                                <Image
-                                  src={getPlatformIcon(platform)}
-                                  alt={platform}
-                                  width={16}
-                                  height={16}
-                                />
-                              )}
-                              <span className="text-sm text-blue-700">{platform}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {selectedPlatforms.offline.length > 0 && (
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Offline Channels:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedPlatforms.offline.map((platform, idx) => (
-                            <div key={idx} className="flex items-center gap-1 bg-green-100 rounded-full px-3 py-1">
-                              {getPlatformIcon(platform) && (
-                                <Image
-                                  src={getPlatformIcon(platform)}
-                                  alt={platform}
-                                  width={16}
-                                  height={16}
-                                />
-                              )}
-                              <span className="text-sm text-green-700">{platform}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                {/* Recap for collapsed stage */}
+                {!openItems[stage.name] && (
+                  <StageRecap selectedByType={selectedByType} />
+                )}
+
+                {/* Per-stage search input */}
+                {openItems[stage.name] && (
+                  <div className="mt-4 mb-6">
+                    <input
+                      type="text"
+                      placeholder={`Search channels for ${stage.name}...`}
+                      value={searchTerms[stage.name] || ""}
+                      onChange={(e) =>
+                        setSearchTerms((prev) => ({
+                          ...prev,
+                          [stage.name]: e.target.value,
+                        }))
+                      }
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
                   </div>
                 )}
               </div>
 
               {openItems[stage.name] && (
                 <div className="card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px]">
-                  {Object.entries(platformList).map(([type, channels]) => (
-                    <div key={type} className="card_bucket_container_main p-6">
-                      <div
-                        className="flex justify-between items-center cursor-pointer rounded-md mb-4"
-                        onClick={(e) => toggleChannelType(e, stage.name, type)}
-                      >
-                        <h2 className="font-bold capitalize text-[18px]">
-                          {type.replace("_", " ")} Channels
-                        </h2>
-                        <Image
-                          src={
-                            openChannelTypes[`${stage.name}-${type}`]
-                              ? up
-                              : down2
-                          }
-                          alt={
-                            openChannelTypes[`${stage.name}-${type}`]
-                              ? "up"
-                              : "down"
-                          }
-                          width={24}
-                          height={24}
-                        />
-                      </div>
-                      {openChannelTypes[`${stage.name}-${type}`] && (
-                        <>
-                          {Object.entries(channels).length === 0 ? (
-                            <p>No channels available for {type}</p>
-                          ) : (
-                            Object.entries(channels).map(
-                              ([channelName, platforms]) => {
-                                const filteredPlatforms = filterPlatforms(platforms);
-                                return filteredPlatforms?.length > 0 ? (
-                                  <div key={channelName} className="mb-6">
-                                    <p className="capitalize font-semibold mb-4">
-                                      {channelName.replace("_", " ")}
-                                    </p>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                                      {filteredPlatforms
-                                        .slice(
-                                          0,
-                                          showMoreMap[
-                                            `${stage.name}-${channelName}`
-                                          ]
-                                            ? filteredPlatforms.length
-                                            : ITEMS_TO_SHOW
-                                        )
-                                        .map((platform, pIndex) => {
-                                          const normalizedChannelName =
-                                            channelName
-                                              .replace(" ", "")
-                                              .replace("-", "")
-                                              .toLowerCase();
-                                          const isSelected =
-                                            selected[stage.name]?.[
-                                              normalizedChannelName
-                                            ]?.includes(platform.platform_name);
-                                          return (
-                                            <div
-                                              key={pIndex}
-                                              className={`cursor-pointer flex flex-row justify-between items-center p-4 gap-2 w-[250px] min-h-[62px] bg-white 
-                                  border rounded-[10px] ${isSelected
-                                                  ? "border-[#3175FF]"
-                                                  : "border-[rgba(0,0,0,0.1)]"
-                                                }`}
-                                              onClick={(e) =>
-                                                handlePlatformClick(
-                                                  e,
-                                                  stage.name,
-                                                  normalizedChannelName,
-                                                  platform.platform_name,
-                                                  type
-                                                )
-                                              }
-                                            >
-                                              <div className="flex items-center gap-2">
-                                                {getPlatformIcon(
-                                                  platform.platform_name
-                                                ) ? (
-                                                  <Image
-                                                    src={
-                                                      getPlatformIcon(
-                                                        platform.platform_name
-                                                      ) || "/placeholder.svg"
-                                                    }
-                                                    alt={platform.platform_name}
-                                                    width={20}
-                                                    height={20}
-                                                  />
-                                                ) : null}
-                                                <p className="min-h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]">
-                                                  {platform.platform_name}
-                                                </p>
-                                              </div>
-                                              <div
-                                                className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${isSelected
-                                                    ? "bg-[#3175FF]"
-                                                    : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
-                                                  }`}
-                                              >
-                                                {isSelected && (
-                                                  <Image
-                                                    src={
-                                                      checkmark ||
-                                                      "/placeholder.svg"
-                                                    }
-                                                    alt="selected"
-                                                    className="w-3 h-3"
-                                                    width={20}
-                                                    height={20}
-                                                  />
-                                                )}
-                                              </div>
-                                            </div>
-                                          );
-                                        })
-                                      }
-                                    </div>
-                                    {filteredPlatforms.length > ITEMS_TO_SHOW && (
-                                      <div className="flex justify-center mt-4">
-                                        <button
-                                          onClick={() =>
-                                            toggleShowMore(
+                  {Object.entries(platformList).map(([type, channels]) => {
+                    // Recap row for closed channel type accordions
+                    const isChannelTypeOpen = openChannelTypes[`${stage.name}-${type}`];
+                    const selectedPlatformsForType = getSelectedPlatformsByType(stage.name)[type] || [];
+                    return (
+                      <div key={type} className="card_bucket_container_main p-6">
+                        <div
+                          className="flex justify-between items-center cursor-pointer rounded-md mb-4"
+                          onClick={(e) => toggleChannelType(e, stage.name, type)}
+                        >
+                          <h2 className="font-bold capitalize text-[18px]">
+                            {type.replace("_", " ")} Channels
+                          </h2>
+                          <Image
+                            src={
+                              isChannelTypeOpen
+                                ? up
+                                : down2
+                            }
+                            alt={
+                              isChannelTypeOpen
+                                ? "up"
+                                : "down"
+                            }
+                            width={24}
+                            height={24}
+                          />
+                        </div>
+                        {/* Recap row for selected platforms at channel type level when closed */}
+                        {!isChannelTypeOpen && selectedPlatformsForType.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {selectedPlatformsForType.map((platform, idx) => (
+                              <div
+                                key={idx}
+                                className={`flex items-center gap-1 ${
+                                  ONLINE_TYPES.includes(type)
+                                    ? "bg-blue-100 text-blue-700"
+                                    : "bg-green-100 text-green-700"
+                                } rounded-full px-3 py-1`}
+                              >
+                                {getPlatformIcon(platform) && (
+                                  <Image
+                                    src={getPlatformIcon(platform)}
+                                    alt={platform}
+                                    width={16}
+                                    height={16}
+                                  />
+                                )}
+                                <span className="text-sm">{platform}</span>
+                              </div>
+                            ))}
+                            <span className="ml-2 text-xs text-gray-500">
+                              {selectedPlatformsForType.length} {ONLINE_TYPES.includes(type) ? "online" : "offline"} channel{selectedPlatformsForType.length !== 1 ? "s" : ""} selected
+                            </span>
+                          </div>
+                        )}
+                        {isChannelTypeOpen && (
+                          <>
+                            {Object.entries(channels).length === 0 ? (
+                              <p>No channels available for {type}</p>
+                            ) : (
+                              Object.entries(channels).map(
+                                ([channelName, platforms]) => {
+                                  const filteredPlatforms = filterPlatforms(platforms, stage.name);
+                                  return filteredPlatforms?.length > 0 ? (
+                                    <div key={channelName} className="mb-6">
+                                      <p className="capitalize font-semibold mb-4">
+                                        {channelName.replace("_", " ")}
+                                      </p>
+                                      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                                        {filteredPlatforms
+                                          .slice(
+                                            0,
+                                            showMoreMap[
                                               `${stage.name}-${channelName}`
-                                            )
-                                          }
-                                          className="text-blue-500 font-medium flex items-center gap-1"
-                                        >
-                                          {showMoreMap[
-                                            `${stage.name}-${channelName}`
-                                          ] ? (
-                                            <>
-                                              Show less
-                                              <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="20"
-                                                height="20"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="2"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
+                                            ]
+                                              ? filteredPlatforms.length
+                                              : ITEMS_TO_SHOW
+                                          )
+                                          .map((platform, pIndex) => {
+                                            const normalizedChannelName =
+                                              channelName
+                                                .replace(/[\s-]/g, "")
+                                                .toLowerCase();
+                                            const isSelected =
+                                              selected[stage.name]?.[
+                                                normalizedChannelName
+                                              ]?.includes(platform.platform_name);
+                                            return (
+                                              <div
+                                                key={pIndex}
+                                                className={`cursor-pointer flex flex-row justify-between items-center p-4 gap-2 w-[250px] min-h-[62px] bg-white 
+                                    border rounded-[10px] ${isSelected
+                                                    ? "border-[#3175FF]"
+                                                    : "border-[rgba(0,0,0,0.1)]"
+                                                  }`}
+                                                onClick={(e) =>
+                                                  handlePlatformClick(
+                                                    e,
+                                                    stage.name,
+                                                    normalizedChannelName,
+                                                    platform.platform_name,
+                                                    type
+                                                  )
+                                                }
                                               >
-                                                <path d="m18 15-6-6-6 6" />
-                                              </svg>
-                                            </>
-                                          ) : (
-                                            <>
-                                              Show more
-                                              <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="20"
-                                                height="20"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="2"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                              >
-                                                <path d="m6 9 6 6 6-6" />
-                                              </svg>
-                                            </>
-                                          )}
-                                        </button>
+                                                <div className="flex items-center gap-2">
+                                                  {getPlatformIcon(
+                                                    platform.platform_name
+                                                  ) ? (
+                                                    <Image
+                                                      src={
+                                                        getPlatformIcon(
+                                                          platform.platform_name
+                                                        ) || "/placeholder.svg"
+                                                      }
+                                                      alt={platform.platform_name}
+                                                      width={20}
+                                                      height={20}
+                                                    />
+                                                  ) : null}
+                                                  <p className="min-h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]">
+                                                    {platform.platform_name}
+                                                  </p>
+                                                </div>
+                                                <div
+                                                  className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${isSelected
+                                                      ? "bg-[#3175FF]"
+                                                      : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
+                                                    }`}
+                                                >
+                                                  {isSelected && (
+                                                    <Image
+                                                      src={
+                                                        checkmark ||
+                                                        "/placeholder.svg"
+                                                      }
+                                                      alt="selected"
+                                                      className="w-3 h-3"
+                                                      width={20}
+                                                      height={20}
+                                                    />
+                                                  )}
+                                                </div>
+                                              </div>
+                                            );
+                                          })
+                                        }
                                       </div>
-                                    )}
-                                  </div>
-                                ) : null
-                              }
-                            )
-                          )}
-                        </>
-                      )}
-                    </div>
-                  ))}
+                                      {filteredPlatforms.length > ITEMS_TO_SHOW && (
+                                        <div className="flex justify-center mt-4">
+                                          <button
+                                            onClick={() =>
+                                              toggleShowMore(
+                                                `${stage.name}-${channelName}`
+                                              )
+                                            }
+                                            className="text-blue-500 font-medium flex items-center gap-1"
+                                          >
+                                            {showMoreMap[
+                                              `${stage.name}-${channelName}`
+                                            ] ? (
+                                              <>
+                                                Show less
+                                                <svg
+                                                  xmlns="http://www.w3.org/2000/svg"
+                                                  width="20"
+                                                  height="20"
+                                                  viewBox="0 0 24 24"
+                                                  fill="none"
+                                                  stroke="currentColor"
+                                                  strokeWidth="2"
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                >
+                                                  <path d="m18 15-6-6-6 6" />
+                                                </svg>
+                                              </>
+                                            ) : (
+                                              <>
+                                                Show more
+                                                <svg
+                                                  xmlns="http://www.w3.org/2000/svg"
+                                                  width="20"
+                                                  height="20"
+                                                  viewBox="0 0 24 24"
+                                                  fill="none"
+                                                  stroke="currentColor"
+                                                  strokeWidth="2"
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                >
+                                                  <path d="m6 9 6 6 6-6" />
+                                                </svg>
+                                              </>
+                                            )}
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : null
+                                }
+                              )
+                            )}
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

@@ -726,7 +726,7 @@ const Table = () => {
                     </td>
                     <td className="py-[12px] px-[16px]">
                       <div className="flex items-center whitespace-nowrap gap-3">
-                        <div className="view_content_table">{getFirstLetters(data?.media_plan_details?.client_approver || "-")}</div>
+                        <div className="view_content_table">{getFirstLetters(data?.media_plan_details?.internal_approver || "-")}</div>
                         <p>{data?.media_plan_details?.internal_approver || "N/A"}</p>
                       </div>
                     </td>

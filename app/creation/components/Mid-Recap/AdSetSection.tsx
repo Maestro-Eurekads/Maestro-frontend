@@ -29,9 +29,9 @@ export const AdSetsSection: React.FC<AdSetsSectionProps> = ({ platforms }) => {
                       <div className="text-sm text-gray-600">
                         {platform.adSets.map((adSet, index) => (
                           <div key={index} className="mb-1 flex gap-3">
-                            <span className="font-semibold">{adSet.name}</span>
                             <span className="font-semibold">{adSet.audience_type}</span>
-                            <span className="font-semibold">{adSet.size}</span>
+                            <span className="font-semibold">{adSet.name}</span>
+                            <span className="font-semibold">{adSet.size ? parseInt(adSet.size).toLocaleString(): ""}</span>
                           </div>
                         ))}
                       </div>

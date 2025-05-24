@@ -729,6 +729,106 @@ const ChannelSection = ({
   );
 };
 
+// Recap line component (rewritten to group by channel and only show channel name once)
+// MODIFIED: Use | to separate channels and formats instead of commas/semicolons
+const StageRecapLine = ({
+  stageName,
+  campaignFormData,
+  view,
+}: {
+  stageName: string;
+  campaignFormData: any;
+  view: "channel" | "adset";
+}) => {
+  // Find the stage in channel_mix
+  const stage = campaignFormData?.channel_mix?.find((chan: any) => chan?.funnel_stage === stageName);
+
+  if (!stage) return null;
+
+  // Group platforms and their selected formats by channel
+  const grouped: {
+    [channel: string]: Array<{ platform: string; formats: string[] }>;
+  } = {};
+
+  CHANNEL_TYPES.forEach(({ key, title }) => {
+    const platforms: PlatformType[] = stage[key] || [];
+    platforms.forEach((platform) => {
+      if (view === "channel") {
+        if (platform.format && platform.format.length > 0) {
+          if (!grouped[title]) grouped[title] = [];
+          grouped[title].push({
+            platform: platform.platform_name,
+            formats: platform.format.map((f) => f.format_type),
+          });
+        }
+      } else if (view === "adset" && platform.ad_sets && platform.ad_sets.length > 0) {
+        platform.ad_sets.forEach((adset) => {
+          if (adset.format && adset.format.length > 0) {
+            if (!grouped[title]) grouped[title] = [];
+            grouped[title].push({
+              platform: `${platform.platform_name} (${adset.audience_type})`,
+              formats: adset.format.map((f) => f.format_type),
+            });
+          }
+        });
+      }
+    });
+  });
+
+  // If nothing selected, return null
+  const hasAny = Object.values(grouped).some((arr) => arr.length > 0);
+  if (!hasAny) return null;
+
+  // Render: Selection: Social media - Facebook: Image, Video, Slideshow | Broadcast - DVD: Image, Slideshow
+  // (Use | to separate channels, comma to separate formats)
+  const recapString = Object.entries(grouped)
+    .map(([channel, items]) => {
+      if (!items.length) return null;
+      // For each platform in the channel, join formats with comma
+      const platformsStr = items
+        .map((item) => {
+          return (
+            <span key={item.platform}>
+              <span className="font-medium">{item.platform}</span>
+              {": "}
+              <span>
+                {item.formats.length > 0
+                  ? item.formats.join(", ")
+                  : <span className="italic text-gray-400">No formats</span>}
+              </span>
+            </span>
+          );
+        })
+        // Insert " | " between platforms
+        .reduce((acc: any[], curr, idx, arr) => {
+          acc.push(curr);
+          if (idx < arr.length - 1) acc.push(<span key={`sep-${idx}`}> | </span>);
+          return acc;
+        }, []);
+      // Channel name, then platforms
+      return (
+        <span key={channel}>
+          <span className="font-medium">{channel}</span>
+          {" - "}
+          {platformsStr}
+        </span>
+      );
+    })
+    // Insert " | " between channels
+    .reduce((acc: any[], curr, idx, arr) => {
+      acc.push(curr);
+      if (idx < arr.length - 1) acc.push(<span key={`ch-sep-${idx}`}> | </span>);
+      return acc;
+    }, []);
+
+  return (
+    <div className="text-sm text-gray-700 bg-[#f7f7fa] border border-[#e5e5e5] rounded-b-[10px] px-6 py-3">
+      <span className="font-semibold">Selection:</span>{" "}
+      {recapString}
+    </div>
+  );
+};
+
 export const Platforms = ({
   stageName,
   view = "channel",
@@ -1338,7 +1438,7 @@ export const FormatSelection = ({
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
         {!stageName && (
           <div className="flex justify-center gap-3">
-            <p className="font-medium">Channel View</p>
+            <p className="font-medium">Channel Granularity</p>
             <Switch
               checked={view === "adset"}
               onChange={handleToggleChange}
@@ -1353,7 +1453,7 @@ export const FormatSelection = ({
               activeBoxShadow="0 0 2px 3px rgba(37, 99, 235, 0.2)"
               className="react-switch"
             />
-            <p className="font-medium">AdSet View</p>
+            <p className="font-medium">Ad Set Granularity</p>
           </div>
         )}
 
@@ -1406,6 +1506,14 @@ export const FormatSelection = ({
                     height={24}
                   />
                 </div>
+                {/* Recap line below each stage with selection, only when collapsed */}
+                {!isOpen && (
+                  <StageRecapLine
+                    stageName={stage.name}
+                    campaignFormData={campaignFormData}
+                    view={view}
+                  />
+                )}
                 {isOpen && (
                   <div className="card-body bg-white border border-[#E5E5E5]">
                     <Platforms

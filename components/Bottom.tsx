@@ -335,7 +335,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setTriggerFunnelError(true);
         setAlert({
           variant: "error",
-          message: "Please select at least one funnel stage before continuing!",
+          message: "Please select at least one stage!",
           position: "bottom-right",
         });
         hasError = true;
@@ -772,15 +772,16 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-      {triggerFunnelError && (
+      {/* {triggerFunnelError && (
         <AlertMain
           alert={{
             variant: "error",
-            message: "Please select at least one funnel stage!",
+            message: "Please select at least one stage!",
             position: "bottom-right",
           }}
         />
-      )}
+      )} */}
+
       {selectedDatesError && (
         <AlertMain
           alert={{
@@ -864,8 +865,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                   <p>
                     {active === 0
                       ? "Start"
-                      : isHovered && active < 10
-                        ? "Next Step"
                         : active === 4 && !hasFormatSelected
                           ? "Skip"
                           : "Continue"}

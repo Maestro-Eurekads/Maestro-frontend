@@ -248,24 +248,7 @@ export const CellRenderer = ({
 
   // Format display value for percentage fields - keep the raw input value for UI
   let displayValue = kpiValue;
-  // if (isPercentType && displayValue) {
-  //   // If it's a number (already converted to decimal), convert back to percentage for display
-  //   if (
-  //     !isNaN(Number.parseFloat(displayValue)) &&
-  //     !displayValue.toString().includes("%")
-  //   ) {
-  //     // Check if it's likely a decimal value (less than 1)
-  //     if (Number.parseFloat(displayValue) < 1) {
-  //       displayValue = `${(Number.parseFloat(displayValue) * 100).toFixed(2)}%`;
-  //     } else {
-  //       // It's already a percentage value (like 10, 20, etc.)
-  //       displayValue = `${displayValue}%`;
-  //     }
-  //   } else if (!displayValue.toString().includes("%")) {
-  //     // It's a string without % - add it
-  //     displayValue = `${displayValue}%`;
-  //   }
-  // }
+
   if (displayValue && !isNaN(Number.parseFloat(displayValue))) {
     if (isPercentType) {
       // If it's a number (already converted to decimal), convert back to percentage for display
@@ -292,7 +275,7 @@ export const CellRenderer = ({
       }
     } else {
       // Format as regular number
-      displayValue = Number.parseFloat(displayValue).toFixed(0);
+      displayValue = Number.parseFloat(displayValue).toFixed(0).toLocaleString();
     }
   }
 
@@ -302,7 +285,7 @@ export const CellRenderer = ({
         <p className="text-gray-300 font-semibold">NR</p>
       ) : (
         <input
-          value={displayValue}
+          value={Number(displayValue).toLocaleString()}
           onChange={(e) => {
             let newValue = e.target.value;
 
@@ -366,7 +349,7 @@ export const CellRenderer = ({
           disabled={isNR || goalLevel === "Adset level"}
           className={`cpm-bg border-none outline-none max-w-[90px] p-1 ${isNR ? "text-gray-400" : ""
             }`}
-          placeholder={body ? body?.toUpperCase() : "Insert value"}
+          placeholder={body === "budget_size" ? "BUDGET": body ? body?.toUpperCase() : "Insert value"}
         />
       )}
       <Ban

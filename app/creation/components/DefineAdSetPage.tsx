@@ -80,6 +80,8 @@ const DefineAdSetPage = () => {
 
           if (hasAdSets) {
             initialOpenItems[stageName] = true;
+            initialStatuses[stageName] = "In progress"; // Set to "In progress" if ad sets exist
+            initialInteractions[stageName] = true;
           }
         }
       }
@@ -93,17 +95,19 @@ const DefineAdSetPage = () => {
   const toggleItem = (stage: string) => {
     setOpenItems((prev) => {
       const newOpenItems = { ...prev, [stage]: !prev[stage] };
-      // Reset status to "Not started" when opening, regardless of previous state
-      if (newOpenItems[stage] && !hasInteracted[stage]) {
-        setStageStatuses((prev) => ({ ...prev, [stage]: "Not started" }));
+      // Only set to "In progress" when opening if there has been prior interaction
+      if (newOpenItems[stage] && hasInteracted[stage]) {
+        setStageStatuses((prev) => ({ ...prev, [stage]: "In progress" }));
       }
       return newOpenItems;
     });
   };
 
   const handleInteraction = (stageName: string) => {
-    // Only update status to "In progress" when user has actually interacted
-    setStageStatuses((prev) => ({ ...prev, [stageName]: "In progress" }));
+    setStageStatuses((prev) => ({
+      ...prev,
+      [stageName]: prev[stageName] === "Completed" ? "Completed" : "In progress",
+    }));
     setHasInteracted((prev) => ({ ...prev, [stageName]: true }));
   };
 
@@ -112,9 +116,32 @@ const DefineAdSetPage = () => {
     setOpenItems((prev) => ({ ...prev, [stageName]: false }));
   };
 
+  // Modified resetInteraction to only reset when explicitly needed
   const resetInteraction = (stageName: string) => {
-    setHasInteracted((prev) => ({ ...prev, [stageName]: false }));
-    setStageStatuses((prev) => ({ ...prev, [stageName]: "Not started" }));
+    // Only reset if no ad sets remain for the stage
+    const stage = campaignFormData?.channel_mix?.find(
+      (s) => s.funnel_stage === stageName
+    );
+    const hasAdSets = stage
+      ? [
+          ...(stage.search_engines || []),
+          ...(stage.display_networks || []),
+          ...(stage.social_media || []),
+          ...(stage.streaming || []),
+          ...(stage.ooh || []),
+          ...(stage.broadcast || []),
+          ...(stage.messaging || []),
+          ...(stage.print || []),
+          ...(stage.e_commerce || []),
+          ...(stage.in_game || []),
+          ...(stage.mobile || []),
+        ].some((platform) => platform.ad_sets && platform.ad_sets.length > 0)
+      : false;
+
+    if (!hasAdSets) {
+      setHasInteracted((prev) => ({ ...prev, [stageName]: false }));
+      setStageStatuses((prev) => ({ ...prev, [stageName]: "Not started" }));
+    }
   };
 
   return (
@@ -134,9 +161,7 @@ const DefineAdSetPage = () => {
           <div key={index} className="w-full">
             <div
               className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-                ${
-                  openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"
-                }`}
+                ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
               onClick={() => toggleItem(stage.name)}
             >
               <div className="flex items-center gap-4">

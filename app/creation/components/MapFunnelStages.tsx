@@ -211,7 +211,7 @@ const MapFunnelStages = () => {
       campaignFormData?.funnel_stages?.includes(id) &&
       campaignFormData.funnel_stages.length === 1
     ) {
-      toast.error("You must have at least one funnel stage selected", {
+      toast.error("You must have at least one stage selected", {
         duration: 3000,
       });
       return;
