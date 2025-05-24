@@ -20,7 +20,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	const [clientId, setClientId] = useState<number | null>(null);
 	const [KeepVersionLoading, setKeepVersionLoading] = useState(false);
 
-	console.log('version-version', version)
+
 
 
 	const getNextVersion = (v) => {

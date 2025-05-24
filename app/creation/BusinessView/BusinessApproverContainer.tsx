@@ -53,10 +53,6 @@ const BusinessApproverContainer = ({ campaign, loading, isLoadingCampaign }) => 
 		<div className="flex flex-col gap-[24px]">
 			<div className="flex items-center justify-between flex-wrap gap-4">
 				{items?.map((item, index) => {
-					const isTruncated = Array.isArray(item.nameList) && item.nameList.length > 1;
-					const displayedName = Array.isArray(item.nameList) ? item.nameList[0] : item.name;
-					const tooltipText = Array.isArray(item.nameList) ? item.nameList.join(', ') : item.name;
-
 					return (
 						<div
 							key={index}
