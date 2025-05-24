@@ -163,8 +163,8 @@ export function extractAprroverFilters(campaigns: any[]) {
   const select_plans = new Set<string>()
 
   campaigns.forEach((campaign) => {
-    made_by.add(campaign?.media_plan_details?.client_approver)
-    approved_by.add(campaign.media_plan_details?.internal_approver)
+    made_by.add(campaign?.campaign_builder)
+    // approved_by.add(campaign.media_plan_details?.internal_approver)
     select_plans.add(campaign?.media_plan_details?.plan_name)
   })
 
@@ -246,164 +246,7 @@ export function extractLevelNameFilters(client: any) {
 
 
 
- 
-// export const fetchFilteredCampaigns = async (clientID: string, filters: FilterState) => {
-//   // Start with the client filter - always required
-//   let filterQuery = `filters[client][$eq]=${clientID}`;
-
-//   // Track non-date filters for $or logic
-//   let orFilterIndex = 0;
-//   let hasOrFilters = false;
- 
   
-
-//   // Always require campaign_timeline_start_date to be not null
-// filterQuery += `&filters[campaign_timeline_start_date][$notNull]=true`
-
-// // Handle date filters using campaign_timeline_start_date
-// const dateFilters: string[] = []
-// const year = filters.year || new Date().getFullYear().toString()
-
-// if (filters.month) {
-//   const monthOrder: Record<string, number> = {
-//     January: 0, February: 1, March: 2, April: 3, May: 4, June: 5,
-//     July: 6, August: 7, September: 8, October: 9, November: 10, December: 11,
-//   }
-//   const monthIndex = monthOrder[filters.month]
-//   if (monthIndex !== undefined) {
-//     const start = new Date(Number(year), monthIndex, 1).toISOString().slice(0, 10)
-//     const end = new Date(Number(year), monthIndex + 1, 0).toISOString().slice(0, 10)
-
-//     dateFilters.push(
-//       `filters[campaign_timeline_start_date][$lte]=${end}`,  // campaign started before or during month
-//       `filters[campaign_timeline_end_date][$gte]=${start}`   // campaign ends after or during month
-//     )
-//   }
-// }
-//  else if (filters.quarter) {
-//   const quarterMap: Record<string, [number, number]> = {
-//     Q1: [0, 2],  // Jan–Mar
-//     Q2: [3, 5],  // Apr–Jun
-//     Q3: [6, 8],  // Jul–Sep
-//     Q4: [9, 11], // Oct–Dec
-//   }
-
-//   const [startMonth, endMonth] = quarterMap[filters.quarter] || [0, 2]
-//   const startDate = new Date(Number(year), startMonth, 1).toISOString().slice(0, 10)
-//   const endDate = new Date(Number(year), endMonth + 1, 0).toISOString().slice(0, 10)
-
-//   // Only include campaigns where the start date is within the quarter
-//   dateFilters.push(
-//     `filters[campaign_timeline_start_date][$gte]=${startDate}`,
-//     `filters[campaign_timeline_start_date][$lte]=${endDate}`
-//   )
-// }
-//  else if (filters.year) {
-//   const start = `${year}-01-01`
-//   const end = `${year}-12-31`
-//   dateFilters.push(
-//     `filters[campaign_timeline_start_date][$gte]=${start}`,
-//     `filters[campaign_timeline_start_date][$lte]=${end}`
-//   )
-// }
-
-// if (dateFilters.length > 0) {
-//   filterQuery += `&${dateFilters.join("&")}`
-// }
-
-
-//   // Handle non-date filters with $or logic
-//   if (filters.category) {
-//     filterQuery += `&filters[$or][${orFilterIndex}][category][$eq]=${filters.category}`;
-//     hasOrFilters = true;
-//     orFilterIndex++;
-//   }
-
-//   if (filters.product) {
-//     filterQuery += `&filters[$or][${orFilterIndex}][product][$eq]=${filters.product}`;
-//     hasOrFilters = true;
-//     orFilterIndex++;
-//   }
-
-//   if (filters.select_plans) {
-//     filterQuery += `&filters[$or][${orFilterIndex}][media_plan_details][plan_name][$eq]=${filters.select_plans}`;
-//     hasOrFilters = true;
-//     orFilterIndex++;
-//   }
-
-//   if (filters.made_by) {
-//     filterQuery += `&filters[$or][${orFilterIndex}][media_plan_details][client_approver][$eq]=${filters.made_by}`;
-//     hasOrFilters = true;
-//     orFilterIndex++;
-//   }
-
-//   if (filters.approved_by) {
-//     filterQuery += `&filters[$or][${orFilterIndex}][media_plan_details][internal_approver][$eq]=${filters.approved_by}`;
-//     hasOrFilters = true;
-//     orFilterIndex++;
-//   }
-
-//   if (filters.channel) {
-//     filterQuery += `&filters[$or][${orFilterIndex}][channel_mix][${filters.channel}][$notNull]=true`;
-//     hasOrFilters = true;
-//     orFilterIndex++;
-//   }
-
-//   if (filters.phase) {
-//     filterQuery += `&filters[$or][${orFilterIndex}][funnel_stages][$containsi]=${filters.phase}`;
-//     hasOrFilters = true;
-//     orFilterIndex++;
-//   }
-
-//   if (filters.level_1) {
-//   filterQuery += `&filters[$or][${orFilterIndex}][client_selection][level_1][$eq]=${filters.level_1}`;
-//   hasOrFilters = true;
-//   orFilterIndex++;
-// }
-
-// if (filters.level_2) {
-//   filterQuery += `&filters[$or][${orFilterIndex}][client_selection][level_2][$eq]=${filters.level_2}`;
-//   hasOrFilters = true;
-//   orFilterIndex++;
-// }
-
-// if (filters.level_3) {
-//   filterQuery += `&filters[$or][${orFilterIndex}][client_selection][level_3][$eq]=${filters.level_3}`;
-//   hasOrFilters = true;
-//   orFilterIndex++;
-// }
-
-
- 
-
-//   // Add populate parameters
-//   const populateQuery = CAMPAIGN_POPULATE_QUERY;
-
-//   const baseUrl = `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`;
-
-// const defaultFilter = "filters[client][$eq]=264&filters[campaign_timeline_start_date][$notNull]=true";
-// const fullUrl =
-//   filterQuery === defaultFilter
-//     ? `${baseUrl}?${populateQuery}`
-//     : `${baseUrl}?${filterQuery}&${populateQuery}`;
-//   try {
-//     const response = await axios.get(
-//       `${fullUrl}`,
-//       {
-//         headers: {
-//           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-//         },
-//       }
-//     );
-    
-//     return response.data.data;
-//   } catch (error) {
-//     console.error("Error fetching filtered campaigns:", error);
-//     return [];
-//   }
-// };
-
-
 export const fetchFilteredCampaigns = async (clientID: string, filters: FilterState) => {
   // Start with the client filter - always required
   let filterQuery = `filters[client][$eq]=${clientID}`;
@@ -486,7 +329,7 @@ export const fetchFilteredCampaigns = async (clientID: string, filters: FilterSt
   // }
 
   if (filters.made_by) {
-    filterQuery += `&filters[$or][${orFilterIndex}][media_plan_details][client_approver][$eq]=${filters.made_by}`;
+    filterQuery += `&filters[$or][${orFilterIndex}][media_plan_details][made_by][$eq]=${filters.made_by}`;
     hasOrFilters = true;
     orFilterIndex++;
   }

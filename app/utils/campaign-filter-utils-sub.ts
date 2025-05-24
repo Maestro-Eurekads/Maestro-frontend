@@ -1,5 +1,4 @@
-import axios from "axios";
-import type { FilterState } from "./useCampaignFilters";
+import axios from "axios"; 
 import { getServerSession } from "next-auth";
 import { authOptions } from "utils/auth";
 
@@ -22,41 +21,10 @@ export const CAMPAIGN_POPULATE_QUERY = [
   "populate[channel_mix][populate][mobile][populate]=*",
 ].join("&");
 
-// export const fetchFilteredCampaignsSub = async (
-//   clientID: string, 
-// ) => {
-//   if (!clientID) {
-//     console.error("Client ID is required.");
-//     return [];
-//   }
-
-//   const baseUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
-//   const token = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
-
-//   if (!baseUrl || !token) {
-//     console.error("Missing environment variables for Strapi URL or token.");
-//     return [];
-//   }
-
-//   const filterQuery = `filters[client][$eq]=${clientID}`;
-//   const fullUrl = `${baseUrl}/campaigns?${filterQuery}&${CAMPAIGN_POPULATE_QUERY}`;
-
-//   try {
-//     const response = await axios.get(fullUrl, {
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//       },
-//     });
-
-//     return response.data.data;
-//   } catch (error) {
-//     console.error("Error fetching filtered campaigns:", error);
-//     return [];
-//   }
-// };
+ 
+ 
 export const fetchFilteredCampaignsSub = async (clientID: string) => {
-  const session = await getServerSession(authOptions)
-  console.log("🚀 ~ fetchFilteredCampaignsSub ~ session:", session)
+  const session = await getServerSession(authOptions) 
   if (!clientID) {
     console.error("Client ID is required.");
     return [];

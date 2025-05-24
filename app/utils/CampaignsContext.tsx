@@ -97,7 +97,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const reduxClients = useSelector((state: any) => state.client?.getCreateClientData?.data || []);
   const reduxLoadingClients = useSelector((state: any) => state.client?.getCreateClientIsLoading || false);
 
-  const allClients = reduxClients.length > 0 ? reduxClients : hookAllClients;
+  const allClients = reduxClients?.length > 0 ? reduxClients : hookAllClients;
   const loadingClients = reduxLoadingClients || hookLoadingClients || false;
 
   // Save form data to localStorage with debounce

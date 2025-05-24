@@ -337,8 +337,10 @@ border-radius: 50px;
 }
 
 .client_selection_flow{
-	display: flex;
- align-items: center  ;
+	 display: grid;
+    grid-template-columns: repeat(3, 1fr);
+	/* display: flex;
+ align-items: center  ; */
 	gap: 16px ;
 }
 
@@ -351,7 +353,7 @@ border-radius: 50px;
 @media (max-width: 768px) {
   .client_selection_flow {
     display: grid;
-    grid-template-columns: repeat(1, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     align-items: center;
     place-items: center;
   }
