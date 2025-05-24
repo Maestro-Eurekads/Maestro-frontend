@@ -15,6 +15,8 @@ import { useUserPrivileges } from "utils/userPrivileges";
 import { useRouter } from "next/navigation";
 import { selectCurrency } from "components/Options";
 import InternalApproverSelection from "components/InternalApproverSelection";
+import ResponsibleApproverDropdowns from "components/ResponsibleApproverDropdowns";
+import ClientApproverDropdowns from "components/ClientApproverDropdowns";
 
 export const SetupScreen = () => {
   const {
@@ -83,8 +85,8 @@ export const SetupScreen = () => {
       const initialFormData = {
         client_selection: {},
         media_plan: "",
-        approver: "",
-        client_approver: "",
+        approver: [],
+        client_approver: [],
         budget_details_currency: {},
         budget_details_fee_type: {},
         budget_details_value: "",
@@ -135,7 +137,7 @@ export const SetupScreen = () => {
     localStorage.setItem("verifybeforeMove", JSON.stringify(verifybeforeMove));
   }, [verifybeforeMove]);
 
-
+  console.log('approvalOptions-approvalOptions', approvalOptions)
 
 
 
@@ -164,7 +166,7 @@ export const SetupScreen = () => {
   useEffect(() => {
     if (!allClients || !client_selection) return;
 
-    const client = allClients.find(
+    const client = allClients?.find(
       (c) => c?.documentId === client_selection?.id
     );
     // console.log('user-clientOptions', client)
@@ -210,7 +212,7 @@ export const SetupScreen = () => {
   }, [client_selection, allClients, setCampaignFormData]);
 
 
-  console.log('approvalOptions-approvalOptions', approvalOptions)
+
 
   // Updated useEffect to handle currencySign dynamically
   useEffect(() => {
@@ -242,33 +244,60 @@ export const SetupScreen = () => {
 
 
 
+  // useEffect(() => {
+  //   let fields = [];
+
+  //   if (cId) {
+  //     fields = [
+  //       campaignFormData?.client_selection?.value,
+  //       campaignFormData?.media_plan,
+  //       campaignFormData?.approver?.value,
+  //       campaignFormData?.client_approver?.value,
+  //       campaignFormData?.level_1?.id,
+  //       campaignFormData?.level_2?.id,
+  //       campaignFormData?.level_3?.id,
+  //     ];
+  //   } else {
+  //     fields = [
+  //       campaignFormData?.client_selection?.value,
+  //       campaignFormData?.media_plan,
+  //       campaignFormData?.approver?.value,
+  //       campaignFormData?.client_approver?.value,
+  //       campaignFormData?.level_1?.id,
+  //       campaignFormData?.level_2?.id,
+  //       campaignFormData?.level_3?.id,
+  //     ];
+  //   }
+
+  //   setRequiredFields(fields);
+  // }, [campaignFormData, cId]);
+
   useEffect(() => {
-    let fields = [];
+    const getFieldValue = (field: any) => {
+      if (Array.isArray(field)) {
+        return field.length > 0;
+      }
+      if (typeof field === "object" && field !== null) {
+        return Object.keys(field).length > 0;
+      }
+      return Boolean(field);
+    };
 
-    if (cId) {
-      fields = [
-        campaignFormData?.client_selection?.value,
-        campaignFormData?.media_plan,
-        campaignFormData?.approver?.value,
-        campaignFormData?.client_approver?.value,
-        campaignFormData?.level_1?.id,
-        campaignFormData?.level_2?.id,
-        campaignFormData?.level_3?.id,
-      ];
-    } else {
-      fields = [
-        campaignFormData?.client_selection?.value,
-        campaignFormData?.media_plan,
-        campaignFormData?.approver?.value,
-        campaignFormData?.client_approver?.value,
-        campaignFormData?.level_1?.id,
-        campaignFormData?.level_2?.id,
-        campaignFormData?.level_3?.id,
-      ];
-    }
+    const fieldsToCheck = [
+      campaignFormData?.client_selection?.value,
+      campaignFormData?.media_plan,
+      campaignFormData?.approver, // now array
+      campaignFormData?.client_approver, // now array
+      campaignFormData?.level_1?.id,
+      campaignFormData?.level_2?.id,
+      campaignFormData?.level_3?.id,
+    ];
 
-    setRequiredFields(fields);
+    const evaluatedFields = fieldsToCheck.map(getFieldValue);
+
+    setRequiredFields(evaluatedFields);
   }, [campaignFormData, cId]);
+
 
   if (!campaignFormData) {
     return <div>Loading...</div>;
@@ -319,12 +348,21 @@ export const SetupScreen = () => {
         </div>
         <div className="pb-12">
           <Title>Media Plan details</Title>
-          <div className="client_selection_flow flex flex-wrap gap-4">
+          <div className="client_selection_flow gap-4">
             <ClientSelectionInput
               label={"Enter media plan name"}
               formId="media_plan"
             />
-            <InternalApproverSelection
+            <ClientApproverDropdowns
+              options={!approvalOptions ? [] : approvalOptions}
+              option={!clientapprovalOptions ? [] : clientapprovalOptions}
+            />
+            {/* <InternalApproverSelection
+              options={approvalOptions}
+              label={"Internal Approver"}
+              formId="approver"
+            /> */}
+            {/* <InternalApproverSelection
               options={approvalOptions}
               label={"Internal Approver"}
               formId="approver"
@@ -333,7 +371,7 @@ export const SetupScreen = () => {
               options={clientapprovalOptions}
               label={"Client Approver"}
               formId="client_approver"
-            />
+            /> */}
             {/* <ClientSelectionInput
               label={"Internal Approver"}
               formId="approver" 

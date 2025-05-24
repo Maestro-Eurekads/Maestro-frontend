@@ -459,6 +459,8 @@ import { useSession } from "next-auth/react";
 interface Campaign {
   isApprove: any;
   id: string;
+  internal_approver: string;
+  campaign_builder: string;
   documentId: string;
   media_plan_details: {
     plan_name: string;
@@ -601,7 +603,7 @@ const Table = () => {
   };
 
 
-  console.log('clientCampaignData-clientCampaignData', clientCampaignData)
+
 
 
 
@@ -719,15 +721,18 @@ const Table = () => {
                     <td className="py-[12px] px-[16px]">
                       <div className="flex items-center whitespace-nowrap gap-3">
                         <div className="view_content_table">
-                          {getFirstLetters(data?.media_plan_details?.client_approver || "-")}
+                          {getFirstLetters(data?.campaign_builder || "-")}
                         </div>
-                        {data?.media_plan_details?.client_approver || "N/A"}
+                        {data?.campaign_builder || "-"}
                       </div>
                     </td>
                     <td className="py-[12px] px-[16px]">
                       <div className="flex items-center whitespace-nowrap gap-3">
-                        <div className="view_content_table">{getFirstLetters(data?.media_plan_details?.internal_approver || "-")}</div>
-                        <p>{data?.media_plan_details?.internal_approver || "N/A"}</p>
+                        <div className="view_content_table">
+                          {getFirstLetters(data?.internal_approver || "-")}
+
+                        </div>
+                        <p>{data?.internal_approver || "-"}</p>
                       </div>
                     </td>
                     <td className="py-[12px] px-[16px] w-[120px]">

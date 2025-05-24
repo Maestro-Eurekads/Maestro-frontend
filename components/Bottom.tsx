@@ -76,6 +76,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   } = useCampaigns();
 
 
+  console.log('requiredFields-requiredFields', requiredFields)
+
+
   // --- Persist format selection for active === 4 ---
   // We'll use a ref to track if the user has ever selected a format and continued from step 4
   const hasProceededFromFormatStep = useRef(false);
@@ -278,9 +281,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
   };
 
+  // useEffect(() => {
+  //   setIsStepZeroValid(requiredFields.every((field) => field));
+  // }, [requiredFields]);
+
   useEffect(() => {
-    setIsStepZeroValid(requiredFields.every((field) => field));
+    setIsStepZeroValid(requiredFields.every(Boolean));
   }, [requiredFields]);
+
 
   const handleContinue = async () => {
     if (active === 6) {
@@ -493,6 +501,107 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       ])
       : {};
 
+    // const handleStepZero = async () => {
+    //   setLoading(true);
+
+    //   try {
+    //     if (!isStepZeroValid) {
+    //       setAlert({
+    //         variant: "error",
+    //         message: "Please complete all required fields before proceeding.",
+    //         position: "bottom-right",
+    //       });
+    //       setLoading(false);
+    //       return;
+    //     }
+
+    //     const budgetDetails = {
+    //       currency: campaignFormData?.budget_details_currency?.id,
+    //       fee_type: campaignFormData?.budget_details_fee_type?.id,
+    //       sub_fee_type: selectedOption,
+    //       value: campaignFormData?.budget_details_value,
+    //     };
+
+    //     if (cId && campaignData) {
+    //       const updatedData = {
+    //         ...removeKeysRecursively(campaignData, [
+    //           "id",
+    //           "documentId",
+    //           "createdAt",
+    //           "publishedAt",
+    //           "updatedAt",
+    //           "_aggregated"
+    //         ]),
+    //         client: campaignFormData?.client_selection?.id,
+    //         client_selection: {
+    //           client: campaignFormData?.client_selection?.value,
+    //           level_1: campaignFormData?.level_1?.id,
+    //           level_2: campaignFormData?.level_2?.id,
+    //           level_3: campaignFormData?.level_3?.id,
+    //         },
+    //         media_plan_details: {
+    //           plan_name: campaignFormData?.media_plan,
+    //           internal_approver: campaignFormData?.approver?.value,
+    //           client_approver: campaignFormData?.client_approver?.value,
+    //         },
+    //         budget_details: budgetDetails,
+    //       };
+
+    //       await updateCampaign(updatedData);
+
+    //       setCampaignFormData((prev) => ({
+    //         ...prev,
+    //         budget_details_currency: {
+    //           id: budgetDetails.currency,
+    //           value: budgetDetails.currency,
+    //           label:
+    //             selectCurrency.find((c) => c.value === budgetDetails.currency)
+    //               ?.label || budgetDetails.currency,
+    //         },
+    //       }));
+    //       setLoading(false);
+    //       setActive((prev) => prev + 1);
+    //       setAlert({
+    //         variant: "success",
+    //         message: "Campaign updated successfully!",
+    //         position: "bottom-right",
+    //       });
+    //     } else {
+    //       const res = await createCampaign();
+    //       const url = new URL(window.location.href);
+    //       url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
+    //       window.history.pushState({}, "", url.toString());
+    //       await getActiveCampaign(res?.data?.data.documentId);
+
+    //       setCampaignFormData((prev) => ({
+    //         ...prev,
+    //         budget_details_currency: {
+    //           id: budgetDetails.currency,
+    //           value: budgetDetails.currency,
+    //           label:
+    //             selectCurrency.find((c) => c.value === budgetDetails.currency)
+    //               ?.label || budgetDetails.currency,
+    //         },
+    //       }));
+    //       setActive((prev) => prev + 1);
+    //       setAlert({
+    //         variant: "success",
+    //         message: "Campaign created successfully!",
+    //         position: "bottom-right",
+    //       });
+    //     }
+    //     setLoading(false);
+    //   } catch (error) {
+    //     setAlert({
+    //       variant: "error",
+    //       message: "Something went wrong. Please try again.",
+    //       position: "bottom-right",
+    //     });
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // };
+
     const handleStepZero = async () => {
       setLoading(true);
 
@@ -514,6 +623,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           value: campaignFormData?.budget_details_value,
         };
 
+        const internalApprovers = Array.isArray(campaignFormData?.approver)
+          ? campaignFormData.approver.map((a) => a.value)
+          : [];
+
+        const clientApprovers = Array.isArray(campaignFormData?.client_approver)
+          ? campaignFormData.client_approver.map((a) => a.value)
+          : [];
+
         if (cId && campaignData) {
           const updatedData = {
             ...removeKeysRecursively(campaignData, [
@@ -522,7 +639,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
               "createdAt",
               "publishedAt",
               "updatedAt",
-              "_aggregated"
+              "_aggregated",
             ]),
             client: campaignFormData?.client_selection?.id,
             client_selection: {
@@ -533,8 +650,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             },
             media_plan_details: {
               plan_name: campaignFormData?.media_plan,
-              internal_approver: campaignFormData?.approver?.value,
-              client_approver: campaignFormData?.client_approver?.value,
+              internal_approver: internalApprovers,
+              client_approver: clientApprovers,
             },
             budget_details: budgetDetails,
           };
@@ -551,7 +668,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                   ?.label || budgetDetails.currency,
             },
           }));
-          setLoading(false);
           setActive((prev) => prev + 1);
           setAlert({
             variant: "success",
@@ -582,7 +698,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             position: "bottom-right",
           });
         }
-        setLoading(false);
       } catch (error) {
         setAlert({
           variant: "error",
@@ -865,9 +980,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                   <p>
                     {active === 0
                       ? "Start"
-                        : active === 4 && !hasFormatSelected
-                          ? "Skip"
-                          : "Continue"}
+                      : active === 4 && !hasFormatSelected
+                        ? "Skip"
+                        : "Continue"}
                   </p>
                   <Image src={Continue} alt="Continue" />
                 </>
