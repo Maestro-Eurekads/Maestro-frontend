@@ -33,7 +33,7 @@ const Header = ({ setIsOpen }) => {
   if (!session) return null;
   // @ts-ignore 
   const userType = session?.user?.data?.user?.id?.toString() || "";
-  const isAdmin = useUserPrivileges().isAdmin;
+  const { isAdmin, isAgencyApprover, isFinancialApprover } = useUserPrivileges();
 
   const {
     getCreateClientData,
@@ -89,7 +89,7 @@ const Header = ({ setIsOpen }) => {
   }, [userType, getCreateClientIsLoading, profile?.clients]);
 
   useEffect(() => {
-    if (!clients?.data || clients.data.length === 0 || !selectedId) {
+    if (!clients?.data || clients?.data?.length === 0 || !selectedId) {
       setLoading(false);
       return;
     }
@@ -164,18 +164,18 @@ const Header = ({ setIsOpen }) => {
               placeholder="Select client"
               onChange={(value) => {
                 if (value) {
-                  localStorage.setItem(userType, value.value);
-                  setSelected(value.value);
-                  setSelectedId(value.value);
+                  localStorage.setItem(userType, value?.value);
+                  setSelected(value?.value);
+                  setSelectedId(value?.value);
                 }
               }}
               value={(isAdmin ? clients?.data : profile?.clients)
                 ?.map((c) => ({
-                  label: c.client_name,
-                  value: c.id?.toString(),
+                  label: c?.client_name,
+                  value: c?.id?.toString(),
                 }))
                 .find((option) =>
-                  option.value === selectedId || option.value === selected
+                  option?.value === selectedId || option?.value === selected
                 )}
             />
             <button className="client_btn_text whitespace-nowrap w-fit" onClick={() => setIsOpen(true)}>
@@ -190,46 +190,29 @@ const Header = ({ setIsOpen }) => {
 
       <div className="profiledropdown_container_main">
         <div className="profiledropdown_container">
-          <Link
-            href={`/creation`}
-            onClick={() => {
-              setCampaignFormData({});
-              setActive(0);
-              setSubStep(0);
-            }}
-          >
-            <button
-              className={`new_plan_btn ${!profile?.clients?.[0]?.id && !isAdmin ? '!bg-[gray]' : ''}`}
-              disabled={!profile?.clients?.[0]?.id && !isAdmin}
+          {(isAdmin ||
+            isFinancialApprover ||
+            isAgencyApprover) &&
+            <Link
+              href={`/creation`}
+              onClick={() => {
+                setCampaignFormData({});
+                setActive(0);
+                setSubStep(0);
+              }}
             >
-              <Image src={white} alt="white" />
-              <p className="new_plan_btn_text">New media plan</p>
-            </button>
-          </Link>
+              <button
+                className={`new_plan_btn ${!profile?.clients?.[0]?.id && !isAdmin ? '!bg-[gray]' : ''}`}
+                disabled={!profile?.clients?.[0]?.id && !isAdmin}
+              >
+                <Image src={white} alt="white" />
+                <p className="new_plan_btn_text">New media plan</p>
+              </button>
+            </Link>}
 
           <div className="profile_container" onClick={() => setShow((prev) => !prev)}>
             {getFirstLetters(session?.user?.name)}
-            {/* {show && (
-              <div className="absolute bg-white border shadow-md rounded-[10px] top-[50px]">
-                <div
-                  className="flex items-center gap-2 cursor-pointer p-2"
-                  onClick={async () => {
-                    localStorage.removeItem("campaignFormData");
-                    localStorage.removeItem("selectedClient");
-                    localStorage.removeItem("profileclients");
-                    await signOut({
-                      callbackUrl: "/",
-                    })
-                  }
-                  }
-                >
-                  <LogOut color="#3175FF" />
-                  <p>Logout</p>
-                </div>
-              </div>
-            )} */}
 
-            {/* Dropdown Menu */}
             {show && (
               <div className="absolute right-0 top-[60px] w-[200px] bg-white border border-gray-200   shadow-lg z-50 !rounded-[5px]">
                 <div className="absolute top-[-4px] right-5 w-3 h-3 bg-white rotate-45 border-t border-l border-gray-200"></div>

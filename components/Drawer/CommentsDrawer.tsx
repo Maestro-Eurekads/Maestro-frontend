@@ -8,34 +8,17 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 import { getContrastingColor, getRandomColor } from "components/Options";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "store/useStore";
-// import { getComment } from "features/Comment/commentSlice";
 import { SVGLoader } from "components/SVGLoader";
 import AlertMain from "components/Alert/AlertMain";
-import { BsXLg } from "react-icons/bs";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { reset } from "features/Comment/commentSlice";
 import clsx from "clsx";
 
 
-interface Comment {
-	documentId: string;
-	addcomment_as: string;
-	createdAt: string;
-	commentId?: string; // Added commentId property
-	replies?: {
-		replyId: string;
-		text: string;
-		createdAt: string;
-		author: string;
-	}[];
-}
-
-
-
 const CommentsDrawer = ({ isOpen, onClose }) => {
-	const { opportunities, setViewcommentsId, viewcommentsId, addCommentOpportunity, setOpportunities, createCommentsError, createCommentsSuccess, approvedError, replyError, setIsCreateOpen, setClose, showbyID } = useComments();
+	const { opportunities, setViewcommentsId, viewcommentsId, addCommentOpportunity, setOpportunities, createCommentsError, createCommentsSuccess, approvedError, replyError, setIsCreateOpen } = useComments();
 
-	const { isAgencyApprover, isFinancialApprover, isAdmin, isAgencyCreator } = useUserPrivileges();
+	const { isAgencyApprover, isFinancialApprover, isAdmin } = useUserPrivileges();
 
 	const { data, isLoading } = useAppSelector((state) => state.comment);
 	const dispatch = useAppDispatch();
@@ -193,11 +176,9 @@ const CommentsDrawer = ({ isOpen, onClose }) => {
 								<Comments
 									comment={comment}
 									contrastingColor={contrastingColor}
-									setAlert={setAlert}
 									isAgencyApprover={isAgencyApprover}
 									isFinancialApprover={isFinancialApprover}
 									isAdmin={isAdmin}
-									isAgencyCreator={isAgencyCreator}
 								/>
 								<AddCommentReply
 									documentId={comment?.documentId}
