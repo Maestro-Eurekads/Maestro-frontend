@@ -28,7 +28,7 @@ function FinanceView({ setOpenModal, userRole }) {
   const itemsPerPage = 10; // Number of items per page
   const { fetchClientPOS } = useCampaignHook();
   const { clientPOs, setClientPOs, setFetchingPO } = useCampaigns();
-  const { isFinancialApprover } = useUserPrivileges();
+  const { isFinancialApprover, isAdmin } = useUserPrivileges();
 
   // Calculate paginated data with safety checks
   const totalItems = Array.isArray(clientPOs) ? clientPOs.length : 0;
@@ -97,10 +97,10 @@ function FinanceView({ setOpenModal, userRole }) {
     <div className="px-[72px]">
       <div className="flex items-center gap-2 mt-[36.5px]">
         <h1 className="media_text">Purchase Order Library</h1>
-        {isFinancialApprover ?
+        {isFinancialApprover || isAdmin ?
           <button onClick={() => setOpenModal(true)}>
             <Image src={blueBtn} alt="menu" />
-          </button> : <button onClick={() => toast.error("Only  Financial Approver can create PO")}>
+          </button> : <button onClick={() => toast.error("Role doesn't have permission")}>
             <Image src={blueBtn} alt="menu" />
           </button>}
 

@@ -20,6 +20,8 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	const [clientId, setClientId] = useState<number | null>(null);
 	const [KeepVersionLoading, setKeepVersionLoading] = useState(false);
 
+	console.log('version-version', version)
+
 
 	const getNextVersion = (v) => {
 		const number = parseInt(v?.replace('v', '')) || 0;
@@ -133,7 +135,9 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 				{/* Version info */}
 				<div className="flex items-center justify-center gap-2 text-sm text-gray-600 mb-4">
 					{getLoading ? <SVGLoader width={"40px"} height={"40px"} color={"#0866FF"} /> :
-						<span className="font-medium">Version: {currentVersion ?? 0}</span>}
+						<span className="font-medium"> </span>
+						// <span className="font-medium">Version: {currentVersion ?? 0}</span>
+					}
 
 				</div>
 
@@ -143,14 +147,15 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 						Back to Dashboard
 					</button>
 					<button className="btn_model_active w-full" onClick={handleApproval}>
-						Request approval
+						Approval
+						{/* Request approval */}
 					</button>
 				</div>
 
 
 
 				{/* Version choice prompt */}
-				{showVersionPrompt && (
+				{/* {showVersionPrompt && (
 					<div className=" fixed inset-0  bg-black bg-opacity-40 flex items-center justify-center z-50">
 						<div className="bg-white p-6 rounded-lg shadow-lg w-[400px] relative">
 							<button onClick={() => setShowVersionPrompt(false)} className="absolute top-4 right-4">
@@ -175,7 +180,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 							</div>
 						</div>
 					</div>
-				)}
+				)} */}
 
 			</div>
 		</div>
