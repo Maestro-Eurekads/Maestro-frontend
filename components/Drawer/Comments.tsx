@@ -7,10 +7,8 @@ import Approved from "./Approved";
 const Comments = ({
 	comment,
 	contrastingColor,
-	setAlert,
 	isAgencyApprover,
 	isFinancialApprover,
-	isAgencyCreator,
 	isAdmin
 }) => {
 	return (
@@ -30,10 +28,9 @@ const Comments = ({
 					<Approved
 						comment={comment}
 						commentId={comment?.commentId}
-						setAlert={setAlert}
 						isFinancialApprover={isFinancialApprover}
 						isAgencyApprover={isAgencyApprover}
-						isAdmin={isAdmin} isAgencyCreator={isAgencyCreator} />
+						isAdmin={isAdmin} />
 				</div>
 			</div>
 

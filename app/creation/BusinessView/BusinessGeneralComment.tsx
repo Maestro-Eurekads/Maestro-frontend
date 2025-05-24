@@ -1,6 +1,3 @@
-
-
-import { useCampaigns } from 'app/utils/CampaignsContext';
 import { useComments } from 'app/utils/CommentProvider';
 import { SVGLoader } from 'components/SVGLoader';
 import { getGeneralComment, reset } from 'features/Comment/commentSlice';
@@ -8,11 +5,10 @@ import { useSession } from 'next-auth/react';
 import React, { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from 'store/useStore';
 import TableLoader from '../components/TableLoader';
-import AlertMain from 'components/Alert/AlertMain';
 import { useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 
 const BusinessGeneralComment = () => {
-	const { campaignData } = useCampaigns();
 	const query = useSearchParams();
 	const commentId = query.get("campaignId");
 	const { data: session }: any = useSession();
@@ -27,7 +23,6 @@ const BusinessGeneralComment = () => {
 		updateGeneralComment
 	} = useComments();
 	const dispatch = useAppDispatch();
-	const [alert, setAlert] = useState(null);
 	const [isEditing, setIsEditing] = useState(false);
 	const [id, setid] = useState("");
 
@@ -72,30 +67,13 @@ const BusinessGeneralComment = () => {
 	// 	dispatch(getGeneralComment(commentId));
 	// }, [ ]);
 
-
-	useEffect(() => {
-		if (alert) {
-			const timer = setTimeout(() => setAlert(null), 3000);
-			return () => clearTimeout(timer);
-		}
-	}, [alert]);
-
 	useEffect(() => {
 		if (generalcommentsSuccess) {
-			setAlert({
-				variant: "success",
-				message: "Comment created!",
-				position: "bottom-right",
-			});
+			toast.success("Comment created!");
 			dispatch(reset());
 		}
 		if (generalError) {
-			setAlert({
-				variant: "error",
-				message:
-					generalError.response?.data?.error.message || generalError.message,
-				position: "bottom-right",
-			});
+			toast.error(generalError.response?.data?.error.message || generalError.message,);
 		}
 	}, [generalcommentsSuccess, generalError]);
 
@@ -107,7 +85,6 @@ const BusinessGeneralComment = () => {
 
 	return (
 		<div>
-			{alert && <AlertMain alert={alert} />}
 			<div className="flex flex-col w-full relative">
 				<label
 					className="w-[124px] h-[19px] font-semibold text-[14px] leading-[19px] text-[#061237] mb-3"
@@ -121,7 +98,6 @@ const BusinessGeneralComment = () => {
 					id="custom-textarea"
 					rows={3}
 					value={generalComment}
-					// onChange={(e) => setGeneralComment(e.target.value)}
 					onChange={handleGeneral}
 					className="box-border flex flex-col justify-center items-end p-4 pb-[20px] gap-12 w-full bg-white border border-gray-300 shadow-sm rounded-lg resize-none focus:outline-none focus:border-[#3175FF] focus:ring-1 focus:ring-[#3175FF]"
 					placeholder="Facebook ad targeting 18-24 works well here."
