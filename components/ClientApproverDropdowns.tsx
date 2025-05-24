@@ -444,9 +444,9 @@ const MultiSelectDropdown = ({
 
 	return (
 		<div className="relative w-full" ref={dropdownRef}>
-			<label className="font-medium text-[15px] leading-5 text-gray-600">
+			{/* <label className="font-medium text-[15px] leading-5 text-gray-600">
 				{islabelone || islabeltwo || label}
-			</label>
+			</label> */}
 
 			<div
 				className="w-[327px] bg-[#fff] flex items-center px-2 py-1 min-h-[45px] border-2 border-[#EFEFEF] rounded-lg cursor-pointer flex-wrap gap-2"
@@ -526,27 +526,26 @@ const ClientApproverDropdowns = ({
 	onChange: (field: string, selected: DropdownOption[]) => void;
 }) => {
 	return (
-		<div className="w-full flex flex-col gap-4">
-			<div className="flex items-center gap-4">
-				<MultiSelectDropdown
-					label="Internal Approver"
-					options={options}
-					islabelone=""
-					islabeltwo=""
-					formId="approver"
-					value={value.approver}
-					onChange={(selected) => onChange("approver", selected)}
-				/>
-				<MultiSelectDropdown
-					label="Client Approver"
-					options={option}
-					islabelone=""
-					islabeltwo=""
-					formId="client_approver"
-					value={value.client_approver}
-					onChange={(selected) => onChange("client_approver", selected)}
-				/>
-			</div>
+		<div className="flex items-center   gap-4   mt-5">
+
+			<MultiSelectDropdown
+				label="Internal Approver"
+				options={options}
+				islabelone=""
+				islabeltwo=""
+				formId="approver"
+				value={value.approver}
+				onChange={(selected) => onChange("approver", selected)}
+			/>
+			<MultiSelectDropdown
+				label="Client Approver"
+				options={option}
+				islabelone=""
+				islabeltwo=""
+				formId="client_approver"
+				value={value.client_approver}
+				onChange={(selected) => onChange("client_approver", selected)}
+			/>
 		</div>
 	);
 };

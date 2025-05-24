@@ -311,9 +311,9 @@ export const SetupScreen = () => {
             formId="level_3"
           />
         </div>
-        <div className="pb-12">
+        <div className="pb-12 w-full ">
           <Title>Media Plan details</Title>
-          <div className="client_selection_flow gap-4">
+          <div className="w-full flex items-center flex-row flex-wrap gap-4 pb-12">
             <ClientSelectionInput
               label={"Enter media plan name"}
               formId="media_plan"
