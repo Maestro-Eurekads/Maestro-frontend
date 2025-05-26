@@ -36,7 +36,7 @@ const Dropdown = ({
     }
     setIsOpen(!isOpen);
   };
-
+  console.log('campaignFormData-campaignFormData', campaignFormData)
 
 
 
