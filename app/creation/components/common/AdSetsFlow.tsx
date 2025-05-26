@@ -825,6 +825,44 @@ const AdsetSettings = memo(function AdsetSettings({
     onInteraction();
   }, [outlet.outlet, onInteraction]);
 
+  // --- Recap line logic ---
+  // Build a recap array of all ad sets and their extra audiences
+  const recapRows: {
+    type: string;
+    name: string;
+    size: string;
+    adSetNumber: number;
+    isExtra: boolean;
+  }[] = [];
+
+  adsets.forEach((adset, idx) => {
+    const adSetData = adSetDataMap[adset.id] || { name: "", audience_type: "", size: "", extra_audiences: [] };
+    // Main ad set
+    if (adSetData.audience_type || adSetData.name || adSetData.size) {
+      recapRows.push({
+        type: adSetData.audience_type || "",
+        name: adSetData.name || "",
+        size: adSetData.size || "",
+        adSetNumber: adset.addsetNumber,
+        isExtra: false,
+      });
+    }
+    // Extra audiences
+    if (Array.isArray(adSetData.extra_audiences)) {
+      adSetData.extra_audiences.forEach((ea, eidx) => {
+        if (ea.audience_type || ea.name || ea.size) {
+          recapRows.push({
+            type: ea.audience_type || "",
+            name: ea.name || "",
+            size: ea.size || "",
+            adSetNumber: adset.addsetNumber,
+            isExtra: true,
+          });
+        }
+      });
+    }
+  });
+
   if (!selectedPlatforms.includes(outlet.outlet)) {
     return (
       <NonFacebookOutlet
@@ -836,85 +874,119 @@ const AdsetSettings = memo(function AdsetSettings({
   }
 
   return (
-    <div className="flex items-center gap-8 w-full max-w-[1024px]">
-      <div className="relative">
-        <button className="relative min-w-[150px] max-w-[300px] w-fit z-20 flex gap-4 justify-between cursor-pointer items-center bg-[#F9FAFB] border border-[#0000001A] border-solid py-4 px-4 rounded-[10px]">
-          <Image
-            src={outlet.icon || "/placeholder.svg"}
-            alt={outlet.outlet}
-            className="w-[22px] h-[22px]"
-          />
-          <span className="text-[#061237] font-medium">{outlet.outlet}</span>
-          <FaAngleRight />
-        </button>
-      </div>
-      <DropdownContext.Provider value={{ openDropdownId, setOpenDropdownId }}>
-        <div
-          className="relative w-full"
-          style={{ minHeight: `${Math.max(194, (adsets.length + 1) * 80)}px` }}
-        >
-          {adsets.length > 0 && (
-            <>
-              <div className="absolute top-0 left-0 mb-4">
-                <button
-                  onClick={addNewAddset}
-                  disabled={adsets.length >= 10}
-                  className={`flex gap-2 items-center text-white ${adsets.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
-                    } px-4 py-2 rounded-full text-sm font-bold z-10 relative`}
-                >
-                  <MdAdd />
-                  <span>
-                    {adsets.length >= 10 ? "Max limit reached" : "New ad set"}
-                  </span>
-                </button>
-              </div>
-
-              {adsets.map((adset, index) => {
-                const adSetData = adSetDataMap[adset.id] || {
-                  name: "",
-                  audience_type: "",
-                  size: "",
-                };
-                return (
-                  <div
-                    key={adset.id}
-                    className="relative"
-                    style={{
-                      marginTop: index === 0 ? "60px" : "0px",
-                      marginBottom: "20px",
-                    }}
-                  >
-                    <AdSet
-                      adset={adset}
-                      index={index}
-                      isEditing={isEditing}
-                      onDelete={deleteAdSet}
-                      onUpdate={updateAdSetData}
-                      audienceType={adSetData.audience_type}
-                      adSetName={adSetData.name}
-                      adSetSize={adSetData.size}
-                      extra_audiences={
-                        (adSetData.extra_audiences as {
-                          audience_type: string;
-                          name?: string;
-                          size?: string;
-                        }[]) || []
-                      }
-                      onUpdateExtraAudiences={(extraAudienceArray) =>
-                        updateAdSetData(adset.id, {
-                          extra_audiences: extraAudienceArray,
-                        })
-                      }
-                      onInteraction={onInteraction}
-                      adsets={adsets}
-                    />
-                  </div>
-                );
-              })}
-            </>
-          )}
+    <div className="flex flex-col gap-2 w-full max-w-[1024px]">
+      <div className="flex items-center gap-8">
+        <div className="relative">
+          <button className="relative min-w-[150px] max-w-[300px] w-fit z-20 flex gap-4 justify-between cursor-pointer items-center bg-[#F9FAFB] border border-[#0000001A] border-solid py-4 px-4 rounded-[10px]">
+            <Image
+              src={outlet.icon || "/placeholder.svg"}
+              alt={outlet.outlet}
+              className="w-[22px] h-[22px]"
+            />
+            <span className="text-[#061237] font-medium">{outlet.outlet}</span>
+            <FaAngleRight />
+          </button>
         </div>
-      </DropdownContext.Provider>
+        <DropdownContext.Provider value={{ openDropdownId, setOpenDropdownId }}>
+          <div
+            className="relative w-full"
+            style={{ minHeight: `${Math.max(194, (adsets.length + 1) * 80)}px` }}
+          >
+            {adsets.length > 0 && (
+              <>
+                <div className="absolute top-0 left-0 mb-4">
+                  <button
+                    onClick={addNewAddset}
+                    disabled={adsets.length >= 10}
+                    className={`flex gap-2 items-center text-white ${adsets.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
+                      } px-4 py-2 rounded-full text-sm font-bold z-10 relative`}
+                  >
+                    <MdAdd />
+                    <span>
+                      {adsets.length >= 10 ? "Max limit reached" : "New ad set"}
+                    </span>
+                  </button>
+                </div>
+
+                {adsets.map((adset, index) => {
+                  const adSetData = adSetDataMap[adset.id] || {
+                    name: "",
+                    audience_type: "",
+                    size: "",
+                  };
+                  return (
+                    <div
+                      key={adset.id}
+                      className="relative"
+                      style={{
+                        marginTop: index === 0 ? "60px" : "0px",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      <AdSet
+                        adset={adset}
+                        index={index}
+                        isEditing={isEditing}
+                        onDelete={deleteAdSet}
+                        onUpdate={updateAdSetData}
+                        audienceType={adSetData.audience_type}
+                        adSetName={adSetData.name}
+                        adSetSize={adSetData.size}
+                        extra_audiences={
+                          (adSetData.extra_audiences as {
+                            audience_type: string;
+                            name?: string;
+                            size?: string;
+                          }[]) || []
+                        }
+                        onUpdateExtraAudiences={(extraAudienceArray) =>
+                          updateAdSetData(adset.id, {
+                            extra_audiences: extraAudienceArray,
+                          })
+                        }
+                        onInteraction={onInteraction}
+                        adsets={adsets}
+                      />
+                    </div>
+                  );
+                })}
+              </>
+            )}
+          </div>
+        </DropdownContext.Provider>
+      </div>
+      {/* Recap line below each stage selection */}
+      {recapRows.length > 0 && (
+        <div className="mt-2 mb-4">
+          <div className="bg-[#F5F7FA] border border-[#E5E7EB] rounded-lg px-4 py-3">
+            <div className="font-semibold text-[#061237] mb-2 text-sm">Audience Recap</div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-xs text-[#061237]">
+                <thead>
+                  <tr>
+                    <th className="text-left pr-4 py-1">Ad Set</th>
+                    <th className="text-left pr-4 py-1">Audience Type</th>
+                    <th className="text-left pr-4 py-1">Audience Name</th>
+                    <th className="text-left pr-4 py-1">Audience Size</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recapRows.map((row, idx) => (
+                    <tr key={idx} className={row.isExtra ? "bg-[#F9FAFB]" : ""}>
+                      <td className="pr-4 py-1">
+                        {row.isExtra ? `Ad set n°${row.adSetNumber} (Extra)` : `Ad set n°${row.adSetNumber}`}
+                      </td>
+                      <td className="pr-4 py-1">{row.type}</td>
+                      <td className="pr-4 py-1">{row.name}</td>
+                      <td className="pr-4 py-1">{formatWithThousandSeparator(row.size)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 });
