@@ -7,20 +7,29 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 import { FiLoader } from "react-icons/fi";
 import useCampaignHook from "../app/utils/useCampaignHook";
 import { useEffect, useState } from "react";
+// Removed unused import 'AllClientsCustomDropdown'
 import { useAppDispatch, useAppSelector } from "store/useStore";
 import AlertMain from "./Alert/AlertMain";
-import { getCreateClient } from "features/Client/clientSlice";
+import { getCreateClient } from "features/Client/clientSlice"; // Removed unused 'reset'
 import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { CustomSelect } from "app/homepage/components/CustomReactSelect";
 import { useActive } from "app/utils/ActiveContext";
 import { extractAprroverFilters, extractChannelAndPhase, extractDateFilters, extractLevelFilters, extractLevelNameFilters } from "app/utils/campaign-filter-utils";
 import { useUserPrivileges } from "utils/userPrivileges";
+import { el } from "date-fns/locale";
+import { useSearchParams } from "next/navigation";
 import { getFirstLetters } from "./Options";
+// import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
+
+
 
 
 const Header = ({ setIsOpen }) => {
   const { data: session } = useSession();
+  const query = useSearchParams();
+  const campaignId = query.get("campaignId");
+
   if (!session) return null;
   // @ts-ignore 
   const userType = session?.user?.data?.user?.id?.toString() || "";
@@ -53,7 +62,7 @@ const Header = ({ setIsOpen }) => {
 
   const clients: any = getCreateClientData;
 
-  useEffect(() => {
+  useEffect(() => {   //@ts-ignore
     dispatch(getCreateClient());
 
     const timer = setTimeout(() => {
@@ -136,7 +145,6 @@ const Header = ({ setIsOpen }) => {
 
 
 
-
   return (
     <div id="header" className="relative w-full">
       <div className="flex items-center">
@@ -183,8 +191,8 @@ const Header = ({ setIsOpen }) => {
       <div className="profiledropdown_container_main">
         <div className="profiledropdown_container">
           {(isAdmin ||
-            isFinancialApprover || isAgencyCreator ||
-            isAgencyApprover) &&
+            isFinancialApprover ||
+            isAgencyApprover || isAgencyCreator) &&
             <Link
               href={`/creation`}
               onClick={() => {
