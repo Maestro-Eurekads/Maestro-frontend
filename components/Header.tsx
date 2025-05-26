@@ -202,9 +202,7 @@ const Header = ({ setIsOpen }) => {
 
       <div className="profiledropdown_container_main">
         <div className="profiledropdown_container">
-          {(isAdmin ||
-            isFinancialApprover ||
-            isAgencyApprover || isAgencyCreator) &&
+          {(isAdmin || isFinancialApprover || isAgencyApprover) && (
             <Link
               href={`/creation`}
               onClick={() => {
