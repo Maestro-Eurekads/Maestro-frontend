@@ -80,7 +80,7 @@ const Header = ({ setIsOpen }) => {
     if (!userType) return;
 
     const storedClientId = localStorage.getItem(userType);
-    console.log("🚀 ~ useEffect ~ storedClientId:", storedClientId);
+    // console.log("🚀 ~ useEffect ~ storedClientId:", storedClientId);
     if (storedClientId) {
       setSelectedId(storedClientId);
     } else {
