@@ -44,9 +44,12 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const [fileSizeErrors, setFileSizeErrors] = useState<string[]>([]);
   const [localPreviews, setLocalPreviews] = useState<Array<{ id: string; url: string }>>([]);
   const MAX_RETRIES = 3;
-  const CONCURRENT_UPLOADS = 3;
-  const UPLOAD_TIMEOUT = 30000; // Reduced to 30 seconds for faster feedback
-  const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks
+  // Increase concurrent uploads for videos, or set to 1 for videos to avoid server overload
+  // Strapi's /upload endpoint can have issues with concurrent large video uploads
+  // We'll upload videos sequentially, images concurrently
+  const CONCURRENT_UPLOADS = format === "Video" ? 1 : 3;
+  const UPLOAD_TIMEOUT = 120000; // Increase timeout to 2 minutes for large videos
+  const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks (not used for Strapi default)
   const MAX_FILE_SIZE = format === "Video" ? 50 * 1024 * 1024 : 10 * 1024 * 1024; // 50MB for videos, 10MB for others
 
   // Validate environment variables
@@ -451,6 +454,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
     [STRAPI_URL, STRAPI_TOKEN, UPLOAD_TIMEOUT, MAX_RETRIES],
   );
 
+  // --- REWRITE: uploadFilesToStrapi to support multiple video uploads reliably ---
+  // For videos, upload sequentially (CONCURRENT_UPLOADS=1), for images use concurrency.
+  // This avoids Strapi's /upload endpoint failing with multiple large files.
+
   const uploadFilesToStrapi = useCallback(async () => {
     if (!uploads.some((file) => file)) {
       toast.error("No files selected for upload.");
@@ -470,27 +477,51 @@ const UploadModal: React.FC<UploadModalProps> = ({
         .map((file, index) => ({ file, index }))
         .filter((item): item is { file: File; index: number } => item.file !== null);
 
-      const results = [];
-      for (let i = 0; i < filesToUpload.length; i += CONCURRENT_UPLOADS) {
-        const chunk = filesToUpload.slice(i, i + CONCURRENT_UPLOADS);
-        const chunkResults = await Promise.all(
-          chunk.map(async ({ file, index }) => {
-            try {
-              const result = await uploadSingleFile(file, index);
-              return result;
-            } catch (error: any) {
-              // Show more specific error for method not allowed
-              if (error && error.message && error.message.includes("Method Not Allowed")) {
-                toast.error("Upload failed: Method Not Allowed. Please contact support.");
-              } else {
-                toast.error(`Failed to upload ${file.name}`);
-              }
-              console.error(`Failed to upload file "${file.name}"`, error);
-              return null;
+      let results: any[] = [];
+
+      if (format === "Video") {
+        // Sequential upload for videos
+        for (let i = 0; i < filesToUpload.length; i++) {
+          const { file, index } = filesToUpload[i];
+          try {
+            const result = await uploadSingleFile(file, index);
+            results.push(result);
+          } catch (error: any) {
+            if (error && error.message && error.message.includes("Method Not Allowed")) {
+              toast.error("Upload failed: Method Not Allowed. Please contact support.");
+            } else if (error && error.message && error.message.includes("timed out")) {
+              toast.error(`Upload timed out for ${file.name}. Try a smaller file or check your connection.`);
+            } else {
+              toast.error(`Failed to upload ${file.name}`);
             }
-          }),
-        );
-        results.push(...chunkResults);
+            console.error(`Failed to upload file "${file.name}"`, error);
+            results.push(null);
+          }
+        }
+      } else {
+        // Concurrent upload for images/pdfs
+        for (let i = 0; i < filesToUpload.length; i += CONCURRENT_UPLOADS) {
+          const chunk = filesToUpload.slice(i, i + CONCURRENT_UPLOADS);
+          const chunkResults = await Promise.all(
+            chunk.map(async ({ file, index }) => {
+              try {
+                const result = await uploadSingleFile(file, index);
+                return result;
+              } catch (error: any) {
+                if (error && error.message && error.message.includes("Method Not Allowed")) {
+                  toast.error("Upload failed: Method Not Allowed. Please contact support.");
+                } else if (error && error.message && error.message.includes("timed out")) {
+                  toast.error(`Upload timed out for ${file.name}. Try a smaller file or check your connection.`);
+                } else {
+                  toast.error(`Failed to upload ${file.name}`);
+                }
+                console.error(`Failed to upload file "${file.name}"`, error);
+                return null;
+              }
+            }),
+          );
+          results.push(...chunkResults);
+        }
       }
 
       const uploadedFiles = results.filter((result) => result !== null);
@@ -525,6 +556,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
     } catch (error: any) {
       if (error && error.message && error.message.includes("Method Not Allowed")) {
         toast.error("Upload failed: Method Not Allowed. Please contact support.");
+      } else if (error && error.message && error.message.includes("timed out")) {
+        toast.error("Upload timed out. Try a smaller file or check your connection.");
       } else {
         toast.error("Upload failed. Please try again.");
       }
@@ -532,7 +565,17 @@ const UploadModal: React.FC<UploadModalProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [uploads, localPreviews, updateGlobalState, onUploadSuccess, onClose, uploadSingleFile, fileSizeErrors]);
+  }, [
+    uploads,
+    localPreviews,
+    updateGlobalState,
+    onUploadSuccess,
+    onClose,
+    uploadSingleFile,
+    fileSizeErrors,
+    format,
+    CONCURRENT_UPLOADS,
+  ]);
 
   if (!isOpen) return null;
 
