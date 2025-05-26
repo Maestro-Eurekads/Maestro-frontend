@@ -7,9 +7,10 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 import { FiLoader } from "react-icons/fi";
 import useCampaignHook from "../app/utils/useCampaignHook";
 import { useEffect, useState } from "react";
+// Removed unused import 'AllClientsCustomDropdown'
 import { useAppDispatch, useAppSelector } from "store/useStore";
 import AlertMain from "./Alert/AlertMain";
-import { getCreateClient } from "features/Client/clientSlice";
+import { getCreateClient } from "features/Client/clientSlice"; // Removed unused 'reset'
 import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { CustomSelect } from "app/homepage/components/CustomReactSelect";
@@ -22,10 +23,14 @@ import {
   extractLevelNameFilters,
 } from "app/utils/campaign-filter-utils";
 import { useUserPrivileges } from "utils/userPrivileges";
+import { el } from "date-fns/locale";
+import { useSearchParams } from "next/navigation";
 import { getFirstLetters } from "./Options";
 
 const Header = ({ setIsOpen }) => {
   const { data: session } = useSession();
+  const query = useSearchParams();
+  const campaignId = query.get("campaignId");
 
   if (!session) return null;
   // @ts-ignore
