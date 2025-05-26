@@ -113,8 +113,6 @@ const ObjectiveSelection = () => {
   // Initialize statuses and sync selectedNetworks
   useEffect(() => {
     if (campaignFormData?.funnel_stages) {
-      // Only clear statuses if this is the first time seeing these stages
-      // Otherwise, keep previous statuses (from localStorage or validatedStages)
       let initialStatuses = {}
       let shouldInit = false
 
@@ -173,24 +171,49 @@ const ObjectiveSelection = () => {
     }
   }, [campaignFormData?.funnel_stages, campaignFormData?.channel_mix, campaignFormData?.validatedStages])
 
+  // --- FIX: Always show correct status for stages marked completed in previous plan ---
+  // This effect ensures that if a stage is marked as completed in campaignFormData.validatedStages,
+  // it is always shown as "Completed" in the UI, regardless of localStorage or other state.
+  useEffect(() => {
+    if (campaignFormData?.funnel_stages) {
+      const updatedStatuses = {}
+      campaignFormData.funnel_stages.forEach((stageName) => {
+        // If validatedStages has this stage as true, always show Completed
+        if (campaignFormData.validatedStages && campaignFormData.validatedStages[stageName]) {
+          updatedStatuses[stageName] = "Completed"
+        } else {
+          // Fallback to local state or Not Started
+          updatedStatuses[stageName] = statuses[stageName] || "Not Started"
+        }
+      })
+      setStatuses(updatedStatuses)
+      localStorage.setItem("funnelStageStatuses", JSON.stringify(updatedStatuses))
+    }
+    // eslint-disable-next-line
+  }, [campaignFormData?.funnel_stages, campaignFormData?.validatedStages])
+
   // Update statuses based on selectedOptions and validatedPlatforms
   useEffect(() => {
     if (campaignFormData?.funnel_stages) {
       // Always prefer "Completed" if validatedStages or validatedPlatforms has it
       const updatedStatuses = { ...statuses }
       campaignFormData.funnel_stages.forEach((stageName) => {
-        // If validatedStages or validatedPlatforms has this stage, always "Completed"
-        const isValidated =
-          (campaignFormData.validatedStages && campaignFormData.validatedStages[stageName]) ||
-          (validatedPlatforms[stageName] && validatedPlatforms[stageName].size > 0)
-        const hasSelected = hasCompleteSelection(stageName)
-
-        if (isValidated) {
+        // If validatedStages has this stage as true, always "Completed"
+        if (campaignFormData.validatedStages && campaignFormData.validatedStages[stageName]) {
           updatedStatuses[stageName] = "Completed"
-        } else if (hasSelected) {
-          updatedStatuses[stageName] = "In Progress"
         } else {
-          updatedStatuses[stageName] = "Not Started"
+          // If validatedPlatforms has this stage, also "Completed"
+          const isValidated =
+            validatedPlatforms[stageName] && validatedPlatforms[stageName].size > 0
+          const hasSelected = hasCompleteSelection(stageName)
+
+          if (isValidated) {
+            updatedStatuses[stageName] = "Completed"
+          } else if (hasSelected) {
+            updatedStatuses[stageName] = "In Progress"
+          } else {
+            updatedStatuses[stageName] = "Not Started"
+          }
         }
       })
       setStatuses(updatedStatuses)
@@ -290,7 +313,11 @@ const ObjectiveSelection = () => {
 
   const handleValidate = (stageName) => {
     // Prevent duplicate validation
-    if (statuses[stageName] === "Completed") return
+    if (
+      (campaignFormData.validatedStages && campaignFormData.validatedStages[stageName]) ||
+      statuses[stageName] === "Completed"
+    )
+      return
 
     setStatuses((prev) => {
       const newStatuses = { ...prev, [stageName]: "Completed" }
