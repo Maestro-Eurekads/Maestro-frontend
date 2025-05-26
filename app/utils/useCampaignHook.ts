@@ -1,3 +1,5 @@
+//@ts-nocheck
+
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { useState, useEffect, useCallback } from "react";
@@ -10,14 +12,19 @@ const useCampaignHook = () => {
   const [error, setError] = useState(null);
   const [allClients, setAllClients] = useState([]);
   const { data: session } = useSession();
- 
+
   // Fetch all clients
   const fetchAllClients = useCallback(async () => {
     setLoadingClients(true);
     try {
       const res = await axios.get(
         // @ts-ignore
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients?filters[users][$eq]=${session?.user?.id}`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients${
+          //@ts-ignore
+          session?.user?.data?.user?.user_type === "admin"
+            ? ""
+            : `?filters[users][$eq]=${session?.user?.id}`
+        }`,
         {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
@@ -38,7 +45,13 @@ const useCampaignHook = () => {
     try {
       return await axios.get(
         // @ts-ignore
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns?filters[client][$eq]=${clientID}${session?.user?.data?.user?.user_type?.includes("client") ? `&filters[user][$eq]=${session?.user?.id}` : ""}&populate[media_plan_details]=*&populate[budget_details]=*&populate[campaign_budget][populate][budget_fees]=*&populate[client_selection]=*&populate[channel_mix][populate][social_media][populate]=*&populate[channel_mix][populate][display_networks][populate]=*&populate[channel_mix][populate][search_engines][populate]=*&populate[channel_mix][populate][streaming][populate]=*&populate[channel_mix][populate][ooh][populate]=*&populate[channel_mix][populate][broadcast][populate]=*&populate[channel_mix][populate][messaging][populate]=*&populate[channel_mix][populate][print][populate]=*&populate[channel_mix][populate][e_commerce][populate]=*&populate[channel_mix][populate][in_game][populate]=*&populate[channel_mix][populate][mobile][populate]=*`,
+        `${
+          process.env.NEXT_PUBLIC_STRAPI_URL
+        }/campaigns?filters[client][$eq]=${clientID}${
+          session?.user?.data?.user?.user_type?.includes("client")
+            ? `&filters[user][$eq]=${session?.user?.id}`
+            : ""
+        }&populate[media_plan_details]=*&populate[budget_details]=*&populate[campaign_budget][populate][budget_fees]=*&populate[client_selection]=*&populate[channel_mix][populate][social_media][populate]=*&populate[channel_mix][populate][display_networks][populate]=*&populate[channel_mix][populate][search_engines][populate]=*&populate[channel_mix][populate][streaming][populate]=*&populate[channel_mix][populate][ooh][populate]=*&populate[channel_mix][populate][broadcast][populate]=*&populate[channel_mix][populate][messaging][populate]=*&populate[channel_mix][populate][print][populate]=*&populate[channel_mix][populate][e_commerce][populate]=*&populate[channel_mix][populate][in_game][populate]=*&populate[channel_mix][populate][mobile][populate]=*`,
         {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
