@@ -280,6 +280,13 @@ const AddFinanceModal = ({
      });
      return false;
     }
+    if (plan.amount <= 0) {
+     toast("Please enter an amount for the media plan", {
+      style: { background: "red", color: "white", textAlign: "center" },
+      duration: 3000,
+     });
+     return false;
+    }
    }
   }
   return true;
@@ -439,7 +446,6 @@ const AddFinanceModal = ({
     })
     .finally(() => setFetchingPO(false));
   } catch (err) {
-   console.error("Error updating PO:", err);
    toast("Error updating Purchase Order", {
     style: { background: "red", color: "white", textAlign: "center" },
     duration: 3000,
