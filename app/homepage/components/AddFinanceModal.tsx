@@ -73,7 +73,8 @@ const AddFinanceModal = ({
  const [loadingCam, setLoadingCam] = useState(false);
  const [loadingUser, setLoadingUser] = useState(false);
  const [uploading, setUploading] = useState(false);
- const { isAdmin, isFinancialApprover } = useUserPrivileges();
+ const { isAdmin, isAgencyApprover, isFinancialApprover } =
+    useUserPrivileges();
  const dispatch = useAppDispatch();
 
  const { getCreateClientData, getCreateClientIsLoading } = useAppSelector(
@@ -280,6 +281,13 @@ const AddFinanceModal = ({
      });
      return false;
     }
+    if (plan.amount <= 0) {
+     toast("Please enter an amount for the media plan", {
+      style: { background: "red", color: "white", textAlign: "center" },
+      duration: 3000,
+     });
+     return false;
+    }
    }
   }
   return true;
@@ -351,7 +359,7 @@ const AddFinanceModal = ({
 
    const newPO = response.data.data;
    setClientPOs((prevPOs) => [newPO, ...(prevPOs || [])]);
-   dispatch(getCreateClient());
+   dispatch(getCreateClient(!isAdmin ? selected: null));
 
    if (selected) {
     localStorage.setItem(userType.toString(), selected);
@@ -439,7 +447,6 @@ const AddFinanceModal = ({
     })
     .finally(() => setFetchingPO(false));
   } catch (err) {
-   console.error("Error updating PO:", err);
    toast("Error updating Purchase Order", {
     style: { background: "red", color: "white", textAlign: "center" },
     duration: 3000,

@@ -18,13 +18,16 @@ import { useAppDispatch } from "store/useStore";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import { useUserPrivileges } from "utils/userPrivileges";
 
 const TableModel = ({ isOpen, setIsOpen }) => {
   const { data: session } = useSession();
-  // @ts-ignore 
+  // @ts-ignore
   const userType = session?.user?.data?.user?.id || "";
   const dispatch = useAppDispatch();
   const { profile, getProfile, user, getUserByUserType } = useCampaigns();
+  const { isAdmin, isAgencyApprover, isFinancialApprover } =
+    useUserPrivileges();
   const [inputs, setInputs] = useState({
     name: "",
     email: "",
@@ -77,7 +80,9 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     }
 
     if (!onlyLettersRegex.test(fullName)) {
-      toast.error("Full name must contain only alphabetic characters and spaces.");
+      toast.error(
+        "Full name must contain only alphabetic characters and spaces."
+      );
       return;
     }
 
@@ -296,10 +301,10 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         users: profile?.id,
       });
       localStorage.setItem(userType.toString(), res?.data?.data?.id);
-      getProfile()
+      getProfile();
       // Fetch clients after successfully adding a new one
       //@ts-ignore
-      dispatch(getCreateClient());
+      dispatch(getCreateClient(!isAdmin ? res?.data?.data?.id : null));
       // Reset form state
       setInputs({
         name: "",
@@ -348,16 +353,14 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     if (isOpen) {
       getUserByUserType(userTypes);
     }
-
-
   }, [isOpen]);
 
-  const options = user?.map(user => user?.username);
+  const options = user?.map((user) => user?.username);
   const excludedTypes = ["agency_creator"];
 
   const option = user
-    ?.filter(user => !excludedTypes.includes(user?.user_type))
-    .map(user => user?.username);
+    ?.filter((user) => !excludedTypes.includes(user?.user_type))
+    .map((user) => user?.username);
 
   return (
     <div className="z-50">
@@ -435,7 +438,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                     <button
                       className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white"
                       onClick={handleAddEmail}
-                    // disabled={emailList.length >= 5}
+                      // disabled={emailList.length >= 5}
                     >
                       Add
                     </button>

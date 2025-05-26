@@ -42,7 +42,7 @@ const SideNav: React.FC = () => {
     setViewcommentsId("");
     setCampaignData(null);
     setActive(0);
-    setSubStep(0);
+    // setSubStep(0);
     router.push("/");
   };
 

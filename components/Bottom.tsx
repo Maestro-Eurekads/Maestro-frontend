@@ -76,7 +76,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   } = useCampaigns();
 
 
-  console.log('requiredFields-requiredFields', requiredFields)
+
 
 
   // --- Persist format selection for active === 4 ---
