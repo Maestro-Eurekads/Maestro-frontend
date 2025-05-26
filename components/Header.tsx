@@ -27,8 +27,8 @@ import { getFirstLetters } from "./Options";
 
 const Header = ({ setIsOpen }) => {
   const { data: session } = useSession();
-  const query = useSearchParams();
-  const campaignId = query.get("campaignId");
+  // const query = useSearchParams();
+  // const campaignId = query.get("campaignId");
 
   if (!session) return null;
   // @ts-ignore 
