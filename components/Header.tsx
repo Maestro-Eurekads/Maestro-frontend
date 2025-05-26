@@ -19,8 +19,6 @@ import { useUserPrivileges } from "utils/userPrivileges";
 import { getFirstLetters } from "./Options";
 
 
-
-
 const Header = ({ setIsOpen }) => {
   const { data: session } = useSession();
   if (!session) return null;
