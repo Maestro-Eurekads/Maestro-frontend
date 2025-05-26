@@ -33,7 +33,7 @@ const Header = ({ setIsOpen }) => {
   if (!session) return null;
   // @ts-ignore 
   const userType = session?.user?.data?.user?.id?.toString() || "";
-  const { isAdmin, isAgencyApprover, isFinancialApprover } = useUserPrivileges();
+  const { isAdmin, isAgencyApprover, isFinancialApprover, isAgencyCreator } = useUserPrivileges();
 
   const {
     getCreateClientData,
@@ -192,7 +192,7 @@ const Header = ({ setIsOpen }) => {
         <div className="profiledropdown_container">
           {(isAdmin ||
             isFinancialApprover ||
-            isAgencyApprover) &&
+            isAgencyApprover || isAgencyCreator) &&
             <Link
               href={`/creation`}
               onClick={() => {

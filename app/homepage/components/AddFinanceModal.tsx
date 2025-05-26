@@ -439,7 +439,6 @@ const AddFinanceModal = ({
     })
     .finally(() => setFetchingPO(false));
   } catch (err) {
-   console.error("Error updating PO:", err);
    toast("Error updating Purchase Order", {
     style: { background: "red", color: "white", textAlign: "center" },
     duration: 3000,
