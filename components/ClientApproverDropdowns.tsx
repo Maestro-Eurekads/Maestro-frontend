@@ -11,18 +11,6 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 type DropdownOption = { label: string; value: string };
 
 
-const selectCurrency = [
-	{ id: "USD", value: "USD", sign: "$" },
-	// Add other currencies as needed
-];
-
-// Mock validationRules for completeness
-const validationRules = {
-	step0: (campaignData) => {
-		// Replace with actual validation logic
-		return true;
-	},
-};
 
 
 
