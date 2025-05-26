@@ -655,7 +655,7 @@ const Table = () => {
                     onClick={() => {
                       setSelectedCampaignId(data?.documentId);
                       const activeStepFromPercentage = Math.ceil(
-                        (data?.progress_percent * 9) / 100
+                        (data?.progress_percent * 10) / 100
                       );
                       setActive(activeStepFromPercentage === 0 ? 1 : activeStepFromPercentage);
                       router.push(`/creation?campaignId=${data?.documentId}`);
@@ -745,7 +745,7 @@ const Table = () => {
                           alt="edit"
                           onClick={() => {
                             const activeStepFromPercentage = Math.ceil(
-                              (data?.progress_percent * 9) / 100
+                              (data?.progress_percent * 10) / 100
                             );
                             setActive(activeStepFromPercentage === 0 ? 1 : activeStepFromPercentage);
                             router.push(`/creation?campaignId=${data?.documentId}`);
