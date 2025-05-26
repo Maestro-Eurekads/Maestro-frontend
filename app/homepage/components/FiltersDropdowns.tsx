@@ -12,6 +12,7 @@ import { defaultFilters } from "components/data"
 import { fetchFilteredCampaignsSub } from "app/utils/campaign-filter-utils-sub"
 import { useSession } from "next-auth/react"
 import { FilterState } from "app/utils/useCampaignFilters"
+import { useUserPrivileges } from "utils/userPrivileges"
 
 // Scrollbar CSS
 const scrollbarStyles = `
@@ -103,6 +104,8 @@ const Dropdown = ({ label, options, selectedFilters, handleSelect, isDisabled = 
 
 const FiltersDropdowns = ({ hideTitle, router }: Props) => {
   const dispatch = useAppDispatch();
+  const { isAdmin, isAgencyApprover, isFinancialApprover } =
+      useUserPrivileges();
   useEffect(() => {
     const styleElement = document.createElement("style")
     styleElement.innerHTML = scrollbarStyles
@@ -137,7 +140,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     if (value === "") {
       if (label === "year") {
         router.refresh();
-        dispatch(getCreateClient());
+        dispatch(getCreateClient(!isAdmin ? userType : null));
         setSelectedFilters((prev) => ({
           ...prev,
           [label]: value,

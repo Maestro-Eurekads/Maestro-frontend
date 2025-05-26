@@ -106,6 +106,9 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
             localStorage.removeItem("campaignFormData");
             localStorage.removeItem("selectedClient");
             localStorage.removeItem("profileclients");
+            localStorage.removeItem(
+              session?.user?.data?.user?.id?.toString() || ""
+            );
             await signOut({
               callbackUrl: "/",
             });

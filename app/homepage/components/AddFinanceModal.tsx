@@ -73,7 +73,8 @@ const AddFinanceModal = ({
  const [loadingCam, setLoadingCam] = useState(false);
  const [loadingUser, setLoadingUser] = useState(false);
  const [uploading, setUploading] = useState(false);
- const { isAdmin, isFinancialApprover } = useUserPrivileges();
+ const { isAdmin, isAgencyApprover, isFinancialApprover } =
+    useUserPrivileges();
  const dispatch = useAppDispatch();
 
  const { getCreateClientData, getCreateClientIsLoading } = useAppSelector(
@@ -351,7 +352,7 @@ const AddFinanceModal = ({
 
    const newPO = response.data.data;
    setClientPOs((prevPOs) => [newPO, ...(prevPOs || [])]);
-   dispatch(getCreateClient());
+   dispatch(getCreateClient(!isAdmin ? selected: null));
 
    if (selected) {
     localStorage.setItem(userType.toString(), selected);
