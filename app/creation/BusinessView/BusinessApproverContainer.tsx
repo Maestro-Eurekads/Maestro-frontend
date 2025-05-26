@@ -17,6 +17,7 @@ const BusinessApproverContainer = ({ campaign, loading, isLoadingCampaign }) => 
 		}
 	}, [dispatch, id]);
 
+	console.log('campaign-campaign', campaign)
 
 
 	const items = [
