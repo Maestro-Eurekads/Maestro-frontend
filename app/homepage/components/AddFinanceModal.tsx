@@ -280,6 +280,13 @@ const AddFinanceModal = ({
      });
      return false;
     }
+    if (plan.amount <= 0) {
+     toast("Please enter an amount for the media plan", {
+      style: { background: "red", color: "white", textAlign: "center" },
+      duration: 3000,
+     });
+     return false;
+    }
    }
   }
   return true;
