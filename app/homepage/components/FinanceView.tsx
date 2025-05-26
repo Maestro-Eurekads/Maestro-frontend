@@ -97,7 +97,7 @@ function FinanceView({ setOpenModal, userRole }) {
     <div className="px-[72px]">
       <div className="flex items-center gap-2 mt-[36.5px]">
         <h1 className="media_text">Purchase Order Library</h1>
-        {isFinancialApprover || isAdmin ?
+        {(isFinancialApprover || isAdmin) ?
           <button onClick={() => setOpenModal(true)}>
             <Image src={blueBtn} alt="menu" />
           </button> : <button onClick={() => toast.error("Role doesn't have permission")}>
