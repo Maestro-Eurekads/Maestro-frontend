@@ -358,6 +358,55 @@ const ConfiguredSetPage = ({ netAmount }) => {
   );
  }
 
+ // Helper: Recap line for a stage
+ const getStageRecap = (stageName) => {
+  const stageData = campaignFormData?.channel_mix?.find(
+   (ch) => ch?.funnel_stage === stageName
+  );
+  const currency = campaignFormData?.campaign_budget?.currency || "EUR";
+  const stageBudget = stageData?.stage_budget?.fixed_value || 0;
+  const totalBudget = netAmount || 0;
+  const stagePercentage = totalBudget ? (stageBudget / totalBudget) * 100 : 0;
+
+  // Platform recap
+  let platformRecap = "";
+  let platformCount = 0;
+  let adSetCount = 0;
+  let platformsList: string[] = [];
+  mediaTypes.forEach((type) => {
+   if (stageData?.[type]) {
+    stageData[type].forEach((platform) => {
+     platformCount++;
+     platformsList.push(platform.platform_name);
+     if (platform?.ad_sets?.length) {
+      adSetCount += platform.ad_sets.length;
+     }
+    });
+   }
+  });
+
+  if (platformCount > 0) {
+   platformRecap = `${platformCount} platform${platformCount > 1 ? "s" : ""}`;
+   if (adSetCount > 0) {
+    platformRecap += `, ${adSetCount} ad set${adSetCount > 1 ? "s" : ""}`;
+   }
+   platformRecap += ` (${platformsList.join(", ")})`;
+  }
+
+  return (
+   <div className="mb-4 mt-2 text-sm text-gray-700 bg-[#F4F6FA] rounded px-4 py-2 border border-[#E5E7EB]">
+    <span className="font-semibold">Recap:</span>{" "}
+    Budget: <span className="font-bold">{getCurrencySymbol(currency)}{formatNumberWithCommas(stageBudget)}</span>
+    {" "}({stagePercentage.toFixed(1)}% of total)
+    {platformRecap && (
+     <>
+      {" "}• {platformRecap}
+     </>
+    )}
+   </div>
+  );
+ };
+
  return (
   <div className="mt-12 flex items-start flex-col gap-12 w-full">
    {campaignFormData?.funnel_stages.map((stageName, index) => {
@@ -371,11 +420,8 @@ const ConfiguredSetPage = ({ netAmount }) => {
      (s) => s.name === stageName
     );
     if (!stage) {
-    //  console.warn(`Stage not found in custom_funnels: ${stageName}`);
      return null;
     }
-    // Log stage icon data
-    // console.log(`Stage: ${stage.name}, Icon: ${stage.icon}, ActiveIcon: ${stage.activeIcon}`);
     return (
      <div key={index} className="w-full">
       <div
@@ -385,13 +431,13 @@ const ConfiguredSetPage = ({ netAmount }) => {
        <div className="flex items-center gap-4">
         {stage?.icon ? (
          <Image
-          src={stage.icon} // Use icon directly as string path
+          src={stage.icon}
           alt={`${stage.name} icon`}
           width={20}
           height={20}
          />
         ) : (
-         <span className="w-5 h-5" /> // Placeholder for text-only funnels
+         <span className="w-5 h-5" />
         )}
         <p className="text-md font-semibold text-[#061237]">
          {stage.name}
@@ -420,8 +466,13 @@ const ConfiguredSetPage = ({ netAmount }) => {
        </div>
       </div>
 
+      {/* Recap line for this stage: show only when collapsed */}
+      {!openItems[stage.name] && getStageRecap(stage.name)}
+
       {openItems[stage.name] && (
        <>
+        {/* Recap line for this stage: removed from here */}
+
         <div className="pt-4 bg-[#FCFCFC] rounded-lg cursor-pointer border px-6 border-[rgba(6,18,55,0.1)]">
          <div className="flex mt-6 flex-col items-start gap-8">
           <div className="flex mb-8 justify-center gap-6">
@@ -1250,5 +1301,3 @@ const ConfiguredSetPage = ({ netAmount }) => {
 };
 
 export default ConfiguredSetPage;
-
-

@@ -474,13 +474,15 @@ const ObjectiveSelection = () => {
         const buyType = platform.buy_type || selectedOptions[`${stageName}-${category}-${platform.platform_name}-buy_type`]
         const objectiveType = platform.objective_type || selectedOptions[`${stageName}-${category}-${platform.platform_name}-objective_type`]
         if (buyType || objectiveType) {
+          // Make the channel (platform) name bold
           recapArr.push(
-            `${platform.platform_name}: ${objectiveType || "No objective"}, ${buyType || "No buy type"}`
+            `<strong>${platform.platform_name}</strong>: ${objectiveType || "No objective"}, ${buyType || "No buy type"}`
           )
         }
       })
     })
     if (recapArr.length === 0) return "No selections made yet."
+    // Join with separator and render as HTML
     return recapArr.join(" | ")
   }
 
@@ -528,10 +530,13 @@ const ObjectiveSelection = () => {
             </div>
             {/* Recap line below each stage - only show when collapsed */}
             {!openItems[stage.name] && (
-              <div className="w-full px-6 py-2 bg-[#F5F7FA] border-x border-b border-[rgba(0,0,0,0.07)] text-sm text-[#061237] rounded-b-none rounded-t-none">
-                <span className="font-semibold">Recap: </span>
-                {getStageRecap(stageName)}
-              </div>
+              <div
+                className="w-full px-6 py-2 bg-[#F5F7FA] border-x border-b border-[rgba(0,0,0,0.07)] text-sm text-[#061237] rounded-b-none rounded-t-none"
+                // Render HTML for bold channels
+                dangerouslySetInnerHTML={{
+                  __html: `<span class="font-semibold">Recap: </span>${getStageRecap(stageName)}`,
+                }}
+              />
             )}
             {openItems[stage.name] && (
               <div className="flex items-start flex-col gap-8 p-6 bg-white border border-gray-300 rounded-b-lg">

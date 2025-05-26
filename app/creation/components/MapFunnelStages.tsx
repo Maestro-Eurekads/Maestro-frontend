@@ -14,7 +14,7 @@ interface Funnel {
   color: string;
 }
 
-// Color palette for dynamic assignment
+// Expanded color palette for dynamic assignment
 const colorPalette = [
   "bg-blue-500",
   "bg-green-500",
@@ -24,6 +24,18 @@ const colorPalette = [
   "bg-teal-500",
   "bg-pink-500 border border-pink-500",
   "bg-indigo-500",
+  "bg-yellow-500 border border-yellow-500",
+  "bg-cyan-500",
+  "bg-lime-500",
+  "bg-amber-500 border border-amber-500",
+  "bg-fuchsia-500 border border-fuchsia-500",
+  "bg-emerald-500",
+  "bg-violet-500 border border-violet-500",
+  "bg-rose-500 border border-rose-500",
+  "bg-sky-500",
+  "bg-gray-700 border border-gray-700",
+  "bg-blue-700 border border-blue-700",
+  "bg-green-700 border border-green-700",
 ];
 
 const MapFunnelStages = () => {

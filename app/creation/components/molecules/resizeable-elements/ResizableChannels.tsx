@@ -931,8 +931,8 @@ const ResizableChannels = ({
                               <td className="px-4 py-2 whitespace-nowrap border-none">
                                 {set?.name}
                               </td>
-                              <td className="px-4 py-2 whitespace-nowrap border-none">
-                                {set?.size}
+                              <td className="px-4 py-2 whitespace-nowrap border-none hover:no-underline">
+                                {Number(set?.size).toLocaleString()}
                               </td>
                             </tr>
                             {set?.extra_audiences?.map((extra, extraIndex) => (

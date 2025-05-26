@@ -149,7 +149,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
             Total Fees Amount:{" "}
             {parseInt(
               campaignFormData?.campaign_budget?.budget_fees?.reduce(
-                (total, fee) => total + Number(fee.amount || 0),
+                (total, fee) => total + Number(fee.value || 0),
                 0
               )
             ).toLocaleString()}

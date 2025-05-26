@@ -308,7 +308,7 @@ export const AdSetCellRenderer = ({
         <p className="text-gray-300 font-semibold">NR</p>
       ) : (
         <input
-          value={displayValue}
+          value={Number(displayValue).toLocaleString()}
           onChange={(e) => {
             let newValue = e.target.value;
 
@@ -371,7 +371,7 @@ export const AdSetCellRenderer = ({
           disabled={isNR}
           className={`cpm-bg border-none outline-none max-w-[90px] p-1 ${isNR ? "text-gray-400" : ""
             }`}
-          placeholder={body ? body?.toUpperCase() : "Insert value"}
+            placeholder={body === "budget_size" ? "BUDGET": body ? body?.toUpperCase() : "Insert value"}
         />
       )}
       <Ban
