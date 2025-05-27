@@ -1149,9 +1149,9 @@ const AdSetFlow = memo(function AdSetFlow({
   }, [isEditing]);
 
   useEffect(() => {
-    if (platformName) {
+    // if (platformName) {
       setIsEditing(true);
-    }
+    // }
   }, []);
 
   return (
