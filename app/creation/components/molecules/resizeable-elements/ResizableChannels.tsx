@@ -796,7 +796,7 @@ const ResizableChannels = ({
                   >
                     {isNaN(Number(budget)) || Number(budget) <= 0
                       ? ""
-                      : `${Number(budget)?.toFixed(0)} ${getCurrencySymbol(
+                      : `${Number(budget)?.toLocaleString()} ${getCurrencySymbol(
                           campaignFormData?.campaign_budget?.amount
                         )}`}
                   </div>
@@ -996,22 +996,23 @@ const ResizableChannels = ({
                 )}
               </div>
             )}
-            {channel?.format?.some(
-              (format) => format?.previews?.length > 0
-            ) && (
-              <button
-                className="bg-blue-500 text-white p-2 rounded-md relative mt-2"
-                style={{
-                  left: `${channelState[index]?.left || parentLeft}px`,
-                }}
-                onClick={() => {
-                  setOpenCreatives(true);
-                  setSelectedChannel(channel?.name);
-                }}
-              >
-                View Creatives
-              </button>
-            )}
+            {channel?.ad_sets?.length < 1 &&
+              channel?.format?.some(
+                (format) => format?.previews?.length > 0
+              ) && (
+                <button
+                  className="bg-blue-500 text-white p-2 rounded-md relative mt-2"
+                  style={{
+                    left: `${channelState[index]?.left || parentLeft}px`,
+                  }}
+                  onClick={() => {
+                    setOpenCreatives(true);
+                    setSelectedChannel(channel?.name);
+                  }}
+                >
+                  View Creatives
+                </button>
+              )}
           </div>
         );
       })}
@@ -1039,37 +1040,53 @@ const ResizableChannels = ({
           </button>
           {disableDrag ? (
             <div>
-              {channels?.filter((ch)=>ch?.name === selectedChannel)?.map((channel) => (
-                <div key={channel.name} className="mb-6">
-                  <h2 className="font-semibold text-lg mb-2">{channel.name}</h2>
-                  <div className="flex flex-wrap gap-4">
-                    {channel?.format?.length > 0 && (
-                      <div className="mb-4">
-                        <h3 className="font-semibold text-sm mb-2">Channel Formats</h3>
-                        <div className="text-sm text-gray-600">
-                          {channel.format.map((format, index) => (
-                            <div key={index} className="p-4 bg-gray-100 rounded-lg shadow-sm">
-                              <p className="font-medium">Format Type: {format?.format_type}</p>
-                              <p className="text-sm text-gray-500">Previews:</p>
-                              <div className="grid grid-cols-2 gap-2 mt-2">
-                                {format?.previews?.map((preview, id) => (
-                                  <div key={id} className="block w-[140px] h-[140px]">
-                                    {renderUploadedFile(
-                                      format?.previews?.map((pp) => pp?.url),
-                                      format?.format_type,
-                                      id
-                                    )}
-                                  </div>
-                                ))}
+              {channels
+                ?.filter((ch) => ch?.name === selectedChannel)
+                ?.map((channel) => (
+                  <div key={channel.name} className="mb-6">
+                    <h2 className="font-semibold text-lg mb-2">
+                      {channel.name}
+                    </h2>
+                    <div className="flex flex-wrap gap-4">
+                      {channel?.format?.length > 0 && (
+                        <div className="mb-4">
+                          <h3 className="font-semibold text-sm mb-2">
+                            Channel Formats
+                          </h3>
+                          <div className="text-sm text-gray-600">
+                            {channel.format.map((format, index) => (
+                              <div
+                                key={index}
+                                className="p-4 bg-gray-100 rounded-lg shadow-sm"
+                              >
+                                <p className="font-medium">
+                                  Format Type: {format?.format_type}
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                  Previews:
+                                </p>
+                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                  {format?.previews?.map((preview, id) => (
+                                    <div
+                                      key={id}
+                                      className="block w-[140px] h-[140px]"
+                                    >
+                                      {renderUploadedFile(
+                                        format?.previews?.map((pp) => pp?.url),
+                                        format?.format_type,
+                                        id
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           ) : (
             <FormatSelection
