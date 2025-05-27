@@ -505,7 +505,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           : [];
 
 
-        // Update campaignFormData with cleaned values and save to localStorage
+
         const cleanedFormData = {
           ...campaignFormData,
           internal_approver: internalApprovers,

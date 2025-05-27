@@ -105,9 +105,7 @@ function FinanceView({ setOpenModal, userRole }) {
           </button>}
 
       </div>
-      <div className="mt-[20px]">
-        {/* <FiltersDropdowns hideTitle={true}/> */}
-      </div>
+
       <FinanceTable
         data={paginatedData}
         selectedRow={selectedRow}
