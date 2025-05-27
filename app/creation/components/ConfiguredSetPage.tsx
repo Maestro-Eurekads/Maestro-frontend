@@ -784,7 +784,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
 
               <div className="flex items-start flex-col gap-3">
                <h2 className="text-center font-bold">Percentage</h2>
-               <div className="flex items-center gap-4">
+               <div className="flex items-center gap-4 flex-wrap">
                 <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
                  <div className="flex items-center gap-2">
                   <p>
@@ -801,7 +801,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
                 {stageName?.funnel_stage === stage.name &&
                  platform?.ad_sets?.length > 1 &&
                  campaignFormData?.campaign_budget?.level === "Adset level" && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 max-w-[220px]">
                    <label
                     htmlFor={`${stage.name}-${platform?.outlet}`}
                     className="relative inline-block h-6 w-12 cursor-pointer rounded-full bg-gray-300 transition [-webkit-tap-highlight-color:_transparent] has-[:checked]:bg-blue-500 peer-checked:bg-blue-500"
@@ -829,7 +829,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
                     />
                     <span className="absolute inset-y-0 left-0 w-6 h-6 rounded-full bg-white transition-transform duration-200 transform peer-checked:translate-x-6"></span>
                    </label>
-                   <p className="text-[#061237] text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap tracking-tighter">
+                   <p className="text-[#061237] text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap tracking-tighter max-w-[150px]">
                     Auto-split budget across ad sets
                    </p>
                   </div>

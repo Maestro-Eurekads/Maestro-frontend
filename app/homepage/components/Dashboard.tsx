@@ -29,9 +29,6 @@ const Dashboard = () => {
   const { campaignFormData, clientCampaignData, loading } = useCampaigns()
   const { range } = useDateRange()
 
-
-
-
   // Types for platforms and channels
   type IPlatform = {
     name: string
@@ -45,8 +42,6 @@ const Dashboard = () => {
     platforms: IPlatform[]
     style?: string
   }
-
-
 
   const startDates = clientCampaignData
     ?.filter((c) => c?.campaign_timeline_start_date)
@@ -72,8 +67,6 @@ const Dashboard = () => {
     // Calculate positions for different time ranges
     const startDay = differenceInCalendarDays(start, earliestStartDate) + 1
     const endDay = differenceInCalendarDays(end, earliestStartDate) + 1
-
-
 
     const startWeek = differenceInCalendarWeeks(start, earliestStartDate) + 1
     const endWeek = differenceInCalendarWeeks(end, earliestStartDate) + 1
@@ -135,7 +128,31 @@ const Dashboard = () => {
     return platforms
   }
 
+  // Helper to get funnel color by stage name
+  function getFunnelColor(stage: string) {
+    if (stage === "Awareness") return "#3175FF"
+    if (stage === "Consideration") return "#00A36C"
+    if (stage === "Conversion") return "#FF9037"
+    return "#F05406"
+  }
 
+  // Helper to get funnel stages for DoughnutChat
+  function getActiveFunnels(campaign) {
+    // If you want to support custom funnels, you can add logic here
+    // For now, use channel_mix as the source of funnel stages
+    return campaign?.channel_mix?.map((ch) => ({
+      id: ch?.funnel_stage,
+      name: ch?.funnel_stage,
+      bg: getFunnelColor(ch?.funnel_stage),
+    })) || []
+  }
+
+  // Helper to get data values for DoughnutChat
+  function getStagePercentages(campaign) {
+    return campaign?.channel_mix?.map((ch) =>
+      Number(ch?.stage_budget?.percentage_value || 0)
+    ) || []
+  }
 
   return (
     <div className="mt-[24px] ">
@@ -157,6 +174,12 @@ const Dashboard = () => {
       />
       {processedCampaigns?.map((campaign, index) => {
         const channelD = extractPlatforms(campaign)
+        // Prepare insideText for DoughnutChat
+        const insideText = `${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency ? getCurrencySymbol(campaign?.campaign_budget?.currency) : ""}`
+        // Prepare activeFunnels for DoughnutChat
+        const activeFunnels = getActiveFunnels(campaign)
+        // Prepare data values for DoughnutChat
+        const dataValues = getStagePercentages(campaign)
 
         return (
           <div key={index} className="flex justify-center gap-[48px] mt-[100px]">
@@ -209,14 +232,7 @@ const Dashboard = () => {
                     campaignPhases={campaign?.channel_mix?.map((ch) => ({
                       name: ch?.funnel_stage,
                       percentage: Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0),
-                      color:
-                        ch?.funnel_stage === "Awareness"
-                          ? "#3175FF"
-                          : ch?.funnel_stage === "Consideration"
-                            ? "#00A36C"
-                            : ch?.funnel_stage === "Conversion"
-                              ? "#FF9037"
-                              : "#F05406",
+                      color: getFunnelColor(ch?.funnel_stage),
                     }))}
                   />
                 </div>
