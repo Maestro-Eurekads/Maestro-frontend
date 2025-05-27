@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from "react";
 import facebook from "../../../public/facebook.svg";
 import instagram from "../../../public/instagram.svg";
@@ -6,9 +7,7 @@ import tradedesk from "../../../public/tradedesk.svg";
 import quantcast from "../../../public/quantcast.svg";
 import adset from "../../../public/adset_level.svg";
 import channel from "../../../public/channel_level.svg";
-
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
-// import TableView from "./EstablishedGoals/TableView";
 import ToggleSwitch from "./EstablishedGoals/ToggleSwitch";
 import SetBudgetOverviewModel from "../../../components/Modals/SetBudgetOverviewModel";
 import TimelineView from "./EstablishedGoals/TimelineView";
@@ -28,16 +27,13 @@ export const EstablishedGoals = () => {
   const [step, setStep] = useState(1);
   const [openBudget, setOpenBudget] = useState(false);
   const [channelData, setChannelData] = useState(null);
-  //   const [selectedGoal, setSelectedGoal] = useState("");
   const { setCampaignFormData, campaignFormData } = useCampaigns();
   const { setIsDrawerOpen, setClose } = useComments();
 
   useEffect(() => {
     setIsDrawerOpen(false);
     // setClose(false);
-  }, []);
-
-
+  }, [setIsDrawerOpen]);
 
   useEffect(() => {
     if (campaignFormData) {
@@ -54,35 +50,33 @@ export const EstablishedGoals = () => {
     data.channel_mix.forEach((stage) => {
       const stageName = stage.funnel_stage;
       const stageBudget = parseFloat(stage.stage_budget?.fixed_value);
-      mediaTypes.forEach(
-        (channelType) => {
-          stage[channelType].forEach((platform) => {
-            const platformName = platform.platform_name;
-            const platformBudget = parseFloat(platform.budget?.fixed_value);
-            const percentage = (platformBudget / stageBudget) * 100;
-            const existingPlatform = platforms.find(
-              (p) => p.platform_name === platformName
-            );
-            if (existingPlatform) {
-              existingPlatform.stages_it_was_found.push({
-                stage_name: stageName,
-                percentage: percentage,
-              });
-            } else {
-              platforms.push({
-                platform_name: platformName,
-                platform_budegt: platformBudget,
-                stages_it_was_found: [
-                  {
-                    stage_name: stageName,
-                    percentage: percentage,
-                  },
-                ],
-              });
-            }
-          });
-        }
-      );
+      mediaTypes.forEach((channelType) => {
+        stage[channelType].forEach((platform) => {
+          const platformName = platform.platform_name;
+          const platformBudget = parseFloat(platform.budget?.fixed_value);
+          const percentage = (platformBudget / stageBudget) * 100;
+          const existingPlatform = platforms.find(
+            (p) => p.platform_name === platformName
+          );
+          if (existingPlatform) {
+            existingPlatform.stages_it_was_found.push({
+              stage_name: stageName,
+              percentage: percentage,
+            });
+          } else {
+            platforms.push({
+              platform_name: platformName,
+              platform_budegt: platformBudget,
+              stages_it_was_found: [
+                {
+                  stage_name: stageName,
+                  percentage: percentage,
+                },
+              ],
+            });
+          }
+        });
+      });
     });
     setChannelData(platforms);
   }
@@ -139,28 +133,16 @@ export const EstablishedGoals = () => {
                 <div className="campaign_phases_container mt-[24px]">
                   <div className="campaign_phases_container_one">
                     <DoughnutChart
-                      data={campaignFormData?.channel_mix?.filter((c) => Number(c?.stage_budget?.percentage_value) > 0)?.map((ch) =>
-                        Number(ch?.stage_budget?.percentage_value)?.toFixed(0)
-                      )}
-                      color={campaignFormData?.channel_mix?.map((ch) =>
-                        ch?.funnel_stage === "Awareness"
-                          ? "#3175FF"
-                          : ch?.funnel_stage === "Consideration"
-                            ? "#00A36C"
-                            : ch?.funnel_stage === "Conversion"
-                              ? "#FF9037"
-                              : "#F05406"
-                      )}
-                      insideText={`${parseInt(campaignFormData?.campaign_budget?.amount).toLocaleString()
-                        } ${getCurrencySymbol(
-                          campaignFormData?.campaign_budget?.currency
-                        )}`}
+                      insideText={`${parseInt(campaignFormData?.campaign_budget?.amount).toLocaleString()} ${getCurrencySymbol(
+                        campaignFormData?.campaign_budget?.currency
+                      )}`}
                     />
                   </div>
 
                   <CampaignPhases
-                    campaignPhases={campaignFormData?.channel_mix?.filter((c) => Number(c?.stage_budget?.percentage_value) > 0)?.map(
-                      (ch) => ({
+                    campaignPhases={campaignFormData?.channel_mix
+                      ?.filter((c) => Number(c?.stage_budget?.percentage_value) > 0)
+                      ?.map((ch) => ({
                         name: ch?.funnel_stage,
                         percentage: Number(
                           ch?.stage_budget?.percentage_value
@@ -169,17 +151,15 @@ export const EstablishedGoals = () => {
                           ch?.funnel_stage === "Awareness"
                             ? "#3175FF"
                             : ch?.funnel_stage === "Consideration"
-                              ? "#00A36C"
-                              : ch?.funnel_stage === "Conversion"
-                                ? "#FF9037"
-                                : "#F05406",
-                      })
-                    )}
+                            ? "#00A36C"
+                            : ch?.funnel_stage === "Conversion"
+                            ? "#FF9037"
+                            : "#F05406",
+                      }))}
                   />
                 </div>
               </div>
               <div className="allocate_budget_phase_two">
-
                 <h3 className="font-semibold text-[22px] leading-[24px] flex items-center text-[#061237]">
                   Channel distribution
                 </h3>
@@ -210,9 +190,7 @@ export const EstablishedGoals = () => {
         </div>
       </div>
 
-
-
-      {<TableView />}
+      <TableView />
     </div>
   );
 };
