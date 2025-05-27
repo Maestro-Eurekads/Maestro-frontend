@@ -44,9 +44,12 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const [fileSizeErrors, setFileSizeErrors] = useState<string[]>([]);
   const [localPreviews, setLocalPreviews] = useState<Array<{ id: string; url: string }>>([]);
   const MAX_RETRIES = 3;
-  const CONCURRENT_UPLOADS = 3;
-  const UPLOAD_TIMEOUT = 30000; // Reduced to 30 seconds for faster feedback
-  const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks
+  // Increase concurrent uploads for videos, or set to 1 for videos to avoid server overload
+  // Strapi's /upload endpoint can have issues with concurrent large video uploads
+  // We'll upload videos sequentially, images concurrently
+  const CONCURRENT_UPLOADS = format === "Video" ? 1 : 3;
+  const UPLOAD_TIMEOUT = 120000; // Increase timeout to 2 minutes for large videos
+  const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks (not used for Strapi default)
   const MAX_FILE_SIZE = format === "Video" ? 50 * 1024 * 1024 : 10 * 1024 * 1024; // 50MB for videos, 10MB for others
 
   // Validate environment variables
@@ -348,88 +351,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
     [localPreviews, updateGlobalState, STRAPI_URL, STRAPI_TOKEN],
   );
 
-  const uploadChunk = useCallback(
-    async (
-      chunk: Blob,
-      fileName: string,
-      chunkIndex: number,
-      totalChunks: number,
-      fileId: string,
-      retryCount = 0,
-    ): Promise<void> => {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT);
-
-        const formData = new FormData();
-        formData.append("files", chunk, `${fileName}.part${chunkIndex}`);
-        formData.append(
-          "fileInfo",
-          JSON.stringify({
-            name: fileName,
-            chunkIndex,
-            totalChunks,
-            fileId,
-          }),
-        );
-
-        const response = await fetch(`${STRAPI_URL}/upload/chunk`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${STRAPI_TOKEN}`,
-          },
-          body: formData,
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-      } catch (error) {
-        if (retryCount < MAX_RETRIES) {
-          await new Promise((resolve) => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
-          return uploadChunk(chunk, fileName, chunkIndex, totalChunks, fileId, retryCount + 1);
-        }
-        if (error instanceof Error && error.name === "AbortError") {
-          throw new Error("Chunk upload timed out");
-        }
-        throw error;
-      }
-    },
-    [STRAPI_URL, STRAPI_TOKEN, UPLOAD_TIMEOUT, MAX_RETRIES],
-  );
-
-  const finalizeUpload = useCallback(
-    async (fileId: string, fileName: string, totalChunks: number, mimeType: string) => {
-      try {
-        const response = await fetch(`${STRAPI_URL}/upload/finalize`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${STRAPI_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            fileId,
-            fileName,
-            totalChunks,
-            mimeType,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return await response.json();
-      } catch (error) {
-        console.error("Error finalizing upload:", error);
-        throw error;
-      }
-    },
-    [STRAPI_URL, STRAPI_TOKEN],
-  );
+  // --- CHUNKED UPLOAD LOGIC REWRITE FOR "METHOD NOT ALLOWED" ERROR ---
+  // Instead of using /upload/chunk and /upload/finalize, use only /upload (Strapi default)
+  // If you want to support chunked upload, you must have a custom backend route for it.
+  // Here, we fallback to default Strapi /upload endpoint for all files.
 
   const uploadSingleFile = useCallback(
     async (file: File, index: number, retryCount = 0): Promise<any> => {
@@ -482,68 +407,41 @@ const UploadModal: React.FC<UploadModalProps> = ({
           fileToUpload = compressedFile;
         }
 
-        const fileId = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-        const totalChunks = Math.ceil(fileToUpload.size / CHUNK_SIZE);
+        // Always use /upload endpoint (Strapi default)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT);
 
-        // For small files or when chunking is not needed
-        if (totalChunks <= 1) {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT);
+        const formData = new FormData();
+        formData.append("files", fileToUpload);
 
-          const formData = new FormData();
-          formData.append("files", fileToUpload);
+        const response = await fetch(`${STRAPI_URL}/upload`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${STRAPI_TOKEN}`,
+          },
+          body: formData,
+          signal: controller.signal,
+        });
 
-          const response = await fetch(`${STRAPI_URL}/upload`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${STRAPI_TOKEN}`,
-            },
-            body: formData,
-            signal: controller.signal,
-          });
+        clearTimeout(timeoutId);
 
-          clearTimeout(timeoutId);
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+          // If method not allowed, show a clear error
+          if (response.status === 405) {
+            throw new Error("Upload failed: Method Not Allowed. Please contact support.");
           }
-
-          const result = await response.json();
-          setUploadProgress((prev) => {
-            const updated = [...prev];
-            updated[index] = 100;
-            return updated;
-          });
-          return result[0];
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        // Chunked upload for large files
-        for (let i = 0; i < totalChunks; i++) {
-          const start = i * CHUNK_SIZE;
-          const end = Math.min(start + CHUNK_SIZE, fileToUpload.size);
-          const chunk = fileToUpload.slice(start, end);
-
-          await uploadChunk(chunk, fileToUpload.name, i, totalChunks, fileId);
-
-          // Update progress
-          const progress = ((i + 1) / totalChunks) * 100;
-          setUploadProgress((prev) => {
-            const updated = [...prev];
-            updated[index] = Math.min(progress, 99);
-            return updated;
-          });
-        }
-
-        // Finalize the upload
-        const result = await finalizeUpload(fileId, fileToUpload.name, totalChunks, fileToUpload.type);
+        const result = await response.json();
         setUploadProgress((prev) => {
           const updated = [...prev];
           updated[index] = 100;
           return updated;
         });
-        return result;
-      } catch (error) {
-        if (retryCount < MAX_RETRIES) {
+        return result[0];
+      } catch (error: any) {
+        if (retryCount < MAX_RETRIES && (!error || error.name !== "AbortError")) {
           await new Promise((resolve) => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
           return uploadSingleFile(file, index, retryCount + 1);
         }
@@ -553,8 +451,12 @@ const UploadModal: React.FC<UploadModalProps> = ({
         throw error;
       }
     },
-    [STRAPI_URL, STRAPI_TOKEN, uploadChunk, finalizeUpload, UPLOAD_TIMEOUT, MAX_RETRIES],
+    [STRAPI_URL, STRAPI_TOKEN, UPLOAD_TIMEOUT, MAX_RETRIES],
   );
+
+  // --- REWRITE: uploadFilesToStrapi to support multiple video uploads reliably ---
+  // For videos, upload sequentially (CONCURRENT_UPLOADS=1), for images use concurrency.
+  // This avoids Strapi's /upload endpoint failing with multiple large files.
 
   const uploadFilesToStrapi = useCallback(async () => {
     if (!uploads.some((file) => file)) {
@@ -575,22 +477,51 @@ const UploadModal: React.FC<UploadModalProps> = ({
         .map((file, index) => ({ file, index }))
         .filter((item): item is { file: File; index: number } => item.file !== null);
 
-      const results = [];
-      for (let i = 0; i < filesToUpload.length; i += CONCURRENT_UPLOADS) {
-        const chunk = filesToUpload.slice(i, i + CONCURRENT_UPLOADS);
-        const chunkResults = await Promise.all(
-          chunk.map(async ({ file, index }) => {
-            try {
-              const result = await uploadSingleFile(file, index);
-              return result;
-            } catch (error) {
-              console.error(`Failed to upload file "${file.name}"`, error);
+      let results: any[] = [];
+
+      if (format === "Video") {
+        // Sequential upload for videos
+        for (let i = 0; i < filesToUpload.length; i++) {
+          const { file, index } = filesToUpload[i];
+          try {
+            const result = await uploadSingleFile(file, index);
+            results.push(result);
+          } catch (error: any) {
+            if (error && error.message && error.message.includes("Method Not Allowed")) {
+              toast.error("Upload failed: Method Not Allowed. Please contact support.");
+            } else if (error && error.message && error.message.includes("timed out")) {
+              toast.error(`Upload timed out for ${file.name}. Try a smaller file or check your connection.`);
+            } else {
               toast.error(`Failed to upload ${file.name}`);
-              return null;
             }
-          }),
-        );
-        results.push(...chunkResults);
+            console.error(`Failed to upload file "${file.name}"`, error);
+            results.push(null);
+          }
+        }
+      } else {
+        // Concurrent upload for images/pdfs
+        for (let i = 0; i < filesToUpload.length; i += CONCURRENT_UPLOADS) {
+          const chunk = filesToUpload.slice(i, i + CONCURRENT_UPLOADS);
+          const chunkResults = await Promise.all(
+            chunk.map(async ({ file, index }) => {
+              try {
+                const result = await uploadSingleFile(file, index);
+                return result;
+              } catch (error: any) {
+                if (error && error.message && error.message.includes("Method Not Allowed")) {
+                  toast.error("Upload failed: Method Not Allowed. Please contact support.");
+                } else if (error && error.message && error.message.includes("timed out")) {
+                  toast.error(`Upload timed out for ${file.name}. Try a smaller file or check your connection.`);
+                } else {
+                  toast.error(`Failed to upload ${file.name}`);
+                }
+                console.error(`Failed to upload file "${file.name}"`, error);
+                return null;
+              }
+            }),
+          );
+          results.push(...chunkResults);
+        }
       }
 
       const uploadedFiles = results.filter((result) => result !== null);
@@ -622,13 +553,29 @@ const UploadModal: React.FC<UploadModalProps> = ({
       // Close modal quickly
       onUploadSuccess?.();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
+      if (error && error.message && error.message.includes("Method Not Allowed")) {
+        toast.error("Upload failed: Method Not Allowed. Please contact support.");
+      } else if (error && error.message && error.message.includes("timed out")) {
+        toast.error("Upload timed out. Try a smaller file or check your connection.");
+      } else {
+        toast.error("Upload failed. Please try again.");
+      }
       console.error("Error in uploadFilesToStrapi:", error);
-      toast.error("Upload failed. Please try again.");
     } finally {
       setLoading(false);
     }
-  }, [uploads, localPreviews, updateGlobalState, onUploadSuccess, onClose, uploadSingleFile, fileSizeErrors]);
+  }, [
+    uploads,
+    localPreviews,
+    updateGlobalState,
+    onUploadSuccess,
+    onClose,
+    uploadSingleFile,
+    fileSizeErrors,
+    format,
+    CONCURRENT_UPLOADS,
+  ]);
 
   if (!isOpen) return null;
 
