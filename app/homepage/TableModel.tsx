@@ -12,7 +12,11 @@ import BusinessUnit from "./components/BusinessUnit";
 import { SVGLoader } from "../../components/SVGLoader";
 import AlertMain from "../../components/Alert/AlertMain";
 import { MdOutlineCancel } from "react-icons/md";
-import { addClientUser, addNewClient } from "./functions/clients";
+import {
+  addClientUser,
+  addNewClient,
+  checkExisitingEmails,
+} from "./functions/clients";
 import { getCreateClient } from "features/Client/clientSlice";
 import { useAppDispatch } from "store/useStore";
 import { useCampaigns } from "app/utils/CampaignsContext";
@@ -198,56 +202,68 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     setLoading(true);
 
     try {
-      const res = await addNewClient({
-        client_name: inputs.name,
-        client_emails: emailList,
-        responsible: inputs.responsiblePerson,
-        approver: inputs.approver,
-        level_1: inputs.sports,
-        level_2: inputs.businessUnits,
-        level_3: inputs.categories,
-        fee_type: inputs.feeType,
-        users: profile?.id,
-      });
-      localStorage.setItem(userType.toString(), res?.data?.data?.id);
+      const existingUsers = await checkExisitingEmails(
+        emailList?.map((ed) => ed?.email)
+      );
+      console.log("🚀 ~ handleSubmit ~ existingUsers:", existingUsers);
+      if (existingUsers?.length > 0) {
+        toast.error(
+          `User(s) with the following email(s) already exist: ${existingUsers
+            .map((user) => user.email)
+            .join(", ")}`
+        );
+      } else {
+        const res = await addNewClient({
+          client_name: inputs.name,
+          client_emails: emailList,
+          responsible: inputs.responsiblePerson,
+          approver: inputs.approver,
+          level_1: inputs.sports,
+          level_2: inputs.businessUnits,
+          level_3: inputs.categories,
+          fee_type: inputs.feeType,
+          users: profile?.id,
+        });
+        localStorage.setItem(userType.toString(), res?.data?.data?.id);
 
-      getProfile();
-      // Create a user account for each client email in emailList
-      for (const emailEntry of emailList) {
-        try {
-          await addClientUser({
-            username: `${emailEntry.full_name}-${uuidv4().slice(0, 4)}`,
-            email: emailEntry.email,
-            password: "123456789",
-            clients: res?.data?.data?.id,
-            user_type: "sub_client"
-          });
-        } catch (error) {
-          console.error(
-            `Failed to create user for email: ${emailEntry.email}`,
-            error
-          );
-          toast.error(`Failed to create user for ${emailEntry.email}`);
+        getProfile();
+        // Create a user account for each client email in emailList
+        for (const emailEntry of emailList) {
+          try {
+            await addClientUser({
+              username: `${emailEntry.full_name}-${uuidv4().slice(0, 4)}`,
+              email: emailEntry.email,
+              password: "123456789",
+              clients: res?.data?.data?.id,
+              user_type: "sub_client",
+            });
+          } catch (error) {
+            console.error(
+              `Failed to create user for email: ${emailEntry.email}`,
+              error
+            );
+            toast.error(`Failed to create user for ${emailEntry.email}`);
+          }
         }
-      }
-      // Fetch clients after successfully adding a new one
-      //@ts-ignore
-      dispatch(getCreateClient(!isAdmin ? res?.data?.data?.id : null));
-      // Reset form state
-      setInputs({
-        name: "",
-        email: "",
-        responsiblePerson: [],
-        approver: [],
-        sports: [],
-        categories: [],
-        businessUnits: [],
-        feeType: "",
-        full_name: "",
-      });
-      setEmailList([]);
+        // Fetch clients after successfully adding a new one
+        //@ts-ignore
+        dispatch(getCreateClient(!isAdmin ? res?.data?.data?.id : null));
+        // Reset form state
+        setInputs({
+          name: "",
+          email: "",
+          responsiblePerson: [],
+          approver: [],
+          sports: [],
+          categories: [],
+          businessUnits: [],
+          feeType: "",
+          full_name: "",
+        });
+        setEmailList([]);
 
-      setIsOpen(false);
+        setIsOpen(false);
+      }
     } catch (error) {
       const errors: any =
         error.response?.data?.error?.details?.errors ||
