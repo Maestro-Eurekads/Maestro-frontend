@@ -589,11 +589,15 @@ const AdsetSettings = memo(function AdsetSettings({
   stageName,
   onInteraction,
   defaultOpen,
+  isCollapsed,
+  setCollapsed,
 }: {
   outlet: OutletType;
   stageName: string;
   onInteraction: () => void;
   defaultOpen?: boolean;
+  isCollapsed: boolean;
+  setCollapsed: (collapsed: boolean) => void;
 }) {
   const { isEditing } = useEditing();
   const { campaignFormData, setCampaignFormData, updateCampaign, getActiveCampaign } = useCampaigns();
@@ -873,90 +877,100 @@ const AdsetSettings = memo(function AdsetSettings({
     );
   }
 
+  // Collapsible logic for the stage
+  // If isCollapsed is false, show the ad set form; if true, show only the recap
   return (
     <div className="flex flex-col gap-2 w-full max-w-[1024px]">
       <div className="flex items-center gap-8">
         <div className="relative">
-          <button className="relative min-w-[150px] max-w-[300px] w-fit z-20 flex gap-4 justify-between cursor-pointer items-center bg-[#F9FAFB] border border-[#0000001A] border-solid py-4 px-4 rounded-[10px]">
+          <button
+            className="relative min-w-[150px] max-w-[300px] w-fit z-20 flex gap-4 justify-between cursor-pointer items-center bg-[#F9FAFB] border border-[#0000001A] border-solid py-4 px-4 rounded-[10px]"
+            onClick={() => setCollapsed(!isCollapsed)}
+            type="button"
+          >
             <Image
               src={outlet.icon || "/placeholder.svg"}
               alt={outlet.outlet}
               className="w-[22px] h-[22px]"
             />
             <span className="text-[#061237] font-medium">{outlet.outlet}</span>
-            <FaAngleRight />
+            <FaAngleRight
+              className={`transition-transform duration-200 ${isCollapsed ? "" : "rotate-90"}`}
+            />
           </button>
         </div>
-        <DropdownContext.Provider value={{ openDropdownId, setOpenDropdownId }}>
-          <div
-            className="relative w-full"
-            style={{ minHeight: `${Math.max(194, (adsets.length + 1) * 80)}px` }}
-          >
-            {adsets.length > 0 && (
-              <>
-                <div className="absolute top-0 left-0 mb-4">
-                  <button
-                    onClick={addNewAddset}
-                    disabled={adsets.length >= 10}
-                    className={`flex gap-2 items-center text-white ${adsets.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
-                      } px-4 py-2 rounded-full text-sm font-bold z-10 relative`}
-                  >
-                    <MdAdd />
-                    <span>
-                      {adsets.length >= 10 ? "Max limit reached" : "New ad set"}
-                    </span>
-                  </button>
-                </div>
-
-                {adsets.map((adset, index) => {
-                  const adSetData = adSetDataMap[adset.id] || {
-                    name: "",
-                    audience_type: "",
-                    size: "",
-                  };
-                  return (
-                    <div
-                      key={adset.id}
-                      className="relative"
-                      style={{
-                        marginTop: index === 0 ? "60px" : "0px",
-                        marginBottom: "20px",
-                      }}
+        {!isCollapsed && (
+          <DropdownContext.Provider value={{ openDropdownId, setOpenDropdownId }}>
+            <div
+              className="relative w-full"
+              style={{ minHeight: `${Math.max(194, (adsets.length + 1) * 80)}px` }}
+            >
+              {adsets.length > 0 && (
+                <>
+                  <div className="absolute top-0 left-0 mb-4">
+                    <button
+                      onClick={addNewAddset}
+                      disabled={adsets.length >= 10}
+                      className={`flex gap-2 items-center text-white ${adsets.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
+                        } px-4 py-2 rounded-full text-sm font-bold z-10 relative`}
                     >
-                      <AdSet
-                        adset={adset}
-                        index={index}
-                        isEditing={isEditing}
-                        onDelete={deleteAdSet}
-                        onUpdate={updateAdSetData}
-                        audienceType={adSetData.audience_type}
-                        adSetName={adSetData.name}
-                        adSetSize={adSetData.size}
-                        extra_audiences={
-                          (adSetData.extra_audiences as {
-                            audience_type: string;
-                            name?: string;
-                            size?: string;
-                          }[]) || []
-                        }
-                        onUpdateExtraAudiences={(extraAudienceArray) =>
-                          updateAdSetData(adset.id, {
-                            extra_audiences: extraAudienceArray,
-                          })
-                        }
-                        onInteraction={onInteraction}
-                        adsets={adsets}
-                      />
-                    </div>
-                  );
-                })}
-              </>
-            )}
-          </div>
-        </DropdownContext.Provider>
+                      <MdAdd />
+                      <span>
+                        {adsets.length >= 10 ? "Max limit reached" : "New ad set"}
+                      </span>
+                    </button>
+                  </div>
+
+                  {adsets.map((adset, index) => {
+                    const adSetData = adSetDataMap[adset.id] || {
+                      name: "",
+                      audience_type: "",
+                      size: "",
+                    };
+                    return (
+                      <div
+                        key={adset.id}
+                        className="relative"
+                        style={{
+                          marginTop: index === 0 ? "60px" : "0px",
+                          marginBottom: "20px",
+                        }}
+                      >
+                        <AdSet
+                          adset={adset}
+                          index={index}
+                          isEditing={isEditing}
+                          onDelete={deleteAdSet}
+                          onUpdate={updateAdSetData}
+                          audienceType={adSetData.audience_type}
+                          adSetName={adSetData.name}
+                          adSetSize={adSetData.size}
+                          extra_audiences={
+                            (adSetData.extra_audiences as {
+                              audience_type: string;
+                              name?: string;
+                              size?: string;
+                            }[]) || []
+                          }
+                          onUpdateExtraAudiences={(extraAudienceArray) =>
+                            updateAdSetData(adset.id, {
+                              extra_audiences: extraAudienceArray,
+                            })
+                          }
+                          onInteraction={onInteraction}
+                          adsets={adsets}
+                        />
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+            </div>
+          </DropdownContext.Provider>
+        )}
       </div>
       {/* Recap line below each stage selection */}
-      {recapRows.length > 0 && (
+      {isCollapsed && recapRows.length > 0 && (
         <div className="mt-2 mb-4">
           <div className="bg-[#F5F7FA] border border-[#E5E7EB] rounded-lg px-4 py-3">
             <div className="font-semibold text-[#061237] mb-2 text-sm">Audience Recap</div>
@@ -1009,6 +1023,8 @@ const AdSetFlow = memo(function AdSetFlow({
   const [hasInteraction, setHasInteraction] = useState(false);
   const [loading, setLoading] = useState(false);
   const [autoOpen, setAutoOpen] = useState<Record<string, string[]>>({});
+  // Collapsed state for each outlet in the stage
+  const [collapsedOutlets, setCollapsedOutlets] = useState<Record<string, boolean>>({});
 
   const getPlatformsFromStage = useCallback(() => {
     const platformsByStage: Record<string, OutletType[]> = {};
@@ -1154,6 +1170,26 @@ const AdSetFlow = memo(function AdSetFlow({
     // }
   }, []);
 
+  // Set up collapsed state for each outlet in the current stage
+  useEffect(() => {
+    if (platforms[stageName]) {
+      const initialCollapsed: Record<string, boolean> = {};
+      platforms[stageName].forEach((outlet) => {
+        // If autoOpen is true for this outlet, start open (not collapsed)
+        initialCollapsed[outlet.outlet] = false;
+      });
+      setCollapsedOutlets(initialCollapsed);
+    }
+  }, [platforms, stageName]);
+
+  // Handler to toggle collapsed state for a given outlet
+  const handleToggleCollapsed = (outletName: string) => {
+    setCollapsedOutlets((prev) => ({
+      ...prev,
+      [outletName]: !prev[outletName],
+    }));
+  };
+
   return (
     <div className="w-full space-y-4 p-4">
       {platformName
@@ -1170,6 +1206,8 @@ const AdSetFlow = memo(function AdSetFlow({
               stageName={stageName}
               onInteraction={handleInteraction}
               defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
+              isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
+              setCollapsed={(collapsed) => handleToggleCollapsed(outlet.outlet)}
             />
           ))
         : platforms[stageName]?.map((outlet) => (
@@ -1179,6 +1217,8 @@ const AdSetFlow = memo(function AdSetFlow({
             stageName={stageName}
             onInteraction={handleInteraction}
             defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
+            isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
+            setCollapsed={(collapsed) => handleToggleCollapsed(outlet.outlet)}
           />
         ))}
     </div>
