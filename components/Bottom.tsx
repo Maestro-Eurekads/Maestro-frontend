@@ -55,7 +55,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const [hasFormatSelected, setHasFormatSelected] = useState(false);
-  const { isFinancialApprover, isAgencyApprover } = useUserPrivileges();
+  const { isFinancialApprover, isAgencyApprover, isAdmin } = useUserPrivileges();
   const {
     createCampaign,
     updateCampaign,
@@ -73,7 +73,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     currencySign,
   } = useCampaigns();
  
-  
   // --- Persist format selection for active === 4 ---
   const hasProceededFromFormatStep = useRef(false);
 
@@ -811,11 +810,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             <p>Back</p>
           </button>
         )}
-        {active === 10 ? ( 
-          (isFinancialApprover || isAgencyApprover) ?  (
+ 
+        {active === 10 ? (
+          (isFinancialApprover || isAgencyApprover || isAdmin) ?(
+ 
             <button
               className="bottom_black_next_btn hover:bg-blue-500"
-              onClick={() => campaignData?.isApprove ? toast.error("This Plan has already been approved!") : setIsOpen(true)}
+              onClick={() => campaignFormData?.isApprove ? toast.error("This Plan has already been approved!") : setIsOpen(true)}
             >
               <p>Confirm</p>
               <Image src={Continue} alt="Continue" />

@@ -80,7 +80,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 		router.push('/');
 	};
 
-	console.log('loggedInUser-loggedInUser', loggedInUser)
+
 
 
 
