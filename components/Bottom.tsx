@@ -10,7 +10,6 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 import { BiLoader } from "react-icons/bi";
 import { removeKeysRecursively } from "../utils/removeID";
 import { useSelectedDates } from "../app/utils/SelectedDatesContext";
-import { useVerification } from "app/utils/VerificationContext";
 import { useEditing } from "app/utils/EditingContext";
 import toast, { Toaster } from "react-hot-toast";
 import dayjs from "dayjs";
@@ -36,7 +35,6 @@ const CHANNEL_TYPES = [
 ];
 
 const Bottom = ({ setIsOpen }: BottomProps) => {
-  const { verifybeforeMove, hasChanges } = useVerification();
   const { active, setActive, subStep, setSubStep } = useActive();
   const { midcapEditing } = useEditing();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
@@ -74,7 +72,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     requiredFields,
     currencySign,
   } = useCampaigns();
-
+ 
+  
   // --- Persist format selection for active === 4 ---
   const hasProceededFromFormatStep = useRef(false);
 
@@ -497,12 +496,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
         // Handle approver and client_approver as arrays of strings
         const internalApprovers = Array.isArray(campaignFormData?.approver)
-          ? campaignFormData.approver.filter((a: string | null) => a != null)
+          ? campaignFormData.approver.filter((a) => a !== null && a !== undefined && a !== "")
           : [];
 
         const clientApprovers = Array.isArray(campaignFormData?.client_approver)
-          ? campaignFormData.client_approver.filter((a: string | null) => a != null)
+          ? campaignFormData.client_approver.filter((a) => a !== null && a !== undefined && a !== "")
           : [];
+
 
         // Update campaignFormData with cleaned values and save to localStorage
         const cleanedFormData = {
@@ -811,11 +811,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             <p>Back</p>
           </button>
         )}
-        {active === 10 ? (
-          isFinancialApprover || isAgencyApprover ? (
+        {active === 10 ? ( 
+          (isFinancialApprover || isAgencyApprover) ?  (
             <button
               className="bottom_black_next_btn hover:bg-blue-500"
-              onClick={() => setIsOpen(true)}
+              onClick={() => campaignData?.isApprove ? toast.error("This Plan has already been approved!") : setIsOpen(true)}
             >
               <p>Confirm</p>
               <Image src={Continue} alt="Continue" />

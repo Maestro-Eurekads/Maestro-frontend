@@ -963,7 +963,7 @@ const ResizableChannels = ({
                                   {extra?.name}
                                 </td>
                                 <td className="px-4 py-2 whitespace-nowrap border-none">
-                                  {extra?.size}
+                                  {Number(extra?.size).toLocaleString()}
                                 </td>
                               </tr>
                             ))}
@@ -1195,10 +1195,14 @@ const ResizableChannels = ({
           />
           <div className="w-fit ml-auto">
             <button
-              className="bg-blue-500 text-white rounded-md p-2"
-              onClick={() => setOpenAdset(false)}
+              className="bg-blue-500 text-white rounded-md p-2 flex justify-center items-center"
+              onClick={async() => {
+                await sendUpdatedDataToAPI(campaignFormData)
+                await setOpenAdset(false);
+              }}
+              disabled={deleting}
             >
-              Confirm Changes
+              {deleting ? <FaSpinner className="animate-spin"/> :"Confirm Changes"}
             </button>
           </div>
         </div>
