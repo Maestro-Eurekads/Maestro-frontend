@@ -155,7 +155,7 @@ const ClientApproverDropdowns = ({
 	options: DropdownOption[];
 	option: DropdownOption[];
 	value: {
-		approver: DropdownOption[];
+		internal_approver: DropdownOption[];
 		client_approver: DropdownOption[];
 	};
 	onChange: (field: string, selected: DropdownOption[]) => void;
@@ -168,9 +168,9 @@ const ClientApproverDropdowns = ({
 				options={options}
 				islabelone=""
 				islabeltwo=""
-				formId="approver"
-				value={value.approver}
-				onChange={(selected) => onChange("approver", selected)}
+				formId="internal_approver"
+				value={value.internal_approver}
+				onChange={(selected) => onChange("internal_approver", selected)}
 			/>
 			<MultiSelectDropdown
 				label="Client Approver"
