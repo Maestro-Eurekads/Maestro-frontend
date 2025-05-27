@@ -917,7 +917,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
                    <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[50px] rounded-[10px] items-center gap-2">
                     <div className="flex justify-between w-full px-4 items-center">
                      <div className="flex items-center gap-2">
-                      <span>{ad_set?.size}</span>
+                      <span>{ad_set?.size ? Number(ad_set?.size).toLocaleString() : ""}</span>
                      </div>
                     </div>
                    </div>
@@ -1085,7 +1085,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
                       <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[50px] rounded-[10px] items-center gap-2">
                        <div className="flex justify-between w-full px-4 items-center">
                         <div className="flex items-center gap-2">
-                         <span>{addSet?.size}</span>
+                        <span>{addSet?.size ? Number(addSet?.size).toLocaleString() : ""}</span>
                         </div>
                        </div>
                       </div>
