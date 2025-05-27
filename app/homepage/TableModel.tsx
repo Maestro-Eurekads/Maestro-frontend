@@ -12,13 +12,14 @@ import BusinessUnit from "./components/BusinessUnit";
 import { SVGLoader } from "../../components/SVGLoader";
 import AlertMain from "../../components/Alert/AlertMain";
 import { MdOutlineCancel } from "react-icons/md";
-import { addNewClient } from "./functions/clients";
+import { addClientUser, addNewClient } from "./functions/clients";
 import { getCreateClient } from "features/Client/clientSlice";
 import { useAppDispatch } from "store/useStore";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { useUserPrivileges } from "utils/userPrivileges";
+import { v4 as uuidv4 } from "uuid";
 
 const TableModel = ({ isOpen, setIsOpen }) => {
   const { data: session } = useSession();
@@ -135,98 +136,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     return () => document.body.classList.remove("overflow-hidden");
   }, [isOpen]);
 
-  // Add a validation function before the handleSubmit function
-  // const validateForm = () => {
-  //   // Check if client name is empty
-  //   if (!inputs.name.trim()) {
-  //     setAlert({
-  //       variant: "error",
-  //       message: "Client Name is required",
-  //       position: "bottom-right",
-  //     });
-  //     return false;
-  //   }
-
-  //   // Check if at least one email is added
-  //   if (emailList.length === 0) {
-  //     setAlert({
-  //       variant: "error",
-  //       message: "At least one client email is required",
-  //       position: "bottom-right",
-  //     });
-  //     return false;
-  //   }
-
-  //   // Check if responsible person is selected
-  //   if (!inputs.responsiblePerson) {
-  //     setAlert({
-  //       variant: "error",
-  //       message: "Responsible Person is required",
-  //       position: "bottom-right",
-  //     });
-  //     return false;
-  //   }
-
-  //   // Check if approver is selected
-  //   if (!inputs.approver) {
-  //     setAlert({
-  //       variant: "error",
-  //       message: "Approver is required",
-  //       position: "bottom-right",
-  //     });
-  //     return false;
-  //   }
-
-  //   // Check if at least two business level 1 (sports) are added
-  //   if (inputs.sports.length < 2 || !inputs.sports[0] || !inputs.sports[1]) {
-  //     setAlert({
-  //       variant: "error",
-  //       message: "At least two Business Level 1 entries are required",
-  //       position: "bottom-right",
-  //     });
-  //     return false;
-  //   }
-
-  //   // Check if at least two business level 2 (business units) are added
-  //   if (
-  //     inputs.businessUnits.length < 2 ||
-  //     !inputs.businessUnits[0] ||
-  //     !inputs.businessUnits[1]
-  //   ) {
-  //     setAlert({
-  //       variant: "error",
-  //       message: "At least two Business Level 2 entries are required",
-  //       position: "bottom-right",
-  //     });
-  //     return false;
-  //   }
-
-  //   // Check if at least two business level 3 (categories) are added
-  //   if (
-  //     inputs.categories.length < 2 ||
-  //     !inputs.categories[0] ||
-  //     !inputs.categories[1]
-  //   ) {
-  //     setAlert({
-  //       variant: "error",
-  //       message: "At least two Business Level 3 entries are required",
-  //       position: "bottom-right",
-  //     });
-  //     return false;
-  //   }
-
-  //   // Check if fee type is selected
-  //   if (!inputs.feeType) {
-  //     setAlert({
-  //       variant: "error",
-  //       message: "Fee Type is required",
-  //       position: "bottom-right",
-  //     });
-  //     return false;
-  //   }
-
-  //   return true;
-  // };
   const validateForm = () => {
     if (!inputs.name.trim()) {
       toast.error("Client Name is required");
@@ -301,7 +210,26 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         users: profile?.id,
       });
       localStorage.setItem(userType.toString(), res?.data?.data?.id);
+
       getProfile();
+      // Create a user account for each client email in emailList
+      for (const emailEntry of emailList) {
+        try {
+          await addClientUser({
+            username: `${emailEntry.full_name}-${uuidv4().slice(0, 4)}`,
+            email: emailEntry.email,
+            password: "123456789",
+            clients: res?.data?.data?.id,
+            user_type: "sub_client"
+          });
+        } catch (error) {
+          console.error(
+            `Failed to create user for email: ${emailEntry.email}`,
+            error
+          );
+          toast.error(`Failed to create user for ${emailEntry.email}`);
+        }
+      }
       // Fetch clients after successfully adding a new one
       //@ts-ignore
       dispatch(getCreateClient(!isAdmin ? res?.data?.data?.id : null));

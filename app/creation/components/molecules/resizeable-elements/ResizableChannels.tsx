@@ -996,7 +996,7 @@ const ResizableChannels = ({
                 )}
               </div>
             )}
-            {channel?.format?.some(
+            {channel?.ad_sets?.length <  1 &&channel?.format?.some(
               (format) => format?.previews?.length > 0
             ) && (
               <button
