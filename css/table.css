@@ -53,9 +53,9 @@ color: #101828;
 
  
 
-td:last-child:hover {
+/* td:last-child:hover {
   text-decoration: underline;
-}
+} */
 
 .view_content_table{ 
 display: flex;
