@@ -150,17 +150,17 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 							<div className='campaign_phases_container mt-[24px]'>
 								<div className='campaign_phases_container_one'>
 									<DoughnutChat
-										data={campaignFormData?.channel_mix
-											?.filter(
-												(c) => Number(c?.stage_budget?.percentage_value) > 0
-											)
-											?.map((ch) =>
-												Number(ch?.stage_budget?.percentage_value)?.toFixed(
-													0
-												)
-											)
-										}
-										color={hexColors}
+										// data={campaignFormData?.channel_mix
+										// 	?.filter(
+										// 		(c) => Number(c?.stage_budget?.percentage_value) > 0
+										// 	)
+										// 	?.map((ch) =>
+										// 		Number(ch?.stage_budget?.percentage_value)?.toFixed(
+										// 			0
+										// 		)
+										// 	)
+										// }
+										// color={hexColors}
 
 										insideText={`${parseInt(campaignFormData?.campaign_budget?.amount && campaignFormData?.campaign_budget?.amount).toLocaleString() ?? 0} ${getCurrencySymbol(campaignFormData?.campaign_budget?.currency ?? '')}`}
 									/>

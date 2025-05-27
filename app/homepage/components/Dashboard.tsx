@@ -189,18 +189,18 @@ const Dashboard = () => {
                 <div className="flex items-center gap-6 mt-[24px] w-full">
                   {/* Doughnut Chat */}
                   <DoughnutChat
-                    data={campaign?.channel_mix?.map((ch) =>
-                      Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0),
-                    )}
-                    color={campaign?.channel_mix?.map((ch) =>
-                      ch?.funnel_stage === "Awareness"
-                        ? "#3175FF"
-                        : ch?.funnel_stage === "Consideration"
-                          ? "#00A36C"
-                          : ch?.funnel_stage === "Conversion"
-                            ? "#FF9037"
-                            : "#F05406",
-                    )}
+                    // data={campaign?.channel_mix?.map((ch) =>
+                    //   Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0),
+                    // )}
+                    // color={campaign?.channel_mix?.map((ch) =>
+                    //   ch?.funnel_stage === "Awareness"
+                    //     ? "#3175FF"
+                    //     : ch?.funnel_stage === "Consideration"
+                    //       ? "#00A36C"
+                    //       : ch?.funnel_stage === "Conversion"
+                    //         ? "#FF9037"
+                    //         : "#F05406",
+                    // )}
                     insideText={`${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency ? getCurrencySymbol(campaign?.campaign_budget?.currency) : ""
                       }`}
                   />
