@@ -149,6 +149,7 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 
 							<div className='campaign_phases_container mt-[24px]'>
 								<div className='campaign_phases_container_one'>
+									{/* Remove data/color props, only pass insideText as per DoughnutChat definition */}
 									<DoughnutChat
 										// data={campaignFormData?.channel_mix
 										// 	?.filter(
