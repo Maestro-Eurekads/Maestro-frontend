@@ -164,7 +164,7 @@ export function extractAprroverFilters(campaigns: any[]) {
 
   campaigns.forEach((campaign) => {
     made_by.add(campaign?.campaign_builder)
-    // approved_by.add(campaign.media_plan_details?.internal_approver)
+    approved_by.add(campaign?.internal_approver)
     select_plans.add(campaign?.media_plan_details?.plan_name)
   })
 
@@ -334,11 +334,17 @@ export const fetchFilteredCampaigns = async (clientID: string, filters: FilterSt
     orFilterIndex++;
   }
 
+  // if (filters.approved_by) {
+  //   filterQuery += `&filters[$or][${orFilterIndex}][media_plan_details][internal_approver][$eq]=${filters.approved_by}`;
+  //   hasOrFilters = true;
+  //   orFilterIndex++;
+  // }
   if (filters.approved_by) {
-    filterQuery += `&filters[$or][${orFilterIndex}][media_plan_details][internal_approver][$eq]=${filters.approved_by}`;
-    hasOrFilters = true;
-    orFilterIndex++;
-  }
+  filterQuery += `&filters[$or][${orFilterIndex}][internal_approver][$containsi]=${filters.approved_by}`;
+  hasOrFilters = true;
+  orFilterIndex++;
+}
+
 
   if (filters.channel) {
     filterQuery += `&filters[$or][${orFilterIndex}][channel_mix][${filters.channel}][$notNull]=true`;

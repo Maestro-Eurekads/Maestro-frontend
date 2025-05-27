@@ -105,7 +105,7 @@ const Dropdown = ({ label, options, selectedFilters, handleSelect, isDisabled = 
 const FiltersDropdowns = ({ hideTitle, router }: Props) => {
   const dispatch = useAppDispatch();
   const { isAdmin, isAgencyApprover, isFinancialApprover } =
-      useUserPrivileges();
+    useUserPrivileges();
   useEffect(() => {
     const styleElement = document.createElement("style")
     styleElement.innerHTML = scrollbarStyles
@@ -211,23 +211,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     });
   };
 
-  // useEffect(() => {
-  //   if (Object.values(selectedFilters).some((val) => val !== null && val !== "")) {
-  //     const fetchData = async () => {
-  //       const clientID = localStorage.getItem(userType.toString()) || allClients[0]?.id
-  //       setLoading(true)
-  //       const data = await fetchFilteredCampaigns(clientID, selectedFilters)
-  //         .then((res) => {
-  //           setClientCampaignData(res)
-  //         })
-  //         .finally(() => {
-  //           setLoading(false)
-  //         })
-  //     }
-  //     fetchData()
-  //   }
 
-  // }, [selectedFilters])
 
   useEffect(() => {
     const fetchData = async () => {
