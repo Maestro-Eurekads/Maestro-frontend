@@ -193,16 +193,16 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
               <div className="campaign_phases_container mt-[24px]">
                 <div className="campaign_phases_container_one">
                   <DoughnutChat
-                    data={campaignFormData?.channel_mix
-                      ?.filter(
-                        (c) => Number(c?.stage_budget?.percentage_value) > 0
-                      )
-                      ?.map((ch) =>
-                        Number(ch?.stage_budget?.percentage_value)?.toFixed(0)
-                      )}
-                    color={campaignFormData?.channel_mix?.map((ch) =>
-                      getFunnelColor(ch?.funnel_stage)
-                    )}
+                    // data={campaignFormData?.channel_mix
+                    //   ?.filter(
+                    //     (c) => Number(c?.stage_budget?.percentage_value) > 0
+                    //   )
+                    //   ?.map((ch) =>
+                    //     Number(ch?.stage_budget?.percentage_value)?.toFixed(0)
+                    //   )}
+                    // color={campaignFormData?.channel_mix?.map((ch) =>
+                    //   getFunnelColor(ch?.funnel_stage)
+                    // )}
                     insideText={`${parseInt(
                       campaignFormData?.campaign_budget?.amount
                     ).toLocaleString()} ${getCurrencySymbol(
