@@ -72,7 +72,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     requiredFields,
     currencySign,
   } = useCampaigns();
- 
+
   // --- Persist format selection for active === 4 ---
   const hasProceededFromFormatStep = useRef(false);
 
@@ -118,6 +118,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
     return hasValidFormat;
   };
+
+  console.log('campaignFormData-campaignFormData', campaignFormData)
 
   // Only reset formats when entering active === 4 if the user has NOT already proceeded from step 4 with a valid format
   useEffect(() => {
@@ -463,13 +465,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const cleanData = campaignData
       ? removeKeysRecursively(campaignData, [
-          "id",
-          "documentId",
-          "createdAt",
-          "publishedAt",
-          "updatedAt",
-          "_aggregated",
-        ])
+        "id",
+        "documentId",
+        "createdAt",
+        "publishedAt",
+        "updatedAt",
+        "_aggregated",
+      ])
       : {};
 
     const handleStepZero = async () => {
@@ -494,8 +496,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         };
 
         // Handle approver and client_approver as arrays of strings
-        const internalApprovers = Array.isArray(campaignFormData?.approver)
-          ? campaignFormData.approver.filter((a) => a !== null && a !== undefined && a !== "")
+        const internalApprovers = Array.isArray(campaignFormData?.internal_approver)
+          ? campaignFormData.internal_approver.filter((a) => a !== null && a !== undefined && a !== "")
           : [];
 
         const clientApprovers = Array.isArray(campaignFormData?.client_approver)
@@ -506,8 +508,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         // Update campaignFormData with cleaned values and save to localStorage
         const cleanedFormData = {
           ...campaignFormData,
-          approver: internalApprovers,
-          client_approver: clientApprovers,
+          internal_approver: internalApprovers,
+          client_approver: campaignFormData,
           budget_details_currency: {
             id: budgetDetails.currency,
             value: budgetDetails.currency,
@@ -567,7 +569,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           });
         }
       } catch (error) {
-        console.error("Error in handleStepZero:", error);
         setAlert({
           variant: "error",
           message: "Something went wrong. Please try again.",
@@ -810,10 +811,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             <p>Back</p>
           </button>
         )}
- 
+
         {active === 10 ? (
-          (isFinancialApprover || isAgencyApprover || isAdmin) ?(
- 
+          (isFinancialApprover || isAgencyApprover || isAdmin) ? (
+
             <button
               className="bottom_black_next_btn hover:bg-blue-500"
               onClick={() => campaignFormData?.isApprove ? toast.error("This Plan has already been approved!") : setIsOpen(true)}
@@ -853,8 +854,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                     {active === 0
                       ? "Start"
                       : active === 4 && !hasFormatSelected
-                      ? "Skip"
-                      : "Continue"}
+                        ? "Skip"
+                        : "Continue"}
                   </p>
                   <Image src={Continue} alt="Continue" />
                 </>

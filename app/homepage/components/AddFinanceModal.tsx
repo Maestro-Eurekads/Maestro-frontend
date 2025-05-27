@@ -393,7 +393,7 @@ const AddFinanceModal = ({
       return;
     }
 
-    if (userRole !== "admin" && userRole !== "financial_approver") {
+    if (isAdmin && isFinancialApprover) {
       toast("You are not authorized to update this Purchase Order.", {
         style: { background: "red", color: "white", textAlign: "center" },
         duration: 3000,
