@@ -6,10 +6,6 @@ import ClientSelection from "../../../components/ClientSelection";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import ClientSelectionInput from "../../../components/ClientSelectionInput";
 import AlertMain from "components/Alert/AlertMain";
-import {
-  useVerification,
-  validationRules,
-} from "app/utils/VerificationContext";
 import { useComments } from "app/utils/CommentProvider";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { selectCurrency } from "components/Options";
@@ -39,11 +35,9 @@ export const SetupScreen = () => {
   } = useCampaigns();
   const { client_selection } = campaignFormData || {};
   const [selectedOption, setSelectedOption] = useState("percentage");
-  const [previousValidationState, setPreviousValidationState] = useState(null);
   const [alert, setAlert] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const { setIsDrawerOpen, setClose } = useComments();
-  const { verifyStep, verifybeforeMove, setverifybeforeMove } = useVerification();
   const { isAgencyCreator, isAgencyApprover, isFinancialApprover } = useUserPrivileges();
 
 
@@ -115,13 +109,7 @@ export const SetupScreen = () => {
     }
   }, [campaignFormData]);
 
-  useEffect(() => {
-    const isValid = validationRules["step0"](campaignData);
-    if (isValid !== previousValidationState) {
-      verifyStep("step0", isValid, cId);
-      setPreviousValidationState(isValid);
-    }
-  }, [campaignData, previousValidationState, verifyStep, cId]);
+
 
   useEffect(() => {
     if (alert) {
@@ -130,16 +118,9 @@ export const SetupScreen = () => {
     }
   }, [alert]);
 
-  useEffect(() => {
-    const storedState = localStorage.getItem("verifybeforeMove");
-    if (storedState) {
-      setverifybeforeMove(JSON.parse(storedState));
-    }
-  }, [setverifybeforeMove]);
 
-  useEffect(() => {
-    localStorage.setItem("verifybeforeMove", JSON.stringify(verifybeforeMove));
-  }, [verifybeforeMove]);
+
+
 
   useEffect(() => {
     if (isAgencyCreator || isAgencyApprover || isFinancialApprover) {
