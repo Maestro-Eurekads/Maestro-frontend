@@ -384,6 +384,11 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
           );
         })
       )}
+       <AddNewChennelsModel
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        selectedStage={selectedStage}
+      />
     </div>
   );
 };
