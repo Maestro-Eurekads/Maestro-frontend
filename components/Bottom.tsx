@@ -70,15 +70,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     selectedOption,
     setCampaignFormData,
     requiredFields,
-    currencySign
+    currencySign,
   } = useCampaigns();
-
-
-  console.log('campaignData-campaignData', campaignData?.isApprove)
-
-
+ 
+  
   // --- Persist format selection for active === 4 ---
-  // We'll use a ref to track if the user has ever selected a format and continued from step 4
   const hasProceededFromFormatStep = useRef(false);
 
   const validateFormatSelection = () => {
@@ -143,13 +139,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           in_game: mix.in_game?.map((p) => ({ ...p, format: [] })),
           mobile: mix.mobile?.map((p) => ({ ...p, format: [] })),
         })) || [],
-        validatedStages: {}
+        validatedStages: {},
       }));
       setHasFormatSelected(false);
-      // console.log("Reset formats for active === 4", { channel_mix: campaignFormData.channel_mix });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active]);
+  }, [active, setCampaignFormData]);
 
   // Update hasFormatSelected and log state
   useEffect(() => {
@@ -226,11 +220,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       );
 
       if (stageData && validatedStages[stage]) {
-        const hasValidChannel = [
-          ...(stageData.social_media || []),
-          ...(stageData.display_networks || []),
-          ...(stageData.search_engines || []),
-        ].some((platform) => platform.buy_type && platform.objective_type);
+        const hasValidChannel = CHANNEL_TYPES.some((channel) =>
+          (stageData[channel.key] || []).some(
+            (platform) => platform.buy_type && platform.objective_type
+          )
+        );
 
         if (hasValidChannel) {
           return true;
@@ -247,28 +241,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
 
     return campaignFormData.channel_mix.some((mix) =>
-      [
-        "social_media",
-        "display_networks",
-        "search_engines",
-        "streaming",
-        "mobile",
-        "messaging",
-        "in_game",
-        "e_commerce",
-        "broadcast",
-        "print",
-        "ooh",
-      ].some((channel) => mix[channel]?.length > 0)
+      CHANNEL_TYPES.some((channel) => mix[channel.key]?.length > 0)
     );
   };
 
   // --- Custom back handler for active === 5 to persist step 4 if user had format selected and continued ---
   const handleBack = () => {
-    // If we are on step 5 and the user had previously proceeded from step 4 with a valid format, go back to 4 and do NOT reset formats
     if (active === 5 && hasProceededFromFormatStep.current) {
       setActive(4);
-      // Do not reset formats, so skip the reset logic in useEffect above
       return;
     }
     if (subStep > 0) {
@@ -279,14 +259,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
   };
 
-  // useEffect(() => {
-  //   setIsStepZeroValid(requiredFields.every((field) => field));
-  // }, [requiredFields]);
-
   useEffect(() => {
     setIsStepZeroValid(requiredFields.every(Boolean));
-  }, [requiredFields]);
-
+  }, [requiredFields, setIsStepZeroValid]);
 
   const handleContinue = async () => {
     if (active === 6) {
@@ -418,7 +393,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       } else {
         setTriggerFormatError(false);
         setTriggerFormatErrorCount(0);
-        // Mark that the user has proceeded from step 4 with a valid format
         hasProceededFromFormatStep.current = true;
       }
     }
@@ -490,115 +464,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const cleanData = campaignData
       ? removeKeysRecursively(campaignData, [
-        "id",
-        "documentId",
-        "createdAt",
-        "publishedAt",
-        "updatedAt",
-        "_aggregated",
-      ])
+          "id",
+          "documentId",
+          "createdAt",
+          "publishedAt",
+          "updatedAt",
+          "_aggregated",
+        ])
       : {};
-
-    // const handleStepZero = async () => {
-    //   setLoading(true);
-
-    //   try {
-    //     if (!isStepZeroValid) {
-    //       setAlert({
-    //         variant: "error",
-    //         message: "Please complete all required fields before proceeding.",
-    //         position: "bottom-right",
-    //       });
-    //       setLoading(false);
-    //       return;
-    //     }
-
-    //     const budgetDetails = {
-    //       currency: campaignFormData?.budget_details_currency?.id,
-    //       fee_type: campaignFormData?.budget_details_fee_type?.id,
-    //       sub_fee_type: selectedOption,
-    //       value: campaignFormData?.budget_details_value,
-    //     };
-
-    //     if (cId && campaignData) {
-    //       const updatedData = {
-    //         ...removeKeysRecursively(campaignData, [
-    //           "id",
-    //           "documentId",
-    //           "createdAt",
-    //           "publishedAt",
-    //           "updatedAt",
-    //           "_aggregated"
-    //         ]),
-    //         client: campaignFormData?.client_selection?.id,
-    //         client_selection: {
-    //           client: campaignFormData?.client_selection?.value,
-    //           level_1: campaignFormData?.level_1?.id,
-    //           level_2: campaignFormData?.level_2?.id,
-    //           level_3: campaignFormData?.level_3?.id,
-    //         },
-    //         media_plan_details: {
-    //           plan_name: campaignFormData?.media_plan,
-    //           internal_approver: campaignFormData?.approver?.value,
-    //           client_approver: campaignFormData?.client_approver?.value,
-    //         },
-    //         budget_details: budgetDetails,
-    //       };
-
-    //       await updateCampaign(updatedData);
-
-    //       setCampaignFormData((prev) => ({
-    //         ...prev,
-    //         budget_details_currency: {
-    //           id: budgetDetails.currency,
-    //           value: budgetDetails.currency,
-    //           label:
-    //             selectCurrency.find((c) => c.value === budgetDetails.currency)
-    //               ?.label || budgetDetails.currency,
-    //         },
-    //       }));
-    //       setLoading(false);
-    //       setActive((prev) => prev + 1);
-    //       setAlert({
-    //         variant: "success",
-    //         message: "Campaign updated successfully!",
-    //         position: "bottom-right",
-    //       });
-    //     } else {
-    //       const res = await createCampaign();
-    //       const url = new URL(window.location.href);
-    //       url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
-    //       window.history.pushState({}, "", url.toString());
-    //       await getActiveCampaign(res?.data?.data.documentId);
-
-    //       setCampaignFormData((prev) => ({
-    //         ...prev,
-    //         budget_details_currency: {
-    //           id: budgetDetails.currency,
-    //           value: budgetDetails.currency,
-    //           label:
-    //             selectCurrency.find((c) => c.value === budgetDetails.currency)
-    //               ?.label || budgetDetails.currency,
-    //         },
-    //       }));
-    //       setActive((prev) => prev + 1);
-    //       setAlert({
-    //         variant: "success",
-    //         message: "Campaign created successfully!",
-    //         position: "bottom-right",
-    //       });
-    //     }
-    //     setLoading(false);
-    //   } catch (error) {
-    //     setAlert({
-    //       variant: "error",
-    //       message: "Something went wrong. Please try again.",
-    //       position: "bottom-right",
-    //     });
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
 
     const handleStepZero = async () => {
       setLoading(true);
@@ -645,7 +518,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           },
         };
         setCampaignFormData(cleanedFormData);
-        console.log("Saving to localStorage before submission:", cleanedFormData);
         localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData));
 
         if (cId && campaignData) {
@@ -774,8 +646,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     };
 
     const handleDateStep = async () => {
-      const currentYear = new Date().getFullYear();
       if (!campaignData) return;
+      const currentYear = new Date().getFullYear();
       const campaign_timeline_start_date =
         dayjs(
           new Date(
@@ -885,7 +757,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-      {/* {triggerFunnelError && (
+      {triggerFunnelError && (
         <AlertMain
           alert={{
             variant: "error",
@@ -893,8 +765,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             position: "bottom-right",
           }}
         />
-      )} */}
-
+      )}
       {selectedDatesError && (
         <AlertMain
           alert={{
@@ -923,7 +794,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           }}
         />
       )}
-
       <div className="flex justify-between w-full">
         {active === 0 ? (
           <div />
@@ -941,21 +811,24 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             <p>Back</p>
           </button>
         )}
-        {active === 10 ? (
-          (isFinancialApprover || isAgencyApprover) ?
+        {active === 10 ? ( 
+          (isFinancialApprover || isAgencyApprover) ?  (
             <button
               className="bottom_black_next_btn hover:bg-blue-500"
               onClick={() => campaignData?.isApprove ? toast.error("This Plan has already been approved!") : setIsOpen(true)}
             >
               <p>Confirm</p>
               <Image src={Continue} alt="Continue" />
-            </button> : <button
+            </button>
+          ) : (
+            <button
               className="bottom_black_next_btn hover:bg-blue-500"
               onClick={() => toast.error("Role doesn't have permission!")}
             >
               <p>Confirm</p>
               <Image src={Continue} alt="Continue" />
             </button>
+          )
         ) : (
           <div className="flex justify-center items-center gap-3">
             <button
@@ -979,8 +852,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                     {active === 0
                       ? "Start"
                       : active === 4 && !hasFormatSelected
-                        ? "Skip"
-                        : "Continue"}
+                      ? "Skip"
+                      : "Continue"}
                   </p>
                   <Image src={Continue} alt="Continue" />
                 </>

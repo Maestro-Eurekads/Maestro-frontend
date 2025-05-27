@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import speaker from "../../../public/mdi_megaphone.svg";
 import up from "../../../public/arrow-down.svg";
@@ -19,12 +19,13 @@ import channel from "../../../public/channel_level.svg";
 import Modal from "components/Modals/Modal";
 
 const DefineAdSetPage = () => {
-  const [openItems, setOpenItems] = useState({});
+  const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const [stageStatuses, setStageStatuses] = useState<Record<string, string>>({});
   const [hasInteracted, setHasInteracted] = useState<Record<string, boolean>>({});
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   const [step, setStep] = useState(2);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const initialized = useRef(false);
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -46,14 +47,16 @@ const DefineAdSetPage = () => {
 
   // Initialize statuses and interaction tracking
   useEffect(() => {
-    if (campaignFormData?.funnel_stages) {
-      const initialStatuses = {};
-      const initialInteractions = {};
-      const initialOpenItems = {};
+    if (campaignFormData?.funnel_stages && !initialized.current) {
+      initialized.current = true;
+      const initialStatuses: Record<string, string> = {};
+      const initialInteractions: Record<string, boolean> = {};
+      const initialOpenItems: Record<string, boolean> = {};
 
       for (const stageName of campaignFormData.funnel_stages) {
         initialStatuses[stageName] = "Not started";
         initialInteractions[stageName] = false;
+        initialOpenItems[stageName] = false; // Default to closed
 
         const stage = campaignFormData.channel_mix?.find(
           (s) => s.funnel_stage === stageName
@@ -79,8 +82,8 @@ const DefineAdSetPage = () => {
           );
 
           if (hasAdSets) {
-            initialOpenItems[stageName] = true;
-            initialStatuses[stageName] = "In progress"; // Set to "In progress" if ad sets exist
+            initialOpenItems[stageName] = true; // Auto-open only on initial load
+            initialStatuses[stageName] = "In progress";
             initialInteractions[stageName] = true;
           }
         }
@@ -118,7 +121,6 @@ const DefineAdSetPage = () => {
 
   // Modified resetInteraction to only reset when explicitly needed
   const resetInteraction = (stageName: string) => {
-    // Only reset if no ad sets remain for the stage
     const stage = campaignFormData?.channel_mix?.find(
       (s) => s.funnel_stage === stageName
     );
@@ -161,8 +163,8 @@ const DefineAdSetPage = () => {
           <div key={index} className="w-full">
             <div
               className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-                ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
-              onClick={() => toggleItem(stage.name)}
+                ${openItems[stageName] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
+              onClick={() => toggleItem(stageName)}
             >
               <div className="flex items-center gap-4">
                 {stage.icon && (
@@ -211,23 +213,23 @@ const DefineAdSetPage = () => {
 
               <div>
                 <Image
-                  src={openItems[stage.name] ? up : down2}
-                  alt={openItems[stage.name] ? "collapse" : "expand"}
+                  src={openItems[stageName] ? up : down2}
+                  alt={openItems[stageName] ? "collapse" : "expand"}
                   width={24}
                   height={24}
                 />
               </div>
             </div>
-            {openItems[stage.name] && (
+            {openItems[stageName] && (
               <div
                 className={`card_bucket_container_main_sub flex flex-col pb-6 w-full cursor-pointer min-h-[300px] overflow-x-scroll`}
               >
                 <AdSetsFlow
-                  stageName={stage.name}
-                  onInteraction={() => handleInteraction(stage.name)}
-                  onValidate={() => handleValidate(stage.name)}
-                  isValidateDisabled={!hasInteracted[stage.name]}
-                  onEditStart={() => resetInteraction(stage.name)}
+                  stageName={stageName}
+                  onInteraction={() => handleInteraction(stageName)}
+                  onValidate={() => handleValidate(stageName)}
+                  onEditStart={() => resetInteraction(stageName)}
+                  modalOpen={isModalOpen}
                 />
               </div>
             )}
@@ -417,7 +419,7 @@ const DefineAdSetPage = () => {
               <h1 className=" font-general font-semibold text-[20px] leading-[27px] text-gray-900 text-center">
                 Choose your goal level
               </h1>
-              <p className="  font-general font-medium text-[16px] leading-[150%] text-gray-600 text-center">
+              <p className=" font-general font-medium text-[16px] leading-[150%] text-gray-600 text-center">
                 Define how you want to set your benchmarks and goals for your
                 media plan.
               </p>
