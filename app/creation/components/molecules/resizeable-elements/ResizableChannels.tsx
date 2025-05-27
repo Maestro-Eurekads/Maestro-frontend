@@ -796,7 +796,9 @@ const ResizableChannels = ({
                   >
                     {isNaN(Number(budget)) || Number(budget) <= 0
                       ? ""
-                      : `${Number(budget)?.toLocaleString()} ${getCurrencySymbol(
+                      : `${Number(
+                          budget
+                        )?.toLocaleString()} ${getCurrencySymbol(
                           campaignFormData?.campaign_budget?.amount
                         )}`}
                   </div>
@@ -1082,6 +1084,72 @@ const ResizableChannels = ({
                               </div>
                             ))}
                           </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-4">
+                      {channel?.ad_sets?.some(
+                        (adSet) => adSet?.format?.length > 0
+                      ) && (
+                        <div>
+                          <h3 className="font-semibold text-sm mb-2">
+                            Ad Set Formats
+                          </h3>
+                          {channel.ad_sets
+                            ?.filter((adSet) => adSet?.format?.length > 0)
+                            .map((adSet, adSetIndex) => (
+                              <div
+                                key={adSetIndex}
+                                className="mt-3 p-2 bg-white rounded border border-gray-200"
+                              >
+                                <div className="font-medium text-sm">
+                                  {adSet.name || "Unnamed Ad Set"}
+                                </div>
+                                <div className="text-xs text-gray-500 mb-2">
+                                  {adSet.audience_type} • Size:{" "}
+                                  {Number(adSet.size).toLocaleString()}
+                                </div>
+                                {adSet.format?.length > 0 ? (
+                                  <div className="text-sm text-gray-600">
+                                    {adSet.format.map((format, formatIndex) => (
+                                      <div
+                                        key={formatIndex}
+                                        className="p-4 bg-gray-100 rounded-lg shadow-sm"
+                                      >
+                                        <p className="font-medium">
+                                          Format Type: {format?.format_type}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                          Previews:
+                                        </p>
+                                        <div className="grid grid-cols-2 gap-2 mt-2">
+                                          {format?.previews?.map(
+                                            (preview, id) => (
+                                              <div
+                                                key={id}
+                                                className="block w-[140px] h-[140px]"
+                                              >
+                                                {renderUploadedFile(
+                                                  format?.previews?.map(
+                                                    (pp) => pp?.url
+                                                  ),
+                                                  format?.format_type,
+                                                  id
+                                                )}
+                                              </div>
+                                            )
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="text-xs text-gray-500">
+                                    No formats configured
+                                  </div>
+                                )}
+                              </div>
+                            ))}
                         </div>
                       )}
                     </div>
