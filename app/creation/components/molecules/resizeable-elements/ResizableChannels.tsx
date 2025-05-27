@@ -480,10 +480,10 @@ const ResizableChannels = ({
           const stageStartDate = ch?.start_date
             ? parseISO(ch?.start_date)
             : null;
-          console.log({
-            stageStartDate,
-            startDate,
-          });
+          // console.log({
+          //   stageStartDate,
+          //   startDate,
+          // });
 
           // Only adjust start date if it's earlier than parent start date
           const adjustedStageStartDate =
@@ -492,7 +492,7 @@ const ResizableChannels = ({
               : stageStartDate < startDate
               ? startDate // Use parent start date if channel start date is earlier
               : stageStartDate; // Otherwise use the actual channel start date
-          console.log(adjustedStageStartDate, ch?.name);
+          // console.log(adjustedStageStartDate, ch?.name);
           const stageEndDate = ch?.end_date ? parseISO(ch?.end_date) : null;
 
           // Check if the channel's end date exceeds the parent timeline's end date
@@ -535,10 +535,10 @@ const ResizableChannels = ({
           const endDaysDiff = differenceInCalendarDays(endDate, stageEndDate);
           // Check if this channel already exists in prev
           const existingState = prev[index];
-          console.log("startDateIndex", {
-            startDateIndex,
-            left: parentLeft + Math.abs(startDateIndex),
-          });
+          // console.log("startDateIndex", {
+          //   startDateIndex,
+          //   left: parentLeft + Math.abs(startDateIndex),
+          // });
           return existingState
             ? {
                 ...existingState,
@@ -963,7 +963,7 @@ const ResizableChannels = ({
                                   {extra?.name}
                                 </td>
                                 <td className="px-4 py-2 whitespace-nowrap border-none">
-                                  {extra?.size}
+                                  {Number(extra?.size).toLocaleString()}
                                 </td>
                               </tr>
                             ))}
@@ -1195,10 +1195,14 @@ const ResizableChannels = ({
           />
           <div className="w-fit ml-auto">
             <button
-              className="bg-blue-500 text-white rounded-md p-2"
-              onClick={() => setOpenAdset(false)}
+              className="bg-blue-500 text-white rounded-md p-2 flex justify-center items-center"
+              onClick={async() => {
+                await sendUpdatedDataToAPI(campaignFormData)
+                await setOpenAdset(false);
+              }}
+              disabled={deleting}
             >
-              Confirm Changes
+              {deleting ? <FaSpinner className="animate-spin"/> :"Confirm Changes"}
             </button>
           </div>
         </div>

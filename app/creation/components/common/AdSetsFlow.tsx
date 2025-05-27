@@ -134,6 +134,15 @@ const platformIcons: Record<string, StaticImageData> = {
   QuantCast: Quantcast,
 };
 
+// Context for dropdown management
+const DropdownContext = createContext<{
+  openDropdownId: number | null | string;
+  setOpenDropdownId: (id: number | null | string) => void;
+}>({
+  openDropdownId: null,
+  setOpenDropdownId: () => { },
+});
+
 // Utility functions
 const findPlatform = (
   campaignData: FunnelStage[],
@@ -208,8 +217,6 @@ const AdSet = memo(function AdSet({
   adsets,
   extra_audiences,
   onUpdateExtraAudiences,
-  openDropdownId,
-  setOpenDropdownId,
 }: {
   adset: AdSetType;
   index: number;
@@ -233,8 +240,6 @@ const AdSet = memo(function AdSet({
       size?: string;
     }[]
   ) => void;
-  openDropdownId: number | string | null;
-  setOpenDropdownId: (id: number | string | null) => void;
 }) {
   const [audience, setAudience] = useState<string>(audienceType || "");
   const [name, setName] = useState<string>(adSetName || "");
@@ -342,8 +347,6 @@ const AdSet = memo(function AdSet({
           initialValue={audience}
           dropdownId={adset.id}
           setExtraAudience={setExtraAudience}
-          openDropdownId={openDropdownId}
-          setOpenDropdownId={setOpenDropdownId}
         />
         <div className="mt-4 space-y-2">
           <div>
@@ -358,8 +361,6 @@ const AdSet = memo(function AdSet({
                   }
                   initialValue={audi?.audience_type}
                   dropdownId={`${adset.id}-${index}`}
-                  openDropdownId={openDropdownId}
-                  setOpenDropdownId={setOpenDropdownId}
                 />
                 <input
                   type="text"
@@ -454,16 +455,13 @@ const AudienceDropdownWithCallback = memo(
     initialValue,
     dropdownId,
     setExtraAudience,
-    openDropdownId,
-    setOpenDropdownId,
   }: {
     onSelect: (option: string) => void;
     initialValue?: string;
     dropdownId: number | string;
     setExtraAudience?: any;
-    openDropdownId: number | string | null;
-    setOpenDropdownId: (id: number | string | null) => void;
   }) {
+    const { openDropdownId, setOpenDropdownId } = useContext(DropdownContext);
     const [selected, setSelected] = useState<string>(initialValue || "");
     const isOpen = openDropdownId === dropdownId;
 
@@ -546,8 +544,7 @@ const AudienceDropdownWithCallback = memo(
         </div>
       </div>
     );
-  }
-);
+});
 
 // NonFacebookOutlet Component
 const NonFacebookOutlet = memo(function NonFacebookOutlet({
@@ -603,7 +600,6 @@ const AdsetSettings = memo(function AdsetSettings({
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [adsets, setAdSets] = useState<AdSetType[]>([]);
   const [adSetDataMap, setAdSetDataMap] = useState<Record<number, AdSetData>>({});
-  // Move openDropdownId/setOpenDropdownId here, so each AdsetSettings manages its own dropdown state
   const [openDropdownId, setOpenDropdownId] = useState<number | string | null>(null);
   const initialized = useRef(false);
 
@@ -891,73 +887,73 @@ const AdsetSettings = memo(function AdsetSettings({
             <FaAngleRight />
           </button>
         </div>
-        <div
-          className="relative w-full"
-          style={{ minHeight: `${Math.max(194, (adsets.length + 1) * 80)}px` }}
-        >
-          {adsets.length > 0 && (
-            <>
-              <div className="absolute top-0 left-0 mb-4">
-                <button
-                  onClick={addNewAddset}
-                  disabled={adsets.length >= 10}
-                  className={`flex gap-2 items-center text-white ${adsets.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
-                    } px-4 py-2 rounded-full text-sm font-bold z-10 relative`}
-                >
-                  <MdAdd />
-                  <span>
-                    {adsets.length >= 10 ? "Max limit reached" : "New ad set"}
-                  </span>
-                </button>
-              </div>
-
-              {adsets.map((adset, index) => {
-                const adSetData = adSetDataMap[adset.id] || {
-                  name: "",
-                  audience_type: "",
-                  size: "",
-                };
-                return (
-                  <div
-                    key={adset.id}
-                    className="relative"
-                    style={{
-                      marginTop: index === 0 ? "60px" : "0px",
-                      marginBottom: "20px",
-                    }}
+        <DropdownContext.Provider value={{ openDropdownId, setOpenDropdownId }}>
+          <div
+            className="relative w-full"
+            style={{ minHeight: `${Math.max(194, (adsets.length + 1) * 80)}px` }}
+          >
+            {adsets.length > 0 && (
+              <>
+                <div className="absolute top-0 left-0 mb-4">
+                  <button
+                    onClick={addNewAddset}
+                    disabled={adsets.length >= 10}
+                    className={`flex gap-2 items-center text-white ${adsets.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
+                      } px-4 py-2 rounded-full text-sm font-bold z-10 relative`}
                   >
-                    <AdSet
-                      adset={adset}
-                      index={index}
-                      isEditing={isEditing}
-                      onDelete={deleteAdSet}
-                      onUpdate={updateAdSetData}
-                      audienceType={adSetData.audience_type}
-                      adSetName={adSetData.name}
-                      adSetSize={adSetData.size}
-                      extra_audiences={
-                        (adSetData.extra_audiences as {
-                          audience_type: string;
-                          name?: string;
-                          size?: string;
-                        }[]) || []
-                      }
-                      onUpdateExtraAudiences={(extraAudienceArray) =>
-                        updateAdSetData(adset.id, {
-                          extra_audiences: extraAudienceArray,
-                        })
-                      }
-                      onInteraction={onInteraction}
-                      adsets={adsets}
-                      openDropdownId={openDropdownId}
-                      setOpenDropdownId={setOpenDropdownId}
-                    />
-                  </div>
-                );
-              })}
-            </>
-          )}
-        </div>
+                    <MdAdd />
+                    <span>
+                      {adsets.length >= 10 ? "Max limit reached" : "New ad set"}
+                    </span>
+                  </button>
+                </div>
+
+                {adsets.map((adset, index) => {
+                  const adSetData = adSetDataMap[adset.id] || {
+                    name: "",
+                    audience_type: "",
+                    size: "",
+                  };
+                  return (
+                    <div
+                      key={adset.id}
+                      className="relative"
+                      style={{
+                        marginTop: index === 0 ? "60px" : "0px",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      <AdSet
+                        adset={adset}
+                        index={index}
+                        isEditing={isEditing}
+                        onDelete={deleteAdSet}
+                        onUpdate={updateAdSetData}
+                        audienceType={adSetData.audience_type}
+                        adSetName={adSetData.name}
+                        adSetSize={adSetData.size}
+                        extra_audiences={
+                          (adSetData.extra_audiences as {
+                            audience_type: string;
+                            name?: string;
+                            size?: string;
+                          }[]) || []
+                        }
+                        onUpdateExtraAudiences={(extraAudienceArray) =>
+                          updateAdSetData(adset.id, {
+                            extra_audiences: extraAudienceArray,
+                          })
+                        }
+                        onInteraction={onInteraction}
+                        adsets={adsets}
+                      />
+                    </div>
+                  );
+                })}
+              </>
+            )}
+          </div>
+        </DropdownContext.Provider>
       </div>
       {/* Recap line below each stage selection */}
       {recapRows.length > 0 && (
@@ -1153,9 +1149,9 @@ const AdSetFlow = memo(function AdSetFlow({
   }, [isEditing]);
 
   useEffect(() => {
-    if (platformName) {
+    // if (platformName) {
       setIsEditing(true);
-    }
+    // }
   }, []);
 
   return (

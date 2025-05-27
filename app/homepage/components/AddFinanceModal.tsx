@@ -74,7 +74,7 @@ const AddFinanceModal = ({
  const [loadingUser, setLoadingUser] = useState(false);
  const [uploading, setUploading] = useState(false);
  const { isAdmin, isAgencyApprover, isFinancialApprover } =
-    useUserPrivileges();
+  useUserPrivileges();
  const dispatch = useAppDispatch();
 
  const { getCreateClientData, getCreateClientIsLoading } = useAppSelector(
@@ -106,13 +106,13 @@ const AddFinanceModal = ({
  };
 
  useEffect(() => {
-  if (!poForm.client && selected) {
+  if (!poForm?.client && selected) {
    toast("Please select a client", {
     style: { background: "red", color: "white", textAlign: "center" },
     duration: 3000,
    });
   }
- }, [poForm.client, selected]);
+ }, [poForm?.client, selected]);
 
 
 
@@ -359,7 +359,7 @@ const AddFinanceModal = ({
 
    const newPO = response.data.data;
    setClientPOs((prevPOs) => [newPO, ...(prevPOs || [])]);
-   dispatch(getCreateClient(!isAdmin ? selected: null));
+   dispatch(getCreateClient(!isAdmin ? selected : null));
 
    if (selected) {
     localStorage.setItem(userType.toString(), selected);
@@ -521,7 +521,7 @@ const AddFinanceModal = ({
           {profile?.clients?.length > 0 && (
            <CustomSelect
             required={true}
-            options={profile.clients.map((c: any) => ({
+            options={profile?.clients?.map((c: any) => ({
              label: c?.client_name,
              value: c?.id?.toString(),
             }))}

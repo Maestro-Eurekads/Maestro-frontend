@@ -38,6 +38,9 @@ const colorPalette = [
   "bg-green-700 border border-green-700",
 ];
 
+// LocalStorage key for custom funnels
+const LOCAL_STORAGE_FUNNELS_KEY = "custom_funnels_v1";
+
 const MapFunnelStages = () => {
   const {
     campaignData,
@@ -86,6 +89,26 @@ const MapFunnelStages = () => {
     targeting_retargeting: { funnel_stages: [], channel_mix: [] },
   });
 
+  // --- LocalStorage helpers for custom funnels ---
+  const saveCustomFunnelsToStorage = (funnels: Funnel[]) => {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_FUNNELS_KEY, JSON.stringify(funnels));
+    } catch (e) {
+      // ignore
+    }
+  };
+  const getCustomFunnelsFromStorage = (): Funnel[] | null => {
+    try {
+      const data = localStorage.getItem(LOCAL_STORAGE_FUNNELS_KEY);
+      if (data) {
+        return JSON.parse(data);
+      }
+    } catch (e) {
+      // ignore
+    }
+    return null;
+  };
+
   // Initialize comments drawer
   useEffect(() => {
     setIsDrawerOpen(false);
@@ -103,16 +126,28 @@ const MapFunnelStages = () => {
     }
   }, [campaignFormData, cId, verifyStep, previousValidationState]);
 
-  // Initialize funnel data from campaignData
+  // Initialize funnel data from campaignData and localStorage
   useEffect(() => {
     // Check if campaignData.custom_funnels contains Targeting/Retargeting
     const isTargetingRetargeting = campaignData?.custom_funnels?.every((funnel: any) =>
       ["Targeting", "Retargeting"].includes(funnel.name)
     );
 
-    // Load custom funnels from campaignData, preserving order
+    // Try to load custom funnels from localStorage first
     let loadedCustomFunnels: Funnel[] = [];
+    let localStorageFunnels: Funnel[] | null = null;
+    if (!isTargetingRetargeting) {
+      localStorageFunnels = getCustomFunnelsFromStorage();
+    }
+
     if (
+      localStorageFunnels &&
+      Array.isArray(localStorageFunnels) &&
+      localStorageFunnels.length > 0 &&
+      !isTargetingRetargeting
+    ) {
+      loadedCustomFunnels = localStorageFunnels;
+    } else if (
       campaignData?.custom_funnels &&
       campaignData.custom_funnels.length > 0 &&
       !isTargetingRetargeting
@@ -167,14 +202,14 @@ const MapFunnelStages = () => {
       const orderedFunnelStages =
         initialFunnelType === "custom" && initialFunnelStages.length > 0
           ? loadedCustomFunnels
-              .map((f) => f.name)
-              .filter((name) => initialFunnelStages.includes(name))
+            .map((f) => f.name)
+            .filter((name) => initialFunnelStages.includes(name))
           : initialFunnelStages;
       const orderedChannelMix =
         initialFunnelType === "custom" && initialChannelMix.length > 0
           ? loadedCustomFunnels
-              .map((f) => initialChannelMix.find((ch: any) => ch.funnel_stage === f.name))
-              .filter((ch): ch is { funnel_stage: string } => ch !== undefined)
+            .map((f) => initialChannelMix.find((ch: any) => ch.funnel_stage === f.name))
+            .filter((ch): ch is { funnel_stage: string } => ch !== undefined)
           : initialChannelMix;
 
       return {
@@ -185,7 +220,19 @@ const MapFunnelStages = () => {
         custom_funnels: loadedCustomFunnels,
       };
     });
+  // eslint-disable-next-line
   }, [campaignData, setCampaignFormData]);
+
+  // Whenever persistentCustomFunnels changes, update localStorage
+  useEffect(() => {
+    // Only save if not targeting/retargeting
+    if (
+      persistentCustomFunnels.length > 0 &&
+      !persistentCustomFunnels.every((f) => ["Targeting", "Retargeting"].includes(f.name))
+    ) {
+      saveCustomFunnelsToStorage(persistentCustomFunnels);
+    }
+  }, [persistentCustomFunnels]);
 
   // Handle clicks outside modal to close it
   useEffect(() => {
@@ -242,15 +289,15 @@ const MapFunnelStages = () => {
     // Ensure funnel_stages order matches persistentCustomFunnels when adding a new stage
     const orderedFunnelStages = selectedOption === "custom"
       ? persistentCustomFunnels
-          .map((f) => f.name)
-          .filter((name) => newFunnelStages.includes(name))
+        .map((f) => f.name)
+        .filter((name) => newFunnelStages.includes(name))
       : newFunnelStages;
 
     // Ensure channel_mix order matches persistentCustomFunnels
     const orderedChannelMix = selectedOption === "custom"
       ? persistentCustomFunnels
-          .map((f) => newChannelMix.find((ch: any) => ch.funnel_stage === f.name))
-          .filter((ch): ch is { funnel_stage: string } => ch !== undefined)
+        .map((f) => newChannelMix.find((ch: any) => ch.funnel_stage === f.name))
+        .filter((ch): ch is { funnel_stage: string } => ch !== undefined)
       : newChannelMix;
 
     setCampaignFormData((prev: any) => ({
@@ -286,11 +333,11 @@ const MapFunnelStages = () => {
 
     if (option === "targeting_retargeting") {
       setCustomFunnels(targetingRetargetingFunnels);
-      
+
       // Initialize with both stages selected by default for targeting-retargeting
       const defaultStages = ["Targeting", "Retargeting"];
       const defaultChannelMix = defaultStages.map(stage => ({ funnel_stage: stage }));
-      
+
       setCampaignFormData((prev: any) => ({
         ...prev,
         funnel_type: "targeting_retargeting",
@@ -303,21 +350,28 @@ const MapFunnelStages = () => {
         custom_funnels: targetingRetargetingFunnels,
       }));
     } else {
-      const restoredFunnels =
-        persistentCustomFunnels.length > 0 ? persistentCustomFunnels : defaultFunnels;
+      // Restore from localStorage if available, else from state
+      let restoredFunnels: Funnel[] = [];
+      const localStorageFunnels = getCustomFunnelsFromStorage();
+      if (localStorageFunnels && Array.isArray(localStorageFunnels) && localStorageFunnels.length > 0) {
+        restoredFunnels = localStorageFunnels;
+      } else {
+        restoredFunnels = persistentCustomFunnels.length > 0 ? persistentCustomFunnels : defaultFunnels;
+      }
       setCustomFunnels(restoredFunnels);
+      setPersistentCustomFunnels(restoredFunnels);
       setCampaignFormData((prev: any) => {
         const funnelStages =
           savedSelections.custom.funnel_stages.length > 0
             ? restoredFunnels
-                .map((f) => f.name)
-                .filter((name) => savedSelections.custom.funnel_stages.includes(name))
+              .map((f) => f.name)
+              .filter((name) => savedSelections.custom.funnel_stages.includes(name))
             : restoredFunnels.map((f) => f.name);
         const channelMix =
           savedSelections.custom.channel_mix.length > 0
             ? restoredFunnels
-                .map((f) => savedSelections.custom.channel_mix.find((ch: any) => ch.funnel_stage === f.name))
-                .filter((ch): ch is { funnel_stage: string } => ch !== undefined)
+              .map((f) => savedSelections.custom.channel_mix.find((ch: any) => ch.funnel_stage === f.name))
+              .filter((ch): ch is { funnel_stage: string } => ch !== undefined)
             : restoredFunnels.map((f) => ({ funnel_stage: f.name }));
 
         return {
@@ -379,6 +433,9 @@ const MapFunnelStages = () => {
     setPersistentCustomFunnels(updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
+    // Save to localStorage
+    saveCustomFunnelsToStorage(updatedFunnels);
+
     setCampaignFormData((prev: any) => ({
       ...prev,
       custom_funnels: updatedFunnels,
@@ -424,16 +481,19 @@ const MapFunnelStages = () => {
     const updatedFunnels = persistentCustomFunnels.map((f) =>
       f.name === oldId
         ? {
-            ...f,
-            id: newName,
-            name: newName,
-            color: f.color,
-          }
+          ...f,
+          id: newName,
+          name: newName,
+          color: f.color,
+        }
         : f
     );
 
     setPersistentCustomFunnels(updatedFunnels);
     setCustomFunnels(updatedFunnels);
+
+    // Save to localStorage
+    saveCustomFunnelsToStorage(updatedFunnels);
 
     setCampaignFormData((prev: any) => ({
       ...prev,
@@ -475,6 +535,9 @@ const MapFunnelStages = () => {
     const updatedFunnels = persistentCustomFunnels.filter((f) => f.name !== id);
     setPersistentCustomFunnels(updatedFunnels);
     setCustomFunnels(updatedFunnels);
+
+    // Save to localStorage
+    saveCustomFunnelsToStorage(updatedFunnels);
 
     setCampaignFormData((prev: any) => ({
       ...prev,
@@ -532,11 +595,10 @@ const MapFunnelStages = () => {
             return (
               <div key={funnel.id} className="relative w-full max-w-[685px]">
                 <button
-                  className={`cursor-pointer w-full ${
-                    isSelected
+                  className={`cursor-pointer w-full ${isSelected
                       ? `${funnel.color} text-white`
                       : "bg-white text-black shadow-md hover:bg-gray-100"
-                  } rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200`}
+                    } rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200`}
                   onClick={() => handleSelect(funnel.name)}
                 >
                   <div className="w-6 h-6" />
@@ -558,11 +620,10 @@ const MapFunnelStages = () => {
                 className="relative w-full max-w-[685px]"
               >
                 <button
-                  className={`cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 ${
-                    isSelected
+                  className={`cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 ${isSelected
                       ? `${funnel.color} text-white`
                       : "bg-white text-black shadow-md hover:bg-gray-100"
-                  }`}
+                    }`}
                   onClick={() => handleSelect(funnel.name)}
                 >
                   <div className="w-6 h-6" />
