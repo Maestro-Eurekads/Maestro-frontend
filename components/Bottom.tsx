@@ -496,8 +496,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         };
 
         // Handle approver and client_approver as arrays of strings
-        const internalApprovers = Array.isArray(campaignFormData?.approver)
-          ? campaignFormData.approver.filter((a) => a !== null && a !== undefined && a !== "")
+        const internalApprovers = Array.isArray(campaignFormData?.internal_approver)
+          ? campaignFormData.internal_approver.filter((a) => a !== null && a !== undefined && a !== "")
           : [];
 
         const clientApprovers = Array.isArray(campaignFormData?.client_approver)
