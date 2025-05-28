@@ -94,8 +94,8 @@ function FinanceView({ setOpenModal, userRole }) {
   ;
 
   return (
-    <div className="px-[72px]">
-      <div className="flex items-center gap-2 mt-[36.5px]">
+    <div className="px-[72px] ">
+      <div className="flex items-center gap-2 mt-[36.5px] mb-5">
         <h1 className="media_text">Purchase Order Library</h1>
         {(isFinancialApprover || isAdmin) ?
           <button onClick={() => setOpenModal(true)}>

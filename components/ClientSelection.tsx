@@ -23,20 +23,19 @@ const Dropdown = ({
   const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { campaignFormData, setCampaignFormData, loadingClients } = useCampaigns();
-  const {data:session} = useSession()
+  const { data: session } = useSession()
   const dispatch = useAppDispatch();
   const { isAdmin, isAgencyApprover, isFinancialApprover } =
-      useUserPrivileges();
+    useUserPrivileges();
 
   // Fetch clients when dropdown is opened
   const toggleDropdown = () => {
     if (!isOpen && label === "Select Client") {
       //@ts-ignore
-      dispatch(getCreateClient(!isAdmin ? session?.user?.data?.user?.id: null));
+      dispatch(getCreateClient(!isAdmin ? session?.user?.data?.user?.id : null));
     }
     setIsOpen(!isOpen);
   };
-  console.log('campaignFormData-campaignFormData', campaignFormData)
 
 
 
@@ -112,7 +111,7 @@ const Dropdown = ({
 
             {filteredOptions?.map((option) => (
               <div
-                key={option.value}
+                key={option?.value}
                 className="px-4 py-2 cursor-pointer hover:bg-gray-100"
                 onClick={() =>
                   handleSelect(option?.id || option?.value, option?.value)
