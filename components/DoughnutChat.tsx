@@ -23,20 +23,6 @@ ChartJS.register(
   Legend
 );
 
-// Default funnels from the provided file
-const defaultFunnels = [
-  { id: "Awareness", name: "Awareness", bg: "#3175FF" },
-  { id: "Consideration", name: "Consideration", bg: "#0ABF7E" },
-  { id: "Conversion", name: "Conversion", bg: "#ff9037" },
-  { id: "Loyalty", name: "Loyalty", bg: "#F05406" },
-];
-
-// Targeting/Retargeting funnels with colors from MapFunnelStages
-const targetingRetargetingFunnels = [
-  { id: "Targeting", name: "Targeting", color: "bg-blue-500" },
-  { id: "Retargeting", name: "Retargeting", color: "bg-green-500" },
-];
-
 const DoughnutChart = ({
   insideText = "0 €",
 }: {
@@ -45,7 +31,21 @@ const DoughnutChart = ({
   const chartRef = useRef(null);
   const { campaignFormData } = useCampaigns();
 
-  // Get funnel stages and type from campaignFormData
+  // Define default funnels in case no data is available
+  const defaultFunnels = [
+    { id: "Awareness", name: "Awareness", color: "bg-blue-500" },
+    { id: "Consideration", name: "Consideration", color: "bg-green-500" },
+    { id: "Conversion", name: "Conversion", color: "bg-orange-500 border border-orange-500" },
+    { id: "Loyalty", name: "Loyalty", color: "bg-red-500 border border-red-500" },
+  ];
+
+  // Define targeting/retargeting funnels
+  const targetingRetargetingFunnels = [
+    { id: "Targeting", name: "Targeting", color: "bg-blue-500" },
+    { id: "Retargeting", name: "Retargeting", color: "bg-green-500" },
+  ];
+
+  // Get funnel stages and colors
   const funnelStages = campaignFormData?.funnel_stages || [];
   const funnelType = campaignFormData?.funnel_type || "custom";
   const customFunnels = campaignFormData?.custom_funnels || defaultFunnels;
@@ -55,44 +55,38 @@ const DoughnutChart = ({
     ? targetingRetargetingFunnels
     : customFunnels;
 
-  // Map selected funnel stages to their colors and maintain order
+  // Map selected funnel stages to their colors and ensure order matches funnel_stages
   const selectedFunnels = funnelStages
     .map((stage: string) => activeFunnels.find((funnel: any) => funnel.name === stage))
-    .filter((funnel): funnel is { id: string; name: string; color?: string; bg?: string } => funnel !== undefined);
+    .filter((funnel): funnel is { id: string; name: string; color: string } => funnel !== undefined);
 
-  // Map labels and colors
+  // Extract labels (funnel names) and colors
   const labels = selectedFunnels.map((funnel) => funnel.name);
   const colors = selectedFunnels.map((funnel) => {
-    if (funnelType === "custom" && defaultFunnels.some((df) => df.name === funnel.name)) {
-      // Use hex colors from defaultFunnels if the stage is a default stage
-      const defaultFunnel = defaultFunnels.find((df) => df.name === funnel.name);
-      return defaultFunnel?.bg || "#6B7280";
-    } else {
-      // Convert Tailwind classes to hex for custom or targeting/retargeting funnels
-      const tailwindToHex: { [key: string]: string } = {
-        "bg-blue-500": "#3B82F6",
-        "bg-green-500": "#22C55E",
-        "bg-orange-500 border border-orange-500": "#F97316",
-        "bg-red-500 border border-red-500": "#EF4444",
-        "bg-purple-500": "#A855F7",
-        "bg-teal-500": "#14B8A6",
-        "bg-pink-500 border border-pink-500": "#EC4899",
-        "bg-indigo-500": "#6366F1",
-        "bg-yellow-500 border border-yellow-500": "#EAB308",
-        "bg-cyan-500": "#06B6D4",
-        "bg-lime-500": "#84CC16",
-        "bg-amber-500 border border-amber-500": "#F59E0B",
-        "bg-fuchsia-500 border border-fuchsia-500": "#D946EF",
-        "bg-emerald-500": "#10B981",
-        "bg-violet-500 border border-violet-500": "#8B5CF6",
-        "bg-rose-500 border border-rose-500": "#F43F5E",
-        "bg-sky-500": "#0EA5E9",
-        "bg-gray-700 border border-gray-700": "#374151",
-        "bg-blue-700 border border-blue-700": "#1D4ED8",
-        "bg-green-700 border border-green-700": "#15803D",
-      };
-      return tailwindToHex[funnel.color || ""] || "#6B7280"; // Fallback to gray
-    }
+    // Convert Tailwind classes to hex colors for Chart.js
+    const tailwindToHex: { [key: string]: string } = {
+      "bg-blue-500": "#3B82F6",
+      "bg-green-500": "#22C55E",
+      "bg-orange-500 border border-orange-500": "#F97316",
+      "bg-red-500 border border-red-500": "#EF4444",
+      "bg-purple-500": "#A855F7",
+      "bg-teal-500": "#14B8A6",
+      "bg-pink-500 border border-pink-500": "#EC4899",
+      "bg-indigo-500": "#6366F1",
+      "bg-yellow-500 border border-yellow-500": "#EAB308",
+      "bg-cyan-500": "#06B6D4",
+      "bg-lime-500": "#84CC16",
+      "bg-amber-500 border border-amber-500": "#F59E0B",
+      "bg-fuchsia-500 border border-fuchsia-500": "#D946EF",
+      "bg-emerald-500": "#10B981",
+      "bg-violet-500 border border-violet-500": "#8B5CF6",
+      "bg-rose-500 border border-rose-500": "#F43F5E",
+      "bg-sky-500": "#0EA5E9",
+      "bg-gray-700 border border-gray-700": "#374151",
+      "bg-blue-700 border border-blue-700": "#1D4ED8",
+      "bg-green-700 border border-green-700": "#15803D",
+    };
+    return tailwindToHex[funnel.color] || "#6B7280"; // Fallback to gray if color not found
   });
 
   // Generate data values (equal distribution for simplicity, adjust as needed)
@@ -152,12 +146,6 @@ const DoughnutChart = ({
       legend: {
         display: true,
         position: "bottom",
-        labels: {
-          font: {
-            size: 12, // Increase legend font size
-          },
-          padding: 6, // Add padding to legend
-        },
       },
       tooltip: {
         callbacks: {
@@ -172,14 +160,7 @@ const DoughnutChart = ({
   };
 
   return (
-    <div
-      className="doughnut_chart_settings"
-      style={{
-        width: "300px", // Set explicit width
-        height: "300px", // Set explicit height
-        maxWidth: "100%", // Ensure responsiveness
-      }}
-    >
+    <div className="doughnut_chart_settings">
       <Doughnut
         ref={chartRef}
         data={doughnutData}
