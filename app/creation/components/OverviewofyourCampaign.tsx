@@ -40,6 +40,7 @@ import { parseISO } from "date-fns";
 import { processCampaignData } from "components/processCampaignData";
 import { getCurrencySymbol, getPlatformIcon } from "components/data";
 import { useVersionContext } from "app/utils/VersionApprovalContext";
+import { toast } from "sonner";
 
 interface Comment {
   documentId: string;
@@ -269,111 +270,18 @@ const OverviewofyourCampaign = () => {
 
   useEffect(() => {
     if (showalert) {
-      setAlert({
-        variant: "error",
-        message: "No kpi Data",
-        position: "bottom-right",
-      });
+      toast.error("No kpi Data!")
     }
   }, [showalert]);
 
-  // Types for platforms and channels
-  type IPlatform = {
-    name: string;
-    icon: any;
-    style?: string;
-    mediaOptions?: any[];
-    isExpanded?: boolean;
-  };
-  type IChannel = {
-    title: string;
-    platforms: IPlatform[];
-    style?: string;
-  };
 
-  const startDates = clientCampaignData
-    ?.filter((c) => c?.campaign_timeline_start_date)
-    ?.map(
-      (ch) =>
-        ch?.campaign_timeline_start_date !== null &&
-        parseISO(ch?.campaign_timeline_start_date)
-    );
-  const endDates = clientCampaignData
-    ?.filter((c) => c?.campaign_timeline_end_date)
-    ?.map(
-      (ch) =>
-        ch?.campaign_timeline_end_date !== null &&
-        parseISO(ch?.campaign_timeline_end_date)
-    );
 
-  // Find the earliest startDate and latest endDate
-  const earliestStartDate = min(startDates);
-  // const latestEndDate = max(endDates)
-  // Calculate the week difference
-
-  // const monthDifference = differenceInCalendarMonths(latestEndDate, earliestStartDate)
-  const daysDiff = differenceInDays(endDates, startDates);
-  const monthDifference = daysDiff / 30.44;
-
-  const funnelsData = clientCampaignData?.map((ch) => {
-    const start = ch?.campaign_timeline_start_date
-      ? parseISO(ch.campaign_timeline_start_date)
-      : null;
-    const end = ch?.campaign_timeline_end_date
-      ? parseISO(ch.campaign_timeline_end_date)
-      : null;
-
-    // Calculate positions for different time ranges
-    const startDay = differenceInCalendarDays(start, earliestStartDate) + 1;
-    const endDay = differenceInCalendarDays(end, earliestStartDate) + 1;
-
-    const startWeek = differenceInCalendarWeeks(start, earliestStartDate) + 1;
-    const endWeek = differenceInCalendarWeeks(end, earliestStartDate) + 1;
-
-    const startMonth = differenceInCalendarMonths(start, earliestStartDate) + 1;
-    const endMonth = differenceInCalendarMonths(end, earliestStartDate) + 1;
-
-    const funnels = ch?.funnel_stages;
-    return {
-      startDay,
-      endDay,
-      startWeek,
-      endWeek,
-      startMonth,
-      endMonth,
-      label: ch?.media_plan_details?.plan_name,
-      stages: ch?.channel_mix?.map((d) => ({
-        name: d?.funnel_stage,
-        budget: d?.stage_budget?.fixed_value,
-      })),
-      budget: `${ch?.campaign_budget?.amount} ${getCurrencySymbol(
-        ch?.campaign_budget?.currency
-      )}`,
-    };
-  });
 
   return (
     <div>
       {alert && <AlertMain alert={alert} />}
-      {/* Alert */}
-      {createsSuccess && (
-        <AlertMain
-          alert={{
-            variant: "success",
-            message: "Media plan version created!",
-            position: "bottom-right",
-          }}
-        />
-      )}
-      {updateSuccess && (
-        <AlertMain
-          alert={{
-            variant: "success",
-            message: "Media plan version updated!",
-            position: "bottom-right",
-          }}
-        />
-      )}
+      {createsSuccess && toast.success("Media plan version created!")}
+      {updateSuccess && toast.success("Media plan version updated!")}
       <div
         className={`px-[20px]  ${isDrawerOpen ? "md:px-[30px]" : "xl:px-[60px]"
           }`}

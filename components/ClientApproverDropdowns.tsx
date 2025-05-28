@@ -372,7 +372,7 @@ const MultiSelectDropdown = ({
 
 
 
-	// 🔁 Update selected items with `commentId` once it's available
+	// Update selected items with `commentId` once it's available
 	useEffect(() => {
 		if (campaignId && campaignFormData?.client_selection?.id) {
 			const updated = value.map((item) => ({
@@ -456,8 +456,8 @@ const MultiSelectDropdown = ({
 						/>
 					</div>
 
-					{filteredOptions.length > 0 ? (
-						filteredOptions.map((option) => (
+					{filteredOptions?.length > 0 ? (
+						filteredOptions?.map((option) => (
 							<div
 								key={option.value}
 								className="px-4 py-2 cursor-pointer hover:bg-gray-100 text-sm"
@@ -466,7 +466,7 @@ const MultiSelectDropdown = ({
 									handleSelect(option);
 								}}
 							>
-								{option.label}
+								{option?.label}
 							</div>
 						))
 					) : (
