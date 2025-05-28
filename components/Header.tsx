@@ -162,14 +162,12 @@ const Header = ({ setIsOpen }) => {
         ) : (
           <>
             <CustomSelect
-              options={(isAdmin ? clients?.data : profile?.clients)
-                ?.sort(
-                  (a, b) => new Date(b?.createdAt).getTime() - new Date(a?.createdAt).getTime()
-                )
-                .map((c) => ({
+              options={(isAdmin ? clients?.data : profile?.clients)?.map(
+                (c) => ({
                   label: c?.client_name,
-                  value: c?.id?.toString(),
-                }))}
+                  value: c?.id,
+                })
+              )}
               className="min-w-[150px] z-[20]"
               placeholder="Select client"
               onChange={(value) => {
@@ -190,7 +188,6 @@ const Header = ({ setIsOpen }) => {
                 )}
             />
  
-
             <button
               className="client_btn_text whitespace-nowrap w-fit"
               onClick={() => setIsOpen(true)}
