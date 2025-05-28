@@ -496,20 +496,20 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         };
 
         // Handle approver and client_approver as arrays of strings
-        const internalApprovers = Array.isArray(campaignFormData?.internal_approver)
-          ? campaignFormData?.internal_approver?.filter((a) => a !== null && a !== undefined && a !== "")
-          : [];
+        // const internalApprovers = Array.isArray(campaignFormData?.approver)
+        //   ? campaignFormData.approver.filter((a) => a !== null && a !== undefined && a !== "")
+        //   : [];
 
-        const clientApprovers = Array.isArray(campaignFormData?.client_approver)
-          ? campaignFormData?.client_approver?.filter((a) => a !== null && a !== undefined && a !== "")
-          : [];
+        // const clientApprovers = Array.isArray(campaignFormData?.client_approver)
+        //   ? campaignFormData.client_approver.filter((a) => a !== null && a !== undefined && a !== "")
+        //   : [];
 
 
-
+        // Update campaignFormData with cleaned values and save to localStorage
         const cleanedFormData = {
           ...campaignFormData,
-          internal_approver: internalApprovers,
-          client_approver: campaignFormData,
+          internal_approver: campaignFormData?.internal_approver,
+          client_approver: campaignFormData?.client_approver,
           budget_details_currency: {
             id: budgetDetails.currency,
             value: budgetDetails.currency,
@@ -540,8 +540,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             },
             media_plan_details: {
               plan_name: campaignFormData?.media_plan,
-              internal_approver: internalApprovers,
-              client_approver: clientApprovers,
+              internal_approver: campaignFormData?.internal_approver,
+              client_approver: campaignFormData?.client_approver,
             },
             budget_details: budgetDetails,
           };

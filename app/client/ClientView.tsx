@@ -152,7 +152,6 @@ const ClientView = () => {
 
 
 
-	console.log('campaignFormData-campaignFormData', Array.isArray(campaignFormData))
 
 	return (
 		<>
