@@ -221,6 +221,7 @@ const TableView = () => {
     if (!campaignFormData) return
 
     const stageObjectives = extractObjectives(campaignFormData) // example: { Awareness: ["App Install", ...], ... }
+    console.log("🚀 ~ useEffect ~ stageObjectives:", stageObjectives)
     const headersByStage = {}
     const bodyByStage = {}
 
@@ -229,9 +230,10 @@ const TableView = () => {
       const bodyFieldsSet = new Set()
 
       const objectiveList = objectives.length > 0 ? objectives : ["Brand Awareness"]
-
+      console.log("objectiveList", objectiveList)
       objectiveList.forEach((objective) => {
         const headers = tableHeaders[objective] || []
+        console.log("🚀 ~ objectiveList.forEach ~ headers:", headers)
         const body = tableBody[objective] || []
 
         headers.forEach((h) => headersSet.set(h.name, h))
