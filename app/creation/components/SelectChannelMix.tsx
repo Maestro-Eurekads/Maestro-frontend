@@ -64,6 +64,12 @@ const ONLINE_TYPES = [
 ];
 const OFFLINE_TYPES = ["broadcast", "print", "ooh"];
 
+const getChannelTypeLabel = (type) => {
+  if (ONLINE_TYPES.includes(type)) return "online";
+  if (OFFLINE_TYPES.includes(type)) return "offline";
+  return "channel";
+};
+
 const SelectChannelMix = () => {
   const { setIsDrawerOpen, setClose } = useComments();
   const {
@@ -517,7 +523,8 @@ const SelectChannelMix = () => {
                   {type.replace("_", " ")}
                 </span>
                 <span className="text-xs text-gray-500">
-                  ({platforms.length} {ONLINE_TYPES.includes(type) ? "online" : "offline"} channel{platforms.length !== 1 ? "s" : ""})
+                  {/* Only one word: "channel" or "channels" */}
+                  ({platforms.length} {platforms.length === 1 ? "channel" : "channels"} selected)
                 </span>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -703,7 +710,8 @@ const SelectChannelMix = () => {
                               </div>
                             ))}
                             <span className="ml-2 text-xs text-gray-500">
-                              {selectedPlatformsForType.length} {ONLINE_TYPES.includes(type) ? "online" : "offline"} channel{selectedPlatformsForType.length !== 1 ? "s" : ""} selected
+                              {/* Only one word: "channel" or "channels" */}
+                              {selectedPlatformsForType.length} {selectedPlatformsForType.length === 1 ? "channel" : "channels"} selected
                             </span>
                           </div>
                         )}

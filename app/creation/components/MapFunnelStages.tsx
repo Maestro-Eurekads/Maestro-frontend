@@ -36,10 +36,42 @@ const colorPalette = [
   "bg-gray-700 border border-gray-700",
   "bg-blue-700 border border-blue-700",
   "bg-green-700 border border-green-700",
+  "bg-orange-700 border border-orange-700",
+  "bg-red-700 border border-red-700",
+  "bg-purple-700 border border-purple-700",
+  "bg-teal-700 border border-teal-700",
+  "bg-pink-700 border border-pink-700",
+  "bg-indigo-700 border border-indigo-700",
+  "bg-yellow-700 border border-yellow-700",
+  "bg-cyan-700 border border-cyan-700",
+  "bg-lime-700 border border-lime-700",
+  "bg-amber-700 border border-amber-700",
+  "bg-fuchsia-700 border border-fuchsia-700",
+  "bg-emerald-700 border border-emerald-700",
+  "bg-violet-700 border border-violet-700",
+  "bg-rose-700 border border-rose-700",
+  "bg-sky-700 border border-sky-700",
+  "bg-gray-500 border border-gray-500",
+  "bg-blue-300 border border-blue-300",
+  "bg-green-300 border border-green-300",
+  "bg-orange-300 border border-orange-300",
+  "bg-red-300 border border-red-300",
+  "bg-purple-300 border border-purple-300",
+  "bg-teal-300 border border-teal-300",
+  "bg-pink-300 border border-pink-300",
+  "bg-indigo-300 border border-indigo-300",
+  "bg-yellow-300 border border-yellow-300",
+  "bg-cyan-300 border border-cyan-300",
+  "bg-lime-300 border border-lime-300",
+  "bg-amber-300 border border-amber-300",
+  "bg-fuchsia-300 border border-fuchsia-300",
+  "bg-emerald-300 border border-emerald-300",
+  "bg-violet-300 border border-violet-300",
 ];
 
-// LocalStorage key for custom funnels
-const LOCAL_STORAGE_FUNNELS_KEY = "custom_funnels_v1";
+// LocalStorage key for custom funnels, now scoped by plan id (cId)
+const getLocalStorageFunnelsKey = (cId: string | undefined) =>
+  cId ? `custom_funnels_v1_${cId}` : "custom_funnels_v1";
 
 const MapFunnelStages = () => {
   const {
@@ -89,17 +121,19 @@ const MapFunnelStages = () => {
     targeting_retargeting: { funnel_stages: [], channel_mix: [] },
   });
 
-  // --- LocalStorage helpers for custom funnels ---
+  // --- LocalStorage helpers for custom funnels, now scoped by cId ---
   const saveCustomFunnelsToStorage = (funnels: Funnel[]) => {
     try {
-      localStorage.setItem(LOCAL_STORAGE_FUNNELS_KEY, JSON.stringify(funnels));
+      if (!cId) return;
+      localStorage.setItem(getLocalStorageFunnelsKey(cId), JSON.stringify(funnels));
     } catch (e) {
       // ignore
     }
   };
   const getCustomFunnelsFromStorage = (): Funnel[] | null => {
     try {
-      const data = localStorage.getItem(LOCAL_STORAGE_FUNNELS_KEY);
+      if (!cId) return null;
+      const data = localStorage.getItem(getLocalStorageFunnelsKey(cId));
       if (data) {
         return JSON.parse(data);
       }
@@ -108,6 +142,19 @@ const MapFunnelStages = () => {
     }
     return null;
   };
+
+  // On plan change (cId), clear out any in-memory state and ensure localStorage is plan-specific
+  useEffect(() => {
+    // Reset all funnel state when cId changes (i.e., new plan)
+    setCustomFunnels([]);
+    setPersistentCustomFunnels([]);
+    setSavedSelections({
+      custom: { funnel_stages: [], channel_mix: [] },
+      targeting_retargeting: { funnel_stages: [], channel_mix: [] },
+    });
+    setSelectedOption("");
+    // Don't clear modal state, as it's UI only
+  }, [cId]);
 
   // Initialize comments drawer
   useEffect(() => {
@@ -133,7 +180,7 @@ const MapFunnelStages = () => {
       ["Targeting", "Retargeting"].includes(funnel.name)
     );
 
-    // Try to load custom funnels from localStorage first
+    // Try to load custom funnels from localStorage first (scoped by cId)
     let loadedCustomFunnels: Funnel[] = [];
     let localStorageFunnels: Funnel[] | null = null;
     if (!isTargetingRetargeting) {
@@ -221,9 +268,9 @@ const MapFunnelStages = () => {
       };
     });
   // eslint-disable-next-line
-  }, [campaignData, setCampaignFormData]);
+  }, [campaignData, setCampaignFormData, cId]);
 
-  // Whenever persistentCustomFunnels changes, update localStorage
+  // Whenever persistentCustomFunnels changes, update localStorage (scoped by cId)
   useEffect(() => {
     // Only save if not targeting/retargeting
     if (
@@ -232,7 +279,8 @@ const MapFunnelStages = () => {
     ) {
       saveCustomFunnelsToStorage(persistentCustomFunnels);
     }
-  }, [persistentCustomFunnels]);
+  // eslint-disable-next-line
+  }, [persistentCustomFunnels, cId]);
 
   // Handle clicks outside modal to close it
   useEffect(() => {
@@ -433,7 +481,7 @@ const MapFunnelStages = () => {
     setPersistentCustomFunnels(updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
-    // Save to localStorage
+    // Save to localStorage (scoped by cId)
     saveCustomFunnelsToStorage(updatedFunnels);
 
     setCampaignFormData((prev: any) => ({
@@ -492,7 +540,7 @@ const MapFunnelStages = () => {
     setPersistentCustomFunnels(updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
-    // Save to localStorage
+    // Save to localStorage (scoped by cId)
     saveCustomFunnelsToStorage(updatedFunnels);
 
     setCampaignFormData((prev: any) => ({
@@ -536,7 +584,7 @@ const MapFunnelStages = () => {
     setPersistentCustomFunnels(updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
-    // Save to localStorage
+    // Save to localStorage (scoped by cId)
     saveCustomFunnelsToStorage(updatedFunnels);
 
     setCampaignFormData((prev: any) => ({

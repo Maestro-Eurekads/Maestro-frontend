@@ -46,3 +46,21 @@ export const checkExisitingEmails = async (emailList: any) => {
   );
   return response.data;
 };
+
+export const updateUsersWithCampaign = async (userIds: string[], campaignId: string) => {
+  const updatePromises = userIds.map((userId) =>
+    axios.put(
+      `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${userId}`,
+      {
+        campaigns: campaignId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+        },
+      }
+    )
+  );
+
+  return await Promise.all(updatePromises);
+};

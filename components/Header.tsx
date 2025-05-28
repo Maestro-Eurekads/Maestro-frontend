@@ -189,6 +189,7 @@ const Header = ({ setIsOpen }) => {
                     option?.value === selectedId || option?.value === selected
                 )}
             />
+ 
 
             <button
               className="client_btn_text whitespace-nowrap w-fit"
@@ -197,6 +198,19 @@ const Header = ({ setIsOpen }) => {
               <Image src={plus} alt="plus" />
               New Client
             </button>
+ 
+            {(isAdmin ||
+              isFinancialApprover ||
+              isAgencyApprover) && (
+              <button
+                className="client_btn_text whitespace-nowrap w-fit"
+                onClick={() => setIsOpen(true)}
+              >
+                <Image src={plus} alt="plus" />
+                New Client
+              </button>
+            )}
+ 
           </>
         )}
       </div>
@@ -205,7 +219,10 @@ const Header = ({ setIsOpen }) => {
 
       <div className="profiledropdown_container_main">
         <div className="profiledropdown_container">
-          {(isAdmin || isFinancialApprover || isAgencyApprover || isAgencyCreator) && (
+          {(isAdmin ||
+            isFinancialApprover ||
+            isAgencyApprover ||
+            isAgencyCreator) && (
             <Link
               href={`/creation`}
               onClick={() => {
@@ -215,8 +232,9 @@ const Header = ({ setIsOpen }) => {
               }}
             >
               <button
-                className={`new_plan_btn ${!profile?.clients?.[0]?.id && !isAdmin ? "!bg-[gray]" : ""
-                  }`}
+                className={`new_plan_btn ${
+                  !profile?.clients?.[0]?.id && !isAdmin ? "!bg-[gray]" : ""
+                }`}
                 disabled={!profile?.clients?.[0]?.id && !isAdmin}
               >
                 <Image src={white} alt="white" />

@@ -90,6 +90,37 @@ const DoughnutChart = ({
         "bg-gray-700 border border-gray-700": "#374151",
         "bg-blue-700 border border-blue-700": "#1D4ED8",
         "bg-green-700 border border-green-700": "#15803D",
+        "bg-orange-700 border border-orange-700": "#C2410C",
+        "bg-red-700 border border-red-700": "#B91C1C",
+        "bg-purple-700 border border-purple-700": "#7C3AED",
+        "bg-teal-700 border border-teal-700": "#0F766E",
+        "bg-pink-700 border border-pink-700": "#BE185D",
+        "bg-indigo-700 border border-indigo-700": "#4338CA",
+        "bg-yellow-700 border border-yellow-700": "#A16207",
+        "bg-cyan-700 border border-cyan-700": "#155E75",
+        "bg-lime-700 border border-lime-700": "#365314",
+        "bg-amber-700 border border-amber-700": "#B45309",
+        "bg-fuchsia-700 border border-fuchsia-700": "#A21CAF",
+        "bg-emerald-700 border border-emerald-700": "#047857",
+        "bg-violet-700 border border-violet-700": "#6D28D9",
+        "bg-rose-700 border border-rose-700": "#BE123C",
+        "bg-sky-700 border border-sky-700": "#0369A1",
+        "bg-gray-500 border border-gray-500": "#6B7280",
+        "bg-blue-300 border border-blue-300": "#93C5FD",
+        "bg-green-300 border border-green-300": "#6EE7B7",
+        "bg-orange-300 border border-orange-300": "#FDBA74",
+        "bg-red-300 border border-red-300": "#FCA5A5",
+        "bg-purple-300 border border-purple-300": "#D8B4FE",
+        "bg-teal-300 border border-teal-300": "#5EEAD4",
+        "bg-pink-300 border border-pink-300": "#F9A8D4",
+        "bg-indigo-300 border border-indigo-300": "#A5B4FC",
+        "bg-yellow-300 border border-yellow-300": "#FDE68A",
+        "bg-cyan-300 border border-cyan-300": "#67E8F9",
+        "bg-lime-300 border border-lime-300": "#D9F99D",
+        "bg-amber-300 border border-amber-300": "#FDE68A",
+        "bg-fuchsia-300 border border-fuchsia-300": "#F0ABFC",
+        "bg-emerald-300 border border-emerald-300": "#6EE7B7",
+        "bg-violet-300 border border-violet-300": "#C4B5FD",
       };
       return tailwindToHex[funnel.color || ""] || "#6B7280"; // Fallback to gray
     }
@@ -154,9 +185,9 @@ const DoughnutChart = ({
         position: "bottom",
         labels: {
           font: {
-            size: 12, // Increase legend font size
+            size: 6, // Increase legend font size
           },
-          padding: 6, // Add padding to legend
+          padding: 0.5, // Add padding to legend
         },
       },
       tooltip: {
