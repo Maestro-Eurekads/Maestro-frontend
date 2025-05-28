@@ -406,7 +406,7 @@ const MultiSelectDropdown = ({
 	const filteredOptions = options.filter(
 		(opt) =>
 			!selectedValues.includes(opt.value) &&
-			opt.label.toLowerCase().includes(searchTerm.toLowerCase())
+			opt?.label?.toLowerCase()?.includes(searchTerm?.toLowerCase())
 	);
 
 	return (
@@ -418,7 +418,7 @@ const MultiSelectDropdown = ({
 				{value.length === 0 ? (
 					<span className="text-gray-600">{label}</span>
 				) : (
-					value.map((option) => (
+					value?.map((option) => (
 						<span
 							key={option.value}
 							className="flex items-center text-sm bg-gray-100 px-2 py-1 rounded-md text-gray-700"

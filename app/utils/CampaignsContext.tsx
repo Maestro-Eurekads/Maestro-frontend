@@ -266,8 +266,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             },
             media_plan_details: {
               plan_name: campaignFormData?.media_plan,
-              internal_approver: campaignFormData?.approver?.value,
-              client_approver: campaignFormData?.client_approver?.value,
+              internal_approver: campaignFormData?.internal_approver,
+              client_approver: campaignFormData?.client_approver,
             },
           },
         },
