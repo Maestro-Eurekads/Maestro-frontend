@@ -709,7 +709,7 @@ const SelectChannelMix = () => {
                               </div>
                             ))}
                             <span className="ml-2 text-xs text-gray-500">
-                              {selectedPlatformsForType.length} {getChannelTypeLabel(type)} channel{selectedPlatformsForType.length !== 1 ? "s" : ""} selected
+                              {selectedPlatformsForType.length} {getChannelTypeLabel(type)} channels{selectedPlatformsForType.length !== 1 ? "s" : ""} selected
                             </span>
                           </div>
                         )}
