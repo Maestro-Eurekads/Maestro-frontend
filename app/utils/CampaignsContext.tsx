@@ -46,6 +46,7 @@ const getInitialState = () => {
     campaign_budget: {},
     goal_level: "",
     validatedStages: {},
+    campaign_id: {},
   };
 };
 
@@ -198,8 +199,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-
+      console.log("NEXT_PUBLIC_STRAPI_TOKEN?:", res?.data?.data);
       const data = res?.data?.data;
+
       if (!data) return;
 
       setCampaignData(data);
@@ -236,6 +238,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         custom_funnels: data?.custom_funnels ?? prev.custom_funnels,
         campaign_builder: data?.campaign_builder ?? prev.campaign_builder,
         user: data?.user ?? prev.user,
+        campaign_id: data?.id ?? prev.id,
       }));
     } catch (error) {
       console.error("Error fetching active campaign:", error);

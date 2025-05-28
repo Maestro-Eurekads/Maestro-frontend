@@ -131,7 +131,7 @@ function FinanceTable({
                           <Edit size={18} onClick={() => setOpenEdit(true)} />
                         </button> :
                         <button className="text-gray-500 hover:text-gray-700">
-                          <Edit size={18} onClick={() => toast.error("This can only meant to be done by the Admin and Financial approver")} />
+                          <Edit size={18} onClick={() => toast.error("Role doesn't have permission!")} />
                         </button>}
 
 
@@ -143,7 +143,7 @@ function FinanceTable({
                           <Trash size={18} />
                         </button> : <button
                           className="text-gray-500 hover:text-gray-700"
-                          onClick={() => toast.error("Role doesn't have permission")}>
+                          onClick={() => toast.error("Role doesn't have permission!")}>
 
                           <Trash size={18} />
                         </button>}
