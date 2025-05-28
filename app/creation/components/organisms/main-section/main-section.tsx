@@ -33,12 +33,21 @@ const MainSection = ({ hideDate, disableDrag, view }: { hideDate?: boolean, disa
   const weekDifference = differenceInCalendarWeeks(endDates, startDates);
   const monthDifference = differenceInCalendarMonths(endDates, startDates);
 
+console.log(campaignFormData?.campaign_timeline_start_date)
+  const isValidDateFormat = (date: string) => /^\d{4}-\d{2}-\d{2}$/.test(date);
 
   const start = campaignFormData?.campaign_timeline_start_date
-    ? parseISO(campaignFormData.campaign_timeline_start_date)
+    ? typeof campaignFormData.campaign_timeline_start_date === "string" &&
+      isValidDateFormat(campaignFormData.campaign_timeline_start_date)
+      ? parseISO(campaignFormData.campaign_timeline_start_date)
+      : campaignFormData.campaign_timeline_start_date
     : null;
+
   const end = campaignFormData?.campaign_timeline_end_date
-    ? parseISO(campaignFormData.campaign_timeline_end_date)
+    ? typeof campaignFormData.campaign_timeline_end_date === "string" &&
+      isValidDateFormat(campaignFormData.campaign_timeline_end_date)
+      ? parseISO(campaignFormData.campaign_timeline_end_date)
+      : campaignFormData.campaign_timeline_end_date
     : null;
 
   // Calculate positions for different time ranges

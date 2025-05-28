@@ -22,7 +22,7 @@ const Dropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { campaignFormData, setCampaignFormData, loadingClients } = useCampaigns();
+  const { campaignFormData, setCampaignFormData, loadingClients, allClients, setClientUsers } = useCampaigns();
   const { data: session } = useSession()
   const dispatch = useAppDispatch();
   const { isAdmin, isAgencyApprover, isFinancialApprover } =
@@ -40,6 +40,12 @@ const Dropdown = ({
 
 
   const handleSelect = (id, value: string) => {
+    if(formId === "client_selection") {
+      const selectedClient = allClients?.find(client => client.documentId === id);
+      if (selectedClient) {
+        setClientUsers(selectedClient.users || []);
+      }
+    }
     setCampaignFormData((prev) => ({
 
       ...prev,
