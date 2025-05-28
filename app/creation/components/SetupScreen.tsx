@@ -390,33 +390,36 @@ export const SetupScreen = () => {
             /> */}
 
             <ClientApproverDropdowns
-              options={internalapproverOptions}
-              option={clientapprovalOptions}
-              value={{
-                internal_approver:
-                  Array.isArray(campaignFormData?.internal_approver)
-                    ? campaignFormData.internal_approver?.filter(
-                      (opt) =>
-                        opt?.id === campaignFormData?.campaign_id &&
-                        opt?.clientId === campaignFormData?.client_selection?.id
-                    )
-                    : [],
-                client_approver:
-                  Array.isArray(campaignFormData?.client_approver)
-                    ? campaignFormData.client_approver.filter(
-                      (opt) =>
-                        opt?.id === campaignFormData?.campaign_id &&
-                        opt?.clientId === campaignFormData?.client_selection?.id
-                    )
-                    : [],
-              }}
-              onChange={(field, selected) => {
-                setCampaignFormData((prev) => ({
-                  ...prev,
-                  [field]: selected,
-                }));
-              }}
-            />
+  options={internalapproverOptions}
+  option={clientapprovalOptions}
+  value={{
+    internal_approver:
+      Array.isArray(campaignFormData?.internal_approver)
+        ? campaignFormData.internal_approver?.filter(
+            (opt) =>
+              (opt?.id === campaignFormData?.campaign_id ||
+               opt?.id === campaignFormData?.client_selection?.id) &&
+              opt?.clientId === campaignFormData?.client_selection?.id
+          )
+        : [],
+    client_approver:
+      Array.isArray(campaignFormData?.client_approver)
+        ? campaignFormData.client_approver.filter(
+            (opt) =>
+              (opt?.id === campaignFormData?.campaign_id ||
+               opt?.id === campaignFormData?.client_selection?.id) &&
+              opt?.clientId === campaignFormData?.client_selection?.id
+          )
+        : [],
+  }}
+  onChange={(field, selected) => {
+    setCampaignFormData((prev) => ({
+      ...prev,
+      [field]: selected,
+    }));
+  }}
+/>
+
 
 
 

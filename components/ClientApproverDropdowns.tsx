@@ -362,13 +362,14 @@ const MultiSelectDropdown = ({
 
 		if (clientId) {
 			const newItem: SelectedItem = {
-				value: option.value,
-				id: campaignId ?? option.value,
+				value: option?.value,
+				id: campaignId ?? clientId,
 				clientId: clientId,
 			};
 			onChange([...value, newItem]);
 		}
 	};
+
 
 
 	// 🔁 Update selected items with `commentId` once it's available
@@ -377,7 +378,7 @@ const MultiSelectDropdown = ({
 			const updated = value.map((item) => ({
 				...item,
 				id: campaignId, // Replace id with campaignId
-				clientId: campaignFormData.client_selection.id,
+				clientId: campaignFormData?.client_selection.id,
 			}));
 			onChange(updated);
 		}
