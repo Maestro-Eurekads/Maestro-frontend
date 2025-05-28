@@ -523,7 +523,8 @@ const SelectChannelMix = () => {
                   {type.replace("_", " ")}
                 </span>
                 <span className="text-xs text-gray-500">
-                  ({platforms.length} {getChannelTypeLabel(type)} channel{platforms.length !== 1 ? "s" : ""})
+                  {/* Only one word: "channel" or "channels" */}
+                  ({platforms.length} {platforms.length === 1 ? "channel" : "channels"} selected)
                 </span>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -709,7 +710,8 @@ const SelectChannelMix = () => {
                               </div>
                             ))}
                             <span className="ml-2 text-xs text-gray-500">
-                              {selectedPlatformsForType.length} {getChannelTypeLabel(type)} channels{selectedPlatformsForType.length !== 1 ? "s" : ""} selected
+                              {/* Only one word: "channel" or "channels" */}
+                              {selectedPlatformsForType.length} {selectedPlatformsForType.length === 1 ? "channel" : "channels"} selected
                             </span>
                           </div>
                         )}
