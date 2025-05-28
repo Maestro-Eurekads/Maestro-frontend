@@ -80,7 +80,6 @@ const Header = ({ setIsOpen }) => {
     if (!userType) return;
 
     const storedClientId = localStorage.getItem(userType);
-    // console.log("🚀 ~ useEffect ~ storedClientId:", storedClientId);
     if (storedClientId) {
       setSelectedId(storedClientId);
     } else {
@@ -88,7 +87,6 @@ const Header = ({ setIsOpen }) => {
         getCreateClientData?.data?.[0]?.id?.toString() ||
         profile?.clients?.[0]?.id?.toString();
       if (fallbackId) {
-        console.log("🚀 ~ useEffect ~ fallbackId:", fallbackId);
         setSelectedId(fallbackId);
       }
     }
@@ -151,6 +149,8 @@ const Header = ({ setIsOpen }) => {
     };
   }, [clients, selectedId]);
 
+  console.log('clients-clients', clients)
+
   return (
     <div id="header" className="relative w-full">
       <div className="flex items-center">
@@ -162,12 +162,14 @@ const Header = ({ setIsOpen }) => {
         ) : (
           <>
             <CustomSelect
-              options={(isAdmin ? clients?.data : profile?.clients)?.map(
-                (c) => ({
+              options={(isAdmin ? clients?.data : profile?.clients)
+                ?.sort(
+                  (a, b) => new Date(b?.createdAt).getTime() - new Date(a?.createdAt).getTime()
+                )
+                .map((c) => ({
                   label: c?.client_name,
-                  value: c?.id,
-                })
-              )}
+                  value: c?.id?.toString(),
+                }))}
               className="min-w-[150px] z-[20]"
               placeholder="Select client"
               onChange={(value) => {
@@ -187,6 +189,7 @@ const Header = ({ setIsOpen }) => {
                     option?.value === selectedId || option?.value === selected
                 )}
             />
+
             <button
               className="client_btn_text whitespace-nowrap w-fit"
               onClick={() => setIsOpen(true)}
