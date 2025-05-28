@@ -22,7 +22,7 @@ const BusinessApproverContainer = ({ campaign, loading, isLoadingCampaign }) => 
 		?.internal_approver?.map(a => a?.value) || ["-"];
 	const clientApprovers = campaign?.media_plan_details?.client_approver?.map(a => a?.value) || ["-"];
 
-	console.log('clientApprovers-clientApprovers', campaign)
+
 
 	const items = [
 		{
@@ -57,12 +57,12 @@ const BusinessApproverContainer = ({ campaign, loading, isLoadingCampaign }) => 
 				{items.map((item, index) => (
 					<div
 						key={index}
-						className="flex flex-col items-start p-5 gap-2 w-[235px] h-[95px] bg-white shadow-[0px_4px_14px_rgba(0,38,116,0.15)] rounded-[12px]"
+						className="flex flex-col items-start p-5 gap-2 w-[235px] h-[100px] bg-white shadow-[0px_4px_14px_rgba(0,38,116,0.15)] rounded-[12px]"
 					>
 						{loading || isLoadingCampaign ? (
 							<Skeleton height={20} width={100} />
 						) : (
-							<p className="font-medium text-[12px] leading-[16px] text-gray-500 truncate w-full">
+							<p className="font-medium text-[12px] h-5 leading-[16px] text-gray-500 truncate w-full">
 								{item.label}
 							</p>
 						)}
