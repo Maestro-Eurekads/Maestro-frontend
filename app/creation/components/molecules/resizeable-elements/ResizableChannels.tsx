@@ -462,7 +462,7 @@ const ResizableChannels = ({
   // Update channel state when initialChannels changes
   useEffect(() => {
     if (initialChannels && initialChannels.length > 0) {
-      console.log("🚀 ~ useEffect ~ initialChannels:", initialChannels);
+      // console.log("🚀 ~ useEffect ~ initialChannels:", initialChannels);
       const gridContainer = document.querySelector(
         ".grid-container"
       ) as HTMLElement;

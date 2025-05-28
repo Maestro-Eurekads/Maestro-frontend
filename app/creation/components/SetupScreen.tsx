@@ -55,21 +55,21 @@ export const SetupScreen = () => {
   }, []);
 
   // Load saved form data from localStorage on mount
-  useEffect(() => {
-    const savedFormData = localStorage.getItem("campaignFormData");
-    if (savedFormData) {
-      const parsedData = JSON.parse(savedFormData);
-      setCampaignFormData({
-        ...parsedData,
-        approver: Array.isArray(parsedData?.approver)
-          ? parsedData?.approver?.filter((v: string | null) => v != null)
-          : [],
-        client_approver: Array.isArray(parsedData?.client_approver)
-          ? parsedData?.client_approver?.filter((v: string | null) => v != null)
-          : [],
-      });
-    }
-  }, [setCampaignFormData]);
+  // useEffect(() => {
+  //   const savedFormData = localStorage.getItem("campaignFormData");
+  //   if (savedFormData) {
+  //     const parsedData = JSON.parse(savedFormData);
+  //     setCampaignFormData({
+  //       ...parsedData,
+  //       internal_approver: Array.isArray(parsedData?.internal_approver)
+  //         ? parsedData?.internal_approver?.filter((v: string | null) => v != null)
+  //         : [],
+  //       client_approver: Array.isArray(parsedData?.client_approver)
+  //         ? parsedData?.client_approver?.filter((v: string | null) => v != null)
+  //         : [],
+  //     });
+  //   }
+  // }, [setCampaignFormData]);
 
   // Initialize campaignFormData if empty
   useEffect(() => {
@@ -77,7 +77,7 @@ export const SetupScreen = () => {
       const initialFormData = {
         client_selection: {},
         media_plan: "",
-        approver: [],
+        internal_approver: [],
         client_approver: [],
         budget_details_currency: {},
         budget_details_fee_type: {},
@@ -93,21 +93,21 @@ export const SetupScreen = () => {
   }, [campaignFormData, setCampaignFormData, isInitialized]);
 
   // Save form data to localStorage whenever it changes, cleaning null values
-  useEffect(() => {
-    if (campaignFormData) {
-      const cleanedData = {
-        ...campaignFormData,
-        approver: Array.isArray(campaignFormData.approver)
-          ? campaignFormData.approver.filter((v: string | null) => v != null)
-          : [],
-        client_approver: Array.isArray(campaignFormData.client_approver)
-          ? campaignFormData.client_approver.filter((v: string | null) => v != null)
-          : [],
-      };
-      console.log("Saving to localStorage:", cleanedData);
-      localStorage.setItem("campaignFormData", JSON.stringify(cleanedData));
-    }
-  }, [campaignFormData]);
+  // useEffect(() => {
+  //   if (campaignFormData) {
+  //     const cleanedData = {
+  //       ...campaignFormData,
+  //       internal_approver: Array.isArray(campaignFormData.internal_approver)
+  //         ? campaignFormData?.internal_approver?.filter((v: string | null) => v != null)
+  //         : [],
+  //       client_approver: Array.isArray(campaignFormData.client_approver)
+  //         ? campaignFormData.client_approver.filter((v: string | null) => v != null)
+  //         : [],
+  //     };
+  //     console.log("Saving to localStorage:", cleanedData);
+  //     localStorage.setItem("campaignFormData", JSON.stringify(cleanedData));
+  //   }
+  // }, [campaignFormData]);
 
 
 
@@ -191,9 +191,9 @@ export const SetupScreen = () => {
 
     setCampaignFormData((prev) => ({
       ...prev,
-      approver: Array.isArray(prev.approver) && prev.approver.length > 0
-        ? prev.approver.filter((v: string | null) => v != null)
-        : (client?.approver?.filter((v: string | null) => v != null) || []),
+      internal_approver: Array.isArray(prev.internal_approver) && prev.internal_approver.length > 0
+        ? prev.internal_approver.filter((v: string | null) => v != null)
+        : (client?.internal_approver?.filter((v: string | null) => v != null) || []),
       client_approver: Array.isArray(prev.client_approver) && prev.client_approver.length > 0
         ? prev.client_approver.filter((v: string | null) => v != null)
         : (client?.client_emails?.map((e) => e?.full_name).filter((v: string | null) => v != null) || []),
@@ -234,7 +234,7 @@ export const SetupScreen = () => {
     const fieldsToCheck = [
       campaignFormData?.client_selection?.value,
       campaignFormData?.media_plan,
-      campaignFormData?.approver,
+      campaignFormData?.internal_approver,
       campaignFormData?.client_approver,
       campaignFormData?.level_1?.id,
       campaignFormData?.level_2?.id,
@@ -303,7 +303,7 @@ export const SetupScreen = () => {
               options={approvalOptions}
               option={clientapprovalOptions}
               value={{
-                approver: campaignFormData?.approver?.map((val) => ({
+                internal_approver: campaignFormData?.internal_approver?.map((val) => ({
                   value: val,
                   label: val,
                 })),
