@@ -95,8 +95,8 @@ const SelectChannelMix = () => {
 
   // Fallback metadata for Targeting/Retargeting
   const fallbackFunnelMetadata = {
-    Targeting: { name: "Targeting", icon: zoom },
-    Retargeting: { name: "Retargeting", icon: credit },
+    Targeting: { name: "Targeting" },
+    Retargeting: { name: "Retargeting" },
   };
 
   // Debug data on mount
