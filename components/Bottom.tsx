@@ -630,23 +630,29 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const handleStepFour = async () => {
       if (!campaignData || !cId) return;
+      let updatedCampaignFormData = campaignFormData;
+
       if (active === 5) {
-        const obj = extractObjectives(campaignFormData);
-        setCampaignFormData((prev) => ({
-          ...prev,
-          table_headers: obj || {}
-        }))
+      const obj = extractObjectives(campaignFormData);
+      console.log("🚀 ~ handleStepFour ~ obj:", obj);
+      updatedCampaignFormData = {
+        ...campaignFormData,
+        table_headers: obj || {},
+      };
+      setCampaignFormData(updatedCampaignFormData);
       }
+
       await updateCampaignData({
-        ...cleanData,
-        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
-          "id",
-          "isValidated",
-          "formatValidated",
-          "validatedStages",
-          "documentId",
-          "_aggregated",
-        ]),
+      ...cleanData,
+      channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
+        "id",
+        "isValidated",
+        "formatValidated",
+        "validatedStages",
+        "documentId",
+        "_aggregated",
+      ]),
+      table_headers: updatedCampaignFormData?.table_headers,
       });
     };
 
