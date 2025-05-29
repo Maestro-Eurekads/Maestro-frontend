@@ -177,7 +177,7 @@ const TableView = () => {
   useEffect(() => {
     if (!campaignFormData) return
 
-    const stageObjectives = extractObjectives(campaignFormData) // example: { Awareness: ["App Install", ...], ... }
+    const stageObjectives = campaignFormData?.table_headers // example: { Awareness: ["App Install", ...], ... }
     console.log("🚀 ~ useEffect ~ stageObjectives:", stageObjectives)
     const headersByStage = {}
     const bodyByStage = {}
@@ -186,9 +186,9 @@ const TableView = () => {
       const headersSet = new Map() // to deduplicate by name
       const bodyFieldsSet = new Set()
 
-      const objectiveList = objectives.length > 0 ? objectives : ["Brand Awareness"]
+      const objectiveList = Array.isArray(objectives) && objectives.length > 0 ? objectives : ["Brand Awareness"]
       console.log("objectiveList", objectiveList)
-      objectiveList.forEach((objective) => {
+      objectiveList?.forEach((objective) => {
         const headers = tableHeaders[objective] || []
         console.log("🚀 ~ objectiveList.forEach ~ headers:", headers)
         const body = tableBody[objective] || []
@@ -335,7 +335,7 @@ const TableView = () => {
   // const allObjectives = useMemo(() => Object.keys(tableHeaders), []);
 
   const objectivesForStage = useMemo(() => {
-    return currentEditingStage ? extractObjectives(campaignFormData)[currentEditingStage] || [] : []
+    return currentEditingStage ? campaignFormData?.table_headers[currentEditingStage] || [] : []
   }, [campaignFormData, currentEditingStage])
 
   const existingHeaderNames = useMemo(() => {
