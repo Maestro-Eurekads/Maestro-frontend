@@ -95,7 +95,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
    setPlatforms(data);
   }
   // Log custom_funnels to verify icon data
-  
+  console.log("ConfiguredSetPage custom_funnels:", campaignFormData?.custom_funnels);
  }, [campaignFormData]);
 
  const [validatedStages, setValidatedStages] = useState({
@@ -837,12 +837,12 @@ const ConfiguredSetPage = ({ netAmount }) => {
                     <span className="absolute inset-y-0 left-0 w-6 h-6 rounded-full bg-white transition-transform duration-200 transform peer-checked:translate-x-6"></span>
                    </label>
                    <div
-                    className="text-[#061237] text-sm font-semibold tracking-tighter"
+                    className="text-[#061237] text-nowrap text-sm font-semibold tracking-tighter"
                     style={{
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
-                      maxWidth: "180px",
+                      maxWidth: "100px",
                       minWidth: 0,
                       flex: "1 1 0",
                     }}
