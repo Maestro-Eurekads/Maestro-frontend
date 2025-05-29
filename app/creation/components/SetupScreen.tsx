@@ -145,7 +145,7 @@ export const SetupScreen = () => {
   //         ? campaignFormData?.client_approver.filter((v: string | null) => v != null)
   //         : [],
   //     };
-  //     console.log("Saving to localStorage:", cleanedData);
+  
   //     localStorage.setItem("campaignFormData", JSON.stringify(cleanedData));
   //   }
   // }, [campaignFormData]);
@@ -253,7 +253,7 @@ export const SetupScreen = () => {
     // }));
   }, [client_selection, allClients, setCampaignFormData]);
 
-  // console.log("Campaign Form Data:", campaignFormData);
+  
 
   useEffect(() => {
     if (campaignFormData?.budget_details_currency?.id) {
@@ -301,7 +301,7 @@ export const SetupScreen = () => {
   }, [campaignFormData, cId, setRequiredFields]);
 
 
-  // console.log('campaignFormData?.media_plan_details?.internal_approver', campaignFormData?.client_approver)
+  
   const handleApproverChange = (field: string, selected: DropdownOption[]) => {
     setSelectedApprovers((prev) => ({
       ...prev,

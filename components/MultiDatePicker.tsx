@@ -89,7 +89,6 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
   };
 
   const resetDates = () => {
-    console.log("reset dates");
     setSelectedDates({ from: null, to: null });
     setCampaignFormData((prev)=>({
       ...prev,

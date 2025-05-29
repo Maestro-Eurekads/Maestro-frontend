@@ -131,7 +131,7 @@ const ResizableChannels = ({
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     const dailyWidth = calculateDailyWidth(containerWidth, endMonth);
-    console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth);
+    // console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth);
     const baseStep = rrange === "Month" ? dailyWidth : 50;
     // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
     const adjustmentPerStep = 0; // Decrease each next step by 10
@@ -450,7 +450,7 @@ const ResizableChannels = ({
         }
       );
 
-      console.log("Campaign data updated successfully", response.data);
+      // console.log("Campaign data updated successfully", response.data);
     } catch (error) {
       console.error("Error updating campaign data:", error);
     } finally {
