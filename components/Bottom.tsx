@@ -15,6 +15,7 @@ import toast, { Toaster } from "react-hot-toast";
 import dayjs from "dayjs";
 import { selectCurrency } from "./Options";
 import { useUserPrivileges } from "utils/userPrivileges";
+import { extractObjectives } from "app/creation/components/EstablishedGoals/table-view/data-processor";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -48,14 +49,16 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [validateStep, setValidateStep] = useState(false);
   const { selectedDates } = useSelectedDates();
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
-  const [triggerBuyObjectiveError, setTriggerBuyObjectiveError] = useState(false);
+  const [triggerBuyObjectiveError, setTriggerBuyObjectiveError] =
+    useState(false);
   const [isBuyingObjectiveError, setIsBuyingObjectiveError] = useState(false);
   const [isEditingError, setIsEditingError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const [hasFormatSelected, setHasFormatSelected] = useState(false);
-  const { isFinancialApprover, isAgencyApprover, isAdmin } = useUserPrivileges();
+  const { isFinancialApprover, isAgencyApprover, isAdmin } =
+    useUserPrivileges();
   const {
     createCampaign,
     updateCampaign,
@@ -126,20 +129,27 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     if (active === 4 && !hasProceededFromFormatStep.current) {
       setCampaignFormData((prev) => ({
         ...prev,
-        channel_mix: prev.channel_mix?.map((mix) => ({
-          ...mix,
-          social_media: mix.social_media?.map((p) => ({ ...p, format: [] })),
-          display_networks: mix.display_networks?.map((p) => ({ ...p, format: [] })),
-          search_engines: mix.search_engines?.map((p) => ({ ...p, format: [] })),
-          streaming: mix.streaming?.map((p) => ({ ...p, format: [] })),
-          ooh: mix.ooh?.map((p) => ({ ...p, format: [] })),
-          broadcast: mix.broadcast?.map((p) => ({ ...p, format: [] })),
-          messaging: mix.messaging?.map((p) => ({ ...p, format: [] })),
-          print: mix.print?.map((p) => ({ ...p, format: [] })),
-          e_commerce: mix.e_commerce?.map((p) => ({ ...p, format: [] })),
-          in_game: mix.in_game?.map((p) => ({ ...p, format: [] })),
-          mobile: mix.mobile?.map((p) => ({ ...p, format: [] })),
-        })) || [],
+        channel_mix:
+          prev.channel_mix?.map((mix) => ({
+            ...mix,
+            social_media: mix.social_media?.map((p) => ({ ...p, format: [] })),
+            display_networks: mix.display_networks?.map((p) => ({
+              ...p,
+              format: [],
+            })),
+            search_engines: mix.search_engines?.map((p) => ({
+              ...p,
+              format: [],
+            })),
+            streaming: mix.streaming?.map((p) => ({ ...p, format: [] })),
+            ooh: mix.ooh?.map((p) => ({ ...p, format: [] })),
+            broadcast: mix.broadcast?.map((p) => ({ ...p, format: [] })),
+            messaging: mix.messaging?.map((p) => ({ ...p, format: [] })),
+            print: mix.print?.map((p) => ({ ...p, format: [] })),
+            e_commerce: mix.e_commerce?.map((p) => ({ ...p, format: [] })),
+            in_game: mix.in_game?.map((p) => ({ ...p, format: [] })),
+            mobile: mix.mobile?.map((p) => ({ ...p, format: [] })),
+          })) || [],
         validatedStages: {},
       }));
       setHasFormatSelected(false);
@@ -270,16 +280,20 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         let errorMessage = "";
         switch (midcapEditing.step) {
           case "Your channel mix":
-            errorMessage = "Please confirm or cancel your channel mix changes before proceeding";
+            errorMessage =
+              "Please confirm or cancel your channel mix changes before proceeding";
             break;
           case "Your funnel stages":
-            errorMessage = "Please confirm or cancel your funnel changes before proceeding";
+            errorMessage =
+              "Please confirm or cancel your funnel changes before proceeding";
             break;
           case "Your format selections":
-            errorMessage = "Please confirm or cancel your format selection changes before proceeding";
+            errorMessage =
+              "Please confirm or cancel your format selection changes before proceeding";
             break;
           case "Your Adset and Audiences":
-            errorMessage = "Please confirm or cancel your Adset and Audiences changes before proceeding";
+            errorMessage =
+              "Please confirm or cancel your Adset and Audiences changes before proceeding";
             break;
         }
         if (errorMessage) {
@@ -298,7 +312,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setIsBuyingObjectiveError(true);
         setAlert({
           variant: "error",
-          message: "Please confirm or cancel your buying objective changes before proceeding",
+          message:
+            "Please confirm or cancel your buying objective changes before proceeding",
           position: "bottom-right",
         });
         setLoading(false);
@@ -465,13 +480,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const cleanData = campaignData
       ? removeKeysRecursively(campaignData, [
-        "id",
-        "documentId",
-        "createdAt",
-        "publishedAt",
-        "updatedAt",
-        "_aggregated",
-      ])
+          "id",
+          "documentId",
+          "createdAt",
+          "publishedAt",
+          "updatedAt",
+          "_aggregated",
+        ])
       : {};
 
     const handleStepZero = async () => {
@@ -504,7 +519,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         //   ? campaignFormData.client_approver.filter((a) => a !== null && a !== undefined && a !== "")
         //   : [];
 
-
         // Update campaignFormData with cleaned values and save to localStorage
         const cleanedFormData = {
           ...campaignFormData,
@@ -514,12 +528,15 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             id: budgetDetails.currency,
             value: budgetDetails.currency,
             label:
-              selectCurrency.find((c) => c.value === budgetDetails.currency)?.label ||
-              budgetDetails.currency,
+              selectCurrency.find((c) => c.value === budgetDetails.currency)
+                ?.label || budgetDetails.currency,
           },
         };
         setCampaignFormData(cleanedFormData);
-        localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData));
+        localStorage.setItem(
+          "campaignFormData",
+          JSON.stringify(cleanedFormData)
+        );
 
         if (cId && campaignData) {
           const updatedData = {
@@ -613,6 +630,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const handleStepFour = async () => {
       if (!campaignData || !cId) return;
+      if (active === 5) {
+        const obj = extractObjectives(campaignFormData);
+        setCampaignFormData((prev) => ({
+          ...prev,
+          table_headers: obj || {}
+        }))
+      }
       await updateCampaignData({
         ...cleanData,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
@@ -668,9 +692,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           campaign_timeline_start_date === "Invalid Date"
             ? campaignFormData?.campaign_timeline_start_date
             : campaign_timeline_start_date,
-        campaign_timeline_end_date: campaign_timeline_end_date === "Invalid Date"
-          ? campaignFormData?.campaign_timeline_end_date
-          : campaign_timeline_end_date,
+        campaign_timeline_end_date:
+          campaign_timeline_end_date === "Invalid Date"
+            ? campaignFormData?.campaign_timeline_end_date
+            : campaign_timeline_end_date,
         funnel_stages: campaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
@@ -813,11 +838,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         )}
 
         {active === 10 ? (
-          (isFinancialApprover || isAgencyApprover || isAdmin) ? (
-
+          isFinancialApprover || isAgencyApprover || isAdmin ? (
             <button
               className="bottom_black_next_btn hover:bg-blue-500"
-              onClick={() => campaignFormData?.isApprove ? toast.error("This Plan has already been approved!") : setIsOpen(true)}
+              onClick={() =>
+                campaignFormData?.isApprove
+                  ? toast.error("This Plan has already been approved!")
+                  : setIsOpen(true)
+              }
             >
               <p>Confirm</p>
               <Image src={Continue} alt="Continue" />
@@ -839,7 +867,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                 active === 10 && "opacity-50 cursor-not-allowed",
                 active < 10 && "hover:bg-blue-500"
               )}
-              onClick={active === 4 && !hasFormatSelected ? handleSkip : handleContinue}
+              onClick={
+                active === 4 && !hasFormatSelected ? handleSkip : handleContinue
+              }
               disabled={active === 10}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
@@ -854,8 +884,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                     {active === 0
                       ? "Start"
                       : active === 4 && !hasFormatSelected
-                        ? "Skip"
-                        : "Continue"}
+                      ? "Skip"
+                      : "Continue"}
                   </p>
                   <Image src={Continue} alt="Continue" />
                 </>
