@@ -120,6 +120,7 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
           "mobile",
         ].forEach((channel) => {
           if (Array.isArray(stage[channel])) {
+            // console.log("🚀 ~ ].forEach ~ stage:", stage)
             processPlatforms(stage[channel], channel);
           }
         });
@@ -134,7 +135,7 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
       const data = getPlatformsFromStage();
       setPlatforms(data);
     }
-  }, [campaignFormData, getPlatformsFromStage]);
+  }, [campaignFormData]);
 
   // useEffect(() => {
   //   setChannelWidths({});

@@ -30,12 +30,12 @@ const colorPalette = [
   "bg-amber-500 border border-amber-500",
   "bg-fuchsia-500 border border-fuchsia-500",
   "bg-emerald-500",
-  "bg-violet-500 border border-violet-500",
-  "bg-rose-500 border border-rose-500",
+  "bg-violet-600 border border-violet-500",
+  "bg-rose-600 border border-rose-500",
   "bg-sky-500",
-  "bg-gray-700 border border-gray-700",
-  "bg-blue-700 border border-blue-700",
-  "bg-green-700 border border-green-700",
+  "bg-gray-800 border border-gray-700",
+  "bg-blue-800 border border-blue-700",
+  "bg-green-800 border border-green-700",
 ];
 
 // LocalStorage key for custom funnels
@@ -202,14 +202,14 @@ const MapFunnelStages = () => {
       const orderedFunnelStages =
         initialFunnelType === "custom" && initialFunnelStages.length > 0
           ? loadedCustomFunnels
-            .map((f) => f.name)
-            .filter((name) => initialFunnelStages.includes(name))
+              .map((f) => f.name)
+              .filter((name) => initialFunnelStages.includes(name))
           : initialFunnelStages;
       const orderedChannelMix =
         initialFunnelType === "custom" && initialChannelMix.length > 0
           ? loadedCustomFunnels
-            .map((f) => initialChannelMix.find((ch: any) => ch.funnel_stage === f.name))
-            .filter((ch): ch is { funnel_stage: string } => ch !== undefined)
+              .map((f) => initialChannelMix.find((ch: any) => ch.funnel_stage === f.name))
+              .filter((ch): ch is { funnel_stage: string } => ch !== undefined)
           : initialChannelMix;
 
       return {
@@ -289,15 +289,15 @@ const MapFunnelStages = () => {
     // Ensure funnel_stages order matches persistentCustomFunnels when adding a new stage
     const orderedFunnelStages = selectedOption === "custom"
       ? persistentCustomFunnels
-        .map((f) => f.name)
-        .filter((name) => newFunnelStages.includes(name))
+          .map((f) => f.name)
+          .filter((name) => newFunnelStages.includes(name))
       : newFunnelStages;
 
     // Ensure channel_mix order matches persistentCustomFunnels
     const orderedChannelMix = selectedOption === "custom"
       ? persistentCustomFunnels
-        .map((f) => newChannelMix.find((ch: any) => ch.funnel_stage === f.name))
-        .filter((ch): ch is { funnel_stage: string } => ch !== undefined)
+          .map((f) => newChannelMix.find((ch: any) => ch.funnel_stage === f.name))
+          .filter((ch): ch is { funnel_stage: string } => ch !== undefined)
       : newChannelMix;
 
     setCampaignFormData((prev: any) => ({
@@ -334,6 +334,7 @@ const MapFunnelStages = () => {
     if (option === "targeting_retargeting") {
       setCustomFunnels(targetingRetargetingFunnels);
 
+      // Remove custom funnels from localStorage when switching to targeting/retargeting? No, keep for later.
       // Initialize with both stages selected by default for targeting-retargeting
       const defaultStages = ["Targeting", "Retargeting"];
       const defaultChannelMix = defaultStages.map(stage => ({ funnel_stage: stage }));
@@ -364,14 +365,14 @@ const MapFunnelStages = () => {
         const funnelStages =
           savedSelections.custom.funnel_stages.length > 0
             ? restoredFunnels
-              .map((f) => f.name)
-              .filter((name) => savedSelections.custom.funnel_stages.includes(name))
+                .map((f) => f.name)
+                .filter((name) => savedSelections.custom.funnel_stages.includes(name))
             : restoredFunnels.map((f) => f.name);
         const channelMix =
           savedSelections.custom.channel_mix.length > 0
             ? restoredFunnels
-              .map((f) => savedSelections.custom.channel_mix.find((ch: any) => ch.funnel_stage === f.name))
-              .filter((ch): ch is { funnel_stage: string } => ch !== undefined)
+                .map((f) => savedSelections.custom.channel_mix.find((ch: any) => ch.funnel_stage === f.name))
+                .filter((ch): ch is { funnel_stage: string } => ch !== undefined)
             : restoredFunnels.map((f) => ({ funnel_stage: f.name }));
 
         return {
@@ -481,11 +482,11 @@ const MapFunnelStages = () => {
     const updatedFunnels = persistentCustomFunnels.map((f) =>
       f.name === oldId
         ? {
-          ...f,
-          id: newName,
-          name: newName,
-          color: f.color,
-        }
+            ...f,
+            id: newName,
+            name: newName,
+            color: f.color,
+          }
         : f
     );
 
@@ -595,10 +596,11 @@ const MapFunnelStages = () => {
             return (
               <div key={funnel.id} className="relative w-full max-w-[685px]">
                 <button
-                  className={`cursor-pointer w-full ${isSelected
+                  className={`cursor-pointer w-full ${
+                    isSelected
                       ? `${funnel.color} text-white`
                       : "bg-white text-black shadow-md hover:bg-gray-100"
-                    } rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200`}
+                  } rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200`}
                   onClick={() => handleSelect(funnel.name)}
                 >
                   <div className="w-6 h-6" />
@@ -620,10 +622,11 @@ const MapFunnelStages = () => {
                 className="relative w-full max-w-[685px]"
               >
                 <button
-                  className={`cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 ${isSelected
+                  className={`cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 ${
+                    isSelected
                       ? `${funnel.color} text-white`
                       : "bg-white text-black shadow-md hover:bg-gray-100"
-                    }`}
+                  }`}
                   onClick={() => handleSelect(funnel.name)}
                 >
                   <div className="w-6 h-6" />

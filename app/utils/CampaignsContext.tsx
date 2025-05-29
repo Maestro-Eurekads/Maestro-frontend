@@ -15,6 +15,7 @@ import { useSearchParams } from "next/navigation";
 import { useSelector } from "react-redux";
 import { channelMixPopulate } from "utils/fetcher";
 import { useSession } from "next-auth/react";
+import { updateUsersWithCampaign } from "app/homepage/functions/clients";
 
 // Get initial state from localStorage if available
 const getInitialState = () => {
@@ -94,6 +95,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     approved_by: [],
   });
   const [selectedFilters, setSelectedFilters] = useState({});
+  const [clientUsers, setClientUsers] = useState([])
 
   const reduxClients = useSelector((state: any) => state.client?.getCreateClientData?.data || []);
   const reduxLoadingClients = useSelector((state: any) => state.client?.getCreateClientIsLoading || false);
@@ -264,8 +266,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             },
             media_plan_details: {
               plan_name: campaignFormData?.media_plan,
-              internal_approver: campaignFormData?.approver?.value,
-              client_approver: campaignFormData?.client_approver?.value,
+              internal_approver: campaignFormData?.internal_approver,
+              client_approver: campaignFormData?.client_approver,
             },
           },
         },
@@ -275,6 +277,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
+      await updateUsersWithCampaign(clientUsers?.map((uu)=>uu?.id), response?.data?.data?.id);
       return response;
     } catch (error) {
       console.error("Error creating campaign:", error);
@@ -605,7 +608,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setRequiredFields,
       currencySign,
       setCurrencySign,
-      user
+      user,
+      setClientUsers,
+      clientUsers
     }),
     [getUserByUserType,
       loadingClients,
@@ -638,7 +643,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setRequiredFields,
       currencySign,
       setCurrencySign,
-      user
+      user,
+      setClientUsers,
+      clientUsers
     ]
   );
 

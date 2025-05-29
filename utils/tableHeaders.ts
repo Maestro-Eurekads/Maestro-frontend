@@ -273,6 +273,39 @@ export const tableHeaders = {
       type: "currency"
     },
   ],
+  "Lead": [
+    ...defaultHeaders,
+    {
+      name: "CTR",
+      showInput: true,
+      type: "percent"
+    },
+    {
+      name: "Forms open",
+      showInputs: false,
+      type: "number"
+    },
+    {
+      name: "Cost / opened form",
+      showInputs: false,
+      type: "currency"
+    },
+    {
+      name: "CVR",
+      showInput: true,
+      type: "percent"
+    },
+    {
+      name: "Leads",
+      showInput: false,
+      type: "number"
+    },
+    {
+      name: "Cost / lead",
+      showInput: false,
+      type: "currency"
+    },
+  ],
   "Lead Generation (On website)": [
     ...defaultHeaders,
     {
@@ -597,6 +630,114 @@ export const tableHeaders = {
     },
   ],
   "In App Conversion": [
+    ...defaultHeaders,
+    {
+      name: "CTR",
+      showInput: true,
+      type: "percent"
+    },
+    {
+      name: "Link Clicks",
+      showInput: false,
+    },
+    {
+      name: "CPC",
+      showInput: false,
+    },
+    {
+      name: "Open Rate",
+      showInput: true,
+      type: "percent"
+    },
+    {
+      name: "App Open",
+      showInput: false,
+    },
+    {
+      name: "Cost / App Open",
+      showInput: false,
+    },
+    {
+      name: "CVR",
+      showInput: true,
+      type: "percent"
+    },
+    {
+      name: "Conversion",
+      showInput: false,
+    },
+    {
+      name: "Cost / conversion",
+      showInput: false,
+    },
+    {
+      name: "CLV of associated product",
+      showInput: true,
+    },
+    {
+      name: "Generated Revenue",
+      showInput: false,
+    },
+    {
+      name: "Return on Ad Spent",
+      showInput: false,
+    },
+  ],
+  "Conversions": [
+    ...defaultHeaders,
+    {
+      name: "CTR",
+      showInput: true,
+      type: "percent"
+    },
+    {
+      name: "Link Clicks",
+      showInput: false,
+    },
+    {
+      name: "CPC",
+      showInput: false,
+    },
+    {
+      name: "Open Rate",
+      showInput: true,
+      type: "percent"
+    },
+    {
+      name: "App Open",
+      showInput: false,
+    },
+    {
+      name: "Cost / App Open",
+      showInput: false,
+    },
+    {
+      name: "CVR",
+      showInput: true,
+      type: "percent"
+    },
+    {
+      name: "Conversion",
+      showInput: false,
+    },
+    {
+      name: "Cost / conversion",
+      showInput: false,
+    },
+    {
+      name: "CLV of associated product",
+      showInput: true,
+    },
+    {
+      name: "Generated Revenue",
+      showInput: false,
+    },
+    {
+      name: "Return on Ad Spent",
+      showInput: false,
+    },
+  ],
+  "Physical Store Visit": [
     ...defaultHeaders,
     {
       name: "CTR",
