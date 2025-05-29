@@ -101,7 +101,7 @@ const Header = ({ setIsOpen }) => {
     const filteredClient = clients?.data?.find(
       (client) => client?.id === Number(clientId)
     );
-    console.log(clientId);
+    // console.log(clientId);
     fetchClientCampaign(clientId)
       .then((res) => {
         const campaigns = res?.data?.data || [];
@@ -143,7 +143,6 @@ const Header = ({ setIsOpen }) => {
     };
   }, [clients, selectedId]);
 
-  // console.log('clients-clients', clients)
 
   return (
     <div id="header" className="relative w-full">

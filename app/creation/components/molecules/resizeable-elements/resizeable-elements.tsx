@@ -156,9 +156,9 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
   }, [rrange]);
 
   useEffect(() => {
-    console.log("here");
+    
     if (campaignFormData?.funnel_stages && containerWidth) {
-      console.log("here1");
+      
       const initialWidths: Record<string, number> = {};
       const initialPositions: Record<string, number> = {};
       const contWidth = containerWidth - 75;
@@ -174,7 +174,7 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
           const stageEndDate = stage?.funnel_stage_timeline_end_date
             ? parseISO(stage?.funnel_stage_timeline_end_date)
             : null;
-          console.log({ stageStartDate, stageEndDate });
+          
           const startDateIndex = stageStartDate
             ? range?.findIndex((date) => isEqual(date, stageStartDate)) *
             (rrange === "Day"
@@ -186,7 +186,7 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
           const daysBetween =
             eachDayOfInterval({ start: stageStartDate, end: stageEndDate })
               .length - 1;
-          console.log("daysBetween", daysBetween);
+          
           const daysFromStart = differenceInCalendarDays(
             stageStartDate,
             campaignFormData?.campaign_timeline_start_date
@@ -215,7 +215,7 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
           initialPositions[stageName] = startDateIndex;
         }
       });
-
+ 
       setChannelWidths(initialWidths);
       setChannelPositions(initialPositions);
     }
@@ -253,7 +253,7 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
                 // Calculate factor to scale dailyWidth to reach 'total'
                 const factor = total / totalLines; // e.g., if total=500 and totalLines=400, factor=1.25
 
-
+ 
                 const adjustedDailyWidth = dailyWidth * factor;
 
                 return `calc(${adjustedDailyWidth}px) 100%, calc(${adjustedDailyWidth * 31
