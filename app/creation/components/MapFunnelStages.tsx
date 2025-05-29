@@ -5,7 +5,7 @@ import { useCampaigns } from "../../utils/CampaignsContext";
 import { useVerification } from "app/utils/VerificationContext";
 import { useComments } from "app/utils/CommentProvider";
 import { PlusIcon, Edit2, Trash2, X } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 // Define type for funnel objects
 interface Funnel {
@@ -43,6 +43,12 @@ const LOCAL_STORAGE_FUNNELS_KEY = "custom_funnels_v1";
 
 // LocalStorage key for targeting/retargeting funnel state
 const LOCAL_STORAGE_TRT_KEY = "targeting_retargeting_funnel_v1";
+
+// Helper to get a unique plan key for localStorage based on cId
+const getPlanKey = (baseKey: string, cId: string | undefined) => {
+  // If cId is undefined, fallback to baseKey (for new plans, don't persist)
+  return cId ? `${baseKey}_${cId}` : baseKey;
+};
 
 const MapFunnelStages = () => {
   const {
@@ -94,15 +100,17 @@ const MapFunnelStages = () => {
 
   // --- LocalStorage helpers for custom funnels ---
   const saveCustomFunnelsToStorage = (funnels: Funnel[]) => {
+    if (!cId) return; // Don't persist for new plans
     try {
-      localStorage.setItem(LOCAL_STORAGE_FUNNELS_KEY, JSON.stringify(funnels));
+      localStorage.setItem(getPlanKey(LOCAL_STORAGE_FUNNELS_KEY, cId), JSON.stringify(funnels));
     } catch (e) {
       // ignore
     }
   };
   const getCustomFunnelsFromStorage = (): Funnel[] | null => {
+    if (!cId) return null; // Don't load for new plans
     try {
-      const data = localStorage.getItem(LOCAL_STORAGE_FUNNELS_KEY);
+      const data = localStorage.getItem(getPlanKey(LOCAL_STORAGE_FUNNELS_KEY, cId));
       if (data) {
         return JSON.parse(data);
       }
@@ -114,9 +122,10 @@ const MapFunnelStages = () => {
 
   // --- LocalStorage helpers for targeting/retargeting funnel state ---
   const saveTRTStateToStorage = (funnel_stages: string[], channel_mix: { funnel_stage: string }[]) => {
+    if (!cId) return; // Don't persist for new plans
     try {
       localStorage.setItem(
-        LOCAL_STORAGE_TRT_KEY,
+        getPlanKey(LOCAL_STORAGE_TRT_KEY, cId),
         JSON.stringify({ funnel_stages, channel_mix })
       );
     } catch (e) {
@@ -124,8 +133,9 @@ const MapFunnelStages = () => {
     }
   };
   const getTRTStateFromStorage = (): { funnel_stages: string[]; channel_mix: { funnel_stage: string }[] } | null => {
+    if (!cId) return null; // Don't load for new plans
     try {
-      const data = localStorage.getItem(LOCAL_STORAGE_TRT_KEY);
+      const data = localStorage.getItem(getPlanKey(LOCAL_STORAGE_TRT_KEY, cId));
       if (data) {
         return JSON.parse(data);
       }
@@ -134,6 +144,15 @@ const MapFunnelStages = () => {
     }
     return null;
   };
+
+  // On plan change (cId), clear localStorage for new plans (no cId)
+  useEffect(() => {
+    if (!cId) {
+      // New plan: clear any global (non-cId) keys to avoid carryover
+      localStorage.removeItem(LOCAL_STORAGE_FUNNELS_KEY);
+      localStorage.removeItem(LOCAL_STORAGE_TRT_KEY);
+    }
+  }, [cId]);
 
   // Initialize comments drawer
   useEffect(() => {
@@ -159,7 +178,7 @@ const MapFunnelStages = () => {
       ["Targeting", "Retargeting"].includes(funnel.name)
     );
 
-    // Try to load custom funnels from localStorage first
+    // Try to load custom funnels from localStorage first (only for existing plans)
     let loadedCustomFunnels: Funnel[] = [];
     let localStorageFunnels: Funnel[] | null = null;
     if (!isTargetingRetargeting) {
@@ -206,7 +225,7 @@ const MapFunnelStages = () => {
     if (initialFunnelType === "targeting_retargeting") {
       setCustomFunnels(targetingRetargetingFunnels);
 
-      // Try to restore from localStorage for targeting/retargeting
+      // Try to restore from localStorage for targeting/retargeting (only for existing plans)
       const trtState = getTRTStateFromStorage();
       setSavedSelections((prev) => ({
         ...prev,
@@ -268,10 +287,11 @@ const MapFunnelStages = () => {
       });
     }
     // eslint-disable-next-line
-  }, [campaignData, setCampaignFormData]);
+  }, [campaignData, setCampaignFormData, cId]);
 
-  // Whenever persistentCustomFunnels changes, update localStorage
+  // Whenever persistentCustomFunnels changes, update localStorage (only for existing plans)
   useEffect(() => {
+    if (!cId) return;
     // Only save if not targeting/retargeting
     if (
       persistentCustomFunnels.length > 0 &&
@@ -279,10 +299,11 @@ const MapFunnelStages = () => {
     ) {
       saveCustomFunnelsToStorage(persistentCustomFunnels);
     }
-  }, [persistentCustomFunnels]);
+  }, [persistentCustomFunnels, cId]);
 
-  // Whenever targeting/retargeting funnel_stages or channel_mix changes, persist to localStorage
+  // Whenever targeting/retargeting funnel_stages or channel_mix changes, persist to localStorage (only for existing plans)
   useEffect(() => {
+    if (!cId) return;
     if (
       selectedOption === "targeting_retargeting" &&
       Array.isArray(campaignFormData?.funnel_stages) &&
@@ -294,7 +315,7 @@ const MapFunnelStages = () => {
       );
     }
     // eslint-disable-next-line
-  }, [selectedOption, campaignFormData?.funnel_stages, campaignFormData?.channel_mix]);
+  }, [selectedOption, campaignFormData?.funnel_stages, campaignFormData?.channel_mix, cId]);
 
   // Handle clicks outside modal to close it
   useEffect(() => {
@@ -376,8 +397,8 @@ const MapFunnelStages = () => {
       },
     }));
 
-    // Persist targeting/retargeting state to localStorage
-    if (selectedOption === "targeting_retargeting") {
+    // Persist targeting/retargeting state to localStorage (only for existing plans)
+    if (selectedOption === "targeting_retargeting" && cId) {
       saveTRTStateToStorage(orderedFunnelStages, orderedChannelMix);
     }
 
@@ -395,8 +416,8 @@ const MapFunnelStages = () => {
           channel_mix: campaignFormData?.channel_mix || [],
         },
       }));
-      // Persist targeting/retargeting state to localStorage
-      if (selectedOption === "targeting_retargeting") {
+      // Persist targeting/retargeting state to localStorage (only for existing plans)
+      if (selectedOption === "targeting_retargeting" && cId) {
         saveTRTStateToStorage(
           campaignFormData?.funnel_stages || [],
           campaignFormData?.channel_mix || []
@@ -409,7 +430,7 @@ const MapFunnelStages = () => {
     if (option === "targeting_retargeting") {
       setCustomFunnels(targetingRetargetingFunnels);
 
-      // Restore from localStorage if available, else from state
+      // Restore from localStorage if available, else from state (only for existing plans)
       const trtState = getTRTStateFromStorage();
       const defaultStages = ["Targeting", "Retargeting"];
       const defaultChannelMix = defaultStages.map(stage => ({ funnel_stage: stage }));
@@ -430,7 +451,7 @@ const MapFunnelStages = () => {
         custom_funnels: targetingRetargetingFunnels,
       }));
     } else {
-      // Restore from localStorage if available, else from state
+      // Restore from localStorage if available, else from state (only for existing plans)
       let restoredFunnels: Funnel[] = [];
       const localStorageFunnels = getCustomFunnelsFromStorage();
       if (localStorageFunnels && Array.isArray(localStorageFunnels) && localStorageFunnels.length > 0) {
@@ -513,8 +534,8 @@ const MapFunnelStages = () => {
     setPersistentCustomFunnels(updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
-    // Save to localStorage
-    saveCustomFunnelsToStorage(updatedFunnels);
+    // Save to localStorage (only for existing plans)
+    if (cId) saveCustomFunnelsToStorage(updatedFunnels);
 
     setCampaignFormData((prev: any) => ({
       ...prev,
@@ -572,8 +593,8 @@ const MapFunnelStages = () => {
     setPersistentCustomFunnels(updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
-    // Save to localStorage
-    saveCustomFunnelsToStorage(updatedFunnels);
+    // Save to localStorage (only for existing plans)
+    if (cId) saveCustomFunnelsToStorage(updatedFunnels);
 
     setCampaignFormData((prev: any) => ({
       ...prev,
@@ -616,8 +637,8 @@ const MapFunnelStages = () => {
     setPersistentCustomFunnels(updatedFunnels);
     setCustomFunnels(updatedFunnels);
 
-    // Save to localStorage
-    saveCustomFunnelsToStorage(updatedFunnels);
+    // Save to localStorage (only for existing plans)
+    if (cId) saveCustomFunnelsToStorage(updatedFunnels);
 
     setCampaignFormData((prev: any) => ({
       ...prev,
