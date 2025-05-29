@@ -70,7 +70,7 @@ export const FunnelStageTable = ({
                     }`}
                     onClick={() => toggleNRColumn(stage.name, header.name)}
                   >
-                    {header?.name === "Audience" ? "" : header?.name === "Budget Size" ? "Budget":header?.name}
+                    {header?.name === "Audience" ? "" : header?.name === "Budget Size" ? "Budget": (goalLevel === "Channel level" &&header?.name === "Audience Size")? "" :header?.name}
                     {nrColumns?.includes(
                       header.name
                         .toLowerCase()

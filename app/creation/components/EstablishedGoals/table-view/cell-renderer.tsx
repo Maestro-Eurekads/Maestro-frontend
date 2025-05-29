@@ -76,9 +76,6 @@ export const CellRenderer = ({
   };
 
 
-  // console.log('goalLevel-goalLevel', goalLevel)
-  // console.log('goalLevel-goalLevel', channel?.ad_sets?.length)
-
   // Channel cell rendering
   if (body === "channel") {
     return (
@@ -135,6 +132,12 @@ export const CellRenderer = ({
     );
   }
 
+  if (goalLevel === "Channel level" && body === "audience_size") {
+    return "";
+  }
+  if (goalLevel === "Adset level" && body === "audience_size") {
+    return "";
+  }
   if (body === "audience") {
     return "";
   }
