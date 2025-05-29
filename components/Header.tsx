@@ -187,7 +187,7 @@ const Header = ({ setIsOpen }) => {
                 )}
             />
 
-            {/* <CustomSelect
+            {/* {/* <CustomSelect
               options={(isAdmin ? clients?.data : profile?.clients)?.map(
                 (c) => ({
                   label: c?.client_name,
@@ -212,30 +212,19 @@ const Header = ({ setIsOpen }) => {
                   (option) =>
                     option?.value === selectedId || option?.value === selected
                 )}
-<<<<<<< HEAD
             /> */}
-            <button
-              className="client_btn_text whitespace-nowrap w-fit"
-              onClick={() => setIsOpen(true)}
-            >
-              <Image src={plus} alt="plus" />
-              New Client
-            </button>
-=======
-            />
             {(isAdmin ||
               isFinancialApprover ||
               isAgencyApprover) && (
-              <button
-                className="client_btn_text whitespace-nowrap w-fit"
-                onClick={() => setIsOpen(true)}
-              >
-                <Image src={plus} alt="plus" />
-                New Client
-              </button>
-            )}
- 
->>>>>>> 0ce701c27f0faf35b8624edb6263b559dffeafbd
+                <button
+                  className="client_btn_text whitespace-nowrap w-fit"
+                  onClick={() => setIsOpen(true)}
+                >
+                  <Image src={plus} alt="plus" />
+                  New Client
+                </button>
+              )}
+
           </>
         )}
       </div>
@@ -248,28 +237,23 @@ const Header = ({ setIsOpen }) => {
             isFinancialApprover ||
             isAgencyApprover ||
             isAgencyCreator) && (
-            <Link
-              href={`/creation`}
-              onClick={() => {
-                setCampaignFormData({});
-                setActive(0);
-                setSubStep(0);
-              }}>
-              <button
-<<<<<<< HEAD
-                className={`new_plan_btn ${!profile?.clients?.[0]?.id && !isAdmin ? "!bg-[gray]" : ""}`}
-=======
-                className={`new_plan_btn ${
-                  !profile?.clients?.[0]?.id && !isAdmin ? "!bg-[gray]" : ""
-                }`}
->>>>>>> 0ce701c27f0faf35b8624edb6263b559dffeafbd
-                disabled={!profile?.clients?.[0]?.id && !isAdmin}
-              >
-                <Image src={white} alt="white" />
-                <p className="new_plan_btn_text">New media plan</p>
-              </button>
-            </Link>
-          )}
+              <Link
+                href={`/creation`}
+                onClick={() => {
+                  setCampaignFormData({});
+                  setActive(0);
+                  setSubStep(0);
+                }}>
+                <button
+                  className={`new_plan_btn ${!profile?.clients?.[0]?.id && !isAdmin ? "!bg-[gray]" : ""
+                    }`}
+                  disabled={!profile?.clients?.[0]?.id && !isAdmin}
+                >
+                  <Image src={white} alt="white" />
+                  <p className="new_plan_btn_text">New media plan</p>
+                </button>
+              </Link>
+            )}
 
           <div
             className="profile_container"
