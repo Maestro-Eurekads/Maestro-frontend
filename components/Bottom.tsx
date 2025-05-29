@@ -122,7 +122,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     return hasValidFormat;
   };
 
-  console.log("campaignFormData-campaignFormData", campaignFormData);
+  // console.log('campaignFormData-campaignFormData', campaignFormData)
 
   // Only reset formats when entering active === 4 if the user has NOT already proceeded from step 4 with a valid format
   useEffect(() => {

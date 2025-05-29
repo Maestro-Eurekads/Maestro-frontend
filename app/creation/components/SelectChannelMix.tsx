@@ -101,8 +101,7 @@ const SelectChannelMix = () => {
 
   // Debug data on mount
   useEffect(() => {
-    // console.log("SelectChannelMix - platformList:", platformList);
-    // console.log("SelectChannelMix - campaignFormData:", campaignFormData);
+    
   }, [platformList, campaignFormData, cId]);
 
   // Ensure component is mounted and data is ready

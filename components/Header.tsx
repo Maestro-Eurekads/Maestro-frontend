@@ -7,11 +7,9 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 import { FiLoader } from "react-icons/fi";
 import useCampaignHook from "../app/utils/useCampaignHook";
 import { useEffect, useState } from "react";
-// Removed unused import 'AllClientsCustomDropdown'
 import { useAppDispatch, useAppSelector } from "store/useStore";
 import AlertMain from "./Alert/AlertMain";
 import { getCreateClient } from "features/Client/clientSlice"; // Removed unused 'reset'
-import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { CustomSelect } from "app/homepage/components/CustomReactSelect";
 import { useActive } from "app/utils/ActiveContext";
@@ -23,15 +21,11 @@ import {
   extractLevelNameFilters,
 } from "app/utils/campaign-filter-utils";
 import { useUserPrivileges } from "utils/userPrivileges";
-import { el } from "date-fns/locale";
-import { useSearchParams } from "next/navigation";
 import { getFirstLetters } from "./Options";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 const Header = ({ setIsOpen }) => {
   const { data: session } = useSession();
-  const query = useSearchParams();
-  const campaignId = query.get("campaignId");
 
   if (!session) return null;
   // @ts-ignore
@@ -107,7 +101,7 @@ const Header = ({ setIsOpen }) => {
     const filteredClient = clients?.data?.find(
       (client) => client?.id === Number(clientId)
     );
-    console.log(clientId);
+    // console.log(clientId);
     fetchClientCampaign(clientId)
       .then((res) => {
         const campaigns = res?.data?.data || [];
@@ -149,7 +143,6 @@ const Header = ({ setIsOpen }) => {
     };
   }, [clients, selectedId]);
 
-  console.log('clients-clients', clients)
 
   return (
     <div id="header" className="relative w-full">
@@ -162,6 +155,38 @@ const Header = ({ setIsOpen }) => {
         ) : (
           <>
             <CustomSelect
+              options={(isAdmin ? clients?.data : profile?.clients)
+                ?.filter((c) => !!c?.client_name && !!c?.id && !!c?.createdAt)
+                ?.sort(
+                  (a, b) =>
+                    new Date(b?.createdAt || 0).getTime() -
+                    new Date(a?.createdAt || 0).getTime()
+                )
+                ?.map((c) => ({
+                  label: c?.client_name,
+                  value: c?.id.toString(),
+                }))}
+              className="min-w-[150px] z-[20]"
+              placeholder="Select client"
+              onChange={(value) => {
+                if (value) {
+                  localStorage.setItem(userType, value?.value);
+                  setSelected(value?.value);
+                  setSelectedId(value?.value);
+                }
+              }}
+              value={(isAdmin ? clients?.data : profile?.clients)
+                ?.map((c) => ({
+                  label: c.client_name,
+                  value: c.id?.toString(),
+                }))
+                .find(
+                  (option) =>
+                    option?.value === selectedId || option?.value === selected
+                )}
+            />
+
+            {/* {/* <CustomSelect
               options={(isAdmin ? clients?.data : profile?.clients)?.map(
                 (c) => ({
                   label: c?.client_name,
@@ -186,19 +211,19 @@ const Header = ({ setIsOpen }) => {
                   (option) =>
                     option?.value === selectedId || option?.value === selected
                 )}
-            />
+            /> */}
             {(isAdmin ||
               isFinancialApprover ||
               isAgencyApprover) && (
-              <button
-                className="client_btn_text whitespace-nowrap w-fit"
-                onClick={() => setIsOpen(true)}
-              >
-                <Image src={plus} alt="plus" />
-                New Client
-              </button>
-            )}
- 
+                <button
+                  className="client_btn_text whitespace-nowrap w-fit"
+                  onClick={() => setIsOpen(true)}
+                >
+                  <Image src={plus} alt="plus" />
+                  New Client
+                </button>
+              )}
+
           </>
         )}
       </div>
@@ -211,25 +236,23 @@ const Header = ({ setIsOpen }) => {
             isFinancialApprover ||
             isAgencyApprover ||
             isAgencyCreator) && (
-            <Link
-              href={`/creation`}
-              onClick={() => {
-                setCampaignFormData({});
-                setActive(0);
-                setSubStep(0);
-              }}
-            >
-              <button
-                className={`new_plan_btn ${
-                  !profile?.clients?.[0]?.id && !isAdmin ? "!bg-[gray]" : ""
-                }`}
-                disabled={!profile?.clients?.[0]?.id && !isAdmin}
-              >
-                <Image src={white} alt="white" />
-                <p className="new_plan_btn_text">New media plan</p>
-              </button>
-            </Link>
-          )}
+              <Link
+                href={`/creation`}
+                onClick={() => {
+                  setCampaignFormData({});
+                  setActive(0);
+                  setSubStep(0);
+                }}>
+                <button
+                  className={`new_plan_btn ${!profile?.clients?.[0]?.id && !isAdmin ? "!bg-[gray]" : ""
+                    }`}
+                  disabled={!profile?.clients?.[0]?.id && !isAdmin}
+                >
+                  <Image src={white} alt="white" />
+                  <p className="new_plan_btn_text">New media plan</p>
+                </button>
+              </Link>
+            )}
 
           <div
             className="profile_container"

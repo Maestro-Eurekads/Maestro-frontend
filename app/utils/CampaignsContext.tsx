@@ -215,7 +215,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             },
           }
         );
-        console.log("NEXT_PUBLIC_STRAPI_TOKEN?:", res?.data?.data);
+        // console.log("NEXT_PUBLIC_STRAPI_TOKEN?:", res?.data?.data);
         const data = res?.data?.data;
 
         if (!data) return;

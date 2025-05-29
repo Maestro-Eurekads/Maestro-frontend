@@ -909,7 +909,7 @@ export const Platforms = ({
   const uploadUpdatedCampaignToStrapi = useCallback(
     async (data: any) => {
       if (isUpdatingStrapi) {
-        console.log("Strapi update already in progress, queuing...");
+        
         return;
       }
 
