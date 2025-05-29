@@ -95,7 +95,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
    setPlatforms(data);
   }
   // Log custom_funnels to verify icon data
-  console.log("ConfiguredSetPage custom_funnels:", campaignFormData?.custom_funnels);
+  
  }, [campaignFormData]);
 
  const [validatedStages, setValidatedStages] = useState({

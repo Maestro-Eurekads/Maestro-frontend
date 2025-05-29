@@ -76,9 +76,6 @@ export const CellRenderer = ({
   };
 
 
-  // console.log('goalLevel-goalLevel', goalLevel)
-  // console.log('goalLevel-goalLevel', channel?.ad_sets?.length)
-
   // Channel cell rendering
   if (body === "channel") {
     return (
