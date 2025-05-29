@@ -13,8 +13,6 @@ const TableView = () => {
   const [expandedRows, setExpandedRows] = useState({})
   const { campaignFormData, setCampaignFormData } = useCampaigns()
   const [isOpen, setIsOpen] = useState(false)
-  const [mergedTableHeaders, setMergedTableHeaders] = useState([])
-  const [mergedTableBody, setMergedTableBody] = useState([])
   const [mergedTableHeadersByStage, setMergedTableHeadersByStage] = useState({})
   const [mergedTableBodyByStage, setMergedTableBodyByStage] = useState({})
   const [currentEditingStage, setCurrentEditingStage] = useState(null)
@@ -29,47 +27,6 @@ const TableView = () => {
 
   const processedData = extractPlatforms(campaignFormData)
 
-  // Define calculated fields - these are the only fields that should be aggregated
-  const calculatedFields = [
-    "impressions",
-    "reach",
-    "video_views",
-    "cpv",
-    "completed_view",
-    "cpcv",
-    "link_clicks",
-    "cpc",
-    "installs",
-    "cpi",
-    "engagements",
-    "cpe",
-    "app_open",
-    "cost__app_open",
-    "conversion",
-    "cost__conversion",
-    "forms_open",
-    "cost__opened_form",
-    "leads",
-    "cost__lead",
-    "lands",
-    "cpl",
-    "bounced_visits",
-    "costbounce",
-    "lead_visits",
-    "costlead",
-    "off_funnel_visits",
-    "cost__off_funnel",
-    "conversions",
-    "costconversion",
-    "generated_revenue",
-    "return_on_ad_spent",
-    "add_to_carts",
-    "cpatc",
-    "payment_infos",
-    "cppi",
-    "purchases",
-    "cpp",
-  ]
 
   const toggleRow = (index) => {
     setExpandedRows((prev) => ({

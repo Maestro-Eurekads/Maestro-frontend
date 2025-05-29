@@ -187,15 +187,6 @@ const Header = ({ setIsOpen }) => {
                     option?.value === selectedId || option?.value === selected
                 )}
             />
- 
-            <button
-              className="client_btn_text whitespace-nowrap w-fit"
-              onClick={() => setIsOpen(true)}
-            >
-              <Image src={plus} alt="plus" />
-              New Client
-            </button>
- 
             {(isAdmin ||
               isFinancialApprover ||
               isAgencyApprover) && (

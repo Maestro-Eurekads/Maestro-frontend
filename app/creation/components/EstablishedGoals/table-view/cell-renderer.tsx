@@ -135,6 +135,12 @@ export const CellRenderer = ({
     );
   }
 
+  if (goalLevel === "Channel level" && body === "audience_size") {
+    return "";
+  }
+  if (goalLevel === "Adset level" && body === "audience_size") {
+    return "";
+  }
   if (body === "audience") {
     return "";
   }
