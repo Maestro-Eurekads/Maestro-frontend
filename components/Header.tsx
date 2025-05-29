@@ -22,6 +22,7 @@ import {
 } from "app/utils/campaign-filter-utils";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { getFirstLetters } from "./Options";
+import { useSelectedDates } from "app/utils/SelectedDatesContext";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 const Header = ({ setIsOpen }) => {
@@ -47,6 +48,8 @@ const Header = ({ setIsOpen }) => {
     profile,
     setSelectedFilters,
   } = useCampaigns();
+  
+  const {setSelectedDates} = useSelectedDates()
 
   const { setActive, setSubStep } = useActive();
   const { fetchClientCampaign, fetchClientPOS } = useCampaignHook();
@@ -242,6 +245,10 @@ const Header = ({ setIsOpen }) => {
                   setCampaignFormData({});
                   setActive(0);
                   setSubStep(0);
+                  setSelectedDates({
+                    from: null,
+                    to:null
+                  })
                 }}>
                 <button
                   className={`new_plan_btn ${!profile?.clients?.[0]?.id && !isAdmin ? "!bg-[gray]" : ""
