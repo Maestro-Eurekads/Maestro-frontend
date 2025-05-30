@@ -36,14 +36,14 @@ interface OutletType {
   end_date: any;
 }
 
-const ResizeableElements = ({ funnelData, disableDrag }) => {
+const ResizeableElements = ({ funnelData, disableDrag, isOpen, setIsOpen, selectedStage, setSelectedStage }:{funnelData:any, disableDrag?:any, isOpen?:boolean, setIsOpen?:any, selectedStage?:string, setSelectedStage?:any}) => {
   const { funnelWidths } = useFunnelContext();
   const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({});
-  const [isOpen, setIsOpen] = useState(false);
+  // const [isOpen, setIsOpen] = useState(false);
+  // const [selectedStage, setSelectedStage] = useState("");
   const { range } = useDateRange();
   const { range: rrange } = useRange();
   const { campaignFormData, loadingCampaign } = useCampaigns();
-  const [selectedStage, setSelectedStage] = useState("");
   const [channelWidths, setChannelWidths] = useState<Record<string, number>>(
     {}
   );
@@ -387,11 +387,7 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
           );
         })
       )}
-      <AddNewChennelsModel
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-        selectedStage={selectedStage}
-      />
+
     </div>
   );
 };
