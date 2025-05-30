@@ -842,7 +842,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
-                      maxWidth: "100px",
+                      maxWidth: "230px",
                       minWidth: 0,
                       flex: "1 1 0",
                     }}
