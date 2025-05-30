@@ -186,6 +186,16 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   //   }
   // }, [cId]);
 
+  // media_plan_details: {
+  //   populate: ["internal_approver", "client_approver", "approved_by"]
+  // },
+  // budget_details: "*",
+  //   client_selection: "*",
+  //     user: true,
+  //       campaign_budget: { populate: ["budget_fees"] },
+  // channel_mix: { populate: { ...channelMixPopulate, stage_budget: "*" } },
+  // media_plan_approval: true
+
   const getActiveCampaign = useCallback(
     async (docId?: string) => {
       const campaignId = cId || docId;
@@ -200,7 +210,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             params: {
               populate: {
                 client: true,
-                media_plan_details: "*",
+                media_plan_details: {
+                  populate: ["internal_approver", "client_approver", "approved_by"]
+                },
                 budget_details: "*",
                 client_selection: "*",
                 user: true,
@@ -208,6 +220,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
                 channel_mix: {
                   populate: { ...channelMixPopulate, stage_budget: "*" },
                 },
+                media_plan_approval: true
               },
             },
             headers: {
@@ -301,10 +314,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
+<<<<<<< HEAD
+      await updateUsersWithCampaign(clientUsers?.map((uu) => uu?.id), response?.data?.data?.id);
+=======
       await updateUsersWithCampaign(
         clientUsers?.map((uu) => uu?.id),
         response?.data?.data?.id
       );
+>>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
       return response;
     } catch (error) {
       console.error("Error creating campaign:", error);

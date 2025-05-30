@@ -47,7 +47,6 @@ const FormatSelectionsSection: React.FC<FormatSelectionsSectionProps> = ({
       if (videoRef.current) {
         if (videoRef.current.paused) {
           videoRef.current.play().catch((error) => {
-            console.error("Error playing video:", error);
           });
         } else {
           videoRef.current.pause();
@@ -128,7 +127,7 @@ const FormatSelectionsSection: React.FC<FormatSelectionsSectionProps> = ({
     <SummarySection title="Your format selections" number={4}>
       <div>
         {midcapEditing.isEditing &&
-        midcapEditing.step === "Your format selections" ? (
+          midcapEditing.step === "Your format selections" ? (
           <FormatSelection />
         ) : (
           <>

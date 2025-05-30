@@ -336,6 +336,8 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 type DropdownOption = { label: string; value: string };
 type SelectedItem = { value: string; id: string; clientId: string };
 
+
+
 const MultiSelectDropdown = ({
 	label,
 	options,
@@ -347,48 +349,20 @@ const MultiSelectDropdown = ({
 	value: SelectedItem[];
 	onChange: (selected: SelectedItem[]) => void;
 }) => {
-	const { campaignFormData } = useCampaigns();
 	const [isOpen, setIsOpen] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
 	const dropdownRef = useRef<HTMLDivElement>(null);
-	const campaignId = campaignFormData?.campaign_id;
 
 	const toggleDropdown = () => setIsOpen((prev) => !prev);
 
-	const handleSelect = (option: DropdownOption) => {
-		const alreadySelected = value?.some((o) => o.value === option.value);
-		const campaignId = campaignFormData?.campaign_id;
-		const clientId = campaignFormData?.client_selection?.id;
-
-		if (clientId) {
-			const newItem: SelectedItem = {
-				value: option?.value,
-				id: campaignId ?? clientId,
-				clientId: clientId,
-			};
-			onChange([...value, newItem]);
+	const handleSelect = (option: any) => {
+		if (!value.includes(option?.value)) {
+			onChange([...value, option?.value]);
 		}
 	};
 
-
-
-	// Update selected items with `commentId` once it's available
-	useEffect(() => {
-		if (campaignId && campaignFormData?.client_selection?.id) {
-			const updated = value.map((item) => ({
-				...item,
-				id: campaignId, // Replace id with campaignId
-				clientId: campaignFormData?.client_selection.id,
-			}));
-			onChange(updated);
-		}
-	}, [campaignId]);
-
-
-
-
-	const handleRemove = (option: SelectedItem) => {
-		onChange(value.filter((item) => item.value !== option.value));
+	const handleRemove = (id: string) => {//@ts-ignore
+		onChange(value.filter((v) => v !== id));
 	};
 
 	const handleClickOutside = (event: MouseEvent) => {
@@ -403,12 +377,14 @@ const MultiSelectDropdown = ({
 		return () => document.removeEventListener("mousedown", handleClickOutside);
 	}, []);
 
-	const selectedValues = value?.map((v) => v.value);
+	const selectedValues = new Set(value);
 	const filteredOptions = options.filter(
-		(opt) =>
-			!selectedValues.includes(opt.value) &&
-			opt?.label?.toLowerCase()?.includes(searchTerm?.toLowerCase())
+		(opt) =>//@ts-ignore
+			!selectedValues.has(opt?.value) &&
+			opt.label.toLowerCase().includes(searchTerm.toLowerCase())
 	);
+	//@ts-ignore
+	const selectedOptions = options.filter((opt) => selectedValues.has(opt.value));
 
 	return (
 		<div className="relative w-full" ref={dropdownRef}>
@@ -419,18 +395,18 @@ const MultiSelectDropdown = ({
 				{value.length === 0 ? (
 					<span className="text-gray-600">{label}</span>
 				) : (
-					value?.map((option) => (
+					selectedOptions.map((opt) => (
 						<span
-							key={option.value}
+							key={opt.value}
 							className="flex items-center text-sm bg-gray-100 px-2 py-1 rounded-md text-gray-700"
 						>
-							{option.value}
+							{opt.label}
 							<button
 								type="button"
 								className="ml-1 hover:text-red-500"
 								onClick={(e) => {
 									e.stopPropagation();
-									handleRemove(option);
+									handleRemove(opt.value);
 								}}
 							>
 								<X size={14} />
@@ -456,8 +432,8 @@ const MultiSelectDropdown = ({
 						/>
 					</div>
 
-					{filteredOptions?.length > 0 ? (
-						filteredOptions?.map((option) => (
+					{filteredOptions.length > 0 ? (
+						filteredOptions.map((option) => (
 							<div
 								key={option.value}
 								className="px-4 py-2 cursor-pointer hover:bg-gray-100 text-sm"
@@ -466,7 +442,7 @@ const MultiSelectDropdown = ({
 									handleSelect(option);
 								}}
 							>
-								{option?.label}
+								{option.label}
 							</div>
 						))
 					) : (
@@ -478,6 +454,7 @@ const MultiSelectDropdown = ({
 	);
 };
 
+
 const ClientApproverDropdowns = ({
 	options,
 	option,
@@ -487,27 +464,28 @@ const ClientApproverDropdowns = ({
 	options: DropdownOption[];
 	option: DropdownOption[];
 	value: {
-		internal_approver: SelectedItem[];
-		client_approver: SelectedItem[];
+		internal_approver: string[];
+		client_approver: string[];
 	};
-	onChange: (field: string, selected: SelectedItem[]) => void;
+	onChange: (field: string, selected: string[]) => void;
 }) => {
 	return (
 		<div className="flex items-center gap-4 mt-5">
 			<MultiSelectDropdown
 				label="Internal Approver"
-				options={options}
-				value={value.internal_approver}
+				options={options}//@ts-ignore
+				value={value.internal_approver}//@ts-ignore
 				onChange={(selected) => onChange("internal_approver", selected)}
 			/>
 			<MultiSelectDropdown
 				label="Client Approver"
-				options={option}
-				value={value.client_approver}
+				options={option}//@ts-ignore
+				value={value.client_approver}//@ts-ignore
 				onChange={(selected) => onChange("client_approver", selected)}
 			/>
 		</div>
 	);
 };
+
 
 export default ClientApproverDropdowns;

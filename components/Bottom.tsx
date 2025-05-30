@@ -16,6 +16,7 @@ import dayjs from "dayjs";
 import { selectCurrency } from "./Options";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { extractObjectives } from "app/creation/components/EstablishedGoals/table-view/data-processor";
+import { useRouter } from "next/navigation";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -36,6 +37,8 @@ const CHANNEL_TYPES = [
 ];
 
 const Bottom = ({ setIsOpen }: BottomProps) => {
+
+  const router = useRouter()
   const { active, setActive, subStep, setSubStep } = useActive();
   const { midcapEditing } = useEditing();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
@@ -75,6 +78,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     requiredFields,
     currencySign,
   } = useCampaigns();
+
+  const [clientId, setClientId] = useState<string | null>(null);
+  // useEffect(() => {
+  //   if (typeof window !== "undefined") {
+  //     const storedClientId = localStorage.getItem(loggedInUser.id?.toString());
+  //     setClientId(storedClientId);
+  //   }
+  // }, [loggedInUser.id]);
 
   // --- Persist format selection for active === 4 ---
   const hasProceededFromFormatStep = useRef(false);
@@ -274,7 +285,38 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     setIsStepZeroValid(requiredFields.every(Boolean));
   }, [requiredFields, setIsStepZeroValid]);
 
+  // const handleEditClick = async () => {
+  //   try {
+  //     const res = await fetch(
+  //       `${process.env.NEXT_PUBLIC_STRAPI_URL}/users?filters[id][$eq]=${loggedInUser.id}&filters[clients][id][$eq]=${clientId}`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+  //         },
+  //       }
+  //     );
+
+  //     const json = await res.json();
+  //     const user = json;
+  //     const clients = user?.clients || [];
+  //     const hasAccess = clients?.some(client => client?.id === Number(clientId));
+
+  //     // localStorage.removeItem(loggedInUser.id?.toString());
+  //     router.push("/");
+  //     toast.error("You don't have access to this campaign.");
+
+  //   } catch (error) {
+  //     // localStorage.removeItem(loggedInUser.id?.toString());
+  //     router.push("/");
+  //     toast.error("You don't have access to this campaign.");
+  //     // window.location.reload();
+  //   }
+  // };
+
+
   const handleContinue = async () => {
+    // handleEditClick()
+
     if (active === 6) {
       if (midcapEditing.isEditing) {
         let errorMessage = "";
@@ -480,13 +522,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const cleanData = campaignData
       ? removeKeysRecursively(campaignData, [
-          "id",
-          "documentId",
-          "createdAt",
-          "publishedAt",
-          "updatedAt",
-          "_aggregated",
-        ])
+        "id",
+        "documentId",
+        "createdAt",
+        "publishedAt",
+        "updatedAt",
+        "_aggregated",
+      ])
       : {};
 
     const handleStepZero = async () => {
@@ -633,26 +675,26 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       let updatedCampaignFormData = campaignFormData;
 
       if (active === 5) {
-      const obj = extractObjectives(campaignFormData);
-      console.log("🚀 ~ handleStepFour ~ obj:", obj);
-      updatedCampaignFormData = {
-        ...campaignFormData,
-        table_headers: obj || {},
-      };
-      setCampaignFormData(updatedCampaignFormData);
+        const obj = extractObjectives(campaignFormData);
+        console.log("🚀 ~ handleStepFour ~ obj:", obj);
+        updatedCampaignFormData = {
+          ...campaignFormData,
+          table_headers: obj || {},
+        };
+        setCampaignFormData(updatedCampaignFormData);
       }
 
       await updateCampaignData({
-      ...cleanData,
-      channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
-        "id",
-        "isValidated",
-        "formatValidated",
-        "validatedStages",
-        "documentId",
-        "_aggregated",
-      ]),
-      table_headers: updatedCampaignFormData?.table_headers,
+        ...cleanData,
+        channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
+          "id",
+          "isValidated",
+          "formatValidated",
+          "validatedStages",
+          "documentId",
+          "_aggregated",
+        ]),
+        table_headers: updatedCampaignFormData?.table_headers,
       });
     };
 
@@ -747,7 +789,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setActive((prev) => prev + 1);
       }
     } catch (error) {
-      console.error("Error in handleContinue:", error);
     } finally {
       setLoading(false);
     }
@@ -890,8 +931,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                     {active === 0
                       ? "Start"
                       : active === 4 && !hasFormatSelected
-                      ? "Skip"
-                      : "Continue"}
+                        ? "Skip"
+                        : "Continue"}
                   </p>
                   <Image src={Continue} alt="Continue" />
                 </>

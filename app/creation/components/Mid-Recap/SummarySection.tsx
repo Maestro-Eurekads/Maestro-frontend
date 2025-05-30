@@ -37,13 +37,13 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
 
   const cleanData = campaignData
     ? removeKeysRecursively(campaignData, [
-        "id",
-        "documentId",
-        "createdAt",
-        "publishedAt",
-        "updatedAt",
-        "_aggregated"
-      ])
+      "id",
+      "documentId",
+      "createdAt",
+      "publishedAt",
+      "updatedAt",
+      "_aggregated"
+    ])
     : {};
 
   const handleConfirmStep = async () => {
@@ -66,7 +66,6 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
       await getActiveCampaign();
       closeEditStep();
     } catch (error) {
-      console.error("Error updating campaign:", error);
     } finally {
       setLoading(false);
     }

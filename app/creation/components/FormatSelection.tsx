@@ -161,7 +161,6 @@ const MediaOption = ({
 
   useEffect(() => {
     if (!STRAPI_URL || !STRAPI_TOKEN) {
-      console.error("Missing Strapi configuration:", { STRAPI_URL, STRAPI_TOKEN });
       debouncedToast("Server configuration error. Please contact support.", "error");
       return;
     }
@@ -210,9 +209,8 @@ const MediaOption = ({
         <div className="flex flex-col items-center">
           <div
             onClick={onSelect}
-            className={`relative text-center p-2 rounded-lg border transition ${
-              isSelected ? "border-blue-500 shadow-lg" : "border-gray-300"
-            } cursor-pointer`}
+            className={`relative text-center p-2 rounded-lg border transition ${isSelected ? "border-blue-500 shadow-lg" : "border-gray-300"
+              } cursor-pointer`}
           >
             <Image
               src={option.icon || "/placeholder.svg"}
@@ -230,9 +228,8 @@ const MediaOption = ({
           {isSelected && (
             <div className="flex items-center bg-[#F6F6F6] gap-2 mt-4 border rounded-[8px]">
               <button
-                className={`px-2 py-1 text-[#000000] text-lg font-semibold ${
-                  isDecreaseDisabled ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className={`px-2 py-1 text-[#000000] text-lg font-semibold ${isDecreaseDisabled ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                 onClick={() => !isDecreaseDisabled && onQuantityChange(-1)}
                 disabled={isDecreaseDisabled}
               >
@@ -287,9 +284,8 @@ const MediaOption = ({
                   {renderUploadedFile(localPreviews.map((lp) => lp.url), option.name, index)}
                 </Link>
                 <button
-                  className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${
-                    deletingPreviewId === prv.id ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-                  }`}
+                  className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${deletingPreviewId === prv.id ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                    }`}
                   onClick={() => handleDelete(prv.id)}
                   disabled={deletingPreviewId === prv.id}
                 >
@@ -909,7 +905,7 @@ export const Platforms = ({
   const uploadUpdatedCampaignToStrapi = useCallback(
     async (data: any) => {
       if (isUpdatingStrapi) {
-        
+
         return;
       }
 
@@ -931,9 +927,9 @@ export const Platforms = ({
                   num_of_visuals: fmt.num_of_visuals,
                   previews: Array.isArray(fmt.previews)
                     ? fmt.previews.map((preview: any) => ({
-                        id: String(preview.id),
-                        url: String(preview.url),
-                      }))
+                      id: String(preview.id),
+                      url: String(preview.url),
+                    }))
                     : [],
                 }));
               }
@@ -942,15 +938,15 @@ export const Platforms = ({
                   ...adSet,
                   format: adSet.format
                     ? adSet.format.map((fmt: any) => ({
-                        format_type: fmt.format_type,
-                        num_of_visuals: fmt.num_of_visuals,
-                        previews: Array.isArray(fmt.previews)
-                          ? fmt.previews.map((preview: any) => ({
-                              id: String(preview.id),
-                              url: String(preview.url),
-                            }))
-                          : [],
-                      }))
+                      format_type: fmt.format_type,
+                      num_of_visuals: fmt.num_of_visuals,
+                      previews: Array.isArray(fmt.previews)
+                        ? fmt.previews.map((preview: any) => ({
+                          id: String(preview.id),
+                          url: String(preview.url),
+                        }))
+                        : [],
+                    }))
                     : [],
                 }));
               }
@@ -961,12 +957,7 @@ export const Platforms = ({
         await updateCampaign(sanitizedData);
         debouncedToast("Campaign data saved successfully!", "success");
       } catch (error: any) {
-        console.error("Error in uploadUpdatedCampaignToStrapi:", {
-          message: error.message,
-          details: error.details,
-          response: error.response?.data,
-          status: error.response?.status,
-        });
+
         debouncedToast(`Failed to save campaign data: ${error.message}`, "error");
         throw error;
       } finally {
@@ -1068,7 +1059,6 @@ export const Platforms = ({
         adSetIndex?: number
       ) => {
         updateGlobalState(platformName, channelName, format, previews, adSetIndex).catch((error) => {
-          console.error("Error in debouncedUpdateGlobalState:", error);
         });
       },
       500,
@@ -1158,7 +1148,6 @@ export const Platforms = ({
       setCompletedDeletions((prev) => new Set(prev).add(previewId));
       debouncedToast("Preview deleted successfully!", "success");
     } catch (error: any) {
-      console.error("Error processing delete queue:", error);
       debouncedToast(`Failed to delete preview: ${error.message}`, "error");
       setCompletedDeletions((prev) => new Set(prev).add(previewId));
       setDeleteQueue((prev) => prev.slice(1));
@@ -1436,24 +1425,24 @@ export const FormatSelection = ({
       )}
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
-          <div className="flex justify-center gap-3">
-            <p className="font-medium">Channel Granularity</p>
-            <Switch
-              checked={view === "adset"}
-              onChange={handleToggleChange}
-              onColor="#5cd08b"
-              offColor="#3175FF"
-              handleDiameter={18}
-              uncheckedIcon={false}
-              checkedIcon={false}
-              height={24}
-              width={48}
-              borderRadius={24}
-              activeBoxShadow="0 0 2px 3px rgba(37, 99, 235, 0.2)"
-              className="react-switch"
-            />
-            <p className="font-medium">Ad Set Granularity</p>
-          </div>
+        <div className="flex justify-center gap-3">
+          <p className="font-medium">Channel Granularity</p>
+          <Switch
+            checked={view === "adset"}
+            onChange={handleToggleChange}
+            onColor="#5cd08b"
+            offColor="#3175FF"
+            handleDiameter={18}
+            uncheckedIcon={false}
+            checkedIcon={false}
+            height={24}
+            width={48}
+            borderRadius={24}
+            activeBoxShadow="0 0 2px 3px rgba(37, 99, 235, 0.2)"
+            className="react-switch"
+          />
+          <p className="font-medium">Ad Set Granularity</p>
+        </div>
 
         {campaignFormData?.funnel_stages
           ?.filter((ff) => !stageName || ff === stageName)
@@ -1469,9 +1458,8 @@ export const FormatSelection = ({
             return (
               <div key={index}>
                 <div
-                  className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${
-                    isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
-                  }`}
+                  className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] ${isOpen ? "rounded-t-[10px]" : "rounded-[10px]"
+                    }`}
                   onClick={() => toggleTab(stage.name)}
                 >
                   <div className="flex items-center gap-2">

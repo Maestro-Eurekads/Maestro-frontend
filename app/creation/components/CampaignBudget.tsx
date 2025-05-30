@@ -35,17 +35,14 @@ const CampaignBudget = () => {
     setIsEditing(true);
   }, []);
 
-  const [selectedOption, setSelectedOption] = useState({
-    value: "EUR",
-    label: "EUR",
-  });
+
 
   const [feeType, setFeeType] = useState(null);
   const [feeAmount, setFeeAmount] = useState("");
 
   const { campaignFormData, setCampaignFormData, campaignData } = useCampaigns();
 
-  
+
 
   const selectCurrency = [
     { value: "USD", label: "USD" },

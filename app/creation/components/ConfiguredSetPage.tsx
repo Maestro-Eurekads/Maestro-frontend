@@ -358,55 +358,6 @@ const ConfiguredSetPage = ({ netAmount }) => {
   );
  }
 
- // Helper: Recap line for a stage
- const getStageRecap = (stageName) => {
-  const stageData = campaignFormData?.channel_mix?.find(
-   (ch) => ch?.funnel_stage === stageName
-  );
-  const currency = campaignFormData?.campaign_budget?.currency || "EUR";
-  const stageBudget = stageData?.stage_budget?.fixed_value || 0;
-  const totalBudget = netAmount || 0;
-  const stagePercentage = totalBudget ? (stageBudget / totalBudget) * 100 : 0;
-
-  // Platform recap
-  let platformRecap = "";
-  let platformCount = 0;
-  let adSetCount = 0;
-  let platformsList: string[] = [];
-  mediaTypes.forEach((type) => {
-   if (stageData?.[type]) {
-    stageData[type].forEach((platform) => {
-     platformCount++;
-     platformsList.push(platform.platform_name);
-     if (platform?.ad_sets?.length) {
-      adSetCount += platform.ad_sets.length;
-     }
-    });
-   }
-  });
-
-  if (platformCount > 0) {
-   platformRecap = `${platformCount} platform${platformCount > 1 ? "s" : ""}`;
-   if (adSetCount > 0) {
-    platformRecap += `, ${adSetCount} ad set${adSetCount > 1 ? "s" : ""}`;
-   }
-   platformRecap += ` (${platformsList.join(", ")})`;
-  }
-
-  return (
-   <div className="mb-4 mt-2 text-sm text-gray-700 bg-[#F4F6FA] rounded px-4 py-2 border border-[#E5E7EB]">
-    <span className="font-semibold">Recap:</span>{" "}
-    Budget: <span className="font-bold">{getCurrencySymbol(currency)}{formatNumberWithCommas(stageBudget)}</span>
-    {" "}({stagePercentage.toFixed(1)}% of total)
-    {platformRecap && (
-     <>
-      {" "}• {platformRecap}
-     </>
-    )}
-   </div>
-  );
- };
-
  return (
   <div className="mt-12 flex items-start flex-col gap-12 w-full">
    {campaignFormData?.funnel_stages.map((stageName, index) => {
@@ -420,8 +371,11 @@ const ConfiguredSetPage = ({ netAmount }) => {
      (s) => s.name === stageName
     );
     if (!stage) {
+     //  console.warn(`Stage not found in custom_funnels: ${stageName}`);
      return null;
     }
+    // Log stage icon data
+    // console.log(`Stage: ${stage.name}, Icon: ${stage.icon}, ActiveIcon: ${stage.activeIcon}`);
     return (
      <div key={index} className="w-full">
       <div
@@ -431,13 +385,13 @@ const ConfiguredSetPage = ({ netAmount }) => {
        <div className="flex items-center gap-4">
         {stage?.icon ? (
          <Image
-          src={stage.icon}
+          src={stage.icon} // Use icon directly as string path
           alt={`${stage.name} icon`}
           width={20}
           height={20}
          />
         ) : (
-         <span className="w-5 h-5" />
+         <span className="w-5 h-5" /> // Placeholder for text-only funnels
         )}
         <p className="text-md font-semibold text-[#061237]">
          {stage.name}
@@ -445,13 +399,12 @@ const ConfiguredSetPage = ({ netAmount }) => {
        </div>
        <div className="flex items-center gap-2">
         <p
-         className={`font-semibold text-base ${
-          stageStatus[stage.name] === "Completed"
-           ? "text-green-500 flex items-center gap-2"
-           : stageStatus[stage.name] === "In progress"
+         className={`font-semibold text-base ${stageStatus[stage.name] === "Completed"
+          ? "text-green-500 flex items-center gap-2"
+          : stageStatus[stage.name] === "In progress"
            ? "text-[#3175FF]"
            : "text-[#061237] opacity-50"
-         }`}
+          }`}
         >
          {stageStatus[stage.name]}
          {stageStatus[stage.name] === "Completed" && <FaCheckCircle />}
@@ -466,13 +419,8 @@ const ConfiguredSetPage = ({ netAmount }) => {
        </div>
       </div>
 
-      {/* Recap line for this stage: show only when collapsed */}
-      {!openItems[stage.name] && getStageRecap(stage.name)}
-
       {openItems[stage.name] && (
        <>
-        {/* Recap line for this stage: removed from here */}
-
         <div className="pt-4 bg-[#FCFCFC] rounded-lg cursor-pointer border px-6 border-[rgba(6,18,55,0.1)]">
          <div className="flex mt-6 flex-col items-start gap-8">
           <div className="flex mb-8 justify-center gap-6">
@@ -640,16 +588,16 @@ const ConfiguredSetPage = ({ netAmount }) => {
                          platform?.ad_sets[0]?.extra_audiences
                           ?.length > 0
                           ? `${Number(
-                             110 *
-                              (platform?.ad_sets[0]?.extra_audiences
-                               ?.length +
-                               2)
-                            )}px`
+                           110 *
+                           (platform?.ad_sets[0]?.extra_audiences
+                            ?.length +
+                            2)
+                          )}px`
                           : platform?.ad_sets?.length > 1
-                          ? `${Number(
-                             110 * platform?.ad_sets?.length
-                            )}px`
-                          : "330px",
+                           ? `${Number(
+                            110 * platform?.ad_sets?.length
+                           )}px`
+                           : "330px",
                        }}
                       ></div>
                       <div
@@ -659,16 +607,16 @@ const ConfiguredSetPage = ({ netAmount }) => {
                          platform?.ad_sets[0]?.extra_audiences
                           ?.length > 0
                           ? `-${Number(
-                             121 *
-                              (platform?.ad_sets[0]?.extra_audiences
-                               ?.length +
-                               2)
-                            )}px`
+                           121 *
+                           (platform?.ad_sets[0]?.extra_audiences
+                            ?.length +
+                            2)
+                          )}px`
                           : platform?.ad_sets?.length > 1
-                          ? `-${Number(
-                             132 * platform?.ad_sets?.length
-                            )}px`
-                          : "-375px",
+                           ? `-${Number(
+                            132 * platform?.ad_sets?.length
+                           )}px`
+                           : "-375px",
                        }}
                       ></div>
                      </>
@@ -747,12 +695,12 @@ const ConfiguredSetPage = ({ netAmount }) => {
                          (p: any) =>
                           p.platform_name === platform.outlet
                            ? {
-                              ...p,
-                              budget: {
-                               ...p.budget,
-                               fixed_value: newBudget?.toString(),
-                              },
-                             }
+                            ...p,
+                            budget: {
+                             ...p.budget,
+                             fixed_value: newBudget?.toString(),
+                            },
+                           }
                            : p
                         ),
                        };
@@ -801,14 +749,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
                 {stageName?.funnel_stage === stage.name &&
                  platform?.ad_sets?.length > 1 &&
                  campaignFormData?.campaign_budget?.level === "Adset level" && (
-                  <div
-                    className="flex items-center gap-2 max-w-[260px] min-w-0"
-                    style={{
-                      flex: "1 1 0",
-                      minWidth: 0,
-                      overflow: "visible",
-                    }}
-                  >
+                  <div className="flex items-center gap-2">
                    <label
                     htmlFor={`${stage.name}-${platform?.outlet}`}
                     className="relative inline-block h-6 w-12 cursor-pointer rounded-full bg-gray-300 transition [-webkit-tap-highlight-color:_transparent] has-[:checked]:bg-blue-500 peer-checked:bg-blue-500"
@@ -836,20 +777,9 @@ const ConfiguredSetPage = ({ netAmount }) => {
                     />
                     <span className="absolute inset-y-0 left-0 w-6 h-6 rounded-full bg-white transition-transform duration-200 transform peer-checked:translate-x-6"></span>
                    </label>
-                   <div
-                    className="text-[#061237] text-nowrap text-sm font-semibold tracking-tighter"
-                    style={{
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      maxWidth: "100px",
-                      minWidth: 0,
-                      flex: "1 1 0",
-                    }}
-                    title="Auto-split budget across ad sets"
-                   >
+                   <p className="text-[#061237] text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap tracking-tighter">
                     Auto-split budget across ad sets
-                   </div>
+                   </p>
                   </div>
                  )}
                </div>
@@ -866,19 +796,19 @@ const ConfiguredSetPage = ({ netAmount }) => {
                 const adSetPercentage =
                  (ad_set?.budget?.percentage_value ||
                   platform?.budget?.fixed_value) &&
-                 Number(getAdSetBudget(ad_set))
+                  Number(getAdSetBudget(ad_set))
                   ? (
-                     (Number(getAdSetBudget(ad_set)) /
-                      Number(platform?.budget?.fixed_value)) *
-                     100
-                    ).toFixed(1)
+                   (Number(getAdSetBudget(ad_set)) /
+                    Number(platform?.budget?.fixed_value)) *
+                   100
+                  ).toFixed(1)
                   : "0";
 
                 const getAdSetExtraBudget = (adSet, extraIndex) => {
                  return adSet?.extra_audiences[extraIndex]?.budget?.fixed_value
                   ? Number(
-                     adSet?.extra_audiences[extraIndex]?.budget?.fixed_value
-                    )?.toFixed(2)
+                   adSet?.extra_audiences[extraIndex]?.budget?.fixed_value
+                  )?.toFixed(2)
                   : "0";
                 };
                 const getAdSetExtraBudgetPercentage = (adSet, extraIndex) => {
@@ -935,7 +865,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
                    <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[50px] rounded-[10px] items-center gap-2">
                     <div className="flex justify-between w-full px-4 items-center">
                      <div className="flex items-center gap-2">
-                      <span>{ad_set?.size ? Number(ad_set?.size).toLocaleString() : ""}</span>
+                      <span>{ad_set?.size}</span>
                      </div>
                     </div>
                    </div>
@@ -985,12 +915,12 @@ const ConfiguredSetPage = ({ netAmount }) => {
                                     percentage_value: p.budget
                                      ?.fixed_value
                                      ? (
-                                        (Number(newBudget) /
-                                         Number(
-                                          p.budget.fixed_value
-                                         )) *
-                                        100
-                                       ).toFixed(1)
+                                      (Number(newBudget) /
+                                       Number(
+                                        p.budget.fixed_value
+                                       )) *
+                                      100
+                                     ).toFixed(1)
                                      : "0",
                                    },
                                   };
@@ -1103,7 +1033,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
                       <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[50px] rounded-[10px] items-center gap-2">
                        <div className="flex justify-between w-full px-4 items-center">
                         <div className="flex items-center gap-2">
-                        <span>{addSet?.size ? Number(addSet?.size).toLocaleString() : ""}</span>
+                         <span>{addSet?.size}</span>
                         </div>
                        </div>
                       </div>
@@ -1161,12 +1091,12 @@ const ConfiguredSetPage = ({ netAmount }) => {
                                            percentage_value: p.budget
                                             ?.fixed_value
                                             ? (
-                                               (newBudget /
-                                                Number(
-                                                 p.budget.fixed_value
-                                                )) *
-                                               100
-                                              ).toFixed(1)
+                                             (newBudget /
+                                              Number(
+                                               p.budget.fixed_value
+                                              )) *
+                                             100
+                                            ).toFixed(1)
                                             : "0",
                                           },
                                          };
@@ -1297,10 +1227,10 @@ const ConfiguredSetPage = ({ netAmount }) => {
            onClick={
             validatedStages[stage.name]
              ? () =>
-                setValidatedStages((prev) => ({
-                 ...prev,
-                 [stage.name]: false,
-                }))
+              setValidatedStages((prev) => ({
+               ...prev,
+               [stage.name]: false,
+              }))
              : () => handleValidateClick(stage.name)
            }
            disabled={!isButtonEnabled(stage.name)}

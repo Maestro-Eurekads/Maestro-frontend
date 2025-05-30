@@ -123,27 +123,6 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaignFormData]);
 
-  // Prepare funnel stages for DoughnutChat
-  const funnelStages =
-    campaignFormData?.channel_mix
-      ?.filter((c) => Number(c?.stage_budget?.percentage_value) > 0)
-      ?.map((ch) => ch?.funnel_stage) || [];
-
-  // Prepare custom funnels for DoughnutChat
-  const customFunnels =
-    campaignFormData?.custom_funnels?.map((f) => ({
-      id: f.id || f.name,
-      name: f.name,
-      bg: tailwindToHex(f.color),
-    })) || [];
-
-  // Prepare insideText for DoughnutChat
-  const insideText = `${parseInt(
-    campaignFormData?.campaign_budget?.amount
-  ).toLocaleString()} ${getCurrencySymbol(
-    campaignFormData?.campaign_budget?.currency
-  )}`;
-
   return (
     <div>
       <div className="flex justify-between items-baseline">
@@ -214,16 +193,16 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
               <div className="campaign_phases_container mt-[24px]">
                 <div className="campaign_phases_container_one">
                   <DoughnutChat
-                    // data={campaignFormData?.channel_mix
-                    //   ?.filter(
-                    //     (c) => Number(c?.stage_budget?.percentage_value) > 0
-                    //   )
-                    //   ?.map((ch) =>
-                    //     Number(ch?.stage_budget?.percentage_value)?.toFixed(0)
-                    //   )}
-                    // color={campaignFormData?.channel_mix?.map((ch) =>
-                    //   getFunnelColor(ch?.funnel_stage)
-                    // )}
+                    data={campaignFormData?.channel_mix
+                      ?.filter(
+                        (c) => Number(c?.stage_budget?.percentage_value) > 0
+                      )
+                      ?.map((ch) =>
+                        Number(ch?.stage_budget?.percentage_value)?.toFixed(0)
+                      )}
+                    color={campaignFormData?.channel_mix?.map((ch) =>
+                      getFunnelColor(ch?.funnel_stage)
+                    )}
                     insideText={`${parseInt(
                       campaignFormData?.campaign_budget?.amount
                     ).toLocaleString()} ${getCurrencySymbol(

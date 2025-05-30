@@ -40,14 +40,12 @@ export default function PlatformSpending() {
     const customFunnels = campaignFormData?.custom_funnels || [];
 
     if (!channel_data?.length) {
-      // console.log("No channel data provided");
       return phases;
     }
 
     channel_data.forEach((stage) => {
       const stageName = stage?.funnel_stage;
       if (!stageName) {
-        // console.log("Skipping stage with no funnel_stage");
         return;
       }
 
@@ -127,7 +125,6 @@ export default function PlatformSpending() {
   useEffect(() => {
     if (campaignFormData?.channel_mix) {
       const data = extractPhasesData(campaignFormData.channel_mix);
-      // console.log("Updated phaseData:", data);
       setPhaseData(data);
     }
   }, [campaignFormData]);

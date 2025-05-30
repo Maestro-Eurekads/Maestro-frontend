@@ -60,7 +60,6 @@ export const KpiProvider = ({ children }) => {
 		} catch (error) {
 			setGetKpisError(error);
 			setIsLoadingKpis(false);
-			console.error("Error fetching KPIs:", error);
 		} finally {
 			setIsLoadingKpis(false);
 		}
@@ -85,7 +84,6 @@ export const KpiProvider = ({ children }) => {
 			setShowModal(false);
 		} catch (error) {
 			setUpdateKpisError(error);
-			console.error("Error updating KPIs:", error);
 		} finally {
 			setIsLoading(false);
 		}

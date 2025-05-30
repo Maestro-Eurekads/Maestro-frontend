@@ -290,10 +290,10 @@ const ResizeableElements = ({ funnelData, disableDrag, isOpen, setIsOpen, select
           const stage = campaignFormData?.custom_funnels?.find(
             (s) => s?.name === stageName
           );
-          console.log(" ResizeableElements ~ channelWidths:", stage?.color);
+
           const funn = funnelStages?.find((ff) => ff?.name === stageName);
           if (!stage) return null;
-          // console.log(stage);
+
           const channelWidth = funnelWidths[stage?.name] || 400;
           const isOpen = openChannels[stage?.name] || false; // Get open state by ID
 

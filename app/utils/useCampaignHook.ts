@@ -32,8 +32,7 @@ const useCampaignHook = () => {
         }
       );
       setAllClients(res?.data?.data || []);
-    } catch (err) {
-      console.error("An error occurred while fetching clients:", err);
+    } catch (err) { 
       setError(err.message || "Failed to fetch clients");
     } finally {
       setLoadingClients(false);
@@ -41,28 +40,65 @@ const useCampaignHook = () => {
   }, []);
 
   // Fetch client campaigns
+  // const fetchClientCampaign = async (clientID) => {
+  //   try {
+  //     return await axios.get(
+  //       // @ts-ignore
+  //       `${
+  //         process.env.NEXT_PUBLIC_STRAPI_URL
+  //       }/campaigns?filters[client][$eq]=${clientID}${
+  //         session?.user?.data?.user?.user_type?.includes("client")
+  //           ? `&filters[user][$eq]=${session?.user?.id}`
+  //           : ""
+  //       }&populate[media_plan_details]=*&populate[budget_details]=*&populate[campaign_budget][populate][budget_fees]=*&populate[client_selection]=*&populate[channel_mix][populate][social_media][populate]=*&populate[channel_mix][populate][display_networks][populate]=*&populate[channel_mix][populate][search_engines][populate]=*&populate[channel_mix][populate][streaming][populate]=*&populate[channel_mix][populate][ooh][populate]=*&populate[channel_mix][populate][broadcast][populate]=*&populate[channel_mix][populate][messaging][populate]=*&populate[channel_mix][populate][print][populate]=*&populate[channel_mix][populate][e_commerce][populate]=*&populate[channel_mix][populate][in_game][populate]=*&populate[channel_mix][populate][mobile][populate]=*`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+  //         },
+  //       }
+  //     );
+  //   } catch (err) { 
+  //     throw err;
+  //   }
+  // };
   const fetchClientCampaign = async (clientID) => {
-    try {
-      return await axios.get(
-        // @ts-ignore
-        `${
-          process.env.NEXT_PUBLIC_STRAPI_URL
-        }/campaigns?filters[client][$eq]=${clientID}${
-          session?.user?.data?.user?.user_type?.includes("client")
-            ? `&filters[user][$eq]=${session?.user?.id}`
-            : ""
-        }&populate[media_plan_details]=*&populate[budget_details]=*&populate[campaign_budget][populate][budget_fees]=*&populate[client_selection]=*&populate[channel_mix][populate][social_media][populate]=*&populate[channel_mix][populate][display_networks][populate]=*&populate[channel_mix][populate][search_engines][populate]=*&populate[channel_mix][populate][streaming][populate]=*&populate[channel_mix][populate][ooh][populate]=*&populate[channel_mix][populate][broadcast][populate]=*&populate[channel_mix][populate][messaging][populate]=*&populate[channel_mix][populate][print][populate]=*&populate[channel_mix][populate][e_commerce][populate]=*&populate[channel_mix][populate][in_game][populate]=*&populate[channel_mix][populate][mobile][populate]=*`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-          },
-        }
-      );
-    } catch (err) {
-      console.error("Error fetching client campaigns:", err);
-      throw err;
-    }
-  };
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
+    const token = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
+
+    const isClient = session?.user?.data?.user?.user_type?.includes("client");
+    const userFilter = isClient ? `&filters[user][$eq]=${session?.user?.id}` : "";
+
+    const url = `${baseUrl}/campaigns?filters[client][$eq]=${clientID}${userFilter}` +
+      // `&populate[media_plan_details][populate][client_approver]=*` +
+      // `&populate[media_plan_details][populate][internal_approver]=*` + 
+      `&populate[budget_details]=*` +
+      `&populate[campaign_budget][populate][budget_fees]=*` +
+      `&populate[client_selection]=*` +
+      `&populate[channel_mix][populate][social_media][populate]=*` +
+      `&populate[channel_mix][populate][display_networks][populate]=*` +
+      `&populate[channel_mix][populate][search_engines][populate]=*` +
+      `&populate[channel_mix][populate][streaming][populate]=*` +
+      `&populate[channel_mix][populate][ooh][populate]=*` +
+      `&populate[channel_mix][populate][broadcast][populate]=*` +
+      `&populate[channel_mix][populate][messaging][populate]=*` +
+      `&populate[channel_mix][populate][print][populate]=*` +
+      `&populate[channel_mix][populate][e_commerce][populate]=*` +
+      `&populate[channel_mix][populate][in_game][populate]=*` +
+      `&populate[channel_mix][populate][mobile][populate]=*`;
+
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response;
+  } catch (err) {
+    throw err;
+  }
+};
+
 
   // Fetch client purchase orders
   const fetchClientPOS = async (clientID) => {
@@ -75,8 +111,7 @@ const useCampaignHook = () => {
           },
         }
       );
-    } catch (err) {
-      console.error("Error fetching client POs:", err);
+    } catch (err) { 
       throw err;
     }
   };
@@ -92,8 +127,7 @@ const useCampaignHook = () => {
           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
         },
       });
-    } catch (err) {
-      console.error("Error fetching users:", err);
+    } catch (err) { 
       throw err;
     }
   };

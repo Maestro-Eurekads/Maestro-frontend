@@ -230,7 +230,6 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
         setClientCampaignData(res);
       } catch (err) {
-        console.error("Campaign fetch failed", err);
       } finally {
         setLoading(false);
       }
@@ -246,7 +245,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
   //   const fetchData = async () => {
   //     const clientID = localStorage.getItem(userType.toString()) || allClients[0]?.id
   //     setLoading(true)
-  //     console.log('clientID-clientID', clientID)
+
 
   //     try {
   //       const res = allEmpty //@ts-ignore

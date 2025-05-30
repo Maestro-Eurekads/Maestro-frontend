@@ -105,10 +105,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     const dailyWidth = calculateDailyWidth(containerWidth, endMonth);
     // console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth);
     const baseStep = range === "Month" ? dailyWidth : 50;
-    // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
     const adjustmentPerStep = 0; // Decrease each next step by 10
     const snapPoints = [];
-    // console.log("🚀 ~ snapToTimeline ~ snapPoints:", snapPoints);
 
     let currentSnap = 0;
     let step = baseStep;
@@ -116,7 +114,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     // Generate snap points with decreasing step size
     while (currentSnap <= containerWidth) {
       snapPoints.push(currentSnap);
-      // console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
       currentSnap += step;
       step = Math.max(
         range === "Month" ? dailyWidth : 50,
@@ -130,7 +127,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         : prev
     );
 
-    // console.log("Closest custom snap:", closestSnap);
+
     return closestSnap;
   };
 

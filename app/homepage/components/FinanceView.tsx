@@ -48,7 +48,6 @@ function FinanceView({ setOpenModal, userRole }) {
 
   const handleDeletePO = async () => {
     if (!selectedRow?.documentId) {
-      console.error("No documentId for deletion");
       setLoading(false);
       return;
     }
@@ -71,13 +70,11 @@ function FinanceView({ setOpenModal, userRole }) {
         setClientPOs(Array.isArray(res?.data?.data) ? res.data.data : []);
         setCurrentPage(1); // Reset to page 1 after deletion
       } catch (fetchError) {
-        console.error("Error fetching POs:", fetchError);
         setClientPOs([]);
       } finally {
         setFetchingPO(false);
       }
     } catch (error) {
-      console.error("Error deleting PO:", error);
     } finally {
       setLoading(false);
     }

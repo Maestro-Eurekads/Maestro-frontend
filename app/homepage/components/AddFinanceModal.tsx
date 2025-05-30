@@ -130,7 +130,6 @@ const AddFinanceModal = ({
           }));
           setClientCampaigns(newOption);
         } catch (err) {
-          console.log(err);
         } finally {
           setLoadingCam(false);
         }
@@ -154,7 +153,6 @@ const AddFinanceModal = ({
         }));
         setUsers(newOpt);
       } catch (err) {
-        console.log(err);
       } finally {
         setLoadingUser(false);
       }
@@ -176,7 +174,6 @@ const AddFinanceModal = ({
         }));
         setFinancialUsers(newOpt);
       } catch (err) {
-        console.log(err);
       } finally {
         setLoadingUser(false);
       }
@@ -305,7 +302,6 @@ const AddFinanceModal = ({
       );
       return response.data.data; // An array of POs with the same PO_number
     } catch (err) {
-      console.error("Error checking PO number:", err);
       return [];
     }
   };
@@ -375,7 +371,6 @@ const AddFinanceModal = ({
         setClientPOs(res?.data?.data || []);
       });
     } catch (err: any) {
-      console.error("Error creating PO:", err);
       const errorMessage =
         err?.response?.data?.error?.message || "An unexpected error occurred";
 
