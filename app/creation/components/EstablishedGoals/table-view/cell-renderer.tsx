@@ -19,6 +19,7 @@ export const CellRenderer = ({
   nrColumns,
   nrCells,
   toggleNRCell,
+  hasOfflineChannel
 }) => {
   const { campaignFormData } = useCampaigns();
 
@@ -142,6 +143,10 @@ export const CellRenderer = ({
     return "";
   }
 
+  if( body === "grp" && !hasOfflineChannel) {
+    return "" ;
+  }
+
   // Handle calculated fields
   const calculatedFields = [
     "impressions",
@@ -263,7 +268,7 @@ export const CellRenderer = ({
           displayValue = `${formatNumber(numericValue * 100)}%`;
         } else {
           // It's already a percentage value (like 10, 20, etc.)
-          displayValue = `${formatNumber(numericValue)}%`;
+          displayValue = `${formatNumber(Number.parseFloat(numericValue.toFixed(1)))}%`;
         }
       }
     } else if (isCurrencyType) {
@@ -274,7 +279,7 @@ export const CellRenderer = ({
     } else if (isSecondsType) {
       // Format as seconds with commas
       if (!displayValue.toString().includes("secs")) {
-        displayValue = `${formatNumber(Math.round(numericValue))}secs`;
+        displayValue = `${formatNumber((numericValue.toFixed(1)))}secs`;
       }
     } else {
       // Format as regular number with commas

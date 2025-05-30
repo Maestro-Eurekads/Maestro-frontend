@@ -10,6 +10,7 @@ const defaultHeaders = [
   { name: "Impressions", showInput: false, type: "number" },
   { name: "Frequency", showInput: true, type: "number" },
   { name: "Reach", showInput: false, type: "number" },
+  { name: "GRP", showInput: true, type: "number" },
 ];
 
 export const tableHeaders = {
