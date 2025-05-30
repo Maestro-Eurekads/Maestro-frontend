@@ -217,11 +217,12 @@ const ResizeableElements = ({ funnelData, disableDrag, isOpen, setIsOpen, select
           initialPositions[stageName] = startDateIndex;
         }
       });
+          
 
       setChannelWidths(initialWidths);
       setChannelPositions(initialPositions);
     }
-  }, [campaignFormData?.funnel_stages, containerWidth]);
+  }, [campaignFormData?.funnel_stages, containerWidth, campaignFormData?.campaign_timeline_start_date]);
 
   return (
     <div
@@ -290,7 +291,7 @@ const ResizeableElements = ({ funnelData, disableDrag, isOpen, setIsOpen, select
           const stage = campaignFormData?.custom_funnels?.find(
             (s) => s?.name === stageName
           );
-          console.log(" ResizeableElements ~ channelWidths:", stage?.color);
+          // console.log(" ResizeableElements ~ channelWidths:", stage?.color);
           const funn = funnelStages?.find((ff) => ff?.name === stageName);
           if (!stage) return null;
           // console.log(stage);
