@@ -10,118 +10,92 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 import customicon from "../../public/social/customicon.png";
 import Modal from "./Modal";
 import AdSetsFlow from "../../app/creation/components/common/AdSetsFlow";
-import SelectChannelMix from "../../app/creation/components/SelectChannelMix";
-import { removeKeysRecursively } from "utils/removeID";
-import axios from "axios";
-import { FaSpinner } from "react-icons/fa";
 
 const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
   const [selected, setSelected] = useState({});
   const [validatedStages, setValidatedStages] = useState({});
-  const { campaignFormData, setCampaignFormData, setCopy, cId, campaignData } =
-      useCampaigns();
+  const { campaignFormData, setCampaignFormData, platformList, campaignData } =
+    useCampaigns();
   const [openChannelTypes, setOpenChannelTypes] = useState({});
   const [showMoreMap, setShowMoreMap] = useState({});
   const [stageStatuses, setStageStatuses] = useState({});
   const ITEMS_TO_SHOW = 6;
-  const [newlySelected, setNewlySelected] = useState([]);
+  const [newlySelected, setNewlySelected] = useState([])
   const [openAdset, setOpenAdset] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-    const [id, setId] = useState(null);
-
-  const sendUpdatedDataToAPI = async (updatedData) => {
-    try {
-      setDeleting(true);
-      const response = await axios.put(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
-        {
-          data: {
-            ...removeKeysRecursively(campaignData, [
-              "id",
-              "documentId",
-              "createdAt",
-              "publishedAt",
-              "updatedAt",
-              "_aggregated",
-            ]),
-            channel_mix: removeKeysRecursively(updatedData?.channel_mix, [
-              "id",
-              "isValidated",
-              "validatedStages",
-              "documentId",
-              ,
-              "_aggregated",
-            ]),
-          },
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-          },
-        }
-      );
-
-      // console.log("Campaign data updated successfully", response.data);
-    } catch (error) {
-      console.error("Error updating campaign data:", error);
-    } finally {
-      setDeleting(false);
-      setId(null);
-    }
-  };
 
   useEffect(() => {
-    if (
-      campaignFormData?.channel_mix?.length > 0 &&
-      campaignData?.channel_mix?.length > 0
-    ) {
-      setNewlySelected(() => {
-        const newlySelectedPlatforms = [];
+    if (campaignFormData?.funnel_stages?.length > 0) {
+      const initialOpenItems = campaignFormData.funnel_stages.reduce(
+        (acc, stage) => {
+          acc[stage] = validatedStages[stage] ? false : true;
+          return acc;
+        },
+        {}
+      );
+      setOpenItems(initialOpenItems);
+    }
 
-        campaignFormData?.channel_mix?.forEach((formDataItem) => {
-          const campaignDataItem = campaignData.channel_mix?.find(
-            (item) => item.funnel_stage === formDataItem.funnel_stage
-          );
+    if (campaignFormData?.channel_mix?.length > 0) {
+      const initialSelected = {};
+      campaignFormData.channel_mix.forEach((stage) => {
+        const stageName = stage.funnel_stage;
+        if (!initialSelected[stageName]) {
+          initialSelected[stageName] = {};
+        }
+        const channelTypes = [
+          "social_media",
+          "display_networks",
+          "search_engines",
+          "streaming",
+          "mobile",
+          "messaging",
+          "in_game",
+          "e_commerce",
+          "broadcast",
+          "print",
+          "ooh",
+        ];
 
-          if (campaignDataItem) {
-            Object.keys(formDataItem).forEach((categoryKey) => {
-              console.log("🚀 ~ Object.keys ~ categoryKey:", categoryKey);
-              if (
-                categoryKey !== "funnel_stage" &&
-                categoryKey !== "id" &&
-                categoryKey !== "funnel_stage_timeline_start_date" &&
-                categoryKey !== "funnel_stage_timeline_end_date" &&
-                categoryKey !== "stage_budget"
-              ) {
-                const formDataPlatforms =
-                  formDataItem[categoryKey]?.map(
-                    (platform) => platform.platform_name
-                  ) || [];
-                const campaignDataPlatforms =
-                  campaignDataItem[categoryKey]?.map(
-                    (platform) => platform.platform_name
-                  ) || [];
-
-                formDataPlatforms.forEach((platformName) => {
-                  if (!campaignDataPlatforms.includes(platformName)) {
-                    newlySelectedPlatforms.push({
-                      stageName: formDataItem.funnel_stage,
-                      category: categoryKey,
-                      platformName,
-                    });
-                  }
-                });
+        channelTypes.forEach((channel) => {
+          if (!initialSelected[stageName][channel]) {
+            initialSelected[stageName][channel] = [];
+          }
+          const ch = stage[channel];
+          if (Array.isArray(ch)) {
+            ch.forEach((platform) => {
+              if (platform?.platform_name) {
+                initialSelected[stageName][channel].push(
+                  platform.platform_name
+                );
               }
             });
           }
         });
-
-        return newlySelectedPlatforms;
       });
+      setSelected(initialSelected);
     }
-  }, [campaignFormData?.channel_mix, campaignData?.channel_mix]);
+
+    if (campaignFormData?.validatedStages) {
+      setValidatedStages(campaignFormData.validatedStages);
+    }
+
+    // Ensure Awareness has an empty initial selection if not present
+    if (!selected["Awareness"]) {
+      setSelected((prev) => ({
+        ...prev,
+        Awareness: {
+          "Social media": [],
+          "Display networks": [],
+          "Search engines": [],
+        },
+      }));
+    }
+  }, [
+    campaignFormData?.funnel_stages,
+    campaignFormData?.channel_mix,
+    campaignFormData?.validatedStages,
+  ]);
 
   const toggleItem = (stage) => {
     setOpenItems((prev) => ({
@@ -172,8 +146,8 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
         : [...categorySelection, platformName];
       const platformObjects = newCategorySelection.map((name) => {
         const existingPlatform = prevFormData.channel_mix
-          ?.find((item) => item.funnel_stage === stageName)
-          ?.[categoryKey]?.find((platform) => platform.platform_name === name);
+          ?.find((item) => item.funnel_stage === stageName)?.[categoryKey]
+          ?.find((platform) => platform.platform_name === name);
 
         return existingPlatform || { platform_name: name };
       });
@@ -206,10 +180,9 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
     setNewlySelected((prevNewlySelected) => {
       const originalPlatforms =
         campaignData.channel_mix
-          ?.find((item) => item.funnel_stage === stageName)
-          ?.[category.toLowerCase().replaceAll(" ", "_")]?.map(
-            (platform) => platform.platform_name
-          ) || [];
+          ?.find((item) => item.funnel_stage === stageName)?.[
+          category.toLowerCase().replaceAll(" ", "_")
+        ]?.map((platform) => platform.platform_name) || [];
 
       const isNewlyAdded = !originalPlatforms.includes(platformName);
 
@@ -289,12 +262,285 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
                 />
               </svg>
             </button>
-            <SelectChannelMix selectedStage={selectedStage} />
+            <div className="card bg-base-100 overflow-y-auto max-h-[60vh] w-full">
+              <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
+                {campaignFormData.funnel_stages
+                  .filter((st) => st === selectedStage)
+                  .map((stageName, index) => {
+                    const stage = campaignFormData?.custom_funnels?.find(
+                      (s) => s.name === selectedStage
+                    );
+                    const funn = funnelStages?.find(
+                      (f) => f.name === stageName
+                    );
+                    if (!stage) return null;
+
+                    return (
+                      <div key={index}>
+                        <div
+                          className={`flex justify-between items-center p-6 gap-3 w-full h-[72px] bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
+                  ${openItems[stage.name]
+                              ? "rounded-t-[10px]"
+                              : "rounded-[10px]"
+                            }`}
+                          onClick={() => toggleItem(stage.name)}
+                        >
+                          <div className="flex items-center gap-2">
+                            {funn?.icon ? (
+                              <Image
+                                src={funn.icon}
+                                alt={stage.name}
+                                width={20}
+                                height={20}
+                              />
+                            ) : (
+                              <Image
+                                src={customicon}
+                                alt={stage.name}
+                                width={20}
+                                height={20}
+                              />
+                            )}
+                            <p className="w-[119px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
+                              {stage.name}
+                            </p>
+                          </div>
+                          {validatedStages[stage.name] ? (
+                            <div className="flex items-center gap-2">
+                              <Image
+                                className="w-5 h-5 rounded-full p-1 bg-green-500"
+                                src={checkmark}
+                                alt="Completed"
+                              />
+                              <p className="text-green-500 font-semibold">
+                                Completed
+                              </p>
+                            </div>
+                          ) : stage.statusIsActive ? (
+                            <p className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF]">
+                              {stage.status}
+                            </p>
+                          ) : (
+                            <p className="mx-auto w-[86px] h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] opacity-50">
+                              Not started
+                            </p>
+                          )}
+                          <div>
+                            <Image
+                              src={openItems[stage.name] ? up : down2}
+                              alt={openItems[stage.name] ? "up" : "down"}
+                            />
+                          </div>
+                        </div>
+
+                        {openItems[stage.name] && (
+                          <div className="card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px]">
+                            {Object.entries(platformList).map(
+                              ([type, channels]) => (
+                                <div
+                                  key={type}
+                                  className="card_bucket_container_main p-6"
+                                >
+                                  <div
+                                    className="flex justify-between items-center cursor-pointer rounded-md mb-4"
+                                    onClick={(e) =>
+                                      toggleChannelType(e, stage.name, type)
+                                    }
+                                  >
+                                    <h2 className="font-bold capitalize text-[18px]">
+                                      {type} Channels
+                                    </h2>
+                                    <Image
+                                      src={
+                                        openChannelTypes[
+                                          `${stage.name}-${type}`
+                                        ]
+                                          ? up
+                                          : down2
+                                      }
+                                      alt={
+                                        openChannelTypes[
+                                          `${stage.name}-${type}`
+                                        ]
+                                          ? "up"
+                                          : "down"
+                                      }
+                                      width={24}
+                                      height={24}
+                                    />
+                                  </div>
+
+                                  <>
+                                    {Object.entries(channels).length === 0 ? (
+                                      <p>No channels available for {type}</p>
+                                    ) : (
+                                      Object.entries(channels).map(
+                                        ([channelName, platforms]) =>
+                                          platforms?.length > 0 ? (
+                                            <div
+                                              key={channelName}
+                                              className="mb-6"
+                                            >
+                                              <p className="capitalize font-semibold mb-4">
+                                                {channelName?.replace("_", " ")}
+                                              </p>
+                                              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                                                {platforms
+                                                  .slice(
+                                                    0,
+                                                    showMoreMap[
+                                                      `${stage.name}-${channelName}`
+                                                    ]
+                                                      ? platforms.length
+                                                      : ITEMS_TO_SHOW
+                                                  )
+                                                  .map((platform, pIndex) => {
+                                                    const isSelected = selected[
+                                                      stage.name
+                                                    ]?.[
+                                                      channelName
+                                                        ?.replace(" ", "")
+                                                        ?.replace("-", "")
+                                                        ?.toLowerCase()
+                                                    ]?.includes(
+                                                      platform.platform_name
+                                                    );
+                                                    return (
+                                                      <div
+                                                        key={pIndex}
+                                                        className={`cursor-pointer flex flex-row justify-between items-center p-4 gap-2 w-[250px] min-h-[62px] bg-white 
+                                  border rounded-[10px] ${isSelected
+                                                            ? "border-[#3175FF]"
+                                                            : "border-[rgba(0,0,0,0.1)]"
+                                                          }`}
+                                                        onClick={(e) =>
+                                                          handlePlatformClick(
+                                                            e,
+                                                            stage.name,
+                                                            channelName
+                                                              ?.replace(" ", "")
+                                                              ?.replace("-", "")
+                                                              ?.toLowerCase(),
+                                                            platform.platform_name,
+                                                            type
+                                                          )
+                                                        }
+                                                      >
+                                                        <div className="flex items-center gap-2">
+                                                          {getPlatformIcon(
+                                                            platform.platform_name
+                                                          ) ? (
+                                                            <Image
+                                                              src={
+                                                                getPlatformIcon(
+                                                                  platform.platform_name
+                                                                ) ||
+                                                                "/placeholder.svg"
+                                                              }
+                                                              alt={
+                                                                platform.platform_name
+                                                              }
+                                                              width={20}
+                                                              height={20}
+                                                            />
+                                                          ) : null}
+                                                          <p className="min-h-[22px] font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237]">
+                                                            {
+                                                              platform.platform_name
+                                                            }
+                                                          </p>
+                                                        </div>
+                                                        <div
+                                                          className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${isSelected
+                                                            ? "bg-[#3175FF]"
+                                                            : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
+                                                            }`}
+                                                        >
+                                                          {isSelected && (
+                                                            <Image
+                                                              src={
+                                                                checkmark ||
+                                                                "/placeholder.svg"
+                                                              }
+                                                              alt="selected"
+                                                              className="w-3 h-3"
+                                                              width={20}
+                                                              height={20}
+                                                            />
+                                                          )}
+                                                        </div>
+                                                      </div>
+                                                    );
+                                                  })}
+                                              </div>
+                                              {platforms.length >
+                                                ITEMS_TO_SHOW && (
+                                                  <div className="flex justify-center mt-4">
+                                                    <button
+                                                      onClick={() =>
+                                                        toggleShowMore(
+                                                          `${stage.name}-${channelName}`
+                                                        )
+                                                      }
+                                                      className="text-blue-500 font-medium flex items-center gap-1"
+                                                    >
+                                                      {showMoreMap[
+                                                        `${stage.name}-${channelName}`
+                                                      ] ? (
+                                                        <>
+                                                          Show less
+                                                          <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            width="20"
+                                                            height="20"
+                                                            viewBox="0 0 24 24"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="2"
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                          >
+                                                            <path d="m18 15-6-6-6 6" />
+                                                          </svg>
+                                                        </>
+                                                      ) : (
+                                                        <>
+                                                          Show more
+                                                          <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            width="20"
+                                                            height="20"
+                                                            viewBox="0 0 24 24"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="2"
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                          >
+                                                            <path d="m6 9 6 6 6-6" />
+                                                          </svg>
+                                                        </>
+                                                      )}
+                                                    </button>
+                                                  </div>
+                                                )}
+                                            </div>
+                                          ) : null
+                                      )
+                                    )}
+                                  </>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
             <div className="w-fit ml-auto">
-              <button
-                className="w-fit bg-blue-500 text-white rounded-md p-2 text-[16px]"
-                onClick={() => setOpenAdset(true)}
-              >
+              <button className="w-fit bg-blue-500 text-white rounded-md p-2 text-[16px]" onClick={() => setOpenAdset(true)}>
                 Configure Adset and Audiences
               </button>
             </div>
@@ -302,7 +548,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
         </div>
       )}
       <Modal isOpen={openAdset} onClose={() => setOpenAdset(false)}>
-        <div className="bg-white w-[900px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
+        <div className="bg-white w-[900px] p-2 rounded-lg">
           <button
             className="flex justify-end w-fit ml-auto"
             onClick={() => setOpenAdset(false)}
@@ -332,14 +578,9 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
           <div className="w-fit ml-auto">
             <button
               className="bg-blue-500 text-white rounded-md p-2"
-              onClick={async() => {
-                await sendUpdatedDataToAPI(campaignFormData)
-                await setOpenAdset(false);
-                await setIsOpen(false);
-              }}
-              disabled={deleting}
+              onClick={() => setOpenAdset(false)}
             >
-              {deleting ? <FaSpinner className="animate-spin"/> :"Confirm Changes"}
+              Confirm Changes
             </button>
           </div>
         </div>
