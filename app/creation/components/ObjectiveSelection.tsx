@@ -80,11 +80,13 @@ const ObjectiveSelection = () => {
   const seenStagesRef = useRef(new Set())
   const currentPlanIdRef = useRef(null)
 
-  // Initialize or reset state for new plan
+  // Initialize or reset state for new plan and sync selections
   useEffect(() => {
-    const currentPlanId = campaignFormData?.planId || "default" // Replace with actual plan identifier
+    const currentPlanId = campaignFormData?.planId || "default"
     const storedStatuses = localStorage.getItem("funnelStageStatuses")
     const storedSeenStages = localStorage.getItem("seenFunnelStages")
+    const storedOptions = localStorage.getItem("selectedOptions")
+    const storedPlatforms = localStorage.getItem("validatedPlatforms")
 
     // Detect if this is a new plan
     if (currentPlanId !== currentPlanIdRef.current) {
@@ -104,7 +106,7 @@ const ObjectiveSelection = () => {
       })
       currentPlanIdRef.current = currentPlanId
     } else {
-      // Load seen stages from localStorage for existing plan
+      // Load seen stages and statuses from localStorage for existing plan
       if (storedSeenStages) {
         try {
           seenStagesRef.current = new Set(JSON.parse(storedSeenStages))
@@ -112,23 +114,45 @@ const ObjectiveSelection = () => {
           seenStagesRef.current = new Set()
         }
       }
+      if (storedStatuses) {
+        try {
+          setStatuses(JSON.parse(storedStatuses))
+        } catch {
+          setStatuses({})
+        }
+      }
+      // Load selectedOptions from localStorage
+      if (storedOptions) {
+        try {
+          setSelectedOptions(JSON.parse(storedOptions))
+        } catch {
+          setSelectedOptions({})
+        }
+      }
+      // Load validatedPlatforms from localStorage
+      if (storedPlatforms) {
+        try {
+          setValidatedPlatforms(
+            JSON.parse(storedPlatforms, (key, value) =>
+              value.dataType === "Set" ? new Set(value.value) : value
+            )
+          )
+        } catch {
+          setValidatedPlatforms({
+            Awareness: new Set(),
+            Consideration: new Set(),
+            Conversion: new Set(),
+            Loyalty: new Set(),
+          })
+        }
+      }
     }
 
     // Initialize statuses for new or unseen stages
     if (campaignFormData?.funnel_stages) {
-      let initialStatuses = {}
+      let initialStatuses = { ...statuses }
       let shouldUpdateStorage = false
 
-      // Load existing statuses from localStorage if available
-      if (storedStatuses && currentPlanId === currentPlanIdRef.current) {
-        try {
-          initialStatuses = JSON.parse(storedStatuses)
-        } catch {
-          initialStatuses = {}
-        }
-      }
-
-      // Set default status to "Not Started" for new or unseen stages
       campaignFormData.funnel_stages.forEach((stage) => {
         if (!seenStagesRef.current.has(stage)) {
           seenStagesRef.current.add(stage)
@@ -151,6 +175,43 @@ const ObjectiveSelection = () => {
       }
     }
   }, [campaignFormData?.funnel_stages, campaignFormData?.planId, campaignFormData?.validatedStages])
+
+  // Sync selectedOptions with campaignFormData on initial load
+  useEffect(() => {
+    const initialSelectedOptions = { ...selectedOptions }
+    const channelMix = Array.isArray(campaignFormData?.channel_mix) ? campaignFormData.channel_mix : []
+    channelMix?.forEach((stage) => {
+      const stageName = stage.funnel_stage
+      ;[
+        "social_media",
+        "display_networks",
+        "search_engines",
+        "streaming",
+        "ooh",
+        "print",
+        "in_game",
+        "e_commerce",
+        "broadcast",
+        "messaging",
+        "mobile",
+      ].forEach((category) => {
+        const platforms = Array.isArray(stage[category]) ? stage[category] : []
+        platforms.forEach((platform) => {
+          const platformName = platform.platform_name
+          const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`
+          const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`
+          if (platform.buy_type && !initialSelectedOptions[buyTypeKey]) {
+            initialSelectedOptions[buyTypeKey] = platform.buy_type
+          }
+          if (platform.objective_type && !initialSelectedOptions[buyObjectiveKey]) {
+            initialSelectedOptions[buyObjectiveKey] = platform.objective_type
+          }
+        })
+      })
+    })
+    setSelectedOptions(initialSelectedOptions)
+    localStorage.setItem("selectedOptions", JSON.stringify(initialSelectedOptions))
+  }, [campaignFormData?.channel_mix])
 
   // Sync selectedNetworks with channel_mix
   useEffect(() => {
@@ -213,42 +274,6 @@ const ObjectiveSelection = () => {
     localStorage.setItem("validatedPlatforms", serializedPlatforms)
   }, [validatedPlatforms])
 
-  // Sync selectedOptions with campaignFormData on initial load
-  useEffect(() => {
-    const initialSelectedOptions = {}
-    const channelMix = Array.isArray(campaignFormData?.channel_mix) ? campaignFormData.channel_mix : []
-    channelMix?.forEach((stage) => {
-      const stageName = stage.funnel_stage
-      ;[
-        "social_media",
-        "display_networks",
-        "search_engines",
-        "streaming",
-        "ooh",
-        "print",
-        "in_game",
-        "e_commerce",
-        "broadcast",
-        "messaging",
-        "mobile",
-      ].forEach((category) => {
-        const platforms = Array.isArray(stage[category]) ? stage[category] : []
-        platforms.forEach((platform) => {
-          const platformName = platform.platform_name
-          const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`
-          const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`
-          if (platform.buy_type && !selectedOptions[buyTypeKey]) {
-            initialSelectedOptions[buyTypeKey] = platform.buy_type
-          }
-          if (platform.objective_type && !selectedOptions[buyObjectiveKey]) {
-            initialSelectedOptions[buyObjectiveKey] = platform.objective_type
-          }
-        })
-      })
-    })
-    setSelectedOptions((prev) => ({ ...prev, ...initialSelectedOptions }))
-  }, [campaignFormData?.channel_mix])
-
   const toggleItem = (stage) => {
     setOpenItems((prev) => ({ ...prev, [stage]: !prev[stage] }))
   }
@@ -261,7 +286,11 @@ const ObjectiveSelection = () => {
 
   const handleSelectOption = (platformName, option, category, stageName, dropDownName) => {
     const key = `${stageName}-${category}-${platformName}-${dropDownName}`
-    setSelectedOptions((prev) => ({ ...prev, [key]: option }))
+    setSelectedOptions((prev) => {
+      const newOptions = { ...prev, [key]: option }
+      localStorage.setItem("selectedOptions", JSON.stringify(newOptions))
+      return newOptions
+    })
 
     const channelMix = Array.isArray(campaignFormData?.channel_mix) ? campaignFormData.channel_mix : []
     const updatedChannelMix = channelMix.map((stage) => {
@@ -327,10 +356,16 @@ const ObjectiveSelection = () => {
       })
     }
 
-    setValidatedPlatforms((prev) => ({
-      ...prev,
-      [stageName]: validatedPlatformsSet,
-    }))
+    setValidatedPlatforms((prev) => {
+      const newValidated = { ...prev, [stageName]: validatedPlatformsSet }
+      localStorage.setItem(
+        "validatedPlatforms",
+        JSON.stringify(newValidated, (key, value) =>
+          value instanceof Set ? { dataType: "Set", value: Array.from(value) } : value
+        )
+      )
+      return newValidated
+    })
 
     setCampaignFormData((prev) => ({
       ...prev,
@@ -385,17 +420,15 @@ const ObjectiveSelection = () => {
         </div>
         <div className="flex flex-col gap-2">
           <div className="px-4 py-2 bg-white border text-center truncate border-gray-300 rounded-lg">
-            {platformData.buy_type || "Buy type"}
+            {platformData.buy_type || selectedOptions[`${stageName}-${category}-${platformName}-buy_type`] || "Buy type"}
           </div>
           <div className="px-4 py-2 bg-white border text-center truncate border-gray-300 rounded-lg">
-            {platformData.objective_type || "Buy objective"}
+            {platformData.objective_type || selectedOptions[`${stageName}-${category}-${platformName}-objective_type`] || "Buy objective"}
           </div>
         </div>
       </div>
     )
   }
-
-  
 
   const hasValidatedPlatformsForCategory = (category, stageName) => {
     const channelMix = Array.isArray(campaignFormData?.channel_mix) ? campaignFormData.channel_mix : []
@@ -592,9 +625,11 @@ const ObjectiveSelection = () => {
                           {platforms.map((platform) => {
                             const platformKey = `${stage.name}-${category}-${platform.platform_name}`
                             const selectedObj =
-                              selectedOptions[`${stageName}-${category}-${platform.platform_name}-objective_type`]
+                              selectedOptions[`${stageName}-${category}-${platform.platform_name}-objective_type`] ||
+                              platform.objective_type
                             const selectedBuy =
-                              selectedOptions[`${stageName}-${category}-${platform.platform_name}-buy_type`]
+                              selectedOptions[`${stageName}-${category}-${platform.platform_name}-buy_type`] ||
+                              platform.buy_type
 
                             return (
                               <div key={platformKey} className="flex items-center gap-8">
