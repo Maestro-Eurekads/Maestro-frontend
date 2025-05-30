@@ -22,6 +22,7 @@ import {
 } from "app/utils/campaign-filter-utils";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { getFirstLetters } from "./Options";
+import { useSelectedDates } from "app/utils/SelectedDatesContext";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 const Header = ({ setIsOpen }) => {
@@ -47,6 +48,8 @@ const Header = ({ setIsOpen }) => {
     profile,
     setSelectedFilters,
   } = useCampaigns();
+  
+  const {setSelectedDates} = useSelectedDates()
 
   const { setActive, setSubStep } = useActive();
   const { fetchClientCampaign, fetchClientPOS } = useCampaignHook();
@@ -101,7 +104,11 @@ const Header = ({ setIsOpen }) => {
     const filteredClient = clients?.data?.find(
       (client) => client?.id === Number(clientId)
     );
+<<<<<<< HEAD
 
+=======
+    // console.log(clientId);
+>>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
     fetchClientCampaign(clientId)
       .then((res) => {
         const campaigns = res?.data?.data || [];
@@ -143,7 +150,10 @@ const Header = ({ setIsOpen }) => {
     };
   }, [clients, selectedId]);
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
 
   return (
     <div id="header" className="relative w-full">
@@ -243,6 +253,10 @@ const Header = ({ setIsOpen }) => {
                   setCampaignFormData({});
                   setActive(0);
                   setSubStep(0);
+                  setSelectedDates({
+                    from: null,
+                    to:null
+                  })
                 }}>
                 <button
                   className={`new_plan_btn ${!profile?.clients?.[0]?.id && !isAdmin ? "!bg-[gray]" : ""

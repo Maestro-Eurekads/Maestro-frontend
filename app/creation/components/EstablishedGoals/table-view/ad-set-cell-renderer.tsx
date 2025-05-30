@@ -17,6 +17,7 @@ export const AdSetCellRenderer = ({
   toggleNRAdCell,
   expandedAdsetKPI,
   toggleAdSetKPIShow,
+  hasOfflineChannel
 }) => {
   const { campaignFormData } = useCampaigns()
 
@@ -144,6 +145,10 @@ export const AdSetCellRenderer = ({
   //   return adSet?.budget?.fixed_value === null || adSet?.budget?.fixed_value === undefined ? "-" : adSet?.budget?.fixed_value;
   // }
 
+  if( body === "grp" && !hasOfflineChannel) {
+    return "" ;
+  }
+
   const calculatedFields = [
     "impressions",
     "reach",
@@ -251,18 +256,18 @@ export const AdSetCellRenderer = ({
           displayValue = `${formatNumber(numericValue * 100)}%`
         } else {
           // It's already a percentage value (like 10, 20, etc.)
-          displayValue = `${formatNumber(numericValue)}%`
+          displayValue = `${formatNumber(Number.parseFloat(numericValue.toFixed(1)))}%`;
         }
       }
     } else if (isCurrencyType) {
       // Format as currency with commas
       if (!displayValue.toString().includes(`${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}`)) {
-        displayValue = formatNumber(Number.parseFloat(numericValue.toFixed(2)))
+        displayValue = `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}${formatNumber(Number.parseFloat(numericValue.toFixed(2)))}`;
       }
     } else if (isSecondsType) {
       // Format as seconds with commas
       if (!displayValue.toString().includes("secs")) {
-        displayValue = `${formatNumber(Math.round(numericValue))}secs`
+        displayValue = `${formatNumber(Number(numericValue.toFixed(1)))}secs`
       }
     } else {
       // Format as regular number with commas

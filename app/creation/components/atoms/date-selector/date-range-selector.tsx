@@ -46,27 +46,35 @@ const DateRangeSelector = () => {
           </span>
         </div>
         {isShowDateRange && (
-          <div className="absolute z-50 right-0">
+            <div className="absolute z-50 right-0">
             <DateRange
               editableDateInputs={true}
               onChange={(item) =>
-                setCampaignFormData((prev) => ({
-                  ...prev,
-                  campaign_timeline_start_date: item?.selection?.startDate,
-                  campaign_timeline_end_date: item?.selection?.endDate,
-                }))
+              setCampaignFormData((prev) => ({
+                ...prev,
+                campaign_timeline_start_date: item?.selection?.startDate
+                ? format(item.selection.startDate, "yyyy-MM-dd")
+                : null,
+                campaign_timeline_end_date: item?.selection?.endDate
+                ? format(item.selection.endDate, "yyyy-MM-dd")
+                : null,
+              }))
               }
               moveRangeOnFirstSelection={false}
               ranges={[
-                {
-                  startDate: campaignFormData?.campaign_timeline_start_date,
-                  endDate: campaignFormData?.campaign_timeline_end_date,
-                  key: "selection",
-                },
+              {
+                startDate: campaignFormData?.campaign_timeline_start_date
+                ? new Date(campaignFormData.campaign_timeline_start_date)
+                : undefined,
+                endDate: campaignFormData?.campaign_timeline_end_date
+                ? new Date(campaignFormData.campaign_timeline_end_date)
+                : undefined,
+                key: "selection",
+              },
               ]}
               rangeColors={["#3f51b5"]}
             />
-          </div>
+            </div>
         )}
       </div>
     </div>

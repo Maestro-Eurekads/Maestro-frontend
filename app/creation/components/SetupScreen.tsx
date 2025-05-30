@@ -120,7 +120,26 @@ export const SetupScreen = () => {
     }
   }, [campaignFormData, setCampaignFormData, isInitialized]);
 
+<<<<<<< HEAD
 
+=======
+  // Save form data to localStorage whenever it changes, cleaning null values
+  // useEffect(() => {
+  //   if (campaignFormData) {
+  //     const cleanedData = {
+  //       ...campaignFormData,
+  //       internal_approver: Array.isArray(campaignFormData.internal_approver)
+  //         ? campaignFormData?.internal_approver?.filter((v: string | null) => v != null)
+  //         : [],
+  //       client_approver: Array.isArray(campaignFormData.client_approver)
+  //         ? campaignFormData?.client_approver.filter((v: string | null) => v != null)
+  //         : [],
+  //     };
+  
+  //     localStorage.setItem("campaignFormData", JSON.stringify(cleanedData));
+  //   }
+  // }, [campaignFormData]);
+>>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
 
 
 
@@ -203,7 +222,11 @@ export const SetupScreen = () => {
 
   }, [client_selection, allClients, setCampaignFormData]);
 
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
 
   useEffect(() => {
     if (campaignFormData?.budget_details_currency?.id) {
@@ -251,8 +274,18 @@ export const SetupScreen = () => {
   }, [campaignFormData, cId, setRequiredFields]);
 
 
+<<<<<<< HEAD
 
 
+=======
+  
+  const handleApproverChange = (field: string, selected: DropdownOption[]) => {
+    setSelectedApprovers((prev) => ({
+      ...prev,
+      [field]: selected,
+    }));
+  };
+>>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
 
   if (!campaignFormData) {
     return <div>Loading...</div>;

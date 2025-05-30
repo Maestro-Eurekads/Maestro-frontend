@@ -29,14 +29,17 @@ export const FunnelStageTable = ({
 }) => {
   // Fallback color if stage.color is undefined
   const stageColor = stage?.color || "#3175FF";
+  const channels = stageData?.map((channel) => channel?.channel_name) || [];
+  const offlineChannels = ["ooh", "print", "broadcast"];
+  const hasOfflineChannel = channels.some((channel) =>
+    offlineChannels.includes(channel?.toLowerCase())
+  );
+  // Function to check if the channel is offline
 
   return (
     <section className="mb-[30px]">
       <div className="flex items-center justify-between mb-5 w-full">
-        <h1
-          className="text-[18px] font-[600]"
-          style={{ color: stageColor }}
-        >
+        <h1 className="text-[18px] font-[600]" style={{ color: stageColor }}>
           {stage?.name}
         </h1>
         <div
@@ -68,9 +71,20 @@ export const FunnelStageTable = ({
                         ? "text-gray-400"
                         : ""
                     }`}
-                    onClick={() => toggleNRColumn(stage.name, header.name)}
+                    // onClick={() => toggleNRColumn(stage.name, header.name)}
                   >
-                    {header?.name === "Audience" ? "" : header?.name === "Budget Size" ? "Budget": (goalLevel === "Channel level" &&header?.name === "Audience Size")? "" :header?.name}
+                    {header?.name === "Audience"
+                      ? ""
+                      : header?.name === "Budget Size"
+                      ? "Budget"
+                      : goalLevel === "Channel level" &&
+                        header?.name === "Audience Size"
+                      ? ""
+                      : header?.name === "GRP"
+                      ? hasOfflineChannel
+                        ? header?.name
+                        : ""
+                      : header?.name}
                     {nrColumns?.includes(
                       header.name
                         .toLowerCase()
@@ -104,6 +118,7 @@ export const FunnelStageTable = ({
                     nrColumns={nrColumns}
                     nrCells={nrCells}
                     toggleNRCell={toggleNRCell}
+                    hasOfflineChannel={hasOfflineChannel}
                   />
 
                   {/* Sub-table (Expanded Rows) */}
@@ -123,6 +138,7 @@ export const FunnelStageTable = ({
                           toggleAdSetKPIShow={toggleAdSetKPIShow}
                           nrAdCells={nrAdCells}
                           toggleNRAdCell={toggleNRAdCell}
+                          hasOfflineChannel={hasOfflineChannel}
                         />
                         {expandedAdsetKPI[`${stage.name}${adSetIndex}`] &&
                           adSet?.extra_audiences?.map((adSet, exIndex) => (

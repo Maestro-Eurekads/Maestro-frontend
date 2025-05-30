@@ -16,6 +16,7 @@ import { useSelector } from "react-redux";
 import { channelMixPopulate } from "utils/fetcher";
 import { useSession } from "next-auth/react";
 import { updateUsersWithCampaign } from "app/homepage/functions/clients";
+import { extractObjectives } from "app/creation/components/EstablishedGoals/table-view/data-processor";
 
 // Get initial state from localStorage if available
 const getInitialState = () => {
@@ -56,7 +57,7 @@ const CampaignContext = createContext<any>(null);
 export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const { data: session } = useSession();
   const id = (session?.user as { id?: string })?.id;
-  const campaign_builder = session?.user
+  const campaign_builder = session?.user;
   const [campaignFormData, setCampaignFormData] = useState(getInitialState());
   const [campaignData, setCampaignData] = useState(null);
   const [clientCampaignData, setClientCampaignData] = useState([]);
@@ -65,12 +66,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [loadingCampaign, setLoadingCampaign] = useState(false);
   const [getloading, setgetLoading] = useState(false);
   const [profile, setGetProfile] = useState(null);
-  const [isEditingBuyingObjective, setIsEditingBuyingObjective] = useState(false);
+  const [isEditingBuyingObjective, setIsEditingBuyingObjective] =
+    useState(false);
   const [selectedOption, setSelectedOption] = useState("percentage");
   const [requiredFields, setRequiredFields] = useState([]);
   const query = useSearchParams();
   const cId = query.get("campaignId");
-  const { loadingClients: hookLoadingClients, allClients: hookAllClients } = useCampaignHook();
+  const { loadingClients: hookLoadingClients, allClients: hookAllClients } =
+    useCampaignHook();
   const [loadingObj, setLoadingObj] = useState(false);
   const [platformList, setPlatformList] = useState({});
   const [objectives, setObjectives] = useState([]);
@@ -81,13 +84,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [isStepZeroValid, setIsStepZeroValid] = useState(false);
   const [currencySign, setCurrencySign] = useState("");
   const [user, setUser] = useState(null);
+  const [headerData, setHeaderData] = useState({});
   const [filterOptions, setFilterOptions] = useState({
     year: [],
     quarter: [],
     month: [],
     // category: [],
     // product: [],
-    // select_plans: [],  
+    // select_plans: [],
     level_1: [],
     level_2: [],
     level_3: [],
@@ -95,10 +99,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     approved_by: [],
   });
   const [selectedFilters, setSelectedFilters] = useState({});
-  const [clientUsers, setClientUsers] = useState([])
+  const [clientUsers, setClientUsers] = useState([]);
 
-  const reduxClients = useSelector((state: any) => state.client?.getCreateClientData?.data || []);
-  const reduxLoadingClients = useSelector((state: any) => state.client?.getCreateClientIsLoading || false);
+  const reduxClients = useSelector(
+    (state: any) => state.client?.getCreateClientData?.data || []
+  );
+  const reduxLoadingClients = useSelector(
+    (state: any) => state.client?.getCreateClientIsLoading || false
+  );
 
   const allClients = reduxClients?.length > 0 ? reduxClients : hookAllClients;
   const loadingClients = reduxLoadingClients || hookLoadingClients || false;
@@ -107,7 +115,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const timeout = setTimeout(() => {
-        localStorage.setItem("campaignFormData", JSON.stringify(campaignFormData));
+        localStorage.setItem(
+          "campaignFormData",
+          JSON.stringify(campaignFormData)
+        );
       }, 300);
       return () => clearTimeout(timeout);
     }
@@ -175,13 +186,15 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   //   }
   // }, [cId]);
 
-  const getActiveCampaign = useCallback(async (docId?: string) => {
-    const campaignId = cId || docId;
-    if (!campaignId) return;
+  const getActiveCampaign = useCallback(
+    async (docId?: string) => {
+      const campaignId = cId || docId;
+      if (!campaignId) return;
 
-    try {
-      setLoadingCampaign(true);
+      try {
+        setLoadingCampaign(true);
 
+<<<<<<< HEAD
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignId}`,
         {
@@ -197,60 +210,86 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
               campaign_budget: { populate: ["budget_fees"] },
               channel_mix: { populate: { ...channelMixPopulate, stage_budget: "*" } },
               media_plan_approval: true
+=======
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignId}`,
+          {
+            params: {
+              populate: {
+                client: true,
+                media_plan_details: "*",
+                budget_details: "*",
+                client_selection: "*",
+                user: true,
+                campaign_budget: { populate: ["budget_fees"] },
+                channel_mix: {
+                  populate: { ...channelMixPopulate, stage_budget: "*" },
+                },
+              },
+>>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
             },
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            },
+          }
+        );
+        // console.log("NEXT_PUBLIC_STRAPI_TOKEN?:", res?.data?.data);
+        const data = res?.data?.data;
+
+        if (!data) return;
+        const obj = extractObjectives(campaignFormData);
+        setCampaignData(data);
+        setHeaderData(data?.table_headers || obj || {});
+        setCampaignFormData((prev) => ({
+          ...prev,
+          client_selection: {
+            id: data?.client?.documentId ?? prev?.client_selection?.id,
+            value: data?.client?.client_name ?? prev?.client_selection?.value,
           },
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          level_1: {
+            id: data?.client_selection?.level_1 ?? prev.level_1?.id,
+            value: data?.client_selection?.level_1 ?? prev.level_1?.value,
           },
-        }
-      );
-      console.log("NEXT_PUBLIC_STRAPI_TOKEN?:", res?.data?.data);
-      const data = res?.data?.data;
-
-      if (!data) return;
-
-      setCampaignData(data);
-
-      setCampaignFormData((prev) => ({
-        ...prev,
-        client_selection: {
-          id: data?.client?.documentId ?? prev?.client_selection?.id,
-          value: data?.client?.client_name ?? prev?.client_selection?.value,
-        },
-        level_1: {
-          id: data?.client_selection?.level_1 ?? prev.level_1?.id,
-          value: data?.client_selection?.level_1 ?? prev.level_1?.value,
-        },
-        level_2: {
-          id: data?.client_selection?.level_2 ?? prev.level_2?.id,
-          value: data?.client_selection?.level_2 ?? prev.level_2?.value,
-        },
-        level_3: {
-          id: data?.client_selection?.level_3 ?? prev.level_3?.id,
-          value: data?.client_selection?.level_3 ?? prev.level_3?.value,
-        },
-        media_plan: data?.media_plan_details?.plan_name ?? prev.media_plan,
-        internal_approver: data?.media_plan_details?.internal_approver ?? prev.internal_approver,
-        client_approver: data?.media_plan_details?.client_approver ?? prev.client_approver,
-        campaign_objectives: data?.campaign_objective ?? prev.campaign_objectives,
-        funnel_stages: data?.funnel_stages ?? prev.funnel_stages,
-        channel_mix: data?.channel_mix ?? prev.channel_mix,
-        campaign_timeline_start_date: data?.campaign_timeline_start_date ?? prev.campaign_timeline_start_date,
-        campaign_timeline_end_date: data?.campaign_timeline_end_date ?? prev.campaign_timeline_end_date,
-        campaign_budget: data?.campaign_budget ?? prev.campaign_budget,
-        goal_level: data?.goal_level ?? prev.goal_level,
-        progress_percent: data?.progress_percent ?? prev.progress_percent,
-        custom_funnels: data?.custom_funnels ?? prev.custom_funnels,
-        campaign_builder: data?.campaign_builder ?? prev.campaign_builder,
-        user: data?.user ?? prev.user,
-        campaign_id: data?.id ?? prev.id,
-      }));
-    } catch (error) {
-      console.error("Error fetching active campaign:", error);
-    } finally {
-      setLoadingCampaign(false);
-    }
-  }, [cId]);
+          level_2: {
+            id: data?.client_selection?.level_2 ?? prev.level_2?.id,
+            value: data?.client_selection?.level_2 ?? prev.level_2?.value,
+          },
+          level_3: {
+            id: data?.client_selection?.level_3 ?? prev.level_3?.id,
+            value: data?.client_selection?.level_3 ?? prev.level_3?.value,
+          },
+          media_plan: data?.media_plan_details?.plan_name ?? prev.media_plan,
+          internal_approver:
+            data?.media_plan_details?.internal_approver ??
+            prev.internal_approver,
+          client_approver:
+            data?.media_plan_details?.client_approver ?? prev.client_approver,
+          campaign_objectives:
+            data?.campaign_objective ?? prev.campaign_objectives,
+          funnel_stages: data?.funnel_stages ?? prev.funnel_stages,
+          channel_mix: data?.channel_mix ?? prev.channel_mix,
+          campaign_timeline_start_date:
+            data?.campaign_timeline_start_date ??
+            prev.campaign_timeline_start_date,
+          campaign_timeline_end_date:
+            data?.campaign_timeline_end_date ?? prev.campaign_timeline_end_date,
+          campaign_budget: data?.campaign_budget ?? prev.campaign_budget,
+          goal_level: data?.goal_level ?? prev.goal_level,
+          progress_percent: data?.progress_percent ?? prev.progress_percent,
+          custom_funnels: data?.custom_funnels ?? prev.custom_funnels,
+          campaign_builder: data?.campaign_builder ?? prev.campaign_builder,
+          user: data?.user ?? prev.user,
+          campaign_id: data?.id ?? prev.id,
+          table_headers: ((data?.table_headers || obj || {}) ?? (prev?.table_headers || obj)) || {},
+        }));
+      } catch (error) {
+        console.error("Error fetching active campaign:", error);
+      } finally {
+        setLoadingCampaign(false);
+      }
+    },
+    [cId]
+  );
 
   const createCampaign = useCallback(async () => {
     try {
@@ -280,7 +319,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
+<<<<<<< HEAD
       await updateUsersWithCampaign(clientUsers?.map((uu) => uu?.id), response?.data?.data?.id);
+=======
+      await updateUsersWithCampaign(
+        clientUsers?.map((uu) => uu?.id),
+        response?.data?.data?.id
+      );
+>>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
       return response;
     } catch (error) {
       console.error("Error creating campaign:", error);
@@ -312,26 +358,29 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [id]);
 
-  const updateCampaign = useCallback(async (data) => {
-    try {
-      setLoading(true);
-      const response = await axios.put(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
-        { data },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-          },
-        }
-      );
-      return response;
-    } catch (error) {
-      console.error("Error updating campaign:", error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, [cId]);
+  const updateCampaign = useCallback(
+    async (data) => {
+      try {
+        setLoading(true);
+        const response = await axios.put(
+          `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
+          { data },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            },
+          }
+        );
+        return response;
+      } catch (error) {
+        console.error("Error updating campaign:", error);
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [cId]
+  );
 
   const fetchBusinessLevelOptions = useCallback(async (clientId: string) => {
     if (!clientId) return;
@@ -347,9 +396,24 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       );
       const data = response?.data?.data || {};
       setBusinessLevelOptions({
-        level1: data?.level_1?.map((item: string) => ({ id: item, value: item, label: item })) || [],
-        level2: data?.level_2?.map((item: string) => ({ id: item, value: item, label: item })) || [],
-        level3: data?.level_3?.map((item: string) => ({ id: item, value: item, label: item })) || [],
+        level1:
+          data?.level_1?.map((item: string) => ({
+            id: item,
+            value: item,
+            label: item,
+          })) || [],
+        level2:
+          data?.level_2?.map((item: string) => ({
+            id: item,
+            value: item,
+            label: item,
+          })) || [],
+        level3:
+          data?.level_3?.map((item: string) => ({
+            id: item,
+            value: item,
+            label: item,
+          })) || [],
       });
     } catch (error) {
       console.error("Error fetching business level options:", error);
@@ -423,15 +487,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-
-
-
-
   const getUserByUserType = async (userTypes) => {
     setgetLoading(true);
     try {
       const queryString = userTypes
-        .map(type => `filters[user_type][$in]=${type}`)
+        .map((type) => `filters[user_type][$in]=${type}`)
         .join("&");
 
       const response = await axios.get(
@@ -452,9 +512,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setgetLoading(false);
     }
   };
-
-
-
 
   const organizeAdvertisingPlatforms = useCallback((data) => {
     const result = {
@@ -488,7 +545,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
     data.forEach((platform) => {
       const typeCategory = platform.type.toLowerCase();
-      let channelType = platform.channel_type.toLowerCase().replace(/\s+/g, "_");
+      let channelType = platform.channel_type
+        .toLowerCase()
+        .replace(/\s+/g, "_");
       if (channelType === "in-game") channelType = "in_game";
       if (channelType === "e-commerce") channelType = "e_commerce";
       if (result[typeCategory] && result[typeCategory][channelType]) {
@@ -557,7 +616,16 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     };
 
     fetchInitialData();
-  }, [cId, id, getProfile, getActiveCampaign, fetchBuyObjectives, fetchObjectives, fetchPlatformLists, fetchBuyTypes]);
+  }, [
+    cId,
+    id,
+    getProfile,
+    getActiveCampaign,
+    fetchBuyObjectives,
+    fetchObjectives,
+    fetchPlatformLists,
+    fetchBuyTypes,
+  ]);
 
   const contextValue = useMemo(
     () => ({
@@ -613,9 +681,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setCurrencySign,
       user,
       setClientUsers,
-      clientUsers
+      clientUsers,
     }),
-    [getUserByUserType,
+    [
+      getUserByUserType,
       loadingClients,
       allClients,
       campaignFormData,
@@ -648,15 +717,20 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setCurrencySign,
       user,
       setClientUsers,
-      clientUsers
+      clientUsers,
     ]
   );
 
-  return <CampaignContext.Provider value={contextValue}>{children}</CampaignContext.Provider>;
+  return (
+    <CampaignContext.Provider value={contextValue}>
+      {children}
+    </CampaignContext.Provider>
+  );
 };
 
 export const useCampaigns = () => {
   const context = useContext(CampaignContext);
-  if (!context) throw new Error("useCampaigns must be used within a CampaignProvider");
+  if (!context)
+    throw new Error("useCampaigns must be used within a CampaignProvider");
   return context;
 };

@@ -85,9 +85,103 @@ const ConfiguredSetPage = ({ netAmount }) => {
         });
       });
 
+<<<<<<< HEAD
       return platformsByStage;
     }
   };
+=======
+              <div className="flex items-start flex-col gap-3">
+               <h2 className="text-center font-bold">Percentage</h2>
+               <div className="flex items-center gap-4">
+                <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
+                 <div className="flex items-center gap-2">
+                  <p>
+                   {isNaN(platformPercentage)
+                    ? "0.0"
+                    : platformPercentage?.toFixed(1)}
+                  </p>
+                  <span> %</span>
+                 </div>
+                </div>
+                <p className="whitespace-nowrap tracking-tight">
+                 of {stageName} budget
+                </p>
+                {stageName?.funnel_stage === stage.name &&
+                 platform?.ad_sets?.length > 1 &&
+                 campaignFormData?.campaign_budget?.level === "Adset level" && (
+                  <div
+                    className="flex items-center gap-2 max-w-[260px] min-w-0"
+                    style={{
+                      flex: "1 1 0",
+                      minWidth: 0,
+                      overflow: "visible",
+                    }}
+                  >
+                   <label
+                    htmlFor={`${stage.name}-${platform?.outlet}`}
+                    className="relative inline-block h-6 w-12 cursor-pointer rounded-full bg-gray-300 transition [-webkit-tap-highlight-color:_transparent] has-[:checked]:bg-blue-500 peer-checked:bg-blue-500"
+                   >
+                    <input
+                     type="checkbox"
+                     id={`${stage.name}-${platform?.outlet}`}
+                     disabled={validatedStages[stageName]}
+                     className="peer sr-only"
+                     onChange={(e) => {
+                      if (e.target.checked) {
+                       handleAutoSplitBudget(
+                        stage,
+                        platform?.channel,
+                        platform?.outlet
+                       );
+                      } else {
+                       handleResetBudget(
+                        stage,
+                        platform?.channel,
+                        platform?.outlet
+                       );
+                      }
+                     }}
+                    />
+                    <span className="absolute inset-y-0 left-0 w-6 h-6 rounded-full bg-white transition-transform duration-200 transform peer-checked:translate-x-6"></span>
+                   </label>
+                   <div
+                    className="text-[#061237] text-nowrap text-sm font-semibold tracking-tighter"
+                    style={{
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      maxWidth: "100px",
+                      minWidth: 0,
+                      flex: "1 1 0",
+                    }}
+                    title="Auto-split budget across ad sets"
+                   >
+                    Auto-split budget across ad sets
+                   </div>
+                  </div>
+                 )}
+               </div>
+              </div>
+             </div>
+             <div className="pb-8 space-y-6" id="setContainer">
+              {campaignFormData?.campaign_budget?.level === "Adset level" &&
+               platform?.ad_sets?.map((ad_set, index) => {
+                const getAdSetBudget = (adSet) => {
+                 return adSet?.budget?.fixed_value && platform.ad_sets?.length
+                  ? Number(adSet?.budget?.fixed_value).toFixed(2)
+                  : "0";
+                };
+                const adSetPercentage =
+                 (ad_set?.budget?.percentage_value ||
+                  platform?.budget?.fixed_value) &&
+                 Number(getAdSetBudget(ad_set))
+                  ? (
+                     (Number(getAdSetBudget(ad_set)) /
+                      Number(platform?.budget?.fixed_value)) *
+                     100
+                    ).toFixed(1)
+                  : "0";
+>>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
 
   useEffect(() => {
     if (campaignFormData?.channel_mix) {

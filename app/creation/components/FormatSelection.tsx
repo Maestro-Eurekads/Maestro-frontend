@@ -905,6 +905,10 @@ export const Platforms = ({
   const uploadUpdatedCampaignToStrapi = useCallback(
     async (data: any) => {
       if (isUpdatingStrapi) {
+<<<<<<< HEAD
+=======
+        
+>>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
         return;
       }
 

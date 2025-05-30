@@ -256,9 +256,9 @@ const DoughnutChart = ({
         position: "bottom",
         labels: {
           font: {
-            size: 6,
+            size: 0.2,
           },
-          padding: 0.5,
+          padding: 9,
         },
       },
       tooltip: {
