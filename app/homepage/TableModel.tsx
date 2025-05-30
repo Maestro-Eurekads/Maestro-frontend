@@ -48,7 +48,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
 
-  // console.log('profile-user-user', user)
+
 
   //  Automatically reset alert after showing
   useEffect(() => {
@@ -205,7 +205,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       const existingUsers = await checkExisitingEmails(
         emailList?.map((ed) => ed?.email)
       );
-      console.log("🚀 ~ handleSubmit ~ existingUsers:", existingUsers);
       if (existingUsers?.length > 0) {
         toast.error(
           `User(s) with the following email(s) already exist: ${existingUsers
@@ -238,10 +237,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
               user_type: "sub_client",
             });
           } catch (error) {
-            console.error(
-              `Failed to create user for email: ${emailEntry.email}`,
-              error
-            );
             toast.error(`Failed to create user for ${emailEntry.email}`);
           }
         }
@@ -299,12 +294,18 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     }
   }, [isOpen]);
 
-  const options = user?.map((user) => user?.username);
+  // const options = user?.map((user) => user?.username);
+  // const excludedTypes = ["agency_creator"];
+
+  // const option = user
+  //   ?.filter((user) => !excludedTypes.includes(user?.user_type))
+  //   .map((user) => user?.username);
+  const options = user?.map((user) => ({ id: user?.id, username: user?.username }));
   const excludedTypes = ["agency_creator"];
 
   const option = user
     ?.filter((user) => !excludedTypes.includes(user?.user_type))
-    .map((user) => user?.username);
+    .map((user) => ({ id: user?.id, username: user?.username }));
 
   return (
     <div className="z-50">
@@ -382,7 +383,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                     <button
                       className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white"
                       onClick={handleAddEmail}
-                      // disabled={emailList.length >= 5}
+                    // disabled={emailList.length >= 5}
                     >
                       Add
                     </button>

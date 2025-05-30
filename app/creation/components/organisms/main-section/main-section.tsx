@@ -18,7 +18,7 @@ import DayInterval from "../../atoms/date-interval/DayInterval";
 import MonthInterval from "../../atoms/date-interval/MonthInterval";
 import WeekInterval from "../../atoms/date-interval/WeekInterval";
 
-const MainSection = ({ hideDate, disableDrag, view }: { hideDate?: boolean, disableDrag?: boolean, view?:boolean }) => {
+const MainSection = ({ hideDate, disableDrag, view }: { hideDate?: boolean, disableDrag?: boolean, view?: boolean }) => {
   const { clientCampaignData, campaignFormData } = useCampaigns();
   const { range } = useDateRange();
   const startDates = campaignFormData?.campaign_timeline_start_date
@@ -33,7 +33,7 @@ const MainSection = ({ hideDate, disableDrag, view }: { hideDate?: boolean, disa
   const weekDifference = differenceInCalendarWeeks(endDates, startDates);
   const monthDifference = differenceInCalendarMonths(endDates, startDates);
 
-console.log(campaignFormData?.campaign_timeline_start_date)
+
   const isValidDateFormat = (date: string) => /^\d{4}-\d{2}-\d{2}$/.test(date);
 
   const start = campaignFormData?.campaign_timeline_start_date

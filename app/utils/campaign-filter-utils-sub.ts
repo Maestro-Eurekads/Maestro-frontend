@@ -25,16 +25,14 @@ export const CAMPAIGN_POPULATE_QUERY = [
  
 export const fetchFilteredCampaignsSub = async (clientID: string) => {
   const session = await getServerSession(authOptions) 
-  if (!clientID) {
-    console.error("Client ID is required.");
+  if (!clientID) { 
     return [];
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
   const token = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
 
-  if (!baseUrl || !token) {
-    console.error("Missing environment variables for Strapi URL or token.");
+  if (!baseUrl || !token) { 
     return [];
   }
 
@@ -51,8 +49,7 @@ export const fetchFilteredCampaignsSub = async (clientID: string) => {
     });
 
     return response.data.data;
-  } catch (error) {
-    console.error("Error fetching filtered campaigns:", error);
+  } catch (error) { 
     return [];
   }
 };

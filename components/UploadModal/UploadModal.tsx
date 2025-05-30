@@ -57,7 +57,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const STRAPI_TOKEN = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
   useEffect(() => {
     if (!STRAPI_URL || !STRAPI_TOKEN) {
-      console.error("Missing Strapi configuration:", { STRAPI_URL, STRAPI_TOKEN });
       toast.error("Server configuration error. Please contact support.");
     }
   }, [STRAPI_URL, STRAPI_TOKEN]);
@@ -98,7 +97,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
         await updateCampaign(cleanData)
         await getActiveCampaign()
       } catch (error) {
-        console.error("Error in uploadUpdatedCampaignToStrapi:", error)
         toast.error("Failed to save campaign data.")
         throw error
       }
@@ -189,7 +187,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
         await updateCampaign(cleanData);
         await getActiveCampaign();
       } catch (error) {
-        console.error("Error updating campaign in Strapi:", error);
         toast.error("Failed to save campaign data. Changes may not persist.");
         // Revert optimistic update if needed
         await getActiveCampaign();
@@ -272,7 +269,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
           return updated;
         });
       } catch (error) {
-        console.error("Error processing file:", error);
         toast.error("Error processing file. Please try again.");
       } finally {
         setUploadingIndex(null);
@@ -342,7 +338,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
         toast.success("File deleted successfully!");
       } catch (error) {
-        console.error("Error deleting file:", error);
         toast.error("Failed to delete file. Please try again.");
       } finally {
         setLoading(false);
@@ -494,7 +489,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
             } else {
               toast.error(`Failed to upload ${file.name}`);
             }
-            console.error(`Failed to upload file "${file.name}"`, error);
+
             results.push(null);
           }
         }
@@ -515,7 +510,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
                 } else {
                   toast.error(`Failed to upload ${file.name}`);
                 }
-                console.error(`Failed to upload file "${file.name}"`, error);
                 return null;
               }
             }),
@@ -561,7 +555,6 @@ const UploadModal: React.FC<UploadModalProps> = ({
       } else {
         toast.error("Upload failed. Please try again.");
       }
-      console.error("Error in uploadFilesToStrapi:", error);
     } finally {
       setLoading(false);
     }

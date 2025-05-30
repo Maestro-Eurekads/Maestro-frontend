@@ -23,20 +23,20 @@ const Dropdown = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { campaignFormData, setCampaignFormData, loadingClients } = useCampaigns();
   const dispatch = useAppDispatch();
-  const {data:session} = useSession()
+  const { data: session } = useSession()
   const { isAdmin, isAgencyApprover, isFinancialApprover } =
-      useUserPrivileges();
+    useUserPrivileges();
 
   // Fetch clients when dropdown is opened
   const toggleDropdown = () => {
     if (!isOpen && label === "Select Client") {
       //@ts-ignore
-      dispatch(getCreateClient(!isAdmin ? session?.user?.data?.user?.id: null));
+      dispatch(getCreateClient(!isAdmin ? session?.user?.data?.user?.id : null));
     }
     setIsOpen(!isOpen);
   };
 
-  // console.log('campaignFormDatacampaignFormData---', campaignFormData)
+
 
 
 

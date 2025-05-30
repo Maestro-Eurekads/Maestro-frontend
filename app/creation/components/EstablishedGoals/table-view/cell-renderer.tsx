@@ -76,8 +76,6 @@ export const CellRenderer = ({
   };
 
 
-  // console.log('goalLevel-goalLevel', goalLevel)
-  // console.log('goalLevel-goalLevel', channel?.ad_sets?.length)
 
   // Channel cell rendering
   if (body === "channel") {
@@ -357,7 +355,7 @@ export const CellRenderer = ({
           disabled={isNR || goalLevel === "Adset level"}
           className={`cpm-bg border-none outline-none max-w-[90px] p-1 ${isNR ? "text-gray-400" : ""
             }`}
-          placeholder={body === "budget_size" ? "BUDGET": body ? body?.toUpperCase() : "Insert value"}
+          placeholder={body === "budget_size" ? "BUDGET" : body ? body?.toUpperCase() : "Insert value"}
         />
       )}
       <Ban

@@ -41,7 +41,6 @@ export const ClientCampaignProvider = ({ children }: { children: React.ReactNode
 			);
 			setCampaigns(res.data.data);
 		} catch (err) {
-			console.error("Failed to fetch campaigns:", err);
 		} finally {
 			setLoading(false);
 		}

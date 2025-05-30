@@ -37,7 +37,6 @@ const loadStateFromLocalStorage = (key: string, defaultValue: any, cId: string) 
     const stored = localStorage.getItem(storageKey);
     return stored ? JSON.parse(stored) : defaultValue;
   } catch (e) {
-    console.error(`Error loading ${storageKey} from localStorage:`, e);
     return defaultValue;
   }
 };
@@ -48,7 +47,6 @@ const saveStateToLocalStorage = (key: string, state: any, cId: string) => {
   try {
     localStorage.setItem(storageKey, JSON.stringify(state));
   } catch (e) {
-    console.error(`Error saving ${storageKey} to localStorage:`, e);
   }
 };
 
@@ -101,8 +99,6 @@ const SelectChannelMix = () => {
 
   // Debug data on mount
   useEffect(() => {
-    // console.log("SelectChannelMix - platformList:", platformList);
-    // console.log("SelectChannelMix - campaignFormData:", campaignFormData);
   }, [platformList, campaignFormData, cId]);
 
   // Ensure component is mounted and data is ready
@@ -445,7 +441,7 @@ const SelectChannelMix = () => {
   const filterPlatforms = (platforms, stageName) => {
     const term = searchTerms[stageName] || "";
     if (!term) return platforms;
-    return platforms.filter(platform => 
+    return platforms.filter(platform =>
       platform.platform_name.toLowerCase().includes(term.toLowerCase())
     );
   };
@@ -531,11 +527,10 @@ const SelectChannelMix = () => {
                 {platforms.map((platform, idx) => (
                   <div
                     key={idx}
-                    className={`flex items-center gap-1 ${
-                      ONLINE_TYPES.includes(type)
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-green-100 text-green-700"
-                    } rounded-full px-3 py-1`}
+                    className={`flex items-center gap-1 ${ONLINE_TYPES.includes(type)
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-green-100 text-green-700"
+                      } rounded-full px-3 py-1`}
                   >
                     {getPlatformIcon(platform) && (
                       <Image
@@ -613,11 +608,10 @@ const SelectChannelMix = () => {
                   </div>
                   <div className="flex items-center justify-center flex-1">
                     <p
-                      className={`font-general-sans font-semibold text-[16px] leading-[22px] ${
-                        stageStatuses[stage.name] === "In progress"
-                          ? "text-[#3175FF]"
-                          : "text-[#061237] opacity-50"
-                      }`}
+                      className={`font-general-sans font-semibold text-[16px] leading-[22px] ${stageStatuses[stage.name] === "In progress"
+                        ? "text-[#3175FF]"
+                        : "text-[#061237] opacity-50"
+                        }`}
                     >
                       {stageStatuses[stage.name] || "Not started"}
                     </p>
@@ -692,11 +686,10 @@ const SelectChannelMix = () => {
                             {selectedPlatformsForType.map((platform, idx) => (
                               <div
                                 key={idx}
-                                className={`flex items-center gap-1 ${
-                                  ONLINE_TYPES.includes(type)
-                                    ? "bg-blue-100 text-blue-700"
-                                    : "bg-green-100 text-green-700"
-                                } rounded-full px-3 py-1`}
+                                className={`flex items-center gap-1 ${ONLINE_TYPES.includes(type)
+                                  ? "bg-blue-100 text-blue-700"
+                                  : "bg-green-100 text-green-700"
+                                  } rounded-full px-3 py-1`}
                               >
                                 {getPlatformIcon(platform) && (
                                   <Image
@@ -786,8 +779,8 @@ const SelectChannelMix = () => {
                                                 </div>
                                                 <div
                                                   className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${isSelected
-                                                      ? "bg-[#3175FF]"
-                                                      : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
+                                                    ? "bg-[#3175FF]"
+                                                    : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
                                                     }`}
                                                 >
                                                   {isSelected && (

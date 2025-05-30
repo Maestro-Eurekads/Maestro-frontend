@@ -174,7 +174,6 @@ const updateMultipleAdSets = (
   );
 
   if (stageIndex === -1) {
-    console.error(`Stage "${stageName}" not found`);
     return campaignData;
   }
 
@@ -195,9 +194,7 @@ const updateMultipleAdSets = (
   }
 
   if (!platformFound) {
-    console.error(
-      `Platform "${platformName}" not found in stage "${stageName}"`
-    );
+
     return campaignData;
   }
   return updatedCampaignData;
@@ -544,7 +541,7 @@ const AudienceDropdownWithCallback = memo(
         </div>
       </div>
     );
-});
+  });
 
 // NonFacebookOutlet Component
 const NonFacebookOutlet = memo(function NonFacebookOutlet({
@@ -753,7 +750,6 @@ const AdsetSettings = memo(function AdsetSettings({
 
       onInteraction && onInteraction();
     } catch (error) {
-      console.error("Failed to delete ad set:", error);
       // Optionally, revert the local state changes or show an error message
       // For simplicity, we'll log the error and keep the local changes
     }
@@ -1166,7 +1162,7 @@ const AdSetFlow = memo(function AdSetFlow({
 
   useEffect(() => {
     // if (platformName) {
-      setIsEditing(true);
+    setIsEditing(true);
     // }
   }, []);
 

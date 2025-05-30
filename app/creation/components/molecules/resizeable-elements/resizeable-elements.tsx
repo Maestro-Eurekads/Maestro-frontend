@@ -156,9 +156,7 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
   }, [rrange]);
 
   useEffect(() => {
-    console.log("here");
     if (campaignFormData?.funnel_stages && containerWidth) {
-      console.log("here1");
       const initialWidths: Record<string, number> = {};
       const initialPositions: Record<string, number> = {};
       const contWidth = containerWidth - 75;
@@ -174,7 +172,7 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
           const stageEndDate = stage?.funnel_stage_timeline_end_date
             ? parseISO(stage?.funnel_stage_timeline_end_date)
             : null;
-          console.log({ stageStartDate, stageEndDate });
+
           const startDateIndex = stageStartDate
             ? range?.findIndex((date) => isEqual(date, stageStartDate)) *
             (rrange === "Day"
@@ -186,7 +184,7 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
           const daysBetween =
             eachDayOfInterval({ start: stageStartDate, end: stageEndDate })
               .length - 1;
-          console.log("daysBetween", daysBetween);
+
           const daysFromStart = differenceInCalendarDays(
             stageStartDate,
             campaignFormData?.campaign_timeline_start_date
@@ -292,10 +290,10 @@ const ResizeableElements = ({ funnelData, disableDrag }) => {
           const stage = campaignFormData?.custom_funnels?.find(
             (s) => s?.name === stageName
           );
-          console.log(" ResizeableElements ~ channelWidths:", stage?.color);
+
           const funn = funnelStages?.find((ff) => ff?.name === stageName);
           if (!stage) return null;
-          // console.log(stage);
+
           const channelWidth = funnelWidths[stage?.name] || 400;
           const isOpen = openChannels[stage?.name] || false; // Get open state by ID
 

@@ -69,24 +69,39 @@ export function useCampaignFilters(clientID: string) {
       const response = await fetchClientCampaign(clientID);
       setCampaigns(response.data.data);
       setFilteredCampaigns(response.data.data);
-    } catch (error) {
-      console.error("Error fetching campaigns:", error);
+    } catch (error) { 
     } finally {
       setLoading(false);
     }
   };
 
   // The main fetch function
-  const fetchClientCampaign = async (clientID: string) => {
-    return await axios.get(
-      `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns?filters[client][$eq]=${clientID}&populate[media_plan_details]=*&populate[budget_details]=*&populate[campaign_budget][populate][budget_fees]=*&populate[client_selection]=*&populate[channel_mix][populate][social_media][populate]=*&populate[channel_mix][populate][display_networks][populate]=*&populate[channel_mix][populate][search_engines][populate]=*&populate[channel_mix][populate][streaming][populate]=*&populate[channel_mix][populate][ooh][populate]=*&populate[channel_mix][populate][broadcast][populate]=*&populate[channel_mix][populate][messaging][populate]=*&populate[channel_mix][populate][print][populate]=*&populate[channel_mix][populate][e_commerce][populate]=*&populate[channel_mix][populate][in_game][populate]=*&populate[channel_mix][populate][mobile][populate]=*`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-        },
-      }
-    );
-  };
+ const fetchClientCampaign = async (clientID: string) => {
+  return await axios.get(
+    `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns?filters[client][$eq]=${clientID}` +
+      `&populate[media_plan_details][populate][client_approver]=*` +
+      `&populate[budget_details]=*` +
+      `&populate[campaign_budget][populate][budget_fees]=*` +
+      `&populate[client_selection]=*` +
+      `&populate[channel_mix][populate][social_media][populate]=*` +
+      `&populate[channel_mix][populate][display_networks][populate]=*` +
+      `&populate[channel_mix][populate][search_engines][populate]=*` +
+      `&populate[channel_mix][populate][streaming][populate]=*` +
+      `&populate[channel_mix][populate][ooh][populate]=*` +
+      `&populate[channel_mix][populate][broadcast][populate]=*` +
+      `&populate[channel_mix][populate][messaging][populate]=*` +
+      `&populate[channel_mix][populate][print][populate]=*` +
+      `&populate[channel_mix][populate][e_commerce][populate]=*` +
+      `&populate[channel_mix][populate][in_game][populate]=*` +
+      `&populate[channel_mix][populate][mobile][populate]=*`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+      },
+    }
+  );
+};
+
 
   // Enhanced fetch with filters
   const fetchFilteredCampaigns = async () => {
@@ -165,8 +180,7 @@ export function useCampaignFilters(clientID: string) {
         }
       );
       return response.data.data;
-    } catch (error) {
-      console.error("Error fetching filtered campaigns:", error);
+    } catch (error) { 
       return [];
     } finally {
       setLoading(false);

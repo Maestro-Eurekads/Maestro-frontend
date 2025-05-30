@@ -109,12 +109,11 @@ function FeeSelectionStep({
     budget = campaignFormData?.campaign_budget?.amount
   ) => {
     const budgetAmount = parseFloat(budget || "0");
-    console.log("🚀 ~ budgetAmount:", budgetAmount)
     const totalFees = feesList.reduce(
       (total, fee) => total + parseFloat(fee.amount || 0),
       0
     );
-    console.log("🚀 ~ totalFees:", active)
+
 
     let net;
     if (campaignFormData?.campaign_budget?.sub_budget_type === "gross") {
@@ -221,7 +220,7 @@ function FeeSelectionStep({
             "percent",
           percentValue:
             feeOptions?.find((opt) => opt.value === bud?.fee_type)?.type ===
-            "percent"
+              "percent"
               ? bud?.percentValue
               : null,
         })
@@ -278,7 +277,7 @@ function FeeSelectionStep({
   const calculateRemainingBudget = () => {
     const budgetAmount = parseFloat(campaignFormData?.campaign_budget?.amount || "0");
     const totalFees = fees.reduce((total, fee) => total + Number(fee.amount || 0), 0);
-    
+
     let adjustedBudget;
     if (active === 1) {
       // Gross budget: Net = Gross - Fees
@@ -322,11 +321,10 @@ function FeeSelectionStep({
                 </p>
               </div>
               <p
-                className={`font-[600] text-[15px] leading-[20px] ${
-                  Number(calculateRemainingBudget()) < 1
-                    ? "text-red-500"
-                    : "text-[#00A36C]"
-                }`}
+                className={`font-[600] text-[15px] leading-[20px] ${Number(calculateRemainingBudget()) < 1
+                  ? "text-red-500"
+                  : "text-[#00A36C]"
+                  }`}
               >
                 Remaining budget: {getCurrencySymbol(selectedOption.value)}
                 {formatNumberWithCommas(calculateRemainingBudget())}
@@ -370,14 +368,14 @@ function FeeSelectionStep({
                     </div>
                     {(active === 1 ||
                       campaignFormData?.campaign_budget?.sub_budget_type ===
-                        "gross") && (
-                      <div className="absolute right-2 top-2">
-                        <Image
-                          src={Selectstatus || "/placeholder.svg"}
-                          alt="Select status icon"
-                        />
-                      </div>
-                    )}
+                      "gross") && (
+                        <div className="absolute right-2 top-2">
+                          <Image
+                            src={Selectstatus || "/placeholder.svg"}
+                            alt="Select status icon"
+                          />
+                        </div>
+                      )}
                   </div>
 
                   <div
@@ -406,14 +404,14 @@ function FeeSelectionStep({
                     </div>
                     {(active === 2 ||
                       campaignFormData?.campaign_budget?.sub_budget_type ===
-                        "net") && (
-                      <div className="absolute right-2 top-2">
-                        <Image
-                          src={Selectstatus || "/placeholder.svg"}
-                          alt="Select status icon"
-                        />
-                      </div>
-                    )}
+                      "net") && (
+                        <div className="absolute right-2 top-2">
+                          <Image
+                            src={Selectstatus || "/placeholder.svg"}
+                            alt="Select status icon"
+                          />
+                        </div>
+                      )}
                   </div>
                 </div>
               ) : (
@@ -496,8 +494,8 @@ function FeeSelectionStep({
                             {feeType?.type === "percent"
                               ? ""
                               : getCurrencySymbol(
-                                  campaignFormData?.campaign_budget?.currency
-                                )}
+                                campaignFormData?.campaign_budget?.currency
+                              )}
                           </p>
                           <input
                             className="text-center outline-none max-w-[205px]"
@@ -619,7 +617,7 @@ function FeeSelectionStep({
                             placeholder="Net amount"
                             value={
                               isNaN(Number(netAmount)) ||
-                              Number(netAmount) <= 0
+                                Number(netAmount) <= 0
                                 ? ""
                                 : formatNumberWithCommas(netAmount)
                             }
@@ -693,8 +691,8 @@ function FeeSelectionStep({
                               {feeType?.type === "percent"
                                 ? ""
                                 : getCurrencySymbol(
-                                    campaignFormData?.campaign_budget?.currency
-                                  )}
+                                  campaignFormData?.campaign_budget?.currency
+                                )}
                             </p>
                             <input
                               className="text-center outline-none w-[145px]"
@@ -814,7 +812,7 @@ function FeeSelectionStep({
                               placeholder="Gross amount"
                               value={
                                 isNaN(Number(calculateGrossAmount())) ||
-                                Number(calculateGrossAmount()) <= 0
+                                  Number(calculateGrossAmount()) <= 0
                                   ? ""
                                   : formatNumberWithCommas(calculateGrossAmount())
                               }

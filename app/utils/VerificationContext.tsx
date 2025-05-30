@@ -54,7 +54,6 @@ const loadStoredState = () => {
 			const parsedState = storedState ? JSON.parse(storedState) : {};
 			return typeof parsedState === "object" && parsedState !== null ? parsedState : {};
 		} catch (error) {
-			console.error("Error parsing verifybeforeMove from localStorage:", error);
 			return {};
 		}
 	}

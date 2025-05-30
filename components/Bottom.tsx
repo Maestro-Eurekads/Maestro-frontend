@@ -15,6 +15,7 @@ import toast, { Toaster } from "react-hot-toast";
 import dayjs from "dayjs";
 import { selectCurrency } from "./Options";
 import { useUserPrivileges } from "utils/userPrivileges";
+import { useRouter } from "next/navigation";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -35,6 +36,8 @@ const CHANNEL_TYPES = [
 ];
 
 const Bottom = ({ setIsOpen }: BottomProps) => {
+
+  const router = useRouter()
   const { active, setActive, subStep, setSubStep } = useActive();
   const { midcapEditing } = useEditing();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
@@ -55,7 +58,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const [hasFormatSelected, setHasFormatSelected] = useState(false);
-  const { isFinancialApprover, isAgencyApprover, isAdmin } = useUserPrivileges();
+  const { isFinancialApprover, isAgencyApprover, isAdmin, loggedInUser } = useUserPrivileges();
   const {
     createCampaign,
     updateCampaign,
@@ -72,6 +75,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     requiredFields,
     currencySign,
   } = useCampaigns();
+
+  const [clientId, setClientId] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedClientId = localStorage.getItem(loggedInUser.id?.toString());
+      setClientId(storedClientId);
+    }
+  }, [loggedInUser.id]);
 
   // --- Persist format selection for active === 4 ---
   const hasProceededFromFormatStep = useRef(false);
@@ -119,7 +130,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     return hasValidFormat;
   };
 
-  console.log('campaignFormData-campaignFormData', campaignFormData)
+
 
   // Only reset formats when entering active === 4 if the user has NOT already proceeded from step 4 with a valid format
   useEffect(() => {
@@ -264,7 +275,38 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     setIsStepZeroValid(requiredFields.every(Boolean));
   }, [requiredFields, setIsStepZeroValid]);
 
+  // const handleEditClick = async () => {
+  //   try {
+  //     const res = await fetch(
+  //       `${process.env.NEXT_PUBLIC_STRAPI_URL}/users?filters[id][$eq]=${loggedInUser.id}&filters[clients][id][$eq]=${clientId}`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+  //         },
+  //       }
+  //     );
+
+  //     const json = await res.json();
+  //     const user = json;
+  //     const clients = user?.clients || [];
+  //     const hasAccess = clients?.some(client => client?.id === Number(clientId));
+
+  //     // localStorage.removeItem(loggedInUser.id?.toString());
+  //     router.push("/");
+  //     toast.error("You don't have access to this campaign.");
+
+  //   } catch (error) {
+  //     // localStorage.removeItem(loggedInUser.id?.toString());
+  //     router.push("/");
+  //     toast.error("You don't have access to this campaign.");
+  //     // window.location.reload();
+  //   }
+  // };
+
+
   const handleContinue = async () => {
+    // handleEditClick()
+
     if (active === 6) {
       if (midcapEditing.isEditing) {
         let errorMessage = "";
@@ -716,7 +758,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setActive((prev) => prev + 1);
       }
     } catch (error) {
-      console.error("Error in handleContinue:", error);
     } finally {
       setLoading(false);
     }
