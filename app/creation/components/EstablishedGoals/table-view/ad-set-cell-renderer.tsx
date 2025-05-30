@@ -257,7 +257,7 @@ export const AdSetCellRenderer = ({
     } else if (isCurrencyType) {
       // Format as currency with commas
       if (!displayValue.toString().includes(`${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}`)) {
-        displayValue = formatNumber(Number.parseFloat(numericValue.toFixed(2)))
+        displayValue = `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}${formatNumber(Number.parseFloat(numericValue.toFixed(2)))}`;
       }
     } else if (isSecondsType) {
       // Format as seconds with commas

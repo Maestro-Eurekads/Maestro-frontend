@@ -5,11 +5,11 @@ const defaultHeaders = [
   { name: "Start Date", showInput: false },
   { name: "End Date", showInput: false },
   { name: "Audience Size", showInput: true, type: "number" },
-  { name: "Budget Size", showInput: true },
-  { name: "CPM", showInput: true },
-  { name: "Impressions", showInput: false },
-  { name: "Frequency", showInput: true },
-  { name: "Reach", showInput: false },
+  { name: "Budget Size", showInput: true, type:"currency" },
+  { name: "CPM", showInput: true, type: "currency" },
+  { name: "Impressions", showInput: false, type: "number" },
+  { name: "Frequency", showInput: true, type: "number" },
+  { name: "Reach", showInput: false, type: "number" },
 ];
 
 export const tableHeaders = {
@@ -639,10 +639,12 @@ export const tableHeaders = {
     {
       name: "Link Clicks",
       showInput: false,
+type: "number"
     },
     {
       name: "CPC",
       showInput: false,
+      type: "currency"
     },
     {
       name: "Open Rate",
@@ -652,10 +654,12 @@ export const tableHeaders = {
     {
       name: "App Open",
       showInput: false,
+      type: "number"
     },
     {
       name: "Cost / App Open",
       showInput: false,
+      type: "currency"
     },
     {
       name: "CVR",
@@ -665,22 +669,27 @@ export const tableHeaders = {
     {
       name: "Conversion",
       showInput: false,
+      type: "number"
     },
     {
       name: "Cost / conversion",
       showInput: false,
+      type: "currency"
     },
     {
       name: "CLV of associated product",
       showInput: true,
+      type: "number"
     },
     {
       name: "Generated Revenue",
       showInput: false,
+      type: "currency"
     },
     {
       name: "Return on Ad Spent",
       showInput: false,
+      type: "currency"
     },
   ],
   // "In App Conversion": [
@@ -747,10 +756,12 @@ export const tableHeaders = {
     {
       name: "Link Clicks",
       showInput: false,
+      type: "number"
     },
     {
       name: "CPC",
       showInput: false,
+      type: "currency"
     },
     {
       name: "Open Rate",
@@ -760,10 +771,12 @@ export const tableHeaders = {
     {
       name: "App Open",
       showInput: false,
+      type: "number"
     },
     {
       name: "Cost / App Open",
       showInput: false,
+      type: "currency"
     },
     {
       name: "CVR",
@@ -773,22 +786,27 @@ export const tableHeaders = {
     {
       name: "Conversion",
       showInput: false,
+      type: "number"
     },
     {
       name: "Cost / conversion",
       showInput: false,
+      type: "currency"
     },
     {
       name: "CLV of associated product",
       showInput: true,
+      type: "currency"
     },
     {
       name: "Generated Revenue",
       showInput: false,
+      type: "currency"
     },
     {
       name: "Return on Ad Spent",
       showInput: false,
+      type: "currency"
     },
   ],
 };
