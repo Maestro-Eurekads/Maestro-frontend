@@ -182,8 +182,8 @@ const Dashboard = () => {
         const dataValues = getStagePercentages(campaign)
 
         return (
-          <div key={index} className="flex justify-center gap-[48px] mt-[100px]">
-            <div className="box-border flex flex-row items-start p-6 gap-[72px] w-[493px] h-[403px] bg-[#F9FAFB] rounded-lg">
+          <div key={index} className="flex justify-center gap-[48px] mt-[100px] w-full px-20 md:px-60">
+            <div className="box-border flex flex-row items-start p-6 gap-[72px] w-[50%] h-[500px] bg-[#F9FAFB] rounded-lg">
               <div className="flex flex-col">
                 <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
                   Your budget by phase for {campaign?.media_plan_details?.plan_name}
@@ -239,10 +239,10 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col w-[50%]">
               <div
                 key={index}
-                className="box-border flex flex-col items-start p-6 gap-[5px] w-[493px] min-h-[545px] bg-[#F9FAFB] rounded-lg"
+                className="box-border flex flex-col items-start p-6 gap-[5px]  min-h-[545px] bg-[#F9FAFB] rounded-lg"
               >
                 <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
                   Your budget by channel

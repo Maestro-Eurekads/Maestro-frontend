@@ -250,7 +250,10 @@ const Table = () => {
                       <div className="flex felx-row  gap-1">
                         <div>
                           {data?.campaign_budget
-                            ?.amount || "N/A"}{" "}
+                            ?.amount || "N/A" ? 0 : Number(data?.campaign_budget
+                              ?.amount || "N/A".replace(/[^\d.-]/g, "")).toLocaleString() + " €"}
+
+
                         </div>
                         <div>
                           {data?.campaign_budget?.currency
