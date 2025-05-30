@@ -100,7 +100,7 @@ export const AdSetRow = ({
     costconversion: [calculateCPL, "budget.fixed_value", "kpi.conversions"],
     generated_revenue: [
       calculateConversion,
-      obj === "Purchase (Pro)" ? "kpi.add_to_carts" : "kpi.conversions",
+      "kpi.conversion",
       "kpi.clv_of_associated_product",
     ],
     return_on_ad_spent: [
