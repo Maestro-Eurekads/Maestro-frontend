@@ -112,7 +112,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                   </h3>
                   <p className="text-[#061237] font-medium text-[14px]">
                     {/* 250,000 € */}
-                    {budget}
+                    {budget === "undefined €" || budget === "null €" ? 0 : Number(budget.replace(/[^\d.-]/g, "")).toLocaleString() + " €"}
                   </p>
                 </div>
                 <button onClick={() => toggleShow(index)}>
