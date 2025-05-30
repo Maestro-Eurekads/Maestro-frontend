@@ -67,7 +67,7 @@ const MapFunnelStages = () => {
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
   const [currentFunnel, setCurrentFunnel] = useState<Funnel | null>(null);
   const [newFunnelName, setNewFunnelName] = useState("");
-  const [funnelNameError, setFunnelNameError] = useState<string>(""); // For validation error message
+  // Remove funnelNameError state, as we will not show inline error text
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Default funnel stages for Custom option
@@ -326,7 +326,7 @@ const MapFunnelStages = () => {
         !modalRef.current.contains(event.target as Node)
       ) {
         setIsModalOpen(false);
-        setFunnelNameError(""); // Clear error on close
+        // No need to clear funnelNameError
       }
     }
 
@@ -520,14 +520,13 @@ const MapFunnelStages = () => {
   const handleAddFunnel = (name: string) => {
     const error = validateFunnelName(name, false);
     if (error) {
-      setFunnelNameError(error);
+      // Only show toast for validation, do not set inline error
       toast.error(error, {
         style: { background: "red", color: "white", textAlign: "center" },
         duration: 3000,
       });
       return;
     }
-    setFunnelNameError("");
 
     const newColor = getAvailableColor();
     const newFunnel: Funnel = {
@@ -567,14 +566,13 @@ const MapFunnelStages = () => {
   const handleEditFunnel = (oldId: string, newName: string) => {
     const error = validateFunnelName(newName, true, oldId);
     if (error) {
-      setFunnelNameError(error);
+      // Only show toast for validation, do not set inline error
       toast.error(error, {
         style: { background: "red", color: "white", textAlign: "center" },
         duration: 3000,
       });
       return;
     }
-    setFunnelNameError("");
 
     const updatedFunnels = persistentCustomFunnels.map((f) =>
       f.name === oldId
@@ -738,7 +736,7 @@ const MapFunnelStages = () => {
                       setModalMode("edit");
                       setCurrentFunnel(funnel);
                       setNewFunnelName(funnel.name);
-                      setFunnelNameError("");
+                      // No inline error
                       setIsModalOpen(true);
                     }}
                   >
@@ -763,7 +761,7 @@ const MapFunnelStages = () => {
               setModalMode("add");
               setCurrentFunnel(null);
               setNewFunnelName("");
-              setFunnelNameError("");
+              // No inline error
               setIsModalOpen(true);
             }}
           >
@@ -786,7 +784,7 @@ const MapFunnelStages = () => {
               <button
                 onClick={() => {
                   setIsModalOpen(false);
-                  setFunnelNameError("");
+                  // No inline error
                 }}
                 className="text-gray-500 hover:text-gray-700"
               >
@@ -806,27 +804,18 @@ const MapFunnelStages = () => {
                 value={newFunnelName}
                 onChange={(e) => {
                   setNewFunnelName(e.target.value);
-                  if (funnelNameError) {
-                    // Live validation feedback
-                    if (modalMode === "add") {
-                      setFunnelNameError(validateFunnelName(e.target.value, false));
-                    } else if (modalMode === "edit" && currentFunnel) {
-                      setFunnelNameError(validateFunnelName(e.target.value, true, currentFunnel.name));
-                    }
-                  }
+                  // No inline error or live validation
                 }}
-                className={`w-full px-3 py-2 border ${funnelNameError ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 placeholder="Enter funnel name"
               />
-              {funnelNameError && (
-                <p className="text-red-500 text-xs mt-1">{funnelNameError}</p>
-              )}
+              {/* No inline error message below input */}
             </div>
             <div className="flex justify-end gap-2 mt-6">
               <button
                 onClick={() => {
                   setIsModalOpen(false);
-                  setFunnelNameError("");
+                  // No inline error
                 }}
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
               >

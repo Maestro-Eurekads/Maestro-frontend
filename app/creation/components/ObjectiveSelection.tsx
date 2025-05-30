@@ -395,6 +395,8 @@ const ObjectiveSelection = () => {
     )
   }
 
+  
+
   const hasValidatedPlatformsForCategory = (category, stageName) => {
     const channelMix = Array.isArray(campaignFormData?.channel_mix) ? campaignFormData.channel_mix : []
     const stageData = channelMix.find((ch) => ch.funnel_stage === stageName)
