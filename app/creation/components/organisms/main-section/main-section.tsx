@@ -10,6 +10,7 @@ import MonthInterval from "../../atoms/date-interval/MonthInterval"
 import WeekInterval from "../../atoms/date-interval/WeekInterval"
 import { useState, useEffect, useCallback } from "react"
 import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react"
+import AddNewChennelsModel from "components/Modals/AddNewChennelsModel"
 
 const MainSection = ({
   hideDate,
@@ -18,6 +19,8 @@ const MainSection = ({
 }: { hideDate?: boolean; disableDrag?: boolean; view?: boolean }) => {
   const { clientCampaignData, campaignFormData } = useCampaigns()
   const { range } = useDateRange()
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedStage, setSelectedStage] = useState("");
 
   // Zoom state management
   const [zoomLevel, setZoomLevel] = useState(1)
@@ -135,7 +138,7 @@ const MainSection = ({
       {!hideDate && <DateComponent useDate={true} />}
 
       {/* Zoom Controls */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 pl-4">
         <div className="flex items-center gap-2 bg-white border rounded-lg p-2 shadow-sm">
           <button
             onClick={zoomOut}
@@ -164,7 +167,7 @@ const MainSection = ({
           </button>
         </div>
 
-        <div className="text-xs text-gray-500">Use Ctrl + / Ctrl - to zoom, or Ctrl + 0 to reset</div>
+        {/* <div className="text-xs text-gray-500">Use Ctrl + / Ctrl - to zoom, or Ctrl + 0 to reset</div> */}
       </div>
 
       <div className="box-border w-full min-h-[519px] bg-white border-b-2 relative mt-4">
@@ -184,10 +187,16 @@ const MainSection = ({
                 <div className="absolute left-0 top-18 w-1 bg-orange-500 min-h-screen"></div>
               </div>
             </div>
-            <ResizeableElements funnelData={funnelsData} disableDrag={disableDrag} />
+            <ResizeableElements funnelData={funnelsData} disableDrag={disableDrag} isOpen={isOpen} setIsOpen={setIsOpen} selectedStage={selectedStage} setSelectedStage={setSelectedStage} />
           </div>
         </div>
       </div>
+        <AddNewChennelsModel
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          selectedStage={selectedStage}
+        />
+      {/* </div> */}
     </div>
   )
 }
