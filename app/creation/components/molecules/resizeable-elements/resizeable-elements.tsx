@@ -150,6 +150,7 @@ const ResizeableElements = ({ funnelData, disableDrag, isOpen, setIsOpen, select
         if (!gridContainer) return;
         const containerRect = gridContainer.getBoundingClientRect();
         const contWidth = containerRect.width - 75;
+        console.log("🚀 ~ requestAnimationFrame:", contWidth)
         setContainerWidth(contWidth + 75);
       });
     }
@@ -199,17 +200,19 @@ const ResizeableElements = ({ funnelData, disableDrag, isOpen, setIsOpen, select
             if (rrange === "Day") {
               return daysBetween > 0 ? 50 * daysBetween + 10 : 310;
             } else if (rrange === "Week") {
-              return daysBetween > 0 ? 50 * daysBetween + 10 : 310;
+              return daysBetween > 0 ? 50 * daysBetween +10 : 310;
             } else {
               const endMonth = funnelData?.endMonth || 1;
               let monthBaseWidth;
-              if (endMonth === 1) {
-                monthBaseWidth = contWidth;
-              } else if (endMonth > 1) {
-                monthBaseWidth = contWidth / endMonth;
-              }
+              // if (endMonth === 1) {
+              // } 
+              monthBaseWidth = contWidth;
+              // else if (endMonth > 1) {
+              //   monthBaseWidth = contWidth / endMonth;
+              // }
+                // console.log("🚀 ~  monthBaseWidth:", {monthBaseWidth, daysBetween, width: daysBetween > 0 ? Math.round(monthBaseWidth / endMonth) : 50})
               return daysBetween > 0
-                ? Math.round(monthBaseWidth / 31) * daysBetween - 18
+                ? Math.round(monthBaseWidth / endMonth) 
                 : 50;
             }
           })();
@@ -222,7 +225,8 @@ const ResizeableElements = ({ funnelData, disableDrag, isOpen, setIsOpen, select
       setChannelWidths(initialWidths);
       setChannelPositions(initialPositions);
     }
-  }, [campaignFormData?.funnel_stages, containerWidth, campaignFormData?.campaign_timeline_start_date]);
+  }, [campaignFormData?.funnel_stages, containerWidth, campaignFormData?.campaign_timeline_start_date, rrange]);
+      
 
   return (
     <div
@@ -243,10 +247,12 @@ const ResizeableElements = ({ funnelData, disableDrag, isOpen, setIsOpen, select
                 const containerRect = gridContainer.getBoundingClientRect();
                 const contWidth = containerRect.width; // subtract margin/padding if needed
 
+                console.log("🚀  ~ contWidth:", contWidth)
                 const percent = 100 / endMonth; // e.g., 20 if endMonth=5
                 const total = (percent / 100) * contWidth; // target total width in px for all days (31 days)
 
-                const dailyWidth = contWidth / (endMonth * 31); // width per day without factor
+                const dailyWidth = (contWidth / endMonth); // width per day without factor
+                console.log("🚀  ~ dailyWidth:", dailyWidth)
                 const totalLines = dailyWidth * 31; // total width for 31 days without factor
 
                 const diff = total - totalLines; // difference to adjust
@@ -309,7 +315,7 @@ const ResizeableElements = ({ funnelData, disableDrag, isOpen, setIsOpen, select
                 display: "grid",
                 gridTemplateColumns:
                   rrange === "Day"
-                    ? `repeat(${funnelData?.endDay - 1 || 1}, 50px)`
+                    ? `repeat(${funnelData?.endDay || 1}, 50px)`
                     : rrange === "Week"
                     ? `repeat(${(funnelData?.endWeek - 1 || 1) * 7}, 50px)` // 7 columns per week
                     : (function () {
@@ -327,7 +333,7 @@ const ResizeableElements = ({ funnelData, disableDrag, isOpen, setIsOpen, select
                   gridColumnStart: 1,
                   gridColumnEnd:
                     rrange === "Day"
-                      ? `repeat(${funnelData?.endDay - 1 || 1}, 50px)`
+                      ? `repeat(${funnelData?.endDay  || 1}, 50px)`
                       : rrange === "Week"
                       ? `repeat(${(funnelData?.endWeek - 1 || 1) * 7}, 50px)` // 7 columns per week
                       : (function () {
