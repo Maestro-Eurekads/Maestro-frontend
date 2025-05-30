@@ -159,6 +159,9 @@ const MediaOption = ({
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
   const STRAPI_TOKEN = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
 
+  // Track previews before and after deletion to show toast immediately when UI is removed
+  const [prevPreviews, setPrevPreviews] = useState<Array<{ id: string; url: string }>>([]);
+
   useEffect(() => {
     if (!STRAPI_URL || !STRAPI_TOKEN) {
       console.error("Missing Strapi configuration:", { STRAPI_URL, STRAPI_TOKEN });
@@ -178,6 +181,20 @@ const MediaOption = ({
   useEffect(() => {
     onPreviewsUpdate(localPreviews);
   }, [localPreviews, onPreviewsUpdate]);
+
+  // Track previous previews for instant UI removal detection
+  useEffect(() => {
+    setPrevPreviews(localPreviews);
+  }, []); // initialize on mount
+
+  useEffect(() => {
+    // If a preview was being deleted, and now it's gone from localPreviews, show toast immediately
+    if (deletingPreviewId && !localPreviews.some((prv) => prv.id === deletingPreviewId)) {
+      setDeletingPreviewId(null);
+      toast.success("Preview deleted successfully!"); // Show toast immediately when UI is removed
+    }
+    setPrevPreviews(localPreviews);
+  }, [localPreviews, deletingPreviewId]);
 
   useEffect(() => {
     if (deletingPreviewId && completedDeletions.has(deletingPreviewId)) {
@@ -909,7 +926,6 @@ export const Platforms = ({
   const uploadUpdatedCampaignToStrapi = useCallback(
     async (data: any) => {
       if (isUpdatingStrapi) {
-        
         return;
       }
 
@@ -959,7 +975,7 @@ export const Platforms = ({
         });
 
         await updateCampaign(sanitizedData);
-        debouncedToast("Campaign data saved successfully!", "success");
+        // debouncedToast("Campaign data saved successfully!", "success");
       } catch (error: any) {
         console.error("Error in uploadUpdatedCampaignToStrapi:", {
           message: error.message,
@@ -1156,7 +1172,7 @@ export const Platforms = ({
 
       setDeleteQueue((prev) => prev.slice(1));
       setCompletedDeletions((prev) => new Set(prev).add(previewId));
-      debouncedToast("Preview deleted successfully!", "success");
+      // debouncedToast("Preview deleted successfully!", "success"); // REMOVE: success toast here, now handled in MediaOption
     } catch (error: any) {
       console.error("Error processing delete queue:", error);
       debouncedToast(`Failed to delete preview: ${error.message}`, "error");

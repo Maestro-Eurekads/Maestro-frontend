@@ -680,7 +680,7 @@ type: "number"
     {
       name: "CLV of associated product",
       showInput: true,
-      type: "number"
+      type: "currency"
     },
     {
       name: "Generated Revenue",
