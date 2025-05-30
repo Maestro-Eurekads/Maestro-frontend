@@ -784,7 +784,17 @@ const ConfiguredSetPage = ({ netAmount }) => {
 
               <div className="flex items-start flex-col gap-3">
                <h2 className="text-center font-bold">Percentage</h2>
-               <div className="flex items-center gap-4">
+               {/* Responsive container for auto-split row */}
+               <div
+                className="flex items-center gap-4 flex-wrap w-full"
+                style={{
+                  minWidth: 0,
+                  width: "100%",
+                  maxWidth: "100%",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                }}
+               >
                 <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
                  <div className="flex items-center gap-2">
                   <p>
@@ -802,11 +812,12 @@ const ConfiguredSetPage = ({ netAmount }) => {
                  platform?.ad_sets?.length > 1 &&
                  campaignFormData?.campaign_budget?.level === "Adset level" && (
                   <div
-                    className="flex items-center gap-2 max-w-[260px] min-w-0"
+                    className="flex items-center gap-2 w-full md:w-auto"
                     style={{
                       flex: "1 1 0",
                       minWidth: 0,
                       overflow: "visible",
+                      maxWidth: "100%",
                     }}
                   >
                    <label
@@ -842,7 +853,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
-                      maxWidth: "230px",
+                      maxWidth: "100%",
                       minWidth: 0,
                       flex: "1 1 0",
                     }}
