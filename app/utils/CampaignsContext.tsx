@@ -314,14 +314,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-<<<<<<< HEAD
-      await updateUsersWithCampaign(clientUsers?.map((uu) => uu?.id), response?.data?.data?.id);
-=======
       await updateUsersWithCampaign(
         clientUsers?.map((uu) => uu?.id),
         response?.data?.data?.id
       );
->>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
       return response;
     } catch (error) {
       console.error("Error creating campaign:", error);
