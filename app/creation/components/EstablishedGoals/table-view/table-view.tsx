@@ -109,6 +109,7 @@ const TableView = () => {
         "Impressions",
         "Frequency",
         "Reach",
+        "GRP"
       ]
 
       // Filter out headers that are not default and not in selectedMetrics
@@ -233,6 +234,7 @@ const TableView = () => {
         "Impressions",
         "Frequency",
         "Reach",
+        "GRP"
       ]
 
       // Add default headers first
@@ -516,6 +518,7 @@ const TableView = () => {
                   "Impressions",
                   "Frequency",
                   "Reach",
+                  "GRP"
                 ]
                 const availableMetrics = tableHeaders[objective] || []
 
