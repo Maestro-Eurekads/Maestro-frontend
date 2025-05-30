@@ -42,6 +42,7 @@ export const ChannelRow = ({
   nrColumns,
   nrCells,
   toggleNRCell,
+  hasOfflineChannel
 }) => {
   const { campaignFormData } = useCampaigns();
 
@@ -370,6 +371,7 @@ export const ChannelRow = ({
               nrColumns={nrColumns}
               nrCells={nrCells}
               toggleNRCell={toggleNRCell}
+              hasOfflineChannel={hasOfflineChannel}
             />
           </div>
         </td>

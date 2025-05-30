@@ -17,6 +17,7 @@ export const AdSetCellRenderer = ({
   toggleNRAdCell,
   expandedAdsetKPI,
   toggleAdSetKPIShow,
+  hasOfflineChannel
 }) => {
   const { campaignFormData } = useCampaigns()
 
@@ -143,6 +144,10 @@ export const AdSetCellRenderer = ({
   // if (body === "budget_size") {
   //   return adSet?.budget?.fixed_value === null || adSet?.budget?.fixed_value === undefined ? "-" : adSet?.budget?.fixed_value;
   // }
+
+  if( body === "grp" && !hasOfflineChannel) {
+    return "" ;
+  }
 
   const calculatedFields = [
     "impressions",

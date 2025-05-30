@@ -39,6 +39,7 @@ export const AdSetRow = ({
   toggleAdSetKPIShow,
   nrAdCells,
   toggleNRAdCell,
+  hasOfflineChannel
 }) => {
   const { campaignFormData } = useCampaigns();
   const chData = campaignFormData?.channel_mix
@@ -245,6 +246,7 @@ export const AdSetRow = ({
             toggleNRAdCell={toggleNRAdCell}
             expandedAdsetKPI={expandedAdsetKPI}
             toggleAdSetKPIShow={toggleAdSetKPIShow}
+            hasOfflineChannel={hasOfflineChannel}
           />
         </td>
       ))}

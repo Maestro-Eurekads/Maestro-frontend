@@ -19,6 +19,7 @@ export const CellRenderer = ({
   nrColumns,
   nrCells,
   toggleNRCell,
+  hasOfflineChannel
 }) => {
   const { campaignFormData } = useCampaigns();
 
@@ -140,6 +141,10 @@ export const CellRenderer = ({
   }
   if (body === "audience") {
     return "";
+  }
+
+  if( body === "grp" && !hasOfflineChannel) {
+    return "" ;
   }
 
   // Handle calculated fields
