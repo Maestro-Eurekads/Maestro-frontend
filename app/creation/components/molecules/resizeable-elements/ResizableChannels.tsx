@@ -131,10 +131,7 @@ const ResizableChannels = ({
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     const dailyWidth = calculateDailyWidth(containerWidth, endMonth);
-<<<<<<< HEAD
-=======
     // console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth);
->>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
     const baseStep = rrange === "Month" ? dailyWidth : 50;
     const adjustmentPerStep = 0; // Decrease each next step by 10
     const snapPoints = [];
@@ -450,11 +447,7 @@ const ResizableChannels = ({
         }
       );
 
-<<<<<<< HEAD
-
-=======
       // console.log("Campaign data updated successfully", response.data);
->>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
     } catch (error) {
     } finally {
       setDeleting(false);

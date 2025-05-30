@@ -120,9 +120,6 @@ export const SetupScreen = () => {
     }
   }, [campaignFormData, setCampaignFormData, isInitialized]);
 
-<<<<<<< HEAD
-
-=======
   // Save form data to localStorage whenever it changes, cleaning null values
   // useEffect(() => {
   //   if (campaignFormData) {
@@ -135,11 +132,10 @@ export const SetupScreen = () => {
   //         ? campaignFormData?.client_approver.filter((v: string | null) => v != null)
   //         : [],
   //     };
-  
+
   //     localStorage.setItem("campaignFormData", JSON.stringify(cleanedData));
   //   }
   // }, [campaignFormData]);
->>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
 
 
 
@@ -222,11 +218,7 @@ export const SetupScreen = () => {
 
   }, [client_selection, allClients, setCampaignFormData]);
 
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
 
   useEffect(() => {
     if (campaignFormData?.budget_details_currency?.id) {
@@ -274,18 +266,8 @@ export const SetupScreen = () => {
   }, [campaignFormData, cId, setRequiredFields]);
 
 
-<<<<<<< HEAD
 
 
-=======
-  
-  const handleApproverChange = (field: string, selected: DropdownOption[]) => {
-    setSelectedApprovers((prev) => ({
-      ...prev,
-      [field]: selected,
-    }));
-  };
->>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
 
   if (!campaignFormData) {
     return <div>Loading...</div>;

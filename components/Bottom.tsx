@@ -15,11 +15,8 @@ import toast, { Toaster } from "react-hot-toast";
 import dayjs from "dayjs";
 import { selectCurrency } from "./Options";
 import { useUserPrivileges } from "utils/userPrivileges";
-<<<<<<< HEAD
-import { useRouter } from "next/navigation";
-=======
 import { extractObjectives } from "app/creation/components/EstablishedGoals/table-view/data-processor";
->>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
+import { useRouter } from "next/navigation";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -63,12 +60,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const [hasFormatSelected, setHasFormatSelected] = useState(false);
-<<<<<<< HEAD
-  const { isFinancialApprover, isAgencyApprover, isAdmin, loggedInUser } = useUserPrivileges();
-=======
   const { isFinancialApprover, isAgencyApprover, isAdmin } =
     useUserPrivileges();
->>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
   const {
     createCampaign,
     updateCampaign,
@@ -87,12 +80,12 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   } = useCampaigns();
 
   const [clientId, setClientId] = useState<string | null>(null);
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedClientId = localStorage.getItem(loggedInUser.id?.toString());
-      setClientId(storedClientId);
-    }
-  }, [loggedInUser.id]);
+  // useEffect(() => {
+  //   if (typeof window !== "undefined") {
+  //     const storedClientId = localStorage.getItem(loggedInUser.id?.toString());
+  //     setClientId(storedClientId);
+  //   }
+  // }, [loggedInUser.id]);
 
   // --- Persist format selection for active === 4 ---
   const hasProceededFromFormatStep = useRef(false);
@@ -140,11 +133,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     return hasValidFormat;
   };
 
-<<<<<<< HEAD
-
-=======
   // console.log('campaignFormData-campaignFormData', campaignFormData)
->>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
 
   // Only reset formats when entering active === 4 if the user has NOT already proceeded from step 4 with a valid format
   useEffect(() => {
@@ -533,13 +522,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const cleanData = campaignData
       ? removeKeysRecursively(campaignData, [
-          "id",
-          "documentId",
-          "createdAt",
-          "publishedAt",
-          "updatedAt",
-          "_aggregated",
-        ])
+        "id",
+        "documentId",
+        "createdAt",
+        "publishedAt",
+        "updatedAt",
+        "_aggregated",
+      ])
       : {};
 
     const handleStepZero = async () => {
@@ -686,26 +675,26 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       let updatedCampaignFormData = campaignFormData;
 
       if (active === 5) {
-      const obj = extractObjectives(campaignFormData);
-      console.log("🚀 ~ handleStepFour ~ obj:", obj);
-      updatedCampaignFormData = {
-        ...campaignFormData,
-        table_headers: obj || {},
-      };
-      setCampaignFormData(updatedCampaignFormData);
+        const obj = extractObjectives(campaignFormData);
+        console.log("🚀 ~ handleStepFour ~ obj:", obj);
+        updatedCampaignFormData = {
+          ...campaignFormData,
+          table_headers: obj || {},
+        };
+        setCampaignFormData(updatedCampaignFormData);
       }
 
       await updateCampaignData({
-      ...cleanData,
-      channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
-        "id",
-        "isValidated",
-        "formatValidated",
-        "validatedStages",
-        "documentId",
-        "_aggregated",
-      ]),
-      table_headers: updatedCampaignFormData?.table_headers,
+        ...cleanData,
+        channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
+          "id",
+          "isValidated",
+          "formatValidated",
+          "validatedStages",
+          "documentId",
+          "_aggregated",
+        ]),
+        table_headers: updatedCampaignFormData?.table_headers,
       });
     };
 
@@ -942,8 +931,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                     {active === 0
                       ? "Start"
                       : active === 4 && !hasFormatSelected
-                      ? "Skip"
-                      : "Continue"}
+                        ? "Skip"
+                        : "Continue"}
                   </p>
                   <Image src={Continue} alt="Continue" />
                 </>

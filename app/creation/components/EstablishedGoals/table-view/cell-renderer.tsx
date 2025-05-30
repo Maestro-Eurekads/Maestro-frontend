@@ -77,10 +77,6 @@ export const CellRenderer = ({
   };
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
   // Channel cell rendering
   if (body === "channel") {
     return (
@@ -147,8 +143,8 @@ export const CellRenderer = ({
     return "";
   }
 
-  if( body === "grp" && !hasOfflineChannel) {
-    return "" ;
+  if (body === "grp" && !hasOfflineChannel) {
+    return "";
   }
 
   // Handle calculated fields

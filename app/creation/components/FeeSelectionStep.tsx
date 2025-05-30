@@ -109,19 +109,12 @@ function FeeSelectionStep({
     budget = campaignFormData?.campaign_budget?.amount
   ) => {
     const budgetAmount = parseFloat(budget || "0");
-<<<<<<< HEAD
-=======
-    
->>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
+    console.log("🚀 ~ budgetAmount:", budgetAmount)
     const totalFees = feesList.reduce(
       (total, fee) => total + parseFloat(fee.amount || 0),
       0
     );
-<<<<<<< HEAD
-
-=======
-    
->>>>>>> 7059fab0b589f0f4fe2a3bebcfb2fff3aa255a58
+    console.log("🚀 ~ totalFees:", active)
 
     let net;
     if (campaignFormData?.campaign_budget?.sub_budget_type === "gross") {
