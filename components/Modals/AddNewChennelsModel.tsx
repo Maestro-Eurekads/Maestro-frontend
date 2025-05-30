@@ -105,13 +105,13 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
                   ) || [];
 
                 formDataPlatforms.forEach((platformName) => {
-                  if (!campaignDataPlatforms.includes(platformName)) {
+                  // if (campaignDataPlatforms.includes(platformName)) {
                     newlySelectedPlatforms.push({
                       stageName: formDataItem.funnel_stage,
                       category: categoryKey,
                       platformName,
                     });
-                  }
+                  // }
                 });
               }
             });
@@ -121,7 +121,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
         return newlySelectedPlatforms;
       });
     }
-  }, [campaignFormData?.channel_mix, campaignData?.channel_mix]);
+  }, [campaignFormData?.channel_mix, campaignData?.channel_mix, openAdset]);
 
   const toggleItem = (stage) => {
     setOpenItems((prev) => ({
@@ -130,105 +130,105 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
     }));
   };
 
-  const togglePlatform = async (stageName, category, platformName, type) => {
-    setSelected((prevSelected) => {
-      const stageSelection = prevSelected[stageName] || {};
-      const categorySelection = stageSelection[category] || [];
-      const isAlreadySelected = categorySelection.includes(platformName);
+  // const togglePlatform = async (stageName, category, platformName, type) => {
+  //   setSelected((prevSelected) => {
+  //     const stageSelection = prevSelected[stageName] || {};
+  //     const categorySelection = stageSelection[category] || [];
+  //     const isAlreadySelected = categorySelection.includes(platformName);
 
-      const newCategorySelection = isAlreadySelected
-        ? categorySelection.filter((p) => p !== platformName)
-        : [...categorySelection, platformName];
+  //     const newCategorySelection = isAlreadySelected
+  //       ? categorySelection.filter((p) => p !== platformName)
+  //       : [...categorySelection, platformName];
 
-      const updatedStageSelection = {
-        ...stageSelection,
-        [category]: newCategorySelection,
-      };
+  //     const updatedStageSelection = {
+  //       ...stageSelection,
+  //       [category]: newCategorySelection,
+  //     };
 
-      const updatedSelected = {
-        ...prevSelected,
-        [stageName]: updatedStageSelection,
-      };
+  //     const updatedSelected = {
+  //       ...prevSelected,
+  //       [stageName]: updatedStageSelection,
+  //     };
 
-      // Compute new stage status immediately
-      const hasSelections = Object.values(updatedStageSelection).some(
-        (arr) => Array.isArray(arr) && arr.length > 0
-      );
-      setStageStatuses((prev) => ({
-        ...prev,
-        [stageName]: hasSelections ? "In progress" : "Not started",
-      }));
+  //     // Compute new stage status immediately
+  //     const hasSelections = Object.values(updatedStageSelection).some(
+  //       (arr) => Array.isArray(arr) && arr.length > 0
+  //     );
+  //     setStageStatuses((prev) => ({
+  //       ...prev,
+  //       [stageName]: hasSelections ? "In progress" : "Not started",
+  //     }));
 
-      return updatedSelected;
-    });
+  //     return updatedSelected;
+  //   });
 
-    const updatedFormData = await setCampaignFormData((prevFormData) => {
-      const categoryKey = category.toLowerCase().replaceAll(" ", "_");
-      const stageSelection = selected[stageName] || {};
-      const categorySelection = stageSelection[category] || [];
-      const isAlreadySelected = categorySelection.includes(platformName);
-      const newCategorySelection = isAlreadySelected
-        ? categorySelection.filter((p) => p !== platformName)
-        : [...categorySelection, platformName];
-      const platformObjects = newCategorySelection.map((name) => {
-        const existingPlatform = prevFormData.channel_mix
-          ?.find((item) => item.funnel_stage === stageName)
-          ?.[categoryKey]?.find((platform) => platform.platform_name === name);
+  //   // const updatedFormData = await setCampaignFormData((prevFormData) => {
+  //   //   const categoryKey = category.toLowerCase().replaceAll(" ", "_");
+  //   //   const stageSelection = selected[stageName] || {};
+  //   //   const categorySelection = stageSelection[category] || [];
+  //   //   const isAlreadySelected = categorySelection.includes(platformName);
+  //   //   const newCategorySelection = isAlreadySelected
+  //   //     ? categorySelection.filter((p) => p !== platformName)
+  //   //     : [...categorySelection, platformName];
+  //   //   const platformObjects = newCategorySelection.map((name) => {
+  //   //     const existingPlatform = prevFormData.channel_mix
+  //   //       ?.find((item) => item.funnel_stage === stageName)
+  //   //       ?.[categoryKey]?.find((platform) => platform.platform_name === name);
 
-        return existingPlatform || { platform_name: name };
-      });
+  //   //     return existingPlatform || { platform_name: name };
+  //   //   });
 
-      const existingChannelMixIndex = prevFormData.channel_mix?.findIndex(
-        (item) => item.funnel_stage === stageName
-      );
+  //   //   const existingChannelMixIndex = prevFormData.channel_mix?.findIndex(
+  //   //     (item) => item.funnel_stage === stageName
+  //   //   );
 
-      let updatedChannelMix = [...(prevFormData.channel_mix || [])];
+  //   //   let updatedChannelMix = [...(prevFormData.channel_mix || [])];
 
-      if (existingChannelMixIndex >= 0) {
-        updatedChannelMix[existingChannelMixIndex] = {
-          ...updatedChannelMix[existingChannelMixIndex],
-          [categoryKey]: platformObjects,
-        };
-      } else {
-        updatedChannelMix.push({
-          funnel_stage: stageName,
-          [categoryKey]: platformObjects,
-        });
-      }
+  //   //   if (existingChannelMixIndex >= 0) {
+  //   //     updatedChannelMix[existingChannelMixIndex] = {
+  //   //       ...updatedChannelMix[existingChannelMixIndex],
+  //   //       [categoryKey]: platformObjects,
+  //   //     };
+  //   //   } else {
+  //   //     updatedChannelMix.push({
+  //   //       funnel_stage: stageName,
+  //   //       [categoryKey]: platformObjects,
+  //   //     });
+  //   //   }
 
-      return {
-        ...prevFormData,
-        channel_mix: updatedChannelMix,
-      };
-    });
+  //   //   return {
+  //   //     ...prevFormData,
+  //   //     channel_mix: updatedChannelMix,
+  //   //   };
+  //   // });
 
-    // Track newly added platforms
-    setNewlySelected((prevNewlySelected) => {
-      const originalPlatforms =
-        campaignData.channel_mix
-          ?.find((item) => item.funnel_stage === stageName)
-          ?.[category.toLowerCase().replaceAll(" ", "_")]?.map(
-            (platform) => platform.platform_name
-          ) || [];
+  //   // Track newly added platforms
+  //   setNewlySelected((prevNewlySelected) => {
+  //     const originalPlatforms =
+  //       campaignData.channel_mix
+  //         ?.find((item) => item.funnel_stage === stageName)
+  //         ?.[category.toLowerCase().replaceAll(" ", "_")]?.map(
+  //           (platform) => platform.platform_name
+  //         ) || [];
 
-      const isNewlyAdded = !originalPlatforms.includes(platformName);
+  //     const isNewlyAdded = !originalPlatforms.includes(platformName);
 
-      if (isNewlyAdded) {
-        return [...prevNewlySelected, { stageName, category, platformName }];
-      }
+  //     if (isNewlyAdded) {
+  //       return [...prevNewlySelected, { stageName, category, platformName }];
+  //     }
 
-      return prevNewlySelected.filter(
-        (item) =>
-          !(
-            item.stageName === stageName &&
-            item.category === category &&
-            item.platformName === platformName
-          )
-      );
-    });
+  //     return prevNewlySelected.filter(
+  //       (item) =>
+  //         !(
+  //           item.stageName === stageName &&
+  //           item.category === category &&
+  //           item.platformName === platformName
+  //         )
+  //     );
+  //   });
 
-    // Sync with server
-  };
+  //   // Sync with server
+  // };
   const toggleChannelType = (e, stageName, type) => {
     e.stopPropagation();
     setOpenChannelTypes((prev) => ({
@@ -262,10 +262,10 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
     }
   };
 
-  const handlePlatformClick = (e, stageName, category, platformName, type) => {
-    e.stopPropagation();
-    togglePlatform(stageName, category, platformName, type);
-  };
+  // const handlePlatformClick = (e, stageName, category, platformName, type) => {
+  //   e.stopPropagation();
+  //   togglePlatform(stageName, category, platformName, type);
+  // };
 
   return (
     <div className="relative z-[70]">
