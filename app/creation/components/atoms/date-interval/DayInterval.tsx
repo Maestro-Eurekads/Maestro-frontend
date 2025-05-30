@@ -10,11 +10,11 @@ interface DayIntervalProps {
 const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src }) => {
   const { range } = useDateRange();
   return (
-    <div className="w-full border-y py-2">
+    <div className="w-full border-y py-3">
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${daysCount},50px )`,
+          gridTemplateColumns: `repeat(${daysCount + 1},1fr )`,
         }}
       >
         {Array.from({ length: daysCount + 1 }, (_, i) => {
@@ -35,7 +35,7 @@ const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src }) => {
                   }}
                 >
                   <span className={`${isEdge ? "text-white" : "text-black"}`}>
-                    {date && format(date, "d")} 
+                    {date && format(date, "d")}
                   </span>
                   <span
                     className={`${isEdge ? "text-white" : "text-blue-500"}`}

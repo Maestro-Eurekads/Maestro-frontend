@@ -382,7 +382,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                     <button
                       className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white"
                       onClick={handleAddEmail}
-                      // disabled={emailList.length >= 5}
+                    // disabled={emailList.length >= 5}
                     >
                       Add
                     </button>
