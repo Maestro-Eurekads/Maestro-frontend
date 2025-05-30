@@ -17,13 +17,13 @@ const useCampaignHook = () => {
   const fetchAllClients = useCallback(async () => {
     setLoadingClients(true);
     try {
-      const res = await axios.get(
+     const res = await axios.get(
         // @ts-ignore
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients${
           //@ts-ignore
           session?.user?.data?.user?.user_type === "admin"
-            ? ""
-            : `?filters[users][$eq]=${session?.user?.id}`
+            ? "?populate[0]=users&populate[1]=responsible&populate[2]=approver"
+            : `?filters[users][$eq]=${session?.user?.id}&populate[0]=users&populate[1]=responsible&populate[2]=approver`
         }`,
         {
           headers: {
