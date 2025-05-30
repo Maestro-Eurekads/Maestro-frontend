@@ -87,7 +87,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
 
           if (campaignDataItem) {
             Object.keys(formDataItem).forEach((categoryKey) => {
-              console.log("🚀 ~ Object.keys ~ categoryKey:", categoryKey);
+              // console.log("🚀 ~ Object.keys ~ categoryKey:", categoryKey);
               if (
                 categoryKey !== "funnel_stage" &&
                 categoryKey !== "id" &&

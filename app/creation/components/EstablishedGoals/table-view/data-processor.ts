@@ -46,7 +46,8 @@ export function extractPlatforms(data) {
                 style,
                 platform,
                 channelType,
-                rowData
+                rowData,
+                data
               )
             );
           }
@@ -80,7 +81,8 @@ function createPlatformObject(
   style,
   platform,
   channelType,
-  rowData
+  rowData,
+  data
 ) { 
   return {
     icon: getPlatformIcon(platformName),
@@ -90,8 +92,8 @@ function createPlatformObject(
       platform?.ad_sets &&
       platform?.ad_sets.length > 0 &&
       platform?.ad_sets[0]?.audience_type,
-    start_date: moment(platform.campaign_start_date).format("DD/MM/YYYY"),
-    end_date: moment(platform.campaign_end_date).format("DD/MM/YYYY"),
+    start_date: platform.campaign_start_date ? moment(platform.campaign_start_date).format("DD/MM/YYYY") : moment(data.campaign_timeline_start_date).format("DD/MM/YYYY"),
+    end_date: platform.campaign_end_date ? moment(platform.campaign_end_date).format("DD/MM/YYYY") : moment(data.campaign_timeline_end_date).format("DD/MM/YYYY"),
     audience_size: platform?.ad_sets?.reduce((total, adSet) => {
       const baseSize = Number(adSet.size) || 0;
       const extraSize = (adSet.extra_audiences || []).reduce(
