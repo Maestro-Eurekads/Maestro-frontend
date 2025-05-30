@@ -67,6 +67,7 @@ const MapFunnelStages = () => {
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
   const [currentFunnel, setCurrentFunnel] = useState<Funnel | null>(null);
   const [newFunnelName, setNewFunnelName] = useState("");
+  const [funnelNameError, setFunnelNameError] = useState<string>(""); // For validation error message
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Default funnel stages for Custom option
@@ -325,6 +326,7 @@ const MapFunnelStages = () => {
         !modalRef.current.contains(event.target as Node)
       ) {
         setIsModalOpen(false);
+        setFunnelNameError(""); // Clear error on close
       }
     }
 
@@ -345,6 +347,32 @@ const MapFunnelStages = () => {
     return availableColors.length > 0
       ? availableColors[0]
       : colorPalette[persistentCustomFunnels.length % colorPalette.length];
+  };
+
+  // --- Funnel name validation function ---
+  const validateFunnelName = (name: string, isEdit: boolean = false, oldId?: string): string => {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      return "Funnel name cannot be empty";
+    }
+    if (trimmed.length < 2) {
+      return "Funnel name must be at least 2 characters";
+    }
+    // Only allow names that contain at least one alphabet (no only digits/special chars)
+    if (!/[a-zA-Z]/.test(trimmed)) {
+      return "Funnel name must include at least one letter";
+    }
+    // Disallow duplicate names (case-insensitive, except for self in edit)
+    if (
+      persistentCustomFunnels.some(
+        (funnel) =>
+          funnel.name.toLowerCase() === trimmed.toLowerCase() &&
+          (!isEdit || funnel.name !== oldId)
+      )
+    ) {
+      return "A funnel with this name already exists";
+    }
+    return "";
   };
 
   // Handle funnel selection
@@ -490,38 +518,16 @@ const MapFunnelStages = () => {
 
   // Add a new funnel
   const handleAddFunnel = (name: string) => {
-    if (!name.trim()) {
-      toast.error("Funnel name cannot be empty", {
+    const error = validateFunnelName(name, false);
+    if (error) {
+      setFunnelNameError(error);
+      toast.error(error, {
         style: { background: "red", color: "white", textAlign: "center" },
         duration: 3000,
       });
       return;
     }
-    if (name.trim().length < 2) {
-      toast.error("Funnel name must be at least 2 characters", {
-        style: { background: "red", color: "white", textAlign: "center" },
-        duration: 3000,
-      });
-      return;
-    }
-    if (!/[a-zA-Z]/.test(name)) {
-      toast.error("Funnel name must include at least one letter", {
-        style: { background: "red", color: "white", textAlign: "center" },
-        duration: 3000,
-      });
-      return;
-    }
-    if (
-      persistentCustomFunnels.some(
-        (funnel) => funnel.name.toLowerCase() === name.toLowerCase()
-      )
-    ) {
-      toast.error("A funnel with this name already exists", {
-        style: { background: "red", color: "white", textAlign: "center" },
-        duration: 3000,
-      });
-      return;
-    }
+    setFunnelNameError("");
 
     const newColor = getAvailableColor();
     const newFunnel: Funnel = {
@@ -554,30 +560,21 @@ const MapFunnelStages = () => {
 
     setHasChanges(true);
     toast.success("Funnel added successfully", { duration: 3000 });
+    setIsModalOpen(false);
   };
 
   // Edit an existing funnel
   const handleEditFunnel = (oldId: string, newName: string) => {
-    if (!newName.trim()) {
-      toast.error("Funnel name cannot be empty", {
+    const error = validateFunnelName(newName, true, oldId);
+    if (error) {
+      setFunnelNameError(error);
+      toast.error(error, {
         style: { background: "red", color: "white", textAlign: "center" },
         duration: 3000,
       });
       return;
     }
-    if (
-      persistentCustomFunnels.some(
-        (funnel) =>
-          funnel.name.toLowerCase() === newName.toLowerCase() &&
-          funnel.name !== oldId
-      )
-    ) {
-      toast.error("A funnel with this name already exists", {
-        style: { background: "red", color: "white", textAlign: "center" },
-        duration: 3000,
-      });
-      return;
-    }
+    setFunnelNameError("");
 
     const updatedFunnels = persistentCustomFunnels.map((f) =>
       f.name === oldId
@@ -621,6 +618,7 @@ const MapFunnelStages = () => {
 
     setHasChanges(true);
     toast.success("Funnel updated successfully", { duration: 3000 });
+    setIsModalOpen(false);
   };
 
   // Remove a funnel
@@ -740,6 +738,7 @@ const MapFunnelStages = () => {
                       setModalMode("edit");
                       setCurrentFunnel(funnel);
                       setNewFunnelName(funnel.name);
+                      setFunnelNameError("");
                       setIsModalOpen(true);
                     }}
                   >
@@ -764,6 +763,7 @@ const MapFunnelStages = () => {
               setModalMode("add");
               setCurrentFunnel(null);
               setNewFunnelName("");
+              setFunnelNameError("");
               setIsModalOpen(true);
             }}
           >
@@ -784,7 +784,10 @@ const MapFunnelStages = () => {
                 {modalMode === "add" ? "Add New Funnel" : "Edit Funnel"}
               </h3>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setFunnelNameError("");
+                }}
                 className="text-gray-500 hover:text-gray-700"
               >
                 <X size={20} />
@@ -801,14 +804,30 @@ const MapFunnelStages = () => {
                 type="text"
                 id="funnelName"
                 value={newFunnelName}
-                onChange={(e) => setNewFunnelName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => {
+                  setNewFunnelName(e.target.value);
+                  if (funnelNameError) {
+                    // Live validation feedback
+                    if (modalMode === "add") {
+                      setFunnelNameError(validateFunnelName(e.target.value, false));
+                    } else if (modalMode === "edit" && currentFunnel) {
+                      setFunnelNameError(validateFunnelName(e.target.value, true, currentFunnel.name));
+                    }
+                  }
+                }}
+                className={`w-full px-3 py-2 border ${funnelNameError ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 placeholder="Enter funnel name"
               />
+              {funnelNameError && (
+                <p className="text-red-500 text-xs mt-1">{funnelNameError}</p>
+              )}
             </div>
             <div className="flex justify-end gap-2 mt-6">
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setFunnelNameError("");
+                }}
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
               >
                 Cancel
@@ -820,7 +839,8 @@ const MapFunnelStages = () => {
                   } else if (currentFunnel) {
                     handleEditFunnel(currentFunnel.name, newFunnelName);
                   }
-                  setIsModalOpen(false);
+                  // Only close modal if no error
+                  // (handleAddFunnel/handleEditFunnel will close modal on success)
                 }}
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
               >
