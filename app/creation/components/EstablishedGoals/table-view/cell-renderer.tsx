@@ -1,7 +1,7 @@
 "use client";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { getCurrencySymbol } from "components/data";
-import { Ban } from "lucide-react";
+import { Ban } from 'lucide-react';
 import Image from "next/image";
 
 export const CellRenderer = ({
@@ -19,6 +19,7 @@ export const CellRenderer = ({
   nrColumns,
   nrCells,
   toggleNRCell,
+  hasOfflineChannel
 }) => {
   const { campaignFormData } = useCampaigns();
 
@@ -72,12 +73,9 @@ export const CellRenderer = ({
   // Helper function to format numbers with commas
   const formatNumber = (num) => {
     if (isNaN(num) || num === null || num === undefined) return "-";
-    return num?.toLocaleString();
+    return new Intl.NumberFormat("en-US").format(num);
   };
 
-
-  // console.log('goalLevel-goalLevel', goalLevel)
-  // console.log('goalLevel-goalLevel', channel?.ad_sets?.length)
 
   // Channel cell rendering
   if (body === "channel") {
@@ -135,8 +133,18 @@ export const CellRenderer = ({
     );
   }
 
+  if (goalLevel === "Channel level" && body === "audience_size") {
+    return "";
+  }
+  if (goalLevel === "Adset level" && body === "audience_size") {
+    return "";
+  }
   if (body === "audience") {
     return "";
+  }
+
+  if( body === "grp" && !hasOfflineChannel) {
+    return "" ;
   }
 
   // Handle calculated fields
@@ -246,36 +254,36 @@ export const CellRenderer = ({
           (c) => c?.platform_name === channel?.name
         )?.kpi?.[body] || "";
 
-  // Format display value for percentage fields - keep the raw input value for UI
+  // Format display value with commas for better readability
   let displayValue = kpiValue;
 
-  if (displayValue && !isNaN(Number.parseFloat(displayValue))) {
+  if (displayValue && !isNaN(Number.parseFloat(displayValue.toString().replace(/,/g, "")))) {
+    const numericValue = Number.parseFloat(displayValue.toString().replace(/,/g, ""));
+
     if (isPercentType) {
       // If it's a number (already converted to decimal), convert back to percentage for display
       if (!displayValue.toString().includes("%")) {
         // Check if it's likely a decimal value (less than 1)
-        if (Number.parseFloat(displayValue) < 1) {
-          displayValue = `${(Number.parseFloat(displayValue) * 100).toFixed(
-            1
-          )}%`;
+        if (numericValue < 1) {
+          displayValue = `${formatNumber(numericValue * 100)}%`;
         } else {
           // It's already a percentage value (like 10, 20, etc.)
-          displayValue = `${Number.parseFloat(displayValue).toFixed(1)}%`;
+          displayValue = `${formatNumber(Number.parseFloat(numericValue.toFixed(1)))}%`;
         }
       }
     } else if (isCurrencyType) {
-      // Format as currency
+      // Format as currency with commas
       if (!displayValue.toString().includes(`${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}`)) {
-        displayValue = `${Number.parseFloat(displayValue).toFixed(2)}`;
+        displayValue = `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}${formatNumber(Number.parseFloat(numericValue.toFixed(2)))}`;
       }
     } else if (isSecondsType) {
-      // Format as seconds
+      // Format as seconds with commas
       if (!displayValue.toString().includes("secs")) {
-        displayValue = `${Number.parseFloat(displayValue).toFixed(0)}secs`;
+        displayValue = `${formatNumber((numericValue.toFixed(1)))}secs`;
       }
     } else {
-      // Format as regular number
-      displayValue = Number.parseFloat(displayValue).toFixed(0).toLocaleString();
+      // Format as regular number with commas
+      displayValue = formatNumber(Math.round(numericValue));
     }
   }
 
@@ -285,16 +293,16 @@ export const CellRenderer = ({
         <p className="text-gray-300 font-semibold">NR</p>
       ) : (
         <input
-          value={Number(displayValue).toLocaleString()}
+          value={displayValue}
           onChange={(e) => {
             let newValue = e.target.value;
 
             // Allow appropriate characters based on input type
             if (isPercentType) {
-              // Allow numbers, decimal point, and %
-              newValue = newValue.replace(/[^0-9.%]/g, "");
-              // Remove % if present for storage
-              const valueToStore = newValue.replace(/%/g, "");
+              // Allow numbers, decimal point, commas, and %
+              newValue = newValue.replace(/[^0-9.,%]/g, "");
+              // Remove % and commas for storage
+              const valueToStore = newValue.replace(/[%,]/g, "");
               handleEditInfo(
                 stage.name,
                 channel?.channel_name,
@@ -305,10 +313,10 @@ export const CellRenderer = ({
                 ""
               );
             } else if (isCurrencyType) {
-              // Allow numbers, decimal point, and $
-              newValue = newValue.replace(/[^0-9.$]/g, "");
-              // Remove $ if present for storage
-              const valueToStore = newValue.replace(/\$/g, "");
+              // Allow numbers, decimal point, commas, and $
+              newValue = newValue.replace(/[^0-9.$,]/g, "");
+              // Remove $ and commas for storage
+              const valueToStore = newValue.replace(/[$,]/g, "");
               handleEditInfo(
                 stage.name,
                 channel?.channel_name,
@@ -319,10 +327,10 @@ export const CellRenderer = ({
                 ""
               );
             } else if (isSecondsType) {
-              // Allow numbers, decimal point, and s
-              newValue = newValue.replace(/[^0-9.s]/g, "");
-              // Remove s if present for storage
-              const valueToStore = newValue.replace(/s/g, "");
+              // Allow numbers, decimal point, commas, and s
+              newValue = newValue.replace(/[^0-9.s,]/g, "");
+              // Remove s and commas for storage
+              const valueToStore = newValue.replace(/[s,]/g, "");
               handleEditInfo(
                 stage.name,
                 channel?.channel_name,
@@ -333,14 +341,16 @@ export const CellRenderer = ({
                 ""
               );
             } else {
-              // For regular numbers, allow only numbers and decimal point
-              newValue = newValue.replace(/[^0-9.]/g, "");
+              // For regular numbers, allow numbers, decimal point, and commas
+              newValue = newValue.replace(/[^0-9.,]/g, "");
+              // Remove commas for storage
+              const valueToStore = newValue.replace(/,/g, "");
               handleEditInfo(
                 stage.name,
                 channel?.channel_name,
                 channel?.name,
                 body,
-                newValue,
+                valueToStore,
                 "",
                 ""
               );

@@ -5,22 +5,21 @@ import { useCampaigns } from "app/utils/CampaignsContext"
 import { funnelStages } from "components/data"
 import { tableHeaders, tableBody } from "utils/tableHeaders"
 import { FunnelStageTable } from "./funnel-stage-table"
-import { extractObjectives, extractPlatforms } from "./data-processor"
+import { extractPlatforms } from "./data-processor"
 import Modal from "components/Modals/Modal"
 import { useAggregatedMetrics } from "./aggregated-metrics-calculator"
 
 const TableView = () => {
   const [expandedRows, setExpandedRows] = useState({})
-  const { campaignFormData, setCampaignFormData } = useCampaigns()
+  const { campaignFormData, setCampaignFormData, updateCampaign } = useCampaigns()
   const [isOpen, setIsOpen] = useState(false)
-  const [mergedTableHeaders, setMergedTableHeaders] = useState([])
-  const [mergedTableBody, setMergedTableBody] = useState([])
   const [mergedTableHeadersByStage, setMergedTableHeadersByStage] = useState({})
   const [mergedTableBodyByStage, setMergedTableBodyByStage] = useState({})
   const [currentEditingStage, setCurrentEditingStage] = useState(null)
   const [nrColumnsByStage, setNrColumnsByStage] = useState({})
 
   const [selectedMetrics, setSelectedMetrics] = useState([])
+  console.log("🚀 ~ TableView:", campaignFormData?.table_headers)
   const [expandedKPI, setExpandedKPI] = useState({})
   const [expandedAdsetKPI, setExpandedAdsetKPI] = useState({})
 
@@ -29,47 +28,7 @@ const TableView = () => {
 
   const processedData = extractPlatforms(campaignFormData)
 
-  // Define calculated fields - these are the only fields that should be aggregated
-  const calculatedFields = [
-    "impressions",
-    "reach",
-    "video_views",
-    "cpv",
-    "completed_view",
-    "cpcv",
-    "link_clicks",
-    "cpc",
-    "installs",
-    "cpi",
-    "engagements",
-    "cpe",
-    "app_open",
-    "cost__app_open",
-    "conversion",
-    "cost__conversion",
-    "forms_open",
-    "cost__opened_form",
-    "leads",
-    "cost__lead",
-    "lands",
-    "cpl",
-    "bounced_visits",
-    "costbounce",
-    "lead_visits",
-    "costlead",
-    "off_funnel_visits",
-    "cost__off_funnel",
-    "conversions",
-    "costconversion",
-    "generated_revenue",
-    "return_on_ad_spent",
-    "add_to_carts",
-    "cpatc",
-    "payment_infos",
-    "cppi",
-    "purchases",
-    "cpp",
-  ]
+  const [selectedMetricsLoaded, setSelectedMetricsLoaded] = useState(false)
 
   const toggleRow = (index) => {
     setExpandedRows((prev) => ({
@@ -150,6 +109,7 @@ const TableView = () => {
         "Impressions",
         "Frequency",
         "Reach",
+        "GRP"
       ]
 
       // Filter out headers that are not default and not in selectedMetrics
@@ -163,6 +123,8 @@ const TableView = () => {
           filteredHeaders.push(metric)
         }
       })
+
+      // console.log("filteredHeaders", filteredHeaders)
 
       return {
         ...prev,
@@ -187,8 +149,9 @@ const TableView = () => {
 
       // Add body fields for each selected metric
       selectedMetrics.forEach((metric) => {
-        const bodyField = metric.name.toLowerCase().replace(/ /g, "_").replace(/\//g, "").replace(/-/g, "_")
-        if (!newBody.includes(bodyField)) {
+        if (!metric || !metric.name) return
+        const bodyField = headerToBodyField(metric.name)
+        if (bodyField && !newBody.includes(bodyField)) {
           newBody.push(bodyField)
         }
       })
@@ -200,6 +163,26 @@ const TableView = () => {
     })
 
     setIsOpen(false)
+    setCampaignFormData((prev) => {
+      const updatedData = {
+        ...prev,
+        table_headers: {
+          ...prev.table_headers,
+          [currentEditingStage]: Array.from(
+            new Set([...(prev.table_headers[currentEditingStage] || []), ...selectedMetrics.map((m) => m.obj)]),
+          ),
+        },
+        selected_metrics: {
+          ...prev.selected_metrics,
+          [currentEditingStage]: selectedMetrics,
+        },
+      }
+      updateCampaign({
+        table_headers: updatedData.table_headers,
+        selected_metrics: updatedData.selected_metrics,
+      })
+      return updatedData
+    })
   }
 
   const toggleNRColumn = (stageName, columnName) => {
@@ -217,30 +200,106 @@ const TableView = () => {
 
   const initializedRef = useRef(false)
 
+  // Helper function to convert header name to body field name
+  const headerToBodyField = (headerName) => {
+    if (!headerName) return ""
+    return headerName.toLowerCase().replace(/ /g, "_").replace(/\//g, "").replace(/-/g, "_")
+  }
+
   useEffect(() => {
     if (!campaignFormData) return
-
-    const stageObjectives = extractObjectives(campaignFormData) // example: { Awareness: ["App Install", ...], ... }
+    // console.log("headers", campaignFormData?.table_headers)
+    const stageObjectives = campaignFormData?.table_headers // example: { Awareness: ["App Install", ...], ... }
+    // console.log("🚀 ~ useEffect ~ stageObjectives:", stageObjectives)
     const headersByStage = {}
     const bodyByStage = {}
 
-    for (const [stageName, objectives] of Object.entries(stageObjectives)) {
+    for (const [stageName, objectives] of Object.entries(stageObjectives ?? {})) {
       const headersSet = new Map() // to deduplicate by name
       const bodyFieldsSet = new Set()
 
-      const objectiveList = objectives.length > 0 ? objectives : ["Brand Awareness"]
+      // Check if we have selected metrics for this stage
+      const selectedMetricsForStage = campaignFormData?.selected_metrics?.[stageName] || []
 
-      objectiveList.forEach((objective) => {
+      // Get default headers that should always be included
+      const defaultHeaders = [
+        "Channel",
+        "AdSets",
+        "Audience",
+        "Start Date",
+        "End Date",
+        "Audience Size",
+        "Budget Size",
+        "CPM",
+        "Impressions",
+        "Frequency",
+        "Reach",
+        "GRP"
+      ]
+
+      // Add default headers first
+      defaultHeaders.forEach((headerName) => {
+        // Find the header definition in any objective
+        for (const objective of Object.keys(tableHeaders)) {
+          const headers = tableHeaders[objective] || []
+          const header = headers.find((h) => h?.name === headerName)
+          if (header) {
+            headersSet.set(headerName, { ...header, obj: objective })
+
+            // Add corresponding body field for default header
+            const bodyField = headerToBodyField(headerName)
+            if (bodyField) bodyFieldsSet.add(bodyField)
+            break
+          }
+        }
+      })
+
+      const objectiveList = Array.isArray(objectives) && objectives.length > 0 ? objectives : ["Brand Awareness"]
+
+      // Process each objective
+      objectiveList?.forEach((objective) => {
         const headers = tableHeaders[objective] || []
         const body = tableBody[objective] || []
 
-        headers.forEach((h) => headersSet.set(h.name, h))
-        body.forEach((b) => bodyFieldsSet.add(b))
+        // Check if we have any selected metrics for this objective
+        const selectedMetricsForObjective = selectedMetricsForStage.filter((m) => m && m.obj === objective)
+
+        if (selectedMetricsForObjective && selectedMetricsForObjective.length > 0) {
+          // Only add the specifically selected metrics for this objective
+          console.log(`Using selected metrics for ${stageName}, objective ${objective}:`, selectedMetricsForObjective)
+
+          selectedMetricsForObjective.forEach((metric) => {
+            if (!metric || !metric.name) return
+            headersSet.set(metric.name, { ...metric })
+
+            // Add corresponding body field
+            const bodyField = headerToBodyField(metric.name)
+            if (bodyField) bodyFieldsSet.add(bodyField)
+          })
+        } else {
+          // No selected metrics for this objective, add all metrics
+          console.log(`No selected metrics for ${stageName}, objective ${objective}, adding all metrics`)
+
+          headers.forEach((header) => {
+            // Skip default headers as they're already added
+            if (!header || !header.name || defaultHeaders.includes(header.name)) return
+
+            headersSet.set(header.name, { ...header, obj: objective })
+
+            // Add corresponding body field
+            const bodyField = headerToBodyField(header.name)
+            if (bodyField) bodyFieldsSet.add(bodyField)
+          })
+
+          // Add all body fields from tableBody
+          body.forEach((b) => bodyFieldsSet.add(b))
+        }
       })
 
       headersByStage[stageName] = Array.from(headersSet.values())
       bodyByStage[stageName] = Array.from(bodyFieldsSet)
     }
+    // console.log("🚀 ~ useEffect ~ headersByStage:", headersByStage)
 
     setMergedTableHeadersByStage(headersByStage)
     setMergedTableBodyByStage(bodyByStage)
@@ -250,30 +309,25 @@ const TableView = () => {
   useEffect(() => {
     if (currentEditingStage && isOpen && !initializedRef.current) {
       initializedRef.current = true
-      const currentHeaders = mergedTableHeadersByStage[currentEditingStage] || []
 
-      // Create a map of existing metrics to preserve their objective association
-      const existingMetricsMap = new Map()
+      // Load selectedMetrics from backend for this stage
+      const backendSelectedMetrics = campaignFormData?.selected_metrics?.[currentEditingStage] || []
 
-      // Find the objective for each existing metric
-      currentHeaders.forEach((header) => {
-        for (const objective of Object.keys(tableHeaders)) {
-          const objMetrics = tableHeaders[objective] || []
-          const matchingMetric = objMetrics.find((m) => m.name === header.name)
-          if (matchingMetric) {
-            existingMetricsMap.set(header.name, { ...matchingMetric, obj: objective })
-            break
-          }
-        }
-      })
-
-      // Set the initial selected metrics
-      setSelectedMetrics(Array.from(existingMetricsMap.values()))
-    } else if (!isOpen) {
-      // Reset the initialization flag when modal closes
-      initializedRef.current = false
+      console.log("Loading selected metrics from backend:", backendSelectedMetrics)
+      setSelectedMetrics(backendSelectedMetrics)
+      setSelectedMetricsLoaded(true)
     }
-  }, [currentEditingStage, isOpen, mergedTableHeadersByStage])
+  }, [currentEditingStage, isOpen, campaignFormData])
+
+  // Reset initialization flag when modal closes or stage changes
+  useEffect(() => {
+    if (!isOpen) {
+      // Small delay to ensure state updates are complete
+      setTimeout(() => {
+        initializedRef.current = false
+      }, 100)
+    }
+  }, [isOpen, currentEditingStage])
 
   // Use a ref to track if we've already aggregated the data
   const hasAggregatedRef = useRef(false)
@@ -336,7 +390,7 @@ const TableView = () => {
               platform["budget"]["fixed_value"] = value.toString()
             }
           } else if (fieldName === "audience_size") {
-            console.log("here", { adSetIndex })
+            // console.log("here", { adSetIndex })
             if (adSetIndex !== "") {
               platform.ad_sets[adSetIndex]["size"] = platform.ad_sets[adSetIndex]["size"] || ""
               platform.ad_sets[adSetIndex]["size"] = value.toString()
@@ -376,11 +430,14 @@ const TableView = () => {
   // const allObjectives = useMemo(() => Object.keys(tableHeaders), []);
 
   const objectivesForStage = useMemo(() => {
-    return currentEditingStage ? extractObjectives(campaignFormData)[currentEditingStage] || [] : []
+    return currentEditingStage ? campaignFormData?.table_headers[currentEditingStage] || [] : []
   }, [campaignFormData, currentEditingStage])
 
   const existingHeaderNames = useMemo(() => {
-    return currentEditingStage ? mergedTableHeadersByStage[currentEditingStage]?.map((h) => h.name) : []
+    if (!currentEditingStage || !mergedTableHeadersByStage || !mergedTableHeadersByStage[currentEditingStage]) {
+      return []
+    }
+    return mergedTableHeadersByStage[currentEditingStage].map((h) => h?.name).filter(Boolean)
   }, [mergedTableHeadersByStage, currentEditingStage])
 
   return (
@@ -426,10 +483,21 @@ const TableView = () => {
           <div className="mt-4 max-h-[400px] overflow-y-auto">
             {(() => {
               const allObjectives = Object.keys(tableHeaders)
+              // console.log("🚀 ~ TableView ~ allObjectives:", allObjectives);
+              // console.log("objectivesForStage", objectivesForStage);
+              const filteredObjectives = allObjectives.filter((objective) => {
+                // Always show categories that have selected metrics
+                const hasSelectedMetrics = selectedMetrics.some((m) => m.obj === objective)
 
-              const filteredObjectives = allObjectives.filter(
-                (objective) => !objectivesForStage.includes(objective) && objective !== "Brand Awareness",
-              )
+                // Show if not in stage objectives, not Brand Awareness, or has selected metrics
+                return (
+                  (!objectivesForStage.includes(objective) && objective !== "Brand Awareness") || hasSelectedMetrics
+                )
+              })
+              // console.log(
+              //   "🚀 ~ TableView ~ filteredObjectives:",
+              //   filteredObjectives
+              // );
 
               const areAllSelected = (objective, availableMetrics) => {
                 return availableMetrics.every((metric) =>
@@ -450,6 +518,7 @@ const TableView = () => {
                   "Impressions",
                   "Frequency",
                   "Reach",
+                  "GRP"
                 ]
                 const availableMetrics = tableHeaders[objective] || []
 
@@ -500,19 +569,29 @@ const TableView = () => {
                             type="checkbox"
                             id={`metric-${objective}-${metricIndex}`}
                             className="mr-2"
-                            checked={selectedMetrics.some((m) => m.name === metric.name && m.obj === objective)}
+                            checked={selectedMetrics.some((m) => m && m.name === metric.name && m.obj === objective)}
                             onChange={(e) => {
                               if (e.target.checked) {
-                                // Add the metric
+                                // Add only this specific metric
                                 setSelectedMetrics((prev) => {
-                                  // Remove any existing metric with the same name (from any objective)
-                                  const filtered = prev.filter((m) => m.name !== metric.name)
-                                  // Add the new metric
-                                  return [...filtered, { ...metric, obj: objective }]
+                                  // Check if this metric already exists with a different objective
+                                  const existingMetricIndex = prev.findIndex((m) => m.name === metric.name)
+
+                                  // If it exists with a different objective, replace it
+                                  if (existingMetricIndex >= 0) {
+                                    const newMetrics = [...prev]
+                                    newMetrics[existingMetricIndex] = { ...metric, obj: objective }
+                                    return newMetrics
+                                  }
+
+                                  // Otherwise, just add the new metric
+                                  return [...prev, { ...metric, obj: objective }]
                                 })
                               } else {
-                                // Remove the metric
-                                setSelectedMetrics((prev) => prev.filter((m) => m.name !== metric.name))
+                                // Remove only this specific metric
+                                setSelectedMetrics((prev) =>
+                                  prev.filter((m) => !(m.name === metric.name && m.obj === objective)),
+                                )
                               }
                             }}
                           />

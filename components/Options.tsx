@@ -136,7 +136,8 @@ export const kpiFormatMap = {
   "Frequency": { type: "Number", decimals: 0 },
   "Reach": { type: "Number", decimals: 0 },
   "Video Views": { type: "Number", decimals: 0 },
-  "Completed views": { type: "Number", decimals: 0 },
+  "Completed View": { type: "Number", decimals: 0 },
+  "Completion Rate": { type: "Number", decimals: 0 },
   "Link Clicks": { type: "Number", decimals: 0 },
   "Avg page / visit": { type: "Number", decimals: 0 },
   "Bounced Visits": { type: "Number", decimals: 0 },
@@ -496,7 +497,7 @@ const parseApiDate = (dateString: string | null): { day: number; month: number }
 
 const getInitials = (name: string | null | undefined) => {
   if (!name) return null;
-  const parts = name.split(" ");
+  const parts = name && name?.split(" ");
   return parts.length >= 2
     ? `${parts[0][0]}${parts[1][0]}`
     : parts[0][0];

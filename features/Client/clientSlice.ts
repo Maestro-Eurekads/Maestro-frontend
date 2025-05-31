@@ -22,6 +22,7 @@ export const createClient = createAsyncThunk('client/createClient', async (input
   try {
     const response = await clientService.createClient(inputs);
     // After successful creation, fetch updated client list
+    //@ts-ignore
     await thunkAPI.dispatch(getCreateClient());
     return response; 
   } catch (error: unknown) { 
@@ -35,13 +36,17 @@ export const createClient = createAsyncThunk('client/createClient', async (input
 });
 
 // Get clients list
-export const getCreateClient = createAsyncThunk('client/getCreateClient', async (data, thunkAPI) => {
+export const getCreateClient = createAsyncThunk('client/getCreateClient', async (userId: string, thunkAPI) => {
   try {
-    const response = await clientService.getCreateClient();
+    const response = await clientService.getCreateClient(userId);
     return response;
-  } catch (error) { 
-    const errors = error.response?.data?.error?.details?.errors || error.response?.data?.error?.message || error.message || []; 
-    return thunkAPI.rejectWithValue(errors);
+  } catch (error: unknown) { 
+    if (typeof error === 'object' && error !== null && 'response' in error) {
+      const axiosError = error as { response?: { data?: { error?: { details?: { errors?: any[] }; message?: string } } } }; 
+      const errors = axiosError.response?.data?.error?.details?.errors || axiosError.response?.data?.error?.message || []; 
+      return thunkAPI.rejectWithValue(errors);
+    }
+    return thunkAPI.rejectWithValue(['An unknown error occurred']);
   }
 });
 

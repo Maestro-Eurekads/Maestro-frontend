@@ -1,4 +1,5 @@
 // "use client";
+
 // import React, { useState, useRef, useEffect } from "react";
 // import down from "../public/down.svg";
 // import Image from "next/image";
@@ -10,41 +11,33 @@
 // const MultiSelectDropdown = ({
 // 	label,
 // 	options,
-// 	islabelone,
-// 	islabeltwo,
-// 	formId,
+// 	value,
+// 	onChange,
 // }: {
 // 	label: string;
 // 	options: DropdownOption[];
-// 	islabelone: string;
-// 	islabeltwo: string;
-// 	formId: string;
+// 	value: { value: string; id: string }[];
+// 	onChange: (selected: { value: string; id: string }[]) => void;
 // }) => {
-// 	const { campaignFormData, setCampaignFormData } = useCampaigns();
+// 	const { campaignFormData } = useCampaigns();
 // 	const [isOpen, setIsOpen] = useState(false);
 // 	const [searchTerm, setSearchTerm] = useState("");
 // 	const dropdownRef = useRef<HTMLDivElement>(null);
 
-// 	const selectedOptions: DropdownOption[] = campaignFormData[formId] || [];
-
 // 	const toggleDropdown = () => setIsOpen((prev) => !prev);
 
 // 	const handleSelect = (option: DropdownOption) => {
-// 		if (!selectedOptions.find((o) => o.value === option.value)) {
-// 			const updated = [...selectedOptions, option];
-// 			setCampaignFormData((prev) => ({
-// 				...prev,
-// 				[formId]: updated,
-// 			}));
+// 		const alreadySelected = value?.some((o) => o.value === option.value);
+// 		if (!alreadySelected) {
+// 			onChange([
+// 				...value,
+// 				{ value: option?.value, id: campaignFormData?.campaign_id ?? "" },
+// 			]);
 // 		}
 // 	};
 
-// 	const handleRemove = (option: DropdownOption) => {
-// 		const updated = selectedOptions.filter((item) => item.value !== option.value);
-// 		setCampaignFormData((prev) => ({
-// 			...prev,
-// 			[formId]: updated,
-// 		}));
+// 	const handleRemove = (option: { value: string; id: string }) => {
+// 		onChange(value?.filter((item) => item?.value !== option?.value));
 // 	};
 
 // 	const handleClickOutside = (event: MouseEvent) => {
@@ -59,207 +52,28 @@
 // 		return () => document.removeEventListener("mousedown", handleClickOutside);
 // 	}, []);
 
-// 	const availableOptions = options.filter(
+// 	const selectedValues = value?.map((v) => v?.value);
+// 	const filteredOptions = options?.filter(
 // 		(opt) =>
-// 			!selectedOptions.find((sel) => sel.value === opt.value) &&
-// 			opt.label.toLowerCase().includes(searchTerm.toLowerCase())
+// 			!selectedValues.includes(opt.value) &&
+// 			opt?.label.toLowerCase().includes(searchTerm.toLowerCase())
 // 	);
-
-
-// 	console.log('campaignFormData-campaignFormData', campaignFormData)
 
 // 	return (
 // 		<div className="relative w-full" ref={dropdownRef}>
-// 			<label className="font-medium text-[15px] leading-5 text-gray-600">
-// 				{islabelone || islabeltwo}
-// 			</label>
-
 // 			<div
-// 				className="w-[327px] bg-[#fff] flex items-center px-2 py-1 min-h-[45px] border-2 border-[#EFEFEF] rounded-lg cursor-pointer flex-wrap gap-2"
+// 				className="w-[327px] bg-white flex items-center px-2 py-1 min-h-[45px] border-2 border-[#EFEFEF] rounded-lg cursor-pointer flex-wrap gap-2"
 // 				onClick={toggleDropdown}
 // 			>
-// 				{selectedOptions.length === 0 ? (
+// 				{value?.length === 0 ? (
 // 					<span className="text-gray-600">{label}</span>
 // 				) : (
-// 					selectedOptions.map((option) => (
-// 						<span
-// 							key={option.value}
-// 							className="flex items-center text-sm bg-gray-100 px-2 py-1 rounded-md text-gray-700"
-// 						>
-// 							{option.label}
-// 							<button
-// 								type="button"
-// 								className="ml-1 hover:text-red-500"
-// 								onClick={(e) => {
-// 									e.stopPropagation();
-// 									handleRemove(option);
-// 								}}
-// 							>
-// 								<X size={14} />
-// 							</button>
-// 						</span>
-// 					))
-// 				)}
-// 				<span className="ml-auto text-gray-500">
-// 					<Image src={down} alt="dropdown" />
-// 				</span>
-// 			</div>
-
-// 			{isOpen && (
-// 				<div className="absolute bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-2 z-10 w-full max-h-60 overflow-y-auto">
-// 					{/* Search Input */}
-// 					<div className="sticky top-0 bg-white p-2 border-b">
-// 						<input
-// 							type="text"
-// 							placeholder="Search..."
-// 							value={searchTerm}
-// 							onChange={(e) => setSearchTerm(e.target.value)}
-// 							className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-// 							onClick={(e) => e.stopPropagation()}
-// 						/>
-// 					</div>
-
-// 					{availableOptions.length > 0 ? (
-// 						availableOptions.map((option) => (
-// 							<div
-// 								key={option.value}
-// 								className="px-4 py-2 cursor-pointer hover:bg-gray-100 text-sm"
-// 								onClick={() => handleSelect(option)}
-// 							>
-// 								{option.label}
-// 							</div>
-// 						))
-// 					) : (
-// 						<div className="px-4 py-2 text-gray-500">No results found</div>
-// 					)}
-// 				</div>
-// 			)}
-// 		</div>
-// 	);
-// };
-
-// const ClientApproverDropdowns = ({
-// 	options,
-// 	option,
-// }: {
-// 	options: DropdownOption[];
-// 	option: DropdownOption[];
-// }) => {
-// 	return (
-// 		<div className="flex items-center gap-4 mt-[20px] w-full">
-// 			<MultiSelectDropdown
-// 				label="Internal Approver"
-// 				options={options}
-// 				islabelone=""
-// 				islabeltwo=""
-// 				formId="approver"
-// 			/>
-// 			<MultiSelectDropdown
-// 				label="Client Approver"
-// 				options={option}
-// 				islabelone=""
-// 				islabeltwo=""
-// 				formId="client_approver"
-// 			/>
-// 		</div>
-// 	);
-// };
-
-// export default ClientApproverDropdowns;
-
-"use client";
-
-import React, { useState, useRef, useEffect, useRef as useRefHook } from "react";
-import down from "../public/down.svg";
-import Image from "next/image";
-import { X } from "lucide-react";
-import { useCampaigns } from "../app/utils/CampaignsContext";
-
-type DropdownOption = { label: string; value: string };
-
-// const MultiSelectDropdown = ({
-// 	label,
-// 	options,
-// 	islabelone,
-// 	islabeltwo,
-// 	formId,
-// }: {
-// 	label: string;
-// 	options: DropdownOption[];
-// 	islabelone: string;
-// 	islabeltwo: string;
-// 	formId: string;
-// }) => {
-// 	const { campaignFormData, setCampaignFormData } = useCampaigns();
-// 	const [isOpen, setIsOpen] = useState(false);
-// 	const [searchTerm, setSearchTerm] = useState("");
-// 	const dropdownRef = useRef<HTMLDivElement>(null);
-
-// 	const selectedOptions: DropdownOption[] = Array.isArray(campaignFormData[formId])
-// 		? campaignFormData[formId].map((item: any) =>
-// 			typeof item === "string" ? { label: item, value: item } : item
-// 		)
-// 		: [];
-
-// 	const toggleDropdown = () => setIsOpen((prev) => !prev);
-
-// 	const handleSelect = (option: DropdownOption) => {
-// 		if (!selectedOptions?.some((o) => o.value === option?.value)) {
-// 			const updated = [...selectedOptions, { label: option?.label, value: option?.value }];
-// 			setCampaignFormData((prev) => ({
-// 				...prev,
-// 				[formId]: updated,
-// 			}));
-// 		}
-// 	};
-
-// 	const handleRemove = (option: DropdownOption) => {
-// 		const updated = selectedOptions?.filter((item) => item?.value !== option?.value);
-// 		setCampaignFormData((prev) => ({
-// 			...prev,
-// 			[formId]: updated,
-// 		}));
-// 	};
-
-// 	const handleClickOutside = (event: MouseEvent) => {
-// 		if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-// 			setIsOpen(false);
-// 			setSearchTerm("");
-// 		}
-// 	};
-
-// 	useEffect(() => {
-// 		document.addEventListener("mousedown", handleClickOutside);
-// 		return () => document.removeEventListener("mousedown", handleClickOutside);
-// 	}, []);
-
-// 	const availableOptions = options.filter(
-// 		(opt) =>
-// 			!selectedOptions?.some((sel) => sel?.value === opt?.value) &&
-// 			opt?.label?.toLowerCase().includes(searchTerm.toLowerCase())
-// 	);
-
-// 	console.log('campaignFormData-campaignFormData', campaignFormData)
-
-// 	return (
-// 		<div className="relative w-full" ref={dropdownRef}>
-// 			<label className="font-medium text-[15px] leading-5 text-gray-600">
-// 				{islabelone || islabeltwo}
-// 			</label>
-
-// 			<div
-// 				className="w-[327px] bg-[#fff] flex items-center px-2 py-1 min-h-[45px] border-2 border-[#EFEFEF] rounded-lg cursor-pointer flex-wrap gap-2"
-// 				onClick={toggleDropdown}
-// 			>
-// 				{selectedOptions?.length === 0 ? (
-// 					<span className="text-gray-600">{label}</span>
-// 				) : (
-// 					selectedOptions?.map((option) => (
+// 					value?.map((option) => (
 // 						<span
 // 							key={option?.value}
 // 							className="flex items-center text-sm bg-gray-100 px-2 py-1 rounded-md text-gray-700"
 // 						>
-// 							{option?.label}
+// 							{option?.value}
 // 							<button
 // 								type="button"
 // 								className="ml-1 hover:text-red-500"
@@ -291,12 +105,15 @@ type DropdownOption = { label: string; value: string };
 // 						/>
 // 					</div>
 
-// 					{availableOptions?.length > 0 ? (
-// 						availableOptions?.map((option) => (
+// 					{filteredOptions?.length > 0 ? (
+// 						filteredOptions?.map((option) => (
 // 							<div
 // 								key={option?.value}
 // 								className="px-4 py-2 cursor-pointer hover:bg-gray-100 text-sm"
-// 								onClick={() => handleSelect(option)}
+// 								onClick={(e) => {
+// 									e.stopPropagation();
+// 									handleSelect(option);
+// 								}}
 // 							>
 // 								{option?.label}
 // 							</div>
@@ -313,47 +130,31 @@ type DropdownOption = { label: string; value: string };
 // const ClientApproverDropdowns = ({
 // 	options,
 // 	option,
+// 	value,
+// 	onChange,
 // }: {
 // 	options: DropdownOption[];
 // 	option: DropdownOption[];
+// 	value: {
+// 		internal_approver: { value: string; id: string }[];
+// 		client_approver: { value: string; id: string }[];
+// 	};
+// 	onChange: (field: string, selected: { value: string; id: string }[]) => void;
 // }) => {
-// 	const { campaignFormData, setCampaignFormData } = useCampaigns();
-// 	const previousPlanRef = useRef<string | null>(null);
-
-// 	useEffect(() => {
-// 		const currentPlan = campaignFormData?.media_plan;
-
-// 		if (previousPlanRef.current !== null && previousPlanRef.current !== currentPlan) {
-// 			// Reset approver and client_approver on plan change
-// 			setCampaignFormData((prev) => ({
-// 				...prev,
-// 				approver: [],
-// 				client_approver: [],
-// 			}));
-// 		}
-
-// 		// Store current plan as previous for next comparison
-// 		previousPlanRef.current = currentPlan;
-// 	}, [campaignFormData?.media_plan, setCampaignFormData]);
-
 // 	return (
-// 		<div className="w-full flex flex-col gap-4">
-// 			<div className="flex items-center gap-4">
-// 				<MultiSelectDropdown
-// 					label="Internal Approver"
-// 					options={options}
-// 					islabelone=""
-// 					islabeltwo=""
-// 					formId="approver"
-// 				/>
-// 				<MultiSelectDropdown
-// 					label="Client Approver"
-// 					options={option}
-// 					islabelone=""
-// 					islabeltwo=""
-// 					formId="client_approver"
-// 				/>
-// 			</div>
+// 		<div className="flex items-center gap-4 mt-5">
+// 			<MultiSelectDropdown
+// 				label="Internal Approver"
+// 				options={options}
+// 				value={value.internal_approver}
+// 				onChange={(selected) => onChange("internal_approver", selected)}
+// 			/>
+// 			<MultiSelectDropdown
+// 				label="Client Approver"
+// 				options={option}
+// 				value={value.client_approver}
+// 				onChange={(selected) => onChange("client_approver", selected)}
+// 			/>
 // 		</div>
 // 	);
 // };
@@ -361,67 +162,233 @@ type DropdownOption = { label: string; value: string };
 // export default ClientApproverDropdowns;
 
 
+// "use client";
 
-// MultiSelectDropdown Component
-// Mock selectCurrency for completeness
-const selectCurrency = [
-	{ id: "USD", value: "USD", sign: "$" },
-	// Add other currencies as needed
-];
+// import React, { useState, useRef, useEffect } from "react";
+// import down from "../public/down.svg";
+// import Image from "next/image";
+// import { X } from "lucide-react";
+// import { useCampaigns } from "../app/utils/CampaignsContext";
 
-// Mock validationRules for completeness
-const validationRules = {
-	step0: (campaignData) => {
-		// Replace with actual validation logic
-		return true;
-	},
-};
+// type DropdownOption = { label: string; value: string };
 
+// const MultiSelectDropdown = ({
+// 	label,
+// 	options,
+// 	value,
+// 	onChange,
+// }: {
+// 	label: string;
+// 	options: DropdownOption[];
+// 	value: { value: string; id: string }[];
+// 	onChange: (selected: { value: string; id: string }[]) => void;
+// }) => {
+// 	const { campaignFormData } = useCampaigns();
+// 	const [isOpen, setIsOpen] = useState(false);
+// 	const [searchTerm, setSearchTerm] = useState("");
+// 	const dropdownRef = useRef<HTMLDivElement>(null);
 
+// 	const toggleDropdown = () => setIsOpen((prev) => !prev);
+
+// 	const handleSelect = (option: DropdownOption) => {
+// 		const alreadySelected = value?.some((o) => o.value === option.value);
+// 		if (!alreadySelected) {
+// 			onChange([
+// 				...value,
+// 				{ value: option.value, id: campaignFormData?.campaign_id ?? "" },
+// 			]);
+// 		}
+// 	};
+
+// 	const handleRemove = (option: { value: string; id: string }) => {
+// 		onChange(value.filter((item) => item.value !== option.value));
+// 	};
+
+// 	const handleClickOutside = (event: MouseEvent) => {
+// 		if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+// 			setIsOpen(false);
+// 			setSearchTerm("");
+// 		}
+// 	};
+
+// 	useEffect(() => {
+// 		document.addEventListener("mousedown", handleClickOutside);
+// 		return () => document.removeEventListener("mousedown", handleClickOutside);
+// 	}, []);
+
+// 	const selectedValues = value.map((v) => v.value);
+// 	const filteredOptions = options.filter(
+// 		(opt) =>
+// 			!selectedValues.includes(opt.value) &&
+// 			opt.label.toLowerCase().includes(searchTerm.toLowerCase())
+// 	);
+
+// 	return (
+// 		<div className="relative w-full" ref={dropdownRef}>
+// 			<div
+// 				className="w-[327px] bg-white flex items-center px-2 py-1 min-h-[45px] border-2 border-[#EFEFEF] rounded-lg cursor-pointer flex-wrap gap-2"
+// 				onClick={toggleDropdown}
+// 			>
+// 				{value.length === 0 ? (
+// 					<span className="text-gray-600">{label}</span>
+// 				) : (
+// 					value.map((option) => (
+// 						<span
+// 							key={option.value}
+// 							className="flex items-center text-sm bg-gray-100 px-2 py-1 rounded-md text-gray-700"
+// 						>
+// 							{option.value}
+// 							<button
+// 								type="button"
+// 								className="ml-1 hover:text-red-500"
+// 								onClick={(e) => {
+// 									e.stopPropagation();
+// 									handleRemove(option);
+// 								}}
+// 							>
+// 								<X size={14} />
+// 							</button>
+// 						</span>
+// 					))
+// 				)}
+// 				<span className="ml-auto text-gray-500">
+// 					<Image src={down} alt="dropdown" />
+// 				</span>
+// 			</div>
+
+// 			{isOpen && (
+// 				<div className="absolute bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-2 z-10 w-full max-h-60 overflow-y-auto">
+// 					<div className="sticky top-0 bg-white p-2 border-b">
+// 						<input
+// 							type="text"
+// 							placeholder="Search..."
+// 							value={searchTerm}
+// 							onChange={(e) => setSearchTerm(e.target.value)}
+// 							className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+// 							onClick={(e) => e.stopPropagation()}
+// 						/>
+// 					</div>
+
+// 					{filteredOptions.length > 0 ? (
+// 						filteredOptions.map((option) => (
+// 							<div
+// 								key={option.value}
+// 								className="px-4 py-2 cursor-pointer hover:bg-gray-100 text-sm"
+// 								onClick={(e) => {
+// 									e.stopPropagation();
+// 									handleSelect(option);
+// 								}}
+// 							>
+// 								{option.label}
+// 							</div>
+// 						))
+// 					) : (
+// 						<div className="px-4 py-2 text-gray-500">No results found</div>
+// 					)}
+// 				</div>
+// 			)}
+// 		</div>
+// 	);
+// };
+
+// const ClientApproverDropdowns = ({
+// 	options,
+// 	option,
+// 	value,
+// 	onChange,
+// }: {
+// 	options: DropdownOption[];
+// 	option: DropdownOption[];
+// 	value: {
+// 		internal_approver: { value: string; id: string }[];
+// 		client_approver: { value: string; id: string }[];
+// 	};
+// 	onChange: (field: string, selected: { value: string; id: string }[]) => void;
+// }) => {
+// 	return (
+// 		<div className="flex items-center gap-4 mt-5">
+// 			<MultiSelectDropdown
+// 				label="Internal Approver"
+// 				options={options}
+// 				value={value.internal_approver}
+// 				onChange={(selected) => onChange("internal_approver", selected)}
+// 			/>
+// 			<MultiSelectDropdown
+// 				label="Client Approver"
+// 				options={option}
+// 				value={value.client_approver}
+// 				onChange={(selected) => onChange("client_approver", selected)}
+// 			/>
+// 		</div>
+// 	);
+// };
+
+// export default ClientApproverDropdowns;
+
+"use client";
+
+import React, { useState, useRef, useEffect } from "react";
+import down from "../public/down.svg";
+import Image from "next/image";
+import { X } from "lucide-react";
+import { useCampaigns } from "../app/utils/CampaignsContext";
+
+type DropdownOption = { label: string; value: string };
+type SelectedItem = { value: string; id: string; clientId: string };
 
 const MultiSelectDropdown = ({
 	label,
 	options,
-	islabelone,
-	islabeltwo,
-	formId,
 	value,
 	onChange,
 }: {
 	label: string;
 	options: DropdownOption[];
-	islabelone: string;
-	islabeltwo: string;
-	formId: string;
-	value: DropdownOption[];
-	onChange: (options: DropdownOption[]) => void;
+	value: SelectedItem[];
+	onChange: (selected: SelectedItem[]) => void;
 }) => {
+	const { campaignFormData } = useCampaigns();
 	const [isOpen, setIsOpen] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
 	const dropdownRef = useRef<HTMLDivElement>(null);
-
-	// Filter out invalid options
-	const validOptions = options.filter(
-		(opt) => opt?.value != null && opt?.label != null
-	);
-
-	// Filter out invalid values
-	const validValue = value.filter(
-		(opt) => opt?.value != null && opt?.label != null
-	);
+	const campaignId = campaignFormData?.campaign_id;
 
 	const toggleDropdown = () => setIsOpen((prev) => !prev);
 
 	const handleSelect = (option: DropdownOption) => {
-		if (!validValue?.some((o) => o?.value === option?.value)) {
-			const updated = [...validValue, { label: option?.label, value: option?.value }];
-			onChange(updated);
+		const alreadySelected = value?.some((o) => o.value === option.value);
+		const campaignId = campaignFormData?.campaign_id;
+		const clientId = campaignFormData?.client_selection?.id;
+
+		if (clientId) {
+			const newItem: SelectedItem = {
+				value: option?.value,
+				id: campaignId ?? clientId,
+				clientId: clientId,
+			};
+			onChange([...value, newItem]);
 		}
 	};
 
-	const handleRemove = (option: DropdownOption) => {
-		const updated = validValue.filter((item) => item.value !== option.value);
-		onChange(updated);
+
+
+	// Update selected items with `commentId` once it's available
+	useEffect(() => {
+		if (campaignId && campaignFormData?.client_selection?.id) {
+			const updated = value.map((item) => ({
+				...item,
+				id: campaignId, // Replace id with campaignId
+				clientId: campaignFormData?.client_selection.id,
+			}));
+			onChange(updated);
+		}
+	}, [campaignId]);
+
+
+
+
+	const handleRemove = (option: SelectedItem) => {
+		onChange(value.filter((item) => item.value !== option.value));
 	};
 
 	const handleClickOutside = (event: MouseEvent) => {
@@ -436,31 +403,28 @@ const MultiSelectDropdown = ({
 		return () => document.removeEventListener("mousedown", handleClickOutside);
 	}, []);
 
-	const availableOptions = validOptions.filter(
+	const selectedValues = value?.map((v) => v.value);
+	const filteredOptions = options.filter(
 		(opt) =>
-			!validValue?.some((sel) => sel?.value === opt?.value) &&
-			opt?.label?.toLowerCase().includes(searchTerm.toLowerCase())
+			!selectedValues.includes(opt.value) &&
+			opt?.label?.toLowerCase()?.includes(searchTerm?.toLowerCase())
 	);
 
 	return (
 		<div className="relative w-full" ref={dropdownRef}>
-			{/* <label className="font-medium text-[15px] leading-5 text-gray-600">
-				{islabelone || islabeltwo || label}
-			</label> */}
-
 			<div
-				className="w-[327px] bg-[#fff] flex items-center px-2 py-1 min-h-[45px] border-2 border-[#EFEFEF] rounded-lg cursor-pointer flex-wrap gap-2"
+				className="w-[327px] bg-white flex items-center px-2 py-1 min-h-[45px] border-2 border-[#EFEFEF] rounded-lg cursor-pointer flex-wrap gap-2"
 				onClick={toggleDropdown}
 			>
-				{validValue?.length === 0 ? (
+				{value.length === 0 ? (
 					<span className="text-gray-600">{label}</span>
 				) : (
-					validValue?.map((option) => (
+					value?.map((option) => (
 						<span
-							key={option?.value}
+							key={option.value}
 							className="flex items-center text-sm bg-gray-100 px-2 py-1 rounded-md text-gray-700"
 						>
-							{option?.label}
+							{option.value}
 							<button
 								type="button"
 								className="ml-1 hover:text-red-500"
@@ -492,12 +456,15 @@ const MultiSelectDropdown = ({
 						/>
 					</div>
 
-					{availableOptions?.length > 0 ? (
-						availableOptions?.map((option) => (
+					{filteredOptions?.length > 0 ? (
+						filteredOptions?.map((option) => (
 							<div
-								key={option?.value}
+								key={option.value}
 								className="px-4 py-2 cursor-pointer hover:bg-gray-100 text-sm"
-								onClick={() => handleSelect(option)}
+								onClick={(e) => {
+									e.stopPropagation();
+									handleSelect(option);
+								}}
 							>
 								{option?.label}
 							</div>
@@ -510,7 +477,7 @@ const MultiSelectDropdown = ({
 		</div>
 	);
 };
-// ClientApproverDropdowns Component (unchanged)
+
 const ClientApproverDropdowns = ({
 	options,
 	option,
@@ -520,29 +487,22 @@ const ClientApproverDropdowns = ({
 	options: DropdownOption[];
 	option: DropdownOption[];
 	value: {
-		approver: DropdownOption[];
-		client_approver: DropdownOption[];
+		internal_approver: SelectedItem[];
+		client_approver: SelectedItem[];
 	};
-	onChange: (field: string, selected: DropdownOption[]) => void;
+	onChange: (field: string, selected: SelectedItem[]) => void;
 }) => {
 	return (
-		<div className="flex items-center   gap-4   mt-5">
-
+		<div className="flex items-center gap-4 mt-5">
 			<MultiSelectDropdown
 				label="Internal Approver"
 				options={options}
-				islabelone=""
-				islabeltwo=""
-				formId="approver"
-				value={value.approver}
-				onChange={(selected) => onChange("approver", selected)}
+				value={value.internal_approver}
+				onChange={(selected) => onChange("internal_approver", selected)}
 			/>
 			<MultiSelectDropdown
 				label="Client Approver"
 				options={option}
-				islabelone=""
-				islabeltwo=""
-				formId="client_approver"
 				value={value.client_approver}
 				onChange={(selected) => onChange("client_approver", selected)}
 			/>

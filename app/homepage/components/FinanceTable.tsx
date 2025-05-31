@@ -131,15 +131,22 @@ function FinanceTable({
                           <Edit size={18} onClick={() => setOpenEdit(true)} />
                         </button> :
                         <button className="text-gray-500 hover:text-gray-700">
-                          <Edit size={18} onClick={() => toast.error("This can only meant to be done by the Admin and Financial approver")} />
+                          <Edit size={18} onClick={() => toast.error("Role doesn't have permission!")} />
                         </button>}
 
-                      <button
-                        className="text-gray-500 hover:text-gray-700"
-                        onClick={() => setOpenDelete(true)}
-                      >
-                        <Trash size={18} />
-                      </button>
+
+                      {(isFinancialApprover || isAdmin) ?
+                        <button
+                          className="text-gray-500 hover:text-gray-700"
+                          onClick={() => setOpenDelete(true)}
+                        >
+                          <Trash size={18} />
+                        </button> : <button
+                          className="text-gray-500 hover:text-gray-700"
+                          onClick={() => toast.error("Role doesn't have permission!")}>
+
+                          <Trash size={18} />
+                        </button>}
                     </div>
                   </td>
                 </tr>

@@ -95,8 +95,8 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
             >
               <div
                 className={`${expanded[index]
-                    ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4    h-[77px] bg-[#F9FAFB]  "'
-                    : "flex justify-between items-center p-4"
+                  ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4    h-[77px] bg-[#F9FAFB]  "'
+                  : "flex justify-between items-center p-4"
                   } `}
               >
                 <div>
@@ -105,7 +105,7 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                   </h3>
                   <p className="text-[#061237] font-medium text-[14px]">
                     {/* 250,000 € */}
-                    {budget}
+                    {budget === "undefined €" || budget === "null €" ? 0 : Number(budget.replace(/[^\d.-]/g, "")).toLocaleString() + " €"}
                   </p>
                 </div>
                 <button onClick={() => toggleShow(index)}>
@@ -137,12 +137,12 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                         <div
                           onClick={() => toggleOpen(index, section?.name)}
                           className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${section?.name === "Awareness"
-                              ? "bg-[#3175FF]"
-                              : section?.name === "Consideration"
-                                ? "bg-[#34A853]"
-                                : section?.name === "Conversion"
-                                  ? "bg-[#ff9037]"
-                                  : "bg-[#F05406]"
+                            ? "bg-[#3175FF]"
+                            : section?.name === "Consideration"
+                              ? "bg-[#34A853]"
+                              : section?.name === "Conversion"
+                                ? "bg-[#ff9037]"
+                                : "bg-[#F05406]"
                             } text-white`}
                           style={{
                             gridColumnStart: startWeek,

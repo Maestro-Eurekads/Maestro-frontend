@@ -45,7 +45,7 @@ const CampaignBudget = () => {
 
   const { campaignFormData, setCampaignFormData, campaignData } = useCampaigns();
 
-  // console.log('campaignFormData-campaignFormData', campaignFormData)
+  
 
   const selectCurrency = [
     { value: "USD", label: "USD" },
@@ -411,10 +411,10 @@ const CampaignBudget = () => {
                     <div className="">
                       <div className="p-2 text-center">
                         <h2 className="text-[16px] mb-4 text-[#181D27] font-[600]">
-                          {item.label}
+                          {item?.label}
                         </h2>
                         <p className="text-[14px] font-[500] text-[#535862]">
-                          {item.description}
+                          {item?.description}
                         </p>
                       </div>
 

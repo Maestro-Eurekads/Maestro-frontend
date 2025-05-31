@@ -6,6 +6,8 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 import { BiLoader } from "react-icons/bi";
 import { useAppDispatch } from "../store/useStore";
 import { getCreateClient } from "../features/Client/clientSlice";
+import { useSession } from "next-auth/react";
+import { useUserPrivileges } from "utils/userPrivileges";
 
 const Dropdown = ({
   label,
@@ -21,11 +23,15 @@ const Dropdown = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { campaignFormData, setCampaignFormData, loadingClients } = useCampaigns();
   const dispatch = useAppDispatch();
+  const {data:session} = useSession()
+  const { isAdmin, isAgencyApprover, isFinancialApprover } =
+      useUserPrivileges();
 
   // Fetch clients when dropdown is opened
   const toggleDropdown = () => {
     if (!isOpen && label === "Select Client") {
-      dispatch(getCreateClient());
+      //@ts-ignore
+      dispatch(getCreateClient(!isAdmin ? session?.user?.data?.user?.id: null));
     }
     setIsOpen(!isOpen);
   };

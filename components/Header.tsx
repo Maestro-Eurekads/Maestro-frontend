@@ -7,38 +7,36 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 import { FiLoader } from "react-icons/fi";
 import useCampaignHook from "../app/utils/useCampaignHook";
 import { useEffect, useState } from "react";
-// Removed unused import 'AllClientsCustomDropdown'
 import { useAppDispatch, useAppSelector } from "store/useStore";
 import AlertMain from "./Alert/AlertMain";
 import { getCreateClient } from "features/Client/clientSlice"; // Removed unused 'reset'
-import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { CustomSelect } from "app/homepage/components/CustomReactSelect";
 import { useActive } from "app/utils/ActiveContext";
-import { extractAprroverFilters, extractChannelAndPhase, extractDateFilters, extractLevelFilters, extractLevelNameFilters } from "app/utils/campaign-filter-utils";
+import {
+  extractAprroverFilters,
+  extractChannelAndPhase,
+  extractDateFilters,
+  extractLevelFilters,
+  extractLevelNameFilters,
+} from "app/utils/campaign-filter-utils";
 import { useUserPrivileges } from "utils/userPrivileges";
-import { el } from "date-fns/locale";
-import { useSearchParams } from "next/navigation";
 import { getFirstLetters } from "./Options";
+import { useSelectedDates } from "app/utils/SelectedDatesContext";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
-
-
-
 
 const Header = ({ setIsOpen }) => {
   const { data: session } = useSession();
-  const query = useSearchParams();
-  const campaignId = query.get("campaignId");
 
   if (!session) return null;
-  // @ts-ignore 
+  // @ts-ignore
   const userType = session?.user?.data?.user?.id?.toString() || "";
-  const { isAdmin, isAgencyApprover, isFinancialApprover } = useUserPrivileges();
+  const { isAdmin, isAgencyApprover, isFinancialApprover, isAgencyCreator } =
+    useUserPrivileges();
 
-  const {
-    getCreateClientData,
-    getCreateClientIsLoading,
-  } = useAppSelector((state) => state.client);
+  const { getCreateClientData, getCreateClientIsLoading } = useAppSelector(
+    (state) => state.client
+  );
 
   const {
     setClientCampaignData,
@@ -48,8 +46,10 @@ const Header = ({ setIsOpen }) => {
     setFetchingPO,
     setFilterOptions,
     profile,
-    setSelectedFilters
+    setSelectedFilters,
   } = useCampaigns();
+  
+  const {setSelectedDates} = useSelectedDates()
 
   const { setActive, setSubStep } = useActive();
   const { fetchClientCampaign, fetchClientPOS } = useCampaignHook();
@@ -63,14 +63,14 @@ const Header = ({ setIsOpen }) => {
   const clients: any = getCreateClientData;
 
   useEffect(() => {
-    dispatch(getCreateClient());
+    dispatch(getCreateClient(!isAdmin ? userType : null));
 
     const timer = setTimeout(() => {
       setAlert(null);
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [dispatch]);
+  }, [dispatch, session]);
 
   //  LocalStorage prioritized
   useEffect(() => {
@@ -81,7 +81,8 @@ const Header = ({ setIsOpen }) => {
       setSelectedId(storedClientId);
     } else {
       const fallbackId =
-        profile?.clients?.[0]?.id?.toString() || getCreateClientData?.data?.[0]?.id?.toString();
+        getCreateClientData?.data?.[0]?.id?.toString() ||
+        profile?.clients?.[0]?.id?.toString();
       if (fallbackId) {
         setSelectedId(fallbackId);
       }
@@ -100,8 +101,10 @@ const Header = ({ setIsOpen }) => {
     const clientId = selectedId;
     setSelected(clientId);
 
-    const filteredClient = clients?.data?.find(client => client?.id === Number(clientId));
-
+    const filteredClient = clients?.data?.find(
+      (client) => client?.id === Number(clientId)
+    );
+    // console.log(clientId);
     fetchClientCampaign(clientId)
       .then((res) => {
         const campaigns = res?.data?.data || [];
@@ -120,7 +123,7 @@ const Header = ({ setIsOpen }) => {
           ...mediaData,
           ...channelData,
           ...levelData,
-          ...levelNames
+          ...levelNames,
         }));
 
         fetchClientPOS(clientId)
@@ -144,7 +147,6 @@ const Header = ({ setIsOpen }) => {
   }, [clients, selectedId]);
 
 
-
   return (
     <div id="header" className="relative w-full">
       <div className="flex items-center">
@@ -156,10 +158,44 @@ const Header = ({ setIsOpen }) => {
         ) : (
           <>
             <CustomSelect
-              options={(isAdmin ? clients?.data : profile?.clients)?.map((c) => ({
-                label: c?.client_name,
-                value: c?.id,
-              }))}
+              options={(isAdmin ? clients?.data : profile?.clients)
+                ?.filter((c) => !!c?.client_name && !!c?.id && !!c?.createdAt)
+                ?.sort(
+                  (a, b) =>
+                    new Date(b?.createdAt || 0).getTime() -
+                    new Date(a?.createdAt || 0).getTime()
+                )
+                ?.map((c) => ({
+                  label: c?.client_name,
+                  value: c?.id.toString(),
+                }))}
+              className="min-w-[150px] z-[20]"
+              placeholder="Select client"
+              onChange={(value) => {
+                if (value) {
+                  localStorage.setItem(userType, value?.value);
+                  setSelected(value?.value);
+                  setSelectedId(value?.value);
+                }
+              }}
+              value={(isAdmin ? clients?.data : profile?.clients)
+                ?.map((c) => ({
+                  label: c.client_name,
+                  value: c.id?.toString(),
+                }))
+                .find(
+                  (option) =>
+                    option?.value === selectedId || option?.value === selected
+                )}
+            />
+
+            {/* {/* <CustomSelect
+              options={(isAdmin ? clients?.data : profile?.clients)?.map(
+                (c) => ({
+                  label: c?.client_name,
+                  value: c?.id,
+                })
+              )}
               className="min-w-[150px] z-[20]"
               placeholder="Select client"
               onChange={(value) => {
@@ -174,14 +210,23 @@ const Header = ({ setIsOpen }) => {
                   label: c?.client_name,
                   value: c?.id?.toString(),
                 }))
-                .find((option) =>
-                  option?.value === selectedId || option?.value === selected
+                .find(
+                  (option) =>
+                    option?.value === selectedId || option?.value === selected
                 )}
-            />
-            <button className="client_btn_text whitespace-nowrap w-fit" onClick={() => setIsOpen(true)}>
-              <Image src={plus} alt="plus" />
-              New Client
-            </button>
+            /> */}
+            {(isAdmin ||
+              isFinancialApprover ||
+              isAgencyApprover) && (
+                <button
+                  className="client_btn_text whitespace-nowrap w-fit"
+                  onClick={() => setIsOpen(true)}
+                >
+                  <Image src={plus} alt="plus" />
+                  New Client
+                </button>
+              )}
+
           </>
         )}
       </div>
@@ -192,25 +237,34 @@ const Header = ({ setIsOpen }) => {
         <div className="profiledropdown_container">
           {(isAdmin ||
             isFinancialApprover ||
-            isAgencyApprover) &&
-            <Link
-              href={`/creation`}
-              onClick={() => {
-                setCampaignFormData({});
-                setActive(0);
-                setSubStep(0);
-              }}
-            >
-              <button
-                className={`new_plan_btn ${!profile?.clients?.[0]?.id && !isAdmin ? '!bg-[gray]' : ''}`}
-                disabled={!profile?.clients?.[0]?.id && !isAdmin}
-              >
-                <Image src={white} alt="white" />
-                <p className="new_plan_btn_text">New media plan</p>
-              </button>
-            </Link>}
+            isAgencyApprover ||
+            isAgencyCreator) && (
+              <Link
+                href={`/creation`}
+                onClick={() => {
+                  setCampaignFormData({});
+                  setActive(0);
+                  setSubStep(0);
+                  setSelectedDates({
+                    from: null,
+                    to:null
+                  })
+                }}>
+                <button
+                  className={`new_plan_btn ${!profile?.clients?.[0]?.id && !isAdmin ? "!bg-[gray]" : ""
+                    }`}
+                  disabled={!profile?.clients?.[0]?.id && !isAdmin}
+                >
+                  <Image src={white} alt="white" />
+                  <p className="new_plan_btn_text">New media plan</p>
+                </button>
+              </Link>
+            )}
 
-          <div className="profile_container" onClick={() => setShow((prev) => !prev)}>
+          <div
+            className="profile_container"
+            onClick={() => setShow((prev) => !prev)}
+          >
             {getFirstLetters(session?.user?.name)}
 
             {show && (
@@ -226,17 +280,18 @@ const Header = ({ setIsOpen }) => {
                       localStorage.removeItem("campaignFormData");
                       localStorage.removeItem("selectedClient");
                       localStorage.removeItem("profileclients");
+                      localStorage.removeItem(userType || "");
                       await signOut({
                         callbackUrl: "/",
-                      })
-                    }
-                    }
+                      });
+                    }}
                     className="w-full px-4 py-2 text-sm text-white !bg-[#3175FF]   hover:bg-blue-700 !rounded-[5px]"
                   >
                     Logout
                   </button>
                 </div>
-              </div>)}
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -94,10 +94,10 @@ function FinanceView({ setOpenModal, userRole }) {
   ;
 
   return (
-    <div className="px-[72px]">
-      <div className="flex items-center gap-2 mt-[36.5px]">
+    <div className="px-[72px] ">
+      <div className="flex items-center gap-2 mt-[36.5px] mb-5">
         <h1 className="media_text">Purchase Order Library</h1>
-        {isFinancialApprover || isAdmin ?
+        {(isFinancialApprover || isAdmin) ?
           <button onClick={() => setOpenModal(true)}>
             <Image src={blueBtn} alt="menu" />
           </button> : <button onClick={() => toast.error("Role doesn't have permission")}>
@@ -105,9 +105,7 @@ function FinanceView({ setOpenModal, userRole }) {
           </button>}
 
       </div>
-      <div className="mt-[20px]">
-        {/* <FiltersDropdowns hideTitle={true}/> */}
-      </div>
+
       <FinanceTable
         data={paginatedData}
         selectedRow={selectedRow}

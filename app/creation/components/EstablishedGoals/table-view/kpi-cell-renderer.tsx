@@ -84,7 +84,7 @@ export const KPICellRenderer = ({
   if (body === "audience_size") {
     return (
       <div className="flex gap-2">
-        <span>{adSet ? adSet?.size : "-"}</span>
+        <span>{adSet ? Number(adSet?.size).toLocaleString() : "-"}</span>
       </div>
     );
   }

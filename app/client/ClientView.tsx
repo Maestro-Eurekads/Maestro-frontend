@@ -62,6 +62,7 @@ const ClientView = () => {
 	const { campaigns, loading, fetchCampaignsByClientId } = useClientCampaign();
 	const [finalCategoryOrder, setFinalCategoryOrder] = useState(categoryOrder); // default fallback
 	const { data: session }: any = useSession();
+	
 	const clientId = session?.user?.id;
 	const client_commentId = session?.user?.id;
 	const campaign = !campaignDetails ? [] : campaignDetails[0];
@@ -151,7 +152,6 @@ const ClientView = () => {
 
 
 
-	console.log('campaignFormData-campaignFormData', Array.isArray(campaignFormData))
 
 	return (
 		<>

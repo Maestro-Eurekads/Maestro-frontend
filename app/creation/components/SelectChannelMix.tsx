@@ -30,7 +30,11 @@ const Toast = ({ message, onClose }) => {
 };
 
 // Utility functions for localStorage with campaign-specific scoping
-const loadStateFromLocalStorage = (key: string, defaultValue: any, cId: string) => {
+const loadStateFromLocalStorage = (
+  key: string,
+  defaultValue: any,
+  cId: string
+) => {
   if (typeof window === "undefined") return defaultValue;
   const storageKey = cId ? `${cId}_${key}` : key;
   try {
@@ -64,7 +68,13 @@ const ONLINE_TYPES = [
 ];
 const OFFLINE_TYPES = ["broadcast", "print", "ooh"];
 
-const SelectChannelMix = () => {
+const getChannelTypeLabel = (type) => {
+  if (ONLINE_TYPES.includes(type)) return "online";
+  if (OFFLINE_TYPES.includes(type)) return "offline";
+  return "channel";
+};
+
+const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
   const { setIsDrawerOpen, setClose } = useComments();
   const {
     campaignFormData,
@@ -89,15 +99,12 @@ const SelectChannelMix = () => {
 
   // Fallback metadata for Targeting/Retargeting
   const fallbackFunnelMetadata = {
-    Targeting: { name: "Targeting", icon: zoom },
-    Retargeting: { name: "Retargeting", icon: credit },
+    Targeting: { name: "Targeting" },
+    Retargeting: { name: "Retargeting" },
   };
 
   // Debug data on mount
-  useEffect(() => {
-    // console.log("SelectChannelMix - platformList:", platformList);
-    // console.log("SelectChannelMix - campaignFormData:", campaignFormData);
-  }, [platformList, campaignFormData, cId]);
+  useEffect(() => {}, [platformList, campaignFormData, cId]);
 
   // Ensure component is mounted and data is ready
   useEffect(() => {
@@ -280,7 +287,12 @@ const SelectChannelMix = () => {
     }));
   };
 
-  const togglePlatform = async (stageName: string, category: string, platformName: string, type: string) => {
+  const togglePlatform = async (
+    stageName: string,
+    category: string,
+    platformName: string,
+    type: string
+  ) => {
     setSelected((prevSelected) => {
       const stageSelection = prevSelected[stageName] || {};
       const categorySelection = stageSelection[category] || [];
@@ -297,7 +309,8 @@ const SelectChannelMix = () => {
         };
         // Count total selected platforms in the stage
         const totalSelected = Object.values(updatedStageSelection).reduce(
-          (count: number, arr: unknown[]) => count + (Array.isArray(arr) ? arr.length : 0),
+          (count: number, arr: unknown[]) =>
+            count + (Array.isArray(arr) ? arr.length : 0),
           0
         );
 
@@ -347,7 +360,8 @@ const SelectChannelMix = () => {
           ...stageSelection,
           [category]: categorySelection.filter((p) => p !== platformName),
         }).reduce(
-          (count: number, arr: unknown) => count + (Array.isArray(arr) ? arr.length : 0),
+          (count: number, arr: unknown) =>
+            count + (Array.isArray(arr) ? arr.length : 0),
           0
         ) === 0
       ) {
@@ -360,8 +374,8 @@ const SelectChannelMix = () => {
 
       const platformObjects = newCategorySelection.map((name) => {
         const existingPlatform = prevFormData.channel_mix
-          ?.find((item) => item.funnel_stage === stageName)?.[categoryKey]
-          ?.find((platform) => platform.platform_name === name);
+          ?.find((item) => item.funnel_stage === stageName)
+          ?.[categoryKey]?.find((platform) => platform.platform_name === name);
 
         return existingPlatform || { platform_name: name };
       });
@@ -402,20 +416,26 @@ const SelectChannelMix = () => {
           "createdAt",
           "publishedAt",
           "updatedAt",
-          "_aggregated"
+          "_aggregated",
         ]),
         channel_mix: removeKeysRecursively(updatedFormData.channel_mix, [
           "id",
           "isValidated",
           "formatValidated",
           "validatedStages",
-          "_aggregated"
+          "_aggregated",
         ]),
       });
     }
   };
 
-  const handlePlatformClick = (e: React.MouseEvent, stageName: string, category: string, platformName: string, type: string) => {
+  const handlePlatformClick = (
+    e: React.MouseEvent,
+    stageName: string,
+    category: string,
+    platformName: string,
+    type: string
+  ) => {
     e.stopPropagation();
     togglePlatform(stageName, category, platformName, type);
   };
@@ -427,7 +447,11 @@ const SelectChannelMix = () => {
     }));
   };
 
-  const toggleChannelType = (e: React.MouseEvent, stageName: string, type: string) => {
+  const toggleChannelType = (
+    e: React.MouseEvent,
+    stageName: string,
+    type: string
+  ) => {
     e.stopPropagation();
     setOpenChannelTypes((prev) => ({
       ...prev,
@@ -439,7 +463,7 @@ const SelectChannelMix = () => {
   const filterPlatforms = (platforms, stageName) => {
     const term = searchTerms[stageName] || "";
     if (!term) return platforms;
-    return platforms.filter(platform => 
+    return platforms.filter((platform) =>
       platform.platform_name.toLowerCase().includes(term.toLowerCase())
     );
   };
@@ -452,7 +476,9 @@ const SelectChannelMix = () => {
     Object.entries(platformList).forEach(([type, channels]) => {
       selectedByType[type] = [];
       Object.entries(channels).forEach(([channelName, platforms]) => {
-        const normalizedChannelName = channelName.replace(/[\s-]/g, "").toLowerCase();
+        const normalizedChannelName = channelName
+          .replace(/[\s-]/g, "")
+          .toLowerCase();
         const selectedPlatforms = stageSelection[normalizedChannelName] || [];
         // Only include platforms that are actually in this channel's platform list
         const validPlatformNames = platforms.map((p) => p.platform_name);
@@ -485,7 +511,10 @@ const SelectChannelMix = () => {
 
   // --- Funnel List Order Fix ---
   let orderedFunnelStages = [];
-  if (Array.isArray(campaignFormData?.custom_funnels) && campaignFormData.custom_funnels.length > 0) {
+  if (
+    Array.isArray(campaignFormData?.custom_funnels) &&
+    campaignFormData.custom_funnels.length > 0
+  ) {
     orderedFunnelStages = campaignFormData.custom_funnels
       .map((f) => f.name)
       .filter((name) => campaignFormData.funnel_stages.includes(name));
@@ -505,7 +534,9 @@ const SelectChannelMix = () => {
   // --- Recap component for a stage ---
   const StageRecap = ({ selectedByType }) => {
     // Only show if there are any selections
-    const hasAny = Object.values(selectedByType).some(arr => Array.isArray(arr) && arr.length > 0);
+    const hasAny = Object.values(selectedByType).some(
+      (arr) => Array.isArray(arr) && arr.length > 0
+    );
     if (!hasAny) return null;
     return (
       <div className="flex flex-wrap gap-4 p-4 bg-[#F5F8FF] border border-[rgba(49,117,255,0.08)] rounded-b-[10px]">
@@ -517,7 +548,9 @@ const SelectChannelMix = () => {
                   {type.replace("_", " ")}
                 </span>
                 <span className="text-xs text-gray-500">
-                  ({platforms.length} {ONLINE_TYPES.includes(type) ? "online" : "offline"} channel{platforms.length !== 1 ? "s" : ""})
+                  {/* Only one word: "channel" or "channels" */}(
+                  {platforms.length}{" "}
+                  {platforms.length === 1 ? "channel" : "channels"} selected)
                 </span>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -560,7 +593,14 @@ const SelectChannelMix = () => {
       </div>
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
-        {(orderedFunnelStages.length > 0 ? orderedFunnelStages : campaignFormData.funnel_stages).map((stageName, index) => {
+        {(orderedFunnelStages.length > 0
+          ? selectedStage
+            ? orderedFunnelStages.filter(
+                (stageName) => stageName === selectedStage
+              )
+            : orderedFunnelStages
+          : campaignFormData.funnel_stages
+        ).map((stageName, index) => {
           const stageFromFunnelStages = funnelStages?.find(
             (f) => f.name === stageName
           );
@@ -585,12 +625,19 @@ const SelectChannelMix = () => {
           const selectedByType = getSelectedPlatformsByType(stage.name);
 
           return (
-            <div key={index}>
+            <div key={index} className={`${selectedStage ? "max-h-[500px] overflow-y-scroll": ""}`}>
               <div
                 className={`flex flex-col p-6 gap-3 w-full bg-[#FCFCFC] border border-[rgba(0,0,0,0.1)] 
-                  ${openItems[stage.name] ? "rounded-t-[10px]" : "rounded-[10px]"}`}
+                  ${
+                    openItems[stage.name]
+                      ? "rounded-t-[10px]"
+                      : "rounded-[10px]"
+                  }`}
               >
-                <div className="flex items-center" onClick={() => toggleItem(stage.name)}>
+                <div
+                  className="flex items-center"
+                  onClick={() => toggleItem(stage.name)}
+                >
                   <div className="flex items-center gap-2 flex-1">
                     {stage.icon && (
                       <Image
@@ -653,60 +700,65 @@ const SelectChannelMix = () => {
                 <div className="card_bucket_container_main_sub flex flex-col pb-6 w-full min-h-[300px]">
                   {Object.entries(platformList).map(([type, channels]) => {
                     // Recap row for closed channel type accordions
-                    const isChannelTypeOpen = openChannelTypes[`${stage.name}-${type}`];
-                    const selectedPlatformsForType = getSelectedPlatformsByType(stage.name)[type] || [];
+                    const isChannelTypeOpen =
+                      openChannelTypes[`${stage.name}-${type}`];
+                    const selectedPlatformsForType =
+                      getSelectedPlatformsByType(stage.name)[type] || [];
                     return (
-                      <div key={type} className="card_bucket_container_main p-6">
+                      <div
+                        key={type}
+                        className="card_bucket_container_main p-6"
+                      >
                         <div
                           className="flex justify-between items-center cursor-pointer rounded-md mb-4"
-                          onClick={(e) => toggleChannelType(e, stage.name, type)}
+                          onClick={(e) =>
+                            toggleChannelType(e, stage.name, type)
+                          }
                         >
                           <h2 className="font-bold capitalize text-[18px]">
                             {type.replace("_", " ")} Channels
                           </h2>
                           <Image
-                            src={
-                              isChannelTypeOpen
-                                ? up
-                                : down2
-                            }
-                            alt={
-                              isChannelTypeOpen
-                                ? "up"
-                                : "down"
-                            }
+                            src={isChannelTypeOpen ? up : down2}
+                            alt={isChannelTypeOpen ? "up" : "down"}
                             width={24}
                             height={24}
                           />
                         </div>
                         {/* Recap row for selected platforms at channel type level when closed */}
-                        {!isChannelTypeOpen && selectedPlatformsForType.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-4">
-                            {selectedPlatformsForType.map((platform, idx) => (
-                              <div
-                                key={idx}
-                                className={`flex items-center gap-1 ${
-                                  ONLINE_TYPES.includes(type)
-                                    ? "bg-blue-100 text-blue-700"
-                                    : "bg-green-100 text-green-700"
-                                } rounded-full px-3 py-1`}
-                              >
-                                {getPlatformIcon(platform) && (
-                                  <Image
-                                    src={getPlatformIcon(platform)}
-                                    alt={platform}
-                                    width={16}
-                                    height={16}
-                                  />
-                                )}
-                                <span className="text-sm">{platform}</span>
-                              </div>
-                            ))}
-                            <span className="ml-2 text-xs text-gray-500">
-                              {selectedPlatformsForType.length} {ONLINE_TYPES.includes(type) ? "online" : "offline"} channel{selectedPlatformsForType.length !== 1 ? "s" : ""} selected
-                            </span>
-                          </div>
-                        )}
+                        {!isChannelTypeOpen &&
+                          selectedPlatformsForType.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-4">
+                              {selectedPlatformsForType.map((platform, idx) => (
+                                <div
+                                  key={idx}
+                                  className={`flex items-center gap-1 ${
+                                    ONLINE_TYPES.includes(type)
+                                      ? "bg-blue-100 text-blue-700"
+                                      : "bg-green-100 text-green-700"
+                                  } rounded-full px-3 py-1`}
+                                >
+                                  {getPlatformIcon(platform) && (
+                                    <Image
+                                      src={getPlatformIcon(platform)}
+                                      alt={platform}
+                                      width={16}
+                                      height={16}
+                                    />
+                                  )}
+                                  <span className="text-sm">{platform}</span>
+                                </div>
+                              ))}
+                              <span className="ml-2 text-xs text-gray-500">
+                                {/* Only one word: "channel" or "channels" */}
+                                {selectedPlatformsForType.length}{" "}
+                                {selectedPlatformsForType.length === 1
+                                  ? "channel"
+                                  : "channels"}{" "}
+                                selected
+                              </span>
+                            </div>
+                          )}
                         {isChannelTypeOpen && (
                           <>
                             {Object.entries(channels).length === 0 ? (
@@ -714,7 +766,10 @@ const SelectChannelMix = () => {
                             ) : (
                               Object.entries(channels).map(
                                 ([channelName, platforms]) => {
-                                  const filteredPlatforms = filterPlatforms(platforms, stage.name);
+                                  const filteredPlatforms = filterPlatforms(
+                                    platforms,
+                                    stage.name
+                                  );
                                   return filteredPlatforms?.length > 0 ? (
                                     <div key={channelName} className="mb-6">
                                       <p className="capitalize font-semibold mb-4">
@@ -735,18 +790,20 @@ const SelectChannelMix = () => {
                                               channelName
                                                 .replace(/[\s-]/g, "")
                                                 .toLowerCase();
-                                            const isSelected =
-                                              selected[stage.name]?.[
-                                                normalizedChannelName
-                                              ]?.includes(platform.platform_name);
+                                            const isSelected = selected[
+                                              stage.name
+                                            ]?.[
+                                              normalizedChannelName
+                                            ]?.includes(platform.platform_name);
                                             return (
                                               <div
                                                 key={pIndex}
                                                 className={`cursor-pointer flex flex-row justify-between items-center p-4 gap-2 w-[250px] min-h-[62px] bg-white 
-                                    border rounded-[10px] ${isSelected
-                                                    ? "border-[#3175FF]"
-                                                    : "border-[rgba(0,0,0,0.1)]"
-                                                  }`}
+                                    border rounded-[10px] ${
+                                      isSelected
+                                        ? "border-[#3175FF]"
+                                        : "border-[rgba(0,0,0,0.1)]"
+                                    }`}
                                                 onClick={(e) =>
                                                   handlePlatformClick(
                                                     e,
@@ -767,7 +824,9 @@ const SelectChannelMix = () => {
                                                           platform.platform_name
                                                         ) || "/placeholder.svg"
                                                       }
-                                                      alt={platform.platform_name}
+                                                      alt={
+                                                        platform.platform_name
+                                                      }
                                                       width={20}
                                                       height={20}
                                                     />
@@ -777,10 +836,11 @@ const SelectChannelMix = () => {
                                                   </p>
                                                 </div>
                                                 <div
-                                                  className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${isSelected
+                                                  className={`w-[20px] h-[20px] rounded-full flex items-center justify-center ${
+                                                    isSelected
                                                       ? "bg-[#3175FF]"
                                                       : "border-[0.769px] border-[rgba(0,0,0,0.2)]"
-                                                    }`}
+                                                  }`}
                                                 >
                                                   {isSelected && (
                                                     <Image
@@ -797,10 +857,10 @@ const SelectChannelMix = () => {
                                                 </div>
                                               </div>
                                             );
-                                          })
-                                        }
+                                          })}
                                       </div>
-                                      {filteredPlatforms.length > ITEMS_TO_SHOW && (
+                                      {filteredPlatforms.length >
+                                        ITEMS_TO_SHOW && (
                                         <div className="flex justify-center mt-4">
                                           <button
                                             onClick={() =>
@@ -851,7 +911,7 @@ const SelectChannelMix = () => {
                                         </div>
                                       )}
                                     </div>
-                                  ) : null
+                                  ) : null;
                                 }
                               )
                             )}
@@ -866,9 +926,7 @@ const SelectChannelMix = () => {
           );
         })}
       </div>
-      {toast && (
-        <Toast message={toast} onClose={() => setToast(null)} />
-      )}
+      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
     </div>
   );
 };

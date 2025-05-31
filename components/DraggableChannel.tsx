@@ -30,6 +30,7 @@ interface DraggableChannelProps {
   openItems?: any;
   setOpenItems?: any;
   endMonth?: any;
+  color?: any;
 }
 
 const DraggableChannel: React.FC<DraggableChannelProps> = ({
@@ -52,6 +53,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   openItems,
   setOpenItems,
   endMonth,
+  color
 }) => {
   const { funnelWidths, setFunnelWidth } = useFunnelContext();
   const [position, setPosition] = useState(0);
@@ -101,7 +103,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     const dailyWidth = calculateDailyWidth(containerWidth, endMonth);
-    console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth);
+    // console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth);
     const baseStep = range === "Month" ? dailyWidth : 50;
     // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
     const adjustmentPerStep = 0; // Decrease each next step by 10
@@ -277,22 +279,23 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   const stageBudget = campaignFormData?.channel_mix?.find(
     (fs) => fs?.funnel_stage === description
   )?.stage_budget;
-  // console.log("🚀 ~ stageBudget:", stageBudget)
+
+
+
+
 
   return (
     <div
-      className={`relative w-full h-14 flex select-none ${
-        disableDrag ? "rounded-[10px]" : "rounded-none"
-      }`}
+      className={`relative w-full h-14 flex select-none ${disableDrag ? "rounded-[10px]" : "rounded-none"
+        }`}
       style={{
         transform: `translateX(${position + (range === "Month" ? 4 : 0)}px)`,
       }}
     >
       {/* Left Resize Handle */}
       <div
-        className={`w-5 h-full bg-opacity-80 bg-black ${
-          disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-        } rounded-l-lg text-white flex items-center justify-center`}
+        className={`w-5 h-full bg-opacity-80 bg-black ${disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+          } rounded-l-lg text-white flex items-center justify-center`}
         onMouseDown={(e) =>
           disableDrag || openItems
             ? undefined
@@ -304,14 +307,13 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
       {/* Draggable Content */}
       <div
-        className={`h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
-          disableDrag ? "cursor-default rounded-[10px] relative" : "cursor-move"
-        }`}
+        className={`${color} h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${disableDrag ? "cursor-default rounded-[10px] relative" : "cursor-move"
+          }`}
         style={{
           width: disableDrag
             ? `${parentWidth + (range === "Month" ? 53 : 43)}px`
             : parentWidth,
-          backgroundColor: bg,
+          // backgroundColor: bg,
           transition: "transform 0.2s ease-out",
         }}
         onMouseDown={disableDrag || openItems ? undefined : handleMouseDownDrag}
@@ -347,7 +349,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
         {disableDrag && stageBudget?.fixed_value > 0 && (
           <div className="bg-[#FFFFFF26] rounded-[5px] py-[10px] px-[12px] font-medium">
-            {stageBudget?.fixed_value}{" "}
+            {(stageBudget?.fixed_value && parseInt(stageBudget?.fixed_value).toLocaleString())}{" "}
             {getCurrencySymbol(stageBudget?.currency)}
           </div>
         )}
@@ -355,9 +357,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
       {/* Right Resize Handle */}
       <div
-        className={`w-5 h-full bg-opacity-80 bg-black ${
-          disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-        } rounded-r-lg text-white flex items-center justify-center`}
+        className={`w-5 h-full bg-opacity-80 bg-black ${disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+          } rounded-r-lg text-white flex items-center justify-center`}
         onMouseDown={(e) =>
           disableDrag || openItems
             ? undefined

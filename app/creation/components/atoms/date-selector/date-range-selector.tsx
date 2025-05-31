@@ -46,27 +46,45 @@ const DateRangeSelector = () => {
           </span>
         </div>
         {isShowDateRange && (
-          <div className="absolute z-50 right-0">
-            <DateRange
-              editableDateInputs={true}
-              onChange={(item) =>
-                setCampaignFormData((prev) => ({
-                  ...prev,
-                  campaign_timeline_start_date: item?.selection?.startDate,
-                  campaign_timeline_end_date: item?.selection?.endDate,
-                }))
-              }
-              moveRangeOnFirstSelection={false}
-              ranges={[
-                {
-                  startDate: campaignFormData?.campaign_timeline_start_date,
-                  endDate: campaignFormData?.campaign_timeline_end_date,
-                  key: "selection",
-                },
-              ]}
-              rangeColors={["#3f51b5"]}
-            />
-          </div>
+            <div className="absolute z-50 right-0">
+              <DateRange
+                editableDateInputs={true}
+                onChange={(item) => {
+                  setCampaignFormData((prev) => {
+                    const updatedChannels = prev.channel_mix.map((channel) => ({
+                      ...channel,
+                      funnel_stage_timeline_start_date: null,
+                      funnel_stage_timeline_end_date: null,
+                    }));
+
+                    return {
+                      ...prev,
+                      campaign_timeline_start_date: item?.selection?.startDate
+                        ? format(item.selection.startDate, "yyyy-MM-dd")
+                        : null,
+                      campaign_timeline_end_date: item?.selection?.endDate
+                        ? format(item.selection.endDate, "yyyy-MM-dd")
+                        : null,
+                      channel_mix: updatedChannels,
+                    };
+                  });
+                }}
+                moveRangeOnFirstSelection={false}
+                ranges={[
+                  {
+                    startDate: campaignFormData?.campaign_timeline_start_date
+                      ? new Date(campaignFormData.campaign_timeline_start_date)
+                      : undefined,
+                    endDate: campaignFormData?.campaign_timeline_end_date
+                      ? new Date(campaignFormData.campaign_timeline_end_date)
+                      : undefined,
+                    key: "selection",
+                  },
+                ]}
+                rangeColors={["#3f51b5"]}
+                minDate={new Date()} // Disable past dates
+              />
+            </div>
         )}
       </div>
     </div>

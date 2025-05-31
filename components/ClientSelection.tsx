@@ -6,6 +6,8 @@ import { useCampaigns } from "../app/utils/CampaignsContext";
 import { BiLoader } from "react-icons/bi";
 import { useAppDispatch } from "../store/useStore";
 import { getCreateClient } from "../features/Client/clientSlice";
+import { useSession } from "next-auth/react";
+import { useUserPrivileges } from "utils/userPrivileges";
 
 const Dropdown = ({
   label,
@@ -20,21 +22,30 @@ const Dropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { campaignFormData, setCampaignFormData, loadingClients } = useCampaigns();
+  const { campaignFormData, setCampaignFormData, loadingClients, allClients, setClientUsers } = useCampaigns();
+  const { data: session } = useSession()
   const dispatch = useAppDispatch();
+  const { isAdmin, isAgencyApprover, isFinancialApprover } =
+    useUserPrivileges();
 
   // Fetch clients when dropdown is opened
   const toggleDropdown = () => {
     if (!isOpen && label === "Select Client") {
-      dispatch(getCreateClient());
+      //@ts-ignore
+      dispatch(getCreateClient(!isAdmin ? session?.user?.data?.user?.id : null));
     }
     setIsOpen(!isOpen);
   };
 
 
 
-
   const handleSelect = (id, value: string) => {
+    if(formId === "client_selection") {
+      const selectedClient = allClients?.find(client => client.documentId === id);
+      if (selectedClient) {
+        setClientUsers(selectedClient.users || []);
+      }
+    }
     setCampaignFormData((prev) => ({
 
       ...prev,
@@ -106,7 +117,7 @@ const Dropdown = ({
 
             {filteredOptions?.map((option) => (
               <div
-                key={option.value}
+                key={option?.value}
                 className="px-4 py-2 cursor-pointer hover:bg-gray-100"
                 onClick={() =>
                   handleSelect(option?.id || option?.value, option?.value)

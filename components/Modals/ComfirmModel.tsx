@@ -7,9 +7,9 @@ import { CheckCircle, X } from "lucide-react";
 import { useVersionContext } from 'app/utils/VersionApprovalContext';
 import { SVGLoader } from 'components/SVGLoader';
 import { useCampaigns } from 'app/utils/CampaignsContext';
-
-
-
+import { removeKeysRecursively } from 'utils/removeID';
+import { useUserPrivileges } from 'utils/userPrivileges';
+import { toast } from 'sonner';
 
 const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	const { createCampaignVersion, getCampaignVersion, isLoading, version, getLoading, setdocumentId, updateCampaignVersion, createsSuccess, updateSuccess, updateLoading } = useVersionContext();
@@ -19,7 +19,17 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	const [currentVersion, setCurrentVersion] = useState(null);
 	const [clientId, setClientId] = useState<number | null>(null);
 	const [KeepVersionLoading, setKeepVersionLoading] = useState(false);
-
+	const { loggedInUser } = useUserPrivileges();
+	const {
+		createCampaign,
+		updateCampaign,
+		campaignData,
+		campaignFormData,
+		cId,
+		getActiveCampaign,
+		copy,
+		setCampaignFormData,
+	} = useCampaigns();
 
 
 
@@ -28,20 +38,22 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 		return `v${number + 1}`;
 	};
 	const newVersion = getNextVersion(currentVersion);
-	const { campaignData } = useCampaigns();
+	const [loading, setLoading] = useState(false);
 	const query = useSearchParams();
 	const campaignId = query.get("campaignId");
 	const documentId = campaignData?.documentId;
 	const plan_name = campaignData?.media_plan_details.plan_name
 
+	// console.log('campaignFormData', campaignFormData)
+
 
 	// Set client ID from campaignData in useEffect
-	useEffect(() => {
-		if (createsSuccess || updateSuccess) {
-			setShowVersionPrompt(false)
-			setIsOpen(false)
-		}
-	}, [createsSuccess || updateSuccess]);
+	// useEffect(() => {
+	// 	if (createsSuccess || updateSuccess) {
+	// 		setShowVersionPrompt(false)
+	// 		setIsOpen(false)
+	// 	}
+	// }, [createsSuccess || updateSuccess]);
 
 
 	useEffect(() => {
@@ -49,18 +61,18 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 			setClientId(campaignData?.client?.id?.toString());
 		}
 	}, [campaignData]);
-	useEffect(() => {
-		const fetchVersionData = async () => {
-			const versions = await getCampaignVersion(campaignId);
-			if (version && version.length > 0) {
-				setCurrentVersion(version[version.length - 1].version.version_number);
-				setdocumentId(version[0]?.documentId);
-				setShowVersionPrompt(true);
-			}
-		};
+	// useEffect(() => {
+	// 	const fetchVersionData = async () => {
+	// 		const versions = await getCampaignVersion(campaignId);
+	// 		if (version && version.length > 0) {
+	// 			setCurrentVersion(version[version.length - 1].version.version_number);
+	// 			setdocumentId(version[0]?.documentId);
+	// 			setShowVersionPrompt(true);
+	// 		}
+	// 	};
 
-		fetchVersionData();
-	}, [isOpen, campaignId]);
+	// 	fetchVersionData();
+	// }, [isOpen, campaignId]);
 
 
 	const handleBackClick = () => {
@@ -69,6 +81,8 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 		setIsOpen(false);
 		router.push('/');
 	};
+
+
 
 
 
@@ -88,21 +102,59 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 		}, 3000);
 	};
 
+	// isApprove
+	// const handleCreateNewVersion = () => {
+	// 	// createCampaignVersion(newVersion, documentId);
 
-	const handleCreateNewVersion = () => {
-		createCampaignVersion(newVersion, documentId);
+	// };
 
+	const handlePlan = async () => {
+		setLoading(true);
+
+		try {
+			// Update campaignFormData with cleaned values and save to localStorage
+			const cleanedFormData = {
+				...campaignFormData,
+				isApprove: true,
+				internal_approver: loggedInUser?.username,
+			};
+			setCampaignFormData(cleanedFormData);
+			localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData));
+
+			if (cId && campaignData) {
+				const updatedData = {
+					...removeKeysRecursively(campaignData, [
+						"id",
+						"documentId",
+						"createdAt",
+						"publishedAt",
+						"updatedAt",
+						"_aggregated",
+					]),
+					isApprove: true,
+					internal_approver: loggedInUser?.username,
+				};
+
+				await updateCampaign(updatedData);
+
+				setIsOpen(false);
+				toast.success("Plan Approved!")
+			}
+
+
+		} catch (error) {
+			toast.error(error.massage)
+		} finally {
+			setLoading(false);
+		}
 	};
 
 
 
-	const handleUpdateVersion = () => {
-		updateCampaignVersion(newVersion, documentId);
+	// const handleUpdateVersion = () => {
+	// 	updateCampaignVersion(newVersion, documentId);
 
-	};
-
-
-
+	// };
 
 	if (!isOpen) return null;
 
@@ -146,9 +198,11 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 					<button className="btn_model_outline w-full" onClick={handleBackClick}>
 						Back to Dashboard
 					</button>
-					<button className="btn_model_active w-full" onClick={handleApproval}>
-						Approval
-						{/* Request approval */}
+					<button className="btn_model_active w-full" onClick={handlePlan}>
+						{loading ? <SVGLoader width={"40px"} height={"40px"} color={"#0866FF"} /> :
+							<span className="font-medium">Approval</span>
+						}
+
 					</button>
 				</div>
 
