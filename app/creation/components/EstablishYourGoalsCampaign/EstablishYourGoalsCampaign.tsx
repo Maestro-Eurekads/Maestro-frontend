@@ -172,7 +172,7 @@ const EstablishYourGoalsCampaign = ({ dateList, funnels }) => {
 															)}
 
 															{(expanded[key] && expandedAdsets[key]) && (
-																<div className="expandedAdsets   mt-2 flex flex-col pl-10">
+																<div className="expandedAdsets   mt-2 flex flex-col pl-10 overflow-x-scroll">
 																	{/* Sample Ad Set Content */}
 																	<table className="w-full text-left border-collapse border-none">
 																		<thead className="border-none">
