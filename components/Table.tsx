@@ -173,8 +173,8 @@ const Table = () => {
 
  return (
   <div className="flex flex-col">
-   <div className="table-container rounded-[8px] mt-[20px] overflow-x-auto">
-    <table className="w-full min-w-[1200px]">
+   <div className="table-container rounded-[8px] mt-[20px] overflow-x-scroll">
+    <table className="w-full  ">
      <thead>
       <tr>
        <th className="py-[12px] px-[16px]">Name</th>
