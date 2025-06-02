@@ -241,7 +241,7 @@ export const tableHeaders = {
       type: "currency"
     },
   ],
-  "Lead Generation (On platform)": [
+  "Lead (On platform)": [
     ...defaultHeaders,
     {
       name: "CTR",
@@ -307,7 +307,7 @@ export const tableHeaders = {
       type: "currency"
     },
   ],
-  "Lead Generation (On website)": [
+  "Lead (On website)": [
     ...defaultHeaders,
     {
       name: "CTR",
