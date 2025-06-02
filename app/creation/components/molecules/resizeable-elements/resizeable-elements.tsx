@@ -194,7 +194,11 @@ const ResizeableElements = ({
       const initialWidths: Record<string, number> = {};
       const initialPositions: Record<string, number> = {};
       const contWidth = containerWidth;
-
+      const getViewportWidth = () => {
+        return window.innerWidth || document.documentElement.clientWidth || 0;
+      };
+      const screenWidth = getViewportWidth();
+      console.log("🚀  ~ Width:", { screenWidth, contWidth });
       campaignFormData.funnel_stages.forEach((stageName) => {
         const stage = campaignFormData?.channel_mix?.find(
           (s) => s?.funnel_stage === stageName
@@ -233,13 +237,19 @@ const ResizeableElements = ({
                 : null,
             }).length - 1;
           const endMonth = funnelData?.endMonth || 1;
-          const dailyWidth = calculateDailyWidth(containerWidth, endMonth);
+          const dailyWidth = calculateDailyWidth(screenWidth, endMonth);
           console.log("startDateIndex", { daysFromStart, dailyWidth });
           initialWidths[stageName] = (() => {
             if (rrange === "Day") {
               return daysBetween > 0
-                ? 50 * daysBetween + 10
-                : 50 * daysFromStart + 10;
+                ? (screenWidth > contWidth
+                    ? contWidth / funnelData?.endDay
+                    : 50) *
+                    daysBetween +
+                    10
+                :  (screenWidth > contWidth
+                  ? (screenWidth -350) / funnelData?.endDay
+                  : 50) * daysFromStart + 10;
             } else if (rrange === "Week") {
               return daysBetween > 0
                 ? 50 * daysBetween + 10
@@ -248,14 +258,14 @@ const ResizeableElements = ({
               let monthBaseWidth;
               // if (endMonth === 1) {
               // }
-              monthBaseWidth = contWidth;
+              monthBaseWidth = screenWidth - (disableDrag ? 60 : 350);
               // else if (endMonth > 1) {
               //   monthBaseWidth = contWidth / endMonth;
               // }
               // console.log("🚀 ~  monthBaseWidth:", {monthBaseWidth, daysBetween, width: daysBetween > 0 ? Math.round(monthBaseWidth / endMonth) : 50})
               return daysBetween > 0
                 ? Math.round(monthBaseWidth / endMonth)
-                : 50;
+                : Math.round(monthBaseWidth) - (disableDrag ? 83 : 60);
             }
           })();
 
@@ -289,10 +299,18 @@ const ResizeableElements = ({
                 const gridContainer = document.querySelector(
                   ".grid-container"
                 ) as HTMLElement;
+                const getViewportWidth = () => {
+                  return (
+                    window.innerWidth ||
+                    document.documentElement.clientWidth ||
+                    0
+                  );
+                };
+                const screenWidth = getViewportWidth();
                 if (!gridContainer) return;
                 const endMonth = funnelData?.endMonth || 1;
                 const containerRect = gridContainer.getBoundingClientRect();
-                const contWidth = containerRect.width; // subtract margin/padding if needed
+                const contWidth = screenWidth - (disableDrag ? 80 : 367); // subtract margin/padding if needed
 
                 // console.log("🚀  ~ contWidth:", contWidth)
                 const percent = 100 / endMonth; // e.g., 20 if endMonth=5
@@ -300,7 +318,7 @@ const ResizeableElements = ({
 
                 const dailyWidth = contWidth / endMonth; // width per day without factor
                 // console.log("🚀  ~ dailyWidth:", dailyWidth)
-                const totalLines = dailyWidth * 31; // total width for 31 days without factor
+                const totalLines = Math.round(dailyWidth) * 31; // total width for 31 days without factor
 
                 const diff = total - totalLines; // difference to adjust
 
