@@ -535,10 +535,7 @@ const ResizableChannels = ({
           const endDaysDiff = differenceInCalendarDays(endDate, stageEndDate);
           // Check if this channel already exists in prev
           const existingState = prev[index];
-          // console.log("startDateIndex", {
-          //   startDateIndex,
-          //   left: parentLeft + Math.abs(startDateIndex),
-          // });
+          // console.log("startDateIndex", {daysBetween});
           return existingState
             ? {
                 ...existingState,
@@ -553,7 +550,7 @@ const ResizableChannels = ({
                       : parentWidth
                     : rrange === "Week"
                     ? daysBetween > 0
-                      ? 50 * daysBetween + 10
+                      ? 50 * daysBetween + 60
                       : parentWidth
                     : rrange === "Month"
                     ? Math.round(contWidth / 2 / 31) * daysBetween
