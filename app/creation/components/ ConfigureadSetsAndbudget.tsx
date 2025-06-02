@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import ConfiguredSetPage from "./ConfiguredSetPage";
 import CampaignBudget from "./CampaignBudget";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
@@ -137,12 +137,15 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
       bg: tailwindToHex(f.color),
     })) || [];
 
-  // Prepare insideText for DoughnutChat
-  const insideText = `${parseInt(
-    campaignFormData?.campaign_budget?.amount
-  ).toLocaleString()} ${getCurrencySymbol(
-    campaignFormData?.campaign_budget?.currency
-  )}`;
+  // Prepare insideText for DoughnutChat and calculate dynamic font size
+  const insideText = useMemo(() => {
+    const amount = parseInt(campaignFormData?.campaign_budget?.amount);
+    const currency = getCurrencySymbol(campaignFormData?.campaign_budget?.currency);
+    return `${amount.toLocaleString()} ${currency}`;
+  }, [campaignFormData]);
+
+  // Calculate font size based on length of insideText
+  // (No longer needed to pass to DoughnutChat, but can be used internally if needed)
 
   return (
     <div>
@@ -214,21 +217,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
               <div className="campaign_phases_container mt-[24px]">
                 <div className="campaign_phases_container_one">
                   <DoughnutChat
-                    // data={campaignFormData?.channel_mix
-                    //   ?.filter(
-                    //     (c) => Number(c?.stage_budget?.percentage_value) > 0
-                    //   )
-                    //   ?.map((ch) =>
-                    //     Number(ch?.stage_budget?.percentage_value)?.toFixed(0)
-                    //   )}
-                    // color={campaignFormData?.channel_mix?.map((ch) =>
-                    //   getFunnelColor(ch?.funnel_stage)
-                    // )}
-                    insideText={`${parseInt(
-                      campaignFormData?.campaign_budget?.amount
-                    ).toLocaleString()} ${getCurrencySymbol(
-                      campaignFormData?.campaign_budget?.currency
-                    )}`}
+                    insideText={insideText}
                   />
                 </div>
 
