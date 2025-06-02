@@ -472,6 +472,10 @@ const ResizableChannels = ({
       const containerRect = gridContainer.getBoundingClientRect();
       // console.log("🚀 ~ useEffect ~ containerRect:", containerRect);
       const contWidth = containerRect.width - 75;
+      const getViewportWidth = () => {
+        return window.innerWidth || document.documentElement.clientWidth || 0;
+      };
+      const screenWidth = getViewportWidth();
       setContainerWidth(containerWidth + 75);
       setChannels(initialChannels);
       // Initialize new channels with parent's position
@@ -512,7 +516,7 @@ const ResizableChannels = ({
                 ? 50
                 : rrange === "Week"
                 ? 50
-                : Math.round(contWidth / 2 / 31))
+                : Math.round(screenWidth / endMonth / 31))
             : 0;
 
           // Calculate days between using the adjusted end date
@@ -553,7 +557,9 @@ const ResizableChannels = ({
                       ? 50 * daysBetween + 60
                       : parentWidth
                     : rrange === "Month"
-                    ? Math.round(contWidth / 2 / 31) * daysBetween
+                    ? daysBetween > 0
+                      ? Math.round(screenWidth / endMonth / 31) * daysBetween
+                      : parentWidth
                     : parentWidth,
                   rrange === "Day"
                     ? daysBetween > 0
@@ -564,7 +570,9 @@ const ResizableChannels = ({
                       ? 50 * daysBetween + 10
                       : parentWidth
                     : rrange === "Month"
-                    ? (Math.round(contWidth / 2 / 31) - 5) * daysBetween
+                    ? daysBetween > 0
+                      ? Math.round(screenWidth / endMonth / 31) * daysBetween
+                      : parentWidth
                     : parentWidth
                 ),
               }
@@ -756,7 +764,7 @@ const ResizableChannels = ({
                   left: `${channelState[index]?.left || parentLeft}px`,
                   width: `${
                     channelState[index]?.width +
-                      (disableDrag ? 40 : rrange === "Month" ? 30 : 30) || 150
+                      (disableDrag ? 40 : rrange === "Month" ? 40 : 30) || 150
                   }px`,
                   backgroundColor: channel.bg,
                   color: channel.color,
@@ -832,7 +840,8 @@ const ResizableChannels = ({
                   style={{
                     left: `${
                       (channelState[index]?.left || parentLeft) +
-                      (channelState[index]?.width + 22 || 150)
+                      (channelState[index]?.width +
+                        (rrange === "Month" ? 30 : 15) || 150)
                     }px`,
                     backgroundColor: channel.color,
                   }}
@@ -1193,13 +1202,17 @@ const ResizableChannels = ({
           <div className="w-fit ml-auto">
             <button
               className="bg-blue-500 text-white rounded-md p-2 flex justify-center items-center"
-              onClick={async() => {
-                await sendUpdatedDataToAPI(campaignFormData)
+              onClick={async () => {
+                await sendUpdatedDataToAPI(campaignFormData);
                 await setOpenAdset(false);
               }}
               disabled={deleting}
             >
-              {deleting ? <FaSpinner className="animate-spin"/> :"Confirm Changes"}
+              {deleting ? (
+                <FaSpinner className="animate-spin" />
+              ) : (
+                "Confirm Changes"
+              )}
             </button>
           </div>
         </div>
