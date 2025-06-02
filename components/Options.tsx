@@ -137,7 +137,7 @@ export const kpiFormatMap = {
   "Reach": { type: "Number", decimals: 0 },
   "Video Views": { type: "Number", decimals: 0 },
   "Completed View": { type: "Number", decimals: 0 },
-  "Completion Rate": { type: "Number", decimals: 0 },
+  "Completion Rate": { type: "Percentage", decimals: 0 },
   "Link Clicks": { type: "Number", decimals: 0 },
   "Avg page / visit": { type: "Number", decimals: 0 },
   "Bounced Visits": { type: "Number", decimals: 0 },
