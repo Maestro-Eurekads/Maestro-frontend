@@ -4,6 +4,7 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 import { removeKeysRecursively } from "utils/removeID";
 import { useState } from "react";
 import { useEditing } from "app/utils/EditingContext";
+import { extractObjectives } from "../EstablishedGoals/table-view/data-processor";
 
 interface SummarySectionProps {
   title: string;
@@ -24,7 +25,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
     campaignData,
     campaignFormData,
     setCampaignFormData,
-    setIsEditingBuyingObjective
+    setIsEditingBuyingObjective,
   } = useCampaigns();
 
   const closeEditStep = () => {
@@ -42,26 +43,40 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
         "createdAt",
         "publishedAt",
         "updatedAt",
-        "_aggregated"
+        "_aggregated",
       ])
     : {};
 
   const handleConfirmStep = async () => {
     try {
       setLoading(true);
+      let updatedCampaignFormData = campaignFormData;
+
+      const obj = extractObjectives(campaignFormData);
+      // console.log("🚀 ~ handleStepFour ~ obj:", obj);
+      updatedCampaignFormData = {
+        ...campaignFormData,
+        table_headers: obj || {},
+      };
+      setCampaignFormData(updatedCampaignFormData);
       await updateCampaign({
         ...cleanData,
-        funnel_stages: campaignFormData?.funnel_stages,
-        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
-          "id",
-          "isValidated",
-          "formatValidated",
-          "validatedStages",
-          "documentId",
-          "_aggregated"
-        ], ["preview"]),
-        custom_funnels: campaignFormData?.custom_funnels,
-        funnel_type: campaignFormData?.funnel_type,
+        funnel_stages: updatedCampaignFormData?.funnel_stages,
+        channel_mix: removeKeysRecursively(
+          updatedCampaignFormData?.channel_mix,
+          [
+            "id",
+            "isValidated",
+            "formatValidated",
+            "validatedStages",
+            "documentId",
+            "_aggregated",
+          ],
+          ["preview"]
+        ),
+        custom_funnels: updatedCampaignFormData?.custom_funnels,
+        funnel_type: updatedCampaignFormData?.funnel_type,
+        table_headers: updatedCampaignFormData?.table_headers,
       });
       await getActiveCampaign();
       closeEditStep();
@@ -94,7 +109,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
       if (title === "Your buying objectives") {
         setCampaignFormData({
           ...campaignFormData,
-          buying_objectives: campaignData?.buying_objectives || []
+          buying_objectives: campaignData?.buying_objectives || [],
         });
         setIsEditingBuyingObjective(true);
       }
