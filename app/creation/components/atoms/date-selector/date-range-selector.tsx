@@ -7,6 +7,7 @@ import { MdArrowBackIos, MdArrowForwardIos } from "react-icons/md";
 import { useDateRange } from "../../../../../src/date-range-context";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { ca } from "date-fns/locale";
+import { mediaTypes } from "components/data";
 
 const DateRangeSelector = () => {
   const [isShowDateRange, setIsShowDateRange] = useState(false);
@@ -48,41 +49,55 @@ const DateRangeSelector = () => {
         {isShowDateRange && (
             <div className="absolute z-50 right-0">
               <DateRange
-                editableDateInputs={true}
-                onChange={(item) => {
-                  setCampaignFormData((prev) => {
-                    const updatedChannels = prev.channel_mix.map((channel) => ({
-                      ...channel,
-                      funnel_stage_timeline_start_date: null,
-                      funnel_stage_timeline_end_date: null,
+              editableDateInputs={true}
+              onChange={(item) => {
+                setCampaignFormData((prev) => {
+                const updatedChannels = prev.channel_mix.map((channel) => {
+                  const updatedMediaTypes = mediaTypes.reduce((acc, mediaType) => {
+                  if (channel[mediaType]) {
+                    acc[mediaType] = channel[mediaType].map((media) => ({
+                    ...media,
+                    campaign_start_date: null,
+                    campaign_end_date: null,
                     }));
+                  }
+                  return acc;
+                  }, {});
 
-                    return {
-                      ...prev,
-                      campaign_timeline_start_date: item?.selection?.startDate
-                        ? format(item.selection.startDate, "yyyy-MM-dd")
-                        : null,
-                      campaign_timeline_end_date: item?.selection?.endDate
-                        ? format(item.selection.endDate, "yyyy-MM-dd")
-                        : null,
-                      channel_mix: updatedChannels,
-                    };
-                  });
-                }}
-                moveRangeOnFirstSelection={false}
-                ranges={[
-                  {
-                    startDate: campaignFormData?.campaign_timeline_start_date
-                      ? new Date(campaignFormData.campaign_timeline_start_date)
-                      : undefined,
-                    endDate: campaignFormData?.campaign_timeline_end_date
-                      ? new Date(campaignFormData.campaign_timeline_end_date)
-                      : undefined,
-                    key: "selection",
-                  },
-                ]}
-                rangeColors={["#3f51b5"]}
-                minDate={new Date()} // Disable past dates
+                  return {
+                  ...channel,
+                  funnel_stage_timeline_start_date: null,
+                  funnel_stage_timeline_end_date: null,
+                  ...updatedMediaTypes,
+                  };
+                });
+
+                return {
+                  ...prev,
+                  campaign_timeline_start_date: item?.selection?.startDate
+                  ? format(item.selection.startDate, "yyyy-MM-dd")
+                  : null,
+                  campaign_timeline_end_date: item?.selection?.endDate
+                  ? format(item.selection.endDate, "yyyy-MM-dd")
+                  : null,
+                  channel_mix: updatedChannels,
+                };
+                });
+              }}
+              moveRangeOnFirstSelection={false}
+              ranges={[
+                {
+                startDate: campaignFormData?.campaign_timeline_start_date
+                  ? new Date(campaignFormData.campaign_timeline_start_date)
+                  : undefined,
+                endDate: campaignFormData?.campaign_timeline_end_date
+                  ? new Date(campaignFormData.campaign_timeline_end_date)
+                  : undefined,
+                key: "selection",
+                },
+              ]}
+              rangeColors={["#3f51b5"]}
+              minDate={new Date()} // Disable past dates
               />
             </div>
         )}
