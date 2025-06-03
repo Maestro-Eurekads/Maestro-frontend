@@ -18,10 +18,10 @@ const formatKPIValue = (value, kpiName) => {
 	}
 
 	const formatNumber = (val, decimals) =>
-		val.toFixed(decimals).replace(".", ",");
+		val.toFixed(decimals);
 
 	const withSeparators = (str) =>
-		str.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+		str.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 	switch (format.type) {
 		case "Currency":
