@@ -691,19 +691,20 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       if (!campaignData) return;
       const currentYear = new Date().getFullYear();
       const campaign_timeline_start_date =
+      campaignFormData?.campaign_timeline_start_date ||
         dayjs(
           new Date(
             currentYear,
             selectedDates?.from?.month,
             selectedDates.from?.day
           )
-        ).format("YYYY-MM-DD") ||
-        campaignFormData?.campaign_timeline_start_date;
+        ).format("YYYY-MM-DD");
 
       const campaign_timeline_end_date =
+      campaignFormData?.campaign_timeline_end_date || 
         dayjs(
           new Date(currentYear, selectedDates?.to?.month, selectedDates.to?.day)
-        ).format("YYYY-MM-DD") || campaignFormData?.campaign_timeline_end_date;
+        ).format("YYYY-MM-DD");
       await updateCampaignData({
         ...cleanData,
         campaign_timeline_start_date:
