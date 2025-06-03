@@ -635,14 +635,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       if (!campaignData || !cId) return;
       let updatedCampaignFormData = campaignFormData;
 
-      if (active === 5) {
-        const obj = extractObjectives(campaignFormData);
-        console.log("🚀 ~ handleStepFour ~ obj:", obj);
-        updatedCampaignFormData = {
-          ...campaignFormData,
-          table_headers: obj || {},
-        };
-        setCampaignFormData(updatedCampaignFormData);
+      if (active >4) {
+      const obj = extractObjectives(campaignFormData);
+      // console.log("🚀 ~ handleStepFour ~ obj:", obj);
+      updatedCampaignFormData = {
+        ...campaignFormData,
+        table_headers: obj || {},
+      };
+      setCampaignFormData(updatedCampaignFormData);
       }
 
       await updateCampaignData({
@@ -661,20 +661,32 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const handleStepSeven = async () => {
       if (!campaignData) return;
+      let updatedCampaignFormData = campaignFormData;
+
+      
+      const obj = extractObjectives(campaignFormData);
+      // console.log("🚀 ~ handleStepFour ~ obj:", obj);
+      updatedCampaignFormData = {
+        ...campaignFormData,
+        table_headers: obj || {},
+      };
+      setCampaignFormData(updatedCampaignFormData);
+      
       await updateCampaignData({
         ...cleanData,
-        funnel_stages: campaignFormData?.funnel_stages,
-        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+        funnel_stages: updatedCampaignFormData?.funnel_stages,
+        channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
           "id",
           "isValidated",
           "documentId",
           "_aggregated",
         ]),
         campaign_budget: removeKeysRecursively(
-          campaignFormData?.campaign_budget,
+          updatedCampaignFormData?.campaign_budget,
           ["id"]
         ),
-        goal_level: campaignFormData?.goal_level,
+        goal_level: updatedCampaignFormData?.goal_level,
+        table_headers: updatedCampaignFormData?.table_headers,
       });
     };
 

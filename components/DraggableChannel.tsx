@@ -103,7 +103,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     const dailyWidth = calculateDailyWidth(containerWidth, endMonth);
-    // console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth);
+    console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth);
     const baseStep = range === "Month" ? dailyWidth : 50;
     // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
     const adjustmentPerStep = 0; // Decrease each next step by 10

@@ -132,7 +132,7 @@ function FeeSelectionStep({
 
   const handleAddFee = () => {
     if (!campaignFormData?.campaign_budget?.amount) {
-      toast("Please set the overall campaign budget first", {
+      toast("Please enter a campaign budget first", {
         style: { background: "red", color: "white" },
       });
       return;

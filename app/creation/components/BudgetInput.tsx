@@ -1,7 +1,7 @@
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { formatNumberWithCommas, getCurrencySymbol } from "components/data";
 import PropTypes from "prop-types";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Select from "react-select";
 
 // Component to handle budget input and currency selection
@@ -11,7 +11,27 @@ function BudgetInput({
   selectCurrency,
   setSelectedOption,
 }) {
-  const { campaignFormData, setCampaignFormData } = useCampaigns();
+  const { campaignFormData } = useCampaigns();
+  const [inputValue, setInputValue] = useState("");
+
+  // Sync input value with campaign form data
+  useEffect(() => {
+    if (campaignFormData?.campaign_budget?.amount) {
+      setInputValue(formatNumberWithCommas(campaignFormData.campaign_budget.amount));
+    } else {
+      setInputValue("");
+    }
+  }, [campaignFormData?.campaign_budget?.amount]);
+
+  // Sync selected currency with campaign form data
+  useEffect(() => {
+    if (campaignFormData?.campaign_budget?.currency) {
+      setSelectedOption({
+        label: campaignFormData.campaign_budget.currency,
+        value: campaignFormData.campaign_budget.currency,
+      });
+    }
+  }, [campaignFormData, setSelectedOption]);
 
   // Handle currency change from dropdown
   const handleCurrencyChange = (option) => {
@@ -19,15 +39,21 @@ function BudgetInput({
     handleBudgetEdit("currency", option.value);
   };
 
-  // Sync selected currency with campaign form data
-  useEffect(() => {
-    if (campaignFormData?.campaign_budget) {
-      setSelectedOption({
-        label: campaignFormData?.campaign_budget?.currency,
-        value: campaignFormData?.campaign_budget?.currency,
-      });
+  // Handle input change and validation
+  const handleInputChange = (e) => {
+    const rawValue = e.target.value.replace(/,/g, "");
+    // Allow only numbers and decimals
+    if (/^\d*\.?\d*$/.test(rawValue)) {
+      setInputValue(e.target.value);
+      // Only update if not empty and is a valid number
+      if (rawValue !== "" && !isNaN(Number(rawValue))) {
+        handleBudgetEdit("amount", Number(rawValue).toString());
+      } else {
+        // If input is empty, clear the budget amount in form data
+        handleBudgetEdit("amount", "");
+      }
     }
-  }, [campaignFormData, setSelectedOption]);
+  };
 
   return (
     <div className="flex flex-row items-center gap-[16px] px-0 bg-[#F9FAFB] border-[rgba(6,18,55,0.1)] box-border">
@@ -37,19 +63,11 @@ function BudgetInput({
           <input
             className="text-center outline-none w-[145px]"
             placeholder="Budget value"
-            value={
-              formatNumberWithCommas(
-                campaignFormData?.campaign_budget?.amount
-              ) || ""
-            }
-            onChange={(e) => {
-              const inputValue = e.target.value.replace(/,/g, "");
-              const newBudget = Number(inputValue);
-              if (/^\d*\.?\d*$/.test(newBudget.toString())) {
-                handleBudgetEdit("amount", newBudget.toString());
-              }
-            }}
+            value={inputValue}
+            onChange={handleInputChange}
             aria-label="Budget amount input"
+            inputMode="decimal"
+            autoComplete="off"
           />
         </div>
         <div className="w-[120px]">
