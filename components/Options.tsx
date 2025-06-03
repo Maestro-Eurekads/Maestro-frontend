@@ -105,9 +105,16 @@ export const kpiFormatMap = {
   "CPV": { type: "Currency", decimals: 2 },
   "CPCV": { type: "Currency", decimals: 2 },
   "CPE": { type: "Currency", decimals: 2 },
+  "CPL": { type: "Currency", decimals: 2 },
   "CPC": { type: "Currency", decimals: 2 },
   "Cost/bounce": { type: "Currency", decimals: 2 },
   "Cost/lead": { type: "Currency", decimals: 2 },
+  "Cost/App Open": { type: "Currency", decimals: 2 },
+  "Cost/Off funnel": { type: "Currency", decimals: 2 },
+  "Cost/conversion": { type: "Currency", decimals: 2 },
+  "CLV of associated product": { type: "Currency", decimals: 2 },
+  "Generated Revenue": { type: "Currency", decimals: 2 },
+  "Return on Ad Spent": { type: "Currency", decimals: 2 },
 
   // Percentage
   "VTR": { type: "Percentage", decimals: 1 },
@@ -119,16 +126,20 @@ export const kpiFormatMap = {
   "lead rate": { type: "Percentage", decimals: 1 },
   "CVR lead": { type: "Percentage", decimals: 1 },
   "CVR": { type: "Percentage", decimals: 1 },
+  "Conversions": { type: "Percentage", decimals: 1 },
   "Off-funnel rate": { type: "Percentage", decimals: 1 },
   "ATC rate": { type: "Percentage", decimals: 1 },
   "PI rate": { type: "Percentage", decimals: 1 },
   "Purchase rate": { type: "Percentage", decimals: 1 },
   "App open rate": { type: "Percentage", decimals: 1 },
+  "Open Rate": { type: "Percentage", decimals: 1 },
   "Install rate": { type: "Percentage", decimals: 1 },
   "CVR app": { type: "Percentage", decimals: 1 },
+  "Bounce Rate": { type: "Percentage", decimals: 1 },
+  "Lead Rate": { type: "Percentage", decimals: 1 },
 
   // Seconds
-  "Avg visit time": { type: "Seconds", decimals: 1 },
+  "Avg Visit Time": { type: "Seconds", decimals: 1 },
 
   // Volume/Numbers
   "Audience size": { type: "Number", decimals: 0 },
@@ -143,6 +154,13 @@ export const kpiFormatMap = {
   "Bounced Visits": { type: "Number", decimals: 0 },
   "Leads": { type: "Number", decimals: 0 },
   "Conversion value": { type: "Number", decimals: 0 },
+  "App Open": { type: "Number", decimals: 0 },
+  "Conversion": { type: "Number", decimals: 0 },
+  "Lands": { type: "Number", decimals: 0 },
+  "Link clicks": { type: "Number", decimals: 0 },
+  "Forms open": { type: "Number", decimals: 0 },
+  "Avg pages/visit": { type: "Number", decimals: 0 },
+  "Lead visits": { type: "Number", decimals: 0 },
 };
 
 
