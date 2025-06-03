@@ -111,7 +111,7 @@ export const ChannelRow = ({
     costconversion: [calculateCPL, "budget.fixed_value", "kpi.conversions"],
     generated_revenue: [
       calculateLinkClicks,
-      "kpi.conversion",
+      ["kpi.conversion", "kpi.conversions"],
       "kpi.clv_of_associated_product",
     ],
     return_on_ad_spent: [
