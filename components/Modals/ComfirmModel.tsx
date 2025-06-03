@@ -118,7 +118,9 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 			const cleanedFormData = {
 				...campaignFormData,
 				isApprove: true,
-				media_plan_approval: [String(loggedInUser?.id)],
+				media_plan_details: {
+					approved_by: [String(loggedInUser?.id)],
+				},
 			};
 			setCampaignFormData(cleanedFormData);
 			localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData));
@@ -134,7 +136,9 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 						"_aggregated",
 					]),
 					isApprove: true,
-					media_plan_approval: [String(loggedInUser?.id)],
+					media_plan_details: {
+						approved_by: [String(loggedInUser?.id)],
+					},
 				};
 
 				await updateCampaign(updatedData);

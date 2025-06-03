@@ -44,12 +44,13 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   // Check if user has any assigned campaigns
   const hasCampaigns = campaigns && campaigns.length > 0;
 
+  console.log("Campaigns in Header:", campaigns);
+
   return (
     <div
       id="client_header"
-      className={`py-[2.8rem] px-[30px] ${
-        isDrawerOpen ? "md:px-[50px]" : "xl:px-[100px]"
-      } relative`}
+      className={`py-[2.8rem] px-[30px] ${isDrawerOpen ? "md:px-[50px]" : "xl:px-[100px]"
+        } relative`}
     >
       <div className="flex items-end">
         {loading ? (

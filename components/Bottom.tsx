@@ -635,14 +635,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       if (!campaignData || !cId) return;
       let updatedCampaignFormData = campaignFormData;
 
-      if (active >4) {
-      const obj = extractObjectives(campaignFormData);
-      // console.log("🚀 ~ handleStepFour ~ obj:", obj);
-      updatedCampaignFormData = {
-        ...campaignFormData,
-        table_headers: obj || {},
-      };
-      setCampaignFormData(updatedCampaignFormData);
+      if (active > 4) {
+        const obj = extractObjectives(campaignFormData);
+        // console.log("🚀 ~ handleStepFour ~ obj:", obj);
+        updatedCampaignFormData = {
+          ...campaignFormData,
+          table_headers: obj || {},
+        };
+        setCampaignFormData(updatedCampaignFormData);
       }
 
       await updateCampaignData({
@@ -663,7 +663,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       if (!campaignData) return;
       let updatedCampaignFormData = campaignFormData;
 
-      
+
       const obj = extractObjectives(campaignFormData);
       // console.log("🚀 ~ handleStepFour ~ obj:", obj);
       updatedCampaignFormData = {
@@ -671,7 +671,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         table_headers: obj || {},
       };
       setCampaignFormData(updatedCampaignFormData);
-      
+
       await updateCampaignData({
         ...cleanData,
         funnel_stages: updatedCampaignFormData?.funnel_stages,
