@@ -200,7 +200,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             params: {
               populate: {
                 client: true,
-                media_plan_details: "*",
+                media_plan_details: {
+                  populate: ["internal_approver", "client_approver"]
+                },
                 budget_details: "*",
                 client_selection: "*",
                 user: true,

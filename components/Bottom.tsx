@@ -480,13 +480,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const cleanData = campaignData
       ? removeKeysRecursively(campaignData, [
-          "id",
-          "documentId",
-          "createdAt",
-          "publishedAt",
-          "updatedAt",
-          "_aggregated",
-        ])
+        "id",
+        "documentId",
+        "createdAt",
+        "publishedAt",
+        "updatedAt",
+        "_aggregated",
+      ])
       : {};
 
     const handleStepZero = async () => {
@@ -519,11 +519,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         //   ? campaignFormData.client_approver.filter((a) => a !== null && a !== undefined && a !== "")
         //   : [];
 
+        // console.log(
+        //   "🚀 ~ handleStepZero ~ budgetDetails:", campaignFormData)
+
         // Update campaignFormData with cleaned values and save to localStorage
         const cleanedFormData = {
           ...campaignFormData,
-          internal_approver: campaignFormData?.internal_approver,
-          client_approver: campaignFormData?.client_approver,
+          internal_approver: (campaignFormData?.internal_approver_ids || []).map(String),
+          client_approver: (campaignFormData?.client_approver_ids || []).map(String),
           budget_details_currency: {
             id: budgetDetails.currency,
             value: budgetDetails.currency,
@@ -557,8 +560,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             },
             media_plan_details: {
               plan_name: campaignFormData?.media_plan,
-              internal_approver: campaignFormData?.internal_approver,
-              client_approver: campaignFormData?.client_approver,
+              internal_approver: (campaignFormData?.internal_approver_ids || []).map(String),
+              client_approver: (campaignFormData?.client_approver_ids || []).map(String),
             },
             budget_details: budgetDetails,
           };
@@ -633,26 +636,26 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       let updatedCampaignFormData = campaignFormData;
 
       if (active === 5) {
-      const obj = extractObjectives(campaignFormData);
-      console.log("🚀 ~ handleStepFour ~ obj:", obj);
-      updatedCampaignFormData = {
-        ...campaignFormData,
-        table_headers: obj || {},
-      };
-      setCampaignFormData(updatedCampaignFormData);
+        const obj = extractObjectives(campaignFormData);
+        console.log("🚀 ~ handleStepFour ~ obj:", obj);
+        updatedCampaignFormData = {
+          ...campaignFormData,
+          table_headers: obj || {},
+        };
+        setCampaignFormData(updatedCampaignFormData);
       }
 
       await updateCampaignData({
-      ...cleanData,
-      channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
-        "id",
-        "isValidated",
-        "formatValidated",
-        "validatedStages",
-        "documentId",
-        "_aggregated",
-      ]),
-      table_headers: updatedCampaignFormData?.table_headers,
+        ...cleanData,
+        channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
+          "id",
+          "isValidated",
+          "formatValidated",
+          "validatedStages",
+          "documentId",
+          "_aggregated",
+        ]),
+        table_headers: updatedCampaignFormData?.table_headers,
       });
     };
 
@@ -890,8 +893,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                     {active === 0
                       ? "Start"
                       : active === 4 && !hasFormatSelected
-                      ? "Skip"
-                      : "Continue"}
+                        ? "Skip"
+                        : "Continue"}
                   </p>
                   <Image src={Continue} alt="Continue" />
                 </>
