@@ -18,8 +18,8 @@ const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 	}, [dispatch, id]);
 
 	const internalApprovers = campaign?.media_plan_details
-		?.internal_approver?.map(a => a?.value) || ["-"];
-	const clientApprovers = campaign?.media_plan_details?.client_approver?.map(a => a?.value) || ["-"];
+		?.internal_approver?.map(a => a?.username) || ["-"];
+	const clientApprovers = campaign?.media_plan_details?.client_approver?.map(a => a?.username) || ["-"];
 
 	const items = [
 		{
@@ -42,9 +42,9 @@ const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 		},
 		{
 			label: "Campaign builder",
-			name: campaign?.campaign_builder || "-",
-			nameList: [campaign?.campaign_builder || "-"],
-			initials: getInitials(campaign?.campaign_builder),
+			name: campaign?.campaign_builder?.username || "-",
+			nameList: [campaign?.campaign_builder?.username || "-"],
+			initials: getInitials(campaign?.campaign_builder?.username),
 		},
 	];
 

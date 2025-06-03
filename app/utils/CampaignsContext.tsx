@@ -200,8 +200,16 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             params: {
               populate: {
                 client: true,
+                campaign_builder: true,
                 media_plan_details: {
-                  populate: ["internal_approver", "client_approver"]
+                  populate: {
+                    internal_approver: {
+                      populate: "user",
+                    },
+                    client_approver: {
+                      populate: "user"
+                    },
+                  },
                 },
                 budget_details: "*",
                 client_selection: "*",
@@ -282,7 +290,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`,
         {
           data: {
-            campaign_builder: campaign_builder?.name,
+            //@ts-ignore
+            campaign_builder: campaign_builder?.id,
             client: campaignFormData?.client_selection?.id,
             client_selection: {
               client: campaignFormData?.client_selection?.value,
@@ -292,8 +301,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             },
             media_plan_details: {
               plan_name: campaignFormData?.media_plan,
-              internal_approver: campaignFormData?.internal_approver,
-              client_approver: campaignFormData?.client_approver,
+              internal_approver: campaignFormData?.internal_approver?.map((ff)=>ff?.value),
+              client_approver: campaignFormData?.client_approver?.map((ff)=>ff?.value),
             },
           },
         },
