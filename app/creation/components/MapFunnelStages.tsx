@@ -4,7 +4,7 @@ import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import { useVerification } from "app/utils/VerificationContext";
 import { useComments } from "app/utils/CommentProvider";
-import { PlusIcon, Edit2, Trash2, X } from "lucide-react";
+import { PlusIcon, Edit2, Trash2, X, GripVertical } from "lucide-react";
 import toast from "react-hot-toast";
 
 // Define type for funnel objects
@@ -64,6 +64,10 @@ const MapFunnelStages = () => {
   const [currentFunnel, setCurrentFunnel] = useState<Funnel | null>(null);
   const [newFunnelName, setNewFunnelName] = useState("");
   const modalRef = useRef<HTMLDivElement>(null);
+
+  // Drag state
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   // Default funnel stages
   const defaultFunnels: Funnel[] = [
@@ -398,6 +402,66 @@ const MapFunnelStages = () => {
     toast.success("Funnel removed successfully", { duration: 3000 });
   };
 
+  // Handle drag and drop
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnter = (index: number) => {
+    setDragOverIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (index: number) => {
+    if (draggedIndex === null || draggedIndex === index) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    const newFunnels = [...persistentCustomFunnels];
+    const [removed] = newFunnels.splice(draggedIndex, 1);
+    newFunnels.splice(index, 0, removed);
+
+    setPersistentCustomFunnels(newFunnels);
+    setCustomFunnels(newFunnels);
+
+    // Save to localStorage (only for existing plans)
+    if (cId) saveCustomFunnelsToStorage(newFunnels);
+
+    // Reorder funnel_stages and channel_mix to match new order
+    setCampaignFormData((prev: any) => {
+      // Only keep funnel_stages that are present in newFunnels, in new order
+      const newFunnelNames = newFunnels.map((f) => f.name);
+      const orderedFunnelStages = newFunnelNames.filter((name) =>
+        prev.funnel_stages?.includes(name)
+      );
+      // Reorder channel_mix to match newFunnels order
+      const orderedChannelMix = newFunnelNames
+        .map((name) =>
+          prev.channel_mix?.find((ch: any) => ch.funnel_stage === name) ||
+          { funnel_stage: name }
+        );
+      return {
+        ...prev,
+        custom_funnels: newFunnels,
+        funnel_stages: orderedFunnelStages,
+        channel_mix: orderedChannelMix,
+      };
+    });
+
+    setHasChanges(true);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -409,44 +473,68 @@ const MapFunnelStages = () => {
       <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
         {customFunnels.map((funnel, index) => {
           const isSelected = campaignFormData.funnel_stages?.includes(funnel.name);
+          const isDragging = draggedIndex === index;
+          const isDragOver = dragOverIndex === index && draggedIndex !== null && draggedIndex !== index;
           return (
             <div
               key={`${funnel.id}-${index}`}
-              className="relative w-full max-w-[685px]"
+              className={`relative w-full max-w-[685px] transition-all duration-150
+                ${isDragging ? "opacity-50" : ""}
+                ${isDragOver ? "ring-2 ring-blue-400" : ""}
+              `}
+              draggable
+              onDragStart={() => handleDragStart(index)}
+              onDragEnter={() => handleDragEnter(index)}
+              onDragOver={handleDragOver}
+              onDrop={() => handleDrop(index)}
+              onDragEnd={handleDragEnd}
+              style={{ cursor: "grab" }}
             >
-              <button
-                className={`cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 ${
-                  isSelected
-                    ? `${funnel.color} text-white`
-                    : "bg-white text-black shadow-md hover:bg-gray-100"
-                }`}
-                onClick={() => handleSelect(funnel.name)}
-              >
-                <div className="w-6 h-6" />
-                <p className="text-[16px]">{funnel.name}</p>
-              </button>
-              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
-                <button
-                  className="p-1 bg-white rounded-full shadow-sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setModalMode("edit");
-                    setCurrentFunnel(funnel);
-                    setNewFunnelName(funnel.name);
-                    setIsModalOpen(true);
-                  }}
+              <div className="flex items-center">
+                <span
+                  className="flex items-center justify-center mr-2 cursor-grab"
+                  title="Drag to reorder"
+                  tabIndex={-1}
+                  aria-label="Drag handle"
+                  style={{ touchAction: "none" }}
                 >
-                  <Edit2 size={16} className="text-gray-600" />
-                </button>
+                  <GripVertical size={20} className="text-gray-400" />
+                </span>
                 <button
-                  className="p-1 bg-white rounded-full shadow-sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemoveFunnel(funnel.name);
-                  }}
+                  className={`flex-1 cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 ${
+                    isSelected
+                      ? `${funnel.color} text-white`
+                      : "bg-white text-black shadow-md hover:bg-gray-100"
+                  }`}
+                  onClick={() => handleSelect(funnel.name)}
+                  type="button"
                 >
-                  <Trash2 size={16} className="text-red-500" />
+                  <div className="w-6 h-6" />
+                  <p className="text-[16px]">{funnel.name}</p>
                 </button>
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
+                  <button
+                    className="p-1 bg-white rounded-full shadow-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setModalMode("edit");
+                      setCurrentFunnel(funnel);
+                      setNewFunnelName(funnel.name);
+                      setIsModalOpen(true);
+                    }}
+                  >
+                    <Edit2 size={16} className="text-gray-600" />
+                  </button>
+                  <button
+                    className="p-1 bg-white rounded-full shadow-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveFunnel(funnel.name);
+                    }}
+                  >
+                    <Trash2 size={16} className="text-red-500" />
+                  </button>
+                </div>
               </div>
             </div>
           );
