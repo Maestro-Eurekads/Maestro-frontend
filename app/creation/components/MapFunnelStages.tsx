@@ -548,17 +548,17 @@ const MapFunnelStages = () => {
                   <GripVertical size={20} className="text-gray-400" />
                 </span>
                 <button
-                  className={`flex-1 cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${funnel.color} ${isSelected ? "text-white" : "text-white/80"} `}
+                  className={`flex-1 cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${
+                    isSelected ? funnel.color + " text-white" : "bg-gray-200 text-gray-500"
+                  }`}
                   onClick={() => handleSelect(funnel.name)}
                   type="button"
                   style={{
-                    opacity: isSelected ? 1 : 0.7,
+                    opacity: isSelected ? 1 : 1,
                     border: isSelected ? "none" : "1px solid #e5e7eb",
                   }}
                 >
-                  <div
-                    className={`w-6 h-6 rounded-full border border-gray-200 ${funnel.color}`}
-                  />
+                  {/* Removed the circle icon here */}
                   <p className="text-[16px]">{funnel.name}</p>
                 </button>
                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
