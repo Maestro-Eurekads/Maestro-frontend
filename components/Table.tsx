@@ -80,7 +80,7 @@ const Table = () => {
   const currentItems = campaignArray.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(campaignArray?.length / itemsPerPage);
 
-  console.log('clientCampaignData-clientCampaignData', clientCampaignData)
+
 
   useEffect(() => {
     if (typeof window !== "undefined") {
