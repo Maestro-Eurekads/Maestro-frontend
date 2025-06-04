@@ -415,6 +415,7 @@ const MapFunnelStages = () => {
     e.preventDefault();
   };
 
+  // SWAP logic: swap draggedIndex and index
   const handleDrop = (index: number) => {
     if (draggedIndex === null || draggedIndex === index) {
       setDraggedIndex(null);
@@ -422,8 +423,8 @@ const MapFunnelStages = () => {
       return;
     }
     const newFunnels = [...persistentCustomFunnels];
-    const [removed] = newFunnels.splice(draggedIndex, 1);
-    newFunnels.splice(index, 0, removed);
+    // Swap the two elements
+    [newFunnels[draggedIndex], newFunnels[index]] = [newFunnels[index], newFunnels[draggedIndex]];
 
     setPersistentCustomFunnels(newFunnels);
     setCustomFunnels(newFunnels);
