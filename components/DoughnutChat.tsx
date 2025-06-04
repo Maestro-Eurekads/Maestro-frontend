@@ -226,7 +226,7 @@ const DoughnutChart = ({
 
       // Styling for dynamic value
       ctx.fillStyle = "#061237";
-      ctx.font = `bold ${height / 12}px Arial`;
+      ctx.font = `bold ${height / 20}px Arial`;
       ctx.fillText(textBottom, centerX, centerY + 15);
 
       ctx.save();

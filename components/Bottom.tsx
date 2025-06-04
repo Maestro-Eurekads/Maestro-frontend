@@ -647,14 +647,17 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
       await updateCampaignData({
         ...cleanData,
-        channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
-          "id",
-          "isValidated",
-          "formatValidated",
-          "validatedStages",
-          "documentId",
-          "_aggregated",
-        ]),
+        channel_mix: removeKeysRecursively(
+          updatedCampaignFormData?.channel_mix,
+          [
+            "id",
+            "isValidated",
+            "formatValidated",
+            "validatedStages",
+            "documentId",
+            "_aggregated",
+          ]
+        ),
         table_headers: updatedCampaignFormData?.table_headers,
       });
     };
@@ -662,7 +665,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     const handleStepSeven = async () => {
       if (!campaignData) return;
       let updatedCampaignFormData = campaignFormData;
-
 
       const obj = extractObjectives(campaignFormData);
       // console.log("🚀 ~ handleStepFour ~ obj:", obj);
@@ -675,12 +677,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       await updateCampaignData({
         ...cleanData,
         funnel_stages: updatedCampaignFormData?.funnel_stages,
-        channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
-          "id",
-          "isValidated",
-          "documentId",
-          "_aggregated",
-        ]),
+        channel_mix: removeKeysRecursively(
+          updatedCampaignFormData?.channel_mix,
+          ["id", "isValidated", "documentId", "_aggregated"]
+        ),
         campaign_budget: removeKeysRecursively(
           updatedCampaignFormData?.campaign_budget,
           ["id"]
@@ -693,30 +693,44 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     const handleDateStep = async () => {
       if (!campaignData) return;
       const currentYear = new Date().getFullYear();
-      const campaign_timeline_start_date =
-        dayjs(
-          new Date(
-            currentYear,
-            selectedDates?.from?.month,
-            selectedDates.from?.day
-          )
-        ).format("YYYY-MM-DD") ||
-        campaignFormData?.campaign_timeline_start_date;
+      let campaign_timeline_start_date =
+        campaignFormData?.campaign_timeline_start_date ||
+        (selectedDates?.from?.month !== undefined &&
+        selectedDates?.from?.day !== undefined
+          ? dayjs(
+              new Date(
+                currentYear,
+                selectedDates?.from?.month,
+                selectedDates?.from?.day
+              )
+            ).format("YYYY-MM-DD")
+          : undefined);
 
-      const campaign_timeline_end_date =
-        dayjs(
-          new Date(currentYear, selectedDates?.to?.month, selectedDates.to?.day)
-        ).format("YYYY-MM-DD") || campaignFormData?.campaign_timeline_end_date;
+      let campaign_timeline_end_date =
+        campaignFormData?.campaign_timeline_end_date ||
+        (selectedDates?.to?.month !== undefined &&
+        selectedDates?.to?.day !== undefined
+          ? dayjs(
+              new Date(
+                currentYear,
+                selectedDates?.to?.month,
+                selectedDates?.to?.day
+              )
+            ).format("YYYY-MM-DD")
+          : undefined);
+
+      if (campaign_timeline_start_date === "Invalid Date") {
+        campaign_timeline_start_date =
+          campaignFormData?.campaign_timeline_start_date;
+      }
+      if (campaign_timeline_end_date === "Invalid Date") {
+        campaign_timeline_end_date =
+          campaignFormData?.campaign_timeline_end_date;
+      }
       await updateCampaignData({
         ...cleanData,
-        campaign_timeline_start_date:
-          campaign_timeline_start_date === "Invalid Date"
-            ? campaignFormData?.campaign_timeline_start_date
-            : campaign_timeline_start_date,
-        campaign_timeline_end_date:
-          campaign_timeline_end_date === "Invalid Date"
-            ? campaignFormData?.campaign_timeline_end_date
-            : campaign_timeline_end_date,
+        campaign_timeline_start_date,
+        campaign_timeline_end_date,
         funnel_stages: campaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",

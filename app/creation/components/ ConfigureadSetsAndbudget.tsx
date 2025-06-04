@@ -214,10 +214,12 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
               </div>
             </div>
             <>
-              <div className="campaign_phases_container mt-[24px]">
+            
+              <div className="campaign_phases_container mt-[24px] space-x-4">
                 <div className="campaign_phases_container_one">
                   <DoughnutChat
                     insideText={insideText}
+                    
                   />
                 </div>
 
