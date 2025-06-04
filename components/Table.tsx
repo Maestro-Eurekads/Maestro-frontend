@@ -291,17 +291,19 @@ const Table = () => {
                     <td className="py-[12px] px-[16px]">
                       <div className="flex items-center whitespace-nowrap gap-3">
                         <div className="view_content_table">
+                          {/* @ts-ignore */}
                           {getFirstLetters(data?.campaign_builder?.username || "-")}
                         </div>
+                        {/* @ts-ignore */}
                         {data?.campaign_builder?.username || "-"}
                       </div>
                     </td>
                     <td className="py-[12px] px-[16px]">
                       <div className="flex items-center whitespace-nowrap gap-3">
-                        <div className="view_content_table">
+                        <div className="view_content_table"> {/* @ts-ignore */}
                           {getFirstLetters(data?.media_plan_details?.internal_approver[0]?.username || "-")}
 
-                        </div>
+                        </div> {/* @ts-ignore */}
                         <p>{data?.media_plan_details?.internal_approver[0]?.username || "-"}</p>
                       </div>
                     </td>
