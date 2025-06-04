@@ -58,6 +58,7 @@ export const tableHeaders = {
     {
       name: "Engagements",
       showInput: false,
+      type: "number"
     },
     {
       name: "CPE",
@@ -65,94 +66,6 @@ export const tableHeaders = {
       type: "currency"
     },
   ],
-  // Traffic: [
-  //   ...defaultHeaders,
-  //   {
-  //     name: "CTR",
-  //     showInput: true,
-  //     type: "percent"
-  //   },
-  //   {
-  //     name: "Link Clicks",
-  //     showInputs: false,
-  //     type: "number"
-  //   },
-  //   {
-  //     name: "CPC",
-  //     showInputs: false,
-  //     type: "currency"
-  //   },
-  //   {
-  //     name: "Click to land rate",
-  //     showInput: true,
-  //     type: "percent"
-  //   },
-  //   {
-  //     name: "Lands",
-  //     showInput: false,
-  //     type: "number"
-  //   },
-  //   {
-  //     name: "CPL",
-  //     showInput: false,
-  //     type: "currency"
-  //   },
-  //   {
-  //     name: "Avg Visit Time",
-  //     showInput: true,
-  //     type: "seconds"
-  //   },
-  //   {
-  //     name: "Avg pages / visit",
-  //     showInput: true,
-  //     type: "number"
-  //   },
-  //   {
-  //     name: "Bounce Rate",
-  //     showInput: true,
-  //     type: "percent"
-  //   },
-  //   {
-  //     name: "Bounced Visits",
-  //     showInput: false,
-  //     type: "number"
-  //   },
-  //   {
-  //     name: "Cost/bounce",
-  //     showInput: false,
-  //     type: "currency"
-  //   },
-  //   {
-  //     name: "Lead Rate",
-  //     showInput: true,
-  //     type: "percent"
-  //   },
-  //   {
-  //     name: "Lead visits",
-  //     showInput: false,
-  //     type: "number"
-  //   },
-  //   {
-  //     name: "Cost/lead",
-  //     showInput: false,
-  //     type: "currency"
-  //   },
-  //   {
-  //     name: "Off-funnel rate",
-  //     showInput: true,
-  //     type: "percent"
-  //   },
-  //   {
-  //     name: "Off-funnel visits",
-  //     showInput: false,
-  //     type: "number"
-  //   },
-  //   {
-  //     name: "Cost / Off funnel",
-  //     showInput: false,
-  //     type: "currency"
-  //   },
-  // ],
   "Website Traffic": [
     ...defaultHeaders,
     {
@@ -162,12 +75,12 @@ export const tableHeaders = {
     },
     {
       name: "Link Clicks",
-      showInputs: false,
+      showInput: false,
       type: "number"
     },
     {
       name: "CPC",
-      showInputs: false,
+      showInput: false,
       type: "currency"
     },
     {
@@ -250,12 +163,12 @@ export const tableHeaders = {
     },
     {
       name: "Forms open",
-      showInputs: false,
+      showInput: false,
       type: "number"
     },
     {
       name: "Cost / opened form",
-      showInputs: false,
+      showInput: false,
       type: "currency"
     },
     {
@@ -283,12 +196,12 @@ export const tableHeaders = {
     },
     {
       name: "Forms open",
-      showInputs: false,
+      showInput: false,
       type: "number"
     },
     {
       name: "Cost / opened form",
-      showInputs: false,
+      showInput: false,
       type: "currency"
     },
     {
@@ -316,12 +229,12 @@ export const tableHeaders = {
     },
     {
       name: "Link clicks",
-      showInputs: false,
+      showInput: false,
       type: "number"
     },
     {
       name: "CPC",
-      showInputs: false,
+      showInput: false,
       type: "currency"
     },
     {
@@ -460,14 +373,17 @@ export const tableHeaders = {
     {
       name: "CLV of associated product",
       showInput: true,
+      type: "currency"
     },
     {
       name: "Generated Revenue",
       showInput: false,
+      type: "currency"
     },
     {
       name: "Return on Ad Spent",
       showInput: false,
+      type: "currency"
     },
   ],
   "Purchase (Pro)": [
@@ -480,10 +396,12 @@ export const tableHeaders = {
     {
       name: "Link Clicks",
       showInput: false,
+      type: "number"
     },
     {
       name: "CPC",
       showInput: false,
+      type: "currency"
     },
     {
       name: "Click to land rate",
@@ -493,18 +411,22 @@ export const tableHeaders = {
     {
       name: "Lands",
       showInput: false,
+      type: "number"
     },
     {
       name: "CPL",
       showInput: false,
+      type: "currency"
     },
     {
       name: "Avg Visit Time",
       showInput: true,
+      type: "seconds"
     },
     {
       name: "Avg pages / visit",
       showInput: true,
+      type: "number"
     },
     {
       name: "Bounce Rate",
@@ -514,10 +436,12 @@ export const tableHeaders = {
     {
       name: "Bounced Visits",
       showInput: false,
+      type: "number"
     },
     {
       name: "Cost/bounce",
       showInput: false,
+      type: "currency"
     },
     {
       name: "Lead Rate",
@@ -527,10 +451,12 @@ export const tableHeaders = {
     {
       name: "Lead visits",
       showInput: false,
+      type: "number"
     },
     {
       name: "Cost/lead",
       showInput: false,
+      type: "currency"
     },
     {
       name: "Off-funnel rate",
@@ -540,10 +466,12 @@ export const tableHeaders = {
     {
       name: "Off-funnel visits",
       showInput: false,
+      type: "number"
     },
     {
       name: "Cost / Off funnel",
       showInput: false,
+      type: "currency"
     },
     {
       name: "Add to cart rate",
@@ -553,10 +481,12 @@ export const tableHeaders = {
     {
       name: "Add to carts",
       showInput: false,
+      type: "number"
     },
     {
       name: "CPATC",
       showInput: false,
+      type: "currency"
     },
     {
       name: "Payment info rate",
@@ -566,10 +496,12 @@ export const tableHeaders = {
     {
       name: "Payment infos",
       showInput: false,
+      type: "number"
     },
     {
       name: "CPPI",
       showInput: false,
+      type: "currency"
     },
     {
       name: "Purchase rate",
@@ -579,22 +511,27 @@ export const tableHeaders = {
     {
       name: "Purchases",
       showInput: false,
+      type: "number"
     },
     {
       name: "CPP",
       showInput: false,
+      type: "currency"
     },
     {
       name: "CLV of associated product",
       showInput: true,
+      type: "currency"
     },
     {
       name: "Generated Revenue",
       showInput: false,
+      type: "currency"
     },
     {
       name: "Return on Ad Spent",
       showInput: false,
+      type: "currency"
     },
   ],
   "App Install": [
@@ -627,7 +564,7 @@ export const tableHeaders = {
     {
       name: "CPI",
       showInput: false,
-      type: "number"
+      type: "currency"
     },
   ],
   "Conversions": [
@@ -640,7 +577,7 @@ export const tableHeaders = {
     {
       name: "Link Clicks",
       showInput: false,
-type: "number"
+      type: "number"
     },
     {
       name: "CPC",
@@ -703,10 +640,12 @@ type: "number"
     {
       name: "Link Clicks",
       showInput: false,
+      type: "number"
     },
     {
       name: "CPC",
       showInput: false,
+      type: "currency"
     },
     {
       name: "Open Rate",
@@ -716,10 +655,12 @@ type: "number"
     {
       name: "App Open",
       showInput: false,
+      type: "number"
     },
     {
       name: "Cost / App Open",
       showInput: false,
+      type: "currency"
     },
     {
       name: "CVR",
@@ -729,22 +670,27 @@ type: "number"
     {
       name: "Conversion",
       showInput: false,
+      type: "number"
     },
     {
       name: "Cost / conversion",
       showInput: false,
+      type: "currency"
     },
     {
       name: "CLV of associated product",
       showInput: true,
+      type: "currency"
     },
     {
       name: "Generated Revenue",
       showInput: false,
+      type: "currency"
     },
     {
       name: "Return on Ad Spent",
       showInput: false,
+      type: "currency"
     },
   ],
   "Physical Store Visit": [

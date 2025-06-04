@@ -128,63 +128,87 @@ export const AdSetRow = ({
   // Helper function to check if a field is a percentage type
   const isPercentageField = (fieldName, headerGroup) => {
     // Extract the field name from the path (e.g., "kpi.ctr" -> "ctr")
-    const field = fieldName.split(".").pop();
+    const field = fieldName.split(".").pop()
 
-    // Find the corresponding header in tableHeaders
+    // Define known percentage fields
+    const percentageFields = [
+      "ctr",
+      "vtr",
+      "completion_rate",
+      "install_rate",
+      "eng_rate",
+      "open_rate",
+      "cvr",
+      "click_to_land_rate",
+      "bounce_rate",
+      "lead_rate",
+      "off_funnel_rate",
+      "add_to_cart_rate",
+      "payment_info_rate",
+      "purchase_rate",
+    ]
+
+    // Check if field is in known percentage fields
+    if (percentageFields.includes(field)) {
+      return true
+    }
+
+    // Fallback to checking tableHeaders
     if (Array.isArray(headerGroup)) {
       for (const header of headerGroup) {
         if (typeof header === "object" && header.name) {
-          const headerKey = header.name
-            .toLowerCase()
-            .replace(/ /g, "_")
-            .replace(/\//g, "")
-            .replace(/-/g, "_");
+          const headerKey = header.name.toLowerCase().replace(/ /g, "_").replace(/\//g, "").replace(/-/g, "_")
           if (headerKey === field && header.type === "percent") {
-            return true;
+            return true
           }
         }
       }
     }
-    return false;
-  };
+    return false
+  }
 
   const getNestedValue = (obj, ...paths) => {
     for (const path of paths) {
-      let value = path.split(".").reduce((acc, key) => acc?.[key], obj);
+      let value = path.split(".").reduce((acc, key) => acc?.[key], obj)
       if (value !== undefined) {
         // Check if this is a percentage field
         if (isPercentageField(path, tableHeaders)) {
-          // Remove % if present
-          if (typeof value === "string") {
-            value = value.replace(/%/g, "");
+          // Only convert if the value is a string with % or a number > 1
+          if (typeof value === "string" && value.includes("%")) {
+            value = value.replace(/%/g, "")
+            if (!isNaN(Number.parseFloat(value))) {
+              value = Number(Number.parseFloat(value).toFixed(2)) / 100
+            }
+          } else if (typeof value === "number" && value > 1) {
+            // If it's a number greater than 1, assume it's in percentage format (e.g., 10 for 10%)
+            value = value / 100
           }
-
-          // Convert to decimal for calculations
-          if (!isNaN(Number.parseFloat(value))) {
-            value = Number.parseFloat(value) / 100;
-          }
+          // If value is already a decimal (between 0 and 1), use it as is
         }
-        return value;
+        return value
       }
     }
-    return undefined;
-  };
+  }
 
-  const calculatedValues = Object.fromEntries(
-    Object.entries(formulas).map(([key, [fn, ...args]]) => [
-      key,
-      typeof fn === "function"
-        ? fn.apply(
-            null,
-            args.map((arg) =>
-              Array.isArray(arg)
-                ? Number(getNestedValue(chData, ...arg))
-                : Number(getNestedValue(chData, arg))
+  const getCalculatedValues = () => {
+    if (!chData) return {}
+  
+    return Object.fromEntries(
+      Object.entries(formulas).map(([key, [fn, ...args]]) => [
+        key,
+        typeof fn === "function"
+          ? fn.apply(
+              null,
+              args.map((arg) =>
+                Array.isArray(arg) ? Number(getNestedValue(chData, ...arg)) : Number(getNestedValue(chData, arg)),
+              ),
             )
-          )
-        : null,
-    ])
-  );
+          : null,
+      ]),
+    )
+  }
+
+  const calculatedValues = getCalculatedValues();
 
   // Replace the useEffect in AdSetRow with this simplified version
   // since we're now handling aggregation in the TableView component
