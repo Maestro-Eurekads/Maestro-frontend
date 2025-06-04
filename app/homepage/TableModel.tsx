@@ -291,6 +291,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     setEmailList([]);
   };
 
+
+
   const userTypes = ["agency_creator", "agency_approver", "financial_approver"];
 
   useEffect(() => {
@@ -299,12 +301,14 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     }
   }, [isOpen]);
 
-  const options = user?.map((user) => user?.username);
+  const options = user?.map((user) => user);
   const excludedTypes = ["agency_creator"];
 
   const option = user
     ?.filter((user) => !excludedTypes.includes(user?.user_type))
-    .map((user) => user?.username);
+    .map((user) => user);
+
+
 
   return (
     <div className="z-50">

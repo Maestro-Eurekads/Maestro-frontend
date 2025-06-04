@@ -108,6 +108,8 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 
 	// };
 
+	console.log('campaignFormData', loggedInUser?.id)
+
 	const handlePlan = async () => {
 		setLoading(true);
 
@@ -116,7 +118,9 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 			const cleanedFormData = {
 				...campaignFormData,
 				isApprove: true,
-				internal_approver: loggedInUser?.username,
+				media_plan_details: {
+					approved_by: [String(loggedInUser?.id)],
+				},
 			};
 			setCampaignFormData(cleanedFormData);
 			localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData));
@@ -132,7 +136,9 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 						"_aggregated",
 					]),
 					isApprove: true,
-					internal_approver: loggedInUser?.username,
+					media_plan_details: {
+						approved_by: [String(loggedInUser?.id)],
+					},
 				};
 
 				await updateCampaign(updatedData);
@@ -199,7 +205,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 						Back to Dashboard
 					</button>
 					<button className="btn_model_active w-full" onClick={handlePlan}>
-						{loading ? <SVGLoader width={"40px"} height={"40px"} color={"#0866FF"} /> :
+						{loading ? <SVGLoader width={"40px"} height={"40px"} color={"#fff"} /> :
 							<span className="font-medium">Approval</span>
 						}
 
