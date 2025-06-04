@@ -68,6 +68,8 @@ const AddFinanceModal = ({
   // @ts-ignore 
   const userType = session?.user?.data?.user?.id || "";
   const [clientCampaigns, setClientCampaigns] = useState<any[]>([]);
+  const [clientApprover, setClientApprover] = useState<any[]>([]);
+  const [internalApprover, setInternalApprover] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [financialUsers, setFinancialUsers] = useState<any[]>([]);
   const [loadingCam, setLoadingCam] = useState(false);
@@ -114,6 +116,9 @@ const AddFinanceModal = ({
     }
   }, [poForm?.client, selected]);
 
+  console.log("clientApprover:", clientApprover);
+  console.log("internalApprover:", internalApprover);
+
 
 
   useEffect(() => {
@@ -122,12 +127,15 @@ const AddFinanceModal = ({
         setLoadingCam(true);
         try {
           const res = await fetchClientCampaign(selected || selectedRow?.client?.id);
+          console.log("Client Campaigns Response:", res);
           const data = res?.data?.data;
           const newOption = data?.map((opt: any) => ({
             label: opt?.media_plan_details?.plan_name,
             value: opt?.id?.toString(),
             budget: opt?.campaign_budget?.amount,
           }));
+          setClientApprover(data?.media_plan_details.client_approver || []);
+          setInternalApprover(data?.media_plan_details?.internal_approver || []);
           setClientCampaigns(newOption);
         } catch (err) {
           console.log(err);

@@ -515,6 +515,7 @@ const parseApiDate = (dateString: string | null): { day: number; month: number }
 
 const getInitials = (name: string | null | undefined) => {
   if (!name) return null;
+  console.log("🚀 ~ getInitials ~ name:", name)
   const parts = name && name?.split(" ");
   return parts.length >= 2
     ? `${parts[0][0]}${parts[1][0]}`

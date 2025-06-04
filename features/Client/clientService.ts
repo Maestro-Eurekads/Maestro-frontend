@@ -19,11 +19,13 @@ const createClient = async (inputs: any) => {
   return response.data;
 };
 
+
+
 //  Get Created Client
 const getCreateClient = async (userId) => {
   const { data } = await axios.get(
     `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients${
-      !userId ? "?populate[0]=users" : `?filters[users][$eq]=${userId}&populate[0]=users`
+      !userId ? "?populate[0]=users&populate[1]=responsible&populate[2]=approver" : `?filters[users][$eq]=${userId}&populate[0]=users&populate[1]=responsible&populate[2]=approver`
     }`,
     {
       headers: {

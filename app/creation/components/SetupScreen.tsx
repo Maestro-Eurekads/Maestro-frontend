@@ -11,6 +11,9 @@ import { useUserPrivileges } from "utils/userPrivileges";
 import { selectCurrency } from "components/Options";
 import ClientApproverDropdowns from "components/ClientApproverDropdowns";
 import { useSearchParams } from "next/navigation";
+import ResponsibleApproverDropdownsCampaign from "components/ResponsibleApproverDropdownsCampaign";
+import InternalApproverDropdowns from "components/InternalApproverDropdowns";
+import ResponsibleApproverDropdowns from "components/ResponsibleApproverDropdowns";
 
 
 interface DropdownOption {
@@ -60,27 +63,15 @@ export const SetupScreen = () => {
   const [level2Options, setlevel2Options] = useState<DropdownOption[]>([]);
   const [level3Options, setlevel3Options] = useState<DropdownOption[]>([]);
 
+
   useEffect(() => {
     setIsDrawerOpen(false);
     setClose(false);
   }, []);
 
-  // Load saved form data from localStorage on mount
-  // useEffect(() => {
-  //   const savedFormData = localStorage.getItem("campaignFormData");
-  //   if (savedFormData) {
-  //     const parsedData = JSON.parse(savedFormData);
-  //     setCampaignFormData({
-  //       ...parsedData,
-  //       internal_approver: Array.isArray(parsedData?.internal_approver)
-  //         ? parsedData?.internal_approver?.filter((v: string | null) => v != null)
-  //         : [],
-  //       client_approver: Array.isArray(parsedData?.client_approver)
-  //         ? parsedData?.client_approver?.filter((v: string | null) => v != null)
-  //         : [],
-  //     });
-  //   }
-  // }, [setCampaignFormData]);
+
+
+
 
   useEffect(() => {
     const savedFormData = localStorage.getItem("campaignFormData");
@@ -207,14 +198,15 @@ export const SetupScreen = () => {
     // });
 
     const options = client?.approver?.map((l) => ({
-      value: l,
-      label: l,
+      value: l?.id,
+      label: l?.username,
     })) || [];
     setInternalApproverOptions(options);
 
-    const clientOptions = client?.client_emails?.map((l) => ({
-      value: l?.full_name,
-      label: l?.full_name,
+
+    const clientOptions = client?.users?.map((l) => ({
+      value: l?.id,
+      label: l?.username,
     })) || [];
     setClientApprovalOptions(clientOptions);
 
@@ -257,8 +249,8 @@ export const SetupScreen = () => {
 
   useEffect(() => {
     if (campaignFormData?.budget_details_currency?.id) {
-      const currency = selectCurrency.find(
-        (c) => c.value === campaignFormData.budget_details_currency.id
+      const currency = selectCurrency?.find(
+        (c) => c?.value === campaignFormData?.budget_details_currency?.id
       );
       if (currency) {
         if (campaignFormData?.budget_details_fee_type?.id === "Fix budget fee") {
@@ -300,7 +292,9 @@ export const SetupScreen = () => {
     setRequiredFields(evaluatedFields);
   }, [campaignFormData, cId, setRequiredFields]);
 
-
+  // console.log("allClients-allClients", allClients);
+  // console.log("internalapproverOptions-internalapproverOptions", allClients);
+  console.log("campaignFormData-campaignFormData", campaignFormData);
 
   const handleApproverChange = (field: string, selected: DropdownOption[]) => {
     setSelectedApprovers((prev) => ({
@@ -364,58 +358,52 @@ export const SetupScreen = () => {
               formId="media_plan"
             />
 
-            {/* <ClientApproverDropdowns
+            <InternalApproverDropdowns
               options={internalapproverOptions}
-              option={clientapprovalOptions}
               value={{
                 internal_approver:
-                  campaignFormData?.internal_approver?.filter(
-                    (opt) =>
-                      opt?.id === campaignFormData?.campaign_id &&
-                      opt?.clientId === campaignFormData?.client_selection?.id
-                  ) ?? [],
-                client_approver:
-                  campaignFormData?.client_approver?.filter(
-                    (opt) =>
-                      opt?.id === campaignFormData?.campaign_id &&
-                      opt?.clientId === campaignFormData?.client_selection?.id
-                  ) ?? [],
+                  campaignFormData?.internal_approver_ids?.map((id) => {
+                    const match = internalapproverOptions?.find((opt) => opt?.value === id);
+                    return match
+                      ? {
+                        value: match.value,
+                        label: match.label, // ensures label is shown in chips
+                        id: campaignFormData?.campaign_id,
+                        clientId: campaignFormData?.client_selection?.id,
+                      }
+                      : null;
+                  }).filter(Boolean) ?? [],
               }}
+
               onChange={(field, selected) => {
                 setCampaignFormData((prev) => ({
                   ...prev,
-                  [field]: selected,
+                  [`${field}_ids`]: selected?.map((item) => item?.value), // store only [ "1", "122" ]
+                  [field]: selected, // store full object if needed (optional)
                 }));
               }}
-            /> */}
-
+            />
             <ClientApproverDropdowns
-              options={internalapproverOptions}
               option={clientapprovalOptions}
               value={{
-                internal_approver:
-                  Array.isArray(campaignFormData?.internal_approver)
-                    ? campaignFormData.internal_approver?.filter(
-                      (opt) =>
-                        (opt?.id === campaignFormData?.campaign_id ||
-                          opt?.id === campaignFormData?.client_selection?.id) &&
-                        opt?.clientId === campaignFormData?.client_selection?.id
-                    )
-                    : [],
                 client_approver:
-                  Array.isArray(campaignFormData?.client_approver)
-                    ? campaignFormData.client_approver.filter(
-                      (opt) =>
-                        (opt?.id === campaignFormData?.campaign_id ||
-                          opt?.id === campaignFormData?.client_selection?.id) &&
-                        opt?.clientId === campaignFormData?.client_selection?.id
-                    )
-                    : [],
+                  campaignFormData?.client_approver_ids?.map((id) => {
+                    const match = clientapprovalOptions?.find((opt) => opt?.value === id);
+                    return match
+                      ? {
+                        value: match.value,
+                        label: match.label,
+                        id: campaignFormData?.campaign_id,
+                        clientId: campaignFormData?.client_selection?.id,
+                      }
+                      : null;
+                  }).filter(Boolean) ?? [],
               }}
               onChange={(field, selected) => {
                 setCampaignFormData((prev) => ({
                   ...prev,
-                  [field]: selected,
+                  [`${field}_ids`]: selected?.map((item) => item?.value), // store only [ "1", "122" ]
+                  [field]: selected, // store full object if needed (optional)
                 }));
               }}
             />
