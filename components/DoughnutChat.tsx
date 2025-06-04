@@ -199,7 +199,7 @@ const DoughnutChart = ({
 
   // Generate data values (equal distribution for simplicity, adjust as needed)
   const dataValues = funnelStages.length > 0
-    ? funnelStages.map(() => 100 / funnelStages.length)
+    ? campaignFormData?.channel_mix?.map((st) => st?.stage_budget?.percentage_value)
     : [100];
 
   // Custom plugin to add text in the center
@@ -226,7 +226,7 @@ const DoughnutChart = ({
 
       // Styling for dynamic value
       ctx.fillStyle = "#061237";
-      ctx.font = `bold ${height / 12}px Arial`;
+      ctx.font = `bold ${height / 20}px Arial`;
       ctx.fillText(textBottom, centerX, centerY + 15);
 
       ctx.save();

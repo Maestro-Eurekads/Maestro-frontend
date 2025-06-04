@@ -26,7 +26,7 @@ const MainSection = ({
   const [zoomLevel, setZoomLevel] = useState(1)
   const minZoom = 0.1
   const maxZoom = 3
-  const zoomStep = 0.25
+  const zoomStep = 0.05
 
   const startDates = campaignFormData?.campaign_timeline_start_date
     ? campaignFormData?.campaign_timeline_start_date

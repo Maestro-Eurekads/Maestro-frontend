@@ -41,7 +41,7 @@ const MultiSelectDropdown = ({
 	};
 
 	const handleRemove = (option: Option) => {
-		const updated = selectedOptions.filter((o) => o?.id !== option?.id);
+		const updated = selectedOptions?.filter((o) => o?.id !== option?.id);
 		setSelectedOptions(updated);
 		onSelect(updated.map((o) => o?.id));
 	};
@@ -59,7 +59,7 @@ const MultiSelectDropdown = ({
 	}, []);
 
 	const availableOptions = options.filter(
-		(opt) => !selectedOptions.some((sel) => sel.id === opt.id)
+		(opt) => !selectedOptions.some((sel) => sel?.id === opt?.id)
 	);
 
 	return (
@@ -100,9 +100,9 @@ const MultiSelectDropdown = ({
 				</span>
 			</div>
 
-			{isOpen && availableOptions.length > 0 && (
+			{isOpen && availableOptions?.length > 0 && (
 				<div className="absolute bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-2 z-10 w-full max-h-48 overflow-y-auto">
-					{availableOptions.map((option) => (
+					{availableOptions?.map((option) => (
 						<div
 							key={option?.id}
 							className="px-4 py-2 cursor-pointer hover:bg-gray-100 text-sm"
@@ -130,7 +130,7 @@ type ResponsibleApproverDropdownsProps = {
 	>;
 };
 
-const ResponsibleApproverDropdowns = ({
+const ResponsibleApproverDropdownsCampaign = ({
 	right,
 	setInputs,
 	options,
@@ -165,4 +165,4 @@ const ResponsibleApproverDropdowns = ({
 	);
 };
 
-export default ResponsibleApproverDropdowns;
+export default ResponsibleApproverDropdownsCampaign;
