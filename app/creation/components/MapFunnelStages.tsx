@@ -763,21 +763,7 @@ const MapFunnelStages = () => {
                   />
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span
-                  className={`inline-block w-6 h-6 rounded-full border border-gray-300`}
-                  style={{
-                    background: isHexColor(newFunnelColor)
-                      ? newFunnelColor
-                      : colorClassToHex[newFunnelColor] || customColor,
-                  }}
-                />
-                <span className="text-xs text-gray-500">
-                  {isHexColor(newFunnelColor)
-                    ? newFunnelColor
-                    : colorClassToHex[newFunnelColor] || customColor}
-                </span>
-              </div>
+              {/* Removed color circle and hex text display below the color picker as per instructions */}
             </div>
             <div className="flex justify-end gap-2 mt-6">
               <button
