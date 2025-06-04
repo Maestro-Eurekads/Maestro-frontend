@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -155,28 +154,27 @@ const MultiSelectDropdown = ({
 	);
 };
 
-const ClientApproverDropdowns = ({
-	option,
+const InternalApproverDropdowns = ({
+	options,
 	value,
 	onChange,
 }: {
-	option: DropdownOption[];
+	options: DropdownOption[];
 	value: {
-		client_approver: SelectedItem[];
+		internal_approver: SelectedItem[];
 	};
 	onChange: (field: string, selected: SelectedItem[]) => void;
 }) => {
 	return (
 		<div className="flex items-center gap-4 mt-5">
-
 			<MultiSelectDropdown
-				label="Client Approver"
-				options={option}
-				value={value.client_approver}
-				onChange={(selected) => onChange("client_approver", selected)}
+				label="Internal Approver"
+				options={options}
+				value={value.internal_approver}
+				onChange={(selected) => onChange("internal_approver", selected)}
 			/>
 		</div>
 	);
 };
 
-export default ClientApproverDropdowns;
+export default InternalApproverDropdowns;
