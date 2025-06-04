@@ -11,7 +11,7 @@ import toast from "react-hot-toast";
 interface Funnel {
   id: string;
   name: string;
-  color: string; // tailwind color class
+  color: string; // tailwind color class or hex string
 }
 
 // Color palette for quick selection (tailwind classes)
@@ -69,6 +69,8 @@ const hexToColorClass = (hex: string): string | null => {
   return null;
 };
 
+const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color);
+
 // LocalStorage key for custom funnels
 const LOCAL_STORAGE_FUNNELS_KEY = "custom_funnels_v1";
 
@@ -94,7 +96,9 @@ const MapFunnelStages = () => {
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
   const [currentFunnel, setCurrentFunnel] = useState<Funnel | null>(null);
   const [newFunnelName, setNewFunnelName] = useState("");
+  // newFunnelColor can be a tailwind class or a hex string
   const [newFunnelColor, setNewFunnelColor] = useState<string>(colorPalette[0]);
+  // customColor is always a hex string
   const [customColor, setCustomColor] = useState<string>(colorClassToHex[colorPalette[0]]);
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -337,6 +341,7 @@ const MapFunnelStages = () => {
       return;
     }
 
+    // If color is a palette class, use as is. If it's a hex, use as is.
     const newFunnel: Funnel = {
       id: name,
       name: name,
@@ -502,12 +507,51 @@ const MapFunnelStages = () => {
         setNewFunnelColor(getAvailableColor());
         setCustomColor(colorClassToHex[getAvailableColor()]);
       } else if (modalMode === "edit" && currentFunnel) {
-        setNewFunnelColor(currentFunnel.color || colorPalette[0]);
-        setCustomColor(colorClassToHex[currentFunnel.color] || colorClassToHex[colorPalette[0]]);
+        // If the color is a palette class, set both accordingly. If it's a hex, set newFunnelColor to hex and customColor to hex.
+        if (colorPalette.includes(currentFunnel.color)) {
+          setNewFunnelColor(currentFunnel.color);
+          setCustomColor(colorClassToHex[currentFunnel.color] || colorClassToHex[colorPalette[0]]);
+        } else if (isHexColor(currentFunnel.color)) {
+          setNewFunnelColor(currentFunnel.color);
+          setCustomColor(currentFunnel.color);
+        } else {
+          setNewFunnelColor(colorPalette[0]);
+          setCustomColor(colorClassToHex[colorPalette[0]]);
+        }
       }
     }
     // eslint-disable-next-line
   }, [isModalOpen, modalMode, currentFunnel]);
+
+  // Helper to get the background style for a funnel color (palette or hex)
+  const getFunnelBgStyle = (color: string) => {
+    if (colorPalette.includes(color)) {
+      return { className: color, style: {} };
+    }
+    if (isHexColor(color)) {
+      return { className: "", style: { background: color } };
+    }
+    return { className: "bg-gray-200", style: {} };
+  };
+
+  // Helper to get the text color for a funnel color (palette or hex)
+  const getFunnelTextColor = (color: string, isSelected: boolean) => {
+    if (isSelected) {
+      // If hex, use white text for dark colors, black for light
+      if (isHexColor(color)) {
+        // Simple luminance check
+        const hex = color.replace("#", "");
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return luminance < 0.6 ? "text-white" : "text-gray-900";
+      }
+      // For palette, always white
+      return "text-white";
+    }
+    return "text-gray-500";
+  };
 
   return (
     <div>
@@ -522,6 +566,9 @@ const MapFunnelStages = () => {
           const isSelected = campaignFormData.funnel_stages?.includes(funnel.name);
           const isDragging = draggedIndex === index;
           const isDragOver = dragOverIndex === index && draggedIndex !== null && draggedIndex !== index;
+          const { className: funnelBgClass, style: funnelBgStyle } = getFunnelBgStyle(funnel.color);
+          const textColor = getFunnelTextColor(funnel.color, isSelected);
+
           return (
             <div
               key={`${funnel.id}-${index}`}
@@ -548,15 +595,15 @@ const MapFunnelStages = () => {
                   <GripVertical size={20} className="text-gray-400" />
                 </span>
                 <button
-                  className={`flex-1 cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${
-                    isSelected ? funnel.color + " text-white" : "bg-gray-200 text-gray-500"
-                  }`}
+                  className={`flex-1 cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${isSelected ? "" : "bg-gray-200"} ${textColor}`}
                   onClick={() => handleSelect(funnel.name)}
                   type="button"
                   style={{
+                    ...funnelBgStyle,
                     opacity: isSelected ? 1 : 1,
                     border: isSelected ? "none" : "1px solid #e5e7eb",
                   }}
+                  {...(isSelected && funnelBgClass ? { className: `flex-1 cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${funnelBgClass} ${textColor}` } : {})}
                 >
                   {/* Removed the circle icon here */}
                   <p className="text-[16px]">{funnel.name}</p>
@@ -569,8 +616,17 @@ const MapFunnelStages = () => {
                       setModalMode("edit");
                       setCurrentFunnel(funnel);
                       setNewFunnelName(funnel.name);
-                      setNewFunnelColor(funnel.color || colorPalette[0]);
-                      setCustomColor(colorClassToHex[funnel.color] || colorClassToHex[colorPalette[0]]);
+                      // If palette, set class; if hex, set hex
+                      if (colorPalette.includes(funnel.color)) {
+                        setNewFunnelColor(funnel.color);
+                        setCustomColor(colorClassToHex[funnel.color] || colorClassToHex[colorPalette[0]]);
+                      } else if (isHexColor(funnel.color)) {
+                        setNewFunnelColor(funnel.color);
+                        setCustomColor(funnel.color);
+                      } else {
+                        setNewFunnelColor(colorPalette[0]);
+                        setCustomColor(colorClassToHex[colorPalette[0]]);
+                      }
                       setIsModalOpen(true);
                     }}
                   >
@@ -674,16 +730,10 @@ const MapFunnelStages = () => {
                 <div className="flex items-center ml-2">
                   <input
                     type="color"
-                    value={customColor}
+                    value={isHexColor(newFunnelColor) ? newFunnelColor : customColor}
                     onChange={(e) => {
                       setCustomColor(e.target.value);
-                      const foundClass = hexToColorClass(e.target.value);
-                      if (foundClass) {
-                        setNewFunnelColor(foundClass);
-                      } else {
-                        // fallback to blue-500 if not found
-                        setNewFunnelColor(colorPalette[0]);
-                      }
+                      setNewFunnelColor(e.target.value);
                     }}
                     className="w-7 h-7 border-0 p-0 bg-transparent cursor-pointer"
                     aria-label="Custom color picker"
@@ -692,10 +742,18 @@ const MapFunnelStages = () => {
               </div>
               <div className="flex items-center gap-2">
                 <span
-                  className={`inline-block w-6 h-6 rounded-full border border-gray-300 ${newFunnelColor}`}
-                  style={{ background: colorClassToHex[newFunnelColor] || customColor }}
+                  className={`inline-block w-6 h-6 rounded-full border border-gray-300`}
+                  style={{
+                    background: isHexColor(newFunnelColor)
+                      ? newFunnelColor
+                      : colorClassToHex[newFunnelColor] || customColor,
+                  }}
                 />
-                <span className="text-xs text-gray-500">{colorClassToHex[newFunnelColor] || customColor}</span>
+                <span className="text-xs text-gray-500">
+                  {isHexColor(newFunnelColor)
+                    ? newFunnelColor
+                    : colorClassToHex[newFunnelColor] || customColor}
+                </span>
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-6">
