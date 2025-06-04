@@ -19,7 +19,7 @@ const TableView = () => {
   const [nrColumnsByStage, setNrColumnsByStage] = useState({})
 
   const [selectedMetrics, setSelectedMetrics] = useState([])
-  console.log("🚀 ~ TableView:", campaignFormData?.table_headers)
+  // console.log("🚀 ~ TableView:", campaignFormData?.table_headers)
   const [expandedKPI, setExpandedKPI] = useState({})
   const [expandedAdsetKPI, setExpandedAdsetKPI] = useState({})
 
