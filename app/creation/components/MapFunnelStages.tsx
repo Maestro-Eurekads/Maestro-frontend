@@ -553,6 +553,7 @@ const MapFunnelStages = () => {
     return "text-gray-500";
   };
 
+  // --- BEGIN MODAL RENDER ---
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -737,6 +738,25 @@ const MapFunnelStages = () => {
                     }}
                     className="w-7 h-7 border-0 p-0 bg-transparent cursor-pointer"
                     aria-label="Custom color picker"
+                  />
+                  {/* Add a text input for HEX value, allowing copy/paste */}
+                  <input
+                    type="text"
+                    value={isHexColor(newFunnelColor) ? newFunnelColor : customColor}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      // Only allow # and 6 hex digits
+                      if (!val.startsWith("#")) val = "#" + val.replace(/[^0-9A-Fa-f]/g, "");
+                      if (val.length > 7) val = val.slice(0, 7);
+                      setCustomColor(val);
+                      setNewFunnelColor(val);
+                    }}
+                    className="ml-2 w-24 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    placeholder="#000000"
+                    maxLength={7}
+                    spellCheck={false}
+                    autoComplete="off"
+                    inputMode="text"
                   />
                 </div>
               </div>
