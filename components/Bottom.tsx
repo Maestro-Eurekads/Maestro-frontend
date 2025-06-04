@@ -521,24 +521,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
           await updateCampaign(updatedData);
           setActive((prev) => prev + 1);
-          setAlert({
-            variant: "success",
-            message: "Campaign updated successfully!",
-            position: "bottom-right",
-          });
         } else {
           const res = await createCampaign();
           const url = new URL(window.location.href);
           url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
           window.history.pushState({}, "", url.toString());
           await getActiveCampaign(res?.data?.data.documentId);
-
           setActive((prev) => prev + 1);
-          setAlert({
-            variant: "success",
-            message: "Campaign created successfully!",
-            position: "bottom-right",
-          });
         }
       } catch (error) {
         console.error("handleStepZero error:", error.response?.data || error.message);
@@ -582,11 +571,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
         await updateCampaignData(updatedData);
         setActive((prev) => prev + 1);
-        setAlert({
-          variant: "success",
-          message: "Funnel stages updated successfully!",
-          position: "bottom-right",
-        });
       } catch (error) {
         console.error("handleStepTwo error:", error.response?.data || error.message);
         setAlert({
@@ -624,11 +608,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
         await updateCampaignData(updatedData);
         setActive((prev) => prev + 1);
-        setAlert({
-          variant: "success",
-          message: "Channel mix updated successfully!",
-          position: "bottom-right",
-        });
       } catch (error) {
         console.error("handleStepThree error:", error.response?.data || error.message);
         setAlert({
@@ -674,11 +653,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
         await updateCampaignData(updatedData);
         setActive((prev) => prev + 1);
-        setAlert({
-          variant: "success",
-          message: "Format selections updated successfully!",
-          position: "bottom-right",
-        });
       } catch (error) {
         console.error("handleStepFour error:", error.response?.data || error.message);
         setAlert({
@@ -728,11 +702,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
         await updateCampaignData(updatedData);
         setActive((prev) => prev + 1);
-        setAlert({
-          variant: "success",
-          message: "Campaign budget and goals updated successfully!",
-          position: "bottom-right",
-        });
       } catch (error) {
         console.error("handleStepSeven error:", error.response?.data || error.message);
         setAlert({
@@ -773,13 +742,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             ? dayjs(
                 new Date(currentYear, selectedDates?.to?.month, selectedDates?.to?.day)
               ).format("YYYY-MM-DD")
-            : undefined);
+            : null);
 
         if (campaign_timeline_start_date === "Invalid Date") {
-          campaign_timeline_start_date = campaignFormData?.campaign_timeline_start_date;
+          campaign_timeline_start_date = undefined;
         }
         if (campaign_timeline_end_date === "Invalid Date") {
-          campaign_timeline_end_date = campaignFormData?.campaign_timeline_end_date;
+          campaign_timeline_end_date = null;
         }
 
         const updatedData = {
@@ -792,7 +761,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             "documentId",
             "_aggregated",
           ]),
-          campaign_budget: removeKeysRecursively(campaignFormData?.campaign_budget || {}, ["id"]),
+          campaign_budget: removeKeysRecursively(campaignFormData?.campaign_budget || [], ["id"]),
           goal_level: campaignFormData?.goal_level || null,
         };
 
@@ -803,13 +772,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           setActive((prev) => prev + 1);
           setSubStep(0);
         }
-        setAlert({
-          variant: "success",
-          message: "Campaign timeline updated successfully!",
-          position: "bottom-right",
-        });
       } catch (error) {
-        console.error("handleDateStep error:", error.response?.data || error.message);
+        console.error("handleDateError:", JSON.stringify(error.response?.data || error.message));
         setAlert({
           variant: "error",
           message: `Failed to update campaign timeline: ${error.message}`,
