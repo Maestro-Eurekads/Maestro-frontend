@@ -524,7 +524,12 @@ const MapFunnelStages = () => {
   }, [isModalOpen, modalMode, currentFunnel]);
 
   // Helper to get the background style for a funnel color (palette or hex)
-  const getFunnelBgStyle = (color: string) => {
+  // Modified: Always return gray bg for deselected (isSelected === false)
+  const getFunnelBgStyle = (color: string, isSelected: boolean) => {
+    if (!isSelected) {
+      // Always gray for deselected
+      return { className: "bg-gray-200", style: {} };
+    }
     if (colorPalette.includes(color)) {
       return { className: color, style: {} };
     }
@@ -567,7 +572,7 @@ const MapFunnelStages = () => {
           const isSelected = campaignFormData.funnel_stages?.includes(funnel.name);
           const isDragging = draggedIndex === index;
           const isDragOver = dragOverIndex === index && draggedIndex !== null && draggedIndex !== index;
-          const { className: funnelBgClass, style: funnelBgStyle } = getFunnelBgStyle(funnel.color);
+          const { className: funnelBgClass, style: funnelBgStyle } = getFunnelBgStyle(funnel.color, isSelected);
           const textColor = getFunnelTextColor(funnel.color, isSelected);
 
           return (
@@ -596,17 +601,15 @@ const MapFunnelStages = () => {
                   <GripVertical size={20} className="text-gray-400" />
                 </span>
                 <button
-                  className={`flex-1 cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${isSelected ? "" : "bg-gray-200"} ${textColor}`}
+                  className={`flex-1 cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${funnelBgClass} ${textColor}`}
                   onClick={() => handleSelect(funnel.name)}
                   type="button"
                   style={{
                     ...funnelBgStyle,
-                    opacity: isSelected ? 1 : 1,
+                    opacity: 1,
                     border: isSelected ? "none" : "1px solid #e5e7eb",
                   }}
-                  {...(isSelected && funnelBgClass ? { className: `flex-1 cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${funnelBgClass} ${textColor}` } : {})}
                 >
-                  {/* Removed the circle icon here */}
                   <p className="text-[16px]">{funnel.name}</p>
                 </button>
                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
