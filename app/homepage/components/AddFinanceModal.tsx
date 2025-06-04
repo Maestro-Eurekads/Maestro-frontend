@@ -53,6 +53,7 @@ const AddFinanceModal = ({
 }) => {
   const [mediaPlans, setMediaPlans] = useState<MediaPlan[]>([]);
   const { fetchClientCampaign, fetchUserByType, fetchClientPOS } = useCampaignHook();
+
   const { setClientPOs, setFetchingPO, profile } = useCampaigns();
   const [selected, setSelected] = useState("");
   const [poForm, setPoForm] = useState<POForm>({
@@ -119,7 +120,7 @@ const AddFinanceModal = ({
   // console.log("clientApprover:", clientApprover);
   // console.log("internalApprover:", internalApprover);
 
-
+  console.log('campaign', clientCampaigns)
 
   useEffect(() => {
     const fetchClientCampaigns = async () => {
@@ -127,16 +128,17 @@ const AddFinanceModal = ({
         setLoadingCam(true);
         try {
           const res = await fetchClientCampaign(selected || selectedRow?.client?.id);
-          console.log("Client Campaigns Response:", res);
+
           const data = res?.data?.data;
+          console.log("yes-yess-yes:", res);
           const newOption = data?.map((opt: any) => ({
             label: opt?.media_plan_details?.plan_name,
             value: opt?.id?.toString(),
             budget: opt?.campaign_budget?.amount,
           }));
+          setClientCampaigns(newOption);
           setClientApprover(data?.media_plan_details.client_approver || []);
           setInternalApprover(data?.media_plan_details?.internal_approver || []);
-          setClientCampaigns(newOption);
         } catch (err) {
           console.log(err);
         } finally {
@@ -785,7 +787,7 @@ const AddFinanceModal = ({
                               required={true}
                               placeholder="Select media plan"
                               className="rounded-3xl"
-                              options={clientCampaigns.filter(
+                              options={clientCampaigns?.filter(
                                 (campaign: any) =>
                                   !mediaPlans.some(
                                     (plan: MediaPlan, i: number) =>
@@ -793,7 +795,7 @@ const AddFinanceModal = ({
                                   )
                               )}
                               value={
-                                clientCampaigns.find((cc: any) =>
+                                clientCampaigns?.find((cc: any) =>
                                   cc.value === plan?.name ||
                                   (plan?.originalCampaign && cc.value === plan.originalCampaign.id?.toString())
                                 ) || null
