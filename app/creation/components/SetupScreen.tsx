@@ -14,6 +14,7 @@ import { useSearchParams } from "next/navigation";
 import ResponsibleApproverDropdownsCampaign from "components/ResponsibleApproverDropdownsCampaign";
 import InternalApproverDropdowns from "components/InternalApproverDropdowns";
 import ResponsibleApproverDropdowns from "components/ResponsibleApproverDropdowns";
+import { useRouter } from "next/router";
 
 
 interface DropdownOption {
@@ -45,32 +46,20 @@ export const SetupScreen = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const { setIsDrawerOpen, setClose } = useComments();
   const { isAgencyCreator, isAgencyApprover, isFinancialApprover } = useUserPrivileges();
-
-
-
   const [internalapproverOptions, setInternalApproverOptions] = useState<DropdownOption[]>([]);
   const [clientapprovalOptions, setClientApprovalOptions] = useState<DropdownOption[]>([]);
-  const [selectedApprovers, setSelectedApprovers] = useState<{
-    internal_approver: DropdownOption[];
-    client_approver: DropdownOption[];
-  }>({
-    internal_approver: [],
-    client_approver: [],
-  });
-
   const [clientOptions, setClientOptions] = useState<DropdownOption[]>([]);
   const [level1Options, setlevel1Options] = useState<DropdownOption[]>([]);
   const [level2Options, setlevel2Options] = useState<DropdownOption[]>([]);
   const [level3Options, setlevel3Options] = useState<DropdownOption[]>([]);
 
 
+
+
   useEffect(() => {
     setIsDrawerOpen(false);
     setClose(false);
   }, []);
-
-
-
 
 
   useEffect(() => {
@@ -110,13 +99,13 @@ export const SetupScreen = () => {
         media_plan: "",
         internal_approver: [],
         client_approver: [],
+        approver_id: [],
         budget_details_currency: {},
         budget_details_fee_type: {},
         budget_details_value: "",
         level_1: {},
         level_2: {},
         level_3: {},
-        campaign_id: '',
       };
       setCampaignFormData(initialFormData);
       localStorage.setItem("campaignFormData", JSON.stringify(initialFormData));
@@ -234,15 +223,6 @@ export const SetupScreen = () => {
       return options?.filter((opt) => opt?.value != null && opt?.label != null) || [];
     });
 
-    // setCampaignFormData((prev) => ({
-    //   ...prev,
-    //   internal_approver: Array.isArray(prev.internal_approver) && prev.internal_approver.length > 0
-    //     ? prev.internal_approver.filter((v: string | null) => v != null)
-    //     : (client?.internal_approver?.filter((v: string | null) => v != null) || []),
-    //   client_approver: Array.isArray(prev.client_approver) && prev.client_approver.length > 0
-    //     ? prev.client_approver.filter((v: string | null) => v != null)
-    //     : (client?.client_emails?.map((e) => e?.full_name).filter((v: string | null) => v != null) || []),
-    // }));
   }, [client_selection, allClients, setCampaignFormData]);
 
 
@@ -292,16 +272,7 @@ export const SetupScreen = () => {
     setRequiredFields(evaluatedFields);
   }, [campaignFormData, cId, setRequiredFields]);
 
-  // console.log("allClients-allClients", allClients);
-  // console.log("internalapproverOptions-internalapproverOptions", allClients);
-  console.log("campaignFormData-campaignFormData", campaignFormData);
-
-  const handleApproverChange = (field: string, selected: DropdownOption[]) => {
-    setSelectedApprovers((prev) => ({
-      ...prev,
-      [field]: selected,
-    }));
-  };
+  // console.log("campaignFormData", campaignFormData);
 
   if (!campaignFormData) {
     return <div>Loading...</div>;
@@ -378,8 +349,8 @@ export const SetupScreen = () => {
               onChange={(field, selected) => {
                 setCampaignFormData((prev) => ({
                   ...prev,
-                  [`${field}_ids`]: selected?.map((item) => item?.value), // store only [ "1", "122" ]
-                  [field]: selected, // store full object if needed (optional)
+                  [`${field}_ids`]: selected?.map((item) => item?.value),
+                  [field]: selected,
                 }));
               }}
             />
@@ -402,8 +373,8 @@ export const SetupScreen = () => {
               onChange={(field, selected) => {
                 setCampaignFormData((prev) => ({
                   ...prev,
-                  [`${field}_ids`]: selected?.map((item) => item?.value), // store only [ "1", "122" ]
-                  [field]: selected, // store full object if needed (optional)
+                  [`${field}_ids`]: selected?.map((item) => item?.value),
+                  [field]: selected,
                 }));
               }}
             />
