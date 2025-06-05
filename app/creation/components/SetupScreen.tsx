@@ -34,9 +34,6 @@ export const SetupScreen = () => {
     profile,
     setRequiredFields,
     setCurrencySign,
-    getUserByUserType,
-    user,
-    requiredFields,
   } = useCampaigns();
   const query = useSearchParams();
   const documentId = query.get("campaignId");
