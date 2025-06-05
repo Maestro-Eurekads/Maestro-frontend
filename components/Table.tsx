@@ -72,7 +72,7 @@ const Table = () => {
   const { setActive } = useActive();
   const [clientId, setClientId] = useState<string | null>(null);
 
-  console.log("clientCampaignData", clientCampaignData);
+
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);

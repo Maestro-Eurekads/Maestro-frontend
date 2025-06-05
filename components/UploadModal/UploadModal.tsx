@@ -186,7 +186,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
           ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
           ["previews"],
         );
-        await updateCampaign(cleanData);
+        const {media_plan_details, ...rest} = cleanData;
+        await updateCampaign(rest);
         await getActiveCampaign();
       } catch (error) {
         console.error("Error updating campaign in Strapi:", error);
