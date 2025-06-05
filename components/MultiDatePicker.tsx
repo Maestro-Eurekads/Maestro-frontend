@@ -76,6 +76,12 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
 
     if (!selectedDates.from || (selectedDates.from && selectedDates.to)) {
       setSelectedDates({ from: newDate, to: null });
+      resetNestedDates(`${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`, null)
+      // setCampaignFormData((prev) => ({
+      //   ...prev,
+      //   campaign_timeline_start_date: `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+      //   campaign_timeline_end_date: null,
+      // }));
     } else if (
       selectedDates.from &&
       (newDate.month > selectedDates.from.month ||
@@ -83,9 +89,50 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
           newDate.day > selectedDates.from.day))
     ) {
       setSelectedDates((prev) => ({ ...prev, to: newDate }));
+      resetNestedDates(campaignFormData?.campaign_timeline_start_date, `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`)
+      // setCampaignFormData((prev) => ({
+      //   ...prev,
+      //   campaign_timeline_end_date: `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+      // }));
     } else {
       setSelectedDates({ from: newDate, to: null });
+      resetNestedDates(`${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`, null)
+      // setCampaignFormData((prev) => ({
+      //   ...prev,
+      //   campaign_timeline_start_date: `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+      //   campaign_timeline_end_date: null,
+      // }));
     }
+  };
+  const resetNestedDates = (startDate, endDate) => {
+    setCampaignFormData((prev) => {
+      const updatedChannels = prev.channel_mix.map((channel) => {
+        const updatedMediaTypes = Object.keys(channel).reduce((acc, mediaType) => {
+          if (Array.isArray(channel[mediaType])) {
+            acc[mediaType] = channel[mediaType].map((media) => ({
+              ...media,
+              campaign_start_date: null,
+              campaign_end_date: null,
+            }));
+          }
+          return acc;
+        }, {});
+
+        return {
+          ...channel,
+          funnel_stage_timeline_start_date: null,
+          funnel_stage_timeline_end_date: null,
+          ...updatedMediaTypes,
+        };
+      });
+
+      return {
+        ...prev,
+        campaign_timeline_start_date: startDate,
+        campaign_timeline_end_date: endDate,
+        channel_mix: updatedChannels,
+      };
+    });
   };
 
   const resetDates = () => {

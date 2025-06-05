@@ -180,8 +180,8 @@ const Header = ({ setIsOpen }) => {
               }}
               value={(isAdmin ? clients?.data : profile?.clients)
                 ?.map((c) => ({
-                  label: c.client_name,
-                  value: c.id?.toString(),
+                  label: c?.client_name,
+                  value: c?.id?.toString(),
                 }))
                 .find(
                   (option) =>
