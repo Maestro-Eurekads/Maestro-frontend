@@ -292,9 +292,7 @@ export const SetupScreen = () => {
     setRequiredFields(evaluatedFields);
   }, [campaignFormData, cId, setRequiredFields]);
 
-  // console.log("allClients-allClients", allClients);
-  // console.log("internalapproverOptions-internalapproverOptions", allClients);
-  console.log("campaignFormData-campaignFormData", campaignFormData);
+
 
   const handleApproverChange = (field: string, selected: DropdownOption[]) => {
     setSelectedApprovers((prev) => ({

@@ -44,7 +44,7 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   // Check if user has any assigned campaigns
   const hasCampaigns = campaigns && campaigns.length > 0;
 
-  // console.log("Campaigns in Header:", campaigns);
+
 
   return (
     <div
