@@ -178,99 +178,38 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
 
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const clientID = localStorage.getItem(userType?.toString()) || allClients[0]?.id;
 
-      if (!clientID) return;
-
-      setLoading(true);
-
-      const allEmpty = Object.values(selectedFilters).every((val) => !val);
-
-      try {
-        const res = allEmpty
-          ? await fetchFilteredCampaignsSub(clientID)
-          : await fetchFilteredCampaigns(clientID, selectedFilters);
-
-        setClientCampaignData(res);
-      } catch (err) {
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [selectedFilters]);
-
-  const areAllFiltersEmpty = (filters: FilterState): boolean => {
-    return Object.values(filters).every((val) => {
-      if (Array.isArray(val)) return val.length === 0;
-      if (typeof val === "object" && val !== null) return Object.keys(val).length === 0;
-      return !val;
-    });
-  };
 
 
 
   useEffect(() => {
+    const allEmpty = Object.values(selectedFilters).every((val) => !val)
+
     const fetchData = async () => {
-      const clientID = localStorage.getItem(userType?.toString()) || allClients[0]?.id;
-
-      if (!clientID) return;
-
-      setLoading(true);
-
-      const allEmpty = areAllFiltersEmpty(selectedFilters);
+      const clientID = localStorage.getItem(userType.toString()) || allClients[0]?.id
+      setLoading(true)
+      console.log('clientID-clientID', clientID)
 
       try {
-        const res = allEmpty
-          ? await fetchFilteredCampaignsSub(clientID)
-          : await fetchFilteredCampaigns(clientID, selectedFilters);
+        const res = allEmpty //@ts-ignore
+          ? await fetchFilteredCampaigns(clientID, {}) // Fetch all data
+          : await fetchFilteredCampaigns(clientID, selectedFilters) // Fetch filtered
 
-        setClientCampaignData(res);
-      } catch (err) {
-        console.error("Campaign fetch failed", err);
+        setClientCampaignData(res)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchData();
-  }, [selectedFilters]);
-
-
-  // useEffect(() => {
-  //   const allEmpty = Object.values(selectedFilters).every((val) => !val)
-
-  //   const fetchData = async () => {
-  //     const clientID = localStorage.getItem(userType.toString()) || allClients[0]?.id
-  //     setLoading(true)
-  //     console.log('clientID-clientID', clientID)
-
-  //     try {
-  //       const res = allEmpty //@ts-ignore
-  //         ? await fetchFilteredCampaigns(clientID, {}) // Fetch all data
-  //         : await fetchFilteredCampaigns(clientID, selectedFilters) // Fetch filtered
-
-  //       setClientCampaignData(res)
-  //     } finally {
-  //       setLoading(false)
-  //     }
-  //   }
-
-  //   fetchData()
-  // }, [selectedFilters])
+    fetchData()
+  }, [selectedFilters])
 
 
   const isYearSelected = !!selectedFilters["year"]
 
 
 
-  // {
-  //   filters
-  //     ?.filter((l) => l?.label !== "channel" && l?.label !== "phase")
-  //   .map(({ label, options }) => {
+
 
   return (
     <div>
