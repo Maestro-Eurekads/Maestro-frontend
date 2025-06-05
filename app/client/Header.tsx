@@ -44,7 +44,11 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   // Check if user has any assigned campaigns
   const hasCampaigns = campaigns && campaigns.length > 0;
 
-  // console.log("Campaigns in Header:", campaigns);
+  console.log("Campaigns in Header:", campaigns);
+
+  const isApproverForSelectedCampaign = campaigns?.find((cam)=>cam?.documentId === selected)?.media_plan_details?.client_approver?.map((approver)=>approver?.id)?.filter((aId)=>aId === id)?.length > 0
+
+  // console.log(isApproverForSelectedCampaign)
 
   return (
     <div
@@ -85,7 +89,7 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
                   />
                   Approved
                 </button>
-              ) : (
+              ) : isApproverForSelectedCampaign && (
                 <button
                   className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
                   style={{ border: "1px solid #3175FF" }}
