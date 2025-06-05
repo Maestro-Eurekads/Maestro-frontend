@@ -1,5 +1,6 @@
 import axios from "axios"
 import type { FilterState } from "./useCampaignFilters"
+import qs from "qs"
 
 // Build Strapi filter query string from filter state
 export function buildStrapiFilterQuery(clientID: string, filters: FilterState): string {
@@ -91,6 +92,8 @@ export function extractDateFilters(campaigns: any[]) {
     "July", "August", "September", "October", "November", "December",
   ];
 
+  console.log("Extracting date filters from campaigns...",campaigns);
+
   campaigns?.forEach((campaign) => {
     // Try to use campaign_timeline_start_date and campaign_timeline_end_date
     const hasTimelineDates =
@@ -160,12 +163,12 @@ export function extractDateFilters(campaigns: any[]) {
 export function extractAprroverFilters(campaigns: any[]) {
   const made_by = new Set<string>()
   const approved_by = new Set<string>()
-  const select_plans = new Set<string>()
+  // const select_plans = new Set<string>()
 
   campaigns.forEach((campaign) => {
-    made_by.add(campaign?.campaign_builder)
-    approved_by.add(campaign?.internal_approver)
-    select_plans.add(campaign?.media_plan_details?.plan_name)
+    made_by.add(campaign?.campaign_builder?.username)
+    approved_by.add(campaign?.media_plan_details?.approved_by[0]?.username)
+    // select_plans.add(campaign?.media_plan_details?.plan_name)
   })
 
   return {
@@ -181,7 +184,7 @@ export function extractChannelAndPhase(campaigns: any[]) {
 
   campaigns.forEach((campaign) => {
     // Handle channel mix
-    campaign.channel_mix.forEach((mix) => {
+    campaign?.channel_mix.forEach((mix) => {
       if (mix) {
         Object.keys(mix).forEach((channelKey) => {
           if (
@@ -221,7 +224,7 @@ export function extractLevelFilters(campaigns: any[]) {
   const level_3 = new Set<string>();
 
   campaigns.forEach((campaign) => {
-    const clientSelection = campaign.client_selection;
+    const clientSelection = campaign?.client_selection;
     if (!clientSelection) return;
 
     if (clientSelection.level_1) level_1.add(clientSelection.level_1);
@@ -247,145 +250,248 @@ export function extractLevelNameFilters(client: any) {
 
 
   
+// export const fetchFilteredCampaigns = async (clientID: string, filters: FilterState) => {
+//   // Start with the client filter - always required
+//   let filterQuery = `filters[client][$eq]=${clientID}`;
+
+//   // Track non-date filters for $or logic
+//   let orFilterIndex = 0;
+//   let hasOrFilters = false;
+
+//   // Handle date filters using campaign_timeline_start_date
+//   const dateFilters: string[] = [];
+//   const year = filters.year || new Date().getFullYear().toString();
+
+//   // Add notNull filter only if a date filter (year, quarter, or month) is selected
+//   if (filters.year || filters.quarter || filters.month) {
+//     filterQuery += `&filters[campaign_timeline_start_date][$notNull]=true`;
+//   }
+
+//   if (filters.month) {
+//     const monthOrder: Record<string, number> = {
+//       January: 0, February: 1, March: 2, April: 3, May: 4, June: 5,
+//       July: 6, August: 7, September: 8, October: 9, November: 10, December: 11,
+//     };
+//     const monthIndex = monthOrder[filters.month];
+//     if (monthIndex !== undefined) {
+//       const start = new Date(Number(year), monthIndex, 1).toISOString().slice(0, 10);
+//       const end = new Date(Number(year), monthIndex + 1, 0).toISOString().slice(0, 10);
+
+//       dateFilters.push(
+//         `filters[campaign_timeline_start_date][$lte]=${end}`,  // campaign started before or during month
+//         `filters[campaign_timeline_end_date][$gte]=${start}`   // campaign ends after or during month
+//       );
+//     }
+//   } else if (filters.quarter) {
+//     const quarterMap: Record<string, [number, number]> = {
+//       Q1: [0, 2],  // Jan–Mar
+//       Q2: [3, 5],  // Apr–Jun
+//       Q3: [6, 8],  // Jul–Sep
+//       Q4: [9, 11], // Oct–Dec
+//     };
+
+//     const [startMonth, endMonth] = quarterMap[filters.quarter] || [0, 2];
+//     const startDate = new Date(Number(year), startMonth, 1).toISOString().slice(0, 10);
+//     const endDate = new Date(Number(year), endMonth + 1, 0).toISOString().slice(0, 10);
+
+//     // Only include campaigns where the start date is within the quarter
+//     dateFilters.push(
+//       `filters[campaign_timeline_start_date][$gte]=${startDate}`,
+//       `filters[campaign_timeline_start_date][$lte]=${endDate}`
+//     );
+//   } else if (filters.year) {
+//     const start = `${year}-01-01`;
+//     const end = `${year}-12-31`;
+//     dateFilters.push(
+//       `filters[campaign_timeline_start_date][$gte]=${start}`,
+//       `filters[campaign_timeline_start_date][$lte]=${end}`
+//     );
+//   }
+
+//   if (dateFilters.length > 0) {
+//     filterQuery += `&${dateFilters.join("&")}`;
+//   }
+
+//   // Handle non-date filters with $or logic
+//   if (filters.category) {
+//     filterQuery += `&filters[$or][${orFilterIndex}][category][$eq]=${filters.category}`;
+//     hasOrFilters = true;
+//     orFilterIndex++;
+//   }
+
+//   if (filters.product) {
+//     filterQuery += `&filters[$or][${orFilterIndex}][product][$eq]=${filters.product}`;
+//     hasOrFilters = true;
+//     orFilterIndex++;
+//   }
+
+  
+  
+//   // Filter by made_by (campaign_builder.username)
+// if (filters.made_by) {
+//   filterQuery += `&filters[$or][${orFilterIndex}][campaign_builder][username][$containsi]=${filters.made_by}`;
+//   hasOrFilters = true;
+//   orFilterIndex++;
+// }
+
+// // Filter by approved_by (media_plan_details.approved_by.username)
+// if (filters.approved_by) {
+//   filterQuery += `&filters[$or][${orFilterIndex}][media_plan_details][approved_by][username][$containsi]=${filters.approved_by}`;
+//   hasOrFilters = true;
+//   orFilterIndex++;
+// }
+
+
+
+//   if (filters.channel) {
+//     filterQuery += `&filters[$or][${orFilterIndex}][channel_mix][${filters.channel}][$notNull]=true`;
+//     hasOrFilters = true;
+//     orFilterIndex++;
+//   }
+
+//   if (filters.phase) {
+//     filterQuery += `&filters[$or][${orFilterIndex}][funnel_stages][$containsi]=${filters.phase}`;
+//     hasOrFilters = true;
+//     orFilterIndex++;
+//   }
+
+//   if (filters.level_1) {
+//     filterQuery += `&filters[$or][${orFilterIndex}][client_selection][level_1][$eq]=${filters.level_1}`;
+//     hasOrFilters = true;
+//     orFilterIndex++;
+//   }
+
+//   if (filters.level_2) {
+//     filterQuery += `&filters[$or][${orFilterIndex}][client_selection][level_2][$eq]=${filters.level_2}`;
+//     hasOrFilters = true;
+//     orFilterIndex++;
+//   }
+
+//   if (filters.level_3) {
+//     filterQuery += `&filters[$or][${orFilterIndex}][client_selection][level_3][$eq]=${filters.level_3}`;
+//     hasOrFilters = true;
+//     orFilterIndex++;
+//   }
+
+//   // Add populate parameters
+//   const populateQuery = CAMPAIGN_POPULATE_QUERY;
+
+//   const baseUrl = `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`;
+
+//   const defaultFilter = `filters[client][$eq]=${clientID}`;
+//   const fullUrl =
+//     filterQuery === defaultFilter
+//       ? `${baseUrl}?${populateQuery}`
+//       : `${baseUrl}?${filterQuery}&${populateQuery}`;
+
+//   try {
+//     const response = await axios.get(fullUrl, {
+//       headers: {
+//         Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+//       },
+//     });
+
+//     return response?.data?.data;
+//   } catch (error) {
+//     console.error("Error fetching filtered campaigns:", error);
+//     return [];
+//   }
+// };
+
+ 
+
 export const fetchFilteredCampaigns = async (clientID: string, filters: FilterState) => {
-  // Start with the client filter - always required
-  let filterQuery = `filters[client][$eq]=${clientID}`;
+  const query: any = {
+    filters: {
+      client: { $eq: clientID },
+    },
+    populate: '*', // or CAMPAIGN_POPULATE_QUERY if you want specific ones
+  };
 
-  // Track non-date filters for $or logic
-  let orFilterIndex = 0;
-  let hasOrFilters = false;
-
-  // Handle date filters using campaign_timeline_start_date
-  const dateFilters: string[] = [];
+  // Handle date logic
   const year = filters.year || new Date().getFullYear().toString();
 
-  // Add notNull filter only if a date filter (year, quarter, or month) is selected
   if (filters.year || filters.quarter || filters.month) {
-    filterQuery += `&filters[campaign_timeline_start_date][$notNull]=true`;
-  }
+    query.filters.campaign_timeline_start_date = { $notNull: true };
 
-  if (filters.month) {
-    const monthOrder: Record<string, number> = {
-      January: 0, February: 1, March: 2, April: 3, May: 4, June: 5,
-      July: 6, August: 7, September: 8, October: 9, November: 10, December: 11,
-    };
-    const monthIndex = monthOrder[filters.month];
-    if (monthIndex !== undefined) {
-      const start = new Date(Number(year), monthIndex, 1).toISOString().slice(0, 10);
-      const end = new Date(Number(year), monthIndex + 1, 0).toISOString().slice(0, 10);
-
-      dateFilters.push(
-        `filters[campaign_timeline_start_date][$lte]=${end}`,  // campaign started before or during month
-        `filters[campaign_timeline_end_date][$gte]=${start}`   // campaign ends after or during month
-      );
+    if (filters.month) {
+      const monthOrder: Record<string, number> = {
+        January: 0, February: 1, March: 2, April: 3, May: 4, June: 5,
+        July: 6, August: 7, September: 8, October: 9, November: 10, December: 11,
+      };
+      const monthIndex = monthOrder[filters.month];
+      if (monthIndex !== undefined) {
+        const start = new Date(Number(year), monthIndex, 1).toISOString().slice(0, 10);
+        const end = new Date(Number(year), monthIndex + 1, 0).toISOString().slice(0, 10);
+        query.filters.$and = [
+          { campaign_timeline_start_date: { $lte: end } },
+          { campaign_timeline_end_date: { $gte: start } },
+        ];
+      }
+    } else if (filters.quarter) {
+      const quarterMap: Record<string, [number, number]> = {
+        Q1: [0, 2], Q2: [3, 5], Q3: [6, 8], Q4: [9, 11],
+      };
+      const [startMonth, endMonth] = quarterMap[filters.quarter] || [0, 2];
+      const startDate = new Date(Number(year), startMonth, 1).toISOString().slice(0, 10);
+      const endDate = new Date(Number(year), endMonth + 1, 0).toISOString().slice(0, 10);
+      query.filters.$and = [
+        { campaign_timeline_start_date: { $gte: startDate } },
+        { campaign_timeline_start_date: { $lte: endDate } },
+      ];
+    } else if (filters.year) {
+      const start = `${year}-01-01`;
+      const end = `${year}-12-31`;
+      query.filters.$and = [
+        { campaign_timeline_start_date: { $gte: start } },
+        { campaign_timeline_start_date: { $lte: end } },
+      ];
     }
-  } else if (filters.quarter) {
-    const quarterMap: Record<string, [number, number]> = {
-      Q1: [0, 2],  // Jan–Mar
-      Q2: [3, 5],  // Apr–Jun
-      Q3: [6, 8],  // Jul–Sep
-      Q4: [9, 11], // Oct–Dec
-    };
-
-    const [startMonth, endMonth] = quarterMap[filters.quarter] || [0, 2];
-    const startDate = new Date(Number(year), startMonth, 1).toISOString().slice(0, 10);
-    const endDate = new Date(Number(year), endMonth + 1, 0).toISOString().slice(0, 10);
-
-    // Only include campaigns where the start date is within the quarter
-    dateFilters.push(
-      `filters[campaign_timeline_start_date][$gte]=${startDate}`,
-      `filters[campaign_timeline_start_date][$lte]=${endDate}`
-    );
-  } else if (filters.year) {
-    const start = `${year}-01-01`;
-    const end = `${year}-12-31`;
-    dateFilters.push(
-      `filters[campaign_timeline_start_date][$gte]=${start}`,
-      `filters[campaign_timeline_start_date][$lte]=${end}`
-    );
   }
 
-  if (dateFilters.length > 0) {
-    filterQuery += `&${dateFilters.join("&")}`;
-  }
+  // Handle $or filters
+  const orFilters: any[] = [];
 
-  // Handle non-date filters with $or logic
   if (filters.category) {
-    filterQuery += `&filters[$or][${orFilterIndex}][category][$eq]=${filters.category}`;
-    hasOrFilters = true;
-    orFilterIndex++;
+    orFilters.push({ category: { $eq: filters.category } });
   }
-
   if (filters.product) {
-    filterQuery += `&filters[$or][${orFilterIndex}][product][$eq]=${filters.product}`;
-    hasOrFilters = true;
-    orFilterIndex++;
+    orFilters.push({ product: { $eq: filters.product } });
   }
-
-  // if (filters.select_plans) {
-  //   filterQuery += `&filters[$or][${orFilterIndex}][media_plan_details][plan_name][$eq]=${filters.select_plans}`;
-  //   hasOrFilters = true;
-  //   orFilterIndex++;
-  // }
-
   if (filters.made_by) {
-    filterQuery += `&filters[$or][${orFilterIndex}][media_plan_details][made_by][$eq]=${filters.made_by}`;
-    hasOrFilters = true;
-    orFilterIndex++;
+    orFilters.push({
+      campaign_builder: { username: { $containsi: filters.made_by } },
+    });
   }
-
-  // if (filters.approved_by) {
-  //   filterQuery += `&filters[$or][${orFilterIndex}][media_plan_details][internal_approver][$eq]=${filters.approved_by}`;
-  //   hasOrFilters = true;
-  //   orFilterIndex++;
-  // }
   if (filters.approved_by) {
-  filterQuery += `&filters[$or][${orFilterIndex}][internal_approver][$containsi]=${filters.approved_by}`;
-  hasOrFilters = true;
-  orFilterIndex++;
-}
-
-
+    orFilters.push({
+      media_plan_details: { approved_by: { username: { $containsi: filters.approved_by } } },
+    });
+  }
   if (filters.channel) {
-    filterQuery += `&filters[$or][${orFilterIndex}][channel_mix][${filters.channel}][$notNull]=true`;
-    hasOrFilters = true;
-    orFilterIndex++;
+    orFilters.push({
+      [`channel_mix.${filters.channel}`]: { $notNull: true },
+    });
   }
-
   if (filters.phase) {
-    filterQuery += `&filters[$or][${orFilterIndex}][funnel_stages][$containsi]=${filters.phase}`;
-    hasOrFilters = true;
-    orFilterIndex++;
+    orFilters.push({ funnel_stages: { $containsi: filters.phase } });
   }
-
   if (filters.level_1) {
-    filterQuery += `&filters[$or][${orFilterIndex}][client_selection][level_1][$eq]=${filters.level_1}`;
-    hasOrFilters = true;
-    orFilterIndex++;
+    orFilters.push({ client_selection: { level_1: { $eq: filters.level_1 } } });
   }
-
   if (filters.level_2) {
-    filterQuery += `&filters[$or][${orFilterIndex}][client_selection][level_2][$eq]=${filters.level_2}`;
-    hasOrFilters = true;
-    orFilterIndex++;
+    orFilters.push({ client_selection: { level_2: { $eq: filters.level_2 } } });
   }
-
   if (filters.level_3) {
-    filterQuery += `&filters[$or][${orFilterIndex}][client_selection][level_3][$eq]=${filters.level_3}`;
-    hasOrFilters = true;
-    orFilterIndex++;
+    orFilters.push({ client_selection: { level_3: { $eq: filters.level_3 } } });
   }
 
-  // Add populate parameters
-  const populateQuery = CAMPAIGN_POPULATE_QUERY;
+  if (orFilters.length > 0) {
+    query.filters.$or = orFilters;
+  }
 
-  const baseUrl = `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`;
-
-  const defaultFilter = `filters[client][$eq]=${clientID}`;
-  const fullUrl =
-    filterQuery === defaultFilter
-      ? `${baseUrl}?${populateQuery}`
-      : `${baseUrl}?${filterQuery}&${populateQuery}`;
+  const queryString = qs.stringify(query, { encodeValuesOnly: true });
+  const fullUrl = `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns?${queryString}`;
 
   try {
     const response = await axios.get(fullUrl, {
@@ -394,7 +500,7 @@ export const fetchFilteredCampaigns = async (clientID: string, filters: FilterSt
       },
     });
 
-    return response.data.data;
+    return response?.data?.data ?? [];
   } catch (error) {
     console.error("Error fetching filtered campaigns:", error);
     return [];

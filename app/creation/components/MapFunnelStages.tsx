@@ -524,7 +524,12 @@ const MapFunnelStages = () => {
   }, [isModalOpen, modalMode, currentFunnel]);
 
   // Helper to get the background style for a funnel color (palette or hex)
-  const getFunnelBgStyle = (color: string) => {
+  // Modified: Always return gray bg for deselected (isSelected === false)
+  const getFunnelBgStyle = (color: string, isSelected: boolean) => {
+    if (!isSelected) {
+      // Always gray for deselected
+      return { className: "bg-gray-200", style: {} };
+    }
     if (colorPalette.includes(color)) {
       return { className: color, style: {} };
     }
@@ -553,6 +558,7 @@ const MapFunnelStages = () => {
     return "text-gray-500";
   };
 
+  // --- BEGIN MODAL RENDER ---
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -566,7 +572,7 @@ const MapFunnelStages = () => {
           const isSelected = campaignFormData.funnel_stages?.includes(funnel.name);
           const isDragging = draggedIndex === index;
           const isDragOver = dragOverIndex === index && draggedIndex !== null && draggedIndex !== index;
-          const { className: funnelBgClass, style: funnelBgStyle } = getFunnelBgStyle(funnel.color);
+          const { className: funnelBgClass, style: funnelBgStyle } = getFunnelBgStyle(funnel.color, isSelected);
           const textColor = getFunnelTextColor(funnel.color, isSelected);
 
           return (
@@ -595,17 +601,15 @@ const MapFunnelStages = () => {
                   <GripVertical size={20} className="text-gray-400" />
                 </span>
                 <button
-                  className={`flex-1 cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${isSelected ? "" : "bg-gray-200"} ${textColor}`}
+                  className={`flex-1 cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${funnelBgClass} ${textColor}`}
                   onClick={() => handleSelect(funnel.name)}
                   type="button"
                   style={{
                     ...funnelBgStyle,
-                    opacity: isSelected ? 1 : 1,
+                    opacity: 1,
                     border: isSelected ? "none" : "1px solid #e5e7eb",
                   }}
-                  {...(isSelected && funnelBgClass ? { className: `flex-1 cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${funnelBgClass} ${textColor}` } : {})}
                 >
-                  {/* Removed the circle icon here */}
                   <p className="text-[16px]">{funnel.name}</p>
                 </button>
                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
@@ -738,23 +742,28 @@ const MapFunnelStages = () => {
                     className="w-7 h-7 border-0 p-0 bg-transparent cursor-pointer"
                     aria-label="Custom color picker"
                   />
+                  {/* Add a text input for HEX value, allowing copy/paste */}
+                  <input
+                    type="text"
+                    value={isHexColor(newFunnelColor) ? newFunnelColor : customColor}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      // Only allow # and 6 hex digits
+                      if (!val.startsWith("#")) val = "#" + val.replace(/[^0-9A-Fa-f]/g, "");
+                      if (val.length > 7) val = val.slice(0, 7);
+                      setCustomColor(val);
+                      setNewFunnelColor(val);
+                    }}
+                    className="ml-2 w-24 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    placeholder="#000000"
+                    maxLength={7}
+                    spellCheck={false}
+                    autoComplete="off"
+                    inputMode="text"
+                  />
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span
-                  className={`inline-block w-6 h-6 rounded-full border border-gray-300`}
-                  style={{
-                    background: isHexColor(newFunnelColor)
-                      ? newFunnelColor
-                      : colorClassToHex[newFunnelColor] || customColor,
-                  }}
-                />
-                <span className="text-xs text-gray-500">
-                  {isHexColor(newFunnelColor)
-                    ? newFunnelColor
-                    : colorClassToHex[newFunnelColor] || customColor}
-                </span>
-              </div>
+              {/* Removed color circle and hex text display below the color picker as per instructions */}
             </div>
             <div className="flex justify-end gap-2 mt-6">
               <button
