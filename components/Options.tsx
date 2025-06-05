@@ -561,12 +561,14 @@ const selectCurrency = [
 ];
 
 
-function getFirstLetters(str) {
-  const words = str?.trim().split(/\s+/);
-  const first = words?.[0]?.[0] || '';
-  const second = words?.[1]?.[0] || '';
-  return (first + second).toUpperCase();
+function getFirstLetters(str: string | undefined | null) {
+  if (typeof str !== "string" || !str.trim()) return "";
+  const words = str.trim().split(/\s+/);
+  return (words[0]?.[0] || '') + (words[1]?.[0] || '');
 }
+
+
+
 export {
   months,
   kpiCategories,
