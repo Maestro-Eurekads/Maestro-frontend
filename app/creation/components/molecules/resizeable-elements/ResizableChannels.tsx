@@ -95,7 +95,7 @@ const ResizableChannels = ({
 
   // Initialize child width based on available parent space and position
   const [channelState, setChannelState] = useState(
-    channels?.map(() => ({
+    channels?.map((ch) => ({
       left: parentLeft, // Start at parent's left position
       width: Math.min(10, parentWidth),
     }))
@@ -536,10 +536,11 @@ const ResizableChannels = ({
                   : new Date(ch?.end_date) || null,
               })?.length - 1;
           }
+          console.log(daysBetween, "fdf")
           const endDaysDiff = differenceInCalendarDays(endDate, stageEndDate);
           // Check if this channel already exists in prev
           const existingState = prev[index];
-          // console.log("startDateIndex", {daysBetween});
+          console.log("startDateIndex", index, ch.name);
           return existingState
             ? {
                 ...existingState,
@@ -578,7 +579,7 @@ const ResizableChannels = ({
               }
             : {
                 left: parentLeft,
-                width: Math.min(150, parentWidth), // Default width for new channels
+                width:  parentWidth, // Default width for new channels
               };
         });
 

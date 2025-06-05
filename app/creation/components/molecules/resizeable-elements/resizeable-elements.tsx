@@ -249,11 +249,11 @@ const ResizeableElements = ({
                     10
                 :  (screenWidth > contWidth
                   ? (screenWidth -350) / funnelData?.endDay
-                  : 50) * daysFromStart ;
+                  : 50) * daysFromStart + 5 ;
             } else if (rrange === "Week") {
               return daysBetween > 0
                 ? 50 * daysBetween + 10
-                : 50 * daysFromStart + 10;
+                : 50 * daysFromStart + 5;
             } else {
               let monthBaseWidth;
               // if (endMonth === 1) {
