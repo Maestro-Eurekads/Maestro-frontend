@@ -567,6 +567,12 @@ const MapFunnelStages = () => {
           t1="How many funnel stage(s) would you like to activate to achieve your objective?"
         />
       </div>
+      {/* Inserted phrase below the title */}
+      <div className="w-full flex justify-center">
+        <p className="text-gray-800 italic font-semibold text-base text-center max-w-2xl mt-3">
+          Let's start with your campaign structure. Feel free to customize the number and name of phases as your liking
+        </p>
+      </div>
       <div className="flex flex-col justify-center items-center gap-[32px] mt-[56px]">
         {customFunnels.map((funnel, index) => {
           const isSelected = campaignFormData.funnel_stages?.includes(funnel.name);
