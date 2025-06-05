@@ -48,8 +48,8 @@ const Header = ({ setIsOpen }) => {
     profile,
     setSelectedFilters,
   } = useCampaigns();
-  
-  const {setSelectedDates} = useSelectedDates()
+
+  const { setSelectedDates } = useSelectedDates()
 
   const { setActive, setSubStep } = useActive();
   const { fetchClientCampaign, fetchClientPOS } = useCampaignHook();
@@ -247,7 +247,7 @@ const Header = ({ setIsOpen }) => {
                   setSubStep(0);
                   setSelectedDates({
                     from: null,
-                    to:null
+                    to: null
                   })
                 }}>
                 <button

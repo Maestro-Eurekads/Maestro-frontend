@@ -30,6 +30,7 @@ interface Campaign {
     plan_name: string;
     client_approver: string;
     internal_approver: string;
+    approved_by: string;
   };
   budget_details: {
     value: number;
@@ -71,10 +72,12 @@ const Table = () => {
   const { setActive } = useActive();
   const [clientId, setClientId] = useState<string | null>(null);
 
+  console.log("clientCampaignData", clientCampaignData);
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const campaignArray = Array.isArray(clientCampaignData) ? clientCampaignData : [];
+  const campaignArray = Array?.isArray(clientCampaignData) ? clientCampaignData : [];
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = campaignArray.slice(indexOfFirstItem, indexOfLastItem);
@@ -301,10 +304,25 @@ const Table = () => {
                     <td className="py-[12px] px-[16px]">
                       <div className="flex items-center whitespace-nowrap gap-3">
                         <div className="view_content_table"> {/* @ts-ignore */}
-                          {getFirstLetters(data?.media_plan_details?.internal_approver[0]?.username || "-")}
+                          {/* @ts-ignore */}  {data?.media_plan_details?.approved_by?.length > 0 ? (
+                            data?.media_plan_details?.approved_by?.map((approver: any, idx: number) => (
+                              <span key={idx}>{getFirstLetters(approver?.username) || "-"}</span>
+                            ))
+                          ) : (
+                            <span>-</span>
+                          )}
+                        </div>
+                        <p>
 
-                        </div> {/* @ts-ignore */}
-                        <p>{data?.media_plan_details?.internal_approver[0]?.username || "-"}</p>
+                          {/* @ts-ignore */}{data?.media_plan_details?.approved_by?.length > 0 ? (
+                            data?.media_plan_details?.approved_by?.map((approver: any,
+                              idx: number) => (
+                              <span key={idx}>{approver?.username || "-"}</span>
+                            ))
+                          ) : (
+                            <span>-</span>
+                          )}
+                        </p>
                       </div>
                     </td>
                     <td className="py-[12px] px-[16px] w-[120px]">

@@ -85,6 +85,7 @@ const useCampaignHook = () => {
               campaign_builder: true,
               media_plan_details: {
                 populate: {
+                  approved_by:true,
                   internal_approver: {
                     populate: "user",
                   },
