@@ -1,4 +1,5 @@
 "use client";
+
 import Image from "next/image";
 import clsx from "clsx";
 import Continue from "../public/arrow-back-outline.svg";
@@ -39,8 +40,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const { active, setActive, subStep, setSubStep } = useActive();
   const { midcapEditing } = useEditing();
   const [triggerObjectiveError, setTriggerObjectiveError] = useState(false);
-  const [setupyournewcampaignError, setSetupyournewcampaignError] =
-    useState(false);
+  const [setupyournewcampaignError, setSetupyournewcampaignError] = useState(false);
   const [triggerFunnelError, setTriggerFunnelError] = useState(false);
   const [selectedDatesError, setSelectedDatesError] = useState(false);
   const [incompleteFieldsError, setIncompleteFieldsError] = useState(false);
@@ -49,16 +49,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [validateStep, setValidateStep] = useState(false);
   const { selectedDates } = useSelectedDates();
   const [triggerChannelMixError, setTriggerChannelMixError] = useState(false);
-  const [triggerBuyObjectiveError, setTriggerBuyObjectiveError] =
-    useState(false);
+  const [triggerBuyObjectiveError, setTriggerBuyObjectiveError] = useState(false);
   const [isBuyingObjectiveError, setIsBuyingObjectiveError] = useState(false);
   const [isEditingError, setIsEditingError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const [hasFormatSelected, setHasFormatSelected] = useState(false);
-  const { isFinancialApprover, isAgencyApprover, isAdmin } =
-    useUserPrivileges();
+  const { isFinancialApprover, isAgencyApprover, isAdmin } = useUserPrivileges();
   const {
     createCampaign,
     updateCampaign,
@@ -66,7 +64,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     campaignFormData,
     cId,
     getActiveCampaign,
-    copy,
     isEditingBuyingObjective,
     isStepZeroValid,
     setIsStepZeroValid,
@@ -76,7 +73,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     currencySign,
   } = useCampaigns();
 
-  // --- Persist format selection for active === 4 ---
   const hasProceededFromFormatStep = useRef(false);
 
   const validateFormatSelection = () => {
@@ -122,9 +118,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     return hasValidFormat;
   };
 
-  // console.log('campaignFormData-campaignFormData', campaignFormData)
-
-  // Only reset formats when entering active === 4 if the user has NOT already proceeded from step 4 with a valid format
   useEffect(() => {
     if (active === 4 && !hasProceededFromFormatStep.current) {
       setCampaignFormData((prev) => ({
@@ -133,14 +126,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           prev.channel_mix?.map((mix) => ({
             ...mix,
             social_media: mix.social_media?.map((p) => ({ ...p, format: [] })),
-            display_networks: mix.display_networks?.map((p) => ({
-              ...p,
-              format: [],
-            })),
-            search_engines: mix.search_engines?.map((p) => ({
-              ...p,
-              format: [],
-            })),
+            display_networks: mix.display_networks?.map((p) => ({ ...p, format: [] })),
+            search_engines: mix.search_engines?.map((p) => ({ ...p, format: [] })),
             streaming: mix.streaming?.map((p) => ({ ...p, format: [] })),
             ooh: mix.ooh?.map((p) => ({ ...p, format: [] })),
             broadcast: mix.broadcast?.map((p) => ({ ...p, format: [] })),
@@ -156,7 +143,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
   }, [active, setCampaignFormData]);
 
-  // Update hasFormatSelected and log state
   useEffect(() => {
     const isFormatSelected = validateFormatSelection();
     setHasFormatSelected(isFormatSelected);
@@ -171,10 +157,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
   useEffect(() => {
     if (typeof window !== "undefined" && cId) {
-      localStorage.setItem(
-        `triggerFormatError_${cId}`,
-        triggerFormatError.toString()
-      );
+      localStorage.setItem(`triggerFormatError_${cId}`, triggerFormatError.toString());
     }
   }, [triggerFormatError, cId]);
 
@@ -214,7 +197,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     triggerBuyObjectiveError,
     isBuyingObjectiveError,
     validateStep,
-    campaignFormData,
   ]);
 
   const validateBuyObjectiveSelection = () => {
@@ -256,7 +238,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     );
   };
 
-  // --- Custom back handler for active === 5 to persist step 4 if user had format selected and continued ---
   const handleBack = () => {
     if (active === 5 && hasProceededFromFormatStep.current) {
       setActive(4);
@@ -280,20 +261,16 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         let errorMessage = "";
         switch (midcapEditing.step) {
           case "Your channel mix":
-            errorMessage =
-              "Please confirm or cancel your channel mix changes before proceeding";
+            errorMessage = "Please confirm or cancel your channel mix changes before proceeding";
             break;
           case "Your funnel stages":
-            errorMessage =
-              "Please confirm or cancel your funnel changes before proceeding";
+            errorMessage = "Please confirm or cancel your funnel changes before proceeding";
             break;
           case "Your format selections":
-            errorMessage =
-              "Please confirm or cancel your format selection changes before proceeding";
+            errorMessage = "Please confirm or cancel your format selection changes before proceeding";
             break;
           case "Your Adset and Audiences":
-            errorMessage =
-              "Please confirm or cancel your Adset and Audiences changes before proceeding";
+            errorMessage = "Please confirm or cancel your Adset and Audiences changes before proceeding";
             break;
         }
         if (errorMessage) {
@@ -312,8 +289,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setIsBuyingObjectiveError(true);
         setAlert({
           variant: "error",
-          message:
-            "Please confirm or cancel your buying objective changes before proceeding",
+          message: "Please confirm or cancel your buying objective changes before proceeding",
           position: "bottom-right",
         });
         setLoading(false);
@@ -325,10 +301,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     let hasError = false;
 
     if (active === 1) {
-      if (
-        !campaignFormData?.funnel_stages ||
-        campaignFormData.funnel_stages.length === 0
-      ) {
+      if (!campaignFormData?.funnel_stages || campaignFormData.funnel_stages.length === 0) {
         setTriggerFunnelError(true);
         setAlert({
           variant: "error",
@@ -341,7 +314,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     if (active === 2) {
       const hasChannelSelected = validateChannelSelection();
-
       if (!hasChannelSelected) {
         setTriggerChannelMixError(true);
         setAlert({
@@ -419,8 +391,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setTriggerBuyObjectiveError(true);
         setAlert({
           variant: "error",
-          message:
-            "Please select and validate at least one channel with buy type and objective before proceeding!",
+          message: "Please select and validate at least one channel with buy type and objective!",
           position: "bottom-right",
         });
         hasError = true;
@@ -460,18 +431,21 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     const updateCampaignData = async (data) => {
       const calcPercent = Math.ceil((active / 10) * 100);
       try {
-        await updateCampaign({
+        const cleanedData = {
           ...data,
           progress_percent:
             campaignFormData?.progress_percent > calcPercent
               ? campaignFormData?.progress_percent
               : calcPercent,
-        });
-        await getActiveCampaign(data);
+        };
+        console.log("updateCampaignData payload:", JSON.stringify(cleanedData, null, 2));
+        await updateCampaign(cleanedData);
+        await getActiveCampaign(cId);
       } catch (error) {
+        console.error("updateCampaignData error:", error.response?.data || error.message);
         setAlert({
           variant: "error",
-          message: "Failed to update campaign data",
+          message: `Failed to update campaign data: ${error.message}`,
           position: "bottom-right",
         });
         throw error;
@@ -480,13 +454,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const cleanData = campaignData
       ? removeKeysRecursively(campaignData, [
-        "id",
-        "documentId",
-        "createdAt",
-        "publishedAt",
-        "updatedAt",
-        "_aggregated",
-      ])
+          "id",
+          "documentId",
+          "createdAt",
+          "publishedAt",
+          "updatedAt",
+          "_aggregated",
+        ])
       : {};
 
     const handleStepZero = async () => {
@@ -510,88 +484,56 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           value: campaignFormData?.budget_details_value,
         };
 
-        // Handle approver and client_approver as arrays of strings
-        // const internalApprovers = Array.isArray(campaignFormData?.approver)
-        //   ? campaignFormData.approver.filter((a) => a !== null && a !== undefined && a !== "")
-        //   : [];
-
-        // const clientApprovers = Array.isArray(campaignFormData?.client_approver)
-        //   ? campaignFormData.client_approver.filter((a) => a !== null && a !== undefined && a !== "")
-        //   : [];
-
-        // console.log(
-        //   "🚀 ~ handleStepZero ~ budgetDetails:", campaignFormData)
-
-        // Update campaignFormData with cleaned values and save to localStorage
         const cleanedFormData = {
           ...campaignFormData,
-          internal_approver: (campaignFormData?.internal_approver_ids || []).map(String),
-          client_approver: (campaignFormData?.client_approver_ids || []).map(String),
           budget_details_currency: {
             id: budgetDetails.currency,
             value: budgetDetails.currency,
             label:
-              selectCurrency.find((c) => c.value === budgetDetails.currency)
-                ?.label || budgetDetails.currency,
+              selectCurrency.find((c) => c.value === budgetDetails.currency)?.label ||
+              budgetDetails.currency,
           },
         };
         setCampaignFormData(cleanedFormData);
-        localStorage.setItem(
-          "campaignFormData",
-          JSON.stringify(cleanedFormData)
-        );
+        localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData));
 
         if (cId && campaignData) {
           const updatedData = {
-            ...removeKeysRecursively(campaignData, [
-              "id",
-              "documentId",
-              "createdAt",
-              "publishedAt",
-              "updatedAt",
-              "_aggregated",
-            ]),
+            ...cleanData,
             client: campaignFormData?.client_selection?.id,
             client_selection: {
               client: campaignFormData?.client_selection?.value,
-              level_1: campaignFormData?.level_1?.id,
-              level_2: campaignFormData?.level_2?.id,
-              level_3: campaignFormData?.level_3?.id,
+              level_1: campaignFormData?.level_1?.id || null,
+              level_2: campaignFormData?.level_2?.id || null,
+              level_3: campaignFormData?.level_3?.id || null,
             },
             media_plan_details: {
-              plan_name: campaignFormData?.media_plan,
-              internal_approver: (campaignFormData?.internal_approver_ids || []).map(String),
-              client_approver: (campaignFormData?.client_approver_ids || []).map(String),
+              plan_name: campaignFormData?.media_plan || null,
+              internal_approver: (campaignFormData?.internal_approver || [])
+                .filter((a) => a?.value)
+                .map((a) => String(a.value)),
+              client_approver: (campaignFormData?.client_approver || [])
+                .filter((a) => a?.value)
+                .map((a) => String(a.value)),
             },
             budget_details: budgetDetails,
           };
 
           await updateCampaign(updatedData);
-
           setActive((prev) => prev + 1);
-          setAlert({
-            variant: "success",
-            message: "Campaign updated successfully!",
-            position: "bottom-right",
-          });
         } else {
           const res = await createCampaign();
           const url = new URL(window.location.href);
           url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
           window.history.pushState({}, "", url.toString());
           await getActiveCampaign(res?.data?.data.documentId);
-
           setActive((prev) => prev + 1);
-          setAlert({
-            variant: "success",
-            message: "Campaign created successfully!",
-            position: "bottom-right",
-          });
         }
       } catch (error) {
+        console.error("handleStepZero error:", error.response?.data || error.message);
         setAlert({
           variant: "error",
-          message: "Something went wrong. Please try again.",
+          message: `Something went wrong: ${error.message}`,
           position: "bottom-right",
         });
       } finally {
@@ -600,136 +542,245 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     };
 
     const handleStepTwo = async () => {
-      if (!campaignData || !cId) return;
-      await updateCampaignData({
-        ...cleanData,
-        funnel_stages: campaignFormData?.funnel_stages,
-        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+      if (!cId || !campaignData) {
+        setAlert({
+          variant: "error",
+          message: "Campaign ID or data is missing. Please try again.",
+          position: "bottom-right",
+        });
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const cleanedChannelMix = removeKeysRecursively(campaignFormData?.channel_mix || [], [
           "id",
           "isValidated",
           "formatValidated",
           "validatedStages",
           "documentId",
           "_aggregated",
-        ]),
-        custom_funnels: campaignFormData?.custom_funnels,
-        funnel_type: campaignFormData?.funnel_type,
-      });
+        ]);
+
+        const updatedData = {
+          funnel_stages: campaignFormData?.funnel_stages || [],
+          channel_mix: cleanedChannelMix,
+          custom_funnels: campaignFormData?.custom_funnels || null,
+          funnel_type: campaignFormData?.funnel_type || null,
+        };
+
+        await updateCampaignData(updatedData);
+        setActive((prev) => prev + 1);
+      } catch (error) {
+        console.error("handleStepTwo error:", error.response?.data || error.message);
+        setAlert({
+          variant: "error",
+          message: `Failed to update funnel stages: ${error.message}`,
+          position: "bottom-right",
+        });
+        hasError = true;
+      }
     };
 
     const handleStepThree = async () => {
-      if (!campaignData || !cId) return;
-      await updateCampaignData({
-        ...cleanData,
-        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+      if (!cId || !campaignData) {
+        setAlert({
+          variant: "error",
+          message: "Campaign ID or data is missing. Please try again.",
+          position: "bottom-right",
+        });
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const cleanedChannelMix = removeKeysRecursively(campaignFormData?.channel_mix || [], [
           "id",
           "isValidated",
           "validatedStages",
           "documentId",
           "_aggregated",
-        ]),
-      });
+        ]);
+
+        const updatedData = {
+          channel_mix: cleanedChannelMix,
+        };
+
+        await updateCampaignData(updatedData);
+        setActive((prev) => prev + 1);
+      } catch (error) {
+        console.error("handleStepThree error:", error.response?.data || error.message);
+        setAlert({
+          variant: "error",
+          message: `Failed to update channel mix: ${error.message}`,
+          position: "bottom-right",
+        });
+        hasError = true;
+      }
     };
 
     const handleStepFour = async () => {
-      if (!campaignData || !cId) return;
-      let updatedCampaignFormData = campaignFormData;
+      if (!cId || !campaignData) {
+        setAlert({
+          variant: "error",
+          message: "Campaign ID or data is missing. Please try again.",
+          position: "bottom-right",
+        });
+        setLoading(false);
+        return;
+      }
 
-      if (active > 4) {
+      try {
+        let updatedCampaignFormData = campaignFormData;
+        if (active > 4) {
+          const obj = extractObjectives(campaignFormData);
+          updatedCampaignFormData = {
+            ...campaignFormData,
+            table_headers: obj || {},
+          };
+          setCampaignFormData(updatedCampaignFormData);
+        }
+
+        const cleanedChannelMix = removeKeysRecursively(
+          updatedCampaignFormData?.channel_mix || [],
+          ["id", "isValidated", "formatValidated", "validatedStages", "documentId", "_aggregated"]
+        );
+
+        const updatedData = {
+          channel_mix: cleanedChannelMix,
+          table_headers: updatedCampaignFormData?.table_headers || {},
+        };
+
+        await updateCampaignData(updatedData);
+        setActive((prev) => prev + 1);
+      } catch (error) {
+        console.error("handleStepFour error:", error.response?.data || error.message);
+        setAlert({
+          variant: "error",
+          message: `Failed to update format selections: ${error.message}`,
+          position: "bottom-right",
+        });
+        hasError = true;
+      }
+    };
+
+    const handleStepSeven = async () => {
+      if (!cId || !campaignData) {
+        setAlert({
+          variant: "error",
+          message: "Campaign ID or data is missing. Please try again.",
+          position: "bottom-right",
+        });
+        setLoading(false);
+        return;
+      }
+
+      try {
+        let updatedCampaignFormData = campaignFormData;
         const obj = extractObjectives(campaignFormData);
-        // console.log("🚀 ~ handleStepFour ~ obj:", obj);
         updatedCampaignFormData = {
           ...campaignFormData,
           table_headers: obj || {},
         };
         setCampaignFormData(updatedCampaignFormData);
+
+        const cleanedChannelMix = removeKeysRecursively(
+          updatedCampaignFormData?.channel_mix || [],
+          ["id", "isValidated", "documentId", "_aggregated"]
+        );
+
+        const updatedData = {
+          funnel_stages: updatedCampaignFormData?.funnel_stages || [],
+          channel_mix: cleanedChannelMix,
+          campaign_budget: removeKeysRecursively(
+            updatedCampaignFormData?.campaign_budget || {},
+            ["id"]
+          ),
+          goal_level: updatedCampaignFormData?.goal_level || null,
+          table_headers: updatedCampaignFormData?.table_headers || {},
+        };
+
+        await updateCampaignData(updatedData);
+        setActive((prev) => prev + 1);
+      } catch (error) {
+        console.error("handleStepSeven error:", error.response?.data || error.message);
+        setAlert({
+          variant: "error",
+          message: `Failed to update campaign budget and goals: ${error.message}`,
+          position: "bottom-right",
+        });
+        hasError = true;
       }
-
-      await updateCampaignData({
-        ...cleanData,
-        channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
-          "id",
-          "isValidated",
-          "formatValidated",
-          "validatedStages",
-          "documentId",
-          "_aggregated",
-        ]),
-        table_headers: updatedCampaignFormData?.table_headers,
-      });
-    };
-
-    const handleStepSeven = async () => {
-      if (!campaignData) return;
-      let updatedCampaignFormData = campaignFormData;
-
-
-      const obj = extractObjectives(campaignFormData);
-      // console.log("🚀 ~ handleStepFour ~ obj:", obj);
-      updatedCampaignFormData = {
-        ...campaignFormData,
-        table_headers: obj || {},
-      };
-      setCampaignFormData(updatedCampaignFormData);
-
-      await updateCampaignData({
-        ...cleanData,
-        funnel_stages: updatedCampaignFormData?.funnel_stages,
-        channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
-          "id",
-          "isValidated",
-          "documentId",
-          "_aggregated",
-        ]),
-        campaign_budget: removeKeysRecursively(
-          updatedCampaignFormData?.campaign_budget,
-          ["id"]
-        ),
-        goal_level: updatedCampaignFormData?.goal_level,
-        table_headers: updatedCampaignFormData?.table_headers,
-      });
     };
 
     const handleDateStep = async () => {
-      if (!campaignData) return;
-      const currentYear = new Date().getFullYear();
-      const campaign_timeline_start_date =
-        dayjs(
-          new Date(
-            currentYear,
-            selectedDates?.from?.month,
-            selectedDates.from?.day
-          )
-        ).format("YYYY-MM-DD") ||
-        campaignFormData?.campaign_timeline_start_date;
+      if (!cId || !campaignData) {
+        setAlert({
+          variant: "error",
+          message: "Campaign ID or data is missing. Please try again.",
+          position: "bottom-right",
+        });
+        setLoading(false);
+        return;
+      }
 
-      const campaign_timeline_end_date =
-        dayjs(
-          new Date(currentYear, selectedDates?.to?.month, selectedDates.to?.day)
-        ).format("YYYY-MM-DD") || campaignFormData?.campaign_timeline_end_date;
-      await updateCampaignData({
-        ...cleanData,
-        campaign_timeline_start_date:
-          campaign_timeline_start_date === "Invalid Date"
-            ? campaignFormData?.campaign_timeline_start_date
-            : campaign_timeline_start_date,
-        campaign_timeline_end_date:
-          campaign_timeline_end_date === "Invalid Date"
-            ? campaignFormData?.campaign_timeline_end_date
-            : campaign_timeline_end_date,
-        funnel_stages: campaignFormData?.funnel_stages,
-        channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
-          "id",
-          "isValidated",
-          "documentId",
-          "_aggregated",
-        ]),
-        campaign_budget: removeKeysRecursively(
-          campaignFormData?.campaign_budget,
-          ["id"]
-        ),
-        goal_level: campaignFormData?.goal_level,
-      });
+      try {
+        const currentYear = new Date().getFullYear();
+        let campaign_timeline_start_date =
+          campaignFormData?.campaign_timeline_start_date ||
+          (selectedDates?.from?.month !== undefined &&
+          selectedDates?.from?.day !== undefined
+            ? dayjs(
+                new Date(currentYear, selectedDates?.from?.month, selectedDates?.from?.day)
+              ).format("YYYY-MM-DD")
+            : undefined);
+
+        let campaign_timeline_end_date =
+          campaignFormData?.campaign_timeline_end_date ||
+          (selectedDates?.to?.month !== undefined &&
+          selectedDates?.to?.day !== undefined
+            ? dayjs(
+                new Date(currentYear, selectedDates?.to?.month, selectedDates?.to?.day)
+              ).format("YYYY-MM-DD")
+            : null);
+
+        if (campaign_timeline_start_date === "Invalid Date") {
+          campaign_timeline_start_date = undefined;
+        }
+        if (campaign_timeline_end_date === "Invalid Date") {
+          campaign_timeline_end_date = null;
+        }
+
+        const updatedData = {
+          campaign_timeline_start_date,
+          campaign_timeline_end_date,
+          funnel_stages: campaignFormData?.funnel_stages || [],
+          channel_mix: removeKeysRecursively(campaignFormData?.channel_mix || [], [
+            "id",
+            "isValidated",
+            "documentId",
+            "_aggregated",
+          ]),
+          campaign_budget: removeKeysRecursively(campaignFormData?.campaign_budget || [], ["id"]),
+          goal_level: campaignFormData?.goal_level || null,
+        };
+
+        await updateCampaignData(updatedData);
+        if (subStep < 1) {
+          setSubStep((prev) => prev + 1);
+        } else {
+          setActive((prev) => prev + 1);
+          setSubStep(0);
+        }
+      } catch (error) {
+        console.error("handleDateError:", JSON.stringify(error.response?.data || error.message));
+        setAlert({
+          variant: "error",
+          message: `Failed to update campaign timeline: ${error.message}`,
+          position: "bottom-right",
+        });
+        hasError = true;
+      }
     };
 
     try {
@@ -749,20 +800,16 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         await handleDateStep();
       } else if (active > 3 && subStep < 2) {
         await handleStepFour();
-      }
-
-      if (active === 7) {
-        if (subStep < 1) {
-          setSubStep((prev) => prev + 1);
-        } else {
-          setActive((prev) => prev + 1);
-          setSubStep(0);
-        }
-      } else if (active !== 0) {
+      } else {
         setActive((prev) => prev + 1);
       }
     } catch (error) {
-      console.error("Error in handleContinue:", error);
+      console.error("handleContinue error:", error.response?.data || error.message);
+      setAlert({
+        variant: "error",
+        message: `Error: ${error.message}`,
+        position: "bottom-right",
+      });
     } finally {
       setLoading(false);
     }
@@ -834,8 +881,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         <AlertMain
           alert={{
             variant: "error",
-            message:
-              "Please select and validate at least one channel with buy type and objective!",
+            message: "Please select and validate at least one channel with buy type and objective!",
             position: "bottom-right",
           }}
         />
@@ -888,9 +934,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                 active === 10 && "opacity-50 cursor-not-allowed",
                 active < 10 && "hover:bg-blue-500"
               )}
-              onClick={
-                active === 4 && !hasFormatSelected ? handleSkip : handleContinue
-              }
+              onClick={active === 4 && !hasFormatSelected ? handleSkip : handleContinue}
               disabled={active === 10}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
@@ -901,13 +945,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                 </center>
               ) : (
                 <>
-                  <p>
-                    {active === 0
-                      ? "Start"
-                      : active === 4 && !hasFormatSelected
-                        ? "Skip"
-                        : "Continue"}
-                  </p>
+                  <p>{active === 0 ? "Start" : active === 4 && !hasFormatSelected ? "Skip" : "Continue"}</p>
                   <Image src={Continue} alt="Continue" />
                 </>
               )}

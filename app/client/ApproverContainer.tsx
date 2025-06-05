@@ -11,6 +11,8 @@ const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 	const dispatch = useAppDispatch();
 	const id = session?.user?.id || null;
 
+	console.log("ApproverContainer campaign:", campaign);
+
 	useEffect(() => {
 		if (id) {
 			dispatch(getSignedApproval(id));

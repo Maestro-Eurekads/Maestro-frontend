@@ -48,6 +48,7 @@ export default function PlatformSpending() {
       const stageName = stage?.funnel_stage;
       if (!stageName) {
         // console.log("Skipping stage with no funnel_stage");
+        
         return;
       }
 

@@ -40,11 +40,11 @@ export const calculateLinkClicks: FormulaFunction = (impression, ctr) => {
 };
 
 export const calculateCPC: FormulaFunction = (budget, linkClicks) => {
-  return parseFloat((budget / linkClicks).toFixed(2));
+  return Number((budget / linkClicks));
 };
 
 export const calculateLands: FormulaFunction = (linkClicks, clr) => {
-  return parseFloat((linkClicks * clr).toFixed(2));
+  return Number((linkClicks * clr));
 };
 
 export const calculateCPL: FormulaFunction = (budget, lands) => {
