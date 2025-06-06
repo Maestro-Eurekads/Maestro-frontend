@@ -130,7 +130,7 @@ const ResizableChannels = ({
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     const dailyWidth = calculateDailyWidth(containerWidth, endMonth);
-    const baseStep = dailyWidth;
+    const baseStep = rrange === "Month" ? dailyWidth: 50;
     const snapPoints = [];
     let currentSnap = 0;
     let step = baseStep;
@@ -193,7 +193,7 @@ const ResizableChannels = ({
       const rawNewWidth = startWidth + (e.clientX - startX);
       const rightEdgePos = startPos + rawNewWidth;
       const snappedRightEdge = snapToTimeline(rightEdgePos, containerRect.width);
-      newWidth = Math.max(50, snappedRightEdge - startPos);
+      newWidth = Math.max(50, snappedRightEdge - startPos + 10);
     }
 
     if (newPos + newWidth > maxX) {
@@ -616,7 +616,7 @@ const ResizableChannels = ({
                     : parentWidth,
                   rrange === "Day"
                     ? daysBetween > 0
-                      ? 50 * daysBetween + 65
+                      ? 50 * daysBetween + 60
                       : parentWidth
                     : rrange === "Week"
                     ? daysBetween > 0
@@ -817,7 +817,7 @@ const ResizableChannels = ({
                   left: `${channelState[index]?.left || parentLeft}px`,
                   width: `${
                     channelState[index]?.width +
-                      (disableDrag ? 40 : rrange === "Month" ? 40 : 30) || 150
+                      (disableDrag ? 40 : rrange === "Month" ? 40 : 40) || 150
                   }px`,
                   backgroundColor: channel.bg,
                   color: channel.color,
@@ -894,7 +894,7 @@ const ResizableChannels = ({
                     left: `${
                       (channelState[index]?.left || parentLeft) +
                       (channelState[index]?.width +
-                        (rrange === "Month" ? 30 : 15) || 150)
+                        (rrange === "Month" ? 30 : 20) || 150)
                     }px`,
                     backgroundColor: channel.color,
                   }}
