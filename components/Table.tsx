@@ -239,7 +239,7 @@ const Table = () => {
                     }}
                     className="cursor-pointer"
                   >
-                    <td className="whitespace-nowrap py-[12px] px-[16px] break-words max-w-[200px]">
+                    <td className="whitespace-nowrap py-[12px] px-[16px] ">
                       {data?.media_plan_details?.plan_name || "N/A"} -{" "}
                       {data?.progress_percent < 100 ? "Running" : "Completed"}
                     </td>
