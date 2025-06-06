@@ -301,8 +301,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             },
             media_plan_details: {
               plan_name: campaignFormData?.media_plan,
-              internal_approver: campaignFormData?.internal_approver?.map((ff)=>ff?.value),
-              client_approver: campaignFormData?.client_approver?.map((ff)=>ff?.value),
+              internal_approver: campaignFormData?.internal_approver?.map((ff) => ff?.value),
+              client_approver: campaignFormData?.client_approver?.map((ff) => ff?.value),
             },
           },
         },
@@ -362,7 +362,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         );
         return response;
       } catch (error) {
-        console.error("Error updating campaign:", error);
+        // console.error("Error updating campaign:", error);
         throw error;
       } finally {
         setLoading(false);

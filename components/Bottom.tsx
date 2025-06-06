@@ -454,13 +454,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     const cleanData = campaignData
       ? removeKeysRecursively(campaignData, [
-          "id",
-          "documentId",
-          "createdAt",
-          "publishedAt",
-          "updatedAt",
-          "_aggregated",
-        ])
+        "id",
+        "documentId",
+        "createdAt",
+        "publishedAt",
+        "updatedAt",
+        "_aggregated",
+      ])
       : {};
 
     const handleStepZero = async () => {
@@ -729,19 +729,19 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         let campaign_timeline_start_date =
           campaignFormData?.campaign_timeline_start_date ||
           (selectedDates?.from?.month !== undefined &&
-          selectedDates?.from?.day !== undefined
+            selectedDates?.from?.day !== undefined
             ? dayjs(
-                new Date(currentYear, selectedDates?.from?.month, selectedDates?.from?.day)
-              ).format("YYYY-MM-DD")
+              new Date(currentYear, selectedDates?.from?.month, selectedDates?.from?.day)
+            ).format("YYYY-MM-DD")
             : undefined);
 
         let campaign_timeline_end_date =
           campaignFormData?.campaign_timeline_end_date ||
           (selectedDates?.to?.month !== undefined &&
-          selectedDates?.to?.day !== undefined
+            selectedDates?.to?.day !== undefined
             ? dayjs(
-                new Date(currentYear, selectedDates?.to?.month, selectedDates?.to?.day)
-              ).format("YYYY-MM-DD")
+              new Date(currentYear, selectedDates?.to?.month, selectedDates?.to?.day)
+            ).format("YYYY-MM-DD")
             : null);
 
         if (campaign_timeline_start_date === "Invalid Date") {
@@ -908,11 +908,12 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           isFinancialApprover || isAgencyApprover || isAdmin ? (
             <button
               className="bottom_black_next_btn hover:bg-blue-500"
-              onClick={() =>
-                campaignFormData?.isApprove
-                  ? toast.error("This Plan has already been approved!")
-                  : setIsOpen(true)
-              }
+              // onClick={() =>
+              //   campaignFormData?.isApprove
+              //     ? toast.error("This Plan has already been approved!")
+              //     : setIsOpen(true)
+              // }
+              onClick={() => setIsOpen(true)}
             >
               <p>Confirm</p>
               <Image src={Continue} alt="Continue" />
