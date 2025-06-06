@@ -57,6 +57,8 @@ const CampaignContext = createContext<any>(null);
 export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const { data: session } = useSession();
   const id = (session?.user as { id?: string })?.id;
+  const jwt =
+    (session?.user as { data?: { jwt: string } })?.data?.jwt
   const campaign_builder = session?.user;
   const [campaignFormData, setCampaignFormData] = useState(getInitialState());
   const [campaignData, setCampaignData] = useState(null);
@@ -150,7 +152,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   //           },
   //         },
   //         headers: {
-  //           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+  //           Authorization: `Bearer ${jwt}`,
   //         },
   //       }
   //     );
@@ -207,7 +209,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
                       populate: "user",
                     },
                     client_approver: {
-                      populate: "user"
+                      populate: "user",
                     },
                   },
                 },
@@ -221,7 +223,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
               },
             },
             headers: {
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+              Authorization: `Bearer ${jwt}`,
             },
           }
         );
@@ -272,7 +274,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           campaign_builder: data?.campaign_builder ?? prev.campaign_builder,
           user: data?.user ?? prev.user,
           campaign_id: data?.id ?? prev.id,
-          table_headers: ((data?.table_headers || obj || {}) ?? (prev?.table_headers || obj)) || {},
+          table_headers:
+            ((data?.table_headers || obj || {}) ??
+              (prev?.table_headers || obj)) ||
+            {},
         }));
       } catch (error) {
         console.error("Error fetching active campaign:", error);
@@ -301,20 +306,24 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             },
             media_plan_details: {
               plan_name: campaignFormData?.media_plan,
-              internal_approver: campaignFormData?.internal_approver?.map((ff) => ff?.value),
-              client_approver: campaignFormData?.client_approver?.map((ff) => ff?.value),
+              internal_approver: campaignFormData?.internal_approver?.map(
+                (ff) => ff?.value
+              ),
+              client_approver: campaignFormData?.client_approver?.map(
+                (ff) => ff?.value
+              ),
             },
           },
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
       await updateUsersWithCampaign(
         clientUsers?.map((uu) => uu?.id),
-        response?.data?.data?.id
+        response?.data?.data?.id, jwt
       );
       return response;
     } catch (error) {
@@ -333,7 +342,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${id}?populate=*`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
@@ -356,7 +365,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           { data },
           {
             headers: {
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+              Authorization: `Bearer ${jwt}`,
             },
           }
         );
@@ -379,7 +388,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}?populate=*`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
@@ -419,7 +428,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign-objectives?populate=*`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
@@ -445,7 +454,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/buy-objectives?populate=*`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
@@ -464,7 +473,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/buy-types?populate=*`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
@@ -488,7 +497,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
@@ -559,7 +568,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/platform-lists?pagination[pageSize]=200`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
@@ -603,8 +612,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         console.error("Error during initial data fetch:", error);
       }
     };
-
-    fetchInitialData();
+    if (jwt) {
+      fetchInitialData();
+    }
   }, [
     cId,
     id,
@@ -614,6 +624,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     fetchObjectives,
     fetchPlatformLists,
     fetchBuyTypes,
+    jwt,
   ]);
 
   const contextValue = useMemo(
@@ -671,6 +682,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       user,
       setClientUsers,
       clientUsers,
+      jwt
     }),
     [
       getUserByUserType,

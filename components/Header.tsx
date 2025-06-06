@@ -47,6 +47,7 @@ const Header = ({ setIsOpen }) => {
     setFilterOptions,
     profile,
     setSelectedFilters,
+    jwt
   } = useCampaigns();
 
   const { setSelectedDates } = useSelectedDates()
@@ -63,7 +64,7 @@ const Header = ({ setIsOpen }) => {
   const clients: any = getCreateClientData;
 
   useEffect(() => {
-    dispatch(getCreateClient(!isAdmin ? userType : null));
+    dispatch(getCreateClient({userId: !isAdmin ? userType : null, jwt}));
 
     const timer = setTimeout(() => {
       setAlert(null);

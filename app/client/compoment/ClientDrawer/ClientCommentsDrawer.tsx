@@ -43,6 +43,7 @@ const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
 	const [alert, setAlert] = useState(null);
 	const [commentColors, setCommentColors] = useState({});
 	const commentId = campaign?.documentId
+	const {jwt} = useCampaigns()
 
 
 
@@ -117,8 +118,11 @@ const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
 	}, [createCommentsError, replyError]);
 
 	useEffect(() => {
-		dispatch(getComment(commentId));
-	}, [dispatch]);
+		if(jwt){
+
+			dispatch(getComment(commentId, jwt));
+		}
+	}, [dispatch, jwt]);
 
 
 

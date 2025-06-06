@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const addNewClient = async (data: any) => {
+export const addNewClient = async (data: any, jwt:any) => {
   return await axios.post(
     `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients`,
     {
@@ -8,13 +8,13 @@ export const addNewClient = async (data: any) => {
     },
     {
       headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+        Authorization: `Bearer ${jwt}`,
       },
     }
   );
 };
 
-export const addClientUser = async (userData: any) => {
+export const addClientUser = async (userData: any, jwt:any) => {
   return await axios.post(
     `${process.env.NEXT_PUBLIC_STRAPI_URL}/auth/local/register`,
     {
@@ -22,13 +22,13 @@ export const addClientUser = async (userData: any) => {
     },
     {
       headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+        Authorization: `Bearer ${jwt}`,
       },
     }
   );
 };
 
-export const checkExisitingEmails = async (emailList: any) => {
+export const checkExisitingEmails = async (emailList: any, jwt:any) => {
   const response = await axios.get(
     `${process.env.NEXT_PUBLIC_STRAPI_URL}/users`,
     {
@@ -40,14 +40,14 @@ export const checkExisitingEmails = async (emailList: any) => {
         },
       },
       headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+        Authorization: `Bearer ${jwt}`,
       },
     }
   );
   return response.data;
 };
 
-export const updateUsersWithCampaign = async (userIds: string[], campaignId: string) => {
+export const updateUsersWithCampaign = async (userIds: string[], campaignId: string, jwt:any) => {
   const updatePromises = userIds.map((userId) =>
     axios.put(
       `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${userId}`,
@@ -56,7 +56,7 @@ export const updateUsersWithCampaign = async (userIds: string[], campaignId: str
       },
       {
         headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          Authorization: `Bearer ${jwt}`,
         },
       }
     )

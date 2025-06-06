@@ -72,6 +72,7 @@ const OverviewofyourCampaign = () => {
     campaignData,
     isLoading: isLoadingCampaign,
     campaignFormData,
+    jwt
   } = useCampaigns();
   const dispatch = useAppDispatch();
   const query = useSearchParams();
@@ -111,7 +112,7 @@ const OverviewofyourCampaign = () => {
 
   const handleDrawerOpen = () => {
     setIsDrawerOpen(true);
-    dispatch(getComment(commentId));
+    dispatch(getComment(commentId, jwt));
     setClose(true);
   };
   const handleOpenComment = () => {

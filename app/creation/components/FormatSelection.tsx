@@ -155,9 +155,10 @@ const MediaOption = ({
 }) => {
   const [localPreviews, setLocalPreviews] = useState<Array<{ id: string; url: string }>>([]);
   const [deletingPreviewId, setDeletingPreviewId] = useState<string | null>(null);
+  const {jwt} = useCampaigns()
 
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
-  const STRAPI_TOKEN = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
+  const STRAPI_TOKEN = jwt;
 
   // Track previews before and after deletion to show toast immediately when UI is removed
   const [prevPreviews, setPrevPreviews] = useState<Array<{ id: string; url: string }>>([]);
@@ -872,10 +873,10 @@ export const Platforms = ({
   const [isUpdatingStrapi, setIsUpdatingStrapi] = useState(false);
   const [completedDeletions, setCompletedDeletions] = useState<Set<string>>(new Set());
 
-  const { campaignFormData, setCampaignFormData, updateCampaign, campaignData } = useCampaigns();
+  const { campaignFormData, setCampaignFormData, updateCampaign, campaignData, jwt } = useCampaigns();
 
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
-  const STRAPI_TOKEN = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
+  const STRAPI_TOKEN = jwt;
 
   useEffect(() => {
     const quantitiesKey = `quantities_${stageName}_${view}`;

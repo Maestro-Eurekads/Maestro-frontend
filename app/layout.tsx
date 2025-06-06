@@ -72,15 +72,17 @@ export default async function RootLayout({
       </head>
       <body className={`${roboto.variable} ${inter.variable} antialiased`}>
         <Toaster richColors position="bottom-right" />
+
         <NewProvider session={session}>
           <Suspense>
+            <CampaignProvider>
             <ClientCampaignProvider>
               <VersionApprovalProvider>
                 <CommentProvider>
                   <KpiProvider>
                     <VerificationProvider>
                       <CampaignSelectionProvider>
-                        <CampaignProvider>
+                        
                           <DashboardDateRangeProvider>
                             <DateRangeProvider>
                               <SelectedDatesProvider>
@@ -97,13 +99,14 @@ export default async function RootLayout({
                               </SelectedDatesProvider>
                             </DateRangeProvider>
                           </DashboardDateRangeProvider>
-                        </CampaignProvider>
+                        
                       </CampaignSelectionProvider>
                     </VerificationProvider>
                   </KpiProvider>
                 </CommentProvider>
               </VersionApprovalProvider>
             </ClientCampaignProvider>
+            </CampaignProvider>
           </Suspense>
         </NewProvider>
       </body>

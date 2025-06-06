@@ -51,7 +51,7 @@ const ClientView = () => {
 	const { isDrawerOpen, setIsDrawerOpen, isCreateOpen, setClose, modalOpen, setModalOpen, selected, isOpen, setIsOpen } = useComments();
 	const [generalComment, setGeneralComment] = useState(false);
 	const [active, setActive] = useState("Timeline view");
-	const { clientCampaignData, campaignData, getActiveCampaign, campaignFormData } = useCampaigns();
+	const { clientCampaignData, campaignData, getActiveCampaign, campaignFormData, jwt } = useCampaigns();
 	const { data, campaignDetails, isLoadingCampaign } = useAppSelector((state) => state.comment);
 	const comments: Comment[] = data
 		?.filter((comment: Comment) => comment?.addcomment_as !== "Internal")
@@ -95,19 +95,19 @@ const ClientView = () => {
 	}, [clientId]);
 
 	useEffect(() => {
-		if (selected) {
+		if (selected && jwt) {
 			dispatch(getCampaignById({ clientId: clientId, campaignId: selected }));
-			dispatch(getComment(commentId, client_commentId));
+			dispatch(getComment(commentId, jwt, client_commentId));
 			dispatch(getGeneralComment(commentId));
 		}
-	}, [selected, commentId, client_commentId, clientId]);
+	}, [selected, commentId, client_commentId, clientId, jwt]);
 
 
 
 
 	const handleDrawerOpen = () => {
 		setIsDrawerOpen(true);
-		dispatch(getComment(commentId, client_commentId));
+		dispatch(getComment(commentId, jwt, client_commentId));
 		setClose(true)
 	}
 

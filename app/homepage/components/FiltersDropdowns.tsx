@@ -1,18 +1,18 @@
-"use client"
-import { useState, useRef, useEffect, useMemo } from "react"
-import down from "../../../public/down.svg"
-import Image from "next/image"
-import { BiX } from "react-icons/bi"
-import { useCampaigns } from "app/utils/CampaignsContext"
-import { fetchFilteredCampaigns } from "app/utils/campaign-filter-utils"
-import { toast, Toaster } from "react-hot-toast"
-import { useAppDispatch } from "store/useStore"
-import { getCreateClient } from "features/Client/clientSlice"
-import { defaultFilters } from "components/data"
-import { fetchFilteredCampaignsSub } from "app/utils/campaign-filter-utils-sub"
-import { useSession } from "next-auth/react"
-import { FilterState } from "app/utils/useCampaignFilters"
-import { useUserPrivileges } from "utils/userPrivileges"
+"use client";
+import { useState, useRef, useEffect, useMemo } from "react";
+import down from "../../../public/down.svg";
+import Image from "next/image";
+import { BiX } from "react-icons/bi";
+import { useCampaigns } from "app/utils/CampaignsContext";
+import { fetchFilteredCampaigns } from "app/utils/campaign-filter-utils";
+import { toast, Toaster } from "react-hot-toast";
+import { useAppDispatch } from "store/useStore";
+import { getCreateClient } from "features/Client/clientSlice";
+import { defaultFilters } from "components/data";
+import { fetchFilteredCampaignsSub } from "app/utils/campaign-filter-utils-sub";
+import { useSession } from "next-auth/react";
+import { FilterState } from "app/utils/useCampaignFilters";
+import { useUserPrivileges } from "utils/userPrivileges";
 
 // Scrollbar CSS
 const scrollbarStyles = `
@@ -30,46 +30,53 @@ const scrollbarStyles = `
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: #a1a1a1;
   }
-`
+`;
 
 type Props = {
-  hideTitle?: boolean,
-  router: any // Replace 'any' with the appropriate type if known
-}
+  hideTitle?: boolean;
+  router: any; // Replace 'any' with the appropriate type if known
+};
 
-const Dropdown = ({ label, options, selectedFilters, handleSelect, isDisabled = false }) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const dropdownRef = useRef(null)
+const Dropdown = ({
+  label,
+  options,
+  selectedFilters,
+  handleSelect,
+  isDisabled = false,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const toggleDropdown = () => {
     if (!isDisabled) {
-      setIsOpen(!isOpen)
+      setIsOpen(!isOpen);
     } else {
-      toast.error("Please select a year first")
+      toast.error("Please select a year first");
     }
-  }
+  };
 
   const handleOptionSelect = (option) => {
-    handleSelect(label.toLowerCase(), option)
-    setIsOpen(false)
-  }
+    handleSelect(label.toLowerCase(), option);
+    setIsOpen(false);
+  };
 
   const handleClickOutside = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-      setIsOpen(false)
+      setIsOpen(false);
     }
-  }
+  };
 
   useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <div className="relative" ref={dropdownRef}>
       <div
-        className={`flex items-center gap-3 px-4 py-2 whitespace-nowrap h-[40px] border border-[#EFEFEF] rounded-[10px] cursor-pointer ${isDisabled ? "opacity-60" : ""
-          }`}
+        className={`flex items-center gap-3 px-4 py-2 whitespace-nowrap h-[40px] border border-[#EFEFEF] rounded-[10px] cursor-pointer ${
+          isDisabled ? "opacity-60" : ""
+        }`}
         onClick={toggleDropdown}
       >
         <span className="text-gray-600 capitalize">
@@ -82,7 +89,11 @@ const Dropdown = ({ label, options, selectedFilters, handleSelect, isDisabled = 
 
       {isOpen && (
         <div className="absolute w-full bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-2 z-10">
-          <div className={`max-h-[200px] overflow-y-auto ${label === "Select Plans" ? "scrollbar-thin" : ""}`}>
+          <div
+            className={`max-h-[200px] overflow-y-auto ${
+              label === "Select Plans" ? "scrollbar-thin" : ""
+            }`}
+          >
             {options.map((option) => (
               <div
                 key={option}
@@ -96,25 +107,22 @@ const Dropdown = ({ label, options, selectedFilters, handleSelect, isDisabled = 
         </div>
       )}
     </div>
-  )
-}
-
-
-
+  );
+};
 
 const FiltersDropdowns = ({ hideTitle, router }: Props) => {
   const dispatch = useAppDispatch();
   const { isAdmin, isAgencyApprover, isFinancialApprover } =
     useUserPrivileges();
   useEffect(() => {
-    const styleElement = document.createElement("style")
-    styleElement.innerHTML = scrollbarStyles
-    document.head.appendChild(styleElement)
+    const styleElement = document.createElement("style");
+    styleElement.innerHTML = scrollbarStyles;
+    document.head.appendChild(styleElement);
 
     return () => {
-      document.head.removeChild(styleElement)
-    }
-  }, [])
+      document.head.removeChild(styleElement);
+    };
+  }, []);
 
   const {
     filterOptions,
@@ -124,13 +132,13 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     setLoading,
     setClientCampaignData,
     allClients,
-  } = useCampaigns()
+    jwt,
+  } = useCampaigns();
   const { data: session } = useSession();
-  // @ts-ignore 
+  // @ts-ignore
   const userType = session?.user?.data?.user?.id || "";
 
-
-  const [filters, setFilters] = useState(defaultFilters)
+  const [filters, setFilters] = useState(defaultFilters);
   const allFiltersEmpty = useMemo(
     () => Object.values(selectedFilters).every((val) => !val),
     [selectedFilters]
@@ -140,7 +148,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     if (value === "") {
       if (label === "year") {
         router.refresh();
-        dispatch(getCreateClient(!isAdmin ? userType : null));
+        dispatch(getCreateClient({ userId: !isAdmin ? userType : null, jwt }));
         setSelectedFilters((prev) => ({
           ...prev,
           [label]: value,
@@ -161,68 +169,66 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     }
   };
 
-
   useEffect(() => {
     if (filterOptions) {
-      const f = []
+      const f = [];
       Object.entries(filterOptions).forEach(([key, value]) => {
         f.push({
           label: key.charAt(0).toUpperCase() + key.slice(1),
           options: value,
-        })
-      })
-      setFilters(f)
+        });
+      });
+      setFilters(f);
     }
-  }, [filterOptions])
-
-
-
-
-
-
-
+  }, [filterOptions]);
 
   useEffect(() => {
-    const allEmpty = Object.values(selectedFilters).every((val) => !val)
+    const allEmpty = Object.values(selectedFilters).every((val) => !val);
 
     const fetchData = async () => {
-      const clientID = localStorage.getItem(userType.toString()) || allClients[0]?.id
-      setLoading(true)
-      console.log('clientID-clientID', clientID)
+      const clientID =
+        localStorage.getItem(userType.toString()) || allClients[0]?.id;
+      setLoading(true);
+      console.log("clientID-clientID", clientID);
 
       try {
         const res = allEmpty //@ts-ignore
-          ? await fetchFilteredCampaigns(clientID, {}) // Fetch all data
-          : await fetchFilteredCampaigns(clientID, selectedFilters) // Fetch filtered
+          ? await fetchFilteredCampaigns(clientID, {}, jwt) // Fetch all data
+          : await fetchFilteredCampaigns(clientID, selectedFilters, jwt); // Fetch filtered
 
-        setClientCampaignData(res)
+        setClientCampaignData(res);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
+    };
+
+    if (jwt) {
+      fetchData();
     }
+  }, [selectedFilters, jwt]);
 
-    fetchData()
-  }, [selectedFilters])
-
-
-  const isYearSelected = !!selectedFilters["year"]
-
-
-
-
+  const isYearSelected = !!selectedFilters["year"];
 
   return (
     <div>
       <Toaster />
       {!hideTitle && (
-        <h6 className="font-[600] text-[14px] leading-[19px] text-[rgba(6,18,55,0.8)]">Filters</h6>
+        <h6 className="font-[600] text-[14px] leading-[19px] text-[rgba(6,18,55,0.8)]">
+          Filters
+        </h6>
       )}
 
       <div className="flex items-center gap-4 mt-[5px] flex-wrap">
         {filters
           ?.filter(
             (l) =>
-              !["channel", "phase", "Level_1_name", "Level_2_name", "Level_3_name"].includes(l?.label)
+              ![
+                "channel",
+                "phase",
+                "Level_1_name",
+                "Level_2_name",
+                "Level_3_name",
+              ].includes(l?.label)
           )
           .map(({ label, options }) => {
             const lowerLabel = label.toLowerCase();
@@ -234,13 +240,22 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
               if (selected) return selected;
 
               if (label === "Level_1") {
-                return filters.find(f => f.label === "Level_1_name")?.options || label;
+                return (
+                  filters.find((f) => f.label === "Level_1_name")?.options ||
+                  label
+                );
               }
               if (label === "Level_2") {
-                return filters.find(f => f.label === "Level_2_name")?.options || label;
+                return (
+                  filters.find((f) => f.label === "Level_2_name")?.options ||
+                  label
+                );
               }
               if (label === "Level_3") {
-                return filters.find(f => f.label === "Level_3_name")?.options || label;
+                return (
+                  filters.find((f) => f.label === "Level_3_name")?.options ||
+                  label
+                );
               }
 
               return label;
@@ -256,7 +271,8 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
                   selectedFilters={selectedFilters}
                   handleSelect={(key, value) => handleSelect(lowerLabel, value)}
                   isDisabled={
-                    (lowerLabel === "quarter" || lowerLabel === "month") && !isYearSelected
+                    (lowerLabel === "quarter" || lowerLabel === "month") &&
+                    !isYearSelected
                   }
                 />
 
@@ -279,9 +295,8 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
             );
           })}
       </div>
-
     </div>
-  )
-}
+  );
+};
 
-export default FiltersDropdowns
+export default FiltersDropdowns;

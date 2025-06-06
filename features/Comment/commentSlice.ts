@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import commentService from './commentService';
+import { getServerSession } from 'next-auth';
+import { authOptions } from 'utils/auth';
 
  
  
@@ -41,8 +43,11 @@ messageCampaign: '',
 
 // Create Comment
 export const getComment:any = createAsyncThunk('comment/getComment', async (commentId, thunkAPI) => { 
+  const session = await getServerSession(authOptions)
+  const jwt = (session?.user as { data?: { jwt: string } })?.data?.jwt;
+  console.log("🚀 ~ :any=createAsyncThunk ~ session:", session)
   try {
-    const response = await commentService.getComment(commentId);
+    const response = await commentService.getComment(commentId, jwt);
     return response; 
 		} catch (error: unknown) { 
 			 if (typeof error === 'object' && error !== null && 'response' in error) {
@@ -56,8 +61,10 @@ export const getComment:any = createAsyncThunk('comment/getComment', async (comm
 
 // Create Comment
 export const getSignedApproval:any = createAsyncThunk('comment/getSignedApproval', async (id: string | number, thunkAPI) => { 
+  const session = await getServerSession(authOptions)
+  const jwt = (session?.user as { data?: { jwt: string } })?.data?.jwt;
   try {
-    const response = await commentService.getSignedApproval(id);
+    const response = await commentService.getSignedApproval(id,jwt);
     return response; 
 		} catch (error: unknown) { 
 			 if (typeof error === 'object' && error !== null && 'response' in error) {
@@ -73,8 +80,10 @@ export const getSignedApproval:any = createAsyncThunk('comment/getSignedApproval
 export const getGeneralComment: any = createAsyncThunk(
   'comment/getGeneralComment',
   async (commentId, thunkAPI) => {
+    const session = await getServerSession(authOptions)
+  const jwt = (session?.user as { data?: { jwt: string } })?.data?.jwt;
     try {
-      const response = await commentService.getGeneralComment(commentId);
+      const response = await commentService.getGeneralComment(commentId, jwt);
       return response;
     } catch (error: unknown) {
       if (
@@ -102,8 +111,10 @@ export const getGeneralComment: any = createAsyncThunk(
 export const getCampaignById: any = createAsyncThunk(
   'comment/getCampaignById',
   async ({ clientId, campaignId }: { clientId: string; campaignId: string }, thunkAPI) => {
+    const session = await getServerSession(authOptions)
+  const jwt = (session?.user as { data?: { jwt: string } })?.data?.jwt;
     try {
-      const response = await commentService.getCampaignById(clientId, campaignId);
+      const response = await commentService.getCampaignById(clientId, campaignId, jwt);
       return response;
     } catch (error: unknown) {
       if (

@@ -30,7 +30,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   // @ts-ignore
   const userType = session?.user?.data?.user?.id || "";
   const dispatch = useAppDispatch();
-  const { profile, getProfile, user, getUserByUserType } = useCampaigns();
+  const { profile, getProfile, user, getUserByUserType, jwt } = useCampaigns();
   const { isAdmin, isAgencyApprover, isFinancialApprover } =
     useUserPrivileges();
   const [inputs, setInputs] = useState({
@@ -198,7 +198,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
     try {
       const existingUsers = await checkExisitingEmails(
-        emailList?.map((ed) => ed?.email)
+        emailList?.map((ed) => ed?.email), jwt
       );
       // console.log("🚀 ~ handleSubmit ~ existingUsers:", existingUsers);
       if (existingUsers?.length > 0) {
@@ -217,7 +217,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
           level_2: inputs.businessUnits,
           level_3: inputs.categories,
           users: profile?.id,
-        });
+        }, jwt);
         localStorage.setItem(userType.toString(), res?.data?.data?.id);
 
         getProfile();
@@ -230,7 +230,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
               password: "123456789",
               clients: res?.data?.data?.id,
               user_type: "sub_client",
-            });
+            }, jwt);
           } catch (error) {
             console.error(
               `Failed to create user for email: ${emailEntry.email}`,
@@ -241,7 +241,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
         }
         // Fetch clients after successfully adding a new one
         //@ts-ignore
-        dispatch(getCreateClient(!isAdmin ? res?.data?.data?.id : null));
+        dispatch(getCreateClient({userId:!isAdmin ? res?.data?.data?.id : null, jwt}));
         // Reset form state
         setInputs({
           name: "",

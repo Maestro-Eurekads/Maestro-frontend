@@ -30,7 +30,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 		getActiveCampaign,
 		copy,
 		setCampaignFormData,
-		isLoading: isLoadingCampaign,
+		isLoading: isLoadingCampaign, jwt
 	} = useCampaigns();
 	// const {
 	// 			clientCampaignData,
@@ -149,7 +149,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 					{ data: patchData },
 					{
 						headers: {
-							Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+							Authorization: `Bearer ${jwt}`,
 						},
 					}
 				);

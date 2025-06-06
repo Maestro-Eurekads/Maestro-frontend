@@ -11,9 +11,9 @@ export async function fetchFilteredCampaignsSub(req: NextRequest) {
   if (!clientID) {
     return Response.json({ error: "Client ID is required." }, { status: 400 });
   }
-
+const jwt =session?.user?.data?.jwt
   const baseUrl = process.env.NEXT_PUBLIC_STRAPI_URL;
-  const token = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
+  const token = jwt;
 
   if (!baseUrl || !token) {
     return Response.json({ error: "Missing environment variables." }, { status: 500 });

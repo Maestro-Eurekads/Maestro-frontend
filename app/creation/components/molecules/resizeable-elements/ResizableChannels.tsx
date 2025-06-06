@@ -72,7 +72,7 @@ const ResizableChannels = ({
   setOpenItems,
   endMonth,
 }: ResizableChannelsProps) => {
-  const { campaignFormData, setCampaignFormData, setCopy, cId, campaignData } =
+  const { campaignFormData, setCampaignFormData, setCopy, cId, campaignData, jwt } =
     useCampaigns();
   const { funnelWidths } = useFunnelContext(); // Get parent widths
   const draggingDataRef = useRef(null);
@@ -497,7 +497,7 @@ const ResizableChannels = ({
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
