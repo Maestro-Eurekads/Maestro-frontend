@@ -50,7 +50,7 @@ export const SetupScreen = () => {
   const [level2Options, setlevel2Options] = useState<DropdownOption[]>([]);
   const [level3Options, setlevel3Options] = useState<DropdownOption[]>([]);
 
-
+  console.log("campaignFormData", documentId);
 
 
   useEffect(() => {
@@ -66,7 +66,7 @@ export const SetupScreen = () => {
 
       const normalizeApprovers = (approvers: any[]) =>
         Array.isArray(approvers)
-          ? approvers.map((val: any) =>
+          ? approvers?.map((val: any) =>
             typeof val === "string"
               ? { id: "", clientId: "", value: val }
               : {
@@ -85,12 +85,12 @@ export const SetupScreen = () => {
     }
   }, [setCampaignFormData]);
 
-
+  console.log("campaignFormData", campaignFormData);
 
 
   // Initialize campaignFormData if empty
   useEffect(() => {
-    if (!campaignFormData && !isInitialized) {
+    if (documentId === null) {
       const initialFormData = {
         client_selection: {},
         media_plan: "",
@@ -108,24 +108,9 @@ export const SetupScreen = () => {
       localStorage.setItem("campaignFormData", JSON.stringify(initialFormData));
       setIsInitialized(true);
     }
-  }, [campaignFormData, setCampaignFormData, isInitialized]);
+  }, [setCampaignFormData, isInitialized]);
 
-  // Save form data to localStorage whenever it changes, cleaning null values
-  // useEffect(() => {
-  //   if (campaignFormData) {
-  //     const cleanedData = {
-  //       ...campaignFormData,
-  //       internal_approver: Array.isArray(campaignFormData.internal_approver)
-  //         ? campaignFormData?.internal_approver?.filter((v: string | null) => v != null)
-  //         : [],
-  //       client_approver: Array.isArray(campaignFormData.client_approver)
-  //         ? campaignFormData?.client_approver.filter((v: string | null) => v != null)
-  //         : [],
-  //     };
 
-  //     localStorage.setItem("campaignFormData", JSON.stringify(cleanedData));
-  //   }
-  // }, [campaignFormData]);
 
 
 
@@ -269,7 +254,7 @@ export const SetupScreen = () => {
     setRequiredFields(evaluatedFields);
   }, [campaignFormData, cId, setRequiredFields]);
 
-  // console.log("campaignFormData", campaignFormData);
+
 
   if (!campaignFormData) {
     return <div>Loading...</div>;
