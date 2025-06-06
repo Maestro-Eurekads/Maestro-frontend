@@ -748,8 +748,8 @@ const MapFunnelStages = () => {
         />
       </div>
       {/* Inserted phrase below the title */}
-      <div className="w-full flex justify-center">
-        <p className="text-gray-800 italic font-semibold text-base text-center max-w-2xl mt-3">
+      <div className="w-full flex items-start">
+        <p className="text-gray-800 italic font-semibold text-base text-center mt-3">
           Let's start with your campaign structure. Feel free to customize the number and name of phases as your liking
         </p>
       </div>
