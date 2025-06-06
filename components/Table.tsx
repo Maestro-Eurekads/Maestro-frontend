@@ -175,8 +175,8 @@ const Table = () => {
 
 
   return (
-    <div className="flex flex-col">
-      <div className="table-container rounded-[8px] mt-[20px] overflow-x-scroll">
+    <div className="flex flex-col overflow-x-scroll">
+      <div className="table-container  mt-[20px] ">
         <table className="w-full  ">
           <thead>
             <tr>
@@ -229,7 +229,7 @@ const Table = () => {
                     }}
                     className="cursor-pointer"
                   >
-                    <td className="whitespace-normal py-[12px] px-[16px] break-words max-w-[200px]">
+                    <td className="whitespace-nowrap py-[12px] px-[16px] break-words max-w-[200px]">
                       {data?.media_plan_details?.plan_name || "N/A"} -{" "}
                       {data?.progress_percent < 100 ? "Running" : "Completed"}
                     </td>

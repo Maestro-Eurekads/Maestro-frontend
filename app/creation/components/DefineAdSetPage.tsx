@@ -137,18 +137,18 @@ const DefineAdSetPage = () => {
     );
     const hasAdSets = stage
       ? [
-          ...(stage.search_engines || []),
-          ...(stage.display_networks || []),
-          ...(stage.social_media || []),
-          ...(stage.streaming || []),
-          ...(stage.ooh || []),
-          ...(stage.broadcast || []),
-          ...(stage.messaging || []),
-          ...(stage.print || []),
-          ...(stage.e_commerce || []),
-          ...(stage.in_game || []),
-          ...(stage.mobile || []),
-        ].some((platform: any) => platform.ad_sets && platform.ad_sets.length > 0)
+        ...(stage.search_engines || []),
+        ...(stage.display_networks || []),
+        ...(stage.social_media || []),
+        ...(stage.streaming || []),
+        ...(stage.ooh || []),
+        ...(stage.broadcast || []),
+        ...(stage.messaging || []),
+        ...(stage.print || []),
+        ...(stage.e_commerce || []),
+        ...(stage.in_game || []),
+        ...(stage.mobile || []),
+      ].some((platform: any) => platform.ad_sets && platform.ad_sets.length > 0)
       : false;
 
     if (!hasAdSets) {
