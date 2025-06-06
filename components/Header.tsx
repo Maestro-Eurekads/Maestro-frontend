@@ -64,7 +64,7 @@ const Header = ({ setIsOpen }) => {
   const clients: any = getCreateClientData;
 
   useEffect(() => {
-    dispatch(getCreateClient({userId: !isAdmin ? userType : null, jwt}));
+    dispatch(getCreateClient(!isAdmin ? userType : null));
 
     const timer = setTimeout(() => {
       setAlert(null);

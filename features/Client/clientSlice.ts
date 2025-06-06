@@ -38,11 +38,9 @@ export const createClient = createAsyncThunk('client/createClient', async (input
 });
 
 // Get clients list
-export const getCreateClient = createAsyncThunk('client/getCreateClient', async (inputs: { userId: string; jwt: string }, thunkAPI) => {
-  const session = await getServerSession(authOptions)
-  console.log("🚀 ~ getCreateClient ~ session:", session)
+export const getCreateClient = createAsyncThunk('client/getCreateClient', async ( userId: string, thunkAPI) => {
   try {
-    const response = await clientService.getCreateClient(inputs.userId, inputs.jwt);
+    const response = await clientService.getCreateClient(userId);
     return response;
   } catch (error: unknown) { 
     if (typeof error === 'object' && error !== null && 'response' in error) {

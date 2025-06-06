@@ -22,7 +22,9 @@ const createClient = async (inputs: any) => {
 
 
 //  Get Created Client
-const getCreateClient = async (userId, jwt) => {
+const getCreateClient = async (userId) => {
+  const session = await getServerSession(authOptions)
+  const jwt = (session?.user as { data?: { jwt: string } })?.data?.jwt;
   const { data } = await axios.get(
     `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients${
       !userId ? "?populate[0]=users&populate[1]=responsible&populate[2]=approver" : `?filters[users][$eq]=${userId}&populate[0]=users&populate[1]=responsible&populate[2]=approver`
