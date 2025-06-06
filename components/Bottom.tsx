@@ -489,6 +489,104 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       ])
       : {};
 
+    // const handleStepZero = async () => {
+    //   setLoading(true);
+
+    //   try {
+    //     if (!isStepZeroValid) {
+    //       setAlert({
+    //         variant: "error",
+    //         message: "Please complete all required fields before proceeding.",
+    //         position: "bottom-right",
+    //       });
+    //       setLoading(false);
+    //       return;
+    //     }
+
+    //     const budgetDetails = {
+    //       currency: campaignFormData?.budget_details_currency?.id,
+    //       fee_type: campaignFormData?.budget_details_fee_type?.id,
+    //       sub_fee_type: selectedOption,
+    //       value: campaignFormData?.budget_details_value,
+    //     };
+
+    //     // Handle approver and client_approver as arrays of strings
+    //     // Update campaignFormData with cleaned values and save to localStorage
+    //     const cleanedFormData = {
+    //       ...campaignFormData,
+    //       internal_approver: (campaignFormData?.internal_approver_ids || []).map(String),
+    //       client_approver: (campaignFormData?.client_approver_ids || []).map(String),
+    //       budget_details_currency: {
+    //         id: budgetDetails.currency,
+    //         value: budgetDetails.currency,
+    //         label:
+    //           selectCurrency.find((c) => c.value === budgetDetails.currency)
+    //             ?.label || budgetDetails.currency,
+    //       },
+    //     };
+    //     setCampaignFormData(cleanedFormData);
+    //     localStorage.setItem(
+    //       "campaignFormData",
+    //       JSON.stringify(cleanedFormData)
+    //     );
+
+    //     if (cId && campaignData) {
+    //       const updatedData = {
+    //         ...removeKeysRecursively(campaignData, [
+    //           "id",
+    //           "documentId",
+    //           "createdAt",
+    //           "publishedAt",
+    //           "updatedAt",
+    //           "_aggregated",
+    //         ]),
+    //         client: campaignFormData?.client_selection?.id,
+    //         client_selection: {
+    //           client: campaignFormData?.client_selection?.value,
+    //           level_1: campaignFormData?.level_1?.id,
+    //           level_2: campaignFormData?.level_2?.id,
+    //           level_3: campaignFormData?.level_3?.id,
+    //         },
+    //         media_plan_details: {
+    //           plan_name: campaignFormData?.media_plan,
+    //           internal_approver: (campaignFormData?.internal_approver_ids || []).map(String),
+    //           client_approver: (campaignFormData?.client_approver_ids || []).map(String),
+    //         },
+    //         budget_details: budgetDetails,
+    //       };
+
+    //       await updateCampaign(updatedData);
+
+    //       setActive((prev) => prev + 1);
+    //       setAlert({
+    //         variant: "success",
+    //         message: "Campaign updated successfully!",
+    //         position: "bottom-right",
+    //       });
+    //     } else {
+    //       const res = await createCampaign();
+    //       const url = new URL(window.location.href);
+    //       url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
+    //       window.history.pushState({}, "", url.toString());
+    //       await getActiveCampaign(res?.data?.data.documentId);
+
+    //       setActive((prev) => prev + 1);
+    //       setAlert({
+    //         variant: "success",
+    //         message: "Campaign created successfully!",
+    //         position: "bottom-right",
+    //       });
+    //     }
+    //   } catch (error) {
+    //     setAlert({
+    //       variant: "error",
+    //       message: "Something went wrong. Please try again.",
+    //       position: "bottom-right",
+    //     });
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // };
     const handleStepZero = async () => {
       setLoading(true);
 
@@ -510,8 +608,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           value: campaignFormData?.budget_details_value,
         };
 
-        // Handle approver and client_approver as arrays of strings
-        // Update campaignFormData with cleaned values and save to localStorage
         const cleanedFormData = {
           ...campaignFormData,
           internal_approver: (campaignFormData?.internal_approver_ids || []).map(String),
@@ -520,26 +616,16 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             id: budgetDetails.currency,
             value: budgetDetails.currency,
             label:
-              selectCurrency.find((c) => c.value === budgetDetails.currency)
-                ?.label || budgetDetails.currency,
+              selectCurrency.find((c) => c.value === budgetDetails.currency)?.label ||
+              budgetDetails.currency,
           },
         };
+
         setCampaignFormData(cleanedFormData);
-        localStorage.setItem(
-          "campaignFormData",
-          JSON.stringify(cleanedFormData)
-        );
+        localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData));
 
         if (cId && campaignData) {
           const updatedData = {
-            ...removeKeysRecursively(campaignData, [
-              "id",
-              "documentId",
-              "createdAt",
-              "publishedAt",
-              "updatedAt",
-              "_aggregated",
-            ]),
             client: campaignFormData?.client_selection?.id,
             client_selection: {
               client: campaignFormData?.client_selection?.value,
@@ -549,8 +635,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             },
             media_plan_details: {
               plan_name: campaignFormData?.media_plan,
-              internal_approver: (campaignFormData?.internal_approver_ids || []).map(String),
-              client_approver: (campaignFormData?.client_approver_ids || []).map(String),
+              internal_approver: (campaignFormData?.internal_approver_ids || []).map(Number),
+              client_approver: (campaignFormData?.client_approver_ids || []).map(Number),
             },
             budget_details: budgetDetails,
           };
@@ -564,12 +650,28 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             position: "bottom-right",
           });
         } else {
-          const res = await createCampaign();
+          const res = await createCampaign({
+            campaign_builder: 1,
+            client: campaignFormData?.client_selection?.id,
+            client_selection: {
+              client: campaignFormData?.client_selection?.value,
+              level_1: campaignFormData?.level_1?.id,
+              level_2: campaignFormData?.level_2?.id,
+              level_3: campaignFormData?.level_3?.id,
+            },
+            media_plan_details: {
+              plan_name: campaignFormData?.media_plan,
+              internal_approver: (campaignFormData?.internal_approver_ids || []).map(Number),
+              client_approver: (campaignFormData?.client_approver_ids || []).map(Number),
+            },
+            budget_details: budgetDetails,
+          });
+
           const url = new URL(window.location.href);
           url.searchParams.set("campaignId", `${res?.data?.data.documentId}`);
           window.history.pushState({}, "", url.toString());
-          await getActiveCampaign(res?.data?.data.documentId);
 
+          await getActiveCampaign(res?.data?.data.documentId);
           setActive((prev) => prev + 1);
           setAlert({
             variant: "success",
@@ -588,10 +690,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     };
 
+
     const handleStepTwo = async () => {
       if (!campaignData || !cId) return;
       await updateCampaignData({
-        ...cleanData,
+        // ...cleanData,
         funnel_stages: campaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
@@ -609,7 +712,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     const handleStepThree = async () => {
       if (!campaignData || !cId) return;
       await updateCampaignData({
-        ...cleanData,
+        // ...cleanData,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
           "isValidated",
@@ -635,7 +738,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
 
       await updateCampaignData({
-        ...cleanData,
+        // ...cleanData,
         channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
           "id",
           "isValidated",
@@ -662,7 +765,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       setCampaignFormData(updatedCampaignFormData);
 
       await updateCampaignData({
-        ...cleanData,
+        // ...cleanData,
         funnel_stages: updatedCampaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
           "id",
@@ -697,7 +800,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           new Date(currentYear, selectedDates?.to?.month, selectedDates.to?.day)
         ).format("YYYY-MM-DD") || campaignFormData?.campaign_timeline_end_date;
       await updateCampaignData({
-        ...cleanData,
+        // ...cleanData,
         campaign_timeline_start_date:
           campaign_timeline_start_date === "Invalid Date"
             ? campaignFormData?.campaign_timeline_start_date
