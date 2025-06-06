@@ -602,7 +602,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     const handleStepTwo = async () => {
       if (!campaignData || !cId) return;
       await updateCampaignData({
-        ...cleanData,
+        // ...cleanData,
         funnel_stages: campaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
