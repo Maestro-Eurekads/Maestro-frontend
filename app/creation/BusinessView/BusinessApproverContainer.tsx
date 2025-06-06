@@ -10,6 +10,7 @@ const BusinessApproverContainer = ({
   campaign,
   loading,
   isLoadingCampaign,
+  campaignFormData
 }) => {
   const { data: session }: any = useSession();
   const dispatch = useAppDispatch();
@@ -22,19 +23,23 @@ const BusinessApproverContainer = ({
   }, [dispatch, id]);
 
   const internalApprovers =
-    campaign?.media_plan_details?.internal_approver?.map((a) => a?.username) || [
+    campaign?.media_plan_details?.internal_approver?.map((a) => a?.username) || campaignFormData?.media_plan_details?.internal_approver?.map(
+      (a) => a?.username
+    ) || [
       "-",
     ];
   const clientApprovers = campaign?.media_plan_details?.client_approver?.map(
+    (a) => a?.username
+  ) || campaignFormData?.media_plan_details?.client_approver?.map(
     (a) => a?.username
   ) || ["-"];
 
   const items = [
     {
       label: "Agency",
-      name: campaign?.client_selection?.client || "-",
-      nameList: [campaign?.client_selection?.client || "-"],
-      initials: getInitials(campaign?.client_selection?.client),
+      name: campaign?.client_selection?.client || campaignFormData?.client_selection?.client || "-",
+      nameList: [campaign?.client_selection?.client || campaignFormData?.client_selection?.client || "-"],
+      initials: getInitials(campaign?.client_selection?.client || campaignFormData?.client_selection?.client || "-"),
     },
     {
       label: "Client approver",
@@ -50,9 +55,9 @@ const BusinessApproverContainer = ({
     },
     {
       label: "Campaign builder",
-      name: campaign?.campaign_builder?.username || "-",
-      nameList: [campaign?.campaign_builder?.username || "-"],
-      initials: getInitials(campaign?.campaign_builder?.username),
+      name: campaign?.campaign_builder?.username || campaignFormData?.campaign_builder?.username || "-",
+      nameList: [campaign?.campaign_builder?.username || campaignFormData?.campaign_builder?.username || "-"],
+      initials: getInitials(campaign?.campaign_builder?.username || campaignFormData?.campaign_builder?.username || "-"),
     },
   ];
 
