@@ -774,7 +774,7 @@ const MapFunnelStages = () => {
             </button>
             {dropdownOpen && (
               <ul
-                className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 font-semibold overflow-y-auto"
+                className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto"
                 role="listbox"
               >
                 {funnelConfigs.length > 0 && (
@@ -783,9 +783,7 @@ const MapFunnelStages = () => {
                     {funnelConfigs.map((config, idx) => (
                       <li
                         key={config.name}
-                        className={`px-4 py-3 cursor-pointer hover:bg-blue-50 ${
-                          selectedConfigIdx === idx ? "bg-blue-100 font-semibold" : ""
-                        }`}
+                        className={`px-4 py-3 cursor-pointer hover:bg-blue-50`}
                         role="option"
                         aria-selected={selectedConfigIdx === idx}
                         onClick={() => {
@@ -793,7 +791,9 @@ const MapFunnelStages = () => {
                           setDropdownOpen(false);
                         }}
                       >
-                        {config.name}
+                        <span className={selectedConfigIdx === idx ? "font-bold" : ""}>
+                          {config.name}
+                        </span>
                       </li>
                     ))}
                   </>
@@ -802,9 +802,7 @@ const MapFunnelStages = () => {
                 {presetStructures.map((preset, idx) => (
                   <li
                     key={preset.label}
-                    className={`px-4 py-3 cursor-pointer hover:bg-blue-50 ${
-                      selectedPreset === idx && selectedConfigIdx === null ? "bg-blue-100 font-semibold" : ""
-                    }`}
+                    className={`px-4 py-3 cursor-pointer hover:bg-blue-50`}
                     role="option"
                     aria-selected={selectedPreset === idx && selectedConfigIdx === null}
                     onClick={() => {
@@ -812,7 +810,9 @@ const MapFunnelStages = () => {
                       setDropdownOpen(false);
                     }}
                   >
-                    {preset.label}
+                    <span className={selectedPreset === idx && selectedConfigIdx === null ? "font-bold" : ""}>
+                      {preset.label}
+                    </span>
                   </li>
                 ))}
               </ul>
