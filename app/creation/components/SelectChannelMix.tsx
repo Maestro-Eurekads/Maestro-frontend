@@ -254,8 +254,9 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
           const hasSelections = Object.values(currentStageSelections).some(
             (arr) => Array.isArray(arr) && arr.length > 0
           );
+          // Only "Not started" or "" (no "In progress")
           updatedStatuses[stageName] = hasSelections
-            ? "In progress"
+            ? ""
             : "Not started";
         });
         return updatedStatuses;
@@ -339,9 +340,10 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
       const hasSelections = Object.values(updatedStageSelection).some(
         (arr) => Array.isArray(arr) && arr.length > 0
       );
+      // Only "Not started" or "" (no "In progress")
       setStageStatuses((prev) => ({
         ...prev,
-        [stageName]: hasSelections ? "In progress" : "Not started",
+        [stageName]: hasSelections ? "" : "Not started",
       }));
 
       return updatedSelected;
@@ -654,12 +656,12 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
                   <div className="flex items-center justify-center flex-1">
                     <p
                       className={`font-general-sans font-semibold text-[16px] leading-[22px] ${
-                        stageStatuses[stage.name] === "In progress"
-                          ? "text-[#3175FF]"
-                          : "text-[#061237] opacity-50"
+                        stageStatuses[stage.name] === "Not started"
+                          ? "text-[#061237] opacity-50"
+                          : "text-[#3175FF]"
                       }`}
                     >
-                      {stageStatuses[stage.name] || "Not started"}
+                      {stageStatuses[stage.name] || ""}
                     </p>
                   </div>
                   <div className="flex items-center justify-end flex-1">
