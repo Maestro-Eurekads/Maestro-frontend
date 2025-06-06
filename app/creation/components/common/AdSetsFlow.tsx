@@ -544,7 +544,7 @@ const AudienceDropdownWithCallback = memo(
         </div>
       </div>
     );
-});
+  });
 
 // NonFacebookOutlet Component
 const NonFacebookOutlet = memo(function NonFacebookOutlet({
@@ -1166,7 +1166,7 @@ const AdSetFlow = memo(function AdSetFlow({
 
   useEffect(() => {
     // if (platformName) {
-      setIsEditing(true);
+    setIsEditing(true);
     // }
   }, []);
 
