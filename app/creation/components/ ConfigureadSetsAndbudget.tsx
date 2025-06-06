@@ -144,8 +144,19 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
     return `${amount.toLocaleString()} ${currency}`;
   }, [campaignFormData]);
 
-  // Calculate font size based on length of insideText
-  // (No longer needed to pass to DoughnutChat, but can be used internally if needed)
+  // Calculate total fees amount, defaulting to 0 if not present or invalid
+  const totalFeesAmount = useMemo(() => {
+    const feesArr = campaignFormData?.campaign_budget?.budget_fees;
+    if (!Array.isArray(feesArr) || feesArr.length === 0) {
+      return 0;
+    }
+    const sum = feesArr.reduce(
+      (total, fee) => total + Number(fee.value || 0),
+      0
+    );
+    // If sum is not a number (e.g. all fee values are empty), return 0
+    return isNaN(sum) ? 0 : sum;
+  }, [campaignFormData]);
 
   return (
     <div>
@@ -171,12 +182,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
           </p>
           <p>
             Total Fees Amount:{" "}
-            {parseInt(
-              campaignFormData?.campaign_budget?.budget_fees?.reduce(
-                (total, fee) => total + Number(fee.value || 0),
-                0
-              )
-            ).toLocaleString()}
+            {totalFeesAmount.toLocaleString()}
             {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
           </p>
         </div>
