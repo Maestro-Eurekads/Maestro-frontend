@@ -186,7 +186,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
           ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
           ["previews"],
         );
-        const {media_plan_details, ...rest} = cleanData;
+        const {media_plan_details, user, ...rest} = cleanData;
         await updateCampaign(rest);
         await getActiveCampaign();
       } catch (error) {

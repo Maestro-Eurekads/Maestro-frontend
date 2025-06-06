@@ -620,7 +620,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     const handleStepThree = async () => {
       if (!campaignData || !cId) return;
       await updateCampaignData({
-        ...cleanData,
+        // ...cleanData,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
           "isValidated",
@@ -646,7 +646,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
 
       await updateCampaignData({
-        ...cleanData,
+        // ...cleanData,
         channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
           "id",
           "isValidated",
@@ -673,7 +673,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       setCampaignFormData(updatedCampaignFormData);
 
       await updateCampaignData({
-        ...cleanData,
+        // ...cleanData,
         funnel_stages: updatedCampaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
           "id",
@@ -708,7 +708,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           new Date(currentYear, selectedDates?.to?.month, selectedDates.to?.day)
         ).format("YYYY-MM-DD") || campaignFormData?.campaign_timeline_end_date;
       await updateCampaignData({
-        ...cleanData,
+        // ...cleanData,
         campaign_timeline_start_date:
           campaign_timeline_start_date === "Invalid Date"
             ? campaignFormData?.campaign_timeline_start_date
