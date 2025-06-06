@@ -77,11 +77,21 @@ const Table = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const campaignArray = Array?.isArray(clientCampaignData) ? clientCampaignData : [];
+
+  // Ensure it's an array and sort it by createdAt descending
+  const campaignArray = Array.isArray(clientCampaignData)
+    ? [...clientCampaignData]?.sort(
+      (a, b) =>
+        new Date(b?.createdAt || 0).getTime() -
+        new Date(a?.createdAt || 0).getTime()
+    )
+    : [];
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = campaignArray.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(campaignArray?.length / itemsPerPage);
+  const totalPages = Math.ceil(campaignArray.length / itemsPerPage);
+
 
 
 
