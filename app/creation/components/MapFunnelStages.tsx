@@ -749,7 +749,7 @@ const MapFunnelStages = () => {
       </div>
       {/* Inserted phrase below the title */}
       <div className="w-full flex items-start">
-        <p className="text-gray-800 italic font-semibold text-base text-center mt-3">
+        <p className="text-gray-800 italic font-semibold text-base text-center max-w-2xl mt-3">
           Let's start with your campaign structure. Feel free to customize the number and name of phases as your liking
         </p>
       </div>
@@ -774,7 +774,7 @@ const MapFunnelStages = () => {
             </button>
             {dropdownOpen && (
               <ul
-                className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto"
+                className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 font-semibold overflow-y-auto"
                 role="listbox"
               >
                 {funnelConfigs.length > 0 && (

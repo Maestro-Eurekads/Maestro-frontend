@@ -584,6 +584,55 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
     );
   };
 
+  // --- New: Per-stage selected channels recap, shown under search bar ---
+  const StageSelectedChannels = ({ selectedByType }) => {
+    // Only show if there are any selections
+    const hasAny = Object.values(selectedByType).some(
+      (arr) => Array.isArray(arr) && arr.length > 0
+    );
+    if (!hasAny) return null;
+    return (
+      <div className="flex flex-wrap gap-4 p-4 bg-[#F5F8FF] border border-[rgba(49,117,255,0.08)] rounded-[10px] mb-6">
+        {Object.entries(selectedByType).map(([type, platforms]) =>
+          Array.isArray(platforms) && platforms.length > 0 ? (
+            <div key={type} className="flex flex-col min-w-[180px]">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-semibold capitalize text-[15px]">
+                  {type.replace("_", " ")}
+                </span>
+                <span className="text-xs text-gray-500">
+                  ({platforms.length} {platforms.length === 1 ? "channel" : "channels"} selected)
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {platforms.map((platform, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex items-center gap-1 ${
+                      ONLINE_TYPES.includes(type)
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-green-100 text-green-700"
+                    } rounded-full px-3 py-1`}
+                  >
+                    {getPlatformIcon(platform) && (
+                      <Image
+                        src={getPlatformIcon(platform)}
+                        alt={platform}
+                        width={16}
+                        height={16}
+                      />
+                    )}
+                    <span className="text-sm">{platform}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="overflow-hidden">
       <div className="flex items-center justify-between">
@@ -679,7 +728,7 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
                   <StageRecap selectedByType={selectedByType} />
                 )}
 
-                {/* Per-stage search input */}
+                {/* Per-stage search input and selected channels recap */}
                 {openItems[stage.name] && (
                   <div className="mt-4 mb-6">
                     <input
@@ -694,6 +743,8 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
                       }
                       className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                    {/* Show selected channels recap right under the search bar */}
+                    <StageSelectedChannels selectedByType={selectedByType} />
                   </div>
                 )}
               </div>
