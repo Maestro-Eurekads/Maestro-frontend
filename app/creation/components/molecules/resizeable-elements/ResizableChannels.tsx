@@ -115,41 +115,29 @@ const ResizableChannels = ({
   const [endDateOffset, setEndDateOffset] = useState(0);
   const [containerWidth, setContainerWidth] = useState(null);
 
-  function calculateDailyWidth(
-    containerWidth: number,
-    endMonth: number
-  ): number {
-    const adjustedWidth = containerWidth; // adjust for padding/margin if needed
+  const isResizing = useRef<{
+    startX: number;
+    startWidth: number;
+    startPos: number;
+    direction: "left" | "right";
+    index: number;
+  } | null>(null);
+
+  const calculateDailyWidth = (containerWidth: number, endMonth: number): number => {
     const totalDays = endMonth * 31;
-
-    // Base daily width without factor
-    const baseDailyWidth = adjustedWidth / totalDays;
-
-    // Final adjusted daily width
-    return baseDailyWidth;
-  }
+    return containerWidth / totalDays;
+  };
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     const dailyWidth = calculateDailyWidth(containerWidth, endMonth);
-    // console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth);
-    const baseStep = rrange === "Month" ? dailyWidth : 50;
-    // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
-    const adjustmentPerStep = 0; // Decrease each next step by 10
+    const baseStep = dailyWidth;
     const snapPoints = [];
-    // console.log("🚀 ~ snapToTimeline ~ snapPoints:", snapPoints);
-
     let currentSnap = 0;
     let step = baseStep;
 
-    // Generate snap points with decreasing step size
     while (currentSnap <= containerWidth) {
       snapPoints.push(currentSnap);
-      // console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
       currentSnap += step;
-      step = Math.max(
-        rrange === "Month" ? dailyWidth : 50,
-        step - adjustmentPerStep
-      );
     }
 
     const closestSnap = snapPoints.reduce((prev, curr) =>
@@ -158,9 +146,73 @@ const ResizableChannels = ({
         : prev
     );
 
-    // console.log("Closest custom snap:", closestSnap);
     return closestSnap;
   };
+
+  const handleMouseDownResize = (
+    e: React.MouseEvent<HTMLDivElement>,
+    direction: "left" | "right",
+    index: number
+  ) => {
+    if (disableDrag) return;
+    e.preventDefault();
+    isResizing.current = {
+      startX: e.clientX,
+      startWidth: channelState[index].width,
+      startPos: channelState[index].left,
+      direction,
+      index,
+    };
+    document.addEventListener("mousemove", handleMouseMoveResize);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
+
+  const handleMouseMoveResize = (e: MouseEvent) => {
+    if (!isResizing.current) return;
+    const { startX, startWidth, startPos, direction, index } = isResizing.current;
+
+    let newWidth = startWidth;
+    let newPos = startPos;
+
+    const gridContainer = document.querySelector(".grid-container") as HTMLElement;
+    if (!gridContainer) return;
+
+    const containerRect = gridContainer.getBoundingClientRect();
+    const minX = 0;
+    const maxX = containerRect.width;
+
+    if (direction === "left") {
+      const deltaX = e.clientX - startX;
+      newWidth = Math.max(50, startWidth - deltaX);
+      newPos = Math.max(minX, startPos + deltaX);
+
+      const snappedPos = snapToTimeline(newPos, containerRect.width);
+      newWidth = startWidth - (snappedPos - startPos);
+      newPos = snappedPos;
+    } else {
+      const rawNewWidth = startWidth + (e.clientX - startX);
+      const rightEdgePos = startPos + rawNewWidth;
+      const snappedRightEdge = snapToTimeline(rightEdgePos, containerRect.width);
+      newWidth = Math.max(50, snappedRightEdge - startPos);
+    }
+
+    if (newPos + newWidth > maxX) {
+      newWidth = maxX - newPos;
+    }
+
+    setChannelState((prev) =>
+      prev.map((state, i) =>
+        i === index ? { ...state, left: newPos, width: newWidth } : state
+      )
+    );
+  };
+
+  const handleMouseUp = () => {
+    isResizing.current = null;
+    document.removeEventListener("mousemove", handleMouseMoveResize);
+    document.removeEventListener("mouseup", handleMouseUp);
+  };
+
   useEffect(() => {
     if (campaignFormData) {
       const start = campaignFormData?.channel_mix?.find(
@@ -536,7 +588,7 @@ const ResizableChannels = ({
                   : new Date(ch?.end_date) || null,
               })?.length - 1;
           }
-          console.log(daysBetween, "fdf")
+          console.log(daysBetween, "fdf");
           const endDaysDiff = differenceInCalendarDays(endDate, stageEndDate);
           // Check if this channel already exists in prev
           const existingState = prev[index];
@@ -555,7 +607,7 @@ const ResizableChannels = ({
                       : parentWidth
                     : rrange === "Week"
                     ? daysBetween > 0
-                      ? 50 * daysBetween + 60
+                      ? 50 * daysBetween + 10
                       : parentWidth
                     : rrange === "Month"
                     ? daysBetween > 0
@@ -564,7 +616,7 @@ const ResizableChannels = ({
                     : parentWidth,
                   rrange === "Day"
                     ? daysBetween > 0
-                      ? 50 * daysBetween + 60
+                      ? 50 * daysBetween + 65
                       : parentWidth
                     : rrange === "Week"
                     ? daysBetween > 0
@@ -579,7 +631,7 @@ const ResizableChannels = ({
               }
             : {
                 left: parentLeft,
-                width:  parentWidth, // Default width for new channels
+                width: parentWidth, // Default width for new channels
               };
         });
 
@@ -696,7 +748,7 @@ const ResizableChannels = ({
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [dragging, parentWidth]); // React when parent width changes
+  }, [dragging, parentWidth]);
 
   return (
     <div
@@ -824,10 +876,10 @@ const ResizableChannels = ({
                     left: `${channelState[index]?.left || parentLeft}px`,
                     backgroundColor: channel.color,
                   }}
-                  onMouseDown={
+                  onMouseDown={(e)=>
                     disableDrag || openItems
                       ? undefined
-                      : handleMouseDown(index, "left")
+                      : handleMouseDownResize(e, "left", index)
                   }
                 >
                   <MdDragHandle className="rotate-90" />
@@ -846,10 +898,10 @@ const ResizableChannels = ({
                     }px`,
                     backgroundColor: channel.color,
                   }}
-                  onMouseDown={
+                  onMouseDown={(e)=>
                     disableDrag || openItems
                       ? undefined
-                      : handleMouseDown(index, "right")
+                      : handleMouseDownResize(e, "right", index)
                   }
                 >
                   <MdDragHandle className="rotate-90" />
