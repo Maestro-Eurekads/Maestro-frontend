@@ -254,12 +254,9 @@ const ObjectiveSelection = () => {
     if (campaignFormData?.funnel_stages) {
       const updatedStatuses = {}
       campaignFormData.funnel_stages.forEach((stageName) => {
-        if (isEditable[stageName] === true) {
-          updatedStatuses[stageName] = hasCompleteSelection(stageName) ? "In Progress" : "Not Started"
-        } else if (campaignFormData.validatedStages?.[stageName] || validatedPlatforms[stageName]?.size > 0) {
+        // Remove "In Progress" status logic
+        if (campaignFormData.validatedStages?.[stageName] || validatedPlatforms[stageName]?.size > 0) {
           updatedStatuses[stageName] = "Completed"
-        } else if (hasCompleteSelection(stageName)) {
-          updatedStatuses[stageName] = "In Progress"
         } else {
           updatedStatuses[stageName] = "Not Started"
         }
@@ -514,6 +511,7 @@ const ObjectiveSelection = () => {
     option?.text?.toLowerCase().includes(buyTypeSearch.toLowerCase())
   )
 
+  // --- RECAP LOGIC: Make platform titles bold in the recap ---
   const getStageRecap = (stageName) => {
     const channelMix = Array.isArray(campaignFormData?.channel_mix) ? campaignFormData.channel_mix : []
     const stageData = channelMix.find((ch) => ch.funnel_stage === stageName)
@@ -540,8 +538,9 @@ const ObjectiveSelection = () => {
         const buyType = platform.buy_type || selectedOptions[`${stageName}-${category}-${platform.platform_name}-buy_type`]
         const objectiveType = platform.objective_type || selectedOptions[`${stageName}-${category}-${platform.platform_name}-objective_type`]
         if (buyType || objectiveType) {
+          // Make the platform name bold, and also make the field titles bold
           recapArr.push(
-            `<strong>${platform.platform_name}</strong>: ${objectiveType || "No objective"}, ${buyType || "No buy type"}`
+            `<strong>${platform.platform_name}</strong>: <strong>Objective</strong>: ${objectiveType || "No objective"}, <strong>Buy Type</strong>: ${buyType || "No buy type"}`
           )
         }
       })
@@ -561,7 +560,8 @@ const ObjectiveSelection = () => {
       validatedStages: { ...prev.validatedStages, [stageName]: false },
     }))
     setStatuses((prev) => {
-      const newStatus = hasCompleteSelection(stageName) ? "In Progress" : "Not Started"
+      // Remove "In Progress" status logic
+      const newStatus = "Not Started"
       const newStatuses = { ...prev, [stageName]: newStatus }
       return newStatuses
     })
@@ -595,8 +595,6 @@ const ObjectiveSelection = () => {
                     />
                     <p className="text-green-500 font-semibold text-base">Completed</p>
                   </>
-                ) : statuses[stageName] === "In Progress" ? (
-                  <p className="text-[#3175FF] font-semibold text-base whitespace-nowrap">In Progress</p>
                 ) : (
                   <p className="text-[#061237] opacity-50 text-base whitespace-nowrap">Not Started</p>
                 )}
