@@ -29,6 +29,24 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
   } = useCampaigns();
 
   const closeEditStep = () => {
+    // Reset form data to original campaign data when canceling
+    if (title === "Your buying objectives") {
+      setCampaignFormData({
+        ...campaignFormData,
+        buying_objectives: campaignData?.buying_objectives || [],
+      });
+    } else {
+      // Reset other relevant form data based on the step
+      setCampaignFormData({
+        ...campaignFormData,
+        funnel_stages: campaignData?.funnel_stages,
+        channel_mix: campaignData?.channel_mix,
+        custom_funnels: campaignData?.custom_funnels,
+        funnel_type: campaignData?.funnel_type,
+        table_headers: campaignData?.table_headers,
+      });
+    }
+    
     setMidcapEditing({
       isEditing: false,
       step: "",
