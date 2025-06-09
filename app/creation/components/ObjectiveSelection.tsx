@@ -155,8 +155,30 @@ const ObjectiveSelection = () => {
       }
     }
 
-    // No longer set "Not Started" by default here
-    // We'll handle status in a later effect
+    // Initialize statuses for new or unseen stages
+    if (campaignFormData?.funnel_stages) {
+      let initialStatuses = { ...statuses }
+      let shouldUpdateStorage = false
+
+      campaignFormData.funnel_stages.forEach((stage) => {
+        if (!seenStagesRef.current.has(stage)) {
+          seenStagesRef.current.add(stage)
+          initialStatuses[stage] = "Not Started"
+          shouldUpdateStorage = true
+        } else if (!(stage in initialStatuses)) {
+          initialStatuses[stage] = "Not Started"
+          shouldUpdateStorage = true
+        }
+        if (campaignFormData.validatedStages?.[stage]) {
+          initialStatuses[stage] = "Completed"
+        }
+      })
+
+      setStatuses(initialStatuses)
+      if (shouldUpdateStorage) {
+        localStorage.setItem("seenFunnelStages", JSON.stringify(Array.from(seenStagesRef.current)))
+      }
+    }
   }, [campaignFormData?.planId, campaignFormData?.funnel_stages, campaignFormData?.validatedStages])
 
   // Sync selectedOptions with campaignFormData on initial load
@@ -227,22 +249,23 @@ const ObjectiveSelection = () => {
     }
   }, [campaignFormData?.channel_mix])
 
-  // Update statuses based on selections, validations, and edit state
+  // --- REWRITE: Update statuses so "Not Started" is removed as soon as any option is selected ---
   useEffect(() => {
     if (campaignFormData?.funnel_stages) {
       const updatedStatuses = {}
       campaignFormData.funnel_stages.forEach((stageName) => {
-        // Only show "Not Started" if there is at least one selection for this stage
-        // Otherwise, status is undefined (no status shown)
         if (campaignFormData.validatedStages?.[stageName] || validatedPlatforms[stageName]?.size > 0) {
           updatedStatuses[stageName] = "Completed"
         } else {
-          // Check if any selectedOptions exist for this stage
+          // Check if any option is selected for this stage
           const hasAnySelection = Object.keys(selectedOptions).some((key) => {
             // key format: `${stageName}-${category}-${platformName}-buy_type` or ...-objective_type
             return key.startsWith(`${stageName}-`) && selectedOptions[key]
           })
           if (hasAnySelection) {
+            // Do not show "Not Started" if any option is selected
+            updatedStatuses[stageName] = ""
+          } else {
             updatedStatuses[stageName] = "Not Started"
           }
         }
@@ -251,6 +274,7 @@ const ObjectiveSelection = () => {
       localStorage.setItem("funnelStageStatuses", JSON.stringify(updatedStatuses))
     }
   }, [selectedOptions, validatedPlatforms, campaignFormData?.funnel_stages, campaignFormData?.validatedStages, isEditable])
+  // --- END REWRITE ---
 
   // Persist selectedOptions to localStorage
   useEffect(() => {
