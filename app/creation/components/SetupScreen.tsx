@@ -50,7 +50,9 @@ export const SetupScreen = () => {
   const [level2Options, setlevel2Options] = useState<DropdownOption[]>([]);
   const [level3Options, setlevel3Options] = useState<DropdownOption[]>([]);
 
-  // console.log("campaignFormData", documentId);
+
+
+
 
 
   useEffect(() => {

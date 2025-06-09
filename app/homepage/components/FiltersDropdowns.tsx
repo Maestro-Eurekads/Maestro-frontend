@@ -9,7 +9,6 @@ import { toast, Toaster } from "react-hot-toast"
 import { useAppDispatch } from "store/useStore"
 import { getCreateClient } from "features/Client/clientSlice"
 import { defaultFilters } from "components/data"
-import { fetchFilteredCampaignsSub } from "app/utils/campaign-filter-utils-sub"
 import { useSession } from "next-auth/react"
 import { FilterState } from "app/utils/useCampaignFilters"
 import { useUserPrivileges } from "utils/userPrivileges"
@@ -188,7 +187,6 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     const fetchData = async () => {
       const clientID = localStorage.getItem(userType.toString()) || allClients[0]?.id
       setLoading(true)
-      console.log('clientID-clientID', clientID)
 
       try {
         const res = allEmpty //@ts-ignore

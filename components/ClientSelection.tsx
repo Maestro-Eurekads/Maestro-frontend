@@ -40,7 +40,7 @@ const Dropdown = ({
 
 
   const handleSelect = (id, value: string) => {
-    if(formId === "client_selection") {
+    if (formId === "client_selection") {
       const selectedClient = allClients?.find(client => client.documentId === id);
       if (selectedClient) {
         setClientUsers(selectedClient.users || []);

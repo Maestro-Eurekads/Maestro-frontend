@@ -332,6 +332,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       const data = response?.data?.data || {};
+      console.log("Business Level Options Data:", data);
       setBusinessLevelOptions({
         level1:
           data?.level_1?.map((item: string) => ({
