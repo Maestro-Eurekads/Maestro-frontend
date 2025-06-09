@@ -155,30 +155,8 @@ const ObjectiveSelection = () => {
       }
     }
 
-    // Initialize statuses for new or unseen stages
-    if (campaignFormData?.funnel_stages) {
-      let initialStatuses = { ...statuses }
-      let shouldUpdateStorage = false
-
-      campaignFormData.funnel_stages.forEach((stage) => {
-        if (!seenStagesRef.current.has(stage)) {
-          seenStagesRef.current.add(stage)
-          initialStatuses[stage] = "Not Started"
-          shouldUpdateStorage = true
-        } else if (!(stage in initialStatuses)) {
-          initialStatuses[stage] = "Not Started"
-          shouldUpdateStorage = true
-        }
-        if (campaignFormData.validatedStages?.[stage]) {
-          initialStatuses[stage] = "Completed"
-        }
-      })
-
-      setStatuses(initialStatuses)
-      if (shouldUpdateStorage) {
-        localStorage.setItem("seenFunnelStages", JSON.stringify(Array.from(seenStagesRef.current)))
-      }
-    }
+    // No longer set "Not Started" by default here
+    // We'll handle status in a later effect
   }, [campaignFormData?.planId, campaignFormData?.funnel_stages, campaignFormData?.validatedStages])
 
   // Sync selectedOptions with campaignFormData on initial load
@@ -254,11 +232,19 @@ const ObjectiveSelection = () => {
     if (campaignFormData?.funnel_stages) {
       const updatedStatuses = {}
       campaignFormData.funnel_stages.forEach((stageName) => {
-        // Remove "In Progress" status logic
+        // Only show "Not Started" if there is at least one selection for this stage
+        // Otherwise, status is undefined (no status shown)
         if (campaignFormData.validatedStages?.[stageName] || validatedPlatforms[stageName]?.size > 0) {
           updatedStatuses[stageName] = "Completed"
         } else {
-          updatedStatuses[stageName] = "Not Started"
+          // Check if any selectedOptions exist for this stage
+          const hasAnySelection = Object.keys(selectedOptions).some((key) => {
+            // key format: `${stageName}-${category}-${platformName}-buy_type` or ...-objective_type
+            return key.startsWith(`${stageName}-`) && selectedOptions[key]
+          })
+          if (hasAnySelection) {
+            updatedStatuses[stageName] = "Not Started"
+          }
         }
       })
       setStatuses(updatedStatuses)
@@ -595,9 +581,9 @@ const ObjectiveSelection = () => {
                     />
                     <p className="text-green-500 font-semibold text-base">Completed</p>
                   </>
-                ) : (
+                ) : statuses[stageName] === "Not Started" ? (
                   <p className="text-[#061237] opacity-50 text-base whitespace-nowrap">Not Started</p>
-                )}
+                ) : null}
               </div>
               <div>
                 {openItems[stage.name] ? (

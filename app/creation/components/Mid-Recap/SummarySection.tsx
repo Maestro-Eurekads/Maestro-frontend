@@ -77,7 +77,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
         table_headers: obj || {},
       };
       setCampaignFormData(updatedCampaignFormData);
-      await updateCampaign({
+       await updateCampaign({
         ...cleanData,
         funnel_stages: updatedCampaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(
