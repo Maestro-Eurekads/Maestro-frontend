@@ -96,9 +96,9 @@ const ClientView = () => {
 
 	useEffect(() => {
 		if (selected && jwt) {
-			dispatch(getCampaignById({ clientId: clientId, campaignId: selected }));
+			dispatch(getCampaignById({ clientId: clientId, campaignId: selected, jwt }));
 			dispatch(getComment(commentId, jwt, client_commentId));
-			dispatch(getGeneralComment(commentId));
+			dispatch(getGeneralComment(commentId, jwt));
 		}
 	}, [selected, commentId, client_commentId, clientId, jwt]);
 
@@ -113,7 +113,7 @@ const ClientView = () => {
 
 	const handleOpenComment = () => {
 		setGeneralComment(!generalComment)
-		dispatch(getGeneralComment(commentId));
+		dispatch(getGeneralComment(commentId, jwt));
 	}
 
 

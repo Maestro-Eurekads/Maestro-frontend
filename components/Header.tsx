@@ -47,7 +47,8 @@ const Header = ({ setIsOpen }) => {
     setFilterOptions,
     profile,
     setSelectedFilters,
-    jwt
+    jwt,
+    agencyId
   } = useCampaigns();
 
   const { setSelectedDates } = useSelectedDates()
@@ -64,14 +65,17 @@ const Header = ({ setIsOpen }) => {
   const clients: any = getCreateClientData;
 
   useEffect(() => {
-    dispatch(getCreateClient(!isAdmin ? userType : null));
+    if(profile){
+      dispatch(getCreateClient({userId: userType, jwt, }));
+  
+      const timer = setTimeout(() => {
+        setAlert(null);
+      }, 5000);
+  
+      return () => clearTimeout(timer);
 
-    const timer = setTimeout(() => {
-      setAlert(null);
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [dispatch, session]);
+    }
+  }, [dispatch, session, profile]);
 
   //  LocalStorage prioritized
   useEffect(() => {
@@ -106,7 +110,8 @@ const Header = ({ setIsOpen }) => {
       (client) => client?.id === Number(clientId)
     );
     // console.log(clientId);
-    fetchClientCampaign(clientId)
+    console.log("agencyId", agencyId)
+    fetchClientCampaign(clientId, agencyId)
       .then((res) => {
         const campaigns = res?.data?.data || [];
 

@@ -54,7 +54,7 @@ const AddFinanceModal = ({
   const [mediaPlans, setMediaPlans] = useState<MediaPlan[]>([]);
   const { fetchClientCampaign, fetchUserByType, fetchClientPOS } = useCampaignHook();
 
-  const { setClientPOs, setFetchingPO, profile, jwt } = useCampaigns();
+  const { setClientPOs, setFetchingPO, profile, jwt, agencyId } = useCampaigns();
   const [selected, setSelected] = useState("");
   const [poForm, setPoForm] = useState<POForm>({
     client: "",
@@ -120,14 +120,14 @@ const AddFinanceModal = ({
   // console.log("clientApprover:", clientApprover);
   // console.log("internalApprover:", internalApprover);
 
-  console.log('campaign', clientCampaigns)
+  // console.log('campaign', clientCampaigns)
 
   useEffect(() => {
     const fetchClientCampaigns = async () => {
-      if (selected || selectedRow?.client?.id) {
+      if ((selected || selectedRow?.client?.id) && agencyId) {
         setLoadingCam(true);
         try {
-          const res = await fetchClientCampaign(selected || selectedRow?.client?.id);
+          const res = await fetchClientCampaign(selected || selectedRow?.client?.id, agencyId);
 
           const data = res?.data?.data;
           console.log("yes-yess-yes:", res);
@@ -148,7 +148,7 @@ const AddFinanceModal = ({
     };
 
     fetchClientCampaigns();
-  }, [selected, selectedRow]);
+  }, [selected, selectedRow, agencyId]);
 
   useEffect(() => {
     const fetchAgencyUsers = async () => {

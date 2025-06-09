@@ -3,6 +3,7 @@
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { useState, useEffect, useCallback } from "react";
+import { useCampaigns } from "./CampaignsContext";
 
 const useCampaignHook = () => {
   // Loading States
@@ -43,12 +44,15 @@ const useCampaignHook = () => {
   }, [jwt]);
 
   // Fetch client campaigns
-  const fetchClientCampaign = useCallback(async (clientID) => {
+  const fetchClientCampaign = useCallback(async (clientID:string, agencyId:string|number) => {
     try {
       const filters = {
         client: {
           $eq: clientID,
         },
+        agency: {
+          $eq: agencyId
+        }
       };
 
       // Add user filter only if user_type includes 'client'

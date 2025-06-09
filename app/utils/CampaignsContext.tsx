@@ -57,8 +57,7 @@ const CampaignContext = createContext<any>(null);
 export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const { data: session } = useSession();
   const id = (session?.user as { id?: string })?.id;
-  const jwt =
-    (session?.user as { data?: { jwt: string } })?.data?.jwt
+  const jwt = (session?.user as { data?: { jwt: string } })?.data?.jwt;
   const campaign_builder = session?.user;
   const [campaignFormData, setCampaignFormData] = useState(getInitialState());
   const [campaignData, setCampaignData] = useState(null);
@@ -102,6 +101,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   });
   const [selectedFilters, setSelectedFilters] = useState({});
   const [clientUsers, setClientUsers] = useState([]);
+  const [agencyId, setAgencyId] = useState<string | number | null>(null);
 
   const reduxClients = useSelector(
     (state: any) => state.client?.getCreateClientData?.data || []
@@ -323,7 +323,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       );
       await updateUsersWithCampaign(
         clientUsers?.map((uu) => uu?.id),
-        response?.data?.data?.id, jwt
+        response?.data?.data?.id,
+        jwt
       );
       return response;
     } catch (error) {
@@ -339,7 +340,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${id}?populate=*`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${id}?populate[admin][populate][agency]=*&populate[agency_user][populate][agency]=*&populate[client_user][populate][agency]=*&populate[clients]=*`,
         {
           headers: {
             Authorization: `Bearer ${jwt}`,
@@ -347,6 +348,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       setGetProfile(response?.data);
+      const aId =
+        response?.data?.user_type === "admin"
+          ? response?.data?.admin?.agency?.id
+          : response?.data?.user_type?.includes("cleint")
+          ? response?.data?.cleint_user?.agency?.id
+          : response?.data?.agency_user?.agency?.id;
+      console.log("agencyId", aId);
+      setAgencyId(aId);
       return response;
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -682,7 +691,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       user,
       setClientUsers,
       clientUsers,
-      jwt
+      jwt,
+      agencyId
     }),
     [
       getUserByUserType,
@@ -719,6 +729,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       user,
       setClientUsers,
       clientUsers,
+      agencyId
     ]
   );
 

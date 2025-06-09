@@ -88,7 +88,7 @@ export const CommentProvider = ({ children}) => {
 					Authorization: `Bearer ${jwt}`,
 				},
 			});
-			dispatch(getGeneralComment(commentId));
+			dispatch(getGeneralComment(commentId, jwt));
 			setGeneralComment("");
 			setIsLoadingGeneral(false);
 			setGeneralcommentsSuccess(true);
@@ -113,7 +113,7 @@ export const CommentProvider = ({ children}) => {
 					Authorization: `Bearer ${jwt}`,
 				},
 			});
-			dispatch(getGeneralComment(commentId));
+			dispatch(getGeneralComment(commentId, jwt));
 			setGeneralComment("");
 			setIsLoadingGeneral(false);
 			setGeneralcommentsSuccess(true);

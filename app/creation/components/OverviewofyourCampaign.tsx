@@ -117,7 +117,7 @@ const OverviewofyourCampaign = () => {
   };
   const handleOpenComment = () => {
     setGeneralComment(!generalComment);
-    dispatch(getGeneralComment(commentId));
+    dispatch(getGeneralComment(commentId, jwt));
   };
 
   function extractKPIByFunnelStage(data, kpiCategories) {

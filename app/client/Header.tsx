@@ -8,6 +8,7 @@ import { getSignedApproval } from "features/Comment/commentSlice";
 import Skeleton from "react-loading-skeleton";
 import tickcircles from "../../public/solid_circle-check.svg";
 import ClientsCampaignDropdown from "./compoment/ClientsCampaignDropdown";
+import { useCampaigns } from "app/utils/CampaignsContext";
 
 const Header = ({ setIsOpen, campaigns, loading }) => {
   const {
@@ -22,21 +23,22 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
     (state) => state.comment
   );
   const { data: session }: any = useSession();
+  const {jwt} = useCampaigns()
   const dispatch = useAppDispatch();
   const id = session?.user?.id;
 
   useEffect(() => {
     if (createApprovalSuccess) {
       setModalOpen(false);
-      dispatch(getSignedApproval(id));
+      dispatch(getSignedApproval(id, jwt));
       setCreateApprovalSuccess(null);
     }
-    dispatch(getSignedApproval(id));
+    dispatch(getSignedApproval(id, jwt));
   }, [dispatch, id, createApprovalSuccess]);
 
   const handleDrawerOpen = () => {
     setModalOpen(true);
-    dispatch(getSignedApproval(id));
+    dispatch(getSignedApproval(id, jwt));
   };
 
   const isSignature = dataApprove?.[0]?.isSignature || false;
