@@ -1,4 +1,5 @@
 "use client"
+
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import PageHeaderWrapper from "../../../components/PageHeaderWapper"
@@ -83,7 +84,6 @@ const LOCAL_STORAGE_CONFIGS_KEY = "funnel_configurations_v1"
 
 // Helper to get a unique client key for localStorage based on clientId
 const getClientKey = (baseKey: string, clientId: string | undefined) => {
-  // If clientId is undefined, fallback to baseKey (for new clients, don't persist)
   return clientId ? `${baseKey}_client_${clientId}` : baseKey
 }
 
@@ -130,28 +130,20 @@ const MapFunnelStages = () => {
   const [modalMode, setModalMode] = useState<"add" | "edit">("add")
   const [currentFunnel, setCurrentFunnel] = useState<Funnel | null>(null)
   const [newFunnelName, setNewFunnelName] = useState("")
-  // newFunnelColor can be a tailwind class or a hex string
   const [newFunnelColor, setNewFunnelColor] = useState<string>(colorPalette[0])
-  // customColor is always a hex string
   const [customColor, setCustomColor] = useState<string>(colorClassToHex[colorPalette[0]])
   const modalRef = useRef<HTMLDivElement>(null)
-
-  // Drag state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
-
-  // Dropdown state
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [selectedPreset, setSelectedPreset] = useState<number | null>(null)
-
-  // Funnel configuration state
   const [funnelConfigs, setFunnelConfigs] = useState<FunnelConfig[]>([])
   const [selectedConfigIdx, setSelectedConfigIdx] = useState<number | null>(null)
   const [isSaveConfigModalOpen, setIsSaveConfigModalOpen] = useState(false)
   const [newConfigName, setNewConfigName] = useState("")
 
-  // Get clientId from campaignFormData
-  const clientId = campaignFormData?.client_selection?.id
+  // Get clientId safely
+  const clientId = campaignFormData?.client_selection?.id ?? ""
 
   // Default funnel stages
   const defaultFunnels: Funnel[] = [
@@ -163,62 +155,66 @@ const MapFunnelStages = () => {
 
   // --- LocalStorage helpers for custom funnels (CLIENT-BASED) ---
   const saveCustomFunnelsToStorage = (funnels: Funnel[]) => {
-    if (!clientId) return // Don't persist for new clients
+    if (!clientId) return
     try {
       localStorage.setItem(getClientKey(LOCAL_STORAGE_FUNNELS_KEY, clientId), JSON.stringify(funnels))
     } catch (e) {
       console.error("Failed to save custom funnels to localStorage:", e)
+      toast.error("Failed to save funnels", { duration: 3000 })
     }
   }
 
   const getCustomFunnelsFromStorage = (): Funnel[] | null => {
-    if (!clientId) return null // Don't load for new clients
+    if (!clientId) return null
     try {
       const data = localStorage.getItem(getClientKey(LOCAL_STORAGE_FUNNELS_KEY, clientId))
       if (data) {
-        return JSON.parse(data)
+        const parsed = JSON.parse(data)
+        if (Array.isArray(parsed) && parsed.every(f => f.id && f.name && f.color)) {
+          return parsed
+        }
       }
     } catch (e) {
       console.error("Failed to load custom funnels from localStorage:", e)
+      toast.error("Failed to load funnels", { duration: 3000 })
     }
     return null
   }
 
   // --- LocalStorage helpers for funnel configurations (CLIENT-BASED) ---
   const saveFunnelConfigsToStorage = (configs: FunnelConfig[]) => {
-    if (!clientId) return // Don't persist for new clients
+    if (!clientId) return
     try {
       localStorage.setItem(getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId), JSON.stringify(configs))
     } catch (e) {
       console.error("Failed to save funnel configurations to localStorage:", e)
+      toast.error("Failed to save configurations", { duration: 3000 })
     }
   }
 
   const getFunnelConfigsFromStorage = (): FunnelConfig[] => {
-    if (!clientId) return [] // Don't load for new clients
+    if (!clientId) return []
     try {
       const data = localStorage.getItem(getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId))
       if (data) {
         const parsed = JSON.parse(data)
-        // Validate that parsed data is an array of valid FunnelConfig objects
         if (Array.isArray(parsed) && parsed.every(config => config.name && Array.isArray(config.stages))) {
           return parsed
         }
       }
     } catch (e) {
       console.error("Failed to load funnel configurations from localStorage:", e)
+      toast.error("Failed to load configurations", { duration: 3000 })
     }
     return []
   }
 
-  // Initialize funnel data and configurations on mount or clientId change
+  // Initialize funnel data and configurations
   useEffect(() => {
-    // Load funnel configurations from localStorage
     const configs = getFunnelConfigsFromStorage()
     setFunnelConfigs(configs)
 
     if (!clientId) {
-      // New client: use defaults, clear states, and don't persist
       setPersistentCustomFunnels(defaultFunnels)
       setCustomFunnels(defaultFunnels)
       setSelectedConfigIdx(null)
@@ -226,26 +222,24 @@ const MapFunnelStages = () => {
       setCampaignFormData((prev: any) => ({
         ...prev,
         funnel_type: "custom",
-        funnel_stages: defaultFunnels.map((f) => f.name),
-        channel_mix: defaultFunnels.map((f) => ({ funnel_stage: f.name })),
+        funnel_stages: defaultFunnels.map(f => f.name),
+        channel_mix: defaultFunnels.map(f => ({ funnel_stage: f.name })),
         custom_funnels: defaultFunnels,
       }))
-      // Clear any global (non-clientId) keys to avoid carryover
       localStorage.removeItem(LOCAL_STORAGE_FUNNELS_KEY)
       localStorage.removeItem(LOCAL_STORAGE_CONFIGS_KEY)
       return
     }
 
-    // Existing client: load funnels from localStorage or campaignData
     let loadedCustomFunnels: Funnel[] = []
     const localStorageFunnels = getCustomFunnelsFromStorage()
 
-    if (localStorageFunnels && Array.isArray(localStorageFunnels) && localStorageFunnels.length > 0) {
+    if (localStorageFunnels && localStorageFunnels.length > 0) {
       loadedCustomFunnels = localStorageFunnels
-    } else if (campaignData?.custom_funnels && campaignData.custom_funnels.length > 0) {
+    } else if (campaignData?.custom_funnels?.length > 0) {
       loadedCustomFunnels = campaignData.custom_funnels.map((funnel: any, index: number) => ({
-        id: funnel.id || funnel.name,
-        name: funnel.name,
+        id: funnel.id || funnel.name || `funnel-${index}`,
+        name: funnel.name || `Funnel ${index + 1}`,
         color: funnel.color || colorPalette[index % colorPalette.length] || "bg-gray-500",
       }))
     } else {
@@ -255,23 +249,17 @@ const MapFunnelStages = () => {
     setPersistentCustomFunnels(loadedCustomFunnels)
     setCustomFunnels(loadedCustomFunnels)
 
-    // Restore saved state from campaignData
-    const initialFunnelStages =
-      campaignData?.funnel_stages && campaignData.funnel_stages.length > 0 ? campaignData.funnel_stages : []
-    const initialChannelMix =
-      campaignData?.channel_mix && campaignData.channel_mix.length > 0 ? campaignData.channel_mix : []
-
     setCampaignFormData((prev: any) => {
-      const orderedFunnelStages =
-        initialFunnelStages.length > 0
-          ? loadedCustomFunnels.map((f) => f.name).filter((name) => initialFunnelStages.includes(name))
-          : loadedCustomFunnels.map((f) => f.name)
-      const orderedChannelMix =
-        initialChannelMix.length > 0
-          ? loadedCustomFunnels
-              .map((f) => initialChannelMix.find((ch: any) => ch.funnel_stage === f.name))
-              .filter((ch): ch is { funnel_stage: string } => ch !== undefined)
-          : loadedCustomFunnels.map((f) => ({ funnel_stage: f.name }))
+      const initialFunnelStages = Array.isArray(campaignData?.funnel_stages) ? campaignData.funnel_stages : []
+      const initialChannelMix = Array.isArray(campaignData?.channel_mix) ? campaignData.channel_mix : []
+      const orderedFunnelStages = initialFunnelStages.length > 0
+        ? loadedCustomFunnels.map(f => f.name).filter(name => initialFunnelStages.includes(name))
+        : loadedCustomFunnels.map(f => f.name)
+      const orderedChannelMix = initialChannelMix.length > 0
+        ? loadedCustomFunnels
+            .map(f => initialChannelMix.find((ch: any) => ch?.funnel_stage === f.name))
+            .filter((ch): ch is { funnel_stage: string } => !!ch)
+        : loadedCustomFunnels.map(f => ({ funnel_stage: f.name }))
 
       return {
         ...prev,
@@ -282,11 +270,10 @@ const MapFunnelStages = () => {
       }
     })
 
-    // Check if current funnel structure matches any saved config
     if (configs.length > 0 && loadedCustomFunnels.length > 0) {
-      const currentStageNames = loadedCustomFunnels.map((f) => f.name).sort()
-      const matchingConfigIdx = configs.findIndex((config) => {
-        const configStageNames = config.stages.map((s) => s.name).sort()
+      const currentStageNames = loadedCustomFunnels.map(f => f.name).sort()
+      const matchingConfigIdx = configs.findIndex(config => {
+        const configStageNames = config.stages.map(s => s.name).sort()
         return JSON.stringify(currentStageNames) === JSON.stringify(configStageNames)
       })
 
@@ -294,19 +281,13 @@ const MapFunnelStages = () => {
         setSelectedConfigIdx(matchingConfigIdx)
         setSelectedPreset(null)
       } else {
-        // Check if it matches any preset
-        const matchingPresetIdx = presetStructures.findIndex((preset) => {
-          const presetStageNames = preset.stages.map((s) => s.name).sort()
+        const matchingPresetIdx = presetStructures.findIndex(preset => {
+          const presetStageNames = preset.stages.map(s => s.name).sort()
           return JSON.stringify(currentStageNames) === JSON.stringify(presetStageNames)
         })
 
-        if (matchingPresetIdx !== -1) {
-          setSelectedPreset(matchingPresetIdx)
-          setSelectedConfigIdx(null)
-        } else {
-          setSelectedConfigIdx(null)
-          setSelectedPreset(null)
-        }
+        setSelectedPreset(matchingPresetIdx !== -1 ? matchingPresetIdx : null)
+        setSelectedConfigIdx(null)
       }
     } else {
       setSelectedConfigIdx(null)
@@ -320,7 +301,7 @@ const MapFunnelStages = () => {
     setClose(false)
   }, [setIsDrawerOpen, setClose])
 
-  // Validate funnel stages for step verification
+  // Validate funnel stages
   useEffect(() => {
     const isValid = Array.isArray(campaignFormData?.funnel_stages) && campaignFormData.funnel_stages.length > 0
     if (isValid !== previousValidationState) {
@@ -329,25 +310,23 @@ const MapFunnelStages = () => {
     }
   }, [campaignFormData, cId, verifyStep, previousValidationState])
 
-  // Save custom funnels to localStorage when persistentCustomFunnels changes
+  // Save custom funnels to localStorage
   useEffect(() => {
-    if (!clientId) return
-    if (persistentCustomFunnels.length > 0) {
+    if (clientId && persistentCustomFunnels.length > 0) {
       saveCustomFunnelsToStorage(persistentCustomFunnels)
     }
   }, [persistentCustomFunnels, clientId])
 
-  // Save funnel configurations to localStorage when funnelConfigs changes
+  // Save funnel configurations to localStorage
   useEffect(() => {
-    if (!clientId) return
-    if (funnelConfigs.length > 0) {
+    if (clientId && funnelConfigs.length > 0) {
       saveFunnelConfigsToStorage(funnelConfigs)
     }
   }, [funnelConfigs, clientId])
 
-  // Handle clicks outside modal to close it
+  // Handle clicks outside modal
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    const handleClickOutside = (event: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
         setIsModalOpen(false)
         setIsSaveConfigModalOpen(false)
@@ -362,30 +341,24 @@ const MapFunnelStages = () => {
     }
   }, [isModalOpen, isSaveConfigModalOpen])
 
-  // Get an available color from the palette
+  // Get an available color
   const getAvailableColor = (excludeColor?: string): string => {
-    const usedColors = persistentCustomFunnels.filter((f) => f.color !== excludeColor).map((f) => f.color)
-    const availableColors = colorPalette.filter((c) => !usedColors.includes(c))
+    const usedColors = persistentCustomFunnels.filter(f => f.color !== excludeColor).map(f => f.color)
+    const availableColors = colorPalette.filter(c => !usedColors.includes(c))
     return availableColors.length > 0
       ? availableColors[0]
       : colorPalette[persistentCustomFunnels.length % colorPalette.length]
   }
 
-  // --- Funnel name validation function ---
+  // Funnel name validation
   const validateFunnelName = (name: string, isEdit = false, oldId?: string): string => {
     const trimmed = name.trim()
-    if (!trimmed) {
-      return "Funnel name cannot be empty"
-    }
-    if (trimmed.length < 2) {
-      return "Funnel name must be at least 2 characters"
-    }
-    if (!/[a-zA-Z]/.test(trimmed)) {
-      return "Funnel name must include at least one letter"
-    }
+    if (!trimmed) return "Funnel name cannot be empty"
+    if (trimmed.length < 2) return "Funnel name must be at least 2 characters"
+    if (!/[a-zA-Z]/.test(trimmed)) return "Funnel name must include at least one letter"
     if (
       persistentCustomFunnels.some(
-        (funnel) => funnel.name.toLowerCase() === trimmed.toLowerCase() && (!isEdit || funnel.name !== oldId),
+        funnel => funnel.name.toLowerCase() === trimmed.toLowerCase() && (!isEdit || funnel.name !== oldId)
       )
     ) {
       return "A funnel with this name already exists"
@@ -393,19 +366,13 @@ const MapFunnelStages = () => {
     return ""
   }
 
-  // --- Funnel config name validation ---
+  // Funnel config name validation
   const validateConfigName = (name: string): string => {
     const trimmed = name.trim()
-    if (!trimmed) {
-      return "Configuration name cannot be empty"
-    }
-    if (trimmed.length < 2) {
-      return "Configuration name must be at least 2 characters"
-    }
-    if (!/[a-zA-Z]/.test(trimmed)) {
-      return "Configuration name must include at least one letter"
-    }
-    if (funnelConfigs.some((config) => config.name.toLowerCase() === trimmed.toLowerCase())) {
+    if (!trimmed) return "Configuration name cannot be empty"
+    if (trimmed.length < 2) return "Configuration name must be at least 2 characters"
+    if (!/[a-zA-Z]/.test(trimmed)) return "Configuration name must include at least one letter"
+    if (funnelConfigs.some(config => config.name.toLowerCase() === trimmed.toLowerCase())) {
       return "A configuration with this name already exists"
     }
     return ""
@@ -414,9 +381,7 @@ const MapFunnelStages = () => {
   // Handle funnel selection
   const handleSelect = (id: string) => {
     if (campaignFormData?.funnel_stages?.includes(id) && campaignFormData.funnel_stages.length === 1) {
-      toast.error("You must have at least one stage selected", {
-        duration: 3000,
-      })
+      toast.error("You must have at least one stage selected", { duration: 3000 })
       return
     }
 
@@ -431,19 +396,18 @@ const MapFunnelStages = () => {
       : [...(campaignFormData?.channel_mix || []), { funnel_stage: id }]
 
     const orderedFunnelStages = persistentCustomFunnels
-      .map((f) => f.name)
-      .filter((name) => newFunnelStages.includes(name))
+      .map(f => f.name)
+      .filter(name => newFunnelStages.includes(name))
 
     const orderedChannelMix = persistentCustomFunnels
-      .map((f) => newChannelMix.find((ch: any) => ch.funnel_stage === f.name))
-      .filter((ch): ch is { funnel_stage: string } => ch !== undefined)
+      .map(f => newChannelMix.find((ch: any) => ch?.funnel_stage === f.name))
+      .filter((ch): ch is { funnel_stage: string } => !!ch)
 
     setCampaignFormData((prev: any) => ({
       ...prev,
       funnel_stages: orderedFunnelStages,
       channel_mix: orderedChannelMix,
     }))
-
     setHasChanges(true)
   }
 
@@ -451,19 +415,11 @@ const MapFunnelStages = () => {
   const handleAddFunnel = (name: string, color: string) => {
     const error = validateFunnelName(name, false)
     if (error) {
-      toast.error(error, {
-        style: { background: "red", color: "white", textAlign: "center" },
-        duration: 3000,
-      })
+      toast.error(error, { style: { background: "red", color: "white", textAlign: "center" }, duration: 3000 })
       return
     }
 
-    const newFunnel: Funnel = {
-      id: name,
-      name: name,
-      color: color,
-    }
-
+    const newFunnel: Funnel = { id: name, name, color }
     const updatedFunnels = [...persistentCustomFunnels, newFunnel]
     setPersistentCustomFunnels(updatedFunnels)
     setCustomFunnels(updatedFunnels)
@@ -486,22 +442,12 @@ const MapFunnelStages = () => {
   const handleEditFunnel = (oldId: string, newName: string, newColor: string) => {
     const error = validateFunnelName(newName, true, oldId)
     if (error) {
-      toast.error(error, {
-        style: { background: "red", color: "white", textAlign: "center" },
-        duration: 3000,
-      })
+      toast.error(error, { style: { background: "red", color: "white", textAlign: "center" }, duration: 3000 })
       return
     }
 
-    const updatedFunnels = persistentCustomFunnels.map((f) =>
-      f.name === oldId
-        ? {
-            ...f,
-            id: newName,
-            name: newName,
-            color: newColor,
-          }
-        : f,
+    const updatedFunnels = persistentCustomFunnels.map(f =>
+      f.name === oldId ? { ...f, id: newName, name: newName, color: newColor } : f
     )
 
     setPersistentCustomFunnels(updatedFunnels)
@@ -512,9 +458,10 @@ const MapFunnelStages = () => {
     setCampaignFormData((prev: any) => ({
       ...prev,
       custom_funnels: updatedFunnels,
-      funnel_stages: prev.funnel_stages?.map((stage: string) => (stage === oldId ? newName : stage)) || [],
-      channel_mix:
-        prev.channel_mix?.map((ch: any) => (ch.funnel_stage === oldId ? { ...ch, funnel_stage: newName } : ch)) || [],
+      funnel_stages: (prev.funnel_stages || []).map((stage: string) => (stage === oldId ? newName : stage)),
+      channel_mix: (prev.channel_mix || []).map((ch: any) =>
+        ch.funnel_stage === oldId ? { ...ch, funnel_stage: newName } : ch
+      ),
     }))
 
     setHasChanges(true)
@@ -532,7 +479,7 @@ const MapFunnelStages = () => {
       return
     }
 
-    const updatedFunnels = persistentCustomFunnels.filter((f) => f.name !== id)
+    const updatedFunnels = persistentCustomFunnels.filter(f => f.name !== id)
     setPersistentCustomFunnels(updatedFunnels)
     setCustomFunnels(updatedFunnels)
 
@@ -541,8 +488,8 @@ const MapFunnelStages = () => {
     setCampaignFormData((prev: any) => ({
       ...prev,
       custom_funnels: updatedFunnels,
-      funnel_stages: prev.funnel_stages?.filter((name: string) => name !== id) || [],
-      channel_mix: prev.channel_mix?.filter((ch: any) => ch?.funnel_stage !== id) || [],
+      funnel_stages: (prev.funnel_stages || []).filter((name: string) => name !== id),
+      channel_mix: (prev.channel_mix || []).filter((ch: any) => ch?.funnel_stage !== id),
     }))
 
     setHasChanges(true)
@@ -577,10 +524,10 @@ const MapFunnelStages = () => {
     if (clientId) saveCustomFunnelsToStorage(newFunnels)
 
     setCampaignFormData((prev: any) => {
-      const newFunnelNames = newFunnels.map((f) => f.name)
-      const orderedFunnelStages = newFunnelNames.filter((name) => prev.funnel_stages?.includes(name))
+      const newFunnelNames = newFunnels.map(f => f.name)
+      const orderedFunnelStages = newFunnelNames.filter(name => prev.funnel_stages?.includes(name))
       const orderedChannelMix = newFunnelNames.map(
-        (name) => prev.channel_mix?.find((ch: any) => ch.funnel_stage === name) || { funnel_stage: name },
+        name => prev.channel_mix?.find((ch: any) => ch?.funnel_stage === name) || { funnel_stage: name }
       )
       return {
         ...prev,
@@ -600,12 +547,13 @@ const MapFunnelStages = () => {
     setDragOverIndex(null)
   }
 
-  // When opening modal for add/edit, set color accordingly
+  // Set color when opening modal
   useEffect(() => {
     if (isModalOpen) {
       if (modalMode === "add") {
-        setNewFunnelColor(getAvailableColor())
-        setCustomColor(colorClassToHex[getAvailableColor()])
+        const availableColor = getAvailableColor()
+        setNewFunnelColor(availableColor)
+        setCustomColor(colorClassToHex[availableColor])
       } else if (modalMode === "edit" && currentFunnel) {
         if (colorPalette.includes(currentFunnel.color)) {
           setNewFunnelColor(currentFunnel.color)
@@ -621,37 +569,28 @@ const MapFunnelStages = () => {
     }
   }, [isModalOpen, modalMode, currentFunnel])
 
-  // Helper to get the background style for a funnel color
+  // Helper to get funnel background style
   const getFunnelBgStyle = (color: string, isSelected: boolean) => {
-    if (!isSelected) {
-      return { className: "bg-gray-200", style: {} }
-    }
-    if (colorPalette.includes(color)) {
-      return { className: color, style: {} }
-    }
-    if (isHexColor(color)) {
-      return { className: "", style: { background: color } }
-    }
+    if (!isSelected) return { className: "bg-gray-200", style: {} }
+    if (colorPalette.includes(color)) return { className: color, style: {} }
+    if (isHexColor(color)) return { className: "", style: { background: color } }
     return { className: "bg-gray-200", style: {} }
   }
 
-  // Helper to get the text color for a funnel color
+  // Helper to get funnel text color
   const getFunnelTextColor = (color: string, isSelected: boolean) => {
-    if (isSelected) {
-      if (isHexColor(color)) {
-        const hex = color.replace("#", "")
-        const r = Number.parseInt(hex.substring(0, 2), 16)
-        const g = Number.parseInt(hex.substring(2, 4), 16)
-        const b = Number.parseInt(hex.substring(4, 6), 16)
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-        return luminance < 0.6 ? "text-white" : "text-gray-900"
-      }
-      return "text-white"
+    if (isSelected && isHexColor(color)) {
+      const hex = color.replace("#", "")
+      const r = parseInt(hex.substring(0, 2), 16)
+      const g = parseInt(hex.substring(2, 4), 16)
+      const b = parseInt(hex.substring(4, 6), 16)
+      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+      return luminance < 0.6 ? "text-white" : "text-gray-900"
     }
-    return "text-gray-500"
+    return isSelected ? "text-white" : "text-gray-500"
   }
 
-  // Handle preset selection from dropdown
+  // Handle preset selection
   const handlePresetSelect = (presetIdx: number) => {
     setSelectedPreset(presetIdx)
     setSelectedConfigIdx(null)
@@ -662,15 +601,15 @@ const MapFunnelStages = () => {
     setCampaignFormData((prev: any) => ({
       ...prev,
       custom_funnels: preset.stages,
-      funnel_stages: preset.stages.map((f) => f.name),
-      channel_mix: preset.stages.map((f) => ({ funnel_stage: f.name })),
+      funnel_stages: preset.stages.map(f => f.name),
+      channel_mix: preset.stages.map(f => ({ funnel_stage: f.name })),
     }))
     setHasChanges(true)
     toast.success("Preset structure applied", { duration: 2000 })
     setDropdownOpen(false)
   }
 
-  // Handle saved config selection from dropdown
+  // Handle saved config selection
   const handleConfigSelect = (configIdx: number) => {
     setSelectedConfigIdx(configIdx)
     setSelectedPreset(null)
@@ -681,15 +620,15 @@ const MapFunnelStages = () => {
     setCampaignFormData((prev: any) => ({
       ...prev,
       custom_funnels: config.stages,
-      funnel_stages: config.stages.map((f) => f.name),
-      channel_mix: config.stages.map((f) => ({ funnel_stage: f.name })),
+      funnel_stages: config.stages.map(f => f.name),
+      channel_mix: config.stages.map(f => ({ funnel_stage: f.name })),
     }))
     setHasChanges(true)
     toast.success("Funnel configuration applied", { duration: 2000 })
     setDropdownOpen(false)
   }
 
-  // Save button handler (open modal to name config)
+  // Save configuration
   const handleSaveConfiguration = () => {
     if (!clientId) {
       toast.error("Please select a client first to save funnel configurations.", {
@@ -702,14 +641,11 @@ const MapFunnelStages = () => {
     setIsSaveConfigModalOpen(true)
   }
 
-  // Actually save config after naming
+  // Confirm save config
   const handleSaveConfigConfirm = () => {
     const error = validateConfigName(newConfigName)
     if (error) {
-      toast.error(error, {
-        style: { background: "red", color: "white", textAlign: "center" },
-        duration: 3000,
-      })
+      toast.error(error, { style: { background: "red", color: "white", textAlign: "center" }, duration: 3000 })
       return
     }
     const config: FunnelConfig = {
@@ -718,18 +654,18 @@ const MapFunnelStages = () => {
     }
     const updatedConfigs = [...funnelConfigs, config]
     setFunnelConfigs(updatedConfigs)
-    saveFunnelConfigsToStorage(updatedConfigs)
+    if (clientId) saveFunnelConfigsToStorage(updatedConfigs)
     setSelectedConfigIdx(updatedConfigs.length - 1)
     setSelectedPreset(null)
     setIsSaveConfigModalOpen(false)
-    toast.success(`"${newConfigName.trim()}" configuration saved and available in dropdown!`, { duration: 3000 })
+    toast.success(`"${newConfigName.trim()}" configuration saved!`, { duration: 3000 })
   }
 
   // Delete a saved configuration
   const handleDeleteConfig = (configIdx: number) => {
     const updatedConfigs = funnelConfigs.filter((_, idx) => idx !== configIdx)
     setFunnelConfigs(updatedConfigs)
-    saveFunnelConfigsToStorage(updatedConfigs)
+    if (clientId) saveFunnelConfigsToStorage(updatedConfigs)
     if (selectedConfigIdx === configIdx) {
       setSelectedConfigIdx(null)
     } else if (selectedConfigIdx !== null && selectedConfigIdx > configIdx) {
@@ -738,18 +674,13 @@ const MapFunnelStages = () => {
     toast.success("Configuration deleted successfully", { duration: 2000 })
   }
 
-  // Helper to get the background style for a stage in saved config preview
+  // Helper for stage preview style
   const getStagePreviewStyle = (color: string) => {
-    if (colorPalette.includes(color)) {
-      return { className: color, style: {} }
-    }
-    if (isHexColor(color)) {
-      return { className: "", style: { background: color } }
-    }
+    if (colorPalette.includes(color)) return { className: color, style: {} }
+    if (isHexColor(color)) return { className: "", style: { background: color } }
     return { className: "bg-gray-400", style: {} }
   }
 
-  // --- BEGIN MODAL RENDER ---
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -768,7 +699,7 @@ const MapFunnelStages = () => {
           <div className="relative w-full">
             <button
               className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-lg bg-white shadow-sm text-gray-700 text-base font-medium focus:outline-none"
-              onClick={() => setDropdownOpen((open) => !open)}
+              onClick={() => setDropdownOpen(open => !open)}
               type="button"
               aria-haspopup="listbox"
               aria-expanded={dropdownOpen}
@@ -836,7 +767,7 @@ const MapFunnelStages = () => {
         </div>
         <div className="flex-1 flex flex-col justify-center items-center gap-[32px] w-full">
           {customFunnels.map((funnel, index) => {
-            const isSelected = campaignFormData.funnel_stages?.includes(funnel.name)
+            const isSelected = campaignFormData?.funnel_stages?.includes(funnel.name) ?? false
             const isDragging = draggedIndex === index
             const isDragOver = dragOverIndex === index && draggedIndex !== null && draggedIndex !== index
             const { className: funnelBgClass, style: funnelBgStyle } = getFunnelBgStyle(funnel.color, isSelected)
@@ -871,18 +802,14 @@ const MapFunnelStages = () => {
                     className={`flex-1 cursor-pointer w-full rounded-lg py-4 flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${funnelBgClass} ${textColor}`}
                     onClick={() => handleSelect(funnel.name)}
                     type="button"
-                    style={{
-                      ...funnelBgStyle,
-                      opacity: 1,
-                      border: isSelected ? "none" : "1px solid #e5e7eb",
-                    }}
+                    style={{ ...funnelBgStyle, opacity: 1, border: isSelected ? "none" : "1px solid #e5e7eb" }}
                   >
                     <p className="text-[16px]">{funnel.name}</p>
                   </button>
                   <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
                     <button
                       className="p-1 bg-white rounded-full shadow-sm"
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation()
                         setModalMode("edit")
                         setCurrentFunnel(funnel)
@@ -904,7 +831,7 @@ const MapFunnelStages = () => {
                     </button>
                     <button
                       className="p-1 bg-white rounded-full shadow-sm"
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation()
                         handleRemoveFunnel(funnel.name)
                       }}
@@ -944,10 +871,7 @@ const MapFunnelStages = () => {
           <div ref={modalRef} className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">{modalMode === "add" ? "Add New Funnel" : "Edit Funnel"}</h3>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-gray-700">
                 <X size={20} />
               </button>
             </div>
@@ -959,7 +883,7 @@ const MapFunnelStages = () => {
                 type="text"
                 id="funnelName"
                 value={newFunnelName}
-                onChange={(e) => setNewFunnelName(e.target.value)}
+                onChange={e => setNewFunnelName(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter funnel name"
               />
@@ -967,7 +891,7 @@ const MapFunnelStages = () => {
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
               <div className="flex flex-wrap gap-2 mb-2">
-                {colorPalette.map((color) => (
+                {colorPalette.map(color => (
                   <button
                     key={color}
                     type="button"
@@ -994,7 +918,7 @@ const MapFunnelStages = () => {
                   <input
                     type="color"
                     value={isHexColor(newFunnelColor) ? newFunnelColor : customColor}
-                    onChange={(e) => {
+                    onChange={e => {
                       setCustomColor(e.target.value)
                       setNewFunnelColor(e.target.value)
                     }}
@@ -1004,7 +928,7 @@ const MapFunnelStages = () => {
                   <input
                     type="text"
                     value={isHexColor(newFunnelColor) ? newFunnelColor : customColor}
-                    onChange={(e) => {
+                    onChange={e => {
                       let val = e.target.value
                       if (!val.startsWith("#")) val = "#" + val.replace(/[^0-9A-Fa-f]/g, "")
                       if (val.length > 7) val = val.slice(0, 7)
@@ -1049,10 +973,7 @@ const MapFunnelStages = () => {
           <div ref={modalRef} className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Name your funnel configuration</h3>
-              <button
-                onClick={() => setIsSaveConfigModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
+              <button onClick={() => setIsSaveConfigModalOpen(false)} className="text-gray-500 hover:text-gray-700">
                 <X size={20} />
               </button>
             </div>
@@ -1064,7 +985,7 @@ const MapFunnelStages = () => {
                 type="text"
                 id="configName"
                 value={newConfigName}
-                onChange={(e) => setNewConfigName(e.target.value)}
+                onChange={e => setNewConfigName(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter configuration name"
               />
