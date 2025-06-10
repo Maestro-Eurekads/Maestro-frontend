@@ -940,6 +940,20 @@ const ObjectiveSelection = () => {
     )
   }
 
+  // Helper: For adset view after validation, only show categories with at least one platform with adsets
+  const hasAnyAdsetInCategory = (category, stageName) => {
+    const channelMix = Array.isArray(campaignFormData?.channel_mix) ? campaignFormData.channel_mix : []
+    const stageData = channelMix.find((ch) => ch.funnel_stage === stageName)
+    if (!stageData) return false
+    const platforms = Array.isArray(stageData[category]) ? stageData[category] : []
+    return platforms.some((platform) => Array.isArray(platform.ad_sets) && platform.ad_sets.length > 0)
+  }
+
+  // Helper: For adset view after validation, only show platforms with adsets
+  const getPlatformsWithAdsets = (platforms) => {
+    return platforms.filter((platform) => Array.isArray(platform.ad_sets) && platform.ad_sets.length > 0)
+  }
+
   return (
     <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
       {/* Granularity Toggle */}
@@ -1025,7 +1039,13 @@ const ObjectiveSelection = () => {
                       "print",
                       "ooh",
                     ]
-                      .filter((category) => hasValidatedPlatformsForCategory(category, stage.name))
+                      // Only show categories with at least one platform with adsets in adset view after validation
+                      .filter((category) => {
+                        if (view === "adset") {
+                          return hasAnyAdsetInCategory(category, stage.name)
+                        }
+                        return hasValidatedPlatformsForCategory(category, stage.name)
+                      })
                       .map((category) => (
                         <div key={category} className="w-full">
                           <h3 className="text-xl font-semibold text-[#061237] mb-6 capitalize">
@@ -1036,7 +1056,7 @@ const ObjectiveSelection = () => {
                               if (view === "channel") {
                                 return renderCompletedPlatform(platform, category, stage.name)
                               } else {
-                                // For adset view, render each adset
+                                // For adset view, render each adset only for platforms with adsets
                                 const channelMix = Array.isArray(campaignFormData?.channel_mix)
                                   ? campaignFormData.channel_mix
                                   : []
@@ -1046,7 +1066,7 @@ const ObjectiveSelection = () => {
                                   (p) => p.platform_name === platform,
                                 )
 
-                                if (!platformData?.ad_sets) return null
+                                if (!platformData?.ad_sets || platformData.ad_sets.length === 0) return null
 
                                 return platformData.ad_sets.map((_, adsetIndex) =>
                                   renderCompletedPlatform(platform, category, stage.name, adsetIndex),
