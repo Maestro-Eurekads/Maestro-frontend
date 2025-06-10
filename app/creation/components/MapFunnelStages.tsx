@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import PageHeaderWrapper from "../../../components/PageHeaderWapper"
@@ -78,13 +76,16 @@ const hexToColorClass = (hex: string): string | null => {
 
 const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color)
 
-// LocalStorage keys - Updated to be client-based
+// LocalStorage keys - Updated to be client and media plan based
 const LOCAL_STORAGE_FUNNELS_KEY = "custom_funnels_v1"
 const LOCAL_STORAGE_CONFIGS_KEY = "funnel_configurations_v1"
 
-// Helper to get a unique client key for localStorage based on clientId
-const getClientKey = (baseKey: string, clientId: string | undefined) => {
-  return clientId ? `${baseKey}_client_${clientId}` : baseKey
+// Helper to get a unique key for localStorage based on clientId and mediaPlanId
+const getClientKey = (baseKey: string, clientId: string | undefined, mediaPlanId: string | undefined) => {
+  if (!clientId) return baseKey
+  let key = `${baseKey}_client_${clientId}`
+  if (mediaPlanId) key += `_media_${mediaPlanId}`
+  return key
 }
 
 // Preset funnel structures for dropdown
@@ -142,8 +143,9 @@ const MapFunnelStages = () => {
   const [isSaveConfigModalOpen, setIsSaveConfigModalOpen] = useState(false)
   const [newConfigName, setNewConfigName] = useState("")
 
-  // Get clientId safely
+  // Get clientId and mediaPlanId safely
   const clientId = campaignFormData?.client_selection?.id ?? ""
+  const mediaPlanId = campaignFormData?.media_plan_id ?? ""
 
   // Default funnel stages
   const defaultFunnels: Funnel[] = [
@@ -153,11 +155,11 @@ const MapFunnelStages = () => {
     { id: "Loyalty", name: "Loyalty", color: colorPalette[3] },
   ]
 
-  // --- LocalStorage helpers for custom funnels (CLIENT-BASED) ---
+  // --- LocalStorage helpers for custom funnels (CLIENT AND MEDIA PLAN BASED) ---
   const saveCustomFunnelsToStorage = (funnels: Funnel[]) => {
     if (!clientId) return
     try {
-      localStorage.setItem(getClientKey(LOCAL_STORAGE_FUNNELS_KEY, clientId), JSON.stringify(funnels))
+      localStorage.setItem(getClientKey(LOCAL_STORAGE_FUNNELS_KEY, clientId, mediaPlanId), JSON.stringify(funnels))
     } catch (e) {
       console.error("Failed to save custom funnels to localStorage:", e)
       toast.error("Failed to save funnels", { duration: 3000 })
@@ -167,7 +169,7 @@ const MapFunnelStages = () => {
   const getCustomFunnelsFromStorage = (): Funnel[] | null => {
     if (!clientId) return null
     try {
-      const data = localStorage.getItem(getClientKey(LOCAL_STORAGE_FUNNELS_KEY, clientId))
+      const data = localStorage.getItem(getClientKey(LOCAL_STORAGE_FUNNELS_KEY, clientId, mediaPlanId))
       if (data) {
         const parsed = JSON.parse(data)
         if (Array.isArray(parsed) && parsed.every(f => f.id && f.name && f.color)) {
@@ -181,11 +183,11 @@ const MapFunnelStages = () => {
     return null
   }
 
-  // --- LocalStorage helpers for funnel configurations (CLIENT-BASED) ---
+  // --- LocalStorage helpers for funnel configurations (CLIENT AND MEDIA PLAN BASED) ---
   const saveFunnelConfigsToStorage = (configs: FunnelConfig[]) => {
     if (!clientId) return
     try {
-      localStorage.setItem(getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId), JSON.stringify(configs))
+      localStorage.setItem(getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId, mediaPlanId), JSON.stringify(configs))
     } catch (e) {
       console.error("Failed to save funnel configurations to localStorage:", e)
       toast.error("Failed to save configurations", { duration: 3000 })
@@ -195,7 +197,7 @@ const MapFunnelStages = () => {
   const getFunnelConfigsFromStorage = (): FunnelConfig[] => {
     if (!clientId) return []
     try {
-      const data = localStorage.getItem(getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId))
+      const data = localStorage.getItem(getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId, mediaPlanId))
       if (data) {
         const parsed = JSON.parse(data)
         if (Array.isArray(parsed) && parsed.every(config => config.name && Array.isArray(config.stages))) {
@@ -226,8 +228,8 @@ const MapFunnelStages = () => {
         channel_mix: defaultFunnels.map(f => ({ funnel_stage: f.name })),
         custom_funnels: defaultFunnels,
       }))
-      localStorage.removeItem(LOCAL_STORAGE_FUNNELS_KEY)
-      localStorage.removeItem(LOCAL_STORAGE_CONFIGS_KEY)
+      localStorage.removeItem(getClientKey(LOCAL_STORAGE_FUNNELS_KEY, clientId, mediaPlanId))
+      localStorage.removeItem(getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId, mediaPlanId))
       return
     }
 
@@ -293,7 +295,7 @@ const MapFunnelStages = () => {
       setSelectedConfigIdx(null)
       setSelectedPreset(null)
     }
-  }, [clientId, campaignData, setCampaignFormData])
+  }, [clientId, mediaPlanId, campaignData, setCampaignFormData])
 
   // Initialize comments drawer
   useEffect(() => {
@@ -315,14 +317,14 @@ const MapFunnelStages = () => {
     if (clientId && persistentCustomFunnels.length > 0) {
       saveCustomFunnelsToStorage(persistentCustomFunnels)
     }
-  }, [persistentCustomFunnels, clientId])
+  }, [persistentCustomFunnels, clientId, mediaPlanId])
 
   // Save funnel configurations to localStorage
   useEffect(() => {
     if (clientId && funnelConfigs.length > 0) {
       saveFunnelConfigsToStorage(funnelConfigs)
     }
-  }, [funnelConfigs, clientId])
+  }, [funnelConfigs, clientId, mediaPlanId])
 
   // Handle clicks outside modal
   useEffect(() => {
