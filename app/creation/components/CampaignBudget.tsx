@@ -45,6 +45,8 @@ const CampaignBudget = () => {
 
   const { campaignFormData, setCampaignFormData, campaignData } = useCampaigns();
 
+  
+
   const selectCurrency = [
     { value: "USD", label: "USD" },
     { value: "EUR", label: "EUR" },
@@ -92,13 +94,6 @@ const CampaignBudget = () => {
     }
     if (campaignFormData?.campaign_budget?.budget_fees?.length > 0 || (!feeType && !feeAmount)) {
       setFeeStepValidated(true);
-      setCampaignFormData((prev) => ({
-        ...prev,
-        campaign_budget: {
-          ...prev.campaign_budget,
-          isValidated: true,
-        },
-      }));
       setStep(budgetStyle === "top_down" ? 2 : 3);
       return true;
     }
@@ -115,26 +110,12 @@ const CampaignBudget = () => {
       return false;
     }
     setFeeStepValidated(true);
-    setCampaignFormData((prev) => ({
-      ...prev,
-      campaign_budget: {
-        ...prev.campaign_budget,
-        isValidated: true,
-      },
-    }));
     setStep(budgetStyle === "top_down" ? 2 : 3);
     return true;
   };
 
   const handleEdit = () => {
     setFeeStepValidated(false);
-    setCampaignFormData((prev) => ({
-      ...prev,
-      campaign_budget: {
-        ...prev.campaign_budget,
-        isValidated: false,
-      },
-    }));
     setStep(1);
     setFeeType(null);
     setFeeAmount("");
@@ -150,13 +131,6 @@ const CampaignBudget = () => {
       }
       if (campaignData?.campaign_budget?.budget_fees?.length > 0) {
         setFeeStepValidated(true);
-        setCampaignFormData((prev) => ({
-          ...prev,
-          campaign_budget: {
-            ...prev.campaign_budget,
-            isValidated: true,
-          },
-        }));
         setStep(2);
       }
       if (campaignData?.campaign_budget?.level) {
@@ -164,7 +138,7 @@ const CampaignBudget = () => {
         setShowLevelCards(false);
       }
     }
-  }, [campaignData, setCampaignFormData]);
+  }, [campaignData]);
 
   return (
     <div>

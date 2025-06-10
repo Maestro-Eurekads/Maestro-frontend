@@ -76,6 +76,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     currencySign,
   } = useCampaigns();
 
+  // --- Persist format selection for active === 4 ---
   const hasProceededFromFormatStep = useRef(false);
 
   const validateFormatSelection = () => {
@@ -121,6 +122,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     return hasValidFormat;
   };
 
+  // console.log('campaignFormData-campaignFormData', campaignFormData)
+
+  // Only reset formats when entering active === 4 if the user has NOT already proceeded from step 4 with a valid format
   useEffect(() => {
     if (active === 4 && !hasProceededFromFormatStep.current) {
       setCampaignFormData((prev) => ({
@@ -152,6 +156,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
   }, [active, setCampaignFormData]);
 
+  // Update hasFormatSelected and log state
   useEffect(() => {
     const isFormatSelected = validateFormatSelection();
     setHasFormatSelected(isFormatSelected);
@@ -251,6 +256,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     );
   };
 
+  // --- Custom back handler for active === 5 to persist step 4 if user had format selected and continued ---
   const handleBack = () => {
     if (active === 5 && hasProceededFromFormatStep.current) {
       setActive(4);
@@ -367,11 +373,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setLoading(false);
         return;
       }
-      if (!campaignFormData?.campaign_budget?.isValidated) {
-        toast("Please validate the budget before proceeding", {
+      if (!campaignFormData?.campaign_budget?.amount) {
+        toast("Please input a budget amount", {
           style: {
             background: "#FFEBEE",
-            color: "#F87171",
+            color: "red",
             marginBottom: "70px",
             padding: "16px",
             borderRadius: "8px",
@@ -483,6 +489,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       ])
       : {};
 
+
     const handleStepZero = async () => {
       setLoading(true);
 
@@ -586,9 +593,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     };
 
+
     const handleStepTwo = async () => {
       if (!campaignData || !cId) return;
       await updateCampaignData({
+        // ...cleanData,
         funnel_stages: campaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
@@ -606,6 +615,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     const handleStepThree = async () => {
       if (!campaignData || !cId) return;
       await updateCampaignData({
+        // ...cleanData,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
           "isValidated",
@@ -622,6 +632,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
       if (active > 4) {
         const obj = extractObjectives(campaignFormData);
+        // console.log("🚀 ~ handleStepFour ~ obj:", obj);
         updatedCampaignFormData = {
           ...campaignFormData,
           table_headers: obj || {},
@@ -630,6 +641,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
 
       await updateCampaignData({
+        // ...cleanData,
         channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
           "id",
           "isValidated",
@@ -646,7 +658,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       if (!campaignData) return;
       let updatedCampaignFormData = campaignFormData;
 
+
       const obj = extractObjectives(campaignFormData);
+      // console.log("🚀 ~ handleStepFour ~ obj:", obj);
       updatedCampaignFormData = {
         ...campaignFormData,
         table_headers: obj || {},
@@ -654,6 +668,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       setCampaignFormData(updatedCampaignFormData);
 
       await updateCampaignData({
+        // ...cleanData,
         funnel_stages: updatedCampaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
           "id",
@@ -688,6 +703,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           new Date(currentYear, selectedDates?.to?.month, selectedDates.to?.day)
         ).format("YYYY-MM-DD") || campaignFormData?.campaign_timeline_end_date;
       await updateCampaignData({
+        // ...cleanData,
         campaign_timeline_start_date:
           campaign_timeline_start_date === "Invalid Date"
             ? campaignFormData?.campaign_timeline_start_date
@@ -884,8 +900,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                     {active === 0
                       ? "Start"
                       : active === 4 && !hasFormatSelected
-                      ? "Skip"
-                      : "Continue"}
+                        ? "Skip"
+                        : "Continue"}
                   </p>
                   <Image src={Continue} alt="Continue" />
                 </>
