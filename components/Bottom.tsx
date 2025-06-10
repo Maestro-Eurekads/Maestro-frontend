@@ -114,8 +114,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     return hasValidFormat
   }
 
-  // console.log('campaignFormData-campaignFormData', campaignFormData)
-
   // Only reset formats when entering active === 4 if the user has NOT already proceeded from step 4 with a valid format
   useEffect(() => {
     if (active === 4 && !hasProceededFromFormatStep.current) {
@@ -409,26 +407,27 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
 
       // For top-down with fees, validate fee configuration
-      if (
-        campaignFormData?.campaign_budget?.budget_type === "top_down" &&
-        campaignFormData?.campaign_budget?.sub_budget_type &&
-        !campaignFormData?.campaign_budget?.budget_fees?.length
-      ) {
-        toast("Please validate your fee configuration before proceeding", {
-          style: {
-            background: "#FFEBEE",
-            color: "red",
-            marginBottom: "70px",
-            padding: "16px",
-            borderRadius: "8px",
-            width: "320px",
-            border: "1px solid red",
-            borderLeft: "4px solid red",
-          },
-        })
-        setLoading(false)
-        return
-      }
+      // --- CHANGED: Fee is NOT compulsory, so skip this validation ---
+      // if (
+      //   campaignFormData?.campaign_budget?.budget_type === "top_down" &&
+      //   campaignFormData?.campaign_budget?.sub_budget_type &&
+      //   !campaignFormData?.campaign_budget?.budget_fees?.length
+      // ) {
+      //   toast("Please validate your fee configuration before proceeding", {
+      //     style: {
+      //       background: "#FFEBEE",
+      //       color: "red",
+      //       marginBottom: "70px",
+      //       padding: "16px",
+      //       borderRadius: "8px",
+      //       width: "320px",
+      //       border: "1px solid red",
+      //       borderLeft: "4px solid red",
+      //     },
+      //   })
+      //   setLoading(false)
+      //   return
+      // }
     }
 
     if (active === 4) {
@@ -650,7 +649,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
       if (active > 4) {
         const obj = extractObjectives(campaignFormData)
-        // console.log("🚀 ~ handleStepFour ~ obj:", obj);
         updatedCampaignFormData = {
           ...campaignFormData,
           table_headers: obj || {},
@@ -659,7 +657,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
 
       await updateCampaignData({
-        // ...cleanData,
         channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
           "id",
           "isValidated",
@@ -677,7 +674,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       let updatedCampaignFormData = campaignFormData
 
       const obj = extractObjectives(campaignFormData)
-      // console.log("🚀 ~ handleStepFour ~ obj:", obj);
       updatedCampaignFormData = {
         ...campaignFormData,
         table_headers: obj || {},
@@ -685,7 +681,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       setCampaignFormData(updatedCampaignFormData)
 
       await updateCampaignData({
-        // ...cleanData,
         funnel_stages: updatedCampaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(updatedCampaignFormData?.channel_mix, [
           "id",
@@ -710,7 +705,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         dayjs(new Date(currentYear, selectedDates?.to?.month, selectedDates.to?.day)).format("YYYY-MM-DD") ||
         campaignFormData?.campaign_timeline_end_date
       await updateCampaignData({
-        // ...cleanData,
         campaign_timeline_start_date:
           campaign_timeline_start_date === "Invalid Date"
             ? campaignFormData?.campaign_timeline_start_date
