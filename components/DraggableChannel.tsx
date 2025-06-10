@@ -290,7 +290,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         }`}
         style={{
           width: disableDrag ? `${parentWidth + (range === "Month" ? 53 : 43)}px` : parentWidth,
-          // backgroundColor: bg,
+          backgroundColor: color,
           transition: "transform 0.2s ease-out",
         }}
         onMouseDown={disableDrag || openItems ? undefined : handleMouseDownDrag}
