@@ -34,6 +34,7 @@ export const SetupScreen = () => {
     profile,
     setRequiredFields,
     setCurrencySign,
+    selectedClient
   } = useCampaigns();
   const query = useSearchParams();
   const documentId = query.get("campaignId");
@@ -50,11 +51,6 @@ export const SetupScreen = () => {
   const [level2Options, setlevel2Options] = useState<DropdownOption[]>([]);
   const [level3Options, setlevel3Options] = useState<DropdownOption[]>([]);
 
-
-
-
-
-
   useEffect(() => {
     setIsDrawerOpen(false);
     setClose(false);
@@ -65,8 +61,6 @@ export const SetupScreen = () => {
     const savedFormData = localStorage.getItem("campaignFormData");
     if (savedFormData) {
       const parsedData = JSON.parse(savedFormData);
-
-
 
       const normalizeApprovers = (approvers: any[]) =>
         Array.isArray(approvers)
@@ -88,9 +82,6 @@ export const SetupScreen = () => {
       });
     }
   }, [setCampaignFormData]);
-
-
-
 
   // Initialize campaignFormData if empty
   useEffect(() => {
@@ -114,21 +105,12 @@ export const SetupScreen = () => {
     }
   }, [setCampaignFormData, isInitialized]);
 
-
-
-
-
   useEffect(() => {
     if (alert) {
       const timer = setTimeout(() => setAlert(null), 3000);
       return () => clearTimeout(timer);
     }
   }, [alert]);
-
-
-
-
-
 
   useEffect(() => {
     if (isAgencyCreator || isAgencyApprover || isFinancialApprover) {
@@ -275,14 +257,14 @@ export const SetupScreen = () => {
 
       {alert && <AlertMain alert={alert} />}
       <div className="mt-[42px]">
-        <Title>Client selection</Title>
-        <div>
+         <Title>Client selection</Title>
+        {/*<div>
           <ClientSelection
             options={clientOptions}
             label={"Select Client"}
             formId="client_selection"
           />
-        </div>
+        </div> */}
         <div className="flex items-center flex-wrap gap-4 pb-12">
           <ClientSelection
             options={level1Options?.slice(1)}

@@ -102,6 +102,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [selectedFilters, setSelectedFilters] = useState({});
   const [clientUsers, setClientUsers] = useState([]);
   const [agencyId, setAgencyId] = useState<string | number | null>(null);
+  const [selectedClient, setSelectedClient] = useState()
   const [agencyData, setAgencyData] = useState(null);
 
   const reduxClients = useSelector(
@@ -569,9 +570,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
   // Fetch business level options when client selection changes
   useEffect(() => {
-    const clientId = campaignFormData?.client_selection?.id;
-    if (clientId) {
-      fetchBusinessLevelOptions(clientId);
+    // const clientId = campaignFormData?.client_selection?.id;
+    if (selectedClient) {
+      console.log("🚀 ~ useEffect ~ selectedClient:", selectedClient)
+      fetchBusinessLevelOptions(selectedClient);
       setCampaignFormData((prev) => ({
         ...prev,
         level_1: { id: "", value: "" },
@@ -579,7 +581,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         level_3: { id: "", value: "" },
       }));
     }
-  }, [campaignFormData.client_selection?.id, fetchBusinessLevelOptions]);
+  }, [selectedClient, fetchBusinessLevelOptions]);
 
   // Initial data fetching
   useEffect(() => {
@@ -671,6 +673,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       clientUsers,
       jwt,
       agencyId,
+      selectedClient,
+      setSelectedClient
     }),
     [
       getUserByUserType,
@@ -708,6 +712,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setClientUsers,
       clientUsers,
       agencyId,
+      selectedClient,
+      setSelectedClient
     ]
   );
 

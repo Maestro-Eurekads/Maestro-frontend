@@ -48,7 +48,9 @@ const Header = ({ setIsOpen }) => {
     profile,
     setSelectedFilters,
     jwt,
-    agencyId
+    agencyId,
+    selectedClient,
+    setSelectedClient
   } = useCampaigns();
 
   const { setSelectedDates } = useSelectedDates()
@@ -84,12 +86,14 @@ const Header = ({ setIsOpen }) => {
     const storedClientId = localStorage.getItem(userType);
     if (storedClientId) {
       setSelectedId(storedClientId);
+      setSelectedClient(storedClientId);
     } else {
       const fallbackId =
         getCreateClientData?.data?.[0]?.id?.toString() ||
         profile?.clients?.[0]?.id?.toString();
       if (fallbackId) {
         setSelectedId(fallbackId);
+        setSelectedClient(fallbackId);
       }
     }
   }, [userType, getCreateClientIsLoading, profile?.clients]);
