@@ -112,10 +112,66 @@ const BusinessUnit = ({ setInputs, setAlert }) => {
         placeholder="Business Unit"
         setInputs={setInputs}
         setAlert={setAlert}
-        label="Business level 2"
+        label="Business level 1"
       />
     </div>
   );
 };
 
 export default BusinessUnit;
+
+
+// "use client";
+
+// import React from "react";
+// import BusinessUnitGroup from "./BusinessUnitGroup";
+
+// const BusinessUnit = ({ setInputs, setAlert }) => {
+//   const [groups, setGroups] = React.useState([[]]);
+
+//   // Sync groups to parent state
+//   React.useEffect(() => {
+//     setInputs((prev) => ({
+//       ...prev,
+//       businessUnits: groups,
+//     }));
+//   }, [groups]);
+
+//   const updateGroup = (index, updatedValues) => {
+//     setGroups((prev) => {
+//       const newGroups = [...prev];
+//       newGroups[index] = updatedValues;
+//       return newGroups;
+//     });
+//   };
+
+//   const addGroup = () => {
+//     setGroups((prev) => [...prev, [""]]);
+//   };
+
+//   const removeGroup = (index) => {
+//     setGroups((prev) => prev.filter((_, i) => i !== index));
+//   };
+
+//   return (
+//     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-5 ">
+//       {groups?.map((group, index) => (
+//         <BusinessUnitGroup
+//           key={index}
+//           label={`Business Level ${index + 1}`}
+//           initial={group}
+//           onUpdate={(updated) => updateGroup(index, updated)}
+//           onRemove={groups?.length > 1 ? () => removeGroup(index) : null}
+//           setAlert={setAlert}
+//         />
+//       ))}
+//       <button
+//         className="mt-12 flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white"
+//         onClick={addGroup}>
+//         Add
+//       </button>
+//     </div>
+//   );
+// };
+
+// export default BusinessUnit;

@@ -210,7 +210,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 						Back to Dashboard
 					</button>
 					<button className="btn_model_active w-full" onClick={handlePlan}>
-						{loading ? <SVGLoader width={"40px"} height={"40px"} color={"#fff"} /> :
+						{loading ? <SVGLoader width={"30px"} height={"30px"} color={"#fff"} /> :
 							<span className="font-medium">Approval</span>
 						}
 

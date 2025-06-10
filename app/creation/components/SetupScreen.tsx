@@ -50,7 +50,9 @@ export const SetupScreen = () => {
   const [level2Options, setlevel2Options] = useState<DropdownOption[]>([]);
   const [level3Options, setlevel3Options] = useState<DropdownOption[]>([]);
 
-  console.log("campaignFormData", documentId);
+
+
+
 
 
   useEffect(() => {
@@ -63,6 +65,8 @@ export const SetupScreen = () => {
     const savedFormData = localStorage.getItem("campaignFormData");
     if (savedFormData) {
       const parsedData = JSON.parse(savedFormData);
+
+
 
       const normalizeApprovers = (approvers: any[]) =>
         Array.isArray(approvers)
@@ -85,7 +89,7 @@ export const SetupScreen = () => {
     }
   }, [setCampaignFormData]);
 
-  console.log("campaignFormData", campaignFormData);
+
 
 
   // Initialize campaignFormData if empty
@@ -125,6 +129,7 @@ export const SetupScreen = () => {
 
 
 
+
   useEffect(() => {
     if (isAgencyCreator || isAgencyApprover || isFinancialApprover) {
       if (profile?.clients) {
@@ -151,7 +156,7 @@ export const SetupScreen = () => {
     if (!allClients || !client_selection) return;
 
     const client = allClients?.find((c) => c?.documentId === client_selection?.id);
-
+    console.log("campaignFormData", client?.users);
     // setInternalApproverOptions(() => {
     //   const options = client?.approver?.map((l) => ({
     //     value: l,
@@ -174,8 +179,8 @@ export const SetupScreen = () => {
     })) || [];
     setInternalApproverOptions(options);
 
-
-    const clientOptions = client?.users?.map((l) => ({
+    const filteredUsers = client?.users?.filter(user => user?.user_type !== "admin");
+    const clientOptions = filteredUsers?.map((l) => ({
       value: l?.id,
       label: l?.username,
     })) || [];
@@ -229,6 +234,10 @@ export const SetupScreen = () => {
     setCurrencySign,
   ]);
 
+
+
+
+
   useEffect(() => {
     const getFieldValue = (field) => {
       if (Array.isArray(field)) {
@@ -243,8 +252,8 @@ export const SetupScreen = () => {
     const fieldsToCheck = [
       campaignFormData?.client_selection?.value,
       campaignFormData?.media_plan,
-      campaignFormData?.internal_approver,
-      campaignFormData?.client_approver,
+      campaignFormData?.internal_approver_ids,
+      campaignFormData?.client_approver_ids,
       campaignFormData?.level_1?.id,
       campaignFormData?.level_2?.id,
       campaignFormData?.level_3?.id,

@@ -1,18 +1,17 @@
-"use client";
-import { useState, useRef, useEffect, useMemo } from "react";
-import down from "../../../public/down.svg";
-import Image from "next/image";
-import { BiX } from "react-icons/bi";
-import { useCampaigns } from "app/utils/CampaignsContext";
-import { fetchFilteredCampaigns } from "app/utils/campaign-filter-utils";
-import { toast, Toaster } from "react-hot-toast";
-import { useAppDispatch } from "store/useStore";
-import { getCreateClient } from "features/Client/clientSlice";
-import { defaultFilters } from "components/data";
-import { fetchFilteredCampaignsSub } from "app/utils/campaign-filter-utils-sub";
-import { useSession } from "next-auth/react";
-import { FilterState } from "app/utils/useCampaignFilters";
-import { useUserPrivileges } from "utils/userPrivileges";
+"use client"
+import { useState, useRef, useEffect, useMemo } from "react"
+import down from "../../../public/down.svg"
+import Image from "next/image"
+import { BiX } from "react-icons/bi"
+import { useCampaigns } from "app/utils/CampaignsContext"
+import { fetchFilteredCampaigns } from "app/utils/campaign-filter-utils"
+import { toast, Toaster } from "react-hot-toast"
+import { useAppDispatch } from "store/useStore"
+import { getCreateClient } from "features/Client/clientSlice"
+import { defaultFilters } from "components/data"
+import { useSession } from "next-auth/react"
+import { FilterState } from "app/utils/useCampaignFilters"
+import { useUserPrivileges } from "utils/userPrivileges"
 
 // Scrollbar CSS
 const scrollbarStyles = `
@@ -186,10 +185,8 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     const allEmpty = Object.values(selectedFilters).every((val) => !val);
 
     const fetchData = async () => {
-      const clientID =
-        localStorage.getItem(userType.toString()) || allClients[0]?.id;
-      setLoading(true);
-      console.log("clientID-clientID", clientID);
+      const clientID = localStorage.getItem(userType.toString()) || allClients[0]?.id
+      setLoading(true)
 
       try {
         const res = allEmpty //@ts-ignore
@@ -299,4 +296,4 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
   );
 };
 
-export default FiltersDropdowns;
+export default FiltersDropdowns

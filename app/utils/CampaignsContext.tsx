@@ -133,60 +133,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // const getActiveCampaign = useCallback(async (docId?: string) => {
-  //   if (!cId && !docId) return;
-  //   try {
-  //     setLoadingCampaign(true);
-  //     const res = await axios.get(
-  //       `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}`,
-  //       {
-  //         params: {
-  //           populate: {
-  //             client: true,
-  //             media_plan_details: "*",
-  //             budget_details: "*",
-  //             client_selection: "*",
-  //             user: true,
-  //             campaign_budget: { populate: ["budget_fees"] },
-  //             channel_mix: { populate: { ...channelMixPopulate, stage_budget: "*" } },
-  //           },
-  //         },
-  //         headers: {
-  //           Authorization: `Bearer ${jwt}`,
-  //         },
-  //       }
-  //     );
-  //     const data = res?.data?.data;
-  //     setCampaignData(data);
-  //     setCampaignFormData((prev) => ({
-  //       ...prev,
-  //       client_selection: {
-  //         id: data?.client?.documentId || prev?.client_selection?.id,
-  //         value: data?.client?.client_name || prev.client_selection.value,
-  //       },
-  //       level_1: { id: data?.client_selection?.level_1 || prev.level_1.id, value: data?.client_selection?.level_1 || prev.level_1.value },
-  //       level_2: { id: data?.client_selection?.level_2 || prev.level_2.id, value: data?.client_selection?.level_2 || prev.level_2.value },
-  //       level_3: { id: data?.client_selection?.level_3 || prev.level_3.id, value: data?.client_selection?.level_3 || prev.level_3.value },
-  //       media_plan: data?.media_plan_details?.plan_name || prev.media_plan,
-  //       approver: data?.media_plan_details?.internal_approver || prev.approver,
-  //       campaign_objectives: data?.campaign_objective || prev.campaign_objectives,
-  //       funnel_stages: data?.funnel_stages || prev.funnel_stages,
-  //       channel_mix: data?.channel_mix || prev.channel_mix,
-  //       campaign_timeline_start_date: data?.campaign_timeline_start_date || prev.campaign_timeline_start_date,
-  //       campaign_timeline_end_date: data?.campaign_timeline_end_date || prev.campaign_timeline_end_date,
-  //       campaign_budget: data?.campaign_budget || prev.campaign_budget,
-  //       goal_level: data?.goal_level || prev.goal_level,
-  //       progress_percent: data?.progress_percent,
-  //       custom_funnels: data?.custom_funnels,
-  //       campaign_builder: data?.campaign_builder,
-  //       user: data?.user,
-  //     }));
-  //   } catch (error) {
-  //     console.error("Error fetching active campaign:", error);
-  //   } finally {
-  //     setLoadingCampaign(false);
-  //   }
-  // }, [cId]);
 
   const getActiveCampaign = useCallback(
     async (docId?: string) => {
@@ -274,11 +220,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           campaign_builder: data?.campaign_builder ?? prev.campaign_builder,
           user: data?.user ?? prev.user,
           campaign_id: data?.id ?? prev.id,
-          table_headers:
-            ((data?.table_headers || obj || {}) ??
-              (prev?.table_headers || obj)) ||
-            {},
+          isApprove: data?.isApprove ?? prev?.isApprove,
+          table_headers: ((data?.table_headers || obj || {}) ?? (prev?.table_headers || obj)) || {},
         }));
+        setLoadingCampaign(false);
       } catch (error) {
         console.error("Error fetching active campaign:", error);
       } finally {
@@ -402,6 +347,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       const data = response?.data?.data || {};
+      console.log("Business Level Options Data:", data);
       setBusinessLevelOptions({
         level1:
           data?.level_1?.map((item: string) => ({
