@@ -76,13 +76,12 @@ export default async function RootLayout({
         <NewProvider session={session}>
           <Suspense>
             <CampaignProvider>
-            <ClientCampaignProvider>
-              <VersionApprovalProvider>
-                <CommentProvider>
-                  <KpiProvider>
-                    <VerificationProvider>
-                      <CampaignSelectionProvider>
-                        
+              <ClientCampaignProvider>
+                <VersionApprovalProvider>
+                  <CommentProvider>
+                    <KpiProvider>
+                      <VerificationProvider>
+                        <CampaignSelectionProvider>
                           <DashboardDateRangeProvider>
                             <DateRangeProvider>
                               <SelectedDatesProvider>
@@ -99,13 +98,12 @@ export default async function RootLayout({
                               </SelectedDatesProvider>
                             </DateRangeProvider>
                           </DashboardDateRangeProvider>
-                        
-                      </CampaignSelectionProvider>
-                    </VerificationProvider>
-                  </KpiProvider>
-                </CommentProvider>
-              </VersionApprovalProvider>
-            </ClientCampaignProvider>
+                        </CampaignSelectionProvider>
+                      </VerificationProvider>
+                    </KpiProvider>
+                  </CommentProvider>
+                </VersionApprovalProvider>
+              </ClientCampaignProvider>
             </CampaignProvider>
           </Suspense>
         </NewProvider>

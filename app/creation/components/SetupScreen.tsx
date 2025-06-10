@@ -156,7 +156,7 @@ export const SetupScreen = () => {
     if (!allClients || !client_selection) return;
 
     const client = allClients?.find((c) => c?.documentId === client_selection?.id);
-    console.log("campaignFormData", client?.users);
+    console.log("campaignFormData", client);
     // setInternalApproverOptions(() => {
     //   const options = client?.approver?.map((l) => ({
     //     value: l,
@@ -179,10 +179,10 @@ export const SetupScreen = () => {
     })) || [];
     setInternalApproverOptions(options);
 
-    const filteredUsers = client?.users?.filter(user => user?.user_type !== "admin");
+    const filteredUsers = client?.agency?.client_users?.filter(user => user?.role == "client_approver");
     const clientOptions = filteredUsers?.map((l) => ({
       value: l?.id,
-      label: l?.username,
+      label: l?.full_name,
     })) || [];
     setClientApprovalOptions(clientOptions);
 

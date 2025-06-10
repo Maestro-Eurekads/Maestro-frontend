@@ -65,8 +65,8 @@ const Header = ({ setIsOpen }) => {
   const clients: any = getCreateClientData;
 
   useEffect(() => {
-    if(profile){
-      dispatch(getCreateClient({userId: userType, jwt, }));
+    if(profile && agencyId){
+      dispatch(getCreateClient({userId: userType, jwt, agencyId}));
   
       const timer = setTimeout(() => {
         setAlert(null);
@@ -75,7 +75,7 @@ const Header = ({ setIsOpen }) => {
       return () => clearTimeout(timer);
 
     }
-  }, [dispatch, session, profile]);
+  }, [dispatch, session, profile, agencyId]);
 
   //  LocalStorage prioritized
   useEffect(() => {
@@ -271,7 +271,10 @@ const Header = ({ setIsOpen }) => {
             className="profile_container"
             onClick={() => setShow((prev) => !prev)}
           >
+            <p className="capitalize">
+
             {getFirstLetters(session?.user?.name)}
+            </p>
 
             {show && (
               <div className="absolute right-0 top-[60px] w-[200px] bg-white border border-gray-200   shadow-lg z-50 !rounded-[5px]">

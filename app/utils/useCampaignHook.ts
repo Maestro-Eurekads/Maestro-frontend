@@ -19,16 +19,27 @@ const useCampaignHook = () => {
   const fetchAllClients = useCallback(async () => {
     setLoadingClients(true);
     if (!jwt) return
+    const filters = {
+      client: {
+        $eq: clientID,
+      },
+      agency_profile: {
+        $eq: agencyId
+      }
+    };
     try {
       const res = await axios.get(
         // @ts-ignore
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients${
-          //@ts-ignore
-          session?.user?.data?.user?.user_type === "admin"
-            ? "?populate[0]=users&populate[1]=responsible&populate[2]=approver"
-            : `?filters[users][$eq]=${session?.user?.id}&populate[0]=users&populate[1]=responsible&populate[2]=approver`
-        }`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients`,
         {
+          params: {
+            filters,
+            populate: {
+              agency: {
+                populate: ["agency_users", "admins", "client_users"]
+              }
+            }
+          },
           headers: {
             Authorization: `Bearer ${jwt}`,
           },
@@ -50,7 +61,7 @@ const useCampaignHook = () => {
         client: {
           $eq: clientID,
         },
-        agency: {
+        agency_profile: {
           $eq: agencyId
         }
       };

@@ -16,7 +16,7 @@ export const addNewClient = async (data: any, jwt:any) => {
 
 export const addClientUser = async (userData: any, jwt:any) => {
   return await axios.post(
-    `${process.env.NEXT_PUBLIC_STRAPI_URL}/auth/local/register`,
+    `${process.env.NEXT_PUBLIC_STRAPI_URL}/auth/custom-register`,
     {
       ...userData,
     },

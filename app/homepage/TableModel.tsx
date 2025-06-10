@@ -511,8 +511,10 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   const { data: session }: any = useSession();
   const userType = session?.user?.data?.user?.id || "";
   const dispatch = useAppDispatch();
-  const { profile, getProfile, user, getUserByUserType, jwt } = useCampaigns();
+  const { profile, getProfile, user, getUserByUserType, jwt, agencyId } = useCampaigns();
   const { isAdmin, isAgencyApprover, isFinancialApprover } = useUserPrivileges();
+
+  // console.log("JBFD", agencyId)
 
   const [inputs, setInputs] = useState({
     name: "",
@@ -634,16 +636,12 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     if (section === "agency") {
       setAgencyInput((prev) => ({
         ...prev,
-        roles: prev.roles.includes(role)
-          ? prev.roles.filter((r) => r !== role)
-          : [...prev.roles, role],
+        roles: [role],
       }));
     } else {
       setClientInput((prev) => ({
         ...prev,
-        roles: prev.roles.includes(role)
-          ? prev.roles.filter((r) => r !== role)
-          : [...prev.roles, role],
+        roles: [role],
       }));
     }
   };
@@ -704,19 +702,36 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       } else {
         const res = await addNewClient({
           client_name: inputs.name,
-          client_emails: inputs.clientAccess.map((e) => ({ email: e.email, full_name: e.name })),
-          responsible: inputs.agencyAccess,
-          approver: inputs.clientAccess,
+          // client_emails: inputs.clientAccess.map((e) => ({ email: e.email, full_name: e.name })),
           level_1: inputs.sports,
           level_2: inputs.businessUnits,
           level_3: inputs.categories,
           users: profile?.id,
+          agency: agencyId
         }, jwt);
         localStorage.setItem(userType.toString(), res?.data?.data?.id);
 
         getProfile();
 
-        // Create user accounts for Client Access emails
+        // Create user accounts for Agency Access emails
+        for (const emailEntry of inputs.agencyAccess) {
+          try {
+            await addClientUser({
+              username: `${emailEntry.name}-${uuidv4().slice(0, 4)}`,
+              email: emailEntry.email,
+              password: "123456789",
+              clients: res?.data?.data?.id,
+              user_type: emailEntry?.roles[0] === "creator" ? "agency_creator" : emailEntry?.roles[0] === "approver" ? "agency_approver" : "financial_approver",
+              agencyId: agencyId,
+              emailEntry
+            }, jwt);
+          } catch (error) {
+            console.error(`Failed to create user for email: ${emailEntry.email}`, error);
+            toast.error(`Failed to create user for ${emailEntry.email}`);
+          }
+        }
+
+        // // Create user accounts for Agency Access emails
         for (const emailEntry of inputs.clientAccess) {
           try {
             await addClientUser({
@@ -724,30 +739,32 @@ const TableModel = ({ isOpen, setIsOpen }) => {
               email: emailEntry.email,
               password: "123456789",
               clients: res?.data?.data?.id,
-              user_type: "sub_client",
+              user_type: emailEntry?.roles[0] === "viewer" ? "client" : "client_approver",
+              agencyId: agencyId,
+              emailEntry
             }, jwt);
           } catch (error) {
             console.error(`Failed to create user for email: ${emailEntry.email}`, error);
             toast.error(`Failed to create user for ${emailEntry.email}`);
           }
         }
-        // Fetch clients after successfully adding a new one
-        //@ts-ignore
-        dispatch(getCreateClient({userId:!isAdmin ? res?.data?.data?.id : null, jwt}));
-        // Reset form state
-        setInputs({
-          name: "",
-          email: "",
-          full_name: "",
-          agencyAccess: [],
-          clientAccess: [],
-          sports: [],
-          categories: [],
-          businessUnits: [],
-        });
-        setAgencyInput({ name: "", email: "", roles: [] });
-        setClientInput({ name: "", email: "", roles: [] });
-        setIsOpen(false);
+        // // Fetch clients after successfully adding a new one
+        // //@ts-ignore
+        // dispatch(getCreateClient({userId: res?.data?.data?.id, jwt}));
+        // // Reset form state
+        // setInputs({
+        //   name: "",
+        //   email: "",
+        //   full_name: "",
+        //   agencyAccess: [],
+        //   clientAccess: [],
+        //   sports: [],
+        //   categories: [],
+        //   businessUnits: [],
+        // });
+        // setAgencyInput({ name: "", email: "", roles: [] });
+        // setClientInput({ name: "", email: "", roles: [] });
+        // setIsOpen(false);
       }
     } catch (error) {
       const errors =

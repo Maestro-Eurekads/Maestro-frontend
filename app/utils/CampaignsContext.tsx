@@ -102,6 +102,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [selectedFilters, setSelectedFilters] = useState({});
   const [clientUsers, setClientUsers] = useState([]);
   const [agencyId, setAgencyId] = useState<string | number | null>(null);
+  const [agencyData, setAgencyData] = useState(null);
 
   const reduxClients = useSelector(
     (state: any) => state.client?.getCreateClientData?.data || []
@@ -132,7 +133,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     level3: [],
   });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
 
   const getActiveCampaign = useCallback(
     async (docId?: string) => {
@@ -221,7 +221,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           user: data?.user ?? prev.user,
           campaign_id: data?.id ?? prev.id,
           isApprove: data?.isApprove ?? prev?.isApprove,
-          table_headers: ((data?.table_headers || obj || {}) ?? (prev?.table_headers || obj)) || {},
+          table_headers:
+            ((data?.table_headers || obj || {}) ??
+              (prev?.table_headers || obj)) ||
+            {},
         }));
         setLoadingCampaign(false);
       } catch (error) {
@@ -258,6 +261,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
                 (ff) => ff?.value
               ),
             },
+            agency_profile: agencyId
           },
         },
         {
@@ -285,7 +289,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${id}?populate[admin][populate][agency]=*&populate[agency_user][populate][agency]=*&populate[client_user][populate][agency]=*&populate[clients]=*`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/get-profile/${id}`,
         {
           headers: {
             Authorization: `Bearer ${jwt}`,
@@ -293,6 +297,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       setGetProfile(response?.data);
+      console.log("res", response?.data);
       const aId =
         response?.data?.user_type === "admin"
           ? response?.data?.admin?.agency?.id
@@ -309,6 +314,31 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     }
   }, [id]);
+
+  const getAgency = useCallback(async () => {
+    // get-agency-profile
+    if (!agencyId) return;
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/get-agency-profile/${agencyId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
+      console.log(response?.data);
+      setAgencyData(response?.data);
+    
+      return response;
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [agencyId]);
 
   const updateCampaign = useCallback(
     async (data) => {
@@ -557,6 +587,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       try {
         await Promise.all([
           id && getProfile(),
+          agencyId && getAgency(),
           cId && getActiveCampaign(),
           fetchBuyObjectives(),
           fetchObjectives(),
@@ -580,6 +611,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     fetchPlatformLists,
     fetchBuyTypes,
     jwt,
+    agencyId
   ]);
 
   const contextValue = useMemo(
@@ -638,7 +670,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setClientUsers,
       clientUsers,
       jwt,
-      agencyId
+      agencyId,
     }),
     [
       getUserByUserType,
@@ -675,7 +707,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       user,
       setClientUsers,
       clientUsers,
-      agencyId
+      agencyId,
     ]
   );
 
