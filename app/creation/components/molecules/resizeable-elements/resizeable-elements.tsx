@@ -165,11 +165,6 @@ const ResizeableElements = ({
         const offWidth = gridRef.current.offsetWidth - 75;
         const containerRect = gridContainer.getBoundingClientRect();
         const contWidth = containerRect.width - 75;
-        console.log("🚀 ~ requestAnimationFrame:", {
-          contWidth,
-          offWidth,
-          rrange,
-        });
         setContainerWidth(contWidth + 75);
       });
     }
@@ -247,15 +242,11 @@ const ResizeableElements = ({
                     : 50) *
                     daysBetween +
                     10
-                : (screenWidth > contWidth
-                    ? (contWidth) / funnelData?.endDay
-                    : 50) *
-                    daysFromStart +
-                    5;
+                : contWidth - 20;
             } else if (rrange === "Week") {
               return daysBetween > 0
                 ? 50 * daysBetween + 10
-                : 50 * daysFromStart + 5;
+                : contWidth - 37;
             } else {
               let monthBaseWidth;
               // if (endMonth === 1) {
@@ -267,7 +258,7 @@ const ResizeableElements = ({
               // console.log("🚀 ~  monthBaseWidth:", {monthBaseWidth, daysBetween, width: daysBetween > 0 ? Math.round(monthBaseWidth / endMonth) : 50})
               return daysBetween > 0
                 ? Math.round(monthBaseWidth / endMonth)
-                : Math.round(monthBaseWidth) - (disableDrag ? 83 : 60);
+                : Math.round(monthBaseWidth) - (disableDrag ? 83 : 52);
             }
           })();
 
@@ -294,9 +285,77 @@ const ResizeableElements = ({
         backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(0,0,0,0.2) 1px, transparent 1px)`,
         backgroundSize:
           rrange === "Day"
-            ? `calc(50px) 100%, calc(350px) 100%`
+            ? (function () {
+                const gridContainer = document.querySelector(
+                  ".grid-container"
+                ) as HTMLElement;
+                const getViewportWidth = () => {
+                  return (
+                    window.innerWidth ||
+                    document.documentElement.clientWidth ||
+                    0
+                  );
+                };
+                const screenWidth = getViewportWidth();
+                if (!gridContainer) return;
+                const endMonth = funnelData?.endDay || 1;
+                const contWidth = screenWidth - (disableDrag ? 80 : 367); // subtract margin/padding if needed
+
+                // console.log("🚀  ~ contWidth:", contWidth)
+                const percent = 100 / endMonth; // e.g., 20 if endMonth=5
+                const total = (percent / 100) * contWidth; // target total width in px for all days (31 days)
+
+                const dailyWidth = contWidth / endMonth; // width per day without factor
+                console.log("🚀  ~ dailyWidth:", dailyWidth);
+                const totalLines = Math.round(dailyWidth) * endMonth; // total width for 31 days without factor
+
+                // Calculate factor to scale dailyWidth to reach 'total'
+                const factor = total / totalLines; // e.g., if total=500 and totalLines=400, factor=1.25
+
+                const adjustedDailyWidth = dailyWidth;
+
+                return `calc(${
+                  adjustedDailyWidth < 50 ? 50 : adjustedDailyWidth
+                }px) 100%, calc(${
+                  (adjustedDailyWidth < 50 ? 50 : adjustedDailyWidth) * 7
+                }px) 100%`;
+              })()
             : rrange === "Week"
-            ? `calc(50px) 100%, calc(350px) 100%`
+            ? (function () {
+              const gridContainer = document.querySelector(
+                ".grid-container"
+              ) as HTMLElement;
+              const getViewportWidth = () => {
+                return (
+                  window.innerWidth ||
+                  document.documentElement.clientWidth ||
+                  0
+                );
+              };
+              const screenWidth = getViewportWidth();
+              if (!gridContainer) return;
+              const endMonth = funnelData?.endDay || 1;
+              const contWidth = screenWidth - (disableDrag ? 80 : 367); // subtract margin/padding if needed
+
+              // console.log("🚀  ~ contWidth:", contWidth)
+              const percent = 100 / endMonth; // e.g., 20 if endMonth=5
+              const total = (percent / 100) * contWidth; // target total width in px for all days (31 days)
+
+              const dailyWidth = contWidth / endMonth; // width per day without factor
+              console.log("🚀  ~ dailyWidth:", dailyWidth);
+              const totalLines = Math.round(dailyWidth) * endMonth; // total width for 31 days without factor
+
+              // Calculate factor to scale dailyWidth to reach 'total'
+              const factor = total / totalLines; // e.g., if total=500 and totalLines=400, factor=1.25
+
+              const adjustedDailyWidth = dailyWidth;
+
+              return `calc(${
+                adjustedDailyWidth < 50 ? 50 : adjustedDailyWidth
+              }px) 100%, calc(${
+                (adjustedDailyWidth < 50 ? 50 : adjustedDailyWidth) * 7
+              }px) 100%`;
+            })()
             : (function () {
                 const gridContainer = document.querySelector(
                   ".grid-container"
@@ -439,6 +498,8 @@ const ResizeableElements = ({
                   openItems={openItems}
                   setOpenItems={setOpenItems}
                   endMonth={funnelData?.endMonth}
+                  endDay={funnelData?.endDay}
+                  endWeek={funnelData?.endWeek}
                 />
 
                 {isOpen && ( // Only show this if the specific channel is open

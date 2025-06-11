@@ -167,25 +167,66 @@ const ResizableChannels = ({
     document.addEventListener("mouseup", handleMouseUp);
   };
 
+  // const handleMouseMoveResize = (e: MouseEvent) => {
+  //   if (!isResizing.current) return;
+  //   const { startX, startWidth, startPos, direction, index } = isResizing.current;
+
+  //   let newWidth = startWidth;
+  //   let newPos = startPos;
+
+  //   const gridContainer = document.querySelector(".grid-container") as HTMLElement;
+  //   if (!gridContainer) return;
+
+  //   const containerRect = gridContainer.getBoundingClientRect();
+  //   const minX = 0;
+  //   const maxX = containerRect.width;
+
+  //   if (direction === "left") {
+  //     const deltaX = e.clientX - startX;
+  //     newWidth = Math.max(50, startWidth - deltaX);
+  //     newPos = Math.max(minX, startPos + deltaX);
+
+  //     const snappedPos = snapToTimeline(newPos, containerRect.width);
+  //     newWidth = startWidth - (snappedPos - startPos);
+  //     newPos = snappedPos;
+  //   } else {
+  //     const rawNewWidth = startWidth + (e.clientX - startX);
+  //     const rightEdgePos = startPos + rawNewWidth;
+  //     const snappedRightEdge = snapToTimeline(rightEdgePos, containerRect.width);
+  //     newWidth = Math.max(50, snappedRightEdge - startPos + 10);
+  //   }
+
+  //   if (newPos + newWidth > maxX) {
+  //     newWidth = maxX - newPos;
+  //   }
+
+  //   setChannelState((prev) =>
+  //     prev.map((state, i) =>
+  //       i === index ? { ...state, left: newPos, width: newWidth } : state
+  //     )
+  //   );
+  // };
+
+
   const handleMouseMoveResize = (e: MouseEvent) => {
     if (!isResizing.current) return;
     const { startX, startWidth, startPos, direction, index } = isResizing.current;
-
+  
     let newWidth = startWidth;
     let newPos = startPos;
-
+  
     const gridContainer = document.querySelector(".grid-container") as HTMLElement;
     if (!gridContainer) return;
-
+  
     const containerRect = gridContainer.getBoundingClientRect();
     const minX = 0;
     const maxX = containerRect.width;
-
+  
     if (direction === "left") {
       const deltaX = e.clientX - startX;
       newWidth = Math.max(50, startWidth - deltaX);
       newPos = Math.max(minX, startPos + deltaX);
-
+  
       const snappedPos = snapToTimeline(newPos, containerRect.width);
       newWidth = startWidth - (snappedPos - startPos);
       newPos = snappedPos;
@@ -193,13 +234,36 @@ const ResizableChannels = ({
       const rawNewWidth = startWidth + (e.clientX - startX);
       const rightEdgePos = startPos + rawNewWidth;
       const snappedRightEdge = snapToTimeline(rightEdgePos, containerRect.width);
-      newWidth = Math.max(50, snappedRightEdge - startPos + 10);
+      newWidth = Math.max(50, (snappedRightEdge +10) - startPos);
     }
-
+  
+    // Handle parent width constraints
+    const parentRightEdge = parentLeft + parentWidth;
+    
+    // If channel position is beyond parent bounds, move it to fit within parent
+    if (newPos >= parentRightEdge) {
+      // Channel is completely outside parent bounds - move it to the right edge
+      newPos = Math.max(parentLeft, parentRightEdge - 50); // Minimum width of 50
+      newWidth = Math.min(50, parentWidth);
+    } else if (newPos < parentLeft) {
+      // Channel starts before parent - adjust position to parent start
+      newPos = parentLeft;
+      newWidth = Math.min(newWidth, parentWidth);
+    } else {
+      // Channel position is within parent bounds - maintain position, adjust width if needed
+      if (newPos + newWidth > parentRightEdge) {
+        newWidth = parentRightEdge - newPos;
+      }
+    }
+  
+    // Ensure channel doesn't exceed container bounds
     if (newPos + newWidth > maxX) {
       newWidth = maxX - newPos;
     }
-
+  
+    // Ensure minimum width
+    newWidth = Math.max(50, newWidth);
+  
     setChannelState((prev) =>
       prev.map((state, i) =>
         i === index ? { ...state, left: newPos, width: newWidth } : state
@@ -617,16 +681,16 @@ const ResizableChannels = ({
                   rrange === "Day"
                     ? daysBetween > 0
                       ? 50 * daysBetween + 60
-                      : parentWidth
+                      : parentWidth - 25
                     : rrange === "Week"
                     ? daysBetween > 0
                       ? 50 * daysBetween + 10
-                      : parentWidth
+                      : parentWidth - 9
                     : rrange === "Month"
                     ? daysBetween > 0
                       ? Math.round(screenWidth / endMonth / 31) * daysBetween
                       : parentWidth
-                    : parentWidth
+                    : parentWidth - 9
                 ),
               }
             : {
