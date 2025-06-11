@@ -18,6 +18,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
   children,
 }) => {
   const [loading, setLoading] = useState(false);
+  const [hideButtons, setHideButtons] = useState(false);
   const { midcapEditing, setMidcapEditing } = useEditing();
   const {
     updateCampaign,
@@ -46,12 +47,13 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
         table_headers: campaignData?.table_headers,
       });
     }
-    
+
     setMidcapEditing({
       isEditing: false,
       step: "",
     });
     setIsEditingBuyingObjective(false);
+    setHideButtons(false);
   };
 
   const cleanData = campaignData
@@ -71,13 +73,12 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
       let updatedCampaignFormData = campaignFormData;
 
       const obj = extractObjectives(campaignFormData);
-      // console.log("🚀 ~ handleStepFour ~ obj:", obj);
       updatedCampaignFormData = {
         ...campaignFormData,
         table_headers: obj || {},
       };
       setCampaignFormData(updatedCampaignFormData);
-       await updateCampaign({
+      await updateCampaign({
         ...cleanData,
         funnel_stages: updatedCampaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(
@@ -97,9 +98,15 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
         table_headers: updatedCampaignFormData?.table_headers,
       });
       await getActiveCampaign();
-      closeEditStep();
+      // Hide the buttons immediately after confirming
+      setHideButtons(true);
+      // Close the edit modal after a short delay to allow button to disappear smoothly
+      setTimeout(() => {
+        closeEditStep();
+      }, 200); // 200ms delay for UI smoothness, adjust as needed
     } catch (error) {
       console.error("Error updating campaign:", error);
+      setHideButtons(false);
     } finally {
       setLoading(false);
     }
@@ -135,6 +142,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
         isEditing: true,
         step: title,
       });
+      setHideButtons(false);
     }
   };
 
@@ -148,22 +156,24 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
           <h1 className="text-blue-500 font-semibold text-base">{title}</h1>
         </div>
         {isEditing ? (
-          <div className="flex items-center gap-[15px]">
-            <Button
-              text={loading ? "Loading..." : "Confirm Changes"}
-              variant="primary"
-              className="!w-[180px] !h-[40px] !rounded-[8px] !hover:ease-in-out"
-              onClick={() => !loading && handleConfirmClick(title)}
-              loading={loading}
-              disabled={loading}
-            />
-            <Button
-              text="Cancel"
-              variant="secondary"
-              className="!w-[180px] !h-[40px] !rounded-[8px] !hover:ease-in-out"
-              onClick={closeEditStep}
-            />
-          </div>
+          !hideButtons && (
+            <div className="flex items-center gap-[15px]">
+              <Button
+                text={loading ? "Loading..." : "Confirm Changes"}
+                variant="primary"
+                className="!w-[180px] !h-[40px] !rounded-[8px] !hover:ease-in-out"
+                onClick={() => !loading && handleConfirmClick(title)}
+                loading={loading}
+                disabled={loading}
+              />
+              <Button
+                text="Cancel"
+                variant="secondary"
+                className="!w-[180px] !h-[40px] !rounded-[8px] !hover:ease-in-out"
+                onClick={closeEditStep}
+              />
+            </div>
+          )
         ) : (
           <Button
             text="Edit"

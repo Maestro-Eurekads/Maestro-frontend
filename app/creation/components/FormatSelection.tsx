@@ -71,7 +71,7 @@ type MediaOptionType = {
 
 type QuantitiesType = {
   [platformName: string]: {
-    [formatName: string]: number;
+    [formatName: number]: number;
   };
 };
 
@@ -822,9 +822,19 @@ const StageRecapLine = ({
     });
   });
 
-  // If nothing selected, return null
+  // If nothing selected, show "Not started"
   const hasAny = Object.values(grouped).some((arr) => arr.length > 0);
-  if (!hasAny) return null;
+
+  if (!hasAny) {
+    return (
+      <div className="text-sm text-gray-700 bg-[#f7f7fa] border border-[#e5e5e5] rounded-b-[10px] px-6 py-3">
+        <span className="font-semibold">Status:</span>{" "}
+        <span className="font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] opacity-50">
+          Not started
+        </span>
+      </div>
+    );
+  }
 
   // Render: Selection: Social media - Facebook: Image, Video, Slideshow | Broadcast - DVD: Image, Slideshow
   // (Use | to separate channels, comma to separate formats)
@@ -1435,34 +1445,34 @@ export const FormatSelection = ({
     setLocalStorageItem("formatSelectionOpenTabs", newOpenTabs);
   }, [openTabs]);
 
-  // Remove in-progress status logic
-  // const hasSelectedFormatsForStage = useCallback(
-  //   (stageName: string) => {
-  //     const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName);
+  // Status logic: show "Not started" if no formats selected, otherwise show nothing
+  const hasSelectedFormatsForStage = useCallback(
+    (stageName: string) => {
+      const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName);
 
-  //     return (
-  //       stage &&
-  //       CHANNEL_TYPES.some(({ key }) =>
-  //         stage[key]?.some((platform: PlatformType) =>
-  //           view === "channel"
-  //             ? platform.format?.length > 0
-  //             : platform.ad_sets?.some((adset) => adset.format?.length > 0)
-  //         )
-  //       )
-  //     );
-  //   },
-  //   [campaignFormData, view]
-  // );
+      return (
+        stage &&
+        CHANNEL_TYPES.some(({ key }) =>
+          stage[key]?.some((platform: PlatformType) =>
+            view === "channel"
+              ? platform.format?.length > 0
+              : platform.ad_sets?.some((adset) => adset.format?.length > 0)
+          )
+        )
+      );
+    },
+    [campaignFormData, view]
+  );
 
-  // const getStageStatus = useCallback(
-  //   (stageName: string) => {
-  //     const hasFormats = hasSelectedFormatsForStage(stageName);
+  const getStageStatus = useCallback(
+    (stageName: string) => {
+      const hasFormats = hasSelectedFormatsForStage(stageName);
 
-  //     if (hasFormats) return "In progress";
-  //     return "Not started";
-  //   },
-  //   [hasSelectedFormatsForStage]
-  // );
+      if (hasFormats) return ""; // Show nothing if formats are selected
+      return "Not started";
+    },
+    [hasSelectedFormatsForStage]
+  );
 
   const handleToggleChange = useCallback((checked: boolean) => {
     const newView = checked ? "adset" : "channel";
@@ -1510,7 +1520,7 @@ export const FormatSelection = ({
             );
             if (!stage) return null;
 
-            // const status = getStageStatus(stageName);
+            const status = getStageStatus(stageName);
             const isOpen = openTabs.includes(stage.name);
 
             return (
@@ -1535,16 +1545,12 @@ export const FormatSelection = ({
                       {stage.name}
                     </p>
                   </div>
-                  {/* Remove in-progress status display */}
-                  {/* {status === "In progress" ? (
-                    <p className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF]">
-                      In Progress
-                    </p>
-                  ) : (
+                  {/* Show status: Not started by default, empty if formats selected */}
+                  {status && (
                     <p className="font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] opacity-50">
-                      Not started
+                      {status}
                     </p>
-                  )} */}
+                  )}
                   <Image
                     src={isOpen ? "/arrow-down.svg" : "/arrow-down-2.svg"}
                     alt={isOpen ? "up" : "down"}
