@@ -54,7 +54,13 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     setIsModalOpen(false);
   };
 
-  // Sync view with campaignFormData.goal_level and handle modal
+  // --- FIX: Prevent infinite update loop on refresh after switching granularity ---
+  // The problem is that the effect below updates both campaignFormData and view (via onToggleChange)
+  // in response to each other, causing a loop. We need to only update if the view and goal_level are mismatched,
+  // and only update one of them, not both, and not in both directions.
+  // We'll make the effect only update campaignFormData.goal_level if needed, and NOT call onToggleChange here.
+  // The Switch and modal will be the only places to call onToggleChange.
+
   useEffect(() => {
     if (!campaignFormData) return;
 
@@ -64,15 +70,21 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     if (!goalLevel) {
       setIsModalOpen(true);
     } else if (goalLevel !== expectedGoalLevel) {
-      setCampaignFormData((prev: any) => ({
-        ...prev,
-        goal_level: expectedGoalLevel,
-      }));
-      onToggleChange(goalLevel === "Adset level" ? "adset" : "channel");
+      // Only update campaignFormData.goal_level if it's not what the view expects.
+      setCampaignFormData((prev: any) => {
+        // Prevent unnecessary update if already correct
+        if (prev.goal_level === expectedGoalLevel) return prev;
+        return {
+          ...prev,
+          goal_level: expectedGoalLevel,
+        };
+      });
+      // DO NOT call onToggleChange here, as that would update the view and cause a loop.
+      // The Switch and modal handle view changes.
     } else {
       setIsModalOpen(false);
     }
-  }, [campaignFormData, view, setCampaignFormData, onToggleChange]);
+  }, [campaignFormData, view, setCampaignFormData]);
 
   // Initialize stage statuses and open items based on campaign data
   useEffect(() => {
@@ -256,6 +268,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     return recapRows;
   };
 
+  // Only call onToggleChange and setCampaignFormData in response to user interaction (Switch)
   const handleToggleChange = (checked: boolean) => {
     const newView = checked ? "adset" : "channel";
     onToggleChange(newView);
