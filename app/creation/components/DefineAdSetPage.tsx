@@ -383,13 +383,13 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                         <tr>
                           <th className="text-left pr-4 py-1 font-bold">Platform</th>
                           {view === "adset" && (
-                            <th className="text-left pr-4 py-1 font-normal text-[#181D27]">Ad Set</th>
+                            <th className="text-left pr-4 py-1 font-bold">Ad Set</th>
                           )}
                           {view === "adset" && (
                             <>
-                              <th className="text-left pr-4 py-1 font-normal text-[#181D27]">Audience Type</th>
-                              <th className="text-left pr-4 py-1 font-normal text-[#181D27]">Audience Name</th>
-                              <th className="text-left pr-4 py-1 font-normal text-[#181D27]">Audience Size</th>
+                              <th className="text-left pr-4 py-1 font-bold">Audience Type</th>
+                              <th className="text-left pr-4 py-1 font-bold">Audience Name</th>
+                              <th className="text-left pr-4 py-1 font-bold">Audience Size</th>
                             </>
                           )}
                         </tr>
@@ -400,9 +400,9 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                             key={idx}
                             className={row.isExtra ? "bg-[#F9FAFB]" : ""}
                           >
-                            <td className="pr-4 py-1">{row.platform}</td>
+                            <td className="pr-4 py-1 font-normal">{row.platform}</td>
                             {view === "adset" && (
-                              <td className="pr-4 py-1">
+                              <td className="pr-4 py-1 font-normal">
                                 {row.isExtra
                                   ? `Ad set n°${row.adSetNumber} (Extra)`
                                   : `Ad set n°${row.adSetNumber}`}
@@ -410,9 +410,9 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                             )}
                             {view === "adset" && (
                               <>
-                                <td className="pr-4 py-1">{row.type}</td>
-                                <td className="pr-4 py-1">{row.name}</td>
-                                <td className="pr-4 py-1">
+                                <td className="pr-4 py-1 font-normal">{row.type}</td>
+                                <td className="pr-4 py-1 font-normal">{row.name}</td>
+                                <td className="pr-4 py-1 font-normal">
                                   {formatWithThousandSeparator(row.size)}
                                 </td>
                               </>
