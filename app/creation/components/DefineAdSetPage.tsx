@@ -374,7 +374,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             {!openItems[stageName] && recapRows.length > 0 && (
               <div className="mt-2 mb-4">
                 <div className="bg-[#F5F7FA] border border-[#E5E7EB] rounded-lg px-4 py-3">
-                  <div className="font-semibold text-[#4B451A] mb-2 text-sm">
+                  <div className="font-bold text-[#4B451A] mb-2 text-sm">
                     Audience Recap
                   </div>
                   <div className="overflow-x-auto">
@@ -383,19 +383,13 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                         <tr>
                           <th className="text-left pr-4 py-1 font-bold">Platform</th>
                           {view === "adset" && (
-                            <th className="text-left pr-4 py-1 font-bold">Ad Set</th>
+                            <th className="text-left pr-4 py-1 font-normal text-[#181D27]">Ad Set</th>
                           )}
                           {view === "adset" && (
                             <>
-                              <th className="text-left pr-4 py-1 font-bold">
-                                Audience Type
-                              </th>
-                              <th className="text-left pr-4 py-1 font-bold">
-                                Audience Name
-                              </th>
-                              <th className="text-left pr-4 py-1 font-bold">
-                                Audience Size
-                              </th>
+                              <th className="text-left pr-4 py-1 font-normal text-[#181D27]">Audience Type</th>
+                              <th className="text-left pr-4 py-1 font-normal text-[#181D27]">Audience Name</th>
+                              <th className="text-left pr-4 py-1 font-normal text-[#181D27]">Audience Size</th>
                             </>
                           )}
                         </tr>
