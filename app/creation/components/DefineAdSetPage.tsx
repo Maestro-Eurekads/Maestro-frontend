@@ -117,7 +117,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
         if (hasAdSets) {
           initialOpenItems[stageName] = true;
-          initialStatuses[stageName] = "In progress";
+          initialStatuses[stageName] = "Completed";
           initialInteractions[stageName] = true;
         }
       }
@@ -131,9 +131,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const toggleItem = (stage: string) => {
     setOpenItems((prev) => {
       const newOpenItems = { ...prev, [stage]: !prev[stage] };
-      if (newOpenItems[stage] && hasInteracted[stage]) {
-        setStageStatuses((prev2) => ({ ...prev2, [stage]: "In progress" }));
-      }
+      // Remove "In progress" status logic
       return newOpenItems;
     });
   };
@@ -141,7 +139,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const handleInteraction = (stageName: string) => {
     setStageStatuses((prev) => ({
       ...prev,
-      [stageName]: prev[stageName] === "Completed" ? "Completed" : "In progress",
+      [stageName]: prev[stageName] === "Completed" ? "Completed" : "Completed",
     }));
     setHasInteracted((prev) => ({ ...prev, [stageName]: true }));
   };
@@ -298,7 +296,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
         const currentStatus = stageStatuses[stageName] || "Not started";
         const isCompleted = currentStatus === "Completed";
-        const isInProgress = currentStatus === "In progress";
+        // Remove isInProgress and all "In progress" logic
         const recapRows = getRecapRows(stageName);
 
         return (
@@ -343,10 +341,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                       Completed
                     </p>
                   </div>
-                ) : isInProgress ? (
-                  <p className="text-[#3175FF] font-semibold text-base">
-                    In progress
-                  </p>
                 ) : (
                   <p className="text-[#4B451A] opacity-50 text-base">
                     Not started
@@ -387,19 +381,19 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                     <table className="min-w-full text-xs text-[#4B451A]">
                       <thead>
                         <tr>
-                          <th className="text-left pr-4 py-1">Platform</th>
+                          <th className="text-left pr-4 py-1 font-bold">Platform</th>
                           {view === "adset" && (
-                            <th className="text-left pr-4 py-1">Ad Set</th>
+                            <th className="text-left pr-4 py-1 font-bold">Ad Set</th>
                           )}
                           {view === "adset" && (
                             <>
-                              <th className="text-left pr-4 py-1">
+                              <th className="text-left pr-4 py-1 font-bold">
                                 Audience Type
                               </th>
-                              <th className="text-left pr-4 py-1">
+                              <th className="text-left pr-4 py-1 font-bold">
                                 Audience Name
                               </th>
-                              <th className="text-left pr-4 py-1">
+                              <th className="text-left pr-4 py-1 font-bold">
                                 Audience Size
                               </th>
                             </>

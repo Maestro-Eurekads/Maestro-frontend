@@ -1405,33 +1405,34 @@ export const FormatSelection = ({
     setLocalStorageItem("formatSelectionOpenTabs", newOpenTabs);
   }, [openTabs]);
 
-  const hasSelectedFormatsForStage = useCallback(
-    (stageName: string) => {
-      const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName);
+  // Remove in-progress status logic
+  // const hasSelectedFormatsForStage = useCallback(
+  //   (stageName: string) => {
+  //     const stage = campaignFormData?.channel_mix?.find((chan) => chan?.funnel_stage === stageName);
 
-      return (
-        stage &&
-        CHANNEL_TYPES.some(({ key }) =>
-          stage[key]?.some((platform: PlatformType) =>
-            view === "channel"
-              ? platform.format?.length > 0
-              : platform.ad_sets?.some((adset) => adset.format?.length > 0)
-          )
-        )
-      );
-    },
-    [campaignFormData, view]
-  );
+  //     return (
+  //       stage &&
+  //       CHANNEL_TYPES.some(({ key }) =>
+  //         stage[key]?.some((platform: PlatformType) =>
+  //           view === "channel"
+  //             ? platform.format?.length > 0
+  //             : platform.ad_sets?.some((adset) => adset.format?.length > 0)
+  //         )
+  //       )
+  //     );
+  //   },
+  //   [campaignFormData, view]
+  // );
 
-  const getStageStatus = useCallback(
-    (stageName: string) => {
-      const hasFormats = hasSelectedFormatsForStage(stageName);
+  // const getStageStatus = useCallback(
+  //   (stageName: string) => {
+  //     const hasFormats = hasSelectedFormatsForStage(stageName);
 
-      if (hasFormats) return "In progress";
-      return "Not started";
-    },
-    [hasSelectedFormatsForStage]
-  );
+  //     if (hasFormats) return "In progress";
+  //     return "Not started";
+  //   },
+  //   [hasSelectedFormatsForStage]
+  // );
 
   const handleToggleChange = useCallback((checked: boolean) => {
     const newView = checked ? "adset" : "channel";
@@ -1479,7 +1480,7 @@ export const FormatSelection = ({
             );
             if (!stage) return null;
 
-            const status = getStageStatus(stageName);
+            // const status = getStageStatus(stageName);
             const isOpen = openTabs.includes(stage.name);
 
             return (
@@ -1504,7 +1505,8 @@ export const FormatSelection = ({
                       {stage.name}
                     </p>
                   </div>
-                  {status === "In progress" ? (
+                  {/* Remove in-progress status display */}
+                  {/* {status === "In progress" ? (
                     <p className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF]">
                       In Progress
                     </p>
@@ -1512,7 +1514,7 @@ export const FormatSelection = ({
                     <p className="font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] opacity-50">
                       Not started
                     </p>
-                  )}
+                  )} */}
                   <Image
                     src={isOpen ? "/arrow-down.svg" : "/arrow-down-2.svg"}
                     alt={isOpen ? "up" : "down"}
