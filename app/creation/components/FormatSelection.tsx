@@ -828,7 +828,7 @@ const StageRecapLine = ({
   if (!hasAny) {
     return (
       <div className="text-sm text-gray-700 bg-[#f7f7fa] border border-[#e5e5e5] rounded-b-[10px] px-6 py-3">
-        <span className="font-semibold">Status:</span>{" "}
+        <span className="font-semibold">Recap:</span>{" "}
         <span className="font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] opacity-50">
          No selection
         </span>
