@@ -117,7 +117,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
         if (hasAdSets) {
           initialOpenItems[stageName] = true;
-          initialStatuses[stageName] = "Completed";
+          initialStatuses[stageName] = "Not started";
           initialInteractions[stageName] = true;
         }
       }
@@ -131,7 +131,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const toggleItem = (stage: string) => {
     setOpenItems((prev) => {
       const newOpenItems = { ...prev, [stage]: !prev[stage] };
-      // Remove "In progress" status logic
+      // No "In progress" status anymore
       return newOpenItems;
     });
   };
@@ -139,7 +139,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const handleInteraction = (stageName: string) => {
     setStageStatuses((prev) => ({
       ...prev,
-      [stageName]: prev[stageName] === "Completed" ? "Completed" : "Completed",
+      [stageName]: prev[stageName] === "Completed" ? "Completed" : "Not started",
     }));
     setHasInteracted((prev) => ({ ...prev, [stageName]: true }));
   };
