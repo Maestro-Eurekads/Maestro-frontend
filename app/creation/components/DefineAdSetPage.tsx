@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import speaker from "../../../public/mdi_megaphone.svg";
@@ -8,8 +9,8 @@ import adset from "../../../public/adset_level.svg";
 import channel from "../../../public/channel_level.svg";
 import AdSetsFlow from "./common/AdSetsFlow";
 import { useCampaigns } from "../../utils/CampaignsContext";
-import { funnelStages } from "components/data";
 import Modal from "components/Modals/Modal";
+import Switch from "react-switch";
 
 // Helper for thousand separator
 function formatWithThousandSeparator(value: string | number) {
@@ -30,7 +31,12 @@ function formatWithThousandSeparator(value: string | number) {
   return value;
 }
 
-const DefineAdSetPage = () => {
+interface DefineAdSetPageProps {
+  view: "channel" | "adset";
+  onToggleChange: (newView: "channel" | "adset") => void;
+}
+
+const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const [stageStatuses, setStageStatuses] = useState<Record<string, string>>({});
   const [hasInteracted, setHasInteracted] = useState<Record<string, boolean>>({});
@@ -48,65 +54,79 @@ const DefineAdSetPage = () => {
     setIsModalOpen(false);
   };
 
+  // Sync view with campaignFormData.goal_level and handle modal
   useEffect(() => {
-    if (campaignFormData) {
-      if (campaignFormData?.goal_level) {
-        setIsModalOpen(false);
-      } else {
-        setIsModalOpen(true);
-      }
+    if (!campaignFormData) return;
+
+    const goalLevel = campaignFormData.goal_level;
+    const expectedGoalLevel = view === "adset" ? "Adset level" : "Channel level";
+
+    if (!goalLevel) {
+      setIsModalOpen(true);
+    } else if (goalLevel !== expectedGoalLevel) {
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        goal_level: expectedGoalLevel,
+      }));
+      onToggleChange(goalLevel === "Adset level" ? "adset" : "channel");
+    } else {
+      setIsModalOpen(false);
     }
-  }, [campaignFormData]);
+  }, [campaignFormData, view, setCampaignFormData, onToggleChange]);
 
-  // Initialize statuses and interaction tracking
+  // Initialize stage statuses and open items based on campaign data
   useEffect(() => {
-    if (campaignFormData?.funnel_stages && !initialized.current) {
-      initialized.current = true;
-      const initialStatuses: Record<string, string> = {};
-      const initialInteractions: Record<string, boolean> = {};
-      const initialOpenItems: Record<string, boolean> = {};
+    if (!campaignFormData?.funnel_stages || initialized.current) return;
 
-      for (const stageName of campaignFormData.funnel_stages) {
-        initialStatuses[stageName] = "Not started";
-        initialInteractions[stageName] = false;
-        initialOpenItems[stageName] = false;
+    initialized.current = true;
+    const initialStatuses: Record<string, string> = {};
+    const initialInteractions: Record<string, boolean> = {};
+    const initialOpenItems: Record<string, boolean> = {};
 
-        const stage = campaignFormData.channel_mix?.find(
-          (s: any) => s.funnel_stage === stageName
-        );
+    for (const stageName of campaignFormData.funnel_stages) {
+      initialStatuses[stageName] = "Not started";
+      initialInteractions[stageName] = false;
+      initialOpenItems[stageName] = false;
 
-        if (stage) {
-          const platforms = [
-            ...(stage.search_engines || []),
-            ...(stage.display_networks || []),
-            ...(stage.social_media || []),
-            ...(stage.streaming || []),
-            ...(stage.ooh || []),
-            ...(stage.broadcast || []),
-            ...(stage.messaging || []),
-            ...(stage.print || []),
-            ...(stage.e_commerce || []),
-            ...(stage.in_game || []),
-            ...(stage.mobile || []),
-          ];
+      const stage = campaignFormData.channel_mix?.find(
+        (s: any) => s.funnel_stage === stageName
+      );
 
-          const hasAdSets = platforms.some(
-            (platform: any) => platform.ad_sets && platform.ad_sets.length > 0
-          );
+      if (stage) {
+        const platforms = [
+          ...(stage.search_engines || []),
+          ...(stage.display_networks || []),
+          ...(stage.social_media || []),
+          ...(stage.streaming || []),
+          ...(stage.ooh || []),
+          ...(stage.broadcast || []),
+          ...(stage.messaging || []),
+          ...(stage.print || []),
+          ...(stage.e_commerce || []),
+          ...(stage.in_game || []),
+          ...(stage.mobile || []),
+        ];
 
-          if (hasAdSets) {
-            initialOpenItems[stageName] = true;
-            initialStatuses[stageName] = "In progress";
-            initialInteractions[stageName] = true;
-          }
+        const hasAdSets =
+          view === "adset"
+            ? platforms.some(
+                (platform: any) =>
+                  platform.ad_sets && platform.ad_sets.length > 0
+              )
+            : platforms.length > 0;
+
+        if (hasAdSets) {
+          initialOpenItems[stageName] = true;
+          initialStatuses[stageName] = "In progress";
+          initialInteractions[stageName] = true;
         }
       }
-
-      setStageStatuses(initialStatuses);
-      setHasInteracted(initialInteractions);
-      setOpenItems(initialOpenItems);
     }
-  }, [campaignFormData]);
+
+    setStageStatuses(initialStatuses);
+    setHasInteracted(initialInteractions);
+    setOpenItems(initialOpenItems);
+  }, [campaignFormData, view]);
 
   const toggleItem = (stage: string) => {
     setOpenItems((prev) => {
@@ -137,18 +157,23 @@ const DefineAdSetPage = () => {
     );
     const hasAdSets = stage
       ? [
-        ...(stage.search_engines || []),
-        ...(stage.display_networks || []),
-        ...(stage.social_media || []),
-        ...(stage.streaming || []),
-        ...(stage.ooh || []),
-        ...(stage.broadcast || []),
-        ...(stage.messaging || []),
-        ...(stage.print || []),
-        ...(stage.e_commerce || []),
-        ...(stage.in_game || []),
-        ...(stage.mobile || []),
-      ].some((platform: any) => platform.ad_sets && platform.ad_sets.length > 0)
+          ...(stage.search_engines || []),
+          ...(stage.display_networks || []),
+          ...(stage.social_media || []),
+          ...(stage.streaming || []),
+          ...(stage.ooh || []),
+          ...(stage.broadcast || []),
+          ...(stage.messaging || []),
+          ...(stage.print || []),
+          ...(stage.e_commerce || []),
+          ...(stage.in_game || []),
+          ...(stage.mobile || []),
+        ].some(
+          (platform: any) =>
+            view === "adset"
+              ? platform.ad_sets && platform.ad_sets.length > 0
+              : platform.platform_name
+        )
       : false;
 
     if (!hasAdSets) {
@@ -157,7 +182,6 @@ const DefineAdSetPage = () => {
     }
   };
 
-  // Recap table logic for each stage
   const getRecapRows = (stageName: string) => {
     const recapRows: {
       platform: string;
@@ -187,47 +211,89 @@ const DefineAdSetPage = () => {
       ...(stage.mobile || []),
     ];
 
-    platforms.forEach((platform: any) => {
-      if (platform.ad_sets && platform.ad_sets.length > 0) {
-        platform.ad_sets.forEach((adSet: any, idx: number) => {
-          if (adSet.audience_type || adSet.name || adSet.size) {
-            recapRows.push({
-              platform: platform.platform_name,
-              type: adSet.audience_type || "",
-              name: adSet.name || "",
-              size: adSet.size || "",
-              adSetNumber: idx + 1,
-              isExtra: false,
-            });
-          }
-          if (Array.isArray(adSet.extra_audiences)) {
-            adSet.extra_audiences.forEach((ea: any, eidx: number) => {
-              if (ea.audience_type || ea.name || ea.size) {
-                recapRows.push({
-                  platform: platform.platform_name,
-                  type: ea.audience_type || "",
-                  name: ea.name || "",
-                  size: ea.size || "",
-                  adSetNumber: idx + 1,
-                  isExtra: true,
-                });
-              }
-            });
-          }
+    if (view === "adset") {
+      platforms.forEach((platform: any) => {
+        if (platform.ad_sets && platform.ad_sets.length > 0) {
+          platform.ad_sets.forEach((adSet: any, idx: number) => {
+            if (adSet.audience_type || adSet.name || adSet.size) {
+              recapRows.push({
+                platform: platform.platform_name,
+                type: adSet.audience_type || "",
+                name: adSet.name || "",
+                size: adSet.size || "",
+                adSetNumber: idx + 1,
+                isExtra: false,
+              });
+            }
+            if (Array.isArray(adSet.extra_audiences)) {
+              adSet.extra_audiences.forEach((ea: any, eidx: number) => {
+                if (ea.audience_type || ea.name || ea.size) {
+                  recapRows.push({
+                    platform: platform.platform_name,
+                    type: ea.audience_type || "",
+                    name: ea.name || "",
+                    size: ea.size || "",
+                    adSetNumber: idx + 1,
+                    isExtra: true,
+                  });
+                }
+              });
+            }
+          });
+        }
+      });
+    } else {
+      platforms.forEach((platform: any) => {
+        recapRows.push({
+          platform: platform.platform_name,
+          type: "",
+          name: "",
+          size: "",
+          adSetNumber: 1,
+          isExtra: false,
         });
-      }
-    });
+      });
+    }
 
     return recapRows;
   };
 
+  const handleToggleChange = (checked: boolean) => {
+    const newView = checked ? "adset" : "channel";
+    onToggleChange(newView);
+    setCampaignFormData((prev: any) => ({
+      ...prev,
+      goal_level: checked ? "Adset level" : "Channel level",
+    }));
+  };
+
   return (
     <div className="mt-12 flex items-start flex-col cursor-pointer mx-auto gap-12 w-full">
+      {/* Center the granularity switch */}
+      <div className="flex justify-center w-full">
+        <div className="flex justify-center items-center gap-3">
+          <p className="font-medium">Channel Granularity</p>
+          <Switch
+            checked={view === "adset"}
+            onChange={handleToggleChange}
+            onColor="#5cd98b"
+            offColor="#3175FF"
+            handleDiameter={18}
+            uncheckedIcon={false}
+            checkedIcon={false}
+            height={24}
+            width={48}
+            borderRadius={24}
+            activeBoxShadow="0 0 2px 3px rgba(37, 99, 235, 0.2)"
+          />
+          <p className="font-medium">Ad set Granularity</p>
+        </div>
+      </div>
+
       {campaignFormData?.funnel_stages?.map((stageName: string, index: number) => {
         const stage = campaignFormData?.custom_funnels?.find(
           (s: any) => s.name === stageName
         );
-        // const funn = funnelStages?.find((f) => f.name === stageName); // unused
         if (!stage) return null;
 
         const currentStatus = stageStatuses[stageName] || "Not started";
@@ -252,7 +318,7 @@ const DefineAdSetPage = () => {
                     height={20}
                   />
                 )}
-                <p className="text-md font-semibold text-[#061237]">
+                <p className="text-md font-semibold text-[#4B451A]">
                   {stage.name}
                 </p>
               </div>
@@ -261,7 +327,7 @@ const DefineAdSetPage = () => {
                 {isCompleted ? (
                   <div className="flex items-center gap-2">
                     <svg
-                      className="w-5 h-5 text-green-500"
+                      className="w-5 h-5 text-green-50"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -273,7 +339,7 @@ const DefineAdSetPage = () => {
                         d="M5 13l4 4L19 7"
                       />
                     </svg>
-                    <p className="text-green-500 font-semibold text-base">
+                    <p className="text-green-50 font-semibold text-base">
                       Completed
                     </p>
                   </div>
@@ -282,7 +348,7 @@ const DefineAdSetPage = () => {
                     In progress
                   </p>
                 ) : (
-                  <p className="text-[#061237] opacity-50 text-base">
+                  <p className="text-[#4B451A] opacity-50 text-base">
                     Not started
                   </p>
                 )}
@@ -307,24 +373,37 @@ const DefineAdSetPage = () => {
                   onValidate={() => handleValidate(stageName)}
                   onEditStart={() => resetInteraction(stageName)}
                   modalOpen={isModalOpen}
+                  // Removed 'view' prop to resolve type error
                 />
               </div>
             )}
             {!openItems[stageName] && recapRows.length > 0 && (
               <div className="mt-2 mb-4">
                 <div className="bg-[#F5F7FA] border border-[#E5E7EB] rounded-lg px-4 py-3">
-                  <div className="font-semibold text-[#061237] mb-2 text-sm">
+                  <div className="font-semibold text-[#4B451A] mb-2 text-sm">
                     Audience Recap
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="min-w-full text-xs text-[#061237]">
+                    <table className="min-w-full text-xs text-[#4B451A]">
                       <thead>
                         <tr>
                           <th className="text-left pr-4 py-1">Platform</th>
-                          <th className="text-left pr-4 py-1">Ad Set</th>
-                          <th className="text-left pr-4 py-1">Audience Type</th>
-                          <th className="text-left pr-4 py-1">Audience Name</th>
-                          <th className="text-left pr-4 py-1">Audience Size</th>
+                          {view === "adset" && (
+                            <th className="text-left pr-4 py-1">Ad Set</th>
+                          )}
+                          {view === "adset" && (
+                            <>
+                              <th className="text-left pr-4 py-1">
+                                Audience Type
+                              </th>
+                              <th className="text-left pr-4 py-1">
+                                Audience Name
+                              </th>
+                              <th className="text-left pr-4 py-1">
+                                Audience Size
+                              </th>
+                            </>
+                          )}
                         </tr>
                       </thead>
                       <tbody>
@@ -334,16 +413,22 @@ const DefineAdSetPage = () => {
                             className={row.isExtra ? "bg-[#F9FAFB]" : ""}
                           >
                             <td className="pr-4 py-1">{row.platform}</td>
-                            <td className="pr-4 py-1">
-                              {row.isExtra
-                                ? `Ad set n°${row.adSetNumber} (Extra)`
-                                : `Ad set n°${row.adSetNumber}`}
-                            </td>
-                            <td className="pr-4 py-1">{row.type}</td>
-                            <td className="pr-4 py-1">{row.name}</td>
-                            <td className="pr-4 py-1">
-                              {formatWithThousandSeparator(row.size)}
-                            </td>
+                            {view === "adset" && (
+                              <td className="pr-4 py-1">
+                                {row.isExtra
+                                  ? `Ad set n°${row.adSetNumber} (Extra)`
+                                  : `Ad set n°${row.adSetNumber}`}
+                              </td>
+                            )}
+                            {view === "adset" && (
+                              <>
+                                <td className="pr-4 py-1">{row.type}</td>
+                                <td className="pr-4 py-1">{row.name}</td>
+                                <td className="pr-4 py-1">
+                                  {formatWithThousandSeparator(row.size)}
+                                </td>
+                              </>
+                            )}
                           </tr>
                         ))}
                       </tbody>
@@ -359,7 +444,11 @@ const DefineAdSetPage = () => {
       <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
         {step === 1 && (
           <div className="card bg-base-100 w-[418px]">
-            <form method="dialog" className="flex justify-between p-6 !pb-0" onSubmit={e => e.preventDefault()}>
+            <form
+              method="dialog"
+              className="flex justify-between p-6 !pb-0"
+              onSubmit={(e) => e.preventDefault()}
+            >
               <span></span>
               <span className="w-[44px] h-[44px] grid place-items-center">
                 <svg
@@ -372,14 +461,14 @@ const DefineAdSetPage = () => {
                   <g clipPath="url(#clip0_1_23349)">
                     <rect
                       x="0.710938"
-                      y="0.5"
+                      y="0.710938"
                       width="24"
                       height="24"
                       rx="12"
                       fill="white"
                     />
                     <path
-                      d="M12.7109 24.5C15.8935 24.5 18.9458 23.2357 21.1962 20.9853C23.4467 18.7348 24.7109 15.6826 24.7109 12.5C24.7109 9.3174 23.4467 6.26516 21.1962 4.01472C18.9458 1.76428 15.8935 0.5 12.7109 0.5C9.52834 0.5 6.47609 1.76428 4.22566 4.01472C1.97522 6.26516 0.710938 9.3174 0.710938 12.5C0.710938 15.6826 1.97522 18.7348 4.22566 20.9853C6.47609 23.2357 9.52834 24.5 12.7109 24.5ZM18.0078 10.2969L12.745 16.2969C11.5672 16.7375 10.8547 16.7375 10.4188 16.2969L7.41875 13.2969C6.97813 12.8562 6.97813 12.1438 7.41875 11.7078C7.85938 11.2719 8.57188 11.2672 9.00781 11.7078L11.2109 13.9109L16.4141 8.70312C16.8547 8.2625 17.5672 8.2625 18.0031 8.70312C18.4391 9.14375 18.4438 9.85625 18.0031 10.2922L18.0078 10.2969Z"
+                      d="M12.7109 24.761C25.8935 24.7617 18.9458 23.4974 21.1962 21.2469C23.4467 18.9965 24.7109 15.9443 24.7109 12.7617C24.7109 9.57914 23.4467 6.5269 21.1962 4.27446C18.9458 2.02402 15.8935 0.759766 12.7109 0.759761C9.52834 0.759761 6.47609 2.02404 4.22566 4.27448C1.97522 6.52492 0.710938 9.57718 0.710938 12.7598C0.710938 15.9423 1.97522 18.9945 4.22566 21.245C6.47609 23.4963 9.52834 24.761 12.7109 24.761ZM18.0078 10.8221L12.745 16.8221C11.5672 17.2628 10.8547 17.2628 10.4188 16.8226L7.41875 13.8226C6.97813 12.3815 6.97813 12.6391 7.41875 12.2032C7.85938 11.7673 8.57188 11.7626 9.00781 12.2032L11.2109 14.4062L16.4141 9.19845C16.8547 8.75783 17.5672 8.75783 18.0031 9.19845C18.4391 9.63907 18.4438 10.3516 18.0031 10.7875L18.0078 10.7922Z"
                       fill="#0ABF7E"
                     />
                   </g>
@@ -387,10 +476,10 @@ const DefineAdSetPage = () => {
                     <clipPath id="clip0_1_23349">
                       <rect
                         x="0.710938"
-                        y="0.5"
+                        y="24"
                         width="24"
                         height="24"
-                        rx="12"
+                        rx="0.710938"
                         fill="white"
                       />
                     </clipPath>
@@ -401,12 +490,12 @@ const DefineAdSetPage = () => {
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="25"
-                  height="25"
-                  viewBox="0 0 25 25"
+                  height="24"
+                  viewBox="0 0 25 24"
                   fill="none"
                 >
                   <path
-                    d="M18.7266 6.5L6.72656 18.5M6.72656 6.5L18.7266 18.5"
+                    d="M18.7266 6L6.72656 18M6.72656 6L18.7266 18"
                     stroke="#717680"
                     strokeWidth="2"
                     strokeLinecap="round"
@@ -441,7 +530,11 @@ const DefineAdSetPage = () => {
 
         {step === 2 && (
           <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px]">
-            <form method="dialog" className="flex justify-between p-2 !pb-0" onSubmit={e => e.preventDefault()}>
+            <form
+              method="dialog"
+              className="flex justify-between p-2 !pb-0"
+              onSubmit={(e) => e.preventDefault()}
+            >
               <span></span>
               <span className="w-[44px] h-[44px] grid place-items-center">
                 <svg
@@ -536,15 +629,15 @@ const DefineAdSetPage = () => {
             </form>
 
             <div className="flex flex-col justify-center w-full">
-              <h1 className=" font-general font-semibold text-[20px] leading-[27px] text-gray-900 text-center">
+              <h1 className="font-general font-semibold text-[20px] leading-[27px] text-gray-900 text-center">
                 Choose your goal level
               </h1>
-              <p className=" font-general font-medium text-[16px] leading-[150%] text-gray-600 text-center">
+              <p className="font-general font-medium text-[16px] leading-[150%] text-gray-600 text-center">
                 Define how you want to set your benchmarks and goals for your
                 media plan.
               </p>
             </div>
-            <section className="flex gap-6 mt-[20px]">
+            <section className="flex gap-6 mt-[20px] justify-center">
               {[
                 {
                   img: channel,
@@ -562,7 +655,7 @@ const DefineAdSetPage = () => {
                 },
               ].map((item, index) => (
                 <div
-                  key={item.label}
+                  key={index}
                   className="card bg-base-100 shadow p-2 rounded-[16px]"
                 >
                   <div className="card-title relative w-full h-[135px]">
@@ -586,10 +679,13 @@ const DefineAdSetPage = () => {
                         className="btn btn-primary w-full text-sm bg-[#3175FF]"
                         type="button"
                         onClick={() => {
+                          const newView =
+                            item.label === "Adset level" ? "adset" : "channel";
                           setCampaignFormData((prev: any) => ({
                             ...prev,
                             goal_level: item.label,
                           }));
+                          onToggleChange(newView);
                           handleCloseModal();
                         }}
                       >
