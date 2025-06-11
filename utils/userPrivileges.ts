@@ -9,6 +9,7 @@ export function useUserPrivileges() {
   const isAgencyCreator = userType === "agency_creator";
   const isAgencyApprover = userType === "agency_approver";
   const isFinancialApprover = userType === "financial_approver";
+  const isClientApprover = userType === "client_approver";
   const isClient = userType === "client"; // @ts-ignore 
   const loggedInUser  = session?.user?.data?.user;
 
@@ -18,6 +19,7 @@ export function useUserPrivileges() {
     isAgencyApprover,
     isFinancialApprover,
     isClient,
+    isClientApprover,
     loggedInUser,
   };
 }

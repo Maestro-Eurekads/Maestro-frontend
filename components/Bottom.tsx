@@ -55,7 +55,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [loading, setLoading] = useState(false)
   const [alert, setAlert] = useState(null)
   const [hasFormatSelected, setHasFormatSelected] = useState(false)
-  const { isFinancialApprover, isAgencyApprover, isAdmin } = useUserPrivileges()
+  const { isFinancialApprover, isAgencyApprover, isAdmin, loggedInUser } = useUserPrivileges()
   const {
     createCampaign,
     updateCampaign,
@@ -114,6 +114,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     return hasValidFormat
   }
 
+ 
   // Only reset formats when entering active === 4 if the user has NOT already proceeded from step 4 with a valid format
   useEffect(() => {
     if (active === 4 && !hasProceededFromFormatStep.current) {
@@ -499,16 +500,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    const cleanData = campaignData
-      ? removeKeysRecursively(campaignData, [
-          "id",
-          "documentId",
-          "createdAt",
-          "publishedAt",
-          "updatedAt",
-          "_aggregated",
-        ])
-      : {}
+
 
     const handleStepZero = async () => {
       setLoading(true)
@@ -524,22 +516,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           return
         }
 
-        const budgetDetails = {
-          currency: campaignFormData?.budget_details_currency?.id,
-          fee_type: campaignFormData?.budget_details_fee_type?.id,
-          sub_fee_type: selectedOption,
-          value: campaignFormData?.budget_details_value,
-        }
-
         const cleanedFormData = {
           ...campaignFormData,
           internal_approver: (campaignFormData?.internal_approver_ids || []).map(String),
           client_approver: (campaignFormData?.client_approver_ids || []).map(String),
-          budget_details_currency: {
-            id: budgetDetails.currency,
-            value: budgetDetails.currency,
-            label: selectCurrency.find((c) => c.value === budgetDetails.currency)?.label || budgetDetails.currency,
-          },
         }
 
         setCampaignFormData(cleanedFormData)
@@ -559,9 +539,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
               internal_approver: (campaignFormData?.internal_approver_ids || []).map(Number),
               client_approver: (campaignFormData?.client_approver_ids || []).map(Number),
             },
-            budget_details: budgetDetails,
           }
-
           await updateCampaign(updatedData)
 
           setActive((prev) => prev + 1)
@@ -572,7 +550,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           })
         } else {
           const res = await createCampaign({
-            campaign_builder: 1,
+            campaign_builder: loggedInUser?.id,
             client: campaignFormData?.client_selection?.id,
             client_selection: {
               client: campaignFormData?.client_selection?.value,
@@ -585,7 +563,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
               internal_approver: (campaignFormData?.internal_approver_ids || []).map(Number),
               client_approver: (campaignFormData?.client_approver_ids || []).map(Number),
             },
-            budget_details: budgetDetails,
           })
 
           const url = new URL(window.location.href)
