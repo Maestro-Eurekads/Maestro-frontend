@@ -1547,7 +1547,7 @@ export const FormatSelection = ({
                   </div>
                   {/* Show status: Not started by default, empty if formats selected */}
                   {status && (
-                    <p className="font-[General Sans] font-medium text-[16px] leading-[22px] text-black opacity-50">
+                    <p className="font-[General Sans] font-medium text-[16px] leading-[22px] text-black">
                       {status}
                     </p>
                   )}

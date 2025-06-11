@@ -342,7 +342,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                     </p>
                   </div>
                 ) : (
-                  <p className="text-black opacity-50 text-base">
+                  <p className="text-black text-base">
                     Not started
                   </p>
                 )}
