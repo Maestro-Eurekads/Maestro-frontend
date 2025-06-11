@@ -131,17 +131,7 @@ const ClientCommentsDrawer = ({ isOpen, onClose, campaign }) => {
 			<div className="flex w-full justify-between p-3">
 				<div>
 					<h3 className="font-medium text-2xl text-[#292929]">Comments For</h3>
-					{/* <div className="flex  items-center gap-2 w-full">
-						<p className="font-medium text-lg text-[#292929]">
-							{campaignData?.media_plan_details?.plan_name
-								? campaignData?.media_plan_details?.plan_name.charAt(0).toUpperCase() +
-								campaignData?.media_plan_details?.plan_name.slice(1)
-								: ""}
-						</p>
-						<p className="font-medium text-lg text-[#292929]">
-							Awareness
-						</p>
-					</div> */}
+
 
 				</div>
 				<button onClick={handleClose}>

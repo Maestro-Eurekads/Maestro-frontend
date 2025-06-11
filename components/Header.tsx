@@ -170,7 +170,7 @@ const Header = ({ setIsOpen }) => {
                   value: c?.id.toString(),
                 }))}
               className="min-w-[150px] z-[20]"
-              placeholder="Select client"
+              placeholder="Search or select a client"
               onChange={(value) => {
                 if (value) {
                   localStorage.setItem(userType, value?.value);
@@ -189,32 +189,7 @@ const Header = ({ setIsOpen }) => {
                 )}
             />
 
-            {/* {/* <CustomSelect
-              options={(isAdmin ? clients?.data : profile?.clients)?.map(
-                (c) => ({
-                  label: c?.client_name,
-                  value: c?.id,
-                })
-              )}
-              className="min-w-[150px] z-[20]"
-              placeholder="Select client"
-              onChange={(value) => {
-                if (value) {
-                  localStorage.setItem(userType, value?.value);
-                  setSelected(value?.value);
-                  setSelectedId(value?.value);
-                }
-              }}
-              value={(isAdmin ? clients?.data : profile?.clients)
-                ?.map((c) => ({
-                  label: c?.client_name,
-                  value: c?.id?.toString(),
-                }))
-                .find(
-                  (option) =>
-                    option?.value === selectedId || option?.value === selected
-                )}
-            /> */}
+
             {(isAdmin ||
               isFinancialApprover ||
               isAgencyApprover) && (
