@@ -156,6 +156,9 @@ const MediaOption = ({
   const [localPreviews, setLocalPreviews] = useState<Array<{ id: string; url: string }>>([]);
   const [deletingPreviewId, setDeletingPreviewId] = useState<string | null>(null);
 
+  // --- HOVER STATE for highlighting ---
+  const [isHovered, setIsHovered] = useState(false);
+
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
   const STRAPI_TOKEN = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
 
@@ -227,9 +230,22 @@ const MediaOption = ({
         <div className="flex flex-col items-center">
           <div
             onClick={onSelect}
-            className={`relative text-center p-2 rounded-lg border transition ${
-              isSelected ? "border-blue-500 shadow-lg" : "border-gray-300"
-            } cursor-pointer`}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            className={`relative text-center p-2 rounded-lg border transition 
+              ${
+                isSelected
+                  ? "border-blue-500 shadow-lg"
+                  : isHovered
+                  ? "border-blue-400 bg-blue-50"
+                  : "border-gray-300"
+              } 
+              cursor-pointer
+              ${isHovered && !isSelected ? "shadow-md" : ""}
+            `}
+            style={{
+              transition: "background 0.15s, border-color 0.15s, box-shadow 0.15s",
+            }}
           >
             <Image
               src={option.icon || "/placeholder.svg"}
@@ -370,6 +386,9 @@ const MediaSelectionGrid = ({
     [format: string]: Array<{ id: string; url: string }>;
   }>({});
 
+  // --- HOVER STATE for highlighting ---
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   const handlePreviewsUpdate = useCallback(
     (format: string, previews: Array<{ id: string; url: string }>) => {
       setPreviewsMap((prev) => {
@@ -416,39 +435,50 @@ const MediaSelectionGrid = ({
               : platform?.format?.find((f) => f.format_type === option.name)?.num_of_visuals;
 
           return (
-            <MediaOption
+            <div
               key={index}
-              option={option}
-              isSelected={!!isSelected}
-              quantity={quantities[option.name] || Number.parseInt(q) || 1}
-              onSelect={() => onFormatSelect(index, adSetIndex)}
-              onQuantityChange={(change) => onQuantityChange(option.name, change)}
-              onOpenModal={(previews) =>
-                memoizedOnOpenModal(
-                  platformName,
-                  channelName,
-                  option.name,
-                  previews,
-                  quantities[option.name] || Number.parseInt(q) || 1,
-                  adSetIndex
-                )
-              }
-              platformName={platformName}
-              channelName={channelName}
-              previews={previews}
-              stageName={stageName}
-              format={option.name}
-              adSetIndex={adSetIndex}
-              onPreviewsUpdate={(previews) => handlePreviewsUpdate(option.name, previews)}
-              onDeletePreview={onDeletePreview}
-              completedDeletions={completedDeletions}
-            />
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
+              style={{ transition: "background 0.15s, border-color 0.15s, box-shadow 0.15s" }}
+            >
+              <MediaOption
+                option={option}
+                isSelected={!!isSelected}
+                quantity={quantities[option.name] || Number.parseInt(q) || 1}
+                onSelect={() => onFormatSelect(index, adSetIndex)}
+                onQuantityChange={(change) => onQuantityChange(option.name, change)}
+                onOpenModal={(previews) =>
+                  memoizedOnOpenModal(
+                    platformName,
+                    channelName,
+                    option.name,
+                    previews,
+                    quantities[option.name] || Number.parseInt(q) || 1,
+                    adSetIndex
+                  )
+                }
+                platformName={platformName}
+                channelName={channelName}
+                previews={previews}
+                stageName={stageName}
+                format={option.name}
+                adSetIndex={adSetIndex}
+                onPreviewsUpdate={(previews) => handlePreviewsUpdate(option.name, previews)}
+                onDeletePreview={onDeletePreview}
+                completedDeletions={completedDeletions}
+                // Pass hover state to MediaOption if you want to use it for more advanced effects
+                // isHovered={hoveredIndex === index}
+              />
+            </div>
           );
         })}
       </div>
     </div>
   );
 };
+
+// The rest of the code remains unchanged (PlatformItem, ChannelSection, StageRecapLine, Platforms, FormatSelection, etc.)
+// ... (unchanged code below)
 
 const PlatformItem = ({
   platform,
