@@ -446,19 +446,19 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
 
     if (active === 5) {
-      const isValidBuyObjective = validateBuyObjectiveSelection()
-      if (!isValidBuyObjective) {
-        setTriggerBuyObjectiveError(true)
-        setAlert({
-          variant: "error",
-          message: "Please select and validate at least one channel with buy type and objective before proceeding!",
-          position: "bottom-right",
-        })
-        hasError = true
-      } else {
-        setTriggerBuyObjectiveError(false)
-        setAlert(null)
-      }
+      // const isValidBuyObjective = validateBuyObjectiveSelection()
+      // if (!isValidBuyObjective) {
+      //   setTriggerBuyObjectiveError(true)
+      //   setAlert({
+      //     variant: "error",
+      //     message: "Please select and validate at least one channel with buy type and objective before proceeding!",
+      //     position: "bottom-right",
+      //   })
+      //   hasError = true
+      // } else {
+      //   setTriggerBuyObjectiveError(false)
+      //   setAlert(null)
+      // }
     }
 
     if (active === 7) {

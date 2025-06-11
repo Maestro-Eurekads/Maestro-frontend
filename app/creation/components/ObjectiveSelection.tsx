@@ -316,8 +316,104 @@ const ObjectiveSelection = () => {
     setOpenItems((prev) => ({ ...prev, [stage]: !prev[stage] }))
   }
 
+  // Modified: When closing a dropdown, if both buy_type and objective_type are selected, auto-validate the platform and stage
   const toggleDropdown = (key) => {
-    setDropdownOpen((prev) => (prev === key ? "" : key))
+    setDropdownOpen((prev) => {
+      // If closing a dropdown (prev === key), check for auto-validation
+      if (prev === key) {
+        // Extract info from key
+        // key is like: `${stageName}-${category}-${platformName}` or `${stageName}-${category}-${platformName}obj`
+        let baseKey = key.endsWith("obj") ? key.slice(0, -3) : key
+        const [stageName, category, ...platformArr] = baseKey.split("-")
+        const platformName = platformArr.join("-")
+        // Check if both buy_type and objective_type are selected for this platform
+        const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`
+        const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`
+        const hasBuyType = !!selectedOptions[buyTypeKey]
+        const hasBuyObj = !!selectedOptions[buyObjectiveKey]
+        if (hasBuyType && hasBuyObj) {
+          // Mark this platform as validated for this stage
+          setValidatedPlatforms((prev) => {
+            const newSet = new Set(prev[stageName] || [])
+            newSet.add(platformName)
+            return { ...prev, [stageName]: newSet }
+          })
+          // If all platforms in this stage are validated, mark stage as completed
+          const channelMix = Array.isArray(campaignFormData?.channel_mix)
+            ? campaignFormData.channel_mix.find((ch) => ch.funnel_stage === stageName)
+            : null
+          let allValidated = false
+          if (channelMix) {
+            const categories = [
+              "social_media",
+              "display_networks",
+              "search_engines",
+              "streaming",
+              "mobile",
+              "messaging",
+              "in_game",
+              "e_commerce",
+              "broadcast",
+              "print",
+              "ooh",
+            ]
+            let allPlatforms = []
+            categories.forEach((cat) => {
+              const plats = Array.isArray(channelMix[cat]) ? channelMix[cat] : []
+              plats.forEach((p) => {
+                allPlatforms.push(p.platform_name)
+              })
+            })
+            // Only consider platforms that are present in this stage
+            allValidated =
+              allPlatforms.length > 0 &&
+              allPlatforms.every((p) => {
+                const buyTypeKey = `${stageName}-${category}-${p}-buy_type`
+                const buyObjectiveKey = `${stageName}-${category}-${p}-objective_type`
+                return (
+                  (!!selectedOptions[buyTypeKey] || !!(channelMix[category]?.find((plat) => plat.platform_name === p)?.buy_type)) &&
+                  (!!selectedOptions[buyObjectiveKey] || !!(channelMix[category]?.find((plat) => plat.platform_name === p)?.objective_type))
+                )
+              })
+          }
+          if (allValidated) {
+            setStatuses((prev) => ({
+              ...prev,
+              [stageName]: "Completed",
+            }))
+            setIsEditable((prev) => ({ ...prev, [stageName]: false }))
+            setCampaignFormData((prev) => {
+              const updatedChannelMix = prev.channel_mix.map((stage) => {
+                if (stage.funnel_stage === stageName) {
+                  return {
+                    ...stage,
+                    social_media: stage.social_media?.map((p) => ({ ...p, isValidated: true })) || [],
+                    display_networks: stage.display_networks?.map((p) => ({ ...p, isValidated: true })) || [],
+                    search_engines: stage.search_engines?.map((p) => ({ ...p, isValidated: true })) || [],
+                    streaming: stage.streaming?.map((p) => ({ ...p, isValidated: true })) || [],
+                    mobile: stage.mobile?.map((p) => ({ ...p, isValidated: true })) || [],
+                    messaging: stage.messaging?.map((p) => ({ ...p, isValidated: true })) || [],
+                    in_game: stage.in_game?.map((p) => ({ ...p, isValidated: true })) || [],
+                    e_commerce: stage.e_commerce?.map((p) => ({ ...p, isValidated: true })) || [],
+                    broadcast: stage.broadcast?.map((p) => ({ ...p, isValidated: true })) || [],
+                    print: stage.print?.map((p) => ({ ...p, isValidated: true })) || [],
+                    ooh: stage.ooh?.map((p) => ({ ...p, isValidated: true })) || [],
+                  }
+                }
+                return stage
+              })
+              return {
+                ...prev,
+                validatedStages: { ...prev.validatedStages, [stageName]: true },
+                channel_mix: updatedChannelMix,
+              }
+            })
+            if (navigator.vibrate) navigator.vibrate(300)
+          }
+        }
+      }
+      return prev === key ? "" : key
+    })
     setBuyObjSearch("")
     setBuyTypeSearch("")
   }
@@ -364,81 +460,7 @@ const ObjectiveSelection = () => {
     setOpenItems((prev) => ({ ...prev, [stageName]: true }))
   }
 
-  const handleValidate = (stageName) => {
-    if (
-      (campaignFormData.validatedStages && campaignFormData.validatedStages[stageName]) ||
-      statuses[stageName] === "Completed"
-    )
-      return
-
-    setStatuses((prev) => ({
-      ...prev,
-      [stageName]: "Completed",
-    }))
-    setIsEditable((prev) => ({ ...prev, [stageName]: false }))
-
-    const channelMix = Array.isArray(campaignFormData?.channel_mix)
-      ? campaignFormData.channel_mix.find((ch) => ch.funnel_stage === stageName)
-      : null
-
-    const validatedPlatformsSet = new Set()
-    if (channelMix) {
-      [
-        "social_media",
-        "display_networks",
-        "search_engines",
-        "streaming",
-        "mobile",
-        "messaging",
-        "in_game",
-        "e_commerce",
-        "broadcast",
-        "print",
-        "ooh",
-      ].forEach((category) => {
-        const platforms = channelMix[category] || []
-        platforms.forEach((platform) => {
-          if (platform.buy_type && platform.objective_type) {
-            validatedPlatformsSet.add(platform.platform_name)
-          }
-        })
-      })
-    }
-
-    setValidatedPlatforms((prev) => ({
-      ...prev,
-      [stageName]: validatedPlatformsSet,
-    }))
-
-    setCampaignFormData((prev) => {
-      const updatedChannelMix = prev.channel_mix.map((stage) => {
-        if (stage.funnel_stage === stageName) {
-          return {
-            ...stage,
-            social_media: stage.social_media?.map((p) => ({ ...p, isValidated: true })) || [],
-            display_networks: stage.display_networks?.map((p) => ({ ...p, isValidated: true })) || [],
-            search_engines: stage.search_engines?.map((p) => ({ ...p, isValidated: true })) || [],
-            streaming: stage.streaming?.map((p) => ({ ...p, isValidated: true })) || [],
-            mobile: stage.mobile?.map((p) => ({ ...p, isValidated: true })) || [],
-            messaging: stage.messaging?.map((p) => ({ ...p, isValidated: true })) || [],
-            in_game: stage.in_game?.map((p) => ({ ...p, isValidated: true })) || [],
-            e_commerce: stage.e_commerce?.map((p) => ({ ...p, isValidated: true })) || [],
-            broadcast: stage.broadcast?.map((p) => ({ ...p, isValidated: true })) || [],
-            print: stage.print?.map((p) => ({ ...p, isValidated: true })) || [],
-            ooh: stage.ooh?.map((p) => ({ ...p, isValidated: true })) || [],
-          }
-        }
-        return stage
-      })
-      return {
-        ...prev,
-        validatedStages: { ...prev.validatedStages, [stageName]: true },
-        channel_mix: updatedChannelMix,
-      }
-    })
-
-    if (navigator.vibrate) navigator.vibrate(300)
-  }
+  // handleValidate is now only used for Edit button, not for validation on selection
 
   const hasCompletePlatformSelection = (platformName, category, stageName) => {
     const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`
@@ -893,16 +915,7 @@ const ObjectiveSelection = () => {
                     )
                   })
                 )}
-                {statuses[stageName] !== "Completed" && (
-                  <div className="flex justify-end mt-6 w-full">
-                    <Button
-                      text="Validate"
-                      variant="primary"
-                      onClick={() => handleValidate(stageName)}
-                      disabled={!hasCompleteSelection(stageName)}
-                    />
-                  </div>
-                )}
+                {/* No Validate button needed */}
                 {statuses[stageName] === "Completed" && (
                   <div className="flex justify-end mt-2 w-full">
                     <Button
