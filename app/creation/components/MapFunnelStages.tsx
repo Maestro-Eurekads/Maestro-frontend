@@ -76,7 +76,7 @@ const hexToColorClass = (hex: string): string | null => {
 
 const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color)
 
-// LocalStorage keys - Updated to be client and media plan based
+// LocalStorage keys - Scoped to client and media plan
 const LOCAL_STORAGE_FUNNELS_KEY = "custom_funnels_v1"
 const LOCAL_STORAGE_CONFIGS_KEY = "funnel_configurations_v1"
 
@@ -633,7 +633,7 @@ const MapFunnelStages = () => {
   // Save configuration
   const handleSaveConfiguration = () => {
     if (!clientId) {
-      toast.error("Please select a client first to save funnel configurations.", {
+      toast.error("Please select a client to save funnel configurations.", {
         style: { background: "red", color: "white", textAlign: "center" },
         duration: 3000,
       })
