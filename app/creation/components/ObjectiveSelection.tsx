@@ -2,7 +2,6 @@
 import { useEffect, useState, useRef } from "react"
 import Image from "next/image"
 import toast from "react-hot-toast"
-import Switch from "react-switch"
 import up from "../../../public/arrow-down.svg"
 import down2 from "../../../public/arrow-down-2.svg"
 import checkmark from "../../../public/mingcute_check-fill.svg"
@@ -74,7 +73,6 @@ const ObjectiveSelection = () => {
   const [loading, setLoading] = useState(false)
   const [buyObjSearch, setBuyObjSearch] = useState("")
   const [buyTypeSearch, setBuyTypeSearch] = useState("")
-  const [view, setView] = useState<"channel" | "adset">("channel")
 
   const { campaignFormData, setCampaignFormData, buyObj, buyType, setBuyObj, setBuyType } = useCampaigns()
 
@@ -87,9 +85,8 @@ const ObjectiveSelection = () => {
     setPreviousSelectedOptions(selectedOptions)
   }, [selectedOptions])
 
-  // Initialize view state and sync with campaign data
+  // Initialize state and sync with campaign data
   useEffect(() => {
-    setView("channel")
     setCampaignFormData((prev) => ({
       ...prev,
       objective_level: "Channel level",
@@ -224,20 +221,6 @@ const ObjectiveSelection = () => {
           if (platform.objective_type && !initialSelectedOptions[buyObjectiveKey]) {
             initialSelectedOptions[buyObjectiveKey] = platform.objective_type
           }
-
-          // Handle adset level selections
-          if (platform.ad_sets && Array.isArray(platform.ad_sets)) {
-            platform.ad_sets.forEach((adset, adsetIndex) => {
-              const adsetBuyTypeKey = `${stageName}-${category}-${platformName}-adset-${adsetIndex}-buy_type`
-              const adsetBuyObjectiveKey = `${stageName}-${category}-${platformName}-adset-${adsetIndex}-objective_type`
-              if (adset.buy_type && !initialSelectedOptions[adsetBuyTypeKey]) {
-                initialSelectedOptions[adsetBuyTypeKey] = adset.buy_type
-              }
-              if (adset.objective_type && !initialSelectedOptions[adsetBuyObjectiveKey]) {
-                initialSelectedOptions[adsetBuyObjectiveKey] = adset.objective_type
-              }
-            })
-          }
         })
       })
     })
@@ -339,20 +322,8 @@ const ObjectiveSelection = () => {
     setBuyTypeSearch("")
   }
 
-  const handleToggleChange = (checked: boolean) => {
-    const newView = checked ? "adset" : "channel"
-    setView(newView)
-    setCampaignFormData((prev) => ({
-      ...prev,
-      objective_level: checked ? "Adset level" : "Channel level",
-    }))
-  }
-
-  const handleSelectOption = (platformName, option, category, stageName, dropDownName, adsetIndex = null) => {
-    const key =
-      adsetIndex !== null
-        ? `${stageName}-${category}-${platformName}-adset-${adsetIndex}-${dropDownName}`
-        : `${stageName}-${category}-${platformName}-${dropDownName}`
+  const handleSelectOption = (platformName, option, category, stageName, dropDownName) => {
+    const key = `${stageName}-${category}-${platformName}-${dropDownName}`
 
     setSelectedOptions((prev) => {
       const newOptions = { ...prev, [key]: option }
@@ -368,21 +339,7 @@ const ObjectiveSelection = () => {
         updatedStage[normalizedCategory] = (stage[normalizedCategory] || []).map((platform) => {
           if (platform.platform_name === platformName) {
             const updatedPlatform = { ...platform }
-
-            if (adsetIndex !== null) {
-              // Handle adset level selection
-              if (!updatedPlatform.ad_sets) updatedPlatform.ad_sets = []
-              if (updatedPlatform.ad_sets[adsetIndex]) {
-                updatedPlatform.ad_sets[adsetIndex] = {
-                  ...updatedPlatform.ad_sets[adsetIndex],
-                  [dropDownName]: option,
-                }
-              }
-            } else {
-              // Handle channel level selection
-              updatedPlatform[dropDownName] = option
-            }
-
+            updatedPlatform[dropDownName] = option
             return updatedPlatform
           }
           return platform
@@ -391,12 +348,7 @@ const ObjectiveSelection = () => {
         // Ensure platform exists in channel_mix
         if (!updatedStage[normalizedCategory].some((p) => p.platform_name === platformName)) {
           const newPlatform = { platform_name: platformName }
-          if (adsetIndex !== null) {
-            newPlatform["ad_sets"] = []
-            newPlatform["ad_sets"][adsetIndex] = { [dropDownName]: option }
-          } else {
-            newPlatform[dropDownName] = option
-          }
+          newPlatform[dropDownName] = option
           updatedStage[normalizedCategory].push(newPlatform)
         }
         return updatedStage
@@ -431,7 +383,7 @@ const ObjectiveSelection = () => {
 
     const validatedPlatformsSet = new Set()
     if (channelMix) {
-      ;[
+      [
         "social_media",
         "display_networks",
         "search_engines",
@@ -446,16 +398,8 @@ const ObjectiveSelection = () => {
       ].forEach((category) => {
         const platforms = channelMix[category] || []
         platforms.forEach((platform) => {
-          if (view === "channel") {
-            if (platform.buy_type && platform.objective_type) {
-              validatedPlatformsSet.add(platform.platform_name)
-            }
-          } else if (view === "adset" && platform.ad_sets) {
-            platform.ad_sets.forEach((adset) => {
-              if (adset.buy_type && adset.objective_type) {
-                validatedPlatformsSet.add(`${platform.platform_name}-${adset.audience_type}`)
-              }
-            })
+          if (platform.buy_type && platform.objective_type) {
+            validatedPlatformsSet.add(platform.platform_name)
           }
         })
       })
@@ -496,16 +440,10 @@ const ObjectiveSelection = () => {
     if (navigator.vibrate) navigator.vibrate(300)
   }
 
-  const hasCompletePlatformSelection = (platformName, category, stageName, adsetIndex = null) => {
-    if (adsetIndex !== null) {
-      const buyTypeKey = `${stageName}-${category}-${platformName}-adset-${adsetIndex}-buy_type`
-      const buyObjectiveKey = `${stageName}-${category}-${platformName}-adset-${adsetIndex}-objective_type`
-      return !!selectedOptions[buyTypeKey] && !!selectedOptions[buyObjectiveKey]
-    } else {
-      const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`
-      const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`
-      return !!selectedOptions[buyTypeKey] && !!selectedOptions[buyObjectiveKey]
-    }
+  const hasCompletePlatformSelection = (platformName, category, stageName) => {
+    const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`
+    const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`
+    return !!selectedOptions[buyTypeKey] && !!selectedOptions[buyObjectiveKey]
   }
 
   const hasCompleteSelection = (stageName) => {
@@ -525,29 +463,11 @@ const ObjectiveSelection = () => {
         "print",
         "ooh",
       ]
-
-      if (view === "channel") {
-        return categories.some((category) => hasCompletePlatformSelection(platformName, category, stageName))
-      } else {
-        // For adset view, check if any adset has complete selection
-        const channelMix = Array.isArray(campaignFormData?.channel_mix) ? campaignFormData.channel_mix : []
-        const stageData = channelMix.find((ch) => ch.funnel_stage === stageName)
-        if (!stageData) return false
-
-        return categories.some((category) => {
-          const platforms = stageData[category] || []
-          const platform = platforms.find((p) => p.platform_name === platformName)
-          if (!platform || !platform.ad_sets) return false
-
-          return platform.ad_sets.some((_, adsetIndex) =>
-            hasCompletePlatformSelection(platformName, category, stageName, adsetIndex),
-          )
-        })
-      }
+      return categories.some((category) => hasCompletePlatformSelection(platformName, category, stageName))
     })
   }
 
-  const renderCompletedPlatform = (platformName, category, stageName, adsetIndex = null) => {
+  const renderCompletedPlatform = (platformName, category, stageName) => {
     const normalizedCategory = category.toLowerCase().replaceAll(" ", "_")
     const channelMix = Array.isArray(campaignFormData?.channel_mix) ? campaignFormData.channel_mix : []
     const stageData = channelMix.find((ch) => ch.funnel_stage === stageName)
@@ -557,28 +477,15 @@ const ObjectiveSelection = () => {
     const platform = stageData[normalizedCategory]?.find((p) => p.platform_name === platformName)
     if (!platform) return null
 
-    let platformData
+    let platformData = platform
     let displayName = platformName
 
-    if (adsetIndex !== null && platform.ad_sets && platform.ad_sets[adsetIndex]) {
-      platformData = platform.ad_sets[adsetIndex]
-      displayName = `${platformName} (${platformData.audience_type || `Adset ${adsetIndex + 1}`})`
-    } else {
-      platformData = platform
-    }
-
-    const buyTypeKey =
-      adsetIndex !== null
-        ? `${stageName}-${category}-${platformName}-adset-${adsetIndex}-buy_type`
-        : `${stageName}-${category}-${platformName}-buy_type`
-    const buyObjectiveKey =
-      adsetIndex !== null
-        ? `${stageName}-${category}-${platformName}-adset-${adsetIndex}-objective_type`
-        : `${stageName}-${category}-${platformName}-objective_type`
+    const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`
+    const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`
 
     return (
       <div
-        key={`${platformName}-${adsetIndex || "channel"}`}
+        key={`${platformName}-channel`}
         className="flex flex-col gap-4 min-w-[150px] max-w-[200px]"
       >
         <div className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg">
@@ -663,31 +570,15 @@ const ObjectiveSelection = () => {
     categories.forEach((category) => {
       const platforms = Array.isArray(stageData[category]) ? stageData[category] : []
       platforms.forEach((platform) => {
-        if (view === "channel") {
-          const buyType =
-            platform.buy_type || selectedOptions[`${stageName}-${category}-${platform.platform_name}-buy_type`]
-          const objectiveType =
-            platform.objective_type ||
-            selectedOptions[`${stageName}-${category}-${platform.platform_name}-objective_type`]
-          if (buyType || objectiveType) {
-            recapArr.push(
-              `<strong>${platform.platform_name}</strong>: <strong>Objective</strong>: ${objectiveType || "No objective"}, <strong>Buy Type</strong>: ${buyType || "No buy type"}`,
-            )
-          }
-        } else if (view === "adset" && platform.ad_sets) {
-          platform.ad_sets.forEach((adset, adsetIndex) => {
-            const buyType =
-              adset.buy_type ||
-              selectedOptions[`${stageName}-${category}-${platform.platform_name}-adset-${adsetIndex}-buy_type`]
-            const objectiveType =
-              adset.objective_type ||
-              selectedOptions[`${stageName}-${category}-${platform.platform_name}-adset-${adsetIndex}-objective_type`]
-            if (buyType || objectiveType) {
-              recapArr.push(
-                `<strong>${platform.platform_name} (${adset.audience_type || `Adset ${adsetIndex + 1}`})</strong>: <strong>Objective</strong>: ${objectiveType || "No objective"}, <strong>Buy Type</strong>: ${buyType || "No buy type"}`,
-              )
-            }
-          })
+        const buyType =
+          platform.buy_type || selectedOptions[`${stageName}-${category}-${platform.platform_name}-buy_type`]
+        const objectiveType =
+          platform.objective_type ||
+          selectedOptions[`${stageName}-${category}-${platform.platform_name}-objective_type`]
+        if (buyType || objectiveType) {
+          recapArr.push(
+            `<strong>${platform.platform_name}</strong>: <strong>Objective</strong>: ${objectiveType || "No objective"}, <strong>Buy Type</strong>: ${buyType || "No buy type"}`,
+          )
         }
       })
     })
@@ -714,39 +605,18 @@ const ObjectiveSelection = () => {
 
   const renderPlatformSelections = (platforms, category, stageName) => {
     return platforms.map((platform) => {
-      if (view === "channel") {
-        // Channel level rendering
-        const platformKey = `${stageName}-${category}-${platform.platform_name}`
-        const selectedObj =
-          selectedOptions[`${stageName}-${category}-${platform.platform_name}-objective_type`] ||
-          platform.objective_type
-        const selectedBuy =
-          selectedOptions[`${stageName}-${category}-${platform.platform_name}-buy_type`] || platform.buy_type
+      // Channel level rendering only
+      const platformKey = `${stageName}-${category}-${platform.platform_name}`
+      const selectedObj =
+        selectedOptions[`${stageName}-${category}-${platform.platform_name}-objective_type`] ||
+        platform.objective_type
+      const selectedBuy =
+        selectedOptions[`${stageName}-${category}-${platform.platform_name}-buy_type`] || platform.buy_type
 
-        return (
-          <div key={platformKey} className="flex items-center gap-8">
-            <div className="w-[180px]">
-              <div className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg shrink-0 w-fit min-w-[150px]">
-                {getPlatformIcon(platform.platform_name) ? (
-                  <Image
-                    src={getPlatformIcon(platform.platform_name) || "/placeholder.svg"}
-                    className="size-4"
-                    alt={platform.platform_name}
-                  />
-                ) : null}
-                <p className="text-base font-medium text-[#061237] capitalize">{platform.platform_name}</p>
-              </div>
-            </div>
-            {renderDropdowns(platform.platform_name, category, stageName, selectedObj, selectedBuy, platformKey)}
-          </div>
-        )
-      } else {
-        // Adset level rendering
-        if (!platform.ad_sets || platform.ad_sets.length === 0) return null
-
-        return (
-          <div key={`${platform.platform_name}-adsets`} className="flex flex-col gap-4">
-            <div className="flex items-center gap-3 px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg w-fit">
+      return (
+        <div key={platformKey} className="flex items-center gap-8">
+          <div className="w-[180px]">
+            <div className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg shrink-0 w-fit min-w-[150px]">
               {getPlatformIcon(platform.platform_name) ? (
                 <Image
                   src={getPlatformIcon(platform.platform_name) || "/placeholder.svg"}
@@ -754,42 +624,12 @@ const ObjectiveSelection = () => {
                   alt={platform.platform_name}
                 />
               ) : null}
-              <p className="text-base font-semibold text-[#061237] capitalize">{platform.platform_name}</p>
+              <p className="text-base font-medium text-[#061237] capitalize">{platform.platform_name}</p>
             </div>
-            {platform.ad_sets.map((adset, adsetIndex) => {
-              const adsetKey = `${stageName}-${category}-${platform.platform_name}-adset-${adsetIndex}`
-              const selectedObj =
-                selectedOptions[
-                  `${stageName}-${category}-${platform.platform_name}-adset-${adsetIndex}-objective_type`
-                ] || adset.objective_type
-              const selectedBuy =
-                selectedOptions[`${stageName}-${category}-${platform.platform_name}-adset-${adsetIndex}-buy_type`] ||
-                adset.buy_type
-
-              return (
-                <div key={adsetKey} className="flex items-center gap-8 ml-8">
-                  <div className="w-[180px]">
-                    <div className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg shrink-0 w-fit min-w-[150px]">
-                      <p className="text-sm font-medium text-[#061237]">
-                        {adset.audience_type || `Adset ${adsetIndex + 1}`}
-                      </p>
-                    </div>
-                  </div>
-                  {renderDropdowns(
-                    platform.platform_name,
-                    category,
-                    stageName,
-                    selectedObj,
-                    selectedBuy,
-                    adsetKey,
-                    adsetIndex,
-                  )}
-                </div>
-              )
-            })}
           </div>
-        )
-      }
+          {renderDropdowns(platform.platform_name, category, stageName, selectedObj, selectedBuy, platformKey)}
+        </div>
+      )
     })
   }
 
@@ -799,8 +639,7 @@ const ObjectiveSelection = () => {
     stageName,
     selectedObj,
     selectedBuy,
-    platformKey,
-    adsetIndex = null,
+    platformKey
   ) => {
     return (
       <>
@@ -831,7 +670,7 @@ const ObjectiveSelection = () => {
                     key={`${platformKey}-objective-${i}`}
                     className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
                     onClick={() => {
-                      handleSelectOption(platformName, option?.text, category, stageName, "objective_type", adsetIndex)
+                      handleSelectOption(platformName, option?.text, category, stageName, "objective_type")
                       setBuyObjSearch("")
                     }}
                   >
@@ -897,7 +736,7 @@ const ObjectiveSelection = () => {
                     key={`${platformKey}-type-${i}`}
                     className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
                     onClick={() => {
-                      handleSelectOption(platformName, option?.text, category, stageName, "buy_type", adsetIndex)
+                      handleSelectOption(platformName, option?.text, category, stageName, "buy_type")
                       setBuyTypeSearch("")
                     }}
                   >
@@ -940,42 +779,8 @@ const ObjectiveSelection = () => {
     )
   }
 
-  // Helper: For adset view after validation, only show categories with at least one platform with adsets
-  const hasAnyAdsetInCategory = (category, stageName) => {
-    const channelMix = Array.isArray(campaignFormData?.channel_mix) ? campaignFormData.channel_mix : []
-    const stageData = channelMix.find((ch) => ch.funnel_stage === stageName)
-    if (!stageData) return false
-    const platforms = Array.isArray(stageData[category]) ? stageData[category] : []
-    return platforms.some((platform) => Array.isArray(platform.ad_sets) && platform.ad_sets.length > 0)
-  }
-
-  // Helper: For adset view after validation, only show platforms with adsets
-  const getPlatformsWithAdsets = (platforms) => {
-    return platforms.filter((platform) => Array.isArray(platform.ad_sets) && platform.ad_sets.length > 0)
-  }
-
   return (
     <div className="mt-12 flex items-start flex-col gap-12 w-full max-w-[950px]">
-      {/* Granularity Toggle */}
-      <div className="flex justify-center gap-3 w-full">
-        <p className="font-medium">Channel Granularity</p>
-        <Switch
-          checked={view === "adset"}
-          onChange={handleToggleChange}
-          onColor="#5cd08b"
-          offColor="#3175FF"
-          handleDiameter={18}
-          uncheckedIcon={false}
-          checkedIcon={false}
-          height={24}
-          width={48}
-          borderRadius={24}
-          activeBoxShadow="0 0 2px 3px rgba(37, 99, 235, 0.2)"
-          className="react-switch"
-        />
-        <p className="font-medium">Ad Set Granularity</p>
-      </div>
-
       {campaignFormData?.funnel_stages?.map((stageName) => {
         const stage = campaignFormData?.custom_funnels?.find((s) => s?.name === stageName)
         if (!stage) return null
@@ -1039,13 +844,7 @@ const ObjectiveSelection = () => {
                       "print",
                       "ooh",
                     ]
-                      // Only show categories with at least one platform with adsets in adset view after validation
-                      .filter((category) => {
-                        if (view === "adset") {
-                          return hasAnyAdsetInCategory(category, stage.name)
-                        }
-                        return hasValidatedPlatformsForCategory(category, stage.name)
-                      })
+                      .filter((category) => hasValidatedPlatformsForCategory(category, stage.name))
                       .map((category) => (
                         <div key={category} className="w-full">
                           <h3 className="text-xl font-semibold text-[#061237] mb-6 capitalize">
@@ -1053,25 +852,7 @@ const ObjectiveSelection = () => {
                           </h3>
                           <div className="flex flex-wrap gap-8">
                             {Array.from(selectedNetworks[stage.name] || []).map((platform) => {
-                              if (view === "channel") {
-                                return renderCompletedPlatform(platform, category, stage.name)
-                              } else {
-                                // For adset view, render each adset only for platforms with adsets
-                                const channelMix = Array.isArray(campaignFormData?.channel_mix)
-                                  ? campaignFormData.channel_mix
-                                  : []
-                                const stageData = channelMix.find((ch) => ch.funnel_stage === stage.name)
-                                const normalizedCategory = category.toLowerCase().replaceAll(" ", "_")
-                                const platformData = stageData?.[normalizedCategory]?.find(
-                                  (p) => p.platform_name === platform,
-                                )
-
-                                if (!platformData?.ad_sets || platformData.ad_sets.length === 0) return null
-
-                                return platformData.ad_sets.map((_, adsetIndex) =>
-                                  renderCompletedPlatform(platform, category, stage.name, adsetIndex),
-                                )
-                              }
+                              return renderCompletedPlatform(platform, category, stage.name)
                             })}
                           </div>
                         </div>
@@ -1098,13 +879,7 @@ const ObjectiveSelection = () => {
                         ] || []
                       : []
 
-                    // Filter platforms based on view
-                    const filteredPlatforms =
-                      view === "adset"
-                        ? platforms.filter((platform) => platform.ad_sets && platform.ad_sets.length > 0)
-                        : platforms
-
-                    if (filteredPlatforms.length === 0) return null
+                    if (platforms.length === 0) return null
 
                     return (
                       <div key={category} className="w-full md:flex flex-col items-start gap-6 md:w-4/5">
@@ -1112,7 +887,7 @@ const ObjectiveSelection = () => {
                           {category?.replace("_", " ")}
                         </h3>
                         <div className="flex flex-col gap-8">
-                          {renderPlatformSelections(filteredPlatforms, category, stageName)}
+                          {renderPlatformSelections(platforms, category, stageName)}
                         </div>
                       </div>
                     )
