@@ -935,6 +935,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                 "bottom_black_next_btn whitespace-nowrap",
                 active === 10 && "opacity-50 cursor-not-allowed",
                 active < 10 && "hover:bg-blue-500",
+                active === 4 && !hasFormatSelected && "px-3 py-2" // Add padding for longer text
               )}
               onClick={active === 4 && !hasFormatSelected ? handleSkip : handleContinue}
               disabled={active === 10}
@@ -947,7 +948,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                 </center>
               ) : (
                 <>
-                  <p>{active === 0 ? "Start" : active === 4 && !hasFormatSelected ? "Skip" : "Continue"}</p>
+                  <p style={active === 4 && !hasFormatSelected ? { fontSize: "14px", whiteSpace: "normal", lineHeight: "16px", textAlign: "center", maxWidth: 120 } : {}}>
+                    {active === 0
+                      ? "Start"
+                      : active === 4 && !hasFormatSelected
+                      ? "Not mandatory step, skip"
+                      : "Continue"}
+                  </p>
                   <Image src={Continue || "/placeholder.svg"} alt="Continue" />
                 </>
               )}
