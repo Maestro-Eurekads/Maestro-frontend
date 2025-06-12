@@ -97,7 +97,7 @@ const DateRangeSelector = () => {
                 },
               ]}
               rangeColors={["#3f51b5"]}
-              minDate={new Date()} // Disable past dates
+              // minDate={new Date()} // Disable past dates
               />
             </div>
         )}
