@@ -81,7 +81,7 @@ const MainSection = ({ hideDate, disableDrag, campaignData }: { hideDate?: boole
       default: // Week is default
         return (
           <>
-            <WeekInterval weeksCount={weekDifference} />
+            <WeekInterval weeksCount={weekDifference} funnelData={funnelsData} disableDrag={disableDrag} />
           </>
         );
     }
