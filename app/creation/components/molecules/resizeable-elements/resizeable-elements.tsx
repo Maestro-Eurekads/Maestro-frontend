@@ -233,7 +233,11 @@ const ResizeableElements = ({
             }).length - 1;
           const endMonth = funnelData?.endMonth || 1;
           const dailyWidth = calculateDailyWidth(screenWidth, endMonth);
-          console.log("startDateIndex", { daysFromStart, dailyWidth });
+          console.log("startDateIndex", {
+            daysFromStart,
+            dailyWidth,
+            daysBetween,
+          });
           initialWidths[stageName] = (() => {
             if (rrange === "Day") {
               return daysBetween > 0
@@ -246,7 +250,7 @@ const ResizeableElements = ({
             } else if (rrange === "Week") {
               return daysBetween > 0
                 ? 50 * daysBetween + 10
-                : contWidth - 37;
+                : daysFromStart;
             } else {
               let monthBaseWidth;
               // if (endMonth === 1) {
@@ -273,7 +277,7 @@ const ResizeableElements = ({
     campaignFormData?.funnel_stages,
     containerWidth,
     campaignFormData?.campaign_timeline_start_date,
-    rrange,
+    // rrange,
     campaignFormData?.campaign_timeline_end_date,
   ]);
 
@@ -322,40 +326,40 @@ const ResizeableElements = ({
               })()
             : rrange === "Week"
             ? (function () {
-              const gridContainer = document.querySelector(
-                ".grid-container"
-              ) as HTMLElement;
-              const getViewportWidth = () => {
-                return (
-                  window.innerWidth ||
-                  document.documentElement.clientWidth ||
-                  0
-                );
-              };
-              const screenWidth = getViewportWidth();
-              if (!gridContainer) return;
-              const endMonth = funnelData?.endDay || 1;
-              const contWidth = screenWidth - (disableDrag ? 80 : 367); // subtract margin/padding if needed
+                const gridContainer = document.querySelector(
+                  ".grid-container"
+                ) as HTMLElement;
+                const getViewportWidth = () => {
+                  return (
+                    window.innerWidth ||
+                    document.documentElement.clientWidth ||
+                    0
+                  );
+                };
+                const screenWidth = getViewportWidth();
+                if (!gridContainer) return;
+                const endMonth = funnelData?.endDay || 1;
+                const contWidth = screenWidth - (disableDrag ? 80 : 367); // subtract margin/padding if needed
 
-              // console.log("🚀  ~ contWidth:", contWidth)
-              const percent = 100 / endMonth; // e.g., 20 if endMonth=5
-              const total = (percent / 100) * contWidth; // target total width in px for all days (31 days)
+                // console.log("🚀  ~ contWidth:", contWidth)
+                const percent = 100 / endMonth; // e.g., 20 if endMonth=5
+                const total = (percent / 100) * contWidth; // target total width in px for all days (31 days)
 
-              const dailyWidth = contWidth / endMonth; // width per day without factor
-              console.log("🚀  ~ dailyWidth:", dailyWidth);
-              const totalLines = Math.round(dailyWidth) * endMonth; // total width for 31 days without factor
+                const dailyWidth = contWidth / endMonth; // width per day without factor
+                console.log("🚀  ~ dailyWidth:", dailyWidth);
+                const totalLines = Math.round(dailyWidth) * endMonth; // total width for 31 days without factor
 
-              // Calculate factor to scale dailyWidth to reach 'total'
-              const factor = total / totalLines; // e.g., if total=500 and totalLines=400, factor=1.25
+                // Calculate factor to scale dailyWidth to reach 'total'
+                const factor = total / totalLines; // e.g., if total=500 and totalLines=400, factor=1.25
 
-              const adjustedDailyWidth = dailyWidth;
+                const adjustedDailyWidth = dailyWidth;
 
-              return `calc(${
-                adjustedDailyWidth < 50 ? 50 : adjustedDailyWidth
-              }px) 100%, calc(${
-                (adjustedDailyWidth < 50 ? 50 : adjustedDailyWidth) * 7
-              }px) 100%`;
-            })()
+                return `calc(${
+                  adjustedDailyWidth < 50 ? 50 : adjustedDailyWidth
+                }px) 100%, calc(${
+                  (adjustedDailyWidth < 50 ? 50 : adjustedDailyWidth) * 7
+                }px) 100%`;
+              })()
             : (function () {
                 const gridContainer = document.querySelector(
                   ".grid-container"
