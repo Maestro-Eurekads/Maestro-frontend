@@ -1,27 +1,34 @@
-import React, { useEffect } from 'react';
-import DefineAdSetPage from './DefineAdSetPage';
-import PageHeaderWrapper from '../../../components/PageHeaderWapper';
-import { useEditing } from '../../utils/EditingContext';
-import { useComments } from 'app/utils/CommentProvider';
+"use client";
+
+import { useEffect, useState } from "react";
+import DefineAdSetPage from "./DefineAdSetPage";
+import PageHeaderWrapper from "../../../components/PageHeaderWapper";
+import { useEditing } from "../../utils/EditingContext";
+import { useComments } from "app/utils/CommentProvider";
 
 const DefineAdSet = () => {
   const { setIsEditing } = useEditing();
   const { setIsDrawerOpen, setClose } = useComments();
+  const [view, setView] = useState<"channel" | "adset">("channel");
 
   useEffect(() => {
     setIsDrawerOpen(false);
     setClose(false);
-    setIsEditing(true); // Always enable editing mode
+    setIsEditing(true);
   }, [setIsDrawerOpen, setClose, setIsEditing]);
+
+  const handleToggleChange = (newView: "channel" | "adset") => {
+    setView(newView);
+  };
 
   return (
     <div>
       <PageHeaderWrapper
-        t1={'Define ad sets'}
-        t2={'Specify the details and audiences for each ad set within your campaign.'}
+        t1={"Define ad sets"}
+        t2={"Specify the details and audiences for each ad set within your campaign."}
         span={1}
       />
-      <DefineAdSetPage />
+      <DefineAdSetPage view={view} onToggleChange={handleToggleChange} />
     </div>
   );
 };

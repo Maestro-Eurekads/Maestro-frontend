@@ -13,7 +13,7 @@ export type SelectOption = {
   isDisabled?: boolean;
 };
 
-// Extend the react-select props
+// Extend the react props
 export interface CustomSelectProps extends Props<SelectOption, false> {
   error?: string;
   label?: string;
@@ -52,9 +52,10 @@ export function CustomSelect({
       ...provided,
       borderRadius: "0.375rem",
       boxShadow:
-        "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-      marginTop: "4px",
+        "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.6)",
+      marginTop: "8px",
       border: "1px solid #e5e7eb",
+      zIndex: 20,
     }),
     option: (provided, state) => ({
       ...provided,
@@ -71,14 +72,29 @@ export function CustomSelect({
         backgroundColor: "#f3f4f6",
       },
     }),
-    placeholder: (provided) => ({
+    placeholder: (provided, state) => ({
       ...provided,
-      color: "#6b7280",
+      color:
+        state.selectProps.menuIsOpen || state.isFocused || state.selectProps.inputValue
+          ? "#A0AEC0"
+          : "#6b7280",
+      fontStyle:
+        state.selectProps.menuIsOpen || state.isFocused || state.selectProps.inputValue
+          ? "italic"
+          : "normal",
+      transition: "color 0.2s ease",
     }),
-    singleValue: (provided) => ({
-      ...provided,
-      color: "#111827",
-    }),
+    singleValue: (provided, state) => {
+      const isOpenWithoutTyping =
+        state.selectProps.menuIsOpen && !state.selectProps.inputValue;
+
+      return {
+        ...provided,
+        color: isOpenWithoutTyping ? "#A0AEC0" : "#111827",
+        fontStyle: isOpenWithoutTyping ? "italic" : "normal",
+        transition: "color 0.2s ease, font-style 0.2s ease",
+      };
+    },
     indicatorSeparator: () => ({
       display: "none",
     }),
@@ -120,6 +136,8 @@ export function CustomSelect({
         components={{ DropdownIndicator }}
         className="react-select-container"
         classNamePrefix="react-select"
+        isSearchable={true}
+        data-testid="custom-select"
         {...props}
       />
 

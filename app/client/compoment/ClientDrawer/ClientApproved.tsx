@@ -4,13 +4,20 @@ import { useComments } from "app/utils/CommentProvider";
 import tickcircle from "../../../../public/tick-circle.svg";
 import tickcircles from "../../../../public/tick-circle-green.svg";
 import { SVGLoader } from "components/SVGLoader";
+import { useUserPrivileges } from "utils/userPrivileges";
+import { toast } from "sonner";
 
 const ClientApproved = ({ comment, commentId }) => {
+	const { isClientApprover } = useUserPrivileges();
 	const { approval, approvedIsLoading } = useComments();
 
 
 	// Toggle approval state
 	const handleApproval = () => {
+		if (!isClientApprover) {
+			toast.error("You are not authorized to approve this comment.");
+			return;
+		}
 		if (comment?.approved === false) {
 			approval(comment?.documentId, true, commentId);
 		}

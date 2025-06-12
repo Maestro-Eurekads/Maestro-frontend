@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { FaCheck, FaSpinner } from "react-icons/fa";
 import Switch from "react-switch";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
@@ -15,7 +15,6 @@ import { useCampaigns } from "../../utils/CampaignsContext";
 import UploadModal from "../../../components/UploadModal/UploadModal";
 import { useComments } from "app/utils/CommentProvider";
 import { Trash } from "lucide-react";
-import Link from "next/link";
 import { removeKeysRecursively } from "utils/removeID";
 import toast from "react-hot-toast";
 import { debounce } from "lodash";
@@ -71,7 +70,7 @@ type MediaOptionType = {
 
 type QuantitiesType = {
   [platformName: string]: {
-    [formatName: string]: number;
+    [formatName: number]: number;
   };
 };
 
@@ -119,6 +118,223 @@ const debouncedToast = debounce((message: string, type: "success" | "error") => 
   }
 }, 100);
 
+// Creatives Modal Component
+const CreativesModal = ({
+  isOpen,
+  onClose,
+  stageName,
+  campaignFormData,
+  view,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  stageName: string;
+  campaignFormData: any;
+  view: "channel" | "adset";
+}) => {
+  if (!isOpen) return null;
+
+  const stage = campaignFormData?.channel_mix?.find((chan: any) => chan?.funnel_stage === stageName);
+  if (!stage) return null;
+
+  // Helper function to determine file type based on URL extension
+  const getFileType = (url: string): "image" | "video" | "pdf" | "unknown" => {
+    const extension = url?.split(".").pop()?.toLowerCase();
+    const imageExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "webp"];
+    const videoExtensions = ["mp4", "webm", "ogg"];
+    const pdfExtensions = ["pdf"];
+
+    if (extension && imageExtensions.includes(extension)) return "image";
+    if (extension && videoExtensions.includes(extension)) return "video";
+    if (extension && pdfExtensions.includes(extension)) return "pdf";
+    return "unknown";
+  };
+
+  // Render format details
+  const RenderFormatDetails = ({
+    format,
+    formatIndex,
+  }: {
+    format: { format_type: string; num_of_visuals: string; previews?: Array<{ id: string; url: string }> };
+    formatIndex: number;
+  }) => {
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+
+    const handleVideoClick = useCallback(() => {
+      if (videoRef.current) {
+        if (videoRef.current.paused) {
+          videoRef.current.play().catch((error) => {
+            console.error("Error playing video:", error);
+          });
+        } else {
+          videoRef.current.pause();
+        }
+      }
+    }, []);
+
+    return (
+      <div key={formatIndex} className="mb-2">
+        <div className="font-semibold text-xs">{format.format_type}</div>
+        <div className="font-semibold text-xs">Number of visuals - {format.num_of_visuals}</div>
+        {format?.previews?.length > 0 ? (
+          <div className="mt-2">
+            <h4 className="font-medium text-xs mb-1">Previews:</h4>
+            <div className="grid grid-cols-2 gap-2">
+              {format.previews.map((preview, idx) => {
+                const fileType = getFileType(preview.url);
+                return (
+                  <div key={idx} className="flex flex-col">
+                    {fileType === "image" && preview.url ? (
+                      <div className="relative aspect-square w-full">
+                        <Image
+                          src={preview.url || "/placeholder.svg"}
+                          alt={`Preview ${idx + 1}`}
+                          fill
+                          className="object-cover rounded"
+                        />
+                      </div>
+                    ) : fileType === "video" && preview.url ? (
+                      <div
+                        className="relative aspect-square w-full cursor-pointer"
+                        onClick={handleVideoClick}
+                      >
+                        <video
+                          ref={videoRef}
+                          className="object-cover rounded w-full h-full"
+                          controls
+                          muted
+                          playsInline
+                        >
+                          <source src={preview.url} type={`video/${preview.url.split(".").pop()?.toLowerCase()}`} />
+                          Your browser does not support the video tag.
+                        </video>
+                      </div>
+                    ) : fileType === "pdf" && preview.url ? (
+                      <div className="relative aspect-square w-full">
+                        <iframe
+                          src={preview.url}
+                          title={`Preview ${idx + 1}`}
+                          className="w-full h-full rounded"
+                        />
+                      </div>
+                    ) : (
+                      <div className="bg-gray-200 aspect-square flex items-center justify-center rounded">
+                        <span className="text-xs">Unsupported or missing preview</span>
+                      </div>
+                    )}
+                    <a
+                      href={preview.url || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-500 mt-1 hover:underline"
+                    >
+                      View {idx + 1}
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <div className="text-xs text-gray-500 mt-2">No previews uploaded</div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">Creatives for {stageName}</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        {CHANNEL_TYPES.map(({ key, title }) => {
+          const platforms: PlatformType[] = stage[key] || [];
+          const hasFormats = platforms.some((platform) =>
+            view === "channel"
+              ? platform.format?.length > 0
+              : platform.ad_sets?.some((adset) => adset.format?.length > 0)
+          );
+
+          if (!hasFormats) return null;
+
+          return (
+            <div key={title} className="mb-6">
+              <h3 className="font-semibold text-md mb-2">{title}</h3>
+              {platforms.map((platform, idx) => {
+                if (view === "channel" && platform.format?.length > 0) {
+                  return (
+                    <div key={idx} className="p-4 bg-gray-100 rounded-lg mb-2">
+                      <div className="flex items-center gap-2 mb-2">
+                        {platformIcons[platform.platform_name] && (
+                          <Image
+                            src={getPlatformIcon(platform.platform_name) || "/placeholder.svg"}
+                            alt={platform.platform_name}
+                            width={20}
+                            height={20}
+                          />
+                        )}
+                        <span className="font-medium">{platform.platform_name}</span>
+                      </div>
+                      {platform.format.map((format, formatIdx) => (
+                        <RenderFormatDetails key={formatIdx} format={format} formatIndex={formatIdx} />
+                      ))}
+                    </div>
+                  );
+                } else if (view === "adset" && platform.ad_sets?.some((adset) => adset.format?.length > 0)) {
+                  return (
+                    <div key={idx} className="p-4 bg-gray-100 rounded-lg mb-2">
+                      <div className="flex items-center gap-2 mb-2">
+                        {platformIcons[platform.platform_name] && (
+                          <Image
+                            src={getPlatformIcon(platform.platform_name) || "/placeholder.svg"}
+                            alt={platform.platform_name}
+                            width={20}
+                            height={20}
+                          />
+                        )}
+                        <span className="font-medium">{platform.platform_name}</span>
+                      </div>
+                      {platform.ad_sets
+                        .filter((adset) => adset.format?.length > 0)
+                        .map((adset, adsetIdx) => (
+                          <div key={adsetIdx} className="mt-2 p-2 bg-white rounded border">
+                            <div className="font-medium text-sm">{adset.name || `Ad Set ${adsetIdx + 1}`}</div>
+                            <div className="text-xs text-gray-500 mb-2">
+                              {adset.audience_type} • Size: {adset.size}
+                            </div>
+                            {adset.format?.map((format, formatIdx) => (
+                              <RenderFormatDetails key={formatIdx} format={format} formatIndex={formatIdx} />
+                            ))}
+                          </div>
+                        ))}
+                    </div>
+                  );
+                }
+                return null;
+              })}
+            </div>
+          );
+        })}
+        {!CHANNEL_TYPES.some(({ key }) =>
+          stage[key]?.some((platform: PlatformType) =>
+            view === "channel"
+              ? platform.format?.length > 0
+              : platform.ad_sets?.some((adset) => adset.format?.length > 0)
+          )
+        ) && (
+          <div className="text-center text-gray-500">No creatives uploaded for this stage.</div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Components
 const MediaOption = ({
   option,
@@ -156,10 +372,11 @@ const MediaOption = ({
   const [localPreviews, setLocalPreviews] = useState<Array<{ id: string; url: string }>>([]);
   const [deletingPreviewId, setDeletingPreviewId] = useState<string | null>(null);
 
+  const [isHovered, setIsHovered] = useState(false);
+
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
   const STRAPI_TOKEN = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
 
-  // Track previews before and after deletion to show toast immediately when UI is removed
   const [prevPreviews, setPrevPreviews] = useState<Array<{ id: string; url: string }>>([]);
 
   useEffect(() => {
@@ -182,16 +399,14 @@ const MediaOption = ({
     onPreviewsUpdate(localPreviews);
   }, [localPreviews, onPreviewsUpdate]);
 
-  // Track previous previews for instant UI removal detection
   useEffect(() => {
     setPrevPreviews(localPreviews);
-  }, []); // initialize on mount
+  }, []);
 
   useEffect(() => {
-    // If a preview was being deleted, and now it's gone from localPreviews, show toast immediately
     if (deletingPreviewId && !localPreviews.some((prv) => prv.id === deletingPreviewId)) {
       setDeletingPreviewId(null);
-      toast.success("Preview deleted successfully!"); // Show toast immediately when UI is removed
+      toast.success("Preview deleted successfully!");
     }
     setPrevPreviews(localPreviews);
   }, [localPreviews, deletingPreviewId]);
@@ -227,9 +442,22 @@ const MediaOption = ({
         <div className="flex flex-col items-center">
           <div
             onClick={onSelect}
-            className={`relative text-center p-2 rounded-lg border transition ${
-              isSelected ? "border-blue-500 shadow-lg" : "border-gray-300"
-            } cursor-pointer`}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            className={`relative text-center p-2 rounded-lg border transition 
+              ${
+                isSelected
+                  ? "border-blue-500 shadow-lg"
+                  : isHovered
+                  ? "border-blue-400 bg-blue-50"
+                  : "border-gray-300"
+              } 
+              cursor-pointer
+              ${isHovered && !isSelected ? "shadow-md" : ""}
+            `}
+            style={{
+              transition: "background 0.15s, border-color 0.15s, box-shadow 0.15s",
+            }}
           >
             <Image
               src={option.icon || "/placeholder.svg"}
@@ -296,13 +524,14 @@ const MediaOption = ({
           <div className="grid grid-cols-2 gap-3 flex-wrap">
             {localPreviews.map((prv, index) => (
               <div key={prv.id || index} className="relative">
-                <Link
+                <a
                   href={prv.url}
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="w-[225px] h-[150px] rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors border border-gray-500 cursor-pointer"
                 >
                   {renderUploadedFile(localPreviews.map((lp) => lp.url), option.name, index)}
-                </Link>
+                </a>
                 <button
                   className={`absolute right-2 top-2 bg-red-500 w-[20px] h-[20px] rounded-full flex justify-center items-center ${
                     deletingPreviewId === prv.id ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
@@ -370,6 +599,8 @@ const MediaSelectionGrid = ({
     [format: string]: Array<{ id: string; url: string }>;
   }>({});
 
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   const handlePreviewsUpdate = useCallback(
     (format: string, previews: Array<{ id: string; url: string }>) => {
       setPreviewsMap((prev) => {
@@ -416,33 +647,39 @@ const MediaSelectionGrid = ({
               : platform?.format?.find((f) => f.format_type === option.name)?.num_of_visuals;
 
           return (
-            <MediaOption
+            <div
               key={index}
-              option={option}
-              isSelected={!!isSelected}
-              quantity={quantities[option.name] || Number.parseInt(q) || 1}
-              onSelect={() => onFormatSelect(index, adSetIndex)}
-              onQuantityChange={(change) => onQuantityChange(option.name, change)}
-              onOpenModal={(previews) =>
-                memoizedOnOpenModal(
-                  platformName,
-                  channelName,
-                  option.name,
-                  previews,
-                  quantities[option.name] || Number.parseInt(q) || 1,
-                  adSetIndex
-                )
-              }
-              platformName={platformName}
-              channelName={channelName}
-              previews={previews}
-              stageName={stageName}
-              format={option.name}
-              adSetIndex={adSetIndex}
-              onPreviewsUpdate={(previews) => handlePreviewsUpdate(option.name, previews)}
-              onDeletePreview={onDeletePreview}
-              completedDeletions={completedDeletions}
-            />
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
+              style={{ transition: "background 0.15s, border-color 0.15s, box-shadow 0.15s" }}
+            >
+              <MediaOption
+                option={option}
+                isSelected={!!isSelected}
+                quantity={quantities[option.name] || Number.parseInt(q) || 1}
+                onSelect={() => onFormatSelect(index, adSetIndex)}
+                onQuantityChange={(change) => onQuantityChange(option.name, change)}
+                onOpenModal={(previews) =>
+                  memoizedOnOpenModal(
+                    platformName,
+                    channelName,
+                    option.name,
+                    previews,
+                    quantities[option.name] || Number.parseInt(q) || 1,
+                    adSetIndex
+                  )
+                }
+                platformName={platformName}
+                channelName={channelName}
+                previews={previews}
+                stageName={stageName}
+                format={option.name}
+                adSetIndex={adSetIndex}
+                onPreviewsUpdate={(previews) => handlePreviewsUpdate(option.name, previews)}
+                onDeletePreview={onDeletePreview}
+                completedDeletions={completedDeletions}
+              />
+            </div>
           );
         })}
       </div>
@@ -746,23 +983,22 @@ const ChannelSection = ({
   );
 };
 
-// Recap line component (rewritten to group by channel and only show channel name once)
-// MODIFIED: Use | to separate channels and formats instead of commas/semicolons
+// Recap line component (updated to use modal instead of Link)
 const StageRecapLine = ({
   stageName,
   campaignFormData,
   view,
+  onOpenCreativesModal,
 }: {
   stageName: string;
   campaignFormData: any;
   view: "channel" | "adset";
+  onOpenCreativesModal: (stageName: string) => void;
 }) => {
-  // Find the stage in channel_mix
   const stage = campaignFormData?.channel_mix?.find((chan: any) => chan?.funnel_stage === stageName);
 
   if (!stage) return null;
 
-  // Group platforms and their selected formats by channel
   const grouped: {
     [channel: string]: Array<{ platform: string; formats: string[] }>;
   } = {};
@@ -792,16 +1028,22 @@ const StageRecapLine = ({
     });
   });
 
-  // If nothing selected, return null
   const hasAny = Object.values(grouped).some((arr) => arr.length > 0);
-  if (!hasAny) return null;
 
-  // Render: Selection: Social media - Facebook: Image, Video, Slideshow | Broadcast - DVD: Image, Slideshow
-  // (Use | to separate channels, comma to separate formats)
+  if (!hasAny) {
+    return (
+      <div className="text-sm text-gray-700 bg-[#f7f7fa] border border-[#e5e5e5] rounded-b-[10px] px-6 py-3">
+        <span className="font-semibold">Recap:</span>{" "}
+        <span className="font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] opacity-50">
+          No selection
+        </span>
+      </div>
+    );
+  }
+
   const recapString = Object.entries(grouped)
     .map(([channel, items]) => {
       if (!items.length) return null;
-      // For each platform in the channel, join formats with comma
       const platformsStr = items
         .map((item) => {
           return (
@@ -816,13 +1058,11 @@ const StageRecapLine = ({
             </span>
           );
         })
-        // Insert " | " between platforms
         .reduce((acc: any[], curr, idx, arr) => {
           acc.push(curr);
           if (idx < arr.length - 1) acc.push(<span key={`sep-${idx}`}> | </span>);
           return acc;
         }, []);
-      // Channel name, then platforms
       return (
         <span key={channel}>
           <span className="font-medium">{channel}</span>
@@ -831,7 +1071,6 @@ const StageRecapLine = ({
         </span>
       );
     })
-    // Insert " | " between channels
     .reduce((acc: any[], curr, idx, arr) => {
       acc.push(curr);
       if (idx < arr.length - 1) acc.push(<span key={`ch-sep-${idx}`}> | </span>);
@@ -839,9 +1078,17 @@ const StageRecapLine = ({
     }, []);
 
   return (
-    <div className="text-sm text-gray-700 bg-[#f7f7fa] border border-[#e5e5e5] rounded-b-[10px] px-6 py-3">
-      <span className="font-semibold">Selection:</span>{" "}
-      {recapString}
+    <div className="text-sm text-gray-700 bg-[#f7f7fa] border border-[#e5e5e5] rounded-b-[10px] px-6 py-3 flex justify-between items-center">
+      <div>
+        <span className="font-semibold">Selection:</span>{" "}
+        {recapString}
+      </div>
+      <button
+        onClick={() => onOpenCreativesModal(stageName)}
+        className="text-blue-500 hover:underline text-sm font-medium"
+      >
+        See Creatives
+      </button>
     </div>
   );
 };
@@ -975,7 +1222,6 @@ export const Platforms = ({
         });
 
         await updateCampaign(sanitizedData);
-        // debouncedToast("Campaign data saved successfully!", "success");
       } catch (error: any) {
         console.error("Error in uploadUpdatedCampaignToStrapi:", {
           message: error.message,
@@ -1111,7 +1357,6 @@ export const Platforms = ({
         throw new Error(`Failed to delete file from Strapi: ${deleteResponse.statusText}`);
       }
 
-      // Update local state
       const updatedChannelMix = JSON.parse(JSON.stringify(campaignFormData.channel_mix));
       const stage = updatedChannelMix.find((ch: any) => ch.funnel_stage === stageName);
       if (!stage) {
@@ -1172,7 +1417,6 @@ export const Platforms = ({
 
       setDeleteQueue((prev) => prev.slice(1));
       setCompletedDeletions((prev) => new Set(prev).add(previewId));
-      // debouncedToast("Preview deleted successfully!", "success"); // REMOVE: success toast here, now handled in MediaOption
     } catch (error: any) {
       console.error("Error processing delete queue:", error);
       debouncedToast(`Failed to delete preview: ${error.message}`, "error");
@@ -1371,6 +1615,8 @@ export const FormatSelection = ({
 }) => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
   const [view, setView] = useState<"channel" | "adset">("channel");
+  const [isCreativesModalOpen, setIsCreativesModalOpen] = useState(false);
+  const [selectedStage, setSelectedStage] = useState<string | null>(null);
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   const { setIsDrawerOpen, setClose } = useComments();
 
@@ -1427,7 +1673,7 @@ export const FormatSelection = ({
     (stageName: string) => {
       const hasFormats = hasSelectedFormatsForStage(stageName);
 
-      if (hasFormats) return "In progress";
+      if (hasFormats) return "";
       return "Not started";
     },
     [hasSelectedFormatsForStage]
@@ -1442,6 +1688,16 @@ export const FormatSelection = ({
     }));
   }, [setCampaignFormData]);
 
+  const openCreativesModal = useCallback((stageName: string) => {
+    setSelectedStage(stageName);
+    setIsCreativesModalOpen(true);
+  }, []);
+
+  const closeCreativesModal = useCallback(() => {
+    setIsCreativesModalOpen(false);
+    setSelectedStage(null);
+  }, []);
+
   return (
     <div>
       {!stageName && (
@@ -1452,24 +1708,24 @@ export const FormatSelection = ({
       )}
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
-          <div className="flex justify-center gap-3">
-            <p className="font-medium">Channel Granularity</p>
-            <Switch
-              checked={view === "adset"}
-              onChange={handleToggleChange}
-              onColor="#5cd08b"
-              offColor="#3175FF"
-              handleDiameter={18}
-              uncheckedIcon={false}
-              checkedIcon={false}
-              height={24}
-              width={48}
-              borderRadius={24}
-              activeBoxShadow="0 0 2px 3px rgba(37, 99, 235, 0.2)"
-              className="react-switch"
-            />
-            <p className="font-medium">Ad Set Granularity</p>
-          </div>
+        <div className="flex justify-center gap-3">
+          <p className="font-medium">Channel Granularity</p>
+          <Switch
+            checked={view === "adset"}
+            onChange={handleToggleChange}
+            onColor="#5cd08b"
+            offColor="#3175FF"
+            handleDiameter={18}
+            uncheckedIcon={false}
+            checkedIcon={false}
+            height={24}
+            width={48}
+            borderRadius={24}
+            activeBoxShadow="0 0 2px 3px rgba(37, 99, 235, 0.2)"
+            className="react-switch"
+          />
+          <p className="font-medium">Ad Set Granularity</p>
+        </div>
 
         {campaignFormData?.funnel_stages
           ?.filter((ff) => !stageName || ff === stageName)
@@ -1504,13 +1760,9 @@ export const FormatSelection = ({
                       {stage.name}
                     </p>
                   </div>
-                  {status === "In progress" ? (
-                    <p className="font-general-sans font-semibold text-[16px] leading-[22px] text-[#3175FF]">
-                      In Progress
-                    </p>
-                  ) : (
-                    <p className="font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] opacity-50">
-                      Not started
+                  {status && (
+                    <p className="font-[General Sans] font-medium text-[16px] leading-[22px] text-black">
+                      {status}
                     </p>
                   )}
                   <Image
@@ -1520,12 +1772,12 @@ export const FormatSelection = ({
                     height={24}
                   />
                 </div>
-                {/* Recap line below each stage with selection, only when collapsed */}
                 {!isOpen && (
                   <StageRecapLine
                     stageName={stage.name}
                     campaignFormData={campaignFormData}
                     view={view}
+                    onOpenCreativesModal={openCreativesModal}
                   />
                 )}
                 {isOpen && (
@@ -1541,6 +1793,16 @@ export const FormatSelection = ({
             );
           })}
       </div>
+
+      {isCreativesModalOpen && selectedStage && (
+        <CreativesModal
+          isOpen={isCreativesModalOpen}
+          onClose={closeCreativesModal}
+          stageName={selectedStage}
+          campaignFormData={campaignFormData}
+          view={view}
+        />
+      )}
     </div>
   );
 };

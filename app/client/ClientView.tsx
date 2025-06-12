@@ -28,6 +28,7 @@ import { aggregateKPIStatsFromExtracted, categoryOrder, extractKPIByFunnelStage,
 import ConfigureBudgetComponet from 'app/creation/components/ConfigureAdSetsAndBudget/ConfigureBudgetComponet';
 import Skeleton from 'react-loading-skeleton';
 import MainSection from 'app/creation/components/organisms/main-section/main-section';
+import { toast } from 'sonner';
 
 
 
@@ -105,6 +106,7 @@ const ClientView = () => {
 
 
 
+
 	const handleDrawerOpen = () => {
 		setIsDrawerOpen(true);
 		dispatch(getComment(commentId, client_commentId));
@@ -114,6 +116,11 @@ const ClientView = () => {
 	const handleOpenComment = () => {
 		setGeneralComment(!generalComment)
 		dispatch(getGeneralComment(commentId));
+	}
+
+
+	const handleCheckCampaign = () => {
+		toast.error("Please Select a Campaign!");
 	}
 
 
@@ -145,7 +152,8 @@ const ClientView = () => {
 		}
 	}, [kpiCategory]);
 
-	console.log("kpiCategory", campaignData);
+	console.log("Final Category Order:", campaignData);
+
 
 
 	const extractedData = extractKPIByFunnelStage(campaignData, kpiCategories);
@@ -183,11 +191,25 @@ const ClientView = () => {
 									<button
 										className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
 										style={{ border: "1px solid #3175FF" }}
-										onClick={handleOpenComment}>
+										onClick={() => {
+											if (campaignData) {
+												handleOpenComment();
+											} else {
+												handleCheckCampaign();
+											}
+										}}
+									>
 										General Comment
 									</button>
 									<button
-										onClick={handleDrawerOpen}
+										onClick={() => {
+											if (campaignData) {
+												handleDrawerOpen();
+											} else {
+												handleCheckCampaign();
+											}
+										}}
+
 										className="bg-[#FAFDFF]  rounded-[10px] py-[14px] px-6 self-start flex items-center	gap-[4px]"
 										style={{ border: "1px solid #3175FF" }}>
 										{allApproved ? <Image src={tickcircles} alt="tickcircle" className="w-[18px] " /> : <RxDotFilled size={20} color='#FF0302' />}

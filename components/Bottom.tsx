@@ -16,6 +16,7 @@ import dayjs from "dayjs"
 import { selectCurrency } from "./Options"
 import { useUserPrivileges } from "utils/userPrivileges"
 import { extractObjectives } from "app/creation/components/EstablishedGoals/table-view/data-processor"
+import axios from "axios"
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void
@@ -55,7 +56,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   const [loading, setLoading] = useState(false)
   const [alert, setAlert] = useState(null)
   const [hasFormatSelected, setHasFormatSelected] = useState(false)
-  const { isFinancialApprover, isAgencyApprover, isAdmin } = useUserPrivileges()
+  const { isFinancialApprover, isAgencyApprover, isAdmin, loggedInUser } = useUserPrivileges()
   const {
     createCampaign,
     updateCampaign,
@@ -114,6 +115,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     return hasValidFormat
   }
 
+ 
   // Only reset formats when entering active === 4 if the user has NOT already proceeded from step 4 with a valid format
   useEffect(() => {
     if (active === 4 && !hasProceededFromFormatStep.current) {
@@ -444,19 +446,19 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     }
 
     if (active === 5) {
-      const isValidBuyObjective = validateBuyObjectiveSelection()
-      if (!isValidBuyObjective) {
-        setTriggerBuyObjectiveError(true)
-        setAlert({
-          variant: "error",
-          message: "Please select and validate at least one channel with buy type and objective before proceeding!",
-          position: "bottom-right",
-        })
-        hasError = true
-      } else {
-        setTriggerBuyObjectiveError(false)
-        setAlert(null)
-      }
+      // const isValidBuyObjective = validateBuyObjectiveSelection()
+      // if (!isValidBuyObjective) {
+      //   setTriggerBuyObjectiveError(true)
+      //   setAlert({
+      //     variant: "error",
+      //     message: "Please select and validate at least one channel with buy type and objective before proceeding!",
+      //     position: "bottom-right",
+      //   })
+      //   hasError = true
+      // } else {
+      //   setTriggerBuyObjectiveError(false)
+      //   setAlert(null)
+      // }
     }
 
     if (active === 7) {
@@ -499,16 +501,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     }
 
-    const cleanData = campaignData
-      ? removeKeysRecursively(campaignData, [
-          "id",
-          "documentId",
-          "createdAt",
-          "publishedAt",
-          "updatedAt",
-          "_aggregated",
-        ])
-      : {}
 
     const handleStepZero = async () => {
       setLoading(true)
@@ -524,29 +516,18 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           return
         }
 
-        const budgetDetails = {
-          currency: campaignFormData?.budget_details_currency?.id,
-          fee_type: campaignFormData?.budget_details_fee_type?.id,
-          sub_fee_type: selectedOption,
-          value: campaignFormData?.budget_details_value,
-        }
-
         const cleanedFormData = {
           ...campaignFormData,
           internal_approver: (campaignFormData?.internal_approver_ids || []).map(String),
           client_approver: (campaignFormData?.client_approver_ids || []).map(String),
-          budget_details_currency: {
-            id: budgetDetails.currency,
-            value: budgetDetails.currency,
-            label: selectCurrency.find((c) => c.value === budgetDetails.currency)?.label || budgetDetails.currency,
-          },
         }
 
         setCampaignFormData(cleanedFormData)
         localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData))
 
-        if (cId && campaignData) {
-          const updatedData = {
+        const payload = {
+          data: {
+            campaign_builder: loggedInUser?.id,
             client: campaignFormData?.client_selection?.id,
             client_selection: {
               client: campaignFormData?.client_selection?.value,
@@ -559,11 +540,17 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
               internal_approver: (campaignFormData?.internal_approver_ids || []).map(Number),
               client_approver: (campaignFormData?.client_approver_ids || []).map(Number),
             },
-            budget_details: budgetDetails,
-          }
+          },
+        }
 
-          await updateCampaign(updatedData)
+        const config = {
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          },
+        }
 
+        if (cId && campaignData) {
+          await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`, payload, config)
           setActive((prev) => prev + 1)
           setAlert({
             variant: "success",
@@ -571,28 +558,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             position: "bottom-right",
           })
         } else {
-          const res = await createCampaign({
-            campaign_builder: 1,
-            client: campaignFormData?.client_selection?.id,
-            client_selection: {
-              client: campaignFormData?.client_selection?.value,
-              level_1: campaignFormData?.level_1?.id,
-              level_2: campaignFormData?.level_2?.id,
-              level_3: campaignFormData?.level_3?.id,
-            },
-            media_plan_details: {
-              plan_name: campaignFormData?.media_plan,
-              internal_approver: (campaignFormData?.internal_approver_ids || []).map(Number),
-              client_approver: (campaignFormData?.client_approver_ids || []).map(Number),
-            },
-            budget_details: budgetDetails,
-          })
+          const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config)
 
           const url = new URL(window.location.href)
-          url.searchParams.set("campaignId", `${res?.data?.data.documentId}`)
+          url.searchParams.set("campaignId", `${response?.data?.data.documentId}`)
           window.history.pushState({}, "", url.toString())
 
-          await getActiveCampaign(res?.data?.data.documentId)
+          await getActiveCampaign(response?.data?.data.documentId)
           setActive((prev) => prev + 1)
           setAlert({
             variant: "success",
@@ -601,15 +573,101 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           })
         }
       } catch (error) {
+        console.error('API Error:', error.response?.data || error.message)
         setAlert({
           variant: "error",
-          message: "Something went wrong. Please try again.",
+          message: error.response?.data?.message || "Something went wrong. Please try again.",
           position: "bottom-right",
         })
       } finally {
         setLoading(false)
       }
     }
+    // const handleStepZero = async () => {
+    //   setLoading(true)
+
+    //   try {
+    //     if (!isStepZeroValid) {
+    //       setAlert({
+    //         variant: "error",
+    //         message: "Please complete all required fields before proceeding.",
+    //         position: "bottom-right",
+    //       })
+    //       setLoading(false)
+    //       return
+    //     }
+
+    //     const cleanedFormData = {
+    //       ...campaignFormData,
+    //       internal_approver: (campaignFormData?.internal_approver_ids || []).map(String),
+    //       client_approver: (campaignFormData?.client_approver_ids || []).map(String),
+    //     }
+
+    //     setCampaignFormData(cleanedFormData)
+    //     localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData))
+
+    //     if (cId && campaignData) {
+    //       const updatedData = {
+    //         client: campaignFormData?.client_selection?.id,
+    //         client_selection: {
+    //           client: campaignFormData?.client_selection?.value,
+    //           level_1: campaignFormData?.level_1?.id,
+    //           level_2: campaignFormData?.level_2?.id,
+    //           level_3: campaignFormData?.level_3?.id,
+    //         },
+    //         media_plan_details: {
+    //           plan_name: campaignFormData?.media_plan,
+    //           internal_approver: (campaignFormData?.internal_approver_ids || []).map(Number),
+    //           client_approver: (campaignFormData?.client_approver_ids || []).map(Number),
+    //         },
+    //       }
+    //       await updateCampaign(updatedData)
+
+    //       setActive((prev) => prev + 1)
+    //       setAlert({
+    //         variant: "success",
+    //         message: "Campaign updated successfully!",
+    //         position: "bottom-right",
+    //       })
+    //     } else {
+    //       const res = await createCampaign({
+    //         campaign_builder: loggedInUser?.id,
+    //         client: campaignFormData?.client_selection?.id,
+    //         client_selection: {
+    //           client: campaignFormData?.client_selection?.value,
+    //           level_1: campaignFormData?.level_1?.id,
+    //           level_2: campaignFormData?.level_2?.id,
+    //           level_3: campaignFormData?.level_3?.id,
+    //         },
+    //         media_plan_details: {
+    //           plan_name: campaignFormData?.media_plan,
+    //           internal_approver: (campaignFormData?.internal_approver_ids || []).map(Number),
+    //           client_approver: (campaignFormData?.client_approver_ids || []).map(Number),
+    //         },
+    //       })
+
+    //       const url = new URL(window.location.href)
+    //       url.searchParams.set("campaignId", `${res?.data?.data.documentId}`)
+    //       window.history.pushState({}, "", url.toString())
+
+    //       await getActiveCampaign(res?.data?.data.documentId)
+    //       setActive((prev) => prev + 1)
+    //       setAlert({
+    //         variant: "success",
+    //         message: "Campaign created successfully!",
+    //         position: "bottom-right",
+    //       })
+    //     }
+    //   } catch (error) {
+    //     setAlert({
+    //       variant: "error",
+    //       message: "Something went wrong. Please try again.",
+    //       position: "bottom-right",
+    //     })
+    //   } finally {
+    //     setLoading(false)
+    //   }
+    // }
 
     const handleStepTwo = async () => {
       if (!campaignData || !cId) return
@@ -877,6 +935,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                 "bottom_black_next_btn whitespace-nowrap",
                 active === 10 && "opacity-50 cursor-not-allowed",
                 active < 10 && "hover:bg-blue-500",
+                active === 4 && !hasFormatSelected && "px-3 py-2" // Add padding for longer text
               )}
               onClick={active === 4 && !hasFormatSelected ? handleSkip : handleContinue}
               disabled={active === 10}
@@ -889,7 +948,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                 </center>
               ) : (
                 <>
-                  <p>{active === 0 ? "Start" : active === 4 && !hasFormatSelected ? "Skip" : "Continue"}</p>
+                  <p style={active === 4 && !hasFormatSelected ? { fontSize: "14px", whiteSpace: "normal", lineHeight: "16px", textAlign: "center", maxWidth: 120 } : {}}>
+                    {active === 0
+                      ? "Start"
+                      : active === 4 && !hasFormatSelected
+                      ? "Not mandatory step, skip"
+                      : "Continue"}
+                  </p>
                   <Image src={Continue || "/placeholder.svg"} alt="Continue" />
                 </>
               )}
