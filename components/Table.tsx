@@ -59,6 +59,7 @@ const Table = () => {
     allClients,
     fetchingPO,
     clientPOs,
+    jwt
   } = useCampaigns();
   const { data: session } = useSession();
   // @ts-ignore 
@@ -143,7 +144,7 @@ const Table = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
@@ -170,7 +171,7 @@ const Table = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
@@ -239,7 +240,7 @@ const Table = () => {
                     }}
                     className="cursor-pointer"
                   >
-                    <td className="whitespace-nowrap py-[12px] px-[16px] ">
+                    <td className=" py-[12px] px-[16px] ">
                       {data?.media_plan_details?.plan_name || "N/A"} -{" "}
                       {data?.progress_percent < 100 ? "Running" : "Completed"}
                     </td>

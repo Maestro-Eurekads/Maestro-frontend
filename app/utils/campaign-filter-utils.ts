@@ -739,11 +739,11 @@ export function extractLevelNameFilters(client: any) {
   }
 
   const extractNames = (level) => {
-    if (!level?.parameters || !Array.isArray(level.parameters)) return [];
+    if (!level?.parameters || !Array.isArray(level?.parameters)) return [];
     return level.parameters.map((param) => ({
       label: param.name,
       value: param.name,
-    }));
+    })); 
   };
 
   return {
@@ -762,7 +762,7 @@ export function extractLevelNameFilters(client: any) {
 //   };
 // }
 
-export const fetchFilteredCampaigns = async (clientID: string, filters: FilterState | any) => {
+ export const fetchFilteredCampaigns = async (clientID: string, filters: FilterState, jwt:any) => {
   if (!clientID) return [];
 
   const channelMixPopulate = {
@@ -910,7 +910,7 @@ export const fetchFilteredCampaigns = async (clientID: string, filters: FilterSt
   try {
     const response = await axios.get(fullUrl, {
       headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+        Authorization: `Bearer ${jwt}`,
       },
     });
 

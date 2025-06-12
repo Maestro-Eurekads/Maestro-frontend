@@ -126,7 +126,7 @@ const MainSection = ({
       default: // Week is default
         return (
           <>
-            <WeekInterval weeksCount={weekDifference} />
+            <WeekInterval weeksCount={weekDifference === 0 ? 1 :weekDifference} funnelData={funnelsData} disableDrag={disableDrag} />
             {/* <WeekTimeline weeksCount={weekDifference} funnels={funnelsData} /> */}
           </>
         )

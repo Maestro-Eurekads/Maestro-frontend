@@ -689,7 +689,7 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
                   className="flex items-center"
                   onClick={() => toggleItem(stage.name)}
                 >
-                  <div className="flex items-center gap-2 flex-1">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
                     {stage.icon && (
                       <Image
                         src={stage.icon}
@@ -698,7 +698,15 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
                         height={20}
                       />
                     )}
-                    <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237]">
+                    <p
+                      className="w-full font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#061237] break-words whitespace-normal"
+                      style={{
+                        maxWidth: "100%",
+                        minHeight: "24px",
+                        wordBreak: "break-word",
+                        overflowWrap: "break-word",
+                      }}
+                    >
                       {stage.name}
                     </p>
                   </div>

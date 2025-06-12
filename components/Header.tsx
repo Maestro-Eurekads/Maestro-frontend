@@ -47,6 +47,10 @@ const Header = ({ setIsOpen }) => {
     setFilterOptions,
     profile,
     setSelectedFilters,
+    jwt,
+    agencyId,
+    selectedClient,
+    setSelectedClient
   } = useCampaigns();
 
   const { setSelectedDates } = useSelectedDates()
@@ -63,14 +67,17 @@ const Header = ({ setIsOpen }) => {
   const clients: any = getCreateClientData;
 
   useEffect(() => {
-    dispatch(getCreateClient(!isAdmin ? userType : null));
+    if(profile && agencyId){
+      dispatch(getCreateClient({userId: userType, jwt, agencyId}));
+  
+      const timer = setTimeout(() => {
+        setAlert(null);
+      }, 5000);
+  
+      return () => clearTimeout(timer);
 
-    const timer = setTimeout(() => {
-      setAlert(null);
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [dispatch, session]);
+    }
+  }, [dispatch, session, profile, agencyId]);
 
   //  LocalStorage prioritized
   useEffect(() => {
@@ -79,12 +86,14 @@ const Header = ({ setIsOpen }) => {
     const storedClientId = localStorage.getItem(userType);
     if (storedClientId) {
       setSelectedId(storedClientId);
+      setSelectedClient(storedClientId);
     } else {
       const fallbackId =
         getCreateClientData?.data?.[0]?.id?.toString() ||
         profile?.clients?.[0]?.id?.toString();
       if (fallbackId) {
         setSelectedId(fallbackId);
+        setSelectedClient(fallbackId);
       }
     }
   }, [userType, getCreateClientIsLoading, profile?.clients]);
@@ -105,7 +114,8 @@ const Header = ({ setIsOpen }) => {
       (client) => client?.id === Number(clientId)
     );
     // console.log(clientId);
-    fetchClientCampaign(clientId)
+    console.log("agencyId", agencyId)
+    fetchClientCampaign(clientId, agencyId)
       .then((res) => {
         const campaigns = res?.data?.data || [];
 
@@ -170,7 +180,7 @@ const Header = ({ setIsOpen }) => {
                   value: c?.id.toString(),
                 }))}
               className="min-w-[150px] z-[20]"
-              placeholder="Select client"
+              placeholder="Search or select a client"
               onChange={(value) => {
                 if (value) {
                   localStorage.setItem(userType, value?.value);
@@ -189,32 +199,7 @@ const Header = ({ setIsOpen }) => {
                 )}
             />
 
-            {/* {/* <CustomSelect
-              options={(isAdmin ? clients?.data : profile?.clients)?.map(
-                (c) => ({
-                  label: c?.client_name,
-                  value: c?.id,
-                })
-              )}
-              className="min-w-[150px] z-[20]"
-              placeholder="Select client"
-              onChange={(value) => {
-                if (value) {
-                  localStorage.setItem(userType, value?.value);
-                  setSelected(value?.value);
-                  setSelectedId(value?.value);
-                }
-              }}
-              value={(isAdmin ? clients?.data : profile?.clients)
-                ?.map((c) => ({
-                  label: c?.client_name,
-                  value: c?.id?.toString(),
-                }))
-                .find(
-                  (option) =>
-                    option?.value === selectedId || option?.value === selected
-                )}
-            /> */}
+
             {(isAdmin ||
               isFinancialApprover ||
               isAgencyApprover) && (
@@ -265,7 +250,10 @@ const Header = ({ setIsOpen }) => {
             className="profile_container"
             onClick={() => setShow((prev) => !prev)}
           >
+            <p className="capitalize">
+
             {getFirstLetters(session?.user?.name)}
+            </p>
 
             {show && (
               <div className="absolute right-0 top-[60px] w-[200px] bg-white border border-gray-200   shadow-lg z-50 !rounded-[5px]">

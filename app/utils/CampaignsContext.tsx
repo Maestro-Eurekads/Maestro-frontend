@@ -17,6 +17,7 @@ import { channelMixPopulate } from "utils/fetcher";
 import { useSession } from "next-auth/react";
 import { updateUsersWithCampaign } from "app/homepage/functions/clients";
 import { extractObjectives } from "app/creation/components/EstablishedGoals/table-view/data-processor";
+import { useUserPrivileges } from "utils/userPrivileges";
 
 // Get initial state from localStorage if available
 const getInitialState = () => {
@@ -57,6 +58,7 @@ const CampaignContext = createContext<any>(null);
 export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const { data: session } = useSession();
   const id = (session?.user as { id?: string })?.id;
+  const jwt = (session?.user as { data?: { jwt: string } })?.data?.jwt;
   const campaign_builder = session?.user;
   const [campaignFormData, setCampaignFormData] = useState(getInitialState());
   const [campaignData, setCampaignData] = useState(null);
@@ -83,6 +85,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [fetchingPO, setFetchingPO] = useState(false);
   const [isStepZeroValid, setIsStepZeroValid] = useState(false);
   const [currencySign, setCurrencySign] = useState("");
+  const { loggedInUser } = useUserPrivileges()
   const [user, setUser] = useState(null);
   const [headerData, setHeaderData] = useState({});
   const [filterOptions, setFilterOptions] = useState({
@@ -100,6 +103,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   });
   const [selectedFilters, setSelectedFilters] = useState({});
   const [clientUsers, setClientUsers] = useState([]);
+  const [agencyId, setAgencyId] = useState<string | number | null>(null);
+  const [selectedClient, setSelectedClient] = useState()
+  const [agencyData, setAgencyData] = useState(null);
 
   const reduxClients = useSelector(
     (state: any) => state.client?.getCreateClientData?.data || []
@@ -131,7 +137,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-
   const getActiveCampaign = useCallback(
     async (docId?: string) => {
       const campaignId = cId || docId;
@@ -153,7 +158,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
                       populate: "user",
                     },
                     client_approver: {
-                      populate: "user"
+                      populate: "user",
                     },
                   },
                 },
@@ -167,7 +172,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
               },
             },
             headers: {
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+              Authorization: `Bearer ${jwt}`,
             },
           }
         );
@@ -219,7 +224,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           user: data?.user ?? prev.user,
           campaign_id: data?.id ?? prev.id,
           isApprove: data?.isApprove ?? prev?.isApprove,
-          table_headers: ((data?.table_headers || obj || {}) ?? (prev?.table_headers || obj)) || {},
+          table_headers:
+            ((data?.table_headers || obj || {}) ??
+              (prev?.table_headers || obj)) ||
+            {},
         }));
         setLoadingCampaign(false);
       } catch (error) {
@@ -239,7 +247,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         {
           data: {
             //@ts-ignore
-            campaign_builder: campaign_builder?.id,
+            campaign_builder: loggedInUser?.id,
             client: campaignFormData?.client_selection?.id,
             client_selection: {
               client: campaignFormData?.client_selection?.value,
@@ -249,20 +257,26 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             },
             media_plan_details: {
               plan_name: campaignFormData?.media_plan,
-              internal_approver: campaignFormData?.internal_approver?.map((ff) => ff?.value),
-              client_approver: campaignFormData?.client_approver?.map((ff) => ff?.value),
+              internal_approver: campaignFormData?.internal_approver?.map(
+                (ff) => ff?.value
+              ),
+              client_approver: campaignFormData?.client_approver?.map(
+                (ff) => ff?.value
+              ),
             },
+            agency_profile: agencyId
           },
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
       await updateUsersWithCampaign(
         clientUsers?.map((uu) => uu?.id),
-        response?.data?.data?.id
+        response?.data?.data?.id,
+        jwt
       );
       return response;
     } catch (error) {
@@ -278,14 +292,23 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${id}?populate=*`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/get-profile/${id}`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
       setGetProfile(response?.data);
+      console.log("res", response?.data);
+      const aId =
+        response?.data?.user_type === "admin"
+          ? response?.data?.admin?.agency?.id
+          : response?.data?.user_type?.includes("cleint")
+          ? response?.data?.cleint_user?.agency?.id
+          : response?.data?.agency_user?.agency?.id;
+      console.log("agencyId", aId);
+      setAgencyId(aId);
       return response;
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -294,6 +317,31 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     }
   }, [id]);
+
+  const getAgency = useCallback(async () => {
+    // get-agency-profile
+    if (!agencyId) return;
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/get-agency-profile/${agencyId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
+      console.log(response?.data);
+      setAgencyData(response?.data);
+    
+      return response;
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [agencyId]);
 
   const updateCampaign = useCallback(
     async (data) => {
@@ -304,7 +352,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           { data },
           {
             headers: {
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+              Authorization: `Bearer ${jwt}`,
             },
           }
         );
@@ -327,7 +375,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}?populate=*`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
@@ -368,7 +416,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaign-objectives?populate=*`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
@@ -394,7 +442,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/buy-objectives?populate=*`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
@@ -413,7 +461,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/buy-types?populate=*`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
@@ -437,7 +485,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
@@ -508,7 +556,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/platform-lists?pagination[pageSize]=200`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
@@ -524,9 +572,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
   // Fetch business level options when client selection changes
   useEffect(() => {
-    const clientId = campaignFormData?.client_selection?.id;
-    if (clientId) {
-      fetchBusinessLevelOptions(clientId);
+    // const clientId = campaignFormData?.client_selection?.id;
+    if (selectedClient) {
+      console.log("🚀 ~ useEffect ~ selectedClient:", selectedClient)
+      fetchBusinessLevelOptions(selectedClient);
       setCampaignFormData((prev) => ({
         ...prev,
         level_1: { id: "", value: "" },
@@ -534,7 +583,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         level_3: { id: "", value: "" },
       }));
     }
-  }, [campaignFormData.client_selection?.id, fetchBusinessLevelOptions]);
+  }, [selectedClient, fetchBusinessLevelOptions]);
 
   // Initial data fetching
   useEffect(() => {
@@ -542,6 +591,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       try {
         await Promise.all([
           id && getProfile(),
+          agencyId && getAgency(),
           cId && getActiveCampaign(),
           fetchBuyObjectives(),
           fetchObjectives(),
@@ -552,8 +602,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         console.error("Error during initial data fetch:", error);
       }
     };
-
-    fetchInitialData();
+    if (jwt) {
+      fetchInitialData();
+    }
   }, [
     cId,
     id,
@@ -563,6 +614,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     fetchObjectives,
     fetchPlatformLists,
     fetchBuyTypes,
+    jwt,
+    agencyId
   ]);
 
   const contextValue = useMemo(
@@ -620,6 +673,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       user,
       setClientUsers,
       clientUsers,
+      jwt,
+      agencyId,
+      selectedClient,
+      setSelectedClient
     }),
     [
       getUserByUserType,
@@ -656,6 +713,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       user,
       setClientUsers,
       clientUsers,
+      agencyId,
+      selectedClient,
+      setSelectedClient
     ]
   );
 
