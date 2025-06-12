@@ -9,7 +9,7 @@ import "react-loading-skeleton/dist/skeleton.css";
 
 const NewProvider = ({ children, session }: React.PropsWithChildren<{ session: any }>) => {
 	return (
-		<SessionProvider session={session}>
+		<SessionProvider session={session} refetchOnWindowFocus={false}>
 			<ProgressProvider
 				height="4px"
 				color="#0866FF"

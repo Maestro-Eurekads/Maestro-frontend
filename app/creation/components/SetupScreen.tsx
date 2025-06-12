@@ -15,6 +15,7 @@ import ResponsibleApproverDropdownsCampaign from "components/ResponsibleApprover
 import InternalApproverDropdowns from "components/InternalApproverDropdowns";
 import ResponsibleApproverDropdowns from "components/ResponsibleApproverDropdowns";
 import { useRouter } from "next/router";
+import TreeDropdown from "components/TreeDropdown";
 
 
 interface DropdownOption {
@@ -34,6 +35,7 @@ export const SetupScreen = () => {
     profile,
     setRequiredFields,
     setCurrencySign,
+    selectedClient
   } = useCampaigns();
   const query = useSearchParams();
   const documentId = query.get("campaignId");
@@ -50,7 +52,10 @@ export const SetupScreen = () => {
   const [level2Options, setlevel2Options] = useState<DropdownOption[]>([]);
   const [level3Options, setlevel3Options] = useState<DropdownOption[]>([]);
 
-  // console.log("campaignFormData", documentId);
+
+  console.log('level1Options-level1Options', level1Options)
+
+
 
 
   useEffect(() => {
@@ -63,8 +68,6 @@ export const SetupScreen = () => {
     const savedFormData = localStorage.getItem("campaignFormData");
     if (savedFormData) {
       const parsedData = JSON.parse(savedFormData);
-
-
 
       const normalizeApprovers = (approvers: any[]) =>
         Array.isArray(approvers)
@@ -86,9 +89,6 @@ export const SetupScreen = () => {
       });
     }
   }, [setCampaignFormData]);
-
-
-
 
   // Initialize campaignFormData if empty
   useEffect(() => {
@@ -112,21 +112,12 @@ export const SetupScreen = () => {
     }
   }, [setCampaignFormData, isInitialized]);
 
-
-
-
-
   useEffect(() => {
     if (alert) {
       const timer = setTimeout(() => setAlert(null), 3000);
       return () => clearTimeout(timer);
     }
   }, [alert]);
-
-
-
-
-
 
   useEffect(() => {
     if (isAgencyCreator || isAgencyApprover || isFinancialApprover) {
@@ -154,7 +145,18 @@ export const SetupScreen = () => {
     if (!allClients || !client_selection) return;
 
     const client = allClients?.find((c) => c?.documentId === client_selection?.id);
-    console.log("campaignFormData", client?.users);
+
+    console.log('client-client', client)
+
+    if (client?.level_1?.parameters) {
+      const level1OptionsFormatted = client?.level_1?.parameters?.map((param) => ({
+        value: param?.name,
+        label: param?.name,
+      }));
+      setlevel1Options(level1OptionsFormatted);
+      console.log('level1Options-level1Options', level1OptionsFormatted);
+    }
+
     // setInternalApproverOptions(() => {
     //   const options = client?.approver?.map((l) => ({
     //     value: l,
@@ -177,10 +179,10 @@ export const SetupScreen = () => {
     })) || [];
     setInternalApproverOptions(options);
 
-    const filteredUsers = client?.users?.filter(user => user?.user_type !== "admin");
+    const filteredUsers = client?.agency?.client_users?.filter(user => user?.role == "client_approver");
     const clientOptions = filteredUsers?.map((l) => ({
       value: l?.id,
-      label: l?.username,
+      label: l?.full_name,
     })) || [];
     setClientApprovalOptions(clientOptions);
 
@@ -192,21 +194,21 @@ export const SetupScreen = () => {
       return options?.filter((opt) => opt?.value != null && opt?.label != null) || [];
     });
 
-    setlevel2Options(() => {
-      const options = client?.level_2?.map((l) => ({
-        value: l,
-        label: l,
-      }));
-      return options?.filter((opt) => opt?.value != null && opt?.label != null) || [];
-    });
+    // setlevel2Options(() => {
+    //   const options = client?.level_2?.map((l) => ({
+    //     value: l,
+    //     label: l,
+    //   }));
+    //   return options?.filter((opt) => opt?.value != null && opt?.label != null) || [];
+    // });
 
-    setlevel3Options(() => {
-      const options = client?.level_3?.map((l) => ({
-        value: l,
-        label: l,
-      }));
-      return options?.filter((opt) => opt?.value != null && opt?.label != null) || [];
-    });
+    // setlevel3Options(() => {
+    //   const options = client?.level_3?.map((l) => ({
+    //     value: l,
+    //     label: l,
+    //   }));
+    //   return options?.filter((opt) => opt?.value != null && opt?.label != null) || [];
+    // });
 
   }, [client_selection, allClients, setCampaignFormData]);
 
@@ -261,6 +263,19 @@ export const SetupScreen = () => {
     setRequiredFields(evaluatedFields);
   }, [campaignFormData, cId, setRequiredFields]);
 
+  const sampleData = {
+    title: 'Toshiba',
+    parameters: [
+      {
+        name: 'parasonic',
+        subParameters: ['battery']
+      },
+      {
+        name: 'Radio',
+        subParameters: ['Wave', 'Book']
+      }
+    ]
+  };
 
 
   if (!campaignFormData) {
@@ -274,15 +289,17 @@ export const SetupScreen = () => {
       {alert && <AlertMain alert={alert} />}
       <div className="mt-[42px]">
         <Title>Client selection</Title>
-        <div>
+        {/*<div>
           <ClientSelection
             options={clientOptions}
             label={"Select Client"}
             formId="client_selection"
           />
-        </div>
+        </div> */}
         <div className="flex items-center flex-wrap gap-4 pb-12">
-          <ClientSelection
+
+          <TreeDropdown data={sampleData} />
+          {/* <ClientSelection
             options={level1Options?.slice(1)}
             label={
               level1Options?.length > 0
@@ -290,8 +307,8 @@ export const SetupScreen = () => {
                 : "Business Level 1"
             }
             formId="level_1"
-          />
-          <ClientSelection
+          /> */}
+          {/* <ClientSelection
             options={level2Options?.slice(1)}
             label={
               level2Options?.length > 0
@@ -299,8 +316,8 @@ export const SetupScreen = () => {
                 : "Business Level 2"
             }
             formId="level_2"
-          />
-          <ClientSelection
+          /> */}
+          {/* <ClientSelection
             options={level3Options?.slice(1)}
             label={
               level3Options?.length > 0
@@ -308,7 +325,7 @@ export const SetupScreen = () => {
                 : "Business Level 3"
             }
             formId="level_3"
-          />
+          /> */}
         </div>
         <div className="pb-12 w-full ">
           <Title>Media Plan details</Title>

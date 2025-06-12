@@ -4,6 +4,7 @@ import axios from "axios";
 import { getComment, getGeneralComment } from "features/Comment/commentSlice";
 import { useAppDispatch, useAppSelector } from "store/useStore";
 import { client } from '../../types/types';
+import { useSession } from "next-auth/react";
 const CommentContext = createContext(null);
 
 export const useComments = () => {
@@ -42,6 +43,9 @@ export const CommentProvider = ({ children}) => {
 
 	const dispatch = useAppDispatch();
 	const { data } = useAppSelector((state) => state.comment);
+	const {data:session} = useSession()
+	const jwt =
+    (session?.user as { data?: { jwt: string } })?.data?.jwt
 
 
 
@@ -81,10 +85,10 @@ export const CommentProvider = ({ children}) => {
 			}, {
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+					Authorization: `Bearer ${jwt}`,
 				},
 			});
-			dispatch(getGeneralComment(commentId));
+			dispatch(getGeneralComment(commentId, jwt));
 			setGeneralComment("");
 			setIsLoadingGeneral(false);
 			setGeneralcommentsSuccess(true);
@@ -106,10 +110,10 @@ export const CommentProvider = ({ children}) => {
 			}, {
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+					Authorization: `Bearer ${jwt}`,
 				},
 			});
-			dispatch(getGeneralComment(commentId));
+			dispatch(getGeneralComment(commentId, jwt));
 			setGeneralComment("");
 			setIsLoadingGeneral(false);
 			setGeneralcommentsSuccess(true);
@@ -136,14 +140,14 @@ export const CommentProvider = ({ children}) => {
 			}, {
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+					Authorization: `Bearer ${jwt}`,
 				},
 			});
 			setOpportunities([])
 			localStorage.setItem("opportunities", JSON.stringify(null));
 			setComments((prev) => [...prev, response?.data?.data]);
 			setShowAdd(response.data.data.commentId);
-			dispatch(getComment(commentId));
+			dispatch(getComment(commentId, jwt));
 			setComment("");
 			setIsLoading(false);
 			setCreateCommentsSuccess(true);
@@ -169,7 +173,7 @@ export const CommentProvider = ({ children}) => {
 			}, {
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+					Authorization: `Bearer ${jwt}`,
 				},
 			});
 			setIsLoadingApproval(false);
@@ -192,7 +196,7 @@ export const CommentProvider = ({ children}) => {
 				`${process.env.NEXT_PUBLIC_STRAPI_URL}/comments/${documentId}`,
 				{
 					headers: {
-						Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+						Authorization: `Bearer ${jwt}`,
 					},
 				}
 			);
@@ -210,13 +214,13 @@ export const CommentProvider = ({ children}) => {
 				},
 				{
 					headers: {
-						Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+						Authorization: `Bearer ${jwt}`,
 					},
 				}
 			);
 			setReplyText("");
 			setIsLoadingReply(false);
-			dispatch(getComment(commentId));
+			dispatch(getComment(commentId, jwt));
 		} catch (error) {
 			setIsLoadingReply(false);
 			setReplyError(error);
@@ -241,13 +245,13 @@ export const CommentProvider = ({ children}) => {
 				},
 				{
 					headers: {
-						Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+						Authorization: `Bearer ${jwt}`,
 					},
 				}
 			);
 
 			setapprovedIsLoading(false);
-			dispatch(getComment(commentId));
+			dispatch(getComment(commentId, jwt));
 		} catch (error) {
 			setapprovedIsLoading(false);
 			setApprovedError(error);
@@ -271,7 +275,7 @@ export const CommentProvider = ({ children}) => {
 				},
 				{
 					headers: {
-						Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+						Authorization: `Bearer ${jwt}`,
 					},
 				}
 			);

@@ -49,6 +49,9 @@ interface ResizableChannelsProps {
   openItems?: any;
   setOpenItems?: any;
   endMonth?: any;
+  endDay?: any;
+  endWeek?: any;
+  dailyWidth?: any;
 }
 
 const DEFAULT_MEDIA_OPTIONS = [
@@ -71,8 +74,11 @@ const ResizableChannels = ({
   openItems,
   setOpenItems,
   endMonth,
+  endDay,
+  endWeek,
+  dailyWidth,
 }: ResizableChannelsProps) => {
-  const { campaignFormData, setCampaignFormData, setCopy, cId, campaignData } =
+  const { campaignFormData, setCampaignFormData, setCopy, cId, campaignData, jwt } =
     useCampaigns();
   const { funnelWidths } = useFunnelContext(); // Get parent widths
   const draggingDataRef = useRef(null);
@@ -123,21 +129,31 @@ const ResizableChannels = ({
     index: number;
   } | null>(null);
 
-  const calculateDailyWidth = (containerWidth: number, endMonth: number): number => {
+  const calculateDailyWidth = (
+    containerWidth: number,
+    endMonth: number
+  ): number => {
     const totalDays = endMonth * 31;
     return containerWidth / totalDays;
   };
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    const dailyWidth = calculateDailyWidth(containerWidth, endMonth);
-    const baseStep = rrange === "Month" ? dailyWidth: 50;
+    console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth);
+    const baseStep = dailyWidth;
+    // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
+    const adjustmentPerStep = 0; // Decrease each next step by 10
     const snapPoints = [];
+    // console.log("🚀 ~ snapToTimeline ~ snapPoints:", snapPoints);
+
     let currentSnap = 0;
     let step = baseStep;
 
+    // Generate snap points with decreasing step size
     while (currentSnap <= containerWidth) {
       snapPoints.push(currentSnap);
+      // console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
       currentSnap += step;
+      step = Math.max(dailyWidth, step - adjustmentPerStep);
     }
 
     const closestSnap = snapPoints.reduce((prev, curr) =>
@@ -146,6 +162,7 @@ const ResizableChannels = ({
         : prev
     );
 
+    // console.log("Closest custom snap:", closestSnap);
     return closestSnap;
   };
 
@@ -169,12 +186,15 @@ const ResizableChannels = ({
 
   const handleMouseMoveResize = (e: MouseEvent) => {
     if (!isResizing.current) return;
-    const { startX, startWidth, startPos, direction, index } = isResizing.current;
+    const { startX, startWidth, startPos, direction, index } =
+      isResizing.current;
 
     let newWidth = startWidth;
     let newPos = startPos;
 
-    const gridContainer = document.querySelector(".grid-container") as HTMLElement;
+    const gridContainer = document.querySelector(
+      ".grid-container"
+    ) as HTMLElement;
     if (!gridContainer) return;
 
     const containerRect = gridContainer.getBoundingClientRect();
@@ -192,19 +212,57 @@ const ResizableChannels = ({
     } else {
       const rawNewWidth = startWidth + (e.clientX - startX);
       const rightEdgePos = startPos + rawNewWidth;
-      const snappedRightEdge = snapToTimeline(rightEdgePos, containerRect.width);
-      newWidth = Math.max(50, snappedRightEdge - startPos + 10);
+      const snappedRightEdge = snapToTimeline(
+        rightEdgePos,
+        containerRect.width
+      );
+      newWidth = Math.max(50, snappedRightEdge -3 - startPos);
     }
 
+    // Handle parent width constraints
+    const parentRightEdge = parentLeft + parentWidth;
+
+    // If channel position is beyond parent bounds, move it to fit within parent
+    if (newPos >= parentRightEdge) {
+      // Channel is completely outside parent bounds - move it to the right edge
+      newPos = Math.max(parentLeft, parentRightEdge - 50); // Minimum width of 50
+      newWidth = Math.min(50, parentWidth);
+    } else if (newPos < parentLeft) {
+      // Channel starts before parent - adjust position to parent start
+      newPos = parentLeft;
+      newWidth = Math.min(newWidth, parentWidth);
+    } else {
+      // Channel position is within parent bounds - maintain position, adjust width if needed
+      if (newPos + newWidth > parentRightEdge) {
+        newWidth = parentRightEdge - newPos;
+      }
+    }
+
+    // Ensure channel doesn't exceed container bounds
     if (newPos + newWidth > maxX) {
       newWidth = maxX - newPos;
     }
+
+    // Ensure minimum width
+    newWidth = Math.max(50, newWidth);
 
     setChannelState((prev) =>
       prev.map((state, i) =>
         i === index ? { ...state, left: newPos, width: newWidth } : state
       )
     );
+
+    // Update campaign data immediately during resize
+    const startPixel = newPos - parentLeft;
+    const endPixel = startPixel + newWidth;
+    const newStartDate = pixelToDate(
+      startPixel,
+      parentWidth,
+      index,
+      "startDate"
+    );
+    const newEndDate = pixelToDate(endPixel, parentWidth, index, "endDate");
+    draggingDataRef.current = { index, newStartDate, newEndDate };
   };
 
   const handleMouseUp = () => {
@@ -286,6 +344,10 @@ const ResizableChannels = ({
 
     const calculatedDate = new Date(startDate);
     calculatedDate.setDate(startDate?.getDate() + dayIndex);
+
+    // if (fieldName === "endDate") {
+    //   calculatedDate.setDate(calculatedDate.getDate() + 1);
+    // }
 
     const updatedCampaignFormData = { ...campaignFormData };
 
@@ -497,7 +559,7 @@ const ResizableChannels = ({
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
@@ -565,9 +627,9 @@ const ResizableChannels = ({
                 isEqual(date, adjustedStageStartDate)
               ) *
               (rrange === "Day"
-                ? 50
+                ? dailyWidth
                 : rrange === "Week"
-                ? 50
+                ? dailyWidth
                 : Math.round(screenWidth / endMonth / 31))
             : 0;
 
@@ -603,11 +665,11 @@ const ResizableChannels = ({
                 width: Math.min(
                   rrange === "Day"
                     ? daysBetween > 0
-                      ? 50 * daysBetween + 60
+                      ? dailyWidth * daysBetween
                       : parentWidth
                     : rrange === "Week"
                     ? daysBetween > 0
-                      ? 50 * daysBetween + 10
+                      ? dailyWidth * daysBetween
                       : parentWidth
                     : rrange === "Month"
                     ? daysBetween > 0
@@ -616,17 +678,17 @@ const ResizableChannels = ({
                     : parentWidth,
                   rrange === "Day"
                     ? daysBetween > 0
-                      ? 50 * daysBetween + 60
-                      : parentWidth
+                      ? dailyWidth * daysBetween
+                      : parentWidth - 25
                     : rrange === "Week"
                     ? daysBetween > 0
-                      ? 50 * daysBetween + 10
-                      : parentWidth
+                      ? dailyWidth * daysBetween + 10
+                      : parentWidth - 9
                     : rrange === "Month"
                     ? daysBetween > 0
                       ? Math.round(screenWidth / endMonth / 31) * daysBetween
                       : parentWidth
-                    : parentWidth
+                    : parentWidth - 9
                 ),
               }
             : {
@@ -645,7 +707,7 @@ const ResizableChannels = ({
     parentWidth,
     campaignFormData,
     // openItems,
-    dRange,
+    // dRange,
   ]);
 
   useEffect(() => {
@@ -808,7 +870,7 @@ const ResizableChannels = ({
           >
             <div>
               <div
-                className={` ${"relative"} top-0 h-full flex ${
+                className={` relative top-0 h-full flex ${
                   disableDrag
                     ? "justify-between min-w-[50px]"
                     : "justify-center cursor-move"
@@ -817,7 +879,7 @@ const ResizableChannels = ({
                   left: `${channelState[index]?.left || parentLeft}px`,
                   width: `${
                     channelState[index]?.width +
-                      (disableDrag ? 40 : rrange === "Month" ? 40 : 40) || 150
+                      (disableDrag ? 73 : rrange === "Month" ? 40 : 58)
                   }px`,
                   backgroundColor: channel.bg,
                   color: channel.color,
@@ -825,7 +887,7 @@ const ResizableChannels = ({
                   borderRadius: "10px",
                   minWidth:
                     rrange === "Day"
-                      ? "100px"
+                      ? "50px"
                       : rrange === "Week"
                       ? "50px"
                       : `${channelState[index]?.width}px`,
@@ -845,6 +907,32 @@ const ResizableChannels = ({
                     {channel.name}
                   </span>
                 </div>
+                {!disableDrag && (
+                  <button
+                    className="delete-resizeableBar z-[20]"
+                    onClick={() => {
+                      if (
+                        disableDrag ||
+                        openItems === `${channel?.name}${index}`
+                      ) {
+                        return;
+                      }
+                      handleDeleteChannel(index);
+                      setId(index);
+                    }}
+                  >
+                    {deleting && id === index ? (
+                      <div className="w-[30px] h-[30px] rounded-full flex items-center justify-center bg-red-600">
+                        <FaSpinner className="animate-spin text-white" />
+                      </div>
+                    ) : (
+                      <Image
+                        src={reddelete || "/placeholder.svg"}
+                        alt="reddelete"
+                      />
+                    )}
+                  </button>
+                )}
                 {disableDrag && (
                   <div
                     className="rounded-[5px] px-[12px] font-medium bg-opacity-15 text-[15px]"
@@ -867,16 +955,14 @@ const ResizableChannels = ({
             {
               <>
                 <div
-                  className={`absolute top-0 ${
-                    rrange === "Month" ? "w-2" : "w-5"
-                  } h-[46px] cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
+                  className={`absolute top-0 w-5 h-[46px] cursor-ew-resize rounded-l-[10px] text-white flex items-center justify-center ${
                     disableDrag && "hidden"
                   }`}
                   style={{
                     left: `${channelState[index]?.left || parentLeft}px`,
                     backgroundColor: channel.color,
                   }}
-                  onMouseDown={(e)=>
+                  onMouseDown={(e) =>
                     disableDrag || openItems
                       ? undefined
                       : handleMouseDownResize(e, "left", index)
@@ -885,52 +971,24 @@ const ResizableChannels = ({
                   <MdDragHandle className="rotate-90" />
                 </div>
                 <div
-                  className={`absolute top-0 ${
-                    rrange === "Month" ? "w-2" : "w-5"
-                  } h-[46px] cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
+                  className={`absolute top-0 w-5 h-[46px] cursor-ew-resize rounded-r-[10px] text-white flex items-center justify-center ${
                     disableDrag && "hidden"
                   }`}
                   style={{
                     left: `${
                       (channelState[index]?.left || parentLeft) +
                       (channelState[index]?.width +
-                        (rrange === "Month" ? 30 : 20) || 150)
+                        (rrange === "Month" ? 30 : 40) || 150)
                     }px`,
                     backgroundColor: channel.color,
                   }}
-                  onMouseDown={(e)=>
+                  onMouseDown={(e) =>
                     disableDrag || openItems
                       ? undefined
                       : handleMouseDownResize(e, "right", index)
                   }
                 >
                   <MdDragHandle className="rotate-90" />
-                  {!disableDrag && (
-                    <button
-                      className="delete-resizeableBar"
-                      onClick={() => {
-                        if (
-                          disableDrag ||
-                          openItems === `${channel?.name}${index}`
-                        ) {
-                          return;
-                        }
-                        handleDeleteChannel(index);
-                        setId(index);
-                      }}
-                    >
-                      {deleting && id === index ? (
-                        <div className="w-[30px] h-[30px] rounded-full flex items-center justify-center bg-red-600">
-                          <FaSpinner className="animate-spin text-white" />
-                        </div>
-                      ) : (
-                        <Image
-                          src={reddelete || "/placeholder.svg"}
-                          alt="reddelete"
-                        />
-                      )}
-                    </button>
-                  )}
                 </div>
               </>
             }

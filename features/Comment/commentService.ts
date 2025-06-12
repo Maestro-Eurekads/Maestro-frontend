@@ -6,7 +6,7 @@ import axios from 'axios'
 
  
  //  Create Comment
-const getComment = async (commentId: any, client_commentId?: any) => {
+const getComment = async (commentId: any, jwt:any,client_commentId?: any) => {
   const filters: any = {
     "filters[commentId][$eq]": commentId,
   };
@@ -20,7 +20,7 @@ const getComment = async (commentId: any, client_commentId?: any) => {
     {
       params: filters,
       headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+        Authorization: `Bearer ${jwt}`,
       },
     }
   );
@@ -29,13 +29,13 @@ const getComment = async (commentId: any, client_commentId?: any) => {
 };
 
  //  Cet Signed Approval
-const getSignedApproval = async (id: any) => {  
+const getSignedApproval = async (id: any, jwt:any) => {  
   const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/client-signature-approvals`,{
       params: {
         "filters[clientId][$eq]": id, // Filtering by commentId
       },
       headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+        Authorization: `Bearer ${jwt}`,
       },
     })    
   return response.data
@@ -43,25 +43,25 @@ const getSignedApproval = async (id: any) => {
  
  //  get General Comment
 const getGeneralComment = async (commentId
-: any) => {  
+: any, jwt:any) => {  
   const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/general-comments`,{
       params: {
         "filters[commentId][$eq]": commentId 
       },
       headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+        Authorization: `Bearer ${jwt}`,
       },
     })    
   return response.data
 }
  
  
-const getCampaignById = async (clientId: string, campaignId: string) => {
+const getCampaignById = async (clientId: string, campaignId: string, jwt:any) => {
   const response = await axios.get(
     `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns?filters[user][id][$eq]=${clientId}&filters[documentId][$eq]=${campaignId}&populate=*`,
     {
       headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+        Authorization: `Bearer ${jwt}`,
       },
     }
   );
@@ -72,7 +72,7 @@ const getCampaignById = async (clientId: string, campaignId: string) => {
 // const getCampaignById = async (campaignId: string) => {
 //   const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignId}&populate=*`, {
 //     headers: {
-//       Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+//       Authorization: `Bearer ${jwt}`,
 //     },
 //   });
 

@@ -27,7 +27,7 @@ function FinanceView({ setOpenModal, userRole }) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10; // Number of items per page
   const { fetchClientPOS } = useCampaignHook();
-  const { clientPOs, setClientPOs, setFetchingPO } = useCampaigns();
+  const { clientPOs, setClientPOs, setFetchingPO, jwt } = useCampaigns();
   const { isFinancialApprover, isAdmin } = useUserPrivileges();
 
   // Calculate paginated data with safety checks
@@ -58,7 +58,7 @@ function FinanceView({ setOpenModal, userRole }) {
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders/${selectedRow?.documentId}`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );

@@ -19,7 +19,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
   const [selected, setSelected] = useState({});
   const [validatedStages, setValidatedStages] = useState({});
-  const { campaignFormData, setCampaignFormData, setCopy, cId, campaignData } =
+  const { campaignFormData, setCampaignFormData, setCopy, cId, campaignData, jwt } =
       useCampaigns();
   const [openChannelTypes, setOpenChannelTypes] = useState({});
   const [showMoreMap, setShowMoreMap] = useState({});
@@ -58,7 +58,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
