@@ -54,13 +54,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     setIsModalOpen(false);
   };
 
-  // --- FIX: Prevent infinite update loop on refresh after switching granularity ---
-  // The problem is that the effect below updates both campaignFormData and view (via onToggleChange)
-  // in response to each other, causing a loop. We need to only update if the view and goal_level are mismatched,
-  // and only update one of them, not both, and not in both directions.
-  // We'll make the effect only update campaignFormData.goal_level if needed, and NOT call onToggleChange here.
-  // The Switch and modal will be the only places to call onToggleChange.
-
   useEffect(() => {
     if (!campaignFormData) return;
 
@@ -79,8 +72,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           goal_level: expectedGoalLevel,
         };
       });
-      // DO NOT call onToggleChange here, as that would update the view and cause a loop.
-      // The Switch and modal handle view changes.
+     
     } else {
       setIsModalOpen(false);
     }
@@ -143,7 +135,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const toggleItem = (stage: string) => {
     setOpenItems((prev) => {
       const newOpenItems = { ...prev, [stage]: !prev[stage] };
-      // No "In progress" status anymore
       return newOpenItems;
     });
   };
@@ -329,7 +320,8 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                     height={20}
                   />
                 )}
-                <p className="text-md font-semibold text-[#4B451A]">
+                {/* Funnel name text color changed to black */}
+                <p className="text-md font-semibold text-black">
                   {stage.name}
                 </p>
               </div>
@@ -387,6 +379,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             {!openItems[stageName] && recapRows.length > 0 && (
               <div className="mt-2 mb-4">
                 <div className="bg-[#F5F7FA] border border-[#E5E7EB] rounded-lg px-4 py-3">
+                  {/* Audience Recap text color changed to black */}
                   <div className="font-bold text-black mb-2 text-sm">
                     Audience Recap
                   </div>
