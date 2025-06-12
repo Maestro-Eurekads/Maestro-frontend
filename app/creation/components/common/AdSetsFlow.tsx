@@ -75,16 +75,20 @@ interface AdSetFlowProps {
   modalOpen?: boolean;
 }
 
+interface AudienceData {
+  audience_type: string;
+  name?: string;
+  size?: string;
+  description?: string;
+}
+
 interface AdSetData {
   id?: number;
   name: string;
   audience_type: string;
   size?: string;
-  extra_audiences?: {
-    audience_type: string;
-    name?: string;
-    size?: string;
-  }[];
+  description?: string;
+  extra_audiences?: AudienceData[];
 }
 
 interface Format {
@@ -214,6 +218,7 @@ const AdSet = memo(function AdSet({
   audienceType,
   adSetName,
   adSetSize,
+  adSetDescription,
   onInteraction,
   adsets,
   extra_audiences,
@@ -227,36 +232,31 @@ const AdSet = memo(function AdSet({
   audienceType?: string;
   adSetName?: string;
   adSetSize?: string;
+  adSetDescription?: string;
   onInteraction: () => void;
   adsets: AdSetType[];
-  extra_audiences?: {
-    audience_type: string;
-    name?: string;
-    size?: string;
-  }[];
+  extra_audiences?: AudienceData[];
   onUpdateExtraAudiences: (
-    audiences: {
-      audience_type: string;
-      name?: string;
-      size?: string;
-    }[]
+    audiences: AudienceData[]
   ) => void;
 }) {
   const [audience, setAudience] = useState<string>(audienceType || "");
   const [name, setName] = useState<string>(adSetName || "");
   const [size, setSize] = useState<string>(adSetSize || "");
-  const [extraAudience, setExtraAudience] = useState<
-    { audience_type: string; name?: string; size?: string }[]
-  >(extra_audiences || []);
+  const [description, setDescription] = useState<string>(adSetDescription || "");
+  const [extraAudience, setExtraAudience] = useState<AudienceData[]>(
+    extra_audiences || []
+  );
 
   useEffect(() => {
     if (audienceType !== undefined) setAudience(audienceType);
     if (adSetName !== undefined) setName(adSetName);
     if (adSetSize !== undefined) setSize(adSetSize);
-  }, [audienceType, adSetName, adSetSize]);
+    if (adSetDescription !== undefined) setDescription(adSetDescription);
+  }, [audienceType, adSetName, adSetSize, adSetDescription]);
 
   const updateExtraAudienceMap = (
-    updatedList: { audience_type: string; name?: string; size?: string }[]
+    updatedList: AudienceData[]
   ) => {
     setExtraAudience(updatedList);
     const cleaned = updatedList.filter((item) => item.audience_type?.trim());
@@ -312,6 +312,16 @@ const AdSet = memo(function AdSet({
     [adset.id, onUpdate, onInteraction]
   );
 
+  const handleDescriptionChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newDescription = e.target.value;
+      setDescription(newDescription);
+      onUpdate(adset.id, { description: newDescription });
+      onInteraction();
+    },
+    [adset.id, onUpdate, onInteraction]
+  );
+
   const handleExtraAudienceSizeChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     index: number
@@ -322,6 +332,15 @@ const AdSet = memo(function AdSet({
     }
     const updated = [...extraAudience];
     updated[index].size = inputValue;
+    updateExtraAudienceMap(updated);
+  };
+
+  const handleExtraAudienceDescriptionChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    const updated = [...extraAudience];
+    updated[index].description = e.target.value;
     updateExtraAudienceMap(updated);
   };
 
@@ -383,6 +402,14 @@ const AdSet = memo(function AdSet({
                   inputMode="numeric"
                   pattern="[0-9,]*"
                 />
+                <input
+                  type="text"
+                  placeholder="Description"
+                  value={audi.description || ""}
+                  onChange={(e) => handleExtraAudienceDescriptionChange(e, index)}
+                  disabled={!isEditing}
+                  className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[180px]"
+                />
                 <button
                   disabled={!isEditing}
                   onClick={() => handleDeleteExtraAudience(index)}
@@ -405,7 +432,7 @@ const AdSet = memo(function AdSet({
               if (canAddNewAudience) {
                 const updated = [
                   ...extraAudience,
-                  { audience_type: "", name: "", size: "" },
+                  { audience_type: "", name: "", size: "", description: "" },
                 ];
                 updateExtraAudienceMap(updated);
               }
@@ -438,6 +465,16 @@ const AdSet = memo(function AdSet({
         }`}
         inputMode="numeric"
         pattern="[0-9,]*"
+      />
+      <input
+        type="text"
+        placeholder="Description"
+        value={description}
+        onChange={handleDescriptionChange}
+        disabled={!isEditing}
+        className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[180px] ${
+          !isEditing ? "cursor-not-allowed" : ""
+        }`}
       />
       <button
         disabled={!isEditing}
@@ -727,7 +764,7 @@ const AdsetSettings = memo(function AdsetSettings({
       const newAdSetId = Date.now();
       setAdSets([{ id: newAdSetId, addsetNumber: 1 }]);
       setAdSetDataMap({
-        [newAdSetId]: { name: "", audience_type: "", size: "" },
+        [newAdSetId]: { name: "", audience_type: "", size: "", description: "" },
       });
       return;
     }
@@ -744,6 +781,7 @@ const AdsetSettings = memo(function AdsetSettings({
           name: adSet.name || "",
           audience_type: adSet.audience_type || "",
           size: adSet.size || "",
+          description: adSet.description || "",
           extra_audiences: adSet?.extra_audiences,
         };
       });
@@ -753,7 +791,7 @@ const AdsetSettings = memo(function AdsetSettings({
       const newAdSetId = Date.now();
       setAdSets([{ id: newAdSetId, addsetNumber: 1 }]);
       setAdSetDataMap({
-        [newAdSetId]: { name: "", audience_type: "", size: "" },
+        [newAdSetId]: { name: "", audience_type: "", size: "", description: "" },
       });
     }
   }, [stageName, outlet.outlet, selectedPlatforms, defaultOpen]);
@@ -771,7 +809,7 @@ const AdsetSettings = memo(function AdsetSettings({
     ]);
     setAdSetDataMap((prev) => ({
       ...prev,
-      [newAdSetId]: { name: "", audience_type: "", size: "" },
+      [newAdSetId]: { name: "", audience_type: "", size: "", description: "" },
     }));
     onInteraction && onInteraction();
   }, [onInteraction, adsets.length]);
@@ -788,7 +826,7 @@ const AdsetSettings = memo(function AdsetSettings({
           setTimeout(() => {
             setAdSets([{ id: newAdSetId, addsetNumber: 1 }]);
             setAdSetDataMap({
-              [newAdSetId]: { name: "", audience_type: "", size: "" },
+              [newAdSetId]: { name: "", audience_type: "", size: "", description: "" },
             });
           }, 0);
         }
@@ -808,12 +846,14 @@ const AdsetSettings = memo(function AdsetSettings({
             name: "",
             audience_type: "",
             size: "",
+            description: "",
           };
           return {
             id: adset.id,
             name: data.name,
             audience_type: data.audience_type,
             size: data.size,
+            description: data.description,
             extra_audiences: data.extra_audiences || [],
           };
         })
@@ -886,12 +926,15 @@ const AdsetSettings = memo(function AdsetSettings({
           const data = adSetDataMap[adset.id] || {
             name: "",
             audience_type: "",
+            size: "",
+            description: "",
           };
           return {
             id: adset.id,
             name: data.name,
             audience_type: data.audience_type,
             size: data.size,
+            description: data.description,
             extra_audiences: data.extra_audiences || [],
           };
         })
@@ -930,6 +973,7 @@ const AdsetSettings = memo(function AdsetSettings({
     type: string;
     name: string;
     size: string;
+    description?: string;
     adSetNumber: number;
     isExtra: boolean;
   }[] = [];
@@ -939,24 +983,27 @@ const AdsetSettings = memo(function AdsetSettings({
       name: "",
       audience_type: "",
       size: "",
+      description: "",
       extra_audiences: [],
     };
-    if (adSetData.audience_type || adSetData.name || adSetData.size) {
+    if (adSetData.audience_type || adSetData.name || adSetData.size || adSetData.description) {
       recapRows.push({
         type: adSetData.audience_type || "",
         name: adSetData.name || "",
         size: adSetData.size || "",
+        description: adSetData.description || "",
         adSetNumber: adset.addsetNumber,
         isExtra: false,
       });
     }
     if (Array.isArray(adSetData.extra_audiences)) {
       adSetData.extra_audiences.forEach((ea, eidx) => {
-        if (ea.audience_type || ea.name || ea.size) {
+        if (ea.audience_type || ea.name || ea.size || ea.description) {
           recapRows.push({
             type: ea.audience_type || "",
             name: ea.name || "",
             size: ea.size || "",
+            description: ea.description || "",
             adSetNumber: adset.addsetNumber,
             isExtra: true,
           });
@@ -1025,6 +1072,7 @@ const AdsetSettings = memo(function AdsetSettings({
                       name: "",
                       audience_type: "",
                       size: "",
+                      description: "",
                     };
                     return (
                       <div
@@ -1044,12 +1092,9 @@ const AdsetSettings = memo(function AdsetSettings({
                           audienceType={adSetData.audience_type}
                           adSetName={adSetData.name}
                           adSetSize={adSetData.size}
+                          adSetDescription={adSetData.description}
                           extra_audiences={
-                            (adSetData.extra_audiences as {
-                              audience_type: string;
-                              name?: string;
-                              size?: string;
-                            }[]) || []
+                            (adSetData.extra_audiences as AudienceData[]) || []
                           }
                           onUpdateExtraAudiences={(extraAudienceArray) =>
                             updateAdSetData(adset.id, {
@@ -1082,6 +1127,7 @@ const AdsetSettings = memo(function AdsetSettings({
                     <th className="text-left pr-4 py-1">Audience Type</th>
                     <th className="text-left pr-4 py-1">Audience Name</th>
                     <th className="text-left pr-4 py-1">Audience Size</th>
+                    <th className="text-left pr-4 py-1">Description</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1097,6 +1143,7 @@ const AdsetSettings = memo(function AdsetSettings({
                       <td className="pr-4 py-1">
                         {formatWithThousandSeparator(row.size)}
                       </td>
+                      <td className="pr-4 py-1">{row.description}</td>
                     </tr>
                   ))}
                 </tbody>

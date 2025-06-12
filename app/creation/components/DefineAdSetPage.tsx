@@ -387,11 +387,11 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             {!openItems[stageName] && recapRows.length > 0 && (
               <div className="mt-2 mb-4">
                 <div className="bg-[#F5F7FA] border border-[#E5E7EB] rounded-lg px-4 py-3">
-                  <div className="font-bold text-[#4B451A] mb-2 text-sm">
+                  <div className="font-bold text-black mb-2 text-sm">
                     Audience Recap
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="min-w-full text-xs text-[#4B451A]">
+                    <table className="min-w-full text-xs text-black">
                       <thead>
                         <tr>
                           <th className="text-left pr-4 py-1 font-bold">Platform</th>
