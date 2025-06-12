@@ -17,6 +17,7 @@ import { channelMixPopulate } from "utils/fetcher";
 import { useSession } from "next-auth/react";
 import { updateUsersWithCampaign } from "app/homepage/functions/clients";
 import { extractObjectives } from "app/creation/components/EstablishedGoals/table-view/data-processor";
+import { useUserPrivileges } from "utils/userPrivileges";
 
 // Get initial state from localStorage if available
 const getInitialState = () => {
@@ -84,6 +85,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [fetchingPO, setFetchingPO] = useState(false);
   const [isStepZeroValid, setIsStepZeroValid] = useState(false);
   const [currencySign, setCurrencySign] = useState("");
+  const { loggedInUser } = useUserPrivileges()
   const [user, setUser] = useState(null);
   const [headerData, setHeaderData] = useState({});
   const [filterOptions, setFilterOptions] = useState({
@@ -245,7 +247,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         {
           data: {
             //@ts-ignore
-            campaign_builder: campaign_builder?.id,
+            campaign_builder: loggedInUser?.id,
             client: campaignFormData?.client_selection?.id,
             client_selection: {
               client: campaignFormData?.client_selection?.value,
