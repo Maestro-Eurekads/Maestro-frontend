@@ -3,7 +3,7 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 import React from "react";
 import { useDateRange } from "src/date-range-context";
 
-const WeekInterval = ({ weeksCount, funnelData, disableDrag }) => {
+const WeekInterval = ({ weeksCount, funnelData, disableDrag }:{weeksCount:any, funnelData?:any, disableDrag?:any}) => {
   const { campaignFormData } = useCampaigns();
   const { range } = useDateRange();
   return (

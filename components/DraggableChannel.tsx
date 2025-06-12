@@ -34,6 +34,7 @@ interface DraggableChannelProps {
   color?: any;
   endDay?: any;
   endWeek?: any;
+  dailyWidth?:any
 }
 
 const DraggableChannel: React.FC<DraggableChannelProps> = ({
@@ -59,6 +60,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   color,
   endDay,
   endWeek,
+  dailyWidth
 }) => {
   const { funnelWidths, setFunnelWidth } = useFunnelContext();
   const [position, setPosition] = useState(0);
@@ -76,21 +78,22 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     setPosition(parentLeft);
   }, [parentLeft]);
 
-  const pixelToDate = (pixel: number, containerWidth: number) => {
-    const startDate = dateList[0]; // First date in the range
-    const totalDays = dateList.length - 1; // Use totalDays - 1 to match grid intervals
+  const pixelToDate = (pixel: number, containerWidth: number, fieldName?:string) => {
+    const startDate = dateList[0] // First date in the range
+    const totalDays = dateList.length - 1 // Use totalDays - 1 to match grid intervals
 
     // Convert pixel to date index
-    const dayIndex = Math.min(
-      totalDays,
-      Math.max(0, Math.round((pixel / containerWidth) * totalDays))
-    );
+    const dayIndex = Math.min(totalDays, Math.max(0, Math.round((pixel / containerWidth) * totalDays)))
 
-    const calculatedDate = new Date(startDate);
-    calculatedDate.setDate(startDate.getDate() + dayIndex);
+    const calculatedDate = new Date(startDate)
+    calculatedDate.setDate(startDate.getDate() + dayIndex)
 
-    return calculatedDate;
-  };
+    if (fieldName === "endDate") {
+      calculatedDate.setDate(calculatedDate.getDate() + 1); // Add 1 day to fix the issue
+    }
+
+    return calculatedDate
+  }
 
   function calculateDailyWidth(containerWidth: number, count: number): number {
     const adjustedWidth = containerWidth; // adjust for padding/margin if needed
@@ -105,10 +108,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   }
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    const dailyWidth = calculateDailyWidth(
-      containerWidth,
-      range !== "Month" ? endDay : endMonth
-    );
     console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth);
     const baseStep = dailyWidth;
     // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
@@ -199,7 +198,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       );
 
       // Calculate the new width based on the snapped right edge
-      newWidth = Math.max(50, snappedRightEdge - 15 - startPos);
+      newWidth = Math.max(50, snappedRightEdge - 38 - startPos);
     }
 
     // Ensure we don't exceed container boundaries
@@ -209,7 +208,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
     // Convert pixel positions to dates
     const startDate = pixelToDate(newPos, containerRect.width);
-    const endDate = pixelToDate(newPos + newWidth, containerRect.width);
+    const endDate = pixelToDate(newPos + newWidth, containerRect.width, "endDate");
 
     const updatedChannelMix = campaignFormData?.channel_mix?.find(
       (ch) => ch?.funnel_stage === description
@@ -280,7 +279,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
     // Convert pixel positions to dates
     const startDate = pixelToDate(startPixel, containerRect.width);
-    const endDate = pixelToDate(endPixel, containerRect.width);
+    const endDate = pixelToDate(endPixel, containerRect.width, "endDate");
 
     const updatedChannelMix = campaignFormData?.channel_mix?.find(
       (ch) => ch?.funnel_stage === description
@@ -334,7 +333,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         style={{
           width: disableDrag
             ? `${parentWidth + (range === "Month" ? 53 : 43)}px`
-            : parentWidth - (range === "Day" ? 25 : 8),
+            : parentWidth,
           backgroundColor: color,
           transition: "transform 0.2s ease-out",
         }}
