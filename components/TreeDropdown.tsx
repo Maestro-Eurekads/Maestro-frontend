@@ -25,15 +25,15 @@ const TreeDropdown: React.FC<Props> = ({ data }) => {
 	};
 
 	return (
-		<div >
-			<h2>Select Parameters & Sub-Parameters</h2>
+		<div className='w-[330px]'>
+			{/* <h2>Business level 1</h2> */}
 			<TreeSelect
 				treeData={treeOptions}
 				value={value}
 				onChange={onChange}
 				treeCheckable
 				showCheckedStrategy={TreeSelect.SHOW_CHILD}
-				placeholder="Select parameters"
+				placeholder={data.title}
 				style={{ width: '100%' }}
 				allowClear
 			/>

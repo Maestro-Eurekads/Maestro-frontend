@@ -299,6 +299,8 @@ export const SetupScreen = () => {
         <div className="flex items-center flex-wrap gap-4 pb-12">
 
           <TreeDropdown data={sampleData} />
+          <TreeDropdown data={sampleData} />
+          <TreeDropdown data={sampleData} />
           {/* <ClientSelection
             options={level1Options?.slice(1)}
             label={
