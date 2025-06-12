@@ -34,6 +34,15 @@ import { getPlatformIcon, mediaTypes } from "components/data";
 import axios from "axios";
 import toast from "react-hot-toast";
 
+// --- Custom Audience Types Context ---
+const CustomAudienceTypesContext = createContext<{
+  customAudienceTypes: string[];
+  addCustomAudienceType: (type: string) => void;
+}>({
+  customAudienceTypes: [],
+  addCustomAudienceType: () => {},
+});
+
 // Helper for thousand separator
 function formatWithThousandSeparator(value: string | number) {
   if (value === undefined || value === null) return "";
@@ -501,13 +510,22 @@ const AudienceDropdownWithCallback = memo(
     dropdownId: number | string;
   }) {
     const { openDropdownId, setOpenDropdownId } = useContext(DropdownContext);
-    const [selected, setSelected] = useState<string>(initialValue || "");
-    const [audienceOptions, setAudienceOptions] = useState<string[]>([
+    const { customAudienceTypes, addCustomAudienceType } = useContext(CustomAudienceTypesContext);
+
+    // Default options
+    const defaultOptions = [
       "Lookalike audience",
       "Retargeting audience",
       "Broad audience",
       "Behavioral audience",
-    ]);
+    ];
+
+    // Merge default and custom, deduped
+    const mergedAudienceOptions = Array.from(
+      new Set([...defaultOptions, ...customAudienceTypes])
+    );
+
+    const [selected, setSelected] = useState<string>(initialValue || "");
     const [searchTerm, setSearchTerm] = useState("");
     const [showCustomInput, setShowCustomInput] = useState(false);
     const [customValue, setCustomValue] = useState("");
@@ -518,7 +536,19 @@ const AudienceDropdownWithCallback = memo(
       if (initialValue) setSelected(initialValue);
     }, [initialValue]);
 
-    const filteredOptions = audienceOptions.filter((option) =>
+    // If a custom value is selected but not in options, add it to context
+    useEffect(() => {
+      if (
+        selected &&
+        !defaultOptions.includes(selected) &&
+        !customAudienceTypes.includes(selected)
+      ) {
+        addCustomAudienceType(selected);
+      }
+      // eslint-disable-next-line
+    }, [selected]);
+
+    const filteredOptions = mergedAudienceOptions.filter((option) =>
       option.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -559,7 +589,7 @@ const AudienceDropdownWithCallback = memo(
           }
         );
         const data = res?.data?.data;
-        setAudienceOptions((prev) => [...prev, data.text]);
+        addCustomAudienceType(data.text);
         setSelected(data.text);
         onSelect(data.text);
         setCustomValue("");
@@ -1178,6 +1208,38 @@ const AdSetFlow = memo(function AdSetFlow({
     Record<string, boolean>
   >({});
 
+  // --- Custom Audience Types State (persisted in-memory for session) ---
+  const [customAudienceTypes, setCustomAudienceTypes] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = window.sessionStorage.getItem("customAudienceTypes");
+        if (stored) {
+          return JSON.parse(stored);
+        }
+      } catch (e) {}
+    }
+    return [];
+  });
+
+  // Persist custom audience types to sessionStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem(
+        "customAudienceTypes",
+        JSON.stringify(customAudienceTypes)
+      );
+    }
+  }, [customAudienceTypes]);
+
+  const addCustomAudienceType = useCallback((type: string) => {
+    setCustomAudienceTypes((prev) => {
+      if (!prev.includes(type)) {
+        return [...prev, type];
+      }
+      return prev;
+    });
+  }, []);
+
   const getPlatformsFromStage = useCallback(() => {
     const platformsByStage: Record<string, OutletType[]> = {};
     const channelMix = campaignFormData?.channel_mix || [];
@@ -1339,15 +1401,32 @@ const AdSetFlow = memo(function AdSetFlow({
   };
 
   return (
-    <div className="w-full space-y-4 p-4">
-      {platformName
-        ? platforms[stageName]
-            ?.filter((outlet) =>
-              Array.isArray(platformName)
-                ? platformName.includes(outlet.outlet)
-                : outlet.outlet === platformName
-            )
-            .map((outlet) => (
+    <CustomAudienceTypesContext.Provider
+      value={{
+        customAudienceTypes,
+        addCustomAudienceType,
+      }}
+    >
+      <div className="w-full space-y-4 p-4">
+        {platformName
+          ? platforms[stageName]
+              ?.filter((outlet) =>
+                Array.isArray(platformName)
+                  ? platformName.includes(outlet.outlet)
+                  : outlet.outlet === platformName
+              )
+              .map((outlet) => (
+                <AdsetSettings
+                  key={outlet.id}
+                  outlet={outlet}
+                  stageName={stageName}
+                  onInteraction={handleInteraction}
+                  defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
+                  isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
+                  setCollapsed={(collapsed) => handleToggleCollapsed(outlet.outlet)}
+                />
+              ))
+          : platforms[stageName]?.map((outlet) => (
               <AdsetSettings
                 key={outlet.id}
                 outlet={outlet}
@@ -1357,19 +1436,9 @@ const AdSetFlow = memo(function AdSetFlow({
                 isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
                 setCollapsed={(collapsed) => handleToggleCollapsed(outlet.outlet)}
               />
-            ))
-        : platforms[stageName]?.map((outlet) => (
-            <AdsetSettings
-              key={outlet.id}
-              outlet={outlet}
-              stageName={stageName}
-              onInteraction={handleInteraction}
-              defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
-              isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
-              setCollapsed={(collapsed) => handleToggleCollapsed(outlet.outlet)}
-            />
-          ))}
-    </div>
+            ))}
+      </div>
+    </CustomAudienceTypesContext.Provider>
   );
 });
 
