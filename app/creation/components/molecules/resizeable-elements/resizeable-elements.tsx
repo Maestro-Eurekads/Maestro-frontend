@@ -277,7 +277,7 @@ const ResizeableElements = ({
               end: campaignFormData?.campaign_timeline_end_date
                 ? parseISO(campaignFormData?.campaign_timeline_end_date)
                 : null,
-            }).length - 1;
+            }).length;
           const endMonth = funnelData?.endMonth || 1;
           const dailyWidth = calculateDailyWidth(screenWidth, endMonth);
           console.log("startDateIndex", {
@@ -288,16 +288,12 @@ const ResizeableElements = ({
           initialWidths[stageName] = (() => {
             if (rrange === "Day") {
               return daysBetween > 0
-                ? (screenWidth > contWidth
-                    ? contWidth / funnelData?.endDay
-                    : 50) *
-                    daysBetween +
-                    10
-                : contWidth - 45;
+                ? getDailyWidth() * daysBetween + 18
+                : getDailyWidth() * daysFromStart - 40;
             } else if (rrange === "Week") {
               return daysBetween > 0
-                ? 50 * daysBetween + 10
-                : 50 * daysFromStart + 5;
+                ? getDailyWidth() * daysBetween + 10
+                : getDailyWidth() * daysFromStart - 40;
             } else {
               let monthBaseWidth;
               // if (endMonth === 1) {
@@ -313,7 +309,7 @@ const ResizeableElements = ({
             }
           })();
 
-          initialPositions[stageName] = startDateIndex ;
+          initialPositions[stageName] = startDateIndex;
         }
       });
 
