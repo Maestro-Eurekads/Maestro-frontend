@@ -187,7 +187,7 @@ const Table = () => {
   return (
     <div className="flex flex-col overflow-x-scroll">
       <div className="table-container  mt-[20px] ">
-        <table className="w-full  ">
+        <table className="w-full">
           <thead>
             <tr>
               <th className="py-[12px] px-[16px]">Name</th>

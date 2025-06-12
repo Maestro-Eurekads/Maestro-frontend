@@ -116,7 +116,7 @@ const Header = ({ setIsOpen }) => {
         const channelData = extractChannelAndPhase(campaigns);
         const levelData = extractLevelFilters(campaigns);
         const levelNames = extractLevelNameFilters(filteredClient);
-
+        console.log('extractLevelNameFilters', levelNames)
         setFilterOptions((prev) => ({
           ...prev,
           ...dateData,
