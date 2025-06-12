@@ -260,9 +260,9 @@ const ResizeableElements = ({
           const startDateIndex = stageStartDate
             ? range?.findIndex((date) => isEqual(date, stageStartDate)) *
               (rrange === "Day"
-                ? 50
+                ? getDailyWidth()
                 : rrange === "Week"
-                ? 50
+                ? getDailyWidth()
                 : Math.floor(containerWidth / funnelData?.endMonth / 31))
             : 0;
           const daysBetween =
@@ -313,7 +313,7 @@ const ResizeableElements = ({
             }
           })();
 
-          initialPositions[stageName] = startDateIndex;
+          initialPositions[stageName] = startDateIndex ;
         }
       });
 

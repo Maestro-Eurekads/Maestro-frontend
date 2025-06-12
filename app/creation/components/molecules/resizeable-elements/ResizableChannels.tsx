@@ -345,9 +345,9 @@ const ResizableChannels = ({
     const calculatedDate = new Date(startDate);
     calculatedDate.setDate(startDate?.getDate() + dayIndex);
 
-    if (fieldName === "endDate") {
-      calculatedDate.setDate(calculatedDate.getDate() + 1);
-    }
+    // if (fieldName === "endDate") {
+    //   calculatedDate.setDate(calculatedDate.getDate() + 1);
+    // }
 
     const updatedCampaignFormData = { ...campaignFormData };
 
@@ -627,9 +627,9 @@ const ResizableChannels = ({
                 isEqual(date, adjustedStageStartDate)
               ) *
               (rrange === "Day"
-                ? 50
+                ? dailyWidth
                 : rrange === "Week"
-                ? 50
+                ? dailyWidth
                 : Math.round(screenWidth / endMonth / 31))
             : 0;
 
@@ -665,11 +665,11 @@ const ResizableChannels = ({
                 width: Math.min(
                   rrange === "Day"
                     ? daysBetween > 0
-                      ? 50 * daysBetween
+                      ? dailyWidth * daysBetween
                       : parentWidth
                     : rrange === "Week"
                     ? daysBetween > 0
-                      ? 50 * daysBetween
+                      ? dailyWidth * daysBetween
                       : parentWidth
                     : rrange === "Month"
                     ? daysBetween > 0
@@ -678,11 +678,11 @@ const ResizableChannels = ({
                     : parentWidth,
                   rrange === "Day"
                     ? daysBetween > 0
-                      ? 50 * daysBetween - 35
+                      ? dailyWidth * daysBetween
                       : parentWidth - 25
                     : rrange === "Week"
                     ? daysBetween > 0
-                      ? 50 * daysBetween + 10
+                      ? dailyWidth * daysBetween + 10
                       : parentWidth - 9
                     : rrange === "Month"
                     ? daysBetween > 0
@@ -879,7 +879,7 @@ const ResizableChannels = ({
                   left: `${channelState[index]?.left || parentLeft}px`,
                   width: `${
                     channelState[index]?.width +
-                      (disableDrag ? 40 : rrange === "Month" ? 40 : 58)
+                      (disableDrag ? 73 : rrange === "Month" ? 40 : 58)
                   }px`,
                   backgroundColor: channel.bg,
                   color: channel.color,
