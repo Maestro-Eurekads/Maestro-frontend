@@ -269,6 +269,13 @@ const ResizableChannels = ({
         i === index ? { ...state, left: newPos, width: newWidth } : state
       )
     );
+
+      // Update campaign data immediately during resize
+    const startPixel = newPos - parentLeft
+    const endPixel = startPixel + newWidth
+    const newStartDate = pixelToDate(startPixel, parentWidth, index, "startDate")
+    const newEndDate = pixelToDate(endPixel, parentWidth, index, "endDate")
+    draggingDataRef.current = { index, newStartDate, newEndDate };
   };
 
   const handleMouseUp = () => {
@@ -709,7 +716,7 @@ const ResizableChannels = ({
     parentWidth,
     campaignFormData,
     // openItems,
-    dRange,
+    // dRange,
   ]);
 
   useEffect(() => {
