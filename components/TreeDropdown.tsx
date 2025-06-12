@@ -34,7 +34,7 @@ const TreeDropdown: React.FC<Props> = ({ data }) => {
 				treeCheckable
 				showCheckedStrategy={TreeSelect.SHOW_CHILD}
 				placeholder={data.title}
-				style={{ width: '100%' }}
+				style={{ width: '100%', height: '100%' }}
 				allowClear
 			/>
 		</div>

@@ -53,7 +53,7 @@ export const SetupScreen = () => {
   const [level3Options, setlevel3Options] = useState<DropdownOption[]>([]);
 
 
-  console.log('level1Options-level1Options', level1Options)
+  console.log('allClients-allClients', allClients)
 
 
 
@@ -146,10 +146,10 @@ export const SetupScreen = () => {
 
     const client = allClients?.find((c) => c?.documentId === client_selection?.id);
 
-    console.log('client-client', client)
+    // console.log('client-client', client)
 
     if (client?.level_1?.parameters) {
-      const level1OptionsFormatted = client?.level_1?.parameters?.map((param) => ({
+      const level1OptionsFormatted = allClients?.level_1?.parameters?.map((param) => ({
         value: param?.name,
         label: param?.name,
       }));

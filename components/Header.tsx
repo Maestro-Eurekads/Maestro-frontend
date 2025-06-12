@@ -66,14 +66,16 @@ const Header = ({ setIsOpen }) => {
 
   const clients: any = getCreateClientData;
 
+  console.log("clients-clients", clients);
+
   useEffect(() => {
-    if(profile && agencyId){
-      dispatch(getCreateClient({userId: userType, jwt, agencyId}));
-  
+    if (profile && agencyId) {
+      dispatch(getCreateClient({ userId: userType, jwt, agencyId }));
+
       const timer = setTimeout(() => {
         setAlert(null);
       }, 5000);
-  
+
       return () => clearTimeout(timer);
 
     }
@@ -126,7 +128,7 @@ const Header = ({ setIsOpen }) => {
         const channelData = extractChannelAndPhase(campaigns);
         const levelData = extractLevelFilters(campaigns);
         const levelNames = extractLevelNameFilters(filteredClient);
-        console.log('extractLevelNameFilters', levelNames)
+        // console.log('extractLevelNameFilters', levelNames)
         setFilterOptions((prev) => ({
           ...prev,
           ...dateData,
@@ -252,7 +254,7 @@ const Header = ({ setIsOpen }) => {
           >
             <p className="capitalize">
 
-            {getFirstLetters(session?.user?.name)}
+              {getFirstLetters(session?.user?.name)}
             </p>
 
             {show && (
