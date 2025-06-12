@@ -1756,7 +1756,7 @@ export const FormatSelection = ({
                         height={24}
                       />
                     )}
-                    <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#06371a]">
+                    <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-black">
                       {stage.name}
                     </p>
                   </div>
