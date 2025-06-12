@@ -92,7 +92,7 @@ export function extractDateFilters(campaigns: any[]) {
     "July", "August", "September", "October", "November", "December",
   ];
 
-  console.log("Extracting date filters from campaigns...",campaigns);
+  // console.log("Extracting date filters from campaigns...",campaigns);
 
   campaigns?.forEach((campaign) => {
     // Try to use campaign_timeline_start_date and campaign_timeline_end_date
