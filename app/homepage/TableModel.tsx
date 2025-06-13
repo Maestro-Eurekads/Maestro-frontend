@@ -261,7 +261,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     );
     localStorage.setItem(userType.toString(), res?.data?.data?.id);
 
-    getProfile();
+   //  getProfile();
 
     // Create user accounts for Agency Access emails
     for (const emailEntry of inputs.agencyAccess) {
@@ -310,7 +310,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
      }
     }
 
-    dispatch(getCreateClient({ userId: res?.data?.data?.id, jwt, agencyId }));
+    await dispatch(getCreateClient({ userId: profile?.id, jwt, agencyId }));
 
     // Reset form state
     setInputs({
@@ -328,6 +328,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     setEditingIndex(null);
     setEditingSection(null);
     setIsOpen(false);
+    toast.success("Client created successfully")
    }
   } catch (error) {
    const errors =
