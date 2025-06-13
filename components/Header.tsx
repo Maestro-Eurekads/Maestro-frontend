@@ -206,7 +206,7 @@ const Header = ({ setIsOpen, setIsView }) => {
             <button
               className={`new_plan_btn ml-8 mr-4 ${!profile?.clients?.[0]?.id && !isAdmin ? "!bg-[gray]" : ""
                 }`}
-              disabled={!profile?.clients?.[0]?.id && !isAdmin}
+              // disabled={!profile?.clients?.[0]?.id && !isAdmin}
               onClick={() => setIsView(true)} >
               <p className="new_plan_btn_text">View Client</p>
             </button>
