@@ -138,7 +138,6 @@ const ResizableChannels = ({
   const [endDate, setEndDate] = useState(null);
   const [dateOffset, setDateOffset] = useState(0);
   const [endDateOffset, setEndDateOffset] = useState(0);
-  const [containerWidth, setContainerWidth] = useState(null);
 
   const isResizing = useRef<{
     startX: number;
@@ -699,7 +698,6 @@ const ResizableChannels = ({
         return window.innerWidth || document.documentElement.clientWidth || 0;
       };
       const screenWidth = getViewportWidth();
-      setContainerWidth(containerWidth + 75);
       setChannels(initialChannels);
 
       // Initialize new channels with parent's position
