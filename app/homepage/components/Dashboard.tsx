@@ -1,16 +1,14 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import FiltersDropdowns from "./FiltersDropdowns"
-import HighlightViewDropdowns from "./HighlightViewDropdowns"
 import DoughnutChat from "../../../components/DoughnutChat"
 import CampaignPhases from "../../creation/components/CampaignPhases"
 import { useCampaigns } from "../../utils/CampaignsContext"
-import { parseApiDate } from "../../../components/Options"
 import TableLoader from "../../creation/components/TableLoader"
 import { processCampaignData } from "components/processCampaignData"
 import ChannelDistributionChatTwo from "components/ChannelDistribution/ChannelDistributionChatTwo"
-import { getCurrencySymbol, getPlatformIcon, mediaTypes, platformIcons } from "components/data"
+import { getCurrencySymbol, mediaTypes, platformIcons } from "components/data"
 import {
   differenceInCalendarDays,
   differenceInCalendarMonths,
@@ -158,8 +156,6 @@ const Dashboard = () => {
     <div className="mt-[24px] ">
       <div className="flex items-center gap-3 px-[72px] flex-wrap ">
         <FiltersDropdowns router={undefined} />
-        <div className="w-[24px] h-0 border border-[rgba(0,0,0,0.1)] rotate-90 self-center " />
-        <HighlightViewDropdowns />
       </div>
       <div className="flex justify-end mb-4 mr-8">
         <Range />

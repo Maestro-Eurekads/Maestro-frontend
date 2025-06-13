@@ -1,87 +1,511 @@
-import axios from "axios"
-import type { FilterState } from "./useCampaignFilters"
-import qs from "qs"
+// import axios from "axios"
+// import type { FilterState } from "./useCampaignFilters"
+// import qs from "qs"
 
-// Build Strapi filter query string from filter state
-export function buildStrapiFilterQuery(clientID: string, filters: FilterState): string {
-  // Start with the client filter - this is always required
-  let filterQuery = `filters[client][$eq]=${clientID}`
+// // Build Strapi filter query string from filter state
+// export function buildStrapiFilterQuery(clientID: string, filters: FilterState): string {
+//   // Start with the client filter - this is always required
+//   let filterQuery = `filters[client][$eq]=${clientID}`
 
-  // Track if we have any filters to apply with $or logic
-  let hasOrFilters = false
-  let orFilterIndex = 0
+//   // Track if we have any filters to apply with $or logic
+//   let hasOrFilters = false
+//   let orFilterIndex = 0
 
  
 
-  // Add filters using $or logic between different filter types
+//   // Add filters using $or logic between different filter types
+//   if (filters.year) {
+//     filterQuery += `&filters[$or][${orFilterIndex}][year][$eq]=${filters.year}`
+//     hasOrFilters = true
+//     orFilterIndex++
+//   }
+
+//   if (filters.quarter) {
+//     filterQuery += `&filters[$or][${orFilterIndex}][quarter][$eq]=${filters.quarter}`
+//     hasOrFilters = true
+//     orFilterIndex++
+//   }
+
+//   if (filters.month) {
+//     filterQuery += `&filters[$or][${orFilterIndex}][month][$eq]=${filters.month}`
+//     hasOrFilters = true
+//     orFilterIndex++
+//   }
+
+//   if (filters.category) {
+//     filterQuery += `&filters[$or][${orFilterIndex}][category][$eq]=${filters.category}`
+//     hasOrFilters = true
+//     orFilterIndex++
+//   }
+
+//   if (filters.product) {
+//     filterQuery += `&filters[$or][${orFilterIndex}][product][$eq]=${filters.product}`
+//     hasOrFilters = true
+//     orFilterIndex++
+//   }
+
+ 
+
+//   if (filters.made_by) {
+//     filterQuery += `&filters[$or][${orFilterIndex}][created_by][$eq]=${filters.made_by}`
+//     hasOrFilters = true
+//     orFilterIndex++
+//   }
+
+//   if (filters.approved_by) {
+//     filterQuery += `&filters[$or][${orFilterIndex}][approved_by][$eq]=${filters.approved_by}`
+//     hasOrFilters = true
+//     orFilterIndex++
+//   }
+
+//   if (filters.channel) {
+//     filterQuery += `&filters[$or][${orFilterIndex}][channel_mix][${filters.channel}][$exists]=true`
+//     hasOrFilters = true
+//     orFilterIndex++
+//   }
+
+//   if (filters.phase) {
+//     filterQuery += `&filters[$or][${orFilterIndex}][phase][$eq]=${filters.phase}`
+//     hasOrFilters = true
+//     orFilterIndex++
+//   }
+
+//   // If no filters were applied, just return the client filter
+//   return filterQuery
+// }
+
+// // Standard populate query for campaigns
+// export const CAMPAIGN_POPULATE_QUERY = `&populate[media_plan_details]=*&populate[budget_details]=*&populate[campaign_budget][populate][budget_fees]=*&populate[client_selection]=*&populate[channel_mix][populate][social_media][populate]=*&populate[channel_mix][populate][display_networks][populate]=*&populate[channel_mix][populate][search_engines][populate]=*&populate[channel_mix][populate][streaming][populate]=*&populate[channel_mix][populate][ooh][populate]=*&populate[channel_mix][populate][broadcast][populate]=*&populate[channel_mix][populate][messaging][populate]=*&populate[channel_mix][populate][print][populate]=*&populate[channel_mix][populate][e_commerce][populate]=*&populate[channel_mix][populate][in_game][populate]=*&populate[channel_mix][populate][mobile][populate]=*`
+
+ 
+// export function extractDateFilters(campaigns: any[]) {
+//   const year = new Set<string>();
+//   const quarter = new Set<string>();
+//   const month = new Set<string>();
+
+//   const monthNames = [
+//     "January", "February", "March", "April", "May", "June",
+//     "July", "August", "September", "October", "November", "December",
+//   ];
+
+//   console.log("Extracting date filters from campaigns...",campaigns);
+
+//   campaigns?.forEach((campaign) => {
+//     // Try to use campaign_timeline_start_date and campaign_timeline_end_date
+//     const hasTimelineDates =
+//       campaign.campaign_timeline_start_date &&
+//       campaign.campaign_timeline_end_date &&
+//       !isNaN(new Date(campaign.campaign_timeline_start_date).getTime()) &&
+//       !isNaN(new Date(campaign.campaign_timeline_end_date).getTime());
+
+//     if (hasTimelineDates) {
+//       const startDate = new Date(campaign.campaign_timeline_start_date);
+//       const endDate = new Date(campaign.campaign_timeline_end_date);
+
+//       // Extract year
+//       const startYear = startDate.getFullYear().toString();
+//       const endYear = endDate.getFullYear().toString();
+//       year.add(startYear);
+//       if (startYear !== endYear) {
+//         year.add(endYear);
+//       }
+
+//       // Extract quarter
+//       const startQuarter = `Q${Math.floor(startDate.getMonth() / 3) + 1}`;
+//       const endQuarter = `Q${Math.floor(endDate.getMonth() / 3) + 1}`;
+//       quarter.add(startQuarter);
+//       if (startQuarter !== endQuarter || startYear !== endYear) {
+//         quarter.add(endQuarter);
+//       }
+
+//       // Extract month
+//       const startMonth = monthNames[startDate.getMonth()];
+//       const endMonth = monthNames[endDate.getMonth()];
+//       month.add(startMonth);
+//       if (startMonth !== endMonth || startYear !== endYear) {
+//         month.add(endMonth);
+//       }
+//     } else if (campaign.createdAt && !isNaN(new Date(campaign.createdAt).getTime())) {
+//       // Fallback to createdAt
+//       const createdDate = new Date(campaign.createdAt);
+
+//       // Extract year
+//       const createdYear = createdDate.getFullYear().toString();
+//       year.add(createdYear);
+
+//       // Extract quarter
+//       const createdQuarter = `Q${Math.floor(createdDate.getMonth() / 3) + 1}`;
+//       quarter.add(createdQuarter);
+
+//       // Extract month
+//       const createdMonth = monthNames[createdDate.getMonth()];
+//       month.add(createdMonth);
+//     }
+//   });
+
+//   return {
+//     year: Array.from(year).sort(),
+//     quarter: Array.from(quarter).sort(),
+//     month: Array.from(month).sort((a, b) => {
+//       const monthOrder = {
+//         January: 0, February: 1, March: 2, April: 3, May: 4, June: 5,
+//         July: 6, August: 7, September: 8, October: 9, November: 10, December: 11,
+//       };
+//       return monthOrder[a as keyof typeof monthOrder] - monthOrder[b as keyof typeof monthOrder];
+//     }),
+//   };
+// }
+
+// export function extractAprroverFilters(campaigns: any[]) {
+//   const made_by = new Set<string>()
+//   const approved_by = new Set<string>()
+//   // const select_plans = new Set<string>()
+
+//   campaigns.forEach((campaign) => {
+//     made_by.add(campaign?.campaign_builder?.username)
+//     approved_by.add(campaign?.media_plan_details?.approved_by[0]?.username)
+//     // select_plans.add(campaign?.media_plan_details?.plan_name)
+//   })
+
+//   return {
+//     made_by: Array.from(made_by).sort(),
+//     approved_by: Array.from(approved_by).sort(),
+//     // select_plans: Array.from(select_plans).sort(),
+//   }
+// }
+
+// export function extractChannelAndPhase(campaigns: any[]) {
+//   const channel = new Set<string>()
+//   const phase = new Set<string>()
+
+//   campaigns.forEach((campaign) => {
+//     // Handle channel mix
+//     campaign?.channel_mix.forEach((mix) => {
+//       if (mix) {
+//         Object.keys(mix).forEach((channelKey) => {
+//           if (
+//             channelKey &&
+//             channelKey !== "id" &&
+//             channelKey !== "funnel_stage_timeline_start_date" &&
+//             channelKey !== "funnel_stage_timeline_end_date" &&
+//             channelKey !== "funnel_stage"
+//           ) {
+//             channel.add(channelKey)
+//           }
+//         })
+//       }
+//     })
+
+//     // Handle funnel_stages (flatten array of arrays)
+//     if (Array.isArray(campaign.funnel_stages)) {
+//       campaign.funnel_stages.forEach((stageGroup) => {
+//         if (Array.isArray(stageGroup)) {
+//           stageGroup.forEach((stage) => phase.add(stage))
+//         } else {
+//           phase.add(stageGroup) // In case it's not nested
+//         }
+//       })
+//     }
+//   })
+
+//   return {
+//     channel: Array.from(channel).sort(),
+//     phase: Array.from(phase).sort(),
+//   }
+// }
+
+// // export function extractLevelFilters(campaigns: any[]) { 
+// //   const level_2 = new Set<string>(); 
+
+// //   campaigns.forEach((campaign) => {
+// //     const clientSelection = campaign?.client_selection;
+// //     if (!clientSelection) return;
+ 
+// //     if (clientSelection.level_2) level_2.add(clientSelection.level_2); 
+// //   });
+
+// //   return { 
+// //     level_2: Array.from(level_2).sort(), 
+// //   };
+// // }
+// // // console.log("Extracting level names from client...", client);
+
+// // export function extractLevelNameFilters(client: any) {
+// //   const flattened = client.flatMap(group =>
+// //     group.map(name => ({
+// //       label: name,
+// //       value: name,
+// //     }))
+// //   );
+
+// //   return {
+// //     level_2_name: flattened,
+// //   };
+// // }
+
+
+// // export function extractLevelNameFilters(client: any) {
+// //   return { 
+
+// //     level_2_name: client.flat(), 
+// //   };
+// // }
+// // Extract unique Level 2 values from campaigns for dropdown
+// export function extractLevelFilters(campaigns: any[]) {
+//   const level_2 = new Set<string>();
+
+//   campaigns.forEach((campaign) => {
+//     const clientSelection = campaign?.client_selection;
+//     if (clientSelection?.level_2) {
+//       level_2.add(clientSelection.level_2);
+//     }
+//   });
+
+//   return {
+//     level_2: Array.from(level_2)
+//       .sort()
+//       .map((value) => ({
+//         label: value,
+//         value,
+//       })),
+//   };
+// }
+
+// // Extract all nested level_2_name values from grouped client data for dropdown
+// export function extractLevelNameFilters(client: any[][]) {
+//   if (!Array.isArray(client)) return { level_2_name: [] };
+
+//   const flattened = client.flatMap((group) =>
+//     group.map((name) => ({
+//       label: name,
+//       value: name,
+//     }))
+//   );
+
+//   return {
+//     level_2_name: flattened,
+//   };
+// }
+
+ 
+
+//  export const fetchFilteredCampaigns = async (clientID: string, filters: FilterState) => {
+//   if (!clientID) return [];
+
+//   const channelMixPopulate = {
+//     social_media: { populate: "*" },
+//     display_networks: { populate: "*" },
+//     search_engines: { populate: "*" },
+//     streaming: { populate: "*" },
+//     ooh: { populate: "*" },
+//     broadcast: { populate: "*" },
+//     messaging: { populate: "*" },
+//     print: { populate: "*" },
+//     e_commerce: { populate: "*" },
+//     in_game: { populate: "*" },
+//     mobile: { populate: "*" },
+//   };
+
+//   const query: any = {
+//     filters: {
+//       client: { $eq: clientID },
+//     },
+//     populate: {
+//       budget_details: "*",
+//       campaign_budget: { populate: ["budget_fees"] },
+//       client_selection: "*",
+//       campaign_builder: true,
+//       media_plan_details: {
+//         populate: {
+//           approved_by: true,
+//           internal_approver: { populate: "user" },
+//           client_approver: { populate: "user" },
+//         },
+//       },
+//       channel_mix: { populate: channelMixPopulate },
+//     },
+//   };
+
+//   // Year fallback
+//   const year = filters.year || new Date().getFullYear().toString();
+
+//   // Date-based filtering
+//   if (filters.year || filters.quarter || filters.month) {
+//     query.filters.campaign_timeline_start_date = { $notNull: true };
+
+//     if (filters.month) {
+//       const monthOrder: Record<string, number> = {
+//         January: 0, February: 1, March: 2, April: 3, May: 4, June: 5,
+//         July: 6, August: 7, September: 8, October: 9, November: 10, December: 11,
+//       };
+//       const monthIndex = monthOrder[filters.month];
+//       if (monthIndex !== undefined) {
+//         const start = new Date(Number(year), monthIndex, 1).toISOString().slice(0, 10);
+//         const end = new Date(Number(year), monthIndex + 1, 0).toISOString().slice(0, 10);
+//         query.filters.$and = [
+//           { campaign_timeline_start_date: { $lte: end } },
+//           { campaign_timeline_end_date: { $gte: start } },
+//         ];
+//       }
+//     } else if (filters.quarter) {
+//       const quarterMap: Record<string, [number, number]> = {
+//         Q1: [0, 2], Q2: [3, 5], Q3: [6, 8], Q4: [9, 11],
+//       };
+//       const [startMonth, endMonth] = quarterMap[filters.quarter] || [0, 2];
+//       const start = new Date(Number(year), startMonth, 1).toISOString().slice(0, 10);
+//       const end = new Date(Number(year), endMonth + 1, 0).toISOString().slice(0, 10);
+//       query.filters.$and = [
+//         { campaign_timeline_start_date: { $gte: start } },
+//         { campaign_timeline_start_date: { $lte: end } },
+//       ];
+//     } else if (filters.year) {
+//       query.filters.$and = [
+//         { campaign_timeline_start_date: { $gte: `${year}-01-01` } },
+//         { campaign_timeline_start_date: { $lte: `${year}-12-31` } },
+//       ];
+//     }
+//   }
+
+//   // Dynamic $or filters
+//   const orFilters: any[] = [];
+
+//   if (filters.category) orFilters.push({ category: { $eq: filters.category } });
+//   if (filters.product) orFilters.push({ product: { $eq: filters.product } });
+//   if (filters.made_by) {
+//     orFilters.push({ campaign_builder: { username: { $containsi: filters.made_by } } });
+//   }
+//   if (filters.approved_by) {
+//     orFilters.push({ media_plan_details: { approved_by: { username: { $containsi: filters.approved_by } } } });
+//   }
+//   if (filters.channel) {
+//     orFilters.push({ [`channel_mix.${filters.channel}`]: { $notNull: true } });
+//   }
+//   if (filters.phase) {
+//     orFilters.push({ funnel_stages: { $containsi: filters.phase } });
+//   }
+  
+//   if (filters.level_2) {
+//     orFilters.push({ client_selection: { level_2: { $eq: filters.level_2 } } });
+//   } 
+
+//   if (orFilters.length > 0) {
+//     query.filters.$or = orFilters;
+//   }
+
+//   const queryString = qs.stringify(query, { encodeValuesOnly: true });
+//   const fullUrl = `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns?${queryString}`;
+
+//   try {
+//     const response = await axios.get(fullUrl, {
+//       headers: {
+//         Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+//       },
+//     });
+
+//     return response?.data?.data ?? [];
+//   } catch (error) {
+//     console.error("Error fetching filtered campaigns:", error);
+//     return [];
+//   }
+// };
+
+
+// app/utils/campaign-filter-utils.ts
+import axios from "axios";
+import type { FilterState } from "./useCampaignFilters";
+import qs from "qs";
+
+// Build Strapi filter query string from filter state
+export function buildStrapiFilterQuery(clientID: string, filters: FilterState|any): string {
+  let filterQuery = `filters[client][$eq]=${clientID}`;
+  let hasOrFilters = false;
+  let orFilterIndex = 0;
+
   if (filters.year) {
-    filterQuery += `&filters[$or][${orFilterIndex}][year][$eq]=${filters.year}`
-    hasOrFilters = true
-    orFilterIndex++
+    filterQuery += `&filters[$or][${orFilterIndex}][year][$eq]=${filters.year}`;
+    hasOrFilters = true;
+    orFilterIndex++;
   }
 
   if (filters.quarter) {
-    filterQuery += `&filters[$or][${orFilterIndex}][quarter][$eq]=${filters.quarter}`
-    hasOrFilters = true
-    orFilterIndex++
+    filterQuery += `&filters[$or][${orFilterIndex}][quarter][$eq]=${filters.quarter}`;
+    hasOrFilters = true;
+    orFilterIndex++;
   }
 
   if (filters.month) {
-    filterQuery += `&filters[$or][${orFilterIndex}][month][$eq]=${filters.month}`
-    hasOrFilters = true
-    orFilterIndex++
+    filterQuery += `&filters[$or][${orFilterIndex}][month][$eq]=${filters.month}`;
+    hasOrFilters = true;
+    orFilterIndex++;
   }
 
   if (filters.category) {
-    filterQuery += `&filters[$or][${orFilterIndex}][category][$eq]=${filters.category}`
-    hasOrFilters = true
-    orFilterIndex++
+    filterQuery += `&filters[$or][${orFilterIndex}][category][$eq]=${filters.category}`;
+    hasOrFilters = true;
+    orFilterIndex++;
   }
 
   if (filters.product) {
-    filterQuery += `&filters[$or][${orFilterIndex}][product][$eq]=${filters.product}`
-    hasOrFilters = true
-    orFilterIndex++
+    filterQuery += `&filters[$or][${orFilterIndex}][product][$eq]=${filters.product}`;
+    hasOrFilters = true;
+    orFilterIndex++;
   }
 
-  // if (filters.select_plans) {
-  //   filterQuery += `&filters[$or][${orFilterIndex}][plan][$eq]=${filters.select_plans}`
-  //   hasOrFilters = true
-  //   orFilterIndex++
-  // }
-
   if (filters.made_by) {
-    filterQuery += `&filters[$or][${orFilterIndex}][created_by][$eq]=${filters.made_by}`
-    hasOrFilters = true
-    orFilterIndex++
+    filterQuery += `&filters[$or][${orFilterIndex}][created_by][$eq]=${filters.made_by}`;
+    hasOrFilters = true;
+    orFilterIndex++;
   }
 
   if (filters.approved_by) {
-    filterQuery += `&filters[$or][${orFilterIndex}][approved_by][$eq]=${filters.approved_by}`
-    hasOrFilters = true
-    orFilterIndex++
+    filterQuery += `&filters[$or][${orFilterIndex}][approved_by][$eq]=${filters.approved_by}`;
+    hasOrFilters = true;
+    orFilterIndex++;
   }
 
   if (filters.channel) {
-    filterQuery += `&filters[$or][${orFilterIndex}][channel_mix][${filters.channel}][$exists]=true`
-    hasOrFilters = true
-    orFilterIndex++
+    filterQuery += `&filters[$or][${orFilterIndex}][channel_mix][${filters.channel}][$exists]=true`;
+    hasOrFilters = true;
+    orFilterIndex++;
   }
 
   if (filters.phase) {
-    filterQuery += `&filters[$or][${orFilterIndex}][phase][$eq]=${filters.phase}`
-    hasOrFilters = true
-    orFilterIndex++
+    filterQuery += `&filters[$or][${orFilterIndex}][phase][$eq]=${filters.phase}`;
+    hasOrFilters = true;
+    orFilterIndex++;
   }
 
-  // If no filters were applied, just return the client filter
-  return filterQuery
+  // Handle level filters
+  if (filters.level_1?.name) {
+    filterQuery += `&filters[$or][${orFilterIndex}][client_selection][level_1][$in]=${encodeURIComponent(
+      [filters.level_1.name, ...(filters.level_1.subParameters || [])].join(",")
+    )}`;
+    hasOrFilters = true;
+    orFilterIndex++;
+  }
+
+  if (filters.level_2?.name) {
+    filterQuery += `&filters[$or][${orFilterIndex}][client_selection][level_2][$in]=${encodeURIComponent(
+      [filters.level_2.name, ...(filters.level_2.subParameters || [])].join(",")
+    )}`;
+    hasOrFilters = true;
+    orFilterIndex++;
+  }
+
+  if (filters.level_3?.name) {
+    filterQuery += `&filters[$or][${orFilterIndex}][client_selection][level_3][$in]=${encodeURIComponent(
+      [filters.level_3.name, ...(filters.level_3.subParameters || [])].join(",")
+    )}`;
+    hasOrFilters = true;
+    orFilterIndex++;
+  }
+
+  return filterQuery;
 }
 
 // Standard populate query for campaigns
-export const CAMPAIGN_POPULATE_QUERY = `&populate[media_plan_details]=*&populate[budget_details]=*&populate[campaign_budget][populate][budget_fees]=*&populate[client_selection]=*&populate[channel_mix][populate][social_media][populate]=*&populate[channel_mix][populate][display_networks][populate]=*&populate[channel_mix][populate][search_engines][populate]=*&populate[channel_mix][populate][streaming][populate]=*&populate[channel_mix][populate][ooh][populate]=*&populate[channel_mix][populate][broadcast][populate]=*&populate[channel_mix][populate][messaging][populate]=*&populate[channel_mix][populate][print][populate]=*&populate[channel_mix][populate][e_commerce][populate]=*&populate[channel_mix][populate][in_game][populate]=*&populate[channel_mix][populate][mobile][populate]=*`
+export const CAMPAIGN_POPULATE_QUERY = `&populate[media_plan_details]=*&populate[budget_details]=*&populate[campaign_budget][populate][budget_fees]=*&populate[client_selection]=*&populate[channel_mix][populate][social_media][populate]=*&populate[channel_mix][populate][display_networks][populate]=*&populate[channel_mix][populate][search_engines][populate]=*&populate[channel_mix][populate][streaming][populate]=*&populate[channel_mix][populate][ooh][populate]=*&populate[channel_mix][populate][broadcast][populate]=*&populate[channel_mix][populate][messaging][populate]=*&populate[channel_mix][populate][print][populate]=*&populate[channel_mix][populate][e_commerce][populate]=*&populate[channel_mix][populate][in_game][populate]=*&populate[channel_mix][populate][mobile][populate]=*`;
 
- 
 export function extractDateFilters(campaigns: any[]) {
   const year = new Set<string>();
   const quarter = new Set<string>();
@@ -92,10 +516,9 @@ export function extractDateFilters(campaigns: any[]) {
     "July", "August", "September", "October", "November", "December",
   ];
 
-  console.log("Extracting date filters from campaigns...",campaigns);
+  // console.log("Extracting date filters from campaigns...",campaigns);
 
   campaigns?.forEach((campaign) => {
-    // Try to use campaign_timeline_start_date and campaign_timeline_end_date
     const hasTimelineDates =
       campaign.campaign_timeline_start_date &&
       campaign.campaign_timeline_end_date &&
@@ -106,7 +529,6 @@ export function extractDateFilters(campaigns: any[]) {
       const startDate = new Date(campaign.campaign_timeline_start_date);
       const endDate = new Date(campaign.campaign_timeline_end_date);
 
-      // Extract year
       const startYear = startDate.getFullYear().toString();
       const endYear = endDate.getFullYear().toString();
       year.add(startYear);
@@ -114,7 +536,6 @@ export function extractDateFilters(campaigns: any[]) {
         year.add(endYear);
       }
 
-      // Extract quarter
       const startQuarter = `Q${Math.floor(startDate.getMonth() / 3) + 1}`;
       const endQuarter = `Q${Math.floor(endDate.getMonth() / 3) + 1}`;
       quarter.add(startQuarter);
@@ -122,7 +543,6 @@ export function extractDateFilters(campaigns: any[]) {
         quarter.add(endQuarter);
       }
 
-      // Extract month
       const startMonth = monthNames[startDate.getMonth()];
       const endMonth = monthNames[endDate.getMonth()];
       month.add(startMonth);
@@ -130,18 +550,14 @@ export function extractDateFilters(campaigns: any[]) {
         month.add(endMonth);
       }
     } else if (campaign.createdAt && !isNaN(new Date(campaign.createdAt).getTime())) {
-      // Fallback to createdAt
       const createdDate = new Date(campaign.createdAt);
 
-      // Extract year
       const createdYear = createdDate.getFullYear().toString();
       year.add(createdYear);
 
-      // Extract quarter
       const createdQuarter = `Q${Math.floor(createdDate.getMonth() / 3) + 1}`;
       quarter.add(createdQuarter);
 
-      // Extract month
       const createdMonth = monthNames[createdDate.getMonth()];
       month.add(createdMonth);
     }
@@ -178,12 +594,26 @@ export function extractAprroverFilters(campaigns: any[]) {
   }
 }
 
-export function extractChannelAndPhase(campaigns: any[]) {
-  const channel = new Set<string>()
-  const phase = new Set<string>()
+export function extractApproverFilters(campaigns: any[]) {
+  const made_by = new Set<string>();
+  const approved_by = new Set<string>();
 
   campaigns.forEach((campaign) => {
-    // Handle channel mix
+    made_by.add(campaign?.campaign_builder?.username);
+    approved_by.add(campaign?.media_plan_details?.approved_by[0]?.username);
+  });
+
+  return {
+    made_by: Array.from(made_by).sort(),
+    approved_by: Array.from(approved_by).sort(),
+  };
+}
+
+export function extractChannelAndPhase(campaigns: any[]) {
+  const channel = new Set<string>();
+  const phase = new Set<string>();
+
+  campaigns.forEach((campaign) => {
     campaign?.channel_mix.forEach((mix) => {
       if (mix) {
         Object.keys(mix).forEach((channelKey) => {
@@ -194,30 +624,28 @@ export function extractChannelAndPhase(campaigns: any[]) {
             channelKey !== "funnel_stage_timeline_end_date" &&
             channelKey !== "funnel_stage"
           ) {
-            channel.add(channelKey)
+            channel.add(channelKey);
           }
-        })
+        });
       }
-    })
+    });
 
-    // Handle funnel_stages (flatten array of arrays)
     if (Array.isArray(campaign.funnel_stages)) {
       campaign.funnel_stages.forEach((stageGroup) => {
         if (Array.isArray(stageGroup)) {
-          stageGroup.forEach((stage) => phase.add(stage))
+          stageGroup.forEach((stage) => phase.add(stage));
         } else {
-          phase.add(stageGroup) // In case it's not nested
+          phase.add(stageGroup);
         }
-      })
+      });
     }
-  })
+  });
 
   return {
     channel: Array.from(channel).sort(),
     phase: Array.from(phase).sort(),
-  }
+  };
 }
-
 export function extractLevelFilters(campaigns: any[]) {
   const level_1 = new Set<string>();
   const level_2 = new Set<string>();
@@ -238,18 +666,103 @@ export function extractLevelFilters(campaigns: any[]) {
     level_3: Array.from(level_3).sort(),
   };
 }
+// export function extractLevelFilters(campaigns: any[]) {
+//   const levels = { level_1: {}, level_2: {}, level_3: {} };
+   
+//   console.log("Extracting level filters from campaigns...", campaigns);
+
+//   campaigns.forEach((campaign) => {
+//     const clientSelection = campaign?.client_selection;
+//     if (!clientSelection) return;
+
+//     if (clientSelection.level_1) {
+//       levels.level_1[clientSelection.level_1] = true;
+//     }
+//     if (clientSelection.level_2) {
+//       levels.level_2[clientSelection.level_2] = true;
+//     }
+//     if (clientSelection.level_3) {
+//       levels.level_3[clientSelection.level_3] = true;
+//     }
+
+//     return {
+//       level_1: levels.level_1,
+//       level_2: levels.level_2,
+//       level_3: levels.level_3,
+//     };
+//   })
+// }
+
+
+// export function extractLevelNameFilters(client: any[][]) {
+//   if (!Array.isArray(client)) return { level_1: [], level_2: [], level_3: [] };
+//   console.log('extractLevelNameFilters',client )
+
+//   const flattened = client.flatMap((group) =>
+//     group.map((name) => ({
+//       label: name,
+//       value: name,
+//     }))
+//   );
+
+//   return {
+//     level_1: flattened,
+//     level_2: flattened,
+//     level_3: flattened,
+//   };
+// }
+
+// export function extractLevelFilters(campaigns: any[]) {
+//   const level_1 = new Set<string>();
+//   const level_2 = new Set<string>();
+//   const level_3 = new Set<string>();
+
+//   campaigns.forEach((campaign) => {
+//     const clientSelection = campaign?.client_selection;
+//     if (!clientSelection) return;
+
+//     if (clientSelection.level_1) level_1.add(clientSelection.level_1);
+//     if (clientSelection.level_2) level_2.add(clientSelection.level_2);
+//     if (clientSelection.level_3) level_3.add(clientSelection.level_3);
+//   });
+
+//   return {
+//     level_1: Array.from(level_1).sort(),
+//     level_2: Array.from(level_2).sort(),
+//     level_3: Array.from(level_3).sort(),
+//   };
+// }
 
 export function extractLevelNameFilters(client: any) {
+  if (!client || typeof client !== 'object') {
+    return { level_1_name: [], level_2_name: [], level_3_name: [] };
+  }
+
+  const extractNames = (level) => {
+    if (!level?.parameters || !Array.isArray(level?.parameters)) return [];
+    return level.parameters.map((param) => ({
+      label: param.name,
+      value: param.name,
+    })); 
+  };
+
   return {
-    level_1_name: client?.level_1?.[0] || "",
-    level_2_name: client?.level_2?.[0] || "",
-    level_3_name: client?.level_3?.[0] || "",
+    level_1_name: extractNames(client.level_1),
+    level_2_name: extractNames(client.level_2),
+    level_3_name: extractNames(client.level_3),
   };
 }
 
+// export function extractLevelNameFilters(client: any) {
  
+//   return {
+//     level_1_name: client?.level_1|| "",
+//     level_2_name: client?.level_2|| "",
+//     level_3_name: client?.level_3|| "",
+//   };
+// }
 
- export const fetchFilteredCampaigns = async (clientID: string, filters: FilterState) => {
+ export const fetchFilteredCampaigns = async (clientID: string, filters: FilterState, jwt:any) => {
   if (!clientID) return [];
 
   const channelMixPopulate = {
@@ -282,14 +795,19 @@ export function extractLevelNameFilters(client: any) {
           client_approver: { populate: "user" },
         },
       },
+      // client: {
+      //   populate: {
+      //     level_1: { populate: "*" },
+      //     level_2: { populate: "*" },
+      //     level_3: { populate: "*" },
+      //   },
+      // },
       channel_mix: { populate: channelMixPopulate },
     },
   };
 
-  // Year fallback
   const year = filters.year || new Date().getFullYear().toString();
 
-  // Date-based filtering
   if (filters.year || filters.quarter || filters.month) {
     query.filters.campaign_timeline_start_date = { $notNull: true };
 
@@ -326,7 +844,6 @@ export function extractLevelNameFilters(client: any) {
     }
   }
 
-  // Dynamic $or filters
   const orFilters: any[] = [];
 
   if (filters.category) orFilters.push({ category: { $eq: filters.category } });
@@ -343,15 +860,45 @@ export function extractLevelNameFilters(client: any) {
   if (filters.phase) {
     orFilters.push({ funnel_stages: { $containsi: filters.phase } });
   }
-  if (filters.level_1) {
-    orFilters.push({ client_selection: { level_1: { $eq: filters.level_1 } } });
-  }
-  if (filters.level_2) {
-    orFilters.push({ client_selection: { level_2: { $eq: filters.level_2 } } });
-  }
-  if (filters.level_3) {
-    orFilters.push({ client_selection: { level_3: { $eq: filters.level_3 } } });
-  }
+  // if (filters.level_1?.name) {
+  //   orFilters.push({
+  //     client: {
+  //       level_1: {
+  //         $or: [
+  //           { title: { $eq: filters.level_1.name } },
+  //           { parameters: { name: { $eq: filters.level_1.name } } },
+  //           { parameters: { subParameters: { $contains: filters.level_1.name } } },
+  //         ],
+  //       },
+  //     },
+  //   });
+  // }
+  // if (filters.level_2?.name) {
+  //   orFilters.push({
+  //     client: {
+  //       level_2: {
+  //         $or: [
+  //           { title: { $eq: filters.level_2.name } },
+  //           { parameters: { name: { $eq: filters.level_2.name } } },
+  //           { parameters: { subParameters: { $contains: filters.level_2.name } } },
+  //         ],
+  //       },
+  //     },
+  //   });
+  // }
+  // if (filters.level_3?.name) {
+  //   orFilters.push({
+  //     client: {
+  //       level_3: {
+  //         $or: [
+  //           { title: { $eq: filters.level_3.name } },
+  //           { parameters: { name: { $eq: filters.level_3.name } } },
+  //           { parameters: { subParameters: { $contains: filters.level_3.name } } },
+  //         ],
+  //       },
+  //     },
+  //   });
+  // }
 
   if (orFilters.length > 0) {
     query.filters.$or = orFilters;
@@ -363,7 +910,7 @@ export function extractLevelNameFilters(client: any) {
   try {
     const response = await axios.get(fullUrl, {
       headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+        Authorization: `Bearer ${jwt}`,
       },
     });
 

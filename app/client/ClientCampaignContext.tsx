@@ -3,6 +3,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
+import { useSession } from "next-auth/react";
 
 interface Campaign {
   id: string;
@@ -31,6 +32,9 @@ export const ClientCampaignProvider = ({
 }) => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(false);
+  const {data:session} = useSession();
+  const jwt =
+    (session?.user as { data?: { jwt: string } })?.data?.jwt
 
   const fetchCampaignsByClientId = async (clientId: string) => {
     setLoading(true);
@@ -83,7 +87,7 @@ export const ClientCampaignProvider = ({
             },
           },
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );

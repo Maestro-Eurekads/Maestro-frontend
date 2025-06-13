@@ -1,4 +1,5 @@
 "use client";
+import { useCampaigns } from "app/utils/CampaignsContext";
 import { getInitials } from "components/Options";
 import { getSignedApproval } from "features/Comment/commentSlice";
 import { useSession } from "next-auth/react";
@@ -8,6 +9,7 @@ import { useAppDispatch, useAppSelector } from "store/useStore";
 
 const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 	const { data: session }: any = useSession();
+	const {jwt} = useCampaigns()
 	const dispatch = useAppDispatch();
 	const id = session?.user?.id || null;
 
@@ -15,7 +17,7 @@ const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 
 	useEffect(() => {
 		if (id) {
-			dispatch(getSignedApproval(id));
+			dispatch(getSignedApproval(id, jwt));
 		}
 	}, [dispatch, id]);
 

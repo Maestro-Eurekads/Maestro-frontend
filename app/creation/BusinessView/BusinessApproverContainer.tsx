@@ -1,4 +1,5 @@
 "use client";
+import { useCampaigns } from "app/utils/CampaignsContext";
 import { getInitials } from "components/Options";
 import { getSignedApproval } from "features/Comment/commentSlice";
 import { useSession } from "next-auth/react";
@@ -13,12 +14,13 @@ const BusinessApproverContainer = ({
   campaignFormData
 }) => {
   const { data: session }: any = useSession();
+  const { jwt } = useCampaigns();
   const dispatch = useAppDispatch();
   const id = session?.user?.id || null;
 
   useEffect(() => {
     if (id) {
-      dispatch(getSignedApproval(id));
+      dispatch(getSignedApproval(id, jwt));
     }
   }, [dispatch, id]);
 

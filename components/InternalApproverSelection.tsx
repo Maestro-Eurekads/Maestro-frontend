@@ -21,7 +21,7 @@ const Dropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { campaignFormData, setCampaignFormData, loadingClients } = useCampaigns();
+  const { campaignFormData, setCampaignFormData, loadingClients, jwt } = useCampaigns();
   const dispatch = useAppDispatch();
   const {data:session} = useSession()
   const { isAdmin, isAgencyApprover, isFinancialApprover } =
@@ -31,7 +31,7 @@ const Dropdown = ({
   const toggleDropdown = () => {
     if (!isOpen && label === "Select Client") {
       //@ts-ignore
-      dispatch(getCreateClient(!isAdmin ? session?.user?.data?.user?.id: null));
+      dispatch(getCreateClient({userId:!isAdmin ? session?.user?.data?.user?.id: null, jwt}));
     }
     setIsOpen(!isOpen);
   };
