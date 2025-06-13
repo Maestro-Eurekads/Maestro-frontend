@@ -138,7 +138,7 @@ const ResizableChannels = ({
   };
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth);
+    console.log(" ~ dailyWidth:", dailyWidth);
     const baseStep = dailyWidth;
     // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
     const adjustmentPerStep = 0; // Decrease each next step by 10
@@ -216,7 +216,7 @@ const ResizableChannels = ({
         rightEdgePos,
         containerRect.width
       );
-      newWidth = Math.max(50, snappedRightEdge -3 - startPos);
+      newWidth = Math.max(50, snappedRightEdge -10 - startPos);
     }
 
     // Handle parent width constraints
@@ -281,7 +281,7 @@ const ResizableChannels = ({
               (ch) => ch?.funnel_stage === parentId
             )?.funnel_stage_timeline_start_date
           )
-        : campaignFormData?.campaign_time_start_date;
+        : new Date(campaignFormData?.campaign_timeline_start_date);
 
       if (!initialStartDateRef.current) {
         // Set the initial date only once
@@ -298,7 +298,7 @@ const ResizableChannels = ({
               (ch) => ch?.funnel_stage === parentId
             )?.funnel_stage_timeline_end_date
           )
-        : campaignFormData?.campaign_time_end_date;
+        : new Date(campaignFormData?.campaign_timeline_end_date);
 
       if (!initialStartDateRef.current) {
         // Set the initial date only once
@@ -336,7 +336,7 @@ const ResizableChannels = ({
 
   const pixelToDate = (pixel, containerWidth, index, fieldName) => {
     const totalDays = dRange?.length - 1;
-
+// console.log("here",startDate, endDate)
     const dayIndex = Math.min(
       totalDays,
       Math.max(0, Math.round((pixel / containerWidth) * totalDays))
@@ -654,7 +654,7 @@ const ResizableChannels = ({
           const endDaysDiff = differenceInCalendarDays(endDate, stageEndDate);
           // Check if this channel already exists in prev
           const existingState = prev[index];
-          console.log("startDateIndex", index, ch.name);
+          // console.log("startDateIndex", index, ch.name);
           return existingState
             ? {
                 ...existingState,
