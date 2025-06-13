@@ -646,53 +646,52 @@ export function extractChannelAndPhase(campaigns: any[]) {
     phase: Array.from(phase).sort(),
   };
 }
-
- export function extractLevelFilters(campaigns: any[]) {
-  const levels = { level_1: {}, level_2: {}, level_3: {} };
+export function extractLevelFilters(campaigns: any[]) {
+  const level_1 = new Set<string>();
+  const level_2 = new Set<string>();
+  const level_3 = new Set<string>();
 
   campaigns.forEach((campaign) => {
-    const client = campaign?.client;
-    if (!client) return;
+    const clientSelection = campaign?.client_selection;
+    if (!clientSelection) return;
 
-    ['level_1', 'level_2', 'level_3'].forEach((levelKey) => {
-      const level = client[levelKey];
-      if (!level || !level.title || !Array.isArray(level.parameters)) return;
-
-      // Initialize level title if not present
-      if (!levels[levelKey][level.title]) {
-        levels[levelKey][level.title] = { title: level.title, parameters: [] };
-      }
-
-      level.parameters.forEach((param) => {
-        const existingParam = levels[levelKey][level.title].parameters.find(p => p.name === param.name);
-
-        if (existingParam) {
-          // Merge subParameters if not already present
-          param.subParameters?.forEach((sub) => {
-            if (!existingParam.subParameters.includes(sub)) {
-              existingParam.subParameters.push(sub);
-            }
-          });
-        } else {
-          // Push new parameter
-          levels[levelKey][level.title].parameters.push({
-            name: param.name,
-            subParameters: [...(param.subParameters || [])]
-          });
-        }
-      });
-    });
+    if (clientSelection.level_1) level_1.add(clientSelection.level_1);
+    if (clientSelection.level_2) level_2.add(clientSelection.level_2);
+    if (clientSelection.level_3) level_3.add(clientSelection.level_3);
   });
 
-  // Convert object to array
-  const convertToList = (levelObj) => Object.values(levelObj);
-
   return {
-    level_1: convertToList(levels.level_1),
-    level_2: convertToList(levels.level_2),
-    level_3: convertToList(levels.level_3),
+    level_1: Array.from(level_1).sort(),
+    level_2: Array.from(level_2).sort(),
+    level_3: Array.from(level_3).sort(),
   };
 }
+// export function extractLevelFilters(campaigns: any[]) {
+//   const levels = { level_1: {}, level_2: {}, level_3: {} };
+   
+//   console.log("Extracting level filters from campaigns...", campaigns);
+
+//   campaigns.forEach((campaign) => {
+//     const clientSelection = campaign?.client_selection;
+//     if (!clientSelection) return;
+
+//     if (clientSelection.level_1) {
+//       levels.level_1[clientSelection.level_1] = true;
+//     }
+//     if (clientSelection.level_2) {
+//       levels.level_2[clientSelection.level_2] = true;
+//     }
+//     if (clientSelection.level_3) {
+//       levels.level_3[clientSelection.level_3] = true;
+//     }
+
+//     return {
+//       level_1: levels.level_1,
+//       level_2: levels.level_2,
+//       level_3: levels.level_3,
+//     };
+//   })
+// }
 
 
 // export function extractLevelNameFilters(client: any[][]) {
@@ -733,6 +732,7 @@ export function extractChannelAndPhase(campaigns: any[]) {
 //     level_3: Array.from(level_3).sort(),
 //   };
 // }
+
 export function extractLevelNameFilters(client: any) {
   if (!client || typeof client !== 'object') {
     return { level_1_name: [], level_2_name: [], level_3_name: [] };

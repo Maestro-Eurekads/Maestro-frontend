@@ -72,6 +72,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     setCampaignFormData,
     requiredFields,
     currencySign,
+    jwt
   } = useCampaigns()
 
   // --- Persist format selection for active === 4 ---
@@ -115,7 +116,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     return hasValidFormat
   }
 
- 
+
   // Only reset formats when entering active === 4 if the user has NOT already proceeded from step 4 with a valid format
   useEffect(() => {
     if (active === 4 && !hasProceededFromFormatStep.current) {
@@ -531,9 +532,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             client: campaignFormData?.client_selection?.id,
             client_selection: {
               client: campaignFormData?.client_selection?.value,
-              level_1: campaignFormData?.level_1?.id,
-              level_2: campaignFormData?.level_2?.id,
-              level_3: campaignFormData?.level_3?.id,
+              level_1: campaignFormData?.level_1,
+              level_2: campaignFormData?.level_2,
+              level_3: campaignFormData?.level_3,
             },
             media_plan_details: {
               plan_name: campaignFormData?.media_plan,
@@ -545,7 +546,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
         const config = {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
 
@@ -952,8 +953,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                     {active === 0
                       ? "Start"
                       : active === 4 && !hasFormatSelected
-                      ? "Not mandatory step, skip"
-                      : "Continue"}
+                        ? "Not mandatory step, skip"
+                        : "Continue"}
                   </p>
                   <Image src={Continue || "/placeholder.svg"} alt="Continue" />
                 </>

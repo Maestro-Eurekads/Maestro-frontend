@@ -186,7 +186,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
           ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
           ["previews"],
         );
-        const {media_plan_details, user, ...rest} = cleanData;
+        const { media_plan_details, user, ...rest } = cleanData;
         await updateCampaign(rest);
         await getActiveCampaign();
       } catch (error) {
@@ -332,7 +332,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
           await fetch(`${STRAPI_URL}/upload/files/${fileToDelete}`, {
             method: "DELETE",
             headers: {
-              Authorization: `Bearer ${STRAPI_TOKEN}`,
+              Authorization: `Bearer ${jwt}`,
             },
           });
         }
@@ -418,7 +418,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
         const response = await fetch(`${STRAPI_URL}/upload`, {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
           body: formData,
           signal: controller.signal,

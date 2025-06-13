@@ -30,20 +30,21 @@ const MultiSelectDropdown = ({
 	const toggleDropdown = () => setIsOpen((prev) => !prev);
 
 	const handleSelect = (option: DropdownOption) => {
-		const alreadySelected = value?.some((o) => o.value === option.value);
+		const alreadySelected = value?.some((o) => o.value === String(option.value));
 		const campaignId = campaignFormData?.campaign_id;
 		const clientId = campaignFormData?.client_selection?.id;
 
-		if (clientId) {
+		if (!alreadySelected && clientId) {
 			const newItem: SelectedItem = {
-				value: option?.value,
+				value: String(option.value),
 				id: campaignId ?? clientId,
 				clientId: clientId,
-				label: option?.label,
+				label: option.label,
 			};
 			onChange([...value, newItem]);
 		}
 	};
+
 
 
 

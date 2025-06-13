@@ -25,7 +25,7 @@ import { getFirstLetters } from "./Options";
 import { useSelectedDates } from "app/utils/SelectedDatesContext";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
-const Header = ({ setIsOpen }) => {
+const Header = ({ setIsOpen, setIsView }) => {
   const { data: session } = useSession();
 
   if (!session) return null;
@@ -66,7 +66,7 @@ const Header = ({ setIsOpen }) => {
 
   const clients: any = getCreateClientData;
 
-  console.log("clients-clients", clients);
+  // console.log("clients-clients", clients);
 
   useEffect(() => {
     if (profile && agencyId) {
@@ -116,10 +116,12 @@ const Header = ({ setIsOpen }) => {
       (client) => client?.id === Number(clientId)
     );
     // console.log(clientId);
-    console.log("agencyId", agencyId)
+    // console.log("agencyId", agencyId)
     fetchClientCampaign(clientId, agencyId)
       .then((res) => {
         const campaigns = res?.data?.data || [];
+
+        console.log("campaigns-campaigns", campaigns);
 
         if (isMounted) setClientCampaignData(campaigns);
 
@@ -182,7 +184,7 @@ const Header = ({ setIsOpen }) => {
                   value: c?.id.toString(),
                 }))}
               className="min-w-[150px] z-[20]"
-              placeholder="Search or select a client"
+              placeholder="Search"
               onChange={(value) => {
                 if (value) {
                   localStorage.setItem(userType, value?.value);
@@ -201,7 +203,13 @@ const Header = ({ setIsOpen }) => {
                 )}
             />
 
-
+            <button
+              className={`new_plan_btn ml-8 mr-4 ${!profile?.clients?.[0]?.id && !isAdmin ? "!bg-[gray]" : ""
+                }`}
+              disabled={!profile?.clients?.[0]?.id && !isAdmin}
+              onClick={() => setIsView(true)} >
+              <p className="new_plan_btn_text">View Client</p>
+            </button>
             {(isAdmin ||
               isFinancialApprover ||
               isAgencyApprover) && (

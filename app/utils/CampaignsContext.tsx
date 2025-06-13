@@ -107,6 +107,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [selectedClient, setSelectedClient] = useState()
   const [agencyData, setAgencyData] = useState(null);
 
+
+
   const reduxClients = useSelector(
     (state: any) => state.client?.getCreateClientData?.data || []
   );
@@ -305,8 +307,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         response?.data?.user_type === "admin"
           ? response?.data?.admin?.agency?.id
           : response?.data?.user_type?.includes("cleint")
-          ? response?.data?.cleint_user?.agency?.id
-          : response?.data?.agency_user?.agency?.id;
+            ? response?.data?.cleint_user?.agency?.id
+            : response?.data?.agency_user?.agency?.id;
       console.log("agencyId", aId);
       setAgencyId(aId);
       return response;
@@ -331,9 +333,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           },
         }
       );
-      console.log(response?.data);
       setAgencyData(response?.data);
-    
+
       return response;
     } catch (error) {
       console.error("Error fetching profile:", error);

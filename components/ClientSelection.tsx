@@ -32,7 +32,7 @@ const Dropdown = ({
   const toggleDropdown = () => {
     if (!isOpen && label === "Select Client") {
       //@ts-ignore
-      dispatch(getCreateClient({userId:!isAdmin ? session?.user?.data?.user?.id : null, jwt}));
+      dispatch(getCreateClient({ userId: !isAdmin ? session?.user?.data?.user?.id : null, jwt }));
     }
     setIsOpen(!isOpen);
   };
@@ -42,6 +42,7 @@ const Dropdown = ({
   const handleSelect = (id, value: string) => {
     if (formId === "client_selection") {
       const selectedClient = allClients?.find(client => client.documentId === id);
+
       if (selectedClient) {
         setClientUsers(selectedClient.users || []);
       }

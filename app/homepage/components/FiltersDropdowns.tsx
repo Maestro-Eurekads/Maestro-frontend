@@ -12,7 +12,9 @@ import { defaultFilters } from "components/data";
 import { useSession } from "next-auth/react";
 import { FilterState } from "app/utils/useCampaignFilters";
 import { useUserPrivileges } from "utils/userPrivileges";
-import ParameterDropdown from "./ParameterDropdown";
+import TreeDropdown from "components/TreeDropdown";
+import TreeDropdownFilter from "components/TreeDropdownFilter";
+import { convertToNestedStructure } from "utils/convertToNestedStructure";
 
 
 // Scrollbar CSS
@@ -184,13 +186,14 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
   }, [filterOptions]);
 
   useEffect(() => {
+    const allEmpty = Object.values(selectedFilters).every((val) => !val)
     const fetchData = async () => {
       const clientID = localStorage.getItem(userType.toString()) || allClients[0]?.id;
       if (!clientID) return;
 
       setLoading(true);
       try {
-        const res = allFiltersEmpty
+        const res = allEmpty
           ? await fetchFilteredCampaigns(clientID, null, jwt)
           : await fetchFilteredCampaigns(clientID, selectedFilters, jwt);
         setClientCampaignData(res);
@@ -205,6 +208,8 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
   }, [selectedFilters, allClients, userType, jwt]);
 
   const isYearSelected = !!selectedFilters["year"];
+
+  console.log("Selected Filters:", filters);
 
   return (
     <div>
@@ -256,23 +261,24 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
             };
 
             const displayLabel = getDisplayLabel();
+            const nested = convertToNestedStructure(options[0]);
 
-            // console.log(' options-options-options', options)
 
             return (
               <div key={label}>
                 {isLevel ? (
-                  <ParameterDropdown
-                    label={displayLabel}
-                    parameters={options}
+                  <TreeDropdownFilter
+                    label={label}
+                    data={nested}
+                    placeholder={displayLabel}
                     selectedFilters={selectedFilters}
                     handleSelect={handleSelect}
                     isDisabled={
                       (lowerLabel === "quarter" || lowerLabel === "month") &&
                       !isYearSelected
                     }
-                    clientId={allClients[0]?.id}
                   />
+
                 ) : (
                   <Dropdown
                     label={displayLabel}

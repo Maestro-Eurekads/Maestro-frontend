@@ -16,6 +16,9 @@ import InternalApproverDropdowns from "components/InternalApproverDropdowns";
 import ResponsibleApproverDropdowns from "components/ResponsibleApproverDropdowns";
 import { useRouter } from "next/router";
 import TreeDropdown from "components/TreeDropdown";
+import { useAppDispatch } from "store/useStore";
+import { useSession } from "next-auth/react";
+import { getCreateClient } from "features/Client/clientSlice";
 
 
 interface DropdownOption {
@@ -23,6 +26,7 @@ interface DropdownOption {
   value: string;
 }
 export const SetupScreen = () => {
+  const dispatch = useAppDispatch();
   const {
     createCampaign,
     updateCampaign,
@@ -35,27 +39,79 @@ export const SetupScreen = () => {
     profile,
     setRequiredFields,
     setCurrencySign,
-    selectedClient
+    selectedClient,
+    setClientUsers,
+    clientUsers,
+    jwt
   } = useCampaigns();
   const query = useSearchParams();
   const documentId = query.get("campaignId");
+  const { data: session } = useSession()
   const { client_selection } = campaignFormData || {};
   const [selectedOption, setSelectedOption] = useState("percentage");
   const [alert, setAlert] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const { setIsDrawerOpen, setClose } = useComments();
-  const { isAgencyCreator, isAgencyApprover, isFinancialApprover } = useUserPrivileges();
+  const { isAgencyCreator, isAgencyApprover, isFinancialApprover, isAdmin } = useUserPrivileges();
   const [internalapproverOptions, setInternalApproverOptions] = useState<DropdownOption[]>([]);
   const [clientapprovalOptions, setClientApprovalOptions] = useState<DropdownOption[]>([]);
   const [clientOptions, setClientOptions] = useState<DropdownOption[]>([]);
+
+
+  const [agencyusers, setAgencyUsers] = useState<DropdownOption[]>([]);
+
+
   const [level1Options, setlevel1Options] = useState<DropdownOption[]>([]);
   const [level2Options, setlevel2Options] = useState<DropdownOption[]>([]);
   const [level3Options, setlevel3Options] = useState<DropdownOption[]>([]);
 
 
+  useEffect(() => {
+    //@ts-ignore
+    dispatch(getCreateClient({ userId: !isAdmin ? session?.user?.data?.user?.id : null, jwt }));
+
+  }, [isAdmin, session, dispatch]);
+
   console.log('allClients-allClients', allClients)
 
+  // console.log('clientapprovalOptions-clientapprovalOptions', clientapprovalOptions);
+  console.log('clientapprovalOptions-clientapprovalOptions', campaignFormData);
 
+
+  useEffect(() => {
+    if (allClients.length > 0) {
+      const agency = allClients[0]?.agency;
+      const agencyUserOptions = agency?.agency_users?.map((user) => ({
+        value: user?.id,
+        label: user?.full_name,
+      })) || [];
+
+      const clientUserOptions = agency?.client_users?.map((user) => ({
+        value: user?.id,
+        label: user?.full_name,
+      })) || [];
+
+      setInternalApproverOptions(agencyUserOptions);
+      setClientApprovalOptions(clientUserOptions);
+      setClientUsers(allClients || []);
+      setCampaignFormData(prev => ({
+        ...prev,
+        ["client_selection"]: {
+          id: allClients[0]?.documentId || '',
+          value: allClients[0]?.client_name || '',
+        },
+      }));
+    }
+  }, [allClients]);
+
+  useEffect(() => {
+    if (allClients?.length > 0) {
+      const data = allClients[0]
+      setlevel1Options(data?.level_1);
+      setlevel2Options(data?.level_2);
+      setlevel3Options(data?.level_3);
+    }
+  }, []);
 
 
   useEffect(() => {
@@ -148,14 +204,14 @@ export const SetupScreen = () => {
 
     // console.log('client-client', client)
 
-    if (client?.level_1?.parameters) {
-      const level1OptionsFormatted = allClients?.level_1?.parameters?.map((param) => ({
-        value: param?.name,
-        label: param?.name,
-      }));
-      setlevel1Options(level1OptionsFormatted);
-      console.log('level1Options-level1Options', level1OptionsFormatted);
-    }
+    // if (client?.level_1?.parameters) {
+    //   const level1OptionsFormatted = allClients?.level_1?.parameters?.map((param) => ({
+    //     value: param?.name,
+    //     label: param?.name,
+    //   }));
+    //   setlevel1Options(level1OptionsFormatted);
+
+    // }
 
     // setInternalApproverOptions(() => {
     //   const options = client?.approver?.map((l) => ({
@@ -177,22 +233,24 @@ export const SetupScreen = () => {
       value: l?.id,
       label: l?.username,
     })) || [];
-    setInternalApproverOptions(options);
+    // setInternalApproverOptions(options);
 
     const filteredUsers = client?.agency?.client_users?.filter(user => user?.role == "client_approver");
     const clientOptions = filteredUsers?.map((l) => ({
       value: l?.id,
       label: l?.full_name,
     })) || [];
-    setClientApprovalOptions(clientOptions);
+    // setClientApprovalOptions(clientOptions);
 
-    setlevel1Options(() => {
-      const options = client?.level_1?.map((l) => ({
-        value: l,
-        label: l,
-      }));
-      return options?.filter((opt) => opt?.value != null && opt?.label != null) || [];
-    });
+    // setlevel1Options(() => {
+    //   const options = client?.level_1?.map((l) => ({
+    //     value: l,
+    //     label: l,
+    //   }));
+    //   return options?.filter((opt) => opt?.value != null && opt?.label != null) || [];
+    // });
+
+
 
     // setlevel2Options(() => {
     //   const options = client?.level_2?.map((l) => ({
@@ -250,33 +308,32 @@ export const SetupScreen = () => {
     };
 
     const fieldsToCheck = [
-      campaignFormData?.client_selection?.value,
+      // campaignFormData?.client_selection?.value,
       campaignFormData?.media_plan,
-      campaignFormData?.internal_approver_ids,
-      campaignFormData?.client_approver_ids,
-      campaignFormData?.level_1?.id,
-      campaignFormData?.level_2?.id,
-      campaignFormData?.level_3?.id,
+      // campaignFormData?.internal_approver_ids,
+      // campaignFormData?.client_approver_ids,
+      // campaignFormData?.level_1?.id,
+      // campaignFormData?.level_2?.id,
+      // campaignFormData?.level_3?.id,
     ];
 
     const evaluatedFields = fieldsToCheck.map(getFieldValue);
     setRequiredFields(evaluatedFields);
   }, [campaignFormData, cId, setRequiredFields]);
 
-  const sampleData = {
-    title: 'Toshiba',
-    parameters: [
-      {
-        name: 'parasonic',
-        subParameters: ['battery']
-      },
-      {
-        name: 'Radio',
-        subParameters: ['Wave', 'Book']
-      }
-    ]
-  };
-
+  // const sampleData = {
+  //   title: 'Toshiba',
+  //   parameters: [
+  //     {
+  //       name: 'parasonic',
+  //       subParameters: ['battery']
+  //     },
+  //     {
+  //       name: 'Radio',
+  //       subParameters: ['Wave', 'Book']
+  //     }
+  //   ]
+  // };
 
   if (!campaignFormData) {
     return <div>Loading...</div>;
@@ -289,7 +346,7 @@ export const SetupScreen = () => {
       {alert && <AlertMain alert={alert} />}
       <div className="mt-[42px]">
         <Title>Client selection</Title>
-        {/*<div>
+        {/* <div>
           <ClientSelection
             options={clientOptions}
             label={"Select Client"}
@@ -298,9 +355,13 @@ export const SetupScreen = () => {
         </div> */}
         <div className="flex items-center flex-wrap gap-4 pb-12">
 
-          <TreeDropdown data={sampleData} />
-          <TreeDropdown data={sampleData} />
-          <TreeDropdown data={sampleData} />
+          <TreeDropdown
+            data={level1Options}
+            setCampaignFormData={setCampaignFormData} formId={"level_1"} />
+          <TreeDropdown data={level2Options}
+            setCampaignFormData={setCampaignFormData} formId={"level_2"} />
+          <TreeDropdown data={level3Options}
+            setCampaignFormData={setCampaignFormData} formId={"level_3"} />
           {/* <ClientSelection
             options={level1Options?.slice(1)}
             label={
@@ -340,18 +401,17 @@ export const SetupScreen = () => {
             <InternalApproverDropdowns
               options={internalapproverOptions}
               value={{
-                internal_approver:
-                  campaignFormData?.internal_approver_ids?.map((id) => {
-                    const match = internalapproverOptions?.find((opt) => opt?.value === id);
-                    return match
-                      ? {
-                        value: match.value,
-                        label: match.label, // ensures label is shown in chips
-                        id: campaignFormData?.campaign_id,
-                        clientId: campaignFormData?.client_selection?.id,
-                      }
-                      : null;
-                  }).filter(Boolean) ?? [],
+                internal_approver: campaignFormData?.internal_approver_ids?.map((id) => {
+                  const match = internalapproverOptions?.find((opt) => String(opt?.value) === String(id));
+                  return match
+                    ? {
+                      value: match.value,
+                      label: match.label,
+                      id: campaignFormData?.campaign_id,
+                      clientId: campaignFormData?.client_selection?.id,
+                    }
+                    : null;
+                }).filter(Boolean) ?? [],
               }}
 
               onChange={(field, selected) => {
@@ -362,6 +422,7 @@ export const SetupScreen = () => {
                 }));
               }}
             />
+
             <ClientApproverDropdowns
               option={clientapprovalOptions}
               value={{

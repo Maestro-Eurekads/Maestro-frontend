@@ -54,6 +54,8 @@ const useCampaignHook = () => {
     }
   }, [jwt]);
 
+  
+
   // Fetch client campaigns
   const fetchClientCampaign = useCallback(async (clientID:string, agencyId:string|number) => {
     try {
