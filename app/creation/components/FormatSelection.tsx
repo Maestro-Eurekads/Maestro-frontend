@@ -179,13 +179,13 @@ const CreativesModal = ({
         {format?.previews?.length > 0 ? (
           <div className="mt-3">
             <h4 className="font-medium text-sm mb-2">Previews:</h4>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-4 gap-1">
               {format.previews.map((preview, idx) => {
                 const fileType = getFileType(preview.url);
                 return (
                   <div key={idx} className="flex flex-col">
                     {fileType === "image" && preview.url ? (
-                      <div className="relative aspect-square w-[150px]">
+                      <div className="relative aspect-square w-[155px]">
                         <Image
                           src={preview.url || "/placeholder.svg"}
                           alt={`Preview ${idx + 1}`}
