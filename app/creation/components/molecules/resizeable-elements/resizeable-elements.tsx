@@ -181,7 +181,7 @@ const ResizeableElements = ({
         [viewType]: Math.round(dailyWidth),
       }));
 
-      return Math.round(dailyWidth);
+      return Math.round(dailyWidth).toFixed(2) + 0.5;
     },
     [disableDrag, funnelData?.endDay, funnelData?.endMonth]
   );
@@ -279,7 +279,7 @@ const ResizeableElements = ({
                 : null,
             }).length;
           const endMonth = funnelData?.endMonth || 1;
-          const dailyWidth = calculateDailyWidth(screenWidth, endMonth);
+          const dailyWidth = getDailyWidth();
           console.log("startDateIndex", {
             daysFromStart,
             dailyWidth,
@@ -288,7 +288,7 @@ const ResizeableElements = ({
           initialWidths[stageName] = (() => {
             if (rrange === "Day") {
               return daysBetween > 0
-                ? getDailyWidth() * daysBetween + 45
+                ? getDailyWidth() * daysBetween + 10
                 : getDailyWidth() * daysFromStart - 40;
             } else if (rrange === "Week") {
               return daysBetween > 0
@@ -304,8 +304,8 @@ const ResizeableElements = ({
               // }
               console.log("🚀 ~  monthBaseWidth:", {daysBetween})
               return daysBetween > 0
-              ? getDailyWidth() * daysBetween + 10
-                : Math.round(monthBaseWidth) - (disableDrag ? 83 : 60);
+              ? getDailyWidth() * daysBetween - 113
+                : Math.round(monthBaseWidth) - (disableDrag ? 83 : 38);
             }
           })();
 

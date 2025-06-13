@@ -175,8 +175,8 @@ const MainSection = ({
           <div
             className="min-w-max transition-transform duration-200 ease-out origin-top-left"
             style={{
-              transform: `scale(${zoomLevel})`,
-              transformOrigin: "top left",
+              transform: `scaleX(${zoomLevel})`,
+              transformOrigin: "left",
             }}
           >
             <div className="relative">
