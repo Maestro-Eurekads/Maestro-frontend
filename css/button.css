@@ -344,4 +344,6 @@ color: var(--accent-white);
 }
 }
 
- 
+ .custom-tree-select .ant-select-selection-placeholder {
+  color: #000000 !important; /* Black placeholder */
+}

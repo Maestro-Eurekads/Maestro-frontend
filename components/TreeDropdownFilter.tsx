@@ -57,6 +57,7 @@ const TreeDropdownFilter: React.FC<Props> = ({
 			allowClear
 			disabled={isDisabled}
 			style={{ minWidth: '150px', width: 'auto' }}
+			className="custom-tree-select"
 		/>
 	);
 };

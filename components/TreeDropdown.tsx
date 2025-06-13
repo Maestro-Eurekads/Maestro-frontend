@@ -45,6 +45,7 @@ const TreeDropdown: React.FC<Props> = ({ data, formId, setCampaignFormData }) =>
 				placeholder={data?.title || 'Select parameters'}
 				style={{ width: '100%', height: '100%' }}
 				allowClear
+				className="custom-tree-select"
 			/>
 		</div>
 	);

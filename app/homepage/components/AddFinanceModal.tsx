@@ -117,10 +117,6 @@ const AddFinanceModal = ({
     }
   }, [poForm?.client, selected]);
 
-  // console.log("clientApprover:", clientApprover);
-  // console.log("internalApprover:", internalApprover);
-
-  // console.log('campaign', clientCampaigns)
 
   useEffect(() => {
     const fetchClientCampaigns = async () => {
@@ -371,7 +367,10 @@ const AddFinanceModal = ({
 
       const newPO = response.data.data;
       setClientPOs((prevPOs) => [newPO, ...(prevPOs || [])]);
-      dispatch(getCreateClient({userId:!isAdmin ? selected : null, jwt}));
+      dispatch(getCreateClient({
+        userId: !isAdmin ? selected : null, jwt,
+        agencyId
+      }));
 
       if (selected) {
         localStorage.setItem(userType.toString(), selected);
