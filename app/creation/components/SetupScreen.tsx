@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import { Title } from "../../../components/Title";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
-import ClientSelection from "../../../components/ClientSelection";
 import { useCampaigns } from "../../utils/CampaignsContext";
 import ClientSelectionInput from "../../../components/ClientSelectionInput";
 import AlertMain from "components/Alert/AlertMain";
@@ -11,10 +10,7 @@ import { useUserPrivileges } from "utils/userPrivileges";
 import { selectCurrency } from "components/Options";
 import ClientApproverDropdowns from "components/ClientApproverDropdowns";
 import { useSearchParams } from "next/navigation";
-import ResponsibleApproverDropdownsCampaign from "components/ResponsibleApproverDropdownsCampaign";
 import InternalApproverDropdowns from "components/InternalApproverDropdowns";
-import ResponsibleApproverDropdowns from "components/ResponsibleApproverDropdowns";
-import { useRouter } from "next/router";
 import TreeDropdown from "components/TreeDropdown";
 import { useAppDispatch } from "store/useStore";
 import { useSession } from "next-auth/react";
@@ -52,26 +48,17 @@ export const SetupScreen = () => {
   const [alert, setAlert] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const { setIsDrawerOpen, setClose } = useComments();
-  const { isAgencyCreator, isAgencyApprover, isFinancialApprover, isAdmin } = useUserPrivileges();
+  const { isAdmin } = useUserPrivileges();
   const [internalapproverOptions, setInternalApproverOptions] = useState<DropdownOption[]>([]);
   const [clientapprovalOptions, setClientApprovalOptions] = useState<DropdownOption[]>([]);
-  const [clientOptions, setClientOptions] = useState<DropdownOption[]>([]);
-
   const [level1Options, setlevel1Options] = useState<DropdownOption[]>([]);
   const [level2Options, setlevel2Options] = useState<DropdownOption[]>([]);
   const [level3Options, setlevel3Options] = useState<DropdownOption[]>([]);
 
-
   useEffect(() => {
     //@ts-ignore
     dispatch(getCreateClient({ userId: !isAdmin ? session?.user?.data?.user?.id : null, jwt }));
-
   }, [isAdmin, session, dispatch]);
-
-
-
-
-
 
   useEffect(() => {
     if (allClients.length > 0) {
@@ -107,7 +94,6 @@ export const SetupScreen = () => {
       setlevel3Options(data?.level_3);
     }
   }, []);
-
 
   useEffect(() => {
     setIsDrawerOpen(false);
@@ -170,49 +156,6 @@ export const SetupScreen = () => {
     }
   }, [alert]);
 
-  useEffect(() => {
-    if (isAgencyCreator || isAgencyApprover || isFinancialApprover) {
-      if (profile?.clients) {
-        const options = profile?.clients?.map((c) => ({
-          id: c?.documentId,
-          value: c?.client_name,
-          label: c?.client_name,
-        }));
-        setClientOptions(options);
-      }
-    } else {
-      if (allClients) {
-        const options = allClients?.map((c) => ({
-          id: c?.documentId,
-          value: c?.client_name,
-          label: c?.client_name,
-        }));
-        setClientOptions(options);
-      }
-    }
-  }, [allClients, profile, isAgencyCreator, isAgencyApprover, isFinancialApprover]);
-
-  useEffect(() => {
-    if (!allClients || !client_selection) return;
-
-    const client = allClients?.find((c) => c?.documentId === client_selection?.id);
-
-
-
-    const options = client?.approver?.map((l) => ({
-      value: l?.id,
-      label: l?.username,
-    })) || [];
-
-    const filteredUsers = client?.agency?.client_users?.filter(user => user?.role == "client_approver");
-    const clientOptions = filteredUsers?.map((l) => ({
-      value: l?.id,
-      label: l?.full_name,
-    })) || [];
-
-  }, [client_selection, allClients, setCampaignFormData]);
-
-
 
   useEffect(() => {
     if (campaignFormData?.budget_details_currency?.id) {
@@ -233,8 +176,6 @@ export const SetupScreen = () => {
     selectedOption,
     setCurrencySign,
   ]);
-
-
 
 
 
@@ -282,121 +223,32 @@ export const SetupScreen = () => {
   }
 
   return (
-    // <div>
-    //   <PageHeaderWrapper t1={"Set up your new campaign"} />
 
-    //   {alert && <AlertMain alert={alert} />}
-    //   <div className="mt-[42px]">
-    //     <Title>Client selection</Title>
-    //     <div className="flex items-center flex-wrap gap-4 pb-12">
-
-    //       <TreeDropdown
-    //         data={level1Options}
-    //         setCampaignFormData={setCampaignFormData} formId={"level_1"} />
-    //       <TreeDropdown data={level2Options}
-    //         setCampaignFormData={setCampaignFormData} formId={"level_2"} />
-    //       <TreeDropdown data={level3Options}
-    //         setCampaignFormData={setCampaignFormData} formId={"level_3"} />
-
-    //     </div>
-    //     <div className="pb-12 w-full ">
-    //       <Title>Media Plan details</Title>
-    //       <div className="w-full flex items-center flex-row flex-wrap gap-4 pb-12">
-    //         <ClientSelectionInput
-    //           label={"Enter media plan name"}
-    //           formId="media_plan"
-    //         />
-
-    //         <InternalApproverDropdowns
-    //           options={internalapproverOptions}
-    //           value={{
-    //             internal_approver: campaignFormData?.internal_approver_ids?.map((id) => {
-    //               const match = internalapproverOptions?.find((opt) => String(opt?.value) === String(id));
-    //               return match
-    //                 ? {
-    //                   value: match.value,
-    //                   label: match.label,
-    //                   id: campaignFormData?.campaign_id,
-    //                   clientId: campaignFormData?.client_selection?.id,
-    //                 }
-    //                 : null;
-    //             }).filter(Boolean) ?? [],
-    //           }}
-
-    //           onChange={(field, selected) => {
-    //             setCampaignFormData((prev) => ({
-    //               ...prev,
-    //               [`${field}_ids`]: selected?.map((item) => item?.value),
-    //               [field]: selected,
-    //             }));
-    //           }}
-    //         />
-
-    //         <ClientApproverDropdowns
-    //           option={clientapprovalOptions}
-    //           value={{
-    //             client_approver:
-    //               campaignFormData?.client_approver_ids?.map((id) => {
-    //                 const match = clientapprovalOptions?.find((opt) => opt?.value === id);
-    //                 return match
-    //                   ? {
-    //                     value: match.value,
-    //                     label: match.label,
-    //                     id: campaignFormData?.campaign_id,
-    //                     clientId: campaignFormData?.client_selection?.id,
-    //                   }
-    //                   : null;
-    //               }).filter(Boolean) ?? [],
-    //           }}
-    //           onChange={(field, selected) => {
-    //             setCampaignFormData((prev) => ({
-    //               ...prev,
-    //               [`${field}_ids`]: selected?.map((item) => item?.value),
-    //               [field]: selected,
-    //             }));
-    //           }}
-    //         />
-
-    //       </div>
-    //     </div>
-    //   </div>
-    // </div>
     <div className="container mx-auto px-4">
       <PageHeaderWrapper t1="Set up your new campaign" />
-
       {alert && <AlertMain alert={alert} />}
-
       <div className="mt-10">
         {/* Client Selection Section */}
         <div className="mb-12">
           <Title className="text-2xl font-semibold text-gray-800 mb-4">
             Business Levels
           </Title>
-          <div className="flex flex-wrap items-start gap-6">
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {/* Level 1 */}
-              </label>
+          <div className="flex items-center flex-wrap gap-4 pb-12">
+            <div>
               <TreeDropdown
                 data={level1Options}
                 setCampaignFormData={setCampaignFormData}
                 formId="level_1"
               />
             </div>
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {/* Level 2 */}
-              </label>
+            <div>
               <TreeDropdown
                 data={level2Options}
                 setCampaignFormData={setCampaignFormData}
                 formId="level_2"
               />
             </div>
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {/* Level 3 */}
-              </label>
+            <div>
               <TreeDropdown
                 data={level3Options}
                 setCampaignFormData={setCampaignFormData}
@@ -412,7 +264,7 @@ export const SetupScreen = () => {
             Media Plan Details
           </Title>
           <div className="flex flex-wrap items-start gap-6">
-            <div className="flex-1 min-w-[200px]">
+            <div >
               <label className="block text-sm font-medium text-gray-700  ">
                 Name
               </label>
@@ -421,7 +273,7 @@ export const SetupScreen = () => {
                 formId="media_plan"
               />
             </div>
-            <div className="flex-1 min-w-[200px]">
+            <div >
               <label className="block text-sm font-medium text-gray-700  ">
                 Internal Approver
               </label>
@@ -452,7 +304,7 @@ export const SetupScreen = () => {
                 }}
               />
             </div>
-            <div className="flex-1 min-w-[200px]">
+            <div >
               <label className="block text-sm font-medium text-gray-700 ">
                 Client Approver
               </label>
