@@ -66,7 +66,7 @@ const Header = ({ setIsOpen, setIsView }) => {
 
   const clients: any = getCreateClientData;
 
-  // console.log("clients-clients", clients);
+
 
   useEffect(() => {
     if (profile && agencyId) {
@@ -115,13 +115,12 @@ const Header = ({ setIsOpen, setIsView }) => {
     const filteredClient = clients?.data?.find(
       (client) => client?.id === Number(clientId)
     );
-    // console.log(clientId);
-    // console.log("agencyId", agencyId)
+
     fetchClientCampaign(clientId, agencyId)
       .then((res) => {
         const campaigns = res?.data?.data || [];
 
-        console.log("campaigns-campaigns", campaigns);
+        // console.log("campaigns-campaigns", campaigns);
 
         if (isMounted) setClientCampaignData(campaigns);
 
