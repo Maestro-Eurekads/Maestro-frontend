@@ -77,12 +77,12 @@ export const SetupScreen = () => {
     if (allClients.length > 0) {
       const agency = allClients[0]?.agency;
       const agencyUserOptions = agency?.agency_users?.map((user) => ({
-        value: user?.id,
+        value: user?.user?.id,
         label: user?.full_name,
       })) || [];
 
       const clientUserOptions = agency?.client_users?.map((user) => ({
-        value: user?.id,
+        value: user?.user?.id,
         label: user?.full_name,
       })) || [];
 

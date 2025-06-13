@@ -539,12 +539,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             },
             media_plan_details: {
               plan_name: campaignFormData?.media_plan,
-              internal_approver: {
-                connect: (campaignFormData?.internal_approver_ids || []).map(Number)
-              },
-              client_approver: {
-                connect: (campaignFormData?.client_approver_ids || []).map(Number)
-              },
+              internal_approver: (campaignFormData?.internal_approver_ids || []).map(Number),
+              client_approver: (campaignFormData?.client_approver_ids || []).map(Number),
             },
             agency_profile: agencyId
           },
