@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import clientService from './clientService';
+import { getServerSession } from 'next-auth';
+import { authOptions } from 'utils/auth';
 
 // Initial state
 const initialState = {
@@ -36,9 +38,10 @@ export const createClient = createAsyncThunk('client/createClient', async (input
 });
 
 // Get clients list
-export const getCreateClient = createAsyncThunk('client/getCreateClient', async (userId: string, thunkAPI) => {
+export const getCreateClient = createAsyncThunk('client/getCreateClient', async (inputs: { userId: string; jwt: string, agencyId:string}, thunkAPI) => {
+  console.log(inputs, "innt")
   try {
-    const response = await clientService.getCreateClient(userId);
+    const response = await clientService.getCreateClient(inputs.userId, inputs.jwt, inputs.agencyId);
     return response;
   } catch (error: unknown) { 
     if (typeof error === 'object' && error !== null && 'response' in error) {

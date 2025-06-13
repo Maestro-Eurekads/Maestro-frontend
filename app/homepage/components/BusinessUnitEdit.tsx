@@ -1,15 +1,13 @@
 
-
 "use client";
-
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import blueSmallPlue from "../../../public/blueSmallPlue.svg";
 import { MdOutlineCancel } from "react-icons/md";
 
-const EditInput = ({ setInputs, label, setAlert }) => {
-  const [title, setTitle] = useState(""); // Business level 1
-  const [parameters, setParameters] = useState([]); // Business level 2
+const EditInput = ({ setInputs, label, setAlert, initialData }) => {
+  const [title, setTitle] = useState(initialData?.title || "");
+  const [parameters, setParameters] = useState(initialData?.parameters || []);
 
   // Sync with parent
   useEffect(() => {
@@ -118,7 +116,7 @@ const EditInput = ({ setInputs, label, setAlert }) => {
             <input
               type="text"
               className="w-full bg-transparent outline-none text-gray-600"
-              placeholder={`Add parameter ${index + 1}`}
+              placeholder={`Add parameter ${index + 1} `}
               value={param.name}
               onChange={(e) => handleParameterChange(index, e.target.value)}
             />
@@ -139,7 +137,7 @@ const EditInput = ({ setInputs, label, setAlert }) => {
               <input
                 type="text"
                 className="w-full bg-transparent outline-none text-gray-600"
-                placeholder={`Add sub-parameter ${sIndex + 1}`}
+                placeholder={`Add sub - parameter ${sIndex + 1} `}
                 value={sub}
                 onChange={(e) =>
                   handleSubChange(index, sIndex, e.target.value)
@@ -179,16 +177,17 @@ const EditInput = ({ setInputs, label, setAlert }) => {
   );
 };
 
-const BusinessUnit = ({ setInputs, setAlert }) => {
+const BusinessUnitEdit = ({ setInputs, setAlert, level1Options, initialData }) => {
   return (
     <div className="flex flex-col gap-4 mt-[20px]">
       <EditInput
         setInputs={setInputs}
         setAlert={setAlert}
         label="Business level 1"
+        initialData={initialData}
       />
     </div>
   );
 };
 
-export default BusinessUnit;
+export default BusinessUnitEdit;

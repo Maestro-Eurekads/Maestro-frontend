@@ -73,6 +73,7 @@ const OverviewofyourCampaign = () => {
     campaignData,
     isLoading: isLoadingCampaign,
     campaignFormData,
+    jwt,
     loadingCampaign,
     getActiveCampaign,
   } = useCampaigns();
@@ -121,12 +122,12 @@ const OverviewofyourCampaign = () => {
 
   const handleDrawerOpen = () => {
     setIsDrawerOpen(true);
-    dispatch(getComment(commentId));
+    dispatch(getComment(commentId, jwt));
     setClose(true);
   };
   const handleOpenComment = () => {
     setGeneralComment(!generalComment);
-    dispatch(getGeneralComment(commentId));
+    dispatch(getGeneralComment(commentId, jwt));
   };
 
   function extractKPIByFunnelStage(data, kpiCategories) {

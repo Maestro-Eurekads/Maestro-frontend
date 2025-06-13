@@ -22,14 +22,29 @@ const createClient = async (inputs: any) => {
 
 
 //  Get Created Client
-const getCreateClient = async (userId) => {
+const getCreateClient = async (userId, jwt, agencyId) => {
+  const filters = {
+    users: {
+      $eq: userId,
+    },
+    agency: {
+      $eq: agencyId,
+    }
+  };
   const { data } = await axios.get(
-    `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients${
-      !userId ? "?populate[0]=users&populate[1]=responsible&populate[2]=approver" : `?filters[users][$eq]=${userId}&populate[0]=users&populate[1]=responsible&populate[2]=approver`
-    }`,
+    `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients`,
     {
+      params: {
+        filters,
+        populate: {
+          agency: {
+            populate: ["agency_users", "admins", "client_users"]
+          },
+          approver: true,
+        }
+      },
       headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+        Authorization: `Bearer ${jwt}`,
       },
     }
   );

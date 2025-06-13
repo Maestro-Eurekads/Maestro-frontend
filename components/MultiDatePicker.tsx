@@ -159,9 +159,7 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
 
   return (
     <div
-      className={`flex flex-col items-start p-5 gap-5 w-[792px] bg-white border border-gray-200 rounded-lg mt-8 ${
-        isEditing ? "" : " cursor-not-allowed"
-      }`}
+      className={`flex flex-col items-start p-5 gap-5 w-[792px] bg-white border border-gray-200 rounded-lg mt-8 cursor-pointer`}
     >
       {/* Navigation */}
       <div className="flex justify-between w-full">

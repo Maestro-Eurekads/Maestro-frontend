@@ -179,7 +179,7 @@ const CreativesModal = ({
         {format?.previews?.length > 0 ? (
           <div className="mt-3">
             <h4 className="font-medium text-sm mb-2">Previews:</h4>
-            <div className="grid grid-cols-4 gap-1">
+            <div className="grid grid-cols-4 gap-2">
               {format.previews.map((preview, idx) => {
                 const fileType = getFileType(preview.url);
                 return (
@@ -244,7 +244,7 @@ const CreativesModal = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-5xl max-h-[80vh] overflow-y-auto">
+      <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[80vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Creatives for {stageName}</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
@@ -371,10 +371,13 @@ const MediaOption = ({
 }) => {
   const [localPreviews, setLocalPreviews] = useState<Array<{ id: string; url: string }>>([]);
   const [deletingPreviewId, setDeletingPreviewId] = useState<string | null>(null);
+
+  const {jwt} = useCampaigns()
+
   const [isHovered, setIsHovered] = useState(false);
 
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
-  const STRAPI_TOKEN = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
+  const STRAPI_TOKEN = jwt;
 
   useEffect(() => {
     if (!STRAPI_URL || !STRAPI_TOKEN) {
@@ -1104,10 +1107,10 @@ export const Platforms = ({
   const [isUpdatingStrapi, setIsUpdatingStrapi] = useState(false);
   const [completedDeletions, setCompletedDeletions] = useState<Set<string>>(new Set());
 
-  const { campaignFormData, setCampaignFormData, updateCampaign, campaignData } = useCampaigns();
+  const { campaignFormData, setCampaignFormData, updateCampaign, campaignData, jwt } = useCampaigns();
 
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
-  const STRAPI_TOKEN = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
+  const STRAPI_TOKEN = jwt;
 
   useEffect(() => {
     const quantitiesKey = `quantities_${stageName}_${view}`;

@@ -8,6 +8,7 @@ import { getSignedApproval } from "features/Comment/commentSlice";
 import Skeleton from "react-loading-skeleton";
 import tickcircles from "../../public/solid_circle-check.svg";
 import ClientsCampaignDropdown from "./compoment/ClientsCampaignDropdown";
+import { useCampaigns } from "app/utils/CampaignsContext";
 
 const Header = ({ setIsOpen, campaigns, loading }) => {
   const {
@@ -18,44 +19,43 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
     selected,
     setSelected,
   } = useComments();
-  const { dataApprove, isLoadingApprove } = useAppSelector(
-    (state) => state.comment
-  );
+  const { dataApprove, isLoadingApprove } = useAppSelector((state) => state.comment);
   const { data: session }: any = useSession();
+  const {jwt} = useCampaigns()
   const dispatch = useAppDispatch();
   const id = session?.user?.id;
 
   useEffect(() => {
     if (createApprovalSuccess) {
       setModalOpen(false);
-      dispatch(getSignedApproval(id));
+      dispatch(getSignedApproval(id, jwt));
       setCreateApprovalSuccess(null);
     }
-    dispatch(getSignedApproval(id));
+    dispatch(getSignedApproval(id, jwt));
   }, [dispatch, id, createApprovalSuccess]);
 
   const handleDrawerOpen = () => {
     setModalOpen(true);
-    dispatch(getSignedApproval(id));
+    dispatch(getSignedApproval(id, jwt));
   };
 
   const isSignature = dataApprove?.[0]?.isSignature || false;
 
   // Check if user has any assigned campaigns
-  const hasCampaigns = campaigns && campaigns.length > 0;
+  const hasCampaigns = campaigns && campaigns?.length > 0;
 
- 
- 
 
-  const isApproverForSelectedCampaign = campaigns?.find((cam)=>cam?.documentId === selected)?.media_plan_details?.client_approver?.map((approver)=>approver?.id)?.filter((aId)=>aId === id)?.length > 0
- 
+
+
+  const isApproverForSelectedCampaign = campaigns?.find((cam) => cam?.documentId === selected)?.media_plan_details?.client_approver?.map((approver) => approver?.id)?.filter((aId) => aId === id)?.length > 0
+
 
   return (
     <div
       id="client_header"
       className={`py-[2.8rem] px-[30px] ${isDrawerOpen ? "md:px-[50px]" : "xl:px-[100px]"
-        } relative`}
-    >
+        } relative`}>
+
       <div className="flex items-end">
         {loading ? (
           <Skeleton height={20} width={200} />
@@ -80,8 +80,8 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
                 <button
                   className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start flex items-center	gap-[10px]"
                   style={{ border: "1px solid #3175FF" }}
-                  onClick={handleDrawerOpen}
-                >
+                  onClick={handleDrawerOpen}>
+
                   <Image
                     src={tickcircles}
                     alt="tickcircle"
@@ -89,12 +89,11 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
                   />
                   Approved
                 </button>
-              ) : isApproverForSelectedCampaign && (
+              ) : true && (
                 <button
                   className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
                   style={{ border: "1px solid #3175FF" }}
-                  onClick={() => setIsOpen(true)}
-                >
+                  onClick={() => setIsOpen(true)}>
                   Approve & Sign Media plan
                 </button>
               )}
@@ -105,15 +104,12 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
       {isDrawerOpen ? (
         ""
       ) : (
-        <div
-          className="text-[18px] absolute right-[30px] top-[20px] cursor-pointer"
+        <div className="text-[18px] absolute right-[30px] top-[20px] cursor-pointer"
           onClick={async () => {
             localStorage.removeItem("campaignFormData");
             localStorage.removeItem("selectedClient");
             localStorage.removeItem("profileclients");
-            localStorage.removeItem(
-              session?.user?.data?.user?.id?.toString() || ""
-            );
+            localStorage.removeItem(session?.user?.data?.user?.id?.toString() || "");
             await signOut({
               callbackUrl: "/",
             });
