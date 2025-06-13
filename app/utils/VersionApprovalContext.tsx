@@ -1,6 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState } from "react";
 import axios from "axios";
+import { useSession } from "next-auth/react";
 
 // Create the context
 const VersionContext = createContext(null);
@@ -20,6 +21,8 @@ export const VersionApprovalProvider = ({ children }) => {
 	const [version, setVersion] = useState(0);
 	const [versions, setVersions] = useState(null);
 	const [documentId, setdocumentId] = useState(null);
+	const { data: session } = useSession()
+	const jwt = (session?.user as { data?: { jwt: string } })?.data?.jwt;
 
 	// Create campaign version
 	const createCampaignVersion = async (newVersion, documentId) => {
@@ -35,7 +38,7 @@ export const VersionApprovalProvider = ({ children }) => {
 				{
 					headers: {
 						"Content-Type": "application/json",
-						Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+						Authorization: `Bearer ${jwt}`,
 					},
 				}
 			);
@@ -62,7 +65,7 @@ export const VersionApprovalProvider = ({ children }) => {
 	// 			{
 	// 				headers: {
 	// 					"Content-Type": "application/json",
-	// 					Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+	// 					 Authorization: `Bearer ${jwt}`,
 	// 				},
 	// 			}
 	// 		);
@@ -84,7 +87,7 @@ export const VersionApprovalProvider = ({ children }) => {
 				{
 					headers: {
 						"Content-Type": "application/json",
-						Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+						Authorization: `Bearer ${jwt}`,
 					},
 				}
 			);
@@ -107,7 +110,7 @@ export const VersionApprovalProvider = ({ children }) => {
 				{
 					headers: {
 						"Content-Type": "application/json",
-						Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+						Authorization: `Bearer ${jwt}`,
 					},
 				}
 			);
@@ -136,7 +139,7 @@ export const VersionApprovalProvider = ({ children }) => {
 				{
 					headers: {
 						"Content-Type": "application/json",
-						Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+						Authorization: `Bearer ${jwt}`,
 					},
 				}
 			);

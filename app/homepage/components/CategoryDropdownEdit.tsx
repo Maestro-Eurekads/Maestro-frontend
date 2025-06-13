@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -7,15 +5,15 @@ import Image from "next/image";
 import blueSmallPlue from "../../../public/blueSmallPlue.svg";
 import { MdOutlineCancel } from "react-icons/md";
 
-const EditInput = ({ setInputs, label, setAlert }) => {
-  const [title, setTitle] = useState(""); // Business level 1
-  const [parameters, setParameters] = useState([]); // Business level 2
+const EditInput = ({ setInputs, label, setAlert, initialData }) => {
+  const [title, setTitle] = useState(initialData?.title || "");
+  const [parameters, setParameters] = useState(initialData?.parameters || []);
 
   // Sync with parent
   useEffect(() => {
     setInputs((prev) => ({
       ...prev,
-      businessUnits: {
+      categories: {
         title,
         parameters: parameters.map((param) => ({
           name: param.name,
@@ -104,7 +102,7 @@ const EditInput = ({ setInputs, label, setAlert }) => {
         <input
           type="text"
           className="w-full bg-transparent outline-none text-gray-600"
-          placeholder="business level 1"
+          placeholder="business level 3"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
@@ -179,16 +177,18 @@ const EditInput = ({ setInputs, label, setAlert }) => {
   );
 };
 
-const BusinessUnit = ({ setInputs, setAlert }) => {
+const CategoryDropdownEdit = ({ setInputs, setAlert, initialData }) => {
   return (
     <div className="flex flex-col gap-4 mt-[20px]">
       <EditInput
         setInputs={setInputs}
         setAlert={setAlert}
-        label="Business level 1"
+        label="Business level 3"
+        initialData={initialData}
       />
     </div>
   );
 };
 
-export default BusinessUnit;
+export default CategoryDropdownEdit;
+

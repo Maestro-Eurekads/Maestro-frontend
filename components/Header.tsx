@@ -25,7 +25,7 @@ import { getFirstLetters } from "./Options";
 import { useSelectedDates } from "app/utils/SelectedDatesContext";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
-const Header = ({ setIsOpen }) => {
+const Header = ({ setIsOpen, setIsView }) => {
   const { data: session } = useSession();
 
   if (!session) return null;
@@ -47,6 +47,10 @@ const Header = ({ setIsOpen }) => {
     setFilterOptions,
     profile,
     setSelectedFilters,
+    jwt,
+    agencyId,
+    selectedClient,
+    setSelectedClient
   } = useCampaigns();
 
   const { setSelectedDates } = useSelectedDates()
@@ -62,15 +66,20 @@ const Header = ({ setIsOpen }) => {
 
   const clients: any = getCreateClientData;
 
+  // console.log("clients-clients", clients);
+
   useEffect(() => {
-    dispatch(getCreateClient(!isAdmin ? userType : null));
+    if (profile && agencyId) {
+      dispatch(getCreateClient({ userId: userType, jwt, agencyId }));
 
-    const timer = setTimeout(() => {
-      setAlert(null);
-    }, 5000);
+      const timer = setTimeout(() => {
+        setAlert(null);
+      }, 5000);
 
-    return () => clearTimeout(timer);
-  }, [dispatch, session]);
+      return () => clearTimeout(timer);
+
+    }
+  }, [dispatch, session, profile, agencyId]);
 
   //  LocalStorage prioritized
   useEffect(() => {
@@ -79,12 +88,14 @@ const Header = ({ setIsOpen }) => {
     const storedClientId = localStorage.getItem(userType);
     if (storedClientId) {
       setSelectedId(storedClientId);
+      setSelectedClient(storedClientId);
     } else {
       const fallbackId =
         getCreateClientData?.data?.[0]?.id?.toString() ||
         profile?.clients?.[0]?.id?.toString();
       if (fallbackId) {
         setSelectedId(fallbackId);
+        setSelectedClient(fallbackId);
       }
     }
   }, [userType, getCreateClientIsLoading, profile?.clients]);
@@ -105,9 +116,12 @@ const Header = ({ setIsOpen }) => {
       (client) => client?.id === Number(clientId)
     );
     // console.log(clientId);
-    fetchClientCampaign(clientId)
+    // console.log("agencyId", agencyId)
+    fetchClientCampaign(clientId, agencyId)
       .then((res) => {
         const campaigns = res?.data?.data || [];
+
+        console.log("campaigns-campaigns", campaigns);
 
         if (isMounted) setClientCampaignData(campaigns);
 
@@ -116,7 +130,7 @@ const Header = ({ setIsOpen }) => {
         const channelData = extractChannelAndPhase(campaigns);
         const levelData = extractLevelFilters(campaigns);
         const levelNames = extractLevelNameFilters(filteredClient);
-
+        // console.log('extractLevelNameFilters', levelNames)
         setFilterOptions((prev) => ({
           ...prev,
           ...dateData,
@@ -170,7 +184,7 @@ const Header = ({ setIsOpen }) => {
                   value: c?.id.toString(),
                 }))}
               className="min-w-[150px] z-[20]"
-              placeholder="Search or select a client"
+              placeholder="Search"
               onChange={(value) => {
                 if (value) {
                   localStorage.setItem(userType, value?.value);
@@ -189,7 +203,13 @@ const Header = ({ setIsOpen }) => {
                 )}
             />
 
-
+            <button
+              className={`new_plan_btn ml-8 mr-4 ${!profile?.clients?.[0]?.id && !isAdmin ? "!bg-[gray]" : ""
+                }`}
+              disabled={!profile?.clients?.[0]?.id && !isAdmin}
+              onClick={() => setIsView(true)} >
+              <p className="new_plan_btn_text">View Client</p>
+            </button>
             {(isAdmin ||
               isFinancialApprover ||
               isAgencyApprover) && (
@@ -240,7 +260,10 @@ const Header = ({ setIsOpen }) => {
             className="profile_container"
             onClick={() => setShow((prev) => !prev)}
           >
-            {getFirstLetters(session?.user?.name)}
+            <p className="capitalize">
+
+              {getFirstLetters(session?.user?.name)}
+            </p>
 
             {show && (
               <div className="absolute right-0 top-[60px] w-[200px] bg-white border border-gray-200   shadow-lg z-50 !rounded-[5px]">

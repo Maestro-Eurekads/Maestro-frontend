@@ -74,7 +74,7 @@ const ObjectiveSelection = () => {
   const [buyObjSearch, setBuyObjSearch] = useState("")
   const [buyTypeSearch, setBuyTypeSearch] = useState("")
 
-  const { campaignFormData, setCampaignFormData, buyObj, buyType, setBuyObj, setBuyType } = useCampaigns()
+  const { campaignFormData, setCampaignFormData, buyObj, buyType, setBuyObj, setBuyType, jwt } = useCampaigns()
 
   // Track plan ID and seen stages
   const seenStagesRef = useRef(new Set())
@@ -546,7 +546,7 @@ const ObjectiveSelection = () => {
         { data: { text: customValue } },
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         },
       )

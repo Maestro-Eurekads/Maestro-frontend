@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { getServerSession } from "next-auth";
+import { authOptions } from "utils/auth";
 
 // Define filter types
 export type FilterState = {
@@ -16,7 +18,7 @@ export type FilterState = {
   channel: string | null;
   phase: string | null;
   searchQuery: string;
-    level_1?: string
+  level_1?: string
   level_2?: string
   level_3?: string
 };
@@ -78,11 +80,13 @@ export function useCampaignFilters(clientID: string) {
 
   // The main fetch function
   const fetchClientCampaign = async (clientID: string) => {
+    const session = await getServerSession(authOptions)
+    const jwt = (session?.user as { data?: { jwt: string } })?.data?.jwt;
     return await axios.get(
       `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns?filters[client][$eq]=${clientID}&populate[media_plan_details]=*&populate[budget_details]=*&populate[campaign_budget][populate][budget_fees]=*&populate[client_selection]=*&populate[channel_mix][populate][social_media][populate]=*&populate[channel_mix][populate][display_networks][populate]=*&populate[channel_mix][populate][search_engines][populate]=*&populate[channel_mix][populate][streaming][populate]=*&populate[channel_mix][populate][ooh][populate]=*&populate[channel_mix][populate][broadcast][populate]=*&populate[channel_mix][populate][messaging][populate]=*&populate[channel_mix][populate][print][populate]=*&populate[channel_mix][populate][e_commerce][populate]=*&populate[channel_mix][populate][in_game][populate]=*&populate[channel_mix][populate][mobile][populate]=*`,
       {
         headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+          Authorization: `Bearer ${jwt}`,
         },
       }
     );
@@ -157,12 +161,14 @@ export function useCampaignFilters(clientID: string) {
 
 
     setLoading(true);
+    const session = await getServerSession(authOptions)
+    const jwt = (session?.user as { data?: { jwt: string } })?.data?.jwt;
     try {
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns?${filterQuery}${populateQuery}`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );

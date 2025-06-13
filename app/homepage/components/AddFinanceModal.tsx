@@ -54,7 +54,7 @@ const AddFinanceModal = ({
   const [mediaPlans, setMediaPlans] = useState<MediaPlan[]>([]);
   const { fetchClientCampaign, fetchUserByType, fetchClientPOS } = useCampaignHook();
 
-  const { setClientPOs, setFetchingPO, profile } = useCampaigns();
+  const { setClientPOs, setFetchingPO, profile, jwt, agencyId } = useCampaigns();
   const [selected, setSelected] = useState("");
   const [poForm, setPoForm] = useState<POForm>({
     client: "",
@@ -117,17 +117,13 @@ const AddFinanceModal = ({
     }
   }, [poForm?.client, selected]);
 
-  // console.log("clientApprover:", clientApprover);
-  // console.log("internalApprover:", internalApprover);
-
-  console.log('campaign', clientCampaigns)
 
   useEffect(() => {
     const fetchClientCampaigns = async () => {
-      if (selected || selectedRow?.client?.id) {
+      if ((selected || selectedRow?.client?.id) && agencyId) {
         setLoadingCam(true);
         try {
-          const res = await fetchClientCampaign(selected || selectedRow?.client?.id);
+          const res = await fetchClientCampaign(selected || selectedRow?.client?.id, agencyId);
 
           const data = res?.data?.data;
           console.log("yes-yess-yes:", res);
@@ -148,7 +144,7 @@ const AddFinanceModal = ({
     };
 
     fetchClientCampaigns();
-  }, [selected, selectedRow]);
+  }, [selected, selectedRow, agencyId]);
 
   useEffect(() => {
     const fetchAgencyUsers = async () => {
@@ -309,7 +305,7 @@ const AddFinanceModal = ({
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/purchase-orders?filters[PO_number][$eq]=${poNumber}&populate=client`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
@@ -364,14 +360,17 @@ const AddFinanceModal = ({
         payload,
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );
 
       const newPO = response.data.data;
       setClientPOs((prevPOs) => [newPO, ...(prevPOs || [])]);
-      dispatch(getCreateClient(!isAdmin ? selected : null));
+      dispatch(getCreateClient({
+        userId: !isAdmin ? selected : null, jwt,
+        agencyId
+      }));
 
       if (selected) {
         localStorage.setItem(userType.toString(), selected);
@@ -434,7 +433,7 @@ const AddFinanceModal = ({
         },
         {
           headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
         }
       );

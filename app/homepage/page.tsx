@@ -7,9 +7,11 @@ import Overview from "./components/Overview";
 import Dashboard from "./components/Dashboard";
 import FinanceView from "./components/FinanceView";
 import AddFinanceModal from "./components/AddFinanceModal";
+import ViewClientModal from "./components/ViewClientModal";
 
 const Homepage = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isView, setIsView] = useState(false);
   const [active, setActive] = useState("Overview");
   const [openModal, setOpenModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
@@ -18,7 +20,8 @@ const Homepage = () => {
   return (
     <>
       <div id="page-wrapper">
-        <Header setIsOpen={setIsOpen} />
+        <Header setIsOpen={setIsOpen}
+          setIsView={setIsView} />
         <main className="!px-0">
           <div>
             <div className="px-[72px]">
@@ -34,6 +37,7 @@ const Homepage = () => {
           </div>
         </main>
         <TableModel isOpen={isOpen} setIsOpen={setIsOpen} />
+        <ViewClientModal isView={isView} setIsView={setIsView} />
         <AddFinanceModal
           isOpen={openModal}
           setIsOpen={setOpenModal}

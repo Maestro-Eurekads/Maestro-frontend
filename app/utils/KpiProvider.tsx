@@ -1,6 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState } from "react";
 import axios from "axios";
+import { useSession } from "next-auth/react";
 
 const KpisContext = createContext(null);
 export const useKpis = () => useContext(KpisContext);
@@ -15,10 +16,12 @@ export const KpiProvider = ({ children }) => {
 	const [kpiCategory, setkpiCategory] = useState<any>([]);
 	const [refresh, setRefresh] = useState(false);
 	const [showModal, setShowModal] = useState(false);
-
+	const {data:session} = useSession()
+	const jwt =
+    (session?.user as { data?: { jwt: string } })?.data?.jwt
 	const headers = {
 		"Content-Type": "application/json",
-		Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+		Authorization: `Bearer ${jwt ?? ""}`,
 	};
 
 	const addKpis = async (campaign_id, groupedKpis) => {

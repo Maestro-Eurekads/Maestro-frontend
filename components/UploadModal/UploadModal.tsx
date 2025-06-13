@@ -35,7 +35,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
   adSetIndex,
   onUploadSuccess,
 }) => {
-  const { campaignFormData, updateCampaign, getActiveCampaign, campaignData, setCampaignData } = useCampaigns();
+  const { campaignFormData, updateCampaign, getActiveCampaign, campaignData, setCampaignData, jwt } = useCampaigns();
   const [uploads, setUploads] = useState<Array<File | null>>([]);
   const [uploadBlobs, setUploadBlobs] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -54,7 +54,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
   // Validate environment variables
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
-  const STRAPI_TOKEN = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
+  const STRAPI_TOKEN = jwt;
   useEffect(() => {
     if (!STRAPI_URL || !STRAPI_TOKEN) {
       console.error("Missing Strapi configuration:", { STRAPI_URL, STRAPI_TOKEN });
@@ -186,7 +186,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
           ["id", "documentId", "createdAt", "publishedAt", "updatedAt"],
           ["previews"],
         );
-        const {media_plan_details, user, ...rest} = cleanData;
+        const { media_plan_details, user, ...rest } = cleanData;
         await updateCampaign(rest);
         await getActiveCampaign();
       } catch (error) {
@@ -332,7 +332,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
           await fetch(`${STRAPI_URL}/upload/files/${fileToDelete}`, {
             method: "DELETE",
             headers: {
-              Authorization: `Bearer ${STRAPI_TOKEN}`,
+              Authorization: `Bearer ${jwt}`,
             },
           });
         }
@@ -418,7 +418,7 @@ const UploadModal: React.FC<UploadModalProps> = ({
         const response = await fetch(`${STRAPI_URL}/upload`, {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${STRAPI_TOKEN}`,
+            Authorization: `Bearer ${jwt}`,
           },
           body: formData,
           signal: controller.signal,
