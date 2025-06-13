@@ -17,6 +17,7 @@ import { channelMixPopulate } from "utils/fetcher";
 import { useSession } from "next-auth/react";
 import { updateUsersWithCampaign } from "app/homepage/functions/clients";
 import { extractObjectives } from "app/creation/components/EstablishedGoals/table-view/data-processor";
+import { useUserPrivileges } from "utils/userPrivileges";
 
 // Get initial state from localStorage if available
 const getInitialState = () => {
@@ -83,6 +84,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [fetchingPO, setFetchingPO] = useState(false);
   const [isStepZeroValid, setIsStepZeroValid] = useState(false);
   const [currencySign, setCurrencySign] = useState("");
+  const { loggedInUser } = useUserPrivileges()
   const [user, setUser] = useState(null);
   const [headerData, setHeaderData] = useState({});
   const [filterOptions, setFilterOptions] = useState({
@@ -131,60 +133,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // const getActiveCampaign = useCallback(async (docId?: string) => {
-  //   if (!cId && !docId) return;
-  //   try {
-  //     setLoadingCampaign(true);
-  //     const res = await axios.get(
-  //       `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId || docId}`,
-  //       {
-  //         params: {
-  //           populate: {
-  //             client: true,
-  //             media_plan_details: "*",
-  //             budget_details: "*",
-  //             client_selection: "*",
-  //             user: true,
-  //             campaign_budget: { populate: ["budget_fees"] },
-  //             channel_mix: { populate: { ...channelMixPopulate, stage_budget: "*" } },
-  //           },
-  //         },
-  //         headers: {
-  //           Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-  //         },
-  //       }
-  //     );
-  //     const data = res?.data?.data;
-  //     setCampaignData(data);
-  //     setCampaignFormData((prev) => ({
-  //       ...prev,
-  //       client_selection: {
-  //         id: data?.client?.documentId || prev?.client_selection?.id,
-  //         value: data?.client?.client_name || prev.client_selection.value,
-  //       },
-  //       level_1: { id: data?.client_selection?.level_1 || prev.level_1.id, value: data?.client_selection?.level_1 || prev.level_1.value },
-  //       level_2: { id: data?.client_selection?.level_2 || prev.level_2.id, value: data?.client_selection?.level_2 || prev.level_2.value },
-  //       level_3: { id: data?.client_selection?.level_3 || prev.level_3.id, value: data?.client_selection?.level_3 || prev.level_3.value },
-  //       media_plan: data?.media_plan_details?.plan_name || prev.media_plan,
-  //       approver: data?.media_plan_details?.internal_approver || prev.approver,
-  //       campaign_objectives: data?.campaign_objective || prev.campaign_objectives,
-  //       funnel_stages: data?.funnel_stages || prev.funnel_stages,
-  //       channel_mix: data?.channel_mix || prev.channel_mix,
-  //       campaign_timeline_start_date: data?.campaign_timeline_start_date || prev.campaign_timeline_start_date,
-  //       campaign_timeline_end_date: data?.campaign_timeline_end_date || prev.campaign_timeline_end_date,
-  //       campaign_budget: data?.campaign_budget || prev.campaign_budget,
-  //       goal_level: data?.goal_level || prev.goal_level,
-  //       progress_percent: data?.progress_percent,
-  //       custom_funnels: data?.custom_funnels,
-  //       campaign_builder: data?.campaign_builder,
-  //       user: data?.user,
-  //     }));
-  //   } catch (error) {
-  //     console.error("Error fetching active campaign:", error);
-  //   } finally {
-  //     setLoadingCampaign(false);
-  //   }
-  // }, [cId]);
 
   const getActiveCampaign = useCallback(
     async (docId?: string) => {
@@ -272,8 +220,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           campaign_builder: data?.campaign_builder ?? prev.campaign_builder,
           user: data?.user ?? prev.user,
           campaign_id: data?.id ?? prev.id,
+          isApprove: data?.isApprove ?? prev?.isApprove,
           table_headers: ((data?.table_headers || obj || {}) ?? (prev?.table_headers || obj)) || {},
         }));
+        setLoadingCampaign(false);
       } catch (error) {
         console.error("Error fetching active campaign:", error);
       } finally {
@@ -291,7 +241,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         {
           data: {
             //@ts-ignore
-            campaign_builder: campaign_builder?.id,
+            campaign_builder: loggedInUser?.id,
             client: campaignFormData?.client_selection?.id,
             client_selection: {
               client: campaignFormData?.client_selection?.value,
@@ -301,8 +251,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             },
             media_plan_details: {
               plan_name: campaignFormData?.media_plan,
-              internal_approver: campaignFormData?.internal_approver?.map((ff)=>ff?.value),
-              client_approver: campaignFormData?.client_approver?.map((ff)=>ff?.value),
+              internal_approver: campaignFormData?.internal_approver?.map((ff) => ff?.value),
+              client_approver: campaignFormData?.client_approver?.map((ff) => ff?.value),
             },
           },
         },
@@ -362,7 +312,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         );
         return response;
       } catch (error) {
-        console.error("Error updating campaign:", error);
+        // console.error("Error updating campaign:", error);
         throw error;
       } finally {
         setLoading(false);

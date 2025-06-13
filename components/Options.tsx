@@ -115,11 +115,15 @@ export const kpiFormatMap = {
   "CLV of associated product": { type: "Currency", decimals: 2 },
   "Generated Revenue": { type: "Currency", decimals: 2 },
   "Return on Ad Spent": { type: "Currency", decimals: 2 },
+  "Add to cart rate": { type: "Currency", decimals: 2 },
+  "CPATC": { type: "Currency", decimals: 2 },
+  "CPPI": { type: "Currency", decimals: 2 },
+  "CPP": { type: "Currency", decimals: 2 },
 
   // Percentage
   "VTR": { type: "Percentage", decimals: 1 },
   "Comp. rate": { type: "Percentage", decimals: 1 },
-  "Eng rate": { type: "Percentage", decimals: 1 },
+  "Eng Rate": { type: "Percentage", decimals: 1 },
   "CTR": { type: "Percentage", decimals: 1 },
   "Click to land rate": { type: "Percentage", decimals: 1 },
   "Bounce rate": { type: "Percentage", decimals: 1 },
@@ -137,6 +141,8 @@ export const kpiFormatMap = {
   "CVR app": { type: "Percentage", decimals: 1 },
   "Bounce Rate": { type: "Percentage", decimals: 1 },
   "Lead Rate": { type: "Percentage", decimals: 1 },
+  "Payment info rate": { type: "Percentage", decimals: 1 },
+  
 
   // Seconds
   "Avg Visit Time": { type: "Seconds", decimals: 1 },
@@ -145,6 +151,7 @@ export const kpiFormatMap = {
   "Audience size": { type: "Number", decimals: 0 },
   "Impressions": { type: "Number", decimals: 0 },
   "Frequency": { type: "Number", decimals: 0 },
+  "Purchases": { type: "Number", decimals: 0 },
   "Reach": { type: "Number", decimals: 0 },
   "Video Views": { type: "Number", decimals: 0 },
   "Completed View": { type: "Number", decimals: 0 },
@@ -161,6 +168,9 @@ export const kpiFormatMap = {
   "Forms open": { type: "Number", decimals: 0 },
   "Avg pages/visit": { type: "Number", decimals: 0 },
   "Lead visits": { type: "Number", decimals: 0 },
+  "Engagements": { type: "Number", decimals: 0 },
+  "Add to carts": { type: "Number", decimals: 0 },
+  "Payment infos": { type: "Number", decimals: 1 },
 };
 
 
@@ -515,7 +525,6 @@ const parseApiDate = (dateString: string | null): { day: number; month: number }
 
 const getInitials = (name: string | null | undefined) => {
   if (!name) return null;
-  console.log("🚀 ~ getInitials ~ name:", name)
   const parts = name && name?.split(" ");
   return parts.length >= 2
     ? `${parts[0][0]}${parts[1][0]}`

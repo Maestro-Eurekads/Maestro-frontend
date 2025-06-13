@@ -28,6 +28,7 @@ import { aggregateKPIStatsFromExtracted, categoryOrder, extractKPIByFunnelStage,
 import ConfigureBudgetComponet from 'app/creation/components/ConfigureAdSetsAndBudget/ConfigureBudgetComponet';
 import Skeleton from 'react-loading-skeleton';
 import MainSection from 'app/creation/components/organisms/main-section/main-section';
+import { toast } from 'sonner';
 
 
 
@@ -62,7 +63,7 @@ const ClientView = () => {
 	const { campaigns, loading, fetchCampaignsByClientId } = useClientCampaign();
 	const [finalCategoryOrder, setFinalCategoryOrder] = useState(categoryOrder); // default fallback
 	const { data: session }: any = useSession();
-	
+
 	const clientId = session?.user?.id;
 	const client_commentId = session?.user?.id;
 	const campaign = !campaignDetails ? [] : campaignDetails[0];
@@ -105,6 +106,7 @@ const ClientView = () => {
 
 
 
+
 	const handleDrawerOpen = () => {
 		setIsDrawerOpen(true);
 		dispatch(getComment(commentId, client_commentId));
@@ -114,6 +116,11 @@ const ClientView = () => {
 	const handleOpenComment = () => {
 		setGeneralComment(!generalComment)
 		dispatch(getGeneralComment(commentId));
+	}
+
+
+	const handleCheckCampaign = () => {
+		toast.error("Please Select a Campaign!");
 	}
 
 
@@ -145,6 +152,9 @@ const ClientView = () => {
 		}
 	}, [kpiCategory]);
 
+	console.log("Final Category Order:", campaignData);
+
+
 
 	const extractedData = extractKPIByFunnelStage(campaignData, kpiCategories);
 	const aggregatedStats = aggregateKPIStatsFromExtracted(extractedData, kpiCategories)
@@ -161,23 +171,17 @@ const ClientView = () => {
 				<main className="!px-0 mt-[30px] bg-[#F9FAFB]">
 					<div className={`px-[20px]  ${isDrawerOpen ? 'md:px-[50px]' : 'xl:px-[100px]'}`}>
 						<div className='flex	flex-col gap-[24px]'>
-							<ApproverContainer campaign={campaign} loading={loading} isLoadingCampaign={isLoadingCampaign} />
+							<ApproverContainer campaign={campaignData} loading={loading} isLoadingCampaign={isLoadingCampaign} />
 							<General
 								campaign={Array.isArray(campaignFormData) ? campaignFormData[0] || {} : campaignFormData || {}}
 								loading={loading}
 								isLoadingCampaign={isLoadingCampaign}
 							/>
-							{/* <General
-								campaign={Array.isArray(campaignFormData) ? campaignFormData : campaignFormData ? [campaignFormData] : []}
-								loading={loading}
-								isLoadingCampaign={isLoadingCampaign}
-							/> */}
 
 							<BrandAwareness statsData={statsData} aggregatedStats={aggregatedStats} loading={isLoadingKpis} isLoadingCampaign={isLoadingCampaign} />
 							<ClientMessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} campaign={campaign} />
 							<div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
 								<div></div>
-								{/* <ClientToggleSwitch active={active} setActive={setActive} /> */}
 
 								<div className="flex gap-[12px] md:flex-row">
 									<button
@@ -187,11 +191,25 @@ const ClientView = () => {
 									<button
 										className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
 										style={{ border: "1px solid #3175FF" }}
-										onClick={handleOpenComment}>
+										onClick={() => {
+											if (campaignData) {
+												handleOpenComment();
+											} else {
+												handleCheckCampaign();
+											}
+										}}
+									>
 										General Comment
 									</button>
 									<button
-										onClick={handleDrawerOpen}
+										onClick={() => {
+											if (campaignData) {
+												handleDrawerOpen();
+											} else {
+												handleCheckCampaign();
+											}
+										}}
+
 										className="bg-[#FAFDFF]  rounded-[10px] py-[14px] px-6 self-start flex items-center	gap-[4px]"
 										style={{ border: "1px solid #3175FF" }}>
 										{allApproved ? <Image src={tickcircles} alt="tickcircle" className="w-[18px] " /> : <RxDotFilled size={20} color='#FF0302' />}
@@ -227,13 +245,7 @@ const ClientView = () => {
 
 					</div>
 
-					{/* <div >
-						{active === "Timeline view" && }
-						<div className="md:px-[150px] xl:px-[200px]">
-							{active === "Table" && <ClientTableView channels={channels} />}
-						</div>
 
-					</div> */}
 
 				</main>
 				<SignatureModal

@@ -85,6 +85,14 @@ const ObjectiveSelection = () => {
     setPreviousSelectedOptions(selectedOptions)
   }, [selectedOptions])
 
+  // Initialize state and sync with campaign data
+  useEffect(() => {
+    setCampaignFormData((prev) => ({
+      ...prev,
+      objective_level: "Channel level",
+    }))
+  }, [setCampaignFormData])
+
   // Initialize or reset state for new plan and sync selections
   useEffect(() => {
     const currentPlanId = campaignFormData?.planId || "default"
@@ -141,8 +149,8 @@ const ObjectiveSelection = () => {
         try {
           setValidatedPlatforms(
             JSON.parse(storedPlatforms, (key, value) =>
-              value.dataType === "Set" ? new Set(value.data ? [] : value.value) : value
-            )
+              value.dataType === "Set" ? new Set(value.data ? [] : value.value) : value,
+            ),
           )
         } catch {
           setValidatedPlatforms({
@@ -157,7 +165,7 @@ const ObjectiveSelection = () => {
 
     // Initialize statuses for new or unseen stages
     if (campaignFormData?.funnel_stages) {
-      let initialStatuses = { ...statuses }
+      const initialStatuses = { ...statuses }
       let shouldUpdateStorage = false
 
       campaignFormData.funnel_stages.forEach((stage) => {
@@ -203,6 +211,8 @@ const ObjectiveSelection = () => {
         const platforms = Array.isArray(stage[category]) ? stage[category] : []
         platforms.forEach((platform) => {
           const platformName = platform.platform_name
+
+          // Handle channel level selections
           const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`
           const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`
           if (platform.buy_type && !initialSelectedOptions[buyTypeKey]) {
@@ -223,51 +233,64 @@ const ObjectiveSelection = () => {
   useEffect(() => {
     if (campaignFormData?.funnel_stages) {
       const channelMix = Array.isArray(campaignFormData?.channel_mix) ? campaignFormData.channel_mix : []
-      const updatedNetworks = channelMix.reduce((acc, ch) => {
-        const platformsWithFormats = [
-          ...(ch?.social_media?.map((sm) => sm?.platform_name) || []),
-          ...(ch?.display_networks?.map((dn) => dn?.platform_name) || []),
-          ...(ch?.search_engines?.map((se) => se?.platform_name) || []),
-          ...(ch?.streaming?.map((st) => st?.platform_name) || []),
-          ...(ch?.mobile?.map((mb) => mb?.platform_name) || []),
-          ...(ch?.messaging?.map((ms) => ms?.platform_name) || []),
-          ...(ch?.in_game?.map((ig) => ig?.platform_name) || []),
-          ...(ch?.e_commerce?.map((ec) => ec?.platform_name) || []),
-          ...(ch?.broadcast?.map((bc) => bc?.platform_name) || []),
-          ...(ch?.print?.map((pr) => pr?.platform_name) || []),
-          ...(ch?.ooh?.map((oh) => oh?.platform_name) || []),
-        ]
-        acc[ch.funnel_stage] = new Set(platformsWithFormats)
-        return acc
-      }, {
-        Awareness: new Set(),
-        Consideration: new Set(),
-        Conversion: new Set(),
-        Loyalty: new Set(),
-      })
+      const updatedNetworks = channelMix.reduce(
+        (acc, ch) => {
+          const platformsWithFormats = [
+            ...(ch?.social_media?.map((sm) => sm?.platform_name) || []),
+            ...(ch?.display_networks?.map((dn) => dn?.platform_name) || []),
+            ...(ch?.search_engines?.map((se) => se?.platform_name) || []),
+            ...(ch?.streaming?.map((st) => st?.platform_name) || []),
+            ...(ch?.mobile?.map((mb) => mb?.platform_name) || []),
+            ...(ch?.messaging?.map((ms) => ms?.platform_name) || []),
+            ...(ch?.in_game?.map((ig) => ig?.platform_name) || []),
+            ...(ch?.e_commerce?.map((ec) => ec?.platform_name) || []),
+            ...(ch?.broadcast?.map((bc) => bc?.platform_name) || []),
+            ...(ch?.print?.map((pr) => pr?.platform_name) || []),
+            ...(ch?.ooh?.map((oh) => oh?.platform_name) || []),
+          ]
+          acc[ch.funnel_stage] = new Set(platformsWithFormats)
+          return acc
+        },
+        {
+          Awareness: new Set(),
+          Consideration: new Set(),
+          Conversion: new Set(),
+          Loyalty: new Set(),
+        },
+      )
       setSelectedNetworks(updatedNetworks)
     }
   }, [campaignFormData?.channel_mix])
 
-  // Update statuses based on selections, validations, and edit state
+  // Update statuses so "Not Started" is removed as soon as any option is selected
   useEffect(() => {
     if (campaignFormData?.funnel_stages) {
       const updatedStatuses = {}
       campaignFormData.funnel_stages.forEach((stageName) => {
-        if (isEditable[stageName] === true) {
-          updatedStatuses[stageName] = hasCompleteSelection(stageName) ? "In Progress" : "Not Started"
-        } else if (campaignFormData.validatedStages?.[stageName] || validatedPlatforms[stageName]?.size > 0) {
+        if (campaignFormData.validatedStages?.[stageName] || validatedPlatforms[stageName]?.size > 0) {
           updatedStatuses[stageName] = "Completed"
-        } else if (hasCompleteSelection(stageName)) {
-          updatedStatuses[stageName] = "In Progress"
         } else {
-          updatedStatuses[stageName] = "Not Started"
+          // Check if any option is selected for this stage
+          const hasAnySelection = Object.keys(selectedOptions).some((key) => {
+            return key.startsWith(`${stageName}-`) && selectedOptions[key]
+          })
+          if (hasAnySelection) {
+            updatedStatuses[stageName] = ""
+          } else {
+            updatedStatuses[stageName] = "Not Started"
+          }
         }
       })
       setStatuses(updatedStatuses)
       localStorage.setItem("funnelStageStatuses", JSON.stringify(updatedStatuses))
     }
-  }, [selectedOptions, validatedPlatforms, campaignFormData?.funnel_stages, campaignFormData?.validatedStages, isEditable])
+  }, [
+    selectedOptions,
+    validatedPlatforms,
+    campaignFormData?.funnel_stages,
+    campaignFormData?.validatedStages,
+    isEditable,
+  ])
 
   // Persist selectedOptions to localStorage
   useEffect(() => {
@@ -277,7 +300,7 @@ const ObjectiveSelection = () => {
   // Persist validatedPlatforms to localStorage
   useEffect(() => {
     const serializedPlatforms = JSON.stringify(validatedPlatforms, (key, value) =>
-      value instanceof Set ? { dataType: "Set", value: Array.from(value) } : value
+      value instanceof Set ? { dataType: "Set", value: Array.from(value) } : value,
     )
     localStorage.setItem("validatedPlatforms", serializedPlatforms)
   }, [validatedPlatforms])
@@ -293,14 +316,111 @@ const ObjectiveSelection = () => {
     setOpenItems((prev) => ({ ...prev, [stage]: !prev[stage] }))
   }
 
+  // Modified: When closing a dropdown, if both buy_type and objective_type are selected, auto-validate the platform and stage
   const toggleDropdown = (key) => {
-    setDropdownOpen((prev) => (prev === key ? "" : key))
+    setDropdownOpen((prev) => {
+      // If closing a dropdown (prev === key), check for auto-validation
+      if (prev === key) {
+        // Extract info from key
+        // key is like: `${stageName}-${category}-${platformName}` or `${stageName}-${category}-${platformName}obj`
+        let baseKey = key.endsWith("obj") ? key.slice(0, -3) : key
+        const [stageName, category, ...platformArr] = baseKey.split("-")
+        const platformName = platformArr.join("-")
+        // Check if both buy_type and objective_type are selected for this platform
+        const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`
+        const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`
+        const hasBuyType = !!selectedOptions[buyTypeKey]
+        const hasBuyObj = !!selectedOptions[buyObjectiveKey]
+        if (hasBuyType && hasBuyObj) {
+          // Mark this platform as validated for this stage
+          setValidatedPlatforms((prev) => {
+            const newSet = new Set(prev[stageName] || [])
+            newSet.add(platformName)
+            return { ...prev, [stageName]: newSet }
+          })
+          // If all platforms in this stage are validated, mark stage as completed
+          const channelMix = Array.isArray(campaignFormData?.channel_mix)
+            ? campaignFormData.channel_mix.find((ch) => ch.funnel_stage === stageName)
+            : null
+          let allValidated = false
+          if (channelMix) {
+            const categories = [
+              "social_media",
+              "display_networks",
+              "search_engines",
+              "streaming",
+              "mobile",
+              "messaging",
+              "in_game",
+              "e_commerce",
+              "broadcast",
+              "print",
+              "ooh",
+            ]
+            let allPlatforms = []
+            categories.forEach((cat) => {
+              const plats = Array.isArray(channelMix[cat]) ? channelMix[cat] : []
+              plats.forEach((p) => {
+                allPlatforms.push(p.platform_name)
+              })
+            })
+            // Only consider platforms that are present in this stage
+            allValidated =
+              allPlatforms.length > 0 &&
+              allPlatforms.every((p) => {
+                const buyTypeKey = `${stageName}-${category}-${p}-buy_type`
+                const buyObjectiveKey = `${stageName}-${category}-${p}-objective_type`
+                return (
+                  (!!selectedOptions[buyTypeKey] || !!(channelMix[category]?.find((plat) => plat.platform_name === p)?.buy_type)) &&
+                  (!!selectedOptions[buyObjectiveKey] || !!(channelMix[category]?.find((plat) => plat.platform_name === p)?.objective_type))
+                )
+              })
+          }
+          if (allValidated) {
+            setStatuses((prev) => ({
+              ...prev,
+              [stageName]: "Completed",
+            }))
+            setIsEditable((prev) => ({ ...prev, [stageName]: false }))
+            setCampaignFormData((prev) => {
+              const updatedChannelMix = prev.channel_mix.map((stage) => {
+                if (stage.funnel_stage === stageName) {
+                  return {
+                    ...stage,
+                    social_media: stage.social_media?.map((p) => ({ ...p, isValidated: true })) || [],
+                    display_networks: stage.display_networks?.map((p) => ({ ...p, isValidated: true })) || [],
+                    search_engines: stage.search_engines?.map((p) => ({ ...p, isValidated: true })) || [],
+                    streaming: stage.streaming?.map((p) => ({ ...p, isValidated: true })) || [],
+                    mobile: stage.mobile?.map((p) => ({ ...p, isValidated: true })) || [],
+                    messaging: stage.messaging?.map((p) => ({ ...p, isValidated: true })) || [],
+                    in_game: stage.in_game?.map((p) => ({ ...p, isValidated: true })) || [],
+                    e_commerce: stage.e_commerce?.map((p) => ({ ...p, isValidated: true })) || [],
+                    broadcast: stage.broadcast?.map((p) => ({ ...p, isValidated: true })) || [],
+                    print: stage.print?.map((p) => ({ ...p, isValidated: true })) || [],
+                    ooh: stage.ooh?.map((p) => ({ ...p, isValidated: true })) || [],
+                  }
+                }
+                return stage
+              })
+              return {
+                ...prev,
+                validatedStages: { ...prev.validatedStages, [stageName]: true },
+                channel_mix: updatedChannelMix,
+              }
+            })
+            if (navigator.vibrate) navigator.vibrate(300)
+          }
+        }
+      }
+      return prev === key ? "" : key
+    })
     setBuyObjSearch("")
     setBuyTypeSearch("")
   }
 
   const handleSelectOption = (platformName, option, category, stageName, dropDownName) => {
     const key = `${stageName}-${category}-${platformName}-${dropDownName}`
+
     setSelectedOptions((prev) => {
       const newOptions = { ...prev, [key]: option }
       localStorage.setItem("selectedOptions", JSON.stringify(newOptions))
@@ -314,16 +434,18 @@ const ObjectiveSelection = () => {
         const updatedStage = { ...stage }
         updatedStage[normalizedCategory] = (stage[normalizedCategory] || []).map((platform) => {
           if (platform.platform_name === platformName) {
-            return { ...platform, [dropDownName]: option }
+            const updatedPlatform = { ...platform }
+            updatedPlatform[dropDownName] = option
+            return updatedPlatform
           }
           return platform
         })
+
         // Ensure platform exists in channel_mix
         if (!updatedStage[normalizedCategory].some((p) => p.platform_name === platformName)) {
-          updatedStage[normalizedCategory].push({
-            platform_name: platformName,
-            [dropDownName]: option,
-          })
+          const newPlatform = { platform_name: platformName }
+          newPlatform[dropDownName] = option
+          updatedStage[normalizedCategory].push(newPlatform)
         }
         return updatedStage
       }
@@ -338,80 +460,7 @@ const ObjectiveSelection = () => {
     setOpenItems((prev) => ({ ...prev, [stageName]: true }))
   }
 
-  const handleValidate = (stageName) => {
-    if (
-      (campaignFormData.validatedStages && campaignFormData.validatedStages[stageName]) ||
-      statuses[stageName] === "Completed"
-    ) return
-
-    setStatuses((prev) => ({
-      ...prev,
-      [stageName]: "Completed",
-    }))
-    setIsEditable((prev) => ({ ...prev, [stageName]: false }))
-
-    const channelMix = Array.isArray(campaignFormData?.channel_mix)
-      ? campaignFormData.channel_mix.find((ch) => ch.funnel_stage === stageName)
-      : null
-
-    const validatedPlatformsSet = new Set()
-    if (channelMix) {
-      ;[
-        "social_media",
-        "display_networks",
-        "search_engines",
-        "streaming",
-        "mobile",
-        "messaging",
-        "in_game",
-        "e_commerce",
-        "broadcast",
-        "print",
-        "ooh",
-      ].forEach((category) => {
-        const platforms = channelMix[category] || []
-        platforms.forEach((platform) => {
-          if (platform.buy_type && platform.objective_type) {
-            validatedPlatformsSet.add(platform.platform_name)
-          }
-        })
-      })
-    }
-
-    setValidatedPlatforms((prev) => ({
-      ...prev,
-      [stageName]: validatedPlatformsSet,
-    }))
-
-    setCampaignFormData((prev) => {
-      const updatedChannelMix = prev.channel_mix.map((stage) => {
-        if (stage.funnel_stage === stageName) {
-          return {
-            ...stage,
-            social_media: stage.social_media?.map(p => ({ ...p, isValidated: true })) || [],
-            display_networks: stage.display_networks?.map(p => ({ ...p, isValidated: true })) || [],
-            search_engines: stage.search_engines?.map(p => ({ ...p, isValidated: true })) || [],
-            streaming: stage.streaming?.map(p => ({ ...p, isValidated: true })) || [],
-            mobile: stage.mobile?.map(p => ({ ...p, isValidated: true })) || [],
-            messaging: stage.messaging?.map(p => ({ ...p, isValidated: true })) || [],
-            in_game: stage.in_game?.map(p => ({ ...p, isValidated: true })) || [],
-            e_commerce: stage.e_commerce?.map(p => ({ ...p, isValidated: true })) || [],
-            broadcast: stage.broadcast?.map(p => ({ ...p, isValidated: true })) || [],
-            print: stage.print?.map(p => ({ ...p, isValidated: true })) || [],
-            ooh: stage.ooh?.map(p => ({ ...p, isValidated: true })) || [],
-          }
-        }
-        return stage
-      })
-      return {
-        ...prev,
-        validatedStages: { ...prev.validatedStages, [stageName]: true },
-        channel_mix: updatedChannelMix,
-      }
-    })
-
-    if (navigator.vibrate) navigator.vibrate(300)
-  }
+  // handleValidate is now only used for Edit button, not for validation on selection
 
   const hasCompletePlatformSelection = (platformName, category, stageName) => {
     const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`
@@ -443,24 +492,34 @@ const ObjectiveSelection = () => {
   const renderCompletedPlatform = (platformName, category, stageName) => {
     const normalizedCategory = category.toLowerCase().replaceAll(" ", "_")
     const channelMix = Array.isArray(campaignFormData?.channel_mix) ? campaignFormData.channel_mix : []
-    const platformData = channelMix
-      .find((ch) => ch.funnel_stage === stageName)
-      ?.[normalizedCategory]?.find((p) => p.platform_name === platformName)
+    const stageData = channelMix.find((ch) => ch.funnel_stage === stageName)
 
-    if (!platformData) return null
+    if (!stageData) return null
+
+    const platform = stageData[normalizedCategory]?.find((p) => p.platform_name === platformName)
+    if (!platform) return null
+
+    let platformData = platform
+    let displayName = platformName
+
+    const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`
+    const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`
 
     return (
-      <div key={platformName} className="flex flex-col gap-4 min-w-[150px] max-w-[200px]">
+      <div
+        key={`${platformName}-channel`}
+        className="flex flex-col gap-4 min-w-[150px] max-w-[200px]"
+      >
         <div className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg">
           <Image src={getPlatformIcon(platformName) || "/placeholder.svg"} className="size-4" alt={platformName} />
-          <p className="text-sm font-medium text-[#061237] truncate">{platformName}</p>
+          <p className="text-sm font-medium text-[#061237] truncate">{displayName}</p>
         </div>
         <div className="flex flex-col gap-2">
           <div className="px-4 py-2 bg-white border text-center truncate border-gray-300 rounded-lg">
-            {platformData.buy_type || selectedOptions[`${stageName}-${category}-${platformName}-buy_type`] || "Buy type"}
+            {platformData.buy_type || selectedOptions[buyTypeKey] || "Buy type"}
           </div>
           <div className="px-4 py-2 bg-white border text-center truncate border-gray-300 rounded-lg">
-            {platformData.objective_type || selectedOptions[`${stageName}-${category}-${platformName}-objective_type`] || "Buy objective"}
+            {platformData.objective_type || selectedOptions[buyObjectiveKey] || "Buy objective"}
           </div>
         </div>
       </div>
@@ -489,7 +548,7 @@ const ObjectiveSelection = () => {
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
           },
-        }
+        },
       )
       const data = res?.data?.data
       if (field === "obj") {
@@ -507,12 +566,8 @@ const ObjectiveSelection = () => {
     }
   }
 
-  const filteredBuyObj = buyObj?.filter((option) =>
-    option?.text?.toLowerCase().includes(buyObjSearch.toLowerCase())
-  )
-  const filteredBuyType = buyType?.filter((option) =>
-    option?.text?.toLowerCase().includes(buyTypeSearch.toLowerCase())
-  )
+  const filteredBuyObj = buyObj?.filter((option) => option?.text?.toLowerCase().includes(buyObjSearch.toLowerCase()))
+  const filteredBuyType = buyType?.filter((option) => option?.text?.toLowerCase().includes(buyTypeSearch.toLowerCase()))
 
   const getStageRecap = (stageName) => {
     const channelMix = Array.isArray(campaignFormData?.channel_mix) ? campaignFormData.channel_mix : []
@@ -533,15 +588,18 @@ const ObjectiveSelection = () => {
       "ooh",
     ]
 
-    let recapArr = []
+    const recapArr = []
     categories.forEach((category) => {
       const platforms = Array.isArray(stageData[category]) ? stageData[category] : []
       platforms.forEach((platform) => {
-        const buyType = platform.buy_type || selectedOptions[`${stageName}-${category}-${platform.platform_name}-buy_type`]
-        const objectiveType = platform.objective_type || selectedOptions[`${stageName}-${category}-${platform.platform_name}-objective_type`]
+        const buyType =
+          platform.buy_type || selectedOptions[`${stageName}-${category}-${platform.platform_name}-buy_type`]
+        const objectiveType =
+          platform.objective_type ||
+          selectedOptions[`${stageName}-${category}-${platform.platform_name}-objective_type`]
         if (buyType || objectiveType) {
           recapArr.push(
-            `<strong>${platform.platform_name}</strong>: ${objectiveType || "No objective"}, ${buyType || "No buy type"}`
+            `<strong>${platform.platform_name}</strong>: <strong>Objective</strong>: ${objectiveType || "No objective"}, <strong>Buy Type</strong>: ${buyType || "No buy type"}`,
           )
         }
       })
@@ -561,10 +619,186 @@ const ObjectiveSelection = () => {
       validatedStages: { ...prev.validatedStages, [stageName]: false },
     }))
     setStatuses((prev) => {
-      const newStatus = hasCompleteSelection(stageName) ? "In Progress" : "Not Started"
+      const newStatus = "Not Started"
       const newStatuses = { ...prev, [stageName]: newStatus }
       return newStatuses
     })
+  }
+
+  const renderPlatformSelections = (platforms, category, stageName) => {
+    return platforms.map((platform) => {
+      // Channel level rendering only
+      const platformKey = `${stageName}-${category}-${platform.platform_name}`
+      const selectedObj =
+        selectedOptions[`${stageName}-${category}-${platform.platform_name}-objective_type`] ||
+        platform.objective_type
+      const selectedBuy =
+        selectedOptions[`${stageName}-${category}-${platform.platform_name}-buy_type`] || platform.buy_type
+
+      return (
+        <div key={platformKey} className="flex items-center gap-8">
+          <div className="w-[180px]">
+            <div className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg shrink-0 w-fit min-w-[150px]">
+              {getPlatformIcon(platform.platform_name) ? (
+                <Image
+                  src={getPlatformIcon(platform.platform_name) || "/placeholder.svg"}
+                  className="size-4"
+                  alt={platform.platform_name}
+                />
+              ) : null}
+              <p className="text-base font-medium text-[#061237] capitalize">{platform.platform_name}</p>
+            </div>
+          </div>
+          {renderDropdowns(platform.platform_name, category, stageName, selectedObj, selectedBuy, platformKey)}
+        </div>
+      )
+    })
+  }
+
+  const renderDropdowns = (
+    platformName,
+    category,
+    stageName,
+    selectedObj,
+    selectedBuy,
+    platformKey
+  ) => {
+    return (
+      <>
+        <div className="relative min-w-[200px]">
+          <div
+            className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
+            onClick={() => toggleDropdown(platformKey + "obj")}
+          >
+            <p className="text-sm font-medium text-[#061237]">{selectedObj || "Buy Objective"}</p>
+            <Image src={down2 || "/placeholder.svg"} alt="dropdown" />
+          </div>
+          {dropdownOpen === platformKey + "obj" && (
+            <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
+              <ul>
+                <li className="px-2 py-2">
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded-[5px] outline-none"
+                    placeholder="Search objectives..."
+                    value={buyObjSearch}
+                    onChange={(e) => setBuyObjSearch(e.target.value)}
+                    autoFocus
+                  />
+                </li>
+                {filteredBuyObj?.length === 0 && <li className="px-4 py-2 text-gray-400">No objectives found</li>}
+                {filteredBuyObj?.map((option, i) => (
+                  <li
+                    key={`${platformKey}-objective-${i}`}
+                    className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+                    onClick={() => {
+                      handleSelectOption(platformName, option?.text, category, stageName, "objective_type")
+                      setBuyObjSearch("")
+                    }}
+                  >
+                    {option?.text}
+                  </li>
+                ))}
+                {showInput !== `${platformKey}+custom` ? (
+                  <li
+                    className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+                    onClick={() => setShowInput(`${platformKey}+custom`)}
+                  >
+                    Add Custom
+                  </li>
+                ) : (
+                  <div className="w-[90%] mx-auto mb-2">
+                    <input
+                      className="w-full p-2 border rounded-[5px] outline-none"
+                      value={customValue}
+                      onChange={(e) => setCustomValue(e.target.value)}
+                    />
+                    <div className="flex gap-[10px] w-full justify-between items-center my-[5px]">
+                      <button className="w-full p-[5px] border rounded-[5px]" onClick={() => setShowInput("")}>
+                        Cancel
+                      </button>
+                      <button
+                        className="w-full p-[5px] bg-blue-500 text-white rounded-[5px] flex justify-center items-center"
+                        onClick={() => handleSaveCustomValue("obj")}
+                        disabled={loading}
+                      >
+                        {loading ? <FaSpinner className="animate-spin" /> : "Save"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </ul>
+            </div>
+          )}
+        </div>
+        <div className="relative min-w-[150px]">
+          <div
+            className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
+            onClick={() => toggleDropdown(platformKey)}
+          >
+            <p className="text-sm font-medium text-[#061237]">{selectedBuy || "Buy Type"}</p>
+            <Image src={down2 || "/placeholder.svg"} alt="dropdown" />
+          </div>
+          {dropdownOpen === platformKey && (
+            <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
+              <ul>
+                <li className="px-2 py-2">
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded-[5px] outline-none"
+                    placeholder="Search types..."
+                    value={buyTypeSearch}
+                    onChange={(e) => setBuyTypeSearch(e.target.value)}
+                    autoFocus
+                  />
+                </li>
+                {filteredBuyType?.length === 0 && <li className="px-4 py-2 text-gray-400">No types found</li>}
+                {filteredBuyType?.map((option, i) => (
+                  <li
+                    key={`${platformKey}-type-${i}`}
+                    className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+                    onClick={() => {
+                      handleSelectOption(platformName, option?.text, category, stageName, "buy_type")
+                      setBuyTypeSearch("")
+                    }}
+                  >
+                    {option?.text}
+                  </li>
+                ))}
+                {showInput !== `${platformKey}+custom+buy` ? (
+                  <li
+                    className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+                    onClick={() => setShowInput(`${platformKey}+custom+buy`)}
+                  >
+                    Add Custom
+                  </li>
+                ) : (
+                  <div className="w-[90%] mx-auto mb-2">
+                    <input
+                      className="w-full p-2 border rounded-[5px] outline-none"
+                      value={customValue}
+                      onChange={(e) => setCustomValue(e.target.value)}
+                    />
+                    <div className="flex gap-[10px] w-full justify-between items-center my-[5px]">
+                      <button className="w-full p-[5px] border rounded-[5px]" onClick={() => setShowInput("")}>
+                        Cancel
+                      </button>
+                      <button
+                        className="w-full p-[5px] bg-blue-500 text-white rounded-[5px] flex justify-center items-center"
+                        onClick={() => handleSaveCustomValue("buy")}
+                        disabled={loading}
+                      >
+                        {loading ? <FaSpinner className="animate-spin" /> : "Save"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </ul>
+            </div>
+          )}
+        </div>
+      </>
+    )
   }
 
   return (
@@ -581,7 +815,7 @@ const ObjectiveSelection = () => {
             >
               <div className="flex items-center gap-4">
                 {stage.icon && (
-                  <Image src={stage.icon} className="size-5" alt={`${stage.name} icon`} />
+                  <Image src={stage.icon || "/placeholder.svg"} className="size-5" alt={`${stage.name} icon`} />
                 )}
                 <p className="font-semibold text-[#061237] whitespace-nowrap">{stage.name}</p>
               </div>
@@ -595,11 +829,9 @@ const ObjectiveSelection = () => {
                     />
                     <p className="text-green-500 font-semibold text-base">Completed</p>
                   </>
-                ) : statuses[stageName] === "In Progress" ? (
-                  <p className="text-[#3175FF] font-semibold text-base whitespace-nowrap">In Progress</p>
-                ) : (
+                ) : statuses[stageName] === "Not Started" ? (
                   <p className="text-[#061237] opacity-50 text-base whitespace-nowrap">Not Started</p>
-                )}
+                ) : null}
               </div>
               <div>
                 {openItems[stage.name] ? (
@@ -641,9 +873,9 @@ const ObjectiveSelection = () => {
                             {category?.replace("_", " ")}
                           </h3>
                           <div className="flex flex-wrap gap-8">
-                            {Array.from(selectedNetworks[stage.name] || []).map((platform) =>
-                              renderCompletedPlatform(platform, category, stage.name)
-                            )}
+                            {Array.from(selectedNetworks[stage.name] || []).map((platform) => {
+                              return renderCompletedPlatform(platform, category, stage.name)
+                            })}
                           </div>
                         </div>
                       ))}
@@ -668,6 +900,7 @@ const ObjectiveSelection = () => {
                           normalizedCategory
                         ] || []
                       : []
+
                     if (platforms.length === 0) return null
 
                     return (
@@ -676,205 +909,13 @@ const ObjectiveSelection = () => {
                           {category?.replace("_", " ")}
                         </h3>
                         <div className="flex flex-col gap-8">
-                          {platforms.map((platform) => {
-                            const platformKey = `${stage.name}-${category}-${platform.platform_name}`
-                            const selectedObj =
-                              selectedOptions[`${stageName}-${category}-${platform.platform_name}-objective_type`] ||
-                              platform.objective_type
-                            const selectedBuy =
-                              selectedOptions[`${stageName}-${category}-${platform.platform_name}-buy_type`] ||
-                              platform.buy_type
-
-                            return (
-                              <div key={platformKey} className="flex items-center gap-8">
-                                <div className="w-[180px]">
-                                  <div className="flex items-center gap-3 px-4 py-2 bg-white border border-gray-300 rounded-lg shrink-0 w-fit min-w-[150px]">
-                                    {getPlatformIcon(platform.platform_name) ? (
-                                      <Image
-                                        src={getPlatformIcon(platform.platform_name) || "/placeholder.svg"}
-                                        className="size-4"
-                                        alt={platform.platform_name}
-                                      />
-                                    ) : null}
-                                    <p className="text-base font-medium text-[#061237] capitalize">
-                                      {platform.platform_name}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="relative min-w-[200px]">
-                                  <div
-                                    className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
-                                    onClick={() => toggleDropdown(platformKey + "obj")}
-                                  >
-                                    <p className="text-sm font-medium text-[#061237]">
-                                      {selectedObj || "Buy Objective"}
-                                    </p>
-                                    <Image src={down2 || "/placeholder.svg"} alt="dropdown" />
-                                  </div>
-                                  {dropdownOpen === platformKey + "obj" && (
-                                    <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
-                                      <ul>
-                                        <li className="px-2 py-2">
-                                          <input
-                                            type="text"
-                                            className="w-full p-2 border rounded-[5px] outline-none"
-                                            placeholder="Search objectives..."
-                                            value={buyObjSearch}
-                                            onChange={(e) => setBuyObjSearch(e.target.value)}
-                                            autoFocus
-                                          />
-                                        </li>
-                                        {filteredBuyObj?.length === 0 && (
-                                          <li className="px-4 py-2 text-gray-400">No objectives found</li>
-                                        )}
-                                        {filteredBuyObj?.map((option, i) => (
-                                          <li
-                                            key={`${platformKey}-objective-${i}`}
-                                            className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                                            onClick={() => {
-                                              handleSelectOption(
-                                                platform.platform_name,
-                                                option?.text,
-                                                category,
-                                                stage.name,
-                                                "objective_type"
-                                              )
-                                              setBuyObjSearch("")
-                                            }}
-                                          >
-                                            {option?.text}
-                                          </li>
-                                        ))}
-                                        {showInput !== `${platformKey}+custom` ? (
-                                          <li
-                                            className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                                            onClick={() => setShowInput(`${platformKey}+custom`)}
-                                          >
-                                            Add Custom
-                                          </li>
-                                        ) : (
-                                          <div className="w-[90%] mx-auto mb-2">
-                                            <input
-                                              className="w-full p-2 border rounded-[5px] outline-none"
-                                              value={customValue}
-                                              onChange={(e) => setCustomValue(e.target.value)}
-                                            />
-                                            <div className="flex gap-[10px] w-full justify-between items-center my-[5px]">
-                                              <button
-                                                className="w-full p-[5px] border rounded-[5px]"
-                                                onClick={() => setShowInput("")}
-                                              >
-                                                Cancel
-                                              </button>
-                                              <button
-                                                className="w-full p-[5px] bg-blue-500 text-white rounded-[5px] flex justify-center items-center"
-                                                onClick={() => handleSaveCustomValue("obj")}
-                                                disabled={loading}
-                                              >
-                                                {loading ? <FaSpinner className="animate-spin" /> : "Save"}
-                                              </button>
-                                            </div>
-                                          </div>
-                                        )}
-                                      </ul>
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="relative min-w-[150px]">
-                                  <div
-                                    className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer"
-                                    onClick={() => toggleDropdown(platformKey)}
-                                  >
-                                    <p className="text-sm font-medium text-[#061237]">{selectedBuy || "Buy Type"}</p>
-                                    <Image src={down2 || "/placeholder.svg"} alt="dropdown" />
-                                  </div>
-                                  {dropdownOpen === platformKey && (
-                                    <div className="absolute left-0 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
-                                      <ul>
-                                        <li className="px-2 py-2">
-                                          <input
-                                            type="text"
-                                            className="w-full p-2 border rounded-[5px] outline-none"
-                                            placeholder="Search types..."
-                                            value={buyTypeSearch}
-                                            onChange={(e) => setBuyTypeSearch(e.target.value)}
-                                            autoFocus
-                                          />
-                                        </li>
-                                        {filteredBuyType?.length === 0 && (
-                                          <li className="px-4 py-2 text-gray-400">No types found</li>
-                                        )}
-                                        {filteredBuyType?.map((option, i) => (
-                                          <li
-                                            key={`${platformKey}-type-${i}`}
-                                            className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                                            onClick={() => {
-                                              handleSelectOption(
-                                                platform.platform_name,
-                                                option?.text,
-                                                category,
-                                                stage.name,
-                                                "buy_type"
-                                              )
-                                              setBuyTypeSearch("")
-                                            }}
-                                          >
-                                            {option?.text}
-                                          </li>
-                                        ))}
-                                        {showInput !== `${platformKey}+custom+buy` ? (
-                                          <li
-                                            className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-                                            onClick={() => setShowInput(`${platformKey}+custom+buy`)}
-                                          >
-                                            Add Custom
-                                          </li>
-                                        ) : (
-                                          <div className="w-[90%] mx-auto mb-2">
-                                            <input
-                                              className="w-full p-2 border rounded-[5px] outline-none"
-                                              value={customValue}
-                                              onChange={(e) => setCustomValue(e.target.value)}
-                                            />
-                                            <div className="flex gap-[10px] w-full justify-between items-center my-[5px]">
-                                              <button
-                                                className="w-full p-[5px] border rounded-[5px]"
-                                                onClick={() => setShowInput("")}
-                                              >
-                                                Cancel
-                                              </button>
-                                              <button
-                                                className="w-full p-[5px] bg-blue-500 text-white rounded-[5px] flex justify-center items-center"
-                                                onClick={() => handleSaveCustomValue("buy")}
-                                                disabled={loading}
-                                              >
-                                                {loading ? <FaSpinner className="animate-spin" /> : "Save"}
-                                              </button>
-                                            </div>
-                                          </div>
-                                        )}
-                                      </ul>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )
-                          })}
+                          {renderPlatformSelections(platforms, category, stageName)}
                         </div>
                       </div>
                     )
                   })
                 )}
-                {statuses[stageName] !== "Completed" && (
-                  <div className="flex justify-end mt-6 w-full">
-                    <Button
-                      text="Validate"
-                      variant="primary"
-                      onClick={() => handleValidate(stageName)}
-                      disabled={!hasCompleteSelection(stageName)}
-                    />
-                  </div>
-                )}
+                {/* No Validate button needed */}
                 {statuses[stageName] === "Completed" && (
                   <div className="flex justify-end mt-2 w-full">
                     <Button

@@ -10,6 +10,7 @@ import { useCampaigns } from 'app/utils/CampaignsContext';
 import { removeKeysRecursively } from 'utils/removeID';
 import { useUserPrivileges } from 'utils/userPrivileges';
 import { toast } from 'sonner';
+import axios from 'axios';
 
 const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	const { createCampaignVersion, getCampaignVersion, isLoading, version, getLoading, setdocumentId, updateCampaignVersion, createsSuccess, updateSuccess, updateLoading } = useVersionContext();
@@ -29,8 +30,14 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 		getActiveCampaign,
 		copy,
 		setCampaignFormData,
+		isLoading: isLoadingCampaign,
 	} = useCampaigns();
-
+	// const {
+	// 			clientCampaignData,
+	// 			campaignData,
+	// 			isLoading: isLoadingCampaign,
+	// 			campaignFormData,
+	// 	} = useCampaigns();
 
 
 	const getNextVersion = (v) => {
@@ -102,54 +109,56 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 		}, 3000);
 	};
 
-	// isApprove
-	// const handleCreateNewVersion = () => {
-	// 	// createCampaignVersion(newVersion, documentId);
 
-	// };
 
-	console.log('campaignFormData', loggedInUser?.id)
+
+
+
 
 	const handlePlan = async () => {
 		setLoading(true);
 
 		try {
-			// Update campaignFormData with cleaned values and save to localStorage
-			const cleanedFormData = {
-				...campaignFormData,
+			const patchData = {
 				isApprove: true,
 				media_plan_details: {
+					plan_name: campaignData?.media_plan_details?.plan_name,
+					internal_approver: (campaignData?.media_plan_details?.internal_approver || [])
+						.map((approver) => String(approver.id)),
+					client_approver: (campaignData?.media_plan_details?.client_approver || [])
+						.map((approver) => String(approver.id)),
 					approved_by: [String(loggedInUser?.id)],
 				},
 			};
-			setCampaignFormData(cleanedFormData);
-			localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData));
 
-			if (cId && campaignData) {
-				const updatedData = {
-					...removeKeysRecursively(campaignData, [
-						"id",
-						"documentId",
-						"createdAt",
-						"publishedAt",
-						"updatedAt",
-						"_aggregated",
-					]),
-					isApprove: true,
-					media_plan_details: {
-						approved_by: [String(loggedInUser?.id)],
-					},
-				};
+			// Update local state and localStorage
+			const updatedFormData = {
+				...campaignFormData,
+				media_plan_details: {
+					...campaignFormData?.media_plan_details,
+				},
+			};
 
-				await updateCampaign(updatedData);
+			setCampaignFormData(updatedFormData);
+			localStorage.setItem("campaignFormData", JSON.stringify(updatedFormData));
+
+			// PUT request to Strapi with only updated fields
+			if (cId) {
+				await axios.put(
+					`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
+					{ data: patchData },
+					{
+						headers: {
+							Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+						},
+					}
+				);
 
 				setIsOpen(false);
-				toast.success("Plan Approved!")
+				toast.success("Plan Approved!");
 			}
-
-
 		} catch (error) {
-			toast.error(error.massage)
+			toast.error(error?.message || "Failed to approve plan");
 		} finally {
 			setLoading(false);
 		}
@@ -157,10 +166,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 
 
 
-	// const handleUpdateVersion = () => {
-	// 	updateCampaignVersion(newVersion, documentId);
 
-	// };
 
 	if (!isOpen) return null;
 
@@ -194,7 +200,6 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 				<div className="flex items-center justify-center gap-2 text-sm text-gray-600 mb-4">
 					{getLoading ? <SVGLoader width={"40px"} height={"40px"} color={"#0866FF"} /> :
 						<span className="font-medium"> </span>
-						// <span className="font-medium">Version: {currentVersion ?? 0}</span>
 					}
 
 				</div>
@@ -205,7 +210,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 						Back to Dashboard
 					</button>
 					<button className="btn_model_active w-full" onClick={handlePlan}>
-						{loading ? <SVGLoader width={"40px"} height={"40px"} color={"#fff"} /> :
+						{loading ? <SVGLoader width={"30px"} height={"30px"} color={"#fff"} /> :
 							<span className="font-medium">Approval</span>
 						}
 

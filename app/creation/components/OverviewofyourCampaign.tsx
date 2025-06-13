@@ -41,6 +41,7 @@ import { processCampaignData } from "components/processCampaignData";
 import { getCurrencySymbol, getPlatformIcon } from "components/data";
 import { useVersionContext } from "app/utils/VersionApprovalContext";
 import { toast } from "sonner";
+import Skeleton from "react-loading-skeleton";
 
 interface Comment {
   documentId: string;
@@ -72,11 +73,14 @@ const OverviewofyourCampaign = () => {
     campaignData,
     isLoading: isLoadingCampaign,
     campaignFormData,
+    loadingCampaign,
+    getActiveCampaign,
   } = useCampaigns();
   const dispatch = useAppDispatch();
   const query = useSearchParams();
   const commentId = query.get("campaignId");
-  const [finalCategoryOrder, setFinalCategoryOrder] = useState(categoryOrder); // default fallback
+  const campaignId = query.get("campaignId");
+  const [finalCategoryOrder, setFinalCategoryOrder] = useState(categoryOrder);
   const {
     getKpis,
     isLoadingKpis,
@@ -85,6 +89,12 @@ const OverviewofyourCampaign = () => {
     refresh,
     setRefresh,
   } = useKpis();
+
+  useEffect(() => {
+    if (campaignId) {
+      getActiveCampaign(campaignId);
+    }
+  }, [campaignId]);
 
   const comments: Comment[] = clientCampaignData
     ?.filter((comment: Comment) => comment?.addcomment_as !== "Internal")
@@ -276,7 +286,8 @@ const OverviewofyourCampaign = () => {
 
 
 
-
+  console.log('campaignFormData-campaignFormData', campaignFormData)
+  console.log('campaignData-campaignData', campaignData)
   return (
     <div>
       {alert && <AlertMain alert={alert} />}
@@ -288,26 +299,25 @@ const OverviewofyourCampaign = () => {
       >
         <div className="flex	flex-col gap-[24px]">
           <div className="bg-white w-fit p-2 rounded-md shadow-[0px_4px_14px_rgba(0,38,116,0.15)]">
-            {campaignFormData?.media_plan && (
-              <p>{campaignFormData?.media_plan}</p>
-            )}
+            {campaignFormData?.media_plan && (<p>{campaignFormData?.media_plan}</p>)}
           </div>
           <BusinessApproverContainer
             campaign={campaignData}
             loading={undefined}
-            isLoadingCampaign={isLoadingCampaign}
+            isLoadingCampaign={loadingCampaign}
+            campaignFormData={campaignFormData}
           />
           <BusinessGeneral
             campaign={campaignData}
             loading={undefined}
-            isLoadingCampaign={isLoadingCampaign}
+            isLoadingCampaign={loadingCampaign}
             campaign_id={commentId}
           />
           <BusinessBrandAwareness
             statsData={statsData}
             aggregatedStats={aggregatedStats}
             loading={isLoadingKpis}
-            isLoadingCampaign={isLoadingCampaign}
+            isLoadingCampaign={loadingCampaign}
           />
           <div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
             <div className="flex gap-[12px] md:flex-row">
@@ -382,7 +392,16 @@ const OverviewofyourCampaign = () => {
 
         <MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
         {/* <OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} setIsDrawerOpen={setIsDrawerOpen} openComments={isDrawerOpen} /> */}
-        <MainSection hideDate={true} disableDrag={true} />
+        {isLoadingCampaign ?
+          <div className='w-full h-[500px] flex flex-col gap-[50px] m-20px'>
+            <Skeleton height={20} width={600} />
+            <Skeleton height={20} width={700} />
+            <Skeleton height={20} width={800} />
+            <Skeleton height={20} width={"100%"} />
+            <Skeleton height={20} width={"100%"} />
+            <Skeleton height={20} width={"100%"} />
+          </div> : !campaignData ? "" :
+            <MainSection hideDate={true} disableDrag={true} />}
       </div>
     </div>
   );

@@ -14,6 +14,7 @@ import { useSearchParams } from "next/navigation";
 import ResponsibleApproverDropdownsCampaign from "components/ResponsibleApproverDropdownsCampaign";
 import InternalApproverDropdowns from "components/InternalApproverDropdowns";
 import ResponsibleApproverDropdowns from "components/ResponsibleApproverDropdowns";
+import { useRouter } from "next/router";
 
 
 interface DropdownOption {
@@ -33,9 +34,6 @@ export const SetupScreen = () => {
     profile,
     setRequiredFields,
     setCurrencySign,
-    getUserByUserType,
-    user,
-    requiredFields,
   } = useCampaigns();
   const query = useSearchParams();
   const documentId = query.get("campaignId");
@@ -45,23 +43,14 @@ export const SetupScreen = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const { setIsDrawerOpen, setClose } = useComments();
   const { isAgencyCreator, isAgencyApprover, isFinancialApprover } = useUserPrivileges();
-
-
-
   const [internalapproverOptions, setInternalApproverOptions] = useState<DropdownOption[]>([]);
   const [clientapprovalOptions, setClientApprovalOptions] = useState<DropdownOption[]>([]);
-  const [selectedApprovers, setSelectedApprovers] = useState<{
-    internal_approver: DropdownOption[];
-    client_approver: DropdownOption[];
-  }>({
-    internal_approver: [],
-    client_approver: [],
-  });
-
   const [clientOptions, setClientOptions] = useState<DropdownOption[]>([]);
   const [level1Options, setlevel1Options] = useState<DropdownOption[]>([]);
   const [level2Options, setlevel2Options] = useState<DropdownOption[]>([]);
   const [level3Options, setlevel3Options] = useState<DropdownOption[]>([]);
+
+  // console.log("campaignFormData", documentId);
 
 
   useEffect(() => {
@@ -70,17 +59,16 @@ export const SetupScreen = () => {
   }, []);
 
 
-
-
-
   useEffect(() => {
     const savedFormData = localStorage.getItem("campaignFormData");
     if (savedFormData) {
       const parsedData = JSON.parse(savedFormData);
 
+
+
       const normalizeApprovers = (approvers: any[]) =>
         Array.isArray(approvers)
-          ? approvers.map((val: any) =>
+          ? approvers?.map((val: any) =>
             typeof val === "string"
               ? { id: "", clientId: "", value: val }
               : {
@@ -104,42 +92,27 @@ export const SetupScreen = () => {
 
   // Initialize campaignFormData if empty
   useEffect(() => {
-    if (!campaignFormData && !isInitialized) {
+    if (documentId === null) {
       const initialFormData = {
         client_selection: {},
         media_plan: "",
         internal_approver: [],
         client_approver: [],
+        approver_id: [],
         budget_details_currency: {},
         budget_details_fee_type: {},
         budget_details_value: "",
         level_1: {},
         level_2: {},
         level_3: {},
-        campaign_id: '',
       };
       setCampaignFormData(initialFormData);
       localStorage.setItem("campaignFormData", JSON.stringify(initialFormData));
       setIsInitialized(true);
     }
-  }, [campaignFormData, setCampaignFormData, isInitialized]);
+  }, [setCampaignFormData, isInitialized]);
 
-  // Save form data to localStorage whenever it changes, cleaning null values
-  // useEffect(() => {
-  //   if (campaignFormData) {
-  //     const cleanedData = {
-  //       ...campaignFormData,
-  //       internal_approver: Array.isArray(campaignFormData.internal_approver)
-  //         ? campaignFormData?.internal_approver?.filter((v: string | null) => v != null)
-  //         : [],
-  //       client_approver: Array.isArray(campaignFormData.client_approver)
-  //         ? campaignFormData?.client_approver.filter((v: string | null) => v != null)
-  //         : [],
-  //     };
 
-  //     localStorage.setItem("campaignFormData", JSON.stringify(cleanedData));
-  //   }
-  // }, [campaignFormData]);
 
 
 
@@ -149,6 +122,7 @@ export const SetupScreen = () => {
       return () => clearTimeout(timer);
     }
   }, [alert]);
+
 
 
 
@@ -180,7 +154,7 @@ export const SetupScreen = () => {
     if (!allClients || !client_selection) return;
 
     const client = allClients?.find((c) => c?.documentId === client_selection?.id);
-
+    console.log("campaignFormData", client?.users);
     // setInternalApproverOptions(() => {
     //   const options = client?.approver?.map((l) => ({
     //     value: l,
@@ -203,8 +177,8 @@ export const SetupScreen = () => {
     })) || [];
     setInternalApproverOptions(options);
 
-
-    const clientOptions = client?.users?.map((l) => ({
+    const filteredUsers = client?.users?.filter(user => user?.user_type !== "admin");
+    const clientOptions = filteredUsers?.map((l) => ({
       value: l?.id,
       label: l?.username,
     })) || [];
@@ -234,15 +208,6 @@ export const SetupScreen = () => {
       return options?.filter((opt) => opt?.value != null && opt?.label != null) || [];
     });
 
-    // setCampaignFormData((prev) => ({
-    //   ...prev,
-    //   internal_approver: Array.isArray(prev.internal_approver) && prev.internal_approver.length > 0
-    //     ? prev.internal_approver.filter((v: string | null) => v != null)
-    //     : (client?.internal_approver?.filter((v: string | null) => v != null) || []),
-    //   client_approver: Array.isArray(prev.client_approver) && prev.client_approver.length > 0
-    //     ? prev.client_approver.filter((v: string | null) => v != null)
-    //     : (client?.client_emails?.map((e) => e?.full_name).filter((v: string | null) => v != null) || []),
-    // }));
   }, [client_selection, allClients, setCampaignFormData]);
 
 
@@ -267,6 +232,10 @@ export const SetupScreen = () => {
     setCurrencySign,
   ]);
 
+
+
+
+
   useEffect(() => {
     const getFieldValue = (field) => {
       if (Array.isArray(field)) {
@@ -281,8 +250,8 @@ export const SetupScreen = () => {
     const fieldsToCheck = [
       campaignFormData?.client_selection?.value,
       campaignFormData?.media_plan,
-      campaignFormData?.internal_approver,
-      campaignFormData?.client_approver,
+      campaignFormData?.internal_approver_ids,
+      campaignFormData?.client_approver_ids,
       campaignFormData?.level_1?.id,
       campaignFormData?.level_2?.id,
       campaignFormData?.level_3?.id,
@@ -292,16 +261,7 @@ export const SetupScreen = () => {
     setRequiredFields(evaluatedFields);
   }, [campaignFormData, cId, setRequiredFields]);
 
-  // console.log("allClients-allClients", allClients);
-  // console.log("internalapproverOptions-internalapproverOptions", allClients);
-  console.log("campaignFormData-campaignFormData", campaignFormData);
 
-  const handleApproverChange = (field: string, selected: DropdownOption[]) => {
-    setSelectedApprovers((prev) => ({
-      ...prev,
-      [field]: selected,
-    }));
-  };
 
   if (!campaignFormData) {
     return <div>Loading...</div>;
@@ -378,8 +338,8 @@ export const SetupScreen = () => {
               onChange={(field, selected) => {
                 setCampaignFormData((prev) => ({
                   ...prev,
-                  [`${field}_ids`]: selected?.map((item) => item?.value), // store only [ "1", "122" ]
-                  [field]: selected, // store full object if needed (optional)
+                  [`${field}_ids`]: selected?.map((item) => item?.value),
+                  [field]: selected,
                 }));
               }}
             />
@@ -402,8 +362,8 @@ export const SetupScreen = () => {
               onChange={(field, selected) => {
                 setCampaignFormData((prev) => ({
                   ...prev,
-                  [`${field}_ids`]: selected?.map((item) => item?.value), // store only [ "1", "122" ]
-                  [field]: selected, // store full object if needed (optional)
+                  [`${field}_ids`]: selected?.map((item) => item?.value),
+                  [field]: selected,
                 }));
               }}
             />

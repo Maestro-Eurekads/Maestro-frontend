@@ -42,7 +42,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     sports: [],
     categories: [],
     businessUnits: [],
-    feeType: "",
   });
   const [emailList, setEmailList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -161,33 +160,29 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       return false;
     }
 
-    if (inputs.sports.length < 2 || !inputs.sports[0] || !inputs.sports[1]) {
-      toast.error("At least two Business Level 1 entries are required");
-      return false;
-    }
+    // if (inputs.sports.length < 2 || !inputs.sports[0] || !inputs.sports[1]) {
+    //   toast.error("At least two Business Level 1 entries are required");
+    //   return false;
+    // }
 
-    if (
-      inputs.businessUnits.length < 2 ||
-      !inputs.businessUnits[0] ||
-      !inputs.businessUnits[1]
-    ) {
-      toast.error("At least two Business Level 2 entries are required");
-      return false;
-    }
+    // if (
+    //   inputs.businessUnits.length < 2 ||
+    //   !inputs.businessUnits[0] ||
+    //   !inputs.businessUnits[1]
+    // ) {
+    //   toast.error("At least two Business Level 2 entries are required");
+    //   return false;
+    // }
 
-    if (
-      inputs.categories.length < 2 ||
-      !inputs.categories[0] ||
-      !inputs.categories[1]
-    ) {
-      toast.error("At least two Business Level 3 entries are required");
-      return false;
-    }
+    // if (
+    //   inputs.categories.length < 2 ||
+    //   !inputs.categories[0] ||
+    //   !inputs.categories[1]
+    // ) {
+    //   toast.error("At least two Business Level 3 entries are required");
+    //   return false;
+    // }
 
-    if (!inputs.feeType) {
-      toast.error("Fee Type is required");
-      return false;
-    }
 
     return true;
   };
@@ -205,7 +200,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       const existingUsers = await checkExisitingEmails(
         emailList?.map((ed) => ed?.email)
       );
-      console.log("🚀 ~ handleSubmit ~ existingUsers:", existingUsers);
+      // console.log("🚀 ~ handleSubmit ~ existingUsers:", existingUsers);
       if (existingUsers?.length > 0) {
         toast.error(
           `User(s) with the following email(s) already exist: ${existingUsers
@@ -221,7 +216,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
           level_1: inputs.sports,
           level_2: inputs.businessUnits,
           level_3: inputs.categories,
-          fee_type: inputs.feeType,
           users: profile?.id,
         });
         localStorage.setItem(userType.toString(), res?.data?.data?.id);
@@ -257,7 +251,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
           sports: [],
           categories: [],
           businessUnits: [],
-          feeType: "",
           full_name: "",
         });
         setEmailList([]);
@@ -285,7 +278,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       sports: [],
       categories: [],
       businessUnits: [],
-      feeType: "",
       full_name: "",
     });
     setEmailList([]);
@@ -444,14 +436,14 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                 <BusinessUnit setInputs={setInputs} setAlert={setAlert} />
                 <CategoryDropdown setInputs={setInputs} setAlert={setAlert} />
               </div>
-              <div className="w-[50%]">
+              {/* <div className="w-[50%]">
                 <FeeDropdowns
                   labelone="Select fee type"
                   islabelone="Fee"
                   inputs={inputs}
                   setInputs={setInputs}
                 />
-              </div>
+              </div> */}
             </div>
 
             {/* Footer  */}

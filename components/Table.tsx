@@ -77,11 +77,21 @@ const Table = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const campaignArray = Array?.isArray(clientCampaignData) ? clientCampaignData : [];
+
+  // Ensure it's an array and sort it by createdAt descending
+  const campaignArray = Array.isArray(clientCampaignData)
+    ? [...clientCampaignData]?.sort(
+      (a, b) =>
+        new Date(b?.createdAt || 0).getTime() -
+        new Date(a?.createdAt || 0).getTime()
+    )
+    : [];
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = campaignArray.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(campaignArray?.length / itemsPerPage);
+  const totalPages = Math.ceil(campaignArray.length / itemsPerPage);
+
 
 
 
@@ -175,8 +185,8 @@ const Table = () => {
 
 
   return (
-    <div className="flex flex-col">
-      <div className="table-container rounded-[8px] mt-[20px] overflow-x-scroll">
+    <div className="flex flex-col overflow-x-scroll">
+      <div className="table-container  mt-[20px] ">
         <table className="w-full  ">
           <thead>
             <tr>
@@ -229,7 +239,7 @@ const Table = () => {
                     }}
                     className="cursor-pointer"
                   >
-                    <td className="whitespace-normal py-[12px] px-[16px] break-words max-w-[200px]">
+                    <td className=" py-[12px] px-[16px] ">
                       {data?.media_plan_details?.plan_name || "N/A"} -{" "}
                       {data?.progress_percent < 100 ? "Running" : "Completed"}
                     </td>
