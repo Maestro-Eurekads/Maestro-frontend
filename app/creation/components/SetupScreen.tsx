@@ -72,6 +72,8 @@ export const SetupScreen = () => {
         value: user?.user?.id,
         label: user?.full_name,
       })) || [];
+      //@ts-ignore
+      const clientId = localStorage.getItem(`${session?.user?.data?.user?.id?.toString()}`)
 
       setInternalApproverOptions(agencyUserOptions);
       setClientApprovalOptions(clientUserOptions);
@@ -79,7 +81,7 @@ export const SetupScreen = () => {
       setCampaignFormData(prev => ({
         ...prev,
         ["client_selection"]: {
-          id: allClients[0]?.documentId || '',
+          id: clientId || allClients[0]?.id || '',
           value: allClients[0]?.client_name || '',
         },
       }));
