@@ -508,7 +508,6 @@ const CampaignBudget = () => {
           <ConfigureAdSetsAndBudget num={4} netAmount={netAmount} />
         </>
       )}
-
       {/* Bottom-up flow: REVERSED LOGIC of top-down */}
       {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 0 && (
         <>
@@ -517,6 +516,7 @@ const CampaignBudget = () => {
             t4="Choose granularity level"
             span={1}
           />
+
           {showLevelCards ? (
             <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
               <form method="dialog" className="flex justify-center p-2 !pb-0">
@@ -645,7 +645,7 @@ const CampaignBudget = () => {
                         <button
                           className="btn btn-primary w-full text-sm bg-[#3175FF]"
                           onClick={() => {
-                            setStep(2);
+                            setStep(3);
                             setShowLevelCards(false);
                             setCampaignFormData((prev) => ({
                               ...prev,

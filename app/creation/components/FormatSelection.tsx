@@ -185,7 +185,7 @@ const CreativesModal = ({
                 return (
                   <div key={idx} className="flex flex-col">
                     {fileType === "image" && preview.url ? (
-                      <div className="relative aspect-square w-[150px]">
+                      <div className="relative aspect-square w-[155px]">
                         <Image
                           src={preview.url || "/placeholder.svg"}
                           alt={`Preview ${idx + 1}`}
