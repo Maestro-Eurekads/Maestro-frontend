@@ -622,7 +622,8 @@ const ViewClientModal = ({ isView, setIsView }) => {
           onClick={confirmDelete}
           disabled={loading}
          >
-          Delete
+          {loading ? <SVGLoader width={30} height={30} color={"#fff"} /> : "Delete"}
+
          </button>
         </div>
        </div>
