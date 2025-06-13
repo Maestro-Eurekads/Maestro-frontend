@@ -372,7 +372,7 @@ const ViewClientModal = ({ isView, setIsView }) => {
           onClick={() => handleUpdateUser("agencyAccess")}
           disabled={loading}
          >
-          Update
+          {loading ? <SVGLoader width={30} height={30} color={"#fff"} /> : "Update"}
          </button>
          <button
           className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-gray-200 rounded-lg font-semibold text-[14px] leading-[19px] text-gray-800 mt-6"
@@ -482,7 +482,7 @@ const ViewClientModal = ({ isView, setIsView }) => {
           onClick={() => handleUpdateUser("clientAccess")}
           disabled={loading}
          >
-          Update
+          {loading ? <SVGLoader width={30} height={30} color={"#fff"} /> : "Update"}
          </button>
          <button
           className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-gray-200 rounded-lg font-semibold text-[14px] leading-[19px] text-gray-800 mt-6"
@@ -591,7 +591,7 @@ const ViewClientModal = ({ isView, setIsView }) => {
           onClick={confirmUpdate}
           disabled={loading}
          >
-          Continue
+          {loading ? <SVGLoader width={30} height={30} color={"#fff"} /> : "Continue"}
          </button>
         </div>
        </div>
@@ -622,7 +622,8 @@ const ViewClientModal = ({ isView, setIsView }) => {
           onClick={confirmDelete}
           disabled={loading}
          >
-          Delete
+          {loading ? <SVGLoader width={30} height={30} color={"#fff"} /> : "Delete"}
+
          </button>
         </div>
        </div>
