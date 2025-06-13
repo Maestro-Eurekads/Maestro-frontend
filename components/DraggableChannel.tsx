@@ -333,7 +333,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         style={{
           width: disableDrag
             ? `${parentWidth + (range === "Month" ? 53 : 43)}px`
-            : parentWidth,
+            : parentWidth -5,
           backgroundColor: color,
           transition: "transform 0.2s ease-out",
         }}
