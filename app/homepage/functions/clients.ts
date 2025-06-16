@@ -67,16 +67,4 @@ export const updateUsersWithCampaign = async (userIds: string[], campaignId: str
 
 
 
-export const updateClient = async (id: string, data: any) => {
-  return await axios.put(
-    `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${id}`,
-    {
-      data: { ...data },
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-      },
-    }
-  );
-};
+ 

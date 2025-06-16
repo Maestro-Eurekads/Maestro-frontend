@@ -106,7 +106,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [agencyId, setAgencyId] = useState<string | number | null>(null);
   const [selectedClient, setSelectedClient] = useState()
   const [agencyData, setAgencyData] = useState(null);
-
+  const [selectedId, setSelectedId] = useState<string>("");
 
 
   const reduxClients = useSelector(
@@ -676,7 +676,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       jwt,
       agencyId,
       selectedClient,
-      setSelectedClient
+      setSelectedClient,
+      selectedId,
+      setSelectedId
     }),
     [
       getUserByUserType,
@@ -715,7 +717,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       clientUsers,
       agencyId,
       selectedClient,
-      setSelectedClient
+      setSelectedClient,
+      selectedId,
+      setSelectedId
     ]
   );
 

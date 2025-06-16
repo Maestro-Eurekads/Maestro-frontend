@@ -50,7 +50,9 @@ const Header = ({ setIsOpen, setIsView }) => {
     jwt,
     agencyId,
     selectedClient,
-    setSelectedClient
+    setSelectedClient,
+    selectedId,
+    setSelectedId
   } = useCampaigns();
 
   const { setSelectedDates } = useSelectedDates()
@@ -62,7 +64,7 @@ const Header = ({ setIsOpen, setIsView }) => {
   const [alert, setAlert] = useState(null);
   const [show, setShow] = useState(false);
   const [selected, setSelected] = useState("");
-  const [selectedId, setSelectedId] = useState<string>("");
+
 
   const clients: any = getCreateClientData;
 
@@ -160,6 +162,11 @@ const Header = ({ setIsOpen, setIsView }) => {
   }, [clients, selectedId]);
 
 
+  // console.log("clients=clients", clients);
+  // console.log("profile=profile", agencyId);
+
+
+
   return (
     <div id="header" className="relative w-full">
       <div className="flex items-center">
@@ -204,9 +211,9 @@ const Header = ({ setIsOpen, setIsView }) => {
             />
 
             <button
-              className={`new_plan_btn ml-8 mr-4 ${!profile?.clients?.[0]?.id && !isAdmin ? "!bg-[gray]" : ""
+              className={`new_plan_btn ml-8 mr-4 ${profile?.clients?.length < 1 || !selectedId ? "!bg-[gray]" : ""
                 }`}
-              // disabled={!profile?.clients?.[0]?.id && !isAdmin}
+              disabled={profile?.clients?.length < 1 || !selectedId}
               onClick={() => setIsView(true)} >
               <p className="new_plan_btn_text">View Client</p>
             </button>
@@ -246,9 +253,10 @@ const Header = ({ setIsOpen, setIsView }) => {
                   })
                 }}>
                 <button
-                  className={`new_plan_btn ${!profile?.clients?.[0]?.id && !isAdmin ? "!bg-[gray]" : ""
+                  className={`new_plan_btn ${profile?.clients?.length < 1 || !selectedId ? "!bg-[gray]" : ""
                     }`}
-                  disabled={!profile?.clients?.[0]?.id && !isAdmin}
+                  disabled={profile?.clients?.length < 1 || !selectedId}
+                // disabled={!profile?.clients?.[0]?.id && !isAdmin}
                 >
                   <Image src={white} alt="white" />
                   <p className="new_plan_btn_text">New media plan</p>

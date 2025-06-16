@@ -806,7 +806,7 @@ export function extractLevelNameFilters(client: any) {
     },
   };
 
-  const year = filters.year || new Date().getFullYear().toString();
+  const year = filters?.year || new Date().getFullYear().toString();
 
   if (filters.year || filters.quarter || filters.month) {
     query.filters.campaign_timeline_start_date = { $notNull: true };
