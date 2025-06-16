@@ -114,10 +114,10 @@ const EditInput = ({ setInputs, label, setAlert }) => {
       {parameters.map((param, index) => (
         <div key={index} className="mb-4">
           {/* Parameter input */}
-          <div className="mt-3 flex items-center px-4 py-2 h-[40px] border border-[#EFEFEF] rounded-[10px] w-full">
+          <div className="mt-3 flex items-center px-4 py-2 h-[40px] border border-[#EFEFEF] rounded-[10px]  ml-3">
             <input
               type="text"
-              className="w-full bg-transparent outline-none text-gray-600"
+              className="w-full bg-transparent outline-none text-gray-600 ml-2"
               placeholder={`Add parameter ${index + 1}`}
               value={param.name}
               onChange={(e) => handleParameterChange(index, e.target.value)}
@@ -134,7 +134,7 @@ const EditInput = ({ setInputs, label, setAlert }) => {
           {param.subParameters.map((sub, sIndex) => (
             <div
               key={sIndex}
-              className="ml-4 mt-2 flex items-center px-4 py-2 h-[40px] w-[85%] border border-[#EFEFEF] rounded-[10px]"
+              className="ml-6 mt-2 flex items-center px-4  h-[40px]   border border-[#EFEFEF] rounded-[10px] "
             >
               <input
                 type="text"
