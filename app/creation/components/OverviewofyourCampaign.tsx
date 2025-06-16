@@ -287,8 +287,8 @@ const OverviewofyourCampaign = () => {
 
 
 
-  console.log('campaignFormData-campaignFormData', campaignFormData)
-  console.log('campaignData-campaignData', campaignData)
+  // console.log('campaignFormData-campaignFormData', campaignFormData)
+  // console.log('campaignData-campaignData', campaignData)
   return (
     <div>
       {alert && <AlertMain alert={alert} />}

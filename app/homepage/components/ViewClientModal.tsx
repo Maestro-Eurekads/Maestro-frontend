@@ -384,7 +384,6 @@ const ViewClientModal = ({ isView, setIsView }) => {
   ];
 
 
-  console.log("Users-users:", users);
 
   return (
     <div className="z-50">

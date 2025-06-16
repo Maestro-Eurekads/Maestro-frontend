@@ -47,19 +47,19 @@ export const EstablishedGoals = () => {
 
   function extractPlatforms(data) {
     const platforms = [];
-    data.channel_mix.forEach((stage) => {
-      const stageName = stage.funnel_stage;
-      const stageBudget = parseFloat(stage.stage_budget?.fixed_value);
-      mediaTypes.forEach((channelType) => {
-        stage[channelType].forEach((platform) => {
-          const platformName = platform.platform_name;
-          const platformBudget = parseFloat(platform.budget?.fixed_value);
+    data?.channel_mix?.forEach((stage) => {
+      const stageName = stage?.funnel_stage;
+      const stageBudget = parseFloat(stage?.stage_budget?.fixed_value);
+      mediaTypes?.forEach((channelType) => {
+        stage[channelType]?.forEach((platform) => {
+          const platformName = platform?.platform_name;
+          const platformBudget = parseFloat(platform?.budget?.fixed_value);
           const percentage = (platformBudget / stageBudget) * 100;
-          const existingPlatform = platforms.find(
-            (p) => p.platform_name === platformName
+          const existingPlatform = platforms?.find(
+            (p) => p?.platform_name === platformName
           );
           if (existingPlatform) {
-            existingPlatform.stages_it_was_found.push({
+            existingPlatform?.stages_it_was_found?.push({
               stage_name: stageName,
               percentage: percentage,
             });
@@ -151,10 +151,10 @@ export const EstablishedGoals = () => {
                           ch?.funnel_stage === "Awareness"
                             ? "#3175FF"
                             : ch?.funnel_stage === "Consideration"
-                            ? "#00A36C"
-                            : ch?.funnel_stage === "Conversion"
-                            ? "#FF9037"
-                            : "#F05406",
+                              ? "#00A36C"
+                              : ch?.funnel_stage === "Conversion"
+                                ? "#FF9037"
+                                : "#F05406",
                       }))}
                   />
                 </div>
