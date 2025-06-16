@@ -1,11 +1,36 @@
 "use client";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import moment from "moment";
 import React from "react";
 import { useDateRange } from "src/date-range-context";
 
-const WeekInterval = ({ weeksCount, funnelData, disableDrag }:{weeksCount:any, funnelData?:any, disableDrag?:any}) => {
+const WeekInterval = ({
+  weeksCount,
+  funnelData,
+  disableDrag,
+}: {
+  weeksCount: any;
+  funnelData?: any;
+  disableDrag?: any;
+}) => {
   const { campaignFormData } = useCampaigns();
   const { range } = useDateRange();
+  const groupDatesByWeek = (dates: Date[]) => {
+    const weeks: string[][] = [];
+    let currentWeek: string[] = [];
+
+    dates.forEach((date, index) => {
+      currentWeek.push(moment(new Date(date)).format("YYYY-MM-DD"));
+      if (currentWeek.length === 7 || index === dates.length - 1) {
+        weeks.push(currentWeek);
+        currentWeek = [];
+      }
+    });
+
+    return weeks;
+  };
+
+  const datesByWeek = range ? groupDatesByWeek(range) : [];
   return (
     <div className="w-full border-y">
       <div
@@ -50,13 +75,38 @@ const WeekInterval = ({ weeksCount, funnelData, disableDrag }:{weeksCount:any, f
         }}
       >
         {Array.from({ length: weeksCount }, (_, i) => (
-          <div key={i} className="flex flex-col items-center justify-center relative py-2">
+          <div
+            key={i}
+            className="flex flex-col items-center justify-center relative py-2"
+          >
             {/* Week Label */}
-            <div className="flex flex-row gap-2 items-center mb-2 justify-center text-center">
-              <span className="font-[500] text-[13px] text-[rgba(0,0,255,0.5)]">
-                Week
-              </span>
-              <p className="font-[500] text-[13px] text-blue-500">{i + 1}</p>
+            <div>
+              {/* <div className="flex flex-row gap-2 items-center mb-2 justify-center text-center">
+                <span className="font-[500] text-[13px] text-[rgba(0,0,255,0.5)]">
+                  Week
+                </span>
+                <p className="font-[500] text-[13px] text-blue-500">{i + 1}</p>
+              </div> */}
+              <div className="font-[500] text-[13px]">
+                {datesByWeek[i] && (
+                  <div className="flex flex-row gap-2 items-center justify-center">
+                    <p>
+                      {moment(datesByWeek[i][0]).format("DD")} -{" "}
+                      {moment(datesByWeek[i][datesByWeek[i].length - 1]).format(
+                        "DD"
+                      )}
+                    </p>
+                  </div>
+                )}
+                {datesByWeek[i] && (
+                  <p className="text-[rgba(0,0,255,0.5)]">
+                    {moment(datesByWeek[i][0]).format("MMM")} -{" "}
+                    {moment(datesByWeek[i][datesByWeek[i].length - 1]).format(
+                      "MMM"
+                    )}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         ))}
