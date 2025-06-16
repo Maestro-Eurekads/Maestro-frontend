@@ -75,7 +75,7 @@ export const SetupScreen = () => {
       //@ts-ignore
       const clientId = localStorage.getItem(`${session?.user?.data?.user?.id?.toString()}`)
 
-      console.log("🚀 ~ useEffect ~ clientId:", clientId)
+      // console.log("🚀 ~ useEffect ~ clientId:", clientId)
       setInternalApproverOptions(agencyUserOptions);
       setClientApprovalOptions(clientUserOptions);
       setClientUsers(allClients || []);
