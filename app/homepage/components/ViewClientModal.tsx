@@ -112,7 +112,6 @@ const ViewClientModal = ({ isView, setIsView }) => {
         throw new Error(errorData.error?.message || `HTTP ${response.status}`);
       }
       const data = await response.json();
-      console.log("Fetched users:", data);
 
 
       // Separate users by role
