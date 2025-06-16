@@ -190,17 +190,66 @@ const ViewClientModal = ({ isView, setIsView }) => {
   };
 
   // Confirm update user
+  // const confirmUpdate = async () => {
+  //   const section = editingUser?.section;
+  //   const input = section === "agencyAccess" ? agencyInput : clientInput;
+  //   const { name, email, roles } = input;
+  //   const trimmedEmail = email.trim();
+  //   const trimmedName = name.trim();
+  //   setLoadingUpdate(true);
+
+  //   try {
+  //     const response = await fetch(
+  //       `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${editingUser?.user?.id}`,
+  //       {
+  //         method: "PUT",
+  //         headers: {
+  //           Authorization: `Bearer ${jwt}`,
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({
+  //           user?.client_user?.full_name: trimmedName,
+  //           email: trimmedEmail,
+  //           user_type: roles[0], // Use the single selected role
+  //         }),
+  //       }
+  //     );
+  //     if (!response.ok) {
+  //       const errorData = await response.json();
+  //       throw new Error(errorData.error?.message || `HTTP ${response.status}`);
+  //     }
+  //     toast.success("User updated successfully");
+
+  //     await fetchUsers();
+  //     resetInput(section);
+  //     setShowConfirmPopup(false);
+  //   } catch (error) {
+  //     console.error("Update user error:", error);
+  //     toast.error(`Failed to update user: ${error.message}`);
+  //   } finally {
+  //     setLoadingUpdate(false);
+  //   }
+  // };
+
   const confirmUpdate = async () => {
     const section = editingUser?.section;
     const input = section === "agencyAccess" ? agencyInput : clientInput;
     const { name, email, roles } = input;
     const trimmedEmail = email.trim();
     const trimmedName = name.trim();
+    const userId = editingUser?.user?.id;
+    const relatedClientUserId =
+      section === "agencyAccess"
+        ? editingUser?.user?.agency_user?.data?.id
+        : editingUser?.user?.client_user?.data?.id;
+
+
     setLoadingUpdate(true);
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${editingUser.user.id}`,
+      // 1. Update the main user
+      const userRes = await fetch(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${userId}`,
         {
           method: "PUT",
           headers: {
@@ -208,28 +257,52 @@ const ViewClientModal = ({ isView, setIsView }) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            username: trimmedName,
             email: trimmedEmail,
-            user_type: roles[0], // Use the single selected role
+            user_type: roles[0],
           }),
         }
       );
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || `HTTP ${response.status}`);
+
+      if (!userRes.ok) {
+        const errorData = await userRes.json();
+        throw new Error(errorData.error?.message || `HTTP ${userRes.status}`);
       }
+
+      // 2. Update the related client_user or agency_user
+      if (relatedClientUserId) {
+        const subRes = await fetch(
+          `${process.env.NEXT_PUBLIC_STRAPI_URL}/client-users/${relatedClientUserId}`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${jwt}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              full_name: trimmedName,
+            }),
+          }
+        );
+
+        if (!subRes.ok) {
+          const errorData = await subRes.json();
+          throw new Error(errorData.error?.message || `HTTP ${subRes.status}`);
+        }
+      }
+
       toast.success("User updated successfully");
 
       await fetchUsers();
       resetInput(section);
       setShowConfirmPopup(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Update user error:", error);
       toast.error(`Failed to update user: ${error.message}`);
     } finally {
       setLoadingUpdate(false);
     }
   };
+
 
   // Handle delete user
   const handleDeleteUser = (userId) => {
@@ -269,8 +342,14 @@ const ViewClientModal = ({ isView, setIsView }) => {
   // Handle edit button click
   const handleEditUser = (section, user) => {
     const setInput = section === "agencyAccess" ? setAgencyInput : setClientInput;
-    const setShowInput = section === "agencyAccess" ? setShowAgencyInput : setShowClientInput;
-    setInput({ name: user.username, email: user.email, roles: [user.user_type] });
+    const setShowInput = section === "agencyAccess" ? setShowAgencyInput :
+      setShowClientInput;
+    console.log('agencyInput-agencyInput', agencyInput)
+    const fullName =
+      section === "agencyAccess"
+        ? user?.agency_user?.full_name
+        : user?.client_user?.full_name;
+    setInput({ name: fullName, email: user.email, roles: [user.user_type] });
     setEditingUser({ section, user });
     setShowInput(true);
   };
@@ -405,10 +484,10 @@ const ViewClientModal = ({ isView, setIsView }) => {
                             >
                               <div className="flex items-center gap-3">
                                 <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                                  {user?.username.charAt(0).toUpperCase()}
+                                  {user?.agency_user?.full_name?.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                  <p className="font-medium text-sm">{user?.username}</p>
+                                  <p className="font-medium text-sm">{user?.agency_user?.full_name}</p>
                                   <p className="text-xs text-gray-500">{user.email}</p>
                                   <p className="text-xs text-gray-500">
                                     Role:{" "}
@@ -515,10 +594,10 @@ const ViewClientModal = ({ isView, setIsView }) => {
                             >
                               <div className="flex items-center gap-3">
                                 <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                                  {user.username.charAt(0).toUpperCase()}
+                                  {user?.client_user?.full_name.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                  <p className="font-medium text-sm">{user.username}</p>
+                                  <p className="font-medium text-sm">{user?.client_user?.full_name}</p>
                                   <p className="text-xs text-gray-500">{user.email}</p>
                                   <p className="text-xs text-gray-500">
                                     Role:{" "}
