@@ -209,7 +209,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
   const isYearSelected = !!selectedFilters["year"];
 
-  console.log("Selected Filters:", filters);
+  // console.log("Selected Filters:", filters);
 
   return (
     <div>
