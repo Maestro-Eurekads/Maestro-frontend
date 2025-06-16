@@ -25,7 +25,7 @@ import { getFirstLetters } from "./Options";
 import { useSelectedDates } from "app/utils/SelectedDatesContext";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
-const Header = ({ setIsOpen }) => {
+const Header = ({ setIsOpen, setIsView }) => {
   const { data: session } = useSession();
 
   if (!session) return null;
@@ -50,7 +50,9 @@ const Header = ({ setIsOpen }) => {
     jwt,
     agencyId,
     selectedClient,
-    setSelectedClient
+    setSelectedClient,
+    selectedId,
+    setSelectedId
   } = useCampaigns();
 
   const { setSelectedDates } = useSelectedDates()
@@ -62,18 +64,20 @@ const Header = ({ setIsOpen }) => {
   const [alert, setAlert] = useState(null);
   const [show, setShow] = useState(false);
   const [selected, setSelected] = useState("");
-  const [selectedId, setSelectedId] = useState<string>("");
+
 
   const clients: any = getCreateClientData;
 
+
+
   useEffect(() => {
-    if(profile && agencyId){
-      dispatch(getCreateClient({userId: userType, jwt, agencyId}));
-  
+    if (profile && agencyId) {
+      dispatch(getCreateClient({ userId: userType, jwt, agencyId }));
+
       const timer = setTimeout(() => {
         setAlert(null);
       }, 5000);
-  
+
       return () => clearTimeout(timer);
 
     }
@@ -113,11 +117,12 @@ const Header = ({ setIsOpen }) => {
     const filteredClient = clients?.data?.find(
       (client) => client?.id === Number(clientId)
     );
-    // console.log(clientId);
-    console.log("agencyId", agencyId)
+
     fetchClientCampaign(clientId, agencyId)
       .then((res) => {
         const campaigns = res?.data?.data || [];
+
+        // console.log("campaigns-campaigns", campaigns);
 
         if (isMounted) setClientCampaignData(campaigns);
 
@@ -126,7 +131,7 @@ const Header = ({ setIsOpen }) => {
         const channelData = extractChannelAndPhase(campaigns);
         const levelData = extractLevelFilters(campaigns);
         const levelNames = extractLevelNameFilters(filteredClient);
-
+        // console.log('extractLevelNameFilters', levelNames)
         setFilterOptions((prev) => ({
           ...prev,
           ...dateData,
@@ -157,6 +162,11 @@ const Header = ({ setIsOpen }) => {
   }, [clients, selectedId]);
 
 
+  // console.log("clients=clients", clients);
+  // console.log("profile=profile", agencyId);
+
+
+
   return (
     <div id="header" className="relative w-full">
       <div className="flex items-center">
@@ -180,12 +190,13 @@ const Header = ({ setIsOpen }) => {
                   value: c?.id.toString(),
                 }))}
               className="min-w-[150px] z-[20]"
-              placeholder="Search or select a client"
+              placeholder="Search"
               onChange={(value) => {
                 if (value) {
                   localStorage.setItem(userType, value?.value);
                   setSelected(value?.value);
                   setSelectedId(value?.value);
+                  setSelectedClient(value?.value);
                 }
               }}
               value={(isAdmin ? clients?.data : profile?.clients)
@@ -199,7 +210,13 @@ const Header = ({ setIsOpen }) => {
                 )}
             />
 
-
+            <button
+              className={`new_plan_btn ml-8 mr-4 ${profile?.clients?.length < 1 || !selectedId ? "!bg-[gray]" : ""
+                }`}
+              disabled={profile?.clients?.length < 1 || !selectedId}
+              onClick={() => setIsView(true)} >
+              <p className="new_plan_btn_text">View Client</p>
+            </button>
             {(isAdmin ||
               isFinancialApprover ||
               isAgencyApprover) && (
@@ -236,9 +253,10 @@ const Header = ({ setIsOpen }) => {
                   })
                 }}>
                 <button
-                  className={`new_plan_btn ${!profile?.clients?.[0]?.id && !isAdmin ? "!bg-[gray]" : ""
+                  className={`new_plan_btn ${profile?.clients?.length < 1 || !selectedId ? "!bg-[gray]" : ""
                     }`}
-                  disabled={!profile?.clients?.[0]?.id && !isAdmin}
+                  disabled={profile?.clients?.length < 1 || !selectedId}
+                // disabled={!profile?.clients?.[0]?.id && !isAdmin}
                 >
                   <Image src={white} alt="white" />
                   <p className="new_plan_btn_text">New media plan</p>
@@ -252,7 +270,7 @@ const Header = ({ setIsOpen }) => {
           >
             <p className="capitalize">
 
-            {getFirstLetters(session?.user?.name)}
+              {getFirstLetters(session?.user?.name)}
             </p>
 
             {show && (

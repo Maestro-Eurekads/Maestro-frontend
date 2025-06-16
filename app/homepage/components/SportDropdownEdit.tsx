@@ -5,15 +5,15 @@ import Image from "next/image";
 import blueSmallPlue from "../../../public/blueSmallPlue.svg";
 import { MdOutlineCancel } from "react-icons/md";
 
-const EditInput = ({ setInputs, label, setAlert }) => {
-  const [title, setTitle] = useState(""); // Business level 1
-  const [parameters, setParameters] = useState([]); // Business level 2
+const EditInput = ({ setInputs, label, setAlert, initialData }) => {
+  const [title, setTitle] = useState(initialData?.title || "");
+  const [parameters, setParameters] = useState(initialData?.parameters || []);
 
   // Sync with parent
   useEffect(() => {
     setInputs((prev) => ({
       ...prev,
-      categories: {
+      sports: {
         title,
         parameters: parameters.map((param) => ({
           name: param.name,
@@ -102,7 +102,7 @@ const EditInput = ({ setInputs, label, setAlert }) => {
         <input
           type="text"
           className="w-full bg-transparent outline-none text-gray-600"
-          placeholder="business level 1"
+          placeholder="business level 2"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
@@ -129,7 +129,7 @@ const EditInput = ({ setInputs, label, setAlert }) => {
           </div>
 
           {/* Sub-parameters */}
-          {param.subParameters.map((sub, sIndex) => (
+          {param?.subParameters?.map((sub, sIndex) => (
             <div
               key={sIndex}
               className="ml-6 mt-2 flex items-center px-4 py-2 h-[40px]   border border-[#EFEFEF] rounded-[10px]"
@@ -158,7 +158,7 @@ const EditInput = ({ setInputs, label, setAlert }) => {
             className="ml-4 mt-2 flex items-center gap-1 text-[#3175FF] font-semibold text-[14px]"
           >
             <Image src={blueSmallPlue} alt="add" />
-            Add sub-parameter {param.subParameters.length + 1}
+            Add sub-parameter {param?.subParameters?.length + 1}
           </button>
         </div>
       ))}
@@ -177,18 +177,17 @@ const EditInput = ({ setInputs, label, setAlert }) => {
   );
 };
 
-const CategoryDropdown = ({ setInputs, setAlert }) => {
+const SportDropdownEdit = ({ setInputs, setAlert, initialData }) => {
   return (
     <div className="flex flex-col gap-4 mt-[20px]">
       <EditInput
         setInputs={setInputs}
         setAlert={setAlert}
-        label="Business level 3"
+        label="Business level 2"
+        initialData={initialData}
       />
     </div>
   );
 };
 
-export default CategoryDropdown;
-
-
+export default SportDropdownEdit;

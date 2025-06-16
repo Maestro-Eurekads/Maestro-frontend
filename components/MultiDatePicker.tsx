@@ -70,7 +70,7 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
   };
 
   const handleDateClick = (day: number, monthIndex: number, year: number) => {
-    if (isPastDate(day, monthIndex, year)) return;
+    // if (isPastDate(day, monthIndex, year)) return;
 
     const newDate = { day, month: monthIndex };
 
@@ -159,9 +159,7 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
 
   return (
     <div
-      className={`flex flex-col items-start p-5 gap-5 w-[792px] bg-white border border-gray-200 rounded-lg mt-8 ${
-        isEditing ? "" : " cursor-not-allowed"
-      }`}
+      className={`flex flex-col items-start p-5 gap-5 w-[792px] bg-white border border-gray-200 rounded-lg mt-8 cursor-pointer`}
     >
       {/* Navigation */}
       <div className="flex justify-between w-full">
@@ -234,11 +232,7 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
                     className={`w-8 h-8 flex items-center justify-center rounded-full transition-all
 						${isSelected ? "bg-blue-500 text-white" : ""}
 						${isInRange ? "bg-blue-200" : ""}
-						${
-              isPast
-                ? "text-gray-400 cursor-not-allowed"
-                : "hover:bg-blue-100 cursor-pointer"
-            }
+						
 						`}
                     onClick={() =>
                       handleDateClick(day, month.monthIndex, month.year)

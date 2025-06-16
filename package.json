@@ -16,6 +16,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@reduxjs/toolkit": "^2.6.0",
     "@types/react-date-range": "^1.4.9",
+    "antd": "^5.26.0",
     "axios": "^1.8.1",
     "browser-image-compression": "^2.0.2",
     "chart.js": "^4.4.8",
@@ -53,6 +54,7 @@
     "redux": "^5.0.1",
     "sonner": "^2.0.3",
     "sweetalert2": "^11.17.2",
+    "swr": "^2.3.3",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

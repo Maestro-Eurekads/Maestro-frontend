@@ -1,5 +1,5 @@
 //@ts-nocheck
-
+"use client";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { useState, useEffect, useCallback } from "react";
@@ -36,7 +36,11 @@ const useCampaignHook = () => {
             filters,
             populate: {
               agency: {
-                populate: ["agency_users", "admins", "client_users"]
+                populate: {
+                  agency_users: { populate: ['user'] },
+                  admins: { populate: ['user'] },
+                  client_users: { populate: ['user'] }
+                }
               }
             }
           },
@@ -53,6 +57,8 @@ const useCampaignHook = () => {
       setLoadingClients(false);
     }
   }, [jwt]);
+
+  
 
   // Fetch client campaigns
   const fetchClientCampaign = useCallback(async (clientID:string, agencyId:string|number) => {

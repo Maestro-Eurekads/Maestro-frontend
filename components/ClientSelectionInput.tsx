@@ -35,7 +35,7 @@ const ClientSelectionInput = ({
   formId: string;
 }) => {
   return (
-    <div className="flex items-center gap-4 mt-[20px]">
+    <div className="flex items-center gap-4 mt-2">
       <TextInput label={label} formId={formId} />
     </div>
   );

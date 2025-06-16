@@ -172,7 +172,7 @@ const ResizeableElements = ({
         dailyWidth = dailyWidth < 50 ? 50 : dailyWidth;
       } else {
         // Month
-        const totalDays = endMonth * 31;
+        const totalDays = endMonth * funnelData?.endDay < 30 ? funnelData?.endDay : 31;
         dailyWidth = contWidth / totalDays;
       }
 
@@ -181,7 +181,7 @@ const ResizeableElements = ({
         [viewType]: Math.round(dailyWidth),
       }));
 
-      return Math.round(dailyWidth);
+      return Math.round(dailyWidth).toFixed(2) + 0.5;
     },
     [disableDrag, funnelData?.endDay, funnelData?.endMonth]
   );
@@ -214,7 +214,7 @@ const ResizeableElements = ({
     endMonth: number
   ): number {
     const adjustedWidth = containerWidth; // adjust for padding/margin if needed
-    const totalDays = endMonth * 31;
+    const totalDays = endMonth * funnelData?.endDay < 30 ? funnelData?.endDay : 31;
 
     // Base daily width without factor
     const baseDailyWidth = adjustedWidth / totalDays;
@@ -263,7 +263,7 @@ const ResizeableElements = ({
                 ? getDailyWidth()
                 : rrange === "Week"
                 ? getDailyWidth()
-                : Math.floor(containerWidth / funnelData?.endMonth / 31))
+                : Math.floor(containerWidth / funnelData?.endMonth / funnelData?.endDay < 30 ? funnelData?.endDay: 31))
             : 0;
           const daysBetween =
             eachDayOfInterval({ start: stageStartDate, end: stageEndDate })
@@ -279,7 +279,7 @@ const ResizeableElements = ({
                 : null,
             }).length;
           const endMonth = funnelData?.endMonth || 1;
-          const dailyWidth = calculateDailyWidth(screenWidth, endMonth);
+          const dailyWidth = getDailyWidth();
           console.log("startDateIndex", {
             daysFromStart,
             dailyWidth,
@@ -288,7 +288,7 @@ const ResizeableElements = ({
           initialWidths[stageName] = (() => {
             if (rrange === "Day") {
               return daysBetween > 0
-                ? getDailyWidth() * daysBetween + 18
+                ? getDailyWidth() * daysBetween + 10
                 : getDailyWidth() * daysFromStart - 40;
             } else if (rrange === "Week") {
               return daysBetween > 0
@@ -298,14 +298,14 @@ const ResizeableElements = ({
               let monthBaseWidth;
               // if (endMonth === 1) {
               // }
-              monthBaseWidth = screenWidth - (disableDrag ? 60 : 350);
+              monthBaseWidth = screenWidth - (disableDrag ? 60 : 367);
               // else if (endMonth > 1) {
               //   monthBaseWidth = contWidth / endMonth;
               // }
-              // console.log("🚀 ~  monthBaseWidth:", {monthBaseWidth, daysBetween, width: daysBetween > 0 ? Math.round(monthBaseWidth / endMonth) : 50})
+              console.log("🚀 ~  monthBaseWidth:", {daysBetween})
               return daysBetween > 0
-                ? Math.round(monthBaseWidth / endMonth)
-                : Math.round(monthBaseWidth) - (disableDrag ? 83 : 60);
+              ? getDailyWidth() * daysBetween - 113
+                : Math.round(monthBaseWidth) - (disableDrag ? 83 : 38);
             }
           })();
 
@@ -335,8 +335,8 @@ const ResizeableElements = ({
           if (rrange === "Day" || rrange === "Week") {
             return `calc(${dailyWidth}px) 100%, calc(${dailyWidth * 7}px) 100%`;
           } else {
-            return `calc(${dailyWidth}px) 100%, calc(${
-              dailyWidth * 31
+            return `calc(${dailyWidth/funnelData?.endMonth}px) 100%, calc(${
+              (dailyWidth * (funnelData?.endDay < 30 ? funnelData?.endDay + 1 : 31)/funnelData?.endMonth)
             }px) 100%`;
           }
         })(),
@@ -395,7 +395,7 @@ const ResizeableElements = ({
                     }, ${dailyWidth}px)`;
                   } else {
                     const endMonth = funnelData?.endMonth || 1;
-                    return `repeat(${endMonth}, ${dailyWidth}px)`;
+                    return `repeat(${endMonth === 1 ? funnelData?.endDay : endMonth}, ${dailyWidth/endMonth}px)`;
                   }
                 })(),
               }}

@@ -1,4 +1,3 @@
-"use client"
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import PageHeaderWrapper from "../../../components/PageHeaderWapper"
@@ -77,15 +76,17 @@ const hexToColorClass = (hex: string): string | null => {
 
 const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color)
 
-// LocalStorage keys - Scoped to client and media plan
+// LocalStorage keys - Scoped to client for configs, client and media plan for funnels
 const LOCAL_STORAGE_FUNNELS_KEY = "custom_funnels_v1"
 const LOCAL_STORAGE_CONFIGS_KEY = "funnel_configurations_v1"
 
-// Helper to get a unique key for localStorage based on clientId and mediaPlanId
-const getClientKey = (baseKey: string, clientId: string | undefined, mediaPlanId: string | undefined) => {
+// Helper to get a unique key for localStorage based on clientId and optionally mediaPlanId
+const getClientKey = (baseKey: string, clientId: string | undefined, mediaPlanId?: string) => {
   if (!clientId) return baseKey
   let key = `${baseKey}_client_${clientId}`
-  if (mediaPlanId) key += `_media_${mediaPlanId}`
+  if (mediaPlanId && baseKey === LOCAL_STORAGE_FUNNELS_KEY) {
+    key += `_media_${mediaPlanId}`
+  }
   console.debug(`Generated storage key: ${key}`)
   return key
 }
@@ -193,7 +194,7 @@ const MapFunnelStages = () => {
   const saveFunnelConfigsToStorage = (configs: FunnelConfig[]) => {
     if (!clientId) return
     try {
-      const key = getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId, mediaPlanId)
+      const key = getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId)
       localStorage.setItem(key, JSON.stringify(configs))
       console.debug(`Saved funnel configs to ${key}:`, configs)
     } catch (e) {
@@ -205,7 +206,7 @@ const MapFunnelStages = () => {
   const getFunnelConfigsFromStorage = (): FunnelConfig[] => {
     if (!clientId) return []
     try {
-      const key = getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId, mediaPlanId)
+      const key = getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId)
       const data = localStorage.getItem(key)
       console.debug(`Retrieved funnel configs from ${key}:`, data)
       if (data) {
@@ -229,13 +230,19 @@ const MapFunnelStages = () => {
 
     let loadedCustomFunnels: Funnel[] = []
     const localStorageFunnels = getCustomFunnelsFromStorage()
+    const isNewPlan = !mediaPlanId || mediaPlanId === ""
 
     if (!clientId) {
       loadedCustomFunnels = defaultFunnels
       setSelectedConfigIdx(null)
-      setSelectedPreset(null)
+      setSelectedPreset(1) // Select "Full" preset by default
       localStorage.removeItem(getClientKey(LOCAL_STORAGE_FUNNELS_KEY, clientId, mediaPlanId))
-      localStorage.removeItem(getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId, mediaPlanId))
+      localStorage.removeItem(getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId))
+    } else if (isNewPlan) {
+      // For new plans, always use default funnels
+      loadedCustomFunnels = defaultFunnels
+      setSelectedConfigIdx(null)
+      setSelectedPreset(1) // Select "Full" preset
     } else if (localStorageFunnels && localStorageFunnels.length > 0) {
       loadedCustomFunnels = localStorageFunnels
     } else if (campaignData?.custom_funnels?.length > 0) {
@@ -246,6 +253,7 @@ const MapFunnelStages = () => {
       }))
     } else {
       loadedCustomFunnels = defaultFunnels
+      setSelectedPreset(1) // Select "Full" preset
     }
 
     setPersistentCustomFunnels(loadedCustomFunnels)
@@ -254,10 +262,10 @@ const MapFunnelStages = () => {
     setCampaignFormData((prev: any) => {
       const initialFunnelStages = Array.isArray(campaignData?.funnel_stages) ? campaignData.funnel_stages : []
       const initialChannelMix = Array.isArray(campaignData?.channel_mix) ? campaignData.channel_mix : []
-      const orderedFunnelStages = initialFunnelStages.length > 0
+      const orderedFunnelStages = initialFunnelStages.length > 0 && !isNewPlan
         ? loadedCustomFunnels.map(f => f.name).filter(name => initialFunnelStages.includes(name))
         : loadedCustomFunnels.map(f => f.name)
-      const orderedChannelMix = initialChannelMix.length > 0
+      const orderedChannelMix = initialChannelMix.length > 0 && !isNewPlan
         ? loadedCustomFunnels
             .map(f => initialChannelMix.find((ch: any) => ch?.funnel_stage === f.name))
             .filter((ch): ch is { funnel_stage: string } => !!ch)
@@ -266,15 +274,16 @@ const MapFunnelStages = () => {
       const updatedFormData = {
         ...prev,
         funnel_type: "custom",
-        funnel_stages: orderedFunnelStages.length > 0 ? orderedFunnelStages : loadedCustomFunnels.map(f => f.name),
-        channel_mix: orderedChannelMix.length > 0 ? orderedChannelMix : loadedCustomFunnels.map(f => ({ funnel_stage: f.name })),
+        funnel_stages: orderedFunnelStages,
+        channel_mix: orderedChannelMix,
         custom_funnels: loadedCustomFunnels,
       }
       console.debug("Updated campaignFormData:", updatedFormData)
       return updatedFormData
     })
 
-    if (configs.length > 0 && loadedCustomFunnels.length > 0) {
+    // Only try to match a configuration for existing plans
+    if (configs.length > 0 && loadedCustomFunnels.length > 0 && !isNewPlan) {
       const currentStageNames = loadedCustomFunnels.map(f => f.name).sort()
       const matchingConfigIdx = configs.findIndex(config => {
         const configStageNames = config.stages.map(s => s.name).sort()
@@ -297,7 +306,7 @@ const MapFunnelStages = () => {
       }
     } else {
       setSelectedConfigIdx(null)
-      setSelectedPreset(null)
+      setSelectedPreset(isNewPlan || !clientId ? 1 : null) // "Full" preset for new plans or no client
       console.debug("No configs or funnels, reset selection")
     }
   }, [clientId, mediaPlanId, campaignData, setCampaignFormData])
@@ -330,7 +339,7 @@ const MapFunnelStages = () => {
     if (clientId && funnelConfigs.length > 0) {
       saveFunnelConfigsToStorage(funnelConfigs)
     }
-  }, [funnelConfigs, clientId, mediaPlanId])
+  }, [funnelConfigs, clientId])
 
   // Handle clicks outside modal
   useEffect(() => {

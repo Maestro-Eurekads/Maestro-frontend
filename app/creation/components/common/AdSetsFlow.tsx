@@ -1,3 +1,5 @@
+"use client";
+
 import type React from "react";
 import {
   memo,
@@ -29,16 +31,24 @@ import { Plus } from "lucide-react";
 import { useActive } from "app/utils/ActiveContext";
 import { removeKeysRecursively } from "utils/removeID";
 import { getPlatformIcon, mediaTypes } from "components/data";
+import axios from "axios";
+import toast from "react-hot-toast";
+
+// --- Custom Audience Types Context ---
+const CustomAudienceTypesContext = createContext<{
+  customAudienceTypes: string[];
+  addCustomAudienceType: (type: string) => void;
+}>({
+  customAudienceTypes: [],
+  addCustomAudienceType: () => {},
+});
 
 // Helper for thousand separator
 function formatWithThousandSeparator(value: string | number) {
   if (value === undefined || value === null) return "";
-  // Remove all non-digit except dot
   const cleaned = String(value).replace(/,/g, "");
   if (cleaned === "") return "";
-  // Only format if it's a valid number
   if (!isNaN(Number(cleaned))) {
-    // If decimal, keep decimals
     if (cleaned.includes(".")) {
       const [int, dec] = cleaned.split(".");
       return (
@@ -74,16 +84,20 @@ interface AdSetFlowProps {
   modalOpen?: boolean;
 }
 
+interface AudienceData {
+  audience_type: string;
+  name?: string;
+  size?: string;
+  description?: string;
+}
+
 interface AdSetData {
   id?: number;
   name: string;
   audience_type: string;
   size?: string;
-  extra_audiences?: {
-    audience_type: string;
-    name?: string;
-    size?: string;
-  }[];
+  description?: string;
+  extra_audiences?: AudienceData[];
 }
 
 interface Format {
@@ -140,7 +154,7 @@ const DropdownContext = createContext<{
   setOpenDropdownId: (id: number | null | string) => void;
 }>({
   openDropdownId: null,
-  setOpenDropdownId: () => { },
+  setOpenDropdownId: () => {},
 });
 
 // Utility functions
@@ -213,6 +227,7 @@ const AdSet = memo(function AdSet({
   audienceType,
   adSetName,
   adSetSize,
+  adSetDescription,
   onInteraction,
   adsets,
   extra_audiences,
@@ -226,36 +241,31 @@ const AdSet = memo(function AdSet({
   audienceType?: string;
   adSetName?: string;
   adSetSize?: string;
+  adSetDescription?: string;
   onInteraction: () => void;
   adsets: AdSetType[];
-  extra_audiences?: {
-    audience_type: string;
-    name?: string;
-    size?: string;
-  }[];
+  extra_audiences?: AudienceData[];
   onUpdateExtraAudiences: (
-    audiences: {
-      audience_type: string;
-      name?: string;
-      size?: string;
-    }[]
+    audiences: AudienceData[]
   ) => void;
 }) {
   const [audience, setAudience] = useState<string>(audienceType || "");
   const [name, setName] = useState<string>(adSetName || "");
   const [size, setSize] = useState<string>(adSetSize || "");
-  const [extraAudience, setExtraAudience] = useState<
-    { audience_type: string; name?: string; size?: string }[]
-  >(extra_audiences || []);
+  const [description, setDescription] = useState<string>(adSetDescription || "");
+  const [extraAudience, setExtraAudience] = useState<AudienceData[]>(
+    extra_audiences || []
+  );
 
   useEffect(() => {
     if (audienceType !== undefined) setAudience(audienceType);
     if (adSetName !== undefined) setName(adSetName);
     if (adSetSize !== undefined) setSize(adSetSize);
-  }, [audienceType, adSetName, adSetSize]);
+    if (adSetDescription !== undefined) setDescription(adSetDescription);
+  }, [audienceType, adSetName, adSetSize, adSetDescription]);
 
   const updateExtraAudienceMap = (
-    updatedList: { audience_type: string; name?: string; size?: string }[]
+    updatedList: AudienceData[]
   ) => {
     setExtraAudience(updatedList);
     const cleaned = updatedList.filter((item) => item.audience_type?.trim());
@@ -298,11 +308,9 @@ const AdSet = memo(function AdSet({
     [adset.id, onUpdate, onInteraction]
   );
 
-  // For main ad set size field
   const handleSizeChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       let inputValue = e.target.value.replace(/,/g, "");
-      // Only allow numbers and optional decimal
       if (!/^\d*\.?\d*$/.test(inputValue)) {
         return;
       }
@@ -313,15 +321,35 @@ const AdSet = memo(function AdSet({
     [adset.id, onUpdate, onInteraction]
   );
 
-  // For extra audiences size field
-  const handleExtraAudienceSizeChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleDescriptionChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newDescription = e.target.value;
+      setDescription(newDescription);
+      onUpdate(adset.id, { description: newDescription });
+      onInteraction();
+    },
+    [adset.id, onUpdate, onInteraction]
+  );
+
+  const handleExtraAudienceSizeChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
     let inputValue = e.target.value.replace(/,/g, "");
-    // Only allow numbers and optional decimal
     if (!/^\d*\.?\d*$/.test(inputValue)) {
       return;
     }
     const updated = [...extraAudience];
     updated[index].size = inputValue;
+    updateExtraAudienceMap(updated);
+  };
+
+  const handleExtraAudienceDescriptionChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    const updated = [...extraAudience];
+    updated[index].description = e.target.value;
     updateExtraAudienceMap(updated);
   };
 
@@ -346,7 +374,6 @@ const AdSet = memo(function AdSet({
           onSelect={handleAudienceSelect}
           initialValue={audience}
           dropdownId={adset.id}
-          setExtraAudience={setExtraAudience}
         />
         <div className="mt-4 space-y-2">
           <div>
@@ -384,11 +411,20 @@ const AdSet = memo(function AdSet({
                   inputMode="numeric"
                   pattern="[0-9,]*"
                 />
+                <input
+                  type="text"
+                  placeholder="Description"
+                  value={audi.description || ""}
+                  onChange={(e) => handleExtraAudienceDescriptionChange(e, index)}
+                  disabled={!isEditing}
+                  className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[180px]"
+                />
                 <button
                   disabled={!isEditing}
                   onClick={() => handleDeleteExtraAudience(index)}
-                  className={`flex items-center justify-center rounded-full px-6 py-2 bg-[#FF5955] text-white ${!isEditing ? "cursor-not-allowed opacity-50" : ""
-                    }`}
+                  className={`flex items-center justify-center rounded-full px-6 py-2 bg-[#FF5955] text-white ${
+                    !isEditing ? "cursor-not-allowed opacity-50" : ""
+                  }`}
                 >
                   <MdDelete /> <span className="text-white font-bold">Delete</span>
                 </button>
@@ -396,15 +432,16 @@ const AdSet = memo(function AdSet({
             ))}
           </div>
           <button
-            className={`text-[14px] mt-2 font-semibold flex items-center gap-1 ${canAddNewAudience && extraAudience?.length < 10
-              ? "text-[#3175FF] cursor-pointer"
-              : "text-gray-400 cursor-not-allowed"
-              }`}
+            className={`text-[14px] mt-2 font-semibold flex items-center gap-1 ${
+              canAddNewAudience && extraAudience?.length < 10
+                ? "text-[#3175FF] cursor-pointer"
+                : "text-gray-400 cursor-not-allowed"
+            }`}
             onClick={() => {
               if (canAddNewAudience) {
                 const updated = [
                   ...extraAudience,
-                  { audience_type: "", name: "", size: "" },
+                  { audience_type: "", name: "", size: "", description: "" },
                 ];
                 updateExtraAudienceMap(updated);
               }
@@ -422,8 +459,9 @@ const AdSet = memo(function AdSet({
         value={name}
         onChange={handleNameChange}
         disabled={!isEditing}
-        className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[160px] ${!isEditing ? "cursor-not-allowed" : ""
-          }`}
+        className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[160px] ${
+          !isEditing ? "cursor-not-allowed" : ""
+        }`}
       />
       <input
         type="text"
@@ -431,16 +469,28 @@ const AdSet = memo(function AdSet({
         value={formatWithThousandSeparator(size)}
         onChange={handleSizeChange}
         disabled={!isEditing}
-        className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] w-[100px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${!isEditing ? "cursor-not-allowed" : ""
-          }`}
+        className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] w-[100px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          !isEditing ? "cursor-not-allowed" : ""
+        }`}
         inputMode="numeric"
         pattern="[0-9,]*"
+      />
+      <input
+        type="text"
+        placeholder="Description"
+        value={description}
+        onChange={handleDescriptionChange}
+        disabled={!isEditing}
+        className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[180px] ${
+          !isEditing ? "cursor-not-allowed" : ""
+        }`}
       />
       <button
         disabled={!isEditing}
         onClick={() => onDelete(adset.id)}
-        className={`flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold ${!isEditing ? "cursor-not-allowed opacity-50" : ""
-          }`}
+        className={`flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold ${
+          !isEditing ? "cursor-not-allowed opacity-50" : ""
+        }`}
       >
         <MdDelete /> <span>Delete</span>
       </button>
@@ -454,32 +504,59 @@ const AudienceDropdownWithCallback = memo(
     onSelect,
     initialValue,
     dropdownId,
-    setExtraAudience,
   }: {
     onSelect: (option: string) => void;
     initialValue?: string;
     dropdownId: number | string;
-    setExtraAudience?: any;
   }) {
     const { openDropdownId, setOpenDropdownId } = useContext(DropdownContext);
-    const [selected, setSelected] = useState<string>(initialValue || "");
-    const isOpen = openDropdownId === dropdownId;
+    const { customAudienceTypes, addCustomAudienceType } = useContext(CustomAudienceTypesContext);
 
-    useEffect(() => {
-      if (initialValue) setSelected(initialValue);
-    }, [initialValue]);
-
-    const options = [
+    // Default options
+    const defaultOptions = [
       "Lookalike audience",
       "Retargeting audience",
       "Broad audience",
       "Behavioral audience",
     ];
 
+    // Merge default and custom, deduped
+    const mergedAudienceOptions = Array.from(
+      new Set([...defaultOptions, ...customAudienceTypes])
+    );
+
+    const [selected, setSelected] = useState<string>(initialValue || "");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [showCustomInput, setShowCustomInput] = useState(false);
+    const [customValue, setCustomValue] = useState("");
+    const [loading, setLoading] = useState(false);
+    const isOpen = openDropdownId === dropdownId;
+
+    useEffect(() => {
+      if (initialValue) setSelected(initialValue);
+    }, [initialValue]);
+
+    // If a custom value is selected but not in options, add it to context
+    useEffect(() => {
+      if (
+        selected &&
+        !defaultOptions.includes(selected) &&
+        !customAudienceTypes.includes(selected)
+      ) {
+        addCustomAudienceType(selected);
+      }
+      // eslint-disable-next-line
+    }, [selected]);
+
+    const filteredOptions = mergedAudienceOptions.filter((option) =>
+      option.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     const handleSelect = useCallback(
       (option: string) => {
         setSelected(option);
         setOpenDropdownId(null);
+        setSearchTerm("");
         onSelect(option);
       },
       [onSelect, setOpenDropdownId]
@@ -487,13 +564,55 @@ const AudienceDropdownWithCallback = memo(
 
     const toggleOpen = useCallback(() => {
       setOpenDropdownId(isOpen ? null : dropdownId);
+      setSearchTerm("");
+      setShowCustomInput(false);
+      setCustomValue("");
     }, [isOpen, setOpenDropdownId, dropdownId]);
+
+    const handleSaveCustomAudience = async () => {
+      if (!customValue.trim()) {
+        toast.error("Please enter a custom audience type", {
+          id: "custom-audience-error",
+        });
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const res = await axios.post(
+          `${process.env.NEXT_PUBLIC_STRAPI_URL}/audience-types`,
+          { data: { text: customValue } },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+            },
+          }
+        );
+        const data = res?.data?.data;
+        addCustomAudienceType(data.text);
+        setSelected(data.text);
+        onSelect(data.text);
+        setCustomValue("");
+        setShowCustomInput(false);
+        setOpenDropdownId(null);
+        setSearchTerm("");
+        toast.success("Custom audience type saved successfully");
+      } catch (error) {
+        console.error("Error saving custom audience type:", error);
+        toast.error("Failed to save custom audience type");
+      } finally {
+        setLoading(false);
+      }
+    };
 
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         const target = event.target as HTMLElement;
         if (isOpen && !target.closest(`[data-dropdown-id="${dropdownId}"]`)) {
           setOpenDropdownId(null);
+          setShowCustomInput(false);
+          setSearchTerm("");
+          setCustomValue("");
         }
       };
       document.addEventListener("mousedown", handleClickOutside);
@@ -513,8 +632,9 @@ const AudienceDropdownWithCallback = memo(
           >
             <span className="truncate">{selected || "Your audience type"}</span>
             <svg
-              className={`h-4 w-4 flex-shrink-0 transition-transform ${isOpen ? "rotate-180" : ""
-                }`}
+              className={`h-4 w-4 flex-shrink-0 transition-transform ${
+                isOpen ? "rotate-180" : ""
+              }`}
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -529,22 +649,73 @@ const AudienceDropdownWithCallback = memo(
             </svg>
           </button>
           {isOpen && (
-            <ul className="absolute mt-1 top-full z-50 w-full bg-white border-2 border-[#0000001A] rounded-lg shadow-lg overflow-hidden">
-              {options.map((option, index) => (
-                <li
-                  key={index}
-                  onClick={() => handleSelect(option)}
-                  className="p-4 cursor-pointer text-[#656565] text-sm text-center whitespace-nowrap hover:bg-gray-100"
-                >
-                  {option}
+            <div className="absolute mt-1 top-full z-50 w-full bg-white border-2 border-[#0000001A] rounded-lg shadow-lg overflow-hidden max-h-60 overflow-y-auto">
+              <ul>
+                <li className="px-2 py-2">
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded-[5px] outline-none"
+                    placeholder="Search audiences..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    autoFocus
+                  />
                 </li>
-              ))}
-            </ul>
+                {filteredOptions.length === 0 && (
+                  <li className="px-4 py-2 text-gray-400">No audiences found</li>
+                )}
+                {filteredOptions.map((option, index) => (
+                  <li
+                    key={index}
+                    onClick={() => handleSelect(option)}
+                    className="p-4 cursor-pointer text-[#656565] text-sm text-center whitespace-nowrap hover:bg-gray-100"
+                  >
+                    {option}
+                  </li>
+                ))}
+                {!showCustomInput ? (
+                  <li
+                    className="px-4 py-2 hover:bg-gray-200 cursor-pointer text-[#656565] text-sm text-center"
+                    onClick={() => setShowCustomInput(true)}
+                  >
+                    Add Custom
+                  </li>
+                ) : (
+                  <div className="w-[90%] mx-auto mb-2">
+                    <input
+                      className="w-full p-2 border rounded-[5px] outline-none"
+                      value={customValue}
+                      onChange={(e) => setCustomValue(e.target.value)}
+                      placeholder="Enter custom audience"
+                    />
+                    <div className="flex gap-[10px] w-full justify-between items-center my-[5px]">
+                      <button
+                        className="w-full p-[5px] border rounded-[5px]"
+                        onClick={() => {
+                          setShowCustomInput(false);
+                          setCustomValue("");
+                        }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="w-full p-[5px] bg-blue-500 text-white rounded-[5px] flex justify-center items-center"
+                        onClick={handleSaveCustomAudience}
+                        disabled={loading}
+                      >
+                        {loading ? <FaSpinner className="animate-spin" /> : "Save"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </ul>
+            </div>
           )}
         </div>
       </div>
     );
-  });
+  }
+);
 
 // NonFacebookOutlet Component
 const NonFacebookOutlet = memo(function NonFacebookOutlet({
@@ -623,7 +794,7 @@ const AdsetSettings = memo(function AdsetSettings({
       const newAdSetId = Date.now();
       setAdSets([{ id: newAdSetId, addsetNumber: 1 }]);
       setAdSetDataMap({
-        [newAdSetId]: { name: "", audience_type: "", size: "" },
+        [newAdSetId]: { name: "", audience_type: "", size: "", description: "" },
       });
       return;
     }
@@ -640,6 +811,7 @@ const AdsetSettings = memo(function AdsetSettings({
           name: adSet.name || "",
           audience_type: adSet.audience_type || "",
           size: adSet.size || "",
+          description: adSet.description || "",
           extra_audiences: adSet?.extra_audiences,
         };
       });
@@ -649,7 +821,7 @@ const AdsetSettings = memo(function AdsetSettings({
       const newAdSetId = Date.now();
       setAdSets([{ id: newAdSetId, addsetNumber: 1 }]);
       setAdSetDataMap({
-        [newAdSetId]: { name: "", audience_type: "", size: "" },
+        [newAdSetId]: { name: "", audience_type: "", size: "", description: "" },
       });
     }
   }, [stageName, outlet.outlet, selectedPlatforms, defaultOpen]);
@@ -667,14 +839,13 @@ const AdsetSettings = memo(function AdsetSettings({
     ]);
     setAdSetDataMap((prev) => ({
       ...prev,
-      [newAdSetId]: { name: "", audience_type: "", size: "" },
+      [newAdSetId]: { name: "", audience_type: "", size: "", description: "" },
     }));
     onInteraction && onInteraction();
   }, [onInteraction, adsets.length]);
 
   const deleteAdSet = useCallback(async (id: number) => {
     try {
-      // Update local state first
       setAdSets((prev) => {
         const newAdSets = prev.filter((adset) => adset.id !== id);
         if (newAdSets.length === 0) {
@@ -685,7 +856,7 @@ const AdsetSettings = memo(function AdsetSettings({
           setTimeout(() => {
             setAdSets([{ id: newAdSetId, addsetNumber: 1 }]);
             setAdSetDataMap({
-              [newAdSetId]: { name: "", audience_type: "", size: "" },
+              [newAdSetId]: { name: "", audience_type: "", size: "", description: "" },
             });
           }, 0);
         }
@@ -698,7 +869,6 @@ const AdsetSettings = memo(function AdsetSettings({
         return newMap;
       });
 
-      // Prepare updated ad sets for the server
       const adSetsToSave = adsets
         .filter((adset) => adset.id !== id)
         .map((adset) => {
@@ -706,18 +876,19 @@ const AdsetSettings = memo(function AdsetSettings({
             name: "",
             audience_type: "",
             size: "",
+            description: "",
           };
           return {
             id: adset.id,
             name: data.name,
             audience_type: data.audience_type,
             size: data.size,
+            description: data.description,
             extra_audiences: data.extra_audiences || [],
           };
         })
         .filter((data) => data.name || data.audience_type);
 
-      // Update campaign data locally
       const updatedChannelMix = updateMultipleAdSets(
         campaignFormData.channel_mix,
         stageName,
@@ -730,7 +901,6 @@ const AdsetSettings = memo(function AdsetSettings({
         channel_mix: updatedChannelMix,
       }));
 
-      // Send update to Strapi server
       const cleanData = removeKeysRecursively(campaignFormData, [
         "id",
         "documentId",
@@ -748,14 +918,11 @@ const AdsetSettings = memo(function AdsetSettings({
         ]),
       });
 
-      // Refresh campaign data
       await getActiveCampaign(campaignFormData);
 
       onInteraction && onInteraction();
     } catch (error) {
       console.error("Failed to delete ad set:", error);
-      // Optionally, revert the local state changes or show an error message
-      // For simplicity, we'll log the error and keep the local changes
     }
   }, [
     adsets,
@@ -789,12 +956,15 @@ const AdsetSettings = memo(function AdsetSettings({
           const data = adSetDataMap[adset.id] || {
             name: "",
             audience_type: "",
+            size: "",
+            description: "",
           };
           return {
             id: adset.id,
             name: data.name,
             audience_type: data.audience_type,
             size: data.size,
+            description: data.description,
             extra_audiences: data.extra_audiences || [],
           };
         })
@@ -829,36 +999,41 @@ const AdsetSettings = memo(function AdsetSettings({
     onInteraction();
   }, [outlet.outlet, onInteraction]);
 
-  // --- Recap line logic ---
-  // Build a recap array of all ad sets and their extra audiences
   const recapRows: {
     type: string;
     name: string;
     size: string;
+    description?: string;
     adSetNumber: number;
     isExtra: boolean;
   }[] = [];
 
   adsets.forEach((adset, idx) => {
-    const adSetData = adSetDataMap[adset.id] || { name: "", audience_type: "", size: "", extra_audiences: [] };
-    // Main ad set
-    if (adSetData.audience_type || adSetData.name || adSetData.size) {
+    const adSetData = adSetDataMap[adset.id] || {
+      name: "",
+      audience_type: "",
+      size: "",
+      description: "",
+      extra_audiences: [],
+    };
+    if (adSetData.audience_type || adSetData.name || adSetData.size || adSetData.description) {
       recapRows.push({
         type: adSetData.audience_type || "",
         name: adSetData.name || "",
         size: adSetData.size || "",
+        description: adSetData.description || "",
         adSetNumber: adset.addsetNumber,
         isExtra: false,
       });
     }
-    // Extra audiences
     if (Array.isArray(adSetData.extra_audiences)) {
       adSetData.extra_audiences.forEach((ea, eidx) => {
-        if (ea.audience_type || ea.name || ea.size) {
+        if (ea.audience_type || ea.name || ea.size || ea.description) {
           recapRows.push({
             type: ea.audience_type || "",
             name: ea.name || "",
             size: ea.size || "",
+            description: ea.description || "",
             adSetNumber: adset.addsetNumber,
             isExtra: true,
           });
@@ -877,8 +1052,6 @@ const AdsetSettings = memo(function AdsetSettings({
     );
   }
 
-  // Collapsible logic for the stage
-  // If isCollapsed is false, show the ad set form; if true, show only the recap
   return (
     <div className="flex flex-col gap-2 w-full max-w-[1024px]">
       <div className="flex items-center gap-8">
@@ -895,7 +1068,9 @@ const AdsetSettings = memo(function AdsetSettings({
             />
             <span className="text-[#061237] font-medium">{outlet.outlet}</span>
             <FaAngleRight
-              className={`transition-transform duration-200 ${isCollapsed ? "" : "rotate-90"}`}
+              className={`transition-transform duration-200 ${
+                isCollapsed ? "" : "rotate-90"
+              }`}
             />
           </button>
         </div>
@@ -911,8 +1086,9 @@ const AdsetSettings = memo(function AdsetSettings({
                     <button
                       onClick={addNewAddset}
                       disabled={adsets.length >= 10}
-                      className={`flex gap-2 items-center text-white ${adsets.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
-                        } px-4 py-2 rounded-full text-sm font-bold z-10 relative`}
+                      className={`flex gap-2 items-center text-white ${
+                        adsets.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
+                      } px-4 py-2 rounded-full text-sm font-bold z-10 relative`}
                     >
                       <MdAdd />
                       <span>
@@ -926,6 +1102,7 @@ const AdsetSettings = memo(function AdsetSettings({
                       name: "",
                       audience_type: "",
                       size: "",
+                      description: "",
                     };
                     return (
                       <div
@@ -945,12 +1122,9 @@ const AdsetSettings = memo(function AdsetSettings({
                           audienceType={adSetData.audience_type}
                           adSetName={adSetData.name}
                           adSetSize={adSetData.size}
+                          adSetDescription={adSetData.description}
                           extra_audiences={
-                            (adSetData.extra_audiences as {
-                              audience_type: string;
-                              name?: string;
-                              size?: string;
-                            }[]) || []
+                            (adSetData.extra_audiences as AudienceData[]) || []
                           }
                           onUpdateExtraAudiences={(extraAudienceArray) =>
                             updateAdSetData(adset.id, {
@@ -969,11 +1143,12 @@ const AdsetSettings = memo(function AdsetSettings({
           </DropdownContext.Provider>
         )}
       </div>
-      {/* Recap line below each stage selection */}
       {isCollapsed && recapRows.length > 0 && (
         <div className="mt-2 mb-4">
           <div className="bg-[#F5F7FA] border border-[#E5E7EB] rounded-lg px-4 py-3">
-            <div className="font-semibold text-[#061237] mb-2 text-sm">Audience Recap</div>
+            <div className="font-semibold text-[#061237] mb-2 text-sm">
+              Audience Recap
+            </div>
             <div className="overflow-x-auto">
               <table className="min-w-full text-xs text-[#061237]">
                 <thead>
@@ -982,17 +1157,23 @@ const AdsetSettings = memo(function AdsetSettings({
                     <th className="text-left pr-4 py-1">Audience Type</th>
                     <th className="text-left pr-4 py-1">Audience Name</th>
                     <th className="text-left pr-4 py-1">Audience Size</th>
+                    <th className="text-left pr-4 py-1">Description</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recapRows.map((row, idx) => (
                     <tr key={idx} className={row.isExtra ? "bg-[#F9FAFB]" : ""}>
                       <td className="pr-4 py-1">
-                        {row.isExtra ? `Ad set n°${row.adSetNumber} (Extra)` : `Ad set n°${row.adSetNumber}`}
+                        {row.isExtra
+                          ? `Ad set n°${row.adSetNumber} (Extra)`
+                          : `Ad set n°${row.adSetNumber}`}
                       </td>
                       <td className="pr-4 py-1">{row.type}</td>
                       <td className="pr-4 py-1">{row.name}</td>
-                      <td className="pr-4 py-1">{formatWithThousandSeparator(row.size)}</td>
+                      <td className="pr-4 py-1">
+                        {formatWithThousandSeparator(row.size)}
+                      </td>
+                      <td className="pr-4 py-1">{row.description}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1023,8 +1204,41 @@ const AdSetFlow = memo(function AdSetFlow({
   const [hasInteraction, setHasInteraction] = useState(false);
   const [loading, setLoading] = useState(false);
   const [autoOpen, setAutoOpen] = useState<Record<string, string[]>>({});
-  // Collapsed state for each outlet in the stage
-  const [collapsedOutlets, setCollapsedOutlets] = useState<Record<string, boolean>>({});
+  const [collapsedOutlets, setCollapsedOutlets] = useState<
+    Record<string, boolean>
+  >({});
+
+  // --- Custom Audience Types State (persisted in-memory for session) ---
+  const [customAudienceTypes, setCustomAudienceTypes] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = window.sessionStorage.getItem("customAudienceTypes");
+        if (stored) {
+          return JSON.parse(stored);
+        }
+      } catch (e) {}
+    }
+    return [];
+  });
+
+  // Persist custom audience types to sessionStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem(
+        "customAudienceTypes",
+        JSON.stringify(customAudienceTypes)
+      );
+    }
+  }, [customAudienceTypes]);
+
+  const addCustomAudienceType = useCallback((type: string) => {
+    setCustomAudienceTypes((prev) => {
+      if (!prev.includes(type)) {
+        return [...prev, type];
+      }
+      return prev;
+    });
+  }, []);
 
   const getPlatformsFromStage = useCallback(() => {
     const platformsByStage: Record<string, OutletType[]> = {};
@@ -1130,12 +1344,12 @@ const AdSetFlow = memo(function AdSetFlow({
 
   const cleanData = campaignData
     ? removeKeysRecursively(campaignData, [
-      "id",
-      "documentId",
-      "createdAt",
-      "publishedAt",
-      "updatedAt",
-    ])
+        "id",
+        "documentId",
+        "createdAt",
+        "publishedAt",
+        "updatedAt",
+      ])
     : {};
 
   const handleStepThree = async () => {
@@ -1151,8 +1365,7 @@ const AdSetFlow = memo(function AdSetFlow({
         setIsEditing(false);
         onValidate();
       })
-      .catch((err) => {
-      })
+      .catch((err) => {})
       .finally(() => {
         setLoading(false);
       });
@@ -1165,24 +1378,21 @@ const AdSetFlow = memo(function AdSetFlow({
   }, [isEditing]);
 
   useEffect(() => {
-    // if (platformName) {
-    setIsEditing(true);
-    // }
+    if (platformName) {
+      setIsEditing(true);
+    }
   }, []);
 
-  // Set up collapsed state for each outlet in the current stage
   useEffect(() => {
     if (platforms[stageName]) {
       const initialCollapsed: Record<string, boolean> = {};
       platforms[stageName].forEach((outlet) => {
-        // If autoOpen is true for this outlet, start open (not collapsed)
         initialCollapsed[outlet.outlet] = false;
       });
       setCollapsedOutlets(initialCollapsed);
     }
   }, [platforms, stageName]);
 
-  // Handler to toggle collapsed state for a given outlet
   const handleToggleCollapsed = (outletName: string) => {
     setCollapsedOutlets((prev) => ({
       ...prev,
@@ -1191,37 +1401,44 @@ const AdSetFlow = memo(function AdSetFlow({
   };
 
   return (
-    <div className="w-full space-y-4 p-4">
-      {platformName
-        ? platforms[stageName]
-          ?.filter((outlet) =>
-            Array.isArray(platformName)
-              ? platformName.includes(outlet.outlet)
-              : outlet.outlet === platformName
-          )
-          .map((outlet) => (
-            <AdsetSettings
-              key={outlet.id}
-              outlet={outlet}
-              stageName={stageName}
-              onInteraction={handleInteraction}
-              defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
-              isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
-              setCollapsed={(collapsed) => handleToggleCollapsed(outlet.outlet)}
-            />
-          ))
-        : platforms[stageName]?.map((outlet) => (
-          <AdsetSettings
-            key={outlet.id}
-            outlet={outlet}
-            stageName={stageName}
-            onInteraction={handleInteraction}
-            defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
-            isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
-            setCollapsed={(collapsed) => handleToggleCollapsed(outlet.outlet)}
-          />
-        ))}
-    </div>
+    <CustomAudienceTypesContext.Provider
+      value={{
+        customAudienceTypes,
+        addCustomAudienceType,
+      }}
+    >
+      <div className="w-full space-y-4 p-4">
+        {platformName
+          ? platforms[stageName]
+              ?.filter((outlet) =>
+                Array.isArray(platformName)
+                  ? platformName.includes(outlet.outlet)
+                  : outlet.outlet === platformName
+              )
+              .map((outlet) => (
+                <AdsetSettings
+                  key={outlet.id}
+                  outlet={outlet}
+                  stageName={stageName}
+                  onInteraction={handleInteraction}
+                  defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
+                  isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
+                  setCollapsed={(collapsed) => handleToggleCollapsed(outlet.outlet)}
+                />
+              ))
+          : platforms[stageName]?.map((outlet) => (
+              <AdsetSettings
+                key={outlet.id}
+                outlet={outlet}
+                stageName={stageName}
+                onInteraction={handleInteraction}
+                defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
+                isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
+                setCollapsed={(collapsed) => handleToggleCollapsed(outlet.outlet)}
+              />
+            ))}
+      </div>
+    </CustomAudienceTypesContext.Provider>
   );
 });
 

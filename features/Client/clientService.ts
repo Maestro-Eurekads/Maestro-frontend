@@ -38,7 +38,11 @@ const getCreateClient = async (userId, jwt, agencyId) => {
         filters,
         populate: {
           agency: {
-            populate: ["agency_users", "admins", "client_users"]
+            populate: {
+              agency_users: { populate: ['user'] },
+              admins: { populate: ['user'] },
+              client_users: { populate: ['user'] }
+            }
           },
           approver: true,
         }

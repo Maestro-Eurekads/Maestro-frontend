@@ -167,7 +167,7 @@ const ClientApproverDropdowns = ({
 	onChange: (field: string, selected: SelectedItem[]) => void;
 }) => {
 	return (
-		<div className="flex items-center gap-4 mt-5">
+		<div className="flex items-center gap-4 mt-2">
 
 			<MultiSelectDropdown
 				label="Client Approver"

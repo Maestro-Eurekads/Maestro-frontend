@@ -1,19 +1,19 @@
-"use client";
 
+"use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import blueSmallPlue from "../../../public/blueSmallPlue.svg";
 import { MdOutlineCancel } from "react-icons/md";
 
-const EditInput = ({ setInputs, label, setAlert }) => {
-  const [title, setTitle] = useState(""); // Business level 1
-  const [parameters, setParameters] = useState([]); // Business level 2
+const EditInput = ({ setInputs, label, setAlert, initialData }) => {
+  const [title, setTitle] = useState(initialData?.title || "");
+  const [parameters, setParameters] = useState(initialData?.parameters || []);
 
   // Sync with parent
   useEffect(() => {
     setInputs((prev) => ({
       ...prev,
-      categories: {
+      businessUnits: {
         title,
         parameters: parameters.map((param) => ({
           name: param.name,
@@ -112,11 +112,11 @@ const EditInput = ({ setInputs, label, setAlert }) => {
       {parameters.map((param, index) => (
         <div key={index} className="mb-4">
           {/* Parameter input */}
-          <div className="mt-3 flex items-center px-4 py-2 h-[40px] border border-[#EFEFEF] rounded-[10px] ml-3">
+          <div className="mt-3 flex items-center px-4 py-2 h-[40px] border border-[#EFEFEF] rounded-[10px]  ml-3">
             <input
               type="text"
               className="w-full bg-transparent outline-none text-gray-600"
-              placeholder={`Add parameter ${index + 1}`}
+              placeholder={`Add parameter ${index + 1} `}
               value={param.name}
               onChange={(e) => handleParameterChange(index, e.target.value)}
             />
@@ -137,7 +137,7 @@ const EditInput = ({ setInputs, label, setAlert }) => {
               <input
                 type="text"
                 className="w-full bg-transparent outline-none text-gray-600"
-                placeholder={`Add sub-parameter ${sIndex + 1}`}
+                placeholder={`Add sub - parameter ${sIndex + 1} `}
                 value={sub}
                 onChange={(e) =>
                   handleSubChange(index, sIndex, e.target.value)
@@ -177,18 +177,17 @@ const EditInput = ({ setInputs, label, setAlert }) => {
   );
 };
 
-const CategoryDropdown = ({ setInputs, setAlert }) => {
+const BusinessUnitEdit = ({ setInputs, setAlert, level1Options, initialData }) => {
   return (
     <div className="flex flex-col gap-4 mt-[20px]">
       <EditInput
         setInputs={setInputs}
         setAlert={setAlert}
-        label="Business level 3"
+        label="Business level 1"
+        initialData={initialData}
       />
     </div>
   );
 };
 
-export default CategoryDropdown;
-
-
+export default BusinessUnitEdit;

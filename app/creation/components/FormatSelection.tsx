@@ -173,19 +173,19 @@ const CreativesModal = ({
     }, []);
 
     return (
-      <div key={formatIndex} className="mb-2">
-        <div className="font-semibold text-xs">{format.format_type}</div>
-        <div className="font-semibold text-xs">Number of visuals - {format.num_of_visuals}</div>
+      <div key={formatIndex} className="mb-4">
+        <div className="font-semibold text-base">{format.format_type}</div>
+        <div className="font-semibold text-sm">Number of visuals - {format.num_of_visuals}</div>
         {format?.previews?.length > 0 ? (
-          <div className="mt-2">
-            <h4 className="font-medium text-xs mb-1">Previews:</h4>
-            <div className="grid grid-cols-2 gap-2">
+          <div className="mt-3">
+            <h4 className="font-medium text-sm mb-2">Previews:</h4>
+            <div className="grid grid-cols-4 gap-2">
               {format.previews.map((preview, idx) => {
                 const fileType = getFileType(preview.url);
                 return (
                   <div key={idx} className="flex flex-col">
                     {fileType === "image" && preview.url ? (
-                      <div className="relative aspect-square w-full">
+                      <div className="relative aspect-square w-[155px]">
                         <Image
                           src={preview.url || "/placeholder.svg"}
                           alt={`Preview ${idx + 1}`}
@@ -195,7 +195,7 @@ const CreativesModal = ({
                       </div>
                     ) : fileType === "video" && preview.url ? (
                       <div
-                        className="relative aspect-square w-full cursor-pointer"
+                        className="relative aspect-square w-[150px] cursor-pointer"
                         onClick={handleVideoClick}
                       >
                         <video
@@ -210,7 +210,7 @@ const CreativesModal = ({
                         </video>
                       </div>
                     ) : fileType === "pdf" && preview.url ? (
-                      <div className="relative aspect-square w-full">
+                      <div className="relative aspect-square w-[150px]">
                         <iframe
                           src={preview.url}
                           title={`Preview ${idx + 1}`}
@@ -218,7 +218,7 @@ const CreativesModal = ({
                         />
                       </div>
                     ) : (
-                      <div className="bg-gray-200 aspect-square flex items-center justify-center rounded">
+                      <div className="bg-gray-200 aspect-square w-[150px] flex items-center justify-center rounded">
                         <span className="text-xs">Unsupported or missing preview</span>
                       </div>
                     )}
@@ -226,7 +226,7 @@ const CreativesModal = ({
                       href={preview.url || "#"}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-blue-500 mt-1 hover:underline"
+                      className="text-sm text-blue-500 mt-1 hover:underline"
                     >
                       View {idx + 1}
                     </a>
@@ -236,7 +236,7 @@ const CreativesModal = ({
             </div>
           </div>
         ) : (
-          <div className="text-xs text-gray-500 mt-2">No previews uploaded</div>
+          <div className="text-sm text-gray-500 mt-2">No previews uploaded</div>
         )}
       </div>
     );
@@ -244,9 +244,9 @@ const CreativesModal = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto">
+      <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[80vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Creatives for {stageName}</h2>
+          <h2 className="text-xl font-semibold">Creatives for {stageName}</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -265,21 +265,21 @@ const CreativesModal = ({
 
           return (
             <div key={title} className="mb-6">
-              <h3 className="font-semibold text-md mb-2">{title}</h3>
+              <h3 className="font-semibold text-lg mb-3">{title}</h3>
               {platforms.map((platform, idx) => {
                 if (view === "channel" && platform.format?.length > 0) {
                   return (
-                    <div key={idx} className="p-4 bg-gray-100 rounded-lg mb-2">
-                      <div className="flex items-center gap-2 mb-2">
+                    <div key={idx} className="p-4 bg-gray-100 rounded-lg mb-3">
+                      <div className="flex items-center gap-2 mb-3">
                         {platformIcons[platform.platform_name] && (
                           <Image
                             src={getPlatformIcon(platform.platform_name) || "/placeholder.svg"}
                             alt={platform.platform_name}
-                            width={20}
-                            height={20}
+                            width={24}
+                            height={24}
                           />
                         )}
-                        <span className="font-medium">{platform.platform_name}</span>
+                        <span className="font-medium text-base">{platform.platform_name}</span>
                       </div>
                       {platform.format.map((format, formatIdx) => (
                         <RenderFormatDetails key={formatIdx} format={format} formatIndex={formatIdx} />
@@ -288,24 +288,24 @@ const CreativesModal = ({
                   );
                 } else if (view === "adset" && platform.ad_sets?.some((adset) => adset.format?.length > 0)) {
                   return (
-                    <div key={idx} className="p-4 bg-gray-100 rounded-lg mb-2">
-                      <div className="flex items-center gap-2 mb-2">
+                    <div key={idx} className="p-4 bg-gray-100 rounded-lg mb-3">
+                      <div className="flex items-center gap-2 mb-3">
                         {platformIcons[platform.platform_name] && (
                           <Image
                             src={getPlatformIcon(platform.platform_name) || "/placeholder.svg"}
                             alt={platform.platform_name}
-                            width={20}
-                            height={20}
+                            width={24}
+                            height={24}
                           />
                         )}
-                        <span className="font-medium">{platform.platform_name}</span>
+                        <span className="font-medium text-base">{platform.platform_name}</span>
                       </div>
                       {platform.ad_sets
                         .filter((adset) => adset.format?.length > 0)
                         .map((adset, adsetIdx) => (
-                          <div key={adsetIdx} className="mt-2 p-2 bg-white rounded border">
-                            <div className="font-medium text-sm">{adset.name || `Ad Set ${adsetIdx + 1}`}</div>
-                            <div className="text-xs text-gray-500 mb-2">
+                          <div key={adsetIdx} className="mt-3 p-3 bg-white rounded border">
+                            <div className="font-medium text-base">{adset.name || `Ad Set ${adsetIdx + 1}`}</div>
+                            <div className="text-sm text-gray-500 mb-2">
                               {adset.audience_type} • Size: {adset.size}
                             </div>
                             {adset.format?.map((format, formatIdx) => (
@@ -328,7 +328,7 @@ const CreativesModal = ({
               : platform.ad_sets?.some((adset) => adset.format?.length > 0)
           )
         ) && (
-          <div className="text-center text-gray-500">No creatives uploaded for this stage.</div>
+          <div className="text-center text-gray-500 text-base">No creatives uploaded for this stage.</div>
         )}
       </div>
     </div>
@@ -371,14 +371,13 @@ const MediaOption = ({
 }) => {
   const [localPreviews, setLocalPreviews] = useState<Array<{ id: string; url: string }>>([]);
   const [deletingPreviewId, setDeletingPreviewId] = useState<string | null>(null);
+
   const {jwt} = useCampaigns()
 
   const [isHovered, setIsHovered] = useState(false);
 
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
   const STRAPI_TOKEN = jwt;
-
-  const [prevPreviews, setPrevPreviews] = useState<Array<{ id: string; url: string }>>([]);
 
   useEffect(() => {
     if (!STRAPI_URL || !STRAPI_TOKEN) {
@@ -401,15 +400,10 @@ const MediaOption = ({
   }, [localPreviews, onPreviewsUpdate]);
 
   useEffect(() => {
-    setPrevPreviews(localPreviews);
-  }, []);
-
-  useEffect(() => {
     if (deletingPreviewId && !localPreviews.some((prv) => prv.id === deletingPreviewId)) {
       setDeletingPreviewId(null);
       toast.success("Preview deleted successfully!");
     }
-    setPrevPreviews(localPreviews);
   }, [localPreviews, deletingPreviewId]);
 
   useEffect(() => {
@@ -519,7 +513,7 @@ const MediaOption = ({
       </div>
       {isSelected && localPreviews.length > 0 && (
         <div className="mt-8">
-          <p className="font-semibold text-[18px] mb-4">
+          <p className="font-semibold text-lg mb-4">
             Uploaded Previews ({localPreviews.length}/{quantity})
           </p>
           <div className="grid grid-cols-2 gap-3 flex-wrap">
@@ -600,8 +594,6 @@ const MediaSelectionGrid = ({
     [format: string]: Array<{ id: string; url: string }>;
   }>({});
 
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-
   const handlePreviewsUpdate = useCallback(
     (format: string, previews: Array<{ id: string; url: string }>) => {
       setPreviewsMap((prev) => {
@@ -648,12 +640,7 @@ const MediaSelectionGrid = ({
               : platform?.format?.find((f) => f.format_type === option.name)?.num_of_visuals;
 
           return (
-            <div
-              key={index}
-              onMouseEnter={() => setHoveredIndex(index)}
-              onMouseLeave={() => setHoveredIndex(null)}
-              style={{ transition: "background 0.15s, border-color 0.15s, box-shadow 0.15s" }}
-            >
+            <div key={index}>
               <MediaOption
                 option={option}
                 isSelected={!!isSelected}
@@ -963,7 +950,7 @@ const ChannelSection = ({
 
   return (
     <>
-      <h3 className="font-[600] my-[24px]">{channelTitle}</h3>
+      <h3 className="font-[600] my-[24px] text-lg">{channelTitle}</h3>
       <div className="flex flex-col gap-[24px]">
         {filteredPlatforms.map((platform, index) => (
           <PlatformItem
@@ -984,7 +971,7 @@ const ChannelSection = ({
   );
 };
 
-// Recap line component (updated to use modal instead of Link)
+// Recap line component
 const StageRecapLine = ({
   stageName,
   campaignFormData,
@@ -1033,7 +1020,7 @@ const StageRecapLine = ({
 
   if (!hasAny) {
     return (
-      <div className="text-sm text-gray-700 bg-[#f7f7fa] border border-[#e5e5e5] rounded-b-[10px] px-6 py-3">
+      <div className="text-base text-gray-700 bg-[#f7f7fa] border border-[#e5e5e5] rounded-b-[10px] px-6 py-3">
         <span className="font-semibold">Recap:</span>{" "}
         <span className="font-[General Sans] font-medium text-[16px] leading-[22px] text-[#061237] opacity-50">
           No selection
@@ -1079,14 +1066,14 @@ const StageRecapLine = ({
     }, []);
 
   return (
-    <div className="text-sm text-gray-700 bg-[#f7f7fa] border border-[#e5e5e5] rounded-b-[10px] px-6 py-3 flex justify-between items-center">
+    <div className="text-base text-gray-700 bg-[#f7f7fa] border border-[#e5e5e5] rounded-b-[10px] px-6 py-3 flex justify-between items-center">
       <div>
         <span className="font-semibold">Selection:</span>{" "}
         {recapString}
       </div>
       <button
         onClick={() => onOpenCreativesModal(stageName)}
-        className="text-blue-500 hover:underline text-sm font-medium"
+        className="text-blue-500 hover:underline text-base font-medium"
       >
         See Creatives
       </button>
@@ -1757,7 +1744,7 @@ export const FormatSelection = ({
                         height={24}
                       />
                     )}
-                    <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-[#06371a]">
+                    <p className="w-full max-w-[1500px] h-[24px] font-[General Sans] font-semibold text-[18px] leading-[24px] text-black">
                       {stage.name}
                     </p>
                   </div>
