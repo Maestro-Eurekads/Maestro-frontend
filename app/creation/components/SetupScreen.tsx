@@ -75,18 +75,19 @@ export const SetupScreen = () => {
       //@ts-ignore
       const clientId = localStorage.getItem(`${session?.user?.data?.user?.id?.toString()}`)
 
+      console.log("🚀 ~ useEffect ~ clientId:", clientId)
       setInternalApproverOptions(agencyUserOptions);
       setClientApprovalOptions(clientUserOptions);
       setClientUsers(allClients || []);
       setCampaignFormData(prev => ({
         ...prev,
         ["client_selection"]: {
-          id: clientId || allClients[0]?.id || '',
+          id: clientId || '',
           value: allClients[0]?.client_name || '',
         },
       }));
     }
-  }, [allClients]);
+  }, [allClients, session]);
 
   useEffect(() => {
     if (allClients?.length > 0) {
