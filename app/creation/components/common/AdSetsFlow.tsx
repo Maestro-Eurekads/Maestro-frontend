@@ -245,9 +245,7 @@ const AdSet = memo(function AdSet({
   onInteraction: () => void;
   adsets: AdSetType[];
   extra_audiences?: AudienceData[];
-  onUpdateExtraAudiences: (
-    audiences: AudienceData[]
-  ) => void;
+  onUpdateExtraAudiences: (audiences: AudienceData[]) => void;
 }) {
   const [audience, setAudience] = useState<string>(audienceType || "");
   const [name, setName] = useState<string>(adSetName || "");
@@ -511,6 +509,7 @@ const AudienceDropdownWithCallback = memo(
   }) {
     const { openDropdownId, setOpenDropdownId } = useContext(DropdownContext);
     const { customAudienceTypes, addCustomAudienceType } = useContext(CustomAudienceTypesContext);
+    const { jwt } = useCampaigns(); // Add jwt from useCampaigns context
 
     // Default options
     const defaultOptions = [
@@ -584,7 +583,7 @@ const AudienceDropdownWithCallback = memo(
           { data: { text: customValue } },
           {
             headers: {
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
+              Authorization: `Bearer ${jwt}`, // Use jwt from context
             },
           }
         );
