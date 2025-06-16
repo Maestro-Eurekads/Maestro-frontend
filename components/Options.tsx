@@ -142,7 +142,7 @@ export const kpiFormatMap = {
   "Bounce Rate": { type: "Percentage", decimals: 1 },
   "Lead Rate": { type: "Percentage", decimals: 1 },
   "Payment info rate": { type: "Percentage", decimals: 1 },
-  
+
 
   // Seconds
   "Avg Visit Time": { type: "Seconds", decimals: 1 },
@@ -595,6 +595,12 @@ function getFirstLetters(str: string | undefined | null) {
 }
 
 
+const cleanName = (name: string) => {
+  if (!name) return "-";
+  return name?.trim().split("-")[0];
+};
+
+
 
 export {
   months,
@@ -613,5 +619,6 @@ export {
   getInitials,
   mapKPIStatsToStatsDataDynamic,
   extractKPIByFunnelStage,
-  aggregateKPIStatsFromExtracted
+  aggregateKPIStatsFromExtracted,
+  cleanName
 };
