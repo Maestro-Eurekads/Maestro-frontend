@@ -30,21 +30,11 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
   } = useCampaigns();
 
   const closeEditStep = () => {
-    // Reset form data to original campaign data when canceling
+    // Only reset form data for specific sections to avoid overwriting changes
     if (title === "Your buying objectives") {
       setCampaignFormData({
         ...campaignFormData,
         buying_objectives: campaignData?.buying_objectives || [],
-      });
-    } else {
-      // Reset other relevant form data based on the step
-      setCampaignFormData({
-        ...campaignFormData,
-        funnel_stages: campaignData?.funnel_stages,
-        channel_mix: campaignData?.channel_mix,
-        custom_funnels: campaignData?.custom_funnels,
-        funnel_type: campaignData?.funnel_type,
-        table_headers: campaignData?.table_headers,
       });
     }
 
@@ -70,42 +60,100 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
   const handleConfirmStep = async () => {
     try {
       setLoading(true);
-      let updatedCampaignFormData = campaignFormData;
+      let updatedCampaignFormData = { ...campaignFormData };
 
-      const obj = extractObjectives(campaignFormData);
-      updatedCampaignFormData = {
-        ...campaignFormData,
-        table_headers: obj || {},
-      };
+      // Handle specific updates based on the section title
+      switch (title) {
+        case "Your buying objectives":
+          const obj = extractObjectives(campaignFormData);
+          updatedCampaignFormData = {
+            ...updatedCampaignFormData,
+            table_headers: obj || {},
+          };
+          break;
+        case "Your funnel stages":
+          updatedCampaignFormData = {
+            ...updatedCampaignFormData,
+            funnel_stages: updatedCampaignFormData?.funnel_stages || [],
+          };
+          break;
+        case "Your channel mix":
+          updatedCampaignFormData = {
+            ...updatedCampaignFormData,
+            channel_mix: removeKeysRecursively(
+              updatedCampaignFormData?.channel_mix,
+              [
+                "id",
+                "isValidated",
+                "formatValidated",
+                "validatedStages",
+                "documentId",
+                "_aggregated",
+              ],
+              ["preview"]
+            ),
+          };
+          break;
+        case "Your Adset and Audiences":
+          updatedCampaignFormData = {
+            ...updatedCampaignFormData,
+            channel_mix: removeKeysRecursively(
+              updatedCampaignFormData?.channel_mix,
+              [
+                "id",
+                "isValidated",
+                "formatValidated",
+                "validatedStages",
+                "documentId",
+                "_aggregated",
+              ],
+              ["preview"]
+            ),
+          };
+          break;
+        case "Your format selections":
+          updatedCampaignFormData = {
+            ...updatedCampaignFormData,
+            channel_mix: removeKeysRecursively(
+              updatedCampaignFormData?.channel_mix,
+              [
+                "id",
+                "isValidated",
+                "formatValidated",
+                "validatedStages",
+                "documentId",
+                "_aggregated",
+              ],
+              ["preview"]
+            ),
+          };
+          break;
+        default:
+          break;
+      }
+
+      // Update local state to reflect changes immediately
       setCampaignFormData(updatedCampaignFormData);
-      const {media_plan_details, user, ...rest} = cleanData
-      console.log("here")
-       await updateCampaign({
+      const { media_plan_details, user, ...rest } = cleanData;
+
+      // Update the campaign with the cleaned and updated data
+      await updateCampaign({
         ...rest,
         funnel_stages: updatedCampaignFormData?.funnel_stages,
-        channel_mix: removeKeysRecursively(
-          updatedCampaignFormData?.channel_mix,
-          [
-            "id",
-            "isValidated",
-            "formatValidated",
-            "validatedStages",
-            "documentId",
-            "_aggregated",
-          ],
-          ["preview"]
-        ),
+        channel_mix: updatedCampaignFormData?.channel_mix,
         custom_funnels: updatedCampaignFormData?.custom_funnels,
         funnel_type: updatedCampaignFormData?.funnel_type,
         table_headers: updatedCampaignFormData?.table_headers,
       });
+
+      // Fetch the updated campaign to ensure the UI reflects the latest data
       await getActiveCampaign();
-      // Hide the buttons immediately after confirming
+
+      // Hide buttons and close the edit step
       setHideButtons(true);
-      // Close the edit modal after a short delay to allow button to disappear smoothly
       setTimeout(() => {
         closeEditStep();
-      }, 200); // 200ms delay for UI smoothness, adjust as needed
+      }, 200); // Short delay for UI smoothness
     } catch (error) {
       console.error("Error updating campaign:", error);
       setHideButtons(false);
@@ -115,24 +163,13 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
   };
 
   const handleConfirmClick = async (step: string) => {
-    switch (step) {
-      case "Your funnel stages":
-      case "Your channel mix":
-      case "Your Adset and Audiences":
-      case "Your format selections":
-      case "Your buying objectives":
-        await handleConfirmStep();
-        break;
-      default:
-        break;
-    }
+    await handleConfirmStep();
   };
 
   const isEditing = midcapEditing.isEditing && midcapEditing.step === title;
 
   const handleEditClick = () => {
     if (!loading) {
-      // Preserve the current campaign data before editing
       if (title === "Your buying objectives") {
         setCampaignFormData({
           ...campaignFormData,
