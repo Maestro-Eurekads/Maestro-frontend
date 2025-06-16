@@ -1,4 +1,3 @@
-"use client"
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import PageHeaderWrapper from "../../../components/PageHeaderWapper"
@@ -77,15 +76,17 @@ const hexToColorClass = (hex: string): string | null => {
 
 const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color)
 
-// LocalStorage keys - Scoped to client and media plan
+// LocalStorage keys - Scoped to client for configs, client and media plan for funnels
 const LOCAL_STORAGE_FUNNELS_KEY = "custom_funnels_v1"
 const LOCAL_STORAGE_CONFIGS_KEY = "funnel_configurations_v1"
 
-// Helper to get a unique key for localStorage based on clientId and mediaPlanId
-const getClientKey = (baseKey: string, clientId: string | undefined, mediaPlanId: string | undefined) => {
+// Helper to get a unique key for localStorage based on clientId and optionally mediaPlanId
+const getClientKey = (baseKey: string, clientId: string | undefined, mediaPlanId?: string) => {
   if (!clientId) return baseKey
   let key = `${baseKey}_client_${clientId}`
-  if (mediaPlanId) key += `_media_${mediaPlanId}`
+  if (mediaPlanId && baseKey === LOCAL_STORAGE_FUNNELS_KEY) {
+    key += `_media_${mediaPlanId}`
+  }
   console.debug(`Generated storage key: ${key}`)
   return key
 }
@@ -121,41 +122,6 @@ const presetStructures: { label: string; stages: Funnel[] }[] = [
     ],
   },
 ]
-
-// --- Shared (client-wide) funnel config storage helpers ---
-// These are NOT scoped to mediaPlanId, only to clientId, so all users of a client see the same configs.
-const getClientWideConfigsKey = (clientId: string | undefined) => {
-  if (!clientId) return LOCAL_STORAGE_CONFIGS_KEY
-  return `${LOCAL_STORAGE_CONFIGS_KEY}_client_${clientId}`
-}
-const saveClientWideFunnelConfigsToStorage = (configs: FunnelConfig[], clientId: string) => {
-  try {
-    const key = getClientWideConfigsKey(clientId)
-    localStorage.setItem(key, JSON.stringify(configs))
-    console.debug(`Saved client-wide funnel configs to ${key}:`, configs)
-  } catch (e) {
-    console.error("Failed to save client-wide funnel configurations to localStorage:", e)
-    toast.error("Failed to save configurations", { duration: 3000 })
-  }
-}
-const getClientWideFunnelConfigsFromStorage = (clientId: string): FunnelConfig[] => {
-  if (!clientId) return []
-  try {
-    const key = getClientWideConfigsKey(clientId)
-    const data = localStorage.getItem(key)
-    console.debug(`Retrieved client-wide funnel configs from ${key}:`, data)
-    if (data) {
-      const parsed = JSON.parse(data)
-      if (Array.isArray(parsed) && parsed.every(config => config.name && Array.isArray(config.stages))) {
-        return parsed
-      }
-    }
-  } catch (e) {
-    console.error("Failed to load client-wide funnel configurations from localStorage:", e)
-    toast.error("Failed to load configurations", { duration: 3000 })
-  }
-  return []
-}
 
 const MapFunnelStages = () => {
   const { campaignData, campaignFormData, cId, setCampaignFormData } = useCampaigns()
@@ -225,11 +191,10 @@ const MapFunnelStages = () => {
   }
 
   // --- LocalStorage helpers for funnel configurations ---
-  // NOTE: These are now only used for backward compatibility or per-plan configs, but configs are always loaded from client-wide storage.
   const saveFunnelConfigsToStorage = (configs: FunnelConfig[]) => {
     if (!clientId) return
     try {
-      const key = getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId, mediaPlanId)
+      const key = getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId)
       localStorage.setItem(key, JSON.stringify(configs))
       console.debug(`Saved funnel configs to ${key}:`, configs)
     } catch (e) {
@@ -241,7 +206,7 @@ const MapFunnelStages = () => {
   const getFunnelConfigsFromStorage = (): FunnelConfig[] => {
     if (!clientId) return []
     try {
-      const key = getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId, mediaPlanId)
+      const key = getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId)
       const data = localStorage.getItem(key)
       console.debug(`Retrieved funnel configs from ${key}:`, data)
       if (data) {
@@ -257,34 +222,27 @@ const MapFunnelStages = () => {
     return []
   }
 
-  // --- Initialization logic ---
+  // Initialize funnel data and configurations
   useEffect(() => {
     console.debug(`Initializing with clientId: ${clientId}, mediaPlanId: ${mediaPlanId}`)
-
-    // Always load configs from client-wide storage (shared for all users of the client)
-    const configs = clientId ? getClientWideFunnelConfigsFromStorage(clientId) : []
+    const configs = getFunnelConfigsFromStorage()
     setFunnelConfigs(configs)
 
     let loadedCustomFunnels: Funnel[] = []
     const localStorageFunnels = getCustomFunnelsFromStorage()
-
-    // Determine if this is a new plan (no campaignData, no custom_funnels, no funnel_stages)
-    const isNewPlan =
-      !campaignData ||
-      (!campaignData.custom_funnels || campaignData.custom_funnels.length === 0) &&
-      (!campaignData.funnel_stages || campaignData.funnel_stages.length === 0)
+    const isNewPlan = !mediaPlanId || mediaPlanId === ""
 
     if (!clientId) {
       loadedCustomFunnels = defaultFunnels
       setSelectedConfigIdx(null)
-      setSelectedPreset(null)
+      setSelectedPreset(1) // Select "Full" preset by default
       localStorage.removeItem(getClientKey(LOCAL_STORAGE_FUNNELS_KEY, clientId, mediaPlanId))
-      localStorage.removeItem(getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId, mediaPlanId))
+      localStorage.removeItem(getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId))
     } else if (isNewPlan) {
-      // For a new plan, always show default funnels, do not select any saved config
+      // For new plans, always use default funnels
       loadedCustomFunnels = defaultFunnels
       setSelectedConfigIdx(null)
-      setSelectedPreset(null)
+      setSelectedPreset(1) // Select "Full" preset
     } else if (localStorageFunnels && localStorageFunnels.length > 0) {
       loadedCustomFunnels = localStorageFunnels
     } else if (campaignData?.custom_funnels?.length > 0) {
@@ -295,6 +253,7 @@ const MapFunnelStages = () => {
       }))
     } else {
       loadedCustomFunnels = defaultFunnels
+      setSelectedPreset(1) // Select "Full" preset
     }
 
     setPersistentCustomFunnels(loadedCustomFunnels)
@@ -303,10 +262,10 @@ const MapFunnelStages = () => {
     setCampaignFormData((prev: any) => {
       const initialFunnelStages = Array.isArray(campaignData?.funnel_stages) ? campaignData.funnel_stages : []
       const initialChannelMix = Array.isArray(campaignData?.channel_mix) ? campaignData.channel_mix : []
-      const orderedFunnelStages = initialFunnelStages.length > 0
+      const orderedFunnelStages = initialFunnelStages.length > 0 && !isNewPlan
         ? loadedCustomFunnels.map(f => f.name).filter(name => initialFunnelStages.includes(name))
         : loadedCustomFunnels.map(f => f.name)
-      const orderedChannelMix = initialChannelMix.length > 0
+      const orderedChannelMix = initialChannelMix.length > 0 && !isNewPlan
         ? loadedCustomFunnels
             .map(f => initialChannelMix.find((ch: any) => ch?.funnel_stage === f.name))
             .filter((ch): ch is { funnel_stage: string } => !!ch)
@@ -315,16 +274,16 @@ const MapFunnelStages = () => {
       const updatedFormData = {
         ...prev,
         funnel_type: "custom",
-        funnel_stages: orderedFunnelStages.length > 0 ? orderedFunnelStages : loadedCustomFunnels.map(f => f.name),
-        channel_mix: orderedChannelMix.length > 0 ? orderedChannelMix : loadedCustomFunnels.map(f => ({ funnel_stage: f.name })),
+        funnel_stages: orderedFunnelStages,
+        channel_mix: orderedChannelMix,
         custom_funnels: loadedCustomFunnels,
       }
       console.debug("Updated campaignFormData:", updatedFormData)
       return updatedFormData
     })
 
-    // Only select a config if this is NOT a new plan
-    if (!isNewPlan && configs.length > 0 && loadedCustomFunnels.length > 0) {
+    // Only try to match a configuration for existing plans
+    if (configs.length > 0 && loadedCustomFunnels.length > 0 && !isNewPlan) {
       const currentStageNames = loadedCustomFunnels.map(f => f.name).sort()
       const matchingConfigIdx = configs.findIndex(config => {
         const configStageNames = config.stages.map(s => s.name).sort()
@@ -347,7 +306,7 @@ const MapFunnelStages = () => {
       }
     } else {
       setSelectedConfigIdx(null)
-      setSelectedPreset(null)
+      setSelectedPreset(isNewPlan || !clientId ? 1 : null) // "Full" preset for new plans or no client
       console.debug("No configs or funnels, reset selection")
     }
   }, [clientId, mediaPlanId, campaignData, setCampaignFormData])
@@ -375,10 +334,10 @@ const MapFunnelStages = () => {
     }
   }, [persistentCustomFunnels, clientId, mediaPlanId])
 
-  // Save funnel configurations to client-wide localStorage
+  // Save funnel configurations to localStorage
   useEffect(() => {
     if (clientId && funnelConfigs.length > 0) {
-      saveClientWideFunnelConfigsToStorage(funnelConfigs, clientId)
+      saveFunnelConfigsToStorage(funnelConfigs)
     }
   }, [funnelConfigs, clientId])
 
@@ -693,7 +652,7 @@ const MapFunnelStages = () => {
     console.debug("Applied config:", config.name)
   }
 
-  // Save configuration (to client-wide storage)
+  // Save configuration
   const handleSaveConfiguration = () => {
     if (!clientId) {
       toast.error("Please select a client to save funnel configurations.", {
@@ -706,7 +665,7 @@ const MapFunnelStages = () => {
     setIsSaveConfigModalOpen(true)
   }
 
-  // Confirm save config (to client-wide storage)
+  // Confirm save config
   const handleSaveConfigConfirm = () => {
     const error = validateConfigName(newConfigName)
     if (error) {
@@ -719,7 +678,7 @@ const MapFunnelStages = () => {
     }
     const updatedConfigs = [...funnelConfigs, config]
     setFunnelConfigs(updatedConfigs)
-    if (clientId) saveClientWideFunnelConfigsToStorage(updatedConfigs, clientId)
+    if (clientId) saveFunnelConfigsToStorage(updatedConfigs)
     setSelectedConfigIdx(updatedConfigs.length - 1)
     setSelectedPreset(null)
     setIsSaveConfigModalOpen(false)
@@ -727,11 +686,11 @@ const MapFunnelStages = () => {
     console.debug("Saved new config:", config)
   }
 
-  // Delete a saved configuration (from client-wide storage)
+  // Delete a saved configuration
   const handleDeleteConfig = (configIdx: number) => {
     const updatedConfigs = funnelConfigs.filter((_, idx) => idx !== configIdx)
     setFunnelConfigs(updatedConfigs)
-    if (clientId) saveClientWideFunnelConfigsToStorage(updatedConfigs, clientId)
+    if (clientId) saveFunnelConfigsToStorage(updatedConfigs)
     if (selectedConfigIdx === configIdx) {
       setSelectedConfigIdx(null)
     } else if (selectedConfigIdx !== null && selectedConfigIdx > configIdx) {
