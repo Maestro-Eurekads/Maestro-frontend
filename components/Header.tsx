@@ -253,9 +253,10 @@ const Header = ({ setIsOpen, setIsView }) => {
                   })
                 }}>
                 <button
-                  className={`new_plan_btn ${!profile?.clients?.[0]?.id && !isAdmin ? "!bg-[gray]" : ""
+                  className={`new_plan_btn ${profile?.clients?.length < 1 || !selectedId ? "!bg-[gray]" : ""
                     }`}
-                  disabled={!profile?.clients?.[0]?.id && !isAdmin}
+                  disabled={profile?.clients?.length < 1 || !selectedId}
+                // disabled={!profile?.clients?.[0]?.id && !isAdmin}
                 >
                   <Image src={white} alt="white" />
                   <p className="new_plan_btn_text">New media plan</p>
