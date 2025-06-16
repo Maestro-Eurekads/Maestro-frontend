@@ -189,6 +189,7 @@ const Header = ({ setIsOpen, setIsView }) => {
                   localStorage.setItem(userType, value?.value);
                   setSelected(value?.value);
                   setSelectedId(value?.value);
+                  setSelectedClient(value?.value);
                 }
               }}
               value={(isAdmin ? clients?.data : profile?.clients)

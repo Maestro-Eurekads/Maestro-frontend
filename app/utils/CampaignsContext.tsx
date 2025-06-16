@@ -575,7 +575,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // const clientId = campaignFormData?.client_selection?.id;
     if (selectedClient) {
-      console.log("🚀 ~ useEffect ~ selectedClient:", selectedClient)
       fetchBusinessLevelOptions(selectedClient);
       setCampaignFormData((prev) => ({
         ...prev,
