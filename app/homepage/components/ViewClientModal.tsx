@@ -16,27 +16,24 @@ import BusinessUnitEdit from "./BusinessUnitEdit";
 import SportDropdownEdit from "./SportDropdownEdit";
 import CategoryDropdownEdit from "./CategoryDropdownEdit";
 
-interface DropdownOption {
- label: string;
- value: string;
-}
-
 
 const ViewClientModal = ({ isView, setIsView }) => {
  const { data: session, status }: any = useSession();
  const jwt = (session?.user as { data?: { jwt: string } })?.data?.jwt;
  const agencyId = session?.user?.data?.agency?.id;
  const { allClients } = useCampaigns();
- const [level1Options, setlevel1Options] = useState<DropdownOption[]>([]);
- const [level2Options, setlevel2Options] = useState<DropdownOption[]>([]);
- const [level3Options, setlevel3Options] = useState<DropdownOption[]>([]);
+ const [level1Options, setlevel1Options] = useState([]);
+ const [level2Options, setlevel2Options] = useState([]);
+ const [level3Options, setlevel3Options] = useState([]);
  const [users, setUsers] = useState({ agencyAccess: [], clientAccess: [] });
  const [agencyInput, setAgencyInput] = useState({ name: "", email: "", roles: [] });
  const [clientInput, setClientInput] = useState({ name: "", email: "", roles: [] });
- const [editingUser, setEditingUser] = useState(null); // { section: "agencyAccess" | "clientAccess", user: object }
+ const [editingUser, setEditingUser] = useState(null);
  const [showAgencyInput, setShowAgencyInput] = useState(false);
  const [showClientInput, setShowClientInput] = useState(false);
  const [loading, setLoading] = useState(false);
+ const [loadingDelete, setLoadingDelete] = useState(false);
+ const [loadingUpdate, setLoadingUpdate] = useState(false);
  const [showConfirmPopup, setShowConfirmPopup] = useState(false);
  const [showDeletePopup, setShowDeletePopup] = useState(false);
  const [deletingUserId, setDeletingUserId] = useState(null);
@@ -49,15 +46,12 @@ const ViewClientModal = ({ isView, setIsView }) => {
 
  useEffect(() => {
   if (allClients?.length > 0) {
-   const data = allClients[0]
+   const data = allClients[0];
    setlevel1Options(data?.level_1);
    setlevel2Options(data?.level_2);
    setlevel3Options(data?.level_3);
   }
- }, []);
-
-
- console.log("level1Options:", level1Options);
+ }, [allClients]);
 
  // Automatically reset alert after showing
  useEffect(() => {
@@ -73,7 +67,6 @@ const ViewClientModal = ({ isView, setIsView }) => {
  // Log session for debugging
  useEffect(() => {
   if (status === "authenticated") {
-
    if (!jwt) {
     toast.error("Authentication token is missing. Please log in again.");
    }
@@ -137,15 +130,13 @@ const ViewClientModal = ({ isView, setIsView }) => {
   setInput((prev) => ({ ...prev, [field]: value }));
  };
 
- // Handle role checkbox changes
+ // Handle role checkbox changes (single selection)
  const handleRoleChange = (section, role) => {
   const setInput = section === "agencyAccess" ? setAgencyInput : setClientInput;
-  setInput((prev) => {
-   const newRoles = prev.roles.includes(role)
-    ? prev.roles.filter((r) => r !== role)
-    : [...prev.roles, role];
-   return { ...prev, roles: newRoles };
-  });
+  setInput((prev) => ({
+   ...prev,
+   roles: [role], // Set only the selected role, replacing any previous selection
+  }));
  };
 
  // Validate input
@@ -167,7 +158,7 @@ const ViewClientModal = ({ isView, setIsView }) => {
   }
 
   if (roles.length === 0) {
-   toast.error("At least one role must be selected");
+   toast.error("Exactly one role must be selected");
    return false;
   }
 
@@ -199,7 +190,7 @@ const ViewClientModal = ({ isView, setIsView }) => {
   const { name, email, roles } = input;
   const trimmedEmail = email.trim();
   const trimmedName = name.trim();
-  setLoading(true);
+  setLoadingUpdate(true);
 
   try {
    const response = await fetch(
@@ -213,7 +204,7 @@ const ViewClientModal = ({ isView, setIsView }) => {
      body: JSON.stringify({
       username: trimmedName,
       email: trimmedEmail,
-      user_type: roles[0], // Use first selected role (adjust if multiple roles needed)
+      user_type: roles[0], // Use the single selected role
      }),
     }
    );
@@ -230,7 +221,7 @@ const ViewClientModal = ({ isView, setIsView }) => {
    console.error("Update user error:", error);
    toast.error(`Failed to update user: ${error.message}`);
   } finally {
-   setLoading(false);
+   setLoadingUpdate(false);
   }
  };
 
@@ -242,7 +233,7 @@ const ViewClientModal = ({ isView, setIsView }) => {
 
  // Confirm delete user
  const confirmDelete = async () => {
-  setLoading(true);
+  setLoadingDelete(true);
   try {
    const response = await fetch(
     `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${deletingUserId}`,
@@ -265,7 +256,7 @@ const ViewClientModal = ({ isView, setIsView }) => {
    console.error("Delete user error:", error);
    toast.error(`Failed to delete user: ${error.message}`);
   } finally {
-   setLoading(false);
+   setLoadingDelete(false);
   }
  };
 
@@ -306,6 +297,9 @@ const ViewClientModal = ({ isView, setIsView }) => {
   { label: "Viewer", value: "client" },
   { label: "Client Campaign Approver", value: "client_approver" },
  ];
+
+
+ console.log("Users-users:", users);
 
  return (
   <div className="z-50">
@@ -383,7 +377,7 @@ const ViewClientModal = ({ isView, setIsView }) => {
           onClick={() => handleUpdateUser("agencyAccess")}
           disabled={loading}
          >
-          Update
+          {loading ? <SVGLoader width={30} height={30} color={"#fff"} /> : "Update"}
          </button>
          <button
           className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-gray-200 rounded-lg font-semibold text-[14px] leading-[19px] text-gray-800 mt-6"
@@ -405,10 +399,10 @@ const ViewClientModal = ({ isView, setIsView }) => {
               >
                <div className="flex items-center gap-3">
                 <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                 {user.username.charAt(0).toUpperCase()}
+                 {user?.username.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                 <p className="font-medium text-sm">{user.username}</p>
+                 <p className="font-medium text-sm">{user?.username}</p>
                  <p className="text-xs text-gray-500">{user.email}</p>
                  <p className="text-xs text-gray-500">
                   Role:{" "}
@@ -493,7 +487,7 @@ const ViewClientModal = ({ isView, setIsView }) => {
           onClick={() => handleUpdateUser("clientAccess")}
           disabled={loading}
          >
-          Update
+          {loading ? <SVGLoader width={30} height={30} color={"#fff"} /> : "Update"}
          </button>
          <button
           className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-gray-200 rounded-lg font-semibold text-[14px] leading-[19px] text-gray-800 mt-6"
@@ -559,11 +553,13 @@ const ViewClientModal = ({ isView, setIsView }) => {
         <SportDropdownEdit
          setInputs={setInputs}
          setAlert={setAlert}
-         initialData={level2Options} />
+         initialData={level2Options}
+        />
         <CategoryDropdownEdit
          setInputs={setInputs}
          setAlert={setAlert}
-         initialData={level3Options} />
+         initialData={level3Options}
+        />
        </div>
        {users.agencyAccess.length === 0 && users.clientAccess.length === 0 && !loading && (
         <p className="text-gray-500 text-sm mt-4">No users found.</p>
@@ -598,9 +594,9 @@ const ViewClientModal = ({ isView, setIsView }) => {
          <button
           className="px-4 py-2 bg-[#061237] text-white rounded-lg text-sm"
           onClick={confirmUpdate}
-          disabled={loading}
+          disabled={loading || loadingUpdate}
          >
-          Continue
+          {loadingUpdate ? <SVGLoader width={30} height={30} color={"#fff"} /> : "Continue"}
          </button>
         </div>
        </div>
@@ -629,9 +625,8 @@ const ViewClientModal = ({ isView, setIsView }) => {
          <button
           className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm"
           onClick={confirmDelete}
-          disabled={loading}
-         >
-          Delete
+          disabled={loading || loadingDelete} >
+          {loadingDelete ? <SVGLoader width={30} height={30} color={"#fff"} /> : "Delete"}
          </button>
         </div>
        </div>
