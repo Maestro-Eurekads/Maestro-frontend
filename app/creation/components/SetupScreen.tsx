@@ -9,7 +9,7 @@ import { useComments } from "app/utils/CommentProvider";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { selectCurrency } from "components/Options";
 import ClientApproverDropdowns from "components/ClientApproverDropdowns";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import InternalApproverDropdowns from "components/InternalApproverDropdowns";
 import TreeDropdown from "components/TreeDropdown";
 import { useAppDispatch } from "store/useStore";
@@ -22,6 +22,9 @@ interface DropdownOption {
   value: string;
 }
 export const SetupScreen = () => {
+  const router: any = useRouter();
+
+
   const dispatch = useAppDispatch();
   const {
     createCampaign,
@@ -38,7 +41,8 @@ export const SetupScreen = () => {
     selectedClient,
     setClientUsers,
     clientUsers,
-    jwt
+    jwt,
+    FC
   } = useCampaigns();
   const query = useSearchParams();
   const documentId = query.get("campaignId");
@@ -55,14 +59,18 @@ export const SetupScreen = () => {
   const [level2Options, setlevel2Options] = useState<DropdownOption[]>([]);
   const [level3Options, setlevel3Options] = useState<DropdownOption[]>([]);
 
+
+  console.log("SetupScreen allClients:", FC);
+  console.log("campaignFormData campaignFormData:", campaignFormData);
+
   useEffect(() => {
     //@ts-ignore
     dispatch(getCreateClient({ userId: !isAdmin ? session?.user?.data?.user?.id : null, jwt }));
   }, [isAdmin, session, dispatch]);
 
   useEffect(() => {
-    if (allClients.length > 0) {
-      const agency = allClients[0]?.agency;
+    if (FC) {
+      const agency = FC?.agency;
       const agencyUserOptions = agency?.agency_users?.map((user) => ({
         value: user?.user?.id,
         label: user?.full_name,
@@ -75,25 +83,25 @@ export const SetupScreen = () => {
 
       setInternalApproverOptions(agencyUserOptions);
       setClientApprovalOptions(clientUserOptions);
-      setClientUsers(allClients || []);
+      setClientUsers(FC || []);
       setCampaignFormData(prev => ({
         ...prev,
         ["client_selection"]: {
           id: selectedClient || '',
-          value: allClients?.find((cl)=>cl?.id === selectedClient)?.client_name || '',
+          value: FC?.client_name || '',
         },
       }));
     }
-  }, [allClients, selectedClient]);
+  }, [FC, selectedClient]);
 
   useEffect(() => {
-    if (allClients?.length > 0) {
-      const data = allClients[0]
+    if (FC) {
+      const data = FC
       setlevel1Options(data?.level_1);
       setlevel2Options(data?.level_2);
       setlevel3Options(data?.level_3);
     }
-  }, []);
+  }, [FC]);
 
   useEffect(() => {
     setIsDrawerOpen(false);
@@ -127,11 +135,14 @@ export const SetupScreen = () => {
     }
   }, [setCampaignFormData]);
 
-  // Initialize campaignFormData if empty
+
   useEffect(() => {
-    if (documentId === null) {
+    if (documentId === null && !isInitialized) {
       const initialFormData = {
-        client_selection: {},
+        client_selection: {
+          id: selectedClient || '',
+          value: FC?.client_name || '',
+        },
         media_plan: "",
         internal_approver: [],
         client_approver: [],
@@ -143,11 +154,26 @@ export const SetupScreen = () => {
         level_2: {},
         level_3: {},
       };
+
       setCampaignFormData(initialFormData);
       localStorage.setItem("campaignFormData", JSON.stringify(initialFormData));
       setIsInitialized(true);
+    } else if (documentId === null && isInitialized) {
+      // Only update client_selection if already initialized
+      setCampaignFormData(prev => {
+        const updated = {
+          ...prev,
+          client_selection: {
+            id: selectedClient || '',
+            value: FC?.client_name || '',
+          },
+        };
+        localStorage.setItem("campaignFormData", JSON.stringify(updated));
+        return updated;
+      });
     }
-  }, [setCampaignFormData, isInitialized]);
+  }, [documentId, isInitialized, selectedClient, FC, setCampaignFormData]);
+
 
   useEffect(() => {
     if (alert) {
@@ -204,19 +230,7 @@ export const SetupScreen = () => {
     setRequiredFields(evaluatedFields);
   }, [campaignFormData, cId, setRequiredFields]);
 
-  // const sampleData = {
-  //   title: 'Toshiba',
-  //   parameters: [
-  //     {
-  //       name: 'parasonic',
-  //       subParameters: ['battery']
-  //     },
-  //     {
-  //       name: 'Radio',
-  //       subParameters: ['Wave', 'Book']
-  //     }
-  //   ]
-  // };
+
 
   if (!campaignFormData) {
     return <div>Loading...</div>;
