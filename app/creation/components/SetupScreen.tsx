@@ -65,8 +65,8 @@ export const SetupScreen = () => {
   //     setFC(JSON.parse(cachedFC));
   //   }
   // }, []);
-  // console.log("SetupScreen allClients:", FC);
-  // console.log("campaignFormData campaignFormData:", campaignFormData);
+  console.log("SetupScreen allClients:", FC);
+  console.log("campaignFormData campaignFormData:", campaignFormData);
 
   useEffect(() => {
     //@ts-ignore
