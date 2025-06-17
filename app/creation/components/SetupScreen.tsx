@@ -59,12 +59,7 @@ export const SetupScreen = () => {
   const [level2Options, setlevel2Options] = useState<DropdownOption[]>([]);
   const [level3Options, setlevel3Options] = useState<DropdownOption[]>([]);
 
-  // useEffect(() => {
-  //   const cachedFC = localStorage.getItem("filteredClient");
-  //   if (cachedFC) {
-  //     setFC(JSON.parse(cachedFC));
-  //   }
-  // }, []);
+
   console.log("SetupScreen allClients:", FC);
   console.log("campaignFormData campaignFormData:", campaignFormData);
 
@@ -140,27 +135,7 @@ export const SetupScreen = () => {
     }
   }, [setCampaignFormData]);
 
-  // Initialize campaignFormData if empty
-  // useEffect(() => {
-  //   if (documentId === null) {
-  //     const initialFormData = {
-  //       client_selection: {},
-  //       media_plan: "",
-  //       internal_approver: [],
-  //       client_approver: [],
-  //       approver_id: [],
-  //       budget_details_currency: {},
-  //       budget_details_fee_type: {},
-  //       budget_details_value: "",
-  //       level_1: {},
-  //       level_2: {},
-  //       level_3: {},
-  //     };
-  //     setCampaignFormData(initialFormData);
-  //     localStorage.setItem("campaignFormData", JSON.stringify(initialFormData));
-  //     setIsInitialized(true);
-  //   }
-  // }, [setCampaignFormData, isInitialized]);
+
   useEffect(() => {
     if (documentId === null && !isInitialized) {
       const initialFormData = {
