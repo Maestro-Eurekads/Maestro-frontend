@@ -147,14 +147,6 @@ const ResizableChannels = ({
     index: number;
   } | null>(null);
 
-  const calculateDailyWidth = (
-    containerWidth: number,
-    endMonth: number
-  ): number => {
-    const totalDays = endMonth * 31;
-    return containerWidth / totalDays;
-  };
-
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     console.log(" ~ dailyWidth:", dailyWidth);
     const baseStep = dailyWidth;
@@ -599,11 +591,6 @@ const ResizableChannels = ({
     };
   }, [draggingPosition, parentLeft, parentWidth, channelState]);
 
-  const handleMouseDown = (index, direction) => (event) => {
-    event.preventDefault();
-    setDragging({ index, direction, startX: event.clientX });
-  };
-
   const handleDeleteChannel = async (indexToDelete) => {
     const updatedChannels = channels.filter(
       (_, index) => index !== indexToDelete
@@ -730,11 +717,7 @@ const ResizableChannels = ({
             ? dRange?.findIndex((date) =>
                 isEqual(date, adjustedStageStartDate)
               ) *
-              (rrange === "Day"
-                ? dailyWidth
-                : rrange === "Week"
-                ? dailyWidth
-                : Math.round(screenWidth / endMonth / 31))
+              dailyWidth
             : 0;
 
           // Calculate days between using the adjusted end date
@@ -771,7 +754,7 @@ const ResizableChannels = ({
                 : parentWidth
               : rrange === "Month"
               ? daysBetween > 0
-                ? Math.round(screenWidth / endMonth / 31) * daysBetween
+                ? dailyWidth * daysBetween
                 : parentWidth
               : parentWidth,
             rrange === "Day"
@@ -784,7 +767,7 @@ const ResizableChannels = ({
                 : parentWidth - 9
               : rrange === "Month"
               ? daysBetween > 0
-                ? Math.round(screenWidth / endMonth / 31) * daysBetween
+                ? dailyWidth * daysBetween
                 : parentWidth
               : parentWidth - 9
           );
