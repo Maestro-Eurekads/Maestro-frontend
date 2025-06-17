@@ -40,7 +40,7 @@ const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 		},
 		{
 			label: "Agency approver",
-			name: internalApprovers[0],
+			name: cleanName(internalApprovers[0]),
 			nameList: internalApprovers,
 			initials: getInitials(cleanName(internalApprovers[0])),
 		},
