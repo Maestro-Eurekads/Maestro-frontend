@@ -23,8 +23,8 @@ export function extractPlatforms(data) {
         "e_commerce",
         "in_game",
         "mobile",
-      ].forEach((channelType) => {
-        stage[channelType].forEach((platform) => {
+      ]?.forEach((channelType) => {
+        stage[channelType]?.forEach((platform) => {
           const platformName = platform.platform_name;
           const existingPlatform = platforms[stageName].find(
             (p) => p.name === platformName

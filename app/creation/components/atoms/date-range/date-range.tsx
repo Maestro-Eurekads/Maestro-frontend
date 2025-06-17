@@ -1,52 +1,57 @@
-import { useState, useEffect } from "react";
-import { addDays, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
-import { useDateRange } from "../../../../../src/date-range-context";
-import { useCampaigns } from "app/utils/CampaignsContext";
+"use client"
+
+import { useState } from "react"
+import { addDays, startOfMonth, endOfMonth, startOfYear, endOfYear, eachDayOfInterval } from "date-fns"
+import { useDateRange } from "../../../../../src/date-range-context"
+import { useCampaigns } from "app/utils/CampaignsContext"
 
 const Range = () => {
-  const [selected, setSelected] = useState(""); // No default selection initially
-  const { setRange } = useDateRange();
-  const { campaignFormData } = useCampaigns();
-  const {
-    campaign_timeline_start_date: startDate,
-    campaign_timeline_end_date: endDate,
-  } = campaignFormData;
+  const [selected, setSelected] = useState("") // No default selection initially
+  const { setRange } = useDateRange()
+  const { campaignFormData } = useCampaigns()
+  const { campaign_timeline_start_date: startDate, campaign_timeline_end_date: endDate } = campaignFormData
 
-  const options = ["Day", "Week", "Month"];
+  const options = ["Day", "Week", "Month", "Year"]
 
   // Set default range to 14 days on first render
 
   // Update range only when an option is selected
   const handleSelection = (option: string) => {
-    setSelected(option);
+    setSelected(option)
 
-    let newRange;
-    const today = new Date();
+    let newRange
+    const today = new Date()
 
     switch (option) {
       case "Day":
-        newRange = { startDate: startDate, endDate: startDate };
-        break;
+        newRange = { startDate: startDate, endDate: startDate }
+        break
       case "Week":
-        newRange = { startDate: startDate, endDate: addDays(startDate, 6) };
-        break;
+        newRange = { startDate: startDate, endDate: addDays(startDate, 6) }
+        break
       case "Month":
         newRange = {
           startDate: startOfMonth(startDate),
           endDate: endOfMonth(endDate),
-        };
-        break;
+        }
+        break
+      case "Year":
+        newRange = {
+          startDate: startOfYear(startDate),
+          endDate: endOfYear(endDate),
+        }
+        break
       default:
-        return;
+        return
     }
 
     const dateList = eachDayOfInterval({
       start: newRange.startDate,
       end: newRange.endDate,
-    });
+    })
 
-    setRange(dateList);
-  };
+    setRange(dateList)
+  }
 
   return (
     <div className="w-fit z-0">
@@ -55,9 +60,7 @@ const Range = () => {
         <div
           className="absolute w-[64px] h-[38px] bg-white border border-black/10 rounded-lg transition-transform duration-300 z-0"
           style={{
-            transform: `translateX(${
-              selected ? options.indexOf(selected) * 71.5 : 0
-            }px)`,
+            transform: `translateX(${selected ? options.indexOf(selected) * 71.5 : 0}px)`,
           }}
         ></div>
 
@@ -75,7 +78,7 @@ const Range = () => {
         ))}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Range;
+export default Range

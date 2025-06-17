@@ -6,11 +6,24 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 interface MonthIntervalProps {
   monthsCount: number;
   view?: boolean;
+  getDaysInEachMonth?: any;
 }
 
-const MonthInterval: React.FC<MonthIntervalProps> = ({ monthsCount, view }) => {
+const MonthInterval: React.FC<MonthIntervalProps> = ({ monthsCount, view, getDaysInEachMonth }) => {
+  
   const [monthNames, setSetMonthName] = useState([]);
   const { campaignFormData } = useCampaigns();
+  const daysInMonth = getDaysInEachMonth()
+  // Compute gridTemplateColumns dynamically from daysInMonth
+const totalDays = Object.values(daysInMonth || {}).reduce((acc, 
+  //@ts-ignore
+  days) => acc + (days as number), 0);
+  
+  const gridTemplateColumns = Object.values(daysInMonth || {})
+  //@ts-ignore
+  .map((days) => `${(days / totalDays) * 100}%`)
+  .join(" ");
+
   useEffect(() => {
     if (campaignFormData) {
       const startDate = new Date(
@@ -45,36 +58,24 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({ monthsCount, view }) => {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${monthsCount}, ${
-            monthsCount === 1
-              ? "100%"
-              : monthsCount > 1
-              ? `${100 / monthsCount}%`
-              : `${100 / monthsCount}%`
-          })`,
+          gridTemplateColumns,
           backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.2) 1px, transparent 1px)`,
-          backgroundSize: !view
-            ? `calc(100% / ${monthsCount}) 100%`
-            : monthsCount === 1
-            ? "100%"
-            : monthsCount <= 3
-            ? `calc(${100 / monthsCount}%)`
-            : "33.33%",
+          backgroundSize: `100% 100%`,
         }}
       >
-        {Array.from({ length: monthsCount }, (_, i) => (
-          <div key={i} className="flex flex-col items-center relative py-3">
-            {/* Week Label */}
-            <div className="flex flex-row gap-2 items-center">
-              <span className="font-[500] text-[13px] text-[rgba(0,0,0,0.5)]">
-                {monthNames[i] ?? "Month"}
-              </span>
-              {monthNames?.length < 1 && (
-                <p className="font-[500] text-[13px] text-blue-500">{i + 1}</p>
-              )}
-            </div>
-          </div>
-        ))}
+       {Object.entries(daysInMonth || {}).map(([monthName], i) => (
+  <div
+    key={i}
+    className="flex flex-col items-center relative py-3 border-r border-blue-200 last:border-r-0"
+  >
+    <div className="flex flex-row gap-2 items-center">
+      <span className="font-[500] text-[13px] text-[rgba(0,0,0,0.5)]">
+        {monthName}
+      </span>
+    </div>
+  </div>
+))}
+
       </div>
     </div>
   );

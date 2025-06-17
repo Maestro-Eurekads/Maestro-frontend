@@ -31,6 +31,7 @@ const WeekInterval = ({
   };
 
   const datesByWeek = range ? groupDatesByWeek(range) : [];
+  console.log("🚀 ~ datesByWeek:", datesByWeek)
   return (
     <div className="w-full border-y">
       <div
@@ -58,7 +59,7 @@ const WeekInterval = ({
             const total = (percent / 100) * contWidth; // target total width in px for all days (31 days)
 
             const dailyWidth = contWidth / endMonth; // width per day without factor
-            console.log("🚀  ~ dailyWidth:", dailyWidth);
+            // console.log("🚀  ~ dailyWidth:", dailyWidth);
             const totalLines = Math.round(dailyWidth) * endMonth; // total width for 31 days without factor
 
             // Calculate factor to scale dailyWidth to reach 'total'
