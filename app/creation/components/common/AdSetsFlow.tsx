@@ -619,6 +619,7 @@ const AudienceDropdownWithCallback = memo(
         document.removeEventListener("mousedown", handleClickOutside);
     }, [isOpen, dropdownId, setOpenDropdownId]);
 
+    // --- FIX: Remove .truncate and allow long text to fit and wrap ---
     return (
       <div>
         <div
@@ -628,17 +629,18 @@ const AudienceDropdownWithCallback = memo(
           <button
             onClick={toggleOpen}
             className="relative z-10 w-[172px] bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
-            style={{ minHeight: "48px" }}
+            style={{ minHeight: "48px", minWidth: "172px", maxWidth: "100%", wordBreak: "break-word" }}
           >
-            {/* Remove .truncate and allow wrapping for long custom audience text */}
             <span
-              className="text-[#656565] text-sm"
+              // Removed .truncate, allow wrapping and long text
+              className="block w-full whitespace-normal break-words"
               style={{
-                whiteSpace: "normal",
+                maxWidth: "120px",
+                overflowWrap: "break-word",
                 wordBreak: "break-word",
-                maxWidth: "110px",
-                display: "inline-block",
-                verticalAlign: "middle",
+                whiteSpace: "normal",
+                display: "block",
+                textAlign: "left",
               }}
               title={selected || "Your audience type"}
             >
@@ -682,7 +684,11 @@ const AudienceDropdownWithCallback = memo(
                     key={index}
                     onClick={() => handleSelect(option)}
                     className="p-4 cursor-pointer text-[#656565] text-sm text-center whitespace-normal break-words hover:bg-gray-100"
-                    style={{ wordBreak: "break-word" }}
+                    style={{
+                      wordBreak: "break-word",
+                      whiteSpace: "normal",
+                      textAlign: "left",
+                    }}
                     title={option}
                   >
                     {option}
