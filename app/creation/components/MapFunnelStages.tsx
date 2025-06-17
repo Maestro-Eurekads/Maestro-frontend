@@ -6,6 +6,7 @@ import { useVerification } from "app/utils/VerificationContext"
 import { useComments } from "app/utils/CommentProvider"
 import { PlusIcon, Edit2, Trash2, X, GripVertical, ChevronDown } from "lucide-react"
 import toast from "react-hot-toast"
+import { updateClient } from "app/homepage/functions/clients"
 
 // Define type for funnel objects
 interface Funnel {
@@ -166,7 +167,7 @@ const MapFunnelStages = () => {
       localStorage.setItem(key, JSON.stringify(funnels))
       console.debug(`Saved custom funnels to ${key}:`, funnels)
     } catch (e) {
-      console.error("Failed to save custom funnels to localStorage:", e)
+      console.log("Failed to save custom funnels to localStorage:", e)
       toast.error("Failed to save funnels", { duration: 3000 })
     }
   }
