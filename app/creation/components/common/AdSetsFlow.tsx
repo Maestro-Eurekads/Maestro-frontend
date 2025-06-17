@@ -628,8 +628,22 @@ const AudienceDropdownWithCallback = memo(
           <button
             onClick={toggleOpen}
             className="relative z-10 w-[172px] bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
+            style={{ minHeight: "48px" }}
           >
-            <span className="truncate">{selected || "Your audience type"}</span>
+            {/* Remove .truncate and allow wrapping for long custom audience text */}
+            <span
+              className="text-[#656565] text-sm"
+              style={{
+                whiteSpace: "normal",
+                wordBreak: "break-word",
+                maxWidth: "110px",
+                display: "inline-block",
+                verticalAlign: "middle",
+              }}
+              title={selected || "Your audience type"}
+            >
+              {selected || "Your audience type"}
+            </span>
             <svg
               className={`h-4 w-4 flex-shrink-0 transition-transform ${
                 isOpen ? "rotate-180" : ""
@@ -667,7 +681,9 @@ const AudienceDropdownWithCallback = memo(
                   <li
                     key={index}
                     onClick={() => handleSelect(option)}
-                    className="p-4 cursor-pointer text-[#656565] text-sm text-center whitespace-nowrap hover:bg-gray-100"
+                    className="p-4 cursor-pointer text-[#656565] text-sm text-center whitespace-normal break-words hover:bg-gray-100"
+                    style={{ wordBreak: "break-word" }}
+                    title={option}
                   >
                     {option}
                   </li>
