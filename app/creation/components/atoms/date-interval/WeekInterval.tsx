@@ -1,7 +1,7 @@
 "use client";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import moment from "moment";
-import React from "react";
+import React, { useCallback } from "react";
 import { useDateRange } from "src/date-range-context";
 
 const WeekInterval = ({
@@ -31,48 +31,36 @@ const WeekInterval = ({
   };
 
   const datesByWeek = range ? groupDatesByWeek(range) : [];
-  console.log("🚀 ~ datesByWeek:", datesByWeek)
+  console.log("🚀 ~ datesByWeek:", datesByWeek);
+
+  const calculateDailyWidth = useCallback(() => {
+    const getViewportWidth = () => {
+      return window.innerWidth || document.documentElement.clientWidth || 0;
+    };
+    const screenWidth = getViewportWidth();
+    const contWidth = screenWidth - (disableDrag ? 80 : 367);
+
+    const totalDays = funnelData?.endDay || 30;
+    let dailyWidth = contWidth / totalDays;
+
+    // Ensure minimum width constraints
+    dailyWidth = Math.max(dailyWidth, 50);
+
+    return Math.round(dailyWidth);
+  }, [disableDrag, funnelData?.endDay]);
+
+  const dailyWidth = calculateDailyWidth();
+  console.log("🚀 ~ week:", dailyWidth)
+
   return (
     <div className="w-full border-y">
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${weeksCount}, 1fr)`,
+          gridTemplateColumns: `repeat(${weeksCount}, ${dailyWidth * 7}px)`,
           backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.2) 1px, transparent 1px)`,
           backgroundRepeat: "no-repeat",
-          backgroundSize: (function () {
-            const gridContainer = document.querySelector(
-              ".grid-container"
-            ) as HTMLElement;
-            const getViewportWidth = () => {
-              return (
-                window.innerWidth || document.documentElement.clientWidth || 0
-              );
-            };
-            const screenWidth = getViewportWidth();
-            if (!gridContainer) return;
-            const endMonth = funnelData?.endDay || 1;
-            const contWidth = screenWidth - (disableDrag ? 80 : 367); // subtract margin/padding if needed
-
-            // console.log("🚀  ~ contWidth:", contWidth)
-            const percent = 100 / endMonth; // e.g., 20 if endMonth=5
-            const total = (percent / 100) * contWidth; // target total width in px for all days (31 days)
-
-            const dailyWidth = contWidth / endMonth; // width per day without factor
-            // console.log("🚀  ~ dailyWidth:", dailyWidth);
-            const totalLines = Math.round(dailyWidth) * endMonth; // total width for 31 days without factor
-
-            // Calculate factor to scale dailyWidth to reach 'total'
-            const factor = total / totalLines; // e.g., if total=500 and totalLines=400, factor=1.25
-
-            const adjustedDailyWidth = dailyWidth;
-
-            return `calc(${
-              adjustedDailyWidth < 50 ? 50 : adjustedDailyWidth
-            }px) 100%, calc(${
-              (adjustedDailyWidth < 50 ? 50 : adjustedDailyWidth) * 7
-            }px) 100%`;
-          })(),
+          backgroundSize: `${dailyWidth}px 100%`,
         }}
       >
         {Array.from({ length: weeksCount }, (_, i) => (
@@ -82,32 +70,26 @@ const WeekInterval = ({
           >
             {/* Week Label */}
             <div>
-              {/* <div className="flex flex-row gap-2 items-center mb-2 justify-center text-center">
-                <span className="font-[500] text-[13px] text-[rgba(0,0,255,0.5)]">
-                  Week
-                </span>
-                <p className="font-[500] text-[13px] text-blue-500">{i + 1}</p>
-              </div> */}
               <div className="font-[500] text-[13px]">
-                {datesByWeek[i] && (
-                  <div className="flex flex-row gap-2 items-center justify-center">
-                    <p>
-                      {moment(datesByWeek[i][0]).format("DD")} -{" "}
-                      {moment(datesByWeek[i][datesByWeek[i].length - 1]).format(
-                        "DD"
-                      )}
-                    </p>
-                  </div>
-                )}
-                {datesByWeek[i] && (
-                  <p className="text-[rgba(0,0,255,0.5)]">
-                    {moment(datesByWeek[i][0]).format("MMM")} -{" "}
+              {datesByWeek[i] && (
+                <div className="flex flex-row gap-2 items-center justify-center">
+                  <p>
+                    {moment(datesByWeek[i][0]).format("DD")} -{" "}
                     {moment(datesByWeek[i][datesByWeek[i].length - 1]).format(
-                      "MMM"
+                      "DD"
                     )}
                   </p>
-                )}
-              </div>
+                </div>
+              )}
+              {datesByWeek[i] && (
+                <p className="text-[rgba(0,0,255,0.5)]">
+                  {moment(datesByWeek[i][0]).format("MMM")} -{" "}
+                  {moment(datesByWeek[i][datesByWeek[i].length - 1]).format(
+                    "MMM"
+                  )}
+                </p>
+              )}
+            </div>
             </div>
           </div>
         ))}
