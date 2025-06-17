@@ -230,19 +230,7 @@ export const SetupScreen = () => {
     setRequiredFields(evaluatedFields);
   }, [campaignFormData, cId, setRequiredFields]);
 
-  // const sampleData = {
-  //   title: 'Toshiba',
-  //   parameters: [
-  //     {
-  //       name: 'parasonic',
-  //       subParameters: ['battery']
-  //     },
-  //     {
-  //       name: 'Radio',
-  //       subParameters: ['Wave', 'Book']
-  //     }
-  //   ]
-  // };
+
 
   if (!campaignFormData) {
     return <div>Loading...</div>;
