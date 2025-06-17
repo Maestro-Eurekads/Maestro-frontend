@@ -23,6 +23,7 @@ import {
 import { useUserPrivileges } from "utils/userPrivileges";
 import { getFirstLetters } from "./Options";
 import { useSelectedDates } from "app/utils/SelectedDatesContext";
+import { toast } from "sonner";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 const Header = ({ setIsOpen, setIsView }) => {
@@ -224,24 +225,39 @@ const Header = ({ setIsOpen, setIsView }) => {
             />
 
             <button
-              className={`new_plan_btn ml-8 mr-4 ${(!profile?.clients || !clients?.data || !selectedId) ? "!bg-[gray] cursor-not-allowed" : ""}`}
-              disabled={(!profile?.clients || !clients?.data || !selectedId)}
-              onClick={() => setIsView(true)}
+              className={`new_plan_btn ml-8 mr-4 ${(!profile?.clients?.length || !clients?.data?.length || !selectedId)
+                ? "!bg-gray-400 cursor-not-allowed"
+                : ""
+                }`}
+              disabled={!profile?.clients?.length || !clients?.data?.length || !selectedId}
+              onClick={() => {
+                if (isAgencyCreator) {
+                  toast.error("You do not have permission to perform this action.");
+                  return;
+                }
+                setIsView(true);
+              }}
             >
               <p className="new_plan_btn_text">View Client</p>
             </button>
 
-            {(isAdmin ||
-              isFinancialApprover ||
-              isAgencyApprover) && (
-                <button
-                  className="client_btn_text whitespace-nowrap w-fit"
-                  onClick={() => setIsOpen(true)}
-                >
-                  <Image src={plus} alt="plus" />
-                  New Client
-                </button>
-              )}
+
+            {(isAdmin || isFinancialApprover || isAgencyApprover) && (
+              <button
+                className="client_btn_text whitespace-nowrap w-fit"
+                onClick={() => {
+                  if (isAgencyCreator) {
+                    toast.error("You do not have permission to perform this action.");
+                    return;
+                  }
+                  setIsOpen(true);
+                }}
+              >
+                <Image src={plus} alt="plus" />
+                New Client
+              </button>
+            )}
+
 
           </>
         )}
@@ -315,7 +331,7 @@ const Header = ({ setIsOpen, setIsView }) => {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
