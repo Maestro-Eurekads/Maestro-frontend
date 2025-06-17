@@ -163,7 +163,7 @@ const Header = ({ setIsOpen, setIsView }) => {
 
 
   // console.log("clients=clients", clients);
-  // console.log("profile=profile", agencyId);
+  // console.log("profile=profile", profile);
 
 
 
