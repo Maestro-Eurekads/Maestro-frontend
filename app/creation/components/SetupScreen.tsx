@@ -253,6 +253,7 @@ export const SetupScreen = () => {
                 data={level1Options}
                 setCampaignFormData={setCampaignFormData}
                 formId="level_1"
+                title={"Level 1"}
               />
             </div>
             <div>
@@ -260,6 +261,7 @@ export const SetupScreen = () => {
                 data={level2Options}
                 setCampaignFormData={setCampaignFormData}
                 formId="level_2"
+                title={"Level 2"}
               />
             </div>
             <div>
@@ -267,6 +269,7 @@ export const SetupScreen = () => {
                 data={level3Options}
                 setCampaignFormData={setCampaignFormData}
                 formId="level_3"
+                title={"Level 3"}
               />
             </div>
           </div>
