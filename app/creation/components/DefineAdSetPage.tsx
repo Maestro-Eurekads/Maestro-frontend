@@ -63,16 +63,13 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     if (!goalLevel) {
       setIsModalOpen(true);
     } else if (goalLevel !== expectedGoalLevel) {
-      // Only update campaignFormData.goal_level if it's not what the view expects.
       setCampaignFormData((prev: any) => {
-        // Prevent unnecessary update if already correct
         if (prev.goal_level === expectedGoalLevel) return prev;
         return {
           ...prev,
           goal_level: expectedGoalLevel,
         };
       });
-     
     } else {
       setIsModalOpen(false);
     }
@@ -183,6 +180,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     }
   };
 
+  // Modified getRecapRows to only show one audience per channel in channel view
   const getRecapRows = (stageName: string) => {
     const recapRows: {
       platform: string;
@@ -244,12 +242,23 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         }
       });
     } else {
+      // Only one audience per channel (platform)
       platforms.forEach((platform: any) => {
+        // Try to get the first ad set's info if it exists, otherwise just show platform name
+        let type = "";
+        let name = "";
+        let size = "";
+        if (platform.ad_sets && platform.ad_sets.length > 0) {
+          const adSet = platform.ad_sets[0];
+          type = adSet.audience_type || "";
+          name = adSet.name || "";
+          size = adSet.size || "";
+        }
         recapRows.push({
           platform: platform.platform_name,
-          type: "",
-          name: "",
-          size: "",
+          type,
+          name,
+          size,
           adSetNumber: 1,
           isExtra: false,
         });
@@ -300,7 +309,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
         const currentStatus = stageStatuses[stageName] || "Not started";
         const isCompleted = currentStatus === "Completed";
-        // Remove isInProgress and all "In progress" logic
         const recapRows = getRecapRows(stageName);
 
         return (
@@ -320,7 +328,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                     height={20}
                   />
                 )}
-                {/* Funnel name text color changed to black */}
                 <p className="text-md font-semibold text-black">
                   {stage.name}
                 </p>
@@ -366,20 +373,53 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
               <div
                 className={`card_bucket_container_main_sub flex flex-col pb-6 w-full cursor-pointer min-h-[300px] overflow-x-scroll`}
               >
-                <AdSetsFlow
-                  stageName={stageName}
-                  onInteraction={() => handleInteraction(stageName)}
-                  onValidate={() => handleValidate(stageName)}
-                  onEditStart={() => resetInteraction(stageName)}
-                  modalOpen={isModalOpen}
-                  // Removed 'view' prop to resolve type error
-                />
+                {/* 
+                  When in channel view, hide AdSetsFlow and instead show a simple per-channel audience input (or nothing, if you want read-only).
+                  When in adset view, show AdSetsFlow as before.
+                */}
+                {view === "adset" ? (
+                  <AdSetsFlow
+                    stageName={stageName}
+                    onInteraction={() => handleInteraction(stageName)}
+                    onValidate={() => handleValidate(stageName)}
+                    onEditStart={() => resetInteraction(stageName)}
+                    modalOpen={isModalOpen}
+                  />
+                ) : (
+                  // Channel view: show nothing or a simple message, or a single audience per channel (read-only)
+                  <div className="p-6">
+                    <div className="font-semibold text-black mb-2">Audience for each channel</div>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full text-xs text-black">
+                        <thead>
+                          <tr>
+                            <th className="text-left pr-4 py-1 font-bold">Platform</th>
+                            <th className="text-left pr-4 py-1 font-bold">Audience Type</th>
+                            <th className="text-left pr-4 py-1 font-bold">Audience Name</th>
+                            <th className="text-left pr-4 py-1 font-bold">Audience Size</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {getRecapRows(stageName).map((row, idx) => (
+                            <tr key={idx}>
+                              <td className="pr-4 py-1 font-normal">{row.platform}</td>
+                              <td className="pr-4 py-1 font-normal">{row.type}</td>
+                              <td className="pr-4 py-1 font-normal">{row.name}</td>
+                              <td className="pr-4 py-1 font-normal">
+                                {formatWithThousandSeparator(row.size)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             {!openItems[stageName] && recapRows.length > 0 && (
               <div className="mt-2 mb-4">
                 <div className="bg-[#F5F7FA] border border-[#E5E7EB] rounded-lg px-4 py-3">
-                  {/* Audience Recap text color changed to black */}
                   <div className="font-bold text-black mb-2 text-sm">
                     Audience Recap
                   </div>
@@ -391,7 +431,13 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                           {view === "adset" && (
                             <th className="text-left pr-4 py-1 font-bold">Ad Set</th>
                           )}
-                          {view === "adset" && (
+                          {view === "adset" ? (
+                            <>
+                              <th className="text-left pr-4 py-1 font-bold">Audience Type</th>
+                              <th className="text-left pr-4 py-1 font-bold">Audience Name</th>
+                              <th className="text-left pr-4 py-1 font-bold">Audience Size</th>
+                            </>
+                          ) : (
                             <>
                               <th className="text-left pr-4 py-1 font-bold">Audience Type</th>
                               <th className="text-left pr-4 py-1 font-bold">Audience Name</th>
@@ -414,15 +460,11 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                                   : `Ad set n°${row.adSetNumber}`}
                               </td>
                             )}
-                            {view === "adset" && (
-                              <>
-                                <td className="pr-4 py-1 font-normal">{row.type}</td>
-                                <td className="pr-4 py-1 font-normal">{row.name}</td>
-                                <td className="pr-4 py-1 font-normal">
-                                  {formatWithThousandSeparator(row.size)}
-                                </td>
-                              </>
-                            )}
+                            <td className="pr-4 py-1 font-normal">{row.type}</td>
+                            <td className="pr-4 py-1 font-normal">{row.name}</td>
+                            <td className="pr-4 py-1 font-normal">
+                              {formatWithThousandSeparator(row.size)}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
