@@ -619,28 +619,34 @@ const AudienceDropdownWithCallback = memo(
         document.removeEventListener("mousedown", handleClickOutside);
     }, [isOpen, dropdownId, setOpenDropdownId]);
 
-    // --- FIX: Remove .truncate and allow long text to fit and wrap ---
+    // --- FIX: Make dropdown fit long custom audience text without truncation ---
+    // - Remove .truncate from the selected value
+    // - Make the dropdown button min-w-0 and w-full, and the container w-[172px] (or 200px)
+    // - Add styles to allow text to wrap or ellipsis only if it overflows the button, not forcibly truncate
+
     return (
-      <div>
+      <div style={{ width: "200px" }}>
         <div
-          className="relative border-2 border-[#0000001A] rounded-[10px]"
+          className="relative border-2 border-[#0000001A] rounded-[10px] w-full"
           data-dropdown-id={dropdownId}
         >
           <button
             onClick={toggleOpen}
-            className="relative z-10 w-[172px] bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
-            style={{ minHeight: "48px", minWidth: "172px", maxWidth: "100%", wordBreak: "break-word" }}
+            className="relative z-10 min-w-0 w-full bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
+            style={{
+              maxWidth: "100%",
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+            }}
+            type="button"
           >
             <span
-              // Removed .truncate, allow wrapping and long text
-              className="block w-full whitespace-normal break-words"
               style={{
-                maxWidth: "120px",
-                overflowWrap: "break-word",
-                wordBreak: "break-word",
-                whiteSpace: "normal",
                 display: "block",
-                textAlign: "left",
+                maxWidth: "calc(100% - 24px)",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
               title={selected || "Your audience type"}
             >
@@ -687,7 +693,7 @@ const AudienceDropdownWithCallback = memo(
                     style={{
                       wordBreak: "break-word",
                       whiteSpace: "normal",
-                      textAlign: "left",
+                      maxWidth: 300,
                     }}
                     title={option}
                   >
