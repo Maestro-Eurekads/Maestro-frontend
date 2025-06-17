@@ -17,18 +17,19 @@ import SportDropdownEdit from "./SportDropdownEdit";
 import CategoryDropdownEdit from "./CategoryDropdownEdit";
 import { agencyRoles, cleanName, clientRoles } from "components/Options";
 import Skeleton from "react-loading-skeleton";
+import axios from "axios";
 
 
 const ViewClientModal = ({ isView, setIsView }) => {
  const { data: session, status }: any = useSession();
-
+ const { isAgencyCreator } = useUserPrivileges();
  const { allClients, agencyId, selectedId: clientId, jwt } = useCampaigns();
  const [level1Options, setlevel1Options] = useState([]);
  const [level2Options, setlevel2Options] = useState([]);
  const [level3Options, setlevel3Options] = useState([]);
  const [users, setUsers] = useState({ agencyAccess: [], clientAccess: [] });
- const [agencyInput, setAgencyInput] = useState({ name: "", email: "", roles: [] });
- const [clientInput, setClientInput] = useState({ name: "", email: "", roles: [] });
+ const [agencyInput, setAgencyInput] = useState({ id: "", name: "", email: "", roles: [] });
+ const [clientInput, setClientInput] = useState({ id: "", name: "", email: "", roles: [] });
  const [editingUser, setEditingUser] = useState(null);
  const [showAgencyInput, setShowAgencyInput] = useState(false);
  const [showClientInput, setShowClientInput] = useState(false);
@@ -44,6 +45,11 @@ const ViewClientModal = ({ isView, setIsView }) => {
   categories: [],
   businessUnits: [],
  });
+
+
+ console.log('agencyInput - agencyInput', agencyInput)
+ console.log('clientInput - clientInput', clientInput)
+ console.log('users - users', users)
 
  useEffect(() => {
   if (allClients?.length > 0) {
@@ -234,76 +240,72 @@ const ViewClientModal = ({ isView, setIsView }) => {
  // };
 
  const confirmUpdate = async () => {
+  console.log('editingUser-editingUser', editingUser);
+
   const section = editingUser?.section;
   const input = section === "agencyAccess" ? agencyInput : clientInput;
   const { name, email, roles } = input;
   const trimmedEmail = email.trim();
   const trimmedName = name.trim();
   const userId = editingUser?.user?.id;
+  console.log('userId-userId', userId)
   const relatedClientUserId =
    section === "agencyAccess"
-    ? editingUser?.user?.agency_user?.data?.id
-    : editingUser?.user?.client_user?.data?.id;
-
+    ? editingUser?.user?.agency_user?.documentId
+    : editingUser?.user?.client_user?.documentId;
 
   setLoadingUpdate(true);
 
   try {
    // 1. Update the main user
-   const userRes = await fetch(
+   await axios.put(
     `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${userId}`,
     {
-     method: "PUT",
+     email: trimmedEmail,
+     user_type: roles[0],
+    },
+    {
      headers: {
       Authorization: `Bearer ${jwt}`,
-      "Content-Type": "application/json",
      },
-     body: JSON.stringify({
-      email: trimmedEmail,
-      user_type: roles[0],
-     }),
     }
    );
 
-   if (!userRes.ok) {
-    const errorData = await userRes.json();
-    throw new Error(errorData.error?.message || `HTTP ${userRes.status}`);
-   }
+   console.log('relatedClientUserId-relatedClientUserId', relatedClientUserId);
+   console.log('trimmedName-trimmedName', trimmedName);
 
    // 2. Update the related client_user or agency_user
    if (relatedClientUserId) {
-    const subRes = await fetch(
+    await axios.put(
      `${process.env.NEXT_PUBLIC_STRAPI_URL}/client-users/${relatedClientUserId}`,
      {
-      method: "PUT",
+      data: {
+       full_name: trimmedName,
+      },
+     },
+     {
       headers: {
        Authorization: `Bearer ${jwt}`,
-       "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-       full_name: trimmedName,
-      }),
      }
     );
-
-    if (!subRes.ok) {
-     const errorData = await subRes.json();
-     throw new Error(errorData.error?.message || `HTTP ${subRes.status}`);
-    }
    }
 
    toast.success("User updated successfully");
-
    await fetchUsers();
    resetInput(section);
    setShowConfirmPopup(false);
   } catch (error: any) {
    console.error("Update user error:", error);
-   toast.error(`Failed to update user: ${error.message}`);
+   const message =
+    error.response?.data?.error?.message || error.message || "Unknown error";
+   toast.error(`Failed to update user: ${message}`);
   } finally {
    setLoadingUpdate(false);
   }
  };
+
+
 
 
  // Handle delete user
@@ -343,15 +345,18 @@ const ViewClientModal = ({ isView, setIsView }) => {
 
  // Handle edit button click
  const handleEditUser = (section, user) => {
+  console.log('handleEditUser-handleEditUser', user)
   const setInput = section === "agencyAccess" ? setAgencyInput : setClientInput;
   const setShowInput = section === "agencyAccess" ? setShowAgencyInput :
    setShowClientInput;
-  console.log('agencyInput-agencyInput', agencyInput)
   const fullName =
    section === "agencyAccess"
     ? user?.agency_user?.full_name
     : user?.client_user?.full_name;
-  setInput({ name: fullName, email: user.email, roles: [user.user_type] });
+  setInput({
+   id: user.clients.documentId
+   , name: fullName, email: user.email, roles: [user.user_type]
+  });
   setEditingUser({ section, user });
   setShowInput(true);
  };
@@ -360,7 +365,7 @@ const ViewClientModal = ({ isView, setIsView }) => {
  const resetInput = (section) => {
   const setInput = section === "agencyAccess" ? setAgencyInput : setClientInput;
   const setShowInput = section === "agencyAccess" ? setShowAgencyInput : setShowClientInput;
-  setInput({ name: "", email: "", roles: [] });
+  setInput({ id: "", name: "", email: "", roles: [] });
   setEditingUser(null);
   setShowInput(false);
  };
@@ -509,18 +514,32 @@ const ViewClientModal = ({ isView, setIsView }) => {
                  </div>
                  <div className="flex items-center gap-2">
                   <button
-                   onClick={() => handleEditUser("agencyAccess", user)}
+                   onClick={() => {
+                    if (isAgencyCreator) {
+                     toast.error("You do not have permission to perform this action.");
+                     return;
+                    }
+                    handleEditUser("agencyAccess", user);
+                   }}
                    className="text-blue-500 group-hover:opacity-100 transition-opacity"
                   >
                    <MdEdit size={18} />
                   </button>
+
                   <button
-                   onClick={() => handleDeleteUser(user.id)}
+                   onClick={() => {
+                    if (isAgencyCreator) {
+                     toast.error("You do not have permission to perform this action.");
+                     return;
+                    }
+                    handleDeleteUser(user.id);
+                   }}
                    className="text-red-500 group-hover:opacity-100 transition-opacity"
                   >
                    <MdOutlineCancel size={18} />
                   </button>
                  </div>
+
                 </li>
                ))}
               </ul>
@@ -619,18 +638,32 @@ const ViewClientModal = ({ isView, setIsView }) => {
                  </div>
                  <div className="flex items-center gap-2">
                   <button
-                   onClick={() => handleEditUser("clientAccess", user)}
+                   onClick={() => {
+                    if (isAgencyCreator) {
+                     toast.error("You do not have permission to perform this action.");
+                     return;
+                    }
+                    handleEditUser("clientAccess", user);
+                   }}
                    className="text-blue-500 group-hover:opacity-100 transition-opacity"
                   >
                    <MdEdit size={18} />
                   </button>
+
                   <button
-                   onClick={() => handleDeleteUser(user.id)}
+                   onClick={() => {
+                    if (isAgencyCreator) {
+                     toast.error("You do not have permission to perform this action.");
+                     return;
+                    }
+                    handleDeleteUser(user.id);
+                   }}
                    className="text-red-500 group-hover:opacity-100 transition-opacity"
                   >
                    <MdOutlineCancel size={18} />
                   </button>
                  </div>
+
                 </li>
                ))}
               </ul>

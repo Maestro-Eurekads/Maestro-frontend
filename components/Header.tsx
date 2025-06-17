@@ -162,8 +162,8 @@ const Header = ({ setIsOpen, setIsView }) => {
   }, [clients, selectedId]);
 
 
-  // console.log("clients=clients", clients);
-  // console.log("profile=profile", profile);
+  // console.log("clients=clients", profile?.clients?.length);
+  // console.log("profile=profile", profile?.clients?.length);
 
 
 
@@ -211,12 +211,13 @@ const Header = ({ setIsOpen, setIsView }) => {
             />
 
             <button
-              className={`new_plan_btn ml-8 mr-4 ${profile?.clients?.length < 1 || clients?.data?.length < 1 ? "!bg-[gray]" : ""
-                }`}
-              disabled={profile?.clients?.length < 1 || clients?.data?.length < 1}
-              onClick={() => setIsView(true)} >
+              className={`new_plan_btn ml-8 mr-4 ${(!profile?.clients || !clients?.data) ? "!bg-[gray] cursor-not-allowed" : ""}`}
+              disabled={(!profile?.clients || !clients?.data)}
+              onClick={() => setIsView(true)}
+            >
               <p className="new_plan_btn_text">View Client</p>
             </button>
+
             {(isAdmin ||
               isFinancialApprover ||
               isAgencyApprover) && (
@@ -253,9 +254,9 @@ const Header = ({ setIsOpen, setIsView }) => {
                   })
                 }}>
                 <button
-                  className={`new_plan_btn ${profile?.clients?.length < 1 || clients?.data?.length < 1 ? "!bg-[gray]" : ""
+                  className={`new_plan_btn ${!profile?.clients || !clients?.data ? "!bg-[gray]" : ""
                     }`}
-                  disabled={profile?.clients?.length < 1 || clients?.data?.length < 1}
+                  disabled={!profile?.clients || !clients?.data}
                 // disabled={!profile?.clients?.[0]?.id && !isAdmin}
                 >
                   <Image src={white} alt="white" />
