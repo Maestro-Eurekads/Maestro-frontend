@@ -75,7 +75,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     }
   }, [campaignFormData, view, setCampaignFormData]);
 
-  // Initialize stage statuses and open items based on campaign data
   useEffect(() => {
     if (!campaignFormData?.funnel_stages || initialized.current) return;
 
@@ -109,12 +108,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         ];
 
         const hasAdSets =
-          view === "adset"
-            ? platforms.some(
-                (platform: any) =>
-                  platform.ad_sets && platform.ad_sets.length > 0
-              )
-            : platforms.length > 0;
+          platforms.some(
+            (platform: any) =>
+              platform.ad_sets && platform.ad_sets.length > 0
+          );
 
         if (hasAdSets) {
           initialOpenItems[stageName] = true;
@@ -127,7 +124,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     setStageStatuses(initialStatuses);
     setHasInteracted(initialInteractions);
     setOpenItems(initialOpenItems);
-  }, [campaignFormData, view]);
+  }, [campaignFormData]);
 
   const toggleItem = (stage: string) => {
     setOpenItems((prev) => {
@@ -168,9 +165,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           ...(stage.mobile || []),
         ].some(
           (platform: any) =>
-            view === "adset"
-              ? platform.ad_sets && platform.ad_sets.length > 0
-              : platform.platform_name
+            platform.ad_sets && platform.ad_sets.length > 0
         )
       : false;
 
@@ -180,7 +175,36 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     }
   };
 
-  // Modified getRecapRows to only show one audience per channel in channel view
+  // Returns true if at least one ad set with audience is present for the stage (for both channel and adset view)
+  const hasAnyAudience = (stage: any) => {
+    if (!stage) return false;
+    const platforms = [
+      ...(stage.search_engines || []),
+      ...(stage.display_networks || []),
+      ...(stage.social_media || []),
+      ...(stage.streaming || []),
+      ...(stage.ooh || []),
+      ...(stage.broadcast || []),
+      ...(stage.messaging || []),
+      ...(stage.print || []),
+      ...(stage.e_commerce || []),
+      ...(stage.in_game || []),
+      ...(stage.mobile || []),
+    ];
+    return platforms.some((platform: any) =>
+      (platform.ad_sets || []).some(
+        (adSet: any) =>
+          adSet.audience_type ||
+          adSet.name ||
+          adSet.size ||
+          (Array.isArray(adSet.extra_audiences) &&
+            adSet.extra_audiences.some(
+              (ea: any) => ea.audience_type || ea.name || ea.size
+            ))
+      )
+    );
+  };
+
   const getRecapRows = (stageName: string) => {
     const recapRows: {
       platform: string;
@@ -210,65 +234,40 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       ...(stage.mobile || []),
     ];
 
-    if (view === "adset") {
-      platforms.forEach((platform: any) => {
-        if (platform.ad_sets && platform.ad_sets.length > 0) {
-          platform.ad_sets.forEach((adSet: any, idx: number) => {
-            if (adSet.audience_type || adSet.name || adSet.size) {
-              recapRows.push({
-                platform: platform.platform_name,
-                type: adSet.audience_type || "",
-                name: adSet.name || "",
-                size: adSet.size || "",
-                adSetNumber: idx + 1,
-                isExtra: false,
-              });
-            }
-            if (Array.isArray(adSet.extra_audiences)) {
-              adSet.extra_audiences.forEach((ea: any, eidx: number) => {
-                if (ea.audience_type || ea.name || ea.size) {
-                  recapRows.push({
-                    platform: platform.platform_name,
-                    type: ea.audience_type || "",
-                    name: ea.name || "",
-                    size: ea.size || "",
-                    adSetNumber: idx + 1,
-                    isExtra: true,
-                  });
-                }
-              });
-            }
-          });
-        }
-      });
-    } else {
-      // Only one audience per channel (platform)
-      platforms.forEach((platform: any) => {
-        // Try to get the first ad set's info if it exists, otherwise just show platform name
-        let type = "";
-        let name = "";
-        let size = "";
-        if (platform.ad_sets && platform.ad_sets.length > 0) {
-          const adSet = platform.ad_sets[0];
-          type = adSet.audience_type || "";
-          name = adSet.name || "";
-          size = adSet.size || "";
-        }
-        recapRows.push({
-          platform: platform.platform_name,
-          type,
-          name,
-          size,
-          adSetNumber: 1,
-          isExtra: false,
+    platforms.forEach((platform: any) => {
+      if (platform.ad_sets && platform.ad_sets.length > 0) {
+        platform.ad_sets.forEach((adSet: any, idx: number) => {
+          if (adSet.audience_type || adSet.name || adSet.size) {
+            recapRows.push({
+              platform: platform.platform_name,
+              type: adSet.audience_type || "",
+              name: adSet.name || "",
+              size: adSet.size || "",
+              adSetNumber: idx + 1,
+              isExtra: false,
+            });
+          }
+          if (Array.isArray(adSet.extra_audiences)) {
+            adSet.extra_audiences.forEach((ea: any, eidx: number) => {
+              if (ea.audience_type || ea.name || ea.size) {
+                recapRows.push({
+                  platform: platform.platform_name,
+                  type: ea.audience_type || "",
+                  name: ea.name || "",
+                  size: ea.size || "",
+                  adSetNumber: idx + 1,
+                  isExtra: true,
+                });
+              }
+            });
+          }
         });
-      });
-    }
+      }
+    });
 
     return recapRows;
   };
 
-  // Only call onToggleChange and setCampaignFormData in response to user interaction (Switch)
   const handleToggleChange = (checked: boolean) => {
     const newView = checked ? "adset" : "channel";
     onToggleChange(newView);
@@ -310,6 +309,14 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         const currentStatus = stageStatuses[stageName] || "Not started";
         const isCompleted = currentStatus === "Completed";
         const recapRows = getRecapRows(stageName);
+
+        // Find the corresponding channel_mix stage for platform/adset data
+        const channelMixStage = campaignFormData?.channel_mix?.find(
+          (s: any) => s.funnel_stage === stageName
+        );
+
+        // Show recap for both channel and adset granularity if there is at least one adset with audience
+        const shouldShowRecap = hasAnyAudience(channelMixStage);
 
         return (
           <div key={stageName} className="w-full">
@@ -373,51 +380,16 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
               <div
                 className={`card_bucket_container_main_sub flex flex-col pb-6 w-full cursor-pointer min-h-[300px] overflow-x-scroll`}
               >
-                {/* 
-                  When in channel view, hide AdSetsFlow and instead show a simple per-channel audience input (or nothing, if you want read-only).
-                  When in adset view, show AdSetsFlow as before.
-                */}
-                {view === "adset" ? (
-                  <AdSetsFlow
-                    stageName={stageName}
-                    onInteraction={() => handleInteraction(stageName)}
-                    onValidate={() => handleValidate(stageName)}
-                    onEditStart={() => resetInteraction(stageName)}
-                    modalOpen={isModalOpen}
-                  />
-                ) : (
-                  // Channel view: show nothing or a simple message, or a single audience per channel (read-only)
-                  <div className="p-6">
-                    <div className="font-semibold text-black mb-2">Audience for each channel</div>
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full text-xs text-black">
-                        <thead>
-                          <tr>
-                            <th className="text-left pr-4 py-1 font-bold">Platform</th>
-                            <th className="text-left pr-4 py-1 font-bold">Audience Type</th>
-                            <th className="text-left pr-4 py-1 font-bold">Audience Name</th>
-                            <th className="text-left pr-4 py-1 font-bold">Audience Size</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {getRecapRows(stageName).map((row, idx) => (
-                            <tr key={idx}>
-                              <td className="pr-4 py-1 font-normal">{row.platform}</td>
-                              <td className="pr-4 py-1 font-normal">{row.type}</td>
-                              <td className="pr-4 py-1 font-normal">{row.name}</td>
-                              <td className="pr-4 py-1 font-normal">
-                                {formatWithThousandSeparator(row.size)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
+                <AdSetsFlow
+                  stageName={stageName}
+                  onInteraction={() => handleInteraction(stageName)}
+                  onValidate={() => handleValidate(stageName)}
+                  onEditStart={() => resetInteraction(stageName)}
+                  modalOpen={isModalOpen}
+                />
               </div>
             )}
-            {!openItems[stageName] && recapRows.length > 0 && (
+            {!openItems[stageName] && shouldShowRecap && recapRows.length > 0 && (
               <div className="mt-2 mb-4">
                 <div className="bg-[#F5F7FA] border border-[#E5E7EB] rounded-lg px-4 py-3">
                   <div className="font-bold text-black mb-2 text-sm">
@@ -428,22 +400,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                       <thead>
                         <tr>
                           <th className="text-left pr-4 py-1 font-bold">Platform</th>
-                          {view === "adset" && (
-                            <th className="text-left pr-4 py-1 font-bold">Ad Set</th>
-                          )}
-                          {view === "adset" ? (
-                            <>
-                              <th className="text-left pr-4 py-1 font-bold">Audience Type</th>
-                              <th className="text-left pr-4 py-1 font-bold">Audience Name</th>
-                              <th className="text-left pr-4 py-1 font-bold">Audience Size</th>
-                            </>
-                          ) : (
-                            <>
-                              <th className="text-left pr-4 py-1 font-bold">Audience Type</th>
-                              <th className="text-left pr-4 py-1 font-bold">Audience Name</th>
-                              <th className="text-left pr-4 py-1 font-bold">Audience Size</th>
-                            </>
-                          )}
+                          <th className="text-left pr-4 py-1 font-bold">Ad Set</th>
+                          <th className="text-left pr-4 py-1 font-bold">Audience Type</th>
+                          <th className="text-left pr-4 py-1 font-bold">Audience Name</th>
+                          <th className="text-left pr-4 py-1 font-bold">Audience Size</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -453,13 +413,11 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                             className={row.isExtra ? "bg-[#F9FAFB]" : ""}
                           >
                             <td className="pr-4 py-1 font-normal">{row.platform}</td>
-                            {view === "adset" && (
-                              <td className="pr-4 py-1 font-normal">
-                                {row.isExtra
-                                  ? `Ad set n°${row.adSetNumber} (Extra)`
-                                  : `Ad set n°${row.adSetNumber}`}
-                              </td>
-                            )}
+                            <td className="pr-4 py-1 font-normal">
+                              {row.isExtra
+                                ? `Ad set n°${row.adSetNumber} (Extra)`
+                                : `Ad set n°${row.adSetNumber}`}
+                            </td>
                             <td className="pr-4 py-1 font-normal">{row.type}</td>
                             <td className="pr-4 py-1 font-normal">{row.name}</td>
                             <td className="pr-4 py-1 font-normal">
