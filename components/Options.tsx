@@ -600,6 +600,18 @@ const cleanName = (name: string) => {
   return name?.trim().split("-")[0];
 };
 
+const agencyRoles = [
+  { label: "Campaign Creator", value: "agency_creator" },
+  { label: "Agency Campaign Approver", value: "agency_approver" },
+  { label: "Financial Approver", value: "financial_approver" },
+];
+
+const clientRoles = [
+  { label: "Viewer", value: "client" },
+  { label: "Client Campaign Approver", value: "client_approver" },
+];
+
+
 
 
 export {
@@ -607,6 +619,8 @@ export {
   kpiCategories,
   categoryOrder,
   selectCurrency,
+  agencyRoles,
+  clientRoles,
   getFirstLetters,
   extractPlatforms,
   NoRecordFound,
