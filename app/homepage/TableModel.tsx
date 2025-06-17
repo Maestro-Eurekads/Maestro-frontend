@@ -4,7 +4,6 @@ import Image from "next/image";
 import closefill from "../../public/close-fill.svg";
 import blueprofile from "../../public/blueprofile.svg";
 import Input from "../../components/Input";
-import FeeDropdowns from "./FeeDropdowns";
 import CategoryDropdown from "./components/CategoryDropdown";
 import SportDropdown from "./components/SportDropdown";
 import BusinessUnit from "./components/BusinessUnit";
@@ -14,8 +13,7 @@ import { MdEdit, MdOutlineCancel } from "react-icons/md";
 import {
  addClientUser,
  addNewClient,
- checkExisitingEmails,
- updateClient,
+ checkExisitingEmails
 } from "./functions/clients";
 import { getCreateClient } from "features/Client/clientSlice";
 import { useAppDispatch } from "store/useStore";
@@ -43,8 +41,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   businessUnits: [],
  });
 
- const [agencyInput, setAgencyInput] = useState({ title: "", name: "", email: "", roles: "" });
- const [clientInput, setClientInput] = useState({ title: "", name: "", email: "", roles: "" });
+ const [agencyInput, setAgencyInput] = useState({ name: "", email: "", roles: "" });
+ const [clientInput, setClientInput] = useState({ name: "", email: "", roles: "" });
  const [editingIndex, setEditingIndex] = useState(null); // Track index of user being edited
  const [editingSection, setEditingSection] = useState(null); // Track section being edited ("agencyAccess" or "clientAccess")
  const [loading, setLoading] = useState(false);
@@ -82,7 +80,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
  // Handle adding or updating a user to Agency Access
  const handleAddAgencyAccess = () => {
-  const { title, name, email, roles } = agencyInput;
+  const { name, email, roles } = agencyInput;
   const trimmedEmail = email.trim();
   const trimmedName = name.trim();
   const hasTwoWords = trimmedName.split(" ").filter(Boolean).length >= 2;
@@ -113,21 +111,21 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   setInputs((prev) => {
    const updatedAgencyAccess = [...prev.agencyAccess];
    if (editingIndex !== null && editingSection === "agencyAccess") {
-    updatedAgencyAccess[editingIndex] = { name: `${title} ${trimmedName}`, email: trimmedEmail, roles };
+    updatedAgencyAccess[editingIndex] = { name: `${trimmedName}`, email: trimmedEmail, roles };
    } else {
-    updatedAgencyAccess.push({ name: `${title} ${trimmedName}`, email: trimmedEmail, roles });
+    updatedAgencyAccess.push({ name: `${trimmedName}`, email: trimmedEmail, roles });
    }
    return { ...prev, agencyAccess: updatedAgencyAccess };
   });
 
-  setAgencyInput({ title: "", name: "", email: "", roles: "" });
+  setAgencyInput({ name: "", email: "", roles: "" });
   setEditingIndex(null);
   setEditingSection(null);
  };
 
  // Handle adding or updating a user to Client Access
  const handleAddClientAccess = () => {
-  const { title, name, email, roles } = clientInput;
+  const { name, email, roles } = clientInput;
   const trimmedEmail = email.trim();
   const trimmedName = name.trim();
   const hasTwoWords = trimmedName.split(" ").filter(Boolean).length >= 2;
@@ -158,14 +156,14 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   setInputs((prev) => {
    const updatedClientAccess = [...prev.clientAccess];
    if (editingIndex !== null && editingSection === "clientAccess") {
-    updatedClientAccess[editingIndex] = { name: `${title} ${trimmedName}`, email: trimmedEmail, roles };
+    updatedClientAccess[editingIndex] = { name: `${trimmedName}`, email: trimmedEmail, roles };
    } else {
-    updatedClientAccess.push({ name: `${title} ${trimmedName}`, email: trimmedEmail, roles });
+    updatedClientAccess.push({ name: `${trimmedName}`, email: trimmedEmail, roles });
    }
    return { ...prev, clientAccess: updatedClientAccess };
   });
 
-  setClientInput({ title: "", name: "", email: "", roles: "" });
+  setClientInput({ name: "", email: "", roles: "" });
   setEditingIndex(null);
   setEditingSection(null);
  };
@@ -173,9 +171,9 @@ const TableModel = ({ isOpen, setIsOpen }) => {
  // Handle edit button click
  const handleEditUser = (section, index) => {
   const user = inputs[section][index];
-  const [title, ...nameParts] = user.name.split(" ");
+  const [...nameParts] = user.name.split(" ");
   const name = nameParts.join(" ");
-  const inputData = { title: title || "", name, email: user.email, roles: user.roles };
+  const inputData = { name, email: user.email, roles: user.roles };
 
   if (section === "agencyAccess") {
    setAgencyInput(inputData);
@@ -261,7 +259,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     );
     localStorage.setItem(userType.toString(), res?.data?.data?.id);
 
-   //  getProfile();
+    //  getProfile();
 
     // Create user accounts for Agency Access emails
     for (const emailEntry of inputs.agencyAccess) {
@@ -323,8 +321,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
      categories: [],
      businessUnits: [],
     });
-    setAgencyInput({ title: "", name: "", email: "", roles: "" });
-    setClientInput({ title: "", name: "", email: "", roles: "" });
+    setAgencyInput({ name: "", email: "", roles: "" });
+    setClientInput({ name: "", email: "", roles: "" });
     setEditingIndex(null);
     setEditingSection(null);
     setIsOpen(false);
@@ -354,14 +352,13 @@ const TableModel = ({ isOpen, setIsOpen }) => {
    categories: [],
    businessUnits: [],
   });
-  setAgencyInput({ title: "", name: "", email: "", roles: "" });
-  setClientInput({ title: "", name: "", email: "", roles: "" });
+  setAgencyInput({ name: "", email: "", roles: "" });
+  setClientInput({ name: "", email: "", roles: "" });
   setEditingIndex(null);
   setEditingSection(null);
  };
 
- // Title options
- const titleOptions = ["", "Mr.", "Mrs.", "Ms.", "Dr."];
+
 
  return (
   <div className="z-50">

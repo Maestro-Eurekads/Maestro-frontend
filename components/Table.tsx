@@ -8,7 +8,7 @@ import line from "../public/ri-file-copy-line.svg";
 import ProgressBar from "./ProgressBar";
 import { useCampaigns } from "../app/utils/CampaignsContext";
 import { useRouter } from "next/navigation";
-import { getFirstLetters, NoRecordFound, SVGLoaderFetch } from "./Options";
+import { cleanName, getFirstLetters, NoRecordFound, SVGLoaderFetch } from "./Options";
 import { useCampaignSelection } from "../app/utils/CampaignSelectionContext";
 import { useEffect, useState } from "react";
 import Modal from "./Modals/Modal";
@@ -306,10 +306,10 @@ const Table = () => {
                       <div className="flex items-center whitespace-nowrap gap-3">
                         <div className="view_content_table">
                           {/* @ts-ignore */}
-                          {getFirstLetters(data?.campaign_builder?.username || "-")}
+                          {cleanName(getFirstLetters(data?.campaign_builder?.username || "-"))}
                         </div>
                         {/* @ts-ignore */}
-                        {data?.campaign_builder?.username || "-"}
+                        {cleanName(data?.campaign_builder?.username) || "-"}
                       </div>
                     </td>
                     <td className="py-[12px] px-[16px]">
@@ -317,18 +317,17 @@ const Table = () => {
                         <div className="view_content_table"> {/* @ts-ignore */}
                           {/* @ts-ignore */}  {data?.media_plan_details?.approved_by?.length > 0 ? (
                             data?.media_plan_details?.approved_by?.map((approver: any, idx: number) => (
-                              <span key={idx}>{getFirstLetters(approver?.username) || "-"}</span>
+                              <span key={idx}>{cleanName(getFirstLetters(approver?.username)) || "-"}</span>
                             ))
                           ) : (
                             <span>-</span>
                           )}
                         </div>
                         <p>
-
                           {/* @ts-ignore */}{data?.media_plan_details?.approved_by?.length > 0 ? (
                             data?.media_plan_details?.approved_by?.map((approver: any,
                               idx: number) => (
-                              <span key={idx}>{approver?.username || "-"}</span>
+                              <span key={idx}>{cleanName(approver?.username) || "-"}</span>
                             ))
                           ) : (
                             <span>-</span>
