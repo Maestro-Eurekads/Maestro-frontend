@@ -619,6 +619,7 @@ const AudienceDropdownWithCallback = memo(
         document.removeEventListener("mousedown", handleClickOutside);
     }, [isOpen, dropdownId, setOpenDropdownId]);
 
+    // --- FIX: Remove .truncate and allow long text to fit and wrap ---
     return (
       <div>
         <div
@@ -628,8 +629,23 @@ const AudienceDropdownWithCallback = memo(
           <button
             onClick={toggleOpen}
             className="relative z-10 w-[172px] bg-white text-left border border-[#0000001A] rounded-lg text-[#656565] text-sm flex items-center justify-between py-4 px-4"
+            style={{ minHeight: "48px", minWidth: "172px", maxWidth: "100%", wordBreak: "break-word" }}
           >
-            <span className="truncate">{selected || "Your audience type"}</span>
+            <span
+              // Removed .truncate, allow wrapping and long text
+              className="block w-full whitespace-normal break-words"
+              style={{
+                maxWidth: "120px",
+                overflowWrap: "break-word",
+                wordBreak: "break-word",
+                whiteSpace: "normal",
+                display: "block",
+                textAlign: "left",
+              }}
+              title={selected || "Your audience type"}
+            >
+              {selected || "Your audience type"}
+            </span>
             <svg
               className={`h-4 w-4 flex-shrink-0 transition-transform ${
                 isOpen ? "rotate-180" : ""
@@ -667,7 +683,13 @@ const AudienceDropdownWithCallback = memo(
                   <li
                     key={index}
                     onClick={() => handleSelect(option)}
-                    className="p-4 cursor-pointer text-[#656565] text-sm text-center whitespace-nowrap hover:bg-gray-100"
+                    className="p-4 cursor-pointer text-[#656565] text-sm text-center whitespace-normal break-words hover:bg-gray-100"
+                    style={{
+                      wordBreak: "break-word",
+                      whiteSpace: "normal",
+                      textAlign: "left",
+                    }}
+                    title={option}
                   >
                     {option}
                   </li>
@@ -1051,10 +1073,11 @@ const AdsetSettings = memo(function AdsetSettings({
     );
   }
 
+  // --- Moved "Add new adset" button to be on the same level as channel, right after channel button ---
   return (
     <div className="flex flex-col gap-2 w-full max-w-[1024px]">
       <div className="flex items-center gap-8">
-        <div className="relative">
+        <div className="relative flex items-center gap-4">
           <button
             className="relative min-w-[150px] max-w-[300px] w-fit z-20 flex gap-4 justify-between cursor-pointer items-center bg-[#F9FAFB] border border-[#0000001A] border-solid py-4 px-4 rounded-[10px]"
             onClick={() => setCollapsed(!isCollapsed)}
@@ -1072,76 +1095,78 @@ const AdsetSettings = memo(function AdsetSettings({
               }`}
             />
           </button>
-        </div>
-        {!isCollapsed && (
-          <DropdownContext.Provider value={{ openDropdownId, setOpenDropdownId }}>
-            <div
-              className="relative w-full"
-              style={{ minHeight: `${Math.max(194, (adsets.length + 1) * 80)}px` }}
+          {/* Add new adset button moved here */}
+          {!isCollapsed && (
+            <button
+              onClick={addNewAddset}
+              disabled={adsets.length >= 10}
+              className={`flex gap-2 items-center text-white ${
+                adsets.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
+              } px-4 py-2 rounded-full text-sm font-bold z-10 relative`}
+              style={{ marginLeft: "8px" }}
             >
-              {adsets.length > 0 && (
-                <>
-                  <div className="absolute top-0 left-0 mb-4">
-                    <button
-                      onClick={addNewAddset}
-                      disabled={adsets.length >= 10}
-                      className={`flex gap-2 items-center text-white ${
-                        adsets.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
-                      } px-4 py-2 rounded-full text-sm font-bold z-10 relative`}
-                    >
-                      <MdAdd />
-                      <span>
-                        {adsets.length >= 10 ? "Max limit reached" : "New ad set"}
-                      </span>
-                    </button>
-                  </div>
-
-                  {adsets.map((adset, index) => {
-                    const adSetData = adSetDataMap[adset.id] || {
-                      name: "",
-                      audience_type: "",
-                      size: "",
-                      description: "",
-                    };
-                    return (
-                      <div
-                        key={adset.id}
-                        className="relative"
-                        style={{
-                          marginTop: index === 0 ? "60px" : "0px",
-                          marginBottom: "20px",
-                        }}
-                      >
-                        <AdSet
-                          adset={adset}
-                          index={index}
-                          isEditing={isEditing}
-                          onDelete={deleteAdSet}
-                          onUpdate={updateAdSetData}
-                          audienceType={adSetData.audience_type}
-                          adSetName={adSetData.name}
-                          adSetSize={adSetData.size}
-                          adSetDescription={adSetData.description}
-                          extra_audiences={
-                            (adSetData.extra_audiences as AudienceData[]) || []
-                          }
-                          onUpdateExtraAudiences={(extraAudienceArray) =>
-                            updateAdSetData(adset.id, {
-                              extra_audiences: extraAudienceArray,
-                            })
-                          }
-                          onInteraction={onInteraction}
-                          adsets={adsets}
-                        />
-                      </div>
-                    );
-                  })}
-                </>
-              )}
-            </div>
-          </DropdownContext.Provider>
-        )}
+              <MdAdd />
+              <span>
+                {adsets.length >= 10 ? "Max limit reached" : "New ad set"}
+              </span>
+            </button>
+          )}
+        </div>
       </div>
+      {!isCollapsed && (
+        <DropdownContext.Provider value={{ openDropdownId, setOpenDropdownId }}>
+          <div
+            className="relative w-full"
+            style={{ minHeight: `${Math.max(194, (adsets.length + 1) * 80)}px` }}
+          >
+            {adsets.length > 0 && (
+              <>
+                {/* Removed old add new adset button from here */}
+                {adsets.map((adset, index) => {
+                  const adSetData = adSetDataMap[adset.id] || {
+                    name: "",
+                    audience_type: "",
+                    size: "",
+                    description: "",
+                  };
+                  return (
+                    <div
+                      key={adset.id}
+                      className="relative"
+                      style={{
+                        marginTop: index === 0 ? "20px" : "0px",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      <AdSet
+                        adset={adset}
+                        index={index}
+                        isEditing={isEditing}
+                        onDelete={deleteAdSet}
+                        onUpdate={updateAdSetData}
+                        audienceType={adSetData.audience_type}
+                        adSetName={adSetData.name}
+                        adSetSize={adSetData.size}
+                        adSetDescription={adSetData.description}
+                        extra_audiences={
+                          (adSetData.extra_audiences as AudienceData[]) || []
+                        }
+                        onUpdateExtraAudiences={(extraAudienceArray) =>
+                          updateAdSetData(adset.id, {
+                            extra_audiences: extraAudienceArray,
+                          })
+                        }
+                        onInteraction={onInteraction}
+                        adsets={adsets}
+                      />
+                    </div>
+                  );
+                })}
+              </>
+            )}
+          </div>
+        </DropdownContext.Provider>
+      )}
       {isCollapsed && recapRows.length > 0 && (
         <div className="mt-2 mb-4">
           <div className="bg-[#F5F7FA] border border-[#E5E7EB] rounded-lg px-4 py-3">
@@ -1444,7 +1469,6 @@ const AdSetFlow = memo(function AdSetFlow({
       [outletName]: !prev[outletName],
     }));
   };
-
   return (
     <CustomAudienceTypesContext.Provider
       value={{

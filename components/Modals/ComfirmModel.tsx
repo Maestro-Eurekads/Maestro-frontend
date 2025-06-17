@@ -113,8 +113,6 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 
 
 
-
-
 	const handlePlan = async () => {
 		setLoading(true);
 
