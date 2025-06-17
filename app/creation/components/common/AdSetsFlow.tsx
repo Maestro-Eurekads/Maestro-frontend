@@ -34,7 +34,7 @@ import { getPlatformIcon, mediaTypes } from "components/data";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-// --- Custom Audience Types Context ---
+// --- Custom Audience Types Context (Global, for all stages) ---
 const CustomAudienceTypesContext = createContext<{
   customAudienceTypes: string[];
   addCustomAudienceType: (type: string) => void;
@@ -509,7 +509,7 @@ const AudienceDropdownWithCallback = memo(
   }) {
     const { openDropdownId, setOpenDropdownId } = useContext(DropdownContext);
     const { customAudienceTypes, addCustomAudienceType } = useContext(CustomAudienceTypesContext);
-    const { jwt } = useCampaigns(); // Add jwt from useCampaigns context
+    const { jwt } = useCampaigns();
 
     // Default options
     const defaultOptions = [
@@ -583,7 +583,7 @@ const AudienceDropdownWithCallback = memo(
           { data: { text: customValue } },
           {
             headers: {
-              Authorization: `Bearer ${jwt}`, // Use jwt from context
+              Authorization: `Bearer ${jwt}`,
             },
           }
         );
@@ -1186,6 +1186,9 @@ const AdsetSettings = memo(function AdsetSettings({
 });
 
 // Main AdSetFlow Component
+const globalCustomAudienceTypes: string[] = [];
+let globalSetCustomAudienceTypes: ((types: string[]) => void) | null = null;
+
 const AdSetFlow = memo(function AdSetFlow({
   stageName,
   onInteraction,
@@ -1207,8 +1210,12 @@ const AdSetFlow = memo(function AdSetFlow({
     Record<string, boolean>
   >({});
 
-  // --- Custom Audience Types State (persisted in-memory for session) ---
+  // --- Custom Audience Types State (global, in-memory for session, and cross-stage) ---
   const [customAudienceTypes, setCustomAudienceTypes] = useState<string[]>(() => {
+    // Try to get from global variable first
+    if (globalCustomAudienceTypes.length > 0) {
+      return [...globalCustomAudienceTypes];
+    }
     if (typeof window !== "undefined") {
       try {
         const stored = window.sessionStorage.getItem("customAudienceTypes");
@@ -1220,6 +1227,15 @@ const AdSetFlow = memo(function AdSetFlow({
     return [];
   });
 
+  // Keep global reference in sync
+  useEffect(() => {
+    globalCustomAudienceTypes.length = 0;
+    customAudienceTypes.forEach((t) => globalCustomAudienceTypes.push(t));
+    if (globalSetCustomAudienceTypes !== setCustomAudienceTypes) {
+      globalSetCustomAudienceTypes = setCustomAudienceTypes;
+    }
+  }, [customAudienceTypes]);
+
   // Persist custom audience types to sessionStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -1230,10 +1246,40 @@ const AdSetFlow = memo(function AdSetFlow({
     }
   }, [customAudienceTypes]);
 
+  // Listen for global changes (from other AdSetFlow instances)
+  useEffect(() => {
+    // Custom event for cross-component update
+    function handleCustomAudienceUpdate(e: any) {
+      if (Array.isArray(e.detail)) {
+        setCustomAudienceTypes(e.detail);
+      }
+    }
+    window.addEventListener("customAudienceTypesUpdated", handleCustomAudienceUpdate);
+    return () => {
+      window.removeEventListener("customAudienceTypesUpdated", handleCustomAudienceUpdate);
+    };
+  }, []);
+
+  // Add custom audience type globally and broadcast to all AdSetFlow instances
   const addCustomAudienceType = useCallback((type: string) => {
     setCustomAudienceTypes((prev) => {
       if (!prev.includes(type)) {
-        return [...prev, type];
+        const updated = [...prev, type];
+        // Update global variable
+        globalCustomAudienceTypes.length = 0;
+        updated.forEach((t) => globalCustomAudienceTypes.push(t));
+        // Broadcast to all AdSetFlow instances
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem("customAudienceTypes", JSON.stringify(updated));
+          window.dispatchEvent(
+            new CustomEvent("customAudienceTypesUpdated", { detail: updated })
+          );
+        }
+        // If another AdSetFlow is mounted, update its state
+        if (globalSetCustomAudienceTypes && globalSetCustomAudienceTypes !== setCustomAudienceTypes) {
+          globalSetCustomAudienceTypes(updated);
+        }
+        return updated;
       }
       return prev;
     });
