@@ -76,6 +76,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const cId = query.get("campaignId");
   const { loadingClients: hookLoadingClients, allClients: hookAllClients } =
     useCampaignHook();
+  const [FC, setFC] = useState(null);
   const [loadingObj, setLoadingObj] = useState(false);
   const [platformList, setPlatformList] = useState({});
   const [objectives, setObjectives] = useState([]);
@@ -106,7 +107,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const [agencyId, setAgencyId] = useState<string | number | null>(null);
   const [selectedClient, setSelectedClient] = useState()
   const [agencyData, setAgencyData] = useState(null);
-
+  const [selectedId, setSelectedId] = useState<string>("");
 
 
   const reduxClients = useSelector(
@@ -368,47 +369,47 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     [cId]
   );
 
-  const fetchBusinessLevelOptions = useCallback(async (clientId: string) => {
-    if (!clientId) return;
-    try {
-      setLoading(true);
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}?populate=*`,
-        {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      );
-      const data = response?.data?.data || {};
-      console.log("Business Level Options Data:", data);
-      setBusinessLevelOptions({
-        level1:
-          data?.level_1?.map((item: string) => ({
-            id: item,
-            value: item,
-            label: item,
-          })) || [],
-        level2:
-          data?.level_2?.map((item: string) => ({
-            id: item,
-            value: item,
-            label: item,
-          })) || [],
-        level3:
-          data?.level_3?.map((item: string) => ({
-            id: item,
-            value: item,
-            label: item,
-          })) || [],
-      });
-    } catch (error) {
-      console.error("Error fetching business level options:", error);
-      setBusinessLevelOptions({ level1: [], level2: [], level3: [] });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // const fetchBusinessLevelOptions = useCallback(async (clientId: string) => {
+  //   if (!clientId) return;
+  //   try {
+  //     setLoading(true);
+  //     const response = await axios.get(
+  //       `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}?populate=*`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${jwt}`,
+  //         },
+  //       }
+  //     );
+  //     const data = response?.data?.data || {};
+  //     console.log("Business Level Options Data:", data);
+  //     setBusinessLevelOptions({
+  //       level1:
+  //         data?.level_1?.map((item: string) => ({
+  //           id: item,
+  //           value: item,
+  //           label: item,
+  //         })) || [],
+  //       level2:
+  //         data?.level_2?.map((item: string) => ({
+  //           id: item,
+  //           value: item,
+  //           label: item,
+  //         })) || [],
+  //       level3:
+  //         data?.level_3?.map((item: string) => ({
+  //           id: item,
+  //           value: item,
+  //           label: item,
+  //         })) || [],
+  //     });
+  //   } catch (error) {
+  //     console.error("Error fetching business level options:", error);
+  //     setBusinessLevelOptions({ level1: [], level2: [], level3: [] });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, []);
 
   const fetchObjectives = useCallback(async () => {
     setLoadingObj(true);
@@ -572,18 +573,18 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   }, [organizeAdvertisingPlatforms]);
 
   // Fetch business level options when client selection changes
-  useEffect(() => {
-    // const clientId = campaignFormData?.client_selection?.id;
-    if (selectedClient) {
-      fetchBusinessLevelOptions(selectedClient);
-      setCampaignFormData((prev) => ({
-        ...prev,
-        level_1: { id: "", value: "" },
-        level_2: { id: "", value: "" },
-        level_3: { id: "", value: "" },
-      }));
-    }
-  }, [selectedClient, fetchBusinessLevelOptions]);
+  // useEffect(() => {
+  //   // const clientId = campaignFormData?.client_selection?.id;
+  //   if (selectedClient) {
+  //     fetchBusinessLevelOptions(selectedClient);
+  //     setCampaignFormData((prev) => ({
+  //       ...prev,
+  //       level_1: { id: "", value: "" },
+  //       level_2: { id: "", value: "" },
+  //       level_3: { id: "", value: "" },
+  //     }));
+  //   }
+  // }, [selectedClient, fetchBusinessLevelOptions]);
 
   // Initial data fetching
   useEffect(() => {
@@ -676,7 +677,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       jwt,
       agencyId,
       selectedClient,
-      setSelectedClient
+      setSelectedClient,
+      selectedId,
+      setSelectedId,
+      FC,
+      setFC
     }),
     [
       getUserByUserType,
@@ -715,7 +720,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       clientUsers,
       agencyId,
       selectedClient,
-      setSelectedClient
+      setSelectedClient,
+      selectedId,
+      setSelectedId,
+      FC,
+      setFC
     ]
   );
 

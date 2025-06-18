@@ -278,7 +278,7 @@ const TableView = () => {
           })
         } else {
           // No selected metrics for this objective, add all metrics
-          console.log(`No selected metrics for ${stageName}, objective ${objective}, adding all metrics`)
+          // console.log(`No selected metrics for ${stageName}, objective ${objective}, adding all metrics`)
 
           headers.forEach((header) => {
             // Skip default headers as they're already added

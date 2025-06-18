@@ -125,9 +125,6 @@ const ClientView = () => {
 
 
 
-
-
-
 	const fetchCategories = async (campaign_id) => {
 		const kpiData = await getKpis(campaign_id);
 		if (kpiData) {

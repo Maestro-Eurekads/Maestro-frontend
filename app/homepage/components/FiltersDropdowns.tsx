@@ -209,7 +209,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
   const isYearSelected = !!selectedFilters["year"];
 
-  console.log("Selected Filters:", filters);
+  // console.log("Selected Filters:", filters);
 
   return (
     <div>
@@ -241,19 +241,19 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
               if (selected) return selected;
               if (label === "Level_1") {
                 return (
-                  filters.find((f) => f.label === "Level_1_name")?.options[0]?.value ||
+                  filters.find((f) => f.label === "Level_1_name")?.options[0]?.title ||
                   label.replace("_", " ")
                 );
               }
               if (label === "Level_2") {
                 return (
-                  filters.find((f) => f.label === "Level_2_name")?.options[0]?.value ||
+                  filters.find((f) => f.label === "Level_2_name")?.options[0]?.title ||
                   label.replace("_", " ")
                 );
               }
               if (label === "Level_3") {
                 return (
-                  filters.find((f) => f.label === "Level_3_name")?.options[0]?.value ||
+                  filters.find((f) => f.label === "Level_3_name")?.options[0]?.title ||
                   label.replace("_", " ")
                 );
               }
@@ -262,6 +262,12 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
             const displayLabel = getDisplayLabel();
             const nested = convertToNestedStructure(options[0]);
+
+            // console.log("Nested Options:", nested);
+            // console.log("options-----Options:", options);
+            // console.log("displayLabel-----displayLabel:", displayLabel);
+            // console.log("label-----label:", label);
+            // console.log("filters-----filters:", filters);
 
 
             return (

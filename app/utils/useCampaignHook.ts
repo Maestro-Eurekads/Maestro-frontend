@@ -1,5 +1,5 @@
 //@ts-nocheck
-
+"use client";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { useState, useEffect, useCallback } from "react";
@@ -33,7 +33,7 @@ const useCampaignHook = () => {
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients`,
         {
           params: {
-            filters,
+            // filters,
             populate: {
               agency: {
                 populate: {

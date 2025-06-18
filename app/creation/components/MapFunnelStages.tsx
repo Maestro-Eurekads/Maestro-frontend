@@ -269,8 +269,8 @@ const MapFunnelStages = () => {
         : loadedCustomFunnels.map(f => f.name)
       const orderedChannelMix = initialChannelMix.length > 0 && !isNewPlan
         ? loadedCustomFunnels
-            .map(f => initialChannelMix.find((ch: any) => ch?.funnel_stage === f.name))
-            .filter((ch): ch is { funnel_stage: string } => !!ch)
+          .map(f => initialChannelMix.find((ch: any) => ch?.funnel_stage === f.name))
+          .filter((ch): ch is { funnel_stage: string } => !!ch)
         : loadedCustomFunnels.map(f => ({ funnel_stage: f.name }))
 
       const updatedFormData = {
@@ -539,7 +539,7 @@ const MapFunnelStages = () => {
       return
     }
     const newFunnels = [...persistentCustomFunnels]
-    ;[newFunnels[draggedIndex], newFunnels[index]] = [newFunnels[index], newFunnels[draggedIndex]]
+      ;[newFunnels[draggedIndex], newFunnels[index]] = [newFunnels[index], newFunnels[draggedIndex]]
 
     setPersistentCustomFunnels(newFunnels)
     setCustomFunnels(newFunnels)
@@ -785,9 +785,8 @@ const MapFunnelStages = () => {
                     {funnelConfigs.map((config, idx) => (
                       <li
                         key={`config-${config.name}-${idx}`}
-                        className={`px-4 py-3 cursor-pointer hover:bg-blue-50 ${
-                          selectedConfigIdx === idx ? "bg-blue-100 font-bold" : ""
-                        }`}
+                        className={`px-4 py-3 cursor-pointer hover:bg-blue-50 ${selectedConfigIdx === idx ? "bg-blue-100 font-bold" : ""
+                          }`}
                         role="option"
                         aria-selected={selectedConfigIdx === idx}
                         onClick={() => handleConfigSelect(idx)}
@@ -804,9 +803,8 @@ const MapFunnelStages = () => {
                 {presetStructures.map((preset, idx) => (
                   <li
                     key={`preset-${preset.label}-${idx}`}
-                    className={`px-4 py-3 cursor-pointer hover:bg-blue-50 ${
-                      selectedPreset === idx && selectedConfigIdx === null ? "bg-blue-100 font-bold" : ""
-                    }`}
+                    className={`px-4 py-3 cursor-pointer hover:bg-blue-50 ${selectedPreset === idx && selectedConfigIdx === null ? "bg-blue-100 font-bold" : ""
+                      }`}
                     role="option"
                     aria-selected={selectedPreset === idx && selectedConfigIdx === null}
                     onClick={() => handlePresetSelect(idx)}

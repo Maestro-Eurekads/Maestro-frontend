@@ -15,19 +15,21 @@ import { addNewClient, checkExisitingEmails } from "../functions/clients";
 import BusinessUnitEdit from "./BusinessUnitEdit";
 import SportDropdownEdit from "./SportDropdownEdit";
 import CategoryDropdownEdit from "./CategoryDropdownEdit";
+import { agencyRoles, cleanName, clientRoles } from "components/Options";
+import Skeleton from "react-loading-skeleton";
+import axios from "axios";
 
 
 const ViewClientModal = ({ isView, setIsView }) => {
  const { data: session, status }: any = useSession();
- const jwt = (session?.user as { data?: { jwt: string } })?.data?.jwt;
- const agencyId = session?.user?.data?.agency?.id;
- const { allClients } = useCampaigns();
+ const { isAgencyCreator } = useUserPrivileges();
+ const { allClients, agencyId, selectedId: clientId, jwt } = useCampaigns();
  const [level1Options, setlevel1Options] = useState([]);
  const [level2Options, setlevel2Options] = useState([]);
  const [level3Options, setlevel3Options] = useState([]);
  const [users, setUsers] = useState({ agencyAccess: [], clientAccess: [] });
- const [agencyInput, setAgencyInput] = useState({ name: "", email: "", roles: [] });
- const [clientInput, setClientInput] = useState({ name: "", email: "", roles: [] });
+ const [agencyInput, setAgencyInput] = useState({ id: "", name: "", email: "", roles: [] });
+ const [clientInput, setClientInput] = useState({ id: "", name: "", email: "", roles: [] });
  const [editingUser, setEditingUser] = useState(null);
  const [showAgencyInput, setShowAgencyInput] = useState(false);
  const [showClientInput, setShowClientInput] = useState(false);
@@ -43,6 +45,11 @@ const ViewClientModal = ({ isView, setIsView }) => {
   categories: [],
   businessUnits: [],
  });
+
+
+ console.log('agencyInput - agencyInput', agencyInput)
+ console.log('clientInput - clientInput', clientInput)
+ console.log('users - users', users)
 
  useEffect(() => {
   if (allClients?.length > 0) {
@@ -92,11 +99,18 @@ const ViewClientModal = ({ isView, setIsView }) => {
   return () => document.body.classList.remove("overflow-hidden");
  }, [isView, jwt]);
 
- // Fetch users from Strapi
+
+
+ const populateParams = ["populate=*"];
  const fetchUsers = async () => {
+  const baseUrl = `${process.env.NEXT_PUBLIC_STRAPI_URL}/users`;
+  const filterParams = [];
+  if (clientId) {
+   filterParams.push(`filters[clients][id][$eq]=${encodeURIComponent(clientId)}`);
+  }
   setLoading(true);
   try {
-   const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/users?populate=*`, {
+   const response = await fetch(`${baseUrl}?${[...filterParams, ...populateParams].join("&")}`, {
     headers: {
      Authorization: `Bearer ${jwt}`,
     },
@@ -106,13 +120,13 @@ const ViewClientModal = ({ isView, setIsView }) => {
     throw new Error(errorData.error?.message || `HTTP ${response.status}`);
    }
    const data = await response.json();
-   const filteredUsers = agencyId ? data.filter((user) => user.agency?.id === agencyId) : data;
+
 
    // Separate users by role
-   const agencyAccess = filteredUsers.filter((user) =>
+   const agencyAccess = data?.filter((user) =>
     ["agency_creator", "agency_approver", "financial_approver"].includes(user.user_type)
    );
-   const clientAccess = filteredUsers.filter((user) =>
+   const clientAccess = data?.filter((user) =>
     ["client", "client_approver"].includes(user.user_type)
    );
    setUsers({ agencyAccess, clientAccess });
@@ -183,47 +197,149 @@ const ViewClientModal = ({ isView, setIsView }) => {
   setShowConfirmPopup(true);
  };
 
- // Confirm update user
  const confirmUpdate = async () => {
+  console.log('editingUser-editingUser', editingUser);
+
   const section = editingUser?.section;
   const input = section === "agencyAccess" ? agencyInput : clientInput;
   const { name, email, roles } = input;
   const trimmedEmail = email.trim();
   const trimmedName = name.trim();
+  const userId = editingUser?.user?.id;
+
+  console.log('userId-userId', userId);
+
+  // Determine the correct related user ID based on section
+  const relatedUserId =
+   section === "agencyAccess"
+    ? editingUser?.user?.agency_user?.documentId
+    : editingUser?.user?.client_user?.documentId;
+
+  // Determine the related user endpoint
+  const relatedUserEndpoint =
+   section === "agencyAccess" ? "agency-users" : "client-users";
+
   setLoadingUpdate(true);
 
   try {
-   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${editingUser.user.id}`,
+   // 1. Update the main user
+   await axios.put(
+    `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${userId}`,
     {
-     method: "PUT",
+     email: trimmedEmail,
+     user_type: roles[0],
+    },
+    {
      headers: {
       Authorization: `Bearer ${jwt}`,
-      "Content-Type": "application/json",
      },
-     body: JSON.stringify({
-      username: trimmedName,
-      email: trimmedEmail,
-      user_type: roles[0], // Use the single selected role
-     }),
     }
    );
-   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error?.message || `HTTP ${response.status}`);
-   }
-   toast.success("User updated successfully");
 
+   // console.log('relatedUserId', relatedUserId);
+   // console.log('trimmedName', trimmedName);
+
+   // 2. Update the related agency-user or client-user
+   if (relatedUserId) {
+    await axios.put(
+     `${process.env.NEXT_PUBLIC_STRAPI_URL}/${relatedUserEndpoint}/${relatedUserId}`,
+     {
+      data: {
+       full_name: trimmedName,
+      },
+     },
+     {
+      headers: {
+       Authorization: `Bearer ${jwt}`,
+      },
+     }
+    );
+   }
+
+   toast.success("User updated successfully");
    await fetchUsers();
    resetInput(section);
    setShowConfirmPopup(false);
-  } catch (error) {
+  } catch (error: any) {
    console.error("Update user error:", error);
-   toast.error(`Failed to update user: ${error.message}`);
+   const message =
+    error.response?.data?.error?.message || error.message || "Unknown error";
+   toast.error(`Failed to update user: ${message}`);
   } finally {
    setLoadingUpdate(false);
   }
  };
+
+
+ // const confirmUpdate = async () => {
+ //  console.log('editingUser-editingUser', editingUser);
+
+ //  const section = editingUser?.section;
+ //  const input = section === "agencyAccess" ? agencyInput : clientInput;
+ //  const { name, email, roles } = input;
+ //  const trimmedEmail = email.trim();
+ //  const trimmedName = name.trim();
+ //  const userId = editingUser?.user?.id;
+ //  console.log('userId-userId', userId)
+ //  const relatedClientUserId =
+ //   section === "agencyAccess"
+ //    ? editingUser?.user?.agency_user?.documentId
+ //    : editingUser?.user?.client_user?.documentId;
+
+ //  setLoadingUpdate(true);
+
+ //  try {
+ //   // 1. Update the main user
+ //   await axios.put(
+ //    `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${userId}`,
+ //    {
+ //     email: trimmedEmail,
+ //     user_type: roles[0],
+ //    },
+ //    {
+ //     headers: {
+ //      Authorization: `Bearer ${jwt}`,
+ //     },
+ //    }
+ //   );
+
+ //   console.log('relatedClientUserId-relatedClientUserId', relatedClientUserId);
+ //   console.log('trimmedName-trimmedName', trimmedName);
+
+ //   // 2. Update the related client_user or agency_user
+ //   if (relatedClientUserId) {
+ //    await axios.put(
+ //     `${process.env.NEXT_PUBLIC_STRAPI_URL}/client-users/${relatedClientUserId}`,
+ //     {
+ //      data: {
+ //       full_name: trimmedName,
+ //      },
+ //     },
+ //     {
+ //      headers: {
+ //       Authorization: `Bearer ${jwt}`,
+ //      },
+ //     }
+ //    );
+ //   }
+
+ //   toast.success("User updated successfully");
+ //   await fetchUsers();
+ //   resetInput(section);
+ //   setShowConfirmPopup(false);
+ //  } catch (error: any) {
+ //   console.error("Update user error:", error);
+ //   const message =
+ //    error.response?.data?.error?.message || error.message || "Unknown error";
+ //   toast.error(`Failed to update user: ${message}`);
+ //  } finally {
+ //   setLoadingUpdate(false);
+ //  }
+ // };
+
+
+
+
 
  // Handle delete user
  const handleDeleteUser = (userId) => {
@@ -260,11 +376,23 @@ const ViewClientModal = ({ isView, setIsView }) => {
   }
  };
 
+
+
+
  // Handle edit button click
  const handleEditUser = (section, user) => {
+  console.log('handleEditUser-handleEditUser', user)
   const setInput = section === "agencyAccess" ? setAgencyInput : setClientInput;
-  const setShowInput = section === "agencyAccess" ? setShowAgencyInput : setShowClientInput;
-  setInput({ name: user.username, email: user.email, roles: [user.user_type] });
+  const setShowInput = section === "agencyAccess" ? setShowAgencyInput :
+   setShowClientInput;
+  const fullName =
+   section === "agencyAccess"
+    ? user?.agency_user?.full_name
+    : user?.client_user?.full_name;
+  setInput({
+   id: user.clients.documentId
+   , name: fullName, email: user.email, roles: [user.user_type]
+  });
   setEditingUser({ section, user });
   setShowInput(true);
  };
@@ -273,7 +401,7 @@ const ViewClientModal = ({ isView, setIsView }) => {
  const resetInput = (section) => {
   const setInput = section === "agencyAccess" ? setAgencyInput : setClientInput;
   const setShowInput = section === "agencyAccess" ? setShowAgencyInput : setShowClientInput;
-  setInput({ name: "", email: "", roles: [] });
+  setInput({ id: "", name: "", email: "", roles: [] });
   setEditingUser(null);
   setShowInput(false);
  };
@@ -287,19 +415,8 @@ const ViewClientModal = ({ isView, setIsView }) => {
   setDeletingUserId(null);
  };
 
- const agencyRoles = [
-  { label: "Campaign Creator", value: "agency_creator" },
-  { label: "Agency Campaign Approver", value: "agency_approver" },
-  { label: "Financial Approver", value: "financial_approver" },
- ];
-
- const clientRoles = [
-  { label: "Viewer", value: "client" },
-  { label: "Client Campaign Approver", value: "client_approver" },
- ];
 
 
- console.log("Users-users:", users);
 
  return (
   <div className="z-50">
@@ -324,249 +441,295 @@ const ViewClientModal = ({ isView, setIsView }) => {
 
       {/* Scrollable Body */}
       <div className="p-6 overflow-y-auto max-h-[60vh]">
-       {/* Agency Access Section */}
-       <div className="mt-4">
-        <label className="font-medium text-[15px] leading-5 text-gray-600">
-         Agency Access
-        </label>
 
-        <div className="flex items-start gap-3 w-full mt-2">
-         <div className="flex flex-col items-start gap-1 w-full">
-          <div className="shrink-0 w-[80%]">
-           <Input
-            type="text"
-            value={agencyInput.name}
-            handleOnChange={(e) =>
-             handleInputChange("agencyAccess", "name", e.target.value)
-            }
-            label=""
-            placeholder="Full Name"
-           />
-          </div>
-          <div className="shrink-0 w-[100%]">
-           <Input
-            type="email"
-            value={agencyInput.email}
-            handleOnChange={(e) =>
-             handleInputChange("agencyAccess", "email", e.target.value)
-            }
-            label=""
-            placeholder="Enter email address"
-           />
-          </div>
+       {loading ?
+        <div className="flex flex-col gap-4">
+         <div>
+          <Skeleton height={100} width={"50%"} />
+          <Skeleton height={50} width={"60%"} />
+          <Skeleton height={30} width={"80%"} />
+          <Skeleton height={30} width={"100%"} />
+          <Skeleton height={30} width={"100%"} />
          </div>
-         <div className="shrink-0 w-[25%]">
-          <label className="font-medium text-[15px] leading-5 text-gray-600">
-           Role
-          </label>
-          <div className="mt-1">
-           {agencyRoles.map((role) => (
-            <div key={role.value} className="flex items-center gap-2">
-             <input
-              type="checkbox"
-              checked={agencyInput.roles.includes(role.value)}
-              onChange={() => handleRoleChange("agencyAccess", role.value)}
-             />
-             <span className="text-sm">{role.label}</span>
-            </div>
-           ))}
-          </div>
+
+         <div>
+          <Skeleton height={100} width={"50%"} />
+          <Skeleton height={50} width={"60%"} />
+          <Skeleton height={30} width={"80%"} />
          </div>
-         <button
-          className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white mt-6"
-          onClick={() => handleUpdateUser("agencyAccess")}
-          disabled={loading}
-         >
-          {loading ? <SVGLoader width={30} height={30} color={"#fff"} /> : "Update"}
-         </button>
-         <button
-          className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-gray-200 rounded-lg font-semibold text-[14px] leading-[19px] text-gray-800 mt-6"
-          onClick={() => resetInput("agencyAccess")}
-          disabled={loading}
-         >
-          Cancel
-         </button>
         </div>
-        {users.agencyAccess.length > 0 && (
-         <div className="w-full mt-2 mb-4">
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
-           <div className="max-h-[150px] overflow-y-auto">
-            <ul className="divide-y divide-gray-100">
-             {users.agencyAccess.map((user) => (
-              <li
-               key={user.id}
-               className="flex items-center justify-between p-3 hover:bg-gray-50 group"
-              >
-               <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                 {user?.username.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                 <p className="font-medium text-sm">{user?.username}</p>
-                 <p className="text-xs text-gray-500">{user.email}</p>
-                 <p className="text-xs text-gray-500">
-                  Role:{" "}
-                  {agencyRoles.find((r) => r.value === user.user_type)?.label ||
-                   user.user_type}
-                 </p>
-                </div>
-               </div>
-               <div className="flex items-center gap-2">
-                <button
-                 onClick={() => handleEditUser("agencyAccess", user)}
-                 className="text-blue-500 group-hover:opacity-100 transition-opacity"
-                >
-                 <MdEdit size={18} />
-                </button>
-                <button
-                 onClick={() => handleDeleteUser(user.id)}
-                 className="text-red-500 group-hover:opacity-100 transition-opacity"
-                >
-                 <MdOutlineCancel size={18} />
-                </button>
-               </div>
-              </li>
-             ))}
-            </ul>
-           </div>
-          </div>
-         </div>
-        )}
-       </div>
+        :
 
-       {/* Client Access Section */}
-       <div className="mt-4 mb-4">
-        <label className="font-medium text-[15px] leading-5 text-gray-600">
-         Client Access
-        </label>
-
-        <div className="flex items-start gap-3 w-full mt-2">
-         <div className="flex flex-col items-start gap-1 w-full">
-          <div className="shrink-0 w-[80%]">
-           <Input
-            type="text"
-            value={clientInput.name}
-            handleOnChange={(e) =>
-             handleInputChange("clientAccess", "name", e.target.value)
-            }
-            label=""
-            placeholder="Full Name"
-           />
-          </div>
-          <div className="shrink-0 w-[100%]">
-           <Input
-            type="email"
-            value={clientInput.email}
-            handleOnChange={(e) =>
-             handleInputChange("clientAccess", "email", e.target.value)
-            }
-            label=""
-            placeholder="Enter email address"
-           />
-          </div>
-         </div>
-         <div className="shrink-0 w-[25%]">
+        <div>
+         {/* Agency Access Section */}
+         <div className="mt-4">
           <label className="font-medium text-[15px] leading-5 text-gray-600">
-           Role
+           Agency Access
           </label>
-          <div className="mt-1">
-           {clientRoles.map((role) => (
-            <div key={role.value} className="flex items-center gap-2">
-             <input
-              type="checkbox"
-              checked={clientInput.roles.includes(role.value)}
-              onChange={() => handleRoleChange("clientAccess", role.value)}
+
+          <div className="flex items-start gap-3 w-full mt-2">
+           <div className="flex flex-col items-start gap-1 w-full">
+            <div className="shrink-0 w-[80%]">
+             <Input
+              type="text"
+              value={agencyInput.name}
+              handleOnChange={(e) =>
+               handleInputChange("agencyAccess", "name", e.target.value)
+              }
+              label=""
+              placeholder="Full Name"
              />
-             <span className="text-sm">{role.label}</span>
             </div>
-           ))}
-          </div>
-         </div>
-         <button
-          className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white mt-6"
-          onClick={() => handleUpdateUser("clientAccess")}
-          disabled={loading}
-         >
-          {loading ? <SVGLoader width={30} height={30} color={"#fff"} /> : "Update"}
-         </button>
-         <button
-          className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-gray-200 rounded-lg font-semibold text-[14px] leading-[19px] text-gray-800 mt-6"
-          onClick={() => resetInput("clientAccess")}
-          disabled={loading}
-         >
-          Cancel
-         </button>
-        </div>
-        {users.clientAccess.length > 0 && (
-         <div className="w-full mt-2 mb-4">
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
-           <div className="max-h-[150px] overflow-y-auto">
-            <ul className="divide-y divide-gray-100">
-             {users.clientAccess.map((user) => (
-              <li
-               key={user.id}
-               className="flex items-center justify-between p-3 hover:bg-gray-50 group"
-              >
-               <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                 {user.username.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                 <p className="font-medium text-sm">{user.username}</p>
-                 <p className="text-xs text-gray-500">{user.email}</p>
-                 <p className="text-xs text-gray-500">
-                  Role:{" "}
-                  {clientRoles.find((r) => r.value === user.user_type)?.label ||
-                   user.user_type}
-                 </p>
-                </div>
-               </div>
-               <div className="flex items-center gap-2">
-                <button
-                 onClick={() => handleEditUser("clientAccess", user)}
-                 className="text-blue-500 group-hover:opacity-100 transition-opacity"
-                >
-                 <MdEdit size={18} />
-                </button>
-                <button
-                 onClick={() => handleDeleteUser(user.id)}
-                 className="text-red-500 group-hover:opacity-100 transition-opacity"
-                >
-                 <MdOutlineCancel size={18} />
-                </button>
-               </div>
-              </li>
-             ))}
-            </ul>
+            <div className="shrink-0 w-[100%]">
+             <Input
+              type="email"
+              value={agencyInput.email}
+              handleOnChange={(e) =>
+               handleInputChange("agencyAccess", "email", e.target.value)
+              }
+              label=""
+              placeholder="Enter email address"
+             />
+            </div>
            </div>
+           <div className="shrink-0 w-[25%]">
+            <label className="font-medium text-[15px] leading-5 text-gray-600">
+             Role
+            </label>
+            <div className="mt-1">
+             {agencyRoles?.map((role) => (
+              <div key={role.value} className="flex items-center gap-2">
+               <input
+                type="checkbox"
+                checked={agencyInput.roles.includes(role.value)}
+                onChange={() => handleRoleChange("agencyAccess", role.value)}
+               />
+               <span className="text-sm">{role.label}</span>
+              </div>
+             ))}
+            </div>
+           </div>
+           <button
+            className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white mt-6"
+            onClick={() => handleUpdateUser("agencyAccess")}
+            disabled={loading}
+           >
+            {loading ? <SVGLoader width={30} height={30} color={"#fff"} /> : "Update"}
+           </button>
+           <button
+            className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-gray-200 rounded-lg font-semibold text-[14px] leading-[19px] text-gray-800 mt-6"
+            onClick={() => resetInput("agencyAccess")}
+            disabled={loading}
+           >
+            Cancel
+           </button>
           </div>
+          {users.agencyAccess.length > 0 && (
+           <div className="w-full mt-2 mb-4">
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+             <div className="max-h-[150px] overflow-y-auto">
+              <ul className="divide-y divide-gray-100">
+               {users?.agencyAccess?.map((user) => (
+                <li
+                 key={user.id}
+                 className="flex items-center justify-between p-3 hover:bg-gray-50 group"
+                >
+                 <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                   {cleanName(user?.agency_user?.full_name?.charAt(0).toUpperCase())}
+                  </div>
+                  <div>
+                   <p className="font-medium text-sm">{user?.agency_user?.full_name}</p>
+                   <p className="text-xs text-gray-500">{user.email}</p>
+                   <p className="text-xs text-gray-500">
+                    Role:{" "}
+                    {agencyRoles?.find((r) => r.value === user.user_type)?.label ||
+                     user.user_type}
+                   </p>
+                  </div>
+                 </div>
+                 <div className="flex items-center gap-2">
+                  <button
+                   onClick={() => {
+                    if (isAgencyCreator) {
+                     toast.error("You do not have permission to perform this action.");
+                     return;
+                    }
+                    handleEditUser("agencyAccess", user);
+                   }}
+                   className="text-blue-500 group-hover:opacity-100 transition-opacity"
+                  >
+                   <MdEdit size={18} />
+                  </button>
+
+                  <button
+                   onClick={() => {
+                    if (isAgencyCreator) {
+                     toast.error("You do not have permission to perform this action.");
+                     return;
+                    }
+                    handleDeleteUser(user.id);
+                   }}
+                   className="text-red-500 group-hover:opacity-100 transition-opacity"
+                  >
+                   <MdOutlineCancel size={18} />
+                  </button>
+                 </div>
+
+                </li>
+               ))}
+              </ul>
+             </div>
+            </div>
+           </div>
+          )}
          </div>
-        )}
-       </div>
-       <div className="w-full flex items-start gap-3">
-        <BusinessUnitEdit
-         setInputs={setInputs}
-         setAlert={setAlert}
-         level1Options={level1Options}
-         initialData={level1Options}
-        />
-        <SportDropdownEdit
-         setInputs={setInputs}
-         setAlert={setAlert}
-         initialData={level2Options}
-        />
-        <CategoryDropdownEdit
-         setInputs={setInputs}
-         setAlert={setAlert}
-         initialData={level3Options}
-        />
-       </div>
-       {users.agencyAccess.length === 0 && users.clientAccess.length === 0 && !loading && (
-        <p className="text-gray-500 text-sm mt-4">No users found.</p>
-       )}
-       {loading && <p className="text-gray-500 text-sm mt-4">Loading users...</p>}
+
+         {/* Client Access Section */}
+         <div className="mt-4 mb-4">
+          <label className="font-medium text-[15px] leading-5 text-gray-600">
+           Client Access
+          </label>
+
+          <div className="flex items-start gap-3 w-full mt-2">
+           <div className="flex flex-col items-start gap-1 w-full">
+            <div className="shrink-0 w-[80%]">
+             <Input
+              type="text"
+              value={clientInput.name}
+              handleOnChange={(e) =>
+               handleInputChange("clientAccess", "name", e.target.value)
+              }
+              label=""
+              placeholder="Full Name"
+             />
+            </div>
+            <div className="shrink-0 w-[100%]">
+             <Input
+              type="email"
+              value={clientInput.email}
+              handleOnChange={(e) =>
+               handleInputChange("clientAccess", "email", e.target.value)
+              }
+              label=""
+              placeholder="Enter email address"
+             />
+            </div>
+           </div>
+           <div className="shrink-0 w-[25%]">
+            <label className="font-medium text-[15px] leading-5 text-gray-600">
+             Role
+            </label>
+            <div className="mt-1">
+             {clientRoles?.map((role) => (
+              <div key={role.value} className="flex items-center gap-2">
+               <input
+                type="checkbox"
+                checked={clientInput?.roles?.includes(role.value)}
+                onChange={() => handleRoleChange("clientAccess", role.value)}
+               />
+               <span className="text-sm">{role?.label}</span>
+              </div>
+             ))}
+            </div>
+           </div>
+           <button
+            className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-[#061237] rounded-lg font-semibold text-[14px] leading-[19px] text-white mt-6"
+            onClick={() => handleUpdateUser("clientAccess")}
+            disabled={loading}
+           >
+            {loading ? <SVGLoader width={30} height={30} color={"#fff"} /> : "Update"}
+           </button>
+           <button
+            className="flex items-center justify-center px-6 py-3 w-[76px] h-[40px] bg-gray-200 rounded-lg font-semibold text-[14px] leading-[19px] text-gray-800 mt-6"
+            onClick={() => resetInput("clientAccess")}
+            disabled={loading}
+           >
+            Cancel
+           </button>
+          </div>
+          {users?.clientAccess?.length > 0 && (
+           <div className="w-full mt-2 mb-4">
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+             <div className="max-h-[150px] overflow-y-auto">
+              <ul className="divide-y divide-gray-100">
+               {users?.clientAccess?.map((user) => (
+                <li
+                 key={user?.id}
+                 className="flex items-center justify-between p-3 hover:bg-gray-50 group"
+                >
+                 <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                   {cleanName(user?.client_user?.full_name.charAt(0).toUpperCase())}
+                  </div>
+                  <div>
+                   <p className="font-medium text-sm">{user?.client_user?.full_name}</p>
+                   <p className="text-xs text-gray-500">{user.email}</p>
+                   <p className="text-xs text-gray-500">
+                    Role:{" "}
+                    {clientRoles?.find((r) => r?.value === user?.user_type)?.label ||
+                     user?.user_type}
+                   </p>
+                  </div>
+                 </div>
+                 <div className="flex items-center gap-2">
+                  <button
+                   onClick={() => {
+                    if (isAgencyCreator) {
+                     toast.error("You do not have permission to perform this action.");
+                     return;
+                    }
+                    handleEditUser("clientAccess", user);
+                   }}
+                   className="text-blue-500 group-hover:opacity-100 transition-opacity"
+                  >
+                   <MdEdit size={18} />
+                  </button>
+
+                  <button
+                   onClick={() => {
+                    if (isAgencyCreator) {
+                     toast.error("You do not have permission to perform this action.");
+                     return;
+                    }
+                    handleDeleteUser(user.id);
+                   }}
+                   className="text-red-500 group-hover:opacity-100 transition-opacity"
+                  >
+                   <MdOutlineCancel size={18} />
+                  </button>
+                 </div>
+
+                </li>
+               ))}
+              </ul>
+             </div>
+            </div>
+           </div>
+          )}
+         </div>
+         <div className="w-full flex items-start gap-3">
+          <BusinessUnitEdit
+           setInputs={setInputs}
+           setAlert={setAlert}
+           level1Options={level1Options}
+           initialData={level1Options} isAgencyCreator={isAgencyCreator} />
+          <SportDropdownEdit
+           setInputs={setInputs}
+           setAlert={setAlert}
+           initialData={level2Options} isAgencyCreator={isAgencyCreator} />
+          <CategoryDropdownEdit
+           setInputs={setInputs}
+           setAlert={setAlert}
+           initialData={level3Options} isAgencyCreator={isAgencyCreator} />
+         </div>
+         {users.agencyAccess.length === 0 && users.clientAccess.length === 0 && !loading && (
+          <p className="text-gray-500 text-sm mt-4">No users found.</p>
+         )}
+         {loading && <p className="text-gray-500 text-sm mt-4">Loading users...</p>}
+        </div>}
+
       </div>
-
       {/* Footer */}
       <div className="p-6 border-t bg-white sticky bottom-0 z-10 flex justify-end rounded-b-[32px]">
        <button onClick={handleClose} className="btn_model_outline">
@@ -574,7 +737,6 @@ const ViewClientModal = ({ isView, setIsView }) => {
        </button>
       </div>
      </div>
-
      {/* Update Confirmation Popup */}
      {showConfirmPopup && (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-60">
@@ -633,8 +795,9 @@ const ViewClientModal = ({ isView, setIsView }) => {
       </div>
      )}
     </div>
-   )}
-  </div>
+   )
+   }
+  </div >
  );
 };
 

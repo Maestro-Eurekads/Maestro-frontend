@@ -737,12 +737,14 @@ export function extractLevelNameFilters(client: any) {
   if (!client || typeof client !== 'object') {
     return { level_1_name: [], level_2_name: [], level_3_name: [] };
   }
+  console.log("client...------", client);
 
   const extractNames = (level) => {
     if (!level?.parameters || !Array.isArray(level?.parameters)) return [];
-    return level.parameters.map((param) => ({
-      label: param.name,
-      value: param.name,
+    return level?.parameters?.map((param) => ({
+      title: level?.title,
+      label: param?.name,
+      value: param?.name,
     })); 
   };
 
@@ -806,7 +808,7 @@ export function extractLevelNameFilters(client: any) {
     },
   };
 
-  const year = filters.year || new Date().getFullYear().toString();
+  const year = filters?.year || new Date().getFullYear().toString();
 
   if (filters.year || filters.quarter || filters.month) {
     query.filters.campaign_timeline_start_date = { $notNull: true };

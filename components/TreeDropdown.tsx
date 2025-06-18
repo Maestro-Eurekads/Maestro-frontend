@@ -5,12 +5,13 @@ import { TreeSelect } from 'antd';
 import { buildTree } from 'utils/buildTree';
 
 interface Props {
-	data: any; // { title: string, parameters: [...] }
+	data: any;
+	title: any;
 	formId: 'level_1' | 'level_2' | 'level_3';
 	setCampaignFormData: React.Dispatch<React.SetStateAction<any>>;
 }
 
-const TreeDropdown: React.FC<Props> = ({ data, formId, setCampaignFormData }) => {
+const TreeDropdown: React.FC<Props> = ({ data, formId, setCampaignFormData, title }) => {
 	const [treeOptions, setTreeOptions] = useState([]);
 	const [value, setValue] = useState<string[] | undefined>(undefined);
 
@@ -42,7 +43,7 @@ const TreeDropdown: React.FC<Props> = ({ data, formId, setCampaignFormData }) =>
 				onChange={onChange}
 				treeCheckable
 				showCheckedStrategy={TreeSelect.SHOW_CHILD}
-				placeholder={data?.title || 'Select parameters'}
+				placeholder={data?.title || title}
 				style={{ width: '100%', height: '100%' }}
 				allowClear
 				className="custom-tree-select"
