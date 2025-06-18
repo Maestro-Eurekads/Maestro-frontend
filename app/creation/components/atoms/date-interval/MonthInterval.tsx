@@ -1,5 +1,5 @@
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { eachDayOfInterval, addDays, format, differenceInDays } from "date-fns";
 import { useCampaigns } from "app/utils/CampaignsContext";
 
@@ -7,9 +7,11 @@ interface MonthIntervalProps {
   monthsCount: number;
   view?: boolean;
   getDaysInEachMonth?: any;
+  funnelData?:any;
+  disableDrag?:any
 }
 
-const MonthInterval: React.FC<MonthIntervalProps> = ({ monthsCount, view, getDaysInEachMonth }) => {
+const MonthInterval: React.FC<MonthIntervalProps> = ({ monthsCount, view, getDaysInEachMonth, disableDrag, funnelData }) => {
   
   const [monthNames, setSetMonthName] = useState([]);
   const { campaignFormData } = useCampaigns();
@@ -52,6 +54,24 @@ const totalDays = Object.values(daysInMonth || {}).reduce((acc,
       setSetMonthName(names);
     }
   }, [campaignFormData]);
+
+    const calculateDailyWidth = useCallback(() => {
+      const getViewportWidth = () => {
+        return window.innerWidth || document.documentElement.clientWidth || 0;
+      };
+      const screenWidth = getViewportWidth();
+      const contWidth = screenWidth - (disableDrag ? 80 : 367);
+  
+      const totalDays = funnelData?.endDay || 30;
+      let dailyWidth = contWidth / totalDays;
+  
+      // Ensure minimum width constraints
+      dailyWidth = Math.max(dailyWidth, 50);
+  
+      return Math.round(dailyWidth);
+    }, [disableDrag, funnelData?.endDay]);
+  
+    const dailyWidth = calculateDailyWidth();
 
   return (
     <div className="w-full border-y">

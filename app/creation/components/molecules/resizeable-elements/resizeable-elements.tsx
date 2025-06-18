@@ -154,7 +154,7 @@ const ResizeableElements = ({
       let dailyWidth: number
 
       if (viewType === "Day" || viewType === "Week") {
-        const endPeriod = viewType === "Day" ? funnelData?.endDay : funnelData?.endDay
+        const endPeriod = funnelData?.endDay || 1
         dailyWidth = contWidth / endPeriod
         dailyWidth = dailyWidth < 50 ? 50 : dailyWidth
       } else {
@@ -242,7 +242,7 @@ const ResizeableElements = ({
     if (rrange === "Day") {
       return funnelData?.endDay || 1
     } else if (rrange === "Week") {
-      return (funnelData?.endWeek || 1) * 7
+      return funnelData?.endDay || 1
     } else {
       // Month view - return total number of days across all months
       const totalDays = Object.values(daysInEachMonth).reduce((sum: number, days: number) => sum + days, 0)
@@ -300,7 +300,7 @@ const ResizeableElements = ({
 
         initialWidths[stageName] = (() => {
           if (rrange === "Day" || rrange === "Week") {
-            return daysBetween > 0 ? getDailyWidth() * daysBetween + 10 : getDailyWidth() * daysFromStart - 40
+            return daysBetween > 0 ? dailyWidth * daysBetween : dailyWidth * daysFromStart - 55
           } else {
             // Month view - calculate width based on actual days and ensure it fits within screen
             const totalDaysInRange = Object.values(daysInEachMonth).reduce((sum: number, days: number) => sum + days, 0)
@@ -335,12 +335,12 @@ const ResizeableElements = ({
       style={{
         backgroundImage: (() => {
           if (rrange === "Day" || rrange === "Week") {
-            return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(0,0,0,0.2) 1px, transparent 1px)`
+            return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`
           } else {
             // Month view - add thicker lines at month boundaries
             const months = Object.keys(daysInEachMonth)
             if (months.length <= 1) {
-              return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(0,0,0,0.2) 1px, transparent 1px)`
+              return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`
             }
 
             // Create gradient layers: regular grid, weekly grid, and thick month boundaries
@@ -354,7 +354,15 @@ const ResizeableElements = ({
         backgroundSize: (() => {
           const dailyWidth = getDailyWidth()
           if (rrange === "Day" || rrange === "Week") {
-            return `calc(${dailyWidth}px) 100%, calc(${dailyWidth * 7}px) 100%`
+            const totalDays = funnelData?.endDay || 1
+            // For week view, show grid lines for each individual day, not week groupings
+            const dailyGridSize = `${dailyWidth}px 100%`
+            // For week boundaries, we need to calculate based on actual week structure
+            if (rrange === "Week") {
+              // Use daily grid for individual day lines
+              return dailyGridSize
+            }
+            return `${dailyGridSize}, calc(${dailyWidth * totalDays}px) 100%`
           } else {
             // Month view - create background pattern with thicker lines at month boundaries
             const months = Object.keys(daysInEachMonth)
@@ -383,9 +391,7 @@ const ResizeableElements = ({
             // Create month boundary backgrounds
             const monthBoundaryBackgrounds = monthEndPositions.map((position) => `${position}px 100%`).join(", ")
 
-            return monthBoundaryBackgrounds
-              ? `${regularGridSize}, ${monthBoundaryBackgrounds}`
-              : `${regularGridSize}`
+            return monthBoundaryBackgrounds ? `${regularGridSize}, ${monthBoundaryBackgrounds}` : `${regularGridSize}`
           }
         })(),
       }}

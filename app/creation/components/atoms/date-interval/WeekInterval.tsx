@@ -1,7 +1,7 @@
 "use client";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import moment from "moment";
-import React, { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useDateRange } from "src/date-range-context";
 
 const WeekInterval = ({
@@ -15,15 +15,21 @@ const WeekInterval = ({
 }) => {
   const { campaignFormData } = useCampaigns();
   const { range } = useDateRange();
+
   const groupDatesByWeek = (dates: Date[]) => {
     const weeks: string[][] = [];
     let currentWeek: string[] = [];
 
     dates.forEach((date, index) => {
       currentWeek.push(moment(new Date(date)).format("YYYY-MM-DD"));
-      if (currentWeek.length === 7 || index === dates.length - 1) {
-        weeks.push(currentWeek);
-        currentWeek = [];
+
+      // Check if it's the 6th index or the last date
+      const isSixthIndex = currentWeek.length === 7; // 7 days in a week
+      const isLastDate = index === dates.length - 1;
+
+      if (isSixthIndex || isLastDate) {
+      weeks.push([...currentWeek]);
+      currentWeek = [];
       }
     });
 
@@ -31,7 +37,6 @@ const WeekInterval = ({
   };
 
   const datesByWeek = range ? groupDatesByWeek(range) : [];
-  console.log("🚀 ~ datesByWeek:", datesByWeek);
 
   const calculateDailyWidth = useCallback(() => {
     const getViewportWidth = () => {
@@ -49,47 +54,92 @@ const WeekInterval = ({
     return Math.round(dailyWidth);
   }, [disableDrag, funnelData?.endDay]);
 
-  const dailyWidth = calculateDailyWidth();
-  console.log("🚀 ~ week:", dailyWidth)
+  // Calculate individual week widths based on actual days in each week
+  const weekWidths = useMemo(() => {
+    const dailyWidth = calculateDailyWidth();
+    return datesByWeek.map((week) => dailyWidth * week.length);
+  }, [datesByWeek, calculateDailyWidth]);
 
-  return (
-    <div className="w-full border-y">
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: `repeat(${weeksCount}, ${dailyWidth * 7}px)`,
-          backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.2) 1px, transparent 1px)`,
-          backgroundRepeat: "no-repeat",
-          backgroundSize: `${dailyWidth}px 100%`,
-        }}
+  // Calculate cumulative positions for week end lines
+  const weekEndPositions = useMemo(() => {
+    let cumulativeWidth = 0;
+    const positions: number[] = [];
+
+    weekWidths.forEach((width, index) => {
+      cumulativeWidth += width;
+      // Don't add a line after the last week
+      if (index < weekWidths.length - 1) {
+        positions.push(cumulativeWidth);
+      }
+    });
+
+    return positions;
+  }, [weekWidths]);
+
+  console.log("Week End Positions:", weekEndPositions);
+
+  const dailyWidth = calculateDailyWidth();
+
+  // Create grid template columns with individual week widths
+  const gridTemplateColumns = weekWidths.map((width) => `${width}px`).join(" ");
+
+  // Create background images and positions for week end lines
+      const backgroundImages = weekEndPositions
+        .map(
+          () =>
+            `linear-gradient(to right, transparent calc(100% - 1px), rgba(0,0,255,0.1) calc(100% - 1px), rgba(0,0,255,0.1) 100%)`
+        )
+        .join(", ");
+
+      const backgroundSizes = weekEndPositions
+        .map((position) => `${position}px 100%`)
+        .join(", ");
+      const backgroundPositions = weekEndPositions
+        .map((position) => `${position+1}px 0`)
+        .join(", ");
+
+      return (
+        <div className="w-full border-y">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: gridTemplateColumns,
+              backgroundImage: backgroundImages,
+              // backgroundRepeat: "no-repeat",
+              backgroundSize: backgroundSizes,
+              backgroundPosition: backgroundPositions,
+            }}
       >
-        {Array.from({ length: weeksCount }, (_, i) => (
+        {datesByWeek.map((week, i) => (
           <div
             key={i}
             className="flex flex-col items-center justify-center relative py-2"
+            style={{
+              width: `${weekWidths[i]}px`,
+            }}
           >
             {/* Week Label */}
             <div>
               <div className="font-[500] text-[13px]">
-              {datesByWeek[i] && (
-                <div className="flex flex-row gap-2 items-center justify-center">
-                  <p>
-                    {moment(datesByWeek[i][0]).format("DD")} -{" "}
+                {datesByWeek[i] && (
+                  <div className="flex flex-row gap-2 items-center justify-center">
+                    <p>
+                      {moment(datesByWeek[i][0]).format("DD")} -{" "}
+                      {moment(datesByWeek[i][datesByWeek[i].length - 1]).format(
+                        "DD"
+                      )}
+                    </p>
+                  </div>
+                )}
+                {datesByWeek[i] && (
+                  <p className="text-[rgba(0,0,255,0.5)]">
+                    {moment(datesByWeek[i][0]).format("MMM")} -{" "}
                     {moment(datesByWeek[i][datesByWeek[i].length - 1]).format(
-                      "DD"
+                      "MMM"
                     )}
                   </p>
-                </div>
-              )}
-              {datesByWeek[i] && (
-                <p className="text-[rgba(0,0,255,0.5)]">
-                  {moment(datesByWeek[i][0]).format("MMM")} -{" "}
-                  {moment(datesByWeek[i][datesByWeek[i].length - 1]).format(
-                    "MMM"
-                  )}
-                </p>
-              )}
-            </div>
+                )}
+              </div>
             </div>
           </div>
         ))}
