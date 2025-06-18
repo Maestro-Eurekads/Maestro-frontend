@@ -40,7 +40,7 @@ const Range = () => {
         className={`px-2 py-2 rounded-md text-sm font-medium ${
           range === "Year" ? "bg-blue-500 text-white" : "bg-transparent text-gray-700 hover:bg-gray-100"
         }`}
-        // onClick={() => handleRangeChange("Year")}
+        onClick={() => handleRangeChange("Year")}
       >
         Year
       </button>

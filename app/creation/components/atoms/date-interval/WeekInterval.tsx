@@ -51,13 +51,14 @@ const WeekInterval = ({
 
   const dailyWidth = calculateDailyWidth();
   console.log("🚀 ~ week:", dailyWidth)
-
+  const totalDays = funnelData?.endDay || 1;
+  const weekWidth = totalDays < 7 ? dailyWidth * totalDays : dailyWidth * 7;
   return (
     <div className="w-full border-y">
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${weeksCount}, ${dailyWidth * 7}px)`,
+          gridTemplateColumns: `repeat(${weeksCount}, ${weekWidth}px)`,
           backgroundImage: `linear-gradient(to right, rgba(0,0,255,0.2) 1px, transparent 1px)`,
           backgroundRepeat: "no-repeat",
           backgroundSize: `${dailyWidth}px 100%`,

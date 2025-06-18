@@ -179,43 +179,36 @@ const ResizableChannels = ({
     index: number,
     mouseX: number,
     mouseY: number,
-    type: "resize" | "drag"
+    type: "resize" | "drag",
   ) => {
-    if (!dRange || dRange.length === 0) return;
-
-    const totalDays = dRange.length - 1;
-    const dayStartIndex = Math.min(
-      totalDays,
-      Math.max(0, Math.round((startPixel / parentWidth) * totalDays))
-    );
-    const dayEndIndex = Math.min(
-      totalDays,
-      Math.max(0, Math.round((endPixel / parentWidth) * totalDays))
-    );
-
-    const startDateValue = new Date(startDate);
-    startDateValue.setDate(startDate?.getDate() + dayStartIndex);
-
-    const endDateValue = new Date(startDate);
-    endDateValue.setDate(startDate?.getDate() + dayEndIndex);
-
-    const formattedStartDate = format(startDateValue, "MMM dd");
-    const formattedEndDate = format(endDateValue, "MMM dd");
-
-    const channelName = channels[index]?.name || "Channel";
-    const containerRect = document
-      .querySelector(".grid-container")
-      ?.getBoundingClientRect();
-    const relativeY = containerRect ? mouseY - containerRect.top : mouseY;
+    if (!dRange || dRange.length === 0) return
+  
+    const totalDays = dRange.length - 1
+  
+    // Calculate day indices more accurately
+    const dayStartIndex = Math.min(totalDays, Math.max(0, Math.round((startPixel / parentWidth) * totalDays)))
+    const dayEndIndex = Math.min(totalDays, Math.max(0, Math.round((endPixel / parentWidth) * totalDays)))
+  
+    // Use the actual dates from dRange instead of calculating from startDate
+    const startDateValue = dRange[dayStartIndex] || startDate
+    const endDateValue = dRange[dayEndIndex] || endDate
+  
+    const formattedStartDate = format(startDateValue, "MMM dd")
+    const formattedEndDate = format(endDateValue, "MMM dd")
+  
+    const channelName = channels[index]?.name || "Channel"
+    const containerRect = document.querySelector(".grid-container")?.getBoundingClientRect()
+    const relativeY = containerRect ? mouseY - containerRect.top : mouseY
+  
     setTooltip({
       visible: true,
       x: mouseX,
-      y: Math.max(0, relativeY), // Ensure tooltip stays within viewport
+      y: Math.max(0, relativeY),
       content: `${channelName}: ${formattedStartDate} - ${formattedEndDate}`,
       type,
       index,
-    });
-  };
+    })
+  }
 
   const handleMouseDownResize = (
     e: React.MouseEvent<HTMLDivElement>,
@@ -308,7 +301,7 @@ const ResizableChannels = ({
         snapToTimeline(rightEdgePos - parentLeft, containerRect.width) +
           parentLeft
       );
-      newWidth = Math.max(50, snappedRightEdge - 38 - startPos);
+      newWidth = Math.max(50, snappedRightEdge - startPos);
     }
 
     setChannelState((prev) =>
@@ -383,7 +376,7 @@ const ResizableChannels = ({
       }
 
       setEndDate(end);
-
+console.log({start, end})
       setDrange(
         eachDayOfInterval({
           start: start,
@@ -391,7 +384,7 @@ const ResizableChannels = ({
         })
       );
     }
-  }, [campaignFormData]);
+  }, [parentWidth]);
 
   // Watch for changes in startDate and calculate the offset
   useEffect(() => {
@@ -450,12 +443,12 @@ const ResizableChannels = ({
 
     // For end date, ensure it doesn't exceed the parent timeline's end date
     if (fieldName === "endDate" && endDate && calculatedDate > endDate) {
-      return endDate ? moment(endDate).format("YYYY-MM-DD") : null;
+      return endDate ? moment(endDate).format("YYYY-MM-DD") : null
     }
-
+  
     // Convert the result back to "yyyy-mm-dd" format
-    return calculatedDate ? moment(calculatedDate).format("YYYY-MM-DD") : null;
-  };
+    return calculatedDate ? moment(calculatedDate).format("YYYY-MM-DD") : null
+  }
 
   const handleDragStart = (index) => (event) => {
     if (disableDrag) return;
@@ -883,7 +876,7 @@ const ResizableChannels = ({
 
           // If the calculated end date exceeds the parent timeline's end date,
           // adjust the width to match the parent timeline's end date
-          if (endDate && new Date(rawEndDate) > endDate) {
+          if (endDate  > endDate) {
             const parentEndPixel = parentWidth;
             const maxWidth = parentEndPixel - startPixel + parentLeft;
             newWidth = Math.min(newWidth, maxWidth);
@@ -992,7 +985,7 @@ const ResizableChannels = ({
                   left: `${channelState[index]?.left || parentLeft}px`,
                   width: `${
                     channelState[index]?.width +
-                    (disableDrag ? 73 : rrange === "Month" ? 40 : 40)
+                    (disableDrag ? 73 : rrange === "Month" ? 40 : 50)
                   }px`,
                   backgroundColor: channel.bg,
                   color: channel.color,

@@ -242,7 +242,7 @@ const ResizeableElements = ({
     if (rrange === "Day") {
       return funnelData?.endDay || 1
     } else if (rrange === "Week") {
-      return (funnelData?.endWeek || 1) * 7
+      return funnelData?.endDay || 1
     } else {
       // Month view - return total number of days across all months
       const totalDays = Object.values(daysInEachMonth).reduce((sum: number, days: number) => sum + days, 0)
@@ -300,7 +300,7 @@ const ResizeableElements = ({
 
         initialWidths[stageName] = (() => {
           if (rrange === "Day" || rrange === "Week") {
-            return daysBetween > 0 ? getDailyWidth() * daysBetween + 10 : getDailyWidth() * daysFromStart - 40
+            return daysBetween > 0 ? dailyWidth * daysBetween : dailyWidth * daysFromStart - 55
           } else {
             // Month view - calculate width based on actual days and ensure it fits within screen
             const totalDaysInRange = Object.values(daysInEachMonth).reduce((sum: number, days: number) => sum + days, 0)
@@ -354,7 +354,9 @@ const ResizeableElements = ({
         backgroundSize: (() => {
           const dailyWidth = getDailyWidth()
           if (rrange === "Day" || rrange === "Week") {
-            return `calc(${dailyWidth}px) 100%, calc(${dailyWidth * 7}px) 100%`
+            const totalDays = funnelData?.endDay || 1;
+            const weekWidth = totalDays < 7 ? dailyWidth * totalDays : dailyWidth * 7;
+            return `calc(${dailyWidth}px) 100%, calc(${weekWidth}px) 100%`;
           } else {
             // Month view - create background pattern with thicker lines at month boundaries
             const months = Object.keys(daysInEachMonth)

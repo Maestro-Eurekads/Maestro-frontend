@@ -34,7 +34,7 @@ interface DraggableChannelProps {
   color?: any;
   endDay?: any;
   endWeek?: any;
-  dailyWidth?:any
+  dailyWidth?: any;
 }
 
 const DraggableChannel: React.FC<DraggableChannelProps> = ({
@@ -60,7 +60,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   color,
   endDay,
   endWeek,
-  dailyWidth
+  dailyWidth,
 }) => {
   const { funnelWidths, setFunnelWidth } = useFunnelContext();
   const [position, setPosition] = useState(0);
@@ -78,61 +78,51 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     setPosition(parentLeft);
   }, [parentLeft]);
 
-  const pixelToDate = (pixel: number, containerWidth: number, fieldName?:string) => {
-    const startDate = dateList[0] // First date in the range
-    const totalDays = dateList.length - 1 // Use totalDays - 1 to match grid intervals
+  const pixelToDate = (
+    pixel: number,
+    containerWidth: number,
+    fieldName?: string
+  ) => {
+    const startDate = dateList[0]; // First date in the range
+    const totalDays = dateList.length - 1; // Use totalDays - 1 to match grid intervals
 
     // Convert pixel to date index
-    const dayIndex = Math.min(totalDays, Math.max(0, Math.round((pixel / containerWidth) * totalDays)))
+    const dayIndex = Math.min(
+      totalDays,
+      Math.max(0, Math.round((pixel / containerWidth) * totalDays))
+    );
 
-    const calculatedDate = new Date(startDate)
-    calculatedDate.setDate(startDate.getDate() + dayIndex)
+    const calculatedDate = new Date(startDate);
+    calculatedDate.setDate(startDate.getDate() + dayIndex);
 
     if (fieldName === "endDate") {
       calculatedDate.setDate(calculatedDate.getDate() + 1); // Add 1 day to fix the issue
     }
 
-    return calculatedDate
-  }
-
-  function calculateDailyWidth(containerWidth: number, count: number): number {
-    const adjustedWidth = containerWidth; // adjust for padding/margin if needed
-
-    const totalDays = range !== "Month" ? count : count * 31;
-
-    // Base daily width without factor
-    const baseDailyWidth = adjustedWidth / totalDays;
-
-    // Final adjusted daily width
-    return Math.floor(baseDailyWidth);
-  }
+    return calculatedDate;
+  };
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth);
     const baseStep = dailyWidth;
-    // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
-    const adjustmentPerStep = 0; // Decrease each next step by 10
     const snapPoints = [];
-    // console.log("🚀 ~ snapToTimeline ~ snapPoints:", snapPoints);
 
-    let currentSnap = 0;
-    let step = baseStep;
-
-    // Generate snap points with decreasing step size
-    while (currentSnap <= containerWidth) {
-      snapPoints.push(currentSnap);
-      // console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
-      currentSnap += step;
-      step = Math.max(dailyWidth, step - adjustmentPerStep);
+    // Generate snap points at regular intervals
+    for (let i = 0; i <= containerWidth; i += baseStep) {
+      snapPoints.push(i);
     }
 
+    // Add the container width as the final snap point
+    if (snapPoints[snapPoints.length - 1] !== containerWidth) {
+      snapPoints.push(containerWidth);
+    }
+
+    // Find the closest snap point
     const closestSnap = snapPoints.reduce((prev, curr) =>
       Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition)
         ? curr
         : prev
     );
 
-    // console.log("Closest custom snap:", closestSnap);
     return closestSnap;
   };
 
@@ -186,29 +176,40 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       newPos = snappedPos;
     } else {
       // For right resize, calculate the new width
-      const rawNewWidth = startWidth + (e.clientX - startX);
+      const deltaX = e.clientX - startX;
+      const rawNewWidth = startWidth + deltaX;
 
       // Calculate where the right edge would be
       const rightEdgePos = startPos + rawNewWidth;
 
-      // Snap the right edge
+      // Ensure the right edge doesn't exceed container boundaries
+      // if (startPos + newWidth > maxX) {
+      //   console.log("hikkjl")
+      //   newWidth = maxX - startPos;
+      // }
+      // Snap the right edge to the timeline
       const snappedRightEdge = snapToTimeline(
         rightEdgePos,
         containerRect.width
       );
 
       // Calculate the new width based on the snapped right edge
-      newWidth = Math.max(50, snappedRightEdge - 38 - startPos);
+      newWidth = Math.max(50, (snappedRightEdge) - startPos);
+
     }
 
     // Ensure we don't exceed container boundaries
-    if (newPos + newWidth > maxX) {
-      newWidth = maxX - newPos;
-    }
+    // if (newPos + newWidth > maxX) {
+    //   newWidth = maxX - newPos;
+    // }
 
     // Convert pixel positions to dates
     const startDate = pixelToDate(newPos, containerRect.width);
-    const endDate = pixelToDate(newPos + newWidth, containerRect.width, "endDate");
+    const endDate = pixelToDate(
+      newPos + newWidth,
+      containerRect.width,
+      "endDate"
+    );
 
     const updatedChannelMix = campaignFormData?.channel_mix?.find(
       (ch) => ch?.funnel_stage === description
@@ -219,12 +220,12 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         moment(startDate).format("YYYY-MM-DD");
       updatedChannelMix["funnel_stage_timeline_end_date"] =
         moment(endDate).format("YYYY-MM-DD");
-      setCampaignFormData((prev) => ({
-        ...prev,
-        channel_mix: prev.channel_mix.map((ch) =>
-          ch.funnel_stage === description ? updatedChannelMix : ch
-        ),
-      }));
+      // setCampaignFormData((prev) => ({
+      //   ...prev,
+      //   channel_mix: prev.channel_mix.map((ch) =>
+      //     ch.funnel_stage === description ? updatedChannelMix : ch
+      //   ),
+      // }));
     }
 
     setParentWidth(newWidth);
@@ -333,7 +334,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         style={{
           width: disableDrag
             ? `${parentWidth + (range === "Month" ? 53 : 43)}px`
-            : parentWidth -5,
+            : parentWidth +10,
           backgroundColor: color,
           transition: "transform 0.2s ease-out",
         }}
