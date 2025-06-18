@@ -408,7 +408,7 @@ console.log({start, end})
     const totalDays = dRange?.length - 1;
     const dayIndex = Math.min(
       totalDays,
-      Math.max(0, Math.round((pixel / containerWidth) * totalDays))
+      Math.max(0, Math.floor((pixel / containerWidth) * totalDays))
     );
 
     const calculatedDate = new Date(startDate);
