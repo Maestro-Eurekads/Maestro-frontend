@@ -7,6 +7,7 @@ import { useComments } from "app/utils/CommentProvider"
 import { PlusIcon, Edit2, Trash2, X, GripVertical, ChevronDown } from "lucide-react"
 import toast from "react-hot-toast"
 import { updateClient } from "app/homepage/functions/clients"
+import axios from "axios" // <--- Added for Strapi update
 
 // Define type for funnel objects
 interface Funnel {
@@ -125,7 +126,7 @@ const presetStructures: { label: string; stages: Funnel[] }[] = [
 ]
 
 const MapFunnelStages = () => {
-  const { campaignData, campaignFormData, cId, setCampaignFormData } = useCampaigns()
+  const { campaignData, campaignFormData, cId, setCampaignFormData, session } = useCampaigns()
   const { setIsDrawerOpen, setClose } = useComments()
   const { verifyStep, setHasChanges } = useVerification()
   const [previousValidationState, setPreviousValidationState] = useState<boolean | null>(null)
@@ -666,25 +667,60 @@ const MapFunnelStages = () => {
     setIsSaveConfigModalOpen(true)
   }
 
-  // Confirm save config
-  const handleSaveConfigConfirm = () => {
-    const error = validateConfigName(newConfigName)
+  // Confirm save config (rewritten for Strapi update)
+  const handleSaveConfigConfirm = async () => {
+    const error = validateConfigName(newConfigName);
     if (error) {
-      toast.error(error, { style: { background: "red", color: "white", textAlign: "center" }, duration: 3000 })
-      return
+      toast.error(error, {
+        style: { background: "red", color: "white", textAlign: "center" },
+        duration: 3000,
+      });
+      return;
     }
-    const config: FunnelConfig = {
+    const config = {
       name: newConfigName.trim(),
       stages: [...persistentCustomFunnels],
+    };
+    const updatedConfigs = [...funnelConfigs, config];
+    // Locally update the state
+    setFunnelConfigs(updatedConfigs);
+    setSelectedConfigIdx(updatedConfigs.length - 1);
+    setSelectedPreset(null);
+    setIsSaveConfigModalOpen(false);
+    if (clientId) {
+      // Save to localStorage (optional)
+      saveFunnelConfigsToStorage(updatedConfigs);
+      try {
+        const jwt = process.env.NEXT_PUBLIC_STRAPI_TOKEN || "";
+        // Strapi PUT request
+        await axios.put(
+          `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}`,
+          {
+            data: {
+              custom_funnel_configs: updatedConfigs,
+            },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${jwt}`,
+            },
+          }
+        );
+        toast.success(`"${newConfigName.trim()}" configuration saved!`, {
+          duration: 3000,
+        });
+      } catch (err) {
+        console.error("Failed to update funnel configs on Strapi:", err);
+        toast.error("Failed to update funnel configs on server", {
+          duration: 3000,
+        });
+      }
+    } else {
+      toast.success(`"${newConfigName.trim()}" configuration saved!`, {
+        duration: 3000,
+      });
     }
-    const updatedConfigs = [...funnelConfigs, config]
-    setFunnelConfigs(updatedConfigs)
-    if (clientId) saveFunnelConfigsToStorage(updatedConfigs)
-    setSelectedConfigIdx(updatedConfigs.length - 1)
-    setSelectedPreset(null)
-    setIsSaveConfigModalOpen(false)
-    toast.success(`"${newConfigName.trim()}" configuration saved!`, { duration: 3000 })
-    console.debug("Saved new config:", config)
+    console.debug("Saved new config:", config);
   }
 
   // Delete a saved configuration
