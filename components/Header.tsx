@@ -73,7 +73,6 @@ const Header = ({ setIsOpen, setIsView }) => {
   const clients: any = getCreateClientData;
 
 
-
   useEffect(() => {
     if (profile && agencyId) {
       dispatch(getCreateClient({ userId: userType, jwt, agencyId }));
@@ -225,11 +224,11 @@ const Header = ({ setIsOpen, setIsView }) => {
             />
 
             <button
-              className={`new_plan_btn ml-8 mr-4 ${(!profile?.clients?.length || !clients?.data?.length || !selectedId)
+              className={`new_plan_btn ml-8 mr-4 ${(!profile?.clients || !clients?.data || !selectedId)
                 ? "!bg-gray-400 cursor-not-allowed"
                 : ""
                 }`}
-              disabled={!profile?.clients?.length || !clients?.data?.length || !selectedId}
+              disabled={!profile?.clients || !clients?.data || !selectedId}
               onClick={() => {
                 if (isAgencyCreator) {
                   toast.error("You do not have permission to perform this action.");
@@ -245,14 +244,7 @@ const Header = ({ setIsOpen, setIsView }) => {
             {(isAdmin || isFinancialApprover || isAgencyApprover) && (
               <button
                 className="client_btn_text whitespace-nowrap w-fit"
-                onClick={() => {
-                  if (isAgencyCreator) {
-                    toast.error("You do not have permission to perform this action.");
-                    return;
-                  }
-                  setIsOpen(true);
-                }}
-              >
+                onClick={() => { setIsOpen(true) }}  >
                 <Image src={plus} alt="plus" />
                 New Client
               </button>
@@ -286,7 +278,6 @@ const Header = ({ setIsOpen, setIsView }) => {
                   className={`new_plan_btn ${!profile?.clients || !clients?.data || !selectedId ? "!bg-[gray]" : ""
                     }`}
                   disabled={!profile?.clients || !clients?.data || !selectedId}
-                // disabled={!profile?.clients?.[0]?.id && !isAdmin}
                 >
                   <Image src={white} alt="white" />
                   <p className="new_plan_btn_text">New media plan</p>
