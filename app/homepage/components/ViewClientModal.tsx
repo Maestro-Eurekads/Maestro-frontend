@@ -197,48 +197,6 @@ const ViewClientModal = ({ isView, setIsView }) => {
   setShowConfirmPopup(true);
  };
 
- // Confirm update user
- // const confirmUpdate = async () => {
- //   const section = editingUser?.section;
- //   const input = section === "agencyAccess" ? agencyInput : clientInput;
- //   const { name, email, roles } = input;
- //   const trimmedEmail = email.trim();
- //   const trimmedName = name.trim();
- //   setLoadingUpdate(true);
-
- //   try {
- //     const response = await fetch(
- //       `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${editingUser?.user?.id}`,
- //       {
- //         method: "PUT",
- //         headers: {
- //           Authorization: `Bearer ${jwt}`,
- //           "Content-Type": "application/json",
- //         },
- //         body: JSON.stringify({
- //           user?.client_user?.full_name: trimmedName,
- //           email: trimmedEmail,
- //           user_type: roles[0], // Use the single selected role
- //         }),
- //       }
- //     );
- //     if (!response.ok) {
- //       const errorData = await response.json();
- //       throw new Error(errorData.error?.message || `HTTP ${response.status}`);
- //     }
- //     toast.success("User updated successfully");
-
- //     await fetchUsers();
- //     resetInput(section);
- //     setShowConfirmPopup(false);
- //   } catch (error) {
- //     console.error("Update user error:", error);
- //     toast.error(`Failed to update user: ${error.message}`);
- //   } finally {
- //     setLoadingUpdate(false);
- //   }
- // };
-
  const confirmUpdate = async () => {
   console.log('editingUser-editingUser', editingUser);
 
@@ -248,11 +206,18 @@ const ViewClientModal = ({ isView, setIsView }) => {
   const trimmedEmail = email.trim();
   const trimmedName = name.trim();
   const userId = editingUser?.user?.id;
-  console.log('userId-userId', userId)
-  const relatedClientUserId =
+
+  console.log('userId-userId', userId);
+
+  // Determine the correct related user ID based on section
+  const relatedUserId =
    section === "agencyAccess"
     ? editingUser?.user?.agency_user?.documentId
     : editingUser?.user?.client_user?.documentId;
+
+  // Determine the related user endpoint
+  const relatedUserEndpoint =
+   section === "agencyAccess" ? "agency-users" : "client-users";
 
   setLoadingUpdate(true);
 
@@ -271,13 +236,13 @@ const ViewClientModal = ({ isView, setIsView }) => {
     }
    );
 
-   console.log('relatedClientUserId-relatedClientUserId', relatedClientUserId);
-   console.log('trimmedName-trimmedName', trimmedName);
+   // console.log('relatedUserId', relatedUserId);
+   // console.log('trimmedName', trimmedName);
 
-   // 2. Update the related client_user or agency_user
-   if (relatedClientUserId) {
+   // 2. Update the related agency-user or client-user
+   if (relatedUserId) {
     await axios.put(
-     `${process.env.NEXT_PUBLIC_STRAPI_URL}/client-users/${relatedClientUserId}`,
+     `${process.env.NEXT_PUBLIC_STRAPI_URL}/${relatedUserEndpoint}/${relatedUserId}`,
      {
       data: {
        full_name: trimmedName,
@@ -304,6 +269,74 @@ const ViewClientModal = ({ isView, setIsView }) => {
    setLoadingUpdate(false);
   }
  };
+
+
+ // const confirmUpdate = async () => {
+ //  console.log('editingUser-editingUser', editingUser);
+
+ //  const section = editingUser?.section;
+ //  const input = section === "agencyAccess" ? agencyInput : clientInput;
+ //  const { name, email, roles } = input;
+ //  const trimmedEmail = email.trim();
+ //  const trimmedName = name.trim();
+ //  const userId = editingUser?.user?.id;
+ //  console.log('userId-userId', userId)
+ //  const relatedClientUserId =
+ //   section === "agencyAccess"
+ //    ? editingUser?.user?.agency_user?.documentId
+ //    : editingUser?.user?.client_user?.documentId;
+
+ //  setLoadingUpdate(true);
+
+ //  try {
+ //   // 1. Update the main user
+ //   await axios.put(
+ //    `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${userId}`,
+ //    {
+ //     email: trimmedEmail,
+ //     user_type: roles[0],
+ //    },
+ //    {
+ //     headers: {
+ //      Authorization: `Bearer ${jwt}`,
+ //     },
+ //    }
+ //   );
+
+ //   console.log('relatedClientUserId-relatedClientUserId', relatedClientUserId);
+ //   console.log('trimmedName-trimmedName', trimmedName);
+
+ //   // 2. Update the related client_user or agency_user
+ //   if (relatedClientUserId) {
+ //    await axios.put(
+ //     `${process.env.NEXT_PUBLIC_STRAPI_URL}/client-users/${relatedClientUserId}`,
+ //     {
+ //      data: {
+ //       full_name: trimmedName,
+ //      },
+ //     },
+ //     {
+ //      headers: {
+ //       Authorization: `Bearer ${jwt}`,
+ //      },
+ //     }
+ //    );
+ //   }
+
+ //   toast.success("User updated successfully");
+ //   await fetchUsers();
+ //   resetInput(section);
+ //   setShowConfirmPopup(false);
+ //  } catch (error: any) {
+ //   console.error("Update user error:", error);
+ //   const message =
+ //    error.response?.data?.error?.message || error.message || "Unknown error";
+ //   toast.error(`Failed to update user: ${message}`);
+ //  } finally {
+ //   setLoadingUpdate(false);
+ //  }
+ // };
+
 
 
 
@@ -342,6 +375,9 @@ const ViewClientModal = ({ isView, setIsView }) => {
    setLoadingDelete(false);
   }
  };
+
+
+
 
  // Handle edit button click
  const handleEditUser = (section, user) => {
@@ -677,18 +713,15 @@ const ViewClientModal = ({ isView, setIsView }) => {
            setInputs={setInputs}
            setAlert={setAlert}
            level1Options={level1Options}
-           initialData={level1Options}
-          />
+           initialData={level1Options} isAgencyCreator={isAgencyCreator} />
           <SportDropdownEdit
            setInputs={setInputs}
            setAlert={setAlert}
-           initialData={level2Options}
-          />
+           initialData={level2Options} isAgencyCreator={isAgencyCreator} />
           <CategoryDropdownEdit
            setInputs={setInputs}
            setAlert={setAlert}
-           initialData={level3Options}
-          />
+           initialData={level3Options} isAgencyCreator={isAgencyCreator} />
          </div>
          {users.agencyAccess.length === 0 && users.clientAccess.length === 0 && !loading && (
           <p className="text-gray-500 text-sm mt-4">No users found.</p>
