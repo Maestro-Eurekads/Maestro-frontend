@@ -31,13 +31,14 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
     const [id, setId] = useState(null);
 
   const sendUpdatedDataToAPI = async (updatedData) => {
+    const {media_plan_details, ...rest} = campaignData
     try {
       setDeleting(true);
       const response = await axios.put(
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
         {
           data: {
-            ...removeKeysRecursively(campaignData, [
+            ...removeKeysRecursively(rest, [
               "id",
               "documentId",
               "createdAt",
