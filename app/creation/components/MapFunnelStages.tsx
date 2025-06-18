@@ -225,140 +225,95 @@ const MapFunnelStages = () => {
     return []
   }
 
-  // Fetch funnel configurations from Strapi
-  const getFunnelConfigsFromStrapi = async (): Promise<FunnelConfig[]> => {
-    if (!clientId) return []
-    try {
-      const jwt = process.env.NEXT_PUBLIC_STRAPI_TOKEN || ""
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}?populate=*`, {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      })
-
-      const strapiConfigs = response.data?.data?.attributes?.custom_funnel_configs
-      if (
-        Array.isArray(strapiConfigs) &&
-        strapiConfigs.every((config: any) => config.name && Array.isArray(config.stages))
-      ) {
-        console.debug("Retrieved funnel configs from Strapi:", strapiConfigs)
-        return strapiConfigs
-      }
-    } catch (e) {
-      console.error("Failed to load funnel configurations from Strapi:", e)
-      // Don't show error toast here as it might be expected for new clients
-    }
-    return []
-  }
-
   // Initialize funnel data and configurations
   useEffect(() => {
-    const initializeConfigs = async () => {
-      console.debug(`Initializing with clientId: ${clientId}, mediaPlanId: ${mediaPlanId}`)
+    console.debug(`Initializing with clientId: ${clientId}, mediaPlanId: ${mediaPlanId}`)
+    const configs = getFunnelConfigsFromStorage()
+    setFunnelConfigs(configs)
 
-      // Try to load configs from Strapi first, then fall back to localStorage
-      let configs: FunnelConfig[] = []
-      try {
-        configs = await getFunnelConfigsFromStrapi()
-        if (configs.length === 0) {
-          configs = getFunnelConfigsFromStorage()
-        } else {
-          // If we got configs from Strapi, also save them to localStorage for offline access
-          saveFunnelConfigsToStorage(configs)
-        }
-      } catch (error) {
-        console.error("Error loading configs from Strapi, falling back to localStorage:", error)
-        configs = getFunnelConfigsFromStorage()
-      }
+    let loadedCustomFunnels: Funnel[] = []
+    const localStorageFunnels = getCustomFunnelsFromStorage()
+    const isNewPlan = !mediaPlanId || mediaPlanId === ""
 
-      setFunnelConfigs(configs)
-
-      let loadedCustomFunnels: Funnel[] = []
-      const localStorageFunnels = getCustomFunnelsFromStorage()
-      const isNewPlan = !mediaPlanId || mediaPlanId === ""
-
-      if (!clientId) {
-        loadedCustomFunnels = defaultFunnels
-        setSelectedConfigIdx(null)
-        setSelectedPreset(1) // Select "Full" preset by default
-        localStorage.removeItem(getClientKey(LOCAL_STORAGE_FUNNELS_KEY, clientId, mediaPlanId))
-        localStorage.removeItem(getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId))
-      } else if (isNewPlan) {
-        // For new plans, always use default funnels
-        loadedCustomFunnels = defaultFunnels
-        setSelectedConfigIdx(null)
-        setSelectedPreset(1) // Select "Full" preset
-      } else if (localStorageFunnels && localStorageFunnels.length > 0) {
-        loadedCustomFunnels = localStorageFunnels
-      } else if (campaignData?.custom_funnels?.length > 0) {
-        loadedCustomFunnels = campaignData.custom_funnels.map((funnel: any, index: number) => ({
-          id: funnel.id || funnel.name || `funnel-${index}`,
-          name: funnel.name || `Funnel ${index + 1}`,
-          color: funnel.color || colorPalette[index % colorPalette.length] || "bg-gray-500",
-        }))
-      } else {
-        loadedCustomFunnels = defaultFunnels
-        setSelectedPreset(1) // Select "Full" preset
-      }
-
-      setPersistentCustomFunnels(loadedCustomFunnels)
-      setCustomFunnels(loadedCustomFunnels)
-
-      setCampaignFormData((prev: any) => {
-        const initialFunnelStages = Array.isArray(campaignData?.funnel_stages) ? campaignData.funnel_stages : []
-        const initialChannelMix = Array.isArray(campaignData?.channel_mix) ? campaignData.channel_mix : []
-        const orderedFunnelStages =
-          initialFunnelStages.length > 0 && !isNewPlan
-            ? loadedCustomFunnels.map((f) => f.name).filter((name) => initialFunnelStages.includes(name))
-            : loadedCustomFunnels.map((f) => f.name)
-        const orderedChannelMix =
-          initialChannelMix.length > 0 && !isNewPlan
-            ? loadedCustomFunnels
-                .map((f) => initialChannelMix.find((ch: any) => ch?.funnel_stage === f.name))
-                .filter((ch): ch is { funnel_stage: string } => !!ch)
-            : loadedCustomFunnels.map((f) => ({ funnel_stage: f.name }))
-
-        const updatedFormData = {
-          ...prev,
-          funnel_type: "custom",
-          funnel_stages: orderedFunnelStages,
-          channel_mix: orderedChannelMix,
-          custom_funnels: loadedCustomFunnels,
-        }
-        console.debug("Updated campaignFormData:", updatedFormData)
-        return updatedFormData
-      })
-
-      // Only try to match a configuration for existing plans
-      if (configs.length > 0 && loadedCustomFunnels.length > 0 && !isNewPlan) {
-        const currentStageNames = loadedCustomFunnels.map((f) => f.name).sort()
-        const matchingConfigIdx = configs.findIndex((config) => {
-          const configStageNames = config.stages.map((s) => s.name).sort()
-          return JSON.stringify(currentStageNames) === JSON.stringify(configStageNames)
-        })
-
-        if (matchingConfigIdx !== -1) {
-          setSelectedConfigIdx(matchingConfigIdx)
-          setSelectedPreset(null)
-          console.debug(`Selected config index: ${matchingConfigIdx}`)
-        } else {
-          const matchingPresetIdx = presetStructures.findIndex((preset) => {
-            const presetStageNames = preset.stages.map((s) => s.name).sort()
-            return JSON.stringify(currentStageNames) === JSON.stringify(presetStageNames)
-          })
-
-          setSelectedPreset(matchingPresetIdx !== -1 ? matchingPresetIdx : null)
-          setSelectedConfigIdx(null)
-          console.debug(`Selected preset index: ${matchingPresetIdx !== -1 ? matchingPresetIdx : null}`)
-        }
-      } else {
-        setSelectedConfigIdx(null)
-        setSelectedPreset(isNewPlan || !clientId ? 1 : null) // "Full" preset for new plans or no client
-        console.debug("No configs or funnels, reset selection")
-      }
+    if (!clientId) {
+      loadedCustomFunnels = defaultFunnels
+      setSelectedConfigIdx(null)
+      setSelectedPreset(1) // Select "Full" preset by default
+      localStorage.removeItem(getClientKey(LOCAL_STORAGE_FUNNELS_KEY, clientId, mediaPlanId))
+      localStorage.removeItem(getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId))
+    } else if (isNewPlan) {
+      // For new plans, always use default funnels
+      loadedCustomFunnels = defaultFunnels
+      setSelectedConfigIdx(null)
+      setSelectedPreset(1) // Select "Full" preset
+    } else if (localStorageFunnels && localStorageFunnels.length > 0) {
+      loadedCustomFunnels = localStorageFunnels
+    } else if (campaignData?.custom_funnels?.length > 0) {
+      loadedCustomFunnels = campaignData.custom_funnels.map((funnel: any, index: number) => ({
+        id: funnel.id || funnel.name || `funnel-${index}`,
+        name: funnel.name || `Funnel ${index + 1}`,
+        color: funnel.color || colorPalette[index % colorPalette.length] || "bg-gray-500",
+      }))
+    } else {
+      loadedCustomFunnels = defaultFunnels
+      setSelectedPreset(1) // Select "Full" preset
     }
 
-    initializeConfigs()
+    setPersistentCustomFunnels(loadedCustomFunnels)
+    setCustomFunnels(loadedCustomFunnels)
+
+    setCampaignFormData((prev: any) => {
+      const initialFunnelStages = Array.isArray(campaignData?.funnel_stages) ? campaignData.funnel_stages : []
+      const initialChannelMix = Array.isArray(campaignData?.channel_mix) ? campaignData.channel_mix : []
+      const orderedFunnelStages =
+        initialFunnelStages.length > 0 && !isNewPlan
+          ? loadedCustomFunnels.map((f) => f.name).filter((name) => initialFunnelStages.includes(name))
+          : loadedCustomFunnels.map((f) => f.name)
+      const orderedChannelMix =
+        initialChannelMix.length > 0 && !isNewPlan
+          ? loadedCustomFunnels
+              .map((f) => initialChannelMix.find((ch: any) => ch?.funnel_stage === f.name))
+              .filter((ch): ch is { funnel_stage: string } => !!ch)
+          : loadedCustomFunnels.map((f) => ({ funnel_stage: f.name }))
+
+      const updatedFormData = {
+        ...prev,
+        funnel_type: "custom",
+        funnel_stages: orderedFunnelStages,
+        channel_mix: orderedChannelMix,
+        custom_funnels: loadedCustomFunnels,
+      }
+      console.debug("Updated campaignFormData:", updatedFormData)
+      return updatedFormData
+    })
+
+    // Only try to match a configuration for existing plans
+    if (configs.length > 0 && loadedCustomFunnels.length > 0 && !isNewPlan) {
+      const currentStageNames = loadedCustomFunnels.map((f) => f.name).sort()
+      const matchingConfigIdx = configs.findIndex((config) => {
+        const configStageNames = config.stages.map((s) => s.name).sort()
+        return JSON.stringify(currentStageNames) === JSON.stringify(configStageNames)
+      })
+
+      if (matchingConfigIdx !== -1) {
+        setSelectedConfigIdx(matchingConfigIdx)
+        setSelectedPreset(null)
+        console.debug(`Selected config index: ${matchingConfigIdx}`)
+      } else {
+        const matchingPresetIdx = presetStructures.findIndex((preset) => {
+          const presetStageNames = preset.stages.map((s) => s.name).sort()
+          return JSON.stringify(currentStageNames) === JSON.stringify(presetStageNames)
+        })
+
+        setSelectedPreset(matchingPresetIdx !== -1 ? matchingPresetIdx : null)
+        setSelectedConfigIdx(null)
+        console.debug(`Selected preset index: ${matchingPresetIdx !== -1 ? matchingPresetIdx : null}`)
+      }
+    } else {
+      setSelectedConfigIdx(null)
+      setSelectedPreset(isNewPlan || !clientId ? 1 : null) // "Full" preset for new plans or no client
+      console.debug("No configs or funnels, reset selection")
+    }
   }, [clientId, mediaPlanId, campaignData, setCampaignFormData])
 
   // Initialize comments drawer
