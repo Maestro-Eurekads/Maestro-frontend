@@ -53,7 +53,7 @@ const TreeDropdownFilter: React.FC<Props> = ({
 			onChange={onChange}
 			treeCheckable
 			showCheckedStrategy={TreeSelect.SHOW_CHILD}
-			placeholder={placeholder || 'Level'}
+			placeholder={placeholder === "Level 1" ? "Client Architecture" : placeholder}
 			allowClear
 			disabled={isDisabled}
 			style={{ minWidth: '150px', width: 'auto' }}
