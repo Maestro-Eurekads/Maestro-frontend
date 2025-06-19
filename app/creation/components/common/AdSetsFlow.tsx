@@ -70,7 +70,7 @@ interface AdSetFlowProps {
   onEditStart?: () => void
   platformName?: any
   modalOpen?: boolean
-  granularity?: "channel" | "adset" // Add this new prop
+  granularity?: "channel" | "adset"
 }
 
 interface AudienceData {
@@ -198,7 +198,7 @@ const updateMultipleAdSets = (
   return updatedCampaignData
 }
 
-// AdSet Component
+// AdSet Component - Updated to handle granularity properly
 const AdSet = memo(function AdSet({
   adset,
   index,
@@ -213,7 +213,7 @@ const AdSet = memo(function AdSet({
   adsets,
   extra_audiences,
   onUpdateExtraAudiences,
-  granularity = "adset", // Add this prop
+  granularity = "adset",
 }: {
   adset: AdSetType
   index: number
@@ -228,7 +228,7 @@ const AdSet = memo(function AdSet({
   adsets: AdSetType[]
   extra_audiences?: AudienceData[]
   onUpdateExtraAudiences: (audiences: AudienceData[]) => void
-  granularity?: "channel" | "adset" // Add this prop type
+  granularity?: "channel" | "adset"
 }) {
   const [audience, setAudience] = useState<string>(audienceType || "")
   const [name, setName] = useState<string>(adSetName || "")
@@ -331,88 +331,128 @@ const AdSet = memo(function AdSet({
     (extraAudience.length === 0 ||
       (extraAudience.length > 0 && extraAudience[extraAudience.length - 1]?.audience_type?.trim()))
 
+  // Channel level: Show simplified view without ad set numbers and extra audiences
+  if (granularity === "channel") {
+    return (
+      <div className="flex gap-2 items-start w-full px-4">
+        <div className="w-[200px]">
+          <AudienceDropdownWithCallback onSelect={handleAudienceSelect} initialValue={audience} dropdownId={adset.id} />
+        </div>
+        <input
+          type="text"
+          placeholder="Enter audience name"
+          value={name}
+          onChange={handleNameChange}
+          disabled={!isEditing}
+          className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[160px] ${
+            !isEditing ? "cursor-not-allowed" : ""
+          }`}
+        />
+        <input
+          type="text"
+          placeholder="Enter size"
+          value={formatWithThousandSeparator(size)}
+          onChange={handleSizeChange}
+          disabled={!isEditing}
+          className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] w-[100px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            !isEditing ? "cursor-not-allowed" : ""
+          }`}
+          inputMode="numeric"
+          pattern="[0-9,]*"
+        />
+        <input
+          type="text"
+          placeholder="Description"
+          value={description}
+          onChange={handleDescriptionChange}
+          disabled={!isEditing}
+          className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[180px] ${
+            !isEditing ? "cursor-not-allowed" : ""
+          }`}
+        />
+      </div>
+    )
+  }
+
+  // Ad set level: Show full view with ad set numbers and extra audiences
   return (
     <div className="flex gap-2 items-start w-full px-4">
-      {granularity === "adset" && (
-        <div className="relative">
-          <p className="relative z-[1] text-[#3175FF] text-sm whitespace-nowrap font-bold flex gap-4 items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
-            {`Ad set n°${adset.addsetNumber}`}
-          </p>
-        </div>
-      )}
+      <div className="relative">
+        <p className="relative z-[1] text-[#3175FF] text-sm whitespace-nowrap font-bold flex gap-4 items-center bg-[#F9FAFB] border border-[#0000001A] py-4 px-2 rounded-[10px]">
+          {`Ad set n°${adset.addsetNumber}`}
+        </p>
+      </div>
       <div className="w-[200px]">
         <AudienceDropdownWithCallback onSelect={handleAudienceSelect} initialValue={audience} dropdownId={adset.id} />
-        {granularity === "adset" && (
-          <div className="mt-4 space-y-2">
-            <div>
-              {extraAudience?.map((audi, index) => (
-                <div key={`${adset.id}-${index}`} className="flex items-center justify-between gap-4 mb-2">
-                  <AudienceDropdownWithCallback
-                    onSelect={(value: string) => handleExtraAudienceSelect(value, index)}
-                    initialValue={audi?.audience_type}
-                    dropdownId={`${adset.id}-${index}`}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Name"
-                    value={audi.name || ""}
-                    onChange={(e) => {
-                      const updated = [...extraAudience]
-                      updated[index].name = e.target.value
-                      updateExtraAudienceMap(updated)
-                    }}
-                    disabled={!isEditing}
-                    className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[160px]"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Size"
-                    value={formatWithThousandSeparator(audi.size || "")}
-                    onChange={(e) => handleExtraAudienceSizeChange(e, index)}
-                    disabled={!isEditing}
-                    className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[100px]"
-                    inputMode="numeric"
-                    pattern="[0-9,]*"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Description"
-                    value={audi.description || ""}
-                    onChange={(e) => handleExtraAudienceDescriptionChange(e, index)}
-                    disabled={!isEditing}
-                    className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[180px]"
-                  />
-                  <button
-                    disabled={!isEditing}
-                    onClick={() => handleDeleteExtraAudience(index)}
-                    className={`flex items-center justify-center rounded-full px-6 py-2 bg-[#FF5955] text-white ${
-                      !isEditing ? "cursor-not-allowed opacity-50" : ""
-                    }`}
-                  >
-                    <MdDelete /> <span className="text-white font-bold">Delete</span>
-                  </button>
-                </div>
-              ))}
-            </div>
-            <button
-              className={`text-[14px] mt-2 font-semibold flex items-center gap-1 ${
-                canAddNewAudience && extraAudience?.length < 10
-                  ? "text-[#3175FF] cursor-pointer"
-                  : "text-gray-400 cursor-not-allowed"
-              }`}
-              onClick={() => {
-                if (canAddNewAudience) {
-                  const updated = [...extraAudience, { audience_type: "", name: "", size: "", description: "" }]
-                  updateExtraAudienceMap(updated)
-                }
-              }}
-              disabled={extraAudience?.length >= 10}
-            >
-              <Plus size={14} />
-              <p>Add new audience</p>
-            </button>
+        <div className="mt-4 space-y-2">
+          <div>
+            {extraAudience?.map((audi, index) => (
+              <div key={`${adset.id}-${index}`} className="flex items-center justify-between gap-4 mb-2">
+                <AudienceDropdownWithCallback
+                  onSelect={(value: string) => handleExtraAudienceSelect(value, index)}
+                  initialValue={audi?.audience_type}
+                  dropdownId={`${adset.id}-${index}`}
+                />
+                <input
+                  type="text"
+                  placeholder="Name"
+                  value={audi.name || ""}
+                  onChange={(e) => {
+                    const updated = [...extraAudience]
+                    updated[index].name = e.target.value
+                    updateExtraAudienceMap(updated)
+                  }}
+                  disabled={!isEditing}
+                  className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[160px]"
+                />
+                <input
+                  type="text"
+                  placeholder="Size"
+                  value={formatWithThousandSeparator(audi.size || "")}
+                  onChange={(e) => handleExtraAudienceSizeChange(e, index)}
+                  disabled={!isEditing}
+                  className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[100px]"
+                  inputMode="numeric"
+                  pattern="[0-9,]*"
+                />
+                <input
+                  type="text"
+                  placeholder="Description"
+                  value={audi.description || ""}
+                  onChange={(e) => handleExtraAudienceDescriptionChange(e, index)}
+                  disabled={!isEditing}
+                  className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[180px]"
+                />
+                <button
+                  disabled={!isEditing}
+                  onClick={() => handleDeleteExtraAudience(index)}
+                  className={`flex items-center justify-center rounded-full px-6 py-2 bg-[#FF5955] text-white ${
+                    !isEditing ? "cursor-not-allowed opacity-50" : ""
+                  }`}
+                >
+                  <MdDelete /> <span className="text-white font-bold">Delete</span>
+                </button>
+              </div>
+            ))}
           </div>
-        )}
+          <button
+            className={`text-[14px] mt-2 font-semibold flex items-center gap-1 ${
+              canAddNewAudience && extraAudience?.length < 10
+                ? "text-[#3175FF] cursor-pointer"
+                : "text-gray-400 cursor-not-allowed"
+            }`}
+            onClick={() => {
+              if (canAddNewAudience) {
+                const updated = [...extraAudience, { audience_type: "", name: "", size: "", description: "" }]
+                updateExtraAudienceMap(updated)
+              }
+            }}
+            disabled={extraAudience?.length >= 10}
+          >
+            <Plus size={14} />
+            <p>Add new audience</p>
+          </button>
+        </div>
       </div>
       <input
         type="text"
@@ -446,22 +486,20 @@ const AdSet = memo(function AdSet({
           !isEditing ? "cursor-not-allowed" : ""
         }`}
       />
-      {granularity === "adset" && (
-        <button
-          disabled={!isEditing}
-          onClick={() => onDelete(adset.id)}
-          className={`flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold ${
-            !isEditing ? "cursor-not-allowed opacity-50" : ""
-          }`}
-        >
-          <MdDelete /> <span>Delete</span>
-        </button>
-      )}
+      <button
+        disabled={!isEditing}
+        onClick={() => onDelete(adset.id)}
+        className={`flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold ${
+          !isEditing ? "cursor-not-allowed opacity-50" : ""
+        }`}
+      >
+        <MdDelete /> <span>Delete</span>
+      </button>
     </div>
   )
 })
 
-// AudienceDropdownWithCallback Component
+// AudienceDropdownWithCallback Component (unchanged)
 const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback({
   onSelect,
   initialValue,
@@ -678,7 +716,7 @@ const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback(
   )
 })
 
-// NonFacebookOutlet Component
+// NonFacebookOutlet Component (unchanged)
 const NonFacebookOutlet = memo(function NonFacebookOutlet({
   outlet,
   setSelected,
@@ -706,7 +744,7 @@ const NonFacebookOutlet = memo(function NonFacebookOutlet({
   )
 })
 
-// AdsetSettings Component
+// AdsetSettings Component - Updated to handle granularity properly
 const AdsetSettings = memo(function AdsetSettings({
   outlet,
   stageName,
@@ -714,7 +752,7 @@ const AdsetSettings = memo(function AdsetSettings({
   defaultOpen,
   isCollapsed,
   setCollapsed,
-  granularity = "adset", // Add this prop with default
+  granularity = "adset",
 }: {
   outlet: OutletType
   stageName: string
@@ -722,7 +760,7 @@ const AdsetSettings = memo(function AdsetSettings({
   defaultOpen?: boolean
   isCollapsed: boolean
   setCollapsed: (collapsed: boolean) => void
-  granularity?: "channel" | "adset" // Add this prop type
+  granularity?: "channel" | "adset"
 }) {
   const { isEditing } = useEditing()
   const { campaignFormData, setCampaignFormData, updateCampaign, getActiveCampaign } = useCampaigns()
@@ -939,48 +977,93 @@ const AdsetSettings = memo(function AdsetSettings({
     onInteraction()
   }, [outlet.outlet, onInteraction])
 
+  // Updated recap rows to handle granularity properly
   const recapRows: {
     type: string
     name: string
     size: string
     description?: string
-    adSetNumber: number
+    adSetNumber?: number
     isExtra: boolean
   }[] = []
 
-  adsets.forEach((adset, idx) => {
-    const adSetData = adSetDataMap[adset.id] || {
-      name: "",
-      audience_type: "",
-      size: "",
-      description: "",
-      extra_audiences: [],
-    }
-    if (adSetData.audience_type || adSetData.name || adSetData.size || adSetData.description) {
+  if (granularity === "channel") {
+    // Channel level: Aggregate all audiences for this platform
+    const aggregatedAudiences: Set<string> = new Set()
+    const aggregatedNames: Set<string> = new Set()
+    let totalSize = 0
+    const descriptions: Set<string> = new Set()
+
+    adsets.forEach((adset) => {
+      const adSetData = adSetDataMap[adset.id] || {
+        name: "",
+        audience_type: "",
+        size: "",
+        description: "",
+        extra_audiences: [],
+      }
+
+      if (adSetData.audience_type) aggregatedAudiences.add(adSetData.audience_type)
+      if (adSetData.name) aggregatedNames.add(adSetData.name)
+      if (adSetData.size) totalSize += Number.parseInt(adSetData.size.replace(/,/g, "")) || 0
+      if (adSetData.description) descriptions.add(adSetData.description)
+
+      // Handle extra audiences
+      if (Array.isArray(adSetData.extra_audiences)) {
+        adSetData.extra_audiences.forEach((ea) => {
+          if (ea.audience_type) aggregatedAudiences.add(ea.audience_type)
+          if (ea.name) aggregatedNames.add(ea.name)
+          if (ea.size) totalSize += Number.parseInt(ea.size.replace(/,/g, "")) || 0
+          if (ea.description) descriptions.add(ea.description)
+        })
+      }
+    })
+
+    if (aggregatedAudiences.size > 0 || aggregatedNames.size > 0 || totalSize > 0) {
       recapRows.push({
-        type: adSetData.audience_type || "",
-        name: adSetData.name || "",
-        size: adSetData.size || "",
-        description: adSetData.description || "",
-        adSetNumber: adset.addsetNumber,
+        type: Array.from(aggregatedAudiences).join(", "),
+        name: Array.from(aggregatedNames).join(", "),
+        size: totalSize.toString(),
+        description: Array.from(descriptions).join(", "),
         isExtra: false,
       })
     }
-    if (Array.isArray(adSetData.extra_audiences)) {
-      adSetData.extra_audiences.forEach((ea, eidx) => {
-        if (ea.audience_type || ea.name || ea.size || ea.description) {
-          recapRows.push({
-            type: ea.audience_type || "",
-            name: ea.name || "",
-            size: ea.size || "",
-            description: ea.description || "",
-            adSetNumber: adset.addsetNumber,
-            isExtra: true,
-          })
-        }
-      })
-    }
-  })
+  } else {
+    // Ad set level: Show individual ad sets
+    adsets.forEach((adset) => {
+      const adSetData = adSetDataMap[adset.id] || {
+        name: "",
+        audience_type: "",
+        size: "",
+        description: "",
+        extra_audiences: [],
+      }
+      if (adSetData.audience_type || adSetData.name || adSetData.size || adSetData.description) {
+        recapRows.push({
+          type: adSetData.audience_type || "",
+          name: adSetData.name || "",
+          size: adSetData.size || "",
+          description: adSetData.description || "",
+          adSetNumber: adset.addsetNumber,
+          isExtra: false,
+        })
+      }
+      if (Array.isArray(adSetData.extra_audiences)) {
+        adSetData.extra_audiences.forEach((ea) => {
+          if (ea.audience_type || ea.name || ea.size || ea.description) {
+            recapRows.push({
+              type: ea.audience_type || "",
+              name: ea.name || "",
+              size: ea.size || "",
+              description: ea.description || "",
+              adSetNumber: adset.addsetNumber,
+              isExtra: true,
+            })
+          }
+        })
+      }
+    })
+  }
 
   if (!selectedPlatforms.includes(outlet.outlet)) {
     return <NonFacebookOutlet outlet={outlet} setSelected={setSelectedPlatforms} onInteraction={onInteraction} />
@@ -1067,7 +1150,9 @@ const AdsetSettings = memo(function AdsetSettings({
       {isCollapsed && recapRows.length > 0 && (
         <div className="mt-2 mb-4">
           <div className="bg-[#F5F7FA] border border-[#E5E7EB] rounded-lg px-4 py-3">
-            <div className="font-semibold text-[#061237] mb-2 text-sm">Audience Recap</div>
+            <div className="font-semibold text-[#061237] mb-2 text-sm">
+              Audience Recap ({granularity === "channel" ? "Channel Level" : "Ad Set Level"})
+            </div>
             <div className="overflow-x-auto">
               <table className="min-w-full text-xs text-[#061237]">
                 <thead>
@@ -1075,14 +1160,16 @@ const AdsetSettings = memo(function AdsetSettings({
                     {granularity === "adset" && <th className="text-left pr-4 py-1">Ad Set</th>}
                     <th className="text-left pr-4 py-1">Audience Type</th>
                     <th className="text-left pr-4 py-1">Audience Name</th>
-                    <th className="text-left pr-4 py-1">Audience Size</th>
+                    <th className="text-left pr-4 py-1">
+                      {granularity === "channel" ? "Total Size" : "Audience Size"}
+                    </th>
                     <th className="text-left pr-4 py-1">Description</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recapRows.map((row, idx) => (
                     <tr key={idx} className={row.isExtra ? "bg-[#F9FAFB]" : ""}>
-                      {granularity === "adset" && (
+                      {granularity === "adset" && row.adSetNumber && (
                         <td className="pr-4 py-1">
                           {row.isExtra ? `Ad set n°${row.adSetNumber} (Extra)` : `Ad set n°${row.adSetNumber}`}
                         </td>
