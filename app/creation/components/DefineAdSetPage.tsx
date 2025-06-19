@@ -32,6 +32,8 @@ interface DefineAdSetPageProps {
   onToggleChange: (newView: "channel" | "adset") => void
 }
 
+const GOAL_LEVEL_MODAL_KEY = "goalLevelModalDismissed"
+
 const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
   const [stageStatuses, setStageStatuses] = useState<Record<string, string>>({})
@@ -41,6 +43,15 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const initialized = useRef(false)
 
+  // Check localStorage for modal dismissal
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    // If already dismissed, don't show modal
+    if (localStorage.getItem(GOAL_LEVEL_MODAL_KEY) === "true") {
+      setIsModalOpen(false)
+    }
+  }, [])
+
   const handleOpenModal = () => {
     setIsModalOpen(true)
   }
@@ -48,6 +59,9 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const handleCloseModal = (e?: React.MouseEvent) => {
     if (e) e.preventDefault()
     setIsModalOpen(false)
+    if (typeof window !== "undefined") {
+      localStorage.setItem(GOAL_LEVEL_MODAL_KEY, "true")
+    }
   }
 
   useEffect(() => {
@@ -56,8 +70,13 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     const goalLevel = campaignFormData.goal_level
     const expectedGoalLevel = view === "adset" ? "Adset level" : "Channel level"
 
+    // Only show modal if not dismissed before
     if (!goalLevel) {
-      setIsModalOpen(true)
+      if (typeof window !== "undefined" && localStorage.getItem(GOAL_LEVEL_MODAL_KEY) === "true") {
+        setIsModalOpen(false)
+      } else {
+        setIsModalOpen(true)
+      }
     } else if (goalLevel !== expectedGoalLevel) {
       setCampaignFormData((prev: any) => {
         if (prev.goal_level === expectedGoalLevel) return prev
@@ -256,6 +275,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       ...prev,
       goal_level: checked ? "Adset level" : "Channel level",
     }))
+    // If user changes granularity, consider modal as dismissed
+    if (typeof window !== "undefined") {
+      localStorage.setItem(GOAL_LEVEL_MODAL_KEY, "true")
+    }
   }
 
   return (
@@ -556,6 +579,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                           }))
                           onToggleChange(newView)
                           handleCloseModal()
+                          // Mark modal as dismissed in localStorage
+                          if (typeof window !== "undefined") {
+                            localStorage.setItem(GOAL_LEVEL_MODAL_KEY, "true")
+                          }
                         }}
                       >
                         Select
