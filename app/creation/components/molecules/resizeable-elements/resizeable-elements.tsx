@@ -31,7 +31,7 @@ function breakdownByMonth(start: Date, end: Date) {
 
   for (const day of days) {
     const key = format(day, "MMMM yyyy")
-    map[key] = (map[key] || 0) + 1
+    map[key] = (map[key] || 0) 
   }
   return map
 }
@@ -152,7 +152,7 @@ const ResizeableElements = ({
         return window.innerWidth || document.documentElement.clientWidth || 0
       }
       const screenWidth = getViewportWidth()
-      const contWidth = screenWidth - (disableDrag ? 80 : close ? 0:367)
+      const contWidth = screenWidth - (disableDrag ? 80 : 75)
 
       let dailyWidth: number
 
@@ -175,7 +175,7 @@ const ResizeableElements = ({
         [viewType]: Math.round(dailyWidth),
       }))
 
-      return Math.round(dailyWidth)
+      return Math.round(dailyWidth )
     },
     [disableDrag, funnelData?.endDay, funnelData?.endMonth, close], // Removed daysInEachMonth from dependencies
   )
@@ -214,7 +214,7 @@ const ResizeableElements = ({
 
     range.forEach((date) => {
       const monthYear = format(date, "MMMM yyyy")
-      daysInMonth[monthYear] = (daysInMonth[monthYear] || 0) + 1
+      daysInMonth[monthYear] = (daysInMonth[monthYear] || 0) 
     })
 
     return daysInMonth
@@ -232,7 +232,7 @@ const ResizeableElements = ({
         monthsByYear[year] = {}
       }
 
-      monthsByYear[year][month] = (monthsByYear[year][month] || 0) + 1
+      monthsByYear[year][month] = (monthsByYear[year][month] || 0) 
     })
 
     return monthsByYear
@@ -363,13 +363,13 @@ const ResizeableElements = ({
 
         initialWidths[stageName] = (() => {
           if (rrange === "Day" || rrange === "Week") {
-            return daysBetween > 0 ? dailyWidth * daysBetween : dailyWidth * daysFromStart - 55
+            return daysBetween > 0 ? dailyWidth * daysBetween : dailyWidth * daysFromStart - 0
           } else {
             // Month view - calculate width based on actual days and ensure it fits within screen
             const totalDaysInRange = Object.values(daysInEachMonth).reduce((sum: number, days: number) => sum + days, 0)
             const widthPerDay = availableWidth / (totalDaysInRange || 30)
 
-            return daysBetween > 0 ? widthPerDay * daysBetween : widthPerDay * daysFromStart - 40
+            return daysBetween > 0 ? widthPerDay * daysBetween : widthPerDay * daysFromStart - 0
           }
         })()
 
@@ -394,7 +394,7 @@ const ResizeableElements = ({
 
   return (
     <div
-      className={`w-full min-h-[494px] relative pb-5 grid-container overflow-x-hidden ${(rrange === "Month" || rrange === "Year") && "max-w-[100vw]"}`}
+      className={`w-full min-h-[494px] relative pb-5 grid-container overflow-x-hidden ${(rrange === "Month" || rrange === "Year") && "max-w-full"}`}
       ref={gridRef}
       style={{
         backgroundImage: (() => {
@@ -412,7 +412,8 @@ const ResizeableElements = ({
             const weeklyGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`
             const monthBoundaryGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)` // 3px thick lines
 
-            return `${regularGrid}, ${monthBoundaryGrid}`
+            return ``
+            // return `${regularGrid}, ${monthBoundaryGrid}`
           }
         })(),
         backgroundSize: (() => {
@@ -489,7 +490,8 @@ const ResizeableElements = ({
             const regularGridSize = `${dailyWidth}px 100%`
             const monthBoundaryBackgrounds = monthEndPositions.map((position) => `${position}px 100%`).join(", ")
 
-            return monthBoundaryBackgrounds ? `${regularGridSize}, ${monthBoundaryBackgrounds}` : regularGridSize
+            return "100% 100%"
+            // return monthBoundaryBackgrounds ? `${regularGridSize}, ${monthBoundaryBackgrounds}` : regularGridSize
           }
         })(),
       }}
@@ -543,7 +545,7 @@ const ResizeableElements = ({
                 className="flex flex-col mt-6 rounded-[10px] p-4 px-0 justify-between w-fit"
                 style={{
                   gridColumnStart: 1,
-                  gridColumnEnd: getGridColumnEnd() + 1,
+                  gridColumnEnd: getGridColumnEnd(),
                 }}
               >
                 <DraggableChannel

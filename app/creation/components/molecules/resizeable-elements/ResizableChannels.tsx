@@ -850,12 +850,12 @@ const ResizableChannels = ({
                 }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden `}
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
-                  width: `${channelState[index]?.width + (disableDrag ? 73 : rrange === "Month" ? 40 : 50)}px`,
+                  width: `${channelState[index]?.width + (disableDrag ? 73 : rrange === "Month" ? dailyWidth : dailyWidth)}px`,
                   backgroundColor: channel.bg,
                   color: channel.color,
                   borderColor: channel.color,
                   borderRadius: "10px",
-                  minWidth: rrange === "Day" ? "50px" : rrange === "Week" ? "50px" : `${channelState[index]?.width}px`,
+                  minWidth: `${dailyWidth}px`,
                 }}
                 onMouseDown={disableDrag || openItems ? undefined : handleDragStart(index)}
               >
@@ -900,7 +900,7 @@ const ResizableChannels = ({
                 {
                   <>
                     <div
-                      className={`absolute top-0 w-5 h-[46px] cursor-ew-resize rounded-l-[8px] text-white flex items-center justify-center ${
+                      className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
                         disableDrag && "hidden"
                       }`}
                       style={{
@@ -914,7 +914,7 @@ const ResizableChannels = ({
                       <MdDragHandle className="rotate-90" />
                     </div>
                     <div
-                      className={`absolute top-0 w-5 h-[46px] cursor-ew-resize rounded-r-[8px] text-white flex items-center justify-center ${
+                      className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
                         disableDrag && "hidden"
                       }`}
                       style={{
