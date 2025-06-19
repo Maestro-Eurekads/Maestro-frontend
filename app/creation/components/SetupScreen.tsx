@@ -346,32 +346,7 @@ export const SetupScreen = () => {
               <label className="block text-sm font-medium text-gray-700  ">
                 Internal Approver
               </label>
-              {/* <InternalApproverDropdowns
-                options={internalapproverOptions}
-                value={{
-                  internal_approver:
-                    campaignFormData?.internal_approver_ids?.map((id) => {
-                      const match = internalapproverOptions?.find(
-                        (opt) => String(opt?.value) === String(id)
-                      );
-                      return match
-                        ? {
-                          value: match.value,
-                          label: match.label,
-                          id: campaignFormData?.campaign_id,
-                          clientId: campaignFormData?.client_selection?.id,
-                        }
-                        : null;
-                    }).filter(Boolean) ?? [],
-                }}
-                onChange={(field, selected) => {
-                  setCampaignFormData((prev) => ({
-                    ...prev,
-                    [`${field}_ids`]: selected?.map((item) => item?.value),
-                    [field]: selected,
-                  }));
-                }}
-              /> */}
+
 
               <InternalApproverDropdowns
                 options={internalapproverOptions}
@@ -409,32 +384,7 @@ export const SetupScreen = () => {
               />
 
 
-              {/* <ClientApproverDropdowns
-                option={clientapprovalOptions}
-                value={{
-                  client_approver:
-                    campaignFormData?.client_approver_ids?.map((id) => {
-                      const match = clientapprovalOptions?.find(
-                        (opt) => opt?.value === id
-                      );
-                      return match
-                        ? {
-                          value: match.value,
-                          label: match.label,
-                          id: campaignFormData?.campaign_id,
-                          clientId: campaignFormData?.client_selection?.id,
-                        }
-                        : null;
-                    }).filter(Boolean) ?? [],
-                }}
-                onChange={(field, selected) => {
-                  setCampaignFormData((prev) => ({
-                    ...prev,
-                    [`${field}_ids`]: selected?.map((item) => item?.value),
-                    [field]: selected,
-                  }));
-                }}
-              /> */}
+
             </div>
           </div>
         </div>
