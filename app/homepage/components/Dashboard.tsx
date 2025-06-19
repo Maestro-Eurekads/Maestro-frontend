@@ -21,6 +21,7 @@ import {
 import { useDateRange } from "src/date-context"
 import Range from "app/creation/components/atoms/date-range/dashboard-date-range"
 import TimelineContainer from "app/creation/components/atoms/date-interval/TimelineContainer"
+import DashboradDoughnutChat from "components/DashboradDoughnutChat"
 
 const Dashboard = () => {
   const [channels, setChannels] = useState<IChannel[]>([])
@@ -207,7 +208,8 @@ const Dashboard = () => {
 
                 <div className="flex items-center gap-6 mt-[24px] w-full">
                   {/* Doughnut Chat */}
-                  <DoughnutChat
+                  <DashboradDoughnutChat
+                    campaign={campaign}
                     // data={campaign?.channel_mix?.map((ch) =>
                     //   Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0),
                     // )}
@@ -220,9 +222,9 @@ const Dashboard = () => {
                     //         ? "#FF9037"
                     //         : "#F05406",
                     // )}
-                    // insideText={`${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency ? getCurrencySymbol(campaign?.campaign_budget?.currency) : ""
-                    //   }`}
-                    insideText={`${parseInt(campaignFormData?.campaign_budget?.amount && campaignFormData?.campaign_budget?.amount).toLocaleString() ?? 0} ${getCurrencySymbol(campaignFormData?.campaign_budget?.currency ?? '')}`}
+                    insideText={`${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency ? getCurrencySymbol(campaign?.campaign_budget?.currency) : ""
+                      }`}
+                  // insideText={`${parseInt(campaignFormData?.campaign_budget?.amount && campaignFormData?.campaign_budget?.amount).toLocaleString() ?? 0} ${getCurrencySymbol(campaignFormData?.campaign_budget?.currency ?? '')}`}
                   />
                   {/* Campaign Phases */}
                   <CampaignPhases
