@@ -18,7 +18,7 @@ const BusinessUnitGroup = ({ onUpdate, setAlert, label, initial = [], onRemove }
 		if (fields.length >= 5) {
 			setAlert({
 				variant: "warning",
-				message: "Maximum 5 business units allowed",
+				message: "Maximum 5 Client Architecture allowed",
 				position: "bottom-right",
 			});
 			return;
@@ -26,7 +26,7 @@ const BusinessUnitGroup = ({ onUpdate, setAlert, label, initial = [], onRemove }
 		if (!fields[fields.length - 1].text.trim()) {
 			setAlert({
 				variant: "error",
-				message: "Business unit name cannot be empty",
+				message: "Client Architecture name cannot be empty",
 				position: "bottom-right",
 			});
 			return;
@@ -59,7 +59,7 @@ const BusinessUnitGroup = ({ onUpdate, setAlert, label, initial = [], onRemove }
 					<input
 						type="text"
 						className="w-full bg-transparent outline-none text-gray-600"
-						placeholder={index === 0 ? "Business Level 2" : `Parameter ${index}`}
+						placeholder={index === 0 ? "Client Architecture" : `Parameter ${index}`}
 						value={field.text}
 						onChange={(e) => handleInputChange(index, e.target.value)}
 					/>

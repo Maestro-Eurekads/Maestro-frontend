@@ -7,7 +7,7 @@ import { buildTree } from 'utils/buildTree';
 interface Props {
 	data: any;
 	title: any;
-	formId: 'level_1' | 'level_2' | 'level_3';
+	formId: 'Client Architecture';
 	setCampaignFormData: React.Dispatch<React.SetStateAction<any>>;
 }
 

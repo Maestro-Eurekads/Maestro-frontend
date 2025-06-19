@@ -32,6 +32,8 @@ interface DefineAdSetPageProps {
   onToggleChange: (newView: "channel" | "adset") => void
 }
 
+const GOAL_LEVEL_MODAL_KEY = "goalLevelModalDismissed"
+
 const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
   const [stageStatuses, setStageStatuses] = useState<Record<string, string>>({})
@@ -48,6 +50,9 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const handleCloseModal = (e?: React.MouseEvent) => {
     if (e) e.preventDefault()
     setIsModalOpen(false)
+    if (typeof window !== "undefined") {
+      localStorage.setItem(GOAL_LEVEL_MODAL_KEY, "true")
+    }
   }
 
   useEffect(() => {
@@ -56,7 +61,12 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     const goalLevel = campaignFormData.goal_level
     const expectedGoalLevel = view === "adset" ? "Adset level" : "Channel level"
 
+    // Only show modal if not dismissed before
     if (!goalLevel) {
+      // Reset the localStorage flag for new media plans
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(GOAL_LEVEL_MODAL_KEY)
+      }
       setIsModalOpen(true)
     } else if (goalLevel !== expectedGoalLevel) {
       setCampaignFormData((prev: any) => {
@@ -188,13 +198,14 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     )
   }
 
+  // Fixed function to properly handle granularity-specific recap data
   const getRecapRows = (stageName: string) => {
     const recapRows: {
       platform: string
       type: string
       name: string
       size: string
-      adSetNumber: number
+      adSetNumber?: number
       isExtra: boolean
     }[] = []
 
@@ -215,36 +226,101 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       ...(stage.mobile || []),
     ]
 
-    platforms.forEach((platform: any) => {
-      if (platform.ad_sets && platform.ad_sets.length > 0) {
-        platform.ad_sets.forEach((adSet: any, idx: number) => {
-          if (adSet.audience_type || adSet.name || adSet.size) {
-            recapRows.push({
-              platform: platform.platform_name,
-              type: adSet.audience_type || "",
-              name: adSet.name || "",
-              size: adSet.size || "",
-              adSetNumber: idx + 1,
-              isExtra: false,
-            })
+    if (view === "channel") {
+      // Channel level: Aggregate audiences by platform
+      const platformAggregation: Record<
+        string,
+        {
+          audiences: Set<string>
+          totalSize: number
+          names: Set<string>
+        }
+      > = {}
+
+      platforms.forEach((platform: any) => {
+        if (platform.ad_sets && platform.ad_sets.length > 0) {
+          if (!platformAggregation[platform.platform_name]) {
+            platformAggregation[platform.platform_name] = {
+              audiences: new Set(),
+              totalSize: 0,
+              names: new Set(),
+            }
           }
-          if (Array.isArray(adSet.extra_audiences)) {
-            adSet.extra_audiences.forEach((ea: any, eidx: number) => {
-              if (ea.audience_type || ea.name || ea.size) {
-                recapRows.push({
-                  platform: platform.platform_name,
-                  type: ea.audience_type || "",
-                  name: ea.name || "",
-                  size: ea.size || "",
-                  adSetNumber: idx + 1,
-                  isExtra: true,
-                })
-              }
-            })
-          }
+
+          platform.ad_sets.forEach((adSet: any) => {
+            if (adSet.audience_type) {
+              platformAggregation[platform.platform_name].audiences.add(adSet.audience_type)
+            }
+            if (adSet.name) {
+              platformAggregation[platform.platform_name].names.add(adSet.name)
+            }
+            if (adSet.size) {
+              platformAggregation[platform.platform_name].totalSize +=
+                Number.parseInt(adSet.size.replace(/,/g, "")) || 0
+            }
+
+            // Handle extra audiences
+            if (Array.isArray(adSet.extra_audiences)) {
+              adSet.extra_audiences.forEach((ea: any) => {
+                if (ea.audience_type) {
+                  platformAggregation[platform.platform_name].audiences.add(ea.audience_type)
+                }
+                if (ea.name) {
+                  platformAggregation[platform.platform_name].names.add(ea.name)
+                }
+                if (ea.size) {
+                  platformAggregation[platform.platform_name].totalSize +=
+                    Number.parseInt(ea.size.replace(/,/g, "")) || 0
+                }
+              })
+            }
+          })
+        }
+      })
+
+      // Convert aggregated data to rows
+      Object.entries(platformAggregation).forEach(([platformName, data]) => {
+        recapRows.push({
+          platform: platformName,
+          type: Array.from(data.audiences).join(", "),
+          name: Array.from(data.names).join(", "),
+          size: data.totalSize.toString(),
+          isExtra: false,
         })
-      }
-    })
+      })
+    } else {
+      // Ad set level: Show individual ad sets
+      platforms.forEach((platform: any) => {
+        if (platform.ad_sets && platform.ad_sets.length > 0) {
+          platform.ad_sets.forEach((adSet: any, idx: number) => {
+            if (adSet.audience_type || adSet.name || adSet.size) {
+              recapRows.push({
+                platform: platform.platform_name,
+                type: adSet.audience_type || "",
+                name: adSet.name || "",
+                size: adSet.size || "",
+                adSetNumber: idx + 1,
+                isExtra: false,
+              })
+            }
+            if (Array.isArray(adSet.extra_audiences)) {
+              adSet.extra_audiences.forEach((ea: any) => {
+                if (ea.audience_type || ea.name || ea.size) {
+                  recapRows.push({
+                    platform: platform.platform_name,
+                    type: ea.audience_type || "",
+                    name: ea.name || "",
+                    size: ea.size || "",
+                    adSetNumber: idx + 1,
+                    isExtra: true,
+                  })
+                }
+              })
+            }
+          })
+        }
+      })
+    }
 
     return recapRows
   }
@@ -256,6 +332,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       ...prev,
       goal_level: checked ? "Adset level" : "Channel level",
     }))
+    // If user changes granularity, consider modal as dismissed
+    if (typeof window !== "undefined") {
+      localStorage.setItem(GOAL_LEVEL_MODAL_KEY, "true")
+    }
   }
 
   return (
@@ -342,32 +422,38 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                   onValidate={() => handleValidate(stageName)}
                   onEditStart={() => resetInteraction(stageName)}
                   modalOpen={isModalOpen}
-                  granularity={view} // Add this prop to pass the current granularity
+                  granularity={view} // Pass the current granularity
                 />
               </div>
             )}
             {!openItems[stageName] && shouldShowRecap && recapRows.length > 0 && (
               <div className="mt-2 mb-4">
                 <div className="bg-[#F5F7FA] border border-[#E5E7EB] rounded-lg px-4 py-3">
-                  <div className="font-bold text-black mb-2 text-sm">Audience Recap</div>
+                  <div className="font-bold text-black mb-2 text-sm">
+                    Audience Recap ({view === "channel" ? "Channel Level" : "Ad Set Level"})
+                  </div>
                   <div className="overflow-x-auto">
                     <table className="min-w-full text-xs text-black">
                       <thead>
                         <tr>
                           <th className="text-left pr-4 py-1 font-bold">Platform</th>
-                          <th className="text-left pr-4 py-1 font-bold">Ad Set</th>
+                          {view === "adset" && <th className="text-left pr-4 py-1 font-bold">Ad Set</th>}
                           <th className="text-left pr-4 py-1 font-bold">Audience Type</th>
                           <th className="text-left pr-4 py-1 font-bold">Audience Name</th>
-                          <th className="text-left pr-4 py-1 font-bold">Audience Size</th>
+                          <th className="text-left pr-4 py-1 font-bold">
+                            {view === "channel" ? "Total Size" : "Audience Size"}
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
                         {recapRows.map((row, idx) => (
                           <tr key={idx} className={row.isExtra ? "bg-[#F9FAFB]" : ""}>
                             <td className="pr-4 py-1 font-normal">{row.platform}</td>
-                            <td className="pr-4 py-1 font-normal">
-                              {row.isExtra ? `Ad set n°${row.adSetNumber} (Extra)` : `Ad set n°${row.adSetNumber}`}
-                            </td>
+                            {view === "adset" && row.adSetNumber && (
+                              <td className="pr-4 py-1 font-normal">
+                                {row.isExtra ? `Ad set n°${row.adSetNumber} (Extra)` : `Ad set n°${row.adSetNumber}`}
+                              </td>
+                            )}
                             <td className="pr-4 py-1 font-normal">{row.type}</td>
                             <td className="pr-4 py-1 font-normal">{row.name}</td>
                             <td className="pr-4 py-1 font-normal">{formatWithThousandSeparator(row.size)}</td>
@@ -554,6 +640,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                           }))
                           onToggleChange(newView)
                           handleCloseModal()
+                          // Mark modal as dismissed in localStorage
+                          if (typeof window !== "undefined") {
+                            localStorage.setItem(GOAL_LEVEL_MODAL_KEY, "true")
+                          }
                         }}
                       >
                         Select

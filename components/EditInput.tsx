@@ -34,9 +34,7 @@ const EditInput = ({ placeholder }: { placeholder: string }) => {
 const EditInputs = ({ setInputs }) => {
 	return (
 		<div className="flex items-center gap-4 mt-[20px]">
-			<EditInput placeholder="Sport" />
-			<EditInput placeholder="Business Unit" />
-			<EditInput placeholder="Category" />
+			<EditInput placeholder="Client Architecture" />
 		</div>
 	);
 };

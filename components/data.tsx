@@ -833,7 +833,7 @@ export const defaultFilters = [
       "December",
     ],
   },
-  { label: "Level 2", options: ["Level 2"] },
+  { label: "Client Architecture", options: ["Client Architecture"] },
   { label: "Made By", options: ["User 1", "User 2", "User 3", "User 4"] },
   {
     label: "Approved By",

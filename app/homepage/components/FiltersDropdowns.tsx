@@ -178,7 +178,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
         f.push({
           label: key.charAt(0).toUpperCase() + key.slice(1),
           options: value,
-          isLevel: ["level_1", "level_2", "level_3"].includes(key),
+          isLevel: ["level_1"].includes(key),
         });
       });
       setFilters(f);
@@ -210,7 +210,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
   const isYearSelected = !!selectedFilters["year"];
 
   // console.log("Selected Filters:", filters);
-
+  // Client Architecture
   return (
     <div>
       <Toaster />
@@ -227,8 +227,6 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
                 "Channel",
                 "Phase",
                 "Level_1_name",
-                "Level_2_name",
-                "Level_3_name",
               ].includes(l?.label)
           )
           .map(({ label, options, isLevel }) => {
@@ -245,18 +243,8 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
                   label.replace("_", " ")
                 );
               }
-              if (label === "Level_2") {
-                return (
-                  filters.find((f) => f.label === "Level_2_name")?.options[0]?.title ||
-                  label.replace("_", " ")
-                );
-              }
-              if (label === "Level_3") {
-                return (
-                  filters.find((f) => f.label === "Level_3_name")?.options[0]?.title ||
-                  label.replace("_", " ")
-                );
-              }
+
+
               return label.replace("_", " ");
             };
 
