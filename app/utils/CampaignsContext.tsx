@@ -128,8 +128,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
   const [businessLevelOptions, setBusinessLevelOptions] = useState({
     level1: [],
-    level2: [],
-    level3: [],
   });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 

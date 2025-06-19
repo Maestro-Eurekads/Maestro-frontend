@@ -27,8 +27,9 @@ const TableModel = ({ isOpen, setIsOpen }) => {
    const dispatch = useAppDispatch();
    const { profile, getProfile, user, getUserByUserType, jwt, agencyId } = useCampaigns();
    const { isAdmin, isAgencyApprover, isFinancialApprover } = useUserPrivileges();
+   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
-   // Client Architecture
+
    const [inputs, setInputs] = useState({
       name: "",
       email: "",
@@ -611,7 +612,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                   {/* Footer */}
                   <div className="p-6 border-t bg-white sticky bottom-0 z-10 flex justify-end rounded-b-[32px]">
                      <div className="flex items-center gap-5">
-                        <button
+                        {/* <button
                            onClick={() => {
                               setIsOpen(false);
                               resetForm();
@@ -619,15 +620,52 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                            className="btn_model_outline"
                         >
                            Cancel
+                        </button> */}
+                        <button
+                           onClick={() => setShowCancelConfirm(true)}
+                           className="btn_model_outline"
+                        >
+                           Cancel
                         </button>
+
                         <button className="btn_model_active whitespace-nowrap" onClick={handleSubmit}>
                            {loading ? <SVGLoader width={"30px"} height={"30px"} color={"#FFF"} /> : "Add Client"}
                         </button>
                      </div>
                   </div>
                </div>
+               {showCancelConfirm && (
+                  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-60">
+                     <div className="bg-white rounded-lg p-6 w-[400px]">
+                        <h3 className="text-lg font-semibold text-red-600">Cancel Creation</h3>
+                        <p className="text-sm text-gray-600 mt-2">
+                           Are you sure you want to cancel client creation?
+                        </p>
+                        <div className="flex justify-end gap-3 mt-4">
+                           <button
+                              className="px-4 py-2 bg-gray-200 rounded-lg text-sm"
+                              onClick={() => setShowCancelConfirm(false)}
+                           >
+                              No
+                           </button>
+                           <button
+                              className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm"
+                              onClick={() => {
+                                 setShowCancelConfirm(false);
+                                 setIsOpen(false);
+                                 resetForm();
+                              }}
+                           >
+                              Yes
+                           </button>
+                        </div>
+                     </div>
+                  </div>
+               )}
             </div>
          )}
+
+
       </div>
    );
 };
