@@ -2,6 +2,7 @@ import type React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { eachDayOfInterval, addDays, format, differenceInDays } from "date-fns";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import { useComments } from "app/utils/CommentProvider";
 
 interface MonthIntervalProps {
   monthsCount: number;
@@ -15,6 +16,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({ monthsCount, view, getDay
   
   const [monthNames, setSetMonthName] = useState([]);
   const { campaignFormData } = useCampaigns();
+  const {close} = useComments()
   const daysInMonth = getDaysInEachMonth()
   // Compute gridTemplateColumns dynamically from daysInMonth
 const totalDays = Object.values(daysInMonth || {}).reduce((acc, 
@@ -60,7 +62,7 @@ const totalDays = Object.values(daysInMonth || {}).reduce((acc,
         return window.innerWidth || document.documentElement.clientWidth || 0;
       };
       const screenWidth = getViewportWidth();
-      const contWidth = screenWidth - (disableDrag ? 80 : 367);
+      const contWidth = screenWidth - (disableDrag ? 80 : close ? 0:367);
   
       const totalDays = funnelData?.endDay || 30;
       let dailyWidth = contWidth / totalDays;
@@ -69,7 +71,7 @@ const totalDays = Object.values(daysInMonth || {}).reduce((acc,
       dailyWidth = Math.max(dailyWidth, 50);
   
       return Math.round(dailyWidth);
-    }, [disableDrag, funnelData?.endDay]);
+    }, [disableDrag, funnelData?.endDay, close]);
   
     const dailyWidth = calculateDailyWidth();
 

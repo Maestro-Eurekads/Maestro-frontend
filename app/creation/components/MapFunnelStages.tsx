@@ -1,3 +1,5 @@
+"use client"
+
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import PageHeaderWrapper from "../../../components/PageHeaderWapper"
@@ -6,7 +8,7 @@ import { useVerification } from "app/utils/VerificationContext"
 import { useComments } from "app/utils/CommentProvider"
 import { PlusIcon, Edit2, Trash2, X, GripVertical, ChevronDown } from "lucide-react"
 import toast from "react-hot-toast"
-// import { updateClient } from "app/homepage/functions/clients"
+import axios from "axios" // <--- Added for Strapi update
 
 // Define type for funnel objects
 interface Funnel {
@@ -125,7 +127,7 @@ const presetStructures: { label: string; stages: Funnel[] }[] = [
 ]
 
 const MapFunnelStages = () => {
-  const { campaignData, campaignFormData, cId, setCampaignFormData } = useCampaigns()
+  const { campaignData, campaignFormData, cId, setCampaignFormData, session } = useCampaigns()
   const { setIsDrawerOpen, setClose } = useComments()
   const { verifyStep, setHasChanges } = useVerification()
   const [previousValidationState, setPreviousValidationState] = useState<boolean | null>(null)
@@ -180,7 +182,7 @@ const MapFunnelStages = () => {
       console.debug(`Retrieved custom funnels from ${key}:`, data)
       if (data) {
         const parsed = JSON.parse(data)
-        if (Array.isArray(parsed) && parsed.every(f => f.id && f.name && f.color)) {
+        if (Array.isArray(parsed) && parsed.every((f) => f.id && f.name && f.color)) {
           return parsed
         }
       }
@@ -212,7 +214,7 @@ const MapFunnelStages = () => {
       console.debug(`Retrieved funnel configs from ${key}:`, data)
       if (data) {
         const parsed = JSON.parse(data)
-        if (Array.isArray(parsed) && parsed.every(config => config.name && Array.isArray(config.stages))) {
+        if (Array.isArray(parsed) && parsed.every((config) => config.name && Array.isArray(config.stages))) {
           return parsed
         }
       }
@@ -263,14 +265,16 @@ const MapFunnelStages = () => {
     setCampaignFormData((prev: any) => {
       const initialFunnelStages = Array.isArray(campaignData?.funnel_stages) ? campaignData.funnel_stages : []
       const initialChannelMix = Array.isArray(campaignData?.channel_mix) ? campaignData.channel_mix : []
-      const orderedFunnelStages = initialFunnelStages.length > 0 && !isNewPlan
-        ? loadedCustomFunnels.map(f => f.name).filter(name => initialFunnelStages.includes(name))
-        : loadedCustomFunnels.map(f => f.name)
-      const orderedChannelMix = initialChannelMix.length > 0 && !isNewPlan
-        ? loadedCustomFunnels
-          .map(f => initialChannelMix.find((ch: any) => ch?.funnel_stage === f.name))
-          .filter((ch): ch is { funnel_stage: string } => !!ch)
-        : loadedCustomFunnels.map(f => ({ funnel_stage: f.name }))
+      const orderedFunnelStages =
+        initialFunnelStages.length > 0 && !isNewPlan
+          ? loadedCustomFunnels.map((f) => f.name).filter((name) => initialFunnelStages.includes(name))
+          : loadedCustomFunnels.map((f) => f.name)
+      const orderedChannelMix =
+        initialChannelMix.length > 0 && !isNewPlan
+          ? loadedCustomFunnels
+              .map((f) => initialChannelMix.find((ch: any) => ch?.funnel_stage === f.name))
+              .filter((ch): ch is { funnel_stage: string } => !!ch)
+          : loadedCustomFunnels.map((f) => ({ funnel_stage: f.name }))
 
       const updatedFormData = {
         ...prev,
@@ -285,9 +289,9 @@ const MapFunnelStages = () => {
 
     // Only try to match a configuration for existing plans
     if (configs.length > 0 && loadedCustomFunnels.length > 0 && !isNewPlan) {
-      const currentStageNames = loadedCustomFunnels.map(f => f.name).sort()
-      const matchingConfigIdx = configs.findIndex(config => {
-        const configStageNames = config.stages.map(s => s.name).sort()
+      const currentStageNames = loadedCustomFunnels.map((f) => f.name).sort()
+      const matchingConfigIdx = configs.findIndex((config) => {
+        const configStageNames = config.stages.map((s) => s.name).sort()
         return JSON.stringify(currentStageNames) === JSON.stringify(configStageNames)
       })
 
@@ -296,8 +300,8 @@ const MapFunnelStages = () => {
         setSelectedPreset(null)
         console.debug(`Selected config index: ${matchingConfigIdx}`)
       } else {
-        const matchingPresetIdx = presetStructures.findIndex(preset => {
-          const presetStageNames = preset.stages.map(s => s.name).sort()
+        const matchingPresetIdx = presetStructures.findIndex((preset) => {
+          const presetStageNames = preset.stages.map((s) => s.name).sort()
           return JSON.stringify(currentStageNames) === JSON.stringify(presetStageNames)
         })
 
@@ -361,8 +365,8 @@ const MapFunnelStages = () => {
 
   // Get an available color
   const getAvailableColor = (excludeColor?: string): string => {
-    const usedColors = persistentCustomFunnels.filter(f => f.color !== excludeColor).map(f => f.color)
-    const availableColors = colorPalette.filter(c => !usedColors.includes(c))
+    const usedColors = persistentCustomFunnels.filter((f) => f.color !== excludeColor).map((f) => f.color)
+    const availableColors = colorPalette.filter((c) => !usedColors.includes(c))
     return availableColors.length > 0
       ? availableColors[0]
       : colorPalette[persistentCustomFunnels.length % colorPalette.length]
@@ -376,7 +380,7 @@ const MapFunnelStages = () => {
     if (!/[a-zA-Z]/.test(trimmed)) return "Funnel name must include at least one letter"
     if (
       persistentCustomFunnels.some(
-        funnel => funnel.name.toLowerCase() === trimmed.toLowerCase() && (!isEdit || funnel.name !== oldId)
+        (funnel) => funnel.name.toLowerCase() === trimmed.toLowerCase() && (!isEdit || funnel.name !== oldId),
       )
     ) {
       return "A funnel with this name already exists"
@@ -390,7 +394,7 @@ const MapFunnelStages = () => {
     if (!trimmed) return "Configuration name cannot be empty"
     if (trimmed.length < 2) return "Configuration name must be at least 2 characters"
     if (!/[a-zA-Z]/.test(trimmed)) return "Configuration name must include at least one letter"
-    if (funnelConfigs.some(config => config.name.toLowerCase() === trimmed.toLowerCase())) {
+    if (funnelConfigs.some((config) => config.name.toLowerCase() === trimmed.toLowerCase())) {
       return "A configuration with this name already exists"
     }
     return ""
@@ -414,11 +418,11 @@ const MapFunnelStages = () => {
       : [...(campaignFormData?.channel_mix || []), { funnel_stage: id }]
 
     const orderedFunnelStages = persistentCustomFunnels
-      .map(f => f.name)
-      .filter(name => newFunnelStages.includes(name))
+      .map((f) => f.name)
+      .filter((name) => newFunnelStages.includes(name))
 
     const orderedChannelMix = persistentCustomFunnels
-      .map(f => newChannelMix.find((ch: any) => ch?.funnel_stage === f.name))
+      .map((f) => newChannelMix.find((ch: any) => ch?.funnel_stage === f.name))
       .filter((ch): ch is { funnel_stage: string } => !!ch)
 
     setCampaignFormData((prev: any) => ({
@@ -466,8 +470,8 @@ const MapFunnelStages = () => {
       return
     }
 
-    const updatedFunnels = persistentCustomFunnels.map(f =>
-      f.name === oldId ? { ...f, id: newName, name: newName, color: newColor } : f
+    const updatedFunnels = persistentCustomFunnels.map((f) =>
+      f.name === oldId ? { ...f, id: newName, name: newName, color: newColor } : f,
     )
 
     setPersistentCustomFunnels(updatedFunnels)
@@ -480,7 +484,7 @@ const MapFunnelStages = () => {
       custom_funnels: updatedFunnels,
       funnel_stages: (prev.funnel_stages || []).map((stage: string) => (stage === oldId ? newName : stage)),
       channel_mix: (prev.channel_mix || []).map((ch: any) =>
-        ch.funnel_stage === oldId ? { ...ch, funnel_stage: newName } : ch
+        ch.funnel_stage === oldId ? { ...ch, funnel_stage: newName } : ch,
       ),
     }))
 
@@ -500,7 +504,7 @@ const MapFunnelStages = () => {
       return
     }
 
-    const updatedFunnels = persistentCustomFunnels.filter(f => f.name !== id)
+    const updatedFunnels = persistentCustomFunnels.filter((f) => f.name !== id)
     setPersistentCustomFunnels(updatedFunnels)
     setCustomFunnels(updatedFunnels)
 
@@ -538,7 +542,7 @@ const MapFunnelStages = () => {
       return
     }
     const newFunnels = [...persistentCustomFunnels]
-      ;[newFunnels[draggedIndex], newFunnels[index]] = [newFunnels[index], newFunnels[draggedIndex]]
+    ;[newFunnels[draggedIndex], newFunnels[index]] = [newFunnels[index], newFunnels[draggedIndex]]
 
     setPersistentCustomFunnels(newFunnels)
     setCustomFunnels(newFunnels)
@@ -546,10 +550,10 @@ const MapFunnelStages = () => {
     if (clientId) saveCustomFunnelsToStorage(newFunnels)
 
     setCampaignFormData((prev: any) => {
-      const newFunnelNames = newFunnels.map(f => f.name)
-      const orderedFunnelStages = newFunnelNames.filter(name => prev.funnel_stages?.includes(name))
+      const newFunnelNames = newFunnels.map((f) => f.name)
+      const orderedFunnelStages = newFunnelNames.filter((name) => prev.funnel_stages?.includes(name))
       const orderedChannelMix = newFunnelNames.map(
-        name => prev.channel_mix?.find((ch: any) => ch?.funnel_stage === name) || { funnel_stage: name }
+        (name) => prev.channel_mix?.find((ch: any) => ch?.funnel_stage === name) || { funnel_stage: name },
       )
       return {
         ...prev,
@@ -604,9 +608,9 @@ const MapFunnelStages = () => {
   const getFunnelTextColor = (color: string, isSelected: boolean) => {
     if (isSelected && isHexColor(color)) {
       const hex = color.replace("#", "")
-      const r = parseInt(hex.substring(0, 2), 16)
-      const g = parseInt(hex.substring(2, 4), 16)
-      const b = parseInt(hex.substring(4, 6), 16)
+      const r = Number.parseInt(hex.substring(0, 2), 16)
+      const g = Number.parseInt(hex.substring(2, 4), 16)
+      const b = Number.parseInt(hex.substring(4, 6), 16)
       const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
       return luminance < 0.6 ? "text-white" : "text-gray-900"
     }
@@ -624,8 +628,8 @@ const MapFunnelStages = () => {
     setCampaignFormData((prev: any) => ({
       ...prev,
       custom_funnels: preset.stages,
-      funnel_stages: preset.stages.map(f => f.name),
-      channel_mix: preset.stages.map(f => ({ funnel_stage: f.name })),
+      funnel_stages: preset.stages.map((f) => f.name),
+      channel_mix: preset.stages.map((f) => ({ funnel_stage: f.name })),
     }))
     setHasChanges(true)
     toast.success("Preset structure applied", { duration: 2000 })
@@ -644,8 +648,8 @@ const MapFunnelStages = () => {
     setCampaignFormData((prev: any) => ({
       ...prev,
       custom_funnels: config.stages,
-      funnel_stages: config.stages.map(f => f.name),
-      channel_mix: config.stages.map(f => ({ funnel_stage: f.name })),
+      funnel_stages: config.stages.map((f) => f.name),
+      channel_mix: config.stages.map((f) => ({ funnel_stage: f.name })),
     }))
     setHasChanges(true)
     toast.success("Funnel configuration applied", { duration: 2000 })
@@ -666,25 +670,60 @@ const MapFunnelStages = () => {
     setIsSaveConfigModalOpen(true)
   }
 
-  // Confirm save config
-  const handleSaveConfigConfirm = () => {
+  // Confirm save config (rewritten for Strapi update)
+  const handleSaveConfigConfirm = async () => {
     const error = validateConfigName(newConfigName)
     if (error) {
-      toast.error(error, { style: { background: "red", color: "white", textAlign: "center" }, duration: 3000 })
+      toast.error(error, {
+        style: { background: "red", color: "white", textAlign: "center" },
+        duration: 3000,
+      })
       return
     }
-    const config: FunnelConfig = {
+    const config = {
       name: newConfigName.trim(),
       stages: [...persistentCustomFunnels],
     }
-    console.log('config-config-config', config)
+ 
     const updatedConfigs = [...funnelConfigs, config]
+    // Locally update the state
     setFunnelConfigs(updatedConfigs)
-    if (clientId) saveFunnelConfigsToStorage(updatedConfigs)
     setSelectedConfigIdx(updatedConfigs.length - 1)
     setSelectedPreset(null)
     setIsSaveConfigModalOpen(false)
-    toast.success(`"${newConfigName.trim()}" configuration saved!`, { duration: 3000 })
+    if (clientId) {
+      // Save to localStorage (optional)
+      saveFunnelConfigsToStorage(updatedConfigs)
+      try {
+        const jwt = process.env.NEXT_PUBLIC_STRAPI_TOKEN || ""
+        // Strapi PUT request
+        await axios.put(
+          `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}`,
+          {
+            data: {
+              custom_funnel_configs: updatedConfigs,
+            },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${jwt}`,
+            },
+          },
+        )
+        toast.success(`"${newConfigName.trim()}" configuration saved!`, {
+          duration: 3000,
+        })
+      } catch (err) {
+        console.error("Failed to update funnel configs on Strapi:", err)
+        toast.error("Failed to update funnel configs on server", {
+          duration: 3000,
+        })
+      }
+    } else {
+      toast.success(`"${newConfigName.trim()}" configuration saved!`, {
+        duration: 3000,
+      })
+    }
     console.debug("Saved new config:", config)
   }
 
@@ -727,7 +766,7 @@ const MapFunnelStages = () => {
           <div className="relative w-full">
             <button
               className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-lg bg-white shadow-sm text-gray-700 text-base font-medium focus:outline-none"
-              onClick={() => setDropdownOpen(open => !open)}
+              onClick={() => setDropdownOpen((open) => !open)}
               type="button"
               aria-haspopup="listbox"
               aria-expanded={dropdownOpen}
@@ -750,8 +789,9 @@ const MapFunnelStages = () => {
                     {funnelConfigs.map((config, idx) => (
                       <li
                         key={`config-${config.name}-${idx}`}
-                        className={`px-4 py-3 cursor-pointer hover:bg-blue-50 ${selectedConfigIdx === idx ? "bg-blue-100 font-bold" : ""
-                          }`}
+                        className={`px-4 py-3 cursor-pointer hover:bg-blue-50 ${
+                          selectedConfigIdx === idx ? "bg-blue-100 font-bold" : ""
+                        }`}
                         role="option"
                         aria-selected={selectedConfigIdx === idx}
                         onClick={() => handleConfigSelect(idx)}
@@ -768,8 +808,9 @@ const MapFunnelStages = () => {
                 {presetStructures.map((preset, idx) => (
                   <li
                     key={`preset-${preset.label}-${idx}`}
-                    className={`px-4 py-3 cursor-pointer hover:bg-blue-50 ${selectedPreset === idx && selectedConfigIdx === null ? "bg-blue-100 font-bold" : ""
-                      }`}
+                    className={`px-4 py-3 cursor-pointer hover:bg-blue-50 ${
+                      selectedPreset === idx && selectedConfigIdx === null ? "bg-blue-100 font-bold" : ""
+                    }`}
                     role="option"
                     aria-selected={selectedPreset === idx && selectedConfigIdx === null}
                     onClick={() => handlePresetSelect(idx)}
@@ -835,7 +876,7 @@ const MapFunnelStages = () => {
                   <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
                     <button
                       className="p-1 bg-white rounded-full shadow-sm"
-                      onClick={e => {
+                      onClick={(e) => {
                         e.stopPropagation()
                         setModalMode("edit")
                         setCurrentFunnel(funnel)
@@ -857,7 +898,7 @@ const MapFunnelStages = () => {
                     </button>
                     <button
                       className="p-1 bg-white rounded-full shadow-sm"
-                      onClick={e => {
+                      onClick={(e) => {
                         e.stopPropagation()
                         handleRemoveFunnel(funnel.name)
                       }}
@@ -909,7 +950,7 @@ const MapFunnelStages = () => {
                 type="text"
                 id="funnelName"
                 value={newFunnelName}
-                onChange={e => setNewFunnelName(e.target.value)}
+                onChange={(e) => setNewFunnelName(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter funnel name"
               />
@@ -917,7 +958,7 @@ const MapFunnelStages = () => {
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
               <div className="flex flex-wrap gap-2 mb-2">
-                {colorPalette.map(color => (
+                {colorPalette.map((color) => (
                   <button
                     key={color}
                     type="button"
@@ -944,7 +985,7 @@ const MapFunnelStages = () => {
                   <input
                     type="color"
                     value={isHexColor(newFunnelColor) ? newFunnelColor : customColor}
-                    onChange={e => {
+                    onChange={(e) => {
                       setCustomColor(e.target.value)
                       setNewFunnelColor(e.target.value)
                     }}
@@ -954,7 +995,7 @@ const MapFunnelStages = () => {
                   <input
                     type="text"
                     value={isHexColor(newFunnelColor) ? newFunnelColor : customColor}
-                    onChange={e => {
+                    onChange={(e) => {
                       let val = e.target.value
                       if (!val.startsWith("#")) val = "#" + val.replace(/[^0-9A-Fa-f]/g, "")
                       if (val.length > 7) val = val.slice(0, 7)
@@ -1011,7 +1052,7 @@ const MapFunnelStages = () => {
                 type="text"
                 id="configName"
                 value={newConfigName}
-                onChange={e => setNewConfigName(e.target.value)}
+                onChange={(e) => setNewConfigName(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter configuration name"
               />
