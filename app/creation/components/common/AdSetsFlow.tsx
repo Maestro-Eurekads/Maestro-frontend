@@ -416,7 +416,7 @@ const AdSet = memo(function AdSet({
       </div>
       <input
         type="text"
-        placeholder="Enter ad set name"
+        placeholder="Enter audience name"
         value={name}
         onChange={handleNameChange}
         disabled={!isEditing}
@@ -570,11 +570,6 @@ const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback(
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [isOpen, dropdownId, setOpenDropdownId])
-
-  // --- FIX: Make dropdown fit long custom audience text without truncation ---
-  // - Remove .truncate from the selected value
-  // - Make the dropdown button min-w-0 and w-full, and the container w-[172px] (or 200px)
-  // - Add styles to allow text to wrap or ellipsis only if it overflows the button, not forcibly truncate
 
   return (
     <div style={{ width: "200px" }}>
@@ -991,7 +986,6 @@ const AdsetSettings = memo(function AdsetSettings({
     return <NonFacebookOutlet outlet={outlet} setSelected={setSelectedPlatforms} onInteraction={onInteraction} />
   }
 
-  // --- Moved "Add new adset" button to be on the same level as channel, right after channel button ---
   return (
     <div className="flex flex-col gap-2 w-full max-w-[1024px]">
       <div className="flex items-center gap-8">
@@ -1005,7 +999,6 @@ const AdsetSettings = memo(function AdsetSettings({
             <span className="text-[#061237] font-medium">{outlet.outlet}</span>
             <FaAngleRight className={`transition-transform duration-200 ${isCollapsed ? "" : "rotate-90"}`} />
           </button>
-          {/* Add new adset button moved here */}
           {!isCollapsed && granularity === "adset" && (
             <button
               onClick={addNewAddset}
@@ -1026,7 +1019,6 @@ const AdsetSettings = memo(function AdsetSettings({
           <div className="relative w-full" style={{ minHeight: `${Math.max(194, (adsets.length + 1) * 80)}px` }}>
             {adsets.length > 0 && (
               <>
-                {/* Removed old add new adset button from here */}
                 {adsets.map((adset, index) => {
                   const adSetData = adSetDataMap[adset.id] || {
                     name: "",
@@ -1062,7 +1054,7 @@ const AdsetSettings = memo(function AdsetSettings({
                         }
                         onInteraction={onInteraction}
                         adsets={adsets}
-                        granularity={granularity} // Add this prop
+                        granularity={granularity}
                       />
                     </div>
                   )
@@ -1080,7 +1072,7 @@ const AdsetSettings = memo(function AdsetSettings({
               <table className="min-w-full text-xs text-[#061237]">
                 <thead>
                   <tr>
-                    <th className="text-left pr-4 py-1">Ad Set</th>
+                    {granularity === "adset" && <th className="text-left pr-4 py-1">Ad Set</th>}
                     <th className="text-left pr-4 py-1">Audience Type</th>
                     <th className="text-left pr-4 py-1">Audience Name</th>
                     <th className="text-left pr-4 py-1">Audience Size</th>
@@ -1090,9 +1082,11 @@ const AdsetSettings = memo(function AdsetSettings({
                 <tbody>
                   {recapRows.map((row, idx) => (
                     <tr key={idx} className={row.isExtra ? "bg-[#F9FAFB]" : ""}>
-                      <td className="pr-4 py-1">
-                        {row.isExtra ? `Ad set n°${row.adSetNumber} (Extra)` : `Ad set n°${row.adSetNumber}`}
-                      </td>
+                      {granularity === "adset" && (
+                        <td className="pr-4 py-1">
+                          {row.isExtra ? `Ad set n°${row.adSetNumber} (Extra)` : `Ad set n°${row.adSetNumber}`}
+                        </td>
+                      )}
                       <td className="pr-4 py-1">{row.type}</td>
                       <td className="pr-4 py-1">{row.name}</td>
                       <td className="pr-4 py-1">{formatWithThousandSeparator(row.size)}</td>
@@ -1121,7 +1115,7 @@ const AdSetFlow = memo(function AdSetFlow({
   onEditStart,
   platformName,
   modalOpen,
-  granularity = "adset", // Default to adset granularity
+  granularity = "adset",
 }: AdSetFlowProps) {
   const { isEditing, setIsEditing } = useEditing()
   const { active } = useActive()
@@ -1132,9 +1126,7 @@ const AdSetFlow = memo(function AdSetFlow({
   const [autoOpen, setAutoOpen] = useState<Record<string, string[]>>({})
   const [collapsedOutlets, setCollapsedOutlets] = useState<Record<string, boolean>>({})
 
-  // --- Custom Audience Types State (global, in-memory for session, and cross-stage) ---
   const [customAudienceTypes, setCustomAudienceTypes] = useState<string[]>(() => {
-    // Try to get from global variable first
     if (globalCustomAudienceTypes.length > 0) {
       return [...globalCustomAudienceTypes]
     }
@@ -1149,7 +1141,6 @@ const AdSetFlow = memo(function AdSetFlow({
     return []
   })
 
-  // Keep global reference in sync
   useEffect(() => {
     globalCustomAudienceTypes.length = 0
     customAudienceTypes.forEach((t) => globalCustomAudienceTypes.push(t))
@@ -1158,16 +1149,13 @@ const AdSetFlow = memo(function AdSetFlow({
     }
   }, [customAudienceTypes])
 
-  // Persist custom audience types to sessionStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.sessionStorage.setItem("customAudienceTypes", JSON.stringify(customAudienceTypes))
     }
   }, [customAudienceTypes])
 
-  // Listen for global changes (from other AdSetFlow instances)
   useEffect(() => {
-    // Custom event for cross-component update
     function handleCustomAudienceUpdate(e: any) {
       if (Array.isArray(e.detail)) {
         setCustomAudienceTypes(e.detail)
@@ -1179,20 +1167,16 @@ const AdSetFlow = memo(function AdSetFlow({
     }
   }, [])
 
-  // Add custom audience type globally and broadcast to all AdSetFlow instances
   const addCustomAudienceType = useCallback((type: string) => {
     setCustomAudienceTypes((prev) => {
       if (!prev.includes(type)) {
         const updated = [...prev, type]
-        // Update global variable
         globalCustomAudienceTypes.length = 0
         updated.forEach((t) => globalCustomAudienceTypes.push(t))
-        // Broadcast to all AdSetFlow instances
         if (typeof window !== "undefined") {
           window.sessionStorage.setItem("customAudienceTypes", JSON.stringify(updated))
           window.dispatchEvent(new CustomEvent("customAudienceTypesUpdated", { detail: updated }))
         }
-        // If another AdSetFlow is mounted, update its state
         if (globalSetCustomAudienceTypes && globalSetCustomAudienceTypes !== setCustomAudienceTypes) {
           globalSetCustomAudienceTypes(updated)
         }
@@ -1349,6 +1333,7 @@ const AdSetFlow = memo(function AdSetFlow({
       [outletName]: !prev[outletName],
     }))
   }
+
   return (
     <CustomAudienceTypesContext.Provider
       value={{
@@ -1371,7 +1356,7 @@ const AdSetFlow = memo(function AdSetFlow({
                   defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
                   isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
                   setCollapsed={(collapsed) => handleToggleCollapsed(outlet.outlet)}
-                  granularity={granularity} // Add this prop
+                  granularity={granularity}
                 />
               ))
           : platforms[stageName]?.map((outlet) => (
@@ -1383,7 +1368,7 @@ const AdSetFlow = memo(function AdSetFlow({
                 defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
                 isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
                 setCollapsed={(collapsed) => handleToggleCollapsed(outlet.outlet)}
-                granularity={granularity} // Add this prop
+                granularity={granularity}
               />
             ))}
       </div>

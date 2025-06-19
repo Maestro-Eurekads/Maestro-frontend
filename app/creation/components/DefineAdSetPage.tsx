@@ -355,7 +355,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                       <thead>
                         <tr>
                           <th className="text-left pr-4 py-1 font-bold">Platform</th>
-                          <th className="text-left pr-4 py-1 font-bold">Ad Set</th>
+                          {view === "adset" && <th className="text-left pr-4 py-1 font-bold">Ad Set</th>}
                           <th className="text-left pr-4 py-1 font-bold">Audience Type</th>
                           <th className="text-left pr-4 py-1 font-bold">Audience Name</th>
                           <th className="text-left pr-4 py-1 font-bold">Audience Size</th>
@@ -365,9 +365,11 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                         {recapRows.map((row, idx) => (
                           <tr key={idx} className={row.isExtra ? "bg-[#F9FAFB]" : ""}>
                             <td className="pr-4 py-1 font-normal">{row.platform}</td>
-                            <td className="pr-4 py-1 font-normal">
-                              {row.isExtra ? `Ad set n°${row.adSetNumber} (Extra)` : `Ad set n°${row.adSetNumber}`}
-                            </td>
+                            {view === "adset" && (
+                              <td className="pr-4 py-1 font-normal">
+                                {row.isExtra ? `Ad set n°${row.adSetNumber} (Extra)` : `Ad set n°${row.adSetNumber}`}
+                              </td>
+                            )}
                             <td className="pr-4 py-1 font-normal">{row.type}</td>
                             <td className="pr-4 py-1 font-normal">{row.name}</td>
                             <td className="pr-4 py-1 font-normal">{formatWithThousandSeparator(row.size)}</td>
