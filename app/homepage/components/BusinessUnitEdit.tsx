@@ -6,7 +6,7 @@ import blueSmallPlue from "../../../public/blueSmallPlue.svg";
 import { MdOutlineCancel } from "react-icons/md";
 import { toast } from "sonner";
 
-const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator }) => {
+const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator, setIsLevelChange }) => {
   const [title, setTitle] = useState(initialData?.title || "");
   const [parameters, setParameters] = useState(initialData?.parameters || []);
 
@@ -50,7 +50,7 @@ const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator })
       toast.error("You do not have permission to perform this action.");
       return;
     }
-
+    setIsLevelChange(true)
     const updated = [...parameters];
     updated.splice(index, 1);
     setParameters(updated);
@@ -58,6 +58,7 @@ const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator })
 
   const handleParameterChange = (index, value) => {
     if (isAgencyCreator) {
+      setIsLevelChange(true)
       toast.error("You do not have permission to perform this action.");
       return;
     }
@@ -69,6 +70,7 @@ const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator })
 
   const handleAddSubParameter = (index) => {
     if (isAgencyCreator) {
+      setIsLevelChange(true)
       toast.error("You do not have permission to perform this action.");
       return;
     }
@@ -103,6 +105,7 @@ const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator })
 
   const handleSubChange = (pIndex, sIndex, value) => {
     if (isAgencyCreator) {
+      setIsLevelChange(true)
       toast.error("You do not have permission to perform this action.");
       return;
     }
@@ -204,7 +207,7 @@ const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator })
 };
 
 
-const BusinessUnitEdit = ({ setInputs, setAlert, level1Options, initialData, isAgencyCreator }) => {
+const BusinessUnitEdit = ({ setInputs, setAlert, level1Options, initialData, isAgencyCreator, setIsLevelChange }) => {
   return (
     <div className="flex flex-col gap-4 mt-[20px]">
       <EditInput
@@ -213,6 +216,7 @@ const BusinessUnitEdit = ({ setInputs, setAlert, level1Options, initialData, isA
         label="Business level 1"
         initialData={initialData}
         isAgencyCreator={isAgencyCreator}
+        setIsLevelChange={setIsLevelChange}
       />
     </div>
   );

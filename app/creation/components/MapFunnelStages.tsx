@@ -684,7 +684,7 @@ const MapFunnelStages = () => {
       name: newConfigName.trim(),
       stages: [...persistentCustomFunnels],
     }
-    console.log("config-config", config)
+ 
     const updatedConfigs = [...funnelConfigs, config]
     // Locally update the state
     setFunnelConfigs(updatedConfigs)

@@ -64,3 +64,19 @@ export const updateUsersWithCampaign = async (userIds: string[], campaignId: str
 
   return await Promise.all(updatePromises);
 };
+
+
+
+export const updateClient = async (documentId: string, data: any, jwt: any) => {
+  return await axios.put(
+    `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${documentId}`,
+    {
+      data: { ...data },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    }
+  );
+};

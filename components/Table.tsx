@@ -241,8 +241,8 @@ const Table = () => {
                     className="cursor-pointer"
                   >
                     <td className=" py-[12px] px-[16px] ">
-                      {data?.media_plan_details?.plan_name || "N/A"} -{" "}
-                      {data?.progress_percent < 100 ? "Running" : "Completed"}
+                      {data?.media_plan_details?.plan_name || "N/A"}
+                      {data?.progress_percent < 100 ? "" : "Completed"}
                     </td>
                     <td className="py-[12px] px-[16px]">V9</td>
                     <td className="py-[12px] px-[16px]">

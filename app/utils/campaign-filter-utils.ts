@@ -737,7 +737,7 @@ export function extractLevelNameFilters(client: any) {
   if (!client || typeof client !== 'object') {
     return { level_1_name: [], level_2_name: [], level_3_name: [] };
   }
-  console.log("client...------", client);
+  // console.log("client...------", client);
 
   const extractNames = (level) => {
     if (!level?.parameters || !Array.isArray(level?.parameters)) return [];
