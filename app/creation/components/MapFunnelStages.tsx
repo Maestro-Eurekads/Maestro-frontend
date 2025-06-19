@@ -230,7 +230,7 @@ const MapFunnelStages = () => {
   useEffect(() => {
     console.debug(`Initializing with clientId: ${clientId}, mediaPlanId: ${mediaPlanId}`)
     const configs = getFunnelConfigsFromStorage()
-    setFunnelConfigs(campaignData?.client?.custom_funnel_configs)
+    setFunnelConfigs(campaignData?.client?.custom_funnel_configs || [])
 
     let loadedCustomFunnels: Funnel[] = []
     const localStorageFunnels = getCustomFunnelsFromStorage()
