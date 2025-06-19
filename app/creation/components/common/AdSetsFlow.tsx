@@ -395,7 +395,7 @@ const AdSet = memo(function AdSet({
                 />
                 <input
                   type="text"
-                  placeholder="Enter audience name"
+                  placeholder="Name"
                   value={audi.name || ""}
                   onChange={(e) => {
                     const updated = [...extraAudience]
@@ -456,7 +456,7 @@ const AdSet = memo(function AdSet({
       </div>
       <input
         type="text"
-        placeholder="Enter audience name"
+        placeholder="Enter ad set name"
         value={name}
         onChange={handleNameChange}
         disabled={!isEditing}
