@@ -19,7 +19,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
   const [selected, setSelected] = useState({});
   const [validatedStages, setValidatedStages] = useState({});
-  const { campaignFormData, setCampaignFormData, setCopy, cId, campaignData, jwt } =
+  const { campaignFormData, setCampaignFormData, setCopy, cId, campaignData, jwt, getActiveCampaign } =
       useCampaigns();
   const [openChannelTypes, setOpenChannelTypes] = useState({});
   const [showMoreMap, setShowMoreMap] = useState({});
@@ -31,13 +31,14 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
     const [id, setId] = useState(null);
 
   const sendUpdatedDataToAPI = async (updatedData) => {
+    const {media_plan_details, user, ...rest} = campaignData
     try {
       setDeleting(true);
       const response = await axios.put(
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
         {
           data: {
-            ...removeKeysRecursively(campaignData, [
+            ...removeKeysRecursively(rest, [
               "id",
               "documentId",
               "createdAt",
@@ -62,7 +63,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
           },
         }
       );
-
+await getActiveCampaign()
       // console.log("Campaign data updated successfully", response.data);
     } catch (error) {
       console.error("Error updating campaign data:", error);

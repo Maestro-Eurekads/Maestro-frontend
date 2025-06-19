@@ -11,6 +11,7 @@ import { useDateRange } from "src/date-range-context"
 import { useDateRange as useRange } from "src/date-context"
 import { useCampaigns } from "app/utils/CampaignsContext"
 import { eachDayOfInterval, format, isEqual, parseISO } from "date-fns"
+import { useComments } from "app/utils/CommentProvider"
 
 interface OutletType {
   name: string
@@ -51,6 +52,7 @@ const ResizeableElements = ({
   setSelectedStage?: any
 }) => {
   const { funnelWidths } = useFunnelContext()
+  const {close} = useComments()
   const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({})
   const { range } = useDateRange()
   const { range: rrange } = useRange()
@@ -150,7 +152,7 @@ const ResizeableElements = ({
         return window.innerWidth || document.documentElement.clientWidth || 0
       }
       const screenWidth = getViewportWidth()
-      const contWidth = screenWidth - (disableDrag ? 80 : 367)
+      const contWidth = screenWidth - (disableDrag ? 80 : close ? 0:367)
 
       let dailyWidth: number
 
@@ -175,7 +177,7 @@ const ResizeableElements = ({
 
       return Math.round(dailyWidth)
     },
-    [disableDrag, funnelData?.endDay, funnelData?.endMonth], // Removed daysInEachMonth from dependencies
+    [disableDrag, funnelData?.endDay, funnelData?.endMonth, close], // Removed daysInEachMonth from dependencies
   )
 
   useEffect(() => {
@@ -328,7 +330,7 @@ const ResizeableElements = ({
       return window.innerWidth || document.documentElement.clientWidth || 0
     }
     const screenWidth = getViewportWidth()
-    const availableWidth = screenWidth - (disableDrag ? 60 : 367)
+    const availableWidth = screenWidth - (disableDrag ? 60 : close ? 0:367)
 
     // console.log("🚀  ~ Width:", { screenWidth, availableWidth })
 
@@ -387,6 +389,7 @@ const ResizeableElements = ({
     disableDrag,
     range,
     getDailyWidth, // Keep this as it's memoized
+    close
   ])
 
   return (

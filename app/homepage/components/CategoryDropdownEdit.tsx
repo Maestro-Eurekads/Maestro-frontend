@@ -4,16 +4,23 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import blueSmallPlue from "../../../public/blueSmallPlue.svg";
 import { MdOutlineCancel } from "react-icons/md";
+import { toast } from "sonner";
 
-const EditInput = ({ setInputs, label, setAlert, initialData }) => {
+const EditInput = ({
+  setInputs,
+  label,
+  setAlert,
+  initialData,
+  isAgencyCreator,
+}) => {
+  const key = initialData?.key || "categories";
   const [title, setTitle] = useState(initialData?.title || "");
   const [parameters, setParameters] = useState(initialData?.parameters || []);
 
-  // Sync with parent
   useEffect(() => {
     setInputs((prev) => ({
       ...prev,
-      categories: {
+      [key]: {
         title,
         parameters: parameters.map((param) => ({
           name: param.name,
@@ -21,9 +28,14 @@ const EditInput = ({ setInputs, label, setAlert, initialData }) => {
         })),
       },
     }));
-  }, [title, parameters, setInputs]);
+  }, [title, parameters, setInputs, key]);
 
   const handleAddParameter = () => {
+    if (isAgencyCreator) {
+      toast.error("You do not have permission to perform this action.");
+      return;
+    }
+
     if (
       parameters.length > 0 &&
       !parameters[parameters.length - 1].name.trim()
@@ -40,18 +52,33 @@ const EditInput = ({ setInputs, label, setAlert, initialData }) => {
   };
 
   const handleRemoveParameter = (index) => {
+    if (isAgencyCreator) {
+      toast.error("You do not have permission to perform this action.");
+      return;
+    }
+
     const updated = [...parameters];
     updated.splice(index, 1);
     setParameters(updated);
   };
 
   const handleParameterChange = (index, value) => {
+    if (isAgencyCreator) {
+      toast.error("You do not have permission to perform this action.");
+      return;
+    }
+
     const updated = [...parameters];
     updated[index].name = value;
     setParameters(updated);
   };
 
   const handleAddSubParameter = (index) => {
+    if (isAgencyCreator) {
+      toast.error("You do not have permission to perform this action.");
+      return;
+    }
+
     const param = parameters[index];
 
     if (!param.name.trim()) {
@@ -81,12 +108,22 @@ const EditInput = ({ setInputs, label, setAlert, initialData }) => {
   };
 
   const handleSubChange = (pIndex, sIndex, value) => {
+    if (isAgencyCreator) {
+      toast.error("You do not have permission to perform this action.");
+      return;
+    }
+
     const updated = [...parameters];
     updated[pIndex].subParameters[sIndex] = value;
     setParameters(updated);
   };
 
   const handleRemoveSub = (pIndex, sIndex) => {
+    if (isAgencyCreator) {
+      toast.error("You do not have permission to perform this action.");
+      return;
+    }
+
     const updated = [...parameters];
     updated[pIndex].subParameters.splice(sIndex, 1);
     setParameters(updated);
@@ -105,13 +142,13 @@ const EditInput = ({ setInputs, label, setAlert, initialData }) => {
           placeholder="business level 3"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          disabled={isAgencyCreator}
         />
       </div>
 
       {/* Parameters */}
       {parameters.map((param, index) => (
         <div key={index} className="mb-4">
-          {/* Parameter input */}
           <div className="mt-3 flex items-center px-4 py-2 h-[40px] border border-[#EFEFEF] rounded-[10px] ml-3">
             <input
               type="text"
@@ -119,6 +156,7 @@ const EditInput = ({ setInputs, label, setAlert, initialData }) => {
               placeholder={`Add parameter ${index + 1}`}
               value={param.name}
               onChange={(e) => handleParameterChange(index, e.target.value)}
+              disabled={isAgencyCreator}
             />
             <MdOutlineCancel
               size={18}
@@ -128,11 +166,10 @@ const EditInput = ({ setInputs, label, setAlert, initialData }) => {
             />
           </div>
 
-          {/* Sub-parameters */}
           {param.subParameters.map((sub, sIndex) => (
             <div
               key={sIndex}
-              className="ml-6 mt-2 flex items-center px-4 py-2 h-[40px]   border border-[#EFEFEF] rounded-[10px]"
+              className="ml-6 mt-2 flex items-center px-4 py-2 h-[40px] border border-[#EFEFEF] rounded-[10px]"
             >
               <input
                 type="text"
@@ -142,6 +179,7 @@ const EditInput = ({ setInputs, label, setAlert, initialData }) => {
                 onChange={(e) =>
                   handleSubChange(index, sIndex, e.target.value)
                 }
+                disabled={isAgencyCreator}
               />
               <MdOutlineCancel
                 size={18}
@@ -152,10 +190,10 @@ const EditInput = ({ setInputs, label, setAlert, initialData }) => {
             </div>
           ))}
 
-          {/* Add sub-parameter button */}
           <button
             onClick={() => handleAddSubParameter(index)}
             className="ml-4 mt-2 flex items-center gap-1 text-[#3175FF] font-semibold text-[14px]"
+            disabled={isAgencyCreator}
           >
             <Image src={blueSmallPlue} alt="add" />
             Add sub-parameter {param.subParameters.length + 1}
@@ -163,11 +201,11 @@ const EditInput = ({ setInputs, label, setAlert, initialData }) => {
         </div>
       ))}
 
-      {/* Add parameter button */}
       <div className="flex items-center gap-2 mt-3 ml-1">
         <button
           onClick={handleAddParameter}
           className="flex items-center gap-1 text-[#3175FF] font-semibold text-[14px]"
+          disabled={isAgencyCreator}
         >
           <Image src={blueSmallPlue} alt="add" />
           Add parameter {parameters.length + 1}
@@ -177,7 +215,12 @@ const EditInput = ({ setInputs, label, setAlert, initialData }) => {
   );
 };
 
-const CategoryDropdownEdit = ({ setInputs, setAlert, initialData }) => {
+const CategoryDropdownEdit = ({
+  setInputs,
+  setAlert,
+  initialData,
+  isAgencyCreator,
+}) => {
   return (
     <div className="flex flex-col gap-4 mt-[20px]">
       <EditInput
@@ -185,10 +228,10 @@ const CategoryDropdownEdit = ({ setInputs, setAlert, initialData }) => {
         setAlert={setAlert}
         label="Business level 3"
         initialData={initialData}
+        isAgencyCreator={isAgencyCreator}
       />
     </div>
   );
 };
 
 export default CategoryDropdownEdit;
-
