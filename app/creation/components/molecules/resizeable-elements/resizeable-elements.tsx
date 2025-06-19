@@ -68,6 +68,7 @@ const ResizeableElements = ({
   })
 
   const [daysInEachMonth, setDaysInEachMonth] = useState<Record<any, any>>({})
+  const [monthsByYear, setMonthsByYear] = useState<Record<string, Record<string, number>>>({})
 
   const toggleChannel = (id: string) => {
     setOpenChannels((prev) => ({ ...prev, [id]: !prev[id] }))
@@ -180,14 +181,18 @@ const ResizeableElements = ({
   useEffect(() => {
     if (!rrange || !gridRef?.current) return
 
-    // First calculate days in each month
+    // Calculate days in each month
     const result = getDaysInEachMonth(range)
     setDaysInEachMonth(result)
 
-    // Then calculate total days
+    // Calculate months organized by year
+    const yearMonthResult = getMonthsByYear(range)
+    setMonthsByYear(yearMonthResult)
+
+    // Calculate total days
     const totalDaysInRange = Object.values(result).reduce((sum: number, days: number) => sum + days, 0)
 
-    // Finally update container width and daily width
+    // Update container width and daily width
     requestAnimationFrame(() => {
       const gridContainer = document.querySelector(".grid-container") as HTMLElement
       if (!gridContainer) return
@@ -196,11 +201,10 @@ const ResizeableElements = ({
       const contWidth = containerRect.width - 75
       setContainerWidth(contWidth + 75)
 
-      // Calculate and cache daily width for current view
       const endMonth = funnelData?.endMonth || 1
       calculateAndCacheDailyWidth(rrange, contWidth, endMonth, totalDaysInRange)
     })
-  }, [rrange, funnelData?.endMonth, range, calculateAndCacheDailyWidth]) // Removed calculateAndCacheDailyWidth from dependencies to break circular reference
+  }, [rrange, funnelData?.endMonth, range, calculateAndCacheDailyWidth])
 
   // Enhanced function that returns the number of days in each month using the state range as reference
   const getDaysInEachMonth = useCallback((range: Date[]): Record<string, number> => {
@@ -214,28 +218,85 @@ const ResizeableElements = ({
     return daysInMonth
   }, [])
 
-  // New function to generate dynamic grid template columns for month view
+  // Enhanced function that returns months organized by year
+  const getMonthsByYear = useCallback((range: Date[]): Record<string, Record<string, number>> => {
+    const monthsByYear: Record<string, Record<string, number>> = {}
+
+    range.forEach((date) => {
+      const year = format(date, "yyyy")
+      const month = format(date, "MMMM")
+
+      if (!monthsByYear[year]) {
+        monthsByYear[year] = {}
+      }
+
+      monthsByYear[year][month] = (monthsByYear[year][month] || 0) + 1
+    })
+
+    return monthsByYear
+  }, [])
+
+  // Enhanced function to generate dynamic grid template columns for month view with year support
   const generateMonthGridColumns = useCallback(() => {
     if (rrange !== "Month") return ""
 
     const dailyWidth = dailyWidthByView[rrange] || 50
-    const months = Object.keys(daysInEachMonth)
 
+    // If we have year-based data, use it
+    if (Object.keys(monthsByYear).length > 0) {
+      const columnDefinitions: string[] = []
+
+      // Sort years to ensure proper order
+      const sortedYears = Object.keys(monthsByYear).sort()
+
+      sortedYears.forEach((year) => {
+        const monthsInYear = monthsByYear[year]
+
+        // Define the 12 months in order
+        const monthOrder = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ]
+
+        // Add columns for each month in the year (only if they exist in our data)
+        monthOrder.forEach((month) => {
+          if (monthsInYear[month]) {
+            const daysInThisMonth = monthsInYear[month]
+            // Add columns for each day in this month
+            for (let i = 0; i < daysInThisMonth; i++) {
+              columnDefinitions.push(`${dailyWidth}px`)
+            }
+          }
+        })
+      })
+
+      return columnDefinitions.join(" ")
+    }
+
+    // Fallback to original logic
+    const months = Object.keys(daysInEachMonth)
     if (months.length === 0) return `repeat(${funnelData?.endDay || 30}, ${dailyWidth}px)`
 
-    // Create a column definition for each day in each month
     const columnDefinitions: string[] = []
-
     months.forEach((month) => {
       const daysInThisMonth = daysInEachMonth[month]
-      // Add columns for each day in this month
       for (let i = 0; i < daysInThisMonth; i++) {
         columnDefinitions.push(`${dailyWidth}px`)
       }
     })
 
     return columnDefinitions.join(" ")
-  }, [rrange, daysInEachMonth, dailyWidthByView, funnelData?.endDay])
+  }, [rrange, daysInEachMonth, monthsByYear, dailyWidthByView, funnelData?.endDay])
 
   // Enhanced function to get grid column end position for month view
   const getGridColumnEnd = useCallback(() => {
@@ -330,7 +391,7 @@ const ResizeableElements = ({
 
   return (
     <div
-      className={`w-full min-h-[494px] relative pb-5 grid-container overflow-x-hidden ${rrange === "Month" && "max-w-[100vw]"}`}
+      className={`w-full min-h-[494px] relative pb-5 grid-container overflow-x-hidden ${(rrange === "Month" || rrange === "Year") && "max-w-[100vw]"}`}
       ref={gridRef}
       style={{
         backgroundImage: (() => {
@@ -355,22 +416,61 @@ const ResizeableElements = ({
           const dailyWidth = getDailyWidth()
           if (rrange === "Day" || rrange === "Week") {
             const totalDays = funnelData?.endDay || 1
-            // For week view, show grid lines for each individual day, not week groupings
             const dailyGridSize = `${dailyWidth}px 100%`
-            // For week boundaries, we need to calculate based on actual week structure
             if (rrange === "Week") {
-              // Use daily grid for individual day lines
               return dailyGridSize
             }
             return `${dailyGridSize}, calc(${dailyWidth * totalDays}px) 100%`
           } else {
-            // Month view - create background pattern with thicker lines at month boundaries
+            // Month view with year support
+            if (Object.keys(monthsByYear).length > 0) {
+              const regularGridSize = `${dailyWidth}px 100%`
+
+              // Calculate year and month boundary positions
+              let cumulativeDays = 0
+              const boundaryPositions: number[] = []
+
+              const sortedYears = Object.keys(monthsByYear).sort()
+
+              sortedYears.forEach((year, yearIndex) => {
+                const monthsInYear = monthsByYear[year]
+                const monthOrder = [
+                  "January",
+                  "February",
+                  "March",
+                  "April",
+                  "May",
+                  "June",
+                  "July",
+                  "August",
+                  "September",
+                  "October",
+                  "November",
+                  "December",
+                ]
+
+                monthOrder.forEach((month, monthIndex) => {
+                  if (monthsInYear[month]) {
+                    cumulativeDays += monthsInYear[month]
+
+                    // Add boundary at end of each month (except last month of last year)
+                    if (!(yearIndex === sortedYears.length - 1 && monthIndex === monthOrder.length - 1)) {
+                      boundaryPositions.push(cumulativeDays * dailyWidth)
+                    }
+                  }
+                })
+              })
+
+              const boundaryBackgrounds = boundaryPositions.map((position) => `${position}px 100%`).join(", ")
+              return boundaryBackgrounds ? `${regularGridSize}, ${boundaryBackgrounds}` : regularGridSize
+            }
+
+            // Fallback to original month logic
             const months = Object.keys(daysInEachMonth)
             if (months.length === 0) {
               return `calc(${dailyWidth}px) 100%, calc(${dailyWidth * 7}px) 100%`
             }
 
-            // Create background positions for month end lines
             let cumulativeDays = 0
             const monthEndPositions: number[] = []
 
@@ -378,20 +478,15 @@ const ResizeableElements = ({
               const daysInThisMonth = daysInEachMonth[month]
               cumulativeDays += daysInThisMonth
 
-              // Add position for month end line (except for the last month)
               if (index < months.length - 1) {
                 monthEndPositions.push(cumulativeDays * dailyWidth)
               }
             })
 
-            // Create multiple background layers
             const regularGridSize = `${dailyWidth}px 100%`
-            const weeklyGridSize = `${dailyWidth * 7}px 100%`
-
-            // Create month boundary backgrounds
             const monthBoundaryBackgrounds = monthEndPositions.map((position) => `${position}px 100%`).join(", ")
 
-            return monthBoundaryBackgrounds ? `${regularGridSize}, ${monthBoundaryBackgrounds}` : `${regularGridSize}`
+            return monthBoundaryBackgrounds ? `${regularGridSize}, ${monthBoundaryBackgrounds}` : regularGridSize
           }
         })(),
       }}
