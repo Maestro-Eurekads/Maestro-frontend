@@ -677,6 +677,7 @@ const MapFunnelStages = () => {
       name: newConfigName.trim(),
       stages: [...persistentCustomFunnels],
     }
+    console.log('config-config-config', config)
     const updatedConfigs = [...funnelConfigs, config]
     setFunnelConfigs(updatedConfigs)
     if (clientId) saveFunnelConfigsToStorage(updatedConfigs)
