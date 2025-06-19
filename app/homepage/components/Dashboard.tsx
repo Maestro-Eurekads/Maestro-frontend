@@ -179,7 +179,7 @@ const Dashboard = () => {
 
         return (
           <div key={index} className="flex justify-center gap-[48px] mt-[100px] w-full px-10 md:px-60">
-            <div className="box-border flex flex-row items-start p-6 gap-[72px] w-[100%] w-md:[50%] h-[500px] bg-[#F9FAFB] rounded-lg">
+            <div className="box-border flex flex-row items-start p-6 gap-[72px] w-[50%] w-md:[50%] h-[500px] bg-[#F9FAFB] rounded-lg">
               <div className="flex flex-col">
                 <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
                   Your budget by phase for {campaign?.media_plan_details?.plan_name}
@@ -220,8 +220,9 @@ const Dashboard = () => {
                     //         ? "#FF9037"
                     //         : "#F05406",
                     // )}
-                    insideText={`${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency ? getCurrencySymbol(campaign?.campaign_budget?.currency) : ""
-                      }`}
+                    // insideText={`${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency ? getCurrencySymbol(campaign?.campaign_budget?.currency) : ""
+                    //   }`}
+                    insideText={`${parseInt(campaignFormData?.campaign_budget?.amount && campaignFormData?.campaign_budget?.amount).toLocaleString() ?? 0} ${getCurrencySymbol(campaignFormData?.campaign_budget?.currency ?? '')}`}
                   />
                   {/* Campaign Phases */}
                   <CampaignPhases
