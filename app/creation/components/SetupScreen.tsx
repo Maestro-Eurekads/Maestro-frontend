@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Title } from "../../../components/Title";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { useCampaigns } from "../../utils/CampaignsContext";
@@ -42,7 +42,8 @@ export const SetupScreen = () => {
     setClientUsers,
     clientUsers,
     jwt,
-    FC
+    FC,
+    setFC
   } = useCampaigns();
   const query = useSearchParams();
   const documentId = query.get("campaignId");
@@ -56,9 +57,19 @@ export const SetupScreen = () => {
   const [internalapproverOptions, setInternalApproverOptions] = useState<DropdownOption[]>([]);
   const [clientapprovalOptions, setClientApprovalOptions] = useState<DropdownOption[]>([]);
   const [level1Options, setlevel1Options] = useState<DropdownOption[]>([]);
+  useEffect(() => {
+    const cached = localStorage.getItem("filteredClient");
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        setFC(parsed);
+      } catch (err) {
+        console.error("Failed to parse FC from localStorage", err);
+      }
+    }
+  }, []);
 
-
-  console.log("SetupScreen allClients:", FC);
+  console.log("FC FC:", FC);
   console.log("campaignFormData campaignFormData:", campaignFormData);
 
   useEffect(() => {
@@ -222,6 +233,72 @@ export const SetupScreen = () => {
     setRequiredFields(evaluatedFields);
   }, [campaignFormData, cId, setRequiredFields]);
 
+  interface SelectedItem {
+    value: string;
+    label: string;
+    id?: string;
+    clientId?: string;
+  }
+  const [internalApprovers, setInternalApprovers] = useState<SelectedItem[]>([]);
+
+  useEffect(() => {
+    const approverIds = campaignFormData?.internal_approver_ids || [];
+    const campaignId = campaignFormData?.campaign_id;
+    const clientId = campaignFormData?.client_selection?.id;
+
+    if (approverIds.length && internalapproverOptions.length) {
+      const mapped = approverIds
+        .map((id) => {
+          const found = internalapproverOptions.find((opt) => String(opt.value) === String(id));
+          if (!found) return null;
+          return {
+            value: found.value,
+            label: found.label,
+            id: campaignId,
+            clientId,
+          };
+        })
+        .filter(Boolean) as SelectedItem[];
+
+      setInternalApprovers(mapped);
+    }
+  }, [
+    campaignFormData?.internal_approver_ids,
+    internalapproverOptions,
+    campaignFormData?.campaign_id,
+    campaignFormData?.client_selection?.id,
+  ]);
+  const [clientApprovers, setClientApprovers] = useState<SelectedItem[]>([]);
+
+  useEffect(() => {
+    const { client_approver_ids = [], campaign_id, client_selection } = campaignFormData || {};
+    const clientId = client_selection?.id;
+
+    if (client_approver_ids.length && clientapprovalOptions.length && campaign_id && clientId) {
+      const mapped = client_approver_ids
+        .map((id) => {
+          const match = clientapprovalOptions.find((opt) => String(opt.value) === String(id));
+          return match
+            ? {
+              value: match.value,
+              label: match.label,
+              id: campaign_id,
+              clientId,
+            }
+            : null;
+        })
+        .filter(Boolean) as SelectedItem[];
+
+      setClientApprovers(mapped);
+    }
+  }, [
+    campaignFormData?.client_approver_ids,
+    campaignFormData?.campaign_id,
+    campaignFormData?.client_selection?.id,
+    clientapprovalOptions,
+  ]);
+
+
 
 
   if (!campaignFormData) {
@@ -244,9 +321,8 @@ export const SetupScreen = () => {
               <TreeDropdown
                 data={level1Options}
                 setCampaignFormData={setCampaignFormData}
-                formId="Client Architecture"
-                title={"Client Architecture"}
-              />
+                formId="level_1"
+                title={"Client Architecture"} campaignFormData={campaignFormData} />
             </div>
           </div>
         </div>
@@ -270,7 +346,7 @@ export const SetupScreen = () => {
               <label className="block text-sm font-medium text-gray-700  ">
                 Internal Approver
               </label>
-              <InternalApproverDropdowns
+              {/* <InternalApproverDropdowns
                 options={internalapproverOptions}
                 value={{
                   internal_approver:
@@ -295,13 +371,45 @@ export const SetupScreen = () => {
                     [field]: selected,
                   }));
                 }}
+              /> */}
+
+              <InternalApproverDropdowns
+                options={internalapproverOptions}
+                //@ts-ignore
+                value={{ internal_approver: internalApprovers }}
+                onChange={(field, selected) => {
+                  setInternalApprovers(selected);
+                  setCampaignFormData((prev) => ({
+                    ...prev,
+                    [`${field}_ids`]: selected.map((item) => item.value),
+                    [field]: selected,
+                  }));
+                }}
               />
+
+
+
             </div>
             <div >
               <label className="block text-sm font-medium text-gray-700 ">
                 Client Approver
               </label>
               <ClientApproverDropdowns
+                options={clientapprovalOptions}
+                //@ts-ignore
+                value={{ client_approver: clientApprovers }}
+                onChange={(field, selected) => {
+                  setClientApprovers(selected);
+                  setCampaignFormData((prev) => ({
+                    ...prev,
+                    [`${field}_ids`]: selected.map((item) => item.value),
+                    [field]: selected,
+                  }));
+                }}
+              />
+
+
+              {/* <ClientApproverDropdowns
                 option={clientapprovalOptions}
                 value={{
                   client_approver:
@@ -326,7 +434,7 @@ export const SetupScreen = () => {
                     [field]: selected,
                   }));
                 }}
-              />
+              /> */}
             </div>
           </div>
         </div>
