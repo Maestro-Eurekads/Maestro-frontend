@@ -6,7 +6,7 @@ import PageHeaderWrapper from "../../../components/PageHeaderWapper"
 import { useCampaigns } from "../../utils/CampaignsContext"
 import { useVerification } from "app/utils/VerificationContext"
 import { useComments } from "app/utils/CommentProvider"
-import { PlusIcon, Edit2, Trash2, X, GripVertical, ChevronDown } from "lucide-react"
+import { PlusIcon, Edit2, Trash2, X, GripVertical, ChevronDown, Loader } from "lucide-react"
 import toast from "react-hot-toast"
 import axios from "axios" // <--- Added for Strapi update
 
@@ -127,7 +127,7 @@ const presetStructures: { label: string; stages: Funnel[] }[] = [
 ]
 
 const MapFunnelStages = () => {
-  const { campaignData, campaignFormData, cId, setCampaignFormData, session } = useCampaigns()
+  const { campaignData, campaignFormData, cId, setCampaignFormData, jwt } = useCampaigns()
   const { setIsDrawerOpen, setClose } = useComments()
   const { verifyStep, setHasChanges } = useVerification()
   const [previousValidationState, setPreviousValidationState] = useState<boolean | null>(null)
@@ -148,6 +148,7 @@ const MapFunnelStages = () => {
   const [selectedConfigIdx, setSelectedConfigIdx] = useState<number | null>(null)
   const [isSaveConfigModalOpen, setIsSaveConfigModalOpen] = useState(false)
   const [newConfigName, setNewConfigName] = useState("")
+  const [savingConfig, setSavingConfig] = useState(false)
 
   // Get clientId and mediaPlanId safely
   const clientId = campaignFormData?.client_selection?.id ?? ""
@@ -229,7 +230,7 @@ const MapFunnelStages = () => {
   useEffect(() => {
     console.debug(`Initializing with clientId: ${clientId}, mediaPlanId: ${mediaPlanId}`)
     const configs = getFunnelConfigsFromStorage()
-    setFunnelConfigs(configs)
+    setFunnelConfigs(campaignData?.client?.custom_funnel_configs)
 
     let loadedCustomFunnels: Funnel[] = []
     const localStorageFunnels = getCustomFunnelsFromStorage()
@@ -341,7 +342,7 @@ const MapFunnelStages = () => {
 
   // Save funnel configurations to localStorage
   useEffect(() => {
-    if (clientId && funnelConfigs.length > 0) {
+    if (clientId && funnelConfigs?.length > 0) {
       saveFunnelConfigsToStorage(funnelConfigs)
     }
   }, [funnelConfigs, clientId])
@@ -394,7 +395,7 @@ const MapFunnelStages = () => {
     if (!trimmed) return "Configuration name cannot be empty"
     if (trimmed.length < 2) return "Configuration name must be at least 2 characters"
     if (!/[a-zA-Z]/.test(trimmed)) return "Configuration name must include at least one letter"
-    if (funnelConfigs.some((config) => config.name.toLowerCase() === trimmed.toLowerCase())) {
+    if (funnelConfigs?.some((config) => config?.name?.toLowerCase() === trimmed?.toLowerCase())) {
       return "A configuration with this name already exists"
     }
     return ""
@@ -690,12 +691,12 @@ const MapFunnelStages = () => {
     setFunnelConfigs(updatedConfigs)
     setSelectedConfigIdx(updatedConfigs.length - 1)
     setSelectedPreset(null)
-    setIsSaveConfigModalOpen(false)
+    
     if (clientId) {
       // Save to localStorage (optional)
-      saveFunnelConfigsToStorage(updatedConfigs)
+      // saveFunnelConfigsToStorage(updatedConfigs)
+      setSavingConfig(true)
       try {
-        const jwt = process.env.NEXT_PUBLIC_STRAPI_TOKEN || ""
         // Strapi PUT request
         await axios.put(
           `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}`,
@@ -710,6 +711,7 @@ const MapFunnelStages = () => {
             },
           },
         )
+        setIsSaveConfigModalOpen(false)
         toast.success(`"${newConfigName.trim()}" configuration saved!`, {
           duration: 3000,
         })
@@ -718,6 +720,8 @@ const MapFunnelStages = () => {
         toast.error("Failed to update funnel configs on server", {
           duration: 3000,
         })
+      } finally{
+        setSavingConfig(false)
       }
     } else {
       toast.success(`"${newConfigName.trim()}" configuration saved!`, {
@@ -729,7 +733,7 @@ const MapFunnelStages = () => {
 
   // Delete a saved configuration
   const handleDeleteConfig = (configIdx: number) => {
-    const updatedConfigs = funnelConfigs.filter((_, idx) => idx !== configIdx)
+    const updatedConfigs = funnelConfigs?.filter((_, idx) => idx !== configIdx)
     setFunnelConfigs(updatedConfigs)
     if (clientId) saveFunnelConfigsToStorage(updatedConfigs)
     if (selectedConfigIdx === configIdx) {
@@ -783,10 +787,10 @@ const MapFunnelStages = () => {
                 className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto"
                 role="listbox"
               >
-                {funnelConfigs.length > 0 && (
+                {funnelConfigs?.length > 0 && (
                   <>
                     <li className="px-4 py-2 text-xs text-gray-500 font-semibold">Saved Configurations</li>
-                    {funnelConfigs.map((config, idx) => (
+                    {funnelConfigs?.map((config, idx) => (
                       <li
                         key={`config-${config.name}-${idx}`}
                         className={`px-4 py-3 cursor-pointer hover:bg-blue-50 ${
@@ -1068,7 +1072,7 @@ const MapFunnelStages = () => {
                 onClick={handleSaveConfigConfirm}
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
               >
-                Save
+                {savingConfig ?<Loader className="animate-spin"/> :"Save"}
               </button>
             </div>
           </div>
