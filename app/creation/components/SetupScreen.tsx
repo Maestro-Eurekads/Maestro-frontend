@@ -69,8 +69,8 @@ export const SetupScreen = () => {
     }
   }, []);
 
-  console.log("FC FC:", FC);
-  console.log("campaignFormData campaignFormData:", campaignFormData);
+  // console.log("FC FC:", FC);
+  // console.log("campaignFormData campaignFormData:", campaignFormData);
 
   useEffect(() => {
     //@ts-ignore
