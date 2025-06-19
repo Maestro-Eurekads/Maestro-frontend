@@ -152,7 +152,7 @@ const ResizeableElements = ({
         return window.innerWidth || document.documentElement.clientWidth || 0
       }
       const screenWidth = getViewportWidth()
-      const contWidth = screenWidth - (disableDrag ? 80 : 75)
+      const contWidth = screenWidth - (disableDrag ? 80 : 367)
 
       let dailyWidth: number
 
@@ -209,16 +209,16 @@ const ResizeableElements = ({
   }, [rrange, funnelData?.endMonth, range, calculateAndCacheDailyWidth])
 
   // Enhanced function that returns the number of days in each month using the state range as reference
-  const getDaysInEachMonth = useCallback((range: Date[]): Record<string, number> => {
-    const daysInMonth: Record<string, number> = {}
+const getDaysInEachMonth = useCallback((range: Date[]): Record<string, number> => {
+  const daysInMonth: Record<string, number> = {}
 
-    range.forEach((date) => {
-      const monthYear = format(date, "MMMM yyyy")
-      daysInMonth[monthYear] = (daysInMonth[monthYear] || 0) 
-    })
-
-    return daysInMonth
-  }, [])
+  range.forEach((date) => {
+    const monthYear = format(date, "MMMM yyyy")
+    daysInMonth[monthYear] = (daysInMonth[monthYear] || 0) + 1
+  })
+  // console.log("herbdffd", range)
+  return daysInMonth
+}, [])
 
   // Enhanced function that returns months organized by year
   const getMonthsByYear = useCallback((range: Date[]): Record<string, Record<string, number>> => {
@@ -366,10 +366,13 @@ const ResizeableElements = ({
             return daysBetween > 0 ? dailyWidth * daysBetween : dailyWidth * daysFromStart - 0
           } else {
             // Month view - calculate width based on actual days and ensure it fits within screen
-            const totalDaysInRange = Object.values(daysInEachMonth).reduce((sum: number, days: number) => sum + days, 0)
-            const widthPerDay = availableWidth / (totalDaysInRange || 30)
+            // console.log("🚀 ~ daysInEachMonth:",  daysInEachMonth)
+            const totalDaysInRange = Object.values(daysInEachMonth || {}).reduce((sum: number, days: number) => sum + days, 0)
+            const widthPerDay = Math.round(availableWidth / (totalDaysInRange || 30))
+            console.log("🚀 ~ widthPerDay:", widthPerDay)
+            console.log("🚀 ~ totalDaysInRange:",daysBetween > 0 ? totalDaysInRange * daysBetween : widthPerDay * daysFromStart - 0)
 
-            return daysBetween > 0 ? widthPerDay * daysBetween : widthPerDay * daysFromStart - 0
+            return daysBetween > 0 ? widthPerDay * totalDaysInRange : widthPerDay * daysFromStart - 0
           }
         })()
 
@@ -394,7 +397,7 @@ const ResizeableElements = ({
 
   return (
     <div
-      className={`w-full min-h-[494px] relative pb-5 grid-container overflow-x-hidden ${(rrange === "Month" || rrange === "Year") && "max-w-full"}`}
+      className={`w-full min-h-[494px] relative pb-5 grid-container overflow-x-hidden ${(rrange === "Month" || rrange === "Year") && "max-w-[100%]"}`}
       ref={gridRef}
       style={{
         backgroundImage: (() => {
@@ -412,8 +415,8 @@ const ResizeableElements = ({
             const weeklyGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`
             const monthBoundaryGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)` // 3px thick lines
 
-            return ``
-            // return `${regularGrid}, ${monthBoundaryGrid}`
+            // return ``
+            return `${regularGrid}, ${monthBoundaryGrid}`
           }
         })(),
         backgroundSize: (() => {
@@ -490,8 +493,8 @@ const ResizeableElements = ({
             const regularGridSize = `${dailyWidth}px 100%`
             const monthBoundaryBackgrounds = monthEndPositions.map((position) => `${position}px 100%`).join(", ")
 
-            return "100% 100%"
-            // return monthBoundaryBackgrounds ? `${regularGridSize}, ${monthBoundaryBackgrounds}` : regularGridSize
+            // return "100% 100%"
+            return monthBoundaryBackgrounds ? `${regularGridSize}, ${monthBoundaryBackgrounds}` : regularGridSize
           }
         })(),
       }}
@@ -545,7 +548,7 @@ const ResizeableElements = ({
                 className="flex flex-col mt-6 rounded-[10px] p-4 px-0 justify-between w-fit"
                 style={{
                   gridColumnStart: 1,
-                  gridColumnEnd: getGridColumnEnd(),
+                  gridColumnEnd: getGridColumnEnd()+ 1,
                 }}
               >
                 <DraggableChannel

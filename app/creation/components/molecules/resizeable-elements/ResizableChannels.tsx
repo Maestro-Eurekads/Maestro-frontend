@@ -850,7 +850,7 @@ const ResizableChannels = ({
                 }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden `}
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
-                  width: `${channelState[index]?.width + (disableDrag ? 73 : rrange === "Month" ? dailyWidth : dailyWidth)}px`,
+                  width: `${channelState[index]?.width + (disableDrag ? 73 : rrange === "Month" ? 0 : 0)}px`,
                   backgroundColor: channel.bg,
                   color: channel.color,
                   borderColor: channel.color,
