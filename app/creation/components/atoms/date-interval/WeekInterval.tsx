@@ -1,5 +1,6 @@
 "use client";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import { useComments } from "app/utils/CommentProvider";
 import moment from "moment";
 import { useCallback, useMemo } from "react";
 import { useDateRange } from "src/date-range-context";
@@ -15,6 +16,7 @@ const WeekInterval = ({
 }) => {
   const { campaignFormData } = useCampaigns();
   const { range } = useDateRange();
+  const {close} = useComments()
 
   const groupDatesByWeek = (dates: Date[]) => {
     const weeks: string[][] = [];
@@ -43,7 +45,7 @@ const WeekInterval = ({
       return window.innerWidth || document.documentElement.clientWidth || 0;
     };
     const screenWidth = getViewportWidth();
-    const contWidth = screenWidth - (disableDrag ? 80 : 367);
+    const contWidth = screenWidth - (disableDrag ? 80 : close ? 0:367);
 
     const totalDays = funnelData?.endDay || 30;
     let dailyWidth = contWidth / totalDays;
@@ -52,7 +54,7 @@ const WeekInterval = ({
     dailyWidth = Math.max(dailyWidth, 50);
 
     return Math.round(dailyWidth);
-  }, [disableDrag, funnelData?.endDay]);
+  }, [disableDrag, funnelData?.endDay, close]);
 
   // Calculate individual week widths based on actual days in each week
   const weekWidths = useMemo(() => {
