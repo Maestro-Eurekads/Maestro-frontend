@@ -429,18 +429,33 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         onMouseDown={disableDrag || openItems ? undefined : handleMouseDownDrag}
       >
         {/* Left Resize Handle */}
-        <div
-          className={`absolute left-0 w-5 h-full bg-opacity-80 bg-black ${
-            disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-          } rounded-l-lg text-white flex items-center justify-center`}
-          onMouseDown={(e) =>
-            disableDrag || openItems
-              ? undefined
-              : handleMouseDownResize(e, "left")
-          }
-        >
-          <MdDragHandle className="rotate-90" />
-        </div>
+        {range === "Month" ? (
+          <div
+            className={`absolute left-0 w-5 h-1/2 bg-opacity-80  ${
+              disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+            } rounded-l-lg text-white flex items-center justify-center`}
+            onMouseDown={(e) =>
+              disableDrag || openItems
+                ? undefined
+                : handleMouseDownResize(e, "left")
+            }
+          >
+            <MdDragHandle className="rotate-90" />
+          </div>
+        ) : (
+          <div
+            className={`absolute left-0 w-5 h-full bg-opacity-80 bg-black ${
+              disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+            } rounded-l-lg text-white flex items-center justify-center`}
+            onMouseDown={(e) =>
+              disableDrag || openItems
+                ? undefined
+                : handleMouseDownResize(e, "left")
+            }
+          >
+            <MdDragHandle className="rotate-90" />
+          </div>
+        )}
         <div />
         <button
           className="flex items-center gap-3 w-fit"
@@ -482,15 +497,34 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
             {getCurrencySymbol(stageBudget?.currency)}
           </div>
         )}
-              {/* Right Resize Handle */}
-      <div
-        className={`absolute right-0 w-5 h-full bg-opacity-80 bg-black ${
-          disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-        } rounded-r-lg text-white flex items-center justify-center`}
-        onMouseDown={(e) => (disableDrag || openItems ? undefined : handleMouseDownResize(e, "right"))}
-      >
-        <MdDragHandle className="rotate-90" />
-      </div>
+        {/* Right Resize Handle */}
+        {range === "Month" ? (
+          <div
+            className={`absolute right-0 w-5 h-1/2 bg-opacity-80  ${
+              disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+            } rounded-r-lg text-white flex items-center justify-center`}
+            onMouseDown={(e) =>
+              disableDrag || openItems
+                ? undefined
+                : handleMouseDownResize(e, "right")
+            }
+          >
+            <MdDragHandle className="rotate-90" />
+          </div>
+        ) : (
+          <div
+            className={`absolute right-0 w-5 h-full bg-opacity-80 bg-black ${
+              disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+            } rounded-r-lg text-white flex items-center justify-center`}
+            onMouseDown={(e) =>
+              disableDrag || openItems
+                ? undefined
+                : handleMouseDownResize(e, "right")
+            }
+          >
+            <MdDragHandle className="rotate-90" />
+          </div>
+        )}
       </div>
     </div>
   );

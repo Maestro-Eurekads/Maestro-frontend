@@ -899,6 +899,23 @@ const ResizableChannels = ({
                 )}
                 {
                   <>
+                  {rrange === "Month" 
+                  ? 
+                    <div
+                      className={`absolute top-0 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
+                        disableDrag && "hidden"
+                      }`}
+                      style={{
+                        left: `0px`,
+                        backgroundColor: channel.color,
+                      }}
+                      onMouseDown={(e) =>
+                        disableDrag || openItems ? undefined : handleMouseDownResize(e, "left", index)
+                      }
+                    >
+                      <MdDragHandle className="rotate-90" />
+                    </div>
+                  :
                     <div
                       className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
                         disableDrag && "hidden"
@@ -913,6 +930,7 @@ const ResizableChannels = ({
                     >
                       <MdDragHandle className="rotate-90" />
                     </div>
+                  }
                     <div
                       className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
                         disableDrag && "hidden"
