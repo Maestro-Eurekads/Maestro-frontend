@@ -11,16 +11,13 @@ export type FilterState = {
   quarter: string | null;
   month: string | null;
   category?: string | null;
-  product?: string | null;
-  // select_plans?: string | null;
+  product?: string | null; 
   made_by: string | null;
   approved_by: string | null;
   channel: string | null;
   phase: string | null;
   searchQuery: string;
-  level_1?: string
-  level_2?: string
-  level_3?: string
+  level_1?: string 
 };
 
 // Define campaign type (adjust based on your actual data structure)
@@ -51,12 +48,7 @@ export function useCampaignFilters(clientID: string) {
     year: null,
     quarter: null,
     month: null,
-    level_1: null,
-    level_2: null,
-    level_3: null,
-    // category: null,
-    // product: null,
-    // select_plans: null,
+    level_1: null, 
     made_by: null,
     approved_by: null,
     channel: null,
@@ -238,12 +230,7 @@ export function useCampaignFilters(clientID: string) {
     year: null,
     quarter: null,
     month: null,
-    level_1: null,
-    level_2: null,
-    level_3: null,
-    // category: null,
-    // product: null,
-    // select_plans: null,
+    level_1: null,  
     made_by: null,
     approved_by: null,
     channel: null,

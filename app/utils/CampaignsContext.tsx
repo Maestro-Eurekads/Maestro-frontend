@@ -31,8 +31,6 @@ const getInitialState = () => {
   return {
     client_selection: { id: "", value: "" },
     level_1: { id: "", value: "" },
-    level_2: { id: "", value: "" },
-    level_3: { id: "", value: "" },
     media_plan: "",
     internal_approver: [],
     client_approver: [],
@@ -93,12 +91,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     year: [],
     quarter: [],
     month: [],
-    // category: [],
-    // product: [],
-    // select_plans: [],
     level_1: [],
-    level_2: [],
-    level_3: [],
     made_by: [],
     approved_by: [],
   });
@@ -196,14 +189,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             id: data?.client_selection?.level_1 ?? prev.level_1?.id,
             value: data?.client_selection?.level_1 ?? prev.level_1?.value,
           },
-          level_2: {
-            id: data?.client_selection?.level_2 ?? prev.level_2?.id,
-            value: data?.client_selection?.level_2 ?? prev.level_2?.value,
-          },
-          level_3: {
-            id: data?.client_selection?.level_3 ?? prev.level_3?.id,
-            value: data?.client_selection?.level_3 ?? prev.level_3?.value,
-          },
           media_plan: data?.media_plan_details?.plan_name ?? prev.media_plan,
           internal_approver:
             data?.media_plan_details?.internal_approver ??
@@ -255,8 +240,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             client_selection: {
               client: campaignFormData?.client_selection?.value,
               level_1: campaignFormData?.level_1?.id,
-              level_2: campaignFormData?.level_2?.id,
-              level_3: campaignFormData?.level_3?.id,
             },
             media_plan_details: {
               plan_name: campaignFormData?.media_plan,
@@ -382,29 +365,17 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   //       }
   //     );
   //     const data = response?.data?.data || {};
-  //     console.log("Business Level Options Data:", data);
+  //     console.log("Client Architecture Options Data:", data);
   //     setBusinessLevelOptions({
   //       level1:
   //         data?.level_1?.map((item: string) => ({
   //           id: item,
   //           value: item,
   //           label: item,
-  //         })) || [],
-  //       level2:
-  //         data?.level_2?.map((item: string) => ({
-  //           id: item,
-  //           value: item,
-  //           label: item,
-  //         })) || [],
-  //       level3:
-  //         data?.level_3?.map((item: string) => ({
-  //           id: item,
-  //           value: item,
-  //           label: item,
-  //         })) || [],
+  //         })) || [],  
   //     });
   //   } catch (error) {
-  //     console.error("Error fetching business level options:", error);
+  //     console.error("Error fetching Client Architecture options:", error);
   //     setBusinessLevelOptions({ level1: [], level2: [], level3: [] });
   //   } finally {
   //     setLoading(false);
@@ -572,16 +543,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [organizeAdvertisingPlatforms]);
 
-  // Fetch business level options when client selection changes
+  // FetchClient Architecture options when client selection changes
   // useEffect(() => {
   //   // const clientId = campaignFormData?.client_selection?.id;
   //   if (selectedClient) {
   //     fetchBusinessLevelOptions(selectedClient);
   //     setCampaignFormData((prev) => ({
   //       ...prev,
-  //       level_1: { id: "", value: "" },
-  //       level_2: { id: "", value: "" },
-  //       level_3: { id: "", value: "" },
+  //       level_1: { id: "", value: "" }, 
   //     }));
   //   }
   // }, [selectedClient, fetchBusinessLevelOptions]);

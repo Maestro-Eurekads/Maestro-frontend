@@ -8,8 +8,8 @@ import blueSmallPlue from "../../../public/blueSmallPlue.svg";
 import { MdOutlineCancel } from "react-icons/md";
 
 const EditInput = ({ setInputs, label, setAlert }) => {
-  const [title, setTitle] = useState(""); // Business level 1
-  const [parameters, setParameters] = useState([]); // Business level 2
+  const [title, setTitle] = useState("");
+  const [parameters, setParameters] = useState([]);
 
   // Sync with parent
   useEffect(() => {
@@ -104,7 +104,7 @@ const EditInput = ({ setInputs, label, setAlert }) => {
         <input
           type="text"
           className="w-full bg-transparent outline-none text-gray-600"
-          placeholder="business level 1"
+          placeholder="Client Architecture"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
@@ -185,7 +185,7 @@ const BusinessUnit = ({ setInputs, setAlert }) => {
       <EditInput
         setInputs={setInputs}
         setAlert={setAlert}
-        label="Business level 1"
+        label="Client Architecture"
       />
     </div>
   );
