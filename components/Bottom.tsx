@@ -576,8 +576,6 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             client_selection: {
               client: campaignFormData?.client_selection?.value,
               level_1: campaignFormData?.level_1,
-              level_2: campaignFormData?.level_2,
-              level_3: campaignFormData?.level_3,
             },
             media_plan_details: {
               plan_name: campaignFormData?.media_plan,
@@ -681,9 +679,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     //         client: campaignFormData?.client_selection?.id,
     //         client_selection: {
     //           client: campaignFormData?.client_selection?.value,
-    //           level_1: campaignFormData?.level_1?.id,
-    //           level_2: campaignFormData?.level_2?.id,
-    //           level_3: campaignFormData?.level_3?.id,
+    //           level_1: campaignFormData?.level_1?.id, 
     //         },
     //         media_plan_details: {
     //           plan_name: campaignFormData?.media_plan,
@@ -705,9 +701,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     //         client: campaignFormData?.client_selection?.id,
     //         client_selection: {
     //           client: campaignFormData?.client_selection?.value,
-    //           level_1: campaignFormData?.level_1?.id,
-    //           level_2: campaignFormData?.level_2?.id,
-    //           level_3: campaignFormData?.level_3?.id,
+    //           level_1: campaignFormData?.level_1?.id, 
     //         },
     //         media_plan_details: {
     //           plan_name: campaignFormData?.media_plan,
@@ -1041,20 +1035,20 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                     style={
                       active === 4 && !hasFormatSelected
                         ? {
-                            fontSize: "14px",
-                            whiteSpace: "normal",
-                            lineHeight: "16px",
-                            textAlign: "center",
-                            maxWidth: 120,
-                          }
+                          fontSize: "14px",
+                          whiteSpace: "normal",
+                          lineHeight: "16px",
+                          textAlign: "center",
+                          maxWidth: 120,
+                        }
                         : {}
                     }
                   >
                     {active === 0
                       ? "Start"
                       : active === 4 && !hasFormatSelected
-                      ? "Not mandatory step, skip"
-                      : "Continue"}
+                        ? "Not mandatory step, skip"
+                        : "Continue"}
                   </p>
                   <Image src={Continue || "/placeholder.svg"} alt="Continue" />
                 </>

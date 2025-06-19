@@ -56,8 +56,6 @@ export const SetupScreen = () => {
   const [internalapproverOptions, setInternalApproverOptions] = useState<DropdownOption[]>([]);
   const [clientapprovalOptions, setClientApprovalOptions] = useState<DropdownOption[]>([]);
   const [level1Options, setlevel1Options] = useState<DropdownOption[]>([]);
-  const [level2Options, setlevel2Options] = useState<DropdownOption[]>([]);
-  const [level3Options, setlevel3Options] = useState<DropdownOption[]>([]);
 
 
   console.log("SetupScreen allClients:", FC);
@@ -98,8 +96,6 @@ export const SetupScreen = () => {
     if (FC) {
       const data = FC
       setlevel1Options(data?.level_1);
-      setlevel2Options(data?.level_2);
-      setlevel3Options(data?.level_3);
     }
   }, [FC]);
 
@@ -151,8 +147,6 @@ export const SetupScreen = () => {
         budget_details_fee_type: {},
         budget_details_value: "",
         level_1: {},
-        level_2: {},
-        level_3: {},
       };
 
       setCampaignFormData(initialFormData);
@@ -221,9 +215,7 @@ export const SetupScreen = () => {
       campaignFormData?.media_plan,
       // campaignFormData?.internal_approver_ids,
       // campaignFormData?.client_approver_ids,
-      // campaignFormData?.level_1?.id,
-      // campaignFormData?.level_2?.id,
-      // campaignFormData?.level_3?.id,
+      // campaignFormData?.level_1?.id, 
     ];
 
     const evaluatedFields = fieldsToCheck.map(getFieldValue);
@@ -245,31 +237,15 @@ export const SetupScreen = () => {
         {/* Client Selection Section */}
         <div className="mb-12">
           <Title className="text-2xl font-semibold text-gray-800 mb-4">
-            Business Levels
+            Client Architecture
           </Title>
           <div className="flex items-center flex-wrap gap-4 pb-12">
             <div>
               <TreeDropdown
                 data={level1Options}
                 setCampaignFormData={setCampaignFormData}
-                formId="level_1"
-                title={"Level 1"}
-              />
-            </div>
-            <div>
-              <TreeDropdown
-                data={level2Options}
-                setCampaignFormData={setCampaignFormData}
-                formId="level_2"
-                title={"Level 2"}
-              />
-            </div>
-            <div>
-              <TreeDropdown
-                data={level3Options}
-                setCampaignFormData={setCampaignFormData}
-                formId="level_3"
-                title={"Level 3"}
+                formId="Client Architecture"
+                title={"Client Architecture"}
               />
             </div>
           </div>

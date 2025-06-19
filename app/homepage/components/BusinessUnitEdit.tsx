@@ -135,7 +135,7 @@ const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator, s
         <input
           type="text"
           className="w-full bg-transparent outline-none text-gray-600"
-          placeholder="business level 1"
+          placeholder="Client Architecture"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
@@ -213,7 +213,7 @@ const BusinessUnitEdit = ({ setInputs, setAlert, level1Options, initialData, isA
       <EditInput
         setInputs={setInputs}
         setAlert={setAlert}
-        label="Business level 1"
+        label="Client Architecture"
         initialData={initialData}
         isAgencyCreator={isAgencyCreator}
         setIsLevelChange={setIsLevelChange}
