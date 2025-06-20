@@ -51,7 +51,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	const documentId = campaignData?.documentId;
 	const plan_name = campaignData?.media_plan_details.plan_name
 
-	// console.log('campaignFormData', campaignFormData)
+	// //console.log('campaignFormData', campaignFormData)
 
 
 	// Set client ID from campaignData in useEffect

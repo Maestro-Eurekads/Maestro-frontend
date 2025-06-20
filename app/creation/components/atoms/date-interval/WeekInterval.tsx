@@ -78,7 +78,7 @@ const WeekInterval = ({
     return positions;
   }, [weekWidths]);
 
-  console.log("Week End Positions:", weekEndPositions);
+  //console.log("Week End Positions:", weekEndPositions);
 
   const dailyWidth = calculateDailyWidth();
 

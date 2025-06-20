@@ -32,7 +32,8 @@ interface DefineAdSetPageProps {
   onToggleChange: (newView: "channel" | "adset") => void
 }
 
-const GOAL_LEVEL_MODAL_KEY = "goalLevelModalDismissed"
+// Use a key that is unique per plan, so we can track which plans have had the modal dismissed
+const GOAL_LEVEL_MODAL_KEY_PREFIX = "goalLevelModalDismissed_"
 
 const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
@@ -43,6 +44,22 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const initialized = useRef(false)
 
+  // Get a unique key for the current plan (use media_plan_id if available, fallback to campaignFormData id)
+  const getPlanKey = () => {
+    if (!campaignFormData) return null
+    // Try media_plan_id, fallback to id, fallback to JSON string of funnel_stages
+    return (
+      campaignFormData.media_plan_id ||
+      campaignFormData.id ||
+      (Array.isArray(campaignFormData.funnel_stages) ? campaignFormData.funnel_stages.join("_") : "unknown")
+    )
+  }
+
+  const getModalKey = () => {
+    const planKey = getPlanKey()
+    return planKey ? `${GOAL_LEVEL_MODAL_KEY_PREFIX}${planKey}` : null
+  }
+
   const handleOpenModal = () => {
     setIsModalOpen(true)
   }
@@ -51,7 +68,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     if (e) e.preventDefault()
     setIsModalOpen(false)
     if (typeof window !== "undefined") {
-      localStorage.setItem(GOAL_LEVEL_MODAL_KEY, "true")
+      const modalKey = getModalKey()
+      if (modalKey) {
+        localStorage.setItem(modalKey, "true")
+      }
     }
   }
 
@@ -60,14 +80,19 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
     const goalLevel = campaignFormData.goal_level
     const expectedGoalLevel = view === "adset" ? "Adset level" : "Channel level"
+    const modalKey = getModalKey()
 
-    // Only show modal if not dismissed before
+    // Only show modal if not dismissed for this plan
     if (!goalLevel) {
-      // Reset the localStorage flag for new media plans
-      if (typeof window !== "undefined") {
-        localStorage.removeItem(GOAL_LEVEL_MODAL_KEY)
+      // Only show modal if not dismissed for this plan
+      if (typeof window !== "undefined" && modalKey) {
+        const dismissed = localStorage.getItem(modalKey)
+        if (!dismissed) {
+          setIsModalOpen(true)
+        } else {
+          setIsModalOpen(false)
+        }
       }
-      setIsModalOpen(true)
     } else if (goalLevel !== expectedGoalLevel) {
       setCampaignFormData((prev: any) => {
         if (prev.goal_level === expectedGoalLevel) return prev
@@ -111,9 +136,21 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           ...(stage.mobile || []),
         ]
 
-        const hasAdSets = platforms.some((platform: any) => platform.ad_sets && platform.ad_sets.length > 0)
+        // GRANULARITY SEPARATION: Check for data based on current view
+        let hasData = false
+        if (view === "adset") {
+          hasData = platforms.some((platform: any) => platform.ad_sets && platform.ad_sets.length > 0)
+        } else {
+          // For channel view, check channel-level state
+          if (typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
+            const channelState = (window as any).channelLevelAudienceState[stageName]
+            if (channelState) {
+              hasData = Object.values(channelState).some((data: any) => data.audience_type || data.name || data.size)
+            }
+          }
+        }
 
-        if (hasAdSets) {
+        if (hasData) {
           initialOpenItems[stageName] = true
           initialStatuses[stageName] = "Not started"
           initialInteractions[stageName] = true
@@ -124,7 +161,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     setStageStatuses(initialStatuses)
     setHasInteracted(initialInteractions)
     setOpenItems(initialOpenItems)
-  }, [campaignFormData])
+  }, [campaignFormData, view])
 
   const toggleItem = (stage: string) => {
     setOpenItems((prev) => {
@@ -147,58 +184,130 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   }
 
   const resetInteraction = (stageName: string) => {
-    const stage = campaignFormData?.channel_mix?.find((s: any) => s.funnel_stage === stageName)
-    const hasAdSets = stage
-      ? [
-          ...(stage.search_engines || []),
-          ...(stage.display_networks || []),
-          ...(stage.social_media || []),
-          ...(stage.streaming || []),
-          ...(stage.ooh || []),
-          ...(stage.broadcast || []),
-          ...(stage.messaging || []),
-          ...(stage.print || []),
-          ...(stage.e_commerce || []),
-          ...(stage.in_game || []),
-          ...(stage.mobile || []),
-        ].some((platform: any) => platform.ad_sets && platform.ad_sets.length > 0)
-      : false
+    // GRANULARITY SEPARATION: Reset based on current view
+    let hasData = false
 
-    if (!hasAdSets) {
+    if (view === "adset") {
+      const stage = campaignFormData?.channel_mix?.find((s: any) => s.funnel_stage === stageName)
+      hasData = stage
+        ? [
+            ...(stage.search_engines || []),
+            ...(stage.display_networks || []),
+            ...(stage.social_media || []),
+            ...(stage.streaming || []),
+            ...(stage.ooh || []),
+            ...(stage.broadcast || []),
+            ...(stage.messaging || []),
+            ...(stage.print || []),
+            ...(stage.e_commerce || []),
+            ...(stage.in_game || []),
+            ...(stage.mobile || []),
+          ].some((platform: any) => platform.ad_sets && platform.ad_sets.length > 0)
+        : false
+    } else {
+      // For channel view, check both sessionStorage and in-memory state
+      const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
+
+      // Check sessionStorage first
+      if (typeof window !== "undefined") {
+        try {
+          const key = `channelLevelAudienceState_${campaignId || "default"}`
+          const stored = sessionStorage.getItem(key)
+          if (stored) {
+            const storedState = JSON.parse(stored)
+            if (storedState[stageName]) {
+              hasData = Object.values(storedState[stageName]).some(
+                (data: any) => data.audience_type || data.name || data.size,
+              )
+            }
+          }
+        } catch (error) {
+          console.error("Error checking stored channel state:", error)
+        }
+      }
+
+      // Fallback to in-memory check
+      if (!hasData && typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
+        const channelState = (window as any).channelLevelAudienceState[stageName]
+        if (channelState) {
+          hasData = Object.values(channelState).some((data: any) => data.audience_type || data.name || data.size)
+        }
+      }
+    }
+
+    if (!hasData) {
       setHasInteracted((prev) => ({ ...prev, [stageName]: false }))
       setStageStatuses((prev) => ({ ...prev, [stageName]: "Not started" }))
     }
   }
 
-  // Returns true if at least one ad set with audience is present for the stage (for both channel and adset view)
-  const hasAnyAudience = (stage: any) => {
-    if (!stage) return false
-    const platforms = [
-      ...(stage.search_engines || []),
-      ...(stage.display_networks || []),
-      ...(stage.social_media || []),
-      ...(stage.streaming || []),
-      ...(stage.ooh || []),
-      ...(stage.broadcast || []),
-      ...(stage.messaging || []),
-      ...(stage.print || []),
-      ...(stage.e_commerce || []),
-      ...(stage.in_game || []),
-      ...(stage.mobile || []),
-    ]
-    return platforms.some((platform: any) =>
-      (platform.ad_sets || []).some(
-        (adSet: any) =>
-          adSet.audience_type ||
-          adSet.name ||
-          adSet.size ||
-          (Array.isArray(adSet.extra_audiences) &&
-            adSet.extra_audiences.some((ea: any) => ea.audience_type || ea.name || ea.size)),
-      ),
-    )
+  // GRANULARITY SEPARATION: Returns true if there is audience data for the stage based on current granularity
+  const hasAnyAudience = (stageName: string) => {
+    if (!campaignFormData) return false
+
+    if (view === "channel") {
+      // For channel view, check both in-memory and stored channel-level audience data
+      const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
+
+      // Check sessionStorage first
+      if (typeof window !== "undefined") {
+        try {
+          const key = `channelLevelAudienceState_${campaignId || "default"}`
+          const stored = sessionStorage.getItem(key)
+          if (stored) {
+            const storedState = JSON.parse(stored)
+            if (storedState[stageName]) {
+              const hasStoredData = Object.values(storedState[stageName]).some(
+                (data: any) => data.audience_type || data.name || data.size,
+              )
+              if (hasStoredData) return true
+            }
+          }
+        } catch (error) {
+          console.error("Error checking stored channel state:", error)
+        }
+      }
+
+      // Fallback to in-memory check
+      if (typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
+        const channelState = (window as any).channelLevelAudienceState[stageName]
+        if (channelState) {
+          return Object.values(channelState).some((data: any) => data.audience_type || data.name || data.size)
+        }
+      }
+      return false
+    } else {
+      // For adset view, ONLY check ad sets with audience data
+      const stage = campaignFormData?.channel_mix?.find((s: any) => s.funnel_stage === stageName)
+      if (!stage) return false
+
+      const platforms = [
+        ...(stage.search_engines || []),
+        ...(stage.display_networks || []),
+        ...(stage.social_media || []),
+        ...(stage.streaming || []),
+        ...(stage.ooh || []),
+        ...(stage.broadcast || []),
+        ...(stage.messaging || []),
+        ...(stage.print || []),
+        ...(stage.e_commerce || []),
+        ...(stage.in_game || []),
+        ...(stage.mobile || []),
+      ]
+      return platforms.some((platform: any) =>
+        (platform.ad_sets || []).some(
+          (adSet: any) =>
+            adSet.audience_type ||
+            adSet.name ||
+            adSet.size ||
+            (Array.isArray(adSet.extra_audiences) &&
+              adSet.extra_audiences.some((ea: any) => ea.audience_type || ea.name || ea.size)),
+        ),
+      )
+    }
   }
 
-  // Fixed function to properly handle granularity-specific recap data
+  // COMPLETE GRANULARITY SEPARATION: Fixed function to properly handle granularity-specific recap data
   const getRecapRows = (stageName: string) => {
     const recapRows: {
       platform: string
@@ -227,7 +336,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     ]
 
     if (view === "channel") {
-      // Channel level: Aggregate audiences by platform
+      // Channel level: Check both sessionStorage and in-memory state
       const platformAggregation: Record<
         string,
         {
@@ -237,46 +346,73 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         }
       > = {}
 
-      platforms.forEach((platform: any) => {
-        if (platform.ad_sets && platform.ad_sets.length > 0) {
-          if (!platformAggregation[platform.platform_name]) {
-            platformAggregation[platform.platform_name] = {
-              audiences: new Set(),
-              totalSize: 0,
-              names: new Set(),
-            }
-          }
+      const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
 
-          platform.ad_sets.forEach((adSet: any) => {
-            if (adSet.audience_type) {
-              platformAggregation[platform.platform_name].audiences.add(adSet.audience_type)
-            }
-            if (adSet.name) {
-              platformAggregation[platform.platform_name].names.add(adSet.name)
-            }
-            if (adSet.size) {
-              platformAggregation[platform.platform_name].totalSize +=
-                Number.parseInt(adSet.size.replace(/,/g, "")) || 0
-            }
+      // First check sessionStorage
+      if (typeof window !== "undefined") {
+        try {
+          const key = `channelLevelAudienceState_${campaignId || "default"}`
+          const stored = sessionStorage.getItem(key)
+          if (stored) {
+            const storedState = JSON.parse(stored)
+            if (storedState[stageName]) {
+              Object.entries(storedState[stageName]).forEach(([platformName, data]: [string, any]) => {
+                if (data.audience_type || data.name || data.size) {
+                  if (!platformAggregation[platformName]) {
+                    platformAggregation[platformName] = {
+                      audiences: new Set(),
+                      totalSize: 0,
+                      names: new Set(),
+                    }
+                  }
 
-            // Handle extra audiences
-            if (Array.isArray(adSet.extra_audiences)) {
-              adSet.extra_audiences.forEach((ea: any) => {
-                if (ea.audience_type) {
-                  platformAggregation[platform.platform_name].audiences.add(ea.audience_type)
-                }
-                if (ea.name) {
-                  platformAggregation[platform.platform_name].names.add(ea.name)
-                }
-                if (ea.size) {
-                  platformAggregation[platform.platform_name].totalSize +=
-                    Number.parseInt(ea.size.replace(/,/g, "")) || 0
+                  if (data.audience_type) {
+                    platformAggregation[platformName].audiences.add(data.audience_type)
+                  }
+                  if (data.name) {
+                    platformAggregation[platformName].names.add(data.name)
+                  }
+                  if (data.size) {
+                    platformAggregation[platformName].totalSize += Number.parseInt(data.size.replace(/,/g, "")) || 0
+                  }
                 }
               })
             }
-          })
+          }
+        } catch (error) {
+          console.error("Error loading stored channel state for recap:", error)
         }
-      })
+      }
+
+      // Fallback to in-memory state if no stored data
+      if (Object.keys(platformAggregation).length === 0) {
+        if (typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
+          const channelState = (window as any).channelLevelAudienceState[stageName]
+          if (channelState) {
+            Object.entries(channelState).forEach(([platformName, data]: [string, any]) => {
+              if (data.audience_type || data.name || data.size) {
+                if (!platformAggregation[platformName]) {
+                  platformAggregation[platformName] = {
+                    audiences: new Set(),
+                    totalSize: 0,
+                    names: new Set(),
+                  }
+                }
+
+                if (data.audience_type) {
+                  platformAggregation[platformName].audiences.add(data.audience_type)
+                }
+                if (data.name) {
+                  platformAggregation[platformName].names.add(data.name)
+                }
+                if (data.size) {
+                  platformAggregation[platformName].totalSize += Number.parseInt(data.size.replace(/,/g, "")) || 0
+                }
+              }
+            })
+          }
+        }
+      }
 
       // Convert aggregated data to rows
       Object.entries(platformAggregation).forEach(([platformName, data]) => {
@@ -289,7 +425,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         })
       })
     } else {
-      // Ad set level: Show individual ad sets
+      // Ad set level: ONLY show individual ad sets, completely ignore channel data
       platforms.forEach((platform: any) => {
         if (platform.ad_sets && platform.ad_sets.length > 0) {
           platform.ad_sets.forEach((adSet: any, idx: number) => {
@@ -332,9 +468,12 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       ...prev,
       goal_level: checked ? "Adset level" : "Channel level",
     }))
-    // If user changes granularity, consider modal as dismissed
+    // If user changes granularity, consider modal as dismissed for this plan
     if (typeof window !== "undefined") {
-      localStorage.setItem(GOAL_LEVEL_MODAL_KEY, "true")
+      const modalKey = getModalKey()
+      if (modalKey) {
+        localStorage.setItem(modalKey, "true")
+      }
     }
   }
 
@@ -372,8 +511,8 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         // Find the corresponding channel_mix stage for platform/adset data
         const channelMixStage = campaignFormData?.channel_mix?.find((s: any) => s.funnel_stage === stageName)
 
-        // Show recap for both channel and adset granularity if there is at least one adset with audience
-        const shouldShowRecap = hasAnyAudience(channelMixStage)
+        // GRANULARITY SEPARATION: Show recap based on current granularity
+        const shouldShowRecap = hasAnyAudience(stageName)
 
         return (
           <div key={stageName} className="w-full">
@@ -640,9 +779,12 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                           }))
                           onToggleChange(newView)
                           handleCloseModal()
-                          // Mark modal as dismissed in localStorage
+                          // Mark modal as dismissed for this plan in localStorage
                           if (typeof window !== "undefined") {
-                            localStorage.setItem(GOAL_LEVEL_MODAL_KEY, "true")
+                            const modalKey = getModalKey()
+                            if (modalKey) {
+                              localStorage.setItem(modalKey, "true")
+                            }
                           }
                         }}
                       >
