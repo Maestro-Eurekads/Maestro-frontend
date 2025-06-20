@@ -80,9 +80,12 @@ const AddFinanceModal = ({
     useUserPrivileges();
   const dispatch = useAppDispatch();
 
+
+  console.log('internalApprover-internalApprover', internalApprover)
+  console.log('clientApprover-clientApprover', clientApprover)
+
   const { getCreateClientData, getCreateClientIsLoading } = useAppSelector(
-    (state) => state.client
-  );
+    (state) => state.client);
   const clients: any = getCreateClientData;
 
   const removeMP = (index: number) => {
@@ -120,23 +123,43 @@ const AddFinanceModal = ({
 
   useEffect(() => {
     const fetchClientCampaigns = async () => {
-      if ((selected || selectedRow?.client?.id) && agencyId) {
+      const clientId = selected || selectedRow?.client?.id;
+
+      if (clientId && agencyId) {
         setLoadingCam(true);
         try {
-          const res = await fetchClientCampaign(selected || selectedRow?.client?.id, agencyId);
+          const res = await fetchClientCampaign(clientId, agencyId);
+          const campaigns = res?.data?.data || [];
 
+          console.log('Fetched campaigns:', campaigns);
+
+ 
+          const newOptions = campaigns.map((opt: any) => ({
+            label: opt?.media_plan_details?.plan_name || "Unnamed Plan",
+ 
           const data = res?.data?.data;
           //console.log("yes-yess-yes:", res);
           const newOption = data?.map((opt: any) => ({
             label: opt?.media_plan_details?.plan_name,
+ 
             value: opt?.id?.toString(),
             budget: opt?.campaign_budget?.amount,
           }));
-          setClientCampaigns(newOption);
-          setClientApprover(data?.media_plan_details.client_approver || []);
-          setInternalApprover(data?.media_plan_details?.internal_approver || []);
-        } catch (err) {
-          //console.log(err);
+
+          setClientCampaigns(newOptions);
+
+          // If there's only one campaign, extract approvers from that one
+          if (campaigns.length > 0) {
+            const firstCampaign = campaigns[0];
+            setClientApprover(firstCampaign?.media_plan_details?.client_approver || []);
+            setInternalApprover(firstCampaign?.media_plan_details?.internal_approver || []);
+          } else {
+            setClientApprover([]);
+            setInternalApprover([]);
+          }
+        } catch (err) { 
+          console.error("Error fetching client campaigns:", err);
+ 
         } finally {
           setLoadingCam(false);
         }
@@ -144,7 +167,36 @@ const AddFinanceModal = ({
     };
 
     fetchClientCampaigns();
-  }, [selected, selectedRow, agencyId]);
+  }, [selected, selectedRow?.client?.id, agencyId]);
+
+
+  // useEffect(() => {
+  //   const fetchClientCampaigns = async () => {
+  //     if ((selected || selectedRow?.client?.id) && agencyId) {
+  //       setLoadingCam(true);
+  //       try {
+  //         const res = await fetchClientCampaign(selected || selectedRow?.client?.id, agencyId);
+
+  //         const data = res?.data?.data;
+  //         console.log('data-data-data', data)
+  //         const newOption = data?.map((opt: any) => ({
+  //           label: opt?.media_plan_details?.plan_name,
+  //           value: opt?.id?.toString(),
+  //           budget: opt?.campaign_budget?.amount,
+  //         }));
+  //         setClientCampaigns(newOption);
+  //         setClientApprover(data?.media_plan_details.client_approver || []);
+  //         setInternalApprover(data?.media_plan_details?.internal_approver || []);
+  //       } catch (err) {
+  //         console.log(err);
+  //       } finally {
+  //         setLoadingCam(false);
+  //       }
+  //     }
+  //   };
+
+  //   fetchClientCampaigns();
+  // }, [selected, selectedRow, agencyId, data]);
 
   useEffect(() => {
     const fetchAgencyUsers = async () => {
