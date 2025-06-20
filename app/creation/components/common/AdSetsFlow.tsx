@@ -198,6 +198,19 @@ const updateMultipleAdSets = (
   return updatedCampaignData
 }
 
+// --- Channel-level state isolation ---
+// This will store channel-level data per stage/platform in-memory (not persisted to campaignFormData)
+const channelLevelAudienceState: {
+  [stageName: string]: {
+    [platformName: string]: {
+      name: string
+      audience_type: string
+      size: string
+      description: string
+    }
+  }
+} = {}
+
 // AdSet Component - Updated to handle granularity properly
 const AdSet = memo(function AdSet({
   adset,
@@ -214,6 +227,10 @@ const AdSet = memo(function AdSet({
   extra_audiences,
   onUpdateExtraAudiences,
   granularity = "adset",
+  channelAudienceState,
+  setChannelAudienceState,
+  stageName,
+  platformName,
 }: {
   adset: AdSetType
   index: number
@@ -229,19 +246,52 @@ const AdSet = memo(function AdSet({
   extra_audiences?: AudienceData[]
   onUpdateExtraAudiences: (audiences: AudienceData[]) => void
   granularity?: "channel" | "adset"
+  channelAudienceState?: {
+    name: string
+    audience_type: string
+    size: string
+    description: string
+  }
+  setChannelAudienceState?: (data: { name: string; audience_type: string; size: string; description: string }) => void
+  stageName?: string
+  platformName?: string
 }) {
+  // For channel granularity, use local state (not campaignFormData)
+  const [channelAudience, setChannelAudience] = useState<{
+    name: string
+    audience_type: string
+    size: string
+    description: string
+  }>(
+    channelAudienceState || {
+      name: "",
+      audience_type: "",
+      size: "",
+      description: "",
+    },
+  )
+
+  // For adset granularity, use props/state as before
   const [audience, setAudience] = useState<string>(audienceType || "")
   const [name, setName] = useState<string>(adSetName || "")
   const [size, setSize] = useState<string>(adSetSize || "")
   const [description, setDescription] = useState<string>(adSetDescription || "")
   const [extraAudience, setExtraAudience] = useState<AudienceData[]>(extra_audiences || [])
 
+  // For channel, update local state only
   useEffect(() => {
-    if (audienceType !== undefined) setAudience(audienceType)
-    if (adSetName !== undefined) setName(adSetName)
-    if (adSetSize !== undefined) setSize(adSetSize)
-    if (adSetDescription !== undefined) setDescription(adSetDescription)
-  }, [audienceType, adSetName, adSetSize, adSetDescription])
+    if (granularity === "channel") {
+      if (channelAudienceState) {
+        setChannelAudience(channelAudienceState)
+      }
+    } else {
+      if (audienceType !== undefined) setAudience(audienceType)
+      if (adSetName !== undefined) setName(adSetName)
+      if (adSetSize !== undefined) setSize(adSetSize)
+      if (adSetDescription !== undefined) setDescription(adSetDescription)
+    }
+    // eslint-disable-next-line
+  }, [audienceType, adSetName, adSetSize, adSetDescription, channelAudienceState, granularity])
 
   const updateExtraAudienceMap = (updatedList: AudienceData[]) => {
     setExtraAudience(updatedList)
@@ -250,6 +300,15 @@ const AdSet = memo(function AdSet({
     onInteraction()
   }
 
+  // --- Channel-level handlers ---
+  const handleChannelAudienceChange = (field: keyof typeof channelAudience, value: string) => {
+    const updated = { ...channelAudience, [field]: value }
+    setChannelAudience(updated)
+    setChannelAudienceState && setChannelAudienceState(updated)
+    onInteraction()
+  }
+
+  // --- Adset-level handlers ---
   const handleAudienceSelect = useCallback(
     (selectedAudience: string) => {
       setAudience(selectedAudience)
@@ -324,6 +383,13 @@ const AdSet = memo(function AdSet({
     updateExtraAudienceMap(updated)
   }
 
+  // --- Channel-level add audience logic ---
+  const isChannelParentFilled =
+    channelAudience.name.trim() !== "" &&
+    channelAudience.audience_type.trim() !== "" &&
+    channelAudience.size.trim() !== ""
+
+  // --- Adset-level add audience logic ---
   const isParentFilled = name.trim() !== "" && audience.trim() !== "" && size.trim() !== ""
 
   const canAddNewAudience =
@@ -336,13 +402,17 @@ const AdSet = memo(function AdSet({
     return (
       <div className="flex gap-2 items-start w-full px-4">
         <div className="w-[200px]">
-          <AudienceDropdownWithCallback onSelect={handleAudienceSelect} initialValue={audience} dropdownId={adset.id} />
+          <AudienceDropdownWithCallback
+            onSelect={(val) => handleChannelAudienceChange("audience_type", val)}
+            initialValue={channelAudience.audience_type}
+            dropdownId={adset.id + "-channel"}
+          />
         </div>
         <input
           type="text"
           placeholder="Enter audience name"
-          value={name}
-          onChange={handleNameChange}
+          value={channelAudience.name}
+          onChange={(e) => handleChannelAudienceChange("name", e.target.value)}
           disabled={!isEditing}
           className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[160px] ${
             !isEditing ? "cursor-not-allowed" : ""
@@ -351,8 +421,12 @@ const AdSet = memo(function AdSet({
         <input
           type="text"
           placeholder="Enter size"
-          value={formatWithThousandSeparator(size)}
-          onChange={handleSizeChange}
+          value={formatWithThousandSeparator(channelAudience.size)}
+          onChange={(e) => {
+            const inputValue = e.target.value.replace(/,/g, "")
+            if (!/^\d*\.?\d*$/.test(inputValue)) return
+            handleChannelAudienceChange("size", inputValue)
+          }}
           disabled={!isEditing}
           className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] w-[100px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
             !isEditing ? "cursor-not-allowed" : ""
@@ -363,8 +437,8 @@ const AdSet = memo(function AdSet({
         <input
           type="text"
           placeholder="Description"
-          value={description}
-          onChange={handleDescriptionChange}
+          value={channelAudience.description}
+          onChange={(e) => handleChannelAudienceChange("description", e.target.value)}
           disabled={!isEditing}
           className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[180px] ${
             !isEditing ? "cursor-not-allowed" : ""
@@ -456,7 +530,7 @@ const AdSet = memo(function AdSet({
       </div>
       <input
         type="text"
-        placeholder="Enter audience name"
+        placeholder="Enter ad set name"
         value={name}
         onChange={handleNameChange}
         disabled={!isEditing}
@@ -770,6 +844,28 @@ const AdsetSettings = memo(function AdsetSettings({
   const [openDropdownId, setOpenDropdownId] = useState<number | string | null>(null)
   const initialized = useRef(false)
 
+  // --- Channel-level state for this stage/platform ---
+  const [channelAudienceState, setChannelAudienceState] = useState<{
+    name: string
+    audience_type: string
+    size: string
+    description: string
+  }>(() => {
+    if (
+      channelLevelAudienceState[stageName] &&
+      channelLevelAudienceState[stageName][outlet.outlet]
+    ) {
+      return { ...channelLevelAudienceState[stageName][outlet.outlet] }
+    }
+    return { name: "", audience_type: "", size: "", description: "" }
+  })
+
+  // Keep channelLevelAudienceState in sync
+  useEffect(() => {
+    if (!channelLevelAudienceState[stageName]) channelLevelAudienceState[stageName] = {}
+    channelLevelAudienceState[stageName][outlet.outlet] = { ...channelAudienceState }
+  }, [channelAudienceState, stageName, outlet.outlet])
+
   useEffect(() => {
     if (!campaignFormData?.channel_mix) return
     if (initialized.current) return
@@ -934,7 +1030,7 @@ const AdsetSettings = memo(function AdsetSettings({
   )
 
   useEffect(() => {
-    if (isEditing && selectedPlatforms.includes(outlet.outlet)) {
+    if (isEditing && selectedPlatforms.includes(outlet.outlet) && granularity === "adset") {
       if (!campaignFormData?.channel_mix) return
 
       const adSetsToSave = adsets
@@ -970,7 +1066,8 @@ const AdsetSettings = memo(function AdsetSettings({
         channel_mix: updatedChannelMix,
       }))
     }
-  }, [isEditing, selectedPlatforms, outlet.outlet, adsets, adSetDataMap, setCampaignFormData, stageName])
+    // Channel-level: do not persist to campaignFormData
+  }, [isEditing, selectedPlatforms, outlet.outlet, adsets, adSetDataMap, setCampaignFormData, stageName, granularity])
 
   const handleSelectOutlet = useCallback(() => {
     setSelectedPlatforms((prev) => [...prev, outlet.outlet])
@@ -988,43 +1085,18 @@ const AdsetSettings = memo(function AdsetSettings({
   }[] = []
 
   if (granularity === "channel") {
-    // Channel level: Aggregate all audiences for this platform
-    const aggregatedAudiences: Set<string> = new Set()
-    const aggregatedNames: Set<string> = new Set()
-    let totalSize = 0
-    const descriptions: Set<string> = new Set()
-
-    adsets.forEach((adset) => {
-      const adSetData = adSetDataMap[adset.id] || {
-        name: "",
-        audience_type: "",
-        size: "",
-        description: "",
-        extra_audiences: [],
-      }
-
-      if (adSetData.audience_type) aggregatedAudiences.add(adSetData.audience_type)
-      if (adSetData.name) aggregatedNames.add(adSetData.name)
-      if (adSetData.size) totalSize += Number.parseInt(adSetData.size.replace(/,/g, "")) || 0
-      if (adSetData.description) descriptions.add(adSetData.description)
-
-      // Handle extra audiences
-      if (Array.isArray(adSetData.extra_audiences)) {
-        adSetData.extra_audiences.forEach((ea) => {
-          if (ea.audience_type) aggregatedAudiences.add(ea.audience_type)
-          if (ea.name) aggregatedNames.add(ea.name)
-          if (ea.size) totalSize += Number.parseInt(ea.size.replace(/,/g, "")) || 0
-          if (ea.description) descriptions.add(ea.description)
-        })
-      }
-    })
-
-    if (aggregatedAudiences.size > 0 || aggregatedNames.size > 0 || totalSize > 0) {
+    // Channel level: Use only channel-level state for this platform
+    if (
+      channelAudienceState.audience_type ||
+      channelAudienceState.name ||
+      channelAudienceState.size ||
+      channelAudienceState.description
+    ) {
       recapRows.push({
-        type: Array.from(aggregatedAudiences).join(", "),
-        name: Array.from(aggregatedNames).join(", "),
-        size: totalSize.toString(),
-        description: Array.from(descriptions).join(", "),
+        type: channelAudienceState.audience_type,
+        name: channelAudienceState.name,
+        size: channelAudienceState.size,
+        description: channelAudienceState.description,
         isExtra: false,
       })
     }
@@ -1102,46 +1174,42 @@ const AdsetSettings = memo(function AdsetSettings({
           <div className="relative w-full" style={{ minHeight: `${Math.max(194, (adsets.length + 1) * 80)}px` }}>
             {adsets.length > 0 && (
               <>
-                {adsets.map((adset, index) => {
-                  const adSetData = adSetDataMap[adset.id] || {
-                    name: "",
-                    audience_type: "",
-                    size: "",
-                    description: "",
-                  }
-                  return (
-                    <div
+                {adsets.map((adset, index) => (
+                  <div
+                    key={adset.id}
+                    className="relative"
+                    style={{
+                      marginTop: index === 0 ? "20px" : "0px",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    <AdSet
                       key={adset.id}
-                      className="relative"
-                      style={{
-                        marginTop: index === 0 ? "20px" : "0px",
-                        marginBottom: "20px",
-                      }}
-                    >
-                      <AdSet
-                        key={adset.id}
-                        adset={adset}
-                        index={index}
-                        isEditing={isEditing}
-                        onDelete={deleteAdSet}
-                        onUpdate={updateAdSetData}
-                        audienceType={adSetData.audience_type}
-                        adSetName={adSetData.name}
-                        adSetSize={adSetData.size}
-                        adSetDescription={adSetData.description}
-                        extra_audiences={(adSetData.extra_audiences as AudienceData[]) || []}
-                        onUpdateExtraAudiences={(extraAudienceArray) =>
-                          updateAdSetData(adset.id, {
-                            extra_audiences: extraAudienceArray,
-                          })
-                        }
-                        onInteraction={onInteraction}
-                        adsets={adsets}
-                        granularity={granularity}
-                      />
-                    </div>
-                  )
-                })}
+                      adset={adset}
+                      index={index}
+                      isEditing={isEditing}
+                      onDelete={deleteAdSet}
+                      onUpdate={updateAdSetData}
+                      audienceType={adSetDataMap[adset.id]?.audience_type}
+                      adSetName={adSetDataMap[adset.id]?.name}
+                      adSetSize={adSetDataMap[adset.id]?.size}
+                      adSetDescription={adSetDataMap[adset.id]?.description}
+                      extra_audiences={(adSetDataMap[adset.id]?.extra_audiences as AudienceData[]) || []}
+                      onUpdateExtraAudiences={(extraAudienceArray) =>
+                        updateAdSetData(adset.id, {
+                          extra_audiences: extraAudienceArray,
+                        })
+                      }
+                      onInteraction={onInteraction}
+                      adsets={adsets}
+                      granularity={granularity}
+                      channelAudienceState={channelAudienceState}
+                      setChannelAudienceState={setChannelAudienceState}
+                      stageName={stageName}
+                      platformName={outlet.outlet}
+                    />
+                  </div>
+                ))}
               </>
             )}
           </div>

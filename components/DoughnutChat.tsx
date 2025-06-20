@@ -182,6 +182,7 @@ const DoughnutChart = ({
 
   const colors = getUniqueColors(selectedFunnels);
 
+
   // Generate data values for the chart
   const dataValues = funnelStages.length > 0
     ? campaignFormData?.channel_mix?.map((st: any) => st?.stage_budget?.percentage_value || 0)
