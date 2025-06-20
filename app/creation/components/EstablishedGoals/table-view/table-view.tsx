@@ -19,7 +19,7 @@ const TableView = () => {
   const [nrColumnsByStage, setNrColumnsByStage] = useState({})
 
   const [selectedMetrics, setSelectedMetrics] = useState([])
-  // console.log("🚀 ~ TableView:", campaignFormData?.table_headers)
+  // //console.log("🚀 ~ TableView:", campaignFormData?.table_headers)
   const [expandedKPI, setExpandedKPI] = useState({})
   const [expandedAdsetKPI, setExpandedAdsetKPI] = useState({})
 
@@ -124,7 +124,7 @@ const TableView = () => {
         }
       })
 
-      // console.log("filteredHeaders", filteredHeaders)
+      // //console.log("filteredHeaders", filteredHeaders)
 
       return {
         ...prev,
@@ -280,7 +280,7 @@ const TableView = () => {
       //     }))
       //     return filterAvailableMetrics
       //   })
-      console.log("Loading selected metrics from backend:", )
+      //console.log("Loading selected metrics from backend:", )
       setSelectedMetrics([...backendSelectedMetrics])
       // setSelectedMetricsLoaded(true)
     }
@@ -357,7 +357,7 @@ const TableView = () => {
               platform["budget"]["fixed_value"] = value.toString()
             }
           } else if (fieldName === "audience_size") {
-            // console.log("here", { adSetIndex })
+            // //console.log("here", { adSetIndex })
             if (adSetIndex !== "") {
               platform.ad_sets[adSetIndex]["size"] = platform.ad_sets[adSetIndex]["size"] || ""
               platform.ad_sets[adSetIndex]["size"] = value.toString()
@@ -450,9 +450,9 @@ const TableView = () => {
           <div className="mt-4 max-h-[400px] overflow-y-auto">
             {(() => {
               const allObjectives = Object.keys(tableHeaders)
-              // console.log("🚀 ~ TableView ~ allObjectives:", allObjectives);
-              // console.log("selectedMetrics", selectedMetrics);
-              // console.log("objectivesForStage", objectivesForStage);
+              // //console.log("🚀 ~ TableView ~ allObjectives:", allObjectives);
+              // //console.log("selectedMetrics", selectedMetrics);
+              // //console.log("objectivesForStage", objectivesForStage);
               const filteredObjectives = allObjectives.filter((objective) => {
                 // Always show categories that have selected metrics
                 const hasSelectedMetrics = selectedMetrics.some((m) => m.obj === objective)
@@ -462,10 +462,7 @@ const TableView = () => {
                   ( objective !== "Brand Awareness") || hasSelectedMetrics
                 )
               })
-              console.log(
-                "🚀 ~ TableView ~ filteredObjectives:",
-                filteredObjectives
-              );
+              //console.log("🚀 ~ TableView ~ filteredObjectives:filteredObjectives);
 
               const areAllSelected = (objective, availableMetrics) => {
                 return availableMetrics.every((metric) =>
@@ -497,7 +494,7 @@ const TableView = () => {
                     ...metric,
                     obj: objective, // Add the new property 'obj' with the current objective
                   }))
-// console.log("here", filterAvailableMetrics)
+// //console.log("here", filterAvailableMetrics)
                 if (filterAvailableMetrics.length === 0) return null
 
                 return (

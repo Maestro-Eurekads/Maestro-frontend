@@ -65,7 +65,7 @@ const ViewClientModal = ({ isView, setIsView }) => {
   }, [alert]);
 
   useEffect(() => {
-    console.log('Session status:', { status, jwt, agencyId, clientId });
+    //console.log('Session status:', { status, jwt, agencyId, clientId });
     if (status === 'authenticated') {
       if (!jwt) {
         toast.error('Authentication token is missing. Please log in again.');

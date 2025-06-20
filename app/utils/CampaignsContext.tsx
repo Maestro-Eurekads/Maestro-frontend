@@ -170,7 +170,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             },
           }
         );
-        // console.log("NEXT_PUBLIC_STRAPI_TOKEN?:", res?.data?.data);
+        // //console.log("NEXT_PUBLIC_STRAPI_TOKEN?:", res?.data?.data);
         const data = res?.data?.data;
 
         if (!data) return;
@@ -286,14 +286,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       setGetProfile(response?.data);
-      console.log("res", response?.data);
+      //console.log("res", response?.data);
       const aId =
         response?.data?.user_type === "admin"
           ? response?.data?.admin?.agency?.id
           : response?.data?.user_type?.includes("cleint")
             ? response?.data?.cleint_user?.agency?.id
             : response?.data?.agency_user?.agency?.id;
-      console.log("agencyId", aId);
+      //console.log("agencyId", aId);
       setAgencyId(aId);
       return response;
     } catch (error) {
@@ -365,7 +365,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   //       }
   //     );
   //     const data = response?.data?.data || {};
-  //     console.log("Client Architecture Options Data:", data);
+  //     //console.log("Client Architecture Options Data:", data);
   //     setBusinessLevelOptions({
   //       level1:
   //         data?.level_1?.map((item: string) => ({

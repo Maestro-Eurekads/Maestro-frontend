@@ -184,7 +184,7 @@ const ResizableChannels = ({
   } | null>(null)
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    console.log(" ~ dailyWidth:", dailyWidth)
+    //console.log(" ~ dailyWidth:", dailyWidth)
     const baseStep = dailyWidth
     const adjustmentPerStep = 0
     const snapPoints = []
@@ -381,7 +381,7 @@ const ResizableChannels = ({
       }
 
       setEndDate(end)
-      console.log({ start, end })
+      //console.log({ start, end })
 
       setDrange(
         eachDayOfInterval({
