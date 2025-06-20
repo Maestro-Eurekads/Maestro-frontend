@@ -32,7 +32,8 @@ interface DefineAdSetPageProps {
   onToggleChange: (newView: "channel" | "adset") => void
 }
 
-const GOAL_LEVEL_MODAL_KEY = "goalLevelModalDismissed"
+// Use a key that is unique per plan, so we can track which plans have had the modal dismissed
+const GOAL_LEVEL_MODAL_KEY_PREFIX = "goalLevelModalDismissed_"
 
 const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
@@ -43,6 +44,24 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const initialized = useRef(false)
 
+  // Get a unique key for the current plan (use media_plan_id if available, fallback to campaignFormData id)
+  const getPlanKey = () => {
+    if (!campaignFormData) return null
+    // Try media_plan_id, fallback to id, fallback to JSON string of funnel_stages
+    return (
+      campaignFormData.media_plan_id ||
+      campaignFormData.id ||
+      (Array.isArray(campaignFormData.funnel_stages)
+        ? campaignFormData.funnel_stages.join("_")
+        : "unknown")
+    )
+  }
+
+  const getModalKey = () => {
+    const planKey = getPlanKey()
+    return planKey ? `${GOAL_LEVEL_MODAL_KEY_PREFIX}${planKey}` : null
+  }
+
   const handleOpenModal = () => {
     setIsModalOpen(true)
   }
@@ -51,7 +70,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     if (e) e.preventDefault()
     setIsModalOpen(false)
     if (typeof window !== "undefined") {
-      localStorage.setItem(GOAL_LEVEL_MODAL_KEY, "true")
+      const modalKey = getModalKey()
+      if (modalKey) {
+        localStorage.setItem(modalKey, "true")
+      }
     }
   }
 
@@ -60,14 +82,19 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
     const goalLevel = campaignFormData.goal_level
     const expectedGoalLevel = view === "adset" ? "Adset level" : "Channel level"
+    const modalKey = getModalKey()
 
-    // Only show modal if not dismissed before
+    // Only show modal if not dismissed for this plan
     if (!goalLevel) {
-      // Reset the localStorage flag for new media plans
-      if (typeof window !== "undefined") {
-        localStorage.removeItem(GOAL_LEVEL_MODAL_KEY)
+      // Only show modal if not dismissed for this plan
+      if (typeof window !== "undefined" && modalKey) {
+        const dismissed = localStorage.getItem(modalKey)
+        if (!dismissed) {
+          setIsModalOpen(true)
+        } else {
+          setIsModalOpen(false)
+        }
       }
-      setIsModalOpen(true)
     } else if (goalLevel !== expectedGoalLevel) {
       setCampaignFormData((prev: any) => {
         if (prev.goal_level === expectedGoalLevel) return prev
@@ -335,9 +362,12 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       ...prev,
       goal_level: checked ? "Adset level" : "Channel level",
     }))
-    // If user changes granularity, consider modal as dismissed
+    // If user changes granularity, consider modal as dismissed for this plan
     if (typeof window !== "undefined") {
-      localStorage.setItem(GOAL_LEVEL_MODAL_KEY, "true")
+      const modalKey = getModalKey()
+      if (modalKey) {
+        localStorage.setItem(modalKey, "true")
+      }
     }
   }
 
@@ -643,9 +673,12 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                           }))
                           onToggleChange(newView)
                           handleCloseModal()
-                          // Mark modal as dismissed in localStorage
+                          // Mark modal as dismissed for this plan in localStorage
                           if (typeof window !== "undefined") {
-                            localStorage.setItem(GOAL_LEVEL_MODAL_KEY, "true")
+                            const modalKey = getModalKey()
+                            if (modalKey) {
+                              localStorage.setItem(modalKey, "true")
+                            }
                           }
                         }}
                       >
