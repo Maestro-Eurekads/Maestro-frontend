@@ -56,6 +56,7 @@ const TreeDropdown: React.FC<Props> = ({ data, formId, setCampaignFormData, titl
 				showCheckedStrategy={TreeSelect.SHOW_CHILD}
 				placeholder={data?.title || title}
 				style={{ width: '100%', height: '100%' }}
+				size="large"
 				allowClear
 				className="custom-tree-select"
 			/>

@@ -231,6 +231,7 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({ label, option
 				value={selectedValues}
 				onChange={handleChange}
 				optionFilterProp="label"
+				size="large"
 			>
 				{options.map((opt) => (
 					<Option key={opt.value} value={opt.value} label={opt.label}>

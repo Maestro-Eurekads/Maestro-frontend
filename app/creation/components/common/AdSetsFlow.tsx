@@ -1443,7 +1443,7 @@ const AdSetFlow = memo(function AdSetFlow({
     const platformsByStage: Record<string, OutletType[]> = {}
     const channelMix = campaignFormData?.channel_mix || []
 
-    channelMix.forEach((stage: any) => {
+    channelMix && channelMix?.length > 0 && channelMix.forEach((stage: any) => {
       const {
         funnel_stage,
         search_engines,
@@ -1488,7 +1488,7 @@ const AdSetFlow = memo(function AdSetFlow({
   }, [campaignFormData, modalOpen])
 
   useEffect(() => {
-    if (campaignFormData) {
+    if (campaignFormData && campaignFormData?.channel_mix) {
       const data = getPlatformsFromStage()
       setPlatforms(data)
 

@@ -126,7 +126,7 @@ const AddFinanceModal = ({
           const res = await fetchClientCampaign(selected || selectedRow?.client?.id, agencyId);
 
           const data = res?.data?.data;
-          //console.log("yes-yess-yes:", res);
+          console.log("yes-yess-yes:", res);
           const newOption = data?.map((opt: any) => ({
             label: opt?.media_plan_details?.plan_name,
             value: opt?.id?.toString(),
@@ -136,7 +136,7 @@ const AddFinanceModal = ({
           setClientApprover(data?.media_plan_details.client_approver || []);
           setInternalApprover(data?.media_plan_details?.internal_approver || []);
         } catch (err) {
-          //console.log(err);
+          console.log(err);
         } finally {
           setLoadingCam(false);
         }
@@ -160,7 +160,7 @@ const AddFinanceModal = ({
         }));
         setUsers(newOpt);
       } catch (err) {
-        //console.log(err);
+        console.log(err);
       } finally {
         setLoadingUser(false);
       }
@@ -182,7 +182,7 @@ const AddFinanceModal = ({
         }));
         setFinancialUsers(newOpt);
       } catch (err) {
-        //console.log(err);
+        console.log(err);
       } finally {
         setLoadingUser(false);
       }

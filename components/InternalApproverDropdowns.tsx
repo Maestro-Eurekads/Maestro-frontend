@@ -232,6 +232,7 @@ const InternalApproverDropdowns = ({
 				allowClear
 				showSearch
 				optionFilterProp="label"
+				size="large"
 			/>
 		</div>
 	);
