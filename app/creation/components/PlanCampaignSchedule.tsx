@@ -121,7 +121,7 @@ const PlanCampaignSchedule: React.FC = () => {
       <div className="flex justify-between">
         <PageHeaderWrapper
           t1="Setup the timeline of your campaign?"
-          t2="Choose your campaign start and end dates, then arrange each funnel phase within the timeline."
+          // t2="Choose your campaign start and end dates, then arrange each funnel phase within the timeline."
           span={1}
           t4="Choose your start and end date for the campaign"
         />
