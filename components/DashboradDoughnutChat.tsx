@@ -480,7 +480,7 @@ const DoughnutChart = ({
   }
 
   const colors = getUniqueColors(selectedFunnels, funnelStages);
-  console.log('selectedFunnels-selectedFunnels', colors)
+  // console.log('selectedFunnels-selectedFunnels', colors)
 
   // Generate data values for the chart
   const dataValues = funnelStages.length > 0

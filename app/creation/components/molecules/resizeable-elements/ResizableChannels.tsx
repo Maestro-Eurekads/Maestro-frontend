@@ -97,6 +97,7 @@ const ResizableChannels = ({
   const [selectedCreative, setSelectedCreative] = useState(null)
   const [openAdset, setOpenAdset] = useState(false)
   const [selectedChannel, setSelectedChannel] = useState("")
+  const [openView, setOpenView] = useState<"channel" | "adset">("channel")
 
   // Store the initial start date in a ref
   const initialStartDateRef = useRef(null)
@@ -1030,6 +1031,7 @@ const ResizableChannels = ({
                         onClick={() => {
                           setOpenCreatives(true)
                           setSelectedChannel(channel?.name)
+                          setOpenView("adset")
                         }}
                       >
                         View Creatives
@@ -1059,6 +1061,7 @@ const ResizableChannels = ({
                 onClick={() => {
                   setOpenCreatives(true)
                   setSelectedChannel(channel?.name)
+                  setOpenView("channel")
                 }}
               >
                 View Creatives
@@ -1156,8 +1159,8 @@ const ResizableChannels = ({
                   </div>
                 ))}
             </div>
-          ) : (
-            <FormatSelection stageName={parentId} platformName={selectedChannel} />
+          ) : openCreatives && (
+            <FormatSelection stageName={parentId} platformName={selectedChannel} view={openView}/>
           )}
         </div>
       </Modal>

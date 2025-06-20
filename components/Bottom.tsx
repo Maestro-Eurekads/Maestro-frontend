@@ -129,6 +129,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   // Only reset formats when entering active === 4 if the user has NOT already proceeded from step 4 with a valid format
   useEffect(() => {
     if (active === 4 && !hasProceededFromFormatStep.current) {
+      console.log("here")
       setCampaignFormData((prev) => ({
         ...prev,
         channel_mix:

@@ -348,7 +348,7 @@ const getDaysInEachMonth = useCallback((range: Date[]): Record<string, number> =
           ? range?.findIndex((date) => isEqual(date, stageStartDate)) * getDailyWidth()
           : 0
 
-        const daysBetween = eachDayOfInterval({ start: stageStartDate, end: stageEndDate }).length - 1
+        const daysBetween = eachDayOfInterval({ start: stageStartDate, end: stageEndDate }).length 
 
         const daysFromStart = eachDayOfInterval({
           start: campaignFormData?.campaign_timeline_start_date
@@ -369,8 +369,6 @@ const getDaysInEachMonth = useCallback((range: Date[]): Record<string, number> =
             // console.log("🚀 ~ daysInEachMonth:",  daysInEachMonth)
             const totalDaysInRange = Object.values(daysInEachMonth || {}).reduce((sum: number, days: number) => sum + days, 0)
             const widthPerDay = Math.round(availableWidth / (totalDaysInRange || 30))
-            console.log("🚀 ~ widthPerDay:", widthPerDay)
-            console.log("🚀 ~ totalDaysInRange:",daysBetween > 0 ? totalDaysInRange * daysBetween : widthPerDay * daysFromStart - 0)
 
             return daysBetween > 0 ? widthPerDay * totalDaysInRange : widthPerDay * daysFromStart - 0
           }

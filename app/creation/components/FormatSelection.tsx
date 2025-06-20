@@ -1597,26 +1597,33 @@ export const Platforms = ({
 export const FormatSelection = ({
   stageName,
   platformName,
+  view:openView
 }: {
   stageName?: string;
   platformName?: string;
+  view?: "channel" | "adset"
 }) => {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
   const [view, setView] = useState<"channel" | "adset">("channel");
   const [isCreativesModalOpen, setIsCreativesModalOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
-  const { campaignFormData, setCampaignFormData } = useCampaigns();
+  const { campaignFormData, setCampaignFormData, campaignData } = useCampaigns();
   const { setIsDrawerOpen, setClose } = useComments();
 
   useEffect(() => {
-    setView("channel");
+    setView(openView ? openView :"channel");
     setIsDrawerOpen(false);
     setClose(false);
-    setCampaignFormData((prev) => ({
-      ...prev,
-      goal_level: "Channel level",
-    }));
-  }, [setIsDrawerOpen, setClose, setCampaignFormData]);
+    if(openView){
+      setCampaignFormData(campaignData)
+    } else {
+      setCampaignFormData((prev) => ({
+        ...prev,
+        goal_level: openView ? openView === "channel" ? "Channel level" : "Adset level" : "Channel level",
+      }));
+    }
+    
+  }, [setIsDrawerOpen, setClose, setCampaignFormData, openView]);
 
   useEffect(() => {
     const savedOpenTabs = getLocalStorageItem("formatSelectionOpenTabs");
@@ -1696,6 +1703,7 @@ export const FormatSelection = ({
       )}
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
+        {!stageName &&
         <div className="flex justify-center gap-3">
           <p className="font-medium">Channel Granularity</p>
           <Switch
@@ -1714,6 +1722,7 @@ export const FormatSelection = ({
           />
           <p className="font-medium">Ad Set Granularity</p>
         </div>
+        }
 
         {campaignFormData?.funnel_stages
           ?.filter((ff) => !stageName || ff === stageName)
