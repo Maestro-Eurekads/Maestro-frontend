@@ -48,9 +48,11 @@ const YearInterval: React.FC<YearIntervalProps> = ({
   const daysInYear = getDaysInEachYear ? getDaysInEachYear() : daysInEachYear
 
   // Compute gridTemplateColumns dynamically from daysInYear
+  //@ts-ignore
   const totalDays = Object.values(daysInYear || {}).reduce((acc, days) => acc + Number(days), 0)
-
+  
   const gridTemplateColumns = Object.values(daysInYear || {})
+  //@ts-ignore
     .map((days) => `${((days as number) / totalDays) * 100}%`)
     .join(" ")
 
@@ -111,7 +113,7 @@ const YearInterval: React.FC<YearIntervalProps> = ({
             <div className="flex flex-row gap-2 items-center">
               <span className="font-[600] text-[16px] text-[rgba(0,0,0,0.7)]">{yearName}</span>
             </div>
-            <div className="text-[11px] text-[rgba(0,0,0,0.4)] mt-1">{dayCount} days</div>
+            <div className="text-[11px] text-[rgba(0,0,0,0.4)] mt-1">{String(dayCount ?? "")} days</div>
           </div>
         ))}
       </div>
