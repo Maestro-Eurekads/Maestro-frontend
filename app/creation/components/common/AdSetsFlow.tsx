@@ -19,7 +19,7 @@ import Display from "../../../../public/Display.svg"
 import yahoo from "../../../../public/yahoo.svg"
 import bing from "../../../../public/bing.svg"
 import tictok from "../../../../public/tictok.svg"
-import { Plus } from "lucide-react"
+import { Plus } from 'lucide-react'
 import { useActive } from "app/utils/ActiveContext"
 import { removeKeysRecursively } from "utils/removeID"
 import { getPlatformIcon, mediaTypes } from "components/data"
@@ -1494,8 +1494,8 @@ const AdSetFlow = memo(function AdSetFlow({
 
       const autoOpenPlatforms = {}
 
-      // GRANULARITY SEPARATION: Only auto-open platforms with ad sets in adset granularity
       if (granularity === "adset") {
+        // Existing adset logic
         for (const stage of campaignFormData.channel_mix) {
           const platformsWithAdsets = [
             ...stage.search_engines,
@@ -1515,6 +1515,48 @@ const AdSetFlow = memo(function AdSetFlow({
 
           if (platformsWithAdsets.length > 0) {
             autoOpenPlatforms[stage.funnel_stage] = platformsWithAdsets
+          }
+        }
+      } else if (granularity === "channel") {
+        // New channel granularity logic
+        const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
+        
+        // Check both sessionStorage and in-memory state for channel-level audience data
+        let channelStateToCheck = {}
+        
+        // First try to load from sessionStorage
+        if (typeof window !== "undefined") {
+          try {
+            const key = `channelLevelAudienceState_${campaignId || "default"}`
+            const stored = sessionStorage.getItem(key)
+            if (stored) {
+              channelStateToCheck = JSON.parse(stored)
+            }
+          } catch (error) {
+            console.error("Error loading channel state for auto-open:", error)
+          }
+        }
+        
+        // Fallback to in-memory state if no stored data
+        if (Object.keys(channelStateToCheck).length === 0 && typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
+          channelStateToCheck = (window as any).channelLevelAudienceState
+        }
+        
+        // Check each stage for platforms with channel-level audience data
+        for (const stage of campaignFormData.channel_mix) {
+          const stageName = stage.funnel_stage
+          const stageChannelData = channelStateToCheck[stageName]
+          
+          if (stageChannelData) {
+            const platformsWithChannelData = Object.entries(stageChannelData)
+              .filter(([platformName, data]: [string, any]) => 
+                data.audience_type || data.name || data.size
+              )
+              .map(([platformName]) => platformName)
+            
+            if (platformsWithChannelData.length > 0) {
+              autoOpenPlatforms[stageName] = platformsWithChannelData
+            }
           }
         }
       }
