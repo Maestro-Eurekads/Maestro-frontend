@@ -216,7 +216,7 @@ if (typeof window !== "undefined") {
   ;(window as any).channelLevelAudienceState = channelLevelAudienceState
 }
 
-// AdSet Component - Updated to handle granularity properly
+// AdSet Component - Updated to handle granularity properly with complete separation
 const AdSet = memo(function AdSet({
   adset,
   index,
@@ -402,7 +402,7 @@ const AdSet = memo(function AdSet({
     (extraAudience.length === 0 ||
       (extraAudience.length > 0 && extraAudience[extraAudience.length - 1]?.audience_type?.trim()))
 
-  // Channel level: Show simplified view without ad set numbers and extra audiences
+  // COMPLETE SEPARATION: Channel level shows only channel fields, no ad set numbers or extra audiences
   if (granularity === "channel") {
     return (
       <div className="flex gap-2 items-start w-full px-4">
@@ -453,7 +453,7 @@ const AdSet = memo(function AdSet({
     )
   }
 
-  // Ad set level: Show full view with ad set numbers and extra audiences
+  // COMPLETE SEPARATION: Ad set level shows full view with ad set numbers and extra audiences
   return (
     <div className="flex gap-2 items-start w-full px-4">
       <div className="relative">
@@ -823,7 +823,7 @@ const NonFacebookOutlet = memo(function NonFacebookOutlet({
   )
 })
 
-// AdsetSettings Component - Updated to handle granularity properly
+// AdsetSettings Component - Updated with complete granularity separation
 const AdsetSettings = memo(function AdsetSettings({
   outlet,
   stageName,
@@ -885,43 +885,53 @@ const AdsetSettings = memo(function AdsetSettings({
       setSelectedPlatforms((prev) => [...prev, outlet.outlet])
     }
 
-    if (!platform) {
-      const newAdSetId = Date.now()
-      setAdSets([{ id: newAdSetId, addsetNumber: 1 }])
-      setAdSetDataMap({
-        [newAdSetId]: { name: "", audience_type: "", size: "", description: "" },
-      })
-      return
-    }
+    // GRANULARITY SEPARATION: Only initialize ad sets for adset granularity
+    if (granularity === "adset") {
+      if (!platform) {
+        const newAdSetId = Date.now()
+        setAdSets([{ id: newAdSetId, addsetNumber: 1 }])
+        setAdSetDataMap({
+          [newAdSetId]: { name: "", audience_type: "", size: "", description: "" },
+        })
+        return
+      }
 
-    if (platform.ad_sets && platform.ad_sets.length > 0) {
-      const newAdSets = platform.ad_sets.map((adSet, index) => ({
-        id: adSet.id || Date.now() + index,
-        addsetNumber: index + 1,
-      }))
-      const newAdSetDataMap: Record<number, AdSetData> = {}
-      platform.ad_sets.forEach((adSet, index) => {
-        const id = newAdSets[index].id
-        newAdSetDataMap[id] = {
-          name: adSet.name || "",
-          audience_type: adSet.audience_type || "",
-          size: adSet.size || "",
-          description: adSet.description || "",
-          extra_audiences: adSet?.extra_audiences,
-        }
-      })
-      setAdSets(newAdSets)
-      setAdSetDataMap(newAdSetDataMap)
+      if (platform.ad_sets && platform.ad_sets.length > 0) {
+        const newAdSets = platform.ad_sets.map((adSet, index) => ({
+          id: adSet.id || Date.now() + index,
+          addsetNumber: index + 1,
+        }))
+        const newAdSetDataMap: Record<number, AdSetData> = {}
+        platform.ad_sets.forEach((adSet, index) => {
+          const id = newAdSets[index].id
+          newAdSetDataMap[id] = {
+            name: adSet.name || "",
+            audience_type: adSet.audience_type || "",
+            size: adSet.size || "",
+            description: adSet.description || "",
+            extra_audiences: adSet?.extra_audiences,
+          }
+        })
+        setAdSets(newAdSets)
+        setAdSetDataMap(newAdSetDataMap)
+      } else {
+        const newAdSetId = Date.now()
+        setAdSets([{ id: newAdSetId, addsetNumber: 1 }])
+        setAdSetDataMap({
+          [newAdSetId]: { name: "", audience_type: "", size: "", description: "" },
+        })
+      }
     } else {
-      const newAdSetId = Date.now()
-      setAdSets([{ id: newAdSetId, addsetNumber: 1 }])
-      setAdSetDataMap({
-        [newAdSetId]: { name: "", audience_type: "", size: "", description: "" },
-      })
+      // For channel granularity, we don't need ad sets
+      setAdSets([{ id: Date.now(), addsetNumber: 1 }]) // Single dummy ad set for rendering
+      setAdSetDataMap({})
     }
-  }, [stageName, outlet.outlet, selectedPlatforms, defaultOpen])
+  }, [stageName, outlet.outlet, selectedPlatforms, defaultOpen, granularity])
 
+  // GRANULARITY SEPARATION: Only allow adding ad sets in adset granularity
   const addNewAddset = useCallback(() => {
+    if (granularity !== "adset") return // Prevent adding ad sets in channel granularity
+
     if (adsets.length >= 10) {
       console.warn("Maximum limit of 10 ad sets reached")
       return
@@ -934,10 +944,13 @@ const AdsetSettings = memo(function AdsetSettings({
       [newAdSetId]: { name: "", audience_type: "", size: "", description: "" },
     }))
     onInteraction && onInteraction()
-  }, [onInteraction, adsets.length])
+  }, [onInteraction, adsets.length, granularity])
 
   const deleteAdSet = useCallback(
     async (id: number) => {
+      // GRANULARITY SEPARATION: Only allow deleting ad sets in adset granularity
+      if (granularity !== "adset") return
+
       try {
         setAdSets((prev) => {
           const newAdSets = prev.filter((adset) => adset.id !== id)
@@ -1022,20 +1035,25 @@ const AdsetSettings = memo(function AdsetSettings({
       updateCampaign,
       getActiveCampaign,
       onInteraction,
+      granularity,
     ],
   )
 
   const updateAdSetData = useCallback(
     (id: number, data: Partial<AdSetData>) => {
-      setAdSetDataMap((prev) => ({
-        ...prev,
-        [id]: { ...prev[id], ...data },
-      }))
+      // GRANULARITY SEPARATION: Only update ad set data in adset granularity
+      if (granularity === "adset") {
+        setAdSetDataMap((prev) => ({
+          ...prev,
+          [id]: { ...prev[id], ...data },
+        }))
+      }
       onInteraction && onInteraction()
     },
-    [onInteraction],
+    [onInteraction, granularity],
   )
 
+  // GRANULARITY SEPARATION: Only persist ad set data in adset granularity
   useEffect(() => {
     if (isEditing && selectedPlatforms.includes(outlet.outlet) && granularity === "adset") {
       if (!campaignFormData?.channel_mix) return
@@ -1081,7 +1099,7 @@ const AdsetSettings = memo(function AdsetSettings({
     onInteraction()
   }, [outlet.outlet, onInteraction])
 
-  // Updated recap rows to handle granularity properly
+  // Updated recap rows to handle granularity properly with complete separation
   const recapRows: {
     type: string
     name: string
@@ -1092,7 +1110,7 @@ const AdsetSettings = memo(function AdsetSettings({
   }[] = []
 
   if (granularity === "channel") {
-    // Channel level: Use only channel-level state for this platform
+    // Channel level: ONLY use channel-level state for this platform
     if (
       channelAudienceState.audience_type ||
       channelAudienceState.name ||
@@ -1108,7 +1126,7 @@ const AdsetSettings = memo(function AdsetSettings({
       })
     }
   } else {
-    // Ad set level: Show individual ad sets
+    // Ad set level: ONLY show individual ad sets, ignore channel data
     adsets.forEach((adset) => {
       const adSetData = adSetDataMap[adset.id] || {
         name: "",
@@ -1161,6 +1179,7 @@ const AdsetSettings = memo(function AdsetSettings({
             <span className="text-[#061237] font-medium">{outlet.outlet}</span>
             <FaAngleRight className={`transition-transform duration-200 ${isCollapsed ? "" : "rotate-90"}`} />
           </button>
+          {/* GRANULARITY SEPARATION: Only show "New ad set" button in adset granularity */}
           {!isCollapsed && granularity === "adset" && (
             <button
               onClick={addNewAddset}
@@ -1403,31 +1422,34 @@ const AdSetFlow = memo(function AdSetFlow({
 
       const autoOpenPlatforms = {}
 
-      for (const stage of campaignFormData.channel_mix) {
-        const platformsWithAdsets = [
-          ...stage.search_engines,
-          ...stage.display_networks,
-          ...stage.social_media,
-          ...stage.streaming,
-          ...stage.ooh,
-          ...stage.broadcast,
-          ...stage.messaging,
-          ...stage.print,
-          ...stage.e_commerce,
-          ...stage.in_game,
-          ...stage.mobile,
-        ]
-          .filter((p) => p.ad_sets && p.ad_sets.length > 0)
-          .map((p) => p.platform_name)
+      // GRANULARITY SEPARATION: Only auto-open platforms with ad sets in adset granularity
+      if (granularity === "adset") {
+        for (const stage of campaignFormData.channel_mix) {
+          const platformsWithAdsets = [
+            ...stage.search_engines,
+            ...stage.display_networks,
+            ...stage.social_media,
+            ...stage.streaming,
+            ...stage.ooh,
+            ...stage.broadcast,
+            ...stage.messaging,
+            ...stage.print,
+            ...stage.e_commerce,
+            ...stage.in_game,
+            ...stage.mobile,
+          ]
+            .filter((p) => p.ad_sets && p.ad_sets.length > 0)
+            .map((p) => p.platform_name)
 
-        if (platformsWithAdsets.length > 0) {
-          autoOpenPlatforms[stage.funnel_stage] = platformsWithAdsets
+          if (platformsWithAdsets.length > 0) {
+            autoOpenPlatforms[stage.funnel_stage] = platformsWithAdsets
+          }
         }
       }
 
       setAutoOpen(autoOpenPlatforms)
     }
-  }, [modalOpen])
+  }, [modalOpen, granularity])
 
   const handleInteraction = useCallback(() => {
     setHasInteraction(true)

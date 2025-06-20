@@ -51,9 +51,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     return (
       campaignFormData.media_plan_id ||
       campaignFormData.id ||
-      (Array.isArray(campaignFormData.funnel_stages)
-        ? campaignFormData.funnel_stages.join("_")
-        : "unknown")
+      (Array.isArray(campaignFormData.funnel_stages) ? campaignFormData.funnel_stages.join("_") : "unknown")
     )
   }
 
@@ -138,9 +136,21 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           ...(stage.mobile || []),
         ]
 
-        const hasAdSets = platforms.some((platform: any) => platform.ad_sets && platform.ad_sets.length > 0)
+        // GRANULARITY SEPARATION: Check for data based on current view
+        let hasData = false
+        if (view === "adset") {
+          hasData = platforms.some((platform: any) => platform.ad_sets && platform.ad_sets.length > 0)
+        } else {
+          // For channel view, check channel-level state
+          if (typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
+            const channelState = (window as any).channelLevelAudienceState[stageName]
+            if (channelState) {
+              hasData = Object.values(channelState).some((data: any) => data.audience_type || data.name || data.size)
+            }
+          }
+        }
 
-        if (hasAdSets) {
+        if (hasData) {
           initialOpenItems[stageName] = true
           initialStatuses[stageName] = "Not started"
           initialInteractions[stageName] = true
@@ -151,7 +161,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     setStageStatuses(initialStatuses)
     setHasInteracted(initialInteractions)
     setOpenItems(initialOpenItems)
-  }, [campaignFormData])
+  }, [campaignFormData, view])
 
   const toggleItem = (stage: string) => {
     setOpenItems((prev) => {
@@ -174,35 +184,48 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   }
 
   const resetInteraction = (stageName: string) => {
-    const stage = campaignFormData?.channel_mix?.find((s: any) => s.funnel_stage === stageName)
-    const hasAdSets = stage
-      ? [
-          ...(stage.search_engines || []),
-          ...(stage.display_networks || []),
-          ...(stage.social_media || []),
-          ...(stage.streaming || []),
-          ...(stage.ooh || []),
-          ...(stage.broadcast || []),
-          ...(stage.messaging || []),
-          ...(stage.print || []),
-          ...(stage.e_commerce || []),
-          ...(stage.in_game || []),
-          ...(stage.mobile || []),
-        ].some((platform: any) => platform.ad_sets && platform.ad_sets.length > 0)
-      : false
+    // GRANULARITY SEPARATION: Reset based on current view
+    let hasData = false
 
-    if (!hasAdSets) {
+    if (view === "adset") {
+      const stage = campaignFormData?.channel_mix?.find((s: any) => s.funnel_stage === stageName)
+      hasData = stage
+        ? [
+            ...(stage.search_engines || []),
+            ...(stage.display_networks || []),
+            ...(stage.social_media || []),
+            ...(stage.streaming || []),
+            ...(stage.ooh || []),
+            ...(stage.broadcast || []),
+            ...(stage.messaging || []),
+            ...(stage.print || []),
+            ...(stage.e_commerce || []),
+            ...(stage.in_game || []),
+            ...(stage.mobile || []),
+          ].some((platform: any) => platform.ad_sets && platform.ad_sets.length > 0)
+        : false
+    } else {
+      // For channel view, check channel-level state
+      if (typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
+        const channelState = (window as any).channelLevelAudienceState[stageName]
+        if (channelState) {
+          hasData = Object.values(channelState).some((data: any) => data.audience_type || data.name || data.size)
+        }
+      }
+    }
+
+    if (!hasData) {
       setHasInteracted((prev) => ({ ...prev, [stageName]: false }))
       setStageStatuses((prev) => ({ ...prev, [stageName]: "Not started" }))
     }
   }
 
-  // Returns true if there is audience data for the stage based on current granularity
+  // GRANULARITY SEPARATION: Returns true if there is audience data for the stage based on current granularity
   const hasAnyAudience = (stageName: string) => {
     if (!campaignFormData) return false
 
     if (view === "channel") {
-      // For channel view, check if there's any channel-level audience data
+      // For channel view, ONLY check channel-level audience data
       if (typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
         const channelState = (window as any).channelLevelAudienceState[stageName]
         if (channelState) {
@@ -211,7 +234,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       }
       return false
     } else {
-      // For adset view, check if there are ad sets with audience data
+      // For adset view, ONLY check ad sets with audience data
       const stage = campaignFormData?.channel_mix?.find((s: any) => s.funnel_stage === stageName)
       if (!stage) return false
 
@@ -241,7 +264,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     }
   }
 
-  // Fixed function to properly handle granularity-specific recap data
+  // COMPLETE GRANULARITY SEPARATION: Fixed function to properly handle granularity-specific recap data
   const getRecapRows = (stageName: string) => {
     const recapRows: {
       platform: string
@@ -270,7 +293,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     ]
 
     if (view === "channel") {
-      // Channel level: ONLY show channel-level state data, ignore ad set data completely
+      // Channel level: ONLY show channel-level state data, completely ignore ad set data
       const platformAggregation: Record<
         string,
         {
@@ -319,7 +342,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         })
       })
     } else {
-      // Ad set level: Show individual ad sets
+      // Ad set level: ONLY show individual ad sets, completely ignore channel data
       platforms.forEach((platform: any) => {
         if (platform.ad_sets && platform.ad_sets.length > 0) {
           platform.ad_sets.forEach((adSet: any, idx: number) => {
@@ -405,7 +428,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         // Find the corresponding channel_mix stage for platform/adset data
         const channelMixStage = campaignFormData?.channel_mix?.find((s: any) => s.funnel_stage === stageName)
 
-        // Show recap for both channel and adset granularity if there is at least one adset with audience
+        // GRANULARITY SEPARATION: Show recap based on current granularity
         const shouldShowRecap = hasAnyAudience(stageName)
 
         return (
