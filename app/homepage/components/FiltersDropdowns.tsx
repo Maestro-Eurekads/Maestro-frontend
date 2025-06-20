@@ -194,7 +194,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
       setLoading(true);
       try {
         const res = allEmpty
-          ? await fetchFilteredCampaigns(clientID, null, jwt)
+          ? await fetchFilteredCampaigns(clientID, filters ?? {}, jwt)
           : await fetchFilteredCampaigns(clientID, selectedFilters, jwt);
         setClientCampaignData(res);
       } finally {
@@ -209,7 +209,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
   const isYearSelected = !!selectedFilters["year"];
 
-  // console.log("Selected Filters:", filters);
+  // //console.log("Selected Filters:", filters);
   // Client Architecture
   return (
     <div>
@@ -251,11 +251,11 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
             const displayLabel = getDisplayLabel();
             const nested = convertToNestedStructure(options[0]);
 
-            // console.log("Nested Options:", nested);
-            // console.log("options-----Options:", options);
-            // console.log("displayLabel-----displayLabel:", displayLabel);
-            // console.log("label-----label:", label);
-            // console.log("filters-----filters:", filters);
+            // //console.log("Nested Options:", nested);
+            // //console.log("options-----Options:", options);
+            // //console.log("displayLabel-----displayLabel:", displayLabel);
+            // //console.log("label-----label:", label);
+            // //console.log("filters-----filters:", filters);
 
 
             return (

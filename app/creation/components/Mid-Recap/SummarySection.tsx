@@ -4,7 +4,7 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 import { removeKeysRecursively } from "utils/removeID";
 import { useState } from "react";
 import { useEditing } from "app/utils/EditingContext";
-import { extractObjectives } from "../EstablishedGoals/table-view/data-processor";
+import { extractObjectives, getFilteredMetrics } from "../EstablishedGoals/table-view/data-processor";
 
 interface SummarySectionProps {
   title: string;
@@ -72,10 +72,12 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
       // Handle specific updates based on the section title
       switch (title) {
         case "Your buying objectives":
-          const obj = extractObjectives(campaignFormData);
+          const obj = await extractObjectives(campaignFormData);
+          const sMetrics = await getFilteredMetrics(obj)
           updatedCampaignFormData = {
             ...updatedCampaignFormData,
             table_headers: obj || {},
+            selected_metrics: sMetrics||{}
           };
           break;
         case "Your funnel stages":

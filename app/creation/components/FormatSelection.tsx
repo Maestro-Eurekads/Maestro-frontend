@@ -1547,6 +1547,7 @@ export const Platforms = ({
 export const FormatSelection = ({
   stageName,
   platformName,
+  view:openView
 }: {
   stageName?: string
   platformName?: string
@@ -1652,6 +1653,7 @@ export const FormatSelection = ({
       )}
 
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
+        {!stageName &&
         <div className="flex justify-center gap-3">
           <p className="font-medium">Channel Granularity</p>
           <Switch
@@ -1670,6 +1672,7 @@ export const FormatSelection = ({
           />
           <p className="font-medium">Ad Set Granularity</p>
         </div>
+        }
 
         {campaignFormData?.funnel_stages
           ?.filter((ff) => !stageName || ff === stageName)

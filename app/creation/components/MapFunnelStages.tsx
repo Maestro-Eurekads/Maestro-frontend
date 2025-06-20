@@ -171,7 +171,7 @@ const MapFunnelStages = () => {
       localStorage.setItem(key, JSON.stringify(funnels))
       console.debug(`Saved custom funnels to ${key}:`, funnels)
     } catch (e) {
-      console.log("Failed to save custom funnels to localStorage:", e)
+      //console.log("Failed to save custom funnels to localStorage:", e)
       toast.error("Failed to save funnels", { duration: 3000 })
     }
   }
@@ -264,7 +264,7 @@ const MapFunnelStages = () => {
   useEffect(() => {
     console.debug(`Initializing with clientId: ${clientId}, mediaPlanId: ${mediaPlanId}`)
     const configs = getFunnelConfigsFromStorage()
-    setFunnelConfigs(campaignData?.client?.custom_funnel_configs)
+    setFunnelConfigs(campaignData?.client?.custom_funnel_configs || [])
 
     let loadedCustomFunnels: Funnel[] = []
     const localStorageFunnels = getCustomFunnelsFromStorage()

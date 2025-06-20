@@ -88,7 +88,7 @@
 //     "July", "August", "September", "October", "November", "December",
 //   ];
 
-//   console.log("Extracting date filters from campaigns...",campaigns);
+//   //console.log("Extracting date filters from campaigns...",campaigns);
 
 //   campaigns?.forEach((campaign) => {
 //     // Try to use campaign_timeline_start_date and campaign_timeline_end_date
@@ -432,7 +432,7 @@ export function extractDateFilters(campaigns: any[]) {
     "July", "August", "September", "October", "November", "December",
   ];
 
-  // console.log("Extracting date filters from campaigns...",campaigns);
+  // //console.log("Extracting date filters from campaigns...",campaigns);
 
   campaigns?.forEach((campaign) => {
     const hasTimelineDates =
@@ -579,7 +579,7 @@ export function extractLevelFilters(campaigns: any[]) {
 // export function extractLevelFilters(campaigns: any[]) {
 //   const levels = { level_1: {},   };
    
-//   console.log("Extracting level filters from campaigns...", campaigns);
+//   //console.log("Extracting level filters from campaigns...", campaigns);
 
 //   campaigns.forEach((campaign) => {
 //     const clientSelection = campaign?.client_selection;
@@ -598,7 +598,7 @@ export function extractLevelFilters(campaigns: any[]) {
 
 // export function extractLevelNameFilters(client: any[][]) {
 //   if (!Array.isArray(client)) return { level_1: [] };
-//   console.log('extractLevelNameFilters',client )
+//   //console.log('extractLevelNameFilters',client )
 
 //   const flattened = client.flatMap((group) =>
 //     group.map((name) => ({
@@ -631,7 +631,7 @@ export function extractLevelNameFilters(client: any) {
   if (!client || typeof client !== 'object') {
     return { level_1_name: []};
   }
-  // console.log("client...------", client);
+  // //console.log("client...------", client);
 
   const extractNames = (level) => {
     if (!level?.parameters || !Array.isArray(level?.parameters)) return [];
@@ -654,8 +654,30 @@ export function extractLevelNameFilters(client: any) {
 //   };
 // }
 
- export const fetchFilteredCampaigns = async (clientID: string, filters: FilterState, jwt:any) => {
+ 
+
+  export const fetchFilteredCampaigns = async (clientID: string, filters: FilterState | null = {
+    year: undefined,
+    quarter: "",
+    month: "",
+    made_by: "",
+    approved_by: "",
+    channel: "",
+    phase: "",
+    searchQuery: ""
+  }, jwt: any) => {
   if (!clientID) return [];
+
+  filters = filters || {
+    year: undefined,
+    quarter: "",
+    month: "",
+    made_by: "",
+    approved_by: "",
+    channel: "",
+    phase: "",
+    searchQuery: ""
+  }; 
 
   const channelMixPopulate = {
     social_media: { populate: "*" },
@@ -750,20 +772,7 @@ export function extractLevelNameFilters(client: any) {
   if (filters.phase) {
     orFilters.push({ funnel_stages: { $containsi: filters.phase } });
   }
-  // if (filters.level_1?.name) {
-  //   orFilters.push({
-  //     client: {
-  //       level_1: {
-  //         $or: [
-  //           { title: { $eq: filters.level_1.name } },
-  //           { parameters: { name: { $eq: filters.level_1.name } } },
-  //           { parameters: { subParameters: { $contains: filters.level_1.name } } },
-  //         ],
-  //       },
-  //     },
-  //   });
-  // }
- 
+  
    
 
   if (orFilters.length > 0) {
