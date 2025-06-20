@@ -718,53 +718,53 @@ const ResizableChannels = ({
 
   // Modified effect for initialChannels changes - now excludes parentWidth
   useEffect(() => {
-    if (
-      initialChannels &&
-      initialChannels.length > 0 &&
-      !isAdjustingWidthRef.current
-    ) {
+    if (initialChannels && initialChannels.length > 0) {
       const gridContainer = document.querySelector(
         ".grid-container"
       ) as HTMLElement;
       if (!gridContainer) return;
 
-      // Save selection state before major recalculation
-      saveSelectionState();
-
+      // Get container boundaries
       const getViewportWidth = () => {
         return window.innerWidth || document.documentElement.clientWidth || 0;
       };
       const screenWidth = getViewportWidth();
       setChannels(initialChannels);
 
+      // Initialize new channels with parent's position
       setChannelState((prev) => {
         const newState = initialChannels.map((ch, index) => {
           const stageStartDate = ch?.start_date
             ? parseISO(ch?.start_date)
             : null;
 
+          // Only adjust start date if it's earlier than parent start date
           const adjustedStageStartDate =
             stageStartDate && stageStartDate < startDate
               ? stageStartDate
               : stageStartDate < startDate
-              ? startDate
-              : stageStartDate;
+              ? startDate // Use parent start date if channel start date is earlier
+              : stageStartDate; // Otherwise use the actual channel start date
 
           const stageEndDate = ch?.end_date ? parseISO(ch?.end_date) : null;
 
+          // Check if the channel's end date exceeds the parent timeline's end date
           const isEndDateExceeded =
             stageEndDate && endDate && stageEndDate > endDate;
 
+          // Only adjust end date if it exceeds parent end date
           const adjustedStageEndDate = isEndDateExceeded
-            ? endDate
-            : stageEndDate;
+            ? endDate // Use parent end date if channel end date exceeds it
+            : stageEndDate; // Otherwise use the actual channel end date
 
           const startDateIndex = adjustedStageStartDate
             ? dRange?.findIndex((date) =>
                 isEqual(date, adjustedStageStartDate)
-              ) * dailyWidth
+              ) *
+              dailyWidth
             : 0;
 
+          // Calculate days between using the adjusted end date
           let daysBetween;
           if (adjustedStageStartDate && adjustedStageEndDate) {
             daysBetween =
@@ -772,11 +772,6 @@ const ResizableChannels = ({
                 start: adjustedStageStartDate,
                 end: adjustedStageEndDate,
               })?.length - 1;
-            console.log(
-              `${ch.name} Top Days between :`,
-              dailyWidth,
-              daysBetween
-            );
           } else {
             daysBetween =
               eachDayOfInterval({
@@ -785,17 +780,13 @@ const ResizableChannels = ({
                   ? endDate
                   : new Date(ch?.end_date) || null,
               })?.length - 1;
-
-            console.log(
-              `${ch.name} Bottom Days between :`,
-              dailyWidth,
-              daysBetween
-            );
           }
 
+          // Calculate position and width
           let left =
             parentLeft + Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
 
+          // Calculate width based on days between
           let width = Math.min(
             rrange === "Day"
               ? daysBetween > 0
@@ -825,18 +816,22 @@ const ResizableChannels = ({
               : parentWidth - 9
           );
 
+          // Ensure width doesn't exceed parent width
           width = Math.min(width, parentWidth);
 
-          // console.log("width, left, parentWidth : ", width, left, parentWidth);
+          // Ensure position + width doesn't exceed parent right edge
           if (left + width > parentLeft + parentWidth) {
+            // If channel would extend beyond parent, adjust position first
             if (width <= parentWidth) {
               left = parentLeft + parentWidth - width;
             } else {
+              // If width is too large, cap it at parent width and set left to parent left
               width = parentWidth;
               left = parentLeft;
             }
           }
 
+          // Check if this channel already exists in prev
           const existingState = prev[index];
 
           return existingState
@@ -847,19 +842,14 @@ const ResizableChannels = ({
               }
             : {
                 left: parentLeft,
-                width: Math.min(parentWidth, 50),
+                width: Math.min(parentWidth, 50), // Default width for new channels
               };
         });
-
-        // Restore selection state after recalculation
-        // setTimeout(() => {
-        //   restoreSelectionState()
-        // }, 0)
 
         return newState;
       });
     }
-  }, [initialChannels, parentLeft]); // Removed parentWidth from dependencies
+  }, [initialChannels, parentLeft, parentWidth, campaignFormData]);
 
   // console.log("The campaginFormData", campaignFormData);
 
