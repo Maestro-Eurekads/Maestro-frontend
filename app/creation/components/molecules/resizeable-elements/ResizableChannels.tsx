@@ -771,7 +771,7 @@ const ResizableChannels = ({
               eachDayOfInterval({
                 start: adjustedStageStartDate,
                 end: adjustedStageEndDate,
-              })?.length - 1;
+              })?.length ;
           } else {
             daysBetween =
               eachDayOfInterval({
@@ -779,7 +779,7 @@ const ResizableChannels = ({
                 end: isEndDateExceeded
                   ? endDate
                   : new Date(ch?.end_date) || null,
-              })?.length - 1;
+              })?.length ;
           }
 
           // Calculate position and width
@@ -787,11 +787,11 @@ const ResizableChannels = ({
             parentLeft + Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
 
           // Calculate width based on days between
-          let width = Math.min(
+          let width = 
             rrange === "Day"
               ? daysBetween > 0
                 ? dailyWidth * daysBetween
-                : parentWidth
+                : parentWidth 
               : rrange === "Week"
               ? daysBetween > 0
                 ? dailyWidth * daysBetween
@@ -800,21 +800,7 @@ const ResizableChannels = ({
               ? daysBetween > 0
                 ? dailyWidth * daysBetween
                 : parentWidth
-              : parentWidth,
-            rrange === "Day"
-              ? daysBetween > 0
-                ? dailyWidth * daysBetween
-                : parentWidth - 9
-              : rrange === "Week"
-              ? daysBetween > 0
-                ? dailyWidth * daysBetween
-                : parentWidth - 9
-              : rrange === "Month"
-              ? daysBetween > 0
-                ? dailyWidth * daysBetween
-                : parentWidth
-              : parentWidth - 9
-          );
+              : parentWidth
 
           // Ensure width doesn't exceed parent width
           width = Math.min(width, parentWidth);
