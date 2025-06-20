@@ -15,7 +15,7 @@ import toast, { Toaster } from "react-hot-toast";
 import dayjs from "dayjs";
 import { selectCurrency } from "./Options";
 import { useUserPrivileges } from "utils/userPrivileges";
-import { extractObjectives } from "app/creation/components/EstablishedGoals/table-view/data-processor";
+import { extractObjectives, getFilteredMetrics } from "app/creation/components/EstablishedGoals/table-view/data-processor";
 import axios from "axios";
 import { updateUsersWithCampaign } from "app/homepage/functions/clients";
 
@@ -769,11 +769,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       if (!campaignData || !cId) return;
       let updatedCampaignFormData = campaignFormData;
 
-      if (active > 4) {
-        const obj = extractObjectives(campaignFormData);
+      if (active === 5) {
+        const obj = await extractObjectives(campaignFormData);
+        const sMetrics = await getFilteredMetrics(obj)
         updatedCampaignFormData = {
           ...campaignFormData,
           table_headers: obj || {},
+          selected_metrics: sMetrics || {}
         };
         setCampaignFormData(updatedCampaignFormData);
       }
@@ -791,6 +793,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           ]
         ),
         table_headers: updatedCampaignFormData?.table_headers,
+        selected_metrics: updatedCampaignFormData?.selected_metrics,
       });
     };
 
