@@ -71,10 +71,8 @@ export const SetupScreen = () => {
  const [level1Options, setlevel1Options] = useState<DropdownOption[]>([]);
  const [clientApprovers, setClientApprovers] = useState<SelectedItem[]>([]);
  const [internalApprovers, setInternalApprovers] = useState<SelectedItem[]>([]);
+ const [loading, setLoading] = useState(false);
 
-
- console.log('internalapproverOptions-internalapproverOptions', internalapproverOptions)
- console.log('clientapprovalOptions-clientapprovalOptions', clientapprovalOptions)
 
 
  useEffect(() => {
@@ -89,10 +87,9 @@ export const SetupScreen = () => {
   }
  }, []);
 
- console.log('users---users--', users)
 
- const [clientData, setClientData] = useState<any>(null);
- const [loading, setLoading] = useState(false);
+
+
 
 
  const populateParams = ['populate=*'];
@@ -130,22 +127,11 @@ export const SetupScreen = () => {
  };
 
  useEffect(() => {
-  const fetchClient = async () => {
-   setLoading(true);
-   try {
-    const data = await fetchUsers();
-    setClientData(data);
-   } catch (error) {
-   } finally {
-    setLoading(false);
-   }
-  };
-
-  fetchClient();
+  fetchUsers();
  }, []);
 
 
- // console.log("FC FC:", FC);
+ console.log("users==users:", users);
  // console.log("campaignFormData campaignFormData:", campaignFormData);
 
  useEffect(() => {
@@ -153,17 +139,28 @@ export const SetupScreen = () => {
   dispatch(getCreateClient({ userId: !isAdmin ? session?.user?.data?.user?.id : null, jwt }));
  }, [isAdmin, session, dispatch]);
 
+
  useEffect(() => {
   if (FC) {
-   const agencyUserOptions = users?.agencyAccess?.map((user) => ({
-    value: user?.id,
-    label: user?.agency_user?.full_name,
-   })) || [];
+   const agencyUserOptions =
+    users?.agencyAccess
+     ?.filter(
+      (user) =>
+       user?.user_type === "agency_approver" || user?.user_type === "financial_approver"
+     )
+     .map((user) => ({
+      value: user?.id,
+      label: user?.agency_user?.full_name,
+     })) || [];
 
-   const clientUserOptions = users?.clientAccess?.map((user) => ({
-    value: user?.id,
-    label: user?.client_user?.full_name,
-   })) || [];
+   const clientUserOptions =
+    users?.clientAccess
+     ?.filter((user) => user?.user_type === "client_approver")
+     .map((user) => ({
+      value: user?.id,
+      label: user?.client_user?.full_name,
+     })) || [];
+
 
    setInternalApproverOptions(agencyUserOptions);
    setClientApprovalOptions(clientUserOptions);

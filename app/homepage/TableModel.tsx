@@ -29,6 +29,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
  const { isAdmin, isAgencyApprover, isFinancialApprover } = useUserPrivileges();
  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
+ console.log('userType-userType', userType)
 
  const [inputs, setInputs] = useState({
   name: "",
@@ -284,6 +285,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       toast.error(`Failed to create user for ${emailEntry.email}`);
      }
     }
+
+
 
     // Create user accounts for Client Access emails
     for (const emailEntry of inputs.clientAccess) {
