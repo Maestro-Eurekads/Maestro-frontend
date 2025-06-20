@@ -205,8 +205,29 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           ].some((platform: any) => platform.ad_sets && platform.ad_sets.length > 0)
         : false
     } else {
-      // For channel view, check channel-level state
-      if (typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
+      // For channel view, check both sessionStorage and in-memory state
+      const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
+
+      // Check sessionStorage first
+      if (typeof window !== "undefined") {
+        try {
+          const key = `channelLevelAudienceState_${campaignId || "default"}`
+          const stored = sessionStorage.getItem(key)
+          if (stored) {
+            const storedState = JSON.parse(stored)
+            if (storedState[stageName]) {
+              hasData = Object.values(storedState[stageName]).some(
+                (data: any) => data.audience_type || data.name || data.size,
+              )
+            }
+          }
+        } catch (error) {
+          console.error("Error checking stored channel state:", error)
+        }
+      }
+
+      // Fallback to in-memory check
+      if (!hasData && typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
         const channelState = (window as any).channelLevelAudienceState[stageName]
         if (channelState) {
           hasData = Object.values(channelState).some((data: any) => data.audience_type || data.name || data.size)
@@ -225,7 +246,29 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     if (!campaignFormData) return false
 
     if (view === "channel") {
-      // For channel view, ONLY check channel-level audience data
+      // For channel view, check both in-memory and stored channel-level audience data
+      const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
+
+      // Check sessionStorage first
+      if (typeof window !== "undefined") {
+        try {
+          const key = `channelLevelAudienceState_${campaignId || "default"}`
+          const stored = sessionStorage.getItem(key)
+          if (stored) {
+            const storedState = JSON.parse(stored)
+            if (storedState[stageName]) {
+              const hasStoredData = Object.values(storedState[stageName]).some(
+                (data: any) => data.audience_type || data.name || data.size,
+              )
+              if (hasStoredData) return true
+            }
+          }
+        } catch (error) {
+          console.error("Error checking stored channel state:", error)
+        }
+      }
+
+      // Fallback to in-memory check
       if (typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
         const channelState = (window as any).channelLevelAudienceState[stageName]
         if (channelState) {
@@ -293,7 +336,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     ]
 
     if (view === "channel") {
-      // Channel level: ONLY show channel-level state data, completely ignore ad set data
+      // Channel level: Check both sessionStorage and in-memory state
       const platformAggregation: Record<
         string,
         {
@@ -303,31 +346,71 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         }
       > = {}
 
-      // Only check in-memory channel-level state from AdSetFlow component
-      if (typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
-        const channelState = (window as any).channelLevelAudienceState[stageName]
-        if (channelState) {
-          Object.entries(channelState).forEach(([platformName, data]: [string, any]) => {
-            if (data.audience_type || data.name || data.size) {
-              if (!platformAggregation[platformName]) {
-                platformAggregation[platformName] = {
-                  audiences: new Set(),
-                  totalSize: 0,
-                  names: new Set(),
+      const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
+
+      // First check sessionStorage
+      if (typeof window !== "undefined") {
+        try {
+          const key = `channelLevelAudienceState_${campaignId || "default"}`
+          const stored = sessionStorage.getItem(key)
+          if (stored) {
+            const storedState = JSON.parse(stored)
+            if (storedState[stageName]) {
+              Object.entries(storedState[stageName]).forEach(([platformName, data]: [string, any]) => {
+                if (data.audience_type || data.name || data.size) {
+                  if (!platformAggregation[platformName]) {
+                    platformAggregation[platformName] = {
+                      audiences: new Set(),
+                      totalSize: 0,
+                      names: new Set(),
+                    }
+                  }
+
+                  if (data.audience_type) {
+                    platformAggregation[platformName].audiences.add(data.audience_type)
+                  }
+                  if (data.name) {
+                    platformAggregation[platformName].names.add(data.name)
+                  }
+                  if (data.size) {
+                    platformAggregation[platformName].totalSize += Number.parseInt(data.size.replace(/,/g, "")) || 0
+                  }
+                }
+              })
+            }
+          }
+        } catch (error) {
+          console.error("Error loading stored channel state for recap:", error)
+        }
+      }
+
+      // Fallback to in-memory state if no stored data
+      if (Object.keys(platformAggregation).length === 0) {
+        if (typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
+          const channelState = (window as any).channelLevelAudienceState[stageName]
+          if (channelState) {
+            Object.entries(channelState).forEach(([platformName, data]: [string, any]) => {
+              if (data.audience_type || data.name || data.size) {
+                if (!platformAggregation[platformName]) {
+                  platformAggregation[platformName] = {
+                    audiences: new Set(),
+                    totalSize: 0,
+                    names: new Set(),
+                  }
+                }
+
+                if (data.audience_type) {
+                  platformAggregation[platformName].audiences.add(data.audience_type)
+                }
+                if (data.name) {
+                  platformAggregation[platformName].names.add(data.name)
+                }
+                if (data.size) {
+                  platformAggregation[platformName].totalSize += Number.parseInt(data.size.replace(/,/g, "")) || 0
                 }
               }
-
-              if (data.audience_type) {
-                platformAggregation[platformName].audiences.add(data.audience_type)
-              }
-              if (data.name) {
-                platformAggregation[platformName].names.add(data.name)
-              }
-              if (data.size) {
-                platformAggregation[platformName].totalSize += Number.parseInt(data.size.replace(/,/g, "")) || 0
-              }
-            }
-          })
+            })
+          }
         }
       }
 

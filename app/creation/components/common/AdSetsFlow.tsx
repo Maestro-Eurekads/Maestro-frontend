@@ -198,8 +198,38 @@ const updateMultipleAdSets = (
   return updatedCampaignData
 }
 
-// --- Channel-level state isolation ---
-// This will store channel-level data per stage/platform in-memory (not persisted to campaignFormData)
+// --- Channel-level state isolation with persistence ---
+const getChannelStateKey = (campaignId?: string | number) => {
+  return `channelLevelAudienceState_${campaignId || "default"}`
+}
+
+// Load initial state from sessionStorage
+const loadChannelStateFromStorage = (campaignId?: string | number) => {
+  if (typeof window === "undefined") return {}
+
+  try {
+    const key = getChannelStateKey(campaignId)
+    const stored = sessionStorage.getItem(key)
+    return stored ? JSON.parse(stored) : {}
+  } catch (error) {
+    console.error("Error loading channel state from storage:", error)
+    return {}
+  }
+}
+
+// Save state to sessionStorage
+const saveChannelStateToStorage = (state: any, campaignId?: string | number) => {
+  if (typeof window === "undefined") return
+
+  try {
+    const key = getChannelStateKey(campaignId)
+    sessionStorage.setItem(key, JSON.stringify(state))
+  } catch (error) {
+    console.error("Error saving channel state to storage:", error)
+  }
+}
+
+// Initialize with data from storage
 const channelLevelAudienceState: {
   [stageName: string]: {
     [platformName: string]: {
@@ -849,20 +879,30 @@ const AdsetSettings = memo(function AdsetSettings({
   const [openDropdownId, setOpenDropdownId] = useState<number | string | null>(null)
   const initialized = useRef(false)
 
-  // --- Channel-level state for this stage/platform ---
+  // --- Channel-level state for this stage/platform with persistence ---
   const [channelAudienceState, setChannelAudienceState] = useState<{
     name: string
     audience_type: string
     size: string
     description: string
   }>(() => {
+    // Try to load from storage first
+    const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
+    const storedState = loadChannelStateFromStorage(campaignId)
+
+    if (storedState[stageName] && storedState[stageName][outlet.outlet]) {
+      return { ...storedState[stageName][outlet.outlet] }
+    }
+
+    // Fallback to in-memory state
     if (channelLevelAudienceState[stageName] && channelLevelAudienceState[stageName][outlet.outlet]) {
       return { ...channelLevelAudienceState[stageName][outlet.outlet] }
     }
+
     return { name: "", audience_type: "", size: "", description: "" }
   })
 
-  // Keep channelLevelAudienceState in sync
+  // Keep channelLevelAudienceState in sync and persist to storage
   useEffect(() => {
     if (!channelLevelAudienceState[stageName]) channelLevelAudienceState[stageName] = {}
     channelLevelAudienceState[stageName][outlet.outlet] = { ...channelAudienceState }
@@ -871,7 +911,39 @@ const AdsetSettings = memo(function AdsetSettings({
     if (typeof window !== "undefined") {
       ;(window as any).channelLevelAudienceState = channelLevelAudienceState
     }
-  }, [channelAudienceState, stageName, outlet.outlet])
+
+    // Persist to sessionStorage
+    const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
+    saveChannelStateToStorage(channelLevelAudienceState, campaignId)
+  }, [channelAudienceState, stageName, outlet.outlet, campaignFormData?.id, campaignFormData?.media_plan_id])
+
+  useEffect(() => {
+    // Load channel state from storage on component mount
+    if (granularity === "channel") {
+      const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
+      const storedState = loadChannelStateFromStorage(campaignId)
+
+      // Merge stored state into in-memory state
+      Object.keys(storedState).forEach((stageName) => {
+        if (!channelLevelAudienceState[stageName]) {
+          channelLevelAudienceState[stageName] = {}
+        }
+        Object.keys(storedState[stageName]).forEach((platformName) => {
+          channelLevelAudienceState[stageName][platformName] = storedState[stageName][platformName]
+        })
+      })
+
+      // Update global reference
+      if (typeof window !== "undefined") {
+        ;(window as any).channelLevelAudienceState = channelLevelAudienceState
+      }
+
+      // Update local state if this platform has stored data
+      if (storedState[stageName] && storedState[stageName][outlet.outlet]) {
+        setChannelAudienceState({ ...storedState[stageName][outlet.outlet] })
+      }
+    }
+  }, [granularity, stageName, outlet.outlet, campaignFormData?.id, campaignFormData?.media_plan_id])
 
   useEffect(() => {
     if (!campaignFormData?.channel_mix) return
