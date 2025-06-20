@@ -271,7 +271,7 @@ const ResizeableElements = ({
     const screenWidth = getViewportWidth()
     const availableWidth = screenWidth - (disableDrag ? 60 : close ? 0:367)
 
-    // console.log("🚀  ~ Width:", { screenWidth, availableWidth })
+    // //console.log("🚀  ~ Width:", { screenWidth, availableWidth })
 
     campaignFormData.funnel_stages.forEach((stageName) => {
       const stage = campaignFormData?.channel_mix?.find((s) => s?.funnel_stage === stageName)
