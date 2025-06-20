@@ -181,6 +181,34 @@ const ResizableChannels = ({
     }
   };
 
+  const getChannelLayout = (channel: Channel): { left: number; width: number } => {
+    if (!channel?.start_date || !channel?.end_date || !dRange) {
+      return {
+        left: parentLeft,
+        width: 50,
+      };
+    }
+  
+    const start = parseISO(channel.start_date);
+    const end = parseISO(channel.end_date);
+  
+    const clampedStart = start < startDate ? startDate : start;
+    const clampedEnd = end > endDate ? endDate : end;
+  
+    const startIndex = dRange.findIndex((d) =>
+      isEqual(d, clampedStart)
+    );
+    const endIndex = dRange.findIndex((d) =>
+      isEqual(d, clampedEnd)
+    );
+  
+    const left = parentLeft + Math.max(0, startIndex) * dailyWidth;
+    const width = Math.max(50, (endIndex - startIndex + 1) * dailyWidth);
+  
+    return { left, width: Math.min(width, parentWidth) };
+  };
+  
+
   const toggleChannel = (id) => {
     setOpenItems((prev) => (prev === id ? null : id));
   };
@@ -376,7 +404,52 @@ const ResizableChannels = ({
     isResizing.current = null;
     document.removeEventListener("mousemove", handleMouseMoveResize);
     document.removeEventListener("mouseup", handleMouseUpResize);
+  
+    if (draggingDataRef.current) {
+      const { index, newStartDate, newEndDate } = draggingDataRef.current;
+  
+      // Update local channels state
+      setChannels((prev) =>
+        prev.map((ch, i) =>
+          i === index
+            ? {
+                ...ch,
+                start_date: newStartDate,
+                end_date: newEndDate,
+              }
+            : ch
+        )
+      );
+  
+      // Update campaignFormData copy
+      setCopy((prevData) => {
+        const updatedData = JSON.parse(JSON.stringify(prevData));
+  
+        const channelMix = updatedData.channel_mix.find(
+          (ch) => ch.funnel_stage === parentId
+        );
+  
+        if (channelMix) {
+          const channelGroup = channelMix[channels[index].channelName];
+          if (Array.isArray(channelGroup)) {
+            const platform = channelGroup.find(
+              (p) => p.platform_name === channels[index].name
+            );
+  
+            if (platform) {
+              platform.campaign_start_date = newStartDate;
+              platform.campaign_end_date = newEndDate;
+            }
+          }
+        }
+  
+        return updatedData;
+      });
+  
+      draggingDataRef.current = null;
+    }
   };
+  
 
   // Separate effect for parentWidth-only changes
   // useEffect(() => {
@@ -477,7 +550,7 @@ const ResizableChannels = ({
   }, [startDate, endDate]);
 
   const pixelToDate = (pixel, containerWidth, index, fieldName) => {
-    const totalDays = dRange?.length - 1;
+    const totalDays = dRange?.length ;
     const dayIndex = Math.min(
       totalDays,
       Math.max(0, Math.floor((pixel / containerWidth) * totalDays))
@@ -621,6 +694,18 @@ const ResizableChannels = ({
           return updatedData;
         });
 
+        setChannels((prevChannels) =>
+          prevChannels.map((ch, i) =>
+            i === index
+              ? {
+                  ...ch,
+                  start_date: startDate,
+                  end_date: endDate,
+                }
+              : ch
+          )
+        );
+
         draggingDataRef.current = null;
       }
 
@@ -733,9 +818,12 @@ const ResizableChannels = ({
 
       // Initialize new channels with parent's position
       setChannelState((prev) => {
+        const findMix = campaignFormData?.channel_mix?.find((chhh)=>chhh?.funnel_stage === parentId)
         const newState = initialChannels.map((ch, index) => {
-          const stageStartDate = ch?.start_date
-            ? parseISO(ch?.start_date)
+          const findChannel = findMix[ch?.channelName]?.find((plt)=>plt?.platform_name === ch?.name)
+          console.log("🚀 ~ newState ~ findChannel:", findChannel)
+          const stageStartDate = findChannel?.campaign_start_date
+            ? parseISO(findChannel?.campaign_start_date)
             : null;
 
           // Only adjust start date if it's earlier than parent start date
@@ -746,7 +834,7 @@ const ResizableChannels = ({
               ? startDate // Use parent start date if channel start date is earlier
               : stageStartDate; // Otherwise use the actual channel start date
 
-          const stageEndDate = ch?.end_date ? parseISO(ch?.end_date) : null;
+          const stageEndDate = findChannel?.campaign_end_date ? parseISO(findChannel?.campaign_end_date) : null;
 
           // Check if the channel's end date exceeds the parent timeline's end date
           const isEndDateExceeded =
@@ -775,10 +863,10 @@ const ResizableChannels = ({
           } else {
             daysBetween =
               eachDayOfInterval({
-                start: new Date(ch?.start_date) || null,
+                start: new Date(findChannel?.campaign_start_date) || null,
                 end: isEndDateExceeded
                   ? endDate
-                  : new Date(ch?.end_date) || null,
+                  : new Date(findChannel?.campaign_end_date) || null,
               })?.length ;
           }
 
@@ -835,7 +923,7 @@ const ResizableChannels = ({
         return newState;
       });
     }
-  }, [initialChannels, parentLeft, parentWidth, campaignFormData]);
+  }, [initialChannels, parentLeft, campaignFormData]);
 
   // console.log("The campaginFormData", campaignFormData);
 
@@ -1011,7 +1099,7 @@ const ResizableChannels = ({
                   left: `${channelState[index]?.left || parentLeft}px`,
                   width: `${
                     channelState[index]?.width +
-                    (disableDrag ? 73 : rrange === "Month" ? 0 : 0)
+                    (disableDrag ? 0 : rrange === "Month" ? 0 : 0)
                   }px`,
                   backgroundColor: channel.bg,
                   color: channel.color,
@@ -1085,7 +1173,7 @@ const ResizableChannels = ({
                         }`}
                         style={{
                           left: `0px`,
-                          backgroundColor: channel.color,
+                          // backgroundColor: channel.color,
                         }}
                         onMouseDown={(e) =>
                           disableDrag || openItems
@@ -1093,7 +1181,7 @@ const ResizableChannels = ({
                             : handleMouseDownResize(e, "left", index)
                         }
                       >
-                        <MdDragHandle className="rotate-90" />
+                        <MdDragHandle className="rotate-90"color={channel.color} />
                       </div>
                     ) : (
                       <div
@@ -1113,7 +1201,25 @@ const ResizableChannels = ({
                         <MdDragHandle className="rotate-90" />
                       </div>
                     )}
-                    <div
+                    {rrange === "Month" ? (
+                      <div
+                      className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
+                        disableDrag && "hidden"
+                      }`}
+                      style={{
+                        right: "0px",
+                        // backgroundColor: channel.color,
+                      }}
+                      onMouseDown={(e) => {
+                        disableDrag || openItems
+                          ? undefined
+                          : handleMouseDownResize(e, "right", index);
+                      }}
+                    >
+                      <MdDragHandle className="rotate-90" color={channel?.color} />
+                    </div>
+                    ): (
+                      <div
                       className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
                         disableDrag && "hidden"
                       }`}
@@ -1129,6 +1235,8 @@ const ResizableChannels = ({
                     >
                       <MdDragHandle className="rotate-90" />
                     </div>
+                    )}
+                    
                   </>
                 }
               </div>
