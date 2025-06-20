@@ -370,7 +370,7 @@ const getDaysInEachMonth = useCallback((range: Date[]): Record<string, number> =
             const totalDaysInRange = Object.values(daysInEachMonth || {}).reduce((sum: number, days: number) => sum + days, 0)
             const widthPerDay = Math.round(availableWidth / (totalDaysInRange || 30))
 
-            return daysBetween > 0 ? widthPerDay * totalDaysInRange : widthPerDay * daysFromStart - 0
+            return daysBetween > 0 ? widthPerDay * daysBetween : widthPerDay * daysFromStart - 0
           }
         })()
 
