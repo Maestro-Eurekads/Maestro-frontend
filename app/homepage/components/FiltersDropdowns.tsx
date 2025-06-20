@@ -194,7 +194,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
       setLoading(true);
       try {
         const res = allEmpty
-          ? await fetchFilteredCampaigns(clientID, null, jwt)
+          ? await fetchFilteredCampaigns(clientID, filters ?? {}, jwt)
           : await fetchFilteredCampaigns(clientID, selectedFilters, jwt);
         setClientCampaignData(res);
       } finally {

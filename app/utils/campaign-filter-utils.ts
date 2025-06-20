@@ -654,8 +654,30 @@ export function extractLevelNameFilters(client: any) {
 //   };
 // }
 
- export const fetchFilteredCampaigns = async (clientID: string, filters: FilterState, jwt:any) => {
+ 
+
+  export const fetchFilteredCampaigns = async (clientID: string, filters: FilterState | null = {
+    year: undefined,
+    quarter: "",
+    month: "",
+    made_by: "",
+    approved_by: "",
+    channel: "",
+    phase: "",
+    searchQuery: ""
+  }, jwt: any) => {
   if (!clientID) return [];
+
+  filters = filters || {
+    year: undefined,
+    quarter: "",
+    month: "",
+    made_by: "",
+    approved_by: "",
+    channel: "",
+    phase: "",
+    searchQuery: ""
+  }; 
 
   const channelMixPopulate = {
     social_media: { populate: "*" },
@@ -750,20 +772,7 @@ export function extractLevelNameFilters(client: any) {
   if (filters.phase) {
     orFilters.push({ funnel_stages: { $containsi: filters.phase } });
   }
-  // if (filters.level_1?.name) {
-  //   orFilters.push({
-  //     client: {
-  //       level_1: {
-  //         $or: [
-  //           { title: { $eq: filters.level_1.name } },
-  //           { parameters: { name: { $eq: filters.level_1.name } } },
-  //           { parameters: { subParameters: { $contains: filters.level_1.name } } },
-  //         ],
-  //       },
-  //     },
-  //   });
-  // }
- 
+  
    
 
   if (orFilters.length > 0) {
