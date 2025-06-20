@@ -1160,7 +1160,8 @@ const ResizableChannels = ({
                 ))}
             </div>
           ) : openCreatives && (
-            <FormatSelection stageName={parentId} platformName={selectedChannel} view={openView}/>
+            // Fix: Remove 'view' prop, as FormatSelection only accepts stageName and platformName
+            <FormatSelection stageName={parentId} platformName={selectedChannel} />
           )}
         </div>
       </Modal>
