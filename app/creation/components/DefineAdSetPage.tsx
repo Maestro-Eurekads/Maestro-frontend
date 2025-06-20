@@ -32,7 +32,8 @@ interface DefineAdSetPageProps {
   onToggleChange: (newView: "channel" | "adset") => void
 }
 
-const GOAL_LEVEL_MODAL_KEY = "goalLevelModalDismissed"
+// Use a key that is unique per plan, so we can track which plans have had the modal dismissed
+const GOAL_LEVEL_MODAL_KEY_PREFIX = "goalLevelModalDismissed_"
 
 const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
@@ -43,6 +44,24 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const initialized = useRef(false)
 
+  // Get a unique key for the current plan (use media_plan_id if available, fallback to campaignFormData id)
+  const getPlanKey = () => {
+    if (!campaignFormData) return null
+    // Try media_plan_id, fallback to id, fallback to JSON string of funnel_stages
+    return (
+      campaignFormData.media_plan_id ||
+      campaignFormData.id ||
+      (Array.isArray(campaignFormData.funnel_stages)
+        ? campaignFormData.funnel_stages.join("_")
+        : "unknown")
+    )
+  }
+
+  const getModalKey = () => {
+    const planKey = getPlanKey()
+    return planKey ? `${GOAL_LEVEL_MODAL_KEY_PREFIX}${planKey}` : null
+  }
+
   const handleOpenModal = () => {
     setIsModalOpen(true)
   }
@@ -51,7 +70,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     if (e) e.preventDefault()
     setIsModalOpen(false)
     if (typeof window !== "undefined") {
-      localStorage.setItem(GOAL_LEVEL_MODAL_KEY, "true")
+      const modalKey = getModalKey()
+      if (modalKey) {
+        localStorage.setItem(modalKey, "true")
+      }
     }
   }
 
@@ -60,14 +82,19 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
     const goalLevel = campaignFormData.goal_level
     const expectedGoalLevel = view === "adset" ? "Adset level" : "Channel level"
+    const modalKey = getModalKey()
 
-    // Only show modal if not dismissed before
+    // Only show modal if not dismissed for this plan
     if (!goalLevel) {
-      // Reset the localStorage flag for new media plans
-      if (typeof window !== "undefined") {
-        localStorage.removeItem(GOAL_LEVEL_MODAL_KEY)
+      // Only show modal if not dismissed for this plan
+      if (typeof window !== "undefined" && modalKey) {
+        const dismissed = localStorage.getItem(modalKey)
+        if (!dismissed) {
+          setIsModalOpen(true)
+        } else {
+          setIsModalOpen(false)
+        }
       }
-      setIsModalOpen(true)
     } else if (goalLevel !== expectedGoalLevel) {
       setCampaignFormData((prev: any) => {
         if (prev.goal_level === expectedGoalLevel) return prev
@@ -170,32 +197,48 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     }
   }
 
-  // Returns true if at least one ad set with audience is present for the stage (for both channel and adset view)
-  const hasAnyAudience = (stage: any) => {
-    if (!stage) return false
-    const platforms = [
-      ...(stage.search_engines || []),
-      ...(stage.display_networks || []),
-      ...(stage.social_media || []),
-      ...(stage.streaming || []),
-      ...(stage.ooh || []),
-      ...(stage.broadcast || []),
-      ...(stage.messaging || []),
-      ...(stage.print || []),
-      ...(stage.e_commerce || []),
-      ...(stage.in_game || []),
-      ...(stage.mobile || []),
-    ]
-    return platforms.some((platform: any) =>
-      (platform.ad_sets || []).some(
-        (adSet: any) =>
-          adSet.audience_type ||
-          adSet.name ||
-          adSet.size ||
-          (Array.isArray(adSet.extra_audiences) &&
-            adSet.extra_audiences.some((ea: any) => ea.audience_type || ea.name || ea.size)),
-      ),
-    )
+  // Returns true if there is audience data for the stage based on current granularity
+  const hasAnyAudience = (stageName: string) => {
+    if (!campaignFormData) return false
+
+    if (view === "channel") {
+      // For channel view, check if there's any channel-level audience data
+      if (typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
+        const channelState = (window as any).channelLevelAudienceState[stageName]
+        if (channelState) {
+          return Object.values(channelState).some((data: any) => data.audience_type || data.name || data.size)
+        }
+      }
+      return false
+    } else {
+      // For adset view, check if there are ad sets with audience data
+      const stage = campaignFormData?.channel_mix?.find((s: any) => s.funnel_stage === stageName)
+      if (!stage) return false
+
+      const platforms = [
+        ...(stage.search_engines || []),
+        ...(stage.display_networks || []),
+        ...(stage.social_media || []),
+        ...(stage.streaming || []),
+        ...(stage.ooh || []),
+        ...(stage.broadcast || []),
+        ...(stage.messaging || []),
+        ...(stage.print || []),
+        ...(stage.e_commerce || []),
+        ...(stage.in_game || []),
+        ...(stage.mobile || []),
+      ]
+      return platforms.some((platform: any) =>
+        (platform.ad_sets || []).some(
+          (adSet: any) =>
+            adSet.audience_type ||
+            adSet.name ||
+            adSet.size ||
+            (Array.isArray(adSet.extra_audiences) &&
+              adSet.extra_audiences.some((ea: any) => ea.audience_type || ea.name || ea.size)),
+        ),
+      )
+    }
   }
 
   // Fixed function to properly handle granularity-specific recap data
@@ -227,7 +270,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     ]
 
     if (view === "channel") {
-      // Channel level: Aggregate audiences by platform
+      // Channel level: ONLY show channel-level state data, ignore ad set data completely
       const platformAggregation: Record<
         string,
         {
@@ -237,46 +280,33 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         }
       > = {}
 
-      platforms.forEach((platform: any) => {
-        if (platform.ad_sets && platform.ad_sets.length > 0) {
-          if (!platformAggregation[platform.platform_name]) {
-            platformAggregation[platform.platform_name] = {
-              audiences: new Set(),
-              totalSize: 0,
-              names: new Set(),
-            }
-          }
+      // Only check in-memory channel-level state from AdSetFlow component
+      if (typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
+        const channelState = (window as any).channelLevelAudienceState[stageName]
+        if (channelState) {
+          Object.entries(channelState).forEach(([platformName, data]: [string, any]) => {
+            if (data.audience_type || data.name || data.size) {
+              if (!platformAggregation[platformName]) {
+                platformAggregation[platformName] = {
+                  audiences: new Set(),
+                  totalSize: 0,
+                  names: new Set(),
+                }
+              }
 
-          platform.ad_sets.forEach((adSet: any) => {
-            if (adSet.audience_type) {
-              platformAggregation[platform.platform_name].audiences.add(adSet.audience_type)
-            }
-            if (adSet.name) {
-              platformAggregation[platform.platform_name].names.add(adSet.name)
-            }
-            if (adSet.size) {
-              platformAggregation[platform.platform_name].totalSize +=
-                Number.parseInt(adSet.size.replace(/,/g, "")) || 0
-            }
-
-            // Handle extra audiences
-            if (Array.isArray(adSet.extra_audiences)) {
-              adSet.extra_audiences.forEach((ea: any) => {
-                if (ea.audience_type) {
-                  platformAggregation[platform.platform_name].audiences.add(ea.audience_type)
-                }
-                if (ea.name) {
-                  platformAggregation[platform.platform_name].names.add(ea.name)
-                }
-                if (ea.size) {
-                  platformAggregation[platform.platform_name].totalSize +=
-                    Number.parseInt(ea.size.replace(/,/g, "")) || 0
-                }
-              })
+              if (data.audience_type) {
+                platformAggregation[platformName].audiences.add(data.audience_type)
+              }
+              if (data.name) {
+                platformAggregation[platformName].names.add(data.name)
+              }
+              if (data.size) {
+                platformAggregation[platformName].totalSize += Number.parseInt(data.size.replace(/,/g, "")) || 0
+              }
             }
           })
         }
-      })
+      }
 
       // Convert aggregated data to rows
       Object.entries(platformAggregation).forEach(([platformName, data]) => {
@@ -332,9 +362,12 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       ...prev,
       goal_level: checked ? "Adset level" : "Channel level",
     }))
-    // If user changes granularity, consider modal as dismissed
+    // If user changes granularity, consider modal as dismissed for this plan
     if (typeof window !== "undefined") {
-      localStorage.setItem(GOAL_LEVEL_MODAL_KEY, "true")
+      const modalKey = getModalKey()
+      if (modalKey) {
+        localStorage.setItem(modalKey, "true")
+      }
     }
   }
 
@@ -373,7 +406,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         const channelMixStage = campaignFormData?.channel_mix?.find((s: any) => s.funnel_stage === stageName)
 
         // Show recap for both channel and adset granularity if there is at least one adset with audience
-        const shouldShowRecap = hasAnyAudience(channelMixStage)
+        const shouldShowRecap = hasAnyAudience(stageName)
 
         return (
           <div key={stageName} className="w-full">
@@ -640,9 +673,12 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
                           }))
                           onToggleChange(newView)
                           handleCloseModal()
-                          // Mark modal as dismissed in localStorage
+                          // Mark modal as dismissed for this plan in localStorage
                           if (typeof window !== "undefined") {
-                            localStorage.setItem(GOAL_LEVEL_MODAL_KEY, "true")
+                            const modalKey = getModalKey()
+                            if (modalKey) {
+                              localStorage.setItem(modalKey, "true")
+                            }
                           }
                         }}
                       >

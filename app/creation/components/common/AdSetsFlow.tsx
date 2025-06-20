@@ -211,6 +211,11 @@ const channelLevelAudienceState: {
   }
 } = {}
 
+// Make channel state globally accessible for recap
+if (typeof window !== "undefined") {
+  ;(window as any).channelLevelAudienceState = channelLevelAudienceState
+}
+
 // AdSet Component - Updated to handle granularity properly
 const AdSet = memo(function AdSet({
   adset,
@@ -851,10 +856,7 @@ const AdsetSettings = memo(function AdsetSettings({
     size: string
     description: string
   }>(() => {
-    if (
-      channelLevelAudienceState[stageName] &&
-      channelLevelAudienceState[stageName][outlet.outlet]
-    ) {
+    if (channelLevelAudienceState[stageName] && channelLevelAudienceState[stageName][outlet.outlet]) {
       return { ...channelLevelAudienceState[stageName][outlet.outlet] }
     }
     return { name: "", audience_type: "", size: "", description: "" }
@@ -864,6 +866,11 @@ const AdsetSettings = memo(function AdsetSettings({
   useEffect(() => {
     if (!channelLevelAudienceState[stageName]) channelLevelAudienceState[stageName] = {}
     channelLevelAudienceState[stageName][outlet.outlet] = { ...channelAudienceState }
+
+    // Update global reference for recap access
+    if (typeof window !== "undefined") {
+      ;(window as any).channelLevelAudienceState = channelLevelAudienceState
+    }
   }, [channelAudienceState, stageName, outlet.outlet])
 
   useEffect(() => {
