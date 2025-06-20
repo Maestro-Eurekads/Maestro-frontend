@@ -97,6 +97,7 @@ const ResizableChannels = ({
   const [selectedCreative, setSelectedCreative] = useState(null)
   const [openAdset, setOpenAdset] = useState(false)
   const [selectedChannel, setSelectedChannel] = useState("")
+  const [openView, setOpenView] = useState<"channel" | "adset">("channel")
 
   // Store the initial start date in a ref
   const initialStartDateRef = useRef(null)
@@ -184,7 +185,7 @@ const ResizableChannels = ({
   } | null>(null)
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    console.log(" ~ dailyWidth:", dailyWidth)
+    //console.log(" ~ dailyWidth:", dailyWidth)
     const baseStep = dailyWidth
     const adjustmentPerStep = 0
     const snapPoints = []
@@ -381,7 +382,7 @@ const ResizableChannels = ({
       }
 
       setEndDate(end)
-      console.log({ start, end })
+      //console.log({ start, end })
 
       setDrange(
         eachDayOfInterval({
@@ -850,12 +851,12 @@ const ResizableChannels = ({
                 }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden `}
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
-                  width: `${channelState[index]?.width + (disableDrag ? 73 : rrange === "Month" ? 40 : 50)}px`,
+                  width: `${channelState[index]?.width + (disableDrag ? 73 : rrange === "Month" ? 0 : 0)}px`,
                   backgroundColor: channel.bg,
                   color: channel.color,
                   borderColor: channel.color,
                   borderRadius: "10px",
-                  minWidth: rrange === "Day" ? "50px" : rrange === "Week" ? "50px" : `${channelState[index]?.width}px`,
+                  minWidth: `${dailyWidth}px`,
                 }}
                 onMouseDown={disableDrag || openItems ? undefined : handleDragStart(index)}
               >
@@ -899,8 +900,10 @@ const ResizableChannels = ({
                 )}
                 {
                   <>
+                  {rrange === "Month" 
+                  ? 
                     <div
-                      className={`absolute top-0 w-5 h-[46px] cursor-ew-resize rounded-l-[8px] text-white flex items-center justify-center ${
+                      className={`absolute top-0 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
                         disableDrag && "hidden"
                       }`}
                       style={{
@@ -913,8 +916,24 @@ const ResizableChannels = ({
                     >
                       <MdDragHandle className="rotate-90" />
                     </div>
+                  :
                     <div
-                      className={`absolute top-0 w-5 h-[46px] cursor-ew-resize rounded-r-[8px] text-white flex items-center justify-center ${
+                      className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-l-lg text-white flex items-center justify-center ${
+                        disableDrag && "hidden"
+                      }`}
+                      style={{
+                        left: `0px`,
+                        backgroundColor: channel.color,
+                      }}
+                      onMouseDown={(e) =>
+                        disableDrag || openItems ? undefined : handleMouseDownResize(e, "left", index)
+                      }
+                    >
+                      <MdDragHandle className="rotate-90" />
+                    </div>
+                  }
+                    <div
+                      className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
                         disableDrag && "hidden"
                       }`}
                       style={{
@@ -1012,6 +1031,7 @@ const ResizableChannels = ({
                         onClick={() => {
                           setOpenCreatives(true)
                           setSelectedChannel(channel?.name)
+                          setOpenView("adset")
                         }}
                       >
                         View Creatives
@@ -1041,6 +1061,7 @@ const ResizableChannels = ({
                 onClick={() => {
                   setOpenCreatives(true)
                   setSelectedChannel(channel?.name)
+                  setOpenView("channel")
                 }}
               >
                 View Creatives
@@ -1138,8 +1159,8 @@ const ResizableChannels = ({
                   </div>
                 ))}
             </div>
-          ) : (
-            <FormatSelection stageName={parentId} platformName={selectedChannel} />
+          ) : openCreatives && (
+            <FormatSelection stageName={parentId} platformName={selectedChannel} view={openView}/>
           )}
         </div>
       </Modal>

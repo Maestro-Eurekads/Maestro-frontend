@@ -149,7 +149,7 @@ const ClientView = () => {
 		}
 	}, [kpiCategory]);
 
-	console.log("Final Category Order:", campaignData);
+	//console.log("Final Category Order:", campaignData);
 
 
 

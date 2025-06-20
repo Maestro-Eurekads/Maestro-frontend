@@ -16,7 +16,7 @@ import { useSelector } from "react-redux";
 import { channelMixPopulate } from "utils/fetcher";
 import { useSession } from "next-auth/react";
 import { updateUsersWithCampaign } from "app/homepage/functions/clients";
-import { extractObjectives } from "app/creation/components/EstablishedGoals/table-view/data-processor";
+import { extractObjectives, getFilteredMetrics } from "app/creation/components/EstablishedGoals/table-view/data-processor";
 import { useUserPrivileges } from "utils/userPrivileges";
 
 // Get initial state from localStorage if available
@@ -170,13 +170,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             },
           }
         );
-        // console.log("NEXT_PUBLIC_STRAPI_TOKEN?:", res?.data?.data);
+        // //console.log("NEXT_PUBLIC_STRAPI_TOKEN?:", res?.data?.data);
         const data = res?.data?.data;
 
         if (!data) return;
-        const obj = extractObjectives(campaignFormData);
+        // const obj = await extractObjectives(campaignFormData);
+        // const sMetrics = await getFilteredMetrics(obj)
         setCampaignData(data);
-        setHeaderData(data?.table_headers || obj || {});
+        setHeaderData(data?.table_headers  || {});
         setCampaignFormData((prev) => ({
           ...prev,
           client_selection: {
@@ -211,9 +212,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           campaign_id: data?.id ?? prev.id,
           isApprove: data?.isApprove ?? prev?.isApprove,
           table_headers:
-            ((data?.table_headers || obj || {}) ??
-              (prev?.table_headers || obj)) ||
+            ((data?.table_headers  || {}) ??
+              (prev?.table_headers )) ||
             {},
+            selected_metrics: ((data?.selected_metrics||{}) ?? (prev?.selected_metrics )) || {},
         }));
         setLoadingCampaign(false);
       } catch (error) {
@@ -284,14 +286,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       setGetProfile(response?.data);
-      console.log("res", response?.data);
+      //console.log("res", response?.data);
       const aId =
         response?.data?.user_type === "admin"
           ? response?.data?.admin?.agency?.id
           : response?.data?.user_type?.includes("cleint")
             ? response?.data?.cleint_user?.agency?.id
             : response?.data?.agency_user?.agency?.id;
-      console.log("agencyId", aId);
+      //console.log("agencyId", aId);
       setAgencyId(aId);
       return response;
     } catch (error) {
@@ -363,7 +365,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   //       }
   //     );
   //     const data = response?.data?.data || {};
-  //     console.log("Client Architecture Options Data:", data);
+  //     //console.log("Client Architecture Options Data:", data);
   //     setBusinessLevelOptions({
   //       level1:
   //         data?.level_1?.map((item: string) => ({

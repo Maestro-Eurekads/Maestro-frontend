@@ -29,7 +29,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({ monthsCount, view, getDay
 
   const gridTemplateColumns = Object.values(daysInMonth || {})
     //@ts-ignore
-    .map((days) => `${(days / totalDays) * 100}%`)
+    .map((days) => `${Math.round((days / totalDays) * 100)}%`)
     .join(" ");
 
   useEffect(() => {
