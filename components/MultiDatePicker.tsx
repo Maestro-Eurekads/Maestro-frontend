@@ -111,8 +111,8 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
           if (Array.isArray(channel[mediaType])) {
             acc[mediaType] = channel[mediaType].map((media) => ({
               ...media,
-              campaign_start_date: null,
-              campaign_end_date: null,
+              campaign_start_date: startDate,
+              campaign_end_date: endDate,
             }));
           }
           return acc;
@@ -120,8 +120,8 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
 
         return {
           ...channel,
-          funnel_stage_timeline_start_date: null,
-          funnel_stage_timeline_end_date: null,
+          funnel_stage_timeline_start_date: startDate,
+          funnel_stage_timeline_end_date: endDate,
           ...updatedMediaTypes,
         };
       });
