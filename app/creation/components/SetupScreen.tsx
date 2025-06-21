@@ -131,7 +131,7 @@ export const SetupScreen = () => {
  }, []);
 
 
- console.log("users==users:", users);
+ // console.log("users==users:", users);
  // console.log("campaignFormData campaignFormData:", campaignFormData);
 
  useEffect(() => {
@@ -365,6 +365,7 @@ export const SetupScreen = () => {
  ]);
 
 
+ console.log('level1Options-level1Options', level1Options)
 
 
  if (!campaignFormData) {

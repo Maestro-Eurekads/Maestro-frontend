@@ -296,7 +296,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
 
                 <CampaignPhases campaignPhases={campaignPhases} />
               </div>
-              <PhasedistributionProgress />
+              <PhasedistributionProgress insideText={insideText} />
             </>
           </div>
           <div className="allocate_budget_phase_two">

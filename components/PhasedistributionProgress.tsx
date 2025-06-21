@@ -31,7 +31,7 @@ const defaultFunnels = [
   { name: "Conversion" },
 ];
 
-export default function PlatformSpending() {
+export default function PlatformSpending(insideText) {
   const [phaseData, setPhaseData] = useState<Phase[]>([]);
   const { campaignFormData } = useCampaigns();
 
@@ -48,7 +48,7 @@ export default function PlatformSpending() {
       const stageName = stage?.funnel_stage;
       if (!stageName) {
         // console.log("Skipping stage with no funnel_stage");
-        
+
         return;
       }
 
@@ -133,11 +133,33 @@ export default function PlatformSpending() {
     }
   }, [campaignFormData]);
 
+
+
+  const swapCurrencySymbol = (insideText: any, amountText: any) => {
+    if (!insideText || !amountText) return amountText;
+
+    const extractSymbol = (text: any) => String(text).replace(/[\d,.\s]/g, '').trim();
+
+    const insideSymbol = extractSymbol(insideText?.insideText);
+    const amountSymbol = extractSymbol(amountText);
+
+    if (!insideSymbol || !amountSymbol || insideSymbol === amountSymbol) return amountText;
+
+    return String(amountText).replace(amountSymbol, insideSymbol);
+  };
+
+
+
+
+
+
+
+
   return (
     <div className="flex flex-col gap-6">
-      {phaseData.map((phase, index) => {
-        const values = phase.platforms.map((p) => p.value);
-        const colors = phase.platforms.map((p) => p.color);
+      {phaseData?.map((phase, index) => {
+        const values = phase?.platforms.map((p) => p.value);
+        const colors = phase?.platforms.map((p) => p.color);
 
         return (
           <div key={index} className="flex flex-col gap-4">
@@ -145,12 +167,14 @@ export default function PlatformSpending() {
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center gap-2">
                 <p className="text-[#061237] font-semibold text-lg">
-                  {phase.name}
+                  {phase?.name}
                 </p>
               </div>
               <div className="h-[29px] flex justify-center items-center px-4 bg-[#E8F6FF] border border-[ usługi(49,117,255,0.1)] rounded-full">
                 <p className="font-semibold text-[14px] text-[#3175FF]">
-                  {phase.amount}
+                  {/* {phase.amount} */}
+                  {console.log(swapCurrencySymbol(insideText, phase?.amount))}
+                  {swapCurrencySymbol(insideText, phase?.amount)}
                 </p>
               </div>
             </div>
@@ -160,19 +184,19 @@ export default function PlatformSpending() {
 
             {/* Legend (Platform Name & Icon) */}
             <div className="flex flex-wrap gap-4 mt-2">
-              {phase.platforms.map((platform, idx) => (
+              {phase?.platforms?.map((platform, idx) => (
                 <div key={idx} className="flex items-center gap-2">
-                  {platform.img && (
+                  {platform?.img && (
                     <Image
-                      src={platform.img}
-                      alt={`${platform.name} icon `}
+                      src={platform?.img}
+                      alt={`${platform?.name} icon `}
                       width={20}
                       height={20}
                       className="shrink-0 w-[20px] h-[20px]"
                     />
                   )}
                   <p className="font-semibold text-[14px] leading-[19px] flex items-center text-[#061237]">
-                    {platform.value}%
+                    {platform?.value}%
                   </p>
                 </div>
               ))}
