@@ -29,7 +29,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
    const { isAdmin, isAgencyApprover, isFinancialApprover } = useUserPrivileges();
    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
-   console.log('userType-userType', userType)
+
 
    const [inputs, setInputs] = useState({
       name: "",
@@ -256,9 +256,13 @@ const TableModel = ({ isOpen, setIsOpen }) => {
                },
                jwt
             );
-            localStorage.setItem(userType.toString(), res?.data?.data?.id);
 
-            //  getProfile();
+            if (userType && res?.data?.data?.id) {
+               localStorage.setItem(userType.toString(), res?.data?.data?.id);
+            }
+
+
+            getProfile();
 
             // Create user accounts for Agency Access emails
             for (const emailEntry of inputs.agencyAccess) {

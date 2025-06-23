@@ -108,7 +108,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
               >
                 <div>
                   <h3 className="text-[#061237] font-semibold text-[16px] leading-[22px]  ">
-                    {label} - Running
+                    {label}
                   </h3>
                   <p className="text-[#061237] font-medium text-[14px]">
                     {/* 250,000 € */}
