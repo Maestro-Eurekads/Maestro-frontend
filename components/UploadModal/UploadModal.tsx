@@ -44,10 +44,13 @@ const UploadModal: React.FC<UploadModalProps> = ({
   const [fileSizeErrors, setFileSizeErrors] = useState<string[]>([]);
   const [localPreviews, setLocalPreviews] = useState<Array<{ id: string; url: string }>>([]);
   const MAX_RETRIES = 3;
+  // Increase concurrent uploads for videos, or set to 1 for videos to avoid server overload
+  // Strapi's /upload endpoint can have issues with concurrent large video uploads
+  // We'll upload videos sequentially, images concurrently
   const CONCURRENT_UPLOADS = format === "Video" ? 1 : 3;
-  const UPLOAD_TIMEOUT = 120000;
-  const CHUNK_SIZE = 5 * 1024 * 1024;
-  const MAX_FILE_SIZE = format === "Video" ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+  const UPLOAD_TIMEOUT = 120000; // Increase timeout to 2 minutes for large videos
+  const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks (not used for Strapi default)
+  const MAX_FILE_SIZE = format === "Video" ? 50 * 1024 * 1024 : 10 * 1024 * 1024; // 50MB for videos, 10MB for others
 
   // Validate environment variables
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
@@ -281,46 +284,78 @@ const UploadModal: React.FC<UploadModalProps> = ({
     [format, MAX_FILE_SIZE],
   );
 
-  // REWRITE: handleDelete should just clear the preview locally, not set loading or call API/global state
   const handleDelete = useCallback(
-    (index: number) => {
-      // Clear any file size errors
-      setFileSizeErrors((prev) => {
-        const updated = [...prev];
-        updated[index] = "";
-        return updated;
-      });
+    async (index: number) => {
+      try {
+        setLoading(true);
 
-      // Remove preview at index
-      setLocalPreviews((prev) => {
-        const updated = [...prev];
-        updated[index] = undefined as any;
-        return updated;
-      });
+        // Clear any file size errors
+        setFileSizeErrors((prev) => {
+          const updated = [...prev];
+          updated[index] = "";
+          return updated;
+        });
 
-      setUploads((prev) => {
-        const updated = [...prev];
-        updated[index] = null;
-        return updated;
-      });
+        // Get the file ID before updating UI
+        const fileToDelete = localPreviews[index]?.id;
 
-      setUploadBlobs((prev) => {
-        const updated = [...prev];
-        if (updated[index] && updated[index].startsWith("blob:")) {
-          URL.revokeObjectURL(updated[index]);
+        // Update local state
+        setLocalPreviews((prev) => {
+          const updated = [...prev];
+          updated.splice(index, 1);
+          return updated;
+        });
+
+        setUploads((prev) => {
+          const updated = [...prev];
+          updated[index] = null;
+          return updated;
+        });
+
+        setUploadBlobs((prev) => {
+          const updated = [...prev];
+          if (updated[index] && updated[index].startsWith("blob:")) {
+            URL.revokeObjectURL(updated[index]);
+          }
+          updated[index] = "";
+          return updated;
+        });
+
+        setUploadProgress((prev) => {
+          const updated = [...prev];
+          updated[index] = 0;
+          return updated;
+        });
+
+        // Delete from Strapi if file exists
+        if (fileToDelete) {
+          await fetch(`${STRAPI_URL}/upload/files/${fileToDelete}`, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${jwt}`,
+            },
+          });
         }
-        updated[index] = "";
-        return updated;
-      });
 
-      setUploadProgress((prev) => {
-        const updated = [...prev];
-        updated[index] = 0;
-        return updated;
-      });
+        // Update global state with remaining previews
+        const updatedPreviews = localPreviews.filter((_, i) => i !== index);
+        await updateGlobalState(updatedPreviews);
+
+        toast.success("File deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting file:", error);
+        toast.error("Failed to delete file. Please try again.");
+      } finally {
+        setLoading(false);
+      }
     },
-    []
+    [localPreviews, updateGlobalState, STRAPI_URL, STRAPI_TOKEN],
   );
+
+  // --- CHUNKED UPLOAD LOGIC REWRITE FOR "METHOD NOT ALLOWED" ERROR ---
+  // Instead of using /upload/chunk and /upload/finalize, use only /upload (Strapi default)
+  // If you want to support chunked upload, you must have a custom backend route for it.
+  // Here, we fallback to default Strapi /upload endpoint for all files.
 
   const uploadSingleFile = useCallback(
     async (file: File, index: number, retryCount = 0): Promise<any> => {
