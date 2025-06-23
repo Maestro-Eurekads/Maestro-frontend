@@ -379,7 +379,9 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
           ?.find((item) => item.funnel_stage === stageName)
           ?.[categoryKey]?.find((platform) => platform.platform_name === name);
 
-        return existingPlatform || { platform_name: name };
+        return existingPlatform || { platform_name: name, 
+          campaign_start_date:  campaignFormData?.campaign_timeline_start_date,
+          campaign_end_date:  campaignFormData?.campaign_timeline_end_date, };
       });
 
       const existingChannelMixIndex = prevFormData.channel_mix?.findIndex(
@@ -396,7 +398,7 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
       } else {
         updatedChannelMix.push({
           funnel_stage: stageName,
-          [categoryKey]: platformObjects,
+          [categoryKey]: platformObjects
         });
       }
 
