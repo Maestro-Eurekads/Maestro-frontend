@@ -19,7 +19,7 @@ import Display from "../../../../public/Display.svg"
 import yahoo from "../../../../public/yahoo.svg"
 import bing from "../../../../public/bing.svg"
 import tictok from "../../../../public/tictok.svg"
-import { Plus } from 'lucide-react'
+import { Plus } from "lucide-react"
 import { useActive } from "app/utils/ActiveContext"
 import { removeKeysRecursively } from "utils/removeID"
 import { getPlatformIcon, mediaTypes } from "components/data"
@@ -71,6 +71,7 @@ interface AdSetFlowProps {
   platformName?: any
   modalOpen?: boolean
   granularity?: "channel" | "adset"
+  onPlatformStateChange?: (stageName: string, platformName: string, isOpen: boolean) => void
 }
 
 interface AudienceData {
@@ -853,7 +854,7 @@ const NonFacebookOutlet = memo(function NonFacebookOutlet({
   )
 })
 
-// AdsetSettings Component - Updated with complete granularity separation
+// AdsetSettings Component - Updated with complete granularity separation and platform state tracking
 const AdsetSettings = memo(function AdsetSettings({
   outlet,
   stageName,
@@ -862,6 +863,7 @@ const AdsetSettings = memo(function AdsetSettings({
   isCollapsed,
   setCollapsed,
   granularity = "adset",
+  onPlatformStateChange,
 }: {
   outlet: OutletType
   stageName: string
@@ -870,6 +872,7 @@ const AdsetSettings = memo(function AdsetSettings({
   isCollapsed: boolean
   setCollapsed: (collapsed: boolean) => void
   granularity?: "channel" | "adset"
+  onPlatformStateChange?: (stageName: string, platformName: string, isOpen: boolean) => void
 }) {
   const { isEditing } = useEditing()
   const { campaignFormData, setCampaignFormData, updateCampaign, getActiveCampaign } = useCampaigns()
@@ -999,6 +1002,12 @@ const AdsetSettings = memo(function AdsetSettings({
       setAdSetDataMap({})
     }
   }, [stageName, outlet.outlet, selectedPlatforms, defaultOpen, granularity])
+
+  // Track platform open/closed state and notify parent
+  useEffect(() => {
+    const isOpen = selectedPlatforms.includes(outlet.outlet) && !isCollapsed
+    onPlatformStateChange?.(stageName, outlet.outlet, isOpen)
+  }, [selectedPlatforms, isCollapsed, stageName, outlet.outlet, onPlatformStateChange])
 
   // GRANULARITY SEPARATION: Only allow adding ad sets in adset granularity
   const addNewAddset = useCallback(() => {
@@ -1171,6 +1180,10 @@ const AdsetSettings = memo(function AdsetSettings({
     onInteraction()
   }, [outlet.outlet, onInteraction])
 
+  const handleToggleCollapsed = useCallback(() => {
+    setCollapsed(!isCollapsed)
+  }, [isCollapsed, setCollapsed])
+
   // Updated recap rows to handle granularity properly with complete separation
   const recapRows: {
     type: string
@@ -1244,7 +1257,7 @@ const AdsetSettings = memo(function AdsetSettings({
         <div className="relative flex items-center gap-4">
           <button
             className="relative min-w-[150px] max-w-[300px] w-fit z-20 flex gap-4 justify-between cursor-pointer items-center bg-[#F9FAFB] border border-[#0000001A] border-solid py-4 px-4 rounded-[10px]"
-            onClick={() => setCollapsed(!isCollapsed)}
+            onClick={handleToggleCollapsed}
             type="button"
           >
             <Image src={outlet.icon || "/placeholder.svg"} alt={outlet.outlet} className="w-[22px] h-[22px]" />
@@ -1369,6 +1382,7 @@ const AdSetFlow = memo(function AdSetFlow({
   platformName,
   modalOpen,
   granularity = "adset",
+  onPlatformStateChange,
 }: AdSetFlowProps) {
   const { isEditing, setIsEditing } = useEditing()
   const { active } = useActive()
@@ -1443,47 +1457,49 @@ const AdSetFlow = memo(function AdSetFlow({
     const platformsByStage: Record<string, OutletType[]> = {}
     const channelMix = campaignFormData?.channel_mix || []
 
-    channelMix && channelMix?.length > 0 && channelMix.forEach((stage: any) => {
-      const {
-        funnel_stage,
-        search_engines,
-        display_networks,
-        social_media,
-        streaming,
-        mobile,
-        ooh,
-        broadcast,
-        in_game,
-        e_commerce,
-        messaging,
-        print,
-      } = stage
-      if (!platformsByStage[funnel_stage]) platformsByStage[funnel_stage] = []
-      ;[
-        search_engines,
-        display_networks,
-        social_media,
-        streaming,
-        mobile,
-        ooh,
-        broadcast,
-        in_game,
-        e_commerce,
-        messaging,
-        print,
-      ].forEach((platforms) => {
-        if (Array.isArray(platforms)) {
-          platforms.forEach((platform: any) => {
-            const icon = getPlatformIcon(platform?.platform_name)
-            platformsByStage[funnel_stage].push({
-              id: Math.floor(Math.random() * 1000000),
-              outlet: platform.platform_name,
-              icon: icon,
+    channelMix &&
+      channelMix?.length > 0 &&
+      channelMix.forEach((stage: any) => {
+        const {
+          funnel_stage,
+          search_engines,
+          display_networks,
+          social_media,
+          streaming,
+          mobile,
+          ooh,
+          broadcast,
+          in_game,
+          e_commerce,
+          messaging,
+          print,
+        } = stage
+        if (!platformsByStage[funnel_stage]) platformsByStage[funnel_stage] = []
+        ;[
+          search_engines,
+          display_networks,
+          social_media,
+          streaming,
+          mobile,
+          ooh,
+          broadcast,
+          in_game,
+          e_commerce,
+          messaging,
+          print,
+        ].forEach((platforms) => {
+          if (Array.isArray(platforms)) {
+            platforms.forEach((platform: any) => {
+              const icon = getPlatformIcon(platform?.platform_name)
+              platformsByStage[funnel_stage].push({
+                id: Math.floor(Math.random() * 1000000),
+                outlet: platform.platform_name,
+                icon: icon,
+              })
             })
-          })
-        }
+          }
+        })
       })
-    })
     return platformsByStage
   }, [campaignFormData, modalOpen])
 
@@ -1520,10 +1536,10 @@ const AdSetFlow = memo(function AdSetFlow({
       } else if (granularity === "channel") {
         // New channel granularity logic
         const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
-        
+
         // Check both sessionStorage and in-memory state for channel-level audience data
         let channelStateToCheck = {}
-        
+
         // First try to load from sessionStorage
         if (typeof window !== "undefined") {
           try {
@@ -1536,24 +1552,26 @@ const AdSetFlow = memo(function AdSetFlow({
             console.error("Error loading channel state for auto-open:", error)
           }
         }
-        
+
         // Fallback to in-memory state if no stored data
-        if (Object.keys(channelStateToCheck).length === 0 && typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
+        if (
+          Object.keys(channelStateToCheck).length === 0 &&
+          typeof window !== "undefined" &&
+          (window as any).channelLevelAudienceState
+        ) {
           channelStateToCheck = (window as any).channelLevelAudienceState
         }
-        
+
         // Check each stage for platforms with channel-level audience data
         for (const stage of campaignFormData.channel_mix) {
           const stageName = stage.funnel_stage
           const stageChannelData = channelStateToCheck[stageName]
-          
+
           if (stageChannelData) {
             const platformsWithChannelData = Object.entries(stageChannelData)
-              .filter(([platformName, data]: [string, any]) => 
-                data.audience_type || data.name || data.size
-              )
+              .filter(([platformName, data]: [string, any]) => data.audience_type || data.name || data.size)
               .map(([platformName]) => platformName)
-            
+
             if (platformsWithChannelData.length > 0) {
               autoOpenPlatforms[stageName] = platformsWithChannelData
             }
@@ -1655,6 +1673,7 @@ const AdSetFlow = memo(function AdSetFlow({
                   isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
                   setCollapsed={(collapsed) => handleToggleCollapsed(outlet.outlet)}
                   granularity={granularity}
+                  onPlatformStateChange={onPlatformStateChange}
                 />
               ))
           : platforms[stageName]?.map((outlet) => (
@@ -1667,6 +1686,7 @@ const AdSetFlow = memo(function AdSetFlow({
                 isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
                 setCollapsed={(collapsed) => handleToggleCollapsed(outlet.outlet)}
                 granularity={granularity}
+                onPlatformStateChange={onPlatformStateChange}
               />
             ))}
       </div>
