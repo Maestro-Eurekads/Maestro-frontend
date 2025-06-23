@@ -4,7 +4,8 @@ export function useUserPrivileges() {
   const { data: session } = useSession();
  // @ts-ignore 
   const userType = session?.user?.data?.user?.user_type || "";
-
+ // @ts-ignore
+  const userID = session?.user?.data?.user?.id?.toString() || "";
   const isAdmin = userType === "admin";
   const isAgencyCreator = userType === "agency_creator";
   const isAgencyApprover = userType === "agency_approver";
@@ -21,6 +22,7 @@ export function useUserPrivileges() {
     isClient,
     isClientApprover,
     loggedInUser,
+    userID
   };
 }
 
