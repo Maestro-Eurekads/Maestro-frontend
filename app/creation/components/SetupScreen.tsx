@@ -93,8 +93,6 @@ export const SetupScreen = () => {
 
 
 
-  console.log('clientId-clientId', clientId)
-
 
 
   const fetchUsers = async () => {

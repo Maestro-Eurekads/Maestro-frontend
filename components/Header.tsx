@@ -84,7 +84,7 @@ const Header = ({ setIsOpen, setIsView }) => {
       return () => clearTimeout(timer);
 
     }
-  }, [dispatch, session, profile, agencyId]);
+  }, [dispatch, session, profile, agencyId, userType]);
 
   //  LocalStorage prioritized
   useEffect(() => {

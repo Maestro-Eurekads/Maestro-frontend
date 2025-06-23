@@ -1530,3 +1530,65 @@
     }
   ]
 }
+
+
+
+{
+    "data": {
+        "data": {
+            "id": 15,
+            "documentId": "rysyvgver0bq81k6snfcez5q",
+            "client_name": "jumming",
+            "client_emails": null,
+            "level_1": [],
+            "level_2": null,
+            "level_3": null,
+            "fee_type": null,
+            "custom_funnel_configs": null,
+            "createdAt": "2025-06-23T16:53:26.017Z",
+            "updatedAt": "2025-06-23T16:53:26.017Z",
+            "publishedAt": "2025-06-23T16:53:25.959Z"
+        },
+        "meta": {}
+    },
+    "status": 201,
+    "statusText": "",
+    "headers": {
+        "content-length": "187",
+        "content-type": "application/json; charset=utf-8"
+    },
+    "config": {
+        "transitional": {
+            "silentJSONParsing": true,
+            "forcedJSONParsing": true,
+            "clarifyTimeoutError": false
+        },
+        "adapter": [
+            "xhr",
+            "http",
+            "fetch"
+        ],
+        "transformRequest": [
+            null
+        ],
+        "transformResponse": [
+            null
+        ],
+        "timeout": 0,
+        "xsrfCookieName": "XSRF-TOKEN",
+        "xsrfHeaderName": "X-XSRF-TOKEN",
+        "maxContentLength": -1,
+        "maxBodyLength": -1,
+        "env": {},
+        "headers": {
+            "Accept": "application/json, text/plain, */*",
+            "Content-Type": "application/json",
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OSwiaWF0IjoxNzUwNjk2NzEzLCJleHAiOjE3NTMyODg3MTN9.MRJThw0NyNAJMiIyOgMBHRz7NeSoTGtwshO02URSWC0"
+        },
+        "method": "post",
+        "url": "https://julienplaforrm-backend.onrender.com/api/clients",
+        "data": "{\"data\":{\"client_name\":\"jumming\",\"level_1\":[],\"users\":9,\"agency\":3}}",
+        "allowAbsoluteUrls": true
+    },
+    "request": {}
+}
