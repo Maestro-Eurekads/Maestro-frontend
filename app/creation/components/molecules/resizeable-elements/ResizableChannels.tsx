@@ -301,7 +301,7 @@ const ResizableChannels = ({
   ) => {
     if (disableDrag) return;
     e.preventDefault();
-    e.stopPropagation();
+    // e.stopPropagation();
     isResizing.current = {
       startX: e.clientX,
       startWidth: channelState[index].width,
@@ -422,35 +422,35 @@ const ResizableChannels = ({
       );
   
       // Update campaignFormData copy
-      setCopy((prevData) => {
-        const updatedData = JSON.parse(JSON.stringify(prevData));
+      // setCopy((prevData) => {
+      //   const updatedData = JSON.parse(JSON.stringify(prevData));
   
-        const channelMix = updatedData.channel_mix.find(
-          (ch) => ch.funnel_stage === parentId
-        );
+      //   const channelMix = updatedData.channel_mix.find(
+      //     (ch) => ch.funnel_stage === parentId
+      //   );
   
-        if (channelMix) {
-          const channelGroup = channelMix[channels[index].channelName];
-          if (Array.isArray(channelGroup)) {
-            const platform = channelGroup.find(
-              (p) => p.platform_name === channels[index].name
-            );
+      //   if (channelMix) {
+      //     const channelGroup = channelMix[channels[index].channelName];
+      //     if (Array.isArray(channelGroup)) {
+      //       const platform = channelGroup.find(
+      //         (p) => p.platform_name === channels[index].name
+      //       );
   
-            if (platform) {
-              platform.campaign_start_date = newStartDate;
-              platform.campaign_end_date = newEndDate;
-            }
-          }
-        }
+      //       if (platform) {
+      //         platform.campaign_start_date = newStartDate;
+      //         platform.campaign_end_date = newEndDate;
+      //       }
+      //     }
+      //   }
   
-        return updatedData;
-      });
+      //   return updatedData;
+      // });
   
       draggingDataRef.current = null;
     }
   };
   
-
+console.log("here", isResizing)
   // Separate effect for parentWidth-only changes
   // useEffect(() => {
   //   if (
