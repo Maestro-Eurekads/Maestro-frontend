@@ -37,12 +37,12 @@ const GOAL_LEVEL_MODAL_KEY_PREFIX = "goalLevelModalDismissed_"
 
 const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
-  const [stageStatuses, setStageStatuses] = useState<Record<string, string>>({})
-  const [hasInteracted, setHasInteracted] = useState<Record<string, boolean>>({})
+  // Remove completed status: don't track stageStatuses or hasInteracted
   const { campaignFormData, setCampaignFormData } = useCampaigns()
   const [step, setStep] = useState(2)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const initialized = useRef(false)
+  const [openPlatforms, setOpenPlatforms] = useState<Record<string, string[]>>({})
 
   // Get a unique key for the current plan (use media_plan_id if available, fallback to campaignFormData id)
   const getPlanKey = () => {
@@ -73,6 +73,28 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         localStorage.setItem(modalKey, "true")
       }
     }
+  }
+
+  const handlePlatformStateChange = (stageName: string, platformName: string, isOpen: boolean) => {
+    setOpenPlatforms(prev => {
+      const stageOpenPlatforms = prev[stageName] || []
+      if (isOpen) {
+        // Add platform if not already in the list
+        if (!stageOpenPlatforms.includes(platformName)) {
+          return {
+            ...prev,
+            [stageName]: [...stageOpenPlatforms, platformName]
+          }
+        }
+      } else {
+        // Remove platform from the list
+        return {
+          ...prev,
+          [stageName]: stageOpenPlatforms.filter(p => p !== platformName)
+        }
+      }
+      return prev
+    })
   }
 
   useEffect(() => {
@@ -110,13 +132,9 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     if (!campaignFormData?.funnel_stages || initialized.current) return
 
     initialized.current = true
-    const initialStatuses: Record<string, string> = {}
-    const initialInteractions: Record<string, boolean> = {}
     const initialOpenItems: Record<string, boolean> = {}
 
     for (const stageName of campaignFormData.funnel_stages) {
-      initialStatuses[stageName] = "Not started"
-      initialInteractions[stageName] = false
       initialOpenItems[stageName] = false
 
       const stage = campaignFormData.channel_mix?.find((s: any) => s.funnel_stage === stageName)
@@ -152,14 +170,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
         if (hasData) {
           initialOpenItems[stageName] = true
-          initialStatuses[stageName] = "Not started"
-          initialInteractions[stageName] = true
         }
       }
     }
 
-    setStageStatuses(initialStatuses)
-    setHasInteracted(initialInteractions)
     setOpenItems(initialOpenItems)
   }, [campaignFormData, view])
 
@@ -170,76 +184,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     })
   }
 
-  const handleInteraction = (stageName: string) => {
-    setStageStatuses((prev) => ({
-      ...prev,
-      [stageName]: prev[stageName] === "Completed" ? "Completed" : "Not started",
-    }))
-    setHasInteracted((prev) => ({ ...prev, [stageName]: true }))
-  }
-
-  const handleValidate = (stageName: string) => {
-    setStageStatuses((prev) => ({ ...prev, [stageName]: "Completed" }))
-    setOpenItems((prev) => ({ ...prev, [stageName]: false }))
-  }
-
-  const resetInteraction = (stageName: string) => {
-    // GRANULARITY SEPARATION: Reset based on current view
-    let hasData = false
-
-    if (view === "adset") {
-      const stage = campaignFormData?.channel_mix?.find((s: any) => s.funnel_stage === stageName)
-      hasData = stage
-        ? [
-            ...(stage.search_engines || []),
-            ...(stage.display_networks || []),
-            ...(stage.social_media || []),
-            ...(stage.streaming || []),
-            ...(stage.ooh || []),
-            ...(stage.broadcast || []),
-            ...(stage.messaging || []),
-            ...(stage.print || []),
-            ...(stage.e_commerce || []),
-            ...(stage.in_game || []),
-            ...(stage.mobile || []),
-          ].some((platform: any) => platform.ad_sets && platform.ad_sets.length > 0)
-        : false
-    } else {
-      // For channel view, check both sessionStorage and in-memory state
-      const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
-
-      // Check sessionStorage first
-      if (typeof window !== "undefined") {
-        try {
-          const key = `channelLevelAudienceState_${campaignId || "default"}`
-          const stored = sessionStorage.getItem(key)
-          if (stored) {
-            const storedState = JSON.parse(stored)
-            if (storedState[stageName]) {
-              hasData = Object.values(storedState[stageName]).some(
-                (data: any) => data.audience_type || data.name || data.size,
-              )
-            }
-          }
-        } catch (error) {
-          console.error("Error checking stored channel state:", error)
-        }
-      }
-
-      // Fallback to in-memory check
-      if (!hasData && typeof window !== "undefined" && (window as any).channelLevelAudienceState) {
-        const channelState = (window as any).channelLevelAudienceState[stageName]
-        if (channelState) {
-          hasData = Object.values(channelState).some((data: any) => data.audience_type || data.name || data.size)
-        }
-      }
-    }
-
-    if (!hasData) {
-      setHasInteracted((prev) => ({ ...prev, [stageName]: false }))
-      setStageStatuses((prev) => ({ ...prev, [stageName]: "Not started" }))
-    }
-  }
+  // Remove completed status: no handleInteraction, handleValidate, resetInteraction
 
   // GRANULARITY SEPARATION: Returns true if there is audience data for the stage based on current granularity
   const hasAnyAudience = (stageName: string) => {
@@ -504,8 +449,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         const stage = campaignFormData?.custom_funnels?.find((s: any) => s.name === stageName)
         if (!stage) return null
 
-        const currentStatus = stageStatuses[stageName] || "Not started"
-        const isCompleted = currentStatus === "Completed"
+        // Remove completed status: don't show completed UI
         const recapRows = getRecapRows(stageName)
 
         // Find the corresponding channel_mix stage for platform/adset data
@@ -530,14 +474,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
               </div>
 
               <div className="flex items-center gap-2">
-                {isCompleted ? (
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-green-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <p className="text-green-50 font-semibold text-base">Completed</p>
-                  </div>
-                ) : (
+                {(!openPlatforms[stageName] || openPlatforms[stageName].length === 0) && (
                   <p className="text-black text-base">Not started</p>
                 )}
               </div>
@@ -557,11 +494,9 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
               >
                 <AdSetsFlow
                   stageName={stageName}
-                  onInteraction={() => handleInteraction(stageName)}
-                  onValidate={() => handleValidate(stageName)}
-                  onEditStart={() => resetInteraction(stageName)}
                   modalOpen={isModalOpen}
                   granularity={view} // Pass the current granularity
+                  onPlatformStateChange={handlePlatformStateChange}
                 />
               </div>
             )}
