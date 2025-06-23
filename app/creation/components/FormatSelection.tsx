@@ -1547,10 +1547,10 @@ export const Platforms = ({
 export const FormatSelection = ({
   stageName,
   platformName,
-  view:openView
+  view: openView,
 }: {
-  stageName?: string;
-  platformName?: string;
+  stageName?: string
+  platformName?: string
   view?: "channel" | "adset"
 }) => {
   const [openTabs, setOpenTabs] = useState<string[]>([])
@@ -1561,12 +1561,12 @@ export const FormatSelection = ({
   const { setIsDrawerOpen, setClose } = useComments()
 
   useEffect(() => {
-    setView(openView ? openView :"channel");
+    setView(openView ? openView : "channel")
     setIsDrawerOpen(false)
     setClose(false)
     setCampaignFormData((prev) => ({
       ...prev,
-      goal_level: openView ? openView === "channel" ? "Channel level" : "Adset level" : "Channel level",
+      goal_level: openView ? (openView === "channel" ? "Channel level" : "Adset level") : "Channel level",
     }))
   }, [setIsDrawerOpen, setClose, setCampaignFormData, openView])
 
@@ -1653,26 +1653,26 @@ export const FormatSelection = ({
         />
       )}
       <div className="mt-[32px] flex flex-col gap-[24px] cursor-pointer">
-          {!stageName &&
-                  <div className="flex justify-center gap-3">
-                    <p className="font-medium">Channel Granularity</p>
-                    <Switch
-                      checked={view === "adset"}
-                      onChange={handleToggleChange}
-                      onColor="#5cd08b"
-                      offColor="#3175FF"
-                      handleDiameter={18}
-                      uncheckedIcon={false}
-                      checkedIcon={false}
-                      height={24}
-                      width={48}
-                      borderRadius={24}
-                      activeBoxShadow="0 0 2px 3px rgba(37, 99, 235, 0.2)"
-                      className="react-switch"
-                    />
-                    <p className="font-medium">Ad Set Granularity</p>
-                  </div>
-}
+        {!stageName && (
+          <div className="flex justify-center gap-3">
+            <p className="font-medium">Channel Granularity</p>
+            <Switch
+              checked={view === "adset"}
+              onChange={handleToggleChange}
+              onColor="#5cd08b"
+              offColor="#3175FF"
+              handleDiameter={18}
+              uncheckedIcon={false}
+              checkedIcon={false}
+              height={24}
+              width={48}
+              borderRadius={24}
+              activeBoxShadow="0 0 2px 3px rgba(37, 99, 235, 0.2)"
+              className="react-switch"
+            />
+            <p className="font-medium">Ad Set Granularity</p>
+          </div>
+        )}
 
         {campaignFormData?.funnel_stages
           ?.filter((ff) => !stageName || ff === stageName)
