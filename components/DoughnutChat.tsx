@@ -171,27 +171,38 @@ const DoughnutChart = ({
   const dataValues = (() => {
     if (funnelStages.length === 0) return [100]
 
-    // Get stage budgets
-    const stageBudgets =
-      campaignFormData?.channel_mix?.map((st: any) => ({
-        name: st?.funnel_stage,
-        amount: Number(st?.stage_budget?.fixed_value) || 0,
-      })) || []
+    // Get stage budgets from channel_mix
+    const stageBudgets = funnelStages.map((stageName) => {
+      const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
+      return {
+        name: stageName,
+        amount: Number(stageData?.stage_budget?.fixed_value) || 0,
+      }
+    })
 
     // Calculate total budget for percentage calculation
     let totalBudget = 0
 
     if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
-      // In bottom-up mode, use the sum of all stage budgets or main campaign budget
-      totalBudget = campaignFormData?.campaign_budget?.amount
-        ? Number(campaignFormData.campaign_budget.amount)
-        : stageBudgets.reduce((sum, stage) => sum + stage.amount, 0)
+      // In bottom-up mode, use the sum of all stage budgets as the total
+      totalBudget = stageBudgets.reduce((sum, stage) => sum + stage.amount, 0)
     } else {
-      // In top-down mode, use the main campaign budget amount
-      totalBudget = Number(campaignFormData?.campaign_budget?.amount) || 0
+      // In top-down mode, use the net available budget
+      const budgetAmount = Number(campaignFormData?.campaign_budget?.amount) || 0
+      const totalFees =
+        campaignFormData?.campaign_budget?.budget_fees?.reduce((total, fee) => total + Number(fee.value || 0), 0) || 0
+      const budgetType = campaignFormData?.campaign_budget?.sub_budget_type
+
+      if (budgetType === "gross") {
+        // For gross budget, net available = gross - fees
+        totalBudget = Math.max(0, budgetAmount - totalFees)
+      } else {
+        // For net budget, use the net amount directly
+        totalBudget = budgetAmount
+      }
     }
 
-    // Calculate percentages based on actual amounts and total budget
+    // Calculate percentages based on stage amounts and total budget
     if (totalBudget === 0) return stageBudgets.map(() => 0)
 
     return stageBudgets.map((stage) => {
@@ -263,7 +274,7 @@ const DoughnutChart = ({
 
             // Get the corresponding stage budget amount
             const stageData = campaignFormData?.channel_mix?.find((st: any) => st?.funnel_stage === label)
-            const amount = stageData?.stage_budget?.fixed_value || 0
+            const amount = Number(stageData?.stage_budget?.fixed_value) || 0
             const currency = campaignFormData?.campaign_budget?.currency || "EUR"
 
             // Get currency symbol
@@ -286,7 +297,7 @@ const DoughnutChart = ({
               }
             }
 
-            return `${label}: ${percentage.toFixed(1)}% (${getCurrencySymbol(currency)}${Number(amount).toLocaleString()})`
+            return `${label}: ${percentage.toFixed(1)}% (${getCurrencySymbol(currency)}${amount.toLocaleString()})`
           },
         },
       },
