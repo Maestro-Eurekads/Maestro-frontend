@@ -39,9 +39,9 @@ const SetBuyObjectivesAndTypesSubStep = () => {
     if (!campaignFormData?.channel_mix) return {}
 
     const platformsByStage: Record<string, PlatformOutletType[]> = {}
-    const channelMix = campaignFormData.channel_mix
+    const channelMix = campaignFormData?.channel_mix
 
-    channelMix.forEach((stage: any) => {
+    channelMix && channelMix?.length > 0 && channelMix.forEach((stage: any) => {
       const { funnel_stage, ...platformGroups } = stage
 
       if (!platformsByStage[funnel_stage]) {

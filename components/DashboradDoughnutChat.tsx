@@ -193,6 +193,7 @@ const DoughnutChart = ({
   }
 
   const colors = getUniqueColors(selectedFunnels, funnelStages);
+ 
 
   // Generate data values for the chart
   const dataValues = funnelStages.length > 0

@@ -57,8 +57,12 @@ const DateRangeSelector = () => {
                   if (channel[mediaType]) {
                     acc[mediaType] = channel[mediaType].map((media) => ({
                     ...media,
-                    campaign_start_date: null,
-                    campaign_end_date: null,
+                    campaign_start_date: item?.selection?.startDate
+                  ? format(item.selection.startDate, "yyyy-MM-dd")
+                  : null,
+                    campaign_end_date: item?.selection?.endDate
+                  ? format(item.selection.endDate, "yyyy-MM-dd")
+                  : null,
                     }));
                   }
                   return acc;
@@ -66,8 +70,12 @@ const DateRangeSelector = () => {
 
                   return {
                   ...channel,
-                  funnel_stage_timeline_start_date: null,
-                  funnel_stage_timeline_end_date: null,
+                  funnel_stage_timeline_start_date: item?.selection?.startDate
+                  ? format(item.selection.startDate, "yyyy-MM-dd")
+                  : null,
+                  funnel_stage_timeline_end_date: item?.selection?.endDate
+                  ? format(item.selection.endDate, "yyyy-MM-dd")
+                  : null,
                   ...updatedMediaTypes,
                   };
                 });
