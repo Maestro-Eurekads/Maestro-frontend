@@ -846,7 +846,8 @@ console.log("Called")
           }
 
           // Check if this channel already exists in prev
-          const existingState = prev[index];
+          //@ts-ignore
+            const existingState = prev.find((state) => state.id === ch.id);
 
           return existingState
             ? {
@@ -856,7 +857,7 @@ console.log("Called")
               }
             : {
                 left: parentLeft,
-                width: Math.min(parentWidth, 50), // Default width for new channels
+                width: Math.min(width, 50), // Default width for new channels
               };
         });
 
