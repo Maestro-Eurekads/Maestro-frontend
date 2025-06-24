@@ -196,7 +196,7 @@ const CampaignBudget = () => {
    <div className="flex justify-between">
     <PageHeaderWrapper
      t1="Allocate your campaign budget"
-     t2="Decide whether to allocate your budget by channel or ad set. First, enter an overall campaign budget if applicable."
+     t2="Decide whether to allocate eet by channel or ad set. First, enter an overall campaign budget if applicable."
      t3="Then, distribute it across channels and ad sets."
      t4="Choose how to set your campaign budget"
      span={1}
