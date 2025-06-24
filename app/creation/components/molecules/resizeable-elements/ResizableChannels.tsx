@@ -247,7 +247,7 @@ const ResizableChannels = ({
     isResizing.current = {
       startX: e.clientX,
       startWidth: channelState[index].width,
-      startPos: channelState[index].left,
+      startPos: channelState[index].left || 0,
       direction,
       index,
     };
@@ -316,10 +316,10 @@ const ResizableChannels = ({
       // Ensure the snapped right edge does not exceed the parent's right edge
       if (snappedRightEdge > parentRightEdge) {
         console.log("1")
-        newWidth = parentRightEdge - newLeft;
+        newWidth = parentRightEdge ;
       } else {
         console.log("2")
-        newWidth = Math.max(50, snappedRightEdge - newLeft);
+        newWidth = Math.max(50, snappedRightEdge );
       }
   
       // Adjust newLeft if snapping causes overlap

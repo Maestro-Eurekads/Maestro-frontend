@@ -113,7 +113,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     calculatedDate.setDate(startDate.getDate() + dayIndex);
 
     if (fieldName === "endDate") {
-      calculatedDate.setDate(calculatedDate.getDate() + 1); // Add 1 day to fix the issue
+      calculatedDate.setDate(calculatedDate.getDate()); // Add 1 day to fix the issue
     }
 
     return calculatedDate;
