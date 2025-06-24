@@ -621,13 +621,18 @@ const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback(
 }) {
   const { openDropdownId, setOpenDropdownId } = useContext(DropdownContext)
   const { customAudienceTypes, addCustomAudienceType } = useContext(CustomAudienceTypesContext)
-  const { jwt } = useCampaigns()
+  const { jwt, agencyData } = useCampaigns()
 
   // Default options
   const defaultOptions = ["Lookalike audience", "Retargeting audience", "Broad audience", "Behavioral audience"]
 
   // Merge default and custom, deduped
-  const mergedAudienceOptions = Array.from(new Set([...defaultOptions, ...customAudienceTypes]))
+  const mergedAudienceOptions = Array.from(
+    new Set([
+      ...defaultOptions,
+      ...(agencyData?.custom_audience_type?.map((item: any) => item?.text).filter(Boolean) || []),
+    ]),
+  )
 
   const [selected, setSelected] = useState<string>(initialValue || "")
   const [searchTerm, setSearchTerm] = useState("")
@@ -648,8 +653,8 @@ const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback(
     // eslint-disable-next-line
   }, [selected])
 
-  const filteredOptions = mergedAudienceOptions.filter((option) =>
-    option.toLowerCase().includes(searchTerm.toLowerCase()),
+  const filteredOptions = (mergedAudienceOptions || []).filter((option) =>
+    option?.toLowerCase()?.includes(searchTerm?.toLowerCase()),
   )
 
   const handleSelect = useCallback(
@@ -679,9 +684,11 @@ const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback(
 
     setLoading(true)
     try {
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/audience-types`,
-        { data: { text: customValue } },
+      const existingCustomAudienceTypes = agencyData?.custom_audience_type || []
+      const res = await axios.put(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/agencies/${agencyData?.documentId}`,
+        { data: { custom_audience_type: [...existingCustomAudienceTypes, { text: customValue }] } },
+
         {
           headers: {
             Authorization: `Bearer ${jwt}`,
@@ -689,9 +696,9 @@ const AudienceDropdownWithCallback = memo(function AudienceDropdownWithCallback(
         },
       )
       const data = res?.data?.data
-      addCustomAudienceType(data.text)
-      setSelected(data.text)
-      onSelect(data.text)
+      addCustomAudienceType(customValue)
+      setSelected(customValue)
+      onSelect(customValue)
       setCustomValue("")
       setShowCustomInput(false)
       setOpenDropdownId(null)
@@ -875,7 +882,7 @@ const AdsetSettings = memo(function AdsetSettings({
   onPlatformStateChange?: (stageName: string, platformName: string, isOpen: boolean) => void
 }) {
   const { isEditing } = useEditing()
-  const { campaignFormData, setCampaignFormData, updateCampaign, getActiveCampaign } = useCampaigns()
+  const { campaignFormData, setCampaignFormData, updateCampaign, getActiveCampaign, agencyData } = useCampaigns()
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
   const [adsets, setAdSets] = useState<AdSetType[]>([])
   const [adSetDataMap, setAdSetDataMap] = useState<Record<number, AdSetData>>({})
@@ -1457,49 +1464,51 @@ const AdSetFlow = memo(function AdSetFlow({
     const platformsByStage: Record<string, OutletType[]> = {}
     const channelMix = campaignFormData?.channel_mix || []
 
-    channelMix &&
-      channelMix?.length > 0 &&
+    if (channelMix && channelMix.length > 0) {
       channelMix.forEach((stage: any) => {
         const {
           funnel_stage,
-          search_engines,
-          display_networks,
-          social_media,
-          streaming,
-          mobile,
-          ooh,
-          broadcast,
-          in_game,
-          e_commerce,
-          messaging,
-          print,
+          search_engines = [],
+          display_networks = [],
+          social_media = [],
+          streaming = [],
+          mobile = [],
+          ooh = [],
+          broadcast = [],
+          in_game = [],
+          e_commerce = [],
+          messaging = [],
+          print = [],
         } = stage
+
         if (!platformsByStage[funnel_stage]) platformsByStage[funnel_stage] = []
-        ;[
-          search_engines,
-          display_networks,
-          social_media,
-          streaming,
-          mobile,
-          ooh,
-          broadcast,
-          in_game,
-          e_commerce,
-          messaging,
-          print,
-        ].forEach((platforms) => {
-          if (Array.isArray(platforms)) {
-            platforms.forEach((platform: any) => {
-              const icon = getPlatformIcon(platform?.platform_name)
-              platformsByStage[funnel_stage].push({
-                id: Math.floor(Math.random() * 1000000),
-                outlet: platform.platform_name,
-                icon: icon,
-              })
+
+        const allPlatforms = [
+          ...(search_engines || []),
+          ...(display_networks || []),
+          ...(social_media || []),
+          ...(streaming || []),
+          ...(mobile || []),
+          ...(ooh || []),
+          ...(broadcast || []),
+          ...(in_game || []),
+          ...(e_commerce || []),
+          ...(messaging || []),
+          ...(print || []),
+        ]
+
+        allPlatforms.forEach((platform: any) => {
+          if (platform && platform.platform_name) {
+            const icon = getPlatformIcon(platform.platform_name)
+            platformsByStage[funnel_stage].push({
+              id: Math.floor(Math.random() * 1000000),
+              outlet: platform.platform_name,
+              icon: icon,
             })
           }
         })
       })
+    }
     return platformsByStage
   }, [campaignFormData, modalOpen])
 
@@ -1514,19 +1523,19 @@ const AdSetFlow = memo(function AdSetFlow({
         // Existing adset logic
         for (const stage of campaignFormData.channel_mix) {
           const platformsWithAdsets = [
-            ...stage.search_engines,
-            ...stage.display_networks,
-            ...stage.social_media,
-            ...stage.streaming,
-            ...stage.ooh,
-            ...stage.broadcast,
-            ...stage.messaging,
-            ...stage.print,
-            ...stage.e_commerce,
-            ...stage.in_game,
-            ...stage.mobile,
+            ...(stage.search_engines || []),
+            ...(stage.display_networks || []),
+            ...(stage.social_media || []),
+            ...(stage.streaming || []),
+            ...(stage.ooh || []),
+            ...(stage.broadcast || []),
+            ...(stage.messaging || []),
+            ...(stage.print || []),
+            ...(stage.e_commerce || []),
+            ...(stage.in_game || []),
+            ...(stage.mobile || []),
           ]
-            .filter((p) => p.ad_sets && p.ad_sets.length > 0)
+            .filter((p) => p && p.ad_sets && Array.isArray(p.ad_sets) && p.ad_sets.length > 0)
             .map((p) => p.platform_name)
 
           if (platformsWithAdsets.length > 0) {
@@ -1534,13 +1543,11 @@ const AdSetFlow = memo(function AdSetFlow({
           }
         }
       } else if (granularity === "channel") {
-        // New channel granularity logic
+        // Channel granularity logic remains the same
         const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
 
-        // Check both sessionStorage and in-memory state for channel-level audience data
         let channelStateToCheck = {}
 
-        // First try to load from sessionStorage
         if (typeof window !== "undefined") {
           try {
             const key = `channelLevelAudienceState_${campaignId || "default"}`
@@ -1553,7 +1560,6 @@ const AdSetFlow = memo(function AdSetFlow({
           }
         }
 
-        // Fallback to in-memory state if no stored data
         if (
           Object.keys(channelStateToCheck).length === 0 &&
           typeof window !== "undefined" &&
@@ -1562,14 +1568,13 @@ const AdSetFlow = memo(function AdSetFlow({
           channelStateToCheck = (window as any).channelLevelAudienceState
         }
 
-        // Check each stage for platforms with channel-level audience data
         for (const stage of campaignFormData.channel_mix) {
           const stageName = stage.funnel_stage
           const stageChannelData = channelStateToCheck[stageName]
 
           if (stageChannelData) {
             const platformsWithChannelData = Object.entries(stageChannelData)
-              .filter(([platformName, data]: [string, any]) => data.audience_type || data.name || data.size)
+              .filter(([platformName, data]: [string, any]) => data && (data.audience_type || data.name || data.size))
               .map(([platformName]) => platformName)
 
             if (platformsWithChannelData.length > 0) {
@@ -1581,7 +1586,7 @@ const AdSetFlow = memo(function AdSetFlow({
 
       setAutoOpen(autoOpenPlatforms)
     }
-  }, [modalOpen, granularity])
+  }, [modalOpen, granularity, campaignFormData])
 
   const handleInteraction = useCallback(() => {
     setHasInteraction(true)

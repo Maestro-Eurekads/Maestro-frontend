@@ -653,7 +653,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       selectedId,
       setSelectedId,
       FC,
-      setFC
+      setFC,
+      agencyData,
+      setAgencyData
     }),
     [
       getUserByUserType,
@@ -696,7 +698,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       selectedId,
       setSelectedId,
       FC,
-      setFC
+      setFC,
+      agencyData,
+      setAgencyData
     ]
   );
 
