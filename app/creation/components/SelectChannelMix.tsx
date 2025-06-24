@@ -380,8 +380,8 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
           ?.[categoryKey]?.find((platform) => platform.platform_name === name);
 
         return existingPlatform || { platform_name: name, 
-          campaign_start_date:  campaignFormData?.campaign_timeline_start_date,
-          campaign_end_date:  campaignFormData?.campaign_timeline_end_date, };
+          campaign_start_date:  campaignFormData?.campaign_timeline_start_date || null,
+          campaign_end_date:  campaignFormData?.campaign_timeline_end_date || null, };
       });
 
       const existingChannelMixIndex = prevFormData.channel_mix?.findIndex(
