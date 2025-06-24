@@ -149,64 +149,6 @@ const ResizableChannels = ({
     type: null,
     index: null,
   });
-
-  // Function to save current selection state
-  const saveSelectionState = () => {
-    selectionStateRef.current = {
-      openItems,
-      selectedChannel,
-      selectedCreative,
-      openCreatives,
-      openAdset,
-    };
-  };
-
-  // Function to restore selection state
-  const restoreSelectionState = () => {
-    const saved = selectionStateRef.current;
-    if (saved.openItems !== openItems) {
-      setOpenItems(saved.openItems);
-    }
-    if (saved.selectedChannel !== selectedChannel) {
-      setSelectedChannel(saved.selectedChannel);
-    }
-    if (saved.selectedCreative !== selectedCreative) {
-      setSelectedCreative(saved.selectedCreative);
-    }
-    if (saved.openCreatives !== openCreatives) {
-      setOpenCreatives(saved.openCreatives);
-    }
-    if (saved.openAdset !== openAdset) {
-      setOpenAdset(saved.openAdset);
-    }
-  };
-
-  const getChannelLayout = (channel: Channel): { left: number; width: number } => {
-    if (!channel?.start_date || !channel?.end_date || !dRange) {
-      return {
-        left: parentLeft,
-        width: 50,
-      };
-    }
-  
-    const start = parseISO(channel.start_date);
-    const end = parseISO(channel.end_date);
-  
-    const clampedStart = start < startDate ? startDate : start;
-    const clampedEnd = end > endDate ? endDate : end;
-  
-    const startIndex = dRange.findIndex((d) =>
-      isEqual(d, clampedStart)
-    );
-    const endIndex = dRange.findIndex((d) =>
-      isEqual(d, clampedEnd)
-    );
-  
-    const left = parentLeft + Math.max(0, startIndex) * dailyWidth;
-    const width = Math.max(50, (endIndex - startIndex + 1) * dailyWidth);
-  
-    return { left, width: Math.min(width, parentWidth) };
-  };
   
 
   const toggleChannel = (id) => {
@@ -327,68 +269,90 @@ const ResizableChannels = ({
 
   const handleMouseMoveResize = (e: MouseEvent) => {
     if (!isResizing.current) return;
-    const { startX, startWidth, startPos, direction, index } =
-      isResizing.current;
-
+    const { startX, startWidth, startPos, direction, index } = isResizing.current;
+  console.log({ startX, startWidth, startPos, direction, index })
     let newWidth = startWidth;
-    let newLeft = startPos;
-
-    const gridContainer = document.querySelector(
-      ".grid-container"
-    ) as HTMLElement;
+    let newLeft = isNaN(startPos) ? 0 : startPos;
+  
+    const gridContainer = document.querySelector(".grid-container") as HTMLElement;
     if (!gridContainer) return;
-
+  
     const containerRect = gridContainer.getBoundingClientRect();
     const parentRightEdge = parentLeft + parentWidth;
-
+  
     if (direction === "left") {
       const deltaX = e.clientX - startX;
-      newLeft = Math.max(parentLeft, startPos + deltaX);
-      newWidth = startWidth - (newLeft - startPos);
-
+      newLeft = Math.max(parentLeft, (isNaN(startPos) ? 0 : startPos) + deltaX);
+      newWidth = startWidth - (newLeft - (isNaN(startPos) ? 0 : startPos));
+  
       if (newWidth < 50) {
         newWidth = 50;
-        newLeft = startPos + startWidth - 50;
+        newLeft = (isNaN(startPos) ? 0 : startPos) + startWidth - 50;
       }
-
+  
       const snappedPos =
         snapToTimeline(newLeft - parentLeft, containerRect.width) + parentLeft;
-      newWidth = startWidth - (snappedPos - startPos);
+      newWidth = startWidth - (snappedPos - (isNaN(startPos) ? 0 : startPos));
       newLeft = snappedPos;
+  
+      // Ensure the right edge does not exceed the parent's right edge
+      if (newLeft + newWidth > parentRightEdge) {
+        newWidth = parentRightEdge - newLeft;
+      }
     } else {
       const deltaX = e.clientX - startX;
       newWidth = Math.max(50, startWidth + deltaX);
-
-      if (startPos + newWidth > parentRightEdge) {
-        newWidth = parentRightEdge - startPos;
+  
+      // Ensure the right edge does not exceed the parent's right edge
+      if (newLeft + newWidth > parentRightEdge) {
+        newWidth = parentRightEdge - newLeft;
       }
-
-      const rightEdgePos = startPos + newWidth;
-      const snappedRightEdge = Math.min(
-        parentRightEdge,
+  
+      const rightEdgePos = newLeft + newWidth;
+      const snappedRightEdge =
         snapToTimeline(rightEdgePos - parentLeft, containerRect.width) +
-          parentLeft
-      );
-      newWidth = Math.max(50, snappedRightEdge - startPos);
+        parentLeft;
+  
+      // Ensure the snapped right edge does not exceed the parent's right edge
+      if (snappedRightEdge > parentRightEdge) {
+        console.log("1")
+        newWidth = parentRightEdge - newLeft;
+      } else {
+        console.log("2")
+        newWidth = Math.max(50, snappedRightEdge - newLeft);
+      }
+  
+      // Adjust newLeft if snapping causes overlap
+      if (newLeft + newWidth > parentRightEdge) {
+        console.log("3")
+        newLeft = parentRightEdge - newWidth;
+      }
     }
-
+  
+    // Update the channel state
     setChannelState((prev) =>
       prev.map((state, i) =>
         i === index ? { ...state, left: newLeft, width: newWidth } : state
       )
     );
-
+  
     const startPixel = newLeft - parentLeft;
     const endPixel = startPixel + newWidth;
-    const newStartDate = pixelToDate(
-      startPixel,
-      parentWidth,
-      index,
-      "startDate"
-    );
+    const newStartDate = pixelToDate(startPixel, parentWidth, index, "startDate");
+    console.log("🚀 ~ handleMouseMoveResize ~ newStartDate:", newStartDate)
     const newEndDate = pixelToDate(endPixel, parentWidth, index, "endDate");
     draggingDataRef.current = { index, newStartDate, newEndDate };
-
+    setChannels((prev) =>
+      prev.map((ch, i) =>
+        i === index
+          ? {
+              ...ch,
+              start_date: newStartDate,
+              end_date: newEndDate,
+            }
+          : ch
+      )
+    );
     updateTooltipWithDates(
       startPixel,
       endPixel,
@@ -398,30 +362,16 @@ const ResizableChannels = ({
       "resize"
     );
   };
-
   const handleMouseUpResize = () => {
     setTooltip((prev) => ({ ...prev, visible: false }));
     isResizing.current = null;
     document.removeEventListener("mousemove", handleMouseMoveResize);
     document.removeEventListener("mouseup", handleMouseUpResize);
-  
+  console.log("draggingDataRef", draggingDataRef.current)
     if (draggingDataRef.current) {
       const { index, newStartDate, newEndDate } = draggingDataRef.current;
   
-      // Update local channels state
-      setChannels((prev) =>
-        prev.map((ch, i) =>
-          i === index
-            ? {
-                ...ch,
-                start_date: newStartDate,
-                end_date: newEndDate,
-              }
-            : ch
-        )
-      );
-  
-      // Update campaignFormData copy
+      // // Update campaignFormData copy
       // setCopy((prevData) => {
       //   const updatedData = JSON.parse(JSON.stringify(prevData));
   
@@ -450,7 +400,7 @@ const ResizableChannels = ({
     }
   };
   
-console.log("here", isResizing)
+// console.log("here", isResizing)
   // Separate effect for parentWidth-only changes
   // useEffect(() => {
   //   if (
@@ -550,7 +500,7 @@ console.log("here", isResizing)
   }, [startDate, endDate]);
 
   const pixelToDate = (pixel, containerWidth, index, fieldName) => {
-    const totalDays = dRange?.length ;
+    const totalDays = fieldName === "endDate" ? dRange?.length -1 : dRange?.length;
     const dayIndex = Math.min(
       totalDays,
       Math.max(0, Math.floor((pixel / containerWidth) * totalDays))
@@ -588,7 +538,7 @@ console.log("here", isResizing)
     if (fieldName === "endDate" && endDate && calculatedDate > endDate) {
       return endDate ? moment(endDate).format("YYYY-MM-DD") : null;
     }
-
+// console.log("updatedCampaignFormData", updatedCampaignFormData)
     return calculatedDate ? moment(calculatedDate).format("YYYY-MM-DD") : null;
   };
 
@@ -804,18 +754,8 @@ console.log("here", isResizing)
   // Modified effect for initialChannels changes - now excludes parentWidth
   useEffect(() => {
     if (initialChannels && initialChannels.length > 0) {
-      const gridContainer = document.querySelector(
-        ".grid-container"
-      ) as HTMLElement;
-      if (!gridContainer) return;
-
-      // Get container boundaries
-      const getViewportWidth = () => {
-        return window.innerWidth || document.documentElement.clientWidth || 0;
-      };
-      const screenWidth = getViewportWidth();
       setChannels(initialChannels);
-
+console.log("Called")
       // Initialize new channels with parent's position
       setChannelState((prev) => {
         const findMix = campaignFormData?.channel_mix?.find((chhh)=>chhh?.funnel_stage === parentId)
@@ -923,7 +863,7 @@ console.log("here", isResizing)
         return newState;
       });
     }
-  }, [initialChannels, parentLeft, campaignFormData]);
+  }, [initialChannels, parentLeft, parentWidth, campaignFormData, isResizing]);
 
   // console.log("The campaginFormData", campaignFormData);
 
@@ -1160,7 +1100,7 @@ console.log("here", isResizing)
                       : `${Number(
                           budget
                         )?.toLocaleString()} ${getCurrencySymbol(
-                          campaignFormData?.campaign_budget?.amount
+                          campaignFormData?.campaign_budget?.currency
                         )}`}
                   </div>
                 )}

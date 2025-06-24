@@ -10,7 +10,15 @@ import { funnelStages, getPlatformIcon, platformStyles } from "../../../../../co
 import { useDateRange } from "src/date-range-context"
 import { useDateRange as useRange } from "src/date-context"
 import { useCampaigns } from "app/utils/CampaignsContext"
-import { eachDayOfInterval, format, isEqual, parseISO } from "date-fns"
+import {
+  eachDayOfInterval,
+  format,
+  isEqual,
+  parseISO,
+  endOfMonth,
+  eachMonthOfInterval,
+  differenceInDays,
+} from "date-fns"
 import { useComments } from "app/utils/CommentProvider"
 
 interface OutletType {
@@ -25,13 +33,22 @@ interface OutletType {
   end_date: any
 }
 
+interface MonthSpan {
+  month: string
+  year: string
+  startDay: number
+  endDay: number
+  totalDaysInMonth: number
+  isPartial: boolean
+}
+
 function breakdownByMonth(start: Date, end: Date) {
   const days = eachDayOfInterval({ start, end })
   const map: Record<string, number> = {}
 
   for (const day of days) {
     const key = format(day, "MMMM yyyy")
-    map[key] = (map[key] || 0) 
+    map[key] = map[key] || 0
   }
   return map
 }
@@ -52,7 +69,7 @@ const ResizeableElements = ({
   setSelectedStage?: any
 }) => {
   const { funnelWidths } = useFunnelContext()
-  const {close} = useComments()
+  const { close } = useComments()
   const [openChannels, setOpenChannels] = useState<Record<string, boolean>>({})
   const { range } = useDateRange()
   const { range: rrange } = useRange()
@@ -67,10 +84,12 @@ const ResizeableElements = ({
     Day: 50,
     Week: 50,
     Month: 0,
+    Year: 0,
   })
 
   const [daysInEachMonth, setDaysInEachMonth] = useState<Record<any, any>>({})
   const [monthsByYear, setMonthsByYear] = useState<Record<string, Record<string, number>>>({})
+  const [yearMonths, setYearMonths] = useState<string[]>([])
 
   const toggleChannel = (id: string) => {
     setOpenChannels((prev) => ({ ...prev, [id]: !prev[id] }))
@@ -83,6 +102,43 @@ const ResizeableElements = ({
   const updateChannelPosition = (channelId: string, left: number) => {
     setChannelPositions((prev) => ({ ...prev, [channelId]: left }))
   }
+
+  // New function to calculate which months a phase spans across
+  const calculatePhaseMonthSpans = useCallback((startDate: Date, endDate: Date): MonthSpan[] => {
+    const months = eachMonthOfInterval({ start: startDate, end: endDate })
+
+    return months.map((monthStart) => {
+      const monthEnd = endOfMonth(monthStart)
+      const actualStart = startDate > monthStart ? startDate : monthStart
+      const actualEnd = endDate < monthEnd ? endDate : monthEnd
+
+      const startDay = differenceInDays(actualStart, monthStart) + 1
+      const endDay = differenceInDays(actualEnd, monthStart) + 1
+      const totalDaysInMonth = differenceInDays(monthEnd, monthStart) + 1
+
+      return {
+        month: format(monthStart, "MMMM"),
+        year: format(monthStart, "yyyy"),
+        startDay,
+        endDay,
+        totalDaysInMonth,
+        isPartial: actualStart > monthStart || actualEnd < monthEnd,
+      }
+    })
+  }, [])
+
+  // Generate 12 months for year view
+  const generateYearMonths = useCallback(() => {
+    if (!range || range.length === 0) return []
+
+    const startDate = range[0]
+    const endDate = range[range.length - 1]
+
+    // Get all months in the range
+    const months = eachMonthOfInterval({ start: startDate, end: endDate })
+
+    return months.map((month) => format(month, "MMMM yyyy"))
+  }, [range])
 
   const getPlatformsFromStage = useCallback(() => {
     const platformsByStage: Record<string, OutletType[]> = {}
@@ -160,14 +216,15 @@ const ResizeableElements = ({
         const endPeriod = funnelData?.endDay || 1
         dailyWidth = contWidth / endPeriod
         dailyWidth = dailyWidth < 50 ? 50 : dailyWidth
+      } else if (viewType === "Year") {
+        // Year view - calculate width per month (12 months)
+        const monthWidth = contWidth / 12
+        dailyWidth = Math.max(monthWidth, 60) // Minimum 60px per month
       } else {
         // Month - ensure all months fit within screen width
         const totalDays = totalDaysInRange || funnelData?.endDay || 30
-
-        // Force fit all days within available width
         dailyWidth = contWidth / totalDays
-        // Remove minimum width constraint for month view to ensure everything fits
-        dailyWidth = Math.max(dailyWidth, 10) // Very small minimum to prevent invisible columns
+        dailyWidth = Math.max(dailyWidth, 10)
       }
 
       setDailyWidthByView((prev) => ({
@@ -175,9 +232,9 @@ const ResizeableElements = ({
         [viewType]: Math.round(dailyWidth),
       }))
 
-      return Math.round(dailyWidth )
+      return Math.round(dailyWidth)
     },
-    [disableDrag, funnelData?.endDay, funnelData?.endMonth, close], // Removed daysInEachMonth from dependencies
+    [disableDrag, funnelData?.endDay, funnelData?.endMonth, close],
   )
 
   useEffect(() => {
@@ -190,6 +247,10 @@ const ResizeableElements = ({
     // Calculate months organized by year
     const yearMonthResult = getMonthsByYear(range)
     setMonthsByYear(yearMonthResult)
+
+    // Generate year months for year view
+    const yearMonthsList = generateYearMonths()
+    setYearMonths(yearMonthsList)
 
     // Calculate total days
     const totalDaysInRange = Object.values(result).reduce((sum: number, days: number) => sum + days, 0)
@@ -206,19 +267,19 @@ const ResizeableElements = ({
       const endMonth = funnelData?.endMonth || 1
       calculateAndCacheDailyWidth(rrange, contWidth, endMonth, totalDaysInRange)
     })
-  }, [rrange, funnelData?.endMonth, range, calculateAndCacheDailyWidth])
+  }, [rrange, funnelData?.endMonth, range, calculateAndCacheDailyWidth, generateYearMonths])
 
   // Enhanced function that returns the number of days in each month using the state range as reference
-const getDaysInEachMonth = useCallback((range: Date[]): Record<string, number> => {
-  const daysInMonth: Record<string, number> = {}
+  const getDaysInEachMonth = useCallback((range: Date[]): Record<string, number> => {
+    const daysInMonth: Record<string, number> = {}
 
-  range.forEach((date) => {
-    const monthYear = format(date, "MMMM yyyy")
-    daysInMonth[monthYear] = (daysInMonth[monthYear] || 0) + 1
-  })
-  // console.log("herbdffd", range)
-  return daysInMonth
-}, [])
+    range.forEach((date) => {
+      const monthYear = format(date, "MMMM yyyy")
+      daysInMonth[monthYear] = (daysInMonth[monthYear] || 0) + 1
+    })
+
+    return daysInMonth
+  }, [])
 
   // Enhanced function that returns months organized by year
   const getMonthsByYear = useCallback((range: Date[]): Record<string, Record<string, number>> => {
@@ -232,82 +293,82 @@ const getDaysInEachMonth = useCallback((range: Date[]): Record<string, number> =
         monthsByYear[year] = {}
       }
 
-      monthsByYear[year][month] = (monthsByYear[year][month] || 0) 
+      monthsByYear[year][month] = monthsByYear[year][month] || 0
     })
 
     return monthsByYear
   }, [])
 
-  // Enhanced function to generate dynamic grid template columns for month view with year support
-  const generateMonthGridColumns = useCallback(() => {
-    if (rrange !== "Month") return ""
-
+  // Enhanced function to generate dynamic grid template columns for different views
+  const generateGridColumns = useCallback(() => {
     const dailyWidth = dailyWidthByView[rrange] || 50
 
-    // If we have year-based data, use it
-    if (Object.keys(monthsByYear).length > 0) {
-      const columnDefinitions: string[] = []
+    if (rrange === "Day" || rrange === "Week") {
+      return `repeat(${funnelData?.endDay || 1}, ${dailyWidth}px)`
+    } else if (rrange === "Year") {
+      // Year view - 12 columns for 12 months
+      return `repeat(12, ${dailyWidth}px)`
+    } else {
+      // Month view logic (existing)
+      if (Object.keys(monthsByYear).length > 0) {
+        const columnDefinitions: string[] = []
+        const sortedYears = Object.keys(monthsByYear).sort()
 
-      // Sort years to ensure proper order
-      const sortedYears = Object.keys(monthsByYear).sort()
+        sortedYears.forEach((year) => {
+          const monthsInYear = monthsByYear[year]
+          const monthOrder = [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+          ]
 
-      sortedYears.forEach((year) => {
-        const monthsInYear = monthsByYear[year]
-
-        // Define the 12 months in order
-        const monthOrder = [
-          "January",
-          "February",
-          "March",
-          "April",
-          "May",
-          "June",
-          "July",
-          "August",
-          "September",
-          "October",
-          "November",
-          "December",
-        ]
-
-        // Add columns for each month in the year (only if they exist in our data)
-        monthOrder.forEach((month) => {
-          if (monthsInYear[month]) {
-            const daysInThisMonth = monthsInYear[month]
-            // Add columns for each day in this month
-            for (let i = 0; i < daysInThisMonth; i++) {
-              columnDefinitions.push(`${dailyWidth}px`)
+          monthOrder.forEach((month) => {
+            if (monthsInYear[month]) {
+              const daysInThisMonth = monthsInYear[month]
+              for (let i = 0; i < daysInThisMonth; i++) {
+                columnDefinitions.push(`${dailyWidth}px`)
+              }
             }
-          }
+          })
         })
+
+        return columnDefinitions.join(" ")
+      }
+
+      const months = Object.keys(daysInEachMonth)
+      if (months.length === 0) return `repeat(${funnelData?.endDay || 30}, ${dailyWidth}px)`
+
+      const columnDefinitions: string[] = []
+      months.forEach((month) => {
+        const daysInThisMonth = daysInEachMonth[month]
+        for (let i = 0; i < daysInThisMonth; i++) {
+          columnDefinitions.push(`${dailyWidth}px`)
+        }
       })
 
       return columnDefinitions.join(" ")
     }
-
-    // Fallback to original logic
-    const months = Object.keys(daysInEachMonth)
-    if (months.length === 0) return `repeat(${funnelData?.endDay || 30}, ${dailyWidth}px)`
-
-    const columnDefinitions: string[] = []
-    months.forEach((month) => {
-      const daysInThisMonth = daysInEachMonth[month]
-      for (let i = 0; i < daysInThisMonth; i++) {
-        columnDefinitions.push(`${dailyWidth}px`)
-      }
-    })
-
-    return columnDefinitions.join(" ")
   }, [rrange, daysInEachMonth, monthsByYear, dailyWidthByView, funnelData?.endDay])
 
-  // Enhanced function to get grid column end position for month view
+  // Enhanced function to get grid column end position for different views
   const getGridColumnEnd = useCallback(() => {
     if (rrange === "Day") {
       return funnelData?.endDay || 1
     } else if (rrange === "Week") {
       return funnelData?.endDay || 1
+    } else if (rrange === "Year") {
+      return 12 // 12 months
     } else {
-      // Month view - return total number of days across all months
+      // Month view
       const totalDays = Object.values(daysInEachMonth).reduce((sum: number, days: number) => sum + days, 0)
       return totalDays || funnelData?.endDay || 30
     }
@@ -321,8 +382,28 @@ const getDaysInEachMonth = useCallback((range: Date[]): Record<string, number> =
     [dailyWidthByView, rrange],
   )
 
+  // Calculate phase positioning for year view
+  const calculateYearViewPosition = useCallback(
+    (startDate: Date, endDate: Date) => {
+      if (!range || range.length === 0) return { position: 0, width: 0, spans: [] }
+
+      const monthSpans = calculatePhaseMonthSpans(startDate, endDate)
+      const monthWidth = getDailyWidth("Year")
+
+      // Find the starting month index (0-11)
+      const startMonth = startDate.getMonth()
+      const position = startMonth * monthWidth
+
+      // Calculate total width across all months the phase spans
+      const width = monthSpans.length * monthWidth
+
+      return { position, width, spans: monthSpans }
+    },
+    [range, calculatePhaseMonthSpans, getDailyWidth],
+  )
+
   useEffect(() => {
-    if (!campaignFormData?.funnel_stages || !containerWidth || Object.keys(daysInEachMonth).length === 0) return
+    if (!campaignFormData?.funnel_stages || !containerWidth) return
 
     const initialWidths: Record<string, number> = {}
     const initialPositions: Record<string, number> = {}
@@ -330,9 +411,7 @@ const getDaysInEachMonth = useCallback((range: Date[]): Record<string, number> =
       return window.innerWidth || document.documentElement.clientWidth || 0
     }
     const screenWidth = getViewportWidth()
-    const availableWidth = screenWidth - (disableDrag ? 60 : close ? 0:367)
-
-    // //console.log("🚀  ~ Width:", { screenWidth, availableWidth })
+    const availableWidth = screenWidth - (disableDrag ? 60 : close ? 0 : 367)
 
     campaignFormData.funnel_stages.forEach((stageName) => {
       const stage = campaignFormData?.channel_mix?.find((s) => s?.funnel_stage === stageName)
@@ -344,37 +423,46 @@ const getDaysInEachMonth = useCallback((range: Date[]): Record<string, number> =
           ? parseISO(stage?.funnel_stage_timeline_end_date)
           : null
 
-        const startDateIndex = stageStartDate
-          ? range?.findIndex((date) => isEqual(date, stageStartDate)) * getDailyWidth()
-          : 0
+        if (rrange === "Year" && stageStartDate && stageEndDate) {
+          // Year view calculations
+          const yearCalc = calculateYearViewPosition(stageStartDate, stageEndDate)
+          initialPositions[stageName] = yearCalc.position
+          initialWidths[stageName] = yearCalc.width
+        } else {
+          // Existing logic for other views
+          const startDateIndex = stageStartDate
+            ? range?.findIndex((date) => isEqual(date, stageStartDate)) * getDailyWidth()
+            : 0
 
-        const daysBetween = eachDayOfInterval({ start: stageStartDate, end: stageEndDate }).length 
+          const daysBetween =
+            stageStartDate && stageEndDate ? eachDayOfInterval({ start: stageStartDate, end: stageEndDate }).length : 0
 
-        const daysFromStart = eachDayOfInterval({
-          start: campaignFormData?.campaign_timeline_start_date
-            ? parseISO(campaignFormData?.campaign_timeline_start_date)
-            : null,
-          end: campaignFormData?.campaign_timeline_end_date
-            ? parseISO(campaignFormData?.campaign_timeline_end_date)
-            : null,
-        }).length
+          const daysFromStart =
+            campaignFormData?.campaign_timeline_start_date && campaignFormData?.campaign_timeline_end_date
+              ? eachDayOfInterval({
+                  start: parseISO(campaignFormData.campaign_timeline_start_date),
+                  end: parseISO(campaignFormData.campaign_timeline_end_date),
+                }).length
+              : 0
 
-        const dailyWidth = getDailyWidth()
+          const dailyWidth = getDailyWidth()
 
-        initialWidths[stageName] = (() => {
-          if (rrange === "Day" || rrange === "Week") {
-            return daysBetween > 0 ? dailyWidth * daysBetween : dailyWidth * daysFromStart - 0
-          } else {
-            // Month view - calculate width based on actual days and ensure it fits within screen
-            // console.log("🚀 ~ daysInEachMonth:",  daysInEachMonth)
-            const totalDaysInRange = Object.values(daysInEachMonth || {}).reduce((sum: number, days: number) => sum + days, 0)
-            const widthPerDay = Math.round(availableWidth / (totalDaysInRange || 30))
+          initialWidths[stageName] = (() => {
+            if (rrange === "Day" || rrange === "Week") {
+              return daysBetween > 0 ? dailyWidth * daysBetween : dailyWidth * daysFromStart - 0
+            } else {
+              // Month view
+              const totalDaysInRange = Object.values(daysInEachMonth || {}).reduce(
+                (sum: number, days: number) => sum + days,
+                0,
+              )
+              const widthPerDay = Math.round(availableWidth / (totalDaysInRange || 30))
+              return daysBetween > 0 ? widthPerDay * daysBetween : widthPerDay * daysFromStart - 0
+            }
+          })()
 
-            return daysBetween > 0 ? widthPerDay * daysBetween : widthPerDay * daysFromStart - 0
-          }
-        })()
-
-        initialPositions[stageName] = startDateIndex
+          initialPositions[stageName] = startDateIndex
+        }
       }
     })
 
@@ -389,114 +477,138 @@ const getDaysInEachMonth = useCallback((range: Date[]): Record<string, number> =
     daysInEachMonth,
     disableDrag,
     range,
-    getDailyWidth, // Keep this as it's memoized
-    close
+    getDailyWidth,
+    close,
+    calculateYearViewPosition,
   ])
+
+  // Generate background grid for year view
+  const generateYearBackground = useCallback(() => {
+    if (rrange !== "Year") return {}
+
+    const monthWidth = getDailyWidth("Year")
+    return {
+      backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+      backgroundSize: `${monthWidth}px 100%`,
+    }
+  }, [rrange, getDailyWidth])
 
   return (
     <div
       className={`w-full min-h-[494px] relative pb-5 grid-container overflow-x-hidden ${(rrange === "Month" || rrange === "Year") && "max-w-[100%]"}`}
       ref={gridRef}
       style={{
-        backgroundImage: (() => {
-          if (rrange === "Day" || rrange === "Week") {
-            return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`
-          } else {
-            // Month view - add thicker lines at month boundaries
-            const months = Object.keys(daysInEachMonth)
-            if (months.length <= 1) {
-              return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`
-            }
-
-            // Create gradient layers: regular grid, weekly grid, and thick month boundaries
-            const regularGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`
-            const weeklyGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`
-            const monthBoundaryGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)` // 3px thick lines
-
-            // return ``
-            return `${regularGrid}, ${monthBoundaryGrid}`
-          }
-        })(),
-        backgroundSize: (() => {
-          const dailyWidth = getDailyWidth()
-          if (rrange === "Day" || rrange === "Week") {
-            const totalDays = funnelData?.endDay || 1
-            const dailyGridSize = `${dailyWidth}px 100%`
-            if (rrange === "Week") {
-              return dailyGridSize
-            }
-            return `${dailyGridSize}, calc(${dailyWidth * totalDays}px) 100%`
-          } else {
-            // Month view with year support
-            if (Object.keys(monthsByYear).length > 0) {
-              const regularGridSize = `${dailyWidth}px 100%`
-
-              // Calculate year and month boundary positions
-              let cumulativeDays = 0
-              const boundaryPositions: number[] = []
-
-              const sortedYears = Object.keys(monthsByYear).sort()
-
-              sortedYears.forEach((year, yearIndex) => {
-                const monthsInYear = monthsByYear[year]
-                const monthOrder = [
-                  "January",
-                  "February",
-                  "March",
-                  "April",
-                  "May",
-                  "June",
-                  "July",
-                  "August",
-                  "September",
-                  "October",
-                  "November",
-                  "December",
-                ]
-
-                monthOrder.forEach((month, monthIndex) => {
-                  if (monthsInYear[month]) {
-                    cumulativeDays += monthsInYear[month]
-
-                    // Add boundary at end of each month (except last month of last year)
-                    if (!(yearIndex === sortedYears.length - 1 && monthIndex === monthOrder.length - 1)) {
-                      boundaryPositions.push(cumulativeDays * dailyWidth)
-                    }
+        ...(rrange === "Year"
+          ? generateYearBackground()
+          : {
+              backgroundImage: (() => {
+                if (rrange === "Day" || rrange === "Week") {
+                  return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`
+                } else {
+                  // Month view background logic (existing)
+                  const months = Object.keys(daysInEachMonth)
+                  if (months.length <= 1) {
+                    return `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`
                   }
-                })
-              })
 
-              const boundaryBackgrounds = boundaryPositions.map((position) => `${position}px 100%`).join(", ")
-              return boundaryBackgrounds ? `${regularGridSize}, ${boundaryBackgrounds}` : regularGridSize
-            }
+                  const regularGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`
+                  const monthBoundaryGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`
 
-            // Fallback to original month logic
-            const months = Object.keys(daysInEachMonth)
-            if (months.length === 0) {
-              return `calc(${dailyWidth}px) 100%, calc(${dailyWidth * 7}px) 100%`
-            }
+                  return `${regularGrid}, ${monthBoundaryGrid}`
+                }
+              })(),
+              backgroundSize: (() => {
+                const dailyWidth = getDailyWidth()
+                if (rrange === "Day" || rrange === "Week") {
+                  const totalDays = funnelData?.endDay || 1
+                  const dailyGridSize = `${dailyWidth}px 100%`
+                  if (rrange === "Week") {
+                    return dailyGridSize
+                  }
+                  return `${dailyGridSize}, calc(${dailyWidth * totalDays}px) 100%`
+                } else {
+                  // Month view background size logic (existing)
+                  if (Object.keys(monthsByYear).length > 0) {
+                    const regularGridSize = `${dailyWidth}px 100%`
+                    let cumulativeDays = 0
+                    const boundaryPositions: number[] = []
 
-            let cumulativeDays = 0
-            const monthEndPositions: number[] = []
+                    const sortedYears = Object.keys(monthsByYear).sort()
+                    sortedYears.forEach((year, yearIndex) => {
+                      const monthsInYear = monthsByYear[year]
+                      const monthOrder = [
+                        "January",
+                        "February",
+                        "March",
+                        "April",
+                        "May",
+                        "June",
+                        "July",
+                        "August",
+                        "September",
+                        "October",
+                        "November",
+                        "December",
+                      ]
 
-            months.forEach((month, index) => {
-              const daysInThisMonth = daysInEachMonth[month]
-              cumulativeDays += daysInThisMonth
+                      monthOrder.forEach((month, monthIndex) => {
+                        if (monthsInYear[month]) {
+                          cumulativeDays += monthsInYear[month]
+                          if (!(yearIndex === sortedYears.length - 1 && monthIndex === monthOrder.length - 1)) {
+                            boundaryPositions.push(cumulativeDays * dailyWidth)
+                          }
+                        }
+                      })
+                    })
 
-              if (index < months.length - 1) {
-                monthEndPositions.push(cumulativeDays * dailyWidth)
-              }
-            })
+                    const boundaryBackgrounds = boundaryPositions.map((position) => `${position}px 100%`).join(", ")
+                    return boundaryBackgrounds ? `${regularGridSize}, ${boundaryBackgrounds}` : regularGridSize
+                  }
 
-            const regularGridSize = `${dailyWidth}px 100%`
-            const monthBoundaryBackgrounds = monthEndPositions.map((position) => `${position}px 100%`).join(", ")
+                  const months = Object.keys(daysInEachMonth)
+                  if (months.length === 0) {
+                    return `calc(${dailyWidth}px) 100%, calc(${dailyWidth * 7}px) 100%`
+                  }
 
-            // return "100% 100%"
-            return monthBoundaryBackgrounds ? `${regularGridSize}, ${monthBoundaryBackgrounds}` : regularGridSize
-          }
-        })(),
+                  let cumulativeDays = 0
+                  const monthEndPositions: number[] = []
+
+                  months.forEach((month, index) => {
+                    const daysInThisMonth = daysInEachMonth[month]
+                    cumulativeDays += daysInThisMonth
+
+                    if (index < months.length - 1) {
+                      monthEndPositions.push(cumulativeDays * dailyWidth)
+                    }
+                  })
+
+                  const regularGridSize = `${dailyWidth}px 100%`
+                  const monthBoundaryBackgrounds = monthEndPositions.map((position) => `${position}px 100%`).join(", ")
+
+                  return monthBoundaryBackgrounds ? `${regularGridSize}, ${monthBoundaryBackgrounds}` : regularGridSize
+                }
+              })(),
+            }),
       }}
     >
+      {/* Year view month headers */}
+      {rrange === "Year" && (
+        <div
+          className="sticky top-0 z-10 bg-white border-b mb-4"
+          style={{
+            display: "grid",
+            gridTemplateColumns: generateGridColumns(),
+            gap: "0px",
+          }}
+        >
+          {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((month, index) => (
+            <div key={index} className="text-center text-sm font-medium py-2 border-r border-gray-200">
+              {month}
+            </div>
+          ))}
+        </div>
+      )}
+
       {loadingCampaign ? (
         // Skeleton loading UI
         <div className="w-full p-4">
@@ -531,22 +643,14 @@ const getDaysInEachMonth = useCallback((range: Date[]): Record<string, number> =
               className="h-full"
               style={{
                 display: "grid",
-                gridTemplateColumns: (() => {
-                  const dailyWidth = getDailyWidth()
-                  if (rrange === "Day" || rrange === "Week") {
-                    return `repeat(${funnelData?.endDay || 1}, ${dailyWidth}px)`
-                  } else {
-                    // Month view - use dynamic grid columns based on actual days in each month
-                    return generateMonthGridColumns() || `repeat(${funnelData?.endDay || 30}, ${dailyWidth}px)`
-                  }
-                })(),
+                gridTemplateColumns: generateGridColumns(),
               }}
             >
               <div
                 className="flex flex-col mt-6 rounded-[10px] p-4 px-0 justify-between w-fit"
                 style={{
                   gridColumnStart: 1,
-                  gridColumnEnd: getGridColumnEnd()+ 1,
+                  gridColumnEnd: getGridColumnEnd() + 1,
                 }}
               >
                 <DraggableChannel

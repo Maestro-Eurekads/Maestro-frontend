@@ -224,30 +224,30 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   const handleMouseMoveResize = (e: MouseEvent) => {
     if (!isResizing.current) return;
     const { startX, startWidth, startPos, direction } = isResizing.current;
-
+  
     let newWidth = startWidth;
     let newPos = startPos;
-
+  
     // Get the grid container
     const gridContainer = document.querySelector(
       ".grid-container"
     ) as HTMLElement;
     if (!gridContainer) return;
-
+  
     // Get container boundaries
     const containerRect = gridContainer.getBoundingClientRect();
     const minX = 0;
     const maxX = containerRect.width - 45;
-
+  
     if (direction === "left") {
       // Calculate new position and width for left resize
       const deltaX = e.clientX - startX;
       newWidth = Math.max(50, startWidth - deltaX);
       newPos = Math.max(minX, startPos + deltaX);
-
+  
       // Apply snapping to the left edge position
       const snappedPos = snapToTimeline(newPos, containerRect.width);
-
+  
       // Adjust width based on the snapped position
       newWidth = startWidth - (snappedPos - startPos);
       newPos = snappedPos;
@@ -255,20 +255,20 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       // For right resize, calculate the new width
       const deltaX = e.clientX - startX;
       const rawNewWidth = startWidth + deltaX;
-
+  
       // Calculate where the right edge would be
       const rightEdgePos = startPos + rawNewWidth;
-
+  
       // Snap the right edge to the timeline
       const snappedRightEdge = snapToTimeline(
         rightEdgePos,
         containerRect.width
       );
-
+  
       // Calculate the new width based on the snapped right edge
       newWidth = Math.max(50, snappedRightEdge - startPos);
     }
-
+  
     // Convert pixel positions to dates
     const startDate = pixelToDate(newPos, containerRect.width);
     const endDate = pixelToDate(
@@ -276,22 +276,63 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       containerRect.width,
       "endDate"
     );
-
+  
     const updatedChannelMix = campaignFormData?.channel_mix?.find(
       (ch) => ch?.funnel_stage === description
     );
-
+  
     if (updatedChannelMix) {
+      // Update funnel stage timeline dates
       updatedChannelMix["funnel_stage_timeline_start_date"] =
         moment(startDate).format("YYYY-MM-DD");
       updatedChannelMix["funnel_stage_timeline_end_date"] =
         moment(endDate).format("YYYY-MM-DD");
+  
+      // Loop through all media types and update platform dates
+      const mediaTypes = [
+        "social_media",
+        "display_networks",
+        "search_engines",
+        "streaming",
+        "ooh",
+        "broadcast",
+        "messaging",
+        "print",
+        "e_commerce",
+        "in_game",
+        "mobile",
+      ];
+  
+      mediaTypes.forEach((mediaType) => {
+        const platforms = updatedChannelMix[mediaType];
+        if (platforms && Array.isArray(platforms)) {
+          platforms.forEach((platform) => {
+            // Update campaign_start_date
+            if (
+              platform.campaign_start_date &&
+              moment(platform.campaign_start_date).isBefore(startDate)
+            ) {
+              platform.campaign_start_date = moment(startDate).format(
+                "YYYY-MM-DD"
+              );
+            }
+  
+            // Update campaign_end_date
+            if (
+              platform.campaign_end_date &&
+              moment(platform.campaign_end_date).isAfter(endDate)
+            ) {
+              platform.campaign_end_date = moment(endDate).format("YYYY-MM-DD");
+            }
+          });
+        }
+      });
     }
-
+  
     setParentWidth(newWidth);
     setParentLeft(newPos);
     setPosition(newPos);
-
+  
     // Update tooltip during resize
     updateTooltipWithDates(
       newPos,
@@ -494,7 +535,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           <div className="bg-[#FFFFFF26] rounded-[5px] py-[10px] px-[12px] font-medium">
             {stageBudget?.fixed_value &&
               Number.parseInt(stageBudget?.fixed_value).toLocaleString()}{" "}
-            {getCurrencySymbol(stageBudget?.currency)}
+            {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
           </div>
         )}
         {/* Right Resize Handle */}
