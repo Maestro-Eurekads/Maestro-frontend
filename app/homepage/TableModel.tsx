@@ -612,21 +612,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       {/* Footer */}
       <div className="p-6 border-t bg-white sticky bottom-0 z-10 flex justify-end rounded-b-[32px]">
        <div className="flex items-center gap-5">
-        {/* <button
-                           onClick={() => {
-                              setIsOpen(false);
-                              resetForm();
-                           }}
-                           className="btn_model_outline"
-                        >
-                           Cancel
-                        </button> */}
-        {/* <button
-       
-         className="btn_model_outline"
-        >
-         Cancel
-        </button> */}
+
 
         <button className="btn_model_active whitespace-nowrap" onClick={handleSubmit}>
          {loading ? <SVGLoader width={"30px"} height={"30px"} color={"#FFF"} /> : "Add Client"}
