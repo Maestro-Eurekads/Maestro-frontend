@@ -6,7 +6,7 @@ import PageHeaderWrapper from "../../../components/PageHeaderWapper"
 import { useCampaigns } from "../../utils/CampaignsContext"
 import { useVerification } from "app/utils/VerificationContext"
 import { useComments } from "app/utils/CommentProvider"
-import { PlusIcon, Edit2, Trash2, X, GripVertical, ChevronDown, Loader } from "lucide-react"
+import { PlusIcon, Edit2, Trash2, X, GripVertical, ChevronDown, Loader } from 'lucide-react'
 import toast from "react-hot-toast"
 import axios from "axios"
 
@@ -78,22 +78,6 @@ const hexToColorClass = (hex: string): string | null => {
 }
 
 const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color)
-
-// LocalStorage keys
-const LOCAL_STORAGE_FUNNELS_KEY = "custom_funnels_v1"
-const LOCAL_STORAGE_CONFIGS_KEY = "funnel_configurations_v1"
-const LOCAL_STORAGE_SELECTION_KEY = "funnel_selection_v1"
-
-// Helper to get a unique key for localStorage based on clientId and optionally mediaPlanId
-const getClientKey = (baseKey: string, clientId: string | undefined, mediaPlanId?: string) => {
-  if (!clientId) return baseKey
-  let key = `${baseKey}_client_${clientId}`
-  if (mediaPlanId && baseKey === LOCAL_STORAGE_FUNNELS_KEY) {
-    key += `_media_${mediaPlanId}`
-  }
-  console.debug(`Generated storage key: ${key}`)
-  return key
-}
 
 // Preset funnel structures for dropdown
 const presetStructures: { label: string; stages: Funnel[] }[] = [
@@ -167,121 +151,25 @@ const MapFunnelStages = () => {
     { id: "Loyalty", name: "Loyalty", color: colorPalette[3] },
   ]
 
-  // --- LocalStorage helpers for custom funnels ---
-  const saveCustomFunnelsToStorage = (funnels: Funnel[]) => {
-    if (!clientId) return
-    try {
-      const key = getClientKey(LOCAL_STORAGE_FUNNELS_KEY, clientId, mediaPlanId)
-      localStorage.setItem(key, JSON.stringify(funnels))
-      console.debug(`Saved custom funnels to ${key}:`, funnels)
-    } catch (e) {
-      toast.error("Failed to save funnels", { duration: 3000 })
-    }
-  }
-
-  const getCustomFunnelsFromStorage = (): Funnel[] | null => {
-    if (!clientId) return null
-    try {
-      const key = getClientKey(LOCAL_STORAGE_FUNNELS_KEY, clientId, mediaPlanId)
-      const data = localStorage.getItem(key)
-      console.debug(`Retrieved custom funnels from ${key}:`, data)
-      if (data) {
-        const parsed = JSON.parse(data)
-        if (Array.isArray(parsed) && parsed.every((f) => f.id && f.name && f.color)) {
-          return parsed
-        }
-      }
-    } catch (e) {
-      console.error("Failed to load custom funnels from localStorage:", e)
-      toast.error("Failed to load funnels", { duration: 3000 })
-    }
-    return null
-  }
-
-  // --- LocalStorage helpers for funnel configurations ---
-  const saveFunnelConfigsToStorage = (configs: FunnelConfig[]) => {
-    if (!clientId) return
-    try {
-      const key = getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId)
-      localStorage.setItem(key, JSON.stringify(configs))
-      console.debug(`Saved funnel configs to ${key}:`, configs)
-    } catch (e) {
-      console.error("Failed to save funnel configurations to localStorage:", e)
-      toast.error("Failed to save configurations", { duration: 3000 })
-    }
-  }
-
-  const getFunnelConfigsFromStorage = (): FunnelConfig[] => {
-    if (!clientId) return []
-    try {
-      const key = getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId)
-      const data = localStorage.getItem(key)
-      console.debug(`Retrieved funnel configs from ${key}:`, data)
-      if (data) {
-        const parsed = JSON.parse(data)
-        if (Array.isArray(parsed) && parsed.every((config) => config.name && Array.isArray(config.stages))) {
-          return parsed
-        }
-      }
-    } catch (e) {
-      console.error("Failed to load funnel configurations from localStorage:", e)
-      toast.error("Failed to load configurations", { duration: 3000 })
-    }
-    return []
-  }
-
-  // --- LocalStorage helpers for selection state ---
-  const saveSelectionToStorage = (configIdx: number | null, presetIdx: number | null) => {
-    if (!clientId) return
-    try {
-      const key = getClientKey(LOCAL_STORAGE_SELECTION_KEY, clientId, mediaPlanId)
-      const selectionData = { selectedConfigIdx: configIdx, selectedPreset: presetIdx }
-      localStorage.setItem(key, JSON.stringify(selectionData))
-      console.debug(`Saved selection to ${key}:`, selectionData)
-    } catch (e) {
-      console.error("Failed to save selection to localStorage:", e)
-    }
-  }
-
-  const getSelectionFromStorage = (): { selectedConfigIdx: number | null; selectedPreset: number | null } | null => {
-    if (!clientId) return null
-    try {
-      const key = getClientKey(LOCAL_STORAGE_SELECTION_KEY, clientId, mediaPlanId)
-      const data = localStorage.getItem(key)
-      console.debug(`Retrieved selection from ${key}:`, data)
-      if (data) {
-        const parsed = JSON.parse(data)
-        if (typeof parsed.selectedConfigIdx === "number" || parsed.selectedConfigIdx === null) {
-          if (typeof parsed.selectedPreset === "number" || parsed.selectedPreset === null) {
-            return parsed
-          }
-        }
-      }
-    } catch (e) {
-      console.error("Failed to load selection from localStorage:", e)
-    }
-    return null
-  }
-
   // Initialize funnel data and configurations
   useEffect(() => {
     console.debug(`Initializing with clientId: ${clientId}, mediaPlanId: ${mediaPlanId}`)
     const isNewPlan = !mediaPlanId || mediaPlanId === ""
 
-    // Load configurations from localStorage first, then fall back to campaignData
-    let configs = getFunnelConfigsFromStorage()
-    if (configs.length === 0 && campaignData?.client?.custom_funnel_configs?.length) {
+    // Load configurations from campaignFormData first, then fall back to campaignData
+    let configs: FunnelConfig[] = []
+    if (campaignFormData?.funnel_configs?.length) {
+      configs = campaignFormData.funnel_configs
+    } else if (campaignData?.client?.custom_funnel_configs?.length) {
       configs = campaignData.client.custom_funnel_configs
-      saveFunnelConfigsToStorage(configs) // Sync to localStorage
     }
     setFunnelConfigs(configs)
 
-    // Load funnels from localStorage first
+    // Load funnels from campaignFormData first
     let loadedCustomFunnels: Funnel[] = []
-    const localStorageFunnels = getCustomFunnelsFromStorage()
-
-    if (localStorageFunnels && localStorageFunnels.length > 0) {
-      loadedCustomFunnels = localStorageFunnels
+    
+    if (campaignFormData?.custom_funnels?.length > 0) {
+      loadedCustomFunnels = campaignFormData.custom_funnels
     } else if (isNewPlan || !clientId) {
       loadedCustomFunnels = defaultFunnels
     } else if (campaignData?.custom_funnels?.length > 0) {
@@ -290,7 +178,6 @@ const MapFunnelStages = () => {
         name: funnel.name || `Funnel ${index + 1}`,
         color: funnel.color || colorPalette[index % colorPalette.length] || "bg-gray-500",
       }))
-      saveCustomFunnelsToStorage(loadedCustomFunnels) // Sync to localStorage
     } else {
       loadedCustomFunnels = defaultFunnels
     }
@@ -309,6 +196,7 @@ const MapFunnelStages = () => {
         funnel_stages: orderedFunnelStages,
         channel_mix: orderedChannelMix,
         custom_funnels: loadedCustomFunnels,
+        funnel_configs: configs,
       }
       console.debug("Updated campaignFormData:", updatedFormData)
       return updatedFormData
@@ -323,59 +211,36 @@ const MapFunnelStages = () => {
       (preset) => normalizeFunnelStages(preset.stages) === currentFunnelKey,
     )
 
-    // Load saved selection from localStorage
-    const savedSelection = getSelectionFromStorage()
-    if (savedSelection && !isNewPlan && clientId) {
-      if (
-        savedSelection.selectedConfigIdx !== null &&
-        configs.length > savedSelection.selectedConfigIdx &&
-        normalizeFunnelStages(configs[savedSelection.selectedConfigIdx].stages) === currentFunnelKey
-      ) {
-        setSelectedConfigIdx(savedSelection.selectedConfigIdx)
-        setSelectedPreset(null)
-      } else if (
-        savedSelection.selectedPreset !== null &&
-        presetStructures.length > savedSelection.selectedPreset &&
-        normalizeFunnelStages(presetStructures[savedSelection.selectedPreset].stages) === currentFunnelKey
-      ) {
-        setSelectedPreset(savedSelection.selectedPreset)
-        setSelectedConfigIdx(null)
-      } else if (matchingConfigIdx !== -1) {
-        setSelectedConfigIdx(matchingConfigIdx)
-        setSelectedPreset(null)
-        saveSelectionToStorage(matchingConfigIdx, null)
-      } else if (matchingPresetIdx !== -1) {
-        setSelectedPreset(matchingPresetIdx)
-        setSelectedConfigIdx(null)
-        saveSelectionToStorage(null, matchingPresetIdx)
-      } else {
-        setSelectedConfigIdx(null)
-        setSelectedPreset(isNewPlan || !clientId ? 1 : null)
-        saveSelectionToStorage(null, isNewPlan || !clientId ? 1 : null)
-      }
+    // Load saved selection from campaignFormData
+    const savedConfigIdx = campaignFormData?.selected_config_idx
+    const savedPresetIdx = campaignFormData?.selected_preset_idx
+    
+    if (savedConfigIdx !== undefined && savedConfigIdx !== null && configs.length > savedConfigIdx &&
+        normalizeFunnelStages(configs[savedConfigIdx].stages) === currentFunnelKey) {
+      setSelectedConfigIdx(savedConfigIdx)
+      setSelectedPreset(null)
+    } else if (savedPresetIdx !== undefined && savedPresetIdx !== null && presetStructures.length > savedPresetIdx &&
+               normalizeFunnelStages(presetStructures[savedPresetIdx].stages) === currentFunnelKey) {
+      setSelectedPreset(savedPresetIdx)
+      setSelectedConfigIdx(null)
     } else if (matchingConfigIdx !== -1) {
       setSelectedConfigIdx(matchingConfigIdx)
       setSelectedPreset(null)
-      saveSelectionToStorage(matchingConfigIdx, null)
+      setCampaignFormData((prev: any) => ({ ...prev, selected_config_idx: matchingConfigIdx, selected_preset_idx: null }))
     } else if (matchingPresetIdx !== -1) {
       setSelectedPreset(matchingPresetIdx)
       setSelectedConfigIdx(null)
-      saveSelectionToStorage(null, matchingPresetIdx)
+      setCampaignFormData((prev: any) => ({ ...prev, selected_config_idx: null, selected_preset_idx: matchingPresetIdx }))
     } else {
       setSelectedConfigIdx(null)
       setSelectedPreset(isNewPlan || !clientId ? 1 : null)
-      saveSelectionToStorage(null, isNewPlan || !clientId ? 1 : null)
+      setCampaignFormData((prev: any) => ({ 
+        ...prev, 
+        selected_config_idx: null, 
+        selected_preset_idx: isNewPlan || !clientId ? 1 : null 
+      }))
     }
   }, [clientId, mediaPlanId, campaignData, setCampaignFormData])
-
-  // Clear stale localStorage on clientId or mediaPlanId change
-  useEffect(() => {
-    if (!clientId) {
-      localStorage.removeItem(getClientKey(LOCAL_STORAGE_FUNNELS_KEY, clientId, mediaPlanId))
-      localStorage.removeItem(getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId))
-      localStorage.removeItem(getClientKey(LOCAL_STORAGE_SELECTION_KEY, clientId, mediaPlanId))
-    }
-  }, [clientId, mediaPlanId])
 
   // Initialize comments drawer
   useEffect(() => {
@@ -393,10 +258,14 @@ const MapFunnelStages = () => {
     }
   }, [campaignFormData, cId, verifyStep, previousValidationState])
 
-  // Save custom funnels to localStorage
+  // Update campaignFormData when funnels change
   useEffect(() => {
-    if (clientId && persistentCustomFunnels.length > 0) {
-      saveCustomFunnelsToStorage(persistentCustomFunnels)
+    if (persistentCustomFunnels.length > 0) {
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        custom_funnels: persistentCustomFunnels,
+      }))
+      
       // Update selection if current funnels match a config or preset
       const currentFunnelKey = normalizeFunnelStages(persistentCustomFunnels)
       const matchingConfigIdx = funnelConfigs.findIndex(
@@ -408,21 +277,24 @@ const MapFunnelStages = () => {
       if (matchingConfigIdx !== -1 && selectedConfigIdx !== matchingConfigIdx) {
         setSelectedConfigIdx(matchingConfigIdx)
         setSelectedPreset(null)
-        saveSelectionToStorage(matchingConfigIdx, null)
+        setCampaignFormData((prev: any) => ({ ...prev, selected_config_idx: matchingConfigIdx, selected_preset_idx: null }))
       } else if (matchingPresetIdx !== -1 && selectedPreset !== matchingPresetIdx) {
         setSelectedPreset(matchingPresetIdx)
         setSelectedConfigIdx(null)
-        saveSelectionToStorage(null, matchingPresetIdx)
+        setCampaignFormData((prev: any) => ({ ...prev, selected_config_idx: null, selected_preset_idx: matchingPresetIdx }))
       }
     }
-  }, [persistentCustomFunnels, clientId, mediaPlanId, funnelConfigs, selectedConfigIdx, selectedPreset])
+  }, [persistentCustomFunnels, funnelConfigs, selectedConfigIdx, selectedPreset, setCampaignFormData])
 
-  // Save funnel configurations to localStorage
+  // Update campaignFormData when funnel configs change
   useEffect(() => {
-    if (clientId && funnelConfigs.length > 0) {
-      saveFunnelConfigsToStorage(funnelConfigs)
+    if (funnelConfigs.length > 0) {
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        funnel_configs: funnelConfigs,
+      }))
     }
-  }, [funnelConfigs, clientId])
+  }, [funnelConfigs, setCampaignFormData])
 
   // Handle clicks outside modal
   useEffect(() => {
@@ -525,19 +397,18 @@ const MapFunnelStages = () => {
     setPersistentCustomFunnels(updatedFunnels)
     setCustomFunnels(updatedFunnels)
 
-    if (clientId) saveCustomFunnelsToStorage(updatedFunnels)
-
     setCampaignFormData((prev: any) => ({
       ...prev,
       custom_funnels: updatedFunnels,
       funnel_stages: [...(prev.funnel_stages || []), name],
       channel_mix: [...(prev.channel_mix || []), { funnel_stage: name }],
+      selected_config_idx: null,
+      selected_preset_idx: null,
     }))
 
     setHasChanges(true)
-    setSelectedConfigIdx(null) // New funnel invalidates current config selection
+    setSelectedConfigIdx(null)
     setSelectedPreset(null)
-    if (clientId) saveSelectionToStorage(null, null)
     toast.success("Funnel added successfully", { duration: 3000 })
     setIsModalOpen(false)
     console.debug("Added funnel:", newFunnel)
@@ -558,8 +429,6 @@ const MapFunnelStages = () => {
     setPersistentCustomFunnels(updatedFunnels)
     setCustomFunnels(updatedFunnels)
 
-    if (clientId) saveCustomFunnelsToStorage(updatedFunnels)
-
     setCampaignFormData((prev: any) => ({
       ...prev,
       custom_funnels: updatedFunnels,
@@ -567,12 +436,13 @@ const MapFunnelStages = () => {
       channel_mix: (prev.channel_mix || []).map((ch: any) =>
         ch.funnel_stage === oldId ? { ...ch, funnel_stage: newName } : ch,
       ),
+      selected_config_idx: null,
+      selected_preset_idx: null,
     }))
 
     setHasChanges(true)
-    setSelectedConfigIdx(null) // Edited funnel invalidates current config selection
+    setSelectedConfigIdx(null)
     setSelectedPreset(null)
-    if (clientId) saveSelectionToStorage(null, null)
     toast.success("Funnel updated successfully", { duration: 3000 })
     setIsModalOpen(false)
     console.debug("Edited funnel:", { oldId, newName, newColor })
@@ -592,19 +462,18 @@ const MapFunnelStages = () => {
     setPersistentCustomFunnels(updatedFunnels)
     setCustomFunnels(updatedFunnels)
 
-    if (clientId) saveCustomFunnelsToStorage(updatedFunnels)
-
     setCampaignFormData((prev: any) => ({
       ...prev,
       custom_funnels: updatedFunnels,
       funnel_stages: (prev.funnel_stages || []).filter((name: string) => name !== id),
       channel_mix: (prev.channel_mix || []).filter((ch: any) => ch?.funnel_stage !== id),
+      selected_config_idx: null,
+      selected_preset_idx: null,
     }))
 
     setHasChanges(true)
-    setSelectedConfigIdx(null) // Removed funnel invalidates current config selection
+    setSelectedConfigIdx(null)
     setSelectedPreset(null)
-    if (clientId) saveSelectionToStorage(null, null)
     toast.success("Funnel removed successfully", { duration: 3000 })
     console.debug("Removed funnel:", id)
   }
@@ -634,8 +503,6 @@ const MapFunnelStages = () => {
     setPersistentCustomFunnels(newFunnels)
     setCustomFunnels(newFunnels)
 
-    if (clientId) saveCustomFunnelsToStorage(newFunnels)
-
     setCampaignFormData((prev: any) => {
       const newFunnelNames = newFunnels.map((f) => f.name)
       const orderedFunnelStages = newFunnelNames.filter((name) => prev.funnel_stages?.includes(name))
@@ -647,13 +514,14 @@ const MapFunnelStages = () => {
         custom_funnels: newFunnels,
         funnel_stages: orderedFunnelStages,
         channel_mix: orderedChannelMix,
+        selected_config_idx: null,
+        selected_preset_idx: null,
       }
     })
 
     setHasChanges(true)
-    setSelectedConfigIdx(null) // Reordered funnels invalidate current config selection
+    setSelectedConfigIdx(null)
     setSelectedPreset(null)
-    if (clientId) saveSelectionToStorage(null, null)
     setDraggedIndex(null)
     setDragOverIndex(null)
     console.debug("Reordered funnels:", newFunnels)
@@ -721,12 +589,10 @@ const MapFunnelStages = () => {
       custom_funnels: preset.stages,
       funnel_stages: preset.stages.map((f) => f.name),
       channel_mix: preset.stages.map((f) => ({ funnel_stage: f.name })),
+      selected_config_idx: null,
+      selected_preset_idx: presetIdx,
     }))
     setHasChanges(true)
-    if (clientId) {
-      saveCustomFunnelsToStorage(preset.stages)
-      saveSelectionToStorage(null, presetIdx)
-    }
     toast.success("Preset structure applied", { duration: 2000 })
     setDropdownOpen(false)
     console.debug("Applied preset:", preset.label)
@@ -746,12 +612,10 @@ const MapFunnelStages = () => {
       custom_funnels: config.stages,
       funnel_stages: config.stages.map((f) => f.name),
       channel_mix: config.stages.map((f) => ({ funnel_stage: f.name })),
+      selected_config_idx: configIdx,
+      selected_preset_idx: null,
     }))
     setHasChanges(true)
-    if (clientId) {
-      saveCustomFunnelsToStorage(config.stages)
-      saveSelectionToStorage(configIdx, null)
-    }
     toast.success("Funnel configuration applied", { duration: 2000 })
     setDropdownOpen(false)
     console.debug("Applied config:", config.name)
@@ -791,9 +655,14 @@ const MapFunnelStages = () => {
     setSelectedConfigIdx(newConfigIdx)
     setSelectedPreset(null)
 
+    setCampaignFormData((prev: any) => ({
+      ...prev,
+      funnel_configs: updatedConfigs,
+      selected_config_idx: newConfigIdx,
+      selected_preset_idx: null,
+    }))
+
     if (clientId) {
-      saveFunnelConfigsToStorage(updatedConfigs)
-      saveSelectionToStorage(newConfigIdx, null)
       setSavingConfig(true)
       try {
         await axios.put(
@@ -817,8 +686,6 @@ const MapFunnelStages = () => {
         toast.error("Failed to update funnel configs on server, saved locally", {
           duration: 3000,
         })
-        // Save locally even if Strapi fails
-        saveFunnelConfigsToStorage(updatedConfigs)
       } finally {
         setSavingConfig(false)
       }
@@ -839,28 +706,40 @@ const MapFunnelStages = () => {
 
     const updatedConfigs = funnelConfigs.filter((_, idx) => idx !== configIdx)
     setFunnelConfigs(updatedConfigs)
-    if (clientId) saveFunnelConfigsToStorage(updatedConfigs)
+
+    let newSelectedConfigIdx = selectedConfigIdx
+    let newSelectedPresetIdx = selectedPreset
 
     if (selectedConfigIdx === configIdx) {
-      setSelectedConfigIdx(null)
-      setSelectedPreset(1) // Fallback to "Full" preset
+      newSelectedConfigIdx = null
+      newSelectedPresetIdx = 1 // Fallback to "Full" preset
       setPersistentCustomFunnels(defaultFunnels)
       setCustomFunnels(defaultFunnels)
       setCampaignFormData((prev: any) => ({
         ...prev,
+        funnel_configs: updatedConfigs,
         custom_funnels: defaultFunnels,
         funnel_stages: defaultFunnels.map((f) => f.name),
         channel_mix: defaultFunnels.map((f) => ({ funnel_stage: f.name })),
+        selected_config_idx: null,
+        selected_preset_idx: 1,
       }))
-      if (clientId) {
-        saveCustomFunnelsToStorage(defaultFunnels)
-        saveSelectionToStorage(null, 1)
-      }
     } else if (selectedConfigIdx !== null && selectedConfigIdx > configIdx) {
-      const newSelectedIdx = selectedConfigIdx - 1
-      setSelectedConfigIdx(newSelectedIdx)
-      if (clientId) saveSelectionToStorage(newSelectedIdx, null)
+      newSelectedConfigIdx = selectedConfigIdx - 1
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        funnel_configs: updatedConfigs,
+        selected_config_idx: newSelectedConfigIdx,
+      }))
+    } else {
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        funnel_configs: updatedConfigs,
+      }))
     }
+
+    setSelectedConfigIdx(newSelectedConfigIdx)
+    setSelectedPreset(newSelectedPresetIdx)
     setHasChanges(true)
     toast.success("Configuration deleted successfully", { duration: 2000 })
     console.debug("Deleted config at index:", configIdx)
