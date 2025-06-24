@@ -275,7 +275,7 @@ const Header = ({ setIsOpen, setIsView }) => {
                   })
                 }}>
                 <button
-                  className={`new_plan_btn ${!profile?.clients || !clients?.data || !selectedId ? "!bg-[gray]" : ""
+                  className={`new_plan_btn ${!profile?.clients || !clients?.data || !selectedId ? "!bg-gray-400" : ""
                     }`}
                   disabled={!profile?.clients || !clients?.data || !selectedId}
                 >
