@@ -15,7 +15,10 @@ import toast, { Toaster } from "react-hot-toast";
 import dayjs from "dayjs";
 import { selectCurrency } from "./Options";
 import { useUserPrivileges } from "utils/userPrivileges";
-import { extractObjectives } from "app/creation/components/EstablishedGoals/table-view/data-processor";
+import {
+  extractObjectives,
+  getFilteredMetrics,
+} from "app/creation/components/EstablishedGoals/table-view/data-processor";
 import axios from "axios";
 import { updateUsersWithCampaign } from "app/homepage/functions/clients";
 
@@ -129,6 +132,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   // Only reset formats when entering active === 4 if the user has NOT already proceeded from step 4 with a valid format
   useEffect(() => {
     if (active === 4 && !hasProceededFromFormatStep.current) {
+      console.log("here");
       setCampaignFormData((prev) => ({
         ...prev,
         channel_mix:
@@ -623,7 +627,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           window.history.pushState({}, "", url.toString());
           await updateUsersWithCampaign(
             [
-              ...(Array.isArray(loggedInUser?.id) ? loggedInUser?.id : [loggedInUser?.id]),
+              ...(Array.isArray(loggedInUser?.id)
+                ? loggedInUser?.id
+                : [loggedInUser?.id]),
               ...(campaignFormData?.internal_approver_ids || []).map(Number),
               ...(campaignFormData?.client_approver_ids || []).map(Number),
             ],
@@ -679,7 +685,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     //         client: campaignFormData?.client_selection?.id,
     //         client_selection: {
     //           client: campaignFormData?.client_selection?.value,
-    //           level_1: campaignFormData?.level_1?.id, 
+    //           level_1: campaignFormData?.level_1?.id,
     //         },
     //         media_plan_details: {
     //           plan_name: campaignFormData?.media_plan,
@@ -701,7 +707,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     //         client: campaignFormData?.client_selection?.id,
     //         client_selection: {
     //           client: campaignFormData?.client_selection?.value,
-    //           level_1: campaignFormData?.level_1?.id, 
+    //           level_1: campaignFormData?.level_1?.id,
     //         },
     //         media_plan_details: {
     //           plan_name: campaignFormData?.media_plan,
@@ -769,11 +775,13 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       if (!campaignData || !cId) return;
       let updatedCampaignFormData = campaignFormData;
 
-      if (active > 4) {
-        const obj = extractObjectives(campaignFormData);
+      if (active === 5) {
+        const obj = await extractObjectives(campaignFormData);
+        const sMetrics = await getFilteredMetrics(obj);
         updatedCampaignFormData = {
           ...campaignFormData,
           table_headers: obj || {},
+          selected_metrics: sMetrics || {},
         };
         setCampaignFormData(updatedCampaignFormData);
       }
@@ -791,6 +799,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           ]
         ),
         table_headers: updatedCampaignFormData?.table_headers,
+        selected_metrics: updatedCampaignFormData?.selected_metrics,
       });
     };
 
@@ -1035,20 +1044,20 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                     style={
                       active === 4 && !hasFormatSelected
                         ? {
-                          fontSize: "14px",
-                          whiteSpace: "normal",
-                          lineHeight: "16px",
-                          textAlign: "center",
-                          maxWidth: 120,
-                        }
+                            fontSize: "14px",
+                            whiteSpace: "normal",
+                            lineHeight: "16px",
+                            textAlign: "center",
+                            maxWidth: 120,
+                          }
                         : {}
                     }
                   >
                     {active === 0
                       ? "Start"
                       : active === 4 && !hasFormatSelected
-                        ? "Not mandatory step, skip"
-                        : "Continue"}
+                      ? "Not mandatory step, skip"
+                      : "Continue"}
                   </p>
                   <Image src={Continue || "/placeholder.svg"} alt="Continue" />
                 </>

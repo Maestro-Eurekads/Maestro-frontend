@@ -108,8 +108,8 @@ const Header = ({ setIsOpen, setIsView }) => {
 
 
 
-  // console.log("clients=clients", profile?.clients?.length);
-  // console.log("profile=profile", profile?.clients?.length);
+  // //console.log("clients=clients", profile?.clients?.length);
+  // //console.log("profile=profile", profile?.clients?.length);
   useEffect(() => {
     if (!clients?.data || clients?.data?.length === 0 || !selectedId) {
       setLoading(false);

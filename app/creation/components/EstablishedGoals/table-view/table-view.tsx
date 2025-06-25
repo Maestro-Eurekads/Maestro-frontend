@@ -19,7 +19,7 @@ const TableView = () => {
   const [nrColumnsByStage, setNrColumnsByStage] = useState({})
 
   const [selectedMetrics, setSelectedMetrics] = useState([])
-  // console.log("🚀 ~ TableView:", campaignFormData?.table_headers)
+  // //console.log("🚀 ~ TableView:", campaignFormData?.table_headers)
   const [expandedKPI, setExpandedKPI] = useState({})
   const [expandedAdsetKPI, setExpandedAdsetKPI] = useState({})
 
@@ -28,7 +28,7 @@ const TableView = () => {
 
   const processedData = extractPlatforms(campaignFormData)
 
-  const [selectedMetricsLoaded, setSelectedMetricsLoaded] = useState(false)
+  // const [selectedMetricsLoaded, setSelectedMetricsLoaded] = useState(false)
 
   const toggleRow = (index) => {
     setExpandedRows((prev) => ({
@@ -124,7 +124,7 @@ const TableView = () => {
         }
       })
 
-      // console.log("filteredHeaders", filteredHeaders)
+      // //console.log("filteredHeaders", filteredHeaders)
 
       return {
         ...prev,
@@ -203,119 +203,86 @@ const TableView = () => {
   // Helper function to convert header name to body field name
   const headerToBodyField = (headerName) => {
     if (!headerName) return ""
-    return headerName.toLowerCase().replace(/ /g, "_").replace(/\//g, "").replace(/-/g, "_")
+    return headerName?.toLowerCase()?.replace(/ /g, "_")?.replace(/\//g, "")?.replace(/-/g, "_")
   }
 
   useEffect(() => {
     if (!campaignFormData) return
-    // console.log("headers", campaignFormData?.table_headers)
-    const stageObjectives = campaignFormData?.table_headers // example: { Awareness: ["App Install", ...], ... }
-    // console.log("🚀 ~ useEffect ~ stageObjectives:", stageObjectives)
+
     const headersByStage = {}
     const bodyByStage = {}
 
-    for (const [stageName, objectives] of Object.entries(stageObjectives ?? {})) {
+    const defaultHeaders = tableHeaders["Brand Awareness"]
+
+    for (const stageName of Object.keys(campaignFormData?.selected_metrics || {})) {
       const headersSet = new Map() // to deduplicate by name
       const bodyFieldsSet = new Set()
 
-      // Check if we have selected metrics for this stage
-      const selectedMetricsForStage = campaignFormData?.selected_metrics?.[stageName] || []
-
-      // Get default headers that should always be included
-      const defaultHeaders = [
-        "Channel",
-        "AdSets",
-        "Audience",
-        "Start Date",
-        "End Date",
-        "Audience Size",
-        "Budget Size",
-        "CPM",
-        "Impressions",
-        "Frequency",
-        "Reach",
-        "GRP"
-      ]
-
-      // Add default headers first
-      defaultHeaders.forEach((headerName) => {
-        // Find the header definition in any objective
-        for (const objective of Object.keys(tableHeaders)) {
-          const headers = tableHeaders[objective] || []
-          const header = headers.find((h) => h?.name === headerName)
-          if (header) {
-            headersSet.set(headerName, { ...header, obj: objective })
-
-            // Add corresponding body field for default header
-            const bodyField = headerToBodyField(headerName)
-            if (bodyField) bodyFieldsSet.add(bodyField)
-            break
-          }
-        }
+      // Add default headers
+      defaultHeaders.forEach((header) => {
+        headersSet.set(header?.name, { ...header })
+        const bodyField = headerToBodyField(header?.name)
+        if (bodyField) bodyFieldsSet.add(bodyField)
       })
 
-      const objectiveList = Array.isArray(objectives) && objectives.length > 0 ? objectives : ["Brand Awareness"]
+      // Get selected metrics for this stage
+      const selectedMetricsForStage = campaignFormData?.selected_metrics?.[stageName] || []
 
-      // Process each objective
-      objectiveList?.forEach((objective) => {
-        const headers = tableHeaders[objective] || []
-        const body = tableBody[objective] || []
+      selectedMetricsForStage.forEach((metric) => {
+        if (!metric || !metric.name) return
+        headersSet.set(metric.name, { ...metric })
 
-        // Check if we have any selected metrics for this objective
-        const selectedMetricsForObjective = selectedMetricsForStage.filter((m) => m && m.obj === objective)
-
-        if (selectedMetricsForObjective && selectedMetricsForObjective.length > 0) {
-          // Only add the specifically selected metrics for this objective
-          console.log(`Using selected metrics for ${stageName}, objective ${objective}:`, selectedMetricsForObjective)
-
-          selectedMetricsForObjective.forEach((metric) => {
-            if (!metric || !metric.name) return
-            headersSet.set(metric.name, { ...metric })
-
-            // Add corresponding body field
-            const bodyField = headerToBodyField(metric.name)
-            if (bodyField) bodyFieldsSet.add(bodyField)
-          })
-        } else {
-          // No selected metrics for this objective, add all metrics
-          // console.log(`No selected metrics for ${stageName}, objective ${objective}, adding all metrics`)
-
-          headers.forEach((header) => {
-            // Skip default headers as they're already added
-            if (!header || !header.name || defaultHeaders.includes(header.name)) return
-
-            headersSet.set(header.name, { ...header, obj: objective })
-
-            // Add corresponding body field
-            const bodyField = headerToBodyField(header.name)
-            if (bodyField) bodyFieldsSet.add(bodyField)
-          })
-
-          // Add all body fields from tableBody
-          body.forEach((b) => bodyFieldsSet.add(b))
-        }
+        // Add corresponding body field
+        const bodyField = headerToBodyField(metric.name)
+        if (bodyField) bodyFieldsSet.add(bodyField)
       })
 
       headersByStage[stageName] = Array.from(headersSet.values())
       bodyByStage[stageName] = Array.from(bodyFieldsSet)
     }
-    // console.log("🚀 ~ useEffect ~ headersByStage:", headersByStage)
 
     setMergedTableHeadersByStage(headersByStage)
     setMergedTableBodyByStage(bodyByStage)
-  }, [campaignFormData, currentEditingStage]) // Remove selectedMetrics from dependencies
+  }, [campaignFormData]) 
 
   // Initialize selectedMetrics with metrics that are already in the table
   useEffect(() => {
     if (currentEditingStage && isOpen && !initializedRef.current) {
       initializedRef.current = true
+      const defaultHeaders = tableHeaders["Brand Awareness"]
 
       // Load selectedMetrics from backend for this stage
       const backendSelectedMetrics = campaignFormData?.selected_metrics?.[currentEditingStage] || []
+      // const selectedHeaders = campaignFormData?.table_headers?.[currentEditingStage] || []
+      // const r=  selectedHeaders.map((objective, index) => {
+      //   const defaultHeaders = [
+      //     "Channel",
+      //     "AdSets",
+      //     "Audience",
+      //     "Start Date",
+      //     "End Date",
+      //     "Audience Size",
+      //     "Budget Size",
+      //     "CPM",
+      //     "Impressions",
+      //     "Frequency",
+      //     "Reach",
+      //     "GRP"
+      //   ]
+      //   const availableMetrics = tableHeaders[objective] || []
 
-      console.log("Loading selected metrics from backend:", backendSelectedMetrics)
-      setSelectedMetrics(backendSelectedMetrics)
-      setSelectedMetricsLoaded(true)
+      //   // Show all metrics, but filter out default headers
+      //   const filterAvailableMetrics = availableMetrics
+      //     ?.filter((mm) => !defaultHeaders.includes(mm?.name))
+      //     .map((metric) => ({
+      //       ...metric,
+      //       obj: objective, // Add the new property 'obj' with the current objective
+      //     }))
+      //     return filterAvailableMetrics
+      //   })
+      //console.log("Loading selected metrics from backend:", )
+      setSelectedMetrics([...backendSelectedMetrics])
+      // setSelectedMetricsLoaded(true)
     }
   }, [currentEditingStage, isOpen, campaignFormData])
 
@@ -390,7 +357,7 @@ const TableView = () => {
               platform["budget"]["fixed_value"] = value.toString()
             }
           } else if (fieldName === "audience_size") {
-            // console.log("here", { adSetIndex })
+            // //console.log("here", { adSetIndex })
             if (adSetIndex !== "") {
               platform.ad_sets[adSetIndex]["size"] = platform.ad_sets[adSetIndex]["size"] || ""
               platform.ad_sets[adSetIndex]["size"] = value.toString()
@@ -483,21 +450,19 @@ const TableView = () => {
           <div className="mt-4 max-h-[400px] overflow-y-auto">
             {(() => {
               const allObjectives = Object.keys(tableHeaders)
-              // console.log("🚀 ~ TableView ~ allObjectives:", allObjectives);
-              // console.log("objectivesForStage", objectivesForStage);
+              // //console.log("🚀 ~ TableView ~ allObjectives:", allObjectives);
+              // //console.log("selectedMetrics", selectedMetrics);
+              // //console.log("objectivesForStage", objectivesForStage);
               const filteredObjectives = allObjectives.filter((objective) => {
                 // Always show categories that have selected metrics
                 const hasSelectedMetrics = selectedMetrics.some((m) => m.obj === objective)
 
                 // Show if not in stage objectives, not Brand Awareness, or has selected metrics
                 return (
-                  (!objectivesForStage.includes(objective) && objective !== "Brand Awareness") || hasSelectedMetrics
+                  ( objective !== "Brand Awareness") || hasSelectedMetrics
                 )
               })
-              // console.log(
-              //   "🚀 ~ TableView ~ filteredObjectives:",
-              //   filteredObjectives
-              // );
+              //console.log("🚀 ~ TableView ~ filteredObjectives:filteredObjectives);
 
               const areAllSelected = (objective, availableMetrics) => {
                 return availableMetrics.every((metric) =>
@@ -529,7 +494,7 @@ const TableView = () => {
                     ...metric,
                     obj: objective, // Add the new property 'obj' with the current objective
                   }))
-
+// //console.log("here", filterAvailableMetrics)
                 if (filterAvailableMetrics.length === 0) return null
 
                 return (
