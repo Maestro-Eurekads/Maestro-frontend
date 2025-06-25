@@ -86,7 +86,7 @@ const DraggableMessage = () => {
 	return (
 		<NoSSR>
 			{opportunities?.map((opportunity, index) => {
-				let position = opportunity?.position || { x: 100, y: 100 }; // Default position
+				let position = opportunity?.position || { x: 150, y: 150 }; // Default position
 				const key = `${position.x}-${position.y}`;
 
 				if (positionTracker.has(key)) {
