@@ -294,7 +294,6 @@ const OverviewofyourCampaign = () => {
   }, [showalert]);
 
 
-
   // console.log('campaignFormData-campaignFormData', campaignFormData)
   // console.log('campaignData-campaignData', campaignData)
   return (
@@ -328,6 +327,7 @@ const OverviewofyourCampaign = () => {
             loading={isLoadingKpis}
             isLoadingCampaign={loadingCampaign}
           />
+          <MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
           <div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
             <div className="flex gap-[12px] md:flex-row">
               <button
@@ -399,7 +399,7 @@ const OverviewofyourCampaign = () => {
           <DateComponent useDate={true} hideRange={true} />
         </div>
 
-        <MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
+
         {/* <OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} setIsDrawerOpen={setIsDrawerOpen} openComments={isDrawerOpen} /> */}
         {isLoadingCampaign ?
           <div className='w-full h-[500px] flex flex-col gap-[50px] m-20px'>
