@@ -21,22 +21,22 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   } = useComments();
   const { dataApprove, isLoadingApprove } = useAppSelector((state) => state.comment);
   const { data: session }: any = useSession();
-  const {jwt} = useCampaigns()
+  const { jwt } = useCampaigns()
   const dispatch = useAppDispatch();
   const id = session?.user?.id;
 
   useEffect(() => {
     if (createApprovalSuccess) {
       setModalOpen(false);
-      dispatch(getSignedApproval(id, jwt));
+      dispatch(getSignedApproval({ id, jwt }));
       setCreateApprovalSuccess(null);
     }
-    dispatch(getSignedApproval(id, jwt));
+    dispatch(getSignedApproval({ id, jwt }));
   }, [dispatch, id, createApprovalSuccess]);
 
   const handleDrawerOpen = () => {
     setModalOpen(true);
-    dispatch(getSignedApproval(id, jwt));
+    dispatch(getSignedApproval({ id, jwt }));
   };
 
   const isSignature = dataApprove?.[0]?.isSignature || false;

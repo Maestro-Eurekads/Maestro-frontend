@@ -98,8 +98,8 @@ const ClientView = () => {
 	useEffect(() => {
 		if (selected && jwt) {
 			dispatch(getCampaignById({ clientId: clientId, campaignId: selected, jwt }));
-			dispatch(getComment(commentId, jwt, client_commentId));
-			dispatch(getGeneralComment(commentId, jwt));
+			dispatch(getComment({ commentId, jwt, client_commentId }));
+			dispatch(getGeneralComment({ commentId, jwt }));
 		}
 	}, [selected, commentId, client_commentId, clientId, jwt]);
 
@@ -109,13 +109,13 @@ const ClientView = () => {
 
 	const handleDrawerOpen = () => {
 		setIsDrawerOpen(true);
-		dispatch(getComment(commentId, jwt, client_commentId));
+		dispatch(getComment({ commentId, jwt, client_commentId }));
 		setClose(true)
 	}
 
 	const handleOpenComment = () => {
 		setGeneralComment(!generalComment)
-		dispatch(getGeneralComment(commentId, jwt));
+		dispatch(getGeneralComment({ commentId, jwt }));
 	}
 
 

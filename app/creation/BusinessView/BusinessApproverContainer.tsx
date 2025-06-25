@@ -20,7 +20,7 @@ const BusinessApproverContainer = ({
 
   useEffect(() => {
     if (id) {
-      dispatch(getSignedApproval(id, jwt));
+      dispatch(getSignedApproval({ id, jwt }));
     }
   }, [dispatch, id]);
 

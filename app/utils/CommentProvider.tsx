@@ -11,7 +11,7 @@ export const useComments = () => {
 	return useContext(CommentContext);
 };
 
-export const CommentProvider = ({ children}) => {
+export const CommentProvider = ({ children }) => {
 	const [close, setClose] = useState(false);
 	const [comments, setComments] = useState([]);
 	const [comment, setComment] = useState("");
@@ -43,9 +43,9 @@ export const CommentProvider = ({ children}) => {
 
 	const dispatch = useAppDispatch();
 	const { data } = useAppSelector((state) => state.comment);
-	const {data:session} = useSession()
+	const { data: session } = useSession()
 	const jwt =
-    (session?.user as { data?: { jwt: string } })?.data?.jwt
+		(session?.user as { data?: { jwt: string } })?.data?.jwt
 
 
 
@@ -73,6 +73,8 @@ export const CommentProvider = ({ children}) => {
 		}
 	}, [data]);
 
+
+
 	const addGeneralComment = async (commentId, generalComment, author) => {
 		setIsLoadingGeneral(true);
 		try {
@@ -88,7 +90,7 @@ export const CommentProvider = ({ children}) => {
 					Authorization: `Bearer ${jwt}`,
 				},
 			});
-			dispatch(getGeneralComment(commentId, jwt));
+			dispatch(getGeneralComment({ commentId, jwt }));
 			setGeneralComment("");
 			setIsLoadingGeneral(false);
 			setGeneralcommentsSuccess(true);
@@ -113,7 +115,7 @@ export const CommentProvider = ({ children}) => {
 					Authorization: `Bearer ${jwt}`,
 				},
 			});
-			dispatch(getGeneralComment(commentId, jwt));
+			dispatch(getGeneralComment({ commentId, jwt }));
 			setGeneralComment("");
 			setIsLoadingGeneral(false);
 			setGeneralcommentsSuccess(true);
@@ -147,7 +149,7 @@ export const CommentProvider = ({ children}) => {
 			localStorage.setItem("opportunities", JSON.stringify(null));
 			setComments((prev) => [...prev, response?.data?.data]);
 			setShowAdd(response.data.data.commentId);
-			dispatch(getComment(commentId, jwt));
+			dispatch(getComment({ commentId, jwt }));
 			setComment("");
 			setIsLoading(false);
 			setCreateCommentsSuccess(true);
@@ -220,7 +222,7 @@ export const CommentProvider = ({ children}) => {
 			);
 			setReplyText("");
 			setIsLoadingReply(false);
-			dispatch(getComment(commentId, jwt));
+			dispatch(getComment({ commentId, jwt }));
 		} catch (error) {
 			setIsLoadingReply(false);
 			setReplyError(error);
@@ -251,7 +253,7 @@ export const CommentProvider = ({ children}) => {
 			);
 
 			setapprovedIsLoading(false);
-			dispatch(getComment(commentId, jwt));
+			dispatch(getComment({ commentId, jwt }));
 		} catch (error) {
 			setapprovedIsLoading(false);
 			setApprovedError(error);

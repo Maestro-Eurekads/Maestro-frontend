@@ -17,7 +17,7 @@ const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 
 	useEffect(() => {
 		if (id) {
-			dispatch(getSignedApproval(id, jwt));
+			dispatch(getSignedApproval({ id, jwt }));
 		}
 	}, [dispatch, id]);
 

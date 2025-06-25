@@ -18,6 +18,8 @@ import clsx from "clsx";
 const CommentsDrawer = ({ isOpen, onClose }) => {
 	const { opportunities, setViewcommentsId, viewcommentsId, addCommentOpportunity, setOpportunities, createCommentsError, createCommentsSuccess, approvedError, replyError, setIsCreateOpen } = useComments();
 
+	console.log('viewcommentsId-viewcommentsId', viewcommentsId)
+
 	const { isAgencyApprover, isFinancialApprover, isAdmin } = useUserPrivileges();
 
 	const { data, isLoading } = useAppSelector((state) => state.comment);
