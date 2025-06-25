@@ -141,6 +141,8 @@ const MapFunnelStages = () => {
   const [isSaveConfigModalOpen, setIsSaveConfigModalOpen] = useState(false)
   const [newConfigName, setNewConfigName] = useState("")
   const [savingConfig, setSavingConfig] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [configToDelete, setConfigToDelete] = useState<number | null>(null)
 
   // Get clientId and mediaPlanId safely
   const clientId = campaignFormData?.client_selection?.id ?? ""
@@ -327,16 +329,17 @@ const MapFunnelStages = () => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
         setIsModalOpen(false)
         setIsSaveConfigModalOpen(false)
+        setIsDeleteModalOpen(false)
       }
     }
 
-    if (isModalOpen || isSaveConfigModalOpen) {
+    if (isModalOpen || isSaveConfigModalOpen || isDeleteModalOpen) {
       document.addEventListener("mousedown", handleClickOutside)
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
     }
-  }, [isModalOpen, isSaveConfigModalOpen])
+  }, [isModalOpen, isSaveConfigModalOpen, isDeleteModalOpen])
 
   // Get an available color
   const getAvailableColor = (excludeColor?: string): string => {
@@ -723,19 +726,23 @@ const MapFunnelStages = () => {
     console.debug("Saved new config:", config)
   }
 
-  // Delete a saved configuration
+  // Open delete confirmation modal
   const handleDeleteConfig = (configIdx: number) => {
-    if (!window.confirm(`Are you sure you want to delete "${funnelConfigs[configIdx].name}" configuration?`)) {
-      return
-    }
+    setConfigToDelete(configIdx)
+    setIsDeleteModalOpen(true)
+  }
 
-    const updatedConfigs = funnelConfigs.filter((_, idx) => idx !== configIdx)
+  // Confirm delete configuration
+  const handleDeleteConfigConfirm = () => {
+    if (configToDelete === null) return
+
+    const updatedConfigs = funnelConfigs.filter((_, idx) => idx !== configToDelete)
     setFunnelConfigs(updatedConfigs)
 
     let newSelectedConfigIdx = selectedConfigIdx
     let newSelectedPresetIdx = selectedPreset
 
-    if (selectedConfigIdx === configIdx) {
+    if (selectedConfigIdx === configToDelete) {
       newSelectedConfigIdx = null
       newSelectedPresetIdx = 1 // Fallback to "Full" preset
       setPersistentCustomFunnels(defaultFunnels)
@@ -749,7 +756,7 @@ const MapFunnelStages = () => {
         selected_config_idx: null,
         selected_preset_idx: 1,
       }))
-    } else if (selectedConfigIdx !== null && selectedConfigIdx > configIdx) {
+    } else if (selectedConfigIdx !== null && selectedConfigIdx > configToDelete) {
       newSelectedConfigIdx = selectedConfigIdx - 1
       setCampaignFormData((prev: any) => ({
         ...prev,
@@ -767,7 +774,9 @@ const MapFunnelStages = () => {
     setSelectedPreset(newSelectedPresetIdx)
     setHasChanges(true)
     toast.success("Configuration deleted successfully", { duration: 2000 })
-    console.debug("Deleted config at index:", configIdx)
+    console.debug("Deleted config at index:", configToDelete)
+    setIsDeleteModalOpen(false)
+    setConfigToDelete(null)
   }
 
   // Helper for stage preview style
@@ -1107,6 +1116,45 @@ const MapFunnelStages = () => {
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
               >
                 {savingConfig ? <Loader className="animate-spin" /> : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isDeleteModalOpen && configToDelete !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 transition-opacity duration-300">
+          <div
+            ref={modalRef}
+            className="bg-white rounded-xl p-8 w-full max-w-md shadow-2xl transform transition-all duration-300 scale-100"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex-shrink-0">
+                <Trash2 size={24} className="text-red-500" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Delete Configuration</h3>
+                <p className="mt-1 text-sm text-gray-600">
+                  Are you sure you want to delete the{" "}
+                  <span className="font-semibold text-red-600">"{funnelConfigs[configToDelete].name}"</span>{" "}
+                  configuration? This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setIsDeleteModalOpen(false)
+                  setConfigToDelete(null)
+                }}
+                className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfigConfirm}
+                className="px-5 py-2.5 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors duration-200"
+              >
+                Delete
               </button>
             </div>
           </div>
