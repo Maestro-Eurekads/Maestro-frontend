@@ -5,6 +5,7 @@ import send from "../../../../public/send.svg";
 import { useComments } from 'app/utils/CommentProvider';
 import { SVGLoader } from 'components/SVGLoader';
 import { useSession } from 'next-auth/react';
+import { cleanName } from 'components/Options';
 
 const ClientAddReplytothisComment = ({ onReplySubmit }) => {
 	const { data: session }: any = useSession();
@@ -31,10 +32,10 @@ const ClientAddReplytothisComment = ({ onReplySubmit }) => {
 					<div className='flex justify-between items-center gap-3 '>
 						<div className='flex items-center gap-2 '>
 							<div className="flex flex-col justify-center items-center p-[10px] gap-[10px] w-[40px] h-[40px] bg-[#00A36C] rounded-full text-[20px] leading-[27px] text-center text-white">
-								{session?.user?.name[0] || "?"}
+								{cleanName(session?.user?.name[0]) || "?"}
 							</div>
 							<div>
-								<h3 className="font-[500] text-[20px] leading-[27px] text-[#292929]">{session?.user?.name}</h3>
+								<h3 className="font-[500] text-[20px] leading-[27px] text-[#292929]">{cleanName(session?.user?.name)}</h3>
 								<div className='flex items-center gap-2'>
 									<p className="font-[400] text-[12px] leading-[16px] text-[#292929]">{new Date().toLocaleDateString()}</p>
 									<p className="font-[400] text-[12px] leading-[16px] text-[#292929]">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
