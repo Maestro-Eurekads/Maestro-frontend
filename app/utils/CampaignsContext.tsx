@@ -284,7 +284,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       setGetProfile(response?.data);
-      console.log("res", response?.data);
       const aId =
         response?.data?.user_type === "admin"
           ? response?.data?.admin?.agency?.id
