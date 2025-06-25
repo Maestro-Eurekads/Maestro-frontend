@@ -1547,7 +1547,7 @@ const AdSetFlow = memo(function AdSetFlow({
 
       const autoOpenPlatforms = {}
 
-      if (granularity === "adset") {
+      if (granularity === "adset" && campaignFormData.channel_mix && campaignFormData.channel_mix?.length > 0) {
         // Existing adset logic
         for (const stage of campaignFormData.channel_mix) {
           const platformsWithAdsets = [

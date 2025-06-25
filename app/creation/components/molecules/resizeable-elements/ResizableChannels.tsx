@@ -1326,7 +1326,7 @@ console.log("Called")
           </div>
         );
       })}
-      <Modal isOpen={openCreatives} onClose={() => setOpenCreatives(false)}>
+      <Modal isOpen={selectedChannel && openCreatives} onClose={() => setOpenCreatives(false)}>
         <div className="bg-white w-[900px] p-6 rounded-lg h-[600px] overflow-y-auto">
           <button
             className="flex justify-end w-fit ml-auto"
@@ -1475,7 +1475,7 @@ console.log("Called")
           )}
         </div>
       </Modal>
-      <Modal isOpen={openAdset} onClose={() => setOpenAdset(false)}>
+      <Modal isOpen={(selectedChannel && openAdset) ? true : false} onClose={() => setOpenAdset(false)}>
         <div className="bg-white w-[900px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
           <button
             className="flex justify-end w-fit ml-auto"
