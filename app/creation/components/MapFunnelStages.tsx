@@ -6,7 +6,7 @@ import PageHeaderWrapper from "../../../components/PageHeaderWapper"
 import { useCampaigns } from "../../utils/CampaignsContext"
 import { useVerification } from "app/utils/VerificationContext"
 import { useComments } from "app/utils/CommentProvider"
-import { PlusIcon, Edit2, Trash2, X, GripVertical, ChevronDown, Loader } from 'lucide-react'
+import { PlusIcon, Edit2, Trash2, X, GripVertical, ChevronDown, Loader } from "lucide-react"
 import toast from "react-hot-toast"
 import axios from "axios"
 
@@ -113,7 +113,10 @@ const presetStructures: { label: string; stages: Funnel[] }[] = [
 
 // Helper to normalize funnel stages for comparison
 const normalizeFunnelStages = (stages: Funnel[]) =>
-  stages.map((f) => f.name.toLowerCase()).sort().join(",")
+  stages
+    .map((f) => f.name.toLowerCase())
+    .sort()
+    .join(",")
 
 const MapFunnelStages = () => {
   const { campaignData, campaignFormData, cId, setCampaignFormData, jwt } = useCampaigns()
@@ -167,7 +170,7 @@ const MapFunnelStages = () => {
 
     // Load funnels from campaignFormData first
     let loadedCustomFunnels: Funnel[] = []
-    
+
     if (campaignFormData?.custom_funnels?.length > 0) {
       loadedCustomFunnels = campaignFormData.custom_funnels
     } else if (isNewPlan || !clientId) {
@@ -204,9 +207,7 @@ const MapFunnelStages = () => {
 
     // Match current funnels to configs or presets to set dropdown selection
     const currentFunnelKey = normalizeFunnelStages(loadedCustomFunnels)
-    const matchingConfigIdx = configs.findIndex(
-      (config) => normalizeFunnelStages(config.stages) === currentFunnelKey,
-    )
+    const matchingConfigIdx = configs.findIndex((config) => normalizeFunnelStages(config.stages) === currentFunnelKey)
     const matchingPresetIdx = presetStructures.findIndex(
       (preset) => normalizeFunnelStages(preset.stages) === currentFunnelKey,
     )
@@ -214,30 +215,46 @@ const MapFunnelStages = () => {
     // Load saved selection from campaignFormData
     const savedConfigIdx = campaignFormData?.selected_config_idx
     const savedPresetIdx = campaignFormData?.selected_preset_idx
-    
-    if (savedConfigIdx !== undefined && savedConfigIdx !== null && configs.length > savedConfigIdx &&
-        normalizeFunnelStages(configs[savedConfigIdx].stages) === currentFunnelKey) {
+
+    if (
+      savedConfigIdx !== undefined &&
+      savedConfigIdx !== null &&
+      configs.length > savedConfigIdx &&
+      normalizeFunnelStages(configs[savedConfigIdx].stages) === currentFunnelKey
+    ) {
       setSelectedConfigIdx(savedConfigIdx)
       setSelectedPreset(null)
-    } else if (savedPresetIdx !== undefined && savedPresetIdx !== null && presetStructures.length > savedPresetIdx &&
-               normalizeFunnelStages(presetStructures[savedPresetIdx].stages) === currentFunnelKey) {
+    } else if (
+      savedPresetIdx !== undefined &&
+      savedPresetIdx !== null &&
+      presetStructures.length > savedPresetIdx &&
+      normalizeFunnelStages(presetStructures[savedPresetIdx].stages) === currentFunnelKey
+    ) {
       setSelectedPreset(savedPresetIdx)
       setSelectedConfigIdx(null)
     } else if (matchingConfigIdx !== -1) {
       setSelectedConfigIdx(matchingConfigIdx)
       setSelectedPreset(null)
-      setCampaignFormData((prev: any) => ({ ...prev, selected_config_idx: matchingConfigIdx, selected_preset_idx: null }))
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        selected_config_idx: matchingConfigIdx,
+        selected_preset_idx: null,
+      }))
     } else if (matchingPresetIdx !== -1) {
       setSelectedPreset(matchingPresetIdx)
       setSelectedConfigIdx(null)
-      setCampaignFormData((prev: any) => ({ ...prev, selected_config_idx: null, selected_preset_idx: matchingPresetIdx }))
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        selected_config_idx: null,
+        selected_preset_idx: matchingPresetIdx,
+      }))
     } else {
       setSelectedConfigIdx(null)
       setSelectedPreset(isNewPlan || !clientId ? 1 : null)
-      setCampaignFormData((prev: any) => ({ 
-        ...prev, 
-        selected_config_idx: null, 
-        selected_preset_idx: isNewPlan || !clientId ? 1 : null 
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        selected_config_idx: null,
+        selected_preset_idx: isNewPlan || !clientId ? 1 : null,
       }))
     }
   }, [clientId, mediaPlanId, campaignData, setCampaignFormData])
@@ -265,7 +282,7 @@ const MapFunnelStages = () => {
         ...prev,
         custom_funnels: persistentCustomFunnels,
       }))
-      
+
       // Update selection if current funnels match a config or preset
       const currentFunnelKey = normalizeFunnelStages(persistentCustomFunnels)
       const matchingConfigIdx = funnelConfigs.findIndex(
@@ -277,11 +294,19 @@ const MapFunnelStages = () => {
       if (matchingConfigIdx !== -1 && selectedConfigIdx !== matchingConfigIdx) {
         setSelectedConfigIdx(matchingConfigIdx)
         setSelectedPreset(null)
-        setCampaignFormData((prev: any) => ({ ...prev, selected_config_idx: matchingConfigIdx, selected_preset_idx: null }))
+        setCampaignFormData((prev: any) => ({
+          ...prev,
+          selected_config_idx: matchingConfigIdx,
+          selected_preset_idx: null,
+        }))
       } else if (matchingPresetIdx !== -1 && selectedPreset !== matchingPresetIdx) {
         setSelectedPreset(matchingPresetIdx)
         setSelectedConfigIdx(null)
-        setCampaignFormData((prev: any) => ({ ...prev, selected_config_idx: null, selected_preset_idx: matchingPresetIdx }))
+        setCampaignFormData((prev: any) => ({
+          ...prev,
+          selected_config_idx: null,
+          selected_preset_idx: matchingPresetIdx,
+        }))
       }
     }
   }, [persistentCustomFunnels, funnelConfigs, selectedConfigIdx, selectedPreset, setCampaignFormData])
@@ -794,19 +819,17 @@ const MapFunnelStages = () => {
                       <li
                         key={`config-${config.name}-${idx}`}
                         className={`px-4 py-3 cursor-pointer hover:bg-blue-50 flex justify-between items-center ${
-                          selectedConfigIdx === idx ? "bg-blue-100 font-bold" : ""
+                          selectedConfigIdx === idx ? "bg-blue-100" : ""
                         }`}
                         role="option"
                         aria-selected={selectedConfigIdx === idx}
+                        onClick={() => handleConfigSelect(idx)}
                       >
-                        <span
-                          className={selectedConfigIdx === idx ? "font-bold text-blue-700" : ""}
-                          onClick={() => handleConfigSelect(idx)}
-                        >
+                        <span className={selectedConfigIdx === idx ? "font-bold text-blue-700" : ""}>
                           {config.name}
                         </span>
                         <button
-                          className="p-1 bg-white rounded-full shadow-sm"
+                          className="p-1 bg-white rounded-full shadow-sm hover:bg-gray-50"
                           onClick={(e) => {
                             e.stopPropagation()
                             handleDeleteConfig(idx)

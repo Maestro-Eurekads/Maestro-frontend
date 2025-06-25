@@ -1325,7 +1325,7 @@ const AdsetSettings = memo(function AdsetSettings({
                     key={adset.id}
                     className="relative"
                     style={{
-                      marginTop: index === 0 ? "20px" : "0px",
+                      marginTop: index === 0 ? "50px" : "0px",
                       marginBottom: "20px",
                     }}
                   >
