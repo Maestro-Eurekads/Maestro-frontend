@@ -47,18 +47,21 @@ const TreeDropdownFilter: React.FC<Props> = ({
 	};
 
 	return (
-		<TreeSelect
-			treeData={treeOptions}
-			value={value}
-			onChange={onChange}
-			treeCheckable
-			showCheckedStrategy={TreeSelect.SHOW_CHILD}
-			placeholder={placeholder === "Level 1" ? "Client Architecture" : placeholder}
-			allowClear
-			disabled={isDisabled}
-			style={{ minWidth: '150px', width: 'auto' }}
-			className="custom-tree-select"
-		/>
+		<div className="min-w-[180px]">
+			<TreeSelect
+				treeData={treeOptions}
+				value={value}
+				onChange={onChange}
+				treeCheckable
+				showCheckedStrategy={TreeSelect.SHOW_CHILD}
+				placeholder={placeholder === "Level 1" ? "Client Architecture" : placeholder}
+				allowClear
+				disabled={isDisabled}
+				style={{ width: "100%", height: "100%" }}
+				size="large"
+				className="custom-tree-select"
+			/>
+		</div>
 	);
 };
 
