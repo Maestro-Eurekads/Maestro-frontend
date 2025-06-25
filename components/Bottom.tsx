@@ -991,14 +991,15 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           isFinancialApprover || isAgencyApprover || isAdmin ? (
             <button
               className="bottom_black_next_btn hover:bg-blue-500"
-              onClick={() =>
-                campaignFormData?.isApprove
-                  ? toast.error("This Plan has already been approved!")
-                  : setIsOpen(true)
-              }
+              // onClick={() =>
+              //   campaignFormData?.isApprove
+              //     ? toast.error("This Plan has already been approved!")
+              //     : setIsOpen(true)
+              // }
+              onClick={() => setIsOpen(true)}
             >
               <p>Confirm</p>
-              <Image src={Continue || "/placeholder.svg"} alt="Continue" />
+              <Image src={Continue} alt="Continue" />
             </button>
           ) : (
             <button
@@ -1006,7 +1007,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
               onClick={() => toast.error("Role doesn't have permission!")}
             >
               <p>Confirm</p>
-              <Image src={Continue || "/placeholder.svg"} alt="Continue" />
+              <Image src={Continue} alt="Continue" />
             </button>
           )
         ) : (

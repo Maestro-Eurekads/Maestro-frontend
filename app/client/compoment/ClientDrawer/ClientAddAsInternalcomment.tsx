@@ -9,6 +9,7 @@ import { useCampaigns } from 'app/utils/CampaignsContext';
 import { SVGLoader } from 'components/SVGLoader';
 import AlertMain from 'components/Alert/AlertMain';
 import { useSession } from "next-auth/react";
+import { cleanName } from 'components/Options';
 
 const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
 	const { data: session }: any = useSession();
@@ -41,7 +42,7 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
 				<div className="flex justify-between items-center gap-3 w-full">
 					<div className="flex items-center gap-2">
 						<div className="flex flex-col justify-center items-center p-[10px] gap-[10px] w-[40px] h-[40px] bg-[#00A36C] rounded-full text-[20px] leading-[27px] text-center text-white">
-							{session?.user?.name[0]}
+							{cleanName(session?.user?.name[0])}
 						</div>
 						<CommentHeaderwithClose author={session?.user?.name} />
 					</div>

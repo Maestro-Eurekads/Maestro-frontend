@@ -1,3 +1,4 @@
+import { cleanName } from "components/Options";
 import React from "react";
 
 const ClientCommentHeaderwithClose = ({ author }) => {
@@ -13,7 +14,7 @@ const ClientCommentHeaderwithClose = ({ author }) => {
 
 	return (
 		<div>
-			<h3 className="font-[500] text-[20px] leading-[27px] text-[#292929]">{author}</h3>
+			<h3 className="font-[500] text-[20px] leading-[27px] text-[#292929]">{cleanName(author)}</h3>
 			<div className="flex items-center gap-2">
 				<p className="font-[400] text-[12px] leading-[16px] text-[#292929] whitespace-nowrap">{formattedDate}</p>
 				<p className="font-[400] text-[12px] leading-[16px] text-[#292929] whitespace-nowrap">{formattedTime}</p>
