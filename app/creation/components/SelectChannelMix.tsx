@@ -379,7 +379,9 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
           ?.find((item) => item.funnel_stage === stageName)
           ?.[categoryKey]?.find((platform) => platform.platform_name === name);
 
-        return existingPlatform || { platform_name: name };
+        return existingPlatform || { platform_name: name, 
+          campaign_start_date:  campaignFormData?.campaign_timeline_start_date === "" ? null : campaignFormData?.campaign_timeline_start_date || null,
+          campaign_end_date:  campaignFormData?.campaign_timeline_end_date === "" ? null : campaignFormData?.campaign_timeline_end_date || null, };
       });
 
       const existingChannelMixIndex = prevFormData.channel_mix?.findIndex(
@@ -396,7 +398,7 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
       } else {
         updatedChannelMix.push({
           funnel_stage: stageName,
-          [categoryKey]: platformObjects,
+          [categoryKey]: platformObjects
         });
       }
 
@@ -472,11 +474,13 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
 
   // Get all selected platforms for a stage, grouped by online/offline type
   // This version ensures only platforms that are actually in the correct type are shown
+  // --- Lazada deduplication fix applied here ---
   const getSelectedPlatformsByType = (stageName) => {
     const stageSelection = selected[stageName] || {};
     const selectedByType = {};
     Object.entries(platformList).forEach(([type, channels]) => {
-      selectedByType[type] = [];
+      // Use a Set to deduplicate platforms for each type
+      const platformSet = new Set();
       Object.entries(channels).forEach(([channelName, platforms]) => {
         const normalizedChannelName = channelName
           .replace(/[\s-]/g, "")
@@ -486,10 +490,11 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
         const validPlatformNames = platforms.map((p) => p.platform_name);
         selectedPlatforms.forEach((platformName) => {
           if (validPlatformNames.includes(platformName)) {
-            selectedByType[type].push(platformName);
+            platformSet.add(platformName);
           }
         });
       });
+      selectedByType[type] = Array.from(platformSet);
     });
     return selectedByType;
   };
@@ -827,8 +832,17 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
                             ) : (
                               Object.entries(channels).map(
                                 ([channelName, platforms]) => {
+                                  // Deduplicate platforms by platform_name for this channel
+                                  const seenNames = new Set();
+                                  const dedupedPlatforms = [];
+                                  for (const p of platforms) {
+                                    if (!seenNames.has(p.platform_name)) {
+                                      seenNames.add(p.platform_name);
+                                      dedupedPlatforms.push(p);
+                                    }
+                                  }
                                   const filteredPlatforms = filterPlatforms(
-                                    platforms,
+                                    dedupedPlatforms,
                                     stage.name
                                   );
                                   return filteredPlatforms?.length > 0 ? (

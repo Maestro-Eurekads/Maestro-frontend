@@ -111,8 +111,8 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
           if (Array.isArray(channel[mediaType])) {
             acc[mediaType] = channel[mediaType].map((media) => ({
               ...media,
-              campaign_start_date: null,
-              campaign_end_date: null,
+              campaign_start_date: startDate,
+              campaign_end_date: endDate,
             }));
           }
           return acc;
@@ -120,8 +120,8 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
 
         return {
           ...channel,
-          funnel_stage_timeline_start_date: null,
-          funnel_stage_timeline_end_date: null,
+          funnel_stage_timeline_start_date: startDate,
+          funnel_stage_timeline_end_date: endDate,
           ...updatedMediaTypes,
         };
       });
@@ -149,13 +149,13 @@ const MultiDatePicker: React.FC<MultiDatePickerProps> = ({
   // write a useEffect that get the campaign_timeline_start and end date and initialize the selectedDates states
 
   useEffect(() => {
-    const startDate = parseApiDate(campaignFormData?.campaign_timeline_start_date);
-    const endDate = parseApiDate(campaignFormData?.campaign_timeline_end_date);
+    const startDate = parseApiDate(campaignData?.campaign_timeline_start_date);
+    const endDate = parseApiDate(campaignData?.campaign_timeline_end_date);
 
     if (startDate && endDate) {
       setSelectedDates({ from: startDate, to: endDate });
     }
-  }, [campaignFormData]);
+  }, [campaignData]);
 
   return (
     <div

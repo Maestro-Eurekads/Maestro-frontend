@@ -64,7 +64,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
         }
       );
 await getActiveCampaign()
-      // console.log("Campaign data updated successfully", response.data);
+      // //console.log("Campaign data updated successfully", response.data);
     } catch (error) {
       console.error("Error updating campaign data:", error);
     } finally {
@@ -88,7 +88,7 @@ await getActiveCampaign()
 
           if (campaignDataItem) {
             Object.keys(formDataItem).forEach((categoryKey) => {
-              // console.log("🚀 ~ Object.keys ~ categoryKey:", categoryKey);
+              // //console.log("🚀 ~ Object.keys ~ categoryKey:", categoryKey);
               if (
                 categoryKey !== "funnel_stage" &&
                 categoryKey !== "id" &&

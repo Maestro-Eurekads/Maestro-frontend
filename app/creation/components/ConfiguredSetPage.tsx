@@ -21,7 +21,49 @@ interface OutletType {
   channel: any
 }
 
-const ConfiguredSetPage = ({ netAmount }) => {
+// Add this helper function after the existing helper functions, before the main component logic
+const calculateNetFromGross = (grossAmount, fees) => {
+  const totalFees = fees.reduce((total, fee) => total + Number(fee.amount || 0), 0)
+  return Math.max(0, Number(grossAmount) - totalFees)
+}
+
+const calculateGrossFromNet = (netAmount, fees) => {
+  const totalFees = fees.reduce((total, fee) => total + Number(fee.amount || 0), 0)
+  return Number(netAmount) + totalFees
+}
+
+// Add this function after the existing helper functions, before the main component logic
+const calculateRemainingBudget = (netAmount, fees, campaignFormData, campaignBudgetType) => {
+  const totalFees = fees.reduce((total, fee) => total + Number(fee.amount || 0), 0)
+
+  let totalAvailableBudget
+  if (campaignBudgetType === "gross") {
+    // Gross budget: Total available = Gross amount (fees are deducted from this)
+    totalAvailableBudget = Number(netAmount) || 0
+  } else {
+    // Net budget: Total available = Net + Fees (since net is what's left after fees)
+    totalAvailableBudget = (Number(netAmount) || 0) + totalFees
+  }
+
+  const subBudgets =
+    campaignFormData?.channel_mix?.reduce((acc, stage) => {
+      return acc + (Number(stage?.stage_budget?.fixed_value) || 0)
+    }, 0) || 0
+
+  // For gross budget: remaining = gross - fees - sub_budgets
+  // For net budget: remaining = net (since fees are already accounted for in total available)
+  let remainingBudget
+  if (campaignBudgetType === "gross") {
+    remainingBudget = totalAvailableBudget - totalFees - subBudgets
+  } else {
+    remainingBudget = (Number(netAmount) || 0) - subBudgets // Use net amount directly
+  }
+
+  return remainingBudget > 0 ? remainingBudget.toFixed(2) : "0.00"
+}
+
+// Update the component props to include fee-related data
+const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" }) => {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
   const [stageStatus, setStageStatus] = useState<Record<string, string>>({})
   const { campaignFormData, setCampaignFormData } = useCampaigns()
@@ -297,6 +339,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
     )
   }
 
+  // Update the getStageRecap function to use the new remaining budget calculation
   const getStageRecap = (stageName) => {
     const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
     const currency = campaignFormData?.campaign_budget?.currency || "EUR"
@@ -304,20 +347,28 @@ const ConfiguredSetPage = ({ netAmount }) => {
 
     let totalBudget
     if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
+      // For bottom-up, use the campaign amount if available, otherwise sum of stages
       totalBudget =
+        Number(campaignFormData?.campaign_budget?.amount) ||
         campaignFormData?.channel_mix?.reduce(
           (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
           0,
-        ) || 0
+        ) ||
+        0
     } else {
-      totalBudget = netAmount || 0
+      // Use net amount for percentage calculations
+      totalBudget = campaignBudgetType === "gross" ? calculateNetFromGross(netAmount, fees) : netAmount || 0
     }
+
     const stagePercentage = totalBudget ? (stageBudget / totalBudget) * 100 : 0
+    const totalFees = fees.reduce((total, fee) => total + Number(fee.amount || 0), 0)
+    const remainingBudget = calculateRemainingBudget(netAmount, fees, campaignFormData, campaignBudgetType)
 
     let platformRecap = ""
     let platformCount = 0
     let adSetCount = 0
-    const platformsList: string[] = []
+    const platformsList = []
+
     mediaTypes.forEach((type) => {
       if (stageData?.[type]) {
         stageData[type].forEach((platform) => {
@@ -340,12 +391,31 @@ const ConfiguredSetPage = ({ netAmount }) => {
 
     return (
       <div className="mb-4 mt-2 text-sm text-gray-700 bg-[#F4F6FA] rounded px-4 py-2 border border-[#E5E7EB]">
-        <span className="font-semibold">Recap:</span> Budget:{" "}
+        <span className="font-semibold">Recap:</span> Net Budget:{" "}
         <span className="font-bold">
           {getCurrencySymbol(currency)}
           {formatNumberWithCommas(stageBudget)}
         </span>{" "}
-        ({stagePercentage.toFixed(1)}% of total)
+        ({stagePercentage.toFixed(1)}% of available net budget)
+        {fees.length > 0 && (
+          <>
+            {" • "}Gross Budget:{" "}
+            <span className="font-bold">
+              {getCurrencySymbol(currency)}
+              {formatNumberWithCommas(calculateGrossFromNet(stageBudget, fees).toFixed(2))}
+            </span>
+            {" • "}Fees:{" "}
+            <span className="font-bold">
+              {getCurrencySymbol(currency)}
+              {formatNumberWithCommas(totalFees.toFixed(2))}
+            </span>
+          </>
+        )}
+        {" • "}
+        <span className={`font-bold ${Number(remainingBudget) < 1 ? "text-red-500" : "text-green-600"}`}>
+          Remaining: {getCurrencySymbol(currency)}
+          {formatNumberWithCommas(remainingBudget)}
+        </span>
         {platformRecap && <> • {platformRecap}</>}
       </div>
     )
@@ -361,11 +431,14 @@ const ConfiguredSetPage = ({ netAmount }) => {
 
         let totalBudget
         if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
+          // For bottom-up, use a fixed reference budget or the campaign amount if available
           totalBudget =
+            Number(campaignFormData?.campaign_budget?.amount) ||
             campaignFormData?.channel_mix?.reduce(
               (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
               0,
-            ) || 0
+            ) ||
+            0
         } else {
           totalBudget = netAmount || 0
         }
@@ -417,9 +490,36 @@ const ConfiguredSetPage = ({ netAmount }) => {
               <>
                 <div className="pt-4 bg-[#FCFCFC] rounded-lg cursor-pointer border px-6 border-[rgba(6,18,55,0.1)]">
                   <div className="flex mt-6 flex-col items-start gap-8">
+                    {fees.length > 0 && (
+                      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm font-semibold text-blue-800 mb-2">Applied Fees (Top-down):</p>
+                        <div className="flex flex-wrap gap-2">
+                          {fees.map((fee, index) => (
+                            <span key={index} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                              {fee.label}: {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                              {formatNumberWithCommas(fee.amount)}
+                              {fee.isPercent && ` (${fee.percentValue}%)`}
+                            </span>
+                          ))}
+                        </div>
+                        <p className="text-xs text-blue-600 mt-1">
+                          Total Fees: {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                          {formatNumberWithCommas(
+                            fees.reduce((total, fee) => total + Number(fee.amount || 0), 0).toFixed(2),
+                          )}
+                        </p>
+                      </div>
+                    )}
                     <div className="flex mb-8 justify-center gap-6">
                       <div className="flex flex-col gap-4">
-                        <h2 className="text-center font-bold">What is your budget for this phase ?</h2>
+                        <h2 className="text-center font-bold">
+                          {campaignBudgetType === "gross" ? "Gross Budget" : "Net Budget"}
+                          {fees.length > 0 && campaignBudgetType === "gross" && (
+                            <span className="text-xs text-gray-500 block font-normal">
+                              (Fees will be deducted automatically)
+                            </span>
+                          )}
+                        </h2>
                         <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
                           <p className="font-bold">{getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}</p>
                           <input
@@ -433,24 +533,29 @@ const ConfiguredSetPage = ({ netAmount }) => {
                                 )?.stage_budget?.fixed_value,
                               ) || ""
                             }
+                            // Update the budget validation in the stage budget input onChange handler
                             onChange={(e) => {
                               const inputValue = e.target.value.replace(/,/g, "")
-                              const newBudget = Number(inputValue)
+                              let newBudget = Number(inputValue)
+
+                              // Apply top-down logic: if user enters gross amount, calculate net
+                              if (campaignBudgetType === "gross" && fees.length > 0) {
+                                const netBudget = calculateNetFromGross(newBudget, fees)
+                                newBudget = netBudget
+                              }
+
                               if (campaignFormData?.campaign_budget?.budget_type !== "bottom_up") {
                                 const currentTotal =
-                                  campaignFormData?.channel_mix?.reduce(
-                                    (
-                                      acc: number,
-                                      stage: {
-                                        stage_budget: { fixed_value: string }
-                                      },
-                                    ) => {
-                                      return acc + (Number(stage?.stage_budget?.fixed_value) || 0)
-                                    },
-                                    0,
-                                  ) || 0
-                                if (currentTotal - (Number(stageBudget) || 0) + newBudget > netAmount) {
-                                  toast("The sum of all stage budgets cannot exceed the total budget.", {
+                                  campaignFormData?.channel_mix?.reduce((acc, stage) => {
+                                    return acc + (Number(stage?.stage_budget?.fixed_value) || 0)
+                                  }, 0) || 0
+
+                                // Use the same remaining budget calculation logic
+                                const availableBudget =
+                                  campaignBudgetType === "gross" ? calculateNetFromGross(netAmount, fees) : netAmount
+
+                                if (currentTotal - (Number(stageBudget) || 0) + newBudget > availableBudget) {
+                                  toast("The sum of all stage budgets cannot exceed the available net budget.", {
                                     position: "bottom-right",
                                     type: "error",
                                     theme: "colored",
@@ -458,29 +563,22 @@ const ConfiguredSetPage = ({ netAmount }) => {
                                   return
                                 }
                               }
-                              const updatedChannelMix = campaignFormData.channel_mix.map(
-                                (ch: {
-                                  funnel_stage: string
-                                  stage_budget: {
-                                    fixed_value: string
-                                    percentage_value: string
+
+                              const updatedChannelMix = campaignFormData.channel_mix.map((ch) => {
+                                if (ch.funnel_stage === stage.name) {
+                                  return {
+                                    ...ch,
+                                    stage_budget: {
+                                      ...ch.stage_budget,
+                                      fixed_value: newBudget?.toString(),
+                                      percentage_value: totalBudget
+                                        ? ((newBudget / totalBudget) * 100).toFixed(1)
+                                        : "0",
+                                    },
                                   }
-                                }) => {
-                                  if (ch.funnel_stage === stage.name) {
-                                    return {
-                                      ...ch,
-                                      stage_budget: {
-                                        ...ch.stage_budget,
-                                        fixed_value: newBudget?.toString(),
-                                        percentage_value: totalBudget
-                                          ? ((newBudget / totalBudget) * 100).toFixed(1)
-                                          : "0",
-                                      },
-                                    }
-                                  }
-                                  return ch
-                                },
-                              )
+                                }
+                                return ch
+                              })
 
                               // Calculate new total for bottom-up approach
                               const newTotal = updatedChannelMix.reduce(
@@ -495,7 +593,10 @@ const ConfiguredSetPage = ({ netAmount }) => {
                                 ...(campaignFormData?.campaign_budget?.budget_type === "bottom_up" && {
                                   campaign_budget: {
                                     ...campaignFormData.campaign_budget,
-                                    amount: newTotal.toString(),
+                                    amount:
+                                      campaignBudgetType === "gross"
+                                        ? calculateGrossFromNet(newTotal, fees).toString()
+                                        : newTotal.toString(),
                                   },
                                 }),
                               })
