@@ -110,7 +110,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	};
 
 
-
+	console.log('campaignData-campaignData', campaignData)
 
 
 	const handlePlan = async () => {

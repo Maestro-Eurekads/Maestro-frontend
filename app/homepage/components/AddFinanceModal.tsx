@@ -126,7 +126,6 @@ const AddFinanceModal = ({
           const res = await fetchClientCampaign(selected || selectedRow?.client?.id, agencyId);
 
           const data = res?.data?.data;
-          console.log("yes-yess-yes:", res);
           const newOption = data?.map((opt: any) => ({
             label: opt?.media_plan_details?.plan_name,
             value: opt?.id?.toString(),

@@ -3,6 +3,7 @@
 
 import React from "react";
 import moment from "moment";
+import { cleanName } from "components/Options";
 
 interface CommentHeaderProps {
 	comment: {
@@ -25,7 +26,7 @@ const CommentHeader: React.FC<CommentHeaderProps> = ({ comment }) => {
 	return (
 		<div>
 			<h3 className="font-semibold text-[14px] text-[#292929] leading-none">
-				{comment?.creator?.name || "Unknown"}
+				{cleanName(comment?.creator?.name) || "Unknown"}
 			</h3>
 			<div className="flex items-center gap-1 mt-[2px]">
 				<p className="text-[10px] text-[#666]">{formattedDate}</p>

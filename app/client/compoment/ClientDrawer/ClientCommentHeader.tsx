@@ -1,3 +1,4 @@
+import { cleanName } from "components/Options";
 import moment from "moment";
 import React from "react";
 
@@ -13,7 +14,7 @@ const ClientCommentHeader = ({ comment }) => {
 
 	return (
 		<div>
-			<h3 className="font-[500] text-[18px] leading-[27px] text-[#292929]">{comment?.creator?.name}</h3>
+			<h3 className="font-[500] text-[18px] leading-[27px] text-[#292929]">{cleanName(comment?.creator?.name)}</h3>
 			<div className="flex items-center gap-2">
 				<p className="font-[400] text-[10px] leading-[16px] text-[#292929] whitespace-nowrap">{formattedDate}</p>
 				<p className="font-[400] text-[10px] leading-[16px] text-[#292929] whitespace-nowrap">{formattedTime}</p>
