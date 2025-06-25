@@ -14,7 +14,7 @@ import { FilterState } from "app/utils/useCampaignFilters";
 import { useUserPrivileges } from "utils/userPrivileges";
 import TreeDropdown from "components/TreeDropdown";
 import TreeDropdownFilter from "components/TreeDropdownFilter";
-import { convertToNestedStructure } from "utils/convertToNestedStructure";
+import { convertToSingleNestedStructure } from "utils/convertToSingleNestedStructure";
 
 
 // Scrollbar CSS
@@ -249,7 +249,9 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
             };
 
             const displayLabel = getDisplayLabel();
-            const nested = convertToNestedStructure(options[0]);
+            const nested = convertToSingleNestedStructure(options);
+
+            console.log('nested-nested', nested)
 
             // console.log("Nested Options:", nested);
             // console.log("options-----Options:", options);
