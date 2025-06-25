@@ -76,21 +76,21 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
   }
 
   const handlePlatformStateChange = (stageName: string, platformName: string, isOpen: boolean) => {
-    setOpenPlatforms(prev => {
+    setOpenPlatforms((prev) => {
       const stageOpenPlatforms = prev[stageName] || []
       if (isOpen) {
         // Add platform if not already in the list
         if (!stageOpenPlatforms.includes(platformName)) {
           return {
             ...prev,
-            [stageName]: [...stageOpenPlatforms, platformName]
+            [stageName]: [...stageOpenPlatforms, platformName],
           }
         }
       } else {
         // Remove platform from the list
         return {
           ...prev,
-          [stageName]: stageOpenPlatforms.filter(p => p !== platformName)
+          [stageName]: stageOpenPlatforms.filter((p) => p !== platformName),
         }
       }
       return prev
@@ -106,7 +106,6 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
 
     // Only show modal if not dismissed for this plan
     if (!goalLevel) {
-      // Only show modal if not dismissed for this plan
       if (typeof window !== "undefined" && modalKey) {
         const dismissed = localStorage.getItem(modalKey)
         if (!dismissed) {
@@ -116,8 +115,9 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         }
       }
     } else if (goalLevel !== expectedGoalLevel) {
+      // Prevent infinite loop by checking if update is actually needed
       setCampaignFormData((prev: any) => {
-        if (prev.goal_level === expectedGoalLevel) return prev
+        if (prev?.goal_level === expectedGoalLevel) return prev
         return {
           ...prev,
           goal_level: expectedGoalLevel,
@@ -126,7 +126,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     } else {
       setIsModalOpen(false)
     }
-  }, [campaignFormData, view, setCampaignFormData])
+  }, [campaignFormData?.goal_level, view]) // Remove setCampaignFormData from dependencies
 
   useEffect(() => {
     if (!campaignFormData?.funnel_stages || initialized.current) return

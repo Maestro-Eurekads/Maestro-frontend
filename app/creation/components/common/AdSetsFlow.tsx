@@ -1142,45 +1142,73 @@ const AdsetSettings = memo(function AdsetSettings({
   )
 
   // GRANULARITY SEPARATION: Only persist ad set data in adset granularity
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
   useEffect(() => {
     if (isEditing && selectedPlatforms.includes(outlet.outlet) && granularity === "adset") {
       if (!campaignFormData?.channel_mix) return
 
-      const adSetsToSave = adsets
-        .map((adset) => {
-          const data = adSetDataMap[adset.id] || {
-            name: "",
-            audience_type: "",
-            size: "",
-            description: "",
+      // Clear previous timeout
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current)
+      }
+
+      // Throttle updates to prevent infinite loops
+      updateTimeoutRef.current = setTimeout(() => {
+        const adSetsToSave = adsets
+          .map((adset) => {
+            const data = adSetDataMap[adset.id] || {
+              name: "",
+              audience_type: "",
+              size: "",
+              description: "",
+            }
+            return {
+              id: adset.id,
+              name: data.name,
+              audience_type: data.audience_type,
+              size: data.size,
+              description: data.description,
+              extra_audiences: data.extra_audiences || [],
+            }
+          })
+          .filter((data) => data.name || data.audience_type)
+
+        if (adSetsToSave.length === 0) return
+
+        const updatedChannelMix = updateMultipleAdSets(
+          campaignFormData.channel_mix,
+          stageName,
+          outlet.outlet,
+          adSetsToSave,
+        )
+
+        setCampaignFormData((prevData) => {
+          // Prevent unnecessary updates
+          if (JSON.stringify(prevData.channel_mix) === JSON.stringify(updatedChannelMix)) {
+            return prevData
           }
           return {
-            id: adset.id,
-            name: data.name,
-            audience_type: data.audience_type,
-            size: data.size,
-            description: data.description,
-            extra_audiences: data.extra_audiences || [],
+            ...prevData,
+            channel_mix: updatedChannelMix,
           }
         })
-        .filter((data) => data.name || data.audience_type)
-
-      if (adSetsToSave.length === 0) return
-
-      const updatedChannelMix = updateMultipleAdSets(
-        campaignFormData.channel_mix,
-        stageName,
-        outlet.outlet,
-        adSetsToSave,
-      )
-
-      setCampaignFormData((prevData) => ({
-        ...prevData,
-        channel_mix: updatedChannelMix,
-      }))
+      }, 300) // 300ms throttle
     }
-    // Channel-level: do not persist to campaignFormData
-  }, [isEditing, selectedPlatforms, outlet.outlet, adsets, adSetDataMap, setCampaignFormData, stageName, granularity])
+
+    return () => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current)
+      }
+    }
+  }, [
+    isEditing,
+    selectedPlatforms.includes(outlet.outlet),
+    granularity,
+    adsets.length,
+    Object.keys(adSetDataMap).length,
+    stageName,
+  ])
 
   const handleSelectOutlet = useCallback(() => {
     setSelectedPlatforms((prev) => [...prev, outlet.outlet])
