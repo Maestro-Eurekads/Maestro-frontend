@@ -469,7 +469,7 @@ const CampaignBudget = () => {
    {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 0 && (
     <>
      {/* Step 1: Choose granularity level first */}
-     <PageHeaderWrapper t4="Choose granularity level" span={1} />
+     <PageHeaderWrapper t4="Choose granularity level" span={2} />
 
      {showLevelCards ? (
       <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
@@ -572,7 +572,7 @@ const CampaignBudget = () => {
             <button
              className="btn btn-primary w-full text-sm bg-[#3175FF]"
              onClick={() => {
-              setStep(3)
+              setStep(2)
               setShowLevelCards(false)
               setCampaignFormData((prev) => ({
                ...prev,
@@ -607,11 +607,11 @@ const CampaignBudget = () => {
    {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 1 && (
     <>
      {/* Here, user is expected to allocate sub-budgets before fees */}
-     <ConfigureAdSetsAndBudget num={2} netAmount={netAmount} />
+     <ConfigureAdSetsAndBudget num={3} netAmount={netAmount} />
      {/* After sub-budgets, show FeeSelectionStep */}
      <FeeSelectionStep
-      num1={3}
-      num2={4}
+      num1={4}
+      num2={5}
       isValidated={feeStepValidated}
       setIsValidated={setFeeStepValidated}
       netAmount={netAmount}

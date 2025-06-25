@@ -1,7 +1,8 @@
 "use client"
 
 import type React from "react"
-import { memo, useState, useCallback, useEffect, useRef, createContext, useContext } from "react"
+import { memo, useState, useCallback, useEffect, useRef, createContext, 
+  useContext } from "react"
 import Image, { type StaticImageData } from "next/image"
 import { FaAngleRight, FaSpinner } from "react-icons/fa"
 import { MdDelete, MdAdd } from "react-icons/md"
