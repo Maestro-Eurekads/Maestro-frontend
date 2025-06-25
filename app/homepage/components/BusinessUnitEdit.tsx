@@ -8,7 +8,13 @@ import { toast } from "sonner";
 
 const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator, setIsLevelChange }) => {
   const [title, setTitle] = useState(initialData?.title || "");
-  const [parameters, setParameters] = useState(initialData?.parameters || []);
+  const [parameters, setParameters] = useState(() =>
+    initialData?.parameters?.map(param => ({
+      name: param.name,
+      subParameters: [...param.subParameters],
+    })) || []
+  );
+
 
   // Sync with parent
   useEffect(() => {
