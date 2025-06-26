@@ -43,7 +43,7 @@ const CreationFlow = ({ steps }) => {
 
         return (
           <div
-            className="SideBar__SideBar cursor-pointer"
+            className=" cursor-pointer"
             key={stepNumber}
             onClick={() => {
               if (!cId) {
@@ -58,6 +58,9 @@ const CreationFlow = ({ steps }) => {
                 }
               setActive(stepNumber);
               }
+            }}
+            style={{
+              display: stepNumber === 6 ? "none": "flex"
             }}
           >
             {alert && <AlertMain alert={alert} />}

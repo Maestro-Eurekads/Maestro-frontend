@@ -33,7 +33,7 @@ const Creation = () => {
 
         {active === 4 && <FormatSelection />}
         {active === 5 && <SetBuyObjectivesAndTypes />}
-        {active === 6 && <SetBuyObjectivesAndTypesSubStep />}
+        {/* {active === 6 && <SetBuyObjectivesAndTypesSubStep />} */}
 
         {/* Step 8 (Tracks 2 subSteps) */}
       </div>
