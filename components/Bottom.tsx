@@ -589,6 +589,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             budget_details: {
               currency: campaignFormData?.budget_details_currency?.id,
             },
+            campaign_budget: {
+              currency: campaignFormData?.budget_details_currency?.id,
+            },
             agency_profile: agencyId,
           },
         };

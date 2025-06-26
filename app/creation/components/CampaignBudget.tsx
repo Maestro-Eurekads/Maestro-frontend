@@ -16,8 +16,11 @@ import adset from "../../../public/adset_level.svg"
 import channel from "../../../public/channel_level.svg"
 import toast from "react-hot-toast"
 import ConfigureAdSetsAndBudget from "./ ConfigureadSetsAndbudget"
+import { useSearchParams } from "next/navigation"
 
 const CampaignBudget = () => {
+ const searchParams = useSearchParams();
+ const campaignId = searchParams.get("campaignId");
  const [budgetStyle, setBudgetStyle] = useState("")
  const [step, setStep] = useState(0)
  const { setIsDrawerOpen, setClose } = useComments()
@@ -41,7 +44,19 @@ const CampaignBudget = () => {
  const [feeType, setFeeType] = useState(null)
  const [feeAmount, setFeeAmount] = useState("")
 
- const { campaignFormData, setCampaignFormData, campaignData } = useCampaigns()
+ const { campaignFormData, setCampaignFormData, campaignData, getActiveCampaign } = useCampaigns()
+
+ useEffect(() => {
+  setIsDrawerOpen(false);
+  setClose(false);
+ }, []);
+
+
+ useEffect(() => {
+  if (campaignId) {
+   getActiveCampaign(campaignId);
+  }
+ }, [campaignId]);
 
  const selectCurrency = [
   { value: "USD", label: "USD" },

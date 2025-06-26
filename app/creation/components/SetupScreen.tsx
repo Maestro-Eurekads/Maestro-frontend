@@ -56,6 +56,8 @@ export const SetupScreen = () => {
     FC,
     setFC,
     selectedId,
+    selectedOption,
+    setSelectedOption
 
   } = useCampaigns();
   const query = useSearchParams();
@@ -63,7 +65,7 @@ export const SetupScreen = () => {
   const lastFetchedClientId = useRef(null);
   const { data: session } = useSession()
   const { client_selection } = campaignFormData || {};
-  const [selectedOption, setSelectedOption] = useState("percentage");
+
   const [alert, setAlert] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [users, setUsers] = useState({ agencyAccess: [], clientAccess: [] });
@@ -154,7 +156,8 @@ export const SetupScreen = () => {
     //@ts-ignore
     dispatch(getCreateClient({ userId: !isAdmin ? session?.user?.data?.user?.id : null, jwt }));
   }, [isAdmin, session, dispatch]);
-
+  console.log('agencyUserOptions-agencyUserOptions', FC?.id)
+  console.log('selectedClient-selectedClient', selectedClient)
 
   useEffect(() => {
     if (FC) {
@@ -178,13 +181,18 @@ export const SetupScreen = () => {
           })) || [];
 
 
+
+
       setInternalApproverOptions(agencyUserOptions);
       setClientApprovalOptions(clientUserOptions);
       setClientUsers(FC || []);
       setCampaignFormData(prev => ({
         ...prev,
+        campaign_budget: {
+          currency: campaignFormData?.budget_details_currency?.id,
+        },
         ["client_selection"]: {
-          id: selectedClient || '',
+          id: selectedClient || FC?.id,
           value: FC?.client_name || '',
         },
       }));
@@ -235,7 +243,7 @@ export const SetupScreen = () => {
     if (documentId === null && !isInitialized) {
       const initialFormData = {
         client_selection: {
-          id: selectedClient || '',
+          id: selectedClient || FC?.id,
           value: FC?.client_name || '',
         },
         media_plan: "",
@@ -257,7 +265,7 @@ export const SetupScreen = () => {
         const updated = {
           ...prev,
           client_selection: {
-            id: selectedClient || '',
+            id: selectedClient || FC?.id,
             value: FC?.client_name || '',
           },
         };
@@ -276,10 +284,12 @@ export const SetupScreen = () => {
   }, [alert]);
 
 
+
+
   useEffect(() => {
-    if (campaignFormData?.budget_details_currency?.id) {
+    if (campaignFormData?.campaign_budget?.currency) {
       const currency = selectCurrency?.find(
-        (c) => c?.value === campaignFormData?.budget_details_currency?.id
+        (c) => c?.value === campaignFormData?.campaign_budget?.currency
       );
       if (currency) {
         if (campaignFormData?.budget_details_fee_type?.id === "Fix budget fee") {
@@ -290,11 +300,22 @@ export const SetupScreen = () => {
       }
     }
   }, [
-    campaignFormData?.budget_details_currency?.id,
+    campaignFormData?.campaign_budget?.currency,
     campaignFormData?.budget_details_fee_type?.id,
     selectedOption,
     setCurrencySign,
   ]);
+
+  useEffect(() => {
+    const currencyData = campaignFormData?.budget_details_currency;
+
+    if (currencyData?.value) {
+      setSelectedOption({
+        label: currencyData.value,
+        value: currencyData.value,
+      });
+    }
+  }, [campaignFormData?.budget_details_currency]);
 
   console.log('campaignFormData-campaignFormData', campaignFormData)
 
@@ -484,20 +505,33 @@ export const SetupScreen = () => {
               </div>
             </div>
           </div>
-          <div className="pb-1">
-            <Title className="">Budget details</Title>
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 ">
-                Currency
-              </label>
-              <ClientSelection
-                options={selectCurrency}
-                label={"Select currency"}
-                formId="budget_details_currency"
-              />
-
-
+          <div className="flex flex-wrap items-start gap-6">
+            <div className="pb-1">
+              <Title className="text-2xl font-semibold text-gray-800 mb-4">Budget details</Title>
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 ">
+                  Currency
+                </label>
+                <ClientSelection
+                  options={selectCurrency}
+                  label={"Select currency"}
+                  formId="budget_details_currency"
+                />
+              </div>
             </div>
+            {/* <div className="pb-1">
+              <Title className="text-2xl font-semibold text-gray-800 mb-4">Currency</Title>
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 ">
+                  Country
+                </label>
+                <ClientSelection
+                  options={selectCurrency}
+                  label={"Select currency"}
+                  formId="budget_details_currency"
+                />
+              </div>
+            </div> */}
           </div>
         </div>)
       }
