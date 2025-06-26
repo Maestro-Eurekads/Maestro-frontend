@@ -97,6 +97,11 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     })
   }
 
+  // --- FIX: Prevent infinite update loop for goal_level ---
+  // Only update goal_level if it is not set, or if it is set to a different value, but only once per view change.
+  // Use a ref to track if we've already forced the update for this view.
+  const goalLevelUpdateRef = useRef<{ [view: string]: boolean }>({})
+
   useEffect(() => {
     if (!campaignFormData) return
 
@@ -114,19 +119,28 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
           setIsModalOpen(false)
         }
       }
+      // Don't try to update goal_level if it's not set, just show modal
+      goalLevelUpdateRef.current[view] = false
     } else if (goalLevel !== expectedGoalLevel) {
-      // Prevent infinite loop by checking if update is actually needed
-      setCampaignFormData((prev: any) => {
-        if (prev?.goal_level === expectedGoalLevel) return prev
-        return {
-          ...prev,
-          goal_level: expectedGoalLevel,
-        }
-      })
+      // Only update if we haven't already done so for this view
+      if (!goalLevelUpdateRef.current[view]) {
+        setCampaignFormData((prev: any) => {
+          if (prev?.goal_level === expectedGoalLevel) return prev
+          return {
+            ...prev,
+            goal_level: expectedGoalLevel,
+          }
+        })
+        goalLevelUpdateRef.current[view] = true
+      }
+      // Don't close modal here, let the next effect run after update
     } else {
       setIsModalOpen(false)
+      // Reset the ref for the other view so that switching back will allow update if needed
+      goalLevelUpdateRef.current[view] = false
     }
-  }, [campaignFormData?.goal_level, view]) // Remove setCampaignFormData from dependencies
+  // Only depend on campaignFormData?.goal_level and view
+  }, [campaignFormData?.goal_level, view, setCampaignFormData])
 
   useEffect(() => {
     if (!campaignFormData?.funnel_stages || initialized.current) return
