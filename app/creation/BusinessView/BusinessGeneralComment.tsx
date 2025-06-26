@@ -1,6 +1,6 @@
 import { useComments } from 'app/utils/CommentProvider';
 import { SVGLoader } from 'components/SVGLoader';
-import { getGeneralComment, reset } from 'features/Comment/commentSlice';
+import { reset } from 'features/Comment/commentSlice';
 import { useSession } from 'next-auth/react';
 import React, { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from 'store/useStore';
@@ -46,7 +46,7 @@ const BusinessGeneralComment = () => {
 	}, [generalcommentsSuccess, setGeneralcommentsUpdateSuccess]);
 
 
-	// const commentId = campaignData?.documentId;
+
 	const author = {
 		id: session?.user?.id,
 		name: session?.user?.name,
@@ -60,7 +60,7 @@ const BusinessGeneralComment = () => {
 		} else {
 			setIsEditing(false);
 		}
-	}, [generalComments]);
+	}, [generalComments, generalcommentsSuccess, generalcommentsUpdateSuccess]);
 
 
 
