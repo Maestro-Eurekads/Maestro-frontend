@@ -268,11 +268,15 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       setActive(4);
       return;
     }
-    if (subStep > 0) {
-      setSubStep((prev) => prev - 1);
+    if(active === 7){
+      setActive(5)
     } else {
-      setActive((prev) => Math.max(0, prev - 1));
-      if (active === 8) setSubStep(1);
+      if (subStep > 0) {
+        setSubStep((prev) => prev - 1);
+      } else {
+        setActive((prev) => Math.max(0, prev - 1));
+        if (active === 8) setSubStep(1);
+      }
     }
   };
 
@@ -896,6 +900,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           setActive((prev) => prev + 1);
           setSubStep(0);
         }
+      } else if(active === 5){
+        setActive(7)
       } else if (active !== 0) {
         setActive((prev) => prev + 1);
       }

@@ -54,7 +54,7 @@ const CreationFlowActive = ({ steps, close }) => {
 
           return (
             <div
-              className="SideBar__SideBar cursor-pointer"
+              className="cursor-pointer"
               key={stepNumber}
               onClick={() =>
                 !cId
@@ -65,6 +65,9 @@ const CreationFlowActive = ({ steps, close }) => {
                   })
                   : handleStepClick(stepNumber)
               } // Handle step click
+              style={{
+                display: stepNumber === 6 ? "none": "flex"
+              }}
             >
               {alert && <AlertMain alert={alert} />}
               <div className="SideBar__state__container">
