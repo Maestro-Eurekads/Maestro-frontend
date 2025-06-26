@@ -28,6 +28,7 @@ export const CommentProvider = ({ children }) => {
 	const [generalError, setGeneralError] = useState(null);
 	const [createCommentsSuccess, setCreateCommentsSuccess] = useState(null);
 	const [generalcommentsSuccess, setGeneralcommentsSuccess] = useState(null);
+	const [generalcommentsUpdateSuccess, setGeneralcommentsUpdateSuccess] = useState(null);
 	const [createApprovalSuccess, setCreateApprovalSuccess] = useState(null);
 	const [isLoading, setIsLoading] = useState(false);
 	const [isLoadingApproval, setIsLoadingApproval] = useState(false);
@@ -118,7 +119,7 @@ export const CommentProvider = ({ children }) => {
 			dispatch(getGeneralComment({ commentId, jwt }));
 			setGeneralComment("");
 			setIsLoadingGeneral(false);
-			setGeneralcommentsSuccess(true);
+			setGeneralcommentsUpdateSuccess(true);
 		} catch (error) {
 			setGeneralError(error);
 			setIsLoadingGeneral(false);
@@ -368,6 +369,8 @@ export const CommentProvider = ({ children }) => {
 				generalComment,
 				setGeneralComment,
 				updateGeneralComment,
+				generalcommentsUpdateSuccess,
+				setGeneralcommentsUpdateSuccess,
 				selected,
 				setSelected,
 				isOpen,
