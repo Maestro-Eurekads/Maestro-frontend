@@ -1380,6 +1380,54 @@ const AdsetSettings = memo(function AdsetSettings({
     return <NonFacebookOutlet outlet={outlet} setSelected={setSelectedPlatforms} onInteraction={onInteraction} />
   }
 
+  // --- BEGIN PATCH: Show recap in adset granularity when collapsed ---
+  // We need to always show the recap for adset granularity, even if adsets are empty (but recapRows is not empty).
+  // The bug is that if adsets is empty, recapRows is empty, so we need to get the recap from adsetAudienceState if possible.
+  let showRecapRows = recapRows
+  if (
+    granularity === "adset" &&
+    isCollapsed &&
+    recapRows.length === 0 &&
+    adsetAudienceState &&
+    adsetAudienceState[stageName] &&
+    adsetAudienceState[stageName][outlet.outlet]
+  ) {
+    // Build recapRows from adsetAudienceState
+    const adsetObj = adsetAudienceState[stageName][outlet.outlet]
+    const adsetIds = Object.keys(adsetObj)
+      .map((id) => Number(id))
+      .sort((a, b) => a - b)
+    showRecapRows = []
+    adsetIds.forEach((adsetId, idx) => {
+      const adSetData = adsetObj[adsetId] || {}
+      if (adSetData.audience_type || adSetData.name || adSetData.size || adSetData.description) {
+        showRecapRows.push({
+          type: adSetData.audience_type || "",
+          name: adSetData.name || "",
+          size: adSetData.size || "",
+          description: adSetData.description || "",
+          adSetNumber: idx + 1,
+          isExtra: false,
+        })
+      }
+      if (Array.isArray(adSetData.extra_audiences)) {
+        adSetData.extra_audiences.forEach((ea) => {
+          if (ea.audience_type || ea.name || ea.size || ea.description) {
+            showRecapRows.push({
+              type: ea.audience_type || "",
+              name: ea.name || "",
+              size: ea.size || "",
+              description: ea.description || "",
+              adSetNumber: idx + 1,
+              isExtra: true,
+            })
+          }
+        })
+      }
+    })
+  }
+  // --- END PATCH ---
+
   return (
     <div className="flex flex-col gap-2 w-full max-w-[1024px]">
       <div className="flex items-center gap-8">
@@ -1455,7 +1503,7 @@ const AdsetSettings = memo(function AdsetSettings({
           </div>
         </DropdownContext.Provider>
       )}
-      {isCollapsed && recapRows.length > 0 && (
+      {isCollapsed && showRecapRows.length > 0 && (
         <div className="mt-2 mb-4">
           <div className="bg-[#F5F7FA] border border-[#E5E7EB] rounded-lg px-4 py-3">
             <div className="font-semibold text-[#061237] mb-2 text-sm">
@@ -1475,7 +1523,7 @@ const AdsetSettings = memo(function AdsetSettings({
                   </tr>
                 </thead>
                 <tbody>
-                  {recapRows.map((row, idx) => (
+                  {showRecapRows.map((row, idx) => (
                     <tr key={idx} className={row.isExtra ? "bg-[#F9FAFB]" : ""}>
                       {granularity === "adset" && row.adSetNumber && (
                         <td className="pr-4 py-1">
