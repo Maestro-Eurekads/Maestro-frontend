@@ -20,12 +20,30 @@ const BusinessGeneralComment = () => {
 		generalError,
 		generalComment,
 		setGeneralComment,
-		updateGeneralComment
+		updateGeneralComment,
+		setGeneralcommentsSuccess,
+		generalcommentsUpdateSuccess,
+		setGeneralcommentsUpdateSuccess
 	} = useComments();
 	const dispatch = useAppDispatch();
 	const [isEditing, setIsEditing] = useState(false);
 	const [id, setid] = useState("");
 
+
+
+
+	useEffect(() => {
+		if (
+			generalcommentsSuccess ||
+			generalcommentsUpdateSuccess
+		) {
+			const timer = setTimeout(() => {
+				setGeneralcommentsSuccess(false);
+				setGeneralcommentsUpdateSuccess(false);
+			}, 3000);
+			return () => clearTimeout(timer);
+		}
+	}, [generalcommentsSuccess, setGeneralcommentsUpdateSuccess]);
 
 
 	// const commentId = campaignData?.documentId;
@@ -72,10 +90,17 @@ const BusinessGeneralComment = () => {
 			toast.success("Comment created!");
 			dispatch(reset());
 		}
-		if (generalError) {
-			toast.error(generalError.response?.data?.error.message || generalError.message,);
+
+		if (generalcommentsUpdateSuccess) {
+			toast.success("Comment Updated!");
+			setGeneralcommentsUpdateSuccess(false);
 		}
-	}, [generalcommentsSuccess, generalError]);
+
+		if (generalError) {
+			toast.error(generalError.response?.data?.error?.message || generalError.message);
+		}
+	}, [generalcommentsSuccess, generalcommentsUpdateSuccess, generalError]);
+
 
 	const handleGeneral = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		e.preventDefault();

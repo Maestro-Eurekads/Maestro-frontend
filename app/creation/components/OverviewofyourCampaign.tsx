@@ -129,7 +129,6 @@ const OverviewofyourCampaign = () => {
 
   const handleDrawerOpen = () => {
     setIsDrawerOpen(true);
-    console.log('commentId-jwt', jwt)
     dispatch(getComment({ commentId, jwt }));
     setClose(true);
   };
