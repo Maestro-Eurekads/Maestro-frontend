@@ -516,7 +516,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
       if (newBudget > stageBudget) {
         newBudget = stageBudget
         newPercentage = 100
-        toast("Platform budget cannot exceed stage budget", {
+        toast("Channel budget cannot exceed stage budget", {
           position: "bottom-right",
           type: "error",
           theme: "colored",
