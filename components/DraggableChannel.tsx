@@ -453,7 +453,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         <div
           className={`${color} fixed top-0 z-50 text-white px-3 py-1.5 rounded-md text-sm shadow-lg whitespace-nowrap pointer-events-none`}
           style={{
-            left: tooltip.x + 8 >= (parentWidth || 0) ? "-100%" : `${tooltip.x}px`,
+            left: `${tooltip.x}px`,
             top: `0px`,
             transform: `translate(-${tooltip.x + 100 >= (parentWidth || 0) ? 100 : 0}%, -100%)`,
             border: `1px solid ${bg}`,

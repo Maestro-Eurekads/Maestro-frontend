@@ -214,7 +214,7 @@ const ResizableChannels = ({
     );
 
     const startDateValue = dRange[dayStartIndex] || startDate;
-    const endDateValue = dRange[dayEndIndex ] || endDate;
+    const endDateValue = dRange[dayEndIndex] || endDate;
 
     const formattedStartDate = format(startDateValue, "MMM dd");
     const formattedEndDate = format(endDateValue, "MMM dd");
@@ -1045,9 +1045,13 @@ const ResizableChannels = ({
                 <div
                   className="absolute top-0 z-50 text-white px-3 py-1.5 rounded-md text-sm shadow-lg whitespace-nowrap pointer-events-none w-fit"
                   style={{
-                    left: tooltip.x + 8 >= (channelState[index]?.width || 0) ? "-100%" : `${tooltip.x}px`,
+                    left: `${tooltip.x}px`,
                     top: `0px`,
-                    transform: `translate(-${tooltip.x + 100 >= (channelState[index]?.width || 0) ? 100 : 0}%, -100%)`,
+                    transform: `translate(-${
+                      tooltip.x + 100 >= (channelState[index]?.width || 0)
+                        ? 100
+                        : 0
+                    }%, -100%)`,
                     border: `1px solid ${channels[tooltip.index]?.color}`,
                     backgroundColor: `${channels[tooltip.index]?.bg}`,
                     color: `${channels[tooltip.index]?.color}`,
