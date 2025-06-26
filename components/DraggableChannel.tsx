@@ -178,15 +178,20 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       day: "2-digit",
     });
 
-    const containerRect = document
-      .querySelector(".grid-container")
-      ?.getBoundingClientRect();
-    const relativeY = containerRect ? mouseY - containerRect.top : mouseY;
+    // Get the container's dimensions
+    const container = document.querySelector(`.cont-${id?.replaceAll(" ", "_")}`) as HTMLElement;
+    if (!container) return;
+
+    const containerRect = container.getBoundingClientRect();
+
+    // Calculate the tooltip's position relative to the container
+    const tooltipX = mouseX - containerRect.left;
+    const tooltipY = mouseY - containerRect.top - 50; // Offset to position above the mouse
 
     setTooltip({
       visible: true,
-      x: mouseX,
-      y: Math.max(0, relativeY),
+      x: tooltipX,
+      y: tooltipY,
       content: `${description}: ${formattedStartDate} - ${formattedEndDate}`,
       type,
     });
@@ -224,30 +229,30 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   const handleMouseMoveResize = (e: MouseEvent) => {
     if (!isResizing.current) return;
     const { startX, startWidth, startPos, direction } = isResizing.current;
-  
+
     let newWidth = startWidth;
     let newPos = startPos;
-  
+
     // Get the grid container
     const gridContainer = document.querySelector(
       ".grid-container"
     ) as HTMLElement;
     if (!gridContainer) return;
-  
+
     // Get container boundaries
     const containerRect = gridContainer.getBoundingClientRect();
     const minX = 0;
     const maxX = containerRect.width - 45;
-  
+
     if (direction === "left") {
       // Calculate new position and width for left resize
       const deltaX = e.clientX - startX;
       newWidth = Math.max(50, startWidth - deltaX);
       newPos = Math.max(minX, startPos + deltaX);
-  
+
       // Apply snapping to the left edge position
       const snappedPos = snapToTimeline(newPos, containerRect.width);
-  
+
       // Adjust width based on the snapped position
       newWidth = startWidth - (snappedPos - startPos);
       newPos = snappedPos;
@@ -255,20 +260,20 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       // For right resize, calculate the new width
       const deltaX = e.clientX - startX;
       const rawNewWidth = startWidth + deltaX;
-  
+
       // Calculate where the right edge would be
       const rightEdgePos = startPos + rawNewWidth;
-  
+
       // Snap the right edge to the timeline
       const snappedRightEdge = snapToTimeline(
         rightEdgePos,
         containerRect.width
       );
-  
+
       // Calculate the new width based on the snapped right edge
       newWidth = Math.max(50, snappedRightEdge - startPos);
     }
-  
+
     // Convert pixel positions to dates
     const startDate = pixelToDate(newPos, containerRect.width);
     const endDate = pixelToDate(
@@ -276,18 +281,18 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       containerRect.width,
       "endDate"
     );
-  
+
     const updatedChannelMix = campaignFormData?.channel_mix?.find(
       (ch) => ch?.funnel_stage === description
     );
-  
+
     if (updatedChannelMix) {
       // Update funnel stage timeline dates
       updatedChannelMix["funnel_stage_timeline_start_date"] =
         moment(startDate).format("YYYY-MM-DD");
       updatedChannelMix["funnel_stage_timeline_end_date"] =
         moment(endDate).format("YYYY-MM-DD");
-  
+
       // Loop through all media types and update platform dates
       const mediaTypes = [
         "social_media",
@@ -302,7 +307,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         "in_game",
         "mobile",
       ];
-  
+
       mediaTypes.forEach((mediaType) => {
         const platforms = updatedChannelMix[mediaType];
         if (platforms && Array.isArray(platforms)) {
@@ -312,11 +317,10 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
               platform.campaign_start_date &&
               moment(platform.campaign_start_date).isBefore(startDate)
             ) {
-              platform.campaign_start_date = moment(startDate).format(
-                "YYYY-MM-DD"
-              );
+              platform.campaign_start_date =
+                moment(startDate).format("YYYY-MM-DD");
             }
-  
+
             // Update campaign_end_date
             if (
               platform.campaign_end_date &&
@@ -328,11 +332,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         }
       });
     }
-  
+
     setParentWidth(newWidth);
     setParentLeft(newPos);
     setPosition(newPos);
-  
+
     // Update tooltip during resize
     updateTooltipWithDates(
       newPos,
@@ -439,27 +443,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         transform: `translateX(${position + (range === "Month" ? 4 : 0)}px)`,
       }}
     >
-      {/* Tooltip */}
-      {tooltip.visible && (
-        <div
-          className={`${color} absolute z-50 text-white px-3 py-1.5 rounded-md text-sm shadow-lg whitespace-nowrap pointer-events-none`}
-          style={{
-            left: `${position}px`,
-            top: `-55px`,
-            transform: "translate(50%, 50%)",
-            border: `1px solid ${bg}`,
-            color: "white",
-          }}
-        >
-          {tooltip.content}
-        </div>
-      )}
-
       {/* Draggable Content */}
       <div
         className={`relative ${color} h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
           disableDrag ? "cursor-default relative" : "cursor-move"
-        } rounded-[10px] `}
+        } rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
         style={{
           width: disableDrag
             ? `${parentWidth + (range === "Month" ? 0 : 0)}px`
@@ -469,6 +457,21 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         }}
         onMouseDown={disableDrag || openItems ? undefined : handleMouseDownDrag}
       >
+        {/* Tooltip */}
+        {tooltip.visible && (
+          <div
+            className={`${color} absolute z-50 text-white px-3 py-1.5 rounded-md text-sm shadow-lg whitespace-nowrap pointer-events-none`}
+            style={{
+              left: `${tooltip.x}px`,
+              top: `-${tooltip.y}px`,
+              transform: "translate(-50%, -100%)",
+              border: `1px solid ${bg}`,
+              color: "white",
+            }}
+          >
+            {tooltip.content}
+          </div>
+        )}
         {/* Left Resize Handle */}
         {range === "Month" ? (
           <div

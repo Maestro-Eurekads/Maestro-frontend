@@ -149,7 +149,6 @@ const ResizableChannels = ({
     type: null,
     index: null,
   });
-  
 
   const toggleChannel = (id) => {
     setOpenItems((prev) => (prev === id ? null : id));
@@ -222,14 +221,21 @@ const ResizableChannels = ({
 
     const channelName = channels[index]?.name || "Channel";
     const containerRect = document
-      .querySelector(".grid-container")
+      .querySelector(
+        `.cont-${parentId?.replaceAll(" ", "_")}-${channelName?.replaceAll(
+          " ",
+          "_"
+        )?.replace("(", "")?.replace(")","")}`
+      )
       ?.getBoundingClientRect();
-    const relativeY = containerRect ? mouseY - containerRect.top : mouseY;
+    
+      const tooltipX = mouseX - containerRect.left;
+    const tooltipY = mouseY - containerRect.top - 50; // Offset to position above the mouse
 
     setTooltip({
       visible: true,
-      x: mouseX,
-      y: Math.max(0, relativeY),
+      x: tooltipX,
+      y: tooltipY,
       content: `${channelName}: ${formattedStartDate} - ${formattedEndDate}`,
       type,
       index,
@@ -269,32 +275,35 @@ const ResizableChannels = ({
 
   const handleMouseMoveResize = (e: MouseEvent) => {
     if (!isResizing.current) return;
-    const { startX, startWidth, startPos, direction, index } = isResizing.current;
-  console.log({ startX, startWidth, startPos, direction, index })
+    const { startX, startWidth, startPos, direction, index } =
+      isResizing.current;
+    console.log({ startX, startWidth, startPos, direction, index });
     let newWidth = startWidth;
     let newLeft = isNaN(startPos) ? 0 : startPos;
-  
-    const gridContainer = document.querySelector(".grid-container") as HTMLElement;
+
+    const gridContainer = document.querySelector(
+      ".grid-container"
+    ) as HTMLElement;
     if (!gridContainer) return;
-  
+
     const containerRect = gridContainer.getBoundingClientRect();
     const parentRightEdge = parentLeft + parentWidth;
-  
+
     if (direction === "left") {
       const deltaX = e.clientX - startX;
       newLeft = Math.max(parentLeft, (isNaN(startPos) ? 0 : startPos) + deltaX);
       newWidth = startWidth - (newLeft - (isNaN(startPos) ? 0 : startPos));
-  
+
       if (newWidth < 50) {
         newWidth = 50;
         newLeft = (isNaN(startPos) ? 0 : startPos) + startWidth - 50;
       }
-  
+
       const snappedPos =
         snapToTimeline(newLeft - parentLeft, containerRect.width) + parentLeft;
       newWidth = startWidth - (snappedPos - (isNaN(startPos) ? 0 : startPos));
       newLeft = snappedPos;
-  
+
       // Ensure the right edge does not exceed the parent's right edge
       if (newLeft + newWidth > parentRightEdge) {
         newWidth = parentRightEdge - newLeft;
@@ -302,44 +311,49 @@ const ResizableChannels = ({
     } else {
       const deltaX = e.clientX - startX;
       newWidth = Math.max(50, startWidth + deltaX);
-  
+
       // Ensure the right edge does not exceed the parent's right edge
       if (newLeft + newWidth > parentRightEdge) {
         newWidth = parentRightEdge - newLeft;
       }
-  
+
       const rightEdgePos = newLeft + newWidth;
       const snappedRightEdge =
         snapToTimeline(rightEdgePos - parentLeft, containerRect.width) +
         parentLeft;
-  
+
       // Ensure the snapped right edge does not exceed the parent's right edge
       if (snappedRightEdge > parentRightEdge) {
-        console.log("1")
-        newWidth = parentRightEdge ;
+        console.log("1");
+        newWidth = parentRightEdge;
       } else {
-        console.log("2")
-        newWidth = Math.max(50, snappedRightEdge );
+        console.log("2");
+        newWidth = Math.max(50, snappedRightEdge);
       }
-  
+
       // Adjust newLeft if snapping causes overlap
       if (newLeft + newWidth > parentRightEdge) {
-        console.log("3")
+        console.log("3");
         newLeft = parentRightEdge - newWidth;
       }
     }
-  
+
     // Update the channel state
     setChannelState((prev) =>
       prev.map((state, i) =>
         i === index ? { ...state, left: newLeft, width: newWidth } : state
       )
     );
-  
+
     const startPixel = newLeft - parentLeft;
     const endPixel = startPixel + newWidth;
-    const newStartDate = pixelToDate(startPixel, parentWidth, index, "startDate");
-    console.log("🚀 ~ handleMouseMoveResize ~ newStartDate:", newStartDate)
+    const newStartDate = pixelToDate(
+      startPixel,
+      parentWidth,
+      index,
+      "startDate"
+    );
+    console.log("🚀 ~ handleMouseMoveResize ~ newStartDate:", newStartDate);
     const newEndDate = pixelToDate(endPixel, parentWidth, index, "endDate");
     draggingDataRef.current = { index, newStartDate, newEndDate };
     setChannels((prev) =>
@@ -367,40 +381,40 @@ const ResizableChannels = ({
     isResizing.current = null;
     document.removeEventListener("mousemove", handleMouseMoveResize);
     document.removeEventListener("mouseup", handleMouseUpResize);
-  console.log("draggingDataRef", draggingDataRef.current)
+    console.log("draggingDataRef", draggingDataRef.current);
     if (draggingDataRef.current) {
       const { index, newStartDate, newEndDate } = draggingDataRef.current;
-  
+
       // // Update campaignFormData copy
       // setCopy((prevData) => {
       //   const updatedData = JSON.parse(JSON.stringify(prevData));
-  
+
       //   const channelMix = updatedData.channel_mix.find(
       //     (ch) => ch.funnel_stage === parentId
       //   );
-  
+
       //   if (channelMix) {
       //     const channelGroup = channelMix[channels[index].channelName];
       //     if (Array.isArray(channelGroup)) {
       //       const platform = channelGroup.find(
       //         (p) => p.platform_name === channels[index].name
       //       );
-  
+
       //       if (platform) {
       //         platform.campaign_start_date = newStartDate;
       //         platform.campaign_end_date = newEndDate;
       //       }
       //     }
       //   }
-  
+
       //   return updatedData;
       // });
-  
+
       draggingDataRef.current = null;
     }
   };
-  
-// console.log("here", isResizing)
+
+  // console.log("here", isResizing)
   // Separate effect for parentWidth-only changes
   // useEffect(() => {
   //   if (
@@ -500,7 +514,8 @@ const ResizableChannels = ({
   }, [startDate, endDate]);
 
   const pixelToDate = (pixel, containerWidth, index, fieldName) => {
-    const totalDays = fieldName === "endDate" ? dRange?.length -1 : dRange?.length;
+    const totalDays =
+      fieldName === "endDate" ? dRange?.length - 1 : dRange?.length;
     const dayIndex = Math.min(
       totalDays,
       Math.max(0, Math.floor((pixel / containerWidth) * totalDays))
@@ -538,7 +553,7 @@ const ResizableChannels = ({
     if (fieldName === "endDate" && endDate && calculatedDate > endDate) {
       return endDate ? moment(endDate).format("YYYY-MM-DD") : null;
     }
-// console.log("updatedCampaignFormData", updatedCampaignFormData)
+    // console.log("updatedCampaignFormData", updatedCampaignFormData)
     return calculatedDate ? moment(calculatedDate).format("YYYY-MM-DD") : null;
   };
 
@@ -755,13 +770,17 @@ const ResizableChannels = ({
   useEffect(() => {
     if (initialChannels && initialChannels.length > 0) {
       setChannels(initialChannels);
-console.log("Called")
+      console.log("Called");
       // Initialize new channels with parent's position
       setChannelState((prev) => {
-        const findMix = campaignFormData?.channel_mix?.find((chhh)=>chhh?.funnel_stage === parentId)
+        const findMix = campaignFormData?.channel_mix?.find(
+          (chhh) => chhh?.funnel_stage === parentId
+        );
         const newState = initialChannels.map((ch, index) => {
-          const findChannel = findMix[ch?.channelName]?.find((plt)=>plt?.platform_name === ch?.name)
-          console.log("🚀 ~ newState ~ findChannel:", findChannel)
+          const findChannel = findMix[ch?.channelName]?.find(
+            (plt) => plt?.platform_name === ch?.name
+          );
+          console.log("🚀 ~ newState ~ findChannel:", findChannel);
           const stageStartDate = findChannel?.campaign_start_date
             ? parseISO(findChannel?.campaign_start_date)
             : null;
@@ -774,7 +793,9 @@ console.log("Called")
               ? startDate // Use parent start date if channel start date is earlier
               : stageStartDate; // Otherwise use the actual channel start date
 
-          const stageEndDate = findChannel?.campaign_end_date ? parseISO(findChannel?.campaign_end_date) : null;
+          const stageEndDate = findChannel?.campaign_end_date
+            ? parseISO(findChannel?.campaign_end_date)
+            : null;
 
           // Check if the channel's end date exceeds the parent timeline's end date
           const isEndDateExceeded =
@@ -788,26 +809,23 @@ console.log("Called")
           const startDateIndex = adjustedStageStartDate
             ? dRange?.findIndex((date) =>
                 isEqual(date, adjustedStageStartDate)
-              ) *
-              dailyWidth
+              ) * dailyWidth
             : 0;
 
           // Calculate days between using the adjusted end date
           let daysBetween;
           if (adjustedStageStartDate && adjustedStageEndDate) {
-            daysBetween =
-              eachDayOfInterval({
-                start: adjustedStageStartDate,
-                end: adjustedStageEndDate,
-              })?.length ;
+            daysBetween = eachDayOfInterval({
+              start: adjustedStageStartDate,
+              end: adjustedStageEndDate,
+            })?.length;
           } else {
-            daysBetween =
-              eachDayOfInterval({
-                start: new Date(findChannel?.campaign_start_date) || null,
-                end: isEndDateExceeded
-                  ? endDate
-                  : new Date(findChannel?.campaign_end_date) || null,
-              })?.length ;
+            daysBetween = eachDayOfInterval({
+              start: new Date(findChannel?.campaign_start_date) || null,
+              end: isEndDateExceeded
+                ? endDate
+                : new Date(findChannel?.campaign_end_date) || null,
+            })?.length;
           }
 
           // Calculate position and width
@@ -815,11 +833,11 @@ console.log("Called")
             parentLeft + Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
 
           // Calculate width based on days between
-          let width = 
+          let width =
             rrange === "Day"
               ? daysBetween > 0
                 ? dailyWidth * daysBetween
-                : parentWidth 
+                : parentWidth
               : rrange === "Week"
               ? daysBetween > 0
                 ? dailyWidth * daysBetween
@@ -828,7 +846,7 @@ console.log("Called")
               ? daysBetween > 0
                 ? dailyWidth * daysBetween
                 : parentWidth
-              : parentWidth
+              : parentWidth;
 
           // Ensure width doesn't exceed parent width
           width = Math.min(width, parentWidth);
@@ -847,7 +865,7 @@ console.log("Called")
 
           // Check if this channel already exists in prev
           //@ts-ignore
-            const existingState = prev.find((state) => state.id === ch.id);
+          const existingState = prev.find((state) => state.id === ch.id);
 
           return existingState
             ? {
@@ -1014,28 +1032,35 @@ console.log("Called")
               gridColumnEnd: endColumn < 1 ? 1 : endColumn,
             }}
           >
+            <div className={`relative cont-${parentId?.replaceAll(
+                  " ",
+                  "_"
+                )}-${channel?.name?.replaceAll(" ", "_")?.replace("(", "")?.replace(")","")}`}>
+
             {tooltip.visible && tooltip.index === index && (
-              <div
-                className="absolute z-50 text-white px-3 py-1.5 rounded-md text-sm shadow-lg whitespace-nowrap pointer-events-none"
-                style={{
-                  left: `${channelState[tooltip.index]?.left}px`,
-                  top: `${-55}px`,
-                  transform: "translate(50%, 50%)",
-                  border: `1px solid ${channels[tooltip.index]?.color}`,
-                  backgroundColor: `${channels[tooltip.index]?.bg}`,
-                  color: `${channels[tooltip.index]?.color}`,
-                }}
-              >
-                {tooltip.content}
-              </div>
-            )}
-            <div className="relative">
+                  <div
+                    className="absolute z-50 text-white px-3 py-1.5 rounded-md text-sm shadow-lg whitespace-nowrap pointer-events-none"
+                    style={{
+                      left: `${tooltip.x}px`,
+                      top: `-${tooltip.y}px`,
+                      transform: "translate(-50%, -100%)",
+                      border: `1px solid ${channels[tooltip.index]?.color}`,
+                      backgroundColor: `${channels[tooltip.index]?.bg}`,
+                      color: `${channels[tooltip.index]?.color}`,
+                    }}
+                  >
+                    {tooltip.content}
+                  </div>
+                )}
               <div
                 className={`relative top-0 h-full flex ${
                   disableDrag
                     ? "justify-between min-w-[50px]"
                     : "justify-center cursor-move"
-                }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden `}
+                }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden cont-${parentId?.replaceAll(
+                  " ",
+                  "_"
+                )}-${channel?.name?.replaceAll(" ", "_")} `}
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
                   width: `${
@@ -1122,7 +1147,10 @@ console.log("Called")
                             : handleMouseDownResize(e, "left", index)
                         }
                       >
-                        <MdDragHandle className="rotate-90"color={channel.color} />
+                        <MdDragHandle
+                          className="rotate-90"
+                          color={channel.color}
+                        />
                       </div>
                     ) : (
                       <div
@@ -1144,40 +1172,42 @@ console.log("Called")
                     )}
                     {rrange === "Month" ? (
                       <div
-                      className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
-                        disableDrag && "hidden"
-                      }`}
-                      style={{
-                        right: "0px",
-                        // backgroundColor: channel.color,
-                      }}
-                      onMouseDown={(e) => {
-                        disableDrag || openItems
-                          ? undefined
-                          : handleMouseDownResize(e, "right", index);
-                      }}
-                    >
-                      <MdDragHandle className="rotate-90" color={channel?.color} />
-                    </div>
-                    ): (
+                        className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
+                          disableDrag && "hidden"
+                        }`}
+                        style={{
+                          right: "0px",
+                          // backgroundColor: channel.color,
+                        }}
+                        onMouseDown={(e) => {
+                          disableDrag || openItems
+                            ? undefined
+                            : handleMouseDownResize(e, "right", index);
+                        }}
+                      >
+                        <MdDragHandle
+                          className="rotate-90"
+                          color={channel?.color}
+                        />
+                      </div>
+                    ) : (
                       <div
-                      className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
-                        disableDrag && "hidden"
-                      }`}
-                      style={{
-                        right: "0px",
-                        backgroundColor: channel.color,
-                      }}
-                      onMouseDown={(e) => {
-                        disableDrag || openItems
-                          ? undefined
-                          : handleMouseDownResize(e, "right", index);
-                      }}
-                    >
-                      <MdDragHandle className="rotate-90" />
-                    </div>
+                        className={`absolute top-0 w-4 h-full cursor-ew-resize rounded-r-lg text-white flex items-center justify-center ${
+                          disableDrag && "hidden"
+                        }`}
+                        style={{
+                          right: "0px",
+                          backgroundColor: channel.color,
+                        }}
+                        onMouseDown={(e) => {
+                          disableDrag || openItems
+                            ? undefined
+                            : handleMouseDownResize(e, "right", index);
+                        }}
+                      >
+                        <MdDragHandle className="rotate-90" />
+                      </div>
                     )}
-                    
                   </>
                 }
               </div>
@@ -1326,7 +1356,10 @@ console.log("Called")
           </div>
         );
       })}
-      <Modal isOpen={selectedChannel && openCreatives} onClose={() => setOpenCreatives(false)}>
+      <Modal
+        isOpen={selectedChannel && openCreatives}
+        onClose={() => setOpenCreatives(false)}
+      >
         <div className="bg-white w-[900px] p-6 rounded-lg h-[600px] overflow-y-auto">
           <button
             className="flex justify-end w-fit ml-auto"
@@ -1475,7 +1508,10 @@ console.log("Called")
           )}
         </div>
       </Modal>
-      <Modal isOpen={(selectedChannel && openAdset) ? true : false} onClose={() => setOpenAdset(false)}>
+      <Modal
+        isOpen={selectedChannel && openAdset ? true : false}
+        onClose={() => setOpenAdset(false)}
+      >
         <div className="bg-white w-[900px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
           <button
             className="flex justify-end w-fit ml-auto"
