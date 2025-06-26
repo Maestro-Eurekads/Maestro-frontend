@@ -408,7 +408,7 @@ const OverviewofyourCampaign = () => {
             <Skeleton height={20} width={"100%"} />
             <Skeleton height={20} width={"100%"} />
             <Skeleton height={20} width={"100%"} />
-          </div> : !campaignData ? "" :
+          </div> : !campaignData ? [] :
             <MainSection hideDate={true} disableDrag={true} />}
       </div>
     </div>

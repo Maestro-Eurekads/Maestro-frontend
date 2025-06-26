@@ -190,7 +190,9 @@ const ConfigureBudgetComponet = ({ show, t1, t2, funnelData }) => {
 
 
 								{open &&
-									<PhasedistributionProgress />}
+									<PhasedistributionProgress
+
+										insideText={`${parseInt(campaignFormData?.campaign_budget?.amount && campaignFormData?.campaign_budget?.amount).toLocaleString() ?? 0} ${getCurrencySymbol(campaignFormData?.campaign_budget?.currency ?? '')}`} />}
 
 							</div>
 						</div>
