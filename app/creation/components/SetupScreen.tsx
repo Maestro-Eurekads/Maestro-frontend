@@ -17,6 +17,8 @@ import { useSession } from "next-auth/react";
 import { getCreateClient } from "features/Client/clientSlice";
 import { toast } from "sonner";
 import Skeleton from "react-loading-skeleton";
+import ClientSelectionInputbudget from "components/ClientSelectionInputbudget";
+import ClientSelection from "components/ClientSelection";
 
 
 interface DropdownOption {
@@ -294,6 +296,8 @@ export const SetupScreen = () => {
     setCurrencySign,
   ]);
 
+  console.log('campaignFormData-campaignFormData', campaignFormData)
+
 
 
   useEffect(() => {
@@ -440,7 +444,7 @@ export const SetupScreen = () => {
                 />
               </div>
               <div >
-                <label className="block text-sm font-medium text-gray-700  ">
+                <label className="block text-sm font-medium text-gray-700">
                   Internal Approver
                 </label>
                 <InternalApproverDropdowns
@@ -479,17 +483,24 @@ export const SetupScreen = () => {
 
               </div>
             </div>
-            {/* <div >
-              <label className="block text-sm font-medium text-gray-700  ">
-                Name
-              </label>
-              <ClientSelectionInput
-                label="Enter media plan name"
-                formId="media_plan"
-              />
-            </div> */}
           </div>
-        </div>)}
-    </div>
+          <div className="pb-1">
+            <Title className="">Budget details</Title>
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 ">
+                Currency
+              </label>
+              <ClientSelection
+                options={selectCurrency}
+                label={"Select currency"}
+                formId="budget_details_currency"
+              />
+
+
+            </div>
+          </div>
+        </div>)
+      }
+    </div >
   );
 };

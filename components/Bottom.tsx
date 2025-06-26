@@ -594,6 +594,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                 campaignFormData?.client_approver_ids || []
               ).map(Number),
             },
+            budget_details: {
+              currency: campaignFormData?.budget_details_currency?.id,
+            },
             agency_profile: agencyId,
           },
         };
@@ -1006,12 +1009,12 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           isFinancialApprover || isAgencyApprover || isAdmin ? (
             <button
               className="bottom_black_next_btn hover:bg-blue-500"
-              // onClick={() =>
-              //   campaignFormData?.isApprove
-              //     ? toast.error("This Plan has already been approved!")
-              //     : setIsOpen(true)
-              // }
-              onClick={() => setIsOpen(true)}
+              onClick={() =>
+                campaignFormData?.isApprove
+                  ? toast.error("This Plan has already been approved!")
+                  : setIsOpen(true)
+              }
+            // onClick={() => setIsOpen(true)}
             >
               <p>Confirm</p>
               <Image src={Continue} alt="Continue" />
