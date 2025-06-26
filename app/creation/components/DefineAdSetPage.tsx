@@ -557,195 +557,200 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
         )
       })}
 
+      {/* Center the modal content using flex utilities */}
       <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
-        {step === 1 && (
-          <div className="card bg-base-100 w-[418px]">
-            <form method="dialog" className="flex justify-between p-6 !pb-0" onSubmit={(e) => e.preventDefault()}>
-              <span></span>
-              <span className="w-[44px] h-[44px] grid place-items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
-                  <g clipPath="url(#clip0_1_23349)">
-                    <rect x="0.710938" y="0.710938" width="24" height="24" rx="12" fill="white" />
-                    <path
-                      d="M12.7109 24.761C25.8935 24.7617 18.9458 23.4974 21.1962 21.2469C23.4467 18.9965 24.7109 15.9443 24.7109 12.7617C24.7109 9.57914 23.4467 6.5269 21.1962 4.27446C18.9458 2.02402 15.8935 0.759766 12.7109 0.759761C9.52834 0.759761 6.47609 2.02404 4.22566 4.27448C1.97522 6.52492 0.710938 9.57718 0.710938 12.7598C0.710938 15.9423 1.97522 18.9945 4.22566 21.245C6.47609 23.4963 9.52834 24.761 12.7109 24.761ZM18.0078 10.8221L12.745 16.8221C11.5672 17.2628 10.8547 17.2628 10.4188 16.8226L7.41875 13.8226C6.97813 12.3815 6.97813 12.6391 7.41875 12.2032C7.85938 11.7673 8.57188 11.7626 9.00781 12.2032L11.2109 14.4062L16.4141 9.19845C16.8547 8.75783 17.5672 8.75783 18.0031 9.19845C18.4391 9.63907 18.4438 10.3516 18.0031 10.7875L18.0078 10.7922Z"
-                      fill="#0ABF7E"
-                    />
-                  </g>
-                  <defs>
-                    <clipPath id="clip0_1_23349">
-                      <rect x="0.710938" y="24" width="24" height="24" rx="0.710938" fill="white" />
-                    </clipPath>
-                  </defs>
-                </svg>
-              </span>
-              <button type="button" onClick={handleCloseModal}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
-                  <path
-                    d="M18.7266 6L6.72656 18M6.72656 6L18.7266 18"
-                    stroke="#717680"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            </form>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="w-full flex items-center justify-center">
+            {step === 1 && (
+              <div className="card bg-base-100 w-[418px]">
+                <form method="dialog" className="flex justify-between p-6 !pb-0" onSubmit={(e) => e.preventDefault()}>
+                  <span></span>
+                  <span className="w-[44px] h-[44px] grid place-items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
+                      <g clipPath="url(#clip0_1_23349)">
+                        <rect x="0.710938" y="0.710938" width="24" height="24" rx="12" fill="white" />
+                        <path
+                          d="M12.7109 24.761C25.8935 24.7617 18.9458 23.4974 21.1962 21.2469C23.4467 18.9965 24.7109 15.9443 24.7109 12.7617C24.7109 9.57914 23.4467 6.5269 21.1962 4.27446C18.9458 2.02402 15.8935 0.759766 12.7109 0.759761C9.52834 0.759761 6.47609 2.02404 4.22566 4.27448C1.97522 6.52492 0.710938 9.57718 0.710938 12.7598C0.710938 15.9423 1.97522 18.9945 4.22566 21.245C6.47609 23.4963 9.52834 24.761 12.7109 24.761ZM18.0078 10.8221L12.745 16.8221C11.5672 17.2628 10.8547 17.2628 10.4188 16.8226L7.41875 13.8226C6.97813 12.3815 6.97813 12.6391 7.41875 12.2032C7.85938 11.7673 8.57188 11.7626 9.00781 12.2032L11.2109 14.4062L16.4141 9.19845C16.8547 8.75783 17.5672 8.75783 18.0031 9.19845C18.4391 9.63907 18.4438 10.3516 18.0031 10.7875L18.0078 10.7922Z"
+                          fill="#0ABF7E"
+                        />
+                      </g>
+                      <defs>
+                        <clipPath id="clip0_1_23349">
+                          <rect x="0.710938" y="24" width="24" height="24" rx="0.710938" fill="white" />
+                        </clipPath>
+                      </defs>
+                    </svg>
+                  </span>
+                  <button type="button" onClick={handleCloseModal}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
+                      <path
+                        d="M18.7266 6L6.72656 18M6.72656 6L18.7266 18"
+                        stroke="#717680"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                </form>
 
-            <div className="p-6 pb-0 text-center">
-              <h2 className="text-xl mb-4 text-[#181D27] font-[500]">Congratulations on completing your media plan!</h2>
-              <p className="text-[15px] font-[500] text-[#535862]">
-                In this last step, we will take care of the numbers behind the structure. We will define the objectives
-                and benchmarks for each phase, channel, and ad set.
-              </p>
-            </div>
-
-            <div className="card-title p-6">
-              <button className="btn btn-primary w-full text-sm bg-[#3175FF]" type="button" onClick={() => setStep(2)}>
-                Start setting goals
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px]">
-            <form method="dialog" className="flex justify-between p-2 !pb-0" onSubmit={(e) => e.preventDefault()}>
-              <span></span>
-              <span className="w-[44px] h-[44px] grid place-items-center">
-                <svg width="45" height="44" viewBox="0 0 45 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="0.71" y="0" width="44" height="44" rx="22" fill="#E8F6FF" />
-                  <mask
-                    id="mask0"
-                    style={{ maskType: "luminance" }}
-                    maskUnits="userSpaceOnUse"
-                    x="13"
-                    y="14"
-                    width="19"
-                    height="16"
-                  >
-                    <path
-                      d="M17.7044 25.7497H14.3711V15H31.8378V25.7497H27.7044H17.7044Z"
-                      fill="white"
-                      stroke="white"
-                      strokeWidth="1.667"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M19.3711 21.1664V22"
-                      stroke="black"
-                      strokeWidth="1.667"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M22.7031 25.7497V28.2497"
-                      stroke="white"
-                      strokeWidth="1.667"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M22.7031 19.4997V22.8331M26.0365 17.8331V22.8331"
-                      stroke="black"
-                      strokeWidth="1.667"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M17.7031 29.0831H27.7031"
-                      stroke="white"
-                      strokeWidth="1.667"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </mask>
-                  <g mask="url(#mask0)">
-                    <rect x="12.71" y="0" width="20" height="20" fill="#3175FF" />
-                  </g>
-                </svg>
-              </span>
-
-              <button type="button" onClick={handleCloseModal}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
-                  <path
-                    d="M18.7266 6.5L6.72656 18.5M6.72656 6.5L18.7266 18.5"
-                    stroke="#717680"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            </form>
-
-            <div className="flex flex-col justify-center w-full">
-              <h1 className="font-general font-semibold text-[20px] leading-[27px] text-gray-900 text-center">
-                Choose your goal level
-              </h1>
-              <p className="font-general font-medium text-[16px] leading-[150%] text-gray-600 text-center">
-                Define how you want to set your benchmarks and goals for your media plan.
-              </p>
-            </div>
-            <section className="flex gap-6 mt-[20px] justify-center">
-              {[
-                {
-                  img: channel,
-                  alt: "Channel Level",
-                  label: "Channel level",
-                  description: `Input benchmarks and goals for each channel only. 
-                The highest level of granularity focuses on channels across all phases.`,
-                },
-                {
-                  img: adset,
-                  alt: "Ad Set Level",
-                  label: "Adset level",
-                  description: `Input benchmarks and goals for individual ad sets within each channel.
-                 This focuses on specific ad sets in each phase and channel.`,
-                },
-              ].map((item, index) => (
-                <div key={index} className="card bg-base-100 shadow p-2 rounded-[16px]">
-                  <div className="card-title relative w-full h-[135px]">
-                    <figure className="relative w-full h-full rounded-[8px]">
-                      <Image src={item.img || "/placeholder.svg"} fill alt={item.alt} />
-                    </figure>
-                  </div>
-
-                  <div>
-                    <div className="p-2 text-center">
-                      <h2 className="text-[16px] mb-4 text-[#181D27] font-[600]">{item.label}</h2>
-                      <p className="text-[14px] font-[500] text-[#535862]">{item.description}</p>
-                    </div>
-
-                    <div>
-                      <button
-                        className="btn btn-primary w-full text-sm bg-[#3175FF]"
-                        type="button"
-                        onClick={() => {
-                          const newView = item.label === "Adset level" ? "adset" : "channel"
-                          setCampaignFormData((prev: any) => ({
-                            ...prev,
-                            goal_level: item.label,
-                          }))
-                          onToggleChange(newView)
-                          handleCloseModal()
-                          // Mark modal as dismissed for this plan in localStorage
-                          if (typeof window !== "undefined") {
-                            const modalKey = getModalKey()
-                            if (modalKey) {
-                              localStorage.setItem(modalKey, "true")
-                            }
-                          }
-                        }}
-                      >
-                        Select
-                      </button>
-                    </div>
-                  </div>
+                <div className="p-6 pb-0 text-center">
+                  <h2 className="text-xl mb-4 text-[#181D27] font-[500]">Congratulations on completing your media plan!</h2>
+                  <p className="text-[15px] font-[500] text-[#535862]">
+                    In this last step, we will take care of the numbers behind the structure. We will define the objectives
+                    and benchmarks for each phase, channel, and ad set.
+                  </p>
                 </div>
-              ))}
-            </section>
+
+                <div className="card-title p-6">
+                  <button className="btn btn-primary w-full text-sm bg-[#3175FF]" type="button" onClick={() => setStep(2)}>
+                    Start setting goals
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px]">
+                <form method="dialog" className="flex justify-between p-2 !pb-0" onSubmit={(e) => e.preventDefault()}>
+                  <span></span>
+                  <span className="w-[44px] h-[44px] grid place-items-center">
+                    <svg width="45" height="44" viewBox="0 0 45 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="0.71" y="0" width="44" height="44" rx="22" fill="#E8F6FF" />
+                      <mask
+                        id="mask0"
+                        style={{ maskType: "luminance" }}
+                        maskUnits="userSpaceOnUse"
+                        x="13"
+                        y="14"
+                        width="19"
+                        height="16"
+                      >
+                        <path
+                          d="M17.7044 25.7497H14.3711V15H31.8378V25.7497H27.7044H17.7044Z"
+                          fill="white"
+                          stroke="white"
+                          strokeWidth="1.667"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M19.3711 21.1664V22"
+                          stroke="black"
+                          strokeWidth="1.667"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M22.7031 25.7497V28.2497"
+                          stroke="white"
+                          strokeWidth="1.667"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M22.7031 19.4997V22.8331M26.0365 17.8331V22.8331"
+                          stroke="black"
+                          strokeWidth="1.667"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M17.7031 29.0831H27.7031"
+                          stroke="white"
+                          strokeWidth="1.667"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </mask>
+                      <g mask="url(#mask0)">
+                        <rect x="12.71" y="0" width="20" height="20" fill="#3175FF" />
+                      </g>
+                    </svg>
+                  </span>
+
+                  <button type="button" onClick={handleCloseModal}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 25 25" fill="none">
+                      <path
+                        d="M18.7266 6.5L6.72656 18.5M6.72656 6.5L18.7266 18.5"
+                        stroke="#717680"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                </form>
+
+                <div className="flex flex-col justify-center w-full">
+                  <h1 className="font-general font-semibold text-[20px] leading-[27px] text-gray-900 text-center">
+                    Choose your goal level
+                  </h1>
+                  <p className="font-general font-medium text-[16px] leading-[150%] text-gray-600 text-center">
+                    Define how you want to set your benchmarks and goals for your media plan.
+                  </p>
+                </div>
+                <section className="flex gap-6 mt-[20px] justify-center">
+                  {[
+                    {
+                      img: channel,
+                      alt: "Channel Level",
+                      label: "Channel level",
+                      description: `Input benchmarks and goals for each channel only. 
+                    The highest level of granularity focuses on channels across all phases.`,
+                    },
+                    {
+                      img: adset,
+                      alt: "Ad Set Level",
+                      label: "Adset level",
+                      description: `Input benchmarks and goals for individual ad sets within each channel.
+                     This focuses on specific ad sets in each phase and channel.`,
+                    },
+                  ].map((item, index) => (
+                    <div key={index} className="card bg-base-100 shadow p-2 rounded-[16px]">
+                      <div className="card-title relative w-full h-[135px]">
+                        <figure className="relative w-full h-full rounded-[8px]">
+                          <Image src={item.img || "/placeholder.svg"} fill alt={item.alt} />
+                        </figure>
+                      </div>
+
+                      <div>
+                        <div className="p-2 text-center">
+                          <h2 className="text-[16px] mb-4 text-[#181D27] font-[600]">{item.label}</h2>
+                          <p className="text-[14px] font-[500] text-[#535862]">{item.description}</p>
+                        </div>
+
+                        <div>
+                          <button
+                            className="btn btn-primary w-full text-sm bg-[#3175FF]"
+                            type="button"
+                            onClick={() => {
+                              const newView = item.label === "Adset level" ? "adset" : "channel"
+                              setCampaignFormData((prev: any) => ({
+                                ...prev,
+                                goal_level: item.label,
+                              }))
+                              onToggleChange(newView)
+                              handleCloseModal()
+                              // Mark modal as dismissed for this plan in localStorage
+                              if (typeof window !== "undefined") {
+                                const modalKey = getModalKey()
+                                if (modalKey) {
+                                  localStorage.setItem(modalKey, "true")
+                                }
+                              }
+                            }}
+                          >
+                            Select
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </section>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </Modal>
     </div>
   )
