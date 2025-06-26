@@ -16,12 +16,13 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
   const [step, setStep] = useState(1)
   const [channelData, setChannelData] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [showBudgetOverview, setShowBudgetOverview] = useState(false)
   const { campaignFormData, setCampaignFormData } = useCampaigns()
 
   useEffect(() => {
     setIsDrawerOpen(false)
     setClose(false)
-  }, [])
+  }, [setIsDrawerOpen, setClose])
 
   useEffect(() => {
     if (campaignFormData) {
@@ -126,7 +127,6 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
     if (campaignFormData) {
       extractPlatforms(campaignFormData)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaignFormData])
 
   // Calculate total fees amount, defaulting to 0 if not present or invalid
@@ -136,7 +136,6 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
       return 0
     }
     const sum = feesArr.reduce((total, fee) => total + Number(fee.value || 0), 0)
-    // If sum is not a number (e.g. all fee values are empty), return 0
     return isNaN(sum) ? 0 : sum
   }, [campaignFormData])
 
@@ -157,32 +156,25 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
     const budgetType = campaignFormData?.campaign_budget?.sub_budget_type // gross or net
 
     if (campaignFormData.campaign_budget.budget_type === "bottom_up") {
-      // For bottom-up, sum all stage budgets (these are net amounts)
       const stageBudgetsSum =
         campaignFormData?.channel_mix?.reduce(
           (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
           0,
         ) || 0
-
-      // If budget type is gross, add fees to get total gross budget
       return budgetType === "gross" ? stageBudgetsSum + totalFees : stageBudgetsSum
     } else {
-      // For top-down, use the set campaign budget
-      // If budget type is gross, the amount includes fees, so net available = amount - fees
-      // If budget type is net, the amount is already net
       return budgetType === "gross" ? budgetAmount : budgetAmount
     }
   }
 
-  // Calculate net available budget (budget available for stage allocation)
+  // Calculate net available budget
   const calculateNetAvailableBudget = () => {
     if (!campaignFormData?.campaign_budget) return 0
 
     const budgetAmount = Number(campaignFormData?.campaign_budget?.amount) || 0
-    const budgetType = campaignFormData?.campaign_budget?.sub_budget_type // gross or net
+    const budgetType = campaignFormData?.campaign_budget?.sub_budget_type
 
     if (campaignFormData.campaign_budget.budget_type === "bottom_up") {
-      // For bottom-up, sum all stage budgets (these are net amounts available for allocation)
       return (
         campaignFormData?.channel_mix?.reduce(
           (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
@@ -190,9 +182,6 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
         ) || 0
       )
     } else {
-      // For top-down
-      // If budget type is gross, net available = gross - fees
-      // If budget type is net, net available = net amount
       return budgetType === "gross" ? Math.max(0, budgetAmount - totalFeesAmount) : budgetAmount
     }
   }
@@ -200,7 +189,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
   // Calculate remaining budget
   const remainingBudget = useMemo(() => {
     if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
-      return 0 // In bottom-up, there's no "remaining" budget
+      return 0
     }
     const netAvailable = calculateNetAvailableBudget()
     return Math.max(0, netAvailable - allocatedBudget)
@@ -213,7 +202,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
 
   const totalBudget = calculateTotalBudget()
 
-  // Prepare funnel stages for DoughnutChat - only include stages with actual budget
+  // Prepare funnel stages for DoughnutChat
   const funnelStages =
     campaignFormData?.channel_mix
       ?.filter((c) => Number(c?.stage_budget?.fixed_value) > 0)
@@ -227,7 +216,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
       bg: tailwindToHex(f.color),
     })) || []
 
-  // Prepare insideText for DoughnutChat using calculated total budget
+  // Prepare insideText for DoughnutChat
   const insideText = useMemo(() => {
     const currency = getCurrencySymbol(campaignFormData?.campaign_budget?.currency)
     return `${totalBudget.toLocaleString()} ${currency}`
@@ -268,106 +257,116 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
 
       <ConfiguredSetPage netAmount={netAmount} />
 
-      <div className="w-[100%] items-start p-[24px] gap-[10px] bg-white border border-[rgba(6,18,55,0.1)] rounded-[8px] box-border mt-[20px]">
-        <div className="flex items-center gap-[30px] mb-4">
-          <p>
-            Total Campaign Budget ({campaignFormData?.campaign_budget?.sub_budget_type === "gross" ? "Gross" : "Net"}):{" "}
-            {totalBudget.toLocaleString()}
-            {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
-          </p>
-          {totalFeesAmount > 0 && campaignFormData?.campaign_budget?.sub_budget_type === "gross" && (
-            <p>
-              Net Available Budget: {calculateNetAvailableBudget().toLocaleString()}
-              {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
-            </p>
-          )}
-          <p>
-            Allocated Budget: {allocatedBudget.toLocaleString()}
-            {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
-          </p>
-          {campaignFormData?.campaign_budget?.budget_type !== "bottom_up" && (
-            <p className={`${remainingBudget > 0 ? "text-orange-600" : "text-green-600"}`}>
-              Remaining Budget: {remainingBudget.toLocaleString()}
-              {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
-            </p>
-          )}
-          {totalFeesAmount > 0 && (
-            <p className="text-red-600">
-              Total Fees: {totalFeesAmount.toLocaleString()}
-              {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
-            </p>
-          )}
-        </div>
+      <div className="mt-4">
+        <button
+          onClick={() => setShowBudgetOverview(!showBudgetOverview)}
+          className="flex items-center justify-center px-4 py-4 bg-blue-500 text-white font-medium text-sm rounded-md hover:bg-blue-600 transition-colors duration-200"
+        >
+          {showBudgetOverview ? "Hide Budget Overview" : "See Budget Overview"}
+        </button>
+      </div>
 
-        <div className="allocate_budget_phase gap-[40px]">
-          <div className="allocate_budget_phase_one">
-            <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
-              Your budget by campaign phase
-            </h3>
-            <p className="font-medium text-[15px] leading-[175%] text-[rgba(0,0,0,0.9)] order-1 self-stretch flex-none">
-              Here is a breakdown of the budget allocated to each campaign phase.
+      {showBudgetOverview && (
+        <div className="w-[100%] items-start p-[24px] gap-[10px] bg-white border border-[rgba(6,18,55,0.1)] rounded-[8px] box-border mt-[20px]">
+          <div className="flex items-center gap-[30px] mb-4">
+            <p>
+              Total Campaign Budget ({campaignFormData?.campaign_budget?.sub_budget_type === "gross" ? "Gross" : "Net"}):{" "}
+              {totalBudget.toLocaleString()}
+              {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
             </p>
-            <div className="flex items-center gap-5 mt-[16px]">
-              <div>
-                <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-                  {campaignFormData?.campaign_budget?.budget_type === "bottom_up" ? "Total budget" : "Allocated budget"}
-                </p>
-                <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-                  {allocatedBudget?.toLocaleString()} {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
-                </h3>
-              </div>
-              <div>
-                <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-                  Campaign phases
-                </p>
-                <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-                  {campaignPhases.length} phases
-                </h3>
-              </div>
-              {campaignFormData?.campaign_budget?.budget_type !== "bottom_up" && remainingBudget > 0 && (
+            {totalFeesAmount > 0 && campaignFormData?.campaign_budget?.sub_budget_type === "gross" && (
+              <p>
+                Net Available Budget: {calculateNetAvailableBudget().toLocaleString()}
+                {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+              </p>
+            )}
+            <p>
+              Allocated Budget: {allocatedBudget.toLocaleString()}
+              {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+            </p>
+            {campaignFormData?.campaign_budget?.budget_type !== "bottom_up" && (
+              <p className={`${remainingBudget > 0 ? "text-orange-600" : "text-green-600"}`}>
+                Remaining Budget: {remainingBudget.toLocaleString()}
+                {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+              </p>
+            )}
+            {totalFeesAmount > 0 && (
+              <p className="text-red-600">
+                Total Fees: {totalFeesAmount.toLocaleString()}
+                {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+              </p>
+            )}
+          </div>
+
+          <div className="allocate_budget_phase gap-[40px]">
+            <div className="allocate_budget_phase_one">
+              <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
+                Your budget by campaign phase
+              </h3>
+              <p className="font-medium text-[15px] leading-[175%] text-[rgba(0,0,0,0.9)] order-1 self-stretch flex-none">
+                Here is a breakdown of the budget allocated to each campaign phase.
+              </p>
+              <div className="flex items-center gap-5 mt-[16px]">
                 <div>
                   <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-                    Unallocated
+                    {campaignFormData?.campaign_budget?.budget_type === "bottom_up" ? "Total budget" : "Allocated budget"}
                   </p>
-                  <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-orange-600">
-                    {remainingBudget?.toLocaleString()} {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                  <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
+                    {allocatedBudget?.toLocaleString()} {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
                   </h3>
                 </div>
-              )}
-            </div>
-            <>
-              <div className="campaign_phases_container mt-[24px] space-x-4">
-                <div className="campaign_phases_container_one">
-                  <DoughnutChat insideText={insideText} />
+                <div>
+                  <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
+                    Campaign phases
+                  </p>
+                  <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
+                    {campaignPhases.length} phases
+                  </h3>
                 </div>
-
-                <CampaignPhases campaignPhases={campaignPhases} />
+                {campaignFormData?.campaign_budget?.budget_type !== "bottom_up" && remainingBudget > 0 && (
+                  <div>
+                    <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
+                      Unallocated
+                    </p>
+                    <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-orange-600">
+                      {remainingBudget?.toLocaleString()} {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                    </h3>
+                  </div>
+                )}
               </div>
-              <PhasedistributionProgress insideText={insideText} />
-            </>
-          </div>
-          <div className="allocate_budget_phase_two">
-            <h3 className="font-semibold text-[22px] leading-[24px] flex items-center text-[#061237]">
-              Channel distribution
-            </h3>
-            <p className="font-medium text-[15px] leading-[175%] text-[rgba(0,0,0,0.9)] order-1 self-stretch flex-none">
-              Graph showing the total budget spent and its breakdown across the channels.
-            </p>
-            <div className="mt-[16px]">
-              <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-                Channels
-              </p>
-              <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-                {channelData?.length || 0} channels
-              </h3>
+              <>
+                <div className="campaign_phases_container mt-[24px] space-x-4">
+                  <div className="campaign_phases_container_one">
+                    <DoughnutChat insideText={insideText} />
+                  </div>
+                  <CampaignPhases campaignPhases={campaignPhases} />
+                </div>
+                <PhasedistributionProgress insideText={insideText} />
+              </>
             </div>
-            <ChannelDistributionChatTwo
-              channelData={channelData}
-              currency={getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
-            />
+            <div className="allocate_budget_phase_two">
+              <h3 className="font-semibold text-[22px] leading-[24px] flex items-center text-[#061237]">
+                Channel distribution
+              </h3>
+              <p className="font-medium text-[15px] leading-[175%] text-[rgba(0,0,0,0.9)] order-1 self-stretch flex-none">
+                Graph showing the total budget spent and its breakdown across the channels.
+              </p>
+              <div className="mt-[16px]">
+                <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
+                  Channels
+                </p>
+                <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
+                  {channelData?.length || 0} channels
+                </h3>
+              </div>
+              <ChannelDistributionChatTwo
+                channelData={channelData}
+                currency={getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
