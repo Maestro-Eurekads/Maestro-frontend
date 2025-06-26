@@ -692,7 +692,7 @@ const ResizeableElements = ({
       {/* Year view month headers */}
       {rrange === "Year" && (
         <div
-          className="sticky top-0 z-10 bg-white border-b mb-4"
+          className="sticky top-0 z-10 bg-transparent border-b mb-4"
           style={{
             display: "grid",
             gridTemplateColumns: generateGridColumns(),
