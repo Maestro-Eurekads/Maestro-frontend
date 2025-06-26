@@ -7,7 +7,6 @@ import axios from 'axios'
  
  //  Create Comment
 const getComment = async (commentId: any, jwt: any, client_commentId?: any) => {
-  console.log("Create Comment-----jwt" ,commentId ,jwt)
 
   const filters: any = {
     "filters[commentId][$eq]": commentId,
