@@ -179,7 +179,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     });
 
     // Get the container's dimensions
-    const container = document.querySelector(`.cont-${id?.replaceAll(" ", "_")}`) as HTMLElement;
+    const container = document.querySelector(
+      `.cont-${id?.replaceAll(" ", "_")}`
+    ) as HTMLElement;
     if (!container) return;
 
     const containerRect = container.getBoundingClientRect();
@@ -438,11 +440,29 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
   return (
     <div
-      className={`relative w-full h-14 flex select-none rounded-[10px]`}
+      className={`relative w-full h-14 flex select-none rounded-[10px] cont-${id?.replaceAll(
+        " ",
+        "_"
+      )}`}
       style={{
         transform: `translateX(${position + (range === "Month" ? 4 : 0)}px)`,
       }}
     >
+      {/* Tooltip */}
+      {tooltip.visible && (
+        <div
+          className={`${color} fixed top-0 z-50 text-white px-3 py-1.5 rounded-md text-sm shadow-lg whitespace-nowrap pointer-events-none`}
+          style={{
+            left: tooltip.x + 8 >= (parentWidth || 0) ? "-100%" : `${tooltip.x}px`,
+            top: `0px`,
+            transform: `translate(-${tooltip.x + 100 >= (parentWidth || 0) ? 100 : 0}%, -100%)`,
+            border: `1px solid ${bg}`,
+            color: "white",
+          }}
+        >
+          {tooltip.content}
+        </div>
+      )}
       {/* Draggable Content */}
       <div
         className={`relative ${color} h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
@@ -457,21 +477,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         }}
         onMouseDown={disableDrag || openItems ? undefined : handleMouseDownDrag}
       >
-        {/* Tooltip */}
-        {tooltip.visible && (
-          <div
-            className={`${color} absolute z-50 text-white px-3 py-1.5 rounded-md text-sm shadow-lg whitespace-nowrap pointer-events-none`}
-            style={{
-              left: `${tooltip.x}px`,
-              top: `-${tooltip.y}px`,
-              transform: "translate(-50%, -100%)",
-              border: `1px solid ${bg}`,
-              color: "white",
-            }}
-          >
-            {tooltip.content}
-          </div>
-        )}
         {/* Left Resize Handle */}
         {range === "Month" ? (
           <div

@@ -222,15 +222,15 @@ const ResizableChannels = ({
     const channelName = channels[index]?.name || "Channel";
     const containerRect = document
       .querySelector(
-        `.cont-${parentId?.replaceAll(" ", "_")}-${channelName?.replaceAll(
-          " ",
-          "_"
-        )?.replace("(", "")?.replace(")","")}`
+        `.cont-${parentId?.replaceAll(" ", "_")}-${channelName
+          ?.replaceAll(" ", "_")
+          ?.replace("(", "")
+          ?.replace(")", "")}`
       )
       ?.getBoundingClientRect();
-    
-      const tooltipX = mouseX - containerRect.left;
-    const tooltipY = mouseY - containerRect.top - 50; // Offset to position above the mouse
+
+    let tooltipX = mouseX - containerRect.left;
+    const tooltipY = containerRect.top - 50; // Offset to position above the mouse
 
     setTooltip({
       visible: true,
@@ -1032,35 +1032,36 @@ const ResizableChannels = ({
               gridColumnEnd: endColumn < 1 ? 1 : endColumn,
             }}
           >
-            <div className={`relative cont-${parentId?.replaceAll(
-                  " ",
-                  "_"
-                )}-${channel?.name?.replaceAll(" ", "_")?.replace("(", "")?.replace(")","")}`}>
-
-            {tooltip.visible && tooltip.index === index && (
-                  <div
-                    className="absolute z-50 text-white px-3 py-1.5 rounded-md text-sm shadow-lg whitespace-nowrap pointer-events-none"
-                    style={{
-                      left: `${tooltip.x}px`,
-                      top: `-${tooltip.y}px`,
-                      transform: "translate(-50%, -100%)",
-                      border: `1px solid ${channels[tooltip.index]?.color}`,
-                      backgroundColor: `${channels[tooltip.index]?.bg}`,
-                      color: `${channels[tooltip.index]?.color}`,
-                    }}
-                  >
-                    {tooltip.content}
-                  </div>
-                )}
+            <div
+              className={`relative cont-${parentId?.replaceAll(
+                " ",
+                "_"
+              )}-${channel?.name
+                ?.replaceAll(" ", "_")
+                ?.replace("(", "")
+                ?.replace(")", "")}`}
+            >
+              {tooltip.visible && tooltip.index === index && (
+                <div
+                  className="absolute top-0 z-50 text-white px-3 py-1.5 rounded-md text-sm shadow-lg whitespace-nowrap pointer-events-none w-fit"
+                  style={{
+                    left: tooltip.x + 8 >= (channelState[index]?.width || 0) ? "-100%" : `${tooltip.x}px`,
+                    top: `0px`,
+                    transform: `translate(-${tooltip.x + 100 >= (channelState[index]?.width || 0) ? 100 : 0}%, -100%)`,
+                    border: `1px solid ${channels[tooltip.index]?.color}`,
+                    backgroundColor: `${channels[tooltip.index]?.bg}`,
+                    color: `${channels[tooltip.index]?.color}`,
+                  }}
+                >
+                  {tooltip.content}
+                </div>
+              )}
               <div
-                className={`relative top-0 h-full flex ${
+                className={`relative h-full flex ${
                   disableDrag
                     ? "justify-between min-w-[50px]"
                     : "justify-center cursor-move"
-                }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden cont-${parentId?.replaceAll(
-                  " ",
-                  "_"
-                )}-${channel?.name?.replaceAll(" ", "_")} `}
+                }  items-center text-white py-[10px] px-4 gap-2 border shadow-md overflow-x-hidden`}
                 style={{
                   left: `${channelState[index]?.left || parentLeft}px`,
                   width: `${
