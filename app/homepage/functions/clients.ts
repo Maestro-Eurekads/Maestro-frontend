@@ -47,9 +47,13 @@ export const checkExisitingEmails = async (emailList: any, jwt:any) => {
   return response.data;
 };
 
-export const updateUsersWithCampaign = async (userIds: string[], campaignId: string, jwt:any) => {
-  const updatePromises = userIds.map((userId) =>
-    axios.put(
+export const updateUsersWithCampaign = async (
+  userIds: string[],
+  campaignId: string,
+  jwt: any
+) => {
+  for (const userId of userIds) {
+    await axios.put(
       `${process.env.NEXT_PUBLIC_STRAPI_URL}/users/${userId}`,
       {
         campaigns: campaignId,
@@ -59,11 +63,10 @@ export const updateUsersWithCampaign = async (userIds: string[], campaignId: str
           Authorization: `Bearer ${jwt}`,
         },
       }
-    )
-  );
-
-  return await Promise.all(updatePromises);
+    );
+  }
 };
+
 
 
 

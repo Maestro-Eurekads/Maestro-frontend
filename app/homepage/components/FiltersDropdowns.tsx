@@ -209,7 +209,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
   const isYearSelected = !!selectedFilters["year"];
 
-  // console.log("Selected Filters:", filters);
+  // //console.log("Selected Filters:", filters);
   // Client Architecture
   return (
     <div>
@@ -253,11 +253,11 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
             console.log('nested-nested', nested)
 
-            // console.log("Nested Options:", nested);
-            // console.log("options-----Options:", options);
-            // console.log("displayLabel-----displayLabel:", displayLabel);
-            // console.log("label-----label:", label);
-            // console.log("filters-----filters:", filters);
+            // //console.log("Nested Options:", nested);
+            // //console.log("options-----Options:", options);
+            // //console.log("displayLabel-----displayLabel:", displayLabel);
+            // //console.log("label-----label:", label);
+            // //console.log("filters-----filters:", filters);
 
 
             return (

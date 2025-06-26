@@ -42,6 +42,8 @@ interface Campaign {
   };
   progress_percent: number;
   copyCount: number;
+  campaign_timeline_start_date?:any;
+  campaign_timeline_end_date?:any;
 }
 
 interface ClientPO {
@@ -70,7 +72,7 @@ const Table = () => {
   const [selected, setSelected] = useState<Campaign | null>(null);
   const [duplicateName, setDuplicateName] = useState("");
   const [loadingg, setLoading] = useState(false);
-  const { setActive } = useActive();
+  const { setActive, setSubStep } = useActive();
   const [clientId, setClientId] = useState<string | null>(null);
 
 
@@ -235,6 +237,11 @@ const Table = () => {
                       const activeStepFromPercentage = Math.ceil(
                         (data?.progress_percent * 10) / 100
                       );
+                      if(activeStepFromPercentage === 7){
+                        if(data?.campaign_timeline_start_date !== null && data?.campaign_timeline_end_date !== null){
+setSubStep(1)
+                        }
+                      }
                       setActive(activeStepFromPercentage === 0 ? 1 : activeStepFromPercentage);
                       router.push(`/creation?campaignId=${data?.documentId}`);
                     }}
