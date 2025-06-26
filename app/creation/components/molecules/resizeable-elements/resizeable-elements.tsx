@@ -232,7 +232,7 @@ const ResizeableElements = ({
         return window.innerWidth || document.documentElement.clientWidth || 0;
       };
       const screenWidth = getViewportWidth();
-      const contWidth = screenWidth - (disableDrag ? 80 : 367);
+      const contWidth = screenWidth - (disableDrag ? 80 : close ? 0 : 367);
 
       let dailyWidth: number;
 
@@ -466,7 +466,7 @@ const ResizeableElements = ({
 
   useEffect(() => {
     if (!campaignFormData?.funnel_stages || !containerWidth) return;
-
+console.log("here")
     const initialWidths: Record<string, number> = {};
     const initialPositions: Record<string, number> = {};
     const getViewportWidth = () => {
