@@ -41,7 +41,7 @@ const CampaignPhases = ({ campaignPhases }) => {
                 {phase?.name}
               </p>
               <span className="font-semibold text-[16px] leading-[22px] flex items-center text-[#061237]">
-                ({phase?.percentage}%)
+                ({Number(phase?.percentage) ? Math.round(Number(phase.percentage)) : 0}%)
               </span>
             </div>
           </div>
