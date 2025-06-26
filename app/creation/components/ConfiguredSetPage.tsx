@@ -57,6 +57,11 @@ const calculateRemainingBudget = (netAmount, fees, campaignFormData, campaignBud
   return remainingBudget > 0 ? remainingBudget.toFixed(2) : "0.00"
 }
 
+// Helper to format percentage without decimal
+const formatPercent = (value) => {
+  return `${Math.round(Number(value))}`
+}
+
 const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" }) => {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
   const [stageStatus, setStageStatus] = useState<Record<string, string>>({})
@@ -647,7 +652,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
           {getCurrencySymbol(currency)}
           {formatNumberWithCommas(stageBudget)}
         </span>{" "}
-        ({stagePercentage.toFixed(1)}% of available net budget)
+        ({formatPercent(stagePercentage)}% of available net budget)
         {fees.length > 0 && (
           <>
             {" • "}Gross Budget:{" "}
@@ -838,7 +843,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                 step="0.1"
                                 className="w-full focus:outline-none text-right"
                                 disabled={validatedStages[stageName]}
-                                value={percentage.toFixed(1)}
+                                value={formatPercent(percentage)}
                                 onChange={(e) => handleStageBudgetUpdate(stageName, e.target.value, true)}
                               />
                               <span>%</span>
@@ -974,7 +979,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                       step="0.1"
                                       className="w-full focus:outline-none text-right"
                                       disabled={validatedStages[stageName]}
-                                      value={platformPercentage.toFixed(1)}
+                                      value={formatPercent(platformPercentage)}
                                       onChange={(e) =>
                                         handlePlatformBudgetUpdate(stageName, platform.outlet, e.target.value, true)
                                       }
@@ -1210,7 +1215,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                         <div className="flex items-center gap-4">
                                           <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
                                             <div className="flex items-center gap-2">
-                                              <p>{adSetPercentage}</p>
+                                              <p>{formatPercent(adSetPercentage)}</p>
                                               <span> %</span>
                                             </div>
                                           </div>
@@ -1382,7 +1387,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                             <div className="flex items-center gap-4">
                                               <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
                                                 <div className="flex items-center gap-2">
-                                                  <p>{getAdSetExtraBudgetPercentage(ad_set, extraIdx)}</p>
+                                                  <p>{formatPercent(getAdSetExtraBudgetPercentage(ad_set, extraIdx))}</p>
                                                   <span> %</span>
                                                 </div>
                                               </div>
