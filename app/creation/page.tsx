@@ -20,10 +20,6 @@ import { useComments } from "app/utils/CommentProvider";
 
 const Creation = () => {
   const { active, subStep } = useActive();
-
-
-
-
   return (
     <div>
       <div className="creation_continer">
@@ -32,11 +28,12 @@ const Creation = () => {
         {active === 1 && <MapFunnelStages />}
         {active === 2 && <SelectChannelMix />}
         {active === 3 && <DefineAdSet />}
+
         {active === 8 && <CampaignBudget />}
 
         {active === 4 && <FormatSelection />}
         {active === 5 && <SetBuyObjectivesAndTypes />}
-        {active === 6 && <SetBuyObjectivesAndTypesSubStep />}
+        {/* {active === 6 && <SetBuyObjectivesAndTypesSubStep />} */}
 
         {/* Step 8 (Tracks 2 subSteps) */}
       </div>

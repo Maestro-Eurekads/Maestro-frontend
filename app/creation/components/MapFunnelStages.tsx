@@ -8,7 +8,7 @@ import { useVerification } from "app/utils/VerificationContext"
 import { useComments } from "app/utils/CommentProvider"
 import { PlusIcon, Edit2, Trash2, X, GripVertical, ChevronDown, Loader } from "lucide-react"
 import toast from "react-hot-toast"
-import axios from "axios" // <--- Added for Strapi update
+import axios from "axios"
 
 // Define type for funnel objects
 interface Funnel {
@@ -79,22 +79,6 @@ const hexToColorClass = (hex: string): string | null => {
 
 const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color)
 
-// LocalStorage keys - Scoped to client for configs, client and media plan for funnels
-const LOCAL_STORAGE_FUNNELS_KEY = "custom_funnels_v1"
-const LOCAL_STORAGE_CONFIGS_KEY = "funnel_configurations_v1"
-const LOCAL_STORAGE_SELECTION_KEY = "funnel_selection_v1" // Add this new key
-
-// Helper to get a unique key for localStorage based on clientId and optionally mediaPlanId
-const getClientKey = (baseKey: string, clientId: string | undefined, mediaPlanId?: string) => {
-  if (!clientId) return baseKey
-  let key = `${baseKey}_client_${clientId}`
-  if (mediaPlanId && baseKey === LOCAL_STORAGE_FUNNELS_KEY) {
-    key += `_media_${mediaPlanId}`
-  }
-  console.debug(`Generated storage key: ${key}`)
-  return key
-}
-
 // Preset funnel structures for dropdown
 const presetStructures: { label: string; stages: Funnel[] }[] = [
   {
@@ -127,6 +111,13 @@ const presetStructures: { label: string; stages: Funnel[] }[] = [
   },
 ]
 
+// Helper to normalize funnel stages for comparison
+const normalizeFunnelStages = (stages: Funnel[]) =>
+  stages
+    .map((f) => f.name.toLowerCase())
+    .sort()
+    .join(",")
+
 const MapFunnelStages = () => {
   const { campaignData, campaignFormData, cId, setCampaignFormData, jwt } = useCampaigns()
   const { setIsDrawerOpen, setClose } = useComments()
@@ -150,6 +141,8 @@ const MapFunnelStages = () => {
   const [isSaveConfigModalOpen, setIsSaveConfigModalOpen] = useState(false)
   const [newConfigName, setNewConfigName] = useState("")
   const [savingConfig, setSavingConfig] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [configToDelete, setConfigToDelete] = useState<number | null>(null)
 
   // Get clientId and mediaPlanId safely
   const clientId = campaignFormData?.client_selection?.id ?? ""
@@ -163,130 +156,27 @@ const MapFunnelStages = () => {
     { id: "Loyalty", name: "Loyalty", color: colorPalette[3] },
   ]
 
-  // --- LocalStorage helpers for custom funnels ---
-  const saveCustomFunnelsToStorage = (funnels: Funnel[]) => {
-    if (!clientId) return
-    try {
-      const key = getClientKey(LOCAL_STORAGE_FUNNELS_KEY, clientId, mediaPlanId)
-      localStorage.setItem(key, JSON.stringify(funnels))
-      console.debug(`Saved custom funnels to ${key}:`, funnels)
-    } catch (e) {
-      console.log("Failed to save custom funnels to localStorage:", e)
-      toast.error("Failed to save funnels", { duration: 3000 })
-    }
-  }
-
-  const getCustomFunnelsFromStorage = (): Funnel[] | null => {
-    if (!clientId) return null
-    try {
-      const key = getClientKey(LOCAL_STORAGE_FUNNELS_KEY, clientId, mediaPlanId)
-      const data = localStorage.getItem(key)
-      console.debug(`Retrieved custom funnels from ${key}:`, data)
-      if (data) {
-        const parsed = JSON.parse(data)
-        if (Array.isArray(parsed) && parsed.every((f) => f.id && f.name && f.color)) {
-          return parsed
-        }
-      }
-    } catch (e) {
-      console.error("Failed to load custom funnels from localStorage:", e)
-      toast.error("Failed to load funnels", { duration: 3000 })
-    }
-    return null
-  }
-
-  // --- LocalStorage helpers for funnel configurations ---
-  const saveFunnelConfigsToStorage = (configs: FunnelConfig[]) => {
-    if (!clientId) return
-    try {
-      const key = getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId)
-      localStorage.setItem(key, JSON.stringify(configs))
-      console.debug(`Saved funnel configs to ${key}:`, configs)
-    } catch (e) {
-      console.error("Failed to save funnel configurations to localStorage:", e)
-      toast.error("Failed to save configurations", { duration: 3000 })
-    }
-  }
-
-  const getFunnelConfigsFromStorage = (): FunnelConfig[] => {
-    if (!clientId) return []
-    try {
-      const key = getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId)
-      const data = localStorage.getItem(key)
-      console.debug(`Retrieved funnel configs from ${key}:`, data)
-      if (data) {
-        const parsed = JSON.parse(data)
-        if (Array.isArray(parsed) && parsed.every((config) => config.name && Array.isArray(config.stages))) {
-          return parsed
-        }
-      }
-    } catch (e) {
-      console.error("Failed to load funnel configurations from localStorage:", e)
-      toast.error("Failed to load configurations", { duration: 3000 })
-    }
-    return []
-  }
-
-  // --- LocalStorage helpers for selection state ---
-  const saveSelectionToStorage = (configIdx: number | null, presetIdx: number | null) => {
-    if (!clientId) return
-    try {
-      const key = getClientKey(LOCAL_STORAGE_SELECTION_KEY, clientId, mediaPlanId)
-      const selectionData = { selectedConfigIdx: configIdx, selectedPreset: presetIdx }
-      localStorage.setItem(key, JSON.stringify(selectionData))
-      console.debug(`Saved selection to ${key}:`, selectionData)
-    } catch (e) {
-      console.error("Failed to save selection to localStorage:", e)
-    }
-  }
-
-  const getSelectionFromStorage = (): { selectedConfigIdx: number | null; selectedPreset: number | null } | null => {
-    if (!clientId) return null
-    try {
-      const key = getClientKey(LOCAL_STORAGE_SELECTION_KEY, clientId, mediaPlanId)
-      const data = localStorage.getItem(key)
-      console.debug(`Retrieved selection from ${key}:`, data)
-      if (data) {
-        const parsed = JSON.parse(data)
-        if (typeof parsed.selectedConfigIdx === "number" || parsed.selectedConfigIdx === null) {
-          if (typeof parsed.selectedPreset === "number" || parsed.selectedPreset === null) {
-            return parsed
-          }
-        }
-      }
-    } catch (e) {
-      console.error("Failed to load selection from localStorage:", e)
-    }
-    return null
-  }
-
   // Initialize funnel data and configurations
   useEffect(() => {
     console.debug(`Initializing with clientId: ${clientId}, mediaPlanId: ${mediaPlanId}`)
-    const configs = getFunnelConfigsFromStorage()
-    setFunnelConfigs(campaignData?.client?.custom_funnel_configs || [])
-
-    let loadedCustomFunnels: Funnel[] = []
-    const localStorageFunnels = getCustomFunnelsFromStorage()
     const isNewPlan = !mediaPlanId || mediaPlanId === ""
 
-    // Get saved selection state
-    const savedSelection = getSelectionFromStorage()
+    // Load configurations from campaignFormData first, then fall back to campaignData
+    let configs: FunnelConfig[] = []
+    if (campaignFormData?.funnel_configs?.length) {
+      configs = campaignFormData.funnel_configs
+    } else if (campaignData?.client?.custom_funnel_configs?.length) {
+      configs = campaignData.client.custom_funnel_configs
+    }
+    setFunnelConfigs(configs)
 
-    if (!clientId) {
+    // Load funnels from campaignFormData first
+    let loadedCustomFunnels: Funnel[] = []
+
+    if (campaignFormData?.custom_funnels?.length > 0) {
+      loadedCustomFunnels = campaignFormData.custom_funnels
+    } else if (isNewPlan || !clientId) {
       loadedCustomFunnels = defaultFunnels
-      setSelectedConfigIdx(null)
-      setSelectedPreset(1) // Select "Full" preset by default
-      localStorage.removeItem(getClientKey(LOCAL_STORAGE_FUNNELS_KEY, clientId, mediaPlanId))
-      localStorage.removeItem(getClientKey(LOCAL_STORAGE_CONFIGS_KEY, clientId))
-      localStorage.removeItem(getClientKey(LOCAL_STORAGE_SELECTION_KEY, clientId, mediaPlanId))
-    } else if (isNewPlan) {
-      // For new plans, always use default funnels
-      loadedCustomFunnels = defaultFunnels
-      setSelectedConfigIdx(null)
-      setSelectedPreset(1) // Select "Full" preset
-    } else if (localStorageFunnels && localStorageFunnels.length > 0) {
-      loadedCustomFunnels = localStorageFunnels
     } else if (campaignData?.custom_funnels?.length > 0) {
       loadedCustomFunnels = campaignData.custom_funnels.map((funnel: any, index: number) => ({
         id: funnel.id || funnel.name || `funnel-${index}`,
@@ -295,25 +185,15 @@ const MapFunnelStages = () => {
       }))
     } else {
       loadedCustomFunnels = defaultFunnels
-      setSelectedPreset(1) // Select "Full" preset
     }
 
     setPersistentCustomFunnels(loadedCustomFunnels)
     setCustomFunnels(loadedCustomFunnels)
 
+    // Update campaignFormData
     setCampaignFormData((prev: any) => {
-      const initialFunnelStages = Array.isArray(campaignData?.funnel_stages) ? campaignData.funnel_stages : []
-      const initialChannelMix = Array.isArray(campaignData?.channel_mix) ? campaignData.channel_mix : []
-      const orderedFunnelStages =
-        initialFunnelStages.length > 0 && !isNewPlan
-          ? loadedCustomFunnels.map((f) => f.name).filter((name) => initialFunnelStages.includes(name))
-          : loadedCustomFunnels.map((f) => f.name)
-      const orderedChannelMix =
-        initialChannelMix.length > 0 && !isNewPlan
-          ? loadedCustomFunnels
-              .map((f) => initialChannelMix.find((ch: any) => ch?.funnel_stage === f.name))
-              .filter((ch): ch is { funnel_stage: string } => !!ch)
-          : loadedCustomFunnels.map((f) => ({ funnel_stage: f.name }))
+      const orderedFunnelStages = loadedCustomFunnels.map((f) => f.name)
+      const orderedChannelMix = loadedCustomFunnels.map((f) => ({ funnel_stage: f.name }))
 
       const updatedFormData = {
         ...prev,
@@ -321,70 +201,63 @@ const MapFunnelStages = () => {
         funnel_stages: orderedFunnelStages,
         channel_mix: orderedChannelMix,
         custom_funnels: loadedCustomFunnels,
+        funnel_configs: configs,
       }
       console.debug("Updated campaignFormData:", updatedFormData)
       return updatedFormData
     })
 
-    // Restore selection state for existing plans with saved selection
-    if (!isNewPlan && savedSelection && clientId) {
-      if (savedSelection.selectedConfigIdx !== null && configs.length > savedSelection.selectedConfigIdx) {
-        setSelectedConfigIdx(savedSelection.selectedConfigIdx)
-        setSelectedPreset(null)
-        console.debug(`Restored config selection: ${savedSelection.selectedConfigIdx}`)
-      } else if (savedSelection.selectedPreset !== null && presetStructures.length > savedSelection.selectedPreset) {
-        setSelectedPreset(savedSelection.selectedPreset)
-        setSelectedConfigIdx(null)
-        console.debug(`Restored preset selection: ${savedSelection.selectedPreset}`)
-      } else {
-        // Fallback to matching logic if saved selection is invalid
-        const currentStageNames = loadedCustomFunnels.map((f) => f.name).sort()
-        const matchingConfigIdx = configs.findIndex((config) => {
-          const configStageNames = config.stages.map((s) => s.name).sort()
-          return JSON.stringify(currentStageNames) === JSON.stringify(configStageNames)
-        })
+    // Match current funnels to configs or presets to set dropdown selection
+    const currentFunnelKey = normalizeFunnelStages(loadedCustomFunnels)
+    const matchingConfigIdx = configs.findIndex((config) => normalizeFunnelStages(config.stages) === currentFunnelKey)
+    const matchingPresetIdx = presetStructures.findIndex(
+      (preset) => normalizeFunnelStages(preset.stages) === currentFunnelKey,
+    )
 
-        if (matchingConfigIdx !== -1) {
-          setSelectedConfigIdx(matchingConfigIdx)
-          setSelectedPreset(null)
-          console.debug(`Matched config index: ${matchingConfigIdx}`)
-        } else {
-          const matchingPresetIdx = presetStructures.findIndex((preset) => {
-            const presetStageNames = preset.stages.map((s) => s.name).sort()
-            return JSON.stringify(currentStageNames) === JSON.stringify(presetStageNames)
-          })
+    // Load saved selection from campaignFormData
+    const savedConfigIdx = campaignFormData?.selected_config_idx
+    const savedPresetIdx = campaignFormData?.selected_preset_idx
 
-          setSelectedPreset(matchingPresetIdx !== -1 ? matchingPresetIdx : null)
-          setSelectedConfigIdx(null)
-          console.debug(`Matched preset index: ${matchingPresetIdx !== -1 ? matchingPresetIdx : null}`)
-        }
-      }
-    } else if (configs.length > 0 && loadedCustomFunnels.length > 0 && !isNewPlan) {
-      // Original matching logic for plans without saved selection
-      const currentStageNames = loadedCustomFunnels.map((f) => f.name).sort()
-      const matchingConfigIdx = configs.findIndex((config) => {
-        const configStageNames = config.stages.map((s) => s.name).sort()
-        return JSON.stringify(currentStageNames) === JSON.stringify(configStageNames)
-      })
-
-      if (matchingConfigIdx !== -1) {
-        setSelectedConfigIdx(matchingConfigIdx)
-        setSelectedPreset(null)
-        console.debug(`Selected config index: ${matchingConfigIdx}`)
-      } else {
-        const matchingPresetIdx = presetStructures.findIndex((preset) => {
-          const presetStageNames = preset.stages.map((s) => s.name).sort()
-          return JSON.stringify(currentStageNames) === JSON.stringify(presetStageNames)
-        })
-
-        setSelectedPreset(matchingPresetIdx !== -1 ? matchingPresetIdx : null)
-        setSelectedConfigIdx(null)
-        console.debug(`Selected preset index: ${matchingPresetIdx !== -1 ? matchingPresetIdx : null}`)
-      }
+    if (
+      savedConfigIdx !== undefined &&
+      savedConfigIdx !== null &&
+      configs.length > savedConfigIdx &&
+      normalizeFunnelStages(configs[savedConfigIdx].stages) === currentFunnelKey
+    ) {
+      setSelectedConfigIdx(savedConfigIdx)
+      setSelectedPreset(null)
+    } else if (
+      savedPresetIdx !== undefined &&
+      savedPresetIdx !== null &&
+      presetStructures.length > savedPresetIdx &&
+      normalizeFunnelStages(presetStructures[savedPresetIdx].stages) === currentFunnelKey
+    ) {
+      setSelectedPreset(savedPresetIdx)
+      setSelectedConfigIdx(null)
+    } else if (matchingConfigIdx !== -1) {
+      setSelectedConfigIdx(matchingConfigIdx)
+      setSelectedPreset(null)
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        selected_config_idx: matchingConfigIdx,
+        selected_preset_idx: null,
+      }))
+    } else if (matchingPresetIdx !== -1) {
+      setSelectedPreset(matchingPresetIdx)
+      setSelectedConfigIdx(null)
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        selected_config_idx: null,
+        selected_preset_idx: matchingPresetIdx,
+      }))
     } else {
       setSelectedConfigIdx(null)
-      setSelectedPreset(isNewPlan || !clientId ? 1 : null) // "Full" preset for new plans or no client
-      console.debug("No configs or funnels, reset selection")
+      setSelectedPreset(isNewPlan || !clientId ? 1 : null)
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        selected_config_idx: null,
+        selected_preset_idx: isNewPlan || !clientId ? 1 : null,
+      }))
     }
   }, [clientId, mediaPlanId, campaignData, setCampaignFormData])
 
@@ -404,19 +277,51 @@ const MapFunnelStages = () => {
     }
   }, [campaignFormData, cId, verifyStep, previousValidationState])
 
-  // Save custom funnels to localStorage
+  // Update campaignFormData when funnels change
   useEffect(() => {
-    if (clientId && persistentCustomFunnels.length > 0) {
-      saveCustomFunnelsToStorage(persistentCustomFunnels)
-    }
-  }, [persistentCustomFunnels, clientId, mediaPlanId])
+    if (persistentCustomFunnels.length > 0) {
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        custom_funnels: persistentCustomFunnels,
+      }))
 
-  // Save funnel configurations to localStorage
-  useEffect(() => {
-    if (clientId && funnelConfigs?.length > 0) {
-      saveFunnelConfigsToStorage(funnelConfigs)
+      // Update selection if current funnels match a config or preset
+      const currentFunnelKey = normalizeFunnelStages(persistentCustomFunnels)
+      const matchingConfigIdx = funnelConfigs.findIndex(
+        (config) => normalizeFunnelStages(config.stages) === currentFunnelKey,
+      )
+      const matchingPresetIdx = presetStructures.findIndex(
+        (preset) => normalizeFunnelStages(preset.stages) === currentFunnelKey,
+      )
+      if (matchingConfigIdx !== -1 && selectedConfigIdx !== matchingConfigIdx) {
+        setSelectedConfigIdx(matchingConfigIdx)
+        setSelectedPreset(null)
+        setCampaignFormData((prev: any) => ({
+          ...prev,
+          selected_config_idx: matchingConfigIdx,
+          selected_preset_idx: null,
+        }))
+      } else if (matchingPresetIdx !== -1 && selectedPreset !== matchingPresetIdx) {
+        setSelectedPreset(matchingPresetIdx)
+        setSelectedConfigIdx(null)
+        setCampaignFormData((prev: any) => ({
+          ...prev,
+          selected_config_idx: null,
+          selected_preset_idx: matchingPresetIdx,
+        }))
+      }
     }
-  }, [funnelConfigs, clientId])
+  }, [persistentCustomFunnels, funnelConfigs, selectedConfigIdx, selectedPreset, setCampaignFormData])
+
+  // Update campaignFormData when funnel configs change
+  useEffect(() => {
+    if (funnelConfigs.length > 0) {
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        funnel_configs: funnelConfigs,
+      }))
+    }
+  }, [funnelConfigs, setCampaignFormData])
 
   // Handle clicks outside modal
   useEffect(() => {
@@ -424,16 +329,17 @@ const MapFunnelStages = () => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
         setIsModalOpen(false)
         setIsSaveConfigModalOpen(false)
+        setIsDeleteModalOpen(false)
       }
     }
 
-    if (isModalOpen || isSaveConfigModalOpen) {
+    if (isModalOpen || isSaveConfigModalOpen || isDeleteModalOpen) {
       document.addEventListener("mousedown", handleClickOutside)
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
     }
-  }, [isModalOpen, isSaveConfigModalOpen])
+  }, [isModalOpen, isSaveConfigModalOpen, isDeleteModalOpen])
 
   // Get an available color
   const getAvailableColor = (excludeColor?: string): string => {
@@ -466,7 +372,7 @@ const MapFunnelStages = () => {
     if (!trimmed) return "Configuration name cannot be empty"
     if (trimmed.length < 2) return "Configuration name must be at least 2 characters"
     if (!/[a-zA-Z]/.test(trimmed)) return "Configuration name must include at least one letter"
-    if (funnelConfigs?.some((config) => config?.name?.toLowerCase() === trimmed?.toLowerCase())) {
+    if (funnelConfigs.some((config) => config.name.toLowerCase() === trimmed.toLowerCase())) {
       return "A configuration with this name already exists"
     }
     return ""
@@ -519,16 +425,18 @@ const MapFunnelStages = () => {
     setPersistentCustomFunnels(updatedFunnels)
     setCustomFunnels(updatedFunnels)
 
-    if (clientId) saveCustomFunnelsToStorage(updatedFunnels)
-
     setCampaignFormData((prev: any) => ({
       ...prev,
       custom_funnels: updatedFunnels,
       funnel_stages: [...(prev.funnel_stages || []), name],
       channel_mix: [...(prev.channel_mix || []), { funnel_stage: name }],
+      selected_config_idx: null,
+      selected_preset_idx: null,
     }))
 
     setHasChanges(true)
+    setSelectedConfigIdx(null)
+    setSelectedPreset(null)
     toast.success("Funnel added successfully", { duration: 3000 })
     setIsModalOpen(false)
     console.debug("Added funnel:", newFunnel)
@@ -549,8 +457,6 @@ const MapFunnelStages = () => {
     setPersistentCustomFunnels(updatedFunnels)
     setCustomFunnels(updatedFunnels)
 
-    if (clientId) saveCustomFunnelsToStorage(updatedFunnels)
-
     setCampaignFormData((prev: any) => ({
       ...prev,
       custom_funnels: updatedFunnels,
@@ -558,9 +464,13 @@ const MapFunnelStages = () => {
       channel_mix: (prev.channel_mix || []).map((ch: any) =>
         ch.funnel_stage === oldId ? { ...ch, funnel_stage: newName } : ch,
       ),
+      selected_config_idx: null,
+      selected_preset_idx: null,
     }))
 
     setHasChanges(true)
+    setSelectedConfigIdx(null)
+    setSelectedPreset(null)
     toast.success("Funnel updated successfully", { duration: 3000 })
     setIsModalOpen(false)
     console.debug("Edited funnel:", { oldId, newName, newColor })
@@ -580,16 +490,18 @@ const MapFunnelStages = () => {
     setPersistentCustomFunnels(updatedFunnels)
     setCustomFunnels(updatedFunnels)
 
-    if (clientId) saveCustomFunnelsToStorage(updatedFunnels)
-
     setCampaignFormData((prev: any) => ({
       ...prev,
       custom_funnels: updatedFunnels,
       funnel_stages: (prev.funnel_stages || []).filter((name: string) => name !== id),
       channel_mix: (prev.channel_mix || []).filter((ch: any) => ch?.funnel_stage !== id),
+      selected_config_idx: null,
+      selected_preset_idx: null,
     }))
 
     setHasChanges(true)
+    setSelectedConfigIdx(null)
+    setSelectedPreset(null)
     toast.success("Funnel removed successfully", { duration: 3000 })
     console.debug("Removed funnel:", id)
   }
@@ -619,8 +531,6 @@ const MapFunnelStages = () => {
     setPersistentCustomFunnels(newFunnels)
     setCustomFunnels(newFunnels)
 
-    if (clientId) saveCustomFunnelsToStorage(newFunnels)
-
     setCampaignFormData((prev: any) => {
       const newFunnelNames = newFunnels.map((f) => f.name)
       const orderedFunnelStages = newFunnelNames.filter((name) => prev.funnel_stages?.includes(name))
@@ -632,10 +542,14 @@ const MapFunnelStages = () => {
         custom_funnels: newFunnels,
         funnel_stages: orderedFunnelStages,
         channel_mix: orderedChannelMix,
+        selected_config_idx: null,
+        selected_preset_idx: null,
       }
     })
 
     setHasChanges(true)
+    setSelectedConfigIdx(null)
+    setSelectedPreset(null)
     setDraggedIndex(null)
     setDragOverIndex(null)
     console.debug("Reordered funnels:", newFunnels)
@@ -694,9 +608,6 @@ const MapFunnelStages = () => {
     setSelectedPreset(presetIdx)
     setSelectedConfigIdx(null)
 
-    // Save selection to localStorage
-    saveSelectionToStorage(null, presetIdx)
-
     const preset = presetStructures[presetIdx]
     setPersistentCustomFunnels(preset.stages)
     setCustomFunnels(preset.stages)
@@ -706,6 +617,8 @@ const MapFunnelStages = () => {
       custom_funnels: preset.stages,
       funnel_stages: preset.stages.map((f) => f.name),
       channel_mix: preset.stages.map((f) => ({ funnel_stage: f.name })),
+      selected_config_idx: null,
+      selected_preset_idx: presetIdx,
     }))
     setHasChanges(true)
     toast.success("Preset structure applied", { duration: 2000 })
@@ -718,9 +631,6 @@ const MapFunnelStages = () => {
     setSelectedConfigIdx(configIdx)
     setSelectedPreset(null)
 
-    // Save selection to localStorage
-    saveSelectionToStorage(configIdx, null)
-
     const config = funnelConfigs[configIdx]
     setPersistentCustomFunnels(config.stages)
     setCustomFunnels(config.stages)
@@ -730,6 +640,8 @@ const MapFunnelStages = () => {
       custom_funnels: config.stages,
       funnel_stages: config.stages.map((f) => f.name),
       channel_mix: config.stages.map((f) => ({ funnel_stage: f.name })),
+      selected_config_idx: configIdx,
+      selected_preset_idx: null,
     }))
     setHasChanges(true)
     toast.success("Funnel configuration applied", { duration: 2000 })
@@ -750,7 +662,7 @@ const MapFunnelStages = () => {
     setIsSaveConfigModalOpen(true)
   }
 
-  // Confirm save config (rewritten for Strapi update)
+  // Confirm save config
   const handleSaveConfigConfirm = async () => {
     const error = validateConfigName(newConfigName)
     if (error) {
@@ -766,21 +678,21 @@ const MapFunnelStages = () => {
     }
 
     const updatedConfigs = [...funnelConfigs, config]
-    // Locally update the state
     setFunnelConfigs(updatedConfigs)
     const newConfigIdx = updatedConfigs.length - 1
     setSelectedConfigIdx(newConfigIdx)
     setSelectedPreset(null)
 
-    // Save selection to localStorage
-    saveSelectionToStorage(newConfigIdx, null)
+    setCampaignFormData((prev: any) => ({
+      ...prev,
+      funnel_configs: updatedConfigs,
+      selected_config_idx: newConfigIdx,
+      selected_preset_idx: null,
+    }))
 
     if (clientId) {
-      // Save to localStorage (optional)
-      // saveFunnelConfigsToStorage(updatedConfigs)
       setSavingConfig(true)
       try {
-        // Strapi PUT request
         await axios.put(
           `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}`,
           {
@@ -794,13 +706,12 @@ const MapFunnelStages = () => {
             },
           },
         )
-        setIsSaveConfigModalOpen(false)
         toast.success(`"${newConfigName.trim()}" configuration saved!`, {
           duration: 3000,
         })
       } catch (err) {
         console.error("Failed to update funnel configs on Strapi:", err)
-        toast.error("Failed to update funnel configs on server", {
+        toast.error("Failed to update funnel configs on server, saved locally", {
           duration: 3000,
         })
       } finally {
@@ -811,28 +722,61 @@ const MapFunnelStages = () => {
         duration: 3000,
       })
     }
+    setIsSaveConfigModalOpen(false)
     console.debug("Saved new config:", config)
   }
 
-  // Delete a saved configuration
+  // Open delete confirmation modal
   const handleDeleteConfig = (configIdx: number) => {
-    const updatedConfigs = funnelConfigs?.filter((_, idx) => idx !== configIdx)
-    setFunnelConfigs(updatedConfigs)
-    if (clientId) saveFunnelConfigsToStorage(updatedConfigs)
+    setConfigToDelete(configIdx)
+    setIsDeleteModalOpen(true)
+  }
 
-    if (selectedConfigIdx === configIdx) {
-      setSelectedConfigIdx(null)
-      // Clear selection from localStorage
-      saveSelectionToStorage(null, null)
-    } else if (selectedConfigIdx !== null && selectedConfigIdx > configIdx) {
-      const newSelectedIdx = selectedConfigIdx - 1
-      setSelectedConfigIdx(newSelectedIdx)
-      // Update selection in localStorage
-      saveSelectionToStorage(newSelectedIdx, null)
+  // Confirm delete configuration
+  const handleDeleteConfigConfirm = () => {
+    if (configToDelete === null) return
+
+    const updatedConfigs = funnelConfigs.filter((_, idx) => idx !== configToDelete)
+    setFunnelConfigs(updatedConfigs)
+
+    let newSelectedConfigIdx = selectedConfigIdx
+    let newSelectedPresetIdx = selectedPreset
+
+    if (selectedConfigIdx === configToDelete) {
+      newSelectedConfigIdx = null
+      newSelectedPresetIdx = 1 // Fallback to "Full" preset
+      setPersistentCustomFunnels(defaultFunnels)
+      setCustomFunnels(defaultFunnels)
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        funnel_configs: updatedConfigs,
+        custom_funnels: defaultFunnels,
+        funnel_stages: defaultFunnels.map((f) => f.name),
+        channel_mix: defaultFunnels.map((f) => ({ funnel_stage: f.name })),
+        selected_config_idx: null,
+        selected_preset_idx: 1,
+      }))
+    } else if (selectedConfigIdx !== null && selectedConfigIdx > configToDelete) {
+      newSelectedConfigIdx = selectedConfigIdx - 1
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        funnel_configs: updatedConfigs,
+        selected_config_idx: newSelectedConfigIdx,
+      }))
+    } else {
+      setCampaignFormData((prev: any) => ({
+        ...prev,
+        funnel_configs: updatedConfigs,
+      }))
     }
 
+    setSelectedConfigIdx(newSelectedConfigIdx)
+    setSelectedPreset(newSelectedPresetIdx)
+    setHasChanges(true)
     toast.success("Configuration deleted successfully", { duration: 2000 })
-    console.debug("Deleted config at index:", configIdx)
+    console.debug("Deleted config at index:", configToDelete)
+    setIsDeleteModalOpen(false)
+    setConfigToDelete(null)
   }
 
   // Helper for stage preview style
@@ -877,14 +821,14 @@ const MapFunnelStages = () => {
                 className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto"
                 role="listbox"
               >
-                {funnelConfigs?.length > 0 && (
+                {funnelConfigs.length > 0 && (
                   <>
                     <li className="px-4 py-2 text-xs text-gray-500 font-semibold">Saved Configurations</li>
-                    {funnelConfigs?.map((config, idx) => (
+                    {funnelConfigs.map((config, idx) => (
                       <li
                         key={`config-${config.name}-${idx}`}
-                        className={`px-4 py-3 cursor-pointer hover:bg-blue-50 ${
-                          selectedConfigIdx === idx ? "bg-blue-100 font-bold" : ""
+                        className={`px-4 py-3 cursor-pointer hover:bg-blue-50 flex justify-between items-center ${
+                          selectedConfigIdx === idx ? "bg-blue-100" : ""
                         }`}
                         role="option"
                         aria-selected={selectedConfigIdx === idx}
@@ -893,6 +837,15 @@ const MapFunnelStages = () => {
                         <span className={selectedConfigIdx === idx ? "font-bold text-blue-700" : ""}>
                           {config.name}
                         </span>
+                        <button
+                          className="p-1 bg-white rounded-full shadow-sm hover:bg-gray-50"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteConfig(idx)
+                          }}
+                        >
+                          <Trash2 size={16} className="text-red-500" />
+                        </button>
                       </li>
                     ))}
                     <li className="border-t border-gray-200 my-1"></li>
@@ -1163,6 +1116,45 @@ const MapFunnelStages = () => {
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
               >
                 {savingConfig ? <Loader className="animate-spin" /> : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isDeleteModalOpen && configToDelete !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 transition-opacity duration-300">
+          <div
+            ref={modalRef}
+            className="bg-white rounded-xl p-8 w-full max-w-md shadow-2xl transform transition-all duration-300 scale-100"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex-shrink-0">
+                <Trash2 size={24} className="text-red-500" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Delete Configuration</h3>
+                <p className="mt-1 text-sm text-gray-600">
+                  Are you sure you want to delete the{" "}
+                  <span className="font-semibold text-red-600">"{funnelConfigs[configToDelete].name}"</span>{" "}
+                  configuration? This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setIsDeleteModalOpen(false)
+                  setConfigToDelete(null)
+                }}
+                className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfigConfirm}
+                className="px-5 py-2.5 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors duration-200"
+              >
+                Delete
               </button>
             </div>
           </div>

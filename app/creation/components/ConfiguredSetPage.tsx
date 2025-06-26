@@ -21,7 +21,48 @@ interface OutletType {
   channel: any
 }
 
-const ConfiguredSetPage = ({ netAmount }) => {
+// Helper functions
+const calculateNetFromGross = (grossAmount, fees) => {
+  const totalFees = fees.reduce((total, fee) => total + Number(fee.amount || 0), 0)
+  return Math.max(0, Number(grossAmount) - totalFees)
+}
+
+const calculateGrossFromNet = (netAmount, fees) => {
+  const totalFees = fees.reduce((total, fee) => total + Number(fee.amount || 0), 0)
+  return Number(netAmount) + totalFees
+}
+
+const calculateRemainingBudget = (netAmount, fees, campaignFormData, campaignBudgetType) => {
+  const totalFees = fees.reduce((total, fee) => total + Number(fee.amount || 0), 0)
+
+  let totalAvailableBudget
+  if (campaignBudgetType === "gross") {
+    totalAvailableBudget = Number(netAmount) || 0
+  } else {
+    totalAvailableBudget = (Number(netAmount) || 0) + totalFees
+  }
+
+  const subBudgets =
+    campaignFormData?.channel_mix?.reduce((acc, stage) => {
+      return acc + (Number(stage?.stage_budget?.fixed_value) || 0)
+    }, 0) || 0
+
+  let remainingBudget
+  if (campaignBudgetType === "gross") {
+    remainingBudget = totalAvailableBudget - totalFees - subBudgets
+  } else {
+    remainingBudget = (Number(netAmount) || 0) - subBudgets
+  }
+
+  return remainingBudget > 0 ? remainingBudget.toFixed(2) : "0.00"
+}
+
+// Helper to format percentage without decimal
+const formatPercent = (value) => {
+  return `${Math.round(Number(value))}`
+}
+
+const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" }) => {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
   const [stageStatus, setStageStatus] = useState<Record<string, string>>({})
   const { campaignFormData, setCampaignFormData } = useCampaigns()
@@ -29,10 +70,9 @@ const ConfiguredSetPage = ({ netAmount }) => {
   const [validatedStages, setValidatedStages] = useState<Record<string, boolean>>({})
   const [results, setResults] = useState<Record<string, any[]>>({})
 
-  // Helper: get all funnel stage names
   const funnelStages: string[] = Array.isArray(campaignFormData?.funnel_stages) ? campaignFormData.funnel_stages : []
 
-  // Initialize openItems, stageStatus, validatedStages, results for all stages
+  // Initialize state for all stages
   useEffect(() => {
     if (funnelStages.length > 0) {
       setOpenItems((prev) => {
@@ -66,7 +106,6 @@ const ConfiguredSetPage = ({ netAmount }) => {
     }
   }, [campaignFormData?.funnel_stages])
 
-  // Get platforms for each stage
   const getPlatformsFromStage = (channelMix) => {
     if (channelMix?.length > 0) {
       const platformsByStage: Record<string, OutletType[]> = {}
@@ -104,7 +143,6 @@ const ConfiguredSetPage = ({ netAmount }) => {
     }
   }, [campaignFormData])
 
-  // Update stageStatus when budgets or validation change
   useEffect(() => {
     funnelStages.forEach((stageName) => {
       const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
@@ -120,7 +158,6 @@ const ConfiguredSetPage = ({ netAmount }) => {
         }))
       }
     })
-    // eslint-disable-next-line
   }, [campaignFormData, validatedStages])
 
   const toggleItem = (stage) => {
@@ -289,6 +326,270 @@ const ConfiguredSetPage = ({ netAmount }) => {
     }
   }
 
+  // Fixed function to handle stage budget updates (both amount and percentage)
+  const handleStageBudgetUpdate = (stageName, value, isPercentage = false) => {
+    let newBudget = 0
+    let newPercentage = 0
+
+    // Get current stage budget for calculations
+    const currentStageBudget =
+      Number(campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)?.stage_budget?.fixed_value) ||
+      0
+
+    if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
+      // Bottom-up logic: Calculate total dynamically
+      const otherStagesTotal =
+        campaignFormData?.channel_mix?.reduce((acc, stage) => {
+          if (stage.funnel_stage === stageName) {
+            return acc // Skip current stage
+          }
+          return acc + (Number(stage?.stage_budget?.fixed_value) || 0)
+        }, 0) || 0
+
+      if (isPercentage) {
+        // User entered percentage - need to calculate budget from percentage
+        const percentageValue = Math.min(100, Math.max(0, Number(value) || 0))
+        newPercentage = percentageValue
+
+        // For bottom-up, we need to determine what total budget this percentage should be based on
+        // Use a reasonable minimum total if no existing total
+        const existingTotal = otherStagesTotal + currentStageBudget
+        const minimumTotal = Math.max(existingTotal, 10000) // Use existing or minimum 10k
+
+        newBudget = (minimumTotal * percentageValue) / 100
+
+        // Validate that percentage doesn't exceed 100%
+        if (percentageValue > 100) {
+          toast("Percentage cannot exceed 100%", {
+            position: "bottom-right",
+            type: "error",
+            theme: "colored",
+          })
+          return
+        }
+      } else {
+        // User entered budget amount
+        const inputValue = Number(value.replace(/,/g, "")) || 0
+        newBudget = inputValue
+
+        // Calculate percentage based on projected total
+        const projectedTotal = otherStagesTotal + newBudget
+        newPercentage = projectedTotal > 0 ? (newBudget / projectedTotal) * 100 : 0
+
+        // Cap at 100% if needed
+        if (newPercentage > 100) {
+          newPercentage = 100
+          // Recalculate budget to match 100%
+          const maxAllowedBudget = otherStagesTotal > 0 ? otherStagesTotal : newBudget
+          newBudget = maxAllowedBudget
+          toast("Budget adjusted to maintain reasonable percentage", {
+            position: "bottom-right",
+            type: "warning",
+            theme: "colored",
+          })
+        }
+      }
+    } else {
+      // Top-down logic (existing)
+      const totalBudget = campaignBudgetType === "gross" ? calculateNetFromGross(netAmount, fees) : netAmount || 0
+
+      if (isPercentage) {
+        // User entered percentage, calculate budget
+        const percentageValue = Math.min(100, Math.max(0, Number(value) || 0))
+        newPercentage = percentageValue
+
+        if (campaignBudgetType === "gross") {
+          const grossBudget = (netAmount * percentageValue) / 100
+          newBudget = calculateNetFromGross(grossBudget, fees)
+        } else {
+          newBudget = (totalBudget * percentageValue) / 100
+        }
+      } else {
+        // User entered budget amount
+        const inputValue = Number(value.replace(/,/g, "")) || 0
+
+        if (campaignBudgetType === "gross" && fees.length > 0) {
+          newBudget = calculateNetFromGross(inputValue, fees)
+          newPercentage = netAmount ? (inputValue / netAmount) * 100 : 0
+        } else {
+          newBudget = inputValue
+          newPercentage = totalBudget ? (newBudget / totalBudget) * 100 : 0
+        }
+
+        // Limit percentage to 100%
+        if (newPercentage > 100) {
+          newPercentage = 100
+          if (campaignBudgetType === "gross" && fees.length > 0) {
+            const maxGrossBudget = netAmount
+            newBudget = calculateNetFromGross(maxGrossBudget, fees)
+          } else {
+            newBudget = totalBudget
+          }
+          toast("Budget cannot exceed 100% of available budget", {
+            position: "bottom-right",
+            type: "error",
+            theme: "colored",
+          })
+        }
+      }
+
+      // Top-down validation
+      const currentTotal =
+        campaignFormData?.channel_mix?.reduce((acc, stage) => {
+          return acc + (Number(stage?.stage_budget?.fixed_value) || 0)
+        }, 0) || 0
+
+      const availableBudget = campaignBudgetType === "gross" ? calculateNetFromGross(netAmount, fees) : netAmount
+
+      if (currentTotal - currentStageBudget + newBudget > availableBudget) {
+        toast("The sum of all stage budgets cannot exceed the available budget.", {
+          position: "bottom-right",
+          type: "error",
+          theme: "colored",
+        })
+        return
+      }
+    }
+
+    // Update the campaign data
+    const updatedChannelMix = campaignFormData.channel_mix.map((ch) => {
+      if (ch.funnel_stage === stageName) {
+        return {
+          ...ch,
+          stage_budget: {
+            ...ch.stage_budget,
+            fixed_value: newBudget.toString(),
+            percentage_value: newPercentage.toFixed(1),
+          },
+        }
+      }
+      return ch
+    })
+
+    // Calculate new total for bottom-up approach
+    const newNetTotal = updatedChannelMix.reduce(
+      (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
+      0,
+    )
+
+    setCampaignFormData({
+      ...campaignFormData,
+      channel_mix: updatedChannelMix,
+      // Update main campaign budget for bottom-up approach
+      ...(campaignFormData?.campaign_budget?.budget_type === "bottom_up" && {
+        campaign_budget: {
+          ...campaignFormData.campaign_budget,
+          amount:
+            campaignBudgetType === "gross"
+              ? calculateGrossFromNet(newNetTotal, fees).toString()
+              : newNetTotal.toString(),
+        },
+      }),
+    })
+  }
+
+  // New function to handle platform budget updates
+  const handlePlatformBudgetUpdate = (stageName, platformOutlet, value, isPercentage = false) => {
+    const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
+    if (!stageData) return
+
+    const stageBudget = Number(stageData.stage_budget?.fixed_value) || 0
+    if (stageBudget === 0) {
+      toast("Please set stage budget first", {
+        position: "bottom-right",
+        type: "error",
+        theme: "colored",
+      })
+      return
+    }
+
+    let newBudget = 0
+    let newPercentage = 0
+
+    if (isPercentage) {
+      // User entered percentage, calculate budget
+      const percentageValue = Math.min(100, Math.max(0, Number(value) || 0)) // Limit to 0-100%
+      newPercentage = percentageValue
+      newBudget = (stageBudget * percentageValue) / 100
+    } else {
+      // User entered budget, calculate percentage
+      const budgetValue = Number(value.replace(/,/g, "")) || 0
+      newBudget = budgetValue
+      newPercentage = stageBudget ? (newBudget / stageBudget) * 100 : 0
+
+      // Limit to stage budget
+      if (newBudget > stageBudget) {
+        newBudget = stageBudget
+        newPercentage = 100
+        toast("Channel budget cannot exceed stage budget", {
+          position: "bottom-right",
+          type: "error",
+          theme: "colored",
+        })
+      }
+    }
+
+    // Validate against total platform budgets
+    if (campaignFormData?.campaign_budget?.budget_type !== "bottom_up") {
+      const channelTypes = mediaTypes
+      let totalPlatformBudget = 0
+
+      for (const channelType of channelTypes) {
+        if (stageData[channelType]) {
+          totalPlatformBudget += stageData[channelType].reduce((acc, p) => {
+            if (p.platform_name === platformOutlet) {
+              return acc + newBudget
+            }
+            return acc + (Number(p?.budget?.fixed_value) || 0)
+          }, 0)
+        }
+      }
+
+      if (totalPlatformBudget > stageBudget) {
+        toast("The sum of all platform budgets cannot exceed the stage budget.", {
+          position: "bottom-right",
+          type: "error",
+          theme: "colored",
+        })
+        return
+      }
+    }
+
+    // Update the campaign data
+    setCampaignFormData((prevData) => {
+      const updatedChannelMix = prevData.channel_mix.map((ch) => {
+        if (ch.funnel_stage === stageName) {
+          const channelTypes = mediaTypes
+          const updatedChannelType = channelTypes.find((type) =>
+            ch[type]?.some((p) => p.platform_name === platformOutlet),
+          )
+          if (updatedChannelType) {
+            return {
+              ...ch,
+              [updatedChannelType]: ch[updatedChannelType].map((p) =>
+                p.platform_name === platformOutlet
+                  ? {
+                      ...p,
+                      budget: {
+                        ...p.budget,
+                        fixed_value: newBudget.toString(),
+                        percentage_value: newPercentage.toFixed(1),
+                      },
+                    }
+                  : p,
+              ),
+            }
+          }
+        }
+        return ch
+      })
+      return {
+        ...prevData,
+        channel_mix: updatedChannelMix,
+      }
+    })
+  }
+
   if (!campaignFormData?.custom_funnels || campaignFormData.custom_funnels.length === 0) {
     return (
       <div className="mt-12 text-red-500">
@@ -305,19 +606,25 @@ const ConfiguredSetPage = ({ netAmount }) => {
     let totalBudget
     if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
       totalBudget =
+        Number(campaignFormData?.campaign_budget?.amount) ||
         campaignFormData?.channel_mix?.reduce(
           (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
           0,
-        ) || 0
+        ) ||
+        0
     } else {
-      totalBudget = netAmount || 0
+      totalBudget = campaignBudgetType === "gross" ? calculateNetFromGross(netAmount, fees) : netAmount || 0
     }
+
     const stagePercentage = totalBudget ? (stageBudget / totalBudget) * 100 : 0
+    const totalFees = fees.reduce((total, fee) => total + Number(fee.amount || 0), 0)
+    const remainingBudget = calculateRemainingBudget(netAmount, fees, campaignFormData, campaignBudgetType)
 
     let platformRecap = ""
     let platformCount = 0
     let adSetCount = 0
-    const platformsList: string[] = []
+    const platformsList = []
+
     mediaTypes.forEach((type) => {
       if (stageData?.[type]) {
         stageData[type].forEach((platform) => {
@@ -340,12 +647,31 @@ const ConfiguredSetPage = ({ netAmount }) => {
 
     return (
       <div className="mb-4 mt-2 text-sm text-gray-700 bg-[#F4F6FA] rounded px-4 py-2 border border-[#E5E7EB]">
-        <span className="font-semibold">Recap:</span> Budget:{" "}
+        <span className="font-semibold">Recap:</span> Net Budget:{" "}
         <span className="font-bold">
           {getCurrencySymbol(currency)}
           {formatNumberWithCommas(stageBudget)}
         </span>{" "}
-        ({stagePercentage.toFixed(1)}% of total)
+        ({formatPercent(stagePercentage)}% of available net budget)
+        {fees.length > 0 && (
+          <>
+            {" • "}Gross Budget:{" "}
+            <span className="font-bold">
+              {getCurrencySymbol(currency)}
+              {formatNumberWithCommas(calculateGrossFromNet(stageBudget, fees).toFixed(2))}
+            </span>
+            {" • "}Fees:{" "}
+            <span className="font-bold">
+              {getCurrencySymbol(currency)}
+              {formatNumberWithCommas(totalFees.toFixed(2))}
+            </span>
+          </>
+        )}
+        {" • "}
+        <span className={`font-bold ${Number(remainingBudget) < 1 ? "text-red-500" : "text-green-600"}`}>
+          Remaining: {getCurrencySymbol(currency)}
+          {formatNumberWithCommas(remainingBudget)}
+        </span>
         {platformRecap && <> • {platformRecap}</>}
       </div>
     )
@@ -354,23 +680,54 @@ const ConfiguredSetPage = ({ netAmount }) => {
   return (
     <div className="mt-12 flex items-start flex-col gap-12 w-full">
       {funnelStages.map((stageName, index) => {
-        const stageBudget =
-          Number(
-            campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)?.stage_budget?.fixed_value,
-          ) || 0
+        const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
+        const stageBudget = Number(stageData?.stage_budget?.fixed_value) || 0
 
         let totalBudget
         if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
           totalBudget =
+            Number(campaignFormData?.campaign_budget?.amount) ||
             campaignFormData?.channel_mix?.reduce(
               (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
               0,
-            ) || 0
+            ) ||
+            0
         } else {
           totalBudget = netAmount || 0
         }
 
-        const percentage = totalBudget ? (stageBudget / totalBudget) * 100 : 0
+        const percentage = (() => {
+          const storedPercentage = Number(stageData?.stage_budget?.percentage_value)
+          if (storedPercentage && storedPercentage > 0) {
+            return storedPercentage
+          }
+
+          // Calculate percentage based on budget type
+          if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
+            // For bottom-up, calculate against total of all stages
+            const totalOfStages =
+              campaignFormData?.channel_mix?.reduce(
+                (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
+                0,
+              ) || 0
+
+            if (campaignBudgetType === "gross" && fees.length > 0) {
+              const grossTotal = calculateGrossFromNet(totalOfStages, fees)
+              const grossStageBudget = calculateGrossFromNet(stageBudget, fees)
+              return grossTotal ? (grossStageBudget / grossTotal) * 100 : 0
+            } else {
+              return totalOfStages ? (stageBudget / totalOfStages) * 100 : 0
+            }
+          } else {
+            // Top-down logic
+            if (campaignBudgetType === "gross" && fees.length > 0) {
+              const grossStageBudget = calculateGrossFromNet(stageBudget, fees)
+              return totalBudget ? (grossStageBudget / totalBudget) * 100 : 0
+            } else {
+              return totalBudget ? (stageBudget / totalBudget) * 100 : 0
+            }
+          }
+        })()
         const stage = campaignFormData?.custom_funnels?.find((s) => s.name === stageName)
         if (!stage) return null
 
@@ -417,9 +774,36 @@ const ConfiguredSetPage = ({ netAmount }) => {
               <>
                 <div className="pt-4 bg-[#FCFCFC] rounded-lg cursor-pointer border px-6 border-[rgba(6,18,55,0.1)]">
                   <div className="flex mt-6 flex-col items-start gap-8">
+                    {fees.length > 0 && (
+                      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm font-semibold text-blue-800 mb-2">Applied Fees:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {fees.map((fee, index) => (
+                            <span key={index} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                              {fee.label}: {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                              {formatNumberWithCommas(fee.amount)}
+                              {fee.isPercent && ` (${fee.percentValue}%)`}
+                            </span>
+                          ))}
+                        </div>
+                        <p className="text-xs text-blue-600 mt-1">
+                          Total Fees: {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+                          {formatNumberWithCommas(
+                            fees.reduce((total, fee) => total + Number(fee.amount || 0), 0).toFixed(2),
+                          )}
+                        </p>
+                      </div>
+                    )}
                     <div className="flex mb-8 justify-center gap-6">
                       <div className="flex flex-col gap-4">
-                        <h2 className="text-center font-bold">What is your budget for this phase ?</h2>
+                        <h2 className="text-center font-bold">
+                          {campaignBudgetType === "gross" ? "Gross Budget" : "Net Budget"}
+                          {fees.length > 0 && campaignBudgetType === "gross" && (
+                            <span className="text-xs text-gray-500 block font-normal">
+                              (Fees will be deducted automatically)
+                            </span>
+                          )}
+                        </h2>
                         <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
                           <p className="font-bold">{getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}</p>
                           <input
@@ -427,79 +811,22 @@ const ConfiguredSetPage = ({ netAmount }) => {
                             className="w-full px-4 focus:outline-none"
                             disabled={validatedStages[stageName]}
                             value={
-                              formatNumberWithCommas(
-                                campaignFormData?.channel_mix?.find(
-                                  (ch: { funnel_stage: string }) => ch?.funnel_stage === stageName,
-                                )?.stage_budget?.fixed_value,
-                              ) || ""
+                              campaignBudgetType === "gross" && fees.length > 0
+                                ? formatNumberWithCommas(
+                                    calculateGrossFromNet(
+                                      campaignFormData?.channel_mix?.find(
+                                        (ch: { funnel_stage: string }) => ch?.funnel_stage === stageName,
+                                      )?.stage_budget?.fixed_value || 0,
+                                      fees,
+                                    ),
+                                  )
+                                : formatNumberWithCommas(
+                                    campaignFormData?.channel_mix?.find(
+                                      (ch: { funnel_stage: string }) => ch?.funnel_stage === stageName,
+                                    )?.stage_budget?.fixed_value || "",
+                                  )
                             }
-                            onChange={(e) => {
-                              const inputValue = e.target.value.replace(/,/g, "")
-                              const newBudget = Number(inputValue)
-                              if (campaignFormData?.campaign_budget?.budget_type !== "bottom_up") {
-                                const currentTotal =
-                                  campaignFormData?.channel_mix?.reduce(
-                                    (
-                                      acc: number,
-                                      stage: {
-                                        stage_budget: { fixed_value: string }
-                                      },
-                                    ) => {
-                                      return acc + (Number(stage?.stage_budget?.fixed_value) || 0)
-                                    },
-                                    0,
-                                  ) || 0
-                                if (currentTotal - (Number(stageBudget) || 0) + newBudget > netAmount) {
-                                  toast("The sum of all stage budgets cannot exceed the total budget.", {
-                                    position: "bottom-right",
-                                    type: "error",
-                                    theme: "colored",
-                                  })
-                                  return
-                                }
-                              }
-                              const updatedChannelMix = campaignFormData.channel_mix.map(
-                                (ch: {
-                                  funnel_stage: string
-                                  stage_budget: {
-                                    fixed_value: string
-                                    percentage_value: string
-                                  }
-                                }) => {
-                                  if (ch.funnel_stage === stage.name) {
-                                    return {
-                                      ...ch,
-                                      stage_budget: {
-                                        ...ch.stage_budget,
-                                        fixed_value: newBudget?.toString(),
-                                        percentage_value: totalBudget
-                                          ? ((newBudget / totalBudget) * 100).toFixed(1)
-                                          : "0",
-                                      },
-                                    }
-                                  }
-                                  return ch
-                                },
-                              )
-
-                              // Calculate new total for bottom-up approach
-                              const newTotal = updatedChannelMix.reduce(
-                                (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
-                                0,
-                              )
-
-                              setCampaignFormData({
-                                ...campaignFormData,
-                                channel_mix: updatedChannelMix,
-                                // Update main campaign budget for bottom-up approach
-                                ...(campaignFormData?.campaign_budget?.budget_type === "bottom_up" && {
-                                  campaign_budget: {
-                                    ...campaignFormData.campaign_budget,
-                                    amount: newTotal.toString(),
-                                  },
-                                }),
-                              })
-                            }}
+                            onChange={(e) => handleStageBudgetUpdate(stageName, e.target.value, false)}
                           />
                           {campaignFormData?.campaign_budget?.currency}
                         </div>
@@ -507,10 +834,19 @@ const ConfiguredSetPage = ({ netAmount }) => {
                       <div className="flex items-start flex-col gap-4">
                         <h2 className="text-center font-bold">Percentage</h2>
                         <div className="flex items-center gap-4">
-                          <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
+                          <div className="bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
                             <div className="flex items-center gap-2">
-                              <p>{isNaN(percentage) ? "0.0" : percentage.toFixed(1)}</p>
-                              <span> %</span>
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.1"
+                                className="w-full focus:outline-none text-right"
+                                disabled={validatedStages[stageName]}
+                                value={formatPercent(percentage)}
+                                onChange={(e) => handleStageBudgetUpdate(stageName, e.target.value, true)}
+                              />
+                              <span>%</span>
                             </div>
                           </div>
                           <p className="tracking-tight">of total budget</p>
@@ -523,18 +859,17 @@ const ConfiguredSetPage = ({ netAmount }) => {
                       if (!stageObj) return null
                       const channelTypes = mediaTypes
                       let platformBudget = ""
+                      let platformPercentage = 0
                       for (const channelType of channelTypes) {
                         const foundPlatform = stageObj[channelType]?.find((p) => p.platform_name === platform?.outlet)
                         if (foundPlatform) {
                           platformBudget = foundPlatform?.budget?.fixed_value || ""
+                          platformPercentage = Number(foundPlatform?.budget?.percentage_value) || 0
                           break
                         }
                       }
                       const budgetValue = platformBudget
                       const totalStageBudget = stageObj?.stage_budget?.fixed_value
-                      const platformPercentage = totalStageBudget
-                        ? Number((Number(budgetValue) / totalStageBudget) * 100)
-                        : 0
 
                       return (
                         <div
@@ -616,67 +951,9 @@ const ConfiguredSetPage = ({ netAmount }) => {
                                   className="w-full px-4 focus:outline-none"
                                   value={formatNumberWithCommas(budgetValue)}
                                   disabled={validatedStages[stageName]}
-                                  onChange={(e) => {
-                                    const inputValue = e.target.value.replace(/,/g, "")
-                                    const newBudget = inputValue
-                                    setCampaignFormData((prevData) => {
-                                      const updatedChannelMix = prevData.channel_mix.map((ch) => {
-                                        if (ch.funnel_stage === stageName) {
-                                          const updatedChannelType = channelTypes.find((type) =>
-                                            ch[type]?.some((p) => p.platform_name === platform.outlet),
-                                          )
-                                          if (updatedChannelType) {
-                                            if (campaignFormData?.campaign_budget?.budget_type !== "bottom_up") {
-                                              const totalPlatformBudget = channelTypes.reduce((acc, type) => {
-                                                return (
-                                                  acc +
-                                                  ch[type]?.reduce((typeAcc, p) => {
-                                                    return (
-                                                      typeAcc +
-                                                      (p.platform_name === platform.outlet
-                                                        ? Number(newBudget)
-                                                        : Number(p?.budget?.fixed_value) || 0)
-                                                    )
-                                                  }, 0)
-                                                )
-                                              }, 0)
-                                              if (totalPlatformBudget > ch.stage_budget?.fixed_value) {
-                                                toast(
-                                                  "The sum of all platform budgets cannot exceed the stage budget.",
-                                                  {
-                                                    toastId: "here",
-                                                    position: "bottom-right",
-                                                    type: "error",
-                                                    theme: "colored",
-                                                  },
-                                                )
-                                                return ch
-                                              }
-                                            }
-                                            return {
-                                              ...ch,
-                                              [updatedChannelType]: ch[updatedChannelType].map((p) =>
-                                                p.platform_name === platform.outlet
-                                                  ? {
-                                                      ...p,
-                                                      budget: {
-                                                        ...p.budget,
-                                                        fixed_value: newBudget?.toString(),
-                                                      },
-                                                    }
-                                                  : p,
-                                              ),
-                                            }
-                                          }
-                                        }
-                                        return ch
-                                      })
-                                      return {
-                                        ...prevData,
-                                        channel_mix: updatedChannelMix,
-                                      }
-                                    })
-                                  }}
+                                  onChange={(e) =>
+                                    handlePlatformBudgetUpdate(stageName, platform.outlet, e.target.value, false)
+                                  }
                                 />
                                 {campaignFormData?.campaign_budget?.currency}
                               </div>
@@ -693,10 +970,21 @@ const ConfiguredSetPage = ({ netAmount }) => {
                                   alignItems: "center",
                                 }}
                               >
-                                <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
+                                <div className="bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
                                   <div className="flex items-center gap-2">
-                                    <p>{isNaN(platformPercentage) ? "0.0" : platformPercentage.toFixed(1)}</p>
-                                    <span> %</span>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="100"
+                                      step="0.1"
+                                      className="w-full focus:outline-none text-right"
+                                      disabled={validatedStages[stageName]}
+                                      value={formatPercent(platformPercentage)}
+                                      onChange={(e) =>
+                                        handlePlatformBudgetUpdate(stageName, platform.outlet, e.target.value, true)
+                                      }
+                                    />
+                                    <span>%</span>
                                   </div>
                                 </div>
                                 <p className="whitespace-nowrap tracking-tight">of {stageName} budget</p>
@@ -927,7 +1215,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
                                         <div className="flex items-center gap-4">
                                           <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
                                             <div className="flex items-center gap-2">
-                                              <p>{adSetPercentage}</p>
+                                              <p>{formatPercent(adSetPercentage)}</p>
                                               <span> %</span>
                                             </div>
                                           </div>
@@ -1099,7 +1387,7 @@ const ConfiguredSetPage = ({ netAmount }) => {
                                             <div className="flex items-center gap-4">
                                               <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
                                                 <div className="flex items-center gap-2">
-                                                  <p>{getAdSetExtraBudgetPercentage(ad_set, extraIdx)}</p>
+                                                  <p>{formatPercent(getAdSetExtraBudgetPercentage(ad_set, extraIdx))}</p>
                                                   <span> %</span>
                                                 </div>
                                               </div>

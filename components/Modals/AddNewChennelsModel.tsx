@@ -64,7 +64,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
         }
       );
 await getActiveCampaign()
-      // console.log("Campaign data updated successfully", response.data);
+      // //console.log("Campaign data updated successfully", response.data);
     } catch (error) {
       console.error("Error updating campaign data:", error);
     } finally {
@@ -88,7 +88,7 @@ await getActiveCampaign()
 
           if (campaignDataItem) {
             Object.keys(formDataItem).forEach((categoryKey) => {
-              // console.log("🚀 ~ Object.keys ~ categoryKey:", categoryKey);
+              // //console.log("🚀 ~ Object.keys ~ categoryKey:", categoryKey);
               if (
                 categoryKey !== "funnel_stage" &&
                 categoryKey !== "id" &&
@@ -302,7 +302,8 @@ await getActiveCampaign()
           </div>
         </div>
       )}
-      <Modal isOpen={openAdset} onClose={() => setOpenAdset(false)}>
+      {openAdset &&
+      <Modal isOpen={(selectedStage && openAdset) ? true : false} onClose={() => setOpenAdset(false)}>
         <div className="bg-white w-[900px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
           <button
             className="flex justify-end w-fit ml-auto"
@@ -345,6 +346,7 @@ await getActiveCampaign()
           </div>
         </div>
       </Modal>
+      }
     </div>
   );
 };

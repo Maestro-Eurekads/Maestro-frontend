@@ -4,7 +4,7 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 import { removeKeysRecursively } from "utils/removeID";
 import { useState } from "react";
 import { useEditing } from "app/utils/EditingContext";
-import { extractObjectives } from "../EstablishedGoals/table-view/data-processor";
+import { extractObjectives, getFilteredMetrics } from "../EstablishedGoals/table-view/data-processor";
 
 interface SummarySectionProps {
   title: string;
@@ -46,15 +46,22 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
     setHideButtons(false);
   };
 
+  // Define keys to remove consistently across all sections
+  const keysToRemove = [
+    "id",
+    "documentId",
+    "createdAt",
+    "publishedAt",
+    "updatedAt",
+    "_aggregated",
+    "isValidated",
+    "formatValidated",
+    "validatedStages",
+  ];
+
+  // Clean campaignData and campaignFormData to remove sensitive keys
   const cleanData = campaignData
-    ? removeKeysRecursively(campaignData, [
-        "id",
-        "documentId",
-        "createdAt",
-        "publishedAt",
-        "updatedAt",
-        "_aggregated",
-      ])
+    ? removeKeysRecursively(campaignData, keysToRemove)
     : {};
 
   const handleConfirmStep = async () => {
@@ -65,10 +72,12 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
       // Handle specific updates based on the section title
       switch (title) {
         case "Your buying objectives":
-          const obj = extractObjectives(campaignFormData);
+          const obj = await extractObjectives(campaignFormData);
+          const sMetrics = await getFilteredMetrics(obj)
           updatedCampaignFormData = {
             ...updatedCampaignFormData,
             table_headers: obj || {},
+            selected_metrics: sMetrics||{}
           };
           break;
         case "Your funnel stages":
@@ -78,52 +87,13 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
           };
           break;
         case "Your channel mix":
-          updatedCampaignFormData = {
-            ...updatedCampaignFormData,
-            channel_mix: removeKeysRecursively(
-              updatedCampaignFormData?.channel_mix,
-              [
-                "id",
-                "isValidated",
-                "formatValidated",
-                "validatedStages",
-                "documentId",
-                "_aggregated",
-              ],
-              ["preview"]
-            ),
-          };
-          break;
         case "Your Adset and Audiences":
-          updatedCampaignFormData = {
-            ...updatedCampaignFormData,
-            channel_mix: removeKeysRecursively(
-              updatedCampaignFormData?.channel_mix,
-              [
-                "id",
-                "isValidated",
-                "formatValidated",
-                "validatedStages",
-                "documentId",
-                "_aggregated",
-              ],
-              ["preview"]
-            ),
-          };
-          break;
         case "Your format selections":
           updatedCampaignFormData = {
             ...updatedCampaignFormData,
             channel_mix: removeKeysRecursively(
-              updatedCampaignFormData?.channel_mix,
-              [
-                "id",
-                "isValidated",
-                "formatValidated",
-                "validatedStages",
-                "documentId",
-                "_aggregated",
-              ],
+              updatedCampaignFormData?.channel_mix || [],
+              keysToRemove,
               ["preview"]
             ),
           };
@@ -132,18 +102,26 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
           break;
       }
 
+      // Clean the updated form data to ensure no sensitive keys remain
+      const cleanedFormData = removeKeysRecursively(
+        updatedCampaignFormData,
+        keysToRemove
+      );
+
       // Update local state to reflect changes immediately
-      setCampaignFormData(updatedCampaignFormData);
+      setCampaignFormData(cleanedFormData);
+
+      // Prepare the cleaned data for the updateCampaign call
       const { media_plan_details, user, ...rest } = cleanData;
 
       // Update the campaign with the cleaned and updated data
       await updateCampaign({
         ...rest,
-        funnel_stages: updatedCampaignFormData?.funnel_stages,
-        channel_mix: updatedCampaignFormData?.channel_mix,
-        custom_funnels: updatedCampaignFormData?.custom_funnels,
-        funnel_type: updatedCampaignFormData?.funnel_type,
-        table_headers: updatedCampaignFormData?.table_headers,
+        funnel_stages: cleanedFormData?.funnel_stages || [],
+        channel_mix: cleanedFormData?.channel_mix || [],
+        custom_funnels: cleanedFormData?.custom_funnels || [],
+        funnel_type: cleanedFormData?.funnel_type || "",
+        table_headers: cleanedFormData?.table_headers || {},
       });
 
       // Fetch the updated campaign to ensure the UI reflects the latest data
