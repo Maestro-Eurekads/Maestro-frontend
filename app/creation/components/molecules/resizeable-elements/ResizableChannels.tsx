@@ -206,15 +206,15 @@ const ResizableChannels = ({
 
     const dayStartIndex = Math.min(
       totalDays,
-      Math.max(0, Math.round((startPixel / parentWidth) * totalDays))
+      Math.max(0, Math.floor((startPixel / parentWidth) * totalDays))
     );
     const dayEndIndex = Math.min(
       totalDays,
-      Math.max(0, Math.round((endPixel / parentWidth) * totalDays))
+      Math.max(0, Math.floor((endPixel / parentWidth) * totalDays))
     );
 
     const startDateValue = dRange[dayStartIndex] || startDate;
-    const endDateValue = dRange[dayEndIndex] || endDate;
+    const endDateValue = dRange[dayEndIndex ] || endDate;
 
     const formattedStartDate = format(startDateValue, "MMM dd");
     const formattedEndDate = format(endDateValue, "MMM dd");
