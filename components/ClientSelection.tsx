@@ -148,7 +148,7 @@ const ClientSelection = ({
   formId: string;
 }) => {
   return (
-    <div className="flex items-center gap-4 mt-[20px]">
+    <div className="flex items-center gap-4 mt-[5px]">
       <Dropdown label={label} options={options} formId={formId} />
     </div>
   );
