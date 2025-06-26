@@ -138,15 +138,27 @@ export default function PlatformSpending(insideText) {
   const swapCurrencySymbol = (insideText: any, amountText: any) => {
     if (!insideText || !amountText) return amountText;
 
-    const extractSymbol = (text: any) => String(text).replace(/[\d,.\s]/g, '').trim();
+    // Handle both string and object cases
+    const getText = (text: any) =>
+      typeof text === "object" && text !== null ? text.insideText : text;
 
-    const insideSymbol = extractSymbol(insideText?.insideText);
+    const extractSymbol = (text: any) => {
+      const symbolsOnly = String(text).match(/[^\d,.\sA-Za-z]/g);
+      return symbolsOnly ? symbolsOnly.join("").trim() : "";
+    };
+
+    const insideString = getText(insideText);
+    const insideSymbol = extractSymbol(insideString);
     const amountSymbol = extractSymbol(amountText);
 
-    if (!insideSymbol || !amountSymbol || insideSymbol === amountSymbol) return amountText;
+    if (!insideSymbol || !amountSymbol || insideSymbol === amountSymbol) {
+      return String(amountText);
+    }
 
     return String(amountText).replace(amountSymbol, insideSymbol);
   };
+
+
 
 
 
