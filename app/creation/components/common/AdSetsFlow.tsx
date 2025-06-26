@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-import { memo, useState, useCallback, useEffect, useRef, createContext, 
-  useContext } from "react"
+import { memo, useState, useCallback, useEffect, useRef, createContext, useContext } from "react"
 import Image, { type StaticImageData } from "next/image"
 import { FaAngleRight, FaSpinner } from "react-icons/fa"
 import { MdDelete, MdAdd } from "react-icons/md"
@@ -228,6 +227,33 @@ const saveChannelStateToStorage = (state: any, campaignId?: string | number) => 
     sessionStorage.setItem(key, JSON.stringify(state))
   } catch (error) {
     console.error("Error saving channel state to storage:", error)
+  }
+}
+
+// --- Adset-level state isolation with persistence ---
+const getAdsetStateKey = (campaignId?: string | number) => {
+  return `adsetLevelAudienceState_${campaignId || "default"}`
+}
+
+const loadAdsetStateFromStorage = (campaignId?: string | number) => {
+  if (typeof window === "undefined") return {}
+  try {
+    const key = getAdsetStateKey(campaignId)
+    const stored = sessionStorage.getItem(key)
+    return stored ? JSON.parse(stored) : {}
+  } catch (error) {
+    console.error("Error loading adset state from storage:", error)
+    return {}
+  }
+}
+
+const saveAdsetStateToStorage = (state: any, campaignId?: string | number) => {
+  if (typeof window === "undefined") return
+  try {
+    const key = getAdsetStateKey(campaignId)
+    sessionStorage.setItem(key, JSON.stringify(state))
+  } catch (error) {
+    console.error("Error saving adset state to storage:", error)
   }
 }
 
@@ -913,6 +939,14 @@ const AdsetSettings = memo(function AdsetSettings({
     return { name: "", audience_type: "", size: "", description: "" }
   })
 
+  // --- Adset-level state for this stage/platform with persistence ---
+  // adsetAudienceState shape: { [stageName]: { [platformName]: { [adsetId]: AdSetData } } }
+  const [adsetAudienceState, setAdsetAudienceState] = useState<any>(() => {
+    const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
+    const stored = loadAdsetStateFromStorage(campaignId)
+    return stored || {}
+  })
+
   // Keep channelLevelAudienceState in sync and persist to storage
   useEffect(() => {
     if (!channelLevelAudienceState[stageName]) channelLevelAudienceState[stageName] = {}
@@ -928,38 +962,21 @@ const AdsetSettings = memo(function AdsetSettings({
     saveChannelStateToStorage(channelLevelAudienceState, campaignId)
   }, [channelAudienceState, stageName, outlet.outlet, campaignFormData?.id, campaignFormData?.media_plan_id])
 
+  // Keep adsetAudienceState in sync and persist to storage
   useEffect(() => {
-    // Load channel state from storage on component mount
-    if (granularity === "channel") {
-      const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
-      const storedState = loadChannelStateFromStorage(campaignId)
+    if (granularity !== "adset") return
+    const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
+    saveAdsetStateToStorage(adsetAudienceState, campaignId)
+  }, [adsetAudienceState, campaignFormData?.id, campaignFormData?.media_plan_id, granularity])
 
-      // Merge stored state into in-memory state
-      Object.keys(storedState).forEach((stageName) => {
-        if (!channelLevelAudienceState[stageName]) {
-          channelLevelAudienceState[stageName] = {}
-        }
-        Object.keys(storedState[stageName]).forEach((platformName) => {
-          channelLevelAudienceState[stageName][platformName] = storedState[stageName][platformName]
-        })
-      })
-
-      // Update global reference
-      if (typeof window !== "undefined") {
-        ;(window as any).channelLevelAudienceState = channelLevelAudienceState
-      }
-
-      // Update local state if this platform has stored data
-      if (storedState[stageName] && storedState[stageName][outlet.outlet]) {
-        setChannelAudienceState({ ...storedState[stageName][outlet.outlet] })
-      }
-    }
-  }, [granularity, stageName, outlet.outlet, campaignFormData?.id, campaignFormData?.media_plan_id])
-
+  // On mount, load adset-level state from storage and initialize adsets/adSetDataMap accordingly
   useEffect(() => {
     if (!campaignFormData?.channel_mix) return
     if (initialized.current) return
     initialized.current = true
+
+    const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
+    const storedAdsetState = loadAdsetStateFromStorage(campaignId)
 
     const result = findPlatform(campaignFormData.channel_mix, stageName, outlet.outlet)
     const platform = result?.platform
@@ -968,13 +985,44 @@ const AdsetSettings = memo(function AdsetSettings({
       setSelectedPlatforms((prev) => [...prev, outlet.outlet])
     }
 
-    // GRANULARITY SEPARATION: Only initialize ad sets for adset granularity
     if (granularity === "adset") {
+      // Try to load from sessionStorage first
+      if (
+        storedAdsetState &&
+        storedAdsetState[stageName] &&
+        storedAdsetState[stageName][outlet.outlet] &&
+        Object.keys(storedAdsetState[stageName][outlet.outlet]).length > 0
+      ) {
+        const adsetObj = storedAdsetState[stageName][outlet.outlet]
+        const adsetIds = Object.keys(adsetObj).map((id) => Number(id))
+        const newAdSets = adsetIds.map((id, idx) => ({
+          id,
+          addsetNumber: idx + 1,
+        }))
+        setAdSets(newAdSets)
+        setAdSetDataMap(
+          adsetIds.reduce((acc, id) => {
+            acc[id] = adsetObj[id]
+            return acc
+          }, {} as Record<number, AdSetData>),
+        )
+        setAdsetAudienceState(storedAdsetState)
+        return
+      }
+
+      // Fallback to platform data if no sessionStorage
       if (!platform) {
         const newAdSetId = Date.now()
         setAdSets([{ id: newAdSetId, addsetNumber: 1 }])
         setAdSetDataMap({
           [newAdSetId]: { name: "", audience_type: "", size: "", description: "" },
+        })
+        setAdsetAudienceState((prev: any) => {
+          const updated = { ...prev }
+          if (!updated[stageName]) updated[stageName] = {}
+          if (!updated[stageName][outlet.outlet]) updated[stageName][outlet.outlet] = {}
+          updated[stageName][outlet.outlet][newAdSetId] = { name: "", audience_type: "", size: "", description: "" }
+          return updated
         })
         return
       }
@@ -997,11 +1045,27 @@ const AdsetSettings = memo(function AdsetSettings({
         })
         setAdSets(newAdSets)
         setAdSetDataMap(newAdSetDataMap)
+        setAdsetAudienceState((prev: any) => {
+          const updated = { ...prev }
+          if (!updated[stageName]) updated[stageName] = {}
+          if (!updated[stageName][outlet.outlet]) updated[stageName][outlet.outlet] = {}
+          newAdSets.forEach((adset) => {
+            updated[stageName][outlet.outlet][adset.id] = newAdSetDataMap[adset.id]
+          })
+          return updated
+        })
       } else {
         const newAdSetId = Date.now()
         setAdSets([{ id: newAdSetId, addsetNumber: 1 }])
         setAdSetDataMap({
           [newAdSetId]: { name: "", audience_type: "", size: "", description: "" },
+        })
+        setAdsetAudienceState((prev: any) => {
+          const updated = { ...prev }
+          if (!updated[stageName]) updated[stageName] = {}
+          if (!updated[stageName][outlet.outlet]) updated[stageName][outlet.outlet] = {}
+          updated[stageName][outlet.outlet][newAdSetId] = { name: "", audience_type: "", size: "", description: "" }
+          return updated
         })
       }
     } else {
@@ -1009,7 +1073,7 @@ const AdsetSettings = memo(function AdsetSettings({
       setAdSets([{ id: Date.now(), addsetNumber: 1 }]) // Single dummy ad set for rendering
       setAdSetDataMap({})
     }
-  }, [stageName, outlet.outlet, selectedPlatforms, defaultOpen, granularity])
+  }, [stageName, outlet.outlet, selectedPlatforms, defaultOpen, granularity, campaignFormData?.id, campaignFormData?.media_plan_id])
 
   // Track platform open/closed state and notify parent
   useEffect(() => {
@@ -1032,8 +1096,15 @@ const AdsetSettings = memo(function AdsetSettings({
       ...prev,
       [newAdSetId]: { name: "", audience_type: "", size: "", description: "" },
     }))
+    setAdsetAudienceState((prev: any) => {
+      const updated = { ...prev }
+      if (!updated[stageName]) updated[stageName] = {}
+      if (!updated[stageName][outlet.outlet]) updated[stageName][outlet.outlet] = {}
+      updated[stageName][outlet.outlet][newAdSetId] = { name: "", audience_type: "", size: "", description: "" }
+      return updated
+    })
     onInteraction && onInteraction()
-  }, [onInteraction, adsets.length, granularity])
+  }, [onInteraction, adsets.length, granularity, stageName, outlet.outlet])
 
   const deleteAdSet = useCallback(
     async (id: number) => {
@@ -1051,6 +1122,13 @@ const AdsetSettings = memo(function AdsetSettings({
               setAdSetDataMap({
                 [newAdSetId]: { name: "", audience_type: "", size: "", description: "" },
               })
+              setAdsetAudienceState((prev: any) => {
+                const updated = { ...prev }
+                if (!updated[stageName]) updated[stageName] = {}
+                if (!updated[stageName][outlet.outlet]) updated[stageName][outlet.outlet] = {}
+                updated[stageName][outlet.outlet][newAdSetId] = { name: "", audience_type: "", size: "", description: "" }
+                return updated
+              })
             }, 0)
           }
           return newAdSets
@@ -1060,6 +1138,14 @@ const AdsetSettings = memo(function AdsetSettings({
           const newMap = { ...prev }
           delete newMap[id]
           return newMap
+        })
+
+        setAdsetAudienceState((prev: any) => {
+          const updated = { ...prev }
+          if (updated[stageName] && updated[stageName][outlet.outlet]) {
+            delete updated[stageName][outlet.outlet][id]
+          }
+          return updated
         })
 
         const adSetsToSave = adsets
@@ -1136,10 +1222,17 @@ const AdsetSettings = memo(function AdsetSettings({
           ...prev,
           [id]: { ...prev[id], ...data },
         }))
+        setAdsetAudienceState((prev: any) => {
+          const updated = { ...prev }
+          if (!updated[stageName]) updated[stageName] = {}
+          if (!updated[stageName][outlet.outlet]) updated[stageName][outlet.outlet] = {}
+          updated[stageName][outlet.outlet][id] = { ...((updated[stageName][outlet.outlet][id] || {})), ...data }
+          return updated
+        })
       }
       onInteraction && onInteraction()
     },
-    [onInteraction, granularity],
+    [onInteraction, granularity, stageName, outlet.outlet],
   )
 
   // GRANULARITY SEPARATION: Only persist ad set data in adset granularity
@@ -1326,7 +1419,7 @@ const AdsetSettings = memo(function AdsetSettings({
                     key={adset.id}
                     className="relative"
                     style={{
-                      marginTop: index === 0 ? "90px" : "0px",
+                      marginTop: index === 0 ? "20px" : "0px",
                       marginBottom: "20px",
                     }}
                   >
@@ -1550,25 +1643,62 @@ const AdSetFlow = memo(function AdSetFlow({
 
       if (granularity === "adset" && campaignFormData.channel_mix && campaignFormData.channel_mix?.length > 0) {
         // Existing adset logic
+        // Try to auto-open platforms with adset data in sessionStorage
+        const campaignId = campaignFormData?.id || campaignFormData?.media_plan_id
+        let adsetStateToCheck = {}
+        if (typeof window !== "undefined") {
+          try {
+            const key = `adsetLevelAudienceState_${campaignId || "default"}`
+            const stored = sessionStorage.getItem(key)
+            if (stored) {
+              adsetStateToCheck = JSON.parse(stored)
+            }
+          } catch (error) {
+            console.error("Error loading adset state for auto-open:", error)
+          }
+        }
         for (const stage of campaignFormData.channel_mix) {
-          const platformsWithAdsets = [
-            ...(stage.search_engines || []),
-            ...(stage.display_networks || []),
-            ...(stage.social_media || []),
-            ...(stage.streaming || []),
-            ...(stage.ooh || []),
-            ...(stage.broadcast || []),
-            ...(stage.messaging || []),
-            ...(stage.print || []),
-            ...(stage.e_commerce || []),
-            ...(stage.in_game || []),
-            ...(stage.mobile || []),
-          ]
-            .filter((p) => p && p.ad_sets && Array.isArray(p.ad_sets) && p.ad_sets.length > 0)
-            .map((p) => p.platform_name)
+          const stageName = stage.funnel_stage
+          const stageAdsetData = adsetStateToCheck[stageName]
+          if (stageAdsetData) {
+            const platformsWithAdsetData = Object.entries(stageAdsetData)
+              .filter(
+                ([platformName, adsetsObj]: [string, any]) =>
+                  adsetsObj &&
+                  Object.values(adsetsObj).some(
+                    (adset: any) =>
+                      adset &&
+                      (adset.audience_type || adset.name || adset.size || (Array.isArray(adset.extra_audiences) && adset.extra_audiences.length > 0)),
+                  ),
+              )
+              .map(([platformName]) => platformName)
+            if (platformsWithAdsetData.length > 0) {
+              autoOpenPlatforms[stageName] = platformsWithAdsetData
+            }
+          }
+        }
+        // Fallback to previous logic if nothing in sessionStorage
+        if (Object.keys(autoOpenPlatforms).length === 0) {
+          for (const stage of campaignFormData.channel_mix) {
+            const platformsWithAdsets = [
+              ...(stage.search_engines || []),
+              ...(stage.display_networks || []),
+              ...(stage.social_media || []),
+              ...(stage.streaming || []),
+              ...(stage.ooh || []),
+              ...(stage.broadcast || []),
+              ...(stage.messaging || []),
+              ...(stage.print || []),
+              ...(stage.e_commerce || []),
+              ...(stage.in_game || []),
+              ...(stage.mobile || []),
+            ]
+              .filter((p) => p && p.ad_sets && Array.isArray(p.ad_sets) && p.ad_sets.length > 0)
+              .map((p) => p.platform_name)
 
-          if (platformsWithAdsets.length > 0) {
-            autoOpenPlatforms[stage.funnel_stage] = platformsWithAdsets
+            if (platformsWithAdsets.length > 0) {
+              autoOpenPlatforms[stage.funnel_stage] = platformsWithAdsets
+            }
           }
         }
       } else if (granularity === "channel") {
