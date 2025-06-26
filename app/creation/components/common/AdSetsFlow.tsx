@@ -1381,8 +1381,6 @@ const AdsetSettings = memo(function AdsetSettings({
   }
 
   // --- BEGIN PATCH: Show recap in adset granularity when collapsed ---
-  // We need to always show the recap for adset granularity, even if adsets are empty (but recapRows is not empty).
-  // The bug is that if adsets is empty, recapRows is empty, so we need to get the recap from adsetAudienceState if possible.
   let showRecapRows = recapRows
   if (
     granularity === "adset" &&
