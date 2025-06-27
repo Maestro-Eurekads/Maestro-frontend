@@ -150,7 +150,7 @@ export const SetupScreen = () => {
 
 
 
-  console.log("campaignFormData campaignFormData----:", campaignFormData);
+
 
   useEffect(() => {
     //@ts-ignore
@@ -317,7 +317,7 @@ export const SetupScreen = () => {
   //   }
   // }, [campaignFormData?.budget_details_currency]);
 
-  // console.log('campaignFormData-campaignFormData', campaignFormData)
+
 
 
 
@@ -404,7 +404,7 @@ export const SetupScreen = () => {
   ]);
 
 
-  console.log('level1Options-level1Options', level1Options)
+
 
 
   if (!campaignFormData) {

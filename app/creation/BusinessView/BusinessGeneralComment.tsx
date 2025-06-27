@@ -88,6 +88,7 @@ const BusinessGeneralComment = () => {
 	useEffect(() => {
 		if (generalcommentsSuccess) {
 			toast.success("Comment created!");
+			setGeneralcommentsSuccess(false)
 			dispatch(reset());
 		}
 
