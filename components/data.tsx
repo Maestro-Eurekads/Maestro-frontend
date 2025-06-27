@@ -258,22 +258,176 @@ export const getPlatformIcon = (platformName: string): StaticImageData => {
   return google;
 };
 
+// export const getCurrencySymbol = (currencyCode: string): string => {
+//   switch (currencyCode) {
+//     case "EUR":
+//       return "€";
+//     case "USD":
+//       return "$";
+//     case "GBP":
+//       return "£";
+//     case "NGN":
+//       return "₦";
+//     case "JPY":
+//       return "¥";
+//     case "CAD":
+//       return "$";
+//     default:
+//       return "€";
+//   }
+// };
+
 export const getCurrencySymbol = (currencyCode: string): string => {
   switch (currencyCode) {
-    case "EUR":
-      return "€";
-    case "USD":
-      return "$";
-    case "GBP":
-      return "£";
-    case "NGN":
-      return "₦";
-    case "JPY":
-      return "¥";
-    case "CAD":
-      return "$";
-    default:
-      return "€";
+    case "AFN": return "؋";
+    case "ALL": return "L";
+    case "DZD": return "د.ج";
+    case "EUR": return "€";
+    case "AOA": return "Kz";
+    case "ARS": return "$";
+    case "AMD": return "֏";
+    case "AUD": return "A$";
+    case "AZN": return "₼";
+    case "BSD": return "$";
+    case "BHD": return ".د.ب";
+    case "BDT": return "৳";
+    case "BBD": return "$";
+    case "BYN": return "Br";
+    case "BZD": return "BZ$";
+    case "XOF": return "CFA";
+    case "BTN": return "Nu.";
+    case "BOB": return "Bs.";
+    case "BAM": return "KM";
+    case "BWP": return "P";
+    case "BRL": return "R$";
+    case "GBP": return "£";
+    case "BND": return "$";
+    case "BGN": return "лв";
+    case "BIF": return "FBu";
+    case "KHR": return "៛";
+    case "CAD": return "C$";
+    case "CVE": return "$";
+    case "XAF": return "CFA";
+    case "CLP": return "$";
+    case "CNY": return "¥";
+    case "COP": return "$";
+    case "KMF": return "CF";
+    case "CDF": return "FC";
+    case "CRC": return "₡";
+    case "HRK": return "kn";
+    case "CUP": return "$";
+    case "CZK": return "Kč";
+    case "DKK": return "kr";
+    case "DJF": return "Fdj";
+    case "DOP": return "RD$";
+    case "XCD": return "$";
+    case "USD": return "$";
+    case "EGP": return "£";
+    case "ERN": return "Nfk";
+    case "ETB": return "Br";
+    case "FJD": return "$";
+    case "GMD": return "D";
+    case "GEL": return "₾";
+    case "GHS": return "₵";
+    case "GIP": return "£";
+    case "GTQ": return "Q";
+    case "GNF": return "FG";
+    case "GYD": return "$";
+    case "HTG": return "G";
+    case "HNL": return "L";
+    case "HKD": return "HK$";
+    case "HUF": return "Ft";
+    case "ISK": return "kr";
+    case "INR": return "₹";
+    case "IDR": return "Rp";
+    case "IRR": return "﷼";
+    case "IQD": return "ع.د";
+    case "ILS": return "₪";
+    case "JMD": return "J$";
+    case "JPY": return "¥";
+    case "JOD": return "JD";
+    case "KZT": return "₸";
+    case "KES": return "KSh";
+    case "KWD": return "KD";
+    case "KGS": return "с";
+    case "LAK": return "₭";
+    case "LBP": return "ل.ل";
+    case "LSL": return "M";
+    case "LRD": return "$";
+    case "LYD": return "LD";
+    case "MOP": return "MOP$";
+    case "MKD": return "ден";
+    case "MGA": return "Ar";
+    case "MWK": return "MK";
+    case "MYR": return "RM";
+    case "MVR": return "Rf";
+    case "MRU": return "UM";
+    case "MUR": return "₨";
+    case "MXN": return "$";
+    case "MDL": return "L";
+    case "MNT": return "₮";
+    case "MAD": return "د.م.";
+    case "MZN": return "MT";
+    case "MMK": return "K";
+    case "NAD": return "$";
+    case "NPR": return "₨";
+    case "NZD": return "NZ$";
+    case "NIO": return "C$";
+    case "NGN": return "₦";
+    case "KPW": return "₩";
+    case "NOK": return "kr";
+    case "OMR": return "ر.ع.";
+    case "PKR": return "₨";
+    case "PAB": return "B/.";
+    case "PGK": return "K";
+    case "PYG": return "₲";
+    case "PEN": return "S/";
+    case "PHP": return "₱";
+    case "PLN": return "zł";
+    case "QAR": return "ر.ق";
+    case "RON": return "lei";
+    case "RUB": return "₽";
+    case "RWF": return "FRw";
+    case "WST": return "WS$";
+    case "STN": return "Db";
+    case "SAR": return "ر.س";
+    case "RSD": return "дин";
+    case "SCR": return "₨";
+    case "SLL": return "Le";
+    case "SGD": return "S$";
+    case "SBD": return "$";
+    case "SOS": return "Sh";
+    case "ZAR": return "R";
+    case "KRW": return "₩";
+    case "SSP": return "£";
+    case "LKR": return "₨";
+    case "SDG": return "£";
+    case "SRD": return "$";
+    case "SZL": return "E";
+    case "SEK": return "kr";
+    case "CHF": return "Fr";
+    case "SYP": return "£S";
+    case "TWD": return "NT$";
+    case "TJS": return "SM";
+    case "TZS": return "TSh";
+    case "THB": return "฿";
+    case "TOP": return "T$";
+    case "TTD": return "TT$";
+    case "TND": return "د.ت";
+    case "TRY": return "₺";
+    case "TMT": return "m";
+    case "UGX": return "USh";
+    case "UAH": return "₴";
+    case "AED": return "د.إ";
+    case "UYU": return "$U";
+    case "UZS": return "сўм";
+    case "VUV": return "VT";
+    case "VES": return "Bs";
+    case "VND": return "₫";
+    case "YER": return "﷼";
+    case "ZMW": return "ZK";
+    case "ZWL": return "$";
+    default: return "€"; // Default to Euro if currency code is not recognized
   }
 };
 
