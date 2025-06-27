@@ -39,6 +39,7 @@ const getInitialState = () => {
     budget_details_fee_type: { id: "", value: "" },
     budget_details_sub_fee_type: "",
     budget_details_value: "",
+    country_details: { id: "", value: "" },
     campaign_objectives: "",
     funnel_stages: [],
     channel_mix: {},
@@ -179,7 +180,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         // const obj = await extractObjectives(campaignFormData);
         // const sMetrics = await getFilteredMetrics(obj)
         setCampaignData(data);
-        setHeaderData(data?.table_headers  || {});
+        setHeaderData(data?.table_headers || {});
         setCampaignFormData((prev) => ({
           ...prev,
           client_selection: {
@@ -191,6 +192,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             value: data?.client_selection?.level_1 ?? prev.level_1?.value,
           },
           media_plan: data?.media_plan_details?.plan_name ?? prev.media_plan,
+          budget_details_currency: {
+            id: data?.budget_details?.currency,
+            value: data?.budget_details?.currency,
+          },
+          country_details: {
+            id: data?.budget_details?.value,
+            value: data?.budget_details?.value,
+          },
           internal_approver:
             data?.media_plan_details?.internal_approver ??
             prev.internal_approver,
@@ -214,10 +223,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           campaign_id: data?.id ?? prev.id,
           isApprove: data?.isApprove ?? prev?.isApprove,
           table_headers:
-            ((data?.table_headers  || {}) ??
-              (prev?.table_headers )) ||
+            ((data?.table_headers || {}) ??
+              (prev?.table_headers)) ||
             {},
-            selected_metrics: ((data?.selected_metrics||{}) ?? (prev?.selected_metrics )) || {},
+          selected_metrics: ((data?.selected_metrics || {}) ?? (prev?.selected_metrics)) || {},
         }));
         setLoadingCampaign(false);
       } catch (error) {
@@ -289,7 +298,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       );
       setGetProfile(response?.data);
 
-      
+
       const aId =
         response?.data?.user_type === "admin"
           ? response?.data?.admin?.agency?.id

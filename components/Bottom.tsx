@@ -268,7 +268,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       setActive(4);
       return;
     }
-    if(active === 7){
+    if (active === 7) {
       setActive(5)
     } else {
       if (subStep > 0) {
@@ -595,10 +595,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
               ).map(Number),
             },
             budget_details: {
-              currency: campaignFormData?.budget_details_currency?.id,
+              currency: campaignFormData?.budget_details_currency?.id || "EUR",
+              value: campaignFormData?.country_details?.id,
             },
             campaign_budget: {
-              currency: campaignFormData?.budget_details_currency?.id,
+              currency: campaignFormData?.budget_details_currency?.id || "EUR",
             },
             agency_profile: agencyId,
           },
@@ -906,7 +907,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           setActive((prev) => prev + 1);
           setSubStep(0);
         }
-      } else if(active === 5){
+      } else if (active === 5) {
         setActive(7)
       } else if (active !== 0) {
         setActive((prev) => prev + 1);
@@ -1057,20 +1058,20 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                     style={
                       active === 4 && !hasFormatSelected
                         ? {
-                            fontSize: "14px",
-                            whiteSpace: "normal",
-                            lineHeight: "16px",
-                            textAlign: "center",
-                            maxWidth: 120,
-                          }
+                          fontSize: "14px",
+                          whiteSpace: "normal",
+                          lineHeight: "16px",
+                          textAlign: "center",
+                          maxWidth: 120,
+                        }
                         : {}
                     }
                   >
                     {active === 0
                       ? "Start"
                       : active === 4 && !hasFormatSelected
-                      ? "Not mandatory step, skip"
-                      : "Continue"}
+                        ? "Not mandatory step, skip"
+                        : "Continue"}
                   </p>
                   <Image src={Continue || "/placeholder.svg"} alt="Continue" />
                 </>
