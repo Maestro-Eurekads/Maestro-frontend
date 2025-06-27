@@ -85,8 +85,7 @@ const CampaignBudget = () => {
    setBudgetStyle(type)
    setFeeStepValidated(false)
    setShowLevelCards(true)
- 
-
+  }}
   // --- FIXED: Calculate total budget correctly ---
   const calculateTotalBudget = () => {
     if (!campaignFormData?.campaign_budget) return 0
@@ -116,22 +115,22 @@ const CampaignBudget = () => {
  
   }
 
-  const handleBudgetEdit = (param, type) => {
-    if (!isEditing) return
-    setCampaignFormData((prev) => ({
-      ...prev,
-      campaign_budget: {
-        ...prev?.campaign_budget,
-        [param]: type?.toString(),
-      },
-    }))
-    if (param === "budget_type") {
-      setStep(1)
-      setBudgetStyle(type)
-      setFeeStepValidated(false)
-      setShowLevelCards(true)
-    }
-  }
+  // const handleBudgetEdit = (param, type) => {
+  //   if (!isEditing) return
+  //   setCampaignFormData((prev) => ({
+  //     ...prev,
+  //     campaign_budget: {
+  //       ...prev?.campaign_budget,
+  //       [param]: type?.toString(),
+  //     },
+  //   }))
+  //   if (param === "budget_type") {
+  //     setStep(1)
+  //     setBudgetStyle(type)
+  //     setFeeStepValidated(false)
+  //     setShowLevelCards(true)
+  //   }
+  // }
 
   // handleValidate for top_down and bottom_up (logic will be reversed for bottom_up)
   const handleValidate = () => {
