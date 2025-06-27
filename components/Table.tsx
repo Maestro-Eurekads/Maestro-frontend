@@ -75,8 +75,6 @@ const Table = () => {
  const { setActive, setSubStep } = useActive();
  const [clientId, setClientId] = useState<string | null>(null);
 
-
-
  // Pagination state
  const [currentPage, setCurrentPage] = useState(1);
  const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -93,7 +91,7 @@ const Table = () => {
  const indexOfLastItem = currentPage * itemsPerPage;
  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
  const currentItems = campaignArray.slice(indexOfFirstItem, indexOfLastItem);
- const totalPages = Math.ceil(campaignArray.length / itemsPerPage);
+ const totalPages = Math.ceil(campaignArray?.length / itemsPerPage);
 
 
 

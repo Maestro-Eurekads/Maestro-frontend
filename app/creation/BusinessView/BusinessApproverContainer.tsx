@@ -5,7 +5,7 @@ import { getSignedApproval } from "features/Comment/commentSlice";
 import { useSession } from "next-auth/react";
 import React, { useEffect } from "react";
 import Skeleton from "react-loading-skeleton";
-import { useAppDispatch, useAppSelector } from "store/useStore";
+import { useAppDispatch } from "store/useStore";
 
 const BusinessApproverContainer = ({
   campaign,
@@ -27,15 +27,15 @@ const BusinessApproverContainer = ({
 
 
   const internalApprovers =
-    campaign?.media_plan_details?.internal_approver?.map((a) => a?.username) || campaignFormData?.media_plan_details?.internal_approver?.map(
-      (a) => a?.username
+    campaign?.media_plan_details?.internal_approver?.map((a) => cleanName(a?.username)) || campaignFormData?.media_plan_details?.internal_approver?.map(
+      (a) => cleanName(a?.username)
     ) || [
       "-",
     ];
   const clientApprovers = campaign?.media_plan_details?.client_approver?.map(
-    (a) => a?.username
+    (a) => cleanName(a?.username)
   ) || campaignFormData?.media_plan_details?.client_approver?.map(
-    (a) => a?.username
+    (a) => cleanName(a?.username)
   ) || ["-"];
 
   const items = [
@@ -73,7 +73,7 @@ const BusinessApproverContainer = ({
   return (
     <div className="flex flex-col gap-[24px]">
       <div className="flex items-center justify-between flex-wrap gap-4">
-        {items.map((item, index) => (
+        {items?.map((item, index) => (
           <div
             key={index}
             className="flex flex-col items-start p-5 gap-2 w-[235px] h-[100px] bg-white shadow-[0px_4px_14px_rgba(0,38,116,0.15)] rounded-[12px]"

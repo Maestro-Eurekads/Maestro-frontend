@@ -9,7 +9,7 @@ import Image from "next/image"
 import { useCampaigns } from "app/utils/CampaignsContext"
 import { useComments } from "app/utils/CommentProvider"
 import { useEditing } from "app/utils/EditingContext"
-import { formatNumberWithCommas } from "components/data"
+import { formatNumberWithCommas , getCurrencySymbol} from "components/data"
 import FeeSelectionStep from "./FeeSelectionStep"
 import { SVGLoader } from "components/SVGLoader"
 import adset from "../../../public/adset_level.svg"
@@ -66,17 +66,26 @@ const CampaignBudget = () => {
     { value: "CAD", label: "CAD" },
   ]
 
-  const getCurrencySymbol = (currency) => {
-    const symbols = {
-      USD: "$",
-      EUR: "€",
-      GBP: "£",
-      NGN: "₦",
-      JPY: "¥",
-      CAD: "$",
-    }
-    return symbols[currency] || ""
-  }
+ 
+
+
+
+
+ const handleBudgetEdit = (param, type) => {
+  if (!isEditing) return
+  setCampaignFormData((prev) => ({
+   ...prev,
+   campaign_budget: {
+    ...prev?.campaign_budget,
+    [param]: type?.toString(),
+   },
+  }))
+  if (param === "budget_type") {
+   setStep(1)
+   setBudgetStyle(type)
+   setFeeStepValidated(false)
+   setShowLevelCards(true)
+ 
 
   // --- FIXED: Calculate total budget correctly ---
   const calculateTotalBudget = () => {
@@ -104,6 +113,7 @@ const CampaignBudget = () => {
       // For top-down: the entered amount IS the total campaign budget
       return budgetAmount
     }
+ 
   }
 
   const handleBudgetEdit = (param, type) => {
