@@ -547,164 +547,143 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     };
 
-    const handleStepZero = async () => {
-      setLoading(true);
 
-      try {
-        // Validation function to check if a field is filled
-        const getFieldValue = (field: any): boolean => {
-          if (Array.isArray(field)) {
-            return field?.length > 0;
-          }
-          if (typeof field === "object" && field !== null) {
-            return Object.keys(field)?.length > 0;
-          }
-          return Boolean(field);
-        };
+    //     const handleStepZero = async () => {
+    //   setLoading(true);
 
-        // Validate required fields
-        if (!getFieldValue(campaignFormData?.media_plan)) {
-          setAlert({
-            variant: "error",
-            message: "Media plan is required. Please select a media plan.",
-            position: "bottom-right",
-          });
-          setLoading(false);
-          return;
-        }
-        if (!getFieldValue(campaignFormData?.budget_details_currency?.id)) {
-          setAlert({
-            variant: "error",
-            message: "Currency is required. Please select a currency.",
-            position: "bottom-right",
-          });
-          setLoading(false);
-          return;
-        }
+    //   try {
+    //     const isFieldValid = (field: any): boolean => {
+    //       if (Array.isArray(field)) return field.length > 0;
+    //       if (typeof field === "object" && field !== null) return Object.keys(field).length > 0;
+    //       return Boolean(field);
+    //     };
 
-        // Existing validation for other required fields
-        if (!isStepZeroValid) {
-          setAlert({
-            variant: "error",
-            message: "Please complete all required fields before proceeding.",
-            position: "bottom-right",
-          });
-          setLoading(false);
-          return;
-        }
+    //     // Block submission if required fields are empty
+    //     if (
+    //       !isFieldValid(campaignFormData?.media_plan) ||
+    //       !isFieldValid(campaignFormData?.budget_details_currency?.id) ||
+    //       !isStepZeroValid
+    //     ) {
+    //       setLoading(false);
+    //       return;
+    //     }
 
-        const cleanedFormData = {
-          ...campaignFormData,
-          internal_approver: (
-            campaignFormData?.internal_approver_ids || []
-          ).map(String),
-          client_approver: (campaignFormData?.client_approver_ids || []).map(
-            String
-          ),
-        };
+    //     const cleanedFormData = {
+    //       ...campaignFormData,
+    //       internal_approver: (campaignFormData?.internal_approver_ids || []).map(String),
+    //       client_approver: (campaignFormData?.client_approver_ids || []).map(String),
+    //     };
 
-        setCampaignFormData(cleanedFormData);
-        localStorage.setItem(
-          "campaignFormData",
-          JSON.stringify(cleanedFormData)
-        );
+    //     setCampaignFormData(cleanedFormData);
+    //     localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData));
 
-        const payload = {
-          data: {
-            campaign_builder: loggedInUser?.id,
-            client: campaignFormData?.client_selection?.id,
-            client_selection: {
-              client: campaignFormData?.client_selection?.value,
-              level_1: campaignFormData?.level_1,
-            },
-            media_plan_details: {
-              plan_name: campaignFormData?.media_plan,
-              internal_approver: (
-                campaignFormData?.internal_approver_ids || []
-              ).map(Number),
-              client_approver: (
-                campaignFormData?.client_approver_ids || []
-              ).map(Number),
-            },
-            budget_details: {
-              currency: campaignFormData?.budget_details_currency?.id || "EUR",
-              value: campaignFormData?.country_details?.id,
-            },
-            campaign_budget: {
-              currency: campaignFormData?.budget_details_currency?.id || "EUR",
-            },
-            agency_profile: agencyId,
-          },
-        };
+    //     const payload = {
+    //       data: {
+    //         campaign_builder: loggedInUser?.id,
+    //         client: campaignFormData?.client_selection?.id,
+    //         client_selection: {
+    //           client: campaignFormData?.client_selection?.value,
+    //           level_1: campaignFormData?.level_1,
+    //         },
+    //         media_plan_details: {
+    //           plan_name: campaignFormData?.media_plan,
+    //           internal_approver: (campaignFormData?.internal_approver_ids || []).map(Number),
+    //           client_approver: (campaignFormData?.client_approver_ids || []).map(Number),
+    //         },
+    //         budget_details: {
+    //           currency: campaignFormData?.budget_details_currency?.id || "EUR",
+    //           value: campaignFormData?.country_details?.id,
+    //         },
+    //         campaign_budget: {
+    //           currency: campaignFormData?.budget_details_currency?.id || "EUR",
+    //         },
+    //         agency_profile: agencyId,
+    //       },
+    //     };
 
-        const config = {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        };
+    //     const config = {
+    //       headers: {
+    //         Authorization: `Bearer ${jwt}`,
+    //       },
+    //     };
 
-        if (cId && campaignData) {
-          await axios.put(
-            `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
-            payload,
-            config
-          );
-          setActive((prev) => prev + 1);
-          setAlert({
-            variant: "success",
-            message: "Campaign updated successfully!",
-            position: "bottom-right",
-          });
-        } else {
-          const response = await axios.post(
-            `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`,
-            payload,
-            config
-          );
-
-          const url = new URL(window.location.href);
-          url.searchParams.set(
-            "campaignId",
-            `${response?.data?.data.documentId}`
-          );
-          window.history.pushState({}, "", url.toString());
-          await updateUsersWithCampaign(
-            [
-              ...(Array.isArray(loggedInUser?.id)
-                ? loggedInUser?.id
-                : [loggedInUser?.id]),
-              ...(campaignFormData?.internal_approver_ids || []).map(Number),
-              ...(campaignFormData?.client_approver_ids || []).map(Number),
-            ],
-            response?.data?.data?.id,
-            jwt
-          );
-          await getActiveCampaign(response?.data?.data.documentId);
-          setActive((prev) => prev + 1);
-          setAlert({
-            variant: "success",
-            message: "Campaign created successfully!",
-            position: "bottom-right",
-          });
-        }
-      } catch (error) {
-        console.error("API Error:", error.response?.data || error.message);
-        setAlert({
-          variant: "error",
-          message:
-            error.response?.data?.message ||
-            "Something went wrong. Please try again.",
-          position: "bottom-right",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
+    //     if (cId && campaignData) {
+    //       await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`, payload, config);
+    //       setActive((prev) => prev + 1);
+    //       setAlert({
+    //         variant: "success",
+    //         message: "Campaign updated successfully!",
+    //         position: "bottom-right",
+    //       });
+    //     } else {
+    //       const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config);
+    //       const url = new URL(window.location.href);
+    //       url.searchParams.set("campaignId", `${response?.data?.data.documentId}`);
+    //       window.history.pushState({}, "", url.toString());
+    //       await updateUsersWithCampaign(
+    //         [
+    //           ...(Array.isArray(loggedInUser?.id) ? loggedInUser?.id : [loggedInUser?.id]),
+    //           ...(campaignFormData?.internal_approver_ids || []).map(Number),
+    //           ...(campaignFormData?.client_approver_ids || []).map(Number),
+    //         ],
+    //         response?.data?.data?.id,
+    //         jwt
+    //       );
+    //       await getActiveCampaign(response?.data?.data.documentId);
+    //       setActive((prev) => prev + 1);
+    //       setAlert({
+    //         variant: "success",
+    //         message: "Campaign created successfully!",
+    //         position: "bottom-right",
+    //       });
+    //     }
+    //   } catch (error) {
+    //     console.error("API Error:", error.response?.data || error.message);
+    //     setAlert({
+    //       variant: "error",
+    //       message: error.response?.data?.message || "Something went wrong. Please try again.",
+    //       position: "bottom-right",
+    //     });
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // };
     // const handleStepZero = async () => {
     //   setLoading(true);
 
     //   try {
+    //     // Validation function to check if a field is filled
+    //     const getFieldValue = (field: any): boolean => {
+    //       if (Array.isArray(field)) {
+    //         return field?.length > 0;
+    //       }
+    //       if (typeof field === "object" && field !== null) {
+    //         return Object.keys(field)?.length > 0;
+    //       }
+    //       return Boolean(field);
+    //     };
+
+    //     // Validate required fields
+    //     if (!getFieldValue(campaignFormData?.media_plan)) {
+    //       setAlert({
+    //         variant: "error",
+    //         message: "Media plan name is required. Please enter a plan name.",
+    //         position: "bottom-right",
+    //       });
+    //       setLoading(false);
+    //       return;
+    //     }
+    //     if (!getFieldValue(campaignFormData?.budget_details_currency?.id)) {
+    //       setAlert({
+    //         variant: "error",
+    //         message: "Currency is required. Please select a currency.",
+    //         position: "bottom-right",
+    //       });
+    //       setLoading(false);
+    //       return;
+    //     }
+
+    //     // Existing validation for other required fields
     //     if (!isStepZeroValid) {
     //       setAlert({
     //         variant: "error",
@@ -822,87 +801,129 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     //     setLoading(false);
     //   }
     // };
-    // const handleStepZero = async () => {
-    //   setLoading(true)
 
-    //   try {
-    //     if (!isStepZeroValid) {
-    //       setAlert({
-    //         variant: "error",
-    //         message: "Please complete all required fields before proceeding.",
-    //         position: "bottom-right",
-    //       })
-    //       setLoading(false)
-    //       return
-    //     }
+    const handleStepZero = async () => {
+      setLoading(true);
 
-    //     const cleanedFormData = {
-    //       ...campaignFormData,
-    //       internal_approver: (campaignFormData?.internal_approver_ids || []).map(String),
-    //       client_approver: (campaignFormData?.client_approver_ids || []).map(String),
-    //     }
+      try {
+        let hasError = false;
 
-    //     setCampaignFormData(cleanedFormData)
-    //     localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData))
+        // Validation function
+        const getFieldValue = (field: any): boolean => {
+          if (Array.isArray(field)) return field.length > 0;
+          if (typeof field === "object" && field !== null)
+            return Object.keys(field).length > 0;
+          return Boolean(field);
+        };
 
-    //     if (cId && campaignData) {
-    //       const updatedData = {
-    //         client: campaignFormData?.client_selection?.id,
-    //         client_selection: {
-    //           client: campaignFormData?.client_selection?.value,
-    //           level_1: campaignFormData?.level_1?.id,
-    //         },
-    //         media_plan_details: {
-    //           plan_name: campaignFormData?.media_plan,
-    //           internal_approver: (campaignFormData?.internal_approver_ids || []).map(Number),
-    //           client_approver: (campaignFormData?.client_approver_ids || []).map(Number),
-    //         },
-    //       }
-    //       await updateCampaign(updatedData)
+        // Error collector
+        const errors: string[] = [];
 
-    //       setActive((prev) => prev + 1)
-    //       setAlert({
-    //         variant: "success",
-    //         message: "Campaign updated successfully!",
-    //         position: "bottom-right",
-    //       })
-    //     } else {
-    //       const res = await createCampaign({
-    //         campaign_builder: loggedInUser?.id,
-    //         client: campaignFormData?.client_selection?.id,
-    //         client_selection: {
-    //           client: campaignFormData?.client_selection?.value,
-    //           level_1: campaignFormData?.level_1?.id,
-    //         },
-    //         media_plan_details: {
-    //           plan_name: campaignFormData?.media_plan,
-    //           internal_approver: (campaignFormData?.internal_approver_ids || []).map(Number),
-    //           client_approver: (campaignFormData?.client_approver_ids || []).map(Number),
-    //         },
-    //       })
+        // Check each field, and if invalid, set flag and trigger alert
+        if (!getFieldValue(campaignFormData?.media_plan)) {
+          errors.push("Media plan name is required.");
+          hasError = true;
+        }
 
-    //       const url = new URL(window.location.href)
-    //       url.searchParams.set("campaignId", `${res?.data?.data.documentId}`)
-    //       window.history.pushState({}, "", url.toString())
+        if (!getFieldValue(campaignFormData?.budget_details_currency?.id)) {
+          errors.push("Currency is required.");
+          hasError = true;
+        }
 
-    //       await getActiveCampaign(res?.data?.data.documentId)
-    //       setActive((prev) => prev + 1)
-    //       setAlert({
-    //         variant: "success",
-    //         message: "Campaign created successfully!",
-    //         position: "bottom-right",
-    //       })
-    //     }
-    //   } catch (error) {
-    //     setAlert({
-    //       variant: "error",
-    //       message: "Something went wrong. Please try again.",
-    //       position: "bottom-right",
-    //     })
-    //   } finally {
-    //     setLoading(false)
-    //   }
-    // }
+        if (!isStepZeroValid) {
+          errors.push("Please complete all required fields before proceeding.");
+          hasError = true;
+        }
+
+        if (hasError) {
+          setAlert({
+            variant: "error",
+            message: errors.join(" "),
+            position: "bottom-right",
+          });
+          setValidateStep(true);
+          setLoading(false);
+          return;
+        }
+
+        // Clean and store form
+        const cleanedFormData = {
+          ...campaignFormData,
+          internal_approver: (campaignFormData?.internal_approver_ids || []).map(String),
+          client_approver: (campaignFormData?.client_approver_ids || []).map(String),
+        };
+
+        setCampaignFormData(cleanedFormData);
+        localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData));
+
+        const payload = {
+          data: {
+            campaign_builder: loggedInUser?.id,
+            client: campaignFormData?.client_selection?.id,
+            client_selection: {
+              client: campaignFormData?.client_selection?.value,
+              level_1: campaignFormData?.level_1,
+            },
+            media_plan_details: {
+              plan_name: campaignFormData?.media_plan,
+              internal_approver: (campaignFormData?.internal_approver_ids || []).map(Number),
+              client_approver: (campaignFormData?.client_approver_ids || []).map(Number),
+            },
+            budget_details: {
+              currency: campaignFormData?.budget_details_currency?.id || "EUR",
+              value: campaignFormData?.country_details?.id,
+            },
+            campaign_budget: {
+              currency: campaignFormData?.budget_details_currency?.id || "EUR",
+            },
+            agency_profile: agencyId,
+          },
+        };
+
+        const config = {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        };
+
+        // Update or Create
+        if (cId && campaignData) {
+          await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`, payload, config);
+          setActive((prev) => prev + 1);
+          setAlert({ variant: "success", message: "Campaign updated successfully!", position: "bottom-right" });
+        } else {
+          const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config);
+
+          const url = new URL(window.location.href);
+          url.searchParams.set("campaignId", `${response?.data?.data.documentId}`);
+          window.history.pushState({}, "", url.toString());
+
+          await updateUsersWithCampaign(
+            [
+              ...(Array.isArray(loggedInUser?.id) ? loggedInUser?.id : [loggedInUser?.id]),
+              ...(campaignFormData?.internal_approver_ids || []).map(Number),
+              ...(campaignFormData?.client_approver_ids || []).map(Number),
+            ],
+            response?.data?.data?.id,
+            jwt
+          );
+
+          await getActiveCampaign(response?.data?.data.documentId);
+          setActive((prev) => prev + 1);
+          setAlert({ variant: "success", message: "Campaign created successfully!", position: "bottom-right" });
+        }
+      } catch (error) {
+        console.error("API Error:", error.response?.data || error.message);
+        setAlert({
+          variant: "error",
+          message: error.response?.data?.message || "Something went wrong. Please try again.",
+          position: "bottom-right",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
 
     const handleStepTwo = async () => {
       if (!campaignData || !cId) return;
