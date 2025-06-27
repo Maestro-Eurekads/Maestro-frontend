@@ -514,7 +514,7 @@ export const SetupScreen = () => {
                 </label>
                 <ClientSelection
                   options={selectCurrency}
-                  label={"Select country"}
+                  label={"Select Currency"}
                   formId="budget_details_currency"
                 />
               </div>
