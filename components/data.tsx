@@ -258,24 +258,7 @@ export const getPlatformIcon = (platformName: string): StaticImageData => {
   return google;
 };
 
-// export const getCurrencySymbol = (currencyCode: string): string => {
-//   switch (currencyCode) {
-//     case "EUR":
-//       return "€";
-//     case "USD":
-//       return "$";
-//     case "GBP":
-//       return "£";
-//     case "NGN":
-//       return "₦";
-//     case "JPY":
-//       return "¥";
-//     case "CAD":
-//       return "$";
-//     default:
-//       return "€";
-//   }
-// };
+
 
 export const getCurrencySymbol = (currencyCode: string): string => {
   switch (currencyCode) {
@@ -850,14 +833,7 @@ export function hasFormatEntered(channelMix) {
   return false; // No format found for any platform
 }
 
-export const selectCurrency = [
-  { value: "USD", label: "US Dollar (USD)", sign: "$" },
-  { value: "EUR", label: "Euro (EUR)", sign: "€" },
-  { value: "GBP", label: "British Pound (GBP)", sign: "£" },
-  { value: "NGN", label: "Nigerian Naira (NGN)", sign: "₦" },
-  { value: "JPY", label: "Japanese Yen (JPY)", sign: "¥" },
-  { value: "CAD", label: "Canadian Dollar (CAD)", sign: "C$" },
-];
+
 
 export const statusOption = [
   { value: "open", label: "Open" },
