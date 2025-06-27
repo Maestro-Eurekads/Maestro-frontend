@@ -22,8 +22,8 @@ const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 	}, [dispatch, id]);
 
 	const internalApprovers = campaign?.media_plan_details
-		?.internal_approver?.map(a => a?.username) || ["-"];
-	const clientApprovers = campaign?.media_plan_details?.client_approver?.map(a => a?.username) || ["-"];
+		?.internal_approver?.map(a => cleanName(a?.username)) || ["-"];
+	const clientApprovers = campaign?.media_plan_details?.client_approver?.map(a => cleanName(a?.username)) || ["-"];
 
 	const items = [
 		{

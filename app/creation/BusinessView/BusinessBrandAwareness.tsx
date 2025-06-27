@@ -64,6 +64,8 @@ const BusinessBrandAwareness = ({ statsData = [], aggregatedStats = {}, loading,
 	const currentCategory = currentStat?.kpiCategory;
 	const currentCategoryKPIs = aggregatedStats[currentCategory] || {};
 
+	// console.log("currentCategoryKPIs----", currentCategoryKPIs);
+
 	const allStats = useMemo(() =>
 		Object.keys(currentCategoryKPIs).map((kpiName) => ({
 			label: kpiName,
@@ -108,14 +110,14 @@ const BusinessBrandAwareness = ({ statsData = [], aggregatedStats = {}, loading,
 							<Skeleton height={20} width="100%" />
 						) : (
 							<div className="flex flex-row w-full overflow-auto gap-4">
-								{allStats.map((stat, index) => (
+								{allStats?.map((stat, index) => (
 									<div key={`stat-${index}-${currentIndex}`}>
 										<div className={`flex items-center gap-2 ${animationState === "in" ? "animate-slide-up" : animationState === "out" ? "animate-slide-down" : ""}`}>
 											<p className="font-medium text-[12px] leading-[16px] text-[#667085]">{stat.label}</p>
 											<Image src={info} alt="info" />
 										</div>
 										<h1 className={`min-w-[250px] font-medium text-[36px] leading-[49px] text-[#101828] whitespace-nowrap ${animationState === "in" ? "animate-slide-up" : animationState === "out" ? "animate-slide-down" : ""}`}>
-											{stat.value}
+											{stat?.value}
 										</h1>
 									</div>
 								))}
@@ -126,7 +128,7 @@ const BusinessBrandAwareness = ({ statsData = [], aggregatedStats = {}, loading,
 							<Skeleton height={20} width="100%" />
 						) : (
 							<div className="flex items-center gap-2 justify-center">
-								{indicators.map((color, index) => (
+								{indicators?.map((color, index) => (
 									<div key={index} className="w-[31px] h-0 border-t-[5px] rounded-full" style={{ borderColor: color }} />
 								))}
 							</div>
