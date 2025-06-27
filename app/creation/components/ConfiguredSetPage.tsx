@@ -4,7 +4,7 @@ import Image, { type StaticImageData } from "next/image"
 import Button from "./common/button"
 import up from "../../../public/arrow-down.svg"
 import down2 from "../../../public/arrow-down-2.svg"
-import { formatNumberWithCommas, getPlatformIcon, mediaTypes } from "components/data"
+import { formatNumberWithCommas, getCurrencySymbol, getPlatformIcon, mediaTypes } from "components/data"
 import { useCampaigns } from "app/utils/CampaignsContext"
 import { toast } from "react-toastify"
 import { FaCheckCircle } from "react-icons/fa"
@@ -164,24 +164,24 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
     setOpenItems((prev) => ({ ...prev, [stage]: !prev[stage] }))
   }
 
-  const getCurrencySymbol = (currencyCode) => {
-    switch (currencyCode) {
-      case "EUR":
-        return "€"
-      case "USD":
-        return "$"
-      case "GBP":
-        return "£"
-      case "NGN":
-        return "₦"
-      case "JPY":
-        return "¥"
-      case "CAD":
-        return "$"
-      default:
-        return "€"
-    }
-  }
+  // const getCurrencySymbol = (currencyCode) => {
+  //   switch (currencyCode) {
+  //     case "EUR":
+  //       return "€"
+  //     case "USD":
+  //       return "$"
+  //     case "GBP":
+  //       return "£"
+  //     case "NGN":
+  //       return "₦"
+  //     case "JPY":
+  //       return "¥"
+  //     case "CAD":
+  //       return "$"
+  //     default:
+  //       return "€"
+  //   }
+  // }
 
   const isButtonEnabled = (stage) => {
     const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stage)
@@ -569,13 +569,13 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
               [updatedChannelType]: ch[updatedChannelType].map((p) =>
                 p.platform_name === platformOutlet
                   ? {
-                      ...p,
-                      budget: {
-                        ...p.budget,
-                        fixed_value: newBudget.toString(),
-                        percentage_value: newPercentage.toFixed(1),
-                      },
-                    }
+                    ...p,
+                    budget: {
+                      ...p.budget,
+                      fixed_value: newBudget.toString(),
+                      percentage_value: newPercentage.toFixed(1),
+                    },
+                  }
                   : p,
               ),
             }
@@ -787,13 +787,12 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
               </div>
               <div className="flex items-center gap-2">
                 <p
-                  className={`font-semibold text-base ${
-                    stageStatus[stage.name] === "Completed"
+                  className={`font-semibold text-base ${stageStatus[stage.name] === "Completed"
                       ? "text-green-500 flex items-center gap-2"
                       : stageStatus[stage.name] === "In progress"
                         ? "text-[#3175FF]"
                         : "text-[#061237] opacity-50"
-                  }`}
+                    }`}
                 >
                   {stageStatus[stage.name]}
                   {stageStatus[stage.name] === "Completed" && <FaCheckCircle />}
@@ -853,18 +852,18 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                             value={
                               campaignBudgetType === "gross" && fees.length > 0
                                 ? formatNumberWithCommas(
-                                    calculateGrossFromNet(
-                                      campaignFormData?.channel_mix?.find(
-                                        (ch: { funnel_stage: string }) => ch?.funnel_stage === stageName,
-                                      )?.stage_budget?.fixed_value || 0,
-                                      fees,
-                                    ),
-                                  )
-                                : formatNumberWithCommas(
+                                  calculateGrossFromNet(
                                     campaignFormData?.channel_mix?.find(
                                       (ch: { funnel_stage: string }) => ch?.funnel_stage === stageName,
-                                    )?.stage_budget?.fixed_value || "",
-                                  )
+                                    )?.stage_budget?.fixed_value || 0,
+                                    fees,
+                                  ),
+                                )
+                                : formatNumberWithCommas(
+                                  campaignFormData?.channel_mix?.find(
+                                    (ch: { funnel_stage: string }) => ch?.funnel_stage === stageName,
+                                  )?.stage_budget?.fixed_value || "",
+                                )
                             }
                             onChange={(e) => handleStageBudgetUpdate(stageName, e.target.value, false)}
                           />
@@ -938,8 +937,8 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                               height:
                                                 platform?.ad_sets[0]?.extra_audiences?.length > 0
                                                   ? `${Number(
-                                                      110 * (platform?.ad_sets[0]?.extra_audiences?.length + 2),
-                                                    )}px`
+                                                    110 * (platform?.ad_sets[0]?.extra_audiences?.length + 2),
+                                                  )}px`
                                                   : platform?.ad_sets?.length > 1
                                                     ? `${Number(110 * platform?.ad_sets?.length)}px`
                                                     : "330px",
@@ -951,8 +950,8 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                               bottom:
                                                 platform?.ad_sets[0]?.extra_audiences?.length > 0
                                                   ? `-${Number(
-                                                      121 * (platform?.ad_sets[0]?.extra_audiences?.length + 2),
-                                                    )}px`
+                                                    121 * (platform?.ad_sets[0]?.extra_audiences?.length + 2),
+                                                  )}px`
                                                   : platform?.ad_sets?.length > 1
                                                     ? `-${Number(132 * platform?.ad_sets?.length)}px`
                                                     : "-375px",
@@ -1087,11 +1086,11 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                 }
                                 const adSetPercentage =
                                   (ad_set?.budget?.percentage_value || platform?.budget?.fixed_value) &&
-                                  Number(getAdSetBudget(ad_set))
+                                    Number(getAdSetBudget(ad_set))
                                     ? (
-                                        (Number(getAdSetBudget(ad_set)) / Number(platform?.budget?.fixed_value)) *
-                                        100
-                                      ).toFixed(1)
+                                      (Number(getAdSetBudget(ad_set)) / Number(platform?.budget?.fixed_value)) *
+                                      100
+                                    ).toFixed(1)
                                     : "0"
 
                                 const getAdSetExtraBudget = (adSet, extraIndex) => {
@@ -1186,10 +1185,10 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                                     fixed_value: newBudget,
                                                                     percentage_value: p.budget?.fixed_value
                                                                       ? (
-                                                                          (Number(newBudget) /
-                                                                            Number(p.budget.fixed_value)) *
-                                                                          100
-                                                                        ).toFixed(2)
+                                                                        (Number(newBudget) /
+                                                                          Number(p.budget.fixed_value)) *
+                                                                        100
+                                                                      ).toFixed(2)
                                                                       : "0",
                                                                   },
                                                                 }
@@ -1326,10 +1325,10 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                                                 fixed_value: newBudget,
                                                                                 percentage_value: p.budget?.fixed_value
                                                                                   ? (
-                                                                                      (Number(newBudget) /
-                                                                                        Number(p.budget.fixed_value)) *
-                                                                                      100
-                                                                                    ).toFixed(2)
+                                                                                    (Number(newBudget) /
+                                                                                      Number(p.budget.fixed_value)) *
+                                                                                    100
+                                                                                  ).toFixed(2)
                                                                                   : "0",
                                                                               },
                                                                             }
@@ -1353,7 +1352,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                                                     if (
                                                                                       currentAdSetIdx === adSetIdx &&
                                                                                       currentExtraAudienceIdx ===
-                                                                                        extraIdx
+                                                                                      extraIdx
                                                                                     ) {
                                                                                       return (
                                                                                         extraSum + Number(newBudget)
@@ -1453,10 +1452,10 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                       onClick={
                         validatedStages[stage.name]
                           ? () =>
-                              setValidatedStages((prev) => ({
-                                ...prev,
-                                [stage.name]: false,
-                              }))
+                            setValidatedStages((prev) => ({
+                              ...prev,
+                              [stage.name]: false,
+                            }))
                           : () => handleValidateClick(stage.name)
                       }
                       disabled={!isButtonEnabled(stage.name)}

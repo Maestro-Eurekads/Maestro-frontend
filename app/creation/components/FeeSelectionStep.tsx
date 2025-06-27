@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import PageHeaderWrapper from "components/PageHeaderWapper";
 import BudgetInput from "./BudgetInput";
 import PropTypes from "prop-types";
+import { selectCurrency } from "components/Options";
 
 const feeOptions = [
   { label: "VAT", value: "vat", type: "percent" },
@@ -41,14 +42,7 @@ function FeeSelectionStep({
   });
   const [fees, setFees] = useState([]);
 
-  const selectCurrency = [
-    { value: "USD", label: "USD" },
-    { value: "EUR", label: "EUR" },
-    { value: "GBP", label: "GBP" },
-    { value: "NGN", label: "NGN" },
-    { value: "JPY", label: "JPY" },
-    { value: "CAD", label: "CAD" },
-  ];
+
 
   const handleBudgetEdit = (param, type) => {
     setCampaignFormData((prev) => ({
@@ -323,8 +317,8 @@ function FeeSelectionStep({
               </div>
               <p
                 className={`font-[600] text-[15px] leading-[20px] ${Number(calculateRemainingBudget()) < 1
-                    ? "text-red-500"
-                    : "text-[#00A36C]"
+                  ? "text-red-500"
+                  : "text-[#00A36C]"
                   }`}
               >
                 Remaining budget: {getCurrencySymbol(selectedOption.value)}

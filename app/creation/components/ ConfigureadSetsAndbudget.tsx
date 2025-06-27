@@ -8,7 +8,7 @@ import ChannelDistributionChatTwo from "../../../components/ChannelDistribution/
 import CampaignPhases from "./CampaignPhases"
 import { useCampaigns } from "app/utils/CampaignsContext"
 import { useComments } from "app/utils/CommentProvider"
-import { mediaTypes } from "components/data"
+import { getCurrencySymbol, mediaTypes } from "components/data"
 import PhasedistributionProgress from "../../../components/PhasedistributionProgress"
 
 const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
@@ -34,24 +34,24 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
     }
   }, [campaignFormData])
 
-  const getCurrencySymbol = (currencyCode) => {
-    switch (currencyCode) {
-      case "EUR":
-        return "€"
-      case "USD":
-        return "$"
-      case "GBP":
-        return "£"
-      case "NGN":
-        return "₦"
-      case "JPY":
-        return "¥"
-      case "CAD":
-        return "$"
-      default:
-        return "€"
-    }
-  }
+  // const getCurrencySymbol = (currencyCode) => {
+  //   switch (currencyCode) {
+  //     case "EUR":
+  //       return "€"
+  //     case "USD":
+  //       return "$"
+  //     case "GBP":
+  //       return "£"
+  //     case "NGN":
+  //       return "₦"
+  //     case "JPY":
+  //       return "¥"
+  //     case "CAD":
+  //       return "$"
+  //     default:
+  //       return "€"
+  //   }
+  // }
 
   // Map Tailwind bg- classes to hex colors for charts
   const tailwindToHex = (tailwindClass: string): string => {
