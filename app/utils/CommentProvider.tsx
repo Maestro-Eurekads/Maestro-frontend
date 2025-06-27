@@ -371,6 +371,7 @@ export const CommentProvider = ({ children }) => {
 				updateGeneralComment,
 				generalcommentsUpdateSuccess,
 				setGeneralcommentsUpdateSuccess,
+				setGeneralcommentsSuccess,
 				selected,
 				setSelected,
 				isOpen,
