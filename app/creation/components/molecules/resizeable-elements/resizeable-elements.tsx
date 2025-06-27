@@ -219,7 +219,7 @@ const ResizeableElements = ({
       const data = getPlatformsFromStage();
       setPlatforms(data);
     }
-  }, [campaignFormData]);
+  }, [campaignFormData, channelWidths]);
 
   const calculateAndCacheDailyWidth = useCallback(
     (

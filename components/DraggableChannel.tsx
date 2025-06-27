@@ -79,6 +79,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     direction: "left" | "right";
   } | null>(null);
   const isDragging = useRef<{ startX: number; startPos: number } | null>(null);
+  const draftCampaignFormRef = useRef<any>(null);
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   const { range } = useDateRange();
 
@@ -103,6 +104,25 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     const startDate = dateList[0]; // First date in the range
     const totalDays = dateList.length - 1; // Use totalDays - 1 to match grid intervals
 
+    if (range === "Year") {
+      const totalMonths = 12;
+      const clampedPixel = Math.max(0, Math.min(pixel, containerWidth));
+      const monthFraction = clampedPixel / containerWidth;
+      const monthIndex = Math.min(
+        11,
+        Math.round(monthFraction * totalMonths)
+      );
+    
+      const year = startDate.getFullYear();
+    
+      if (fieldName === "endDate") {
+        return new Date(year, monthIndex , 0); // Last day of month
+      } else {
+        return new Date(year, monthIndex, 1); // First day of month
+      }
+    }
+    
+    console.log("called2");
     // Convert pixel to date index
     const dayIndex = Math.min(
       totalDays,
@@ -112,36 +132,51 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     const calculatedDate = new Date(startDate);
     calculatedDate.setDate(startDate.getDate() + dayIndex);
 
-    if (fieldName === "endDate") {
-      calculatedDate.setDate(calculatedDate.getDate()); // Add 1 day to fix the issue
-    }
+    // if (fieldName === "endDate") {
+    //   calculatedDate.setDate(calculatedDate.getDate()); // Add 1 day to fix the issue
+    // }
 
     return calculatedDate;
   };
 
-  const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    const baseStep = dailyWidth;
-    const snapPoints = [];
+  // const snapToTimeline = (currentPosition: number, containerWidth: number) => {
+  //   const baseStep = range === "Year" ? containerWidth / 12 : dailyWidth;
+  //   const snapPoints = [];
 
-    // Generate snap points at regular intervals
+  //   for (let i = 0; i <= containerWidth; i += baseStep) {
+  //     snapPoints.push(i);
+  //   }
+
+  //   if (snapPoints[snapPoints.length - 1] !== containerWidth) {
+  //     snapPoints.push(containerWidth);
+  //   }
+
+  //   const closestSnap = snapPoints.reduce((prev, curr) =>
+  //     Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition)
+  //       ? curr
+  //       : prev
+  //   );
+
+  //   return closestSnap;
+  // };
+
+  const snapToTimeline = (currentPosition: number, containerWidth: number) => {
+    const baseStep = range === "Year" ? containerWidth / 12 : dailyWidth;
+  
+    const snapPoints = [];
     for (let i = 0; i <= containerWidth; i += baseStep) {
       snapPoints.push(i);
     }
-
-    // Add the container width as the final snap point
-    if (snapPoints[snapPoints.length - 1] !== containerWidth) {
-      snapPoints.push(containerWidth);
-    }
-
-    // Find the closest snap point
+  
     const closestSnap = snapPoints.reduce((prev, curr) =>
       Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition)
         ? curr
         : prev
     );
-
+  
     return closestSnap;
   };
+  
 
   // Function to update tooltip with date information
   const updateTooltipWithDates = (
@@ -169,14 +204,21 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
     if (!startDateValue || !endDateValue) return;
 
-    const formattedStartDate = startDateValue.toLocaleDateString("en-US", {
-      month: "short",
-      day: "2-digit",
-    });
-    const formattedEndDate = endDateValue.toLocaleDateString("en-US", {
-      month: "short",
-      day: "2-digit",
-    });
+    const formattedStartDate =
+      range === "Year"
+        ? startDateValue.toLocaleDateString("en-US", { month: "short" })
+        : startDateValue.toLocaleDateString("en-US", {
+            month: "short",
+            day: "2-digit",
+          });
+
+    const formattedEndDate =
+      range === "Year"
+        ? endDateValue.toLocaleDateString("en-US", { month: "short" })
+        : endDateValue.toLocaleDateString("en-US", {
+            month: "short",
+            day: "2-digit",
+          });
 
     // Get the container's dimensions
     const container = document.querySelector(
@@ -227,7 +269,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     document.addEventListener("mousemove", handleMouseMoveResize);
     document.addEventListener("mouseup", handleMouseUp);
   };
-
   const handleMouseMoveResize = (e: MouseEvent) => {
     if (!isResizing.current) return;
     const { startX, startWidth, startPos, direction } = isResizing.current;
@@ -235,45 +276,36 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     let newWidth = startWidth;
     let newPos = startPos;
 
-    // Get the grid container
     const gridContainer = document.querySelector(
       ".grid-container"
     ) as HTMLElement;
     if (!gridContainer) return;
 
-    // Get container boundaries
     const containerRect = gridContainer.getBoundingClientRect();
     const minX = 0;
     const maxX = containerRect.width - 45;
 
     if (direction === "left") {
-      // Calculate new position and width for left resize
       const deltaX = e.clientX - startX;
       newWidth = Math.max(50, startWidth - deltaX);
       newPos = Math.max(minX, startPos + deltaX);
 
-      // Apply snapping to the left edge position
       const snappedPos = snapToTimeline(newPos, containerRect.width);
-
-      // Adjust width based on the snapped position
       newWidth = startWidth - (snappedPos - startPos);
       newPos = snappedPos;
     } else {
-      // For right resize, calculate the new width
+      // 👉 Right resize: lock position, grow width only
       const deltaX = e.clientX - startX;
       const rawNewWidth = startWidth + deltaX;
 
-      // Calculate where the right edge would be
       const rightEdgePos = startPos + rawNewWidth;
-
-      // Snap the right edge to the timeline
       const snappedRightEdge = snapToTimeline(
         rightEdgePos,
         containerRect.width
       );
 
-      // Calculate the new width based on the snapped right edge
       newWidth = Math.max(50, snappedRightEdge - startPos);
+      newPos = startPos; // ⚠️ lock left edge
     }
 
     // Convert pixel positions to dates
@@ -284,18 +316,17 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       "endDate"
     );
 
+    // Prepare updated channel mix
     const updatedChannelMix = campaignFormData?.channel_mix?.find(
       (ch) => ch?.funnel_stage === description
     );
 
     if (updatedChannelMix) {
-      // Update funnel stage timeline dates
-      updatedChannelMix["funnel_stage_timeline_start_date"] =
+      updatedChannelMix.funnel_stage_timeline_start_date =
         moment(startDate).format("YYYY-MM-DD");
-      updatedChannelMix["funnel_stage_timeline_end_date"] =
+      updatedChannelMix.funnel_stage_timeline_end_date =
         moment(endDate).format("YYYY-MM-DD");
 
-      // Loop through all media types and update platform dates
       const mediaTypes = [
         "social_media",
         "display_networks",
@@ -310,36 +341,43 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         "mobile",
       ];
 
-      mediaTypes.forEach((mediaType) => {
-        const platforms = updatedChannelMix[mediaType];
+      mediaTypes.forEach((type) => {
+        const platforms = updatedChannelMix[type];
         if (platforms && Array.isArray(platforms)) {
           platforms.forEach((platform) => {
-            // Update campaign_start_date
-            if (
-              platform.campaign_start_date &&
-              moment(platform.campaign_start_date).isBefore(startDate)
-            ) {
-              platform.campaign_start_date =
-                moment(startDate).format("YYYY-MM-DD");
-            }
-
-            // Update campaign_end_date
-            if (
-              platform.campaign_end_date &&
-              moment(platform.campaign_end_date).isAfter(endDate)
-            ) {
-              platform.campaign_end_date = moment(endDate).format("YYYY-MM-DD");
-            }
+            platform.campaign_start_date =
+              moment(startDate).format("YYYY-MM-DD");
+            platform.campaign_end_date = moment(endDate).format("YYYY-MM-DD");
           });
         }
       });
     }
 
+    const allStartDates = campaignFormData?.channel_mix?.map((ch) =>
+      moment(ch.funnel_stage_timeline_start_date)
+    );
+    const allEndDates = campaignFormData?.channel_mix?.map((ch) =>
+      moment(ch.funnel_stage_timeline_end_date)
+    );
+
+    const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD");
+    const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD");
+
+    // 💡 Only buffer the data here; flush on mouseup
+    draftCampaignFormRef.current = {
+      ...campaignFormData,
+      channel_mix: campaignFormData.channel_mix.map((ch) =>
+        ch.funnel_stage === description ? updatedChannelMix : ch
+      ),
+      campaign_timeline_start_date: minStartDate,
+      campaign_timeline_end_date: maxEndDate,
+    };
+
+    // Update visual size/position immediately
     setParentWidth(newWidth);
     setParentLeft(newPos);
     setPosition(newPos);
 
-    // Update tooltip during resize
     updateTooltipWithDates(
       newPos,
       newPos + newWidth,
@@ -396,6 +434,8 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     const startDate = pixelToDate(startPixel, containerRect.width);
     const endDate = pixelToDate(endPixel, containerRect.width, "endDate");
 
+    console.log({ startDate, endDate }, "here on mouse move");
+
     const updatedChannelMix = campaignFormData?.channel_mix?.find(
       (ch) => ch?.funnel_stage === description
     );
@@ -405,12 +445,25 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         moment(startDate).format("YYYY-MM-DD");
       updatedChannelMix["funnel_stage_timeline_end_date"] =
         moment(endDate).format("YYYY-MM-DD");
-      setCampaignFormData((prev) => ({
-        ...prev,
-        channel_mix: prev.channel_mix.map((ch) =>
+
+      const allStartDates = campaignFormData?.channel_mix?.map((ch) =>
+        moment(ch.funnel_stage_timeline_start_date)
+      );
+      const allEndDates = campaignFormData?.channel_mix?.map((ch) =>
+        moment(ch.funnel_stage_timeline_end_date)
+      );
+
+      const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD");
+      const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD");
+
+      draftCampaignFormRef.current = {
+        ...campaignFormData,
+        channel_mix: campaignFormData.channel_mix.map((ch) =>
           ch.funnel_stage === description ? updatedChannelMix : ch
         ),
-      }));
+        campaign_timeline_start_date: minStartDate,
+        campaign_timeline_end_date: maxEndDate,
+      };
     }
 
     // Update tooltip during drag
@@ -426,7 +479,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   const handleMouseUp = () => {
     // Hide tooltip on mouse up
     setTooltip((prev) => ({ ...prev, visible: false }));
-
+    console.log(draftCampaignFormRef.current, "herehereher");
+    if (draftCampaignFormRef.current) {
+      setCampaignFormData(draftCampaignFormRef.current);
+      draftCampaignFormRef.current = null;
+    }
     isResizing.current = null;
     isDragging.current = null;
     document.removeEventListener("mousemove", handleMouseMoveResize);
@@ -455,7 +512,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           style={{
             left: `${tooltip.x}px`,
             top: `0px`,
-            transform: `translate(-${tooltip.x + 100 >= (parentWidth || 0) ? 100 : 0}%, -100%)`,
+            transform: `translate(-${
+              tooltip.x + 100 >= (parentWidth || 0) ? 100 : 0
+            }%, -100%)`,
             border: `1px solid ${bg}`,
             color: "white",
           }}

@@ -164,25 +164,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
     setOpenItems((prev) => ({ ...prev, [stage]: !prev[stage] }))
   }
 
-  // const getCurrencySymbol = (currencyCode) => {
-  //   switch (currencyCode) {
-  //     case "EUR":
-  //       return "€"
-  //     case "USD":
-  //       return "$"
-  //     case "GBP":
-  //       return "£"
-  //     case "NGN":
-  //       return "₦"
-  //     case "JPY":
-  //       return "¥"
-  //     case "CAD":
-  //       return "$"
-  //     default:
-  //       return "€"
-  //   }
-  // }
-
   const isButtonEnabled = (stage) => {
     const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stage)
     if (stageData?.stage_budget?.fixed_value) return true
@@ -598,6 +579,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
     )
   }
 
+  // --- RECAP REWRITE STARTS HERE ---
   const getStageRecap = (stageName) => {
     const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
     const currency = campaignFormData?.campaign_budget?.currency || "EUR"
@@ -620,65 +602,104 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
     const totalFees = fees.reduce((total, fee) => total + Number(fee.amount || 0), 0)
     const remainingBudget = calculateRemainingBudget(netAmount, fees, campaignFormData, campaignBudgetType)
 
-    let platformRecap = ""
-    let platformCount = 0
-    let adSetCount = 0
-    const platformsList = []
+    // Build a vertical list of channels (platforms) with their budget and % of phase
+    const channelRows: {
+      icon: StaticImageData | string
+      name: string
+      budget: number
+      percent: number
+    }[] = []
 
-    mediaTypes.forEach((type) => {
-      if (stageData?.[type]) {
-        stageData[type].forEach((platform) => {
-          platformCount++
-          platformsList.push(platform.platform_name)
-          if (platform?.ad_sets?.length) {
-            adSetCount += platform.ad_sets.length
-          }
-        })
-      }
-    })
-
-    if (platformCount > 0) {
-      platformRecap = `${platformCount} platform${platformCount > 1 ? "s" : ""}`
-      if (adSetCount > 0) {
-        platformRecap += `, ${adSetCount} ad set${adSetCount > 1 ? "s" : ""}`
-      }
-      platformRecap += ` (${platformsList.join(", ")})`
+    if (stageData) {
+      mediaTypes.forEach((type) => {
+        if (stageData[type]) {
+          stageData[type].forEach((platform) => {
+            const budget = Number(platform?.budget?.fixed_value) || 0
+            const percent = stageBudget > 0 ? (budget / stageBudget) * 100 : 0
+            channelRows.push({
+              icon: getPlatformIcon(platform.platform_name) || "/placeholder.svg",
+              name: platform.platform_name,
+              budget,
+              percent,
+            })
+          })
+        }
+      })
     }
 
     return (
-      <div className="mb-4 mt-2 text-sm text-gray-700 bg-[#F4F6FA] rounded px-4 py-2 border border-[#E5E7EB]">
-        <span className="font-semibold">Recap:</span> Net Budget:{" "}
-        <span className="font-bold">
-          {getCurrencySymbol(currency)}
-          {formatNumberWithCommas(stageBudget)}
-        </span>{" "}
-        ({formatPercent(stagePercentage)}% of available net budget)
-        {fees.length > 0 && (
-          <>
-            {" • "}Gross Budget:{" "}
+      <div className="mb-2 mt-1 text-sm text-gray-700 bg-[#F4F6FA] rounded px-4 py-1 border border-[#E5E7EB]">
+        <div className="mb-1 flex flex-col gap-0.5">
+          <div className="font-semibold mb-0.5">Recap</div>
+          <div>
+            <span className="font-bold">Net Budget: </span>
             <span className="font-bold">
               {getCurrencySymbol(currency)}
-              {formatNumberWithCommas(calculateGrossFromNet(stageBudget, fees).toFixed(2))}
+              {formatNumberWithCommas(stageBudget)}
             </span>
-            {" • "}Fees:{" "}
-            <span className="font-bold">
+            <span className="ml-2 text-gray-500">
+              ({formatPercent(stagePercentage)}% of available net budget)
+            </span>
+          </div>
+          {fees.length > 0 && (
+            <div>
+              <span className="font-bold">Gross Budget: </span>
+              <span className="font-bold">
+                {getCurrencySymbol(currency)}
+                {formatNumberWithCommas(calculateGrossFromNet(stageBudget, fees).toFixed(2))}
+              </span>
+              <span className="ml-2 font-bold">Fees: </span>
+              <span className="font-bold">
+                {getCurrencySymbol(currency)}
+                {formatNumberWithCommas(totalFees.toFixed(2))}
+              </span>
+            </div>
+          )}
+          <div>
+            <span className="font-bold">Remaining: </span>
+            <span className={`font-bold ${Number(remainingBudget) < 1 ? "text-red-500" : "text-green-600"}`}>
               {getCurrencySymbol(currency)}
-              {formatNumberWithCommas(totalFees.toFixed(2))}
+              {formatNumberWithCommas(remainingBudget)}
             </span>
-          </>
+          </div>
+        </div>
+        {channelRows.length > 0 && (
+          <div className="mt-2">
+            <div className="font-semibold mb-0.5">Channel Allocation</div>
+            <div className="flex flex-col gap-1">
+              {channelRows.map((row, idx) => (
+                <div
+                  key={row.name + idx}
+                  className="flex items-center gap-2 bg-white rounded border border-gray-200 px-2 py-1"
+                >
+                  <Image
+                    src={row.icon}
+                    alt={row.name}
+                    width={20}
+                    height={20}
+                    className="rounded"
+                    style={{ minWidth: 20, minHeight: 20 }}
+                  />
+                  <span className="font-medium text-[#061237] w-32 truncate">{row.name}</span>
+                  <span className="ml-auto font-bold">
+                    {getCurrencySymbol(currency)}
+                    {formatNumberWithCommas(row.budget)}
+                  </span>
+                  <span className="ml-2 text-xs text-gray-600">
+                    {formatPercent(row.percent)}% of phase
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
-        {" • "}
-        <span className={`font-bold ${Number(remainingBudget) < 1 ? "text-red-500" : "text-green-600"}`}>
-          Remaining: {getCurrencySymbol(currency)}
-          {formatNumberWithCommas(remainingBudget)}
-        </span>
-        {platformRecap && <> • {platformRecap}</>}
       </div>
     )
   }
+  // --- RECAP REWRITE ENDS HERE ---
 
   return (
-    <div className="mt-12 flex items-start flex-col gap-12 w-full">
+    <div className="mt-12 flex items-start flex-col gap-8 w-full">
       {funnelStages.map((stageName, index) => {
         const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
         const stageBudget = Number(stageData?.stage_budget?.fixed_value) || 0
@@ -734,10 +755,10 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
         return (
           <div key={index} className="w-full">
             <div
-              className="flex items-center justify-between px-6 py-4 w-full bg-[#FCFCFC] border border-gray-300 rounded-lg cursor-pointer"
+              className="flex items-center justify-between px-6 py-3 w-full bg-[#FCFCFC] border border-gray-300 rounded-lg cursor-pointer"
               onClick={() => toggleItem(stage.name)}
             >
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 {stage?.icon ? (
                   <Image src={stage.icon || "/placeholder.svg"} alt={`${stage.name} icon`} width={20} height={20} />
                 ) : (
@@ -745,10 +766,10 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                 )}
                 <p className="text-md font-semibold text-[#061237]">{stage.name}</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <p
                   className={`font-semibold text-base ${stageStatus[stage.name] === "Completed"
-                      ? "text-green-500 flex items-center gap-2"
+                      ? "text-green-500 flex items-center gap-1.5"
                       : stageStatus[stage.name] === "In progress"
                         ? "text-[#3175FF]"
                         : "text-[#061237] opacity-50"
@@ -771,21 +792,21 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
 
             {openItems[stage.name] && (
               <>
-                <div className="pt-4 bg-[#FCFCFC] rounded-lg cursor-pointer border px-6 border-[rgba(6,18,55,0.1)]">
-                  <div className="flex mt-6 flex-col items-start gap-8">
+                <div className="pt-3 bg-[#FCFCFC] rounded-lg cursor-pointer border px-6 border-[rgba(6,18,55,0.1)]">
+                  <div className="flex mt-4 flex-col items-start gap-4">
                     {fees.length > 0 && (
-                      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-sm font-semibold text-blue-800 mb-2">Applied Fees:</p>
-                        <div className="flex flex-wrap gap-2">
+                      <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-xs font-semibold text-blue-800 mb-1">Applied Fees:</p>
+                        <div className="flex flex-wrap gap-1">
                           {fees.map((fee, index) => (
-                            <span key={index} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                            <span key={index} className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
                               {fee.label}: {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
                               {formatNumberWithCommas(fee.amount)}
                               {fee.isPercent && ` (${fee.percentValue}%)`}
                             </span>
                           ))}
                         </div>
-                        <p className="text-xs text-blue-600 mt-1">
+                        <p className="text-xs text-blue-600 mt-0.5">
                           Total Fees: {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
                           {formatNumberWithCommas(
                             fees.reduce((total, fee) => total + Number(fee.amount || 0), 0).toFixed(2),
@@ -793,9 +814,9 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                         </p>
                       </div>
                     )}
-                    <div className="flex mb-8 justify-center gap-6">
-                      <div className="flex flex-col gap-4">
-                        <h2 className="text-center font-bold">
+                    <div className="flex mb-4 justify-center gap-4">
+                      <div className="flex flex-col gap-2">
+                        <h2 className="text-center font-bold text-sm">
                           {campaignBudgetType === "gross" ? "Gross Budget" : "Net Budget"}
                           {fees.length > 0 && campaignBudgetType === "gross" && (
                             <span className="text-xs text-gray-500 block font-normal">
@@ -803,11 +824,11 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                             </span>
                           )}
                         </h2>
-                        <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
+                        <div className="flex items-center justify-between px-3 w-[180px] h-[40px] border border-[#D0D5DD] rounded-[8px] bg-[#FFFFFF]">
                           <p className="font-bold">{getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}</p>
                           <input
                             type="text"
-                            className="w-full px-4 focus:outline-none"
+                            className="w-full px-2 focus:outline-none text-sm"
                             disabled={validatedStages[stageName]}
                             value={
                               campaignBudgetType === "gross" && fees.length > 0
@@ -830,17 +851,17 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                           {campaignFormData?.campaign_budget?.currency}
                         </div>
                       </div>
-                      <div className="flex items-start flex-col gap-4">
-                        <h2 className="text-center font-bold">Percentage</h2>
-                        <div className="flex items-center gap-4">
-                          <div className="bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
-                            <div className="flex items-center gap-2">
+                      <div className="flex items-start flex-col gap-2">
+                        <h2 className="text-center font-bold text-sm">Percentage</h2>
+                        <div className="flex items-center gap-2">
+                          <div className="bg-[#FFFFFF] rounded-[8px] min-w-[54px] h-[40px] border border-[#D0D5DD] flex items-center px-2">
+                            <div className="flex items-center gap-1">
                               <input
                                 type="number"
                                 min="0"
                                 max="100"
                                 step="0.1"
-                                className="w-full focus:outline-none text-right"
+                                className="w-full focus:outline-none text-right text-sm"
                                 disabled={validatedStages[stageName]}
                                 value={formatPercent(percentage)}
                                 onChange={(e) => handleStageBudgetUpdate(stageName, e.target.value, true)}
@@ -848,11 +869,11 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                               <span>%</span>
                             </div>
                           </div>
-                          <p className="tracking-tight">of total budget</p>
+                          <p className="tracking-tight text-xs">of total budget</p>
                         </div>
                       </div>
                     </div>
-                    <hr className="text-gray-200 w-full p-1" />
+                    <hr className="text-gray-200 w-full p-0.5" />
                     {platforms[stage.name]?.map((platform, pIdx) => {
                       const stageObj = campaignFormData?.channel_mix?.find((stage) => stage.funnel_stage === stageName)
                       if (!stageObj) return null
@@ -876,14 +897,14 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                           className="w-full"
                           id={`${stageName}${platform?.outlet}${pIdx}`}
                         >
-                          <div className="flex mb-8 items-end gap-3">
-                            <div className="flex items-start flex-col gap-2">
+                          <div className="flex mb-4 items-end gap-2">
+                            <div className="flex items-start flex-col gap-1">
                               {platform?.ad_sets?.length > 0 && (
-                                <div className="flex rounded-[50px] bg-[#00A36C1A] border border-[#00A36C1A] w-[82px] h-[29px] items-center gap-2">
-                                  <span className="text-[#00A36C] pl-2">{platform?.ad_sets?.length} ad sets</span>
+                                <div className="flex rounded-[50px] bg-[#00A36C1A] border border-[#00A36C1A] w-[70px] h-[22px] items-center gap-1">
+                                  <span className="text-[#00A36C] pl-2 text-xs">{platform?.ad_sets?.length} ad sets</span>
                                 </div>
                               )}
-                              <div className="flex gap-2 indent-[10px]">
+                              <div className="flex gap-1 indent-[8px]">
                                 {campaignFormData?.campaign_budget?.level === "Adset level" &&
                                   platform?.ad_sets?.length > 0 && (
                                     <div className="l-shape-container-cb">
@@ -922,15 +943,15 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                     </div>
                                   )}
                               </div>
-                              <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[200px] h-[50px] rounded-[10px] items-center gap-2">
-                                <div className="flex justify-between w-full px-4 items-center">
-                                  <div className="flex items-center gap-2">
+                              <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[180px] h-[40px] rounded-[8px] items-center gap-1">
+                                <div className="flex justify-between w-full px-3 items-center">
+                                  <div className="flex items-center gap-1">
                                     <Image
                                       src={platform?.icon || "/placeholder.svg"}
                                       className="size-5"
                                       alt={platform?.outlet || "platform"}
                                     />
-                                    <span>{platform?.outlet}</span>
+                                    <span className="text-sm">{platform?.outlet}</span>
                                   </div>
                                   {campaignFormData?.campaign_budget?.level === "Adset level" &&
                                     platform?.ad_sets?.length > 0 && (
@@ -939,28 +960,28 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                 </div>
                               </div>
                             </div>
-                            <div className="flex items-start flex-col gap-4">
-                              <h2 className="text-center font-bold">Budget</h2>
-                              <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
-                                <p className="font-bold">
+                            <div className="flex items-start flex-col gap-1">
+                              <h2 className="text-center font-bold text-xs">Budget</h2>
+                              <div className="flex items-center justify-between px-3 w-[180px] h-[40px] border border-[#D0D5DD] rounded-[8px] bg-[#FFFFFF]">
+                                <p className="font-bold text-sm">
                                   {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
                                 </p>
                                 <input
                                   type="text"
-                                  className="w-full px-4 focus:outline-none"
+                                  className="w-full px-2 focus:outline-none text-sm"
                                   value={formatNumberWithCommas(budgetValue)}
                                   disabled={validatedStages[stageName]}
                                   onChange={(e) =>
                                     handlePlatformBudgetUpdate(stageName, platform.outlet, e.target.value, false)
                                   }
                                 />
-                                {campaignFormData?.campaign_budget?.currency}
+                                <span className="text-sm">{campaignFormData?.campaign_budget?.currency}</span>
                               </div>
                             </div>
-                            <div className="flex items-start flex-col gap-3">
-                              <h2 className="text-center font-bold">Percentage</h2>
+                            <div className="flex items-start flex-col gap-1">
+                              <h2 className="text-center font-bold text-xs">Percentage</h2>
                               <div
-                                className="flex items-center gap-4 flex-wrap w-full"
+                                className="flex items-center gap-1 flex-wrap w-full"
                                 style={{
                                   minWidth: 0,
                                   width: "100%",
@@ -969,14 +990,14 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                   alignItems: "center",
                                 }}
                               >
-                                <div className="bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
-                                  <div className="flex items-center gap-2">
+                                <div className="bg-[#FFFFFF] rounded-[8px] min-w-[54px] h-[40px] border border-[#D0D5DD] flex items-center px-2">
+                                  <div className="flex items-center gap-1">
                                     <input
                                       type="number"
                                       min="0"
                                       max="100"
                                       step="0.1"
-                                      className="w-full focus:outline-none text-right"
+                                      className="w-full focus:outline-none text-right text-sm"
                                       disabled={validatedStages[stageName]}
                                       value={formatPercent(platformPercentage)}
                                       onChange={(e) =>
@@ -986,11 +1007,11 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                     <span>%</span>
                                   </div>
                                 </div>
-                                <p className="whitespace-nowrap tracking-tight">of {stageName} budget</p>
+                                <p className="whitespace-nowrap tracking-tight text-xs">of {stageName} budget</p>
                                 {platform?.ad_sets?.length > 1 &&
                                   campaignFormData?.campaign_budget?.level === "Adset level" && (
                                     <div
-                                      className="flex items-center gap-2 w-full md:w-auto"
+                                      className="flex items-center gap-1 w-full md:w-auto"
                                       style={{
                                         flex: "1 1 0",
                                         minWidth: 0,
@@ -1000,7 +1021,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                     >
                                       <label
                                         htmlFor={`${stage.name}-${platform?.outlet}`}
-                                        className="relative inline-block h-6 w-12 cursor-pointer rounded-full bg-gray-300 transition [-webkit-tap-highlight-color:_transparent] has-[:checked]:bg-blue-500 peer-checked:bg-blue-500"
+                                        className="relative inline-block h-5 w-10 cursor-pointer rounded-full bg-gray-300 transition [-webkit-tap-highlight-color:_transparent] has-[:checked]:bg-blue-500 peer-checked:bg-blue-500"
                                       >
                                         <input
                                           type="checkbox"
@@ -1015,10 +1036,10 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                             }
                                           }}
                                         />
-                                        <span className="absolute inset-y-0 left-0 w-6 h-6 rounded-full bg-white transition-transform duration-200 transform peer-checked:translate-x-6"></span>
+                                        <span className="absolute inset-y-0 left-0 w-5 h-5 rounded-full bg-white transition-transform duration-200 transform peer-checked:translate-x-5"></span>
                                       </label>
                                       <div
-                                        className="text-[#061237] text-nowrap text-sm font-semibold tracking-tighter"
+                                        className="text-[#061237] text-nowrap text-xs font-semibold tracking-tighter"
                                         style={{
                                           whiteSpace: "nowrap",
                                           overflow: "hidden",
@@ -1036,7 +1057,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                               </div>
                             </div>
                           </div>
-                          <div className="pb-8 space-y-6" id="setContainer">
+                          <div className="pb-4 space-y-3" id="setContainer">
                             {campaignFormData?.campaign_budget?.level === "Adset level" &&
                               platform?.ad_sets?.map((ad_set, adSetIdx) => {
                                 const getAdSetBudget = (adSet) => {
@@ -1067,60 +1088,60 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                   return "0"
                                 }
                                 return (
-                                  <div className="ml-[20px]" key={adSetIdx}>
+                                  <div className="ml-[16px]" key={adSetIdx}>
                                     {ad_set?.extra_audiences?.length > 0 && (
-                                      <div className="flex gap-2 indent-[10px]">
+                                      <div className="flex gap-1 indent-[8px]">
                                         <div className="l-shape-container-cb">
                                           <div
                                             className="l-vertical-cb"
                                             style={{
-                                              height: "120px",
-                                              top: "61px",
-                                              left: "-5px",
+                                              height: "100px",
+                                              top: "51px",
+                                              left: "-4px",
                                             }}
                                           ></div>
                                           <div
                                             className="l-horizontal-cb"
                                             style={{
-                                              bottom: "-182px",
-                                              left: "-5px",
-                                              width: "25px",
+                                              bottom: "-152px",
+                                              left: "-4px",
+                                              width: "20px",
                                             }}
                                           ></div>
                                         </div>
                                       </div>
                                     )}
-                                    <div className="flex gap-3 items-end">
-                                      <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[50px] rounded-[10px] items-center gap-2">
-                                        <div className="flex justify-between w-full px-4 items-center">
-                                          <div className="flex items-center gap-2">
-                                            <span>{ad_set?.name}</span>
+                                    <div className="flex gap-2 items-end">
+                                      <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[40px] rounded-[8px] items-center gap-1">
+                                        <div className="flex justify-between w-full px-3 items-center">
+                                          <div className="flex items-center gap-1">
+                                            <span className="text-xs">{ad_set?.name}</span>
                                           </div>
                                         </div>
                                       </div>
-                                      <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[200px] h-[50px] rounded-[10px] items-center gap-2">
-                                        <div className="flex justify-between w-full px-4 items-center">
-                                          <div className="flex items-center gap-2">
-                                            <span>{ad_set?.audience_type}</span>
+                                      <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[140px] h-[40px] rounded-[8px] items-center gap-1">
+                                        <div className="flex justify-between w-full px-3 items-center">
+                                          <div className="flex items-center gap-1">
+                                            <span className="text-xs">{ad_set?.audience_type}</span>
                                           </div>
                                         </div>
                                       </div>
-                                      <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[50px] rounded-[10px] items-center gap-2">
-                                        <div className="flex justify-between w-full px-4 items-center">
-                                          <div className="flex items-center gap-2">
-                                            <span>{ad_set?.size ? Number(ad_set?.size).toLocaleString() : ""}</span>
+                                      <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[40px] rounded-[8px] items-center gap-1">
+                                        <div className="flex justify-between w-full px-3 items-center">
+                                          <div className="flex items-center gap-1">
+                                            <span className="text-xs">{ad_set?.size ? Number(ad_set?.size).toLocaleString() : ""}</span>
                                           </div>
                                         </div>
                                       </div>
-                                      <div className="flex items-start flex-col gap-4">
-                                        <h2 className="text-center font-bold">Budget</h2>
-                                        <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
-                                          <p className="font-bold">
+                                      <div className="flex items-start flex-col gap-1">
+                                        <h2 className="text-center font-bold text-xs">Budget</h2>
+                                        <div className="flex items-center justify-between px-3 w-[140px] h-[40px] border border-[#D0D5DD] rounded-[8px] bg-[#FFFFFF]">
+                                          <p className="font-bold text-xs">
                                             {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
                                           </p>
                                           <input
                                             type="text"
-                                            className="w-full px-4 focus:outline-none"
+                                            className="w-full px-2 focus:outline-none text-xs"
                                             value={formatNumberWithCommas(getAdSetBudget(ad_set))}
                                             disabled={validatedStages[stageName]}
                                             onChange={(e) => {
@@ -1206,19 +1227,19 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                               })
                                             }}
                                           />
-                                          {campaignFormData?.campaign_budget?.currency}
+                                          <span className="text-xs">{campaignFormData?.campaign_budget?.currency}</span>
                                         </div>
                                       </div>
-                                      <div className="flex items-start flex-col gap-3">
-                                        <h2 className="text-center font-bold">Percentage</h2>
-                                        <div className="flex items-center gap-4">
-                                          <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
-                                            <div className="flex items-center gap-2">
-                                              <p>{formatPercent(adSetPercentage)}</p>
-                                              <span> %</span>
+                                      <div className="flex items-start flex-col gap-1">
+                                        <h2 className="text-center font-bold text-xs">Percentage</h2>
+                                        <div className="flex items-center gap-1">
+                                          <div className=" bg-[#FFFFFF] rounded-[8px] min-w-[54px] h-[40px] border border-[#D0D5DD] flex items-center px-2">
+                                            <div className="flex items-center gap-1">
+                                              <p className="text-xs">{formatPercent(adSetPercentage)}</p>
+                                              <span className="text-xs"> %</span>
                                             </div>
                                           </div>
-                                          <p className="whitespace-nowrap tracking-tight">
+                                          <p className="whitespace-nowrap tracking-tight text-xs">
                                             of {platform?.outlet} budget
                                           </p>
                                         </div>
@@ -1226,37 +1247,37 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                     </div>
                                     {ad_set?.extra_audiences?.length > 0 &&
                                       ad_set?.extra_audiences?.map((addSet, extraIdx) => (
-                                        <div key={extraIdx} className="flex gap-3 items-end ml-[20px] mt-[20px]">
-                                          <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[50px] rounded-[10px] items-center gap-2">
-                                            <div className="flex justify-between w-full px-4 items-center">
-                                              <div className="flex items-center gap-2">
-                                                <span>{addSet?.name}</span>
+                                        <div key={extraIdx} className="flex gap-2 items-end ml-[12px] mt-[10px]">
+                                          <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[40px] rounded-[8px] items-center gap-1">
+                                            <div className="flex justify-between w-full px-3 items-center">
+                                              <div className="flex items-center gap-1">
+                                                <span className="text-xs">{addSet?.name}</span>
                                               </div>
                                             </div>
                                           </div>
-                                          <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[200px] h-[50px] rounded-[10px] items-center gap-2">
-                                            <div className="flex justify-between w-full px-4 items-center">
-                                              <div className="flex items-center gap-2">
-                                                <span>{addSet?.audience_type}</span>
+                                          <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[140px] h-[40px] rounded-[8px] items-center gap-1">
+                                            <div className="flex justify-between w-full px-3 items-center">
+                                              <div className="flex items-center gap-1">
+                                                <span className="text-xs">{addSet?.audience_type}</span>
                                               </div>
                                             </div>
                                           </div>
-                                          <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[50px] rounded-[10px] items-center gap-2">
-                                            <div className="flex justify-between w-full px-4 items-center">
-                                              <div className="flex items-center gap-2">
-                                                <span>{addSet?.size ? Number(addSet?.size).toLocaleString() : ""}</span>
+                                          <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[40px] rounded-[8px] items-center gap-1">
+                                            <div className="flex justify-between w-full px-3 items-center">
+                                              <div className="flex items-center gap-1">
+                                                <span className="text-xs">{addSet?.size ? Number(addSet?.size).toLocaleString() : ""}</span>
                                               </div>
                                             </div>
                                           </div>
-                                          <div className="flex items-start flex-col gap-4">
-                                            <h2 className="text-center font-bold">Budget</h2>
-                                            <div className="flex items-center justify-between px-4 w-[200px] h-[50px] border border-[#D0D5DD] rounded-[10px] bg-[#FFFFFF]">
-                                              <p className="font-bold">
+                                          <div className="flex items-start flex-col gap-1">
+                                            <h2 className="text-center font-bold text-xs">Budget</h2>
+                                            <div className="flex items-center justify-between px-3 w-[140px] h-[40px] border border-[#D0D5DD] rounded-[8px] bg-[#FFFFFF]">
+                                              <p className="font-bold text-xs">
                                                 {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
                                               </p>
                                               <input
                                                 type="text"
-                                                className="w-full px-4 focus:outline-none"
+                                                className="w-full px-2 focus:outline-none text-xs"
                                                 disabled={validatedStages[stageName]}
                                                 value={formatNumberWithCommas(getAdSetExtraBudget(ad_set, extraIdx))}
                                                 onChange={(e) => {
@@ -1378,19 +1399,19 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                   })
                                                 }}
                                               />
-                                              {campaignFormData?.campaign_budget?.currency}
+                                              <span className="text-xs">{campaignFormData?.campaign_budget?.currency}</span>
                                             </div>
                                           </div>
-                                          <div className="flex items-start flex-col gap-3">
-                                            <h2 className="text-center font-bold">Percentage</h2>
-                                            <div className="flex items-center gap-4">
-                                              <div className=" bg-[#FFFFFF] rounded-[10px] min-w-[62px] h-[50px] border border-[#D0D5DD] flex items-center px-4">
-                                                <div className="flex items-center gap-2">
-                                                  <p>{formatPercent(getAdSetExtraBudgetPercentage(ad_set, extraIdx))}</p>
-                                                  <span> %</span>
+                                          <div className="flex items-start flex-col gap-1">
+                                            <h2 className="text-center font-bold text-xs">Percentage</h2>
+                                            <div className="flex items-center gap-1">
+                                              <div className=" bg-[#FFFFFF] rounded-[8px] min-w-[54px] h-[40px] border border-[#D0D5DD] flex items-center px-2">
+                                                <div className="flex items-center gap-1">
+                                                  <p className="text-xs">{formatPercent(getAdSetExtraBudgetPercentage(ad_set, extraIdx))}</p>
+                                                  <span className="text-xs"> %</span>
                                                 </div>
                                               </div>
-                                              <p className="whitespace-nowrap tracking-tight">
+                                              <p className="whitespace-nowrap tracking-tight text-xs">
                                                 of {platform?.outlet} budget
                                               </p>
                                             </div>
@@ -1401,12 +1422,12 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                 )
                               })}
                           </div>
-                          <hr className="text-gray-200 w-full p-1" />
+                          <hr className="text-gray-200 w-full p-0.5" />
                         </div>
                       )
                     })}
                   </div>
-                  <div className="flex w-full my-6 justify-end items-center">
+                  <div className="flex w-full my-4 justify-end items-center">
                     <Button
                       text={validatedStages[stage.name] ? "Edit" : "Validate"}
                       onClick={
@@ -1420,7 +1441,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                       }
                       disabled={!isButtonEnabled(stage.name)}
                       variant="primary"
-                      className="h-[52px] rounded-md px-6 py-2"
+                      className="h-[40px] rounded-md px-4 py-1"
                     />
                   </div>
                 </div>
