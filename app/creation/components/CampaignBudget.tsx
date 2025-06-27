@@ -138,7 +138,8 @@ const CampaignBudget = () => {
       }
       if (campaignFormData?.campaign_budget?.budget_fees?.length > 0 || (!feeType && !feeAmount)) {
         setFeeStepValidated(true)
-        setStep(2)
+        // Do NOT advance step here for bottom-up, keep overview visible
+        // setStep(2) // <-- Remove this line for bottom-up
         return true
       }
       if (feeType && !feeAmount) {
@@ -154,7 +155,8 @@ const CampaignBudget = () => {
         return false
       }
       setFeeStepValidated(true)
-      setStep(2)
+      // Do NOT advance step here for bottom-up, keep overview visible
+      // setStep(2) // <-- Remove this line for bottom-up
       return true
     }
     return false
@@ -666,12 +668,7 @@ const CampaignBudget = () => {
               </button>
             </div>
           )}
-        </>
-      )}
-      {/* Step 3: Set overall campaign budget (summary/final step) with budget overview */}
-      {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 2 && (
-        <>
-          {/* In bottom-up, after sub-budgets and fees, show summary/overall budget */}
+          {/* Always show overall budget and overview for bottom-up, regardless of validation */}
           <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
             <h2 className="text-[18px] font-semibold mb-2">Overall Campaign Budget</h2>
             <p className="text-[15px] mb-4">The total campaign budget is calculated from your sub-budgets.</p>
@@ -688,11 +685,35 @@ const CampaignBudget = () => {
               <span className="text-gray-500">{campaignFormData?.campaign_budget?.currency || "EUR"}</span>
             </div>
           </div>
-
-          {/* Show budget overview button at the end for bottom-up */}
           <BudgetOverviewSection />
         </>
       )}
+      {/* Step 3: Set overall campaign budget (summary/final step) with budget overview */}
+      {/* 
+        The following block is now redundant for bottom-up, since the above block always shows the overview and budget.
+        If you want to keep the old step-based logic, you can uncomment this block.
+        {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 2 && (
+          <>
+            <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
+              <h2 className="text-[18px] font-semibold mb-2">Overall Campaign Budget</h2>
+              <p className="text-[15px] mb-4">The total campaign budget is calculated from your sub-budgets.</p>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-[20px] text-[#3175FF]">
+                  {getCurrencySymbol(campaignFormData?.campaign_budget?.currency || "EUR")}
+                  {formatNumberWithCommas(
+                    campaignFormData?.channel_mix?.reduce(
+                      (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
+                      0,
+                    ) || 0,
+                  )}
+                </span>
+                <span className="text-gray-500">{campaignFormData?.campaign_budget?.currency || "EUR"}</span>
+              </div>
+            </div>
+            <BudgetOverviewSection />
+          </>
+        )}
+      */}
     </div>
   )
 }
