@@ -598,6 +598,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
     )
   }
 
+  // --- RECAP REWRITE STARTS HERE ---
   const getStageRecap = (stageName) => {
     const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
     const currency = campaignFormData?.campaign_budget?.currency || "EUR"
@@ -620,62 +621,101 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
     const totalFees = fees.reduce((total, fee) => total + Number(fee.amount || 0), 0)
     const remainingBudget = calculateRemainingBudget(netAmount, fees, campaignFormData, campaignBudgetType)
 
-    let platformRecap = ""
-    let platformCount = 0
-    let adSetCount = 0
-    const platformsList = []
+    // Build a vertical list of channels (platforms) with their budget and % of phase
+    const channelRows: {
+      icon: StaticImageData | string
+      name: string
+      budget: number
+      percent: number
+    }[] = []
 
-    mediaTypes.forEach((type) => {
-      if (stageData?.[type]) {
-        stageData[type].forEach((platform) => {
-          platformCount++
-          platformsList.push(platform.platform_name)
-          if (platform?.ad_sets?.length) {
-            adSetCount += platform.ad_sets.length
-          }
-        })
-      }
-    })
-
-    if (platformCount > 0) {
-      platformRecap = `${platformCount} platform${platformCount > 1 ? "s" : ""}`
-      if (adSetCount > 0) {
-        platformRecap += `, ${adSetCount} ad set${adSetCount > 1 ? "s" : ""}`
-      }
-      platformRecap += ` (${platformsList.join(", ")})`
+    if (stageData) {
+      mediaTypes.forEach((type) => {
+        if (stageData[type]) {
+          stageData[type].forEach((platform) => {
+            const budget = Number(platform?.budget?.fixed_value) || 0
+            const percent = stageBudget > 0 ? (budget / stageBudget) * 100 : 0
+            channelRows.push({
+              icon: getPlatformIcon(platform.platform_name) || "/placeholder.svg",
+              name: platform.platform_name,
+              budget,
+              percent,
+            })
+          })
+        }
+      })
     }
 
     return (
       <div className="mb-4 mt-2 text-sm text-gray-700 bg-[#F4F6FA] rounded px-4 py-2 border border-[#E5E7EB]">
-        <span className="font-semibold">Recap:</span> Net Budget:{" "}
-        <span className="font-bold">
-          {getCurrencySymbol(currency)}
-          {formatNumberWithCommas(stageBudget)}
-        </span>{" "}
-        ({formatPercent(stagePercentage)}% of available net budget)
-        {fees.length > 0 && (
-          <>
-            {" • "}Gross Budget:{" "}
+        <div className="mb-2 flex flex-col gap-1">
+          <div className="font-semibold mb-1">Recap</div>
+          <div>
+            <span className="font-bold">Net Budget: </span>
             <span className="font-bold">
               {getCurrencySymbol(currency)}
-              {formatNumberWithCommas(calculateGrossFromNet(stageBudget, fees).toFixed(2))}
+              {formatNumberWithCommas(stageBudget)}
             </span>
-            {" • "}Fees:{" "}
-            <span className="font-bold">
+            <span className="ml-2 text-gray-500">
+              ({formatPercent(stagePercentage)}% of available net budget)
+            </span>
+          </div>
+          {fees.length > 0 && (
+            <div>
+              <span className="font-bold">Gross Budget: </span>
+              <span className="font-bold">
+                {getCurrencySymbol(currency)}
+                {formatNumberWithCommas(calculateGrossFromNet(stageBudget, fees).toFixed(2))}
+              </span>
+              <span className="ml-2 font-bold">Fees: </span>
+              <span className="font-bold">
+                {getCurrencySymbol(currency)}
+                {formatNumberWithCommas(totalFees.toFixed(2))}
+              </span>
+            </div>
+          )}
+          <div>
+            <span className="font-bold">Remaining: </span>
+            <span className={`font-bold ${Number(remainingBudget) < 1 ? "text-red-500" : "text-green-600"}`}>
               {getCurrencySymbol(currency)}
-              {formatNumberWithCommas(totalFees.toFixed(2))}
+              {formatNumberWithCommas(remainingBudget)}
             </span>
-          </>
+          </div>
+        </div>
+        {channelRows.length > 0 && (
+          <div className="mt-3">
+            <div className="font-semibold mb-1">Channel Allocation</div>
+            <div className="flex flex-col gap-2">
+              {channelRows.map((row, idx) => (
+                <div
+                  key={row.name + idx}
+                  className="flex items-center gap-3 bg-white rounded border border-gray-200 px-3 py-2"
+                >
+                  <Image
+                    src={row.icon}
+                    alt={row.name}
+                    width={20}
+                    height={20}
+                    className="rounded"
+                    style={{ minWidth: 20, minHeight: 20 }}
+                  />
+                  <span className="font-medium text-[#061237] w-32 truncate">{row.name}</span>
+                  <span className="ml-auto font-bold">
+                    {getCurrencySymbol(currency)}
+                    {formatNumberWithCommas(row.budget)}
+                  </span>
+                  <span className="ml-4 text-sm text-gray-600">
+                    {formatPercent(row.percent)}% of phase
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
-        {" • "}
-        <span className={`font-bold ${Number(remainingBudget) < 1 ? "text-red-500" : "text-green-600"}`}>
-          Remaining: {getCurrencySymbol(currency)}
-          {formatNumberWithCommas(remainingBudget)}
-        </span>
-        {platformRecap && <> • {platformRecap}</>}
       </div>
     )
   }
+  // --- RECAP REWRITE ENDS HERE ---
 
   return (
     <div className="mt-12 flex items-start flex-col gap-12 w-full">
