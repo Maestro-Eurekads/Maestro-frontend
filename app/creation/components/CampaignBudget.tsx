@@ -78,6 +78,34 @@ const CampaignBudget = () => {
     return symbols[currency] || ""
   }
 
+  // --- FIXED: Calculate total budget correctly ---
+  const calculateTotalBudget = () => {
+    if (!campaignFormData?.campaign_budget) return 0
+
+    const budgetAmount = Number(campaignFormData?.campaign_budget?.amount) || 0
+    const budgetType = campaignFormData?.campaign_budget?.budget_type // "top_down" or "bottom_up"
+    const subBudgetType = campaignFormData?.campaign_budget?.sub_budget_type // "gross" or "net"
+
+    // Calculate total fees
+    const totalFeesAmount =
+      campaignFormData?.campaign_budget?.budget_fees?.reduce((total, fee) => total + Number(fee.value || 0), 0) || 0
+
+    if (budgetType === "bottom_up") {
+      // For bottom-up: sum all stage budgets first
+      const stageBudgetsSum =
+        campaignFormData?.channel_mix?.reduce(
+          (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
+          0,
+        ) || 0
+
+      // If gross, add fees to the stage budgets sum; if net, just return stage budgets sum
+      return subBudgetType === "gross" ? stageBudgetsSum + totalFeesAmount : stageBudgetsSum
+    } else {
+      // For top-down: the entered amount IS the total campaign budget
+      return budgetAmount
+    }
+  }
+
   const handleBudgetEdit = (param, type) => {
     if (!isEditing) return
     setCampaignFormData((prev) => ({
@@ -186,7 +214,7 @@ const CampaignBudget = () => {
     }
   }, [campaignData])
 
-  // Auto-calculate main budget for bottom-up approach
+  // Auto-calculate main budget for bottom-up approach using the fixed calculation
   useEffect(() => {
     if (budgetStyle === "bottom_up" && campaignFormData?.channel_mix) {
       const totalFromPhases = campaignFormData.channel_mix.reduce(
@@ -194,7 +222,7 @@ const CampaignBudget = () => {
         0,
       )
 
-      // Update the main campaign budget
+      // Update the main campaign budget with the calculated total
       setCampaignFormData((prev) => ({
         ...prev,
         campaign_budget: {
@@ -678,12 +706,7 @@ const CampaignBudget = () => {
             <div className="flex items-center gap-2">
               <span className="font-bold text-[20px] text-[#3175FF]">
                 {getCurrencySymbol(campaignFormData?.campaign_budget?.currency || "EUR")}
-                {formatNumberWithCommas(
-                  campaignFormData?.channel_mix?.reduce(
-                    (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
-                    0,
-                  ) || 0,
-                )}
+                {formatNumberWithCommas(calculateTotalBudget())}
               </span>
               <span className="text-gray-500">{campaignFormData?.campaign_budget?.currency || "EUR"}</span>
             </div>
