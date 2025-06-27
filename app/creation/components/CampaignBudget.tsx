@@ -59,17 +59,7 @@ const CampaignBudget = () => {
  }, [campaignId]);
 
 
- //  const getCurrencySymbol = (currency) => {
- //   const symbols = {
- //    USD: "$",
- //    EUR: "€",
- //    GBP: "£",
- //    NGN: "₦",
- //    JPY: "¥",
- //    CAD: "$",
- //   }
- //   return symbols[currency] || ""
- //  }
+
 
  const handleBudgetEdit = (param, type) => {
   if (!isEditing) return

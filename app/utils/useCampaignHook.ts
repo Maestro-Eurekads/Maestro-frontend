@@ -20,12 +20,12 @@ const useCampaignHook = () => {
     setLoadingClients(true);
     if (!jwt) return
     const filters = {
-      client: {
-        $eq: clientID,
-      },
-      agency_profile: {
-        $eq: agencyId
-      }
+      // client: {
+      //   $eq: clientID,
+      // },
+      // agency_profile: {
+      //   $eq: agencyId
+      // }
     };
     try {
       const res = await axios.get(
