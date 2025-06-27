@@ -1238,8 +1238,9 @@ const AdsetSettings = memo(function AdsetSettings({
   // GRANULARITY SEPARATION: Only persist ad set data in adset granularity
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  // --- PATCH: Always update campaignFormData with latest adsets/adSetDataMap on any change ---
   useEffect(() => {
-    if (isEditing && selectedPlatforms.includes(outlet.outlet) && granularity === "adset") {
+    if (granularity === "adset" && selectedPlatforms.includes(outlet.outlet)) {
       if (!campaignFormData?.channel_mix) return
 
       // Clear previous timeout
@@ -1249,6 +1250,7 @@ const AdsetSettings = memo(function AdsetSettings({
 
       // Throttle updates to prevent infinite loops
       updateTimeoutRef.current = setTimeout(() => {
+        // Always use the latest adsets/adSetDataMap for saving
         const adSetsToSave = adsets
           .map((adset) => {
             const data = adSetDataMap[adset.id] || {
@@ -1268,8 +1270,7 @@ const AdsetSettings = memo(function AdsetSettings({
           })
           .filter((data) => data.name || data.audience_type)
 
-        if (adSetsToSave.length === 0) return
-
+        // PATCH: Always update campaignFormData, even if adSetsToSave is empty (to clear out old ad sets)
         const updatedChannelMix = updateMultipleAdSets(
           campaignFormData.channel_mix,
           stageName,
@@ -1299,10 +1300,14 @@ const AdsetSettings = memo(function AdsetSettings({
     isEditing,
     selectedPlatforms.includes(outlet.outlet),
     granularity,
-    adsets.length,
-    Object.keys(adSetDataMap).length,
+    adsets,
+    adSetDataMap,
     stageName,
+    outlet.outlet,
+    campaignFormData?.channel_mix,
+    setCampaignFormData,
   ])
+  // --- END PATCH ---
 
   const handleSelectOutlet = useCallback(() => {
     setSelectedPlatforms((prev) => [...prev, outlet.outlet])
@@ -1392,6 +1397,7 @@ const AdsetSettings = memo(function AdsetSettings({
   ) {
     // Build recapRows from adsetAudienceState
     const adsetObj = adsetAudienceState[stageName][outlet.outlet]
+    // PATCH: Sort adsetIds by their addsetNumber if possible, else by id
     const adsetIds = Object.keys(adsetObj)
       .map((id) => Number(id))
       .sort((a, b) => a - b)
