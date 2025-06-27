@@ -167,19 +167,80 @@ const ResizableChannels = ({
     index: number;
   } | null>(null);
 
+  const resizeFrameRef = useRef<{
+    containerStartDate: Date;
+    containerEndDate: Date;
+  } | null>(null);
+  
+
+  // const snapToTimeline = (currentPosition: number, containerWidth: number) => {
+  //   //console.log(" ~ dailyWidth:", dailyWidth)
+  //   const baseStep = dailyWidth;
+  //   const adjustmentPerStep = 0;
+  //   const snapPoints = [];
+
+  //   let currentSnap = 0;
+  //   let step = baseStep;
+
+  //   while (currentSnap <= containerWidth) {
+  //     snapPoints.push(currentSnap);
+  //     currentSnap += step;
+  //     step = Math.max(dailyWidth, step - adjustmentPerStep);
+  //   }
+
+  //   const closestSnap = snapPoints.reduce((prev, curr) =>
+  //     Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition)
+  //       ? curr
+  //       : prev
+  //   );
+
+  //   return closestSnap;
+  // };
+
+  // Function to update tooltip with date information
+
+  const getVisibleMonthsCount = () => {
+    const start = resizeFrameRef.current?.containerStartDate;
+    const end = resizeFrameRef.current?.containerEndDate;
+  
+    if (!start || !end) return 1;
+  
+    return (
+      (end.getFullYear() - start.getFullYear()) * 12 +
+      (end.getMonth() - start.getMonth()) +
+      1
+    );
+  };
+  
+
+  // const getVisibleMonthsCount = () => {
+  //   const startDate = new Date(
+  //     campaignFormData?.channel_mix?.find(
+  //       (ch) => ch?.funnel_stage === parentId
+  //     )?.funnel_stage_timeline_start_date
+  //   );
+  //   const endDate = new Date(
+  //     campaignFormData?.channel_mix?.find(
+  //       (ch) => ch?.funnel_stage === parentId
+  //     )?.funnel_stage_timeline_end_date
+  //   );
+  //   return (
+  //     (endDate.getFullYear() - startDate.getFullYear()) * 12 +
+  //     (endDate.getMonth() - startDate.getMonth()) +
+  //     1 // include both months
+  //   );
+  // };
+
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    //console.log(" ~ dailyWidth:", dailyWidth)
-    const baseStep = dailyWidth;
-    const adjustmentPerStep = 0;
+    const monthCount = getVisibleMonthsCount();
+    console.log("🚀 ~ snapToTimeline ~ monthCount:", monthCount)
+    const step = rrange === "Year" ? containerWidth / monthCount : dailyWidth;
     const snapPoints = [];
 
     let currentSnap = 0;
-    let step = baseStep;
-
     while (currentSnap <= containerWidth) {
       snapPoints.push(currentSnap);
       currentSnap += step;
-      step = Math.max(dailyWidth, step - adjustmentPerStep);
     }
 
     const closestSnap = snapPoints.reduce((prev, curr) =>
@@ -191,7 +252,56 @@ const ResizableChannels = ({
     return closestSnap;
   };
 
-  // Function to update tooltip with date information
+  // const updateTooltipWithDates = (
+  //   startPixel: number,
+  //   endPixel: number,
+  //   index: number,
+  //   mouseX: number,
+  //   mouseY: number,
+  //   type: "resize" | "drag"
+  // ) => {
+  //   if (!dRange || dRange.length === 0) return;
+
+  //   const totalDays = dRange.length - 1;
+
+  //   const dayStartIndex = Math.min(
+  //     totalDays,
+  //     Math.max(0, Math.floor((startPixel / parentWidth) * totalDays))
+  //   );
+  //   const dayEndIndex = Math.min(
+  //     totalDays,
+  //     Math.max(0, Math.floor((endPixel / parentWidth) * totalDays))
+  //   );
+
+  //   const startDateValue = dRange[dayStartIndex] || startDate;
+  //   const endDateValue = dRange[dayEndIndex] || endDate;
+
+  //   const formattedStartDate = format(startDateValue, "MMM dd");
+  //   const formattedEndDate = format(endDateValue, "MMM dd");
+
+  //   const channelName = channels[index]?.name || "Channel";
+  //   const containerRect = document
+  //     .querySelector(
+  //       `.cont-${parentId?.replaceAll(" ", "_")}-${channelName
+  //         ?.replaceAll(" ", "_")
+  //         ?.replace("(", "")
+  //         ?.replace(")", "")}`
+  //     )
+  //     ?.getBoundingClientRect();
+
+  //   let tooltipX = mouseX - containerRect.left;
+  //   const tooltipY = containerRect.top - 50; // Offset to position above the mouse
+
+  //   setTooltip({
+  //     visible: true,
+  //     x: tooltipX,
+  //     y: tooltipY,
+  //     content: `${channelName}: ${formattedStartDate} - ${formattedEndDate}`,
+  //     type,
+  //     index,
+  //   });
+  // };
+
   const updateTooltipWithDates = (
     startPixel: number,
     endPixel: number,
@@ -200,24 +310,43 @@ const ResizableChannels = ({
     mouseY: number,
     type: "resize" | "drag"
   ) => {
-    if (!dRange || dRange.length === 0) return;
+    let formattedStartDate, formattedEndDate;
+    const monthCount = getVisibleMonthsCount();
+    console.log("🚀 ~ monthCount:", monthCount)
 
-    const totalDays = dRange.length - 1;
+    if (rrange === "Year") {
+      const monthIndexStart = Math.min(
+        monthCount - 1,
+        Math.floor((startPixel / parentWidth) * monthCount)
+      );
+      const monthIndexEnd = Math.min(
+        monthCount - 1,
+        Math.floor((endPixel / parentWidth) * monthCount)
+      );
 
-    const dayStartIndex = Math.min(
-      totalDays,
-      Math.max(0, Math.floor((startPixel / parentWidth) * totalDays))
-    );
-    const dayEndIndex = Math.min(
-      totalDays,
-      Math.max(0, Math.floor((endPixel / parentWidth) * totalDays))
-    );
+      const start = new Date(startDate?.getFullYear(), monthIndexStart, 1);
+      const end = new Date(startDate?.getFullYear(), monthIndexEnd + 1, 0);
 
-    const startDateValue = dRange[dayStartIndex] || startDate;
-    const endDateValue = dRange[dayEndIndex] || endDate;
+      formattedStartDate = format(start, "MMM");
+      formattedEndDate = format(end, "MMM");
+    } else {
+      const totalDays = dRange.length - 1;
 
-    const formattedStartDate = format(startDateValue, "MMM dd");
-    const formattedEndDate = format(endDateValue, "MMM dd");
+      const dayStartIndex = Math.min(
+        totalDays,
+        Math.max(0, Math.floor((startPixel / parentWidth) * totalDays))
+      );
+      const dayEndIndex = Math.min(
+        totalDays,
+        Math.max(0, Math.floor((endPixel / parentWidth) * totalDays))
+      );
+
+      const startDateValue = dRange[dayStartIndex] || startDate;
+      const endDateValue = dRange[dayEndIndex] || endDate;
+
+      formattedStartDate = format(startDateValue, "MMM dd");
+      formattedEndDate = format(endDateValue, "MMM dd");
+    }
 
     const channelName = channels[index]?.name || "Channel";
     const containerRect = document
@@ -229,8 +358,8 @@ const ResizableChannels = ({
       )
       ?.getBoundingClientRect();
 
-    let tooltipX = mouseX - containerRect.left;
-    const tooltipY = containerRect.top - 50; // Offset to position above the mouse
+    const tooltipX = mouseX - containerRect.left;
+    const tooltipY = containerRect.top - 50;
 
     setTooltip({
       visible: true,
@@ -258,6 +387,15 @@ const ResizableChannels = ({
       index,
     };
 
+    const channelData = campaignFormData?.channel_mix?.find(
+      (ch) => ch?.funnel_stage === parentId
+    );
+    resizeFrameRef.current = {
+      containerStartDate: new Date(channelData?.funnel_stage_timeline_start_date),
+      containerEndDate: new Date(channelData?.funnel_stage_timeline_end_date),
+    };
+    
+
     const startPixel = channelState[index].left - parentLeft;
     const endPixel = startPixel + channelState[index].width;
     updateTooltipWithDates(
@@ -275,83 +413,63 @@ const ResizableChannels = ({
 
   const handleMouseMoveResize = (e: MouseEvent) => {
     if (!isResizing.current) return;
-    const { startX, startWidth, startPos, direction, index } =
-      isResizing.current;
-    console.log({ startX, startWidth, startPos, direction, index });
+    const { startX, startWidth, startPos, direction, index } = isResizing.current;
+  
     let newWidth = startWidth;
     let newLeft = isNaN(startPos) ? 0 : startPos;
-
-    const gridContainer = document.querySelector(
-      ".grid-container"
-    ) as HTMLElement;
+  
+    const gridContainer = document.querySelector(".grid-container") as HTMLElement;
     if (!gridContainer) return;
-
+  
     const containerRect = gridContainer.getBoundingClientRect();
-    console.log("parentLeft", {parentLeft, parentWidth})
-    const parentRightEdge =  parentWidth;
-
+    const parentRightEdge = parentWidth;
+  
+    const visibleMonths = getVisibleMonthsCount();
+    const snapStep = parentWidth / visibleMonths;
+  
     if (direction === "left") {
       const deltaX = e.clientX - startX;
       newLeft = Math.max(parentLeft, (isNaN(startPos) ? 0 : startPos) + deltaX);
       newWidth = startWidth - (newLeft - (isNaN(startPos) ? 0 : startPos));
-
+  
       if (newWidth < 50) {
         newWidth = 50;
         newLeft = (isNaN(startPos) ? 0 : startPos) + startWidth - 50;
       }
-
-      const snappedPos =
-        snapToTimeline(newLeft - parentLeft, containerRect.width) + parentLeft;
+  
+      const snappedPos = Math.round((newLeft - parentLeft) / snapStep) * snapStep + parentLeft;
       newWidth = startWidth - (snappedPos - (isNaN(startPos) ? 0 : startPos));
       newLeft = snappedPos;
-
-      // Ensure the right edge does not exceed the parent's right edge
+  
       if (newLeft + newWidth > parentRightEdge) {
         newWidth = parentRightEdge - newLeft;
       }
     } else {
       const deltaX = e.clientX - startX;
       newWidth = Math.max(50, startWidth + deltaX);
-
-      // Ensure the right edge does not exceed the parent's right edge
+  
       if (newLeft + newWidth > parentRightEdge) {
         newWidth = parentRightEdge - newLeft;
       }
-
-      const rightEdgePos = 0 + newWidth;
-      const snappedRightEdge =
-        snapToTimeline(rightEdgePos - parentLeft, containerRect.width) +
-        parentLeft;
-console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
-      // Ensure the snapped right edge does not exceed the parent's right edge
+  
+      const rightEdgePos = newLeft + newWidth;
+      const snappedRightEdge = Math.round((rightEdgePos - parentLeft) / snapStep) * snapStep + parentLeft;
+  
       if (snappedRightEdge > parentRightEdge) {
-        console.log("1");
-        newWidth = parentRightEdge;
+        newWidth = parentRightEdge - newLeft;
       } else {
-        console.log("2");
-        newWidth = Math.max(50, snappedRightEdge);
+        newWidth = Math.max(50, snappedRightEdge - newLeft);
       }
-
-      // Adjust newLeft if snapping causes overlap
-      // if (newLeft + newWidth > parentRightEdge) {
-      //   console.log("3");
-      //   newLeft = parentRightEdge - newWidth;
-      // }
     }
-
-
-
+  
     const startPixel = newLeft - parentLeft;
     const endPixel = startPixel + newWidth;
-    const newStartDate = pixelToDate(
-      startPixel,
-      parentWidth,
-      index,
-      "startDate"
-    );
-    console.log("🚀 ~ handleMouseMoveResize ~ newStartDate:", newStartDate);
+  
+    const newStartDate = pixelToDate(startPixel, parentWidth, index, "startDate");
     const newEndDate = pixelToDate(endPixel, parentWidth, index, "endDate");
+  
     draggingDataRef.current = { index, newStartDate, newEndDate };
+  
     setChannels((prev) =>
       prev.map((ch, i) =>
         i === index
@@ -363,58 +481,157 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
           : ch
       )
     );
-    updateTooltipWithDates(
-      startPixel,
-      endPixel,
-      index,
-      e.clientX,
-      e.clientY,
-      "resize"
+  
+    updateTooltipWithDates(startPixel, endPixel, index, e.clientX, e.clientY, "resize");
+  
+    setChannelState((prev) =>
+      prev.map((state, i) =>
+        i === index ? { ...state, left: newLeft, width: newWidth } : state
+      )
     );
-        // Update the channel state
-        setChannelState((prev) =>
-          prev.map((state, i) =>
-            i === index ? { ...state, left: newLeft, width: newWidth } : state
-          )
-        );
   };
-  const handleMouseUpResize = () => {
-    setTooltip((prev) => ({ ...prev, visible: false }));
-    isResizing.current = null;
-    document.removeEventListener("mousemove", handleMouseMoveResize);
-    document.removeEventListener("mouseup", handleMouseUpResize);
-    console.log("draggingDataRef", draggingDataRef.current);
-    if (draggingDataRef.current) {
-      const { index, newStartDate, newEndDate } = draggingDataRef.current;
+  
 
-      // // Update campaignFormData copy
-      // setCopy((prevData) => {
-      //   const updatedData = JSON.parse(JSON.stringify(prevData));
+  // const handleMouseMoveResize = (e: MouseEvent) => {
+  //   if (!isResizing.current) return;
+  //   const { startX, startWidth, startPos, direction, index } =
+  //     isResizing.current;
+  //   console.log({ startX, startWidth, startPos, direction, index });
+  //   let newWidth = startWidth;
+  //   let newLeft = isNaN(startPos) ? 0 : startPos;
 
-      //   const channelMix = updatedData.channel_mix.find(
-      //     (ch) => ch.funnel_stage === parentId
-      //   );
+  //   const gridContainer = document.querySelector(
+  //     ".grid-container"
+  //   ) as HTMLElement;
+  //   if (!gridContainer) return;
 
-      //   if (channelMix) {
-      //     const channelGroup = channelMix[channels[index].channelName];
-      //     if (Array.isArray(channelGroup)) {
-      //       const platform = channelGroup.find(
-      //         (p) => p.platform_name === channels[index].name
-      //       );
+  //   const containerRect = gridContainer.getBoundingClientRect();
+  //   console.log("parentLeft", { parentLeft, parentWidth });
+  //   const parentRightEdge = parentWidth;
 
-      //       if (platform) {
-      //         platform.campaign_start_date = newStartDate;
-      //         platform.campaign_end_date = newEndDate;
-      //       }
-      //     }
-      //   }
+  //   if (direction === "left") {
+  //     const deltaX = e.clientX - startX;
+  //     newLeft = Math.max(parentLeft, (isNaN(startPos) ? 0 : startPos) + deltaX);
+  //     newWidth = startWidth - (newLeft - (isNaN(startPos) ? 0 : startPos));
 
-      //   return updatedData;
-      // });
+  //     if (newWidth < 50) {
+  //       newWidth = 50;
+  //       newLeft = (isNaN(startPos) ? 0 : startPos) + startWidth - 50;
+  //     }
 
-      draggingDataRef.current = null;
-    }
-  };
+  //     const snappedPos =
+  //       snapToTimeline(newLeft - parentLeft, containerRect.width) + parentLeft;
+  //     newWidth = startWidth - (snappedPos - (isNaN(startPos) ? 0 : startPos));
+  //     newLeft = snappedPos;
+
+  //     // Ensure the right edge does not exceed the parent's right edge
+  //     if (newLeft + newWidth > parentRightEdge) {
+  //       newWidth = parentRightEdge - newLeft;
+  //     }
+  //   } else {
+  //     const deltaX = e.clientX - startX;
+  //     newWidth = Math.max(50, startWidth + deltaX);
+
+  //     // Ensure the right edge does not exceed the parent's right edge
+  //     if (newLeft + newWidth > parentRightEdge) {
+  //       newWidth = parentRightEdge - newLeft;
+  //     }
+
+  //     const rightEdgePos = 0 + newWidth;
+  //     const snappedRightEdge =
+  //       snapToTimeline(rightEdgePos - parentLeft, containerRect.width) +
+  //       parentLeft;
+  //     console.log("snappedRightEdge", { snappedRightEdge, parentRightEdge });
+  //     // Ensure the snapped right edge does not exceed the parent's right edge
+  //     if (snappedRightEdge > parentRightEdge) {
+  //       console.log("1");
+  //       newWidth = parentRightEdge;
+  //     } else {
+  //       console.log("2");
+  //       newWidth = Math.max(50, snappedRightEdge);
+  //     }
+
+  //     // Adjust newLeft if snapping causes overlap
+  //     // if (newLeft + newWidth > parentRightEdge) {
+  //     //   console.log("3");
+  //     //   newLeft = parentRightEdge - newWidth;
+  //     // }
+  //   }
+
+  //   const startPixel = newLeft - parentLeft;
+  //   const endPixel = startPixel + newWidth;
+  //   const newStartDate = pixelToDate(
+  //     startPixel,
+  //     parentWidth,
+  //     index,
+  //     "startDate"
+  //   );
+  //   console.log("🚀 ~ handleMouseMoveResize ~ newStartDate:", newStartDate);
+  //   const newEndDate = pixelToDate(endPixel, parentWidth, index, "endDate");
+  //   draggingDataRef.current = { index, newStartDate, newEndDate };
+  //   setChannels((prev) =>
+  //     prev.map((ch, i) =>
+  //       i === index
+  //         ? {
+  //             ...ch,
+  //             start_date: newStartDate,
+  //             end_date: newEndDate,
+  //           }
+  //         : ch
+  //     )
+  //   );
+  //   updateTooltipWithDates(
+  //     startPixel,
+  //     endPixel,
+  //     index,
+  //     e.clientX,
+  //     e.clientY,
+  //     "resize"
+  //   );
+  //   // Update the channel state
+  //   setChannelState((prev) =>
+  //     prev.map((state, i) =>
+  //       i === index ? { ...state, left: newLeft, width: newWidth } : state
+  //     )
+  //   );
+  // };
+  // const handleMouseUpResize = () => {
+  //   setTooltip((prev) => ({ ...prev, visible: false }));
+  //   isResizing.current = null;
+  //   document.removeEventListener("mousemove", handleMouseMoveResize);
+  //   document.removeEventListener("mouseup", handleMouseUpResize);
+  //   console.log("draggingDataRef", draggingDataRef.current);
+  //   if (draggingDataRef.current) {
+  //     const { index, newStartDate, newEndDate } = draggingDataRef.current;
+
+  //     // // Update campaignFormData copy
+  //     // setCopy((prevData) => {
+  //     //   const updatedData = JSON.parse(JSON.stringify(prevData));
+
+  //     //   const channelMix = updatedData.channel_mix.find(
+  //     //     (ch) => ch.funnel_stage === parentId
+  //     //   );
+
+  //     //   if (channelMix) {
+  //     //     const channelGroup = channelMix[channels[index].channelName];
+  //     //     if (Array.isArray(channelGroup)) {
+  //     //       const platform = channelGroup.find(
+  //     //         (p) => p.platform_name === channels[index].name
+  //     //       );
+
+  //     //       if (platform) {
+  //     //         platform.campaign_start_date = newStartDate;
+  //     //         platform.campaign_end_date = newEndDate;
+  //     //       }
+  //     //     }
+  //     //   }
+
+  //     //   return updatedData;
+  //     // });
+
+  //     draggingDataRef.current = null;
+  //   }
+  // };
 
   // console.log("here", isResizing)
   // Separate effect for parentWidth-only changes
@@ -454,6 +671,23 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
   //   }
   // }, [parentWidth, parentLeft]);
 
+  const handleMouseUpResize = () => {
+    setTooltip((prev) => ({ ...prev, visible: false }));
+    isResizing.current = null;
+    resizeFrameRef.current = null; // ✅ clear locked timeline
+    document.removeEventListener("mousemove", handleMouseMoveResize);
+    document.removeEventListener("mouseup", handleMouseUpResize);
+  
+    if (draggingDataRef.current) {
+      const { index, newStartDate, newEndDate } = draggingDataRef.current;
+  
+      // Optional: persist or update to formData
+  
+      draggingDataRef.current = null;
+    }
+  };
+  
+ 
   useEffect(() => {
     if (campaignFormData) {
       const start = campaignFormData?.channel_mix?.find(
@@ -515,7 +749,75 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
     }
   }, [startDate, endDate]);
 
+  // const pixelToDate = (pixel, containerWidth, index, fieldName) => {
+  //   const totalDays =
+  //     fieldName === "endDate" ? dRange?.length - 1 : dRange?.length;
+  //   const dayIndex = Math.min(
+  //     totalDays,
+  //     Math.max(0, Math.floor((pixel / containerWidth) * totalDays))
+  //   );
+
+  //   const calculatedDate = new Date(startDate);
+  //   calculatedDate.setDate(startDate?.getDate() + dayIndex);
+
+  //   const updatedCampaignFormData = { ...campaignFormData };
+
+  //   const channelMix = updatedCampaignFormData.channel_mix.find(
+  //     (ch) => ch.funnel_stage === parentId
+  //   );
+
+  //   if (channelMix) {
+  //     const platform = channelMix[channels[index].channelName]?.find(
+  //       (platform) => platform.platform_name === channels[index].name
+  //     );
+
+  //     if (platform) {
+  //       if (fieldName === "startDate") {
+  //         platform.campaign_start_date = calculatedDate
+  //           ? moment(calculatedDate).format("YYYY-MM-DD")
+  //           : null;
+  //       } else {
+  //         const endDateToUse =
+  //           endDate && calculatedDate > endDate ? endDate : calculatedDate;
+  //         platform.campaign_end_date = endDateToUse
+  //           ? moment(endDateToUse).format("YYYY-MM-DD")
+  //           : null;
+  //       }
+  //     }
+  //   }
+
+  //   // if (fieldName === "endDate" && endDate && calculatedDate > endDate) {
+  //   //   return endDate ? moment(endDate).format("YYYY-MM-DD") : null;
+  //   // }
+  //   // console.log("updatedCampaignFormData", updatedCampaignFormData)
+  //   return calculatedDate ? moment(calculatedDate).format("YYYY-MM-DD") : null;
+  // };
+
   const pixelToDate = (pixel, containerWidth, index, fieldName) => {
+    const totalMonths = getVisibleMonthsCount();
+    const startDate = new Date(
+      campaignFormData?.channel_mix?.find(
+        (ch) => ch?.funnel_stage === parentId
+      )?.funnel_stage_timeline_start_date
+    );
+    const startYear = startDate?.getFullYear();
+
+    if (rrange === "Year") {
+      const clampedPixel = Math.max(0, Math.min(pixel, containerWidth));
+      const monthFraction = clampedPixel / containerWidth;
+      const monthIndex = Math.floor(monthFraction * totalMonths);
+      const resultMonth = new Date(startDate.getFullYear(), startDate.getMonth() + monthIndex, 1);
+
+      if (fieldName === "endDate") {
+        return moment(new Date(resultMonth.getFullYear(), resultMonth.getMonth() + 1, 0)).format(
+          "YYYY-MM-DD"
+        );
+      } else {
+        return moment(resultMonth).format("YYYY-MM-DD");
+      }
+    }
+
+    // Default (Day/Week/Month view)
     const totalDays =
       fieldName === "endDate" ? dRange?.length - 1 : dRange?.length;
     const dayIndex = Math.min(
@@ -526,36 +828,6 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
     const calculatedDate = new Date(startDate);
     calculatedDate.setDate(startDate?.getDate() + dayIndex);
 
-    const updatedCampaignFormData = { ...campaignFormData };
-
-    const channelMix = updatedCampaignFormData.channel_mix.find(
-      (ch) => ch.funnel_stage === parentId
-    );
-
-    if (channelMix) {
-      const platform = channelMix[channels[index].channelName]?.find(
-        (platform) => platform.platform_name === channels[index].name
-      );
-
-      if (platform) {
-        if (fieldName === "startDate") {
-          platform.campaign_start_date = calculatedDate
-            ? moment(calculatedDate).format("YYYY-MM-DD")
-            : null;
-        } else {
-          const endDateToUse =
-            endDate && calculatedDate > endDate ? endDate : calculatedDate;
-          platform.campaign_end_date = endDateToUse
-            ? moment(endDateToUse).format("YYYY-MM-DD")
-            : null;
-        }
-      }
-    }
-
-    // if (fieldName === "endDate" && endDate && calculatedDate > endDate) {
-    //   return endDate ? moment(endDate).format("YYYY-MM-DD") : null;
-    // }
-    // console.log("updatedCampaignFormData", updatedCampaignFormData)
     return calculatedDate ? moment(calculatedDate).format("YYYY-MM-DD") : null;
   };
 
@@ -978,11 +1250,14 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
     };
   }, [dragging, parentWidth]);
 
-  console.log("channel state", channels?.map((ch)=>({
-    name: ch.name,
-    startDate: ch.start_date,
-    endDate: ch.end_date,
-  })))
+  console.log(
+    "channel state",
+    channels?.map((ch) => ({
+      name: ch.name,
+      startDate: ch.start_date,
+      endDate: ch.end_date,
+    }))
+  );
 
   return (
     <div
