@@ -306,16 +306,16 @@ export const SetupScreen = () => {
     setCurrencySign,
   ]);
 
-  // useEffect(() => {
-  //   const currencyData = campaignFormData?.budget_details_currency;
+  useEffect(() => {
+    const currencyData = campaignFormData?.budget_details_currency;
 
-  //   if (currencyData?.value) {
-  //     setSelectedOption({
-  //       label: currencyData.value,
-  //       value: currencyData.value,
-  //     });
-  //   }
-  // }, [campaignFormData?.budget_details_currency]);
+    if (currencyData?.value) {
+      setSelectedOption({
+        label: currencyData.value,
+        value: currencyData.value,
+      });
+    }
+  }, [campaignFormData?.budget_details_currency]);
 
 
 
@@ -335,6 +335,7 @@ export const SetupScreen = () => {
     const fieldsToCheck = [
       // campaignFormData?.client_selection?.value,
       campaignFormData?.media_plan,
+      campaignFormData?.budget_details_currency?.id
       // campaignFormData?.internal_approver_ids,
       // campaignFormData?.client_approver_ids,
       // campaignFormData?.level_1?.id, 
