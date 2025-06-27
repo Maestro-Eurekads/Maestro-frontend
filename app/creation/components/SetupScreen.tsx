@@ -7,7 +7,7 @@ import ClientSelectionInput from "../../../components/ClientSelectionInput";
 import AlertMain from "components/Alert/AlertMain";
 import { useComments } from "app/utils/CommentProvider";
 import { useUserPrivileges } from "utils/userPrivileges";
-import { selectCurrency } from "components/Options";
+import { selectCountry, selectCurrency } from "components/Options";
 import ClientApproverDropdowns from "components/ClientApproverDropdowns";
 import { useRouter, useSearchParams } from "next/navigation";
 import InternalApproverDropdowns from "components/InternalApproverDropdowns";
@@ -149,15 +149,14 @@ export const SetupScreen = () => {
 
 
 
-  // console.log("users==users:", users);
-  // console.log("campaignFormData campaignFormData:", campaignFormData);
+
+  console.log("campaignFormData campaignFormData----:", campaignFormData);
 
   useEffect(() => {
     //@ts-ignore
     dispatch(getCreateClient({ userId: !isAdmin ? session?.user?.data?.user?.id : null, jwt }));
   }, [isAdmin, session, dispatch]);
-  console.log('agencyUserOptions-agencyUserOptions', FC?.id)
-  console.log('selectedClient-selectedClient', selectedClient)
+
 
   useEffect(() => {
     if (FC) {
@@ -251,6 +250,7 @@ export const SetupScreen = () => {
         client_approver: [],
         approver_id: [],
         budget_details_currency: {},
+        country_details: {},
         budget_details_fee_type: {},
         budget_details_value: "",
         level_1: {},
@@ -306,18 +306,18 @@ export const SetupScreen = () => {
     setCurrencySign,
   ]);
 
-  useEffect(() => {
-    const currencyData = campaignFormData?.budget_details_currency;
+  // useEffect(() => {
+  //   const currencyData = campaignFormData?.budget_details_currency;
 
-    if (currencyData?.value) {
-      setSelectedOption({
-        label: currencyData.value,
-        value: currencyData.value,
-      });
-    }
-  }, [campaignFormData?.budget_details_currency]);
+  //   if (currencyData?.value) {
+  //     setSelectedOption({
+  //       label: currencyData.value,
+  //       value: currencyData.value,
+  //     });
+  //   }
+  // }, [campaignFormData?.budget_details_currency]);
 
-  console.log('campaignFormData-campaignFormData', campaignFormData)
+  // console.log('campaignFormData-campaignFormData', campaignFormData)
 
 
 
@@ -434,7 +434,7 @@ export const SetupScreen = () => {
       ) : (
         <div className="mt-10">
           {/* Client Selection Section */}
-          <div className="mb-12">
+          <div className="mb-6">
             <Title className="text-2xl font-semibold text-gray-800 mb-4">
               Client Architecture
             </Title>
@@ -450,7 +450,7 @@ export const SetupScreen = () => {
           </div>
 
           {/* Media Plan Details Section */}
-          <div className="mb-12">
+          <div className="mb-16">
             <Title className="text-2xl font-semibold text-gray-800 mb-4">
               Media Plan Details
             </Title>
@@ -505,7 +505,7 @@ export const SetupScreen = () => {
               </div>
             </div>
           </div>
-          <div className="flex flex-wrap items-start gap-6">
+          <div className="flex flex-wrap items-start gap-6 mb-14">
             <div className="pb-1">
               <Title className="text-2xl font-semibold text-gray-800 mb-4">Budget details</Title>
               <div className="mt-4">
@@ -514,24 +514,24 @@ export const SetupScreen = () => {
                 </label>
                 <ClientSelection
                   options={selectCurrency}
-                  label={"Select currency"}
+                  label={"Select country"}
                   formId="budget_details_currency"
                 />
               </div>
             </div>
-            {/* <div className="pb-1">
-              <Title className="text-2xl font-semibold text-gray-800 mb-4">Currency</Title>
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 ">
-                  Country
-                </label>
-                <ClientSelection
-                  options={selectCurrency}
-                  label={"Select currency"}
-                  formId="budget_details_currency"
-                />
-              </div>
-            </div> */}
+          </div>
+          <div className="">
+            <Title className="text-2xl font-semibold text-gray-800 mb-4">Country details</Title>
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 ">
+                Country
+              </label>
+              <ClientSelection
+                options={selectCountry}
+                label={"Select currency"}
+                formId="country_details"
+              />
+            </div>
           </div>
         </div>)
       }
