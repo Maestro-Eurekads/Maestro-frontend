@@ -135,7 +135,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     // if (fieldName === "endDate") {
     //   calculatedDate.setDate(calculatedDate.getDate()); // Add 1 day to fix the issue
     // }
-
+console.log("called", calculatedDate, fieldName);
     return calculatedDate;
   };
 
@@ -353,24 +353,29 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       });
     }
 
-    const allStartDates = campaignFormData?.channel_mix?.map((ch) =>
-      moment(ch.funnel_stage_timeline_start_date)
-    );
-    const allEndDates = campaignFormData?.channel_mix?.map((ch) =>
-      moment(ch.funnel_stage_timeline_end_date)
-    );
+    const allStartDates = campaignFormData?.channel_mix
+      ?.map((ch) => ch?.funnel_stage_timeline_start_date && moment(ch.funnel_stage_timeline_start_date))
+      .filter((date) => date); // Filter out null or undefined dates
+
+    const allEndDates = campaignFormData?.channel_mix
+      ?.map((ch) => ch?.funnel_stage_timeline_end_date && moment(ch.funnel_stage_timeline_end_date))
+      .filter((date) => date); // Filter out null or undefined dates
 
     const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD");
+    console.log("🚀 ~ handleMouseMoveResize ~ minStartDate:", minStartDate)
     const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD");
+    console.log("🚀 ~ handleMouseMoveResize ~ maxEndDate:", maxEndDate)
 
     // 💡 Only buffer the data here; flush on mouseup
     draftCampaignFormRef.current = {
       ...campaignFormData,
       channel_mix: campaignFormData.channel_mix.map((ch) =>
-        ch.funnel_stage === description ? updatedChannelMix : ch
+      ch.funnel_stage === description ? updatedChannelMix : ch
       ),
+      ...(range === "Year" && {
       campaign_timeline_start_date: minStartDate,
       campaign_timeline_end_date: maxEndDate,
+      }),
     };
 
     // Update visual size/position immediately
@@ -454,15 +459,19 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       );
 
       const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD");
+      console.log("🚀 ~ handleMouseMoveDrag ~ minStartDate:", minStartDate)
       const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD");
+      console.log("🚀 ~ handleMouseMoveDrag ~ maxEndDate:", maxEndDate)
 
       draftCampaignFormRef.current = {
         ...campaignFormData,
         channel_mix: campaignFormData.channel_mix.map((ch) =>
           ch.funnel_stage === description ? updatedChannelMix : ch
         ),
-        campaign_timeline_start_date: minStartDate,
-        campaign_timeline_end_date: maxEndDate,
+        ...(range === "Year" && {
+          campaign_timeline_start_date: minStartDate,
+          campaign_timeline_end_date: maxEndDate,
+          }),
       };
     }
 
