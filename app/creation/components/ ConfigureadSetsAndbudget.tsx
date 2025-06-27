@@ -30,7 +30,6 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
         setIsModalOpen(false)
       } else {
         setIsModalOpen(true)
-      
       }
     }
   }, [campaignFormData])
@@ -290,49 +289,33 @@ export const BudgetOverviewSection = () => {
 
   function extractPlatforms(data) {
     const platforms = []
-    if (!data?.channel_mix) return
-
-    data.channel_mix.forEach((stage) => {
-      const stageName = stage.funnel_stage
-      const stageBudget = Number.parseFloat(stage.stage_budget?.fixed_value) || 0
-
-      if (stageBudget === 0) return // Skip stages with no budget
-
-      const mediaTypes = ["paid_social", "paid_search", "display", "video", "audio", "outdoor", "print", "tv", "radio"]
-
-      mediaTypes.forEach((channelType) => {
-        if (stage[channelType] && Array.isArray(stage[channelType])) {
-          stage[channelType].forEach((platform) => {
-            const platformName = platform.platform_name
-            const platformBudget = Number.parseFloat(platform.budget?.fixed_value) || 0
-
-            if (platformBudget === 0) return // Skip platforms with no budget
-
-            const percentage = stageBudget > 0 ? (platformBudget / stageBudget) * 100 : 0
-            const existingPlatform = platforms.find((p) => p.platform_name === platformName)
-
-            if (existingPlatform) {
-              existingPlatform.platform_budget += platformBudget
-              existingPlatform.stages_it_was_found.push({
-                stage_name: stageName,
-                percentage: percentage,
-                budget: platformBudget,
-              })
-            } else {
-              platforms.push({
-                platform_name: platformName,
-                platform_budget: platformBudget,
-                stages_it_was_found: [
-                  {
-                    stage_name: stageName,
-                    percentage: percentage,
-                    budget: platformBudget,
-                  },
-                ],
-              })
-            }
-          })
-        }
+    data?.channel_mix?.forEach((stage) => {
+      const stageName = stage?.funnel_stage
+      const stageBudget = Number.parseFloat(stage?.stage_budget?.fixed_value)
+      mediaTypes?.forEach((channelType) => {
+        stage[channelType]?.forEach((platform) => {
+          const platformName = platform?.platform_name
+          const platformBudget = Number.parseFloat(platform?.budget?.fixed_value)
+          const percentage = (platformBudget / stageBudget) * 100
+          const existingPlatform = platforms?.find((p) => p?.platform_name === platformName)
+          if (existingPlatform) {
+            existingPlatform?.stages_it_was_found?.push({
+              stage_name: stageName,
+              percentage: percentage,
+            })
+          } else {
+            platforms.push({
+              platform_name: platformName,
+              platform_budegt: platformBudget,
+              stages_it_was_found: [
+                {
+                  stage_name: stageName,
+                  percentage: percentage,
+                },
+              ],
+            })
+          }
+        })
       })
     })
     setChannelData(platforms)
@@ -348,6 +331,7 @@ export const BudgetOverviewSection = () => {
   useEffect(() => {
     if (campaignFormData) {
       extractPlatforms(campaignFormData)
+      console.log("Channel data updated:", channelData)
     }
   }, [campaignFormData])
 
@@ -570,6 +554,7 @@ export const BudgetOverviewSection = () => {
                   {channelData?.length || 0} channels
                 </h3>
               </div>
+
               <ChannelDistributionChatTwo
                 channelData={channelData}
                 currency={getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
