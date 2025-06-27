@@ -105,7 +105,7 @@ const CampaignBudget = () => {
         })
         return false
       }
-      if (campaignFormData?.campaign_budget?.budget_fees?.length > 0 || feeType || feeAmount) {
+      if (campaignFormData?.campaign_budget?.budget_fees?.length > 0 || (!feeType && !feeAmount)) {
         setFeeStepValidated(true)
         setStep(2)
         return true
@@ -136,9 +136,9 @@ const CampaignBudget = () => {
         })
         return false
       }
-      if (campaignFormData?.campaign_budget?.budget_fees?.length > 0 || feeType || feeAmount) {
+      if (campaignFormData?.campaign_budget?.budget_fees?.length > 0 || (!feeType && !feeAmount)) {
         setFeeStepValidated(true)
-        setStep(4)
+        setStep(2)
         return true
       }
       if (feeType && !feeAmount) {
@@ -154,7 +154,7 @@ const CampaignBudget = () => {
         return false
       }
       setFeeStepValidated(true)
-      setStep(4)
+      setStep(2)
       return true
     }
     return false
@@ -344,7 +344,7 @@ const CampaignBudget = () => {
       )}
       {budgetStyle !== "" && budgetStyle === "top_down" && step > 1 && (
         <>
-          <PageHeaderWrapper t4="Choose granularity level" span={3} />
+          <PageHeaderWrapper t4="Choose granularity level" span={feeStepValidated ? 3 : 4} />
           {showLevelCards ? (
             <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
               <form method="dialog" className="flex justify-center p-2 !pb-0">
@@ -489,7 +489,7 @@ const CampaignBudget = () => {
       {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 0 && (
         <>
           {/* Step 1: Choose granularity level first */}
-          <PageHeaderWrapper t4="Choose granularity level" span={2} />
+          <PageHeaderWrapper t4="Choose granularity level" span={1} />
 
           {showLevelCards ? (
             <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
@@ -592,7 +592,7 @@ const CampaignBudget = () => {
                         <button
                           className="btn btn-primary w-full text-sm bg-[#3175FF]"
                           onClick={() => {
-                            setStep(2)
+                            setStep(3)
                             setShowLevelCards(false)
                             setCampaignFormData((prev) => ({
                               ...prev,
@@ -624,18 +624,14 @@ const CampaignBudget = () => {
         </>
       )}
       {/* Step 2: Allocate sub-budgets (ad set/channel) */}
-      {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 1 && !showLevelCards && (
+      {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 1 && (
         <>
           {/* Here, user is expected to allocate sub-budgets before fees */}
-          <ConfigureAdSetsAndBudget num={3} netAmount={netAmount} />
+          <ConfigureAdSetsAndBudget num={2} netAmount={netAmount} />
           {/* After sub-budgets, show FeeSelectionStep */}
-        </>
-      )}
-      {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 2 && (
-        <>
           <FeeSelectionStep
-            num1={4}
-            num2={5}
+            num1={3}
+            num2={4}
             isValidated={feeStepValidated}
             setIsValidated={setFeeStepValidated}
             netAmount={netAmount}
@@ -673,7 +669,7 @@ const CampaignBudget = () => {
         </>
       )}
       {/* Step 3: Set overall campaign budget (summary/final step) with budget overview */}
-      {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 3 && (
+      {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 2 && (
         <>
           {/* In bottom-up, after sub-budgets and fees, show summary/overall budget */}
           <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
