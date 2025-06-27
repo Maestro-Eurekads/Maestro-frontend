@@ -1,7 +1,8 @@
-"use client"
-import { useCampaigns } from "app/utils/CampaignsContext"
-import { getCurrencySymbol } from "components/data"
-import { Ban } from "lucide-react"
+"use client";
+import { useCampaigns } from "app/utils/CampaignsContext";
+import { getCurrencySymbol } from "components/data";
+import { Ban } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
 export const AdSetCellRenderer = ({
   body,
@@ -17,9 +18,9 @@ export const AdSetCellRenderer = ({
   toggleNRAdCell,
   expandedAdsetKPI,
   toggleAdSetKPIShow,
-  hasOfflineChannel
+  hasOfflineChannel,
 }) => {
-  const { campaignFormData } = useCampaigns()
+  const { campaignFormData } = useCampaigns();
 
   const exemptFields = [
     "channel",
@@ -32,26 +33,20 @@ export const AdSetCellRenderer = ({
     "impressions",
     "frequency",
     "reach",
-  ]
+  ];
 
-  const isNR = nrAdCells[`${channel?.name}-${adSetIndex}`]?.[body]
+    // State for input handling
+    const [inputValue, setInputValue] = useState("")
+    const [isTyping, setIsTyping] = useState(false)
+    const [isFocused, setIsFocused] = useState(false)
 
-  const isPercentType = tableHeaders[bodyIndex]?.type === "percent"
-  const isCurrencyType = tableHeaders[bodyIndex]?.type === "currency"
-  const isSecondsType = tableHeaders[bodyIndex]?.type === "seconds"
+  const isNR = nrAdCells[`${channel?.name}-${adSetIndex}`]?.[body];
 
-  // Helper function to safely get calculated values
-  const getCalculatedValue = (key) => {
-    const value = calculatedValues[key]
-
-    return isNaN(value) || !isFinite(value) ? "-" : Number.parseFloat(value).toFixed(2)
-  }
-
-  // Helper function to format numbers with commas
-  const formatNumber = (num: number): string => {
-    if (isNaN(num)) return "-"
-    return new Intl.NumberFormat("en-US").format(num)
-  }
+  const isPercentType = tableHeaders[bodyIndex]?.type === "percent";
+  const isCurrencyType = tableHeaders[bodyIndex]?.type === "currency";
+  const isSecondsType = tableHeaders[bodyIndex]?.type === "seconds";
+  const isCPM = body === "cpm"
+  const showInput = tableHeaders[bodyIndex]?.showInput
 
   // Handle channel cell with icon and name
   if (body === "channel") {
@@ -66,32 +61,40 @@ export const AdSetCellRenderer = ({
                 adSetIndex < 1
                   ? "50px"
                   : expandedAdsetKPI[`${stage.name}${adSetIndex - 1}`] &&
-                      channel?.ad_sets[adSetIndex - 1]?.extra_audiences?.length > 0
-                    ? `${
-                        channel?.ad_sets[adSetIndex - 1]?.extra_audiences?.length > 1
-                          ? 215
-                          : 155 * channel?.ad_sets[adSetIndex - 1]?.extra_audiences?.length
-                      }px`
-                    : "75px"
+                    channel?.ad_sets[adSetIndex - 1]?.extra_audiences?.length >
+                      0
+                  ? `${
+                      channel?.ad_sets[adSetIndex - 1]?.extra_audiences
+                        ?.length > 1
+                        ? 215
+                        : 155 *
+                          channel?.ad_sets[adSetIndex - 1]?.extra_audiences
+                            ?.length
+                    }px`
+                  : "75px"
               }`,
               top: `${
                 adSetIndex < 1
                   ? "-50px"
                   : expandedAdsetKPI[`${stage.name}${adSetIndex - 1}`] &&
-                      channel?.ad_sets[adSetIndex - 1]?.extra_audiences?.length > 0
-                    ? `-${
-                        channel?.ad_sets[adSetIndex - 1]?.extra_audiences?.length > 1
-                          ? 215
-                          : 155 * channel?.ad_sets[adSetIndex - 1]?.extra_audiences?.length
-                      }px`
-                    : "-75px"
+                    channel?.ad_sets[adSetIndex - 1]?.extra_audiences?.length >
+                      0
+                  ? `-${
+                      channel?.ad_sets[adSetIndex - 1]?.extra_audiences
+                        ?.length > 1
+                        ? 215
+                        : 155 *
+                          channel?.ad_sets[adSetIndex - 1]?.extra_audiences
+                            ?.length
+                    }px`
+                  : "-75px"
               }`,
             }}
           ></div>
           <div className="l-horizontal-ad" style={{ left: "30px" }}></div>
         </div>
       </div>
-    )
+    );
   }
   if (body === "adsets") {
     return (
@@ -105,7 +108,13 @@ export const AdSetCellRenderer = ({
         <span>{adSet?.name ? `Adset ${adSetIndex + 1}` : "-"}</span>
         {adSet?.extra_audiences?.length > 0 && (
           <span className="shrink-0">
-            <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg
+              width="17"
+              height="16"
+              viewBox="0 0 17 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
               <path
                 d="M5.38021 6.66667L8.71354 10L12.0469 6.66667 6.66667"
                 stroke="#061237"
@@ -113,13 +122,17 @@ export const AdSetCellRenderer = ({
                 strokeWidth="1.33333"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                transform={expandedAdsetKPI[`${stage?.name}${adSetIndex}`] ? "rotate(180 8.5 8)" : ""}
+                transform={
+                  expandedAdsetKPI[`${stage?.name}${adSetIndex}`]
+                    ? "rotate(180 8.5 8)"
+                    : ""
+                }
               />
             </svg>
           </span>
         )}
       </div>
-    )
+    );
   }
 
   if (body === "audience") {
@@ -128,25 +141,28 @@ export const AdSetCellRenderer = ({
         {/* <span className="font-semibold text-[14px] leading-[19px] text-[#0866ff] flex-none order-0 grow-0">
           {1}.
         </span> */}
-        {!expandedAdsetKPI[`${stage.name}${adSetIndex}`] && adSet?.extra_audiences?.length > 0
+        {!expandedAdsetKPI[`${stage.name}${adSetIndex}`] &&
+        adSet?.extra_audiences?.length > 0
           ? ""
           : !adSet?.audience_type
-            ? "-"
-            : adSet?.audience_type}
+          ? "-"
+          : adSet?.audience_type}
       </div>
-    )
+    );
   }
 
-  // if (body === "audience_size") {
+  // if (body === "audience_size" && channel?.ad_sets?.length === 1 && adSet?.extra_audience?.length === 0) {
   //   return !adSet?.size ? "-" : adSet?.size;
+  // } else {
+  //   ""
   // }
 
   // if (body === "budget_size") {
   //   return adSet?.budget?.fixed_value === null || adSet?.budget?.fixed_value === undefined ? "-" : adSet?.budget?.fixed_value;
   // }
 
-  if( body === "grp" && !hasOfflineChannel) {
-    return "" ;
+  if (body === "grp" && !hasOfflineChannel) {
+    return "";
   }
 
   const calculatedFields = [
@@ -188,13 +204,215 @@ export const AdSetCellRenderer = ({
     "cppi",
     "purchases",
     "cpp",
-  ]
+  ];
+
+    const formatNumber = (num: number | string): string => {
+      if (isNaN(Number(num)) || num === null || num === undefined) return "-"
+      return new Intl.NumberFormat("en-US").format(Number(num))
+    }
+  
+    const getCalculatedValue = (key: string): string => {
+      const value = calculatedValues[key]
+      return isNaN(value) || !isFinite(value) ? "-" : Number.parseFloat(value).toFixed(2)
+    }
+  
+    const getRawValue = (): string => {
+      const rawValue =
+      body === "audience_size"
+      ? campaignFormData?.channel_mix
+          ?.find((ch) => ch?.funnel_stage === stage.name)
+          ?.[channel?.channel_name]?.find(
+            (c) => c?.platform_name === channel?.name
+          )?.ad_sets[adSetIndex]?.size || ""
+      : body === "budget_size"
+      ? campaignFormData?.channel_mix
+          ?.find((ch) => ch?.funnel_stage === stage.name)
+          ?.[channel?.channel_name]?.find(
+            (c) => c?.platform_name === channel?.name
+          )?.ad_sets[adSetIndex]?.budget?.fixed_value || ""
+      : campaignFormData?.channel_mix
+          ?.find((ch) => ch?.funnel_stage === stage.name)
+          [channel?.channel_name]?.find(
+            (c) => c?.platform_name === channel?.name
+          )?.ad_sets[adSetIndex]?.kpi?.[body] || "";
+  
+      return rawValue.toString()
+    }
+  
+    const formatValueByType = (value: any, type: any): string => {
+      if (value === null || value === undefined || value === "" || isNaN(value)) return "-"
+  
+      const numValue = Number.parseFloat(value)
+  
+      switch (type) {
+        case "percent":
+          return `${numValue.toFixed(1)}%` // 1 decimal place for percent
+        case "currency":
+          return `${numValue.toFixed(2)}` // 2 decimal places for currency
+        case "seconds":
+          return `${numValue.toFixed(2)}s`
+        case "number":
+        default:
+          return numValue.toFixed(0) // No decimal places for other types
+      }
+    }
+  
+    // Format display value with commas for better readability
+    const formatDisplayValue = (value: string): string => {
+      if (!value || isNaN(Number.parseFloat(value.toString().replace(/,/g, "")))) {
+        return value
+      }
+  
+      const numericValue = Number.parseFloat(value.toString().replace(/,/g, ""))
+  
+      if (isPercentType) {
+        if (!value.toString().includes("%")) {
+          if (numericValue < 1) {
+            return `${formatNumber(Number.parseFloat((numericValue * 100).toFixed(1)))}%` // 1 decimal place
+          } else {
+            return `${formatNumber(Number.parseFloat(numericValue.toFixed(1)))}%` // 1 decimal place
+          }
+        }
+      } else if (isCurrencyType) {
+        if (!value.toString().includes(`${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}`)) {
+          return `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}${formatNumber(
+            Number.parseFloat(numericValue.toFixed(2)), // 2 decimal places
+          )}`
+        }
+      } else if (isSecondsType) {
+        if (!value.toString().includes("secs")) {
+          return `${formatNumber(numericValue.toFixed(1))}secs`
+        }
+      } else if (isCPM) {
+        // For CPM, preserve decimal places (2 max)
+        return formatNumber(Number.parseFloat(numericValue.toFixed(2)))
+      } else {
+        // For other fields, round to whole numbers
+        return formatNumber(Math.round(numericValue))
+      }
+  
+      return value
+    }
+  
+    // Validate input based on cell type
+    const validateInput = (value: string): boolean => {
+      // Always allow empty input
+      if (value === "") return true
+  
+      // Remove formatting characters for validation
+      const cleanValue = value.replace(/[,$%]/g, "").replace(/secs?/g, "")
+  
+      if (isPercentType || isCurrencyType || isCPM) {
+        // For percent, currency, and CPM: allow decimal input with restrictions
+        if (isPercentType) {
+          // Percent: Allow up to 1 decimal place
+          const regex = /^[0-9]*\.?[0-9]{0,1}$/
+          return regex.test(cleanValue)
+        } else {
+          // Currency and CPM: Allow up to 2 decimal places
+          const regex = /^[0-9]*\.?[0-9]{0,2}$/
+          return regex.test(cleanValue)
+        }
+      } else {
+        // For other types: only allow whole numbers
+        const regex = /^[0-9]*$/
+        return regex.test(cleanValue)
+      }
+    }
+  
+    // Debounce function
+    const debounce = (func: Function, wait: number) => {
+      let timeout: NodeJS.Timeout
+      return function executedFunction(...args: any[]) {
+        const later = () => {
+          clearTimeout(timeout)
+          func(...args)
+        }
+        clearTimeout(timeout)
+        timeout = setTimeout(later, wait)
+      }
+    }
+  
+    // Format value based on cell type before saving
+    const formatValueForSave = (value: string): string => {
+      if (value === "") return ""
+  
+      // Remove formatting characters
+      let cleanValue = value.replace(/[,$%]/g, "").replace(/secs?/g, "")
+  
+      // Handle decimal format based on type
+      if (isPercentType || isCurrencyType || isCPM) {
+        const parts = cleanValue.split(".")
+        if (parts.length > 2) {
+          // More than one decimal point - keep only the first one
+          cleanValue = parts[0] + "." + parts.slice(1).join("")
+        }
+  
+        // Limit decimal places
+        if (parts.length === 2) {
+          const decimalPart = parts[1]
+          if (isPercentType && decimalPart.length > 1) {
+            // Limit percent to 1 decimal place
+            cleanValue = parts[0] + "." + decimalPart.substring(0, 1)
+          } else if ((isCurrencyType || isCPM) && decimalPart.length > 2) {
+            // Limit currency and CPM to 2 decimal places
+            cleanValue = parts[0] + "." + decimalPart.substring(0, 2)
+          }
+        }
+      } else {
+        // For other types, remove any decimal part
+        cleanValue = cleanValue.split(".")[0]
+      }
+  
+      return cleanValue
+    }
+  
+    // Validation and save function
+    const validateAndSave = (value: string) => {
+      if (value === "") {
+        handleEditInfo(stage.name, channel?.channel_name, channel?.name, body, "",
+          adSetIndex, "")
+        return
+      }
+  
+      // Format value based on cell type
+      const formattedValue = formatValueForSave(value)
+  
+      // Validate it's a valid number
+      if (formattedValue && !isNaN(Number(formattedValue))) {
+        handleEditInfo(stage.name, channel?.channel_name, channel?.name, body, formattedValue, adSetIndex, "")
+      } else if (formattedValue === "") {
+        handleEditInfo(stage.name, channel?.channel_name, channel?.name, body, formattedValue, adSetIndex, "")
+      }
+    }
+  
+    // Debounced validation and save function
+    const debouncedSave = useCallback(
+      debounce((value: string) => {
+        validateAndSave(value)
+        setIsTyping(false)
+      }, 600),
+      [stage.name, channel?.channel_name, channel?.name, body, adSetIndex],
+    )
+  
+    // Get the raw value from the form data
+    const kpiValue = getRawValue()
+    const displayValue = formatDisplayValue(kpiValue)
+  
+    // Initialize input value on mount and update when external data changes
+    useEffect(() => {
+      if (!isTyping && !isFocused) {
+        setInputValue(kpiValue)
+      }
+    }, [kpiValue, isTyping, isFocused])
 
   if (calculatedFields.includes(body)) {
     return (
       <div
         className="flex justify-center items-center gap-5 w-fit group"
-        onClick={() => toggleNRAdCell(stage.name, `${channel?.name}-${adSetIndex}`, body)}
+        onClick={() =>
+          toggleNRAdCell(stage.name, `${channel?.name}-${adSetIndex}`, body)
+        }
       >
         {isNR ? (
           <p className="text-gray-300 font-semibold">NR</p>
@@ -202,78 +420,43 @@ export const AdSetCellRenderer = ({
           <p>
             {(() => {
               const value =
-                campaignFormData?.goal_level === "Adset level" ? channel?.kpi?.[body] : getCalculatedValue(body)
+                campaignFormData?.goal_level === "Adset level"
+                  ? channel?.kpi?.[body]
+                  : getCalculatedValue(body);
               return value && value !== "-"
-                ? `${isCurrencyType ? `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}` : isSecondsType ? "secs" : ""}${formatNumber(
-                    Number(value),
-                  )}`
-                : "-"
+                ? `${
+                    isCurrencyType
+                      ? `${getCurrencySymbol(
+                          campaignFormData?.campaign_budget?.currency
+                        )}`
+                      : isSecondsType
+                      ? "secs"
+                      : ""
+                  }${formatNumber(Number(value))}`
+                : "-";
             })()}
           </p>
         )}
-        <Ban size={10} className="hidden group-hover:block shrink-0 cursor-pointer" />
+        <Ban
+          size={10}
+          className="hidden group-hover:block shrink-0 cursor-pointer"
+        />
       </div>
-    )
+    );
   }
 
   // Handle input fields and static values
-  const showInput = tableHeaders[bodyIndex]?.showInput
+  
   if (!showInput) {
-    const value = channel?.[body]
+    const value = channel?.[body];
     if (exemptFields.includes(body)) {
-      return value === "Invalid date" ? "-" : value
+      return value === "Invalid date" ? "-" : value;
     }
-    return value === "Invalid date" ? "-" : formatNumber(Number(Number.parseFloat(value)?.toFixed(2)))
+    return value === "Invalid date"
+      ? "-"
+      : formatNumber(Number(Number.parseFloat(value)?.toFixed(2)));
   }
 
-  // Get the raw value from the form data
-  const kpiValue =
-    body === "audience_size"
-      ? campaignFormData?.channel_mix
-          ?.find((ch) => ch?.funnel_stage === stage.name)
-          ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)?.ad_sets[adSetIndex]?.size || ""
-      : body === "budget_size"
-        ? campaignFormData?.channel_mix
-            ?.find((ch) => ch?.funnel_stage === stage.name)
-            ?.[channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)?.ad_sets[adSetIndex]?.budget
-            ?.fixed_value || ""
-        : campaignFormData?.channel_mix
-            ?.find((ch) => ch?.funnel_stage === stage.name)
-            [channel?.channel_name]?.find((c) => c?.platform_name === channel?.name)?.ad_sets[adSetIndex]?.kpi?.[
-            body
-          ] || ""
-
-  // Format display value with commas for better readability
-  let displayValue = kpiValue
-  if (displayValue && !isNaN(Number.parseFloat(displayValue.toString().replace(/,/g, "")))) {
-    const numericValue = Number.parseFloat(displayValue.toString().replace(/,/g, ""))
-
-    if (isPercentType) {
-      // If it's a number (already converted to decimal), convert back to percentage for display
-      if (!displayValue.toString().includes("%")) {
-        // Check if it's likely a decimal value (less than 1)
-        if (numericValue < 1) {
-          displayValue = `${formatNumber(numericValue * 100)}%`
-        } else {
-          // It's already a percentage value (like 10, 20, etc.)
-          displayValue = `${formatNumber(Number.parseFloat(numericValue.toFixed(1)))}%`;
-        }
-      }
-    } else if (isCurrencyType) {
-      // Format as currency with commas
-      if (!displayValue.toString().includes(`${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}`)) {
-        displayValue = `${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}${formatNumber(Number.parseFloat(numericValue.toFixed(2)))}`;
-      }
-    } else if (isSecondsType) {
-      // Format as seconds with commas
-      if (!displayValue.toString().includes("secs")) {
-        displayValue = `${formatNumber(Number(numericValue.toFixed(1)))}secs`
-      }
-    } else {
-      // Format as regular number with commas
-      displayValue = formatNumber(Math.round(numericValue))
-    }
-  }
 
   return (
     <div className="flex  items-center gap-2 group">
@@ -281,46 +464,55 @@ export const AdSetCellRenderer = ({
         <p className="text-gray-300 font-semibold">NR</p>
       ) : (
         <input
-          value={displayValue}
+        value={isFocused || isTyping ? inputValue : displayValue}
           onChange={(e) => {
-            let newValue = e.target.value
+            const newValue = e.target.value
 
-            if (isPercentType) {
-              // Allow numbers, decimal point, commas, and %
-              newValue = newValue.replace(/[^0-9.,%]/g, "")
-              // Remove % and commas for storage
-              const valueToStore = newValue.replace(/[%,]/g, "")
-              handleEditInfo(stage.name, channel?.channel_name, channel?.name, body, valueToStore, adSetIndex, "")
-            } else if (isCurrencyType) {
-              // Allow numbers, decimal point, commas, and $
-              newValue = newValue.replace(/[^0-9.$,]/g, "")
-              // Remove $ and commas for storage
-              const valueToStore = newValue.replace(/[$,]/g, "")
-              handleEditInfo(stage.name, channel?.channel_name, channel?.name, body, valueToStore, adSetIndex, "")
-            } else if (isSecondsType) {
-              // Allow numbers, decimal point, commas, and s
-              newValue = newValue.replace(/[^0-9.s,]/g, "")
-              // Remove s and commas for storage
-              const valueToStore = newValue.replace(/[s,]/g, "")
-              handleEditInfo(stage.name, channel?.channel_name, channel?.name, body, valueToStore, adSetIndex, "")
-            } else {
-              // For regular numbers, allow numbers, decimal point, and commas
-              newValue = newValue.replace(/[^0-9.,]/g, "")
-              // Remove commas for storage
-              const valueToStore = newValue.replace(/,/g, "")
-              handleEditInfo(stage.name, channel?.channel_name, channel?.name, body, valueToStore, adSetIndex, "")
+            // Validate input based on cell type
+            if (validateInput(newValue)) {
+              setInputValue(newValue)
+              setIsTyping(true)
+              debouncedSave(newValue)
             }
           }}
-          disabled={isNR}
-          className={`cpm-bg border-none outline-none max-w-[90px] p-1 ${isNR ? "text-gray-400" : ""}`}
-          placeholder={body === "budget_size" ? "BUDGET" : body ? body?.toUpperCase() : "Insert value"}
+          onFocus={(e) => {
+            setIsFocused(true)
+            setIsTyping(true)
+            // Set cursor to end of input
+            setTimeout(() => {
+              e.target.setSelectionRange(e.target.value.length, e.target.value.length)
+            }, 0)
+          }}
+          onBlur={(e) => {
+            // Immediate validation on blur
+            validateAndSave(e.target.value)
+            setIsTyping(false)
+            setIsFocused(false)
+          }}
+          disabled={
+            (body === "audience_size" &&
+              (channel?.ad_sets?.length > 1 ||
+                adSet?.extra_audiences?.length > 0)) || isNR 
+          }
+          className={`cpm-bg border-none outline-none max-w-[90px] p-1 ${
+            isNR ? "text-gray-400" : ""
+          }`}
+          placeholder={
+            body === "budget_size"
+              ? "BUDGET"
+              : body
+              ? body?.toUpperCase()
+              : "Insert value"
+          }
         />
       )}
       <Ban
         size={10}
         className="hidden group-hover:block shrink-0 cursor-pointer"
-        onClick={() => toggleNRAdCell(stage.name, `${channel?.name}-${adSetIndex}`, body)}
+        onClick={() =>
+          toggleNRAdCell(stage.name, `${channel?.name}-${adSetIndex}`, body)
+        }
       />
     </div>
-  )
-}
+  );
+};

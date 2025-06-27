@@ -23,6 +23,7 @@ import {
 import { useUserPrivileges } from "utils/userPrivileges";
 import { getFirstLetters } from "./Options";
 import { useSelectedDates } from "app/utils/SelectedDatesContext";
+import { toast } from "sonner";
 // import AllClientsCustomDropdown from "./AllClientsCustomDropdown";
 
 const Header = ({ setIsOpen, setIsView }) => {
@@ -52,7 +53,9 @@ const Header = ({ setIsOpen, setIsView }) => {
     selectedClient,
     setSelectedClient,
     selectedId,
-    setSelectedId
+    setSelectedId,
+    setFC,
+    FC
   } = useCampaigns();
 
   const { setSelectedDates } = useSelectedDates()
@@ -62,12 +65,12 @@ const Header = ({ setIsOpen, setIsView }) => {
   const dispatch = useAppDispatch();
 
   const [alert, setAlert] = useState(null);
+
   const [show, setShow] = useState(false);
   const [selected, setSelected] = useState("");
 
 
   const clients: any = getCreateClientData;
-
 
 
   useEffect(() => {
@@ -81,7 +84,7 @@ const Header = ({ setIsOpen, setIsView }) => {
       return () => clearTimeout(timer);
 
     }
-  }, [dispatch, session, profile, agencyId]);
+  }, [dispatch, session, profile, agencyId, userType]);
 
   //  LocalStorage prioritized
   useEffect(() => {
@@ -102,6 +105,11 @@ const Header = ({ setIsOpen, setIsView }) => {
     }
   }, [userType, getCreateClientIsLoading, profile?.clients]);
 
+
+
+
+  // //console.log("clients=clients", profile?.clients?.length);
+  // //console.log("profile=profile", profile?.clients?.length);
   useEffect(() => {
     if (!clients?.data || clients?.data?.length === 0 || !selectedId) {
       setLoading(false);
@@ -118,11 +126,20 @@ const Header = ({ setIsOpen, setIsView }) => {
       (client) => client?.id === Number(clientId)
     );
 
+    if (filteredClient) {
+      setFC(filteredClient);
+      localStorage.setItem("filteredClient", JSON.stringify(filteredClient));
+    } else {
+      // fallback from localStorage if available
+      const cachedFC = localStorage.getItem("filteredClient");
+      if (cachedFC) {
+        setFC(JSON.parse(cachedFC));
+      }
+    }
+
     fetchClientCampaign(clientId, agencyId)
       .then((res) => {
         const campaigns = res?.data?.data || [];
-
-        // console.log("campaigns-campaigns", campaigns);
 
         if (isMounted) setClientCampaignData(campaigns);
 
@@ -131,7 +148,7 @@ const Header = ({ setIsOpen, setIsView }) => {
         const channelData = extractChannelAndPhase(campaigns);
         const levelData = extractLevelFilters(campaigns);
         const levelNames = extractLevelNameFilters(filteredClient);
-        // console.log('extractLevelNameFilters', levelNames)
+
         setFilterOptions((prev) => ({
           ...prev,
           ...dateData,
@@ -160,10 +177,6 @@ const Header = ({ setIsOpen, setIsView }) => {
       isMounted = false;
     };
   }, [clients, selectedId]);
-
-
-  // console.log("clients=clients", clients);
-  // console.log("profile=profile", agencyId);
 
 
 
@@ -211,23 +224,32 @@ const Header = ({ setIsOpen, setIsView }) => {
             />
 
             <button
-              className={`new_plan_btn ml-8 mr-4 ${profile?.clients?.length < 1 || !selectedId ? "!bg-[gray]" : ""
+              className={`new_plan_btn ml-8 mr-4 ${(!profile?.clients || !clients?.data || !selectedId)
+                ? "!bg-gray-400 cursor-not-allowed"
+                : ""
                 }`}
-              disabled={profile?.clients?.length < 1 || !selectedId}
-              onClick={() => setIsView(true)} >
+              disabled={!profile?.clients || !clients?.data || !selectedId}
+              onClick={() => {
+                if (isAgencyCreator) {
+                  toast.error("You do not have permission to perform this action.");
+                  return;
+                }
+                setIsView(true);
+              }}
+            >
               <p className="new_plan_btn_text">View Client</p>
             </button>
-            {(isAdmin ||
-              isFinancialApprover ||
-              isAgencyApprover) && (
-                <button
-                  className="client_btn_text whitespace-nowrap w-fit"
-                  onClick={() => setIsOpen(true)}
-                >
-                  <Image src={plus} alt="plus" />
-                  New Client
-                </button>
-              )}
+
+
+            {(isAdmin || isFinancialApprover || isAgencyApprover) && (
+              <button
+                className="client_btn_text whitespace-nowrap w-fit"
+                onClick={() => { setIsOpen(true) }}  >
+                <Image src={plus} alt="plus" />
+                New Client
+              </button>
+            )}
+
 
           </>
         )}
@@ -253,10 +275,9 @@ const Header = ({ setIsOpen, setIsView }) => {
                   })
                 }}>
                 <button
-                  className={`new_plan_btn ${profile?.clients?.length < 1 || !selectedId ? "!bg-[gray]" : ""
+                  className={`new_plan_btn ${!profile?.clients || !clients?.data || !selectedId ? "!bg-gray-400" : ""
                     }`}
-                  disabled={profile?.clients?.length < 1 || !selectedId}
-                // disabled={!profile?.clients?.[0]?.id && !isAdmin}
+                  disabled={!profile?.clients || !clients?.data || !selectedId}
                 >
                   <Image src={white} alt="white" />
                   <p className="new_plan_btn_text">New media plan</p>
@@ -301,7 +322,7 @@ const Header = ({ setIsOpen, setIsView }) => {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

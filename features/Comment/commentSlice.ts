@@ -36,6 +36,7 @@ const initialState = {
 export const getComment: any = createAsyncThunk(
   "comment/getComment",
   async ({ commentId, jwt }: { commentId: string; jwt: string }, thunkAPI) => {
+     
     try {
       const response = await commentService.getComment(commentId, jwt);
       return response;

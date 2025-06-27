@@ -33,7 +33,7 @@ const useCampaignHook = () => {
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients`,
         {
           params: {
-            filters,
+            // filters,
             populate: {
               agency: {
                 populate: {

@@ -21,6 +21,7 @@ import {
 import { useDateRange } from "src/date-context"
 import Range from "app/creation/components/atoms/date-range/dashboard-date-range"
 import TimelineContainer from "app/creation/components/atoms/date-interval/TimelineContainer"
+import DashboradDoughnutChat from "components/DashboradDoughnutChat"
 
 const Dashboard = () => {
   const [channels, setChannels] = useState<IChannel[]>([])
@@ -178,86 +179,156 @@ const Dashboard = () => {
         const dataValues = getStagePercentages(campaign)
 
         return (
-          <div key={index} className="flex justify-center gap-[48px] mt-[100px] w-full px-10 md:px-60">
-            <div className="box-border flex flex-row items-start p-6 gap-[72px] w-[100%] w-md:[50%] h-[500px] bg-[#F9FAFB] rounded-lg">
-              <div className="flex flex-col">
-                <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
-                  Your budget by phase for {campaign?.media_plan_details?.plan_name}
-                </h3>
-                <div className="flex items-center gap-5">
-                  <div className="mt-[16px]">
-                    <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-                      Total budget
-                    </p>
+          // <div key={index}
+          //   className="grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-12 mt-[100px] w-full px-6 md:px-20 xl:px-40"
+          // >
+          //   <div className="box-border flex flex-row items-start p-6 gap-[72px]   h-[500px] bg-[#F9FAFB] rounded-lg">
+          //     <div className="flex flex-col">
+          //       <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
+          //         Your budget by phase for {campaign?.media_plan_details?.plan_name}
+          //       </h3>
+          //       <div className="flex items-center gap-5">
+          //         <div className="mt-[16px]">
+          //           <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
+          //             Total budget
+          //           </p>
 
-                    <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-                      {campaign?.campaign_budget?.amount} {campaign?.campaign_budget?.currency}
-                    </h3>
-                  </div>
-                  <div className="mt-[16px]">
-                    <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-                      Campaign phases
-                    </p>
+          //           <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
+          //             {campaign?.campaign_budget?.amount} {campaign?.campaign_budget?.currency}
+          //           </h3>
+          //         </div>
+          //         <div className="mt-[16px]">
+          //           <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
+          //             Campaign phases
+          //           </p>
 
-                    <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-                      {campaign?.channel_mix?.length} phases
-                    </h3>
-                  </div>
-                </div>
+          //           <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
+          //             {campaign?.channel_mix?.length} phases
+          //           </h3>
+          //         </div>
+          //       </div>
 
-                <div className="flex items-center gap-6 mt-[24px] w-full">
-                  {/* Doughnut Chat */}
-                  <DoughnutChat
-                    // data={campaign?.channel_mix?.map((ch) =>
-                    //   Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0),
-                    // )}
-                    // color={campaign?.channel_mix?.map((ch) =>
-                    //   ch?.funnel_stage === "Awareness"
-                    //     ? "#3175FF"
-                    //     : ch?.funnel_stage === "Consideration"
-                    //       ? "#00A36C"
-                    //       : ch?.funnel_stage === "Conversion"
-                    //         ? "#FF9037"
-                    //         : "#F05406",
-                    // )}
-                    insideText={`${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency ? getCurrencySymbol(campaign?.campaign_budget?.currency) : ""
-                      }`}
-                  />
-                  {/* Campaign Phases */}
-                  <CampaignPhases
-                    campaignPhases={campaign?.channel_mix?.map((ch) => ({
-                      name: ch?.funnel_stage,
-                      percentage: Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0),
-                      color: getFunnelColor(ch?.funnel_stage),
-                    }))}
-                  />
-                </div>
-              </div>
-            </div>
+          //       <div className="flex items-center gap-6 mt-[24px] w-full">
+          //         {/* Doughnut Chat */}
+          //         <DashboradDoughnutChat
+          //           campaign={campaign}
+          //           // data={campaign?.channel_mix?.map((ch) =>
+          //           //   Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0),
+          //           // )}
+          //           // color={campaign?.channel_mix?.map((ch) =>
+          //           //   ch?.funnel_stage === "Awareness"
+          //           //     ? "#3175FF"
+          //           //     : ch?.funnel_stage === "Consideration"
+          //           //       ? "#00A36C"
+          //           //       : ch?.funnel_stage === "Conversion"
+          //           //         ? "#FF9037"
+          //           //         : "#F05406",
+          //           // )}
+          //           insideText={`${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency ? getCurrencySymbol(campaign?.campaign_budget?.currency) : ""
+          //             }`}
+          //         // insideText={`${parseInt(campaignFormData?.campaign_budget?.amount && campaignFormData?.campaign_budget?.amount).toLocaleString() ?? 0} ${getCurrencySymbol(campaignFormData?.campaign_budget?.currency ?? '')}`}
+          //         />
+          //         {/* Campaign Phases */}
+          //         <CampaignPhases
+          //           campaignPhases={campaign?.channel_mix?.map((ch) => ({
+          //             name: ch?.funnel_stage,
+          //             percentage: Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0),
+          //             color: getFunnelColor(ch?.funnel_stage),
+          //           }))}
+          //         />
+          //       </div>
+          //     </div>
+          //   </div>
 
-            <div className="flex flex-col w-[100%] md:w-[50%]">
-              <div
-                key={index}
-                className="box-border flex flex-col items-start p-6 gap-[5px]  min-h-[545px] bg-[#F9FAFB] rounded-lg w-full"
-              >
-                <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
-                  Your budget by channel
-                </h3>
-                <div className="mt-[16px]">
-                  <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-                    Channels
-                  </p>
-                  <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-                    {channelD?.length} channels
+          //   <div className="flex flex-col w-[100%]  ">
+          //     <div
+          //       key={index}
+          //       className="box-border flex flex-col items-start p-6 gap-[5px]  min-h-[545px] bg-[#F9FAFB] rounded-lg w-full"
+          //     >
+          //       <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
+          //         Your budget by channel
+          //       </h3>
+          //       <div className="mt-[16px]">
+          //         <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
+          //           Channels
+          //         </p>
+          //         <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
+          //           {channelD?.length} channels
+          //         </h3>
+          //       </div>
+          //       <ChannelDistributionChatTwo
+          //         channelData={channelD}
+          //         currency={getCurrencySymbol(campaign?.campaign_budget?.currency)}
+          //       />
+          //     </div>
+          //   </div>
+          // </div>
+          <div
+            key={index}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:gap-12 mt-[60px] w-full px-4 md:px-10 xl:px-20"
+          >
+            {/* Left Card: Budget by Phase */}
+            <div className="bg-[#F9FAFB] rounded-lg p-6 flex flex-col gap-6">
+              <h3 className="font-semibold text-[18px] leading-[24px] text-[#061237]">
+                Your budget by phase for {campaign?.media_plan_details?.plan_name}
+              </h3>
+
+              <div className="flex flex-col sm:flex-row gap-6">
+                <div>
+                  <p className="font-medium text-[15px] text-[rgba(6,18,55,0.8)]">Total budget</p>
+                  <h3 className="font-semibold text-[20px] text-[#061237]">
+                    {campaign?.campaign_budget?.amount} {campaign?.campaign_budget?.currency}
                   </h3>
                 </div>
-                <ChannelDistributionChatTwo
-                  channelData={channelD}
-                  currency={getCurrencySymbol(campaign?.campaign_budget?.currency)}
+                <div>
+                  <p className="font-medium text-[15px] text-[rgba(6,18,55,0.8)]">Campaign phases</p>
+                  <h3 className="font-semibold text-[20px] text-[#061237]">
+                    {campaign?.channel_mix?.length} phases
+                  </h3>
+                </div>
+              </div>
+
+              <div className="flex flex-col xl:flex-row items-center gap-6 w-full mt-2">
+                {/* Doughnut Chart */}
+                <DashboradDoughnutChat
+                  campaign={campaign}
+                  insideText={`${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency
+                    ? getCurrencySymbol(campaign?.campaign_budget?.currency)
+                    : ""
+                    }`}
+                />
+
+                {/* Campaign Phases List */}
+                <CampaignPhases
+                  campaignPhases={campaign?.channel_mix?.map((ch) => ({
+                    name: ch?.funnel_stage,
+                    percentage: Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0),
+                    color: getFunnelColor(ch?.funnel_stage),
+                  }))}
                 />
               </div>
             </div>
+
+            {/* Right Card: Budget by Channel */}
+            <div className="bg-[#F9FAFB] rounded-lg p-6 flex flex-col gap-4 min-h-[545px]">
+              <h3 className="font-semibold text-[18px] text-[#061237]">
+                Your budget by channel
+              </h3>
+
+              <div>
+                <p className="font-medium text-[15px] text-[rgba(6,18,55,0.8)]">Channels</p>
+                <h3 className="font-semibold text-[20px] text-[#061237]">
+                  {channelD?.length} channels
+                </h3>
+              </div>
+
+              <ChannelDistributionChatTwo
+                channelData={channelD}
+                currency={getCurrencySymbol(campaign?.campaign_budget?.currency)}
+              />
+            </div>
           </div>
+
         )
       })}
     </div>

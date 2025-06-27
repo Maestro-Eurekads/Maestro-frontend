@@ -3,16 +3,28 @@
 import React, { useEffect, useState } from 'react';
 import { TreeSelect } from 'antd';
 import { buildTree } from 'utils/buildTree';
+import { convertToNestedStructure } from 'utils/convertToNestedStructure';
 
 interface Props {
-	data: any; // { title: string, parameters: [...] }
-	formId: 'level_1' | 'level_2' | 'level_3';
+	campaignFormData: any;
+	data: any;
+	title: any;
+	formId: 'level_1';
 	setCampaignFormData: React.Dispatch<React.SetStateAction<any>>;
 }
 
-const TreeDropdown: React.FC<Props> = ({ data, formId, setCampaignFormData }) => {
+const TreeDropdown: React.FC<Props> = ({
+	data,
+	formId,
+	setCampaignFormData,
+	title,
+	campaignFormData,
+}) => {
 	const [treeOptions, setTreeOptions] = useState([]);
 	const [value, setValue] = useState<string[] | undefined>(undefined);
+
+	const nested = convertToNestedStructure(campaignFormData?.[formId]?.value);
+ 
 
 	useEffect(() => {
 		if (data) {
@@ -23,29 +35,30 @@ const TreeDropdown: React.FC<Props> = ({ data, formId, setCampaignFormData }) =>
 
 	const onChange = (newValue: string[]) => {
 		setValue(newValue);
-
-		// Update the specific level in campaignFormData
-		setCampaignFormData(prev => ({
+		setCampaignFormData((prev) => ({
 			...prev,
 			[formId]: {
-				id: data?.title || '', // you can use some unique id if available
+				id: data?.title || "",
 				value: newValue,
 			},
 		}));
 	};
 
 	return (
-		<div className='w-[330px]'>
+		<div className="w-[330px]">
 			<TreeSelect
 				treeData={treeOptions}
 				value={value}
 				onChange={onChange}
 				treeCheckable
 				showCheckedStrategy={TreeSelect.SHOW_CHILD}
-				placeholder={data?.title || 'Select parameters'}
-				style={{ width: '100%', height: '100%' }}
+				placeholder={data?.title || title}
+				style={{ width: "100%", height: "100%" }}
+				size="large"
 				allowClear
 				className="custom-tree-select"
+				treeLine // <-- shows lines between parent and child
+				treeDefaultExpandAll
 			/>
 		</div>
 	);

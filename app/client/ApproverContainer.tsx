@@ -1,6 +1,6 @@
 "use client";
 import { useCampaigns } from "app/utils/CampaignsContext";
-import { getInitials } from "components/Options";
+import { cleanName, getInitials } from "components/Options";
 import { getSignedApproval } from "features/Comment/commentSlice";
 import { useSession } from "next-auth/react";
 import React, { useEffect } from "react";
@@ -9,15 +9,15 @@ import { useAppDispatch, useAppSelector } from "store/useStore";
 
 const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 	const { data: session }: any = useSession();
-	const {jwt} = useCampaigns()
+	const { jwt } = useCampaigns()
 	const dispatch = useAppDispatch();
 	const id = session?.user?.id || null;
 
-	console.log("ApproverContainer campaign:", campaign);
+	// //console.log("ApproverContainer campaign:", campaign);
 
 	useEffect(() => {
 		if (id) {
-			dispatch(getSignedApproval(id, jwt));
+			dispatch(getSignedApproval({ id, jwt }));
 		}
 	}, [dispatch, id]);
 
@@ -28,27 +28,27 @@ const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 	const items = [
 		{
 			label: "Agency",
-			name: campaign?.client_selection?.client || "-",
+			name: cleanName(campaign?.client_selection?.client) || "-",
 			nameList: [campaign?.client_selection?.client || "-"],
-			initials: getInitials(campaign?.client_selection?.client),
+			initials: getInitials(cleanName(campaign?.client_selection?.client)),
 		},
 		{
 			label: "Client approver",
-			name: clientApprovers[0],
+			name: cleanName(clientApprovers[0]),
 			nameList: clientApprovers,
-			initials: getInitials(clientApprovers[0]),
+			initials: getInitials(cleanName(clientApprovers[0])),
 		},
 		{
 			label: "Agency approver",
-			name: internalApprovers[0],
+			name: cleanName(internalApprovers[0]),
 			nameList: internalApprovers,
-			initials: getInitials(internalApprovers[0]),
+			initials: getInitials(cleanName(internalApprovers[0])),
 		},
 		{
 			label: "Campaign builder",
-			name: campaign?.campaign_builder?.username || "-",
+			name: cleanName(campaign?.campaign_builder?.username) || "-",
 			nameList: [campaign?.campaign_builder?.username || "-"],
-			initials: getInitials(campaign?.campaign_builder?.username),
+			initials: getInitials(cleanName(campaign?.campaign_builder?.username)),
 		},
 	];
 
@@ -84,7 +84,7 @@ const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 								{/* Tooltip for multiple names */}
 								{item?.nameList?.length > 1 && (
 									<div className="absolute top-full mt-1 left-0 z-50 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-normal max-w-[220px] shadow-md">
-										{item?.nameList.join(", ")}
+										{item?.nameList?.join(", ")}
 									</div>
 								)}
 							</div>

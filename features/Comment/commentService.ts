@@ -6,7 +6,8 @@ import axios from 'axios'
 
  
  //  Create Comment
-const getComment = async (commentId: any, jwt:any,client_commentId?: any) => {
+const getComment = async (commentId: any, jwt: any, client_commentId?: any) => {
+
   const filters: any = {
     "filters[commentId][$eq]": commentId,
   };

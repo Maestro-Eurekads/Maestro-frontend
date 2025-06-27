@@ -34,7 +34,15 @@ interface DraggableChannelProps {
   color?: any;
   endDay?: any;
   endWeek?: any;
-  dailyWidth?:any
+  dailyWidth?: any;
+}
+
+interface TooltipState {
+  visible: boolean;
+  x: number;
+  y: number;
+  content: string;
+  type: "resize" | "drag" | null;
 }
 
 const DraggableChannel: React.FC<DraggableChannelProps> = ({
@@ -60,7 +68,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   color,
   endDay,
   endWeek,
-  dailyWidth
+  dailyWidth,
 }) => {
   const { funnelWidths, setFunnelWidth } = useFunnelContext();
   const [position, setPosition] = useState(0);
@@ -74,66 +82,121 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   const { campaignFormData, setCampaignFormData } = useCampaigns();
   const { range } = useDateRange();
 
+  // Add tooltip state
+  const [tooltip, setTooltip] = useState<TooltipState>({
+    visible: false,
+    x: 0,
+    y: 0,
+    content: "",
+    type: null,
+  });
+
   useEffect(() => {
     setPosition(parentLeft);
   }, [parentLeft]);
 
-  const pixelToDate = (pixel: number, containerWidth: number, fieldName?:string) => {
-    const startDate = dateList[0] // First date in the range
-    const totalDays = dateList.length - 1 // Use totalDays - 1 to match grid intervals
+  const pixelToDate = (
+    pixel: number,
+    containerWidth: number,
+    fieldName?: string
+  ) => {
+    const startDate = dateList[0]; // First date in the range
+    const totalDays = dateList.length - 1; // Use totalDays - 1 to match grid intervals
 
     // Convert pixel to date index
-    const dayIndex = Math.min(totalDays, Math.max(0, Math.round((pixel / containerWidth) * totalDays)))
+    const dayIndex = Math.min(
+      totalDays,
+      Math.max(0, Math.round((pixel / containerWidth) * totalDays))
+    );
 
-    const calculatedDate = new Date(startDate)
-    calculatedDate.setDate(startDate.getDate() + dayIndex)
+    const calculatedDate = new Date(startDate);
+    calculatedDate.setDate(startDate.getDate() + dayIndex);
 
     if (fieldName === "endDate") {
-      calculatedDate.setDate(calculatedDate.getDate() + 1); // Add 1 day to fix the issue
+      calculatedDate.setDate(calculatedDate.getDate()); // Add 1 day to fix the issue
     }
 
-    return calculatedDate
-  }
-
-  function calculateDailyWidth(containerWidth: number, count: number): number {
-    const adjustedWidth = containerWidth; // adjust for padding/margin if needed
-
-    const totalDays = range !== "Month" ? count : count * 31;
-
-    // Base daily width without factor
-    const baseDailyWidth = adjustedWidth / totalDays;
-
-    // Final adjusted daily width
-    return Math.floor(baseDailyWidth);
-  }
+    return calculatedDate;
+  };
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    console.log("🚀 ~ snapToTimeline ~ dailyWidth:", dailyWidth);
     const baseStep = dailyWidth;
-    // console.log("🚀 ~ snapToTimeline ~ baseStep:", baseStep);
-    const adjustmentPerStep = 0; // Decrease each next step by 10
     const snapPoints = [];
-    // console.log("🚀 ~ snapToTimeline ~ snapPoints:", snapPoints);
 
-    let currentSnap = 0;
-    let step = baseStep;
-
-    // Generate snap points with decreasing step size
-    while (currentSnap <= containerWidth) {
-      snapPoints.push(currentSnap);
-      // console.log("🚀 ~ snapToTimeline ~ currentSnap:", currentSnap);
-      currentSnap += step;
-      step = Math.max(dailyWidth, step - adjustmentPerStep);
+    // Generate snap points at regular intervals
+    for (let i = 0; i <= containerWidth; i += baseStep) {
+      snapPoints.push(i);
     }
 
+    // Add the container width as the final snap point
+    if (snapPoints[snapPoints.length - 1] !== containerWidth) {
+      snapPoints.push(containerWidth);
+    }
+
+    // Find the closest snap point
     const closestSnap = snapPoints.reduce((prev, curr) =>
       Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition)
         ? curr
         : prev
     );
 
-    // console.log("Closest custom snap:", closestSnap);
     return closestSnap;
+  };
+
+  // Function to update tooltip with date information
+  const updateTooltipWithDates = (
+    startPixel: number,
+    endPixel: number,
+    mouseX: number,
+    mouseY: number,
+    type: "resize" | "drag"
+  ) => {
+    if (!dateList || dateList.length === 0) return;
+
+    const totalDays = dateList.length - 1;
+
+    const dayStartIndex = Math.min(
+      totalDays,
+      Math.max(0, Math.round((startPixel / (parentWidth || 100)) * totalDays))
+    );
+    const dayEndIndex = Math.min(
+      totalDays,
+      Math.max(0, Math.round((endPixel / (parentWidth || 100)) * totalDays))
+    );
+
+    const startDateValue = dateList[dayStartIndex];
+    const endDateValue = dateList[dayEndIndex];
+
+    if (!startDateValue || !endDateValue) return;
+
+    const formattedStartDate = startDateValue.toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+    });
+    const formattedEndDate = endDateValue.toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+    });
+
+    // Get the container's dimensions
+    const container = document.querySelector(
+      `.cont-${id?.replaceAll(" ", "_")}`
+    ) as HTMLElement;
+    if (!container) return;
+
+    const containerRect = container.getBoundingClientRect();
+
+    // Calculate the tooltip's position relative to the container
+    const tooltipX = mouseX - containerRect.left;
+    const tooltipY = mouseY - containerRect.top - 50; // Offset to position above the mouse
+
+    setTooltip({
+      visible: true,
+      x: tooltipX,
+      y: tooltipY,
+      content: `${description}: ${formattedStartDate} - ${formattedEndDate}`,
+      type,
+    });
   };
 
   const handleMouseDownResize = (
@@ -143,7 +206,18 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     if (disableDrag) return;
     e.preventDefault();
     e.stopPropagation();
-    // setOpenChannel(false)
+
+    // Add tooltip on resize start
+    const startPixel = position;
+    const endPixel = startPixel + parentWidth;
+    updateTooltipWithDates(
+      startPixel,
+      endPixel,
+      e.clientX,
+      e.clientY,
+      "resize"
+    );
+
     isResizing.current = {
       startX: e.clientX,
       startWidth: parentWidth,
@@ -186,63 +260,104 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       newPos = snappedPos;
     } else {
       // For right resize, calculate the new width
-      const rawNewWidth = startWidth + (e.clientX - startX);
+      const deltaX = e.clientX - startX;
+      const rawNewWidth = startWidth + deltaX;
 
       // Calculate where the right edge would be
       const rightEdgePos = startPos + rawNewWidth;
 
-      // Snap the right edge
+      // Snap the right edge to the timeline
       const snappedRightEdge = snapToTimeline(
         rightEdgePos,
         containerRect.width
       );
 
       // Calculate the new width based on the snapped right edge
-      newWidth = Math.max(50, snappedRightEdge - 38 - startPos);
-    }
-
-    // Ensure we don't exceed container boundaries
-    if (newPos + newWidth > maxX) {
-      newWidth = maxX - newPos;
+      newWidth = Math.max(50, snappedRightEdge - startPos);
     }
 
     // Convert pixel positions to dates
     const startDate = pixelToDate(newPos, containerRect.width);
-    const endDate = pixelToDate(newPos + newWidth, containerRect.width, "endDate");
+    const endDate = pixelToDate(
+      newPos + newWidth,
+      containerRect.width,
+      "endDate"
+    );
 
     const updatedChannelMix = campaignFormData?.channel_mix?.find(
       (ch) => ch?.funnel_stage === description
     );
 
     if (updatedChannelMix) {
+      // Update funnel stage timeline dates
       updatedChannelMix["funnel_stage_timeline_start_date"] =
         moment(startDate).format("YYYY-MM-DD");
       updatedChannelMix["funnel_stage_timeline_end_date"] =
         moment(endDate).format("YYYY-MM-DD");
-      setCampaignFormData((prev) => ({
-        ...prev,
-        channel_mix: prev.channel_mix.map((ch) =>
-          ch.funnel_stage === description ? updatedChannelMix : ch
-        ),
-      }));
+
+      // Loop through all media types and update platform dates
+      const mediaTypes = [
+        "social_media",
+        "display_networks",
+        "search_engines",
+        "streaming",
+        "ooh",
+        "broadcast",
+        "messaging",
+        "print",
+        "e_commerce",
+        "in_game",
+        "mobile",
+      ];
+
+      mediaTypes.forEach((mediaType) => {
+        const platforms = updatedChannelMix[mediaType];
+        if (platforms && Array.isArray(platforms)) {
+          platforms.forEach((platform) => {
+            // Update campaign_start_date
+            if (
+              platform.campaign_start_date &&
+              moment(platform.campaign_start_date).isBefore(startDate)
+            ) {
+              platform.campaign_start_date =
+                moment(startDate).format("YYYY-MM-DD");
+            }
+
+            // Update campaign_end_date
+            if (
+              platform.campaign_end_date &&
+              moment(platform.campaign_end_date).isAfter(endDate)
+            ) {
+              platform.campaign_end_date = moment(endDate).format("YYYY-MM-DD");
+            }
+          });
+        }
+      });
     }
 
     setParentWidth(newWidth);
     setParentLeft(newPos);
     setPosition(newPos);
-  };
 
-  const handleMouseUp = () => {
-    isResizing.current = null;
-    isDragging.current = null;
-    document.removeEventListener("mousemove", handleMouseMoveResize);
-    document.removeEventListener("mousemove", handleMouseMoveDrag);
-    document.removeEventListener("mouseup", handleMouseUp);
+    // Update tooltip during resize
+    updateTooltipWithDates(
+      newPos,
+      newPos + newWidth,
+      e.clientX,
+      e.clientY,
+      "resize"
+    );
   };
 
   const handleMouseDownDrag = (e: React.MouseEvent<HTMLDivElement>) => {
     if (disableDrag) return;
     e.preventDefault();
+
+    // Add tooltip on drag start
+    const startPixel = position;
+    const endPixel = startPixel + parentWidth;
+    updateTooltipWithDates(startPixel, endPixel, e.clientX, e.clientY, "drag");
+
     isDragging.current = { startX: e.clientX, startPos: position };
     document.addEventListener("mousemove", handleMouseMoveDrag);
     document.addEventListener("mouseup", handleMouseUp);
@@ -297,48 +412,99 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         ),
       }));
     }
+
+    // Update tooltip during drag
+    updateTooltipWithDates(
+      newPosition,
+      newPosition + parentWidth,
+      e.clientX,
+      e.clientY,
+      "drag"
+    );
   };
+
+  const handleMouseUp = () => {
+    // Hide tooltip on mouse up
+    setTooltip((prev) => ({ ...prev, visible: false }));
+
+    isResizing.current = null;
+    isDragging.current = null;
+    document.removeEventListener("mousemove", handleMouseMoveResize);
+    document.removeEventListener("mousemove", handleMouseMoveDrag);
+    document.removeEventListener("mouseup", handleMouseUp);
+  };
+
   const stageBudget = campaignFormData?.channel_mix?.find(
     (fs) => fs?.funnel_stage === description
   )?.stage_budget;
 
   return (
     <div
-      className={`relative w-full h-14 flex select-none ${
-        disableDrag ? "rounded-[10px]" : "rounded-none"
-      }`}
+      className={`relative w-full h-14 flex select-none rounded-[10px] cont-${id?.replaceAll(
+        " ",
+        "_"
+      )}`}
       style={{
         transform: `translateX(${position + (range === "Month" ? 4 : 0)}px)`,
       }}
     >
-      {/* Left Resize Handle */}
-      <div
-        className={`w-5 h-full bg-opacity-80 bg-black ${
-          disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-        } rounded-l-lg text-white flex items-center justify-center`}
-        onMouseDown={(e) =>
-          disableDrag || openItems
-            ? undefined
-            : handleMouseDownResize(e, "left")
-        }
-      >
-        <MdDragHandle className="rotate-90" />
-      </div>
-
+      {/* Tooltip */}
+      {tooltip.visible && (
+        <div
+          className={`${color} fixed top-0 z-50 text-white px-3 py-1.5 rounded-md text-sm shadow-lg whitespace-nowrap pointer-events-none`}
+          style={{
+            left: `${tooltip.x}px`,
+            top: `0px`,
+            transform: `translate(-${tooltip.x + 100 >= (parentWidth || 0) ? 100 : 0}%, -100%)`,
+            border: `1px solid ${bg}`,
+            color: "white",
+          }}
+        >
+          {tooltip.content}
+        </div>
+      )}
       {/* Draggable Content */}
       <div
-        className={`${color} h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
-          disableDrag ? "cursor-default rounded-[10px] relative" : "cursor-move"
-        }`}
+        className={`relative ${color} h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
+          disableDrag ? "cursor-default relative" : "cursor-move"
+        } rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
         style={{
           width: disableDrag
-            ? `${parentWidth + (range === "Month" ? 53 : 43)}px`
-            : parentWidth -5,
+            ? `${parentWidth + (range === "Month" ? 0 : 0)}px`
+            : parentWidth,
           backgroundColor: color,
           transition: "transform 0.2s ease-out",
         }}
         onMouseDown={disableDrag || openItems ? undefined : handleMouseDownDrag}
       >
+        {/* Left Resize Handle */}
+        {range === "Month" ? (
+          <div
+            className={`absolute left-0 w-5 h-1/2 bg-opacity-80  ${
+              disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+            } rounded-l-lg text-white flex items-center justify-center`}
+            onMouseDown={(e) =>
+              disableDrag || openItems
+                ? undefined
+                : handleMouseDownResize(e, "left")
+            }
+          >
+            <MdDragHandle className="rotate-90" />
+          </div>
+        ) : (
+          <div
+            className={`absolute left-0 w-5 h-full bg-opacity-80 bg-black ${
+              disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+            } rounded-l-lg text-white flex items-center justify-center`}
+            onMouseDown={(e) =>
+              disableDrag || openItems
+                ? undefined
+                : handleMouseDownResize(e, "left")
+            }
+          >
+            <MdDragHandle className="rotate-90" />
+          </div>
+        )}
         <div />
         <button
           className="flex items-center gap-3 w-fit"
@@ -360,7 +526,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
         {!disableDrag && parentWidth >= 350 ? (
           <button
-            className="channel-btn"
+            className="channel-btn mr-10"
             onClick={() => {
               setIsOpen?.(true);
               setSelectedStage(description);
@@ -377,23 +543,37 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           <div className="bg-[#FFFFFF26] rounded-[5px] py-[10px] px-[12px] font-medium">
             {stageBudget?.fixed_value &&
               Number.parseInt(stageBudget?.fixed_value).toLocaleString()}{" "}
-            {getCurrencySymbol(stageBudget?.currency)}
+            {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
           </div>
         )}
-      </div>
-
-      {/* Right Resize Handle */}
-      <div
-        className={`w-5 h-full bg-opacity-80 bg-black ${
-          disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
-        } rounded-r-lg text-white flex items-center justify-center`}
-        onMouseDown={(e) =>
-          disableDrag || openItems
-            ? undefined
-            : handleMouseDownResize(e, "right")
-        }
-      >
-        <MdDragHandle className="rotate-90" />
+        {/* Right Resize Handle */}
+        {range === "Month" ? (
+          <div
+            className={`absolute right-0 w-5 h-1/2 bg-opacity-80  ${
+              disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+            } rounded-r-lg text-white flex items-center justify-center`}
+            onMouseDown={(e) =>
+              disableDrag || openItems
+                ? undefined
+                : handleMouseDownResize(e, "right")
+            }
+          >
+            <MdDragHandle className="rotate-90" />
+          </div>
+        ) : (
+          <div
+            className={`absolute right-0 w-5 h-full bg-opacity-80 bg-black ${
+              disableDrag ? "cursor-default hidden" : "cursor-ew-resize"
+            } rounded-r-lg text-white flex items-center justify-center`}
+            onMouseDown={(e) =>
+              disableDrag || openItems
+                ? undefined
+                : handleMouseDownResize(e, "right")
+            }
+          >
+            <MdDragHandle className="rotate-90" />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,49 +1,61 @@
-"use client";
+"use client"
 
-import React, { useEffect, useState } from "react";
-import PageHeaderWrapper from "../../../components/PageHeaderWapper";
-import Topdown from "../../../public/Top-down.svg";
-import backdown from "../../../public/back-down.svg";
-import Selectstatus from "../../../public/Select-status.svg";
-import Image from "next/image";
-import Select from "react-select";
-import { useCampaigns } from "app/utils/CampaignsContext";
-import { useComments } from "app/utils/CommentProvider";
-import { useEditing } from "app/utils/EditingContext";
-import { formatNumberWithCommas } from "components/data";
-import FeeSelectionStep from "./FeeSelectionStep";
-import { SVGLoader } from "components/SVGLoader";
-import BudgetInput from "./BudgetInput";
-import adset from "../../../public/adset_level.svg";
-import channel from "../../../public/channel_level.svg";
-import toast from "react-hot-toast";
-import ConfigureAdSetsAndBudget from "./ ConfigureadSetsAndbudget";
+import { useEffect, useState } from "react"
+import PageHeaderWrapper from "../../../components/PageHeaderWapper"
+import Topdown from "../../../public/Top-down.svg"
+import backdown from "../../../public/back-down.svg"
+import Selectstatus from "../../../public/Select-status.svg"
+import Image from "next/image"
+import { useCampaigns } from "app/utils/CampaignsContext"
+import { useComments } from "app/utils/CommentProvider"
+import { useEditing } from "app/utils/EditingContext"
+import { formatNumberWithCommas } from "components/data"
+import FeeSelectionStep from "./FeeSelectionStep"
+import { SVGLoader } from "components/SVGLoader"
+import adset from "../../../public/adset_level.svg"
+import channel from "../../../public/channel_level.svg"
+import toast from "react-hot-toast"
+import { useSearchParams } from "next/navigation"
+import ConfigureAdSetsAndBudget, { BudgetOverviewSection } from "./ ConfigureadSetsAndbudget"
 
 const CampaignBudget = () => {
-  const [budgetStyle, setBudgetStyle] = useState("");
-  const [step, setStep] = useState(0);
-  const { setIsDrawerOpen, setClose } = useComments();
-  const { isEditing, setIsEditing } = useEditing();
-  const [loading, setLoading] = useState(false);
-  const [netAmount, setNetAmount] = useState("");
-  const [feeStepValidated, setFeeStepValidated] = useState(false);
-  const [showLevelCards, setShowLevelCards] = useState(true);
+  const searchParams = useSearchParams()
+  const campaignId = searchParams.get("campaignId")
+  const [budgetStyle, setBudgetStyle] = useState("")
+  const [step, setStep] = useState(0)
+  const { setIsDrawerOpen, setClose } = useComments()
+  const { isEditing, setIsEditing } = useEditing()
+  const [loading, setLoading] = useState(false)
+  const [netAmount, setNetAmount] = useState("")
+  const [feeStepValidated, setFeeStepValidated] = useState(false)
+  const [showLevelCards, setShowLevelCards] = useState(true)
 
   useEffect(() => {
-    setIsDrawerOpen(false);
-    setClose(false);
-    setIsEditing(true);
-  }, []);
+    setIsDrawerOpen(false)
+    setClose(false)
+    setIsEditing(true)
+  }, [])
 
   const [selectedOption, setSelectedOption] = useState({
     value: "EUR",
     label: "EUR",
-  });
+  })
 
-  const [feeType, setFeeType] = useState(null);
-  const [feeAmount, setFeeAmount] = useState("");
+  const [feeType, setFeeType] = useState(null)
+  const [feeAmount, setFeeAmount] = useState("")
 
-  const { campaignFormData, setCampaignFormData, campaignData } = useCampaigns();
+  const { campaignFormData, setCampaignFormData, campaignData, getActiveCampaign } = useCampaigns()
+
+  useEffect(() => {
+    setIsDrawerOpen(false)
+    setClose(false)
+  }, [])
+
+  useEffect(() => {
+    if (campaignId) {
+      getActiveCampaign(campaignId)
+    }
+  }, [campaignId])
 
   const selectCurrency = [
     { value: "USD", label: "USD" },
@@ -52,7 +64,7 @@ const CampaignBudget = () => {
     { value: "NGN", label: "NGN" },
     { value: "JPY", label: "JPY" },
     { value: "CAD", label: "CAD" },
-  ];
+  ]
 
   const getCurrencySymbol = (currency) => {
     const symbols = {
@@ -62,26 +74,26 @@ const CampaignBudget = () => {
       NGN: "₦",
       JPY: "¥",
       CAD: "$",
-    };
-    return symbols[currency] || "";
-  };
+    }
+    return symbols[currency] || ""
+  }
 
   const handleBudgetEdit = (param, type) => {
-    if (!isEditing) return;
+    if (!isEditing) return
     setCampaignFormData((prev) => ({
       ...prev,
       campaign_budget: {
         ...prev?.campaign_budget,
         [param]: type?.toString(),
       },
-    }));
+    }))
     if (param === "budget_type") {
-      setStep(1);
-      setBudgetStyle(type);
-      setFeeStepValidated(false);
-      setShowLevelCards(true);
+      setStep(1)
+      setBudgetStyle(type)
+      setFeeStepValidated(false)
+      setShowLevelCards(true)
     }
-  };
+  }
 
   // handleValidate for top_down and bottom_up (logic will be reversed for bottom_up)
   const handleValidate = () => {
@@ -90,32 +102,29 @@ const CampaignBudget = () => {
       if (!campaignFormData?.campaign_budget?.amount) {
         toast("Please set the overall campaign budget first", {
           style: { background: "red", color: "white" },
-        });
-        return false;
+        })
+        return false
       }
-      if (
-        campaignFormData?.campaign_budget?.budget_fees?.length > 0 ||
-        (!feeType && !feeAmount)
-      ) {
-        setFeeStepValidated(true);
-        setStep(2);
-        return true;
+      if (campaignFormData?.campaign_budget?.budget_fees?.length > 0 || (!feeType && !feeAmount)) {
+        setFeeStepValidated(true)
+        setStep(2)
+        return true
       }
       if (feeType && !feeAmount) {
         toast("Please enter the fee amount", {
           style: { background: "red", color: "white" },
-        });
-        return false;
+        })
+        return false
       }
       if (!feeType && feeAmount) {
         toast("Please select a fee type", {
           style: { background: "red", color: "white" },
-        });
-        return false;
+        })
+        return false
       }
-      setFeeStepValidated(true);
-      setStep(2);
-      return true;
+      setFeeStepValidated(true)
+      setStep(2)
+      return true
     } else if (budgetStyle === "bottom_up") {
       // Bottom-up: require sub-budgets (ad set/channel) before proceeding
       if (
@@ -124,61 +133,77 @@ const CampaignBudget = () => {
       ) {
         toast("Please allocate your sub-budgets (ad set/channel) first", {
           style: { background: "red", color: "white" },
-        });
-        return false;
+        })
+        return false
       }
-      if (
-        campaignFormData?.campaign_budget?.budget_fees?.length > 0 ||
-        (!feeType && !feeAmount)
-      ) {
-        setFeeStepValidated(true);
-        setStep(2);
-        return true;
+      if (campaignFormData?.campaign_budget?.budget_fees?.length > 0 || (!feeType && !feeAmount)) {
+        setFeeStepValidated(true)
+        setStep(2)
+        return true
       }
       if (feeType && !feeAmount) {
         toast("Please enter the fee amount", {
           style: { background: "red", color: "white" },
-        });
-        return false;
+        })
+        return false
       }
       if (!feeType && feeAmount) {
         toast("Please select a fee type", {
           style: { background: "red", color: "white" },
-        });
-        return false;
+        })
+        return false
       }
-      setFeeStepValidated(true);
-      setStep(2);
-      return true;
+      setFeeStepValidated(true)
+      setStep(2)
+      return true
     }
-    return false;
-  };
+    return false
+  }
 
   const handleEdit = () => {
-    setFeeStepValidated(false);
-    setStep(1);
-    setFeeType(null);
-    setFeeAmount("");
-    setShowLevelCards(true);
-  };
+    setFeeStepValidated(false)
+    setStep(1)
+    setFeeType(null)
+    setFeeAmount("")
+    setShowLevelCards(true)
+  }
 
   useEffect(() => {
     if (campaignData?.campaign_budget) {
-      setBudgetStyle(campaignData?.campaign_budget?.budget_type);
-      setStep(0);
+      setBudgetStyle(campaignData?.campaign_budget?.budget_type)
+      setStep(0)
       if (campaignData?.campaign_budget?.sub_budget_type?.length > 0) {
-        setStep(1);
+        setStep(1)
       }
       if (campaignData?.campaign_budget?.budget_fees?.length > 0) {
-        setFeeStepValidated(true);
-        setStep(2);
+        setFeeStepValidated(true)
+        setStep(2)
       }
       if (campaignData?.campaign_budget?.level) {
-        setStep(3);
-        setShowLevelCards(false);
+        setStep(3)
+        setShowLevelCards(false)
       }
     }
-  }, [campaignData]);
+  }, [campaignData])
+
+  // Auto-calculate main budget for bottom-up approach
+  useEffect(() => {
+    if (budgetStyle === "bottom_up" && campaignFormData?.channel_mix) {
+      const totalFromPhases = campaignFormData.channel_mix.reduce(
+        (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
+        0,
+      )
+
+      // Update the main campaign budget
+      setCampaignFormData((prev) => ({
+        ...prev,
+        campaign_budget: {
+          ...prev?.campaign_budget,
+          amount: totalFromPhases.toString(),
+        },
+      }))
+    }
+  }, [campaignFormData?.channel_mix, budgetStyle])
 
   return (
     <div>
@@ -196,35 +221,27 @@ const CampaignBudget = () => {
         {/* Top‑down Option */}
         <div
           className={`relative cursor-pointer ${
-            budgetStyle === "top_down"
-              ? "top_and_bottom_down_container_active"
-              : "top_and_bottom_down_container"
+            budgetStyle === "top_down" ? "top_and_bottom_down_container_active" : "top_and_bottom_down_container"
           }`}
           onClick={() => {
-            handleBudgetEdit("budget_type", "top_down");
+            handleBudgetEdit("budget_type", "top_down")
             setCampaignFormData((prev) => ({
               ...prev,
               campaign_budget: {
                 ...prev.campaign_budget,
                 level: "",
               },
-            }));
+            }))
           }}
         >
           <div className="flex items-start gap-2">
             {budgetStyle !== "top_down" ? (
-              <Image
-                src={backdown}
-                alt="backdown"
-                className="rotate-180 transform"
-              />
+              <Image src={backdown || "/placeholder.svg"} alt="backdown" className="rotate-180 transform" />
             ) : (
               <Image
-                src={Topdown}
+                src={Topdown || "/placeholder.svg"}
                 alt="Topdown"
-                className={
-                  budgetStyle === "top_down" ? "rotate-30 transform" : ""
-                }
+                className={budgetStyle === "top_down" ? "rotate-30 transform" : ""}
               />
             )}
             <div>
@@ -238,7 +255,7 @@ const CampaignBudget = () => {
           </div>
           {budgetStyle === "top_down" && (
             <div className="absolute right-2 top-2">
-              <Image src={Selectstatus} alt="Selectstatus" />
+              <Image src={Selectstatus || "/placeholder.svg"} alt="Selectstatus" />
             </div>
           )}
         </div>
@@ -246,30 +263,24 @@ const CampaignBudget = () => {
         {/* Bottom‑up Option */}
         <div
           className={`relative cursor-pointer ${
-            budgetStyle === "bottom_up"
-              ? "top_and_bottom_down_container_active"
-              : "top_and_bottom_down_container"
+            budgetStyle === "bottom_up" ? "top_and_bottom_down_container_active" : "top_and_bottom_down_container"
           }`}
           onClick={() => {
-            handleBudgetEdit("budget_type", "bottom_up");
+            handleBudgetEdit("budget_type", "bottom_up")
             setCampaignFormData((prev) => ({
               ...prev,
               campaign_budget: {
                 ...prev.campaign_budget,
                 level: "",
               },
-            }));
+            }))
           }}
         >
           <div className="flex items-start gap-2">
             {budgetStyle === "bottom_up" ? (
-              <Image
-                src={Topdown}
-                alt="Topdown"
-                className="rotate-180 transform"
-              />
+              <Image src={Topdown || "/placeholder.svg"} alt="Topdown" className="rotate-180 transform" />
             ) : (
-              <Image src={backdown} alt="backdown" />
+              <Image src={backdown || "/placeholder.svg"} alt="backdown" />
             )}
             <div>
               <h3 className="font-semibold whitespace-nowrap text-[15px] leading-[175%] flex items-center text-[#061237]">
@@ -282,7 +293,7 @@ const CampaignBudget = () => {
           </div>
           {budgetStyle === "bottom_up" && (
             <div className="absolute right-2 top-2">
-              <Image src={Selectstatus} alt="Selectstatus" />
+              <Image src={Selectstatus || "/placeholder.svg"} alt="Selectstatus" />
             </div>
           )}
         </div>
@@ -309,15 +320,13 @@ const CampaignBudget = () => {
               <button
                 onClick={() => {
                   if (feeStepValidated) {
-                    handleEdit();
+                    handleEdit()
                   } else if (handleValidate()) {
-                    setFeeStepValidated(true);
+                    setFeeStepValidated(true)
                   }
                 }}
                 className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-                  loading
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-[#3175FF] hover:bg-[#2563eb]"
+                  loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#3175FF] hover:bg-[#2563eb]"
                 }`}
                 disabled={loading}
               >
@@ -335,30 +344,14 @@ const CampaignBudget = () => {
       )}
       {budgetStyle !== "" && budgetStyle === "top_down" && step > 1 && (
         <>
-          <PageHeaderWrapper
-            t4="Choose granularity level"
-            span={feeStepValidated ? 3 : 4}
-          />
+          <PageHeaderWrapper t4="Choose granularity level" span={feeStepValidated ? 3 : 4} />
           {showLevelCards ? (
             <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
               <form method="dialog" className="flex justify-center p-2 !pb-0">
                 <span></span>
                 <span className="w-[44px] h-[44px] grid place-items-center">
-                  <svg
-                    width="45"
-                    height="44"
-                    viewBox="0 0 45 44"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <rect
-                      x="0.71"
-                      y="0"
-                      width="44"
-                      height="44"
-                      rx="22"
-                      fill="#E8F6FF"
-                    />
+                  <svg width="45" height="44" viewBox="0 0 45 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="0.71" y="0" width="44" height="44" rx="22" fill="#E8F6FF" />
                     <mask
                       id="mask0"
                       style={{ maskType: "luminance" }}
@@ -405,13 +398,7 @@ const CampaignBudget = () => {
                       />
                     </mask>
                     <g mask="url(#mask0)">
-                      <rect
-                        x="12.71"
-                        y="12"
-                        width="20"
-                        height="20"
-                        fill="#3175FF"
-                      />
+                      <rect x="12.71" y="12" width="20" height="20" fill="#3175FF" />
                     </g>
                   </svg>
                 </span>
@@ -422,8 +409,7 @@ const CampaignBudget = () => {
                   Choose your goal level
                 </h1>
                 <p className="  font-general font-medium text-[16px] leading-[150%] text-gray-600 text-center">
-                  Define how you want to set your benchmarks and goals for your
-                  media plan.
+                  Define how you want to set your benchmarks and goals for your media plan.
                 </p>
               </div>
               <section className="flex gap-6 mt-[20px]">
@@ -443,39 +429,32 @@ const CampaignBudget = () => {
                    This focuses on specific ad sets in each phase and channel.`,
                   },
                 ].map((item, index) => (
-                  <div
-                    key={index}
-                    className="card bg-base-100 shadow p-2 rounded-[16px]"
-                  >
+                  <div key={index} className="card bg-base-100 shadow p-2 rounded-[16px]">
                     <div className="card-title relative w-full h-[135px]">
                       <figure className="relative w-full h-full rounded-[8px]">
-                        <Image src={item.img} fill alt={item.alt} />
+                        <Image src={item.img || "/placeholder.svg"} fill alt={item.alt} />
                       </figure>
                     </div>
 
                     <div className="">
                       <div className="p-2 text-center">
-                        <h2 className="text-[16px] mb-4 text-[#181D27] font-[600]">
-                          {item?.label}
-                        </h2>
-                        <p className="text-[14px] font-[500] text-[#535862]">
-                          {item?.description}
-                        </p>
+                        <h2 className="text-[16px] mb-4 text-[#181D27] font-[600]">{item?.label}</h2>
+                        <p className="text-[14px] font-[500] text-[#535862]">{item?.description}</p>
                       </div>
 
                       <div className="">
                         <button
                           className="btn btn-primary w-full text-sm bg-[#3175FF]"
                           onClick={() => {
-                            setStep(3);
-                            setShowLevelCards(false);
+                            setStep(3)
+                            setShowLevelCards(false)
                             setCampaignFormData((prev) => ({
                               ...prev,
                               campaign_budget: {
                                 ...prev.campaign_budget,
                                 level: item.label,
                               },
-                            }));
+                            }))
                           }}
                         >
                           Select
@@ -489,13 +468,8 @@ const CampaignBudget = () => {
           ) : (
             <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
               <div className="flex justify-between items-center">
-                <p className="text-[16px] font-semibold">
-                  Selected Level: {campaignFormData?.campaign_budget?.level}
-                </p>
-                <button
-                  className="btn btn-primary text-sm bg-[#3175FF]"
-                  onClick={() => setShowLevelCards(true)}
-                >
+                <p className="text-[16px] font-semibold">Selected Level: {campaignFormData?.campaign_budget?.level}</p>
+                <button className="btn btn-primary text-sm bg-[#3175FF]" onClick={() => setShowLevelCards(true)}>
                   Edit
                 </button>
               </div>
@@ -503,40 +477,27 @@ const CampaignBudget = () => {
           )}
         </>
       )}
+      {/* Top-down: ConfigureAdSetsAndBudget followed by BudgetOverviewSection */}
       {budgetStyle !== "" && budgetStyle === "top_down" && step > 2 && (
         <>
           <ConfigureAdSetsAndBudget num={4} netAmount={netAmount} />
+          <BudgetOverviewSection />
         </>
       )}
+
       {/* Bottom-up flow: REVERSED LOGIC of top-down */}
       {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 0 && (
         <>
           {/* Step 1: Choose granularity level first */}
-          <PageHeaderWrapper
-            t4="Choose granularity level"
-            span={1}
-          />
+          <PageHeaderWrapper t4="Choose granularity level" span={1} />
 
           {showLevelCards ? (
             <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
               <form method="dialog" className="flex justify-center p-2 !pb-0">
                 <span></span>
                 <span className="w-[44px] h-[44px] grid place-items-center">
-                  <svg
-                    width="45"
-                    height="44"
-                    viewBox="0 0 45 44"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <rect
-                      x="0.71"
-                      y="0"
-                      width="44"
-                      height="44"
-                      rx="22"
-                      fill="#E8F6FF"
-                    />
+                  <svg width="45" height="44" viewBox="0 0 45 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="0.71" y="0" width="44" height="44" rx="22" fill="#E8F6FF" />
                     <mask
                       id="mask0"
                       style={{ maskType: "luminance" }}
@@ -583,13 +544,7 @@ const CampaignBudget = () => {
                       />
                     </mask>
                     <g mask="url(#mask0)">
-                      <rect
-                        x="12.71"
-                        y="12"
-                        width="20"
-                        height="20"
-                        fill="#3175FF"
-                      />
+                      <rect x="12.71" y="12" width="20" height="20" fill="#3175FF" />
                     </g>
                   </svg>
                 </span>
@@ -600,8 +555,7 @@ const CampaignBudget = () => {
                   Choose your goal level
                 </h1>
                 <p className="  font-general font-medium text-[16px] leading-[150%] text-gray-600 text-center">
-                  Define how you want to set your benchmarks and goals for your
-                  media plan.
+                  Define how you want to set your benchmarks and goals for your media plan.
                 </p>
               </div>
               <section className="flex gap-6 mt-[20px]">
@@ -621,39 +575,32 @@ const CampaignBudget = () => {
                    This focuses on specific ad sets in each phase and channel.`,
                   },
                 ].map((item, index) => (
-                  <div
-                    key={index}
-                    className="card bg-base-100 shadow p-2 rounded-[16px]"
-                  >
+                  <div key={index} className="card bg-base-100 shadow p-2 rounded-[16px]">
                     <div className="card-title relative w-full h-[135px]">
                       <figure className="relative w-full h-full rounded-[8px]">
-                        <Image src={item.img} fill alt={item.alt} />
+                        <Image src={item.img || "/placeholder.svg"} fill alt={item.alt} />
                       </figure>
                     </div>
 
                     <div className="">
                       <div className="p-2 text-center">
-                        <h2 className="text-[16px] mb-4 text-[#181D27] font-[600]">
-                          {item.label}
-                        </h2>
-                        <p className="text-[14px] font-[500] text-[#535862]">
-                          {item.description}
-                        </p>
+                        <h2 className="text-[16px] mb-4 text-[#181D27] font-[600]">{item?.label}</h2>
+                        <p className="text-[14px] font-[500] text-[#535862]">{item?.description}</p>
                       </div>
 
                       <div className="">
                         <button
                           className="btn btn-primary w-full text-sm bg-[#3175FF]"
                           onClick={() => {
-                            setStep(3);
-                            setShowLevelCards(false);
+                            setStep(3)
+                            setShowLevelCards(false)
                             setCampaignFormData((prev) => ({
                               ...prev,
                               campaign_budget: {
                                 ...prev.campaign_budget,
                                 level: item.label,
                               },
-                            }));
+                            }))
                           }}
                         >
                           Select
@@ -667,13 +614,8 @@ const CampaignBudget = () => {
           ) : (
             <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
               <div className="flex justify-between items-center">
-                <p className="text-[16px] font-semibold">
-                  Selected Level: {campaignFormData?.campaign_budget?.level}
-                </p>
-                <button
-                  className="btn btn-primary text-sm bg-[#3175FF]"
-                  onClick={() => setShowLevelCards(true)}
-                >
+                <p className="text-[16px] font-semibold">Selected Level: {campaignFormData?.campaign_budget?.level}</p>
+                <button className="btn btn-primary text-sm bg-[#3175FF]" onClick={() => setShowLevelCards(true)}>
                   Edit
                 </button>
               </div>
@@ -681,7 +623,7 @@ const CampaignBudget = () => {
           )}
         </>
       )}
-      {/* Step 2: Allocate sub-budgets (ad set/channel) and then fees */}
+      {/* Step 2: Allocate sub-budgets (ad set/channel) */}
       {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 1 && (
         <>
           {/* Here, user is expected to allocate sub-budgets before fees */}
@@ -704,15 +646,13 @@ const CampaignBudget = () => {
               <button
                 onClick={() => {
                   if (feeStepValidated) {
-                    handleEdit();
+                    handleEdit()
                   } else if (handleValidate()) {
-                    setFeeStepValidated(true);
+                    setFeeStepValidated(true)
                   }
                 }}
                 className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${
-                  loading
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-[#3175FF] hover:bg-[#2563eb]"
+                  loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#3175FF] hover:bg-[#2563eb]"
                 }`}
                 disabled={loading}
               >
@@ -728,33 +668,33 @@ const CampaignBudget = () => {
           )}
         </>
       )}
-      {/* Step 3: Set overall campaign budget (summary/final step) */}
+      {/* Step 3: Set overall campaign budget (summary/final step) with budget overview */}
       {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 2 && (
         <>
           {/* In bottom-up, after sub-budgets and fees, show summary/overall budget */}
           <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
             <h2 className="text-[18px] font-semibold mb-2">Overall Campaign Budget</h2>
-            <p className="text-[15px] mb-4">
-              The total campaign budget is calculated from your sub-budgets.
-            </p>
+            <p className="text-[15px] mb-4">The total campaign budget is calculated from your sub-budgets.</p>
             <div className="flex items-center gap-2">
               <span className="font-bold text-[20px] text-[#3175FF]">
-                {getCurrencySymbol(
-                  campaignFormData?.campaign_budget?.currency || "EUR"
-                )}
+                {getCurrencySymbol(campaignFormData?.campaign_budget?.currency || "EUR")}
                 {formatNumberWithCommas(
-                  campaignFormData?.campaign_budget?.amount || 0
+                  campaignFormData?.channel_mix?.reduce(
+                    (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
+                    0,
+                  ) || 0,
                 )}
               </span>
-              <span className="text-gray-500">
-                {campaignFormData?.campaign_budget?.currency || "EUR"}
-              </span>
+              <span className="text-gray-500">{campaignFormData?.campaign_budget?.currency || "EUR"}</span>
             </div>
           </div>
+
+          {/* Show budget overview button at the end for bottom-up */}
+          <BudgetOverviewSection />
         </>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default CampaignBudget;
+export default CampaignBudget

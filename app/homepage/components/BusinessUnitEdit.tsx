@@ -4,10 +4,17 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import blueSmallPlue from "../../../public/blueSmallPlue.svg";
 import { MdOutlineCancel } from "react-icons/md";
+import { toast } from "sonner";
 
-const EditInput = ({ setInputs, label, setAlert, initialData }) => {
+const EditInput = ({ setInputs, label, setAlert, initialData, isAgencyCreator, setIsLevelChange }) => {
   const [title, setTitle] = useState(initialData?.title || "");
-  const [parameters, setParameters] = useState(initialData?.parameters || []);
+  const [parameters, setParameters] = useState(() =>
+    initialData?.parameters?.map(param => ({
+      name: param.name,
+      subParameters: [...param.subParameters],
+    })) || []
+  );
+
 
   // Sync with parent
   useEffect(() => {
@@ -102,66 +109,76 @@ const EditInput = ({ setInputs, label, setAlert, initialData }) => {
         <input
           type="text"
           className="w-full bg-transparent outline-none text-gray-600"
-          placeholder="business level 1"
+          placeholder="Client Architecture"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
       </div>
 
       {/* Parameters */}
-      {parameters.map((param, index) => (
-        <div key={index} className="mb-4">
-          {/* Parameter input */}
-          <div className="mt-3 flex items-center px-4 py-2 h-[40px] border border-[#EFEFEF] rounded-[10px]  ml-3">
-            <input
-              type="text"
-              className="w-full bg-transparent outline-none text-gray-600"
-              placeholder={`Add parameter ${index + 1} `}
-              value={param.name}
-              onChange={(e) => handleParameterChange(index, e.target.value)}
-            />
-            <MdOutlineCancel
-              size={18}
-              color="red"
-              onClick={() => handleRemoveParameter(index)}
-              className="cursor-pointer"
-            />
-          </div>
+      {/* Wrapper for hierarchy line from parent */}
+      <div className="relative mt-2 ml-4 border-l-2 border-dashed border-[#3175FF] pl-4">
+        {parameters.map((param, index) => (
+          <div key={index} className="mb-4 relative">
 
-          {/* Sub-parameters */}
-          {param.subParameters.map((sub, sIndex) => (
-            <div
-              key={sIndex}
-              className="ml-6 mt-2 flex items-center px-4 py-2 h-[40px]   border border-[#EFEFEF] rounded-[10px]"
-            >
+            {/* Horizontal connector from main line to parameter */}
+            <div className="absolute left-[-16px] top-[20px] w-4 h-0.5 bg-[#3175FF]" />
+
+            {/* Parameter input */}
+            <div className="flex items-center px-4 py-2 h-[40px] border border-[#EFEFEF] rounded-[10px] bg-white">
               <input
                 type="text"
                 className="w-full bg-transparent outline-none text-gray-600"
-                placeholder={`Add sub - parameter ${sIndex + 1} `}
-                value={sub}
-                onChange={(e) =>
-                  handleSubChange(index, sIndex, e.target.value)
-                }
+                placeholder={`Add parameter ${index + 1}`}
+                value={param.name}
+                onChange={(e) => handleParameterChange(index, e.target.value)}
               />
               <MdOutlineCancel
                 size={18}
                 color="red"
-                onClick={() => handleRemoveSub(index, sIndex)}
+                onClick={() => handleRemoveParameter(index)}
                 className="cursor-pointer"
               />
             </div>
-          ))}
 
-          {/* Add sub-parameter button */}
-          <button
-            onClick={() => handleAddSubParameter(index)}
-            className="ml-4 mt-2 flex items-center gap-1 text-[#3175FF] font-semibold text-[14px]"
-          >
-            <Image src={blueSmallPlue} alt="add" />
-            Add sub-parameter {param.subParameters.length + 1}
-          </button>
-        </div>
-      ))}
+            {/* Sub-parameters with extended vertical line */}
+            <div className="relative ml-6 mt-2 pl-4 before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-px before:bg-[#3175FF] before:translate-x-[-1px]">
+              {param.subParameters.map((sub, sIndex) => (
+                <div
+                  key={sIndex}
+                  className="relative flex items-center h-[45px] mb-2 px-4 border border-[#EFEFEF] rounded-[10px] bg-white before:content-[''] before:absolute before:left-[-16px] before:top-1/2 before:w-4 before:h-0.5 before:bg-[#3175FF]"
+                >
+                  <input
+                    type="text"
+                    className="w-full bg-transparent outline-none text-gray-600"
+                    placeholder={`Add sub-parameter ${sIndex + 1}`}
+                    value={sub}
+                    onChange={(e) =>
+                      handleSubChange(index, sIndex, e.target.value)
+                    }
+                  />
+                  <MdOutlineCancel
+                    size={18}
+                    color="red"
+                    onClick={() => handleRemoveSub(index, sIndex)}
+                    className="cursor-pointer"
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Add sub-parameter button */}
+            <button
+              onClick={() => handleAddSubParameter(index)}
+              className="ml-6 mt-2 flex items-center gap-1 text-[#3175FF] font-semibold text-[14px]"
+            >
+              <Image src={blueSmallPlue} alt="add" />
+              Add sub-parameter {param.subParameters.length + 1}
+            </button>
+          </div>
+        ))}
+      </div>
+
 
       {/* Add parameter button */}
       <div className="flex items-center gap-2 mt-3 ml-1">
@@ -177,14 +194,17 @@ const EditInput = ({ setInputs, label, setAlert, initialData }) => {
   );
 };
 
-const BusinessUnitEdit = ({ setInputs, setAlert, level1Options, initialData }) => {
+
+const BusinessUnitEdit = ({ setInputs, setAlert, level1Options, initialData, isAgencyCreator, setIsLevelChange }) => {
   return (
     <div className="flex flex-col gap-4 mt-[20px]">
       <EditInput
         setInputs={setInputs}
         setAlert={setAlert}
-        label="Business level 1"
+        label="Client Architecture"
         initialData={initialData}
+        isAgencyCreator={isAgencyCreator}
+        setIsLevelChange={setIsLevelChange}
       />
     </div>
   );

@@ -23,20 +23,20 @@ const Dropdown = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { campaignFormData, setCampaignFormData, loadingClients, jwt } = useCampaigns();
   const dispatch = useAppDispatch();
-  const {data:session} = useSession()
+  const { data: session } = useSession()
   const { isAdmin, isAgencyApprover, isFinancialApprover } =
-      useUserPrivileges();
+    useUserPrivileges();
 
   // Fetch clients when dropdown is opened
   const toggleDropdown = () => {
     if (!isOpen && label === "Select Client") {
       //@ts-ignore
-      dispatch(getCreateClient({userId:!isAdmin ? session?.user?.data?.user?.id: null, jwt}));
+      dispatch(getCreateClient({ userId: !isAdmin ? session?.user?.data?.user?.id : null, jwt }));
     }
     setIsOpen(!isOpen);
   };
 
-  // console.log('campaignFormDatacampaignFormData---', campaignFormData)
+  // //console.log('campaignFormDatacampaignFormData---', campaignFormData)
 
 
 
@@ -91,9 +91,7 @@ const Dropdown = ({
         </div>
       )}
       {isOpen &&
-        ((label === "Business level 1" ||
-          label === "Business level 2" ||
-          label === "Business level 3")
+        ((label === "Client Architecture")
           ? campaignFormData["client_selection"]?.value
           : true) && (
           <div className="absolute w-full bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-1 z-10 max-h-[300px] overflow-y-auto">

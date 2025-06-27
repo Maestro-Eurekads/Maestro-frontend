@@ -98,9 +98,7 @@ const Dropdown = ({
         </div>
       )}
       {isOpen &&
-        ((label === "Business level 1" ||
-          label === "Business level 2" ||
-          label === "Business level 3")
+        ((label === "Client Architecture")
           ? campaignFormData["client_selection"]?.value
           : true) && (
           <div className="absolute w-full bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-1 z-10 max-h-[300px] overflow-y-auto">
@@ -150,7 +148,7 @@ const ClientSelection = ({
   formId: string;
 }) => {
   return (
-    <div className="flex items-center gap-4 mt-[20px]">
+    <div className="flex items-center gap-4 mt-[5px]">
       <Dropdown label={label} options={options} formId={formId} />
     </div>
   );

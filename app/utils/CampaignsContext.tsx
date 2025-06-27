@@ -16,7 +16,7 @@ import { useSelector } from "react-redux";
 import { channelMixPopulate } from "utils/fetcher";
 import { useSession } from "next-auth/react";
 import { updateUsersWithCampaign } from "app/homepage/functions/clients";
-import { extractObjectives } from "app/creation/components/EstablishedGoals/table-view/data-processor";
+import { extractObjectives, getFilteredMetrics } from "app/creation/components/EstablishedGoals/table-view/data-processor";
 import { useUserPrivileges } from "utils/userPrivileges";
 
 // Get initial state from localStorage if available
@@ -31,8 +31,6 @@ const getInitialState = () => {
   return {
     client_selection: { id: "", value: "" },
     level_1: { id: "", value: "" },
-    level_2: { id: "", value: "" },
-    level_3: { id: "", value: "" },
     media_plan: "",
     internal_approver: [],
     client_approver: [],
@@ -41,6 +39,7 @@ const getInitialState = () => {
     budget_details_fee_type: { id: "", value: "" },
     budget_details_sub_fee_type: "",
     budget_details_value: "",
+    country_details: { id: "", value: "" },
     campaign_objectives: "",
     funnel_stages: [],
     channel_mix: {},
@@ -52,6 +51,8 @@ const getInitialState = () => {
     campaign_id: {},
   };
 };
+
+
 
 const CampaignContext = createContext<any>(null);
 
@@ -76,6 +77,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const cId = query.get("campaignId");
   const { loadingClients: hookLoadingClients, allClients: hookAllClients } =
     useCampaignHook();
+  const [FC, setFC] = useState(null);
   const [loadingObj, setLoadingObj] = useState(false);
   const [platformList, setPlatformList] = useState({});
   const [objectives, setObjectives] = useState([]);
@@ -92,12 +94,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     year: [],
     quarter: [],
     month: [],
-    // category: [],
-    // product: [],
-    // select_plans: [],
     level_1: [],
-    level_2: [],
-    level_3: [],
     made_by: [],
     approved_by: [],
   });
@@ -134,8 +131,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
   const [businessLevelOptions, setBusinessLevelOptions] = useState({
     level1: [],
-    level2: [],
-    level3: [],
   });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -178,13 +173,14 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             },
           }
         );
-        // console.log("NEXT_PUBLIC_STRAPI_TOKEN?:", res?.data?.data);
+        // //console.log("NEXT_PUBLIC_STRAPI_TOKEN?:", res?.data?.data);
         const data = res?.data?.data;
 
         if (!data) return;
-        const obj = extractObjectives(campaignFormData);
+        // const obj = await extractObjectives(campaignFormData);
+        // const sMetrics = await getFilteredMetrics(obj)
         setCampaignData(data);
-        setHeaderData(data?.table_headers || obj || {});
+        setHeaderData(data?.table_headers || {});
         setCampaignFormData((prev) => ({
           ...prev,
           client_selection: {
@@ -195,15 +191,15 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             id: data?.client_selection?.level_1 ?? prev.level_1?.id,
             value: data?.client_selection?.level_1 ?? prev.level_1?.value,
           },
-          level_2: {
-            id: data?.client_selection?.level_2 ?? prev.level_2?.id,
-            value: data?.client_selection?.level_2 ?? prev.level_2?.value,
-          },
-          level_3: {
-            id: data?.client_selection?.level_3 ?? prev.level_3?.id,
-            value: data?.client_selection?.level_3 ?? prev.level_3?.value,
-          },
           media_plan: data?.media_plan_details?.plan_name ?? prev.media_plan,
+          budget_details_currency: {
+            id: data?.budget_details?.currency,
+            value: data?.budget_details?.currency,
+          },
+          country_details: {
+            id: data?.budget_details?.value,
+            value: data?.budget_details?.value,
+          },
           internal_approver:
             data?.media_plan_details?.internal_approver ??
             prev.internal_approver,
@@ -227,9 +223,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           campaign_id: data?.id ?? prev.id,
           isApprove: data?.isApprove ?? prev?.isApprove,
           table_headers:
-            ((data?.table_headers || obj || {}) ??
-              (prev?.table_headers || obj)) ||
+            ((data?.table_headers || {}) ??
+              (prev?.table_headers)) ||
             {},
+          selected_metrics: ((data?.selected_metrics || {}) ?? (prev?.selected_metrics)) || {},
         }));
         setLoadingCampaign(false);
       } catch (error) {
@@ -254,8 +251,6 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             client_selection: {
               client: campaignFormData?.client_selection?.value,
               level_1: campaignFormData?.level_1?.id,
-              level_2: campaignFormData?.level_2?.id,
-              level_3: campaignFormData?.level_3?.id,
             },
             media_plan_details: {
               plan_name: campaignFormData?.media_plan,
@@ -302,14 +297,15 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       setGetProfile(response?.data);
-      console.log("res", response?.data);
+
+
       const aId =
         response?.data?.user_type === "admin"
           ? response?.data?.admin?.agency?.id
           : response?.data?.user_type?.includes("cleint")
             ? response?.data?.cleint_user?.agency?.id
             : response?.data?.agency_user?.agency?.id;
-      console.log("agencyId", aId);
+      //console.log("agencyId", aId);
       setAgencyId(aId);
       return response;
     } catch (error) {
@@ -368,47 +364,35 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     [cId]
   );
 
-  const fetchBusinessLevelOptions = useCallback(async (clientId: string) => {
-    if (!clientId) return;
-    try {
-      setLoading(true);
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}?populate=*`,
-        {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        }
-      );
-      const data = response?.data?.data || {};
-      console.log("Business Level Options Data:", data);
-      setBusinessLevelOptions({
-        level1:
-          data?.level_1?.map((item: string) => ({
-            id: item,
-            value: item,
-            label: item,
-          })) || [],
-        level2:
-          data?.level_2?.map((item: string) => ({
-            id: item,
-            value: item,
-            label: item,
-          })) || [],
-        level3:
-          data?.level_3?.map((item: string) => ({
-            id: item,
-            value: item,
-            label: item,
-          })) || [],
-      });
-    } catch (error) {
-      console.error("Error fetching business level options:", error);
-      setBusinessLevelOptions({ level1: [], level2: [], level3: [] });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // const fetchBusinessLevelOptions = useCallback(async (clientId: string) => {
+  //   if (!clientId) return;
+  //   try {
+  //     setLoading(true);
+  //     const response = await axios.get(
+  //       `${process.env.NEXT_PUBLIC_STRAPI_URL}/clients/${clientId}?populate=*`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${jwt}`,
+  //         },
+  //       }
+  //     );
+  //     const data = response?.data?.data || {};
+  //     //console.log("Client Architecture Options Data:", data);
+  //     setBusinessLevelOptions({
+  //       level1:
+  //         data?.level_1?.map((item: string) => ({
+  //           id: item,
+  //           value: item,
+  //           label: item,
+  //         })) || [],  
+  //     });
+  //   } catch (error) {
+  //     console.error("Error fetching Client Architecture options:", error);
+  //     setBusinessLevelOptions({ level1: [], level2: [], level3: [] });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, []);
 
   const fetchObjectives = useCallback(async () => {
     setLoadingObj(true);
@@ -571,21 +555,22 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [organizeAdvertisingPlatforms]);
 
-  // Fetch business level options when client selection changes
-  useEffect(() => {
-    // const clientId = campaignFormData?.client_selection?.id;
-    if (selectedClient) {
-      fetchBusinessLevelOptions(selectedClient);
-      setCampaignFormData((prev) => ({
-        ...prev,
-        level_1: { id: "", value: "" },
-        level_2: { id: "", value: "" },
-        level_3: { id: "", value: "" },
-      }));
-    }
-  }, [selectedClient, fetchBusinessLevelOptions]);
+  // FetchClient Architecture options when client selection changes
+  // useEffect(() => {
+  //   // const clientId = campaignFormData?.client_selection?.id;
+  //   if (selectedClient) {
+  //     fetchBusinessLevelOptions(selectedClient);
+  //     setCampaignFormData((prev) => ({
+  //       ...prev,
+  //       level_1: { id: "", value: "" },
+  //     }));
+  //   }
+  // }, [selectedClient, fetchBusinessLevelOptions]);
 
   // Initial data fetching
+
+
+
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
@@ -678,7 +663,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       selectedClient,
       setSelectedClient,
       selectedId,
-      setSelectedId
+      setSelectedId,
+      FC,
+      setFC,
+      agencyData,
+      setAgencyData
     }),
     [
       getUserByUserType,
@@ -719,7 +708,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       selectedClient,
       setSelectedClient,
       selectedId,
-      setSelectedId
+      setSelectedId,
+      FC,
+      setFC,
+      agencyData,
+      setAgencyData
     ]
   );
 

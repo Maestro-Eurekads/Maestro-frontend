@@ -1,3 +1,4 @@
+import { cleanName } from "components/Options";
 import { useEffect, useState } from "react";
 import { useAppSelector } from "store/useStore";
 
@@ -57,18 +58,18 @@ const ClientCommentReply = ({ documentId, contrastingColor }) => {
 							<div className="flex items-center gap-2">
 								<div className="flex flex-col justify-center items-center p-[10px] gap-[10px] w-[40px] h-[40px]   rounded-full text-[20px] leading-[27px] text-center text-white"
 									style={{ backgroundColor: contrastingColor }}>
-									{reply?.name ? reply?.name[0] : "?"}
+									{cleanName(reply?.name) ? cleanName(reply?.name[0]) : "?"}
 								</div>
 								<div>
 									<h3 className="font-[500] text-[16px] leading-[24px] text-[#292929]">
-										{reply?.name || "?"}
+										{cleanName(reply?.name) || "?"}
 									</h3>
 									<div className="flex items-center gap-2">
 										<p className="font-[400] text-[12px] leading-[16px] text-[#292929]">
-											{reply?.date || "N/A"}
+											{reply?.date || "-"}
 										</p>
 										<p className="font-[400] text-[12px] leading-[16px] text-[#292929]">
-											{reply?.time || "N/A"}
+											{reply?.time || "-"}
 										</p>
 									</div>
 								</div>

@@ -88,7 +88,7 @@
 //     "July", "August", "September", "October", "November", "December",
 //   ];
 
-//   console.log("Extracting date filters from campaigns...",campaigns);
+//   //console.log("Extracting date filters from campaigns...",campaigns);
 
 //   campaigns?.forEach((campaign) => {
 //     // Try to use campaign_timeline_start_date and campaign_timeline_end_date
@@ -214,78 +214,8 @@
 //   }
 // }
 
-// // export function extractLevelFilters(campaigns: any[]) { 
-// //   const level_2 = new Set<string>(); 
-
-// //   campaigns.forEach((campaign) => {
-// //     const clientSelection = campaign?.client_selection;
-// //     if (!clientSelection) return;
  
-// //     if (clientSelection.level_2) level_2.add(clientSelection.level_2); 
-// //   });
-
-// //   return { 
-// //     level_2: Array.from(level_2).sort(), 
-// //   };
-// // }
-// // // console.log("Extracting level names from client...", client);
-
-// // export function extractLevelNameFilters(client: any) {
-// //   const flattened = client.flatMap(group =>
-// //     group.map(name => ({
-// //       label: name,
-// //       value: name,
-// //     }))
-// //   );
-
-// //   return {
-// //     level_2_name: flattened,
-// //   };
-// // }
-
-
-// // export function extractLevelNameFilters(client: any) {
-// //   return { 
-
-// //     level_2_name: client.flat(), 
-// //   };
-// // }
-// // Extract unique Level 2 values from campaigns for dropdown
-// export function extractLevelFilters(campaigns: any[]) {
-//   const level_2 = new Set<string>();
-
-//   campaigns.forEach((campaign) => {
-//     const clientSelection = campaign?.client_selection;
-//     if (clientSelection?.level_2) {
-//       level_2.add(clientSelection.level_2);
-//     }
-//   });
-
-//   return {
-//     level_2: Array.from(level_2)
-//       .sort()
-//       .map((value) => ({
-//         label: value,
-//         value,
-//       })),
-//   };
-// }
-
-// // Extract all nested level_2_name values from grouped client data for dropdown
-// export function extractLevelNameFilters(client: any[][]) {
-//   if (!Array.isArray(client)) return { level_2_name: [] };
-
-//   const flattened = client.flatMap((group) =>
-//     group.map((name) => ({
-//       label: name,
-//       value: name,
-//     }))
-//   );
-
-//   return {
-//     level_2_name: flattened,
-//   };
-// }
+ 
 
  
 
@@ -384,9 +314,7 @@
 //     orFilters.push({ funnel_stages: { $containsi: filters.phase } });
 //   }
   
-//   if (filters.level_2) {
-//     orFilters.push({ client_selection: { level_2: { $eq: filters.level_2 } } });
-//   } 
+ 
 
 //   if (orFilters.length > 0) {
 //     query.filters.$or = orFilters;
@@ -484,21 +412,9 @@ export function buildStrapiFilterQuery(clientID: string, filters: FilterState|an
     orFilterIndex++;
   }
 
-  if (filters.level_2?.name) {
-    filterQuery += `&filters[$or][${orFilterIndex}][client_selection][level_2][$in]=${encodeURIComponent(
-      [filters.level_2.name, ...(filters.level_2.subParameters || [])].join(",")
-    )}`;
-    hasOrFilters = true;
-    orFilterIndex++;
-  }
+   
 
-  if (filters.level_3?.name) {
-    filterQuery += `&filters[$or][${orFilterIndex}][client_selection][level_3][$in]=${encodeURIComponent(
-      [filters.level_3.name, ...(filters.level_3.subParameters || [])].join(",")
-    )}`;
-    hasOrFilters = true;
-    orFilterIndex++;
-  }
+  
 
   return filterQuery;
 }
@@ -516,7 +432,7 @@ export function extractDateFilters(campaigns: any[]) {
     "July", "August", "September", "October", "November", "December",
   ];
 
-  // console.log("Extracting date filters from campaigns...",campaigns);
+  // //console.log("Extracting date filters from campaigns...",campaigns);
 
   campaigns?.forEach((campaign) => {
     const hasTimelineDates =
@@ -647,29 +563,23 @@ export function extractChannelAndPhase(campaigns: any[]) {
   };
 }
 export function extractLevelFilters(campaigns: any[]) {
-  const level_1 = new Set<string>();
-  const level_2 = new Set<string>();
-  const level_3 = new Set<string>();
+  const level_1 = new Set<string>(); 
 
   campaigns.forEach((campaign) => {
     const clientSelection = campaign?.client_selection;
     if (!clientSelection) return;
 
-    if (clientSelection.level_1) level_1.add(clientSelection.level_1);
-    if (clientSelection.level_2) level_2.add(clientSelection.level_2);
-    if (clientSelection.level_3) level_3.add(clientSelection.level_3);
+    if (clientSelection.level_1) level_1.add(clientSelection.level_1); 
   });
 
   return {
-    level_1: Array.from(level_1).sort(),
-    level_2: Array.from(level_2).sort(),
-    level_3: Array.from(level_3).sort(),
+    level_1: Array.from(level_1).sort(), 
   };
 }
 // export function extractLevelFilters(campaigns: any[]) {
-//   const levels = { level_1: {}, level_2: {}, level_3: {} };
+//   const levels = { level_1: {},   };
    
-//   console.log("Extracting level filters from campaigns...", campaigns);
+//   //console.log("Extracting level filters from campaigns...", campaigns);
 
 //   campaigns.forEach((campaign) => {
 //     const clientSelection = campaign?.client_selection;
@@ -677,26 +587,18 @@ export function extractLevelFilters(campaigns: any[]) {
 
 //     if (clientSelection.level_1) {
 //       levels.level_1[clientSelection.level_1] = true;
-//     }
-//     if (clientSelection.level_2) {
-//       levels.level_2[clientSelection.level_2] = true;
-//     }
-//     if (clientSelection.level_3) {
-//       levels.level_3[clientSelection.level_3] = true;
-//     }
+//     }  
 
 //     return {
-//       level_1: levels.level_1,
-//       level_2: levels.level_2,
-//       level_3: levels.level_3,
+//       level_1: levels.level_1, 
 //     };
 //   })
 // }
 
 
 // export function extractLevelNameFilters(client: any[][]) {
-//   if (!Array.isArray(client)) return { level_1: [], level_2: [], level_3: [] };
-//   console.log('extractLevelNameFilters',client )
+//   if (!Array.isArray(client)) return { level_1: [] };
+//   //console.log('extractLevelNameFilters',client )
 
 //   const flattened = client.flatMap((group) =>
 //     group.map((name) => ({
@@ -706,64 +608,76 @@ export function extractLevelFilters(campaigns: any[]) {
 //   );
 
 //   return {
-//     level_1: flattened,
-//     level_2: flattened,
-//     level_3: flattened,
+//     level_1: flattened, 
 //   };
 // }
 
 // export function extractLevelFilters(campaigns: any[]) {
-//   const level_1 = new Set<string>();
-//   const level_2 = new Set<string>();
-//   const level_3 = new Set<string>();
+//   const level_1 = new Set<string>(); 
 
 //   campaigns.forEach((campaign) => {
 //     const clientSelection = campaign?.client_selection;
 //     if (!clientSelection) return;
 
-//     if (clientSelection.level_1) level_1.add(clientSelection.level_1);
-//     if (clientSelection.level_2) level_2.add(clientSelection.level_2);
-//     if (clientSelection.level_3) level_3.add(clientSelection.level_3);
+//     if (clientSelection.level_1) level_1.add(clientSelection.level_1); 
 //   });
 
 //   return {
-//     level_1: Array.from(level_1).sort(),
-//     level_2: Array.from(level_2).sort(),
-//     level_3: Array.from(level_3).sort(),
+//     level_1: Array.from(level_1).sort(), 
 //   };
 // }
 
 export function extractLevelNameFilters(client: any) {
   if (!client || typeof client !== 'object') {
-    return { level_1_name: [], level_2_name: [], level_3_name: [] };
+    return { level_1_name: []};
   }
+  // //console.log("client...------", client);
 
   const extractNames = (level) => {
     if (!level?.parameters || !Array.isArray(level?.parameters)) return [];
-    return level.parameters.map((param) => ({
-      label: param.name,
-      value: param.name,
+    return level?.parameters?.map((param) => ({
+      title: level?.title,
+      label: param?.name,
+      value: param?.name,
     })); 
   };
 
   return {
-    level_1_name: extractNames(client.level_1),
-    level_2_name: extractNames(client.level_2),
-    level_3_name: extractNames(client.level_3),
+    level_1_name: extractNames(client.level_1), 
   };
 }
 
 // export function extractLevelNameFilters(client: any) {
  
 //   return {
-//     level_1_name: client?.level_1|| "",
-//     level_2_name: client?.level_2|| "",
-//     level_3_name: client?.level_3|| "",
+//     level_1_name: client?.level_1|| "", 
 //   };
 // }
 
- export const fetchFilteredCampaigns = async (clientID: string, filters: FilterState, jwt:any) => {
+ 
+
+  export const fetchFilteredCampaigns = async (clientID: string, filters: FilterState | null = {
+    year: undefined,
+    quarter: "",
+    month: "",
+    made_by: "",
+    approved_by: "",
+    channel: "",
+    phase: "",
+    searchQuery: ""
+  }, jwt: any) => {
   if (!clientID) return [];
+
+  filters = filters || {
+    year: undefined,
+    quarter: "",
+    month: "",
+    made_by: "",
+    approved_by: "",
+    channel: "",
+    phase: "",
+    searchQuery: ""
+  }; 
 
   const channelMixPopulate = {
     social_media: { populate: "*" },
@@ -797,9 +711,7 @@ export function extractLevelNameFilters(client: any) {
       },
       // client: {
       //   populate: {
-      //     level_1: { populate: "*" },
-      //     level_2: { populate: "*" },
-      //     level_3: { populate: "*" },
+      //     level_1: { populate: "*" }, 
       //   },
       // },
       channel_mix: { populate: channelMixPopulate },
@@ -860,45 +772,8 @@ export function extractLevelNameFilters(client: any) {
   if (filters.phase) {
     orFilters.push({ funnel_stages: { $containsi: filters.phase } });
   }
-  // if (filters.level_1?.name) {
-  //   orFilters.push({
-  //     client: {
-  //       level_1: {
-  //         $or: [
-  //           { title: { $eq: filters.level_1.name } },
-  //           { parameters: { name: { $eq: filters.level_1.name } } },
-  //           { parameters: { subParameters: { $contains: filters.level_1.name } } },
-  //         ],
-  //       },
-  //     },
-  //   });
-  // }
-  // if (filters.level_2?.name) {
-  //   orFilters.push({
-  //     client: {
-  //       level_2: {
-  //         $or: [
-  //           { title: { $eq: filters.level_2.name } },
-  //           { parameters: { name: { $eq: filters.level_2.name } } },
-  //           { parameters: { subParameters: { $contains: filters.level_2.name } } },
-  //         ],
-  //       },
-  //     },
-  //   });
-  // }
-  // if (filters.level_3?.name) {
-  //   orFilters.push({
-  //     client: {
-  //       level_3: {
-  //         $or: [
-  //           { title: { $eq: filters.level_3.name } },
-  //           { parameters: { name: { $eq: filters.level_3.name } } },
-  //           { parameters: { subParameters: { $contains: filters.level_3.name } } },
-  //         ],
-  //       },
-  //     },
-  //   });
-  // }
+  
+   
 
   if (orFilters.length > 0) {
     query.filters.$or = orFilters;

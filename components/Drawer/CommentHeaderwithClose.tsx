@@ -1,3 +1,4 @@
+import { cleanName } from "components/Options";
 import React from "react";
 
 const CommentHeaderwithClose = ({ author }) => {
@@ -15,7 +16,7 @@ const CommentHeaderwithClose = ({ author }) => {
 	return (
 		<div>
 			<h3 className="font-[500] text-[20px] leading-[27px] text-[#292929]">
-				{author}
+				{cleanName(author)}
 			</h3>
 			<div className="flex items-center gap-2">
 				<p className="font-[400] text-[12px] leading-[16px] text-[#292929] whitespace-nowrap">

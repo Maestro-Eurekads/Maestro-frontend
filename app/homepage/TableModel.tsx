@@ -4,8 +4,6 @@ import Image from "next/image";
 import closefill from "../../public/close-fill.svg";
 import blueprofile from "../../public/blueprofile.svg";
 import Input from "../../components/Input";
-import CategoryDropdown from "./components/CategoryDropdown";
-import SportDropdown from "./components/SportDropdown";
 import BusinessUnit from "./components/BusinessUnit";
 import { SVGLoader } from "../../components/SVGLoader";
 import AlertMain from "../../components/Alert/AlertMain";
@@ -29,6 +27,9 @@ const TableModel = ({ isOpen, setIsOpen }) => {
  const dispatch = useAppDispatch();
  const { profile, getProfile, user, getUserByUserType, jwt, agencyId } = useCampaigns();
  const { isAdmin, isAgencyApprover, isFinancialApprover } = useUserPrivileges();
+ const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+
 
  const [inputs, setInputs] = useState({
   name: "",
@@ -36,8 +37,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
   full_name: "",
   agencyAccess: [],
   clientAccess: [],
-  sports: [],
-  categories: [],
   businessUnits: [],
  });
 
@@ -73,6 +72,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
    getUserByUserType(userTypes);
   }
  }, [isOpen]);
+
+
 
  // Email and name validation regex
  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -249,17 +250,19 @@ const TableModel = ({ isOpen, setIsOpen }) => {
     const res = await addNewClient(
      {
       client_name: inputs.name,
-      level_1: inputs.sports,
-      level_2: inputs.businessUnits,
-      level_3: inputs.categories,
+      level_1: inputs.businessUnits,
       users: profile?.id,
       agency: agencyId,
      },
      jwt
     );
-    localStorage.setItem(userType.toString(), res?.data?.data?.id);
 
-    //  getProfile();
+    if (userType && res?.data?.data?.id) {
+     localStorage.setItem(userType.toString(), res?.data?.data?.id);
+    }
+
+
+    getProfile();
 
     // Create user accounts for Agency Access emails
     for (const emailEntry of inputs.agencyAccess) {
@@ -286,6 +289,8 @@ const TableModel = ({ isOpen, setIsOpen }) => {
       toast.error(`Failed to create user for ${emailEntry.email}`);
      }
     }
+
+
 
     // Create user accounts for Client Access emails
     for (const emailEntry of inputs.clientAccess) {
@@ -317,8 +322,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
      full_name: "",
      agencyAccess: [],
      clientAccess: [],
-     sports: [],
-     categories: [],
      businessUnits: [],
     });
     setAgencyInput({ name: "", email: "", roles: "" });
@@ -348,8 +351,6 @@ const TableModel = ({ isOpen, setIsOpen }) => {
    full_name: "",
    agencyAccess: [],
    clientAccess: [],
-   sports: [],
-   categories: [],
    businessUnits: [],
   });
   setAgencyInput({ name: "", email: "", roles: "" });
@@ -379,10 +380,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
        </div>
        <button
         className="text-gray-500 hover:text-gray-800"
-        onClick={() => {
-         setIsOpen(false);
-         resetForm();
-        }}
+        onClick={() => setShowCancelConfirm(true)}
        >
         <Image src={closefill || "/placeholder.svg"} alt="menu" />
        </button>
@@ -455,7 +453,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
           {editingIndex !== null && editingSection === "agencyAccess" ? "Update" : "Add"}
          </button>
         </div>
-        {inputs.agencyAccess.length > 0 && (
+        {inputs?.agencyAccess.length > 0 && (
          <div className="w-full mt-2 mb-4">
           <div className="border border-gray-200 rounded-lg overflow-hidden">
            <div className="max-h-[150px] overflow-y-auto">
@@ -467,7 +465,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
               >
                <div className="flex items-center gap-3">
                 <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                 {user.name.charAt(1).toUpperCase()}
+                 {user.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
                  <p className="font-medium text-sm">{user.name}</p>
@@ -572,7 +570,7 @@ const TableModel = ({ isOpen, setIsOpen }) => {
               >
                <div className="flex items-center gap-3">
                 <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                 {user.name.charAt(1).toUpperCase()}
+                 {user.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
                  <p className="font-medium text-sm">{user.name}</p>
@@ -608,31 +606,52 @@ const TableModel = ({ isOpen, setIsOpen }) => {
 
        <div className="w-full flex items-start gap-3">
         <BusinessUnit setInputs={setInputs} setAlert={setAlert} />
-        <SportDropdown setInputs={setInputs} setAlert={setAlert} />
-        <CategoryDropdown setInputs={setInputs} setAlert={setAlert} />
        </div>
       </div>
 
       {/* Footer */}
       <div className="p-6 border-t bg-white sticky bottom-0 z-10 flex justify-end rounded-b-[32px]">
        <div className="flex items-center gap-5">
-        <button
-         onClick={() => {
-          setIsOpen(false);
-          resetForm();
-         }}
-         className="btn_model_outline"
-        >
-         Cancel
-        </button>
+
+
         <button className="btn_model_active whitespace-nowrap" onClick={handleSubmit}>
          {loading ? <SVGLoader width={"30px"} height={"30px"} color={"#FFF"} /> : "Add Client"}
         </button>
        </div>
       </div>
      </div>
+     {showCancelConfirm && (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-60">
+       <div className="bg-white rounded-lg p-6 w-[400px]">
+        <h3 className="text-lg font-semibold text-red-600">Cancel Creation</h3>
+        <p className="text-sm text-gray-600 mt-2">
+         Are you sure you want to cancel client creation?
+        </p>
+        <div className="flex justify-end gap-3 mt-4">
+         <button
+          className="px-4 py-2 bg-gray-200 rounded-lg text-sm"
+          onClick={() => setShowCancelConfirm(false)}
+         >
+          No
+         </button>
+         <button
+          className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm"
+          onClick={() => {
+           setShowCancelConfirm(false);
+           setIsOpen(false);
+           resetForm();
+          }}
+         >
+          Yes
+         </button>
+        </div>
+       </div>
+      </div>
+     )}
     </div>
    )}
+
+
   </div>
  );
 };

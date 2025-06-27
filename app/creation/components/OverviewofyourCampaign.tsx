@@ -13,7 +13,7 @@ import { useCampaigns } from "../../utils/CampaignsContext";
 import MessageContainer from "components/Drawer/MessageContainer";
 import { useComments } from "app/utils/CommentProvider";
 import { useAppDispatch } from "store/useStore";
-import { getComment, getGeneralComment } from "features/Comment/commentSlice";
+
 import BusinessGeneral from "../BusinessView/BusinessGeneral";
 import BusinessBrandAwareness from "../BusinessView/BusinessBrandAwareness";
 import BusinessApproverContainer from "../BusinessView/BusinessApproverContainer";
@@ -42,6 +42,8 @@ import { getCurrencySymbol, getPlatformIcon } from "components/data";
 import { useVersionContext } from "app/utils/VersionApprovalContext";
 import { toast } from "sonner";
 import Skeleton from "react-loading-skeleton";
+import { useSession } from "next-auth/react";
+import { getComment, getGeneralComment } from "features/Comment/commentSlice";
 
 interface Comment {
   documentId: string;
@@ -73,15 +75,20 @@ const OverviewofyourCampaign = () => {
     campaignData,
     isLoading: isLoadingCampaign,
     campaignFormData,
-    jwt,
+    // jwt,
     loadingCampaign,
     getActiveCampaign,
   } = useCampaigns();
   const dispatch = useAppDispatch();
   const query = useSearchParams();
   const commentId = query.get("campaignId");
+
   const campaignId = query.get("campaignId");
   const [finalCategoryOrder, setFinalCategoryOrder] = useState(categoryOrder);
+  const { data: session } = useSession();
+  const jwt =
+    (session?.user as { data?: { jwt: string } })?.data?.jwt
+
   const {
     getKpis,
     isLoadingKpis,
@@ -122,12 +129,12 @@ const OverviewofyourCampaign = () => {
 
   const handleDrawerOpen = () => {
     setIsDrawerOpen(true);
-    dispatch(getComment(commentId, jwt));
+    dispatch(getComment({ commentId, jwt }));
     setClose(true);
   };
   const handleOpenComment = () => {
     setGeneralComment(!generalComment);
-    dispatch(getGeneralComment(commentId, jwt));
+    dispatch(getGeneralComment({ commentId, jwt }));
   };
 
   function extractKPIByFunnelStage(data, kpiCategories) {
@@ -287,8 +294,7 @@ const OverviewofyourCampaign = () => {
 
 
 
-  // console.log('campaignFormData-campaignFormData', campaignFormData)
-  // console.log('campaignData-campaignData', campaignData)
+
   return (
     <div>
       {alert && <AlertMain alert={alert} />}
@@ -320,6 +326,7 @@ const OverviewofyourCampaign = () => {
             loading={isLoadingKpis}
             isLoadingCampaign={loadingCampaign}
           />
+          <MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
           <div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
             <div className="flex gap-[12px] md:flex-row">
               <button
@@ -391,7 +398,7 @@ const OverviewofyourCampaign = () => {
           <DateComponent useDate={true} hideRange={true} />
         </div>
 
-        <MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
+
         {/* <OverviewOfYourCampaigntimeline dateList={range} funnels={funnelsData} setIsDrawerOpen={setIsDrawerOpen} openComments={isDrawerOpen} /> */}
         {isLoadingCampaign ?
           <div className='w-full h-[500px] flex flex-col gap-[50px] m-20px'>
@@ -401,7 +408,7 @@ const OverviewofyourCampaign = () => {
             <Skeleton height={20} width={"100%"} />
             <Skeleton height={20} width={"100%"} />
             <Skeleton height={20} width={"100%"} />
-          </div> : !campaignData ? "" :
+          </div> : !campaignData ? [] :
             <MainSection hideDate={true} disableDrag={true} />}
       </div>
     </div>

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Title } from "../../../components/Title";
 import PageHeaderWrapper from "../../../components/PageHeaderWapper";
 import { useCampaigns } from "../../utils/CampaignsContext";
@@ -7,21 +7,35 @@ import ClientSelectionInput from "../../../components/ClientSelectionInput";
 import AlertMain from "components/Alert/AlertMain";
 import { useComments } from "app/utils/CommentProvider";
 import { useUserPrivileges } from "utils/userPrivileges";
-import { selectCurrency } from "components/Options";
+import { selectCountry, selectCurrency } from "components/Options";
 import ClientApproverDropdowns from "components/ClientApproverDropdowns";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import InternalApproverDropdowns from "components/InternalApproverDropdowns";
 import TreeDropdown from "components/TreeDropdown";
 import { useAppDispatch } from "store/useStore";
 import { useSession } from "next-auth/react";
 import { getCreateClient } from "features/Client/clientSlice";
+import { toast } from "sonner";
+import Skeleton from "react-loading-skeleton";
+import ClientSelectionInputbudget from "components/ClientSelectionInputbudget";
+import ClientSelection from "components/ClientSelection";
 
 
 interface DropdownOption {
   label: string;
   value: string;
 }
+
+interface SelectedItem {
+  value: string;
+  label: string;
+  id?: string;
+  clientId?: string;
+}
 export const SetupScreen = () => {
+  const router: any = useRouter();
+
+
   const dispatch = useAppDispatch();
   const {
     createCampaign,
@@ -38,62 +52,158 @@ export const SetupScreen = () => {
     selectedClient,
     setClientUsers,
     clientUsers,
-    jwt
+    jwt,
+    FC,
+    setFC,
+    selectedId,
+    selectedOption,
+    setSelectedOption
+
   } = useCampaigns();
   const query = useSearchParams();
   const documentId = query.get("campaignId");
+  const lastFetchedClientId = useRef(null);
   const { data: session } = useSession()
   const { client_selection } = campaignFormData || {};
-  const [selectedOption, setSelectedOption] = useState("percentage");
+
   const [alert, setAlert] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [users, setUsers] = useState({ agencyAccess: [], clientAccess: [] });
   const { setIsDrawerOpen, setClose } = useComments();
-  const { isAdmin } = useUserPrivileges();
+  const { isAdmin, userID } = useUserPrivileges();
   const [internalapproverOptions, setInternalApproverOptions] = useState<DropdownOption[]>([]);
   const [clientapprovalOptions, setClientApprovalOptions] = useState<DropdownOption[]>([]);
   const [level1Options, setlevel1Options] = useState<DropdownOption[]>([]);
-  const [level2Options, setlevel2Options] = useState<DropdownOption[]>([]);
-  const [level3Options, setlevel3Options] = useState<DropdownOption[]>([]);
+  const [clientApprovers, setClientApprovers] = useState<SelectedItem[]>([]);
+  const [internalApprovers, setInternalApprovers] = useState<SelectedItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [clientId, setClientId] = useState(null);
+
+
+
+  useEffect(() => {
+    const cached = localStorage.getItem("filteredClient");
+    const storedClientId = localStorage.getItem(userID);
+    setClientId(storedClientId)
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        setFC(parsed);
+      } catch (err) {
+        console.error("Failed to parse FC from localStorage", err);
+      }
+    }
+  }, []);
+
+
+
+
+
+  const fetchUsers = async () => {
+    if (!clientId) return;
+
+    const baseUrl = `${process.env.NEXT_PUBLIC_STRAPI_URL}/users`;
+    const filterParams = [`filters[clients][id][$eq]=${encodeURIComponent(clientId)}`];
+    const populateParams = ['populate=*'];
+
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${baseUrl}?${[...filterParams, ...populateParams].join('&')}`, {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      const agencyAccess = data?.filter((user) =>
+        ['agency_creator', 'agency_approver', 'financial_approver'].includes(user.user_type)
+      );
+      const clientAccess = data?.filter((user) =>
+        ['client', 'client_approver'].includes(user.user_type)
+      );
+
+      setUsers({ agencyAccess, clientAccess });
+    } catch (error) {
+      toast.error(`Failed to fetch users: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+
+
+  useEffect(() => {
+    if (clientId && lastFetchedClientId.current !== clientId) {
+      lastFetchedClientId.current = clientId;
+      fetchUsers();
+    }
+  }, [clientId]);
+
+
+
+
+
 
   useEffect(() => {
     //@ts-ignore
     dispatch(getCreateClient({ userId: !isAdmin ? session?.user?.data?.user?.id : null, jwt }));
   }, [isAdmin, session, dispatch]);
 
-  useEffect(() => {
-    if (allClients.length > 0) {
-      const agency = allClients[0]?.agency;
-      const agencyUserOptions = agency?.agency_users?.map((user) => ({
-        value: user?.user?.id,
-        label: user?.full_name,
-      })) || [];
 
-      const clientUserOptions = agency?.client_users?.map((user) => ({
-        value: user?.user?.id,
-        label: user?.full_name,
-      })) || [];
+  useEffect(() => {
+    if (FC) {
+      const agencyUserOptions =
+        users?.agencyAccess
+          ?.filter(
+            (user) =>
+              user?.user_type === "agency_approver" || user?.user_type === "financial_approver"
+          )
+          .map((user) => ({
+            value: user?.id,
+            label: user?.agency_user?.full_name,
+          })) || [];
+
+      const clientUserOptions =
+        users?.clientAccess
+          ?.filter((user) => user?.user_type === "client_approver")
+          .map((user) => ({
+            value: user?.id,
+            label: user?.client_user?.full_name,
+          })) || [];
+
+
+
 
       setInternalApproverOptions(agencyUserOptions);
       setClientApprovalOptions(clientUserOptions);
-      setClientUsers(allClients || []);
+      setClientUsers(FC || []);
       setCampaignFormData(prev => ({
         ...prev,
+        campaign_budget: {
+          currency: campaignFormData?.budget_details_currency?.id,
+        },
         ["client_selection"]: {
-          id: selectedClient || '',
-          value: allClients?.find((cl)=>cl?.id === selectedClient)?.client_name || '',
+          id: selectedClient || FC?.id,
+          value: FC?.client_name || '',
         },
       }));
     }
-  }, [allClients, selectedClient]);
+  }, [FC, selectedClient, users]);
 
   useEffect(() => {
-    if (allClients?.length > 0) {
-      const data = allClients[0]
+    if (FC) {
+      const data = FC
       setlevel1Options(data?.level_1);
-      setlevel2Options(data?.level_2);
-      setlevel3Options(data?.level_3);
     }
-  }, []);
+  }, [FC]);
 
   useEffect(() => {
     setIsDrawerOpen(false);
@@ -127,27 +237,44 @@ export const SetupScreen = () => {
     }
   }, [setCampaignFormData]);
 
-  // Initialize campaignFormData if empty
+
   useEffect(() => {
-    if (documentId === null) {
+    if (documentId === null && !isInitialized) {
       const initialFormData = {
-        client_selection: {},
+        client_selection: {
+          id: selectedClient || FC?.id,
+          value: FC?.client_name || '',
+        },
         media_plan: "",
         internal_approver: [],
         client_approver: [],
         approver_id: [],
         budget_details_currency: {},
+        country_details: {},
         budget_details_fee_type: {},
         budget_details_value: "",
         level_1: {},
-        level_2: {},
-        level_3: {},
       };
+
       setCampaignFormData(initialFormData);
       localStorage.setItem("campaignFormData", JSON.stringify(initialFormData));
       setIsInitialized(true);
+    } else if (documentId === null && isInitialized) {
+      // Only update client_selection if already initialized
+      setCampaignFormData(prev => {
+        const updated = {
+          ...prev,
+          client_selection: {
+            id: selectedClient || FC?.id,
+            value: FC?.client_name || '',
+          },
+        };
+        localStorage.setItem("campaignFormData", JSON.stringify(updated));
+        return updated;
+      });
     }
-  }, [setCampaignFormData, isInitialized]);
+  }, [documentId, isInitialized, selectedClient, FC, setCampaignFormData]);
+
 
   useEffect(() => {
     if (alert) {
@@ -157,10 +284,12 @@ export const SetupScreen = () => {
   }, [alert]);
 
 
+
+
   useEffect(() => {
-    if (campaignFormData?.budget_details_currency?.id) {
+    if (campaignFormData?.campaign_budget?.currency) {
       const currency = selectCurrency?.find(
-        (c) => c?.value === campaignFormData?.budget_details_currency?.id
+        (c) => c?.value === campaignFormData?.campaign_budget?.currency
       );
       if (currency) {
         if (campaignFormData?.budget_details_fee_type?.id === "Fix budget fee") {
@@ -171,11 +300,24 @@ export const SetupScreen = () => {
       }
     }
   }, [
-    campaignFormData?.budget_details_currency?.id,
+    campaignFormData?.campaign_budget?.currency,
     campaignFormData?.budget_details_fee_type?.id,
     selectedOption,
     setCurrencySign,
   ]);
+
+  // useEffect(() => {
+  //   const currencyData = campaignFormData?.budget_details_currency;
+
+  //   if (currencyData?.value) {
+  //     setSelectedOption({
+  //       label: currencyData.value,
+  //       value: currencyData.value,
+  //     });
+  //   }
+  // }, [campaignFormData?.budget_details_currency]);
+
+
 
 
 
@@ -195,28 +337,75 @@ export const SetupScreen = () => {
       campaignFormData?.media_plan,
       // campaignFormData?.internal_approver_ids,
       // campaignFormData?.client_approver_ids,
-      // campaignFormData?.level_1?.id,
-      // campaignFormData?.level_2?.id,
-      // campaignFormData?.level_3?.id,
+      // campaignFormData?.level_1?.id, 
     ];
 
     const evaluatedFields = fieldsToCheck.map(getFieldValue);
     setRequiredFields(evaluatedFields);
   }, [campaignFormData, cId, setRequiredFields]);
 
-  // const sampleData = {
-  //   title: 'Toshiba',
-  //   parameters: [
-  //     {
-  //       name: 'parasonic',
-  //       subParameters: ['battery']
-  //     },
-  //     {
-  //       name: 'Radio',
-  //       subParameters: ['Wave', 'Book']
-  //     }
-  //   ]
-  // };
+
+
+  useEffect(() => {
+    const approverIds = campaignFormData?.internal_approver_ids || [];
+    const campaignId = campaignFormData?.campaign_id;
+    const clientId = campaignFormData?.client_selection?.id;
+
+    if (approverIds.length && internalapproverOptions.length) {
+      const mapped = approverIds
+        .map((id) => {
+          const found = internalapproverOptions.find((opt) => String(opt.value) === String(id));
+          if (!found) return null;
+          return {
+            value: found.value,
+            label: found.label,
+            id: campaignId,
+            clientId,
+          };
+        })
+        .filter(Boolean) as SelectedItem[];
+
+      setInternalApprovers(mapped);
+    }
+  }, [
+    campaignFormData?.internal_approver_ids,
+    internalapproverOptions,
+    campaignFormData?.campaign_id,
+    campaignFormData?.client_selection?.id,
+  ]);
+
+
+  useEffect(() => {
+    const { client_approver_ids = [], campaign_id, client_selection } = campaignFormData || {};
+    const clientId = client_selection?.id;
+
+    if (client_approver_ids.length && clientapprovalOptions.length && campaign_id && clientId) {
+      const mapped = client_approver_ids
+        .map((id) => {
+          const match = clientapprovalOptions.find((opt) => String(opt.value) === String(id));
+          return match
+            ? {
+              value: match.value,
+              label: match.label,
+              id: campaign_id,
+              clientId,
+            }
+            : null;
+        })
+        .filter(Boolean) as SelectedItem[];
+
+      setClientApprovers(mapped);
+    }
+  }, [
+    campaignFormData?.client_approver_ids,
+    campaignFormData?.campaign_id,
+    campaignFormData?.client_selection?.id,
+    clientapprovalOptions,
+  ]);
+
+
+
+
 
   if (!campaignFormData) {
     return <div>Loading...</div>;
@@ -227,117 +416,125 @@ export const SetupScreen = () => {
     <div className="container mx-auto px-4">
       <PageHeaderWrapper t1="Set up your new campaign" />
       {alert && <AlertMain alert={alert} />}
-      <div className="mt-10">
-        {/* Client Selection Section */}
-        <div className="mb-12">
-          <Title className="text-2xl font-semibold text-gray-800 mb-4">
-            Business Levels
-          </Title>
-          <div className="flex items-center flex-wrap gap-4 pb-12">
-            <div>
-              <TreeDropdown
-                data={level1Options}
-                setCampaignFormData={setCampaignFormData}
-                formId="level_1"
-              />
-            </div>
-            <div>
-              <TreeDropdown
-                data={level2Options}
-                setCampaignFormData={setCampaignFormData}
-                formId="level_2"
-              />
-            </div>
-            <div>
-              <TreeDropdown
-                data={level3Options}
-                setCampaignFormData={setCampaignFormData}
-                formId="level_3"
-              />
-            </div>
-          </div>
-        </div>
 
-        {/* Media Plan Details Section */}
-        <div className="mb-12">
-          <Title className="text-2xl font-semibold text-gray-800 mb-4">
-            Media Plan Details
-          </Title>
-          <div className="flex flex-wrap items-start gap-6">
-            <div >
-              <label className="block text-sm font-medium text-gray-700  ">
-                Name
-              </label>
-              <ClientSelectionInput
-                label="Enter media plan name"
-                formId="media_plan"
-              />
+      {loading ? (
+        <div className="flex flex-col gap-6 mt-5">
+          <div>
+            <Skeleton height={50} width={'60%'} />
+            <Skeleton height={30} width={'80%'} />
+            <Skeleton height={30} width={'100%'} />
+            <Skeleton height={30} width={'100%'} />
+          </div>
+          <div>
+            <Skeleton height={70} width={'50%'} />
+            <Skeleton height={50} width={'60%'} />
+            <Skeleton height={30} width={'80%'} />
+          </div>
+        </div>
+      ) : (
+        <div className="mt-10">
+          {/* Client Selection Section */}
+          <div className="mb-6">
+            <Title className="text-2xl font-semibold text-gray-800 mb-4">
+              Client Architecture
+            </Title>
+            <div className="flex items-center flex-wrap gap-4 pb-12">
+              <div>
+                <TreeDropdown
+                  data={level1Options}
+                  setCampaignFormData={setCampaignFormData}
+                  formId="level_1"
+                  title={"Client Architecture"} campaignFormData={campaignFormData} />
+              </div>
             </div>
-            <div >
-              <label className="block text-sm font-medium text-gray-700  ">
-                Internal Approver
-              </label>
-              <InternalApproverDropdowns
-                options={internalapproverOptions}
-                value={{
-                  internal_approver:
-                    campaignFormData?.internal_approver_ids?.map((id) => {
-                      const match = internalapproverOptions?.find(
-                        (opt) => String(opt?.value) === String(id)
-                      );
-                      return match
-                        ? {
-                          value: match.value,
-                          label: match.label,
-                          id: campaignFormData?.campaign_id,
-                          clientId: campaignFormData?.client_selection?.id,
-                        }
-                        : null;
-                    }).filter(Boolean) ?? [],
-                }}
-                onChange={(field, selected) => {
-                  setCampaignFormData((prev) => ({
-                    ...prev,
-                    [`${field}_ids`]: selected?.map((item) => item?.value),
-                    [field]: selected,
-                  }));
-                }}
-              />
+          </div>
+
+          {/* Media Plan Details Section */}
+          <div className="mb-16">
+            <Title className="text-2xl font-semibold text-gray-800 mb-4">
+              Media Plan Details
+            </Title>
+            <div className="flex flex-wrap items-start gap-6">
+              <div >
+                <label className="block text-sm font-medium text-gray-700  ">
+                  Name
+                </label>
+                <ClientSelectionInput
+                  label="Enter media plan name"
+                  formId="media_plan"
+                />
+              </div>
+              <div >
+                <label className="block text-sm font-medium text-gray-700">
+                  Internal Approver
+                </label>
+                <InternalApproverDropdowns
+                  options={internalapproverOptions}
+                  //@ts-ignore
+                  value={{ internal_approver: internalApprovers }}
+                  onChange={(field, selected) => {
+                    setInternalApprovers(selected);
+                    setCampaignFormData((prev) => ({
+                      ...prev,
+                      [`${field}_ids`]: selected.map((item) => item.value),
+                      [field]: selected,
+                    }));
+                  }}
+                />
+              </div>
+
+
+              <div >
+                <label className="block text-sm font-medium text-gray-700 ">
+                  Client Approver
+                </label>
+                <ClientApproverDropdowns
+                  options={clientapprovalOptions}
+                  //@ts-ignore
+                  value={{ client_approver: clientApprovers }}
+                  onChange={(field, selected) => {
+                    setClientApprovers(selected);
+                    setCampaignFormData((prev) => ({
+                      ...prev,
+                      [`${field}_ids`]: selected.map((item) => item.value),
+                      [field]: selected,
+                    }));
+                  }}
+                />
+
+              </div>
             </div>
-            <div >
+          </div>
+          <div className="flex flex-wrap items-start gap-6 mb-14">
+            <div className="pb-1">
+              <Title className="text-2xl font-semibold text-gray-800 mb-4">Budget details</Title>
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 ">
+                  Currency
+                </label>
+                <ClientSelection
+                  options={selectCurrency}
+                  label={"Select Currency"}
+                  formId="budget_details_currency"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="">
+            <Title className="text-2xl font-semibold text-gray-800 mb-4">Country details</Title>
+            <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 ">
-                Client Approver
+                Country
               </label>
-              <ClientApproverDropdowns
-                option={clientapprovalOptions}
-                value={{
-                  client_approver:
-                    campaignFormData?.client_approver_ids?.map((id) => {
-                      const match = clientapprovalOptions?.find(
-                        (opt) => opt?.value === id
-                      );
-                      return match
-                        ? {
-                          value: match.value,
-                          label: match.label,
-                          id: campaignFormData?.campaign_id,
-                          clientId: campaignFormData?.client_selection?.id,
-                        }
-                        : null;
-                    }).filter(Boolean) ?? [],
-                }}
-                onChange={(field, selected) => {
-                  setCampaignFormData((prev) => ({
-                    ...prev,
-                    [`${field}_ids`]: selected?.map((item) => item?.value),
-                    [field]: selected,
-                  }));
-                }}
+              <ClientSelection
+                options={selectCountry}
+                label={"Select Country"}
+                formId="country_details"
               />
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </div>)
+      }
+    </div >
   );
 };

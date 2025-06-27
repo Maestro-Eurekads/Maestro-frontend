@@ -15,6 +15,7 @@ export const ChannelMixSection: React.FC<ChannelMixSectionProps> = ({
   platforms,
 }) => {
   const { midcapEditing, setMidcapEditing } = useEditing();
+
   return (
     <SummarySection title="Your channel mix" number={2}>
       {midcapEditing.isEditing &&

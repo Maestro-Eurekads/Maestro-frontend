@@ -14,7 +14,7 @@ import { FilterState } from "app/utils/useCampaignFilters";
 import { useUserPrivileges } from "utils/userPrivileges";
 import TreeDropdown from "components/TreeDropdown";
 import TreeDropdownFilter from "components/TreeDropdownFilter";
-import { convertToNestedStructure } from "utils/convertToNestedStructure";
+import { convertToSingleNestedStructure } from "utils/convertToSingleNestedStructure";
 
 
 // Scrollbar CSS
@@ -178,7 +178,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
         f.push({
           label: key.charAt(0).toUpperCase() + key.slice(1),
           options: value,
-          isLevel: ["level_1", "level_2", "level_3"].includes(key),
+          isLevel: ["level_1"].includes(key),
         });
       });
       setFilters(f);
@@ -194,7 +194,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
       setLoading(true);
       try {
         const res = allEmpty
-          ? await fetchFilteredCampaigns(clientID, null, jwt)
+          ? await fetchFilteredCampaigns(clientID, filters ?? {}, jwt)
           : await fetchFilteredCampaigns(clientID, selectedFilters, jwt);
         setClientCampaignData(res);
       } finally {
@@ -209,8 +209,8 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
   const isYearSelected = !!selectedFilters["year"];
 
-  // console.log("Selected Filters:", filters);
-
+  // //console.log("Selected Filters:", filters);
+  // Client Architecture
   return (
     <div>
       <Toaster />
@@ -227,8 +227,6 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
                 "Channel",
                 "Phase",
                 "Level_1_name",
-                "Level_2_name",
-                "Level_3_name",
               ].includes(l?.label)
           )
           .map(({ label, options, isLevel }) => {
@@ -241,27 +239,25 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
               if (selected) return selected;
               if (label === "Level_1") {
                 return (
-                  filters.find((f) => f.label === "Level_1_name")?.options[0]?.value ||
+                  filters.find((f) => f.label === "Level_1_name")?.options[0]?.title ||
                   label.replace("_", " ")
                 );
               }
-              if (label === "Level_2") {
-                return (
-                  filters.find((f) => f.label === "Level_2_name")?.options[0]?.value ||
-                  label.replace("_", " ")
-                );
-              }
-              if (label === "Level_3") {
-                return (
-                  filters.find((f) => f.label === "Level_3_name")?.options[0]?.value ||
-                  label.replace("_", " ")
-                );
-              }
+
+
               return label.replace("_", " ");
             };
 
             const displayLabel = getDisplayLabel();
-            const nested = convertToNestedStructure(options[0]);
+            const nested = convertToSingleNestedStructure(options);
+
+            // console.log('nested-nested', nested)
+
+            // //console.log("Nested Options:", nested);
+            // //console.log("options-----Options:", options);
+            // //console.log("displayLabel-----displayLabel:", displayLabel);
+            // //console.log("label-----label:", label);
+            // //console.log("filters-----filters:", filters);
 
 
             return (

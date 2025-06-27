@@ -19,7 +19,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
   const [openItems, setOpenItems] = useState({ Awareness: true });
   const [selected, setSelected] = useState({});
   const [validatedStages, setValidatedStages] = useState({});
-  const { campaignFormData, setCampaignFormData, setCopy, cId, campaignData, jwt } =
+  const { campaignFormData, setCampaignFormData, setCopy, cId, campaignData, jwt, getActiveCampaign } =
       useCampaigns();
   const [openChannelTypes, setOpenChannelTypes] = useState({});
   const [showMoreMap, setShowMoreMap] = useState({});
@@ -31,13 +31,14 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
     const [id, setId] = useState(null);
 
   const sendUpdatedDataToAPI = async (updatedData) => {
+    const {media_plan_details, user, ...rest} = campaignData
     try {
       setDeleting(true);
       const response = await axios.put(
         `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
         {
           data: {
-            ...removeKeysRecursively(campaignData, [
+            ...removeKeysRecursively(rest, [
               "id",
               "documentId",
               "createdAt",
@@ -62,8 +63,8 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
           },
         }
       );
-
-      // console.log("Campaign data updated successfully", response.data);
+await getActiveCampaign()
+      // //console.log("Campaign data updated successfully", response.data);
     } catch (error) {
       console.error("Error updating campaign data:", error);
     } finally {
@@ -87,7 +88,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
 
           if (campaignDataItem) {
             Object.keys(formDataItem).forEach((categoryKey) => {
-              // console.log("🚀 ~ Object.keys ~ categoryKey:", categoryKey);
+              // //console.log("🚀 ~ Object.keys ~ categoryKey:", categoryKey);
               if (
                 categoryKey !== "funnel_stage" &&
                 categoryKey !== "id" &&
@@ -301,7 +302,8 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
           </div>
         </div>
       )}
-      <Modal isOpen={openAdset} onClose={() => setOpenAdset(false)}>
+      {openAdset &&
+      <Modal isOpen={(selectedStage && openAdset) ? true : false} onClose={() => setOpenAdset(false)}>
         <div className="bg-white w-[900px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
           <button
             className="flex justify-end w-fit ml-auto"
@@ -344,6 +346,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
           </div>
         </div>
       </Modal>
+      }
     </div>
   );
 };

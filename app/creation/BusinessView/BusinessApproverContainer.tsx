@@ -1,6 +1,6 @@
 "use client";
 import { useCampaigns } from "app/utils/CampaignsContext";
-import { getInitials } from "components/Options";
+import { cleanName, getInitials } from "components/Options";
 import { getSignedApproval } from "features/Comment/commentSlice";
 import { useSession } from "next-auth/react";
 import React, { useEffect } from "react";
@@ -20,14 +20,11 @@ const BusinessApproverContainer = ({
 
   useEffect(() => {
     if (id) {
-      dispatch(getSignedApproval(id, jwt));
+      dispatch(getSignedApproval({ id, jwt }));
     }
   }, [dispatch, id]);
 
-  const cleanName = (name: string) => {
-    if (!name) return "-";
-    return name?.trim().split("-")[0];
-  };
+
 
   const internalApprovers =
     campaign?.media_plan_details?.internal_approver?.map((a) => a?.username) || campaignFormData?.media_plan_details?.internal_approver?.map(

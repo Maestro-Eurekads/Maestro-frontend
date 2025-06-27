@@ -4,7 +4,7 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 import { removeKeysRecursively } from "utils/removeID";
 import { useState } from "react";
 import { useEditing } from "app/utils/EditingContext";
-import { extractObjectives } from "../EstablishedGoals/table-view/data-processor";
+import { extractObjectives, getFilteredMetrics } from "../EstablishedGoals/table-view/data-processor";
 
 interface SummarySectionProps {
   title: string;
@@ -30,21 +30,11 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
   } = useCampaigns();
 
   const closeEditStep = () => {
-    // Reset form data to original campaign data when canceling
+    // Only reset form data for specific sections to avoid overwriting changes
     if (title === "Your buying objectives") {
       setCampaignFormData({
         ...campaignFormData,
         buying_objectives: campaignData?.buying_objectives || [],
-      });
-    } else {
-      // Reset other relevant form data based on the step
-      setCampaignFormData({
-        ...campaignFormData,
-        funnel_stages: campaignData?.funnel_stages,
-        channel_mix: campaignData?.channel_mix,
-        custom_funnels: campaignData?.custom_funnels,
-        funnel_type: campaignData?.funnel_type,
-        table_headers: campaignData?.table_headers,
       });
     }
 
@@ -56,56 +46,92 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
     setHideButtons(false);
   };
 
+  // Define keys to remove consistently across all sections
+  const keysToRemove = [
+    "id",
+    "documentId",
+    "createdAt",
+    "publishedAt",
+    "updatedAt",
+    "_aggregated",
+    "isValidated",
+    "formatValidated",
+    "validatedStages",
+  ];
+
+  // Clean campaignData and campaignFormData to remove sensitive keys
   const cleanData = campaignData
-    ? removeKeysRecursively(campaignData, [
-        "id",
-        "documentId",
-        "createdAt",
-        "publishedAt",
-        "updatedAt",
-        "_aggregated",
-      ])
+    ? removeKeysRecursively(campaignData, keysToRemove)
     : {};
 
   const handleConfirmStep = async () => {
     try {
       setLoading(true);
-      let updatedCampaignFormData = campaignFormData;
+      let updatedCampaignFormData = { ...campaignFormData };
 
-      const obj = extractObjectives(campaignFormData);
-      updatedCampaignFormData = {
-        ...campaignFormData,
-        table_headers: obj || {},
-      };
-      setCampaignFormData(updatedCampaignFormData);
-      const {media_plan_details, user, ...rest} = cleanData
-      console.log("here")
-       await updateCampaign({
+      // Handle specific updates based on the section title
+      switch (title) {
+        case "Your buying objectives":
+          const obj = await extractObjectives(campaignFormData);
+          const sMetrics = await getFilteredMetrics(obj)
+          updatedCampaignFormData = {
+            ...updatedCampaignFormData,
+            table_headers: obj || {},
+            selected_metrics: sMetrics||{}
+          };
+          break;
+        case "Your funnel stages":
+          updatedCampaignFormData = {
+            ...updatedCampaignFormData,
+            funnel_stages: updatedCampaignFormData?.funnel_stages || [],
+          };
+          break;
+        case "Your channel mix":
+        case "Your Adset and Audiences":
+        case "Your format selections":
+          updatedCampaignFormData = {
+            ...updatedCampaignFormData,
+            channel_mix: removeKeysRecursively(
+              updatedCampaignFormData?.channel_mix || [],
+              keysToRemove,
+              ["preview"]
+            ),
+          };
+          break;
+        default:
+          break;
+      }
+
+      // Clean the updated form data to ensure no sensitive keys remain
+      const cleanedFormData = removeKeysRecursively(
+        updatedCampaignFormData,
+        keysToRemove
+      );
+
+      // Update local state to reflect changes immediately
+      setCampaignFormData(cleanedFormData);
+
+      // Prepare the cleaned data for the updateCampaign call
+      const { media_plan_details, user, ...rest } = cleanData;
+
+      // Update the campaign with the cleaned and updated data
+      await updateCampaign({
         ...rest,
-        funnel_stages: updatedCampaignFormData?.funnel_stages,
-        channel_mix: removeKeysRecursively(
-          updatedCampaignFormData?.channel_mix,
-          [
-            "id",
-            "isValidated",
-            "formatValidated",
-            "validatedStages",
-            "documentId",
-            "_aggregated",
-          ],
-          ["preview"]
-        ),
-        custom_funnels: updatedCampaignFormData?.custom_funnels,
-        funnel_type: updatedCampaignFormData?.funnel_type,
-        table_headers: updatedCampaignFormData?.table_headers,
+        funnel_stages: cleanedFormData?.funnel_stages || [],
+        channel_mix: cleanedFormData?.channel_mix || [],
+        custom_funnels: cleanedFormData?.custom_funnels || [],
+        funnel_type: cleanedFormData?.funnel_type || "",
+        table_headers: cleanedFormData?.table_headers || {},
       });
+
+      // Fetch the updated campaign to ensure the UI reflects the latest data
       await getActiveCampaign();
-      // Hide the buttons immediately after confirming
+
+      // Hide buttons and close the edit step
       setHideButtons(true);
-      // Close the edit modal after a short delay to allow button to disappear smoothly
       setTimeout(() => {
         closeEditStep();
-      }, 200); // 200ms delay for UI smoothness, adjust as needed
+      }, 200); // Short delay for UI smoothness
     } catch (error) {
       console.error("Error updating campaign:", error);
       setHideButtons(false);
@@ -115,24 +141,13 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
   };
 
   const handleConfirmClick = async (step: string) => {
-    switch (step) {
-      case "Your funnel stages":
-      case "Your channel mix":
-      case "Your Adset and Audiences":
-      case "Your format selections":
-      case "Your buying objectives":
-        await handleConfirmStep();
-        break;
-      default:
-        break;
-    }
+    await handleConfirmStep();
   };
 
   const isEditing = midcapEditing.isEditing && midcapEditing.step === title;
 
   const handleEditClick = () => {
     if (!loading) {
-      // Preserve the current campaign data before editing
       if (title === "Your buying objectives") {
         setCampaignFormData({
           ...campaignFormData,

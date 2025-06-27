@@ -1,6 +1,6 @@
 import { useComments } from 'app/utils/CommentProvider';
 import { SVGLoader } from 'components/SVGLoader';
-import { getGeneralComment, reset } from 'features/Comment/commentSlice';
+import { reset } from 'features/Comment/commentSlice';
 import { useSession } from 'next-auth/react';
 import React, { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from 'store/useStore';
@@ -20,7 +20,10 @@ const BusinessGeneralComment = () => {
 		generalError,
 		generalComment,
 		setGeneralComment,
-		updateGeneralComment
+		updateGeneralComment,
+		setGeneralcommentsSuccess,
+		generalcommentsUpdateSuccess,
+		setGeneralcommentsUpdateSuccess
 	} = useComments();
 	const dispatch = useAppDispatch();
 	const [isEditing, setIsEditing] = useState(false);
@@ -28,7 +31,22 @@ const BusinessGeneralComment = () => {
 
 
 
-	// const commentId = campaignData?.documentId;
+
+	useEffect(() => {
+		if (
+			generalcommentsSuccess ||
+			generalcommentsUpdateSuccess
+		) {
+			const timer = setTimeout(() => {
+				setGeneralcommentsSuccess(false);
+				setGeneralcommentsUpdateSuccess(false);
+			}, 3000);
+			return () => clearTimeout(timer);
+		}
+	}, [generalcommentsSuccess, setGeneralcommentsUpdateSuccess]);
+
+
+
 	const author = {
 		id: session?.user?.id,
 		name: session?.user?.name,
@@ -42,7 +60,7 @@ const BusinessGeneralComment = () => {
 		} else {
 			setIsEditing(false);
 		}
-	}, [generalComments]);
+	}, [generalComments, generalcommentsSuccess, generalcommentsUpdateSuccess]);
 
 
 
@@ -70,12 +88,20 @@ const BusinessGeneralComment = () => {
 	useEffect(() => {
 		if (generalcommentsSuccess) {
 			toast.success("Comment created!");
+			setGeneralcommentsSuccess(false)
 			dispatch(reset());
 		}
-		if (generalError) {
-			toast.error(generalError.response?.data?.error.message || generalError.message,);
+
+		if (generalcommentsUpdateSuccess) {
+			toast.success("Comment Updated!");
+			setGeneralcommentsUpdateSuccess(false);
 		}
-	}, [generalcommentsSuccess, generalError]);
+
+		if (generalError) {
+			toast.error(generalError.response?.data?.error?.message || generalError.message);
+		}
+	}, [generalcommentsSuccess, generalcommentsUpdateSuccess, generalError]);
+
 
 	const handleGeneral = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		e.preventDefault();
