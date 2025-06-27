@@ -13,10 +13,11 @@ import axios from "axios";
 import { FaSpinner } from "react-icons/fa";
 import toast, { Toaster } from "react-hot-toast";
 import { useCampaigns } from "app/utils/CampaignsContext";
-import { selectCurrency, statusOption } from "components/data";
+import { statusOption } from "components/data";
 import { getCreateClient } from "features/Client/clientSlice";
 import { useSession } from "next-auth/react";
 import { useUserPrivileges } from "utils/userPrivileges";
+import { selectCurrency } from "components/Options";
 
 interface MediaPlan {
   name: string;

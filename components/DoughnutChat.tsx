@@ -3,6 +3,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, T
 import { Doughnut } from "react-chartjs-2"
 import { useRef } from "react"
 import { useCampaigns } from "app/utils/CampaignsContext"
+import { getCurrencySymbol } from "./data"
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend)
 
@@ -277,25 +278,8 @@ const DoughnutChart = ({
             const amount = Number(stageData?.stage_budget?.fixed_value) || 0
             const currency = campaignFormData?.campaign_budget?.currency || "EUR"
 
-            // Get currency symbol
-            const getCurrencySymbol = (currencyCode: string) => {
-              switch (currencyCode) {
-                case "EUR":
-                  return "€"
-                case "USD":
-                  return "$"
-                case "GBP":
-                  return "£"
-                case "NGN":
-                  return "₦"
-                case "JPY":
-                  return "¥"
-                case "CAD":
-                  return "$"
-                default:
-                  return "€"
-              }
-            }
+
+
 
             return `${label}: ${percentage.toFixed(1)}% (${getCurrencySymbol(currency)}${amount.toLocaleString()})`
           },

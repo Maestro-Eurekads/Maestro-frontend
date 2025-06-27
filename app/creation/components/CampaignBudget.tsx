@@ -9,7 +9,7 @@ import Image from "next/image"
 import { useCampaigns } from "app/utils/CampaignsContext"
 import { useComments } from "app/utils/CommentProvider"
 import { useEditing } from "app/utils/EditingContext"
-import { formatNumberWithCommas } from "components/data"
+import { formatNumberWithCommas, getCurrencySymbol } from "components/data"
 import FeeSelectionStep from "./FeeSelectionStep"
 import { SVGLoader } from "components/SVGLoader"
 import adset from "../../../public/adset_level.svg"
@@ -58,26 +58,18 @@ const CampaignBudget = () => {
   }
  }, [campaignId]);
 
- const selectCurrency = [
-  { value: "USD", label: "USD" },
-  { value: "EUR", label: "EUR" },
-  { value: "GBP", label: "GBP" },
-  { value: "NGN", label: "NGN" },
-  { value: "JPY", label: "JPY" },
-  { value: "CAD", label: "CAD" },
- ]
 
- const getCurrencySymbol = (currency) => {
-  const symbols = {
-   USD: "$",
-   EUR: "€",
-   GBP: "£",
-   NGN: "₦",
-   JPY: "¥",
-   CAD: "$",
-  }
-  return symbols[currency] || ""
- }
+ //  const getCurrencySymbol = (currency) => {
+ //   const symbols = {
+ //    USD: "$",
+ //    EUR: "€",
+ //    GBP: "£",
+ //    NGN: "₦",
+ //    JPY: "¥",
+ //    CAD: "$",
+ //   }
+ //   return symbols[currency] || ""
+ //  }
 
  const handleBudgetEdit = (param, type) => {
   if (!isEditing) return
