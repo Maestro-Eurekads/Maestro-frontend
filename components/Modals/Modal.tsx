@@ -21,7 +21,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
   }, [isOpen]);
 
   return (
-    <dialog ref={dialogRef} className="modal" onClose={onClose} style={{ display: isOpen ? 'block' : 'none' }}>
+    <dialog ref={dialogRef} className="modal justify-center" onClose={onClose} style={{ display: isOpen ? 'flex' : 'none' }}>
       <div>{children}</div>
     </dialog>
   );
