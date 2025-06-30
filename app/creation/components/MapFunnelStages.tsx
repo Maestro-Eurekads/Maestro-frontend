@@ -307,7 +307,10 @@ const MapFunnelStages = () => {
     setCampaignFormData((prev: any) => {
       const orderedFunnelStages = loadedCustomFunnels.map((f) => f.name)
 
-      const orderedChannelMix = loadedCustomFunnels.map((f) => ({ funnel_stage: f.name }))
+      const orderedChannelMix = loadedCustomFunnels.map((f) => {
+        const existingChannel = prev?.channel_mix?.find((ch: any) => ch?.funnel_stage === f.name);
+        return existingChannel ? existingChannel : { funnel_stage: f.name };
+      });
 
       const updatedFormData = {
         ...prev,
