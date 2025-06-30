@@ -260,6 +260,7 @@ const AdSet = memo(function AdSet({
   setChannelAudienceState,
   stageName,
   platformName,
+  onAddNewAdSet,
 }: {
   adset: AdSetType
   index: number
@@ -284,6 +285,7 @@ const AdSet = memo(function AdSet({
   setChannelAudienceState?: (data: { name: string; audience_type: string; size: string; description: string }) => void
   stageName?: string
   platformName?: string
+  onAddNewAdSet?: () => void
 }) {
   // For channel granularity, use local state (not campaignFormData)
   const [channelAudience, setChannelAudience] = useState<{
@@ -468,7 +470,7 @@ const AdSet = memo(function AdSet({
           value={channelAudience.description}
           onChange={(e) => handleChannelAudienceChange("description", e.target.value)}
           disabled={!isEditing}
-          className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[180px] ${
+          className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[120px] ${
             !isEditing ? "cursor-not-allowed" : ""
           }`}
         />
@@ -505,7 +507,7 @@ const AdSet = memo(function AdSet({
                     updateExtraAudienceMap(updated)
                   }}
                   disabled={!isEditing}
-                  className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[160px]"
+                  className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[120px]"
                 />
                 <input
                   type="text"
@@ -513,7 +515,7 @@ const AdSet = memo(function AdSet({
                   value={formatWithThousandSeparator(audi.size || "")}
                   onChange={(e) => handleExtraAudienceSizeChange(e, index)}
                   disabled={!isEditing}
-                  className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[100px]"
+                  className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[80px]"
                   inputMode="numeric"
                   pattern="[0-9,]*"
                 />
@@ -523,12 +525,12 @@ const AdSet = memo(function AdSet({
                   value={audi.description || ""}
                   onChange={(e) => handleExtraAudienceDescriptionChange(e, index)}
                   disabled={!isEditing}
-                  className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[180px]"
+                  className="text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[100px]"
                 />
                 <button
                   disabled={!isEditing}
                   onClick={() => handleDeleteExtraAudience(index)}
-                  className={`flex items-center justify-center rounded-full px-6 py-2 bg-[#FF5955] text-white ${
+                  className={`flex items-center justify-center rounded-full px-4 py-2 bg-[#FF5955] text-white ${
                     !isEditing ? "cursor-not-allowed opacity-50" : ""
                   }`}
                 >
@@ -562,7 +564,7 @@ const AdSet = memo(function AdSet({
         value={name}
         onChange={handleNameChange}
         disabled={!isEditing}
-        className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[160px] ${
+        className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[120px] ${
           !isEditing ? "cursor-not-allowed" : ""
         }`}
       />
@@ -572,7 +574,7 @@ const AdSet = memo(function AdSet({
         value={formatWithThousandSeparator(size)}
         onChange={handleSizeChange}
         disabled={!isEditing}
-        className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] w-[100px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+        className={`text-black text-sm font-semibold flex gap-4 items-center border border-[#D0D5DD] py-4 px-2 rounded-[10px] h-[52px] w-[80px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
           !isEditing ? "cursor-not-allowed" : ""
         }`}
         inputMode="numeric"
@@ -584,19 +586,35 @@ const AdSet = memo(function AdSet({
         value={description}
         onChange={handleDescriptionChange}
         disabled={!isEditing}
-        className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[180px] ${
+        className={`text-black text-sm font-semibold border border-gray-300 py-3 px-3 rounded-lg h-[48px] w-[100px] ${
           !isEditing ? "cursor-not-allowed" : ""
         }`}
       />
-      <button
-        disabled={!isEditing}
-        onClick={() => onDelete(adset.id)}
-        className={`flex items-center gap-2 rounded-full px-4 py-2 bg-[#FF5955] text-white text-sm font-bold ${
-          !isEditing ? "cursor-not-allowed opacity-50" : ""
-        }`}
-      >
-        <MdDelete /> <span>Delete</span>
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          disabled={!isEditing}
+          onClick={() => onDelete(adset.id)}
+          className={`flex items-center gap-2 rounded-full px-3 py-2 bg-[#FF5955] text-white text-sm font-bold ${
+            !isEditing ? "cursor-not-allowed opacity-50" : ""
+          }`}
+        >
+          <MdDelete /> <span>Delete</span>
+        </button>
+        {/* "New ad set" button on the same line as delete */}
+        {onAddNewAdSet && (
+          <button
+            onClick={onAddNewAdSet}
+            disabled={adsets.length >= 10}
+            className={`flex gap-2 items-center text-white ${
+              adsets.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
+            } px-3 py-2 rounded-full text-sm font-bold`}
+            style={{ minWidth: 0 }}
+          >
+            <MdAdd />
+            <span>{adsets.length >= 10 ? "Max" : "New ad set"}</span>
+          </button>
+        )}
+      </div>
     </div>
   )
 })
@@ -1258,20 +1276,6 @@ const AdsetSettings = memo(function AdsetSettings({
             <span className="text-[#061237] font-medium">{outlet.outlet}</span>
             <FaAngleRight className={`transition-transform duration-200 ${isCollapsed ? "" : "rotate-90"}`} />
           </button>
-          {/* GRANULARITY SEPARATION: Only show "New ad set" button in adset granularity */}
-          {!isCollapsed && granularity === "adset" && (
-            <button
-              onClick={addNewAddset}
-              disabled={adsets.length >= 10}
-              className={`flex gap-2 items-center text-white ${
-                adsets.length >= 10 ? "bg-gray-400" : "bg-[#3175FF]"
-              } px-4 py-2 rounded-full text-sm font-bold z-10 relative`}
-              style={{ marginLeft: "8px" }}
-            >
-              <MdAdd />
-              <span>{adsets.length >= 10 ? "Max limit reached" : "New ad set"}</span>
-            </button>
-          )}
         </div>
       </div>
 
@@ -1313,6 +1317,7 @@ const AdsetSettings = memo(function AdsetSettings({
                       setChannelAudienceState={setChannelAudienceState}
                       stageName={stageName}
                       platformName={outlet.outlet}
+                      onAddNewAdSet={granularity === "adset" ? addNewAddset : undefined}
                     />
                   </div>
                 ))}
