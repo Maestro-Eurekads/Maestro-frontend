@@ -715,26 +715,7 @@ const CampaignBudget = () => {
      {showBottomUpBudgetOverview && <BudgetOverviewSection />}
     </>
    )}
-   {/* Step 3: Set overall campaign budget (summary/final step) with budget overview */}
-   {/* This block is now handled by showBottomUpBudgetOverview above, so we can remove or keep for backward compatibility */}
-   {/* 
-   {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 2 && (
-    <>
-     <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
-      <h2 className="text-[18px] font-semibold mb-2">Overall Campaign Budget</h2>
-      <p className="text-[15px] mb-4">The total campaign budget is calculated from your sub-budgets.</p>
-      <div className="flex items-center gap-2">
-       <span className="font-bold text-[20px] text-[#3175FF]">
-        {getCurrencySymbol(campaignFormData?.campaign_budget?.currency || "EUR")}
-        {formatNumberWithCommas(calculateTotalBudget())}
-       </span>
-       <span className="text-gray-500">{campaignFormData?.campaign_budget?.currency || "EUR"}</span>
-      </div>
-     </div>
-     <BudgetOverviewSection />
-    </>
-   )}
-   */}
+  
   </div>
  )
 }
