@@ -30,6 +30,9 @@ const CampaignBudget = () => {
  const [feeStepValidated, setFeeStepValidated] = useState(false)
  const [showLevelCards, setShowLevelCards] = useState(true)
 
+ // New state to control showing the budget overview for bottom-up
+ const [showBottomUpBudgetOverview, setShowBottomUpBudgetOverview] = useState(false)
+
  useEffect(() => {
   setIsDrawerOpen(false)
   setClose(false)
@@ -65,8 +68,6 @@ const CampaignBudget = () => {
   { value: "JPY", label: "JPY" },
   { value: "CAD", label: "CAD" },
  ]
-
-
 
  // --- FIXED: Calculate total budget correctly ---
  const calculateTotalBudget = () => {
@@ -110,6 +111,9 @@ const CampaignBudget = () => {
    setBudgetStyle(type)
    setFeeStepValidated(false)
    setShowLevelCards(true)
+   if (type === "bottom_up") {
+    setShowBottomUpBudgetOverview(false)
+   }
   }
  }
 
@@ -157,6 +161,7 @@ const CampaignBudget = () => {
    if (campaignFormData?.campaign_budget?.budget_fees?.length > 0 || (!feeType && !feeAmount)) {
     setFeeStepValidated(true)
     setStep(2)
+    setShowBottomUpBudgetOverview(true) // Show budget overview after validation
     return true
    }
    if (feeType && !feeAmount) {
@@ -173,6 +178,7 @@ const CampaignBudget = () => {
    }
    setFeeStepValidated(true)
    setStep(2)
+   setShowBottomUpBudgetOverview(true) // Show budget overview after validation
    return true
   }
   return false
@@ -184,6 +190,9 @@ const CampaignBudget = () => {
   setFeeType(null)
   setFeeAmount("")
   setShowLevelCards(true)
+  if (budgetStyle === "bottom_up") {
+   setShowBottomUpBudgetOverview(false)
+  }
  }
 
  useEffect(() => {
@@ -200,6 +209,13 @@ const CampaignBudget = () => {
    if (campaignData?.campaign_budget?.level) {
     setStep(3)
     setShowLevelCards(false)
+   }
+   // If bottom_up and campaignData has budget_fees, show the budget overview
+   if (
+    campaignData?.campaign_budget?.budget_type === "bottom_up" &&
+    campaignData?.campaign_budget?.budget_fees?.length > 0
+   ) {
+    setShowBottomUpBudgetOverview(true)
    }
   }
  }, [campaignData])
@@ -664,6 +680,7 @@ const CampaignBudget = () => {
           handleEdit()
          } else if (handleValidate()) {
           setFeeStepValidated(true)
+          setShowBottomUpBudgetOverview(true) // Ensure budget overview is shown after validation
          }
         }}
         className={`flex items-center justify-center px-10 py-4 gap-2 w-[142px] h-[52px] rounded-lg text-white font-semibold text-[16px] leading-[22px] ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#3175FF] hover:bg-[#2563eb]"
@@ -680,12 +697,29 @@ const CampaignBudget = () => {
        </button>
       </div>
      )}
+     {/* Always show the budget overview after validation for bottom-up */}
+     {showBottomUpBudgetOverview && (
+      <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
+       <h2 className="text-[18px] font-semibold mb-2">Overall Campaign Budget</h2>
+       <p className="text-[15px] mb-4">The total campaign budget is calculated from your sub-budgets.</p>
+       <div className="flex items-center gap-2">
+        <span className="font-bold text-[20px] text-[#3175FF]">
+         {getCurrencySymbol(campaignFormData?.campaign_budget?.currency || "EUR")}
+         {formatNumberWithCommas(calculateTotalBudget())}
+        </span>
+        <span className="text-gray-500">{campaignFormData?.campaign_budget?.currency || "EUR"}</span>
+       </div>
+      </div>
+     )}
+     {/* Show budget overview section at the end for bottom-up */}
+     {showBottomUpBudgetOverview && <BudgetOverviewSection />}
     </>
    )}
    {/* Step 3: Set overall campaign budget (summary/final step) with budget overview */}
+   {/* This block is now handled by showBottomUpBudgetOverview above, so we can remove or keep for backward compatibility */}
+   {/* 
    {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 2 && (
     <>
-     {/* In bottom-up, after sub-budgets and fees, show summary/overall budget */}
      <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
       <h2 className="text-[18px] font-semibold mb-2">Overall Campaign Budget</h2>
       <p className="text-[15px] mb-4">The total campaign budget is calculated from your sub-budgets.</p>
@@ -697,11 +731,10 @@ const CampaignBudget = () => {
        <span className="text-gray-500">{campaignFormData?.campaign_budget?.currency || "EUR"}</span>
       </div>
      </div>
-
-     {/* Show budget overview button at the end for bottom-up */}
      <BudgetOverviewSection />
     </>
    )}
+   */}
   </div>
  )
 }
