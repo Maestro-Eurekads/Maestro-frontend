@@ -494,7 +494,7 @@ export const AdSetCellRenderer = ({
               (channel?.ad_sets?.length > 1 ||
                 adSet?.extra_audiences?.length > 0)) || isNR 
           }
-          className={`cpm-bg border-none outline-none max-w-[90px] p-1 ${
+          className={`bg-slate-100 hover:bg-white border-none outline-none max-w-[90px] p-1 ${
             isNR ? "text-gray-400" : ""
           }`}
           placeholder={
