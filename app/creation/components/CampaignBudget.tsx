@@ -57,6 +57,14 @@ const CampaignBudget = () => {
   }
  }, [campaignId])
 
+ const selectCurrency = [
+  { value: "USD", label: "USD" },
+  { value: "EUR", label: "EUR" },
+  { value: "GBP", label: "GBP" },
+  { value: "NGN", label: "NGN" },
+  { value: "JPY", label: "JPY" },
+  { value: "CAD", label: "CAD" },
+ ]
 
 
 
@@ -86,7 +94,6 @@ const CampaignBudget = () => {
    // For top-down: the entered amount IS the total campaign budget
    return budgetAmount
   }
-
  }
 
  const handleBudgetEdit = (param, type) => {
