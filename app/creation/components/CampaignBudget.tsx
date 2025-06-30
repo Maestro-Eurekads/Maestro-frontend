@@ -57,6 +57,15 @@ const CampaignBudget = () => {
   }
  }, [campaignId])
 
+ const selectCurrency = [
+  { value: "USD", label: "USD" },
+  { value: "EUR", label: "EUR" },
+  { value: "GBP", label: "GBP" },
+  { value: "NGN", label: "NGN" },
+  { value: "JPY", label: "JPY" },
+  { value: "CAD", label: "CAD" },
+ ]
+
 
 
  // --- FIXED: Calculate total budget correctly ---
@@ -105,141 +114,30 @@ const CampaignBudget = () => {
  }
 
  // handleValidate for top_down and bottom_up (logic will be reversed for bottom_up)
-//  const handleValidate = () => {
-//   if (budgetStyle === "top_down") {
-//    // Top-down: require overall campaign budget before proceeding
-//    if (!campaignFormData?.campaign_budget?.amount) {
-//     toast("Please set the overall campaign budget first", {
-//      style: { background: "red", color: "white" },
-//     })
-//     return false
-//    }
-//    if (campaignFormData?.campaign_budget?.budget_fees?.length > 0 || (!feeType && !feeAmount)) {
-//     setFeeStepValidated(true)
-//     setStep(2)
-//     return true
-//    }
-//    if (feeType && !feeAmount) {
-//     toast("Please enter the fee amount", {
-//      style: { background: "red", color: "white" },
-//     })
-//     return false
-//    }
-//    if (!feeType && feeAmount) {
-//     toast("Please select a fee type", {
-//      style: { background: "red", color: "white" },
-//     })
-// =======
-//   }}
-  // --- FIXED: Calculate total budget correctly ---
-  const calculateTotalBudget = () => {
-    if (!campaignFormData?.campaign_budget) return 0
-
-    const budgetAmount = Number(campaignFormData?.campaign_budget?.amount) || 0
-    const budgetType = campaignFormData?.campaign_budget?.budget_type // "top_down" or "bottom_up"
-    const subBudgetType = campaignFormData?.campaign_budget?.sub_budget_type // "gross" or "net"
-
-    // Calculate total fees
-    const totalFeesAmount =
-      campaignFormData?.campaign_budget?.budget_fees?.reduce((total, fee) => total + Number(fee.value || 0), 0) || 0
-
-    if (budgetType === "bottom_up") {
-      // For bottom-up: sum all stage budgets first
-      const stageBudgetsSum =
-        campaignFormData?.channel_mix?.reduce(
-          (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
-          0,
-        ) || 0
-
-      // If gross, add fees to the stage budgets sum; if net, just return stage budgets sum
-      return subBudgetType === "gross" ? stageBudgetsSum + totalFeesAmount : stageBudgetsSum
-    } else {
-      // For top-down: the entered amount IS the total campaign budget
-      return budgetAmount
-    }
- 
-  }
-
-  // const handleBudgetEdit = (param, type) => {
-  //   if (!isEditing) return
-  //   setCampaignFormData((prev) => ({
-  //     ...prev,
-  //     campaign_budget: {
-  //       ...prev?.campaign_budget,
-  //       [param]: type?.toString(),
-  //     },
-  //   }))
-  //   if (param === "budget_type") {
-  //     setStep(1)
-  //     setBudgetStyle(type)
-  //     setFeeStepValidated(false)
-  //     setShowLevelCards(true)
-  //   }
-  // }
-
-  // handleValidate for top_down and bottom_up (logic will be reversed for bottom_up)
-  const handleValidate = () => {
-    if (budgetStyle === "top_down") {
-      // Top-down: require overall campaign budget before proceeding
-      if (!campaignFormData?.campaign_budget?.amount) {
-        toast("Please set the overall campaign budget first", {
-          style: { background: "red", color: "white" },
-        })
-        return false
-      }
-      if (campaignFormData?.campaign_budget?.budget_fees?.length > 0 || (!feeType && !feeAmount)) {
-        setFeeStepValidated(true)
-        setStep(2)
-        return true
-      }
-      if (feeType && !feeAmount) {
-        toast("Please enter the fee amount", {
-          style: { background: "red", color: "white" },
-        })
-        return false
-      }
-      if (!feeType && feeAmount) {
-        toast("Please select a fee type", {
-          style: { background: "red", color: "white" },
-        })
-        return false
-      }
-      setFeeStepValidated(true)
-      setStep(2)
-      return true
-    } else if (budgetStyle === "bottom_up") {
-      // Bottom-up: require sub-budgets (ad set/channel) before proceeding
-      if (
-        !campaignFormData?.campaign_budget?.sub_budget_type ||
-        campaignFormData?.campaign_budget?.sub_budget_type?.length === 0
-      ) {
-        toast("Please allocate your sub-budgets (ad set/channel) first", {
-          style: { background: "red", color: "white" },
-        })
-        return false
-      }
-      if (campaignFormData?.campaign_budget?.budget_fees?.length > 0 || (!feeType && !feeAmount)) {
-        setFeeStepValidated(true)
-        setStep(2)
-        return true
-      }
-      if (feeType && !feeAmount) {
-        toast("Please enter the fee amount", {
-          style: { background: "red", color: "white" },
-        })
-        return false
-      }
-      if (!feeType && feeAmount) {
-        toast("Please select a fee type", {
-          style: { background: "red", color: "white" },
-        })
-        return false
-      }
-      setFeeStepValidated(true)
-      setStep(2)
-      return true
-    }
-
+ const handleValidate = () => {
+  if (budgetStyle === "top_down") {
+   // Top-down: require overall campaign budget before proceeding
+   if (!campaignFormData?.campaign_budget?.amount) {
+    toast("Please set the overall campaign budget first", {
+     style: { background: "red", color: "white" },
+    })
+    return false
+   }
+   if (campaignFormData?.campaign_budget?.budget_fees?.length > 0 || (!feeType && !feeAmount)) {
+    setFeeStepValidated(true)
+    setStep(2)
+    return true
+   }
+   if (feeType && !feeAmount) {
+    toast("Please enter the fee amount", {
+     style: { background: "red", color: "white" },
+    })
+    return false
+   }
+   if (!feeType && feeAmount) {
+    toast("Please select a fee type", {
+     style: { background: "red", color: "white" },
+    })
     return false
    }
    setFeeStepValidated(true)
