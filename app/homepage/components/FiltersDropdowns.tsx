@@ -13,6 +13,7 @@ import { useSession } from "next-auth/react";
 import { useUserPrivileges } from "utils/userPrivileges";
 import TreeDropdownFilter from "components/TreeDropdownFilter";
 import { convertToSingleNestedStructure } from "utils/convertToSingleNestedStructure";
+import { cleanName } from "components/Options";
 
 
 // Scrollbar CSS
@@ -123,8 +124,8 @@ const Dropdown = ({
             className={`max-h-[200px] overflow-y-auto ${label === "Select Plans" ? "scrollbar-thin" : ""
               }`}
           >
-            {options.length > 0 ? (
-              options.map((option) => (
+            {options?.length > 0 ? (
+              options?.map((option) => (
                 <div
                   key={option}
                   className="px-4 py-2 cursor-pointer hover:bg-gray-100 whitespace-nowrap"
@@ -133,7 +134,7 @@ const Dropdown = ({
                     setIsOpen(false);
                   }}
                 >
-                  {option}
+                  {cleanName(option)}
                 </div>
               ))
             ) : (
@@ -145,39 +146,7 @@ const Dropdown = ({
         </div>
       )}
     </div>
-    // <div className="relative w-full" ref={dropdownRef}>
-    //   <div
-    //     className={` relative w-full flex items-center gap-3 px-4 py-2 whitespace-nowrap h-[40px] border border-[#EFEFEF] rounded-[10px] cursor-pointer ${isDisabled ? "opacity-60" : ""
-    //       }`}
-    //     onClick={toggleDropdown}
-    //   >
-    //     <span className="text-gray-600 capitalize">
-    //       {selectedFilters[label.toLowerCase()] || label.replace("_", " ")}
-    //     </span>
-    //     <span className="ml-auto text-gray-500">
-    //       <Image src={down} alt="dropdown" />
-    //     </span>
-    //   </div>
 
-    //   {isOpen && (
-    //     <div className="absolute w-full bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-2 z-10">
-    //       <div
-    //         className={`max-h-[200px] overflow-y-auto ${label === "Select Plans" ? "scrollbar-thin" : ""
-    //           }`}
-    //       >
-    //         {options.map((option) => (
-    //           <div
-    //             key={option}
-    //             className="px-4 py-2 cursor-pointer hover:bg-gray-100 whitespace-nowrap"
-    //             onClick={() => handleOptionSelect(option)}
-    //           >
-    //             {option}
-    //           </div>
-    //         ))}
-    //       </div>
-    //     </div>
-    //   )}
-    // </div>
   );
 };
 
@@ -342,7 +311,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
                 ) : (
                   <Dropdown
-                    label={displayLabel}
+                    label={cleanName(displayLabel)}
                     options={options?.map((opt) => opt?.label === "string" ? opt?.label : opt)}
                     selectedFilters={selectedFilters}
                     handleSelect={(key, value) => handleSelect(lowerLabel, value)}
@@ -358,7 +327,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
                     onClick={() => handleSelect(lowerLabel, "")}
                   >
                     <p className="h-[20px] text-[15px] leading-[20px] font-medium text-[#3175FF]">
-                      {selected}
+                      {cleanName(selected)}
                     </p>
                     <BiX
                       color="#3175FF"
