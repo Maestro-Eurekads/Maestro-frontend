@@ -5,15 +5,32 @@ import tickcircle from "../../public/tick-circle.svg";
 import tickcircles from "../../public/tick-circle-green.svg";
 import { SVGLoader } from "components/SVGLoader";
 import { toast } from "sonner";
+import { useCampaigns } from "app/utils/CampaignsContext";
+import { useUserPrivileges } from "utils/userPrivileges";
 
 const Approved = ({ comment, commentId, isFinancialApprover, isAgencyApprover, isAdmin }) => {
 	const { approval, approvedIsLoading } = useComments();
+	const { campaignFormData } = useCampaigns();
+	const { loggedInUser } = useUserPrivileges();
+
 
 	const handleApproval = () => {
+		// Extract emails from internal_approver array
+		const internalApproverEmails = campaignFormData?.internal_approver?.map(approver => approver?.email);
+
+		// Check if user is not admin and their email doesn't match any internal approver email
+		if (!isAdmin && !internalApproverEmails.includes(loggedInUser.email)) {
+			toast.error("Not authorized to approve this comment.");
+			return;
+		}
+
+		// Existing role checks
 		if (!isAgencyApprover && !isFinancialApprover && !isAdmin) {
 			toast.error("Not authorized to approve this comment.");
 			return;
 		}
+
+		// Proceed with approval if comment is not already approved
 		if (!comment?.approved) {
 			approval(comment?.documentId, true, commentId);
 		}
