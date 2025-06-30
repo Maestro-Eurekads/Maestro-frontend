@@ -83,20 +83,7 @@ const DraggableComment = ({ comment, commentId }) => {
 	);
 };
 
-// const Message = () => {
-// 	const { data } = useAppSelector((state) => state.comment);
-// 	const comments = data?.filter(
-// 		(comment) => comment?.client_commentID === null
-// 	);
 
-// 	return (
-// 		<NoSSR>
-// 			{comments?.map((comment) => (
-// 				<DraggableComment key={comment?.documentId} comment={comment} commentId={comment?.commentId} />
-// 			))}
-// 		</NoSSR>
-// 	);
-// };
 
 const Message = () => {
 	const { data } = useAppSelector((state) => state.comment);
