@@ -154,6 +154,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 
 				setIsOpen(false);
 				toast.success("Plan Approved!");
+				getActiveCampaign(campaignId);
 			}
 		} catch (error) {
 			toast.error(error?.message || "Failed to approve plan");
