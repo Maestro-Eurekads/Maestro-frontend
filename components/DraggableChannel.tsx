@@ -116,7 +116,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       const year = startDate.getFullYear();
     
       if (fieldName === "endDate") {
-        return new Date(year, monthIndex , 0); // Last day of month
+        return new Date(year, monthIndex + 1 , 0); // Last day of month
       } else {
         return new Date(year, monthIndex, 1); // First day of month
       }
