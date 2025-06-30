@@ -211,7 +211,6 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 						{loading ? <SVGLoader width={"30px"} height={"30px"} color={"#fff"} /> :
 							<span className="font-medium">Approval</span>
 						}
-
 					</button>
 				</div>
 

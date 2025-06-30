@@ -13,7 +13,7 @@ import { useSession } from "next-auth/react";
 import { useUserPrivileges } from "utils/userPrivileges";
 import TreeDropdownFilter from "components/TreeDropdownFilter";
 import { convertToSingleNestedStructure } from "utils/convertToSingleNestedStructure";
-import { cleanName } from "components/Options";
+import { cleanName, cleanNames } from "components/Options";
 
 
 // Scrollbar CSS
@@ -134,7 +134,7 @@ const Dropdown = ({
                     setIsOpen(false);
                   }}
                 >
-                  {cleanName(option)}
+                  {cleanNames(option)}
                 </div>
               ))
             ) : (

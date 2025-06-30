@@ -261,6 +261,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     );
   };
 
+  console.log('campaignFormData-campaignFormData', campaignFormData)
+
   // --- Custom back handler for active === 5 to persist step 4 if user had format selected and continued ---
   const handleBack = () => {
     if (active === 5 && hasProceededFromFormatStep.current) {

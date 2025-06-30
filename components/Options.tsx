@@ -920,6 +920,10 @@ const cleanName = (name: string) => {
   if (!name) return "-";
   return name?.trim().split("-")[0];
 };
+const cleanNames = (name: string) => {
+  if (!name) return "";
+  return name?.trim().split("-")[0];
+};
 
 // Define clientRoles explicitly to match TableModel
 const clientRoles = [
@@ -957,5 +961,6 @@ export {
   mapKPIStatsToStatsDataDynamic,
   extractKPIByFunnelStage,
   aggregateKPIStatsFromExtracted,
-  cleanName
+  cleanName,
+  cleanNames
 };
