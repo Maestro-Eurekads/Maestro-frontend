@@ -270,7 +270,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       return;
     }
     if (active === 7) {
-      setActive(5)
+      if(subStep > 0){
+        setSubStep((prev) => prev - 1);
+      }else {
+        setActive(5)
+      }
     } else {
       if (subStep > 0) {
         setSubStep((prev) => prev - 1);
