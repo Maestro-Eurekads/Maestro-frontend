@@ -926,7 +926,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             onClick={handleBack}
             disabled={active === 0 && subStep === 0}
           >
-            <Image src={Back || "/placeholder.svg"} alt="Back" />
+            <Image src={Back} alt="Back" />
             <p>Back</p>
           </button>
         )}
@@ -995,7 +995,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                         ? "Not mandatory step, skip"
                         : "Continue"}
                   </p>
-                  <Image src={Continue || "/placeholder.svg"} alt="Continue" />
+                  <Image src={Continue} alt="Continue" />
                 </>
               )}
             </button>
