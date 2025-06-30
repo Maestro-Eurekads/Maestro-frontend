@@ -261,6 +261,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     );
   };
 
+  console.log('campaignFormData-campaignFormData', campaignFormData)
+
   // --- Custom back handler for active === 5 to persist step 4 if user had format selected and continued ---
   const handleBack = () => {
     if (active === 5 && hasProceededFromFormatStep.current) {
@@ -268,7 +270,11 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       return;
     }
     if (active === 7) {
-      setActive(5)
+      if(subStep > 0){
+        setSubStep((prev) => prev - 1);
+      }else {
+        setActive(5)
+      }
     } else {
       if (subStep > 0) {
         setSubStep((prev) => prev - 1);
@@ -926,7 +932,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
             onClick={handleBack}
             disabled={active === 0 && subStep === 0}
           >
-            <Image src={Back || "/placeholder.svg"} alt="Back" />
+            <Image src={Back} alt="Back" />
             <p>Back</p>
           </button>
         )}
@@ -995,7 +1001,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
                         ? "Not mandatory step, skip"
                         : "Continue"}
                   </p>
-                  <Image src={Continue || "/placeholder.svg"} alt="Continue" />
+                  <Image src={Continue} alt="Continue" />
                 </>
               )}
             </button>

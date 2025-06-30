@@ -17,7 +17,7 @@ export type FilterState = {
   channel: string | null;
   phase: string | null;
   searchQuery: string;
-  level_1?: string 
+   level_1?: string[];
 };
 
 // Define campaign type (adjust based on your actual data structure)

@@ -154,6 +154,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 
 				setIsOpen(false);
 				toast.success("Plan Approved!");
+				getActiveCampaign(campaignId);
 			}
 		} catch (error) {
 			toast.error(error?.message || "Failed to approve plan");
@@ -211,7 +212,6 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 						{loading ? <SVGLoader width={"30px"} height={"30px"} color={"#fff"} /> :
 							<span className="font-medium">Approval</span>
 						}
-
 					</button>
 				</div>
 

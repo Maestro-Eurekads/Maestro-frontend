@@ -442,8 +442,8 @@ export const CellRenderer = ({
             setIsFocused(false)
           }}
           disabled={isNR || goalLevel === "Adset level"}
-          className={`cmp-bg border-none outline-none max-w-[90px] p-1 ${isNR ? "text-gray-400" : ""}`}
-          placeholder={body === "budget_size" ? "BUDGET" : body ? body?.toUpperCase() : "Insert value"}
+          className={`bg-slate-100 hover:bg-white border-none outline-none max-w-[90px] p-1 ${isNR ? "text-gray-400" : ""}`}
+          // placeholder={body === "budget_size" ? "BUDGET" : body ? body?.toUpperCase() : "Insert value"}
         />
       )}
       <Ban

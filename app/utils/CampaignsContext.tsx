@@ -173,7 +173,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             },
           }
         );
-        // //console.log("NEXT_PUBLIC_STRAPI_TOKEN?:", res?.data?.data);
+        console.log("NEXT_PUBLIC_STRAPI_TOKEN?:", res?.data?.data);
         const data = res?.data?.data;
 
         if (!data) return;
@@ -221,7 +221,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           campaign_builder: data?.campaign_builder ?? prev.campaign_builder,
           user: data?.user ?? prev.user,
           campaign_id: data?.id ?? prev.id,
-          isApprove: data?.isApprove ?? prev?.isApprove,
+          isApprove: data?.isApprove,
           table_headers:
             ((data?.table_headers || {}) ??
               (prev?.table_headers)) ||

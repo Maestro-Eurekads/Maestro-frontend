@@ -185,9 +185,9 @@ export const EstablishedGoals = () => {
             </div>
           </div>
         )}
-        <div className="my-9">
+        {/* <div className="my-9">
           <ToggleSwitch active={active} setActive={setActive} />
-        </div>
+        </div> */}
       </div>
 
       <TableView />

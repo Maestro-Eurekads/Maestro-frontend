@@ -10,11 +10,10 @@ import { useAppDispatch } from "store/useStore";
 import { getCreateClient } from "features/Client/clientSlice";
 import { defaultFilters } from "components/data";
 import { useSession } from "next-auth/react";
-import { FilterState } from "app/utils/useCampaignFilters";
 import { useUserPrivileges } from "utils/userPrivileges";
-import TreeDropdown from "components/TreeDropdown";
 import TreeDropdownFilter from "components/TreeDropdownFilter";
 import { convertToSingleNestedStructure } from "utils/convertToSingleNestedStructure";
+import { cleanName, cleanNames } from "components/Options";
 
 
 // Scrollbar CSS
@@ -49,6 +48,10 @@ const Dropdown = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const dropdownContentRef = useRef(null);
+  const triggerRef = useRef(null);
+  const [parentWidth, setParentWidth] = useState("100%");
+  const [triggerWidth, setTriggerWidth] = useState(72); // Default min width of 72px
 
   const toggleDropdown = () => {
     if (!isDisabled) {
@@ -74,40 +77,76 @@ const Dropdown = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+
+  // Measure trigger width on mount and when selectedFilters changes
+  useEffect(() => {
+    if (triggerRef.current) {
+      const measuredTriggerWidth = triggerRef.current.offsetWidth;
+      setTriggerWidth(measuredTriggerWidth);
+    }
+  }, [selectedFilters]);
+
+  // Update parent width when dropdown opens/closes
+  useEffect(() => {
+    if (isOpen && dropdownContentRef.current) {
+      const dropdownWidth = dropdownContentRef.current.scrollWidth || 0;
+      setParentWidth(`${Math.max(dropdownWidth, triggerWidth)}px`);
+    } else {
+      setParentWidth("100%");
+    }
+  }, [isOpen, triggerWidth]);
+
+
+
+
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative min-w-[72px]" style={{ width: parentWidth }} ref={dropdownRef}>
       <div
-        className={`flex items-center gap-3 px-4 py-2 whitespace-nowrap h-[40px] border border-[#EFEFEF] rounded-[10px] cursor-pointer ${isDisabled ? "opacity-60" : ""
+        ref={triggerRef}
+        className={`relative w-full flex items-center gap-3 px-4 py-2 h-[40px] border border-[#EFEFEF] rounded-[10px] cursor-pointer ${isDisabled ? "opacity-60" : ""
           }`}
         onClick={toggleDropdown}
       >
-        <span className="text-gray-600 capitalize">
+        <span className="text-gray-600 capitalize truncate">
           {selectedFilters[label.toLowerCase()] || label.replace("_", " ")}
         </span>
-        <span className="ml-auto text-gray-500">
-          <Image src={down || "/placeholder.svg"} alt="dropdown" />
+        <span className="ml-auto text-gray-500 flex-shrink-0">
+          <Image src={down} alt="dropdown" />
         </span>
       </div>
 
       {isOpen && (
-        <div className="absolute w-full bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-2 z-10">
+        <div
+          className="absolute left-0 bg-white border border-[#EFEFEF] rounded-md shadow-lg mt-2 z-10"
+          ref={dropdownContentRef}
+        >
           <div
             className={`max-h-[200px] overflow-y-auto ${label === "Select Plans" ? "scrollbar-thin" : ""
               }`}
           >
-            {options.map((option) => (
-              <div
-                key={option}
-                className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                onClick={() => handleOptionSelect(option)}
-              >
-                {option}
+            {options?.length > 0 ? (
+              options?.map((option) => (
+                <div
+                  key={option}
+                  className="px-4 py-2 cursor-pointer hover:bg-gray-100 whitespace-nowrap"
+                  onClick={() => {
+                    handleOptionSelect(option);
+                    setIsOpen(false);
+                  }}
+                >
+                  {cleanNames(option)}
+                </div>
+              ))
+            ) : (
+              <div className="px-4 py-2 text-gray-500 whitespace-nowrap">
+                No options available
               </div>
-            ))}
+            )}
           </div>
         </div>
       )}
     </div>
+
   );
 };
 
@@ -185,6 +224,9 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     }
   }, [filterOptions]);
 
+
+
+
   useEffect(() => {
     const allEmpty = Object.values(selectedFilters).every((val) => !val)
     const fetchData = async () => {
@@ -209,8 +251,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
   const isYearSelected = !!selectedFilters["year"];
 
-  // //console.log("Selected Filters:", filters);
-  // Client Architecture
+
   return (
     <div>
       <Toaster />
@@ -251,13 +292,6 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
             const displayLabel = getDisplayLabel();
             const nested = convertToSingleNestedStructure(options);
 
-            // console.log('nested-nested', nested)
-
-            // //console.log("Nested Options:", nested);
-            // //console.log("options-----Options:", options);
-            // //console.log("displayLabel-----displayLabel:", displayLabel);
-            // //console.log("label-----label:", label);
-            // //console.log("filters-----filters:", filters);
 
 
             return (
@@ -277,7 +311,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
 
                 ) : (
                   <Dropdown
-                    label={displayLabel}
+                    label={cleanName(displayLabel)}
                     options={options?.map((opt) => opt?.label === "string" ? opt?.label : opt)}
                     selectedFilters={selectedFilters}
                     handleSelect={(key, value) => handleSelect(lowerLabel, value)}
@@ -293,7 +327,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
                     onClick={() => handleSelect(lowerLabel, "")}
                   >
                     <p className="h-[20px] text-[15px] leading-[20px] font-medium text-[#3175FF]">
-                      {selected}
+                      {cleanName(selected)}
                     </p>
                     <BiX
                       color="#3175FF"

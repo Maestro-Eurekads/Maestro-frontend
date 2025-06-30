@@ -128,15 +128,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
     )
   }, [campaignFormData?.channel_mix])
 
-  // --- FIXED: Calculate total budget correctly ---
-  // The correct logic:
-  // - For "bottom_up": Total Campaign Budget is always the sum of all stage budgets + fees (if gross), or just sum of stage budgets (if net)
-  // - For "top_down": Total Campaign Budget is always the entered amount (gross or net), but if gross, it includes fees, if net, it's just the net amount.
-  // - The "sub_budget_type" field tells us if the entered amount is gross or net.
-  // - For "gross", the total campaign budget is the net amount + fees (i.e., the entered amount is gross, so total = entered amount)
-  // - For "net", the total campaign budget is just the entered amount (no fees added)
-  // - For "bottom_up", the total campaign budget is always the sum of all stage budgets + fees (if gross), or just sum of stage budgets (if net)
-  // - The bug in the old code: for "top_down" and "gross", it was returning just the entered amount, but it should be entered amount (gross, which already includes fees), so that's correct. For "bottom_up", it should sum stage budgets and add fees if gross.
+
 
   const calculateTotalBudget = () => {
     if (!campaignFormData?.campaign_budget) return 0
@@ -253,24 +245,7 @@ export const BudgetOverviewSection = () => {
   const [channelData, setChannelData] = useState(null)
   const { campaignFormData } = useCampaigns()
 
-  const getCurrencySymbol = (currencyCode) => {
-    switch (currencyCode) {
-      case "EUR":
-        return "€"
-      case "USD":
-        return "$"
-      case "GBP":
-        return "£"
-      case "NGN":
-        return "₦"
-      case "JPY":
-        return "¥"
-      case "CAD":
-        return "$"
-      default:
-        return "€"
-    }
-  }
+
 
   // Map Tailwind bg- classes to hex colors for charts
   const tailwindToHex = (tailwindClass: string): string => {

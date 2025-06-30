@@ -297,11 +297,13 @@ const MainSection = ({
           </div>
         </div>
       </div>
+      {isOpen &&
       <AddNewChennelsModel
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-        selectedStage={selectedStage}
+      isOpen={isOpen}
+      setIsOpen={setIsOpen}
+      selectedStage={selectedStage}
       />
+    }
       {/* </div> */}
     </div>
   );
