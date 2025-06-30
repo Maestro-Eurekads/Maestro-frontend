@@ -110,7 +110,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       const monthFraction = clampedPixel / containerWidth;
       const monthIndex = Math.min(
         11,
-        Math.round(monthFraction * totalMonths)
+        Math.floor(monthFraction * totalMonths)
       );
     
       const year = startDate.getFullYear();
@@ -438,6 +438,7 @@ console.log("called", calculatedDate, fieldName);
     // Convert pixel positions to dates
     const startDate = pixelToDate(startPixel, containerRect.width);
     const endDate = pixelToDate(endPixel, containerRect.width, "endDate");
+    console.log("🚀 ~ handleMouseMoveDrag ~ endDate:", endDate)
 
     console.log({ startDate, endDate }, "here on mouse move");
 
