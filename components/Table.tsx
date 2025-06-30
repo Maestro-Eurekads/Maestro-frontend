@@ -79,7 +79,7 @@ const Table = () => {
  const [currentPage, setCurrentPage] = useState(1);
  const [itemsPerPage, setItemsPerPage] = useState(10);
 
- console.log("clientCampaignData-----:", clientCampaignData);
+ // console.log("clientCampaignData-----:", clientCampaignData);
 
  // Ensure it's an array and sort it by createdAt descending
  const campaignArray = Array.isArray(clientCampaignData)
