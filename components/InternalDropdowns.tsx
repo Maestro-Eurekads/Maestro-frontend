@@ -27,9 +27,9 @@ const InternalVisibilityToggle = ({ selectedOption, setSelectedOption }) => {
 							}`}
 					/>
 				</div>
-				{/* <span className="ml-3 text-sm font-medium text-gray-700">
-					{isClientVisible ? "Visible to Client" : "Internal Only"}
-				</span> */}
+				<span className="ml-3 text-sm font-medium text-gray-700">
+					{selectedOption ? "Client" : "Internal"}
+				</span>
 			</label>
 		</div>
 	);
