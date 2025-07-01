@@ -4,10 +4,12 @@ import PageHeaderWrapper from '../../../components/PageHeaderWapper'
 import { useCampaigns } from '../../utils/CampaignsContext';
 import { useSearchParams } from 'next/navigation';
 import { useComments } from 'app/utils/CommentProvider';
+import { useEditing } from 'app/utils/EditingContext';
 
 const PlanCampaignScheduleSubStepComponent = () => {
 	const searchParams = useSearchParams();
 	const { setIsDrawerOpen, setClose } = useComments();
+	const { setIsEditing } = useEditing();
 	const campaignId = searchParams.get("campaignId");
 	const {
 		updateCampaign,
@@ -17,6 +19,7 @@ const PlanCampaignScheduleSubStepComponent = () => {
 	useEffect(() => {
 		setIsDrawerOpen(false);
 		setClose(false);
+		setIsEditing(true)
 	}, []);
 
 
