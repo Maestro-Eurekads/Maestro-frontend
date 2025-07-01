@@ -304,7 +304,7 @@ await getActiveCampaign()
       )}
       {openAdset &&
       <Modal isOpen={(selectedStage && openAdset) ? true : false} onClose={() => setOpenAdset(false)}>
-        <div className="bg-white w-[900px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
+        <div className="bg-white w-[950px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
           <button
             className="flex justify-end w-fit ml-auto"
             onClick={() => setOpenAdset(false)}
