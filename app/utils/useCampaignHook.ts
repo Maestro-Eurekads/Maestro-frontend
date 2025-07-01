@@ -60,19 +60,20 @@ const useCampaignHook = () => {
 
   
 
-  // Fetch client campaigns
-  const fetchClientCampaign = useCallback(async (clientID:string, agencyId:string|number) => {
+ 
+
+const fetchClientCampaign = useCallback(
+  async (clientID: string, agencyId: string | number) => {
     try {
-      const filters = {
+      const filters: any = {
         client: {
           $eq: clientID,
         },
         agency_profile: {
-          $eq: agencyId
-        }
+          $eq: agencyId,
+        },
       };
 
-      // Add user filter only if user_type includes 'client'
       if (session?.user?.data?.user?.user_type?.includes("client")) {
         filters.user = {
           $eq: session?.user?.id,
@@ -126,11 +127,20 @@ const useCampaignHook = () => {
       );
 
       return res;
-    } catch (err) {
-      console.error("Error fetching client campaigns:", err);
+    } catch (err: any) {
+      console.error("Error fetching client campaigns:", err); 
+      console.error("err?.response?.status:", err?.response?.status); 
+      if (err?.response?.status === 401) {
+        // Logout the user if credentials are invalid 
+        signOut({ callbackUrl: "/" });
+      }
+
       throw err;
     }
-  }, [jwt]);
+  },
+  [jwt, session]
+);
+
 
   // Fetch client purchase orders
   const fetchClientPOS = useCallback(

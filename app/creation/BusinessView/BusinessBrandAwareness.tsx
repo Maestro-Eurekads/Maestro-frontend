@@ -5,13 +5,14 @@ import info from "../../../public/info-circle.svg";
 import Skeleton from "react-loading-skeleton";
 import { MdOutlineErrorOutline } from "react-icons/md";
 import { kpiFormatMap } from "components/Options";
+import { getCurrencySymbol } from "components/data";
 
 
 
-const formatKPIValue = (value, kpiName) => {
+const formatKPIValue = (value, kpiName, currencySymbol = "€") => {
 	const format = kpiFormatMap[kpiName];
 	if (!format || value === undefined || value === null) {
-		if (format?.type === "Currency") return "€ 0,00";
+		if (format?.type === "Currency") return `${currencySymbol} 0,00`;
 		if (format?.type === "Percentage") return "0,0%";
 		if (format?.type === "Seconds") return "0,0 Sec";
 		return "0";
@@ -25,7 +26,7 @@ const formatKPIValue = (value, kpiName) => {
 
 	switch (format.type) {
 		case "Currency":
-			return `€ ${withSeparators(formatNumber(value, format.decimals))}`;
+			return `${currencySymbol} ${withSeparators(formatNumber(value, format.decimals))}`;
 		case "Percentage":
 			return `${formatNumber(value, format.decimals)}%`;
 		case "Seconds":
@@ -37,9 +38,11 @@ const formatKPIValue = (value, kpiName) => {
 	}
 };
 
-const BusinessBrandAwareness = ({ statsData = [], aggregatedStats = {}, loading, isLoadingCampaign }) => {
+
+const BusinessBrandAwareness = ({ statsData = [], aggregatedStats = {}, loading, isLoadingCampaign, campaign }) => {
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [animationState, setAnimationState] = useState("");
+	const currency = getCurrencySymbol(campaign?.campaign_budget?.currency) ?? "";
 
 	const handlePrev = () => {
 		setAnimationState("in");
@@ -64,14 +67,15 @@ const BusinessBrandAwareness = ({ statsData = [], aggregatedStats = {}, loading,
 	const currentCategory = currentStat?.kpiCategory;
 	const currentCategoryKPIs = aggregatedStats[currentCategory] || {};
 
-	// console.log("currentCategoryKPIs----", currentCategoryKPIs);
+
 
 	const allStats = useMemo(() =>
 		Object.keys(currentCategoryKPIs).map((kpiName) => ({
 			label: kpiName,
-			value: formatKPIValue(currentCategoryKPIs[kpiName], kpiName),
+			value: formatKPIValue(currentCategoryKPIs[kpiName], kpiName, currency),
 		}))
-		, [currentCategoryKPIs]);
+		, [currentCategoryKPIs, currency]);
+
 
 	const showNoData = statsData?.length === 0 && !loading && !isLoadingCampaign;
 
