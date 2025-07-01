@@ -1636,10 +1636,11 @@ const AdSetFlow = memo(function AdSetFlow({
   }, [isEditing])
 
   useEffect(() => {
-    if (platformName) {
+    if (modalOpen) {
+      console.log("here")
       setIsEditing(true)
     }
-  }, [])
+  }, [modalOpen])
 
   useEffect(() => {
     if (platforms[stageName]) {
