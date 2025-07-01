@@ -14,7 +14,7 @@ import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import { useSelector } from "react-redux";
 import { channelMixPopulate } from "utils/fetcher";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { updateUsersWithCampaign } from "app/homepage/functions/clients";
 import { extractObjectives, getFilteredMetrics } from "app/creation/components/EstablishedGoals/table-view/data-processor";
 import { useUserPrivileges } from "utils/userPrivileges";
@@ -173,7 +173,7 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
             },
           }
         );
-        console.log("NEXT_PUBLIC_STRAPI_TOKEN?:", res?.data?.data);
+
         const data = res?.data?.data;
 
         if (!data) return;
@@ -231,6 +231,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         setLoadingCampaign(false);
       } catch (error) {
         console.error("Error fetching active campaign:", error);
+        if (error?.response?.status === 401) {
+          // Logout the user if credentials are invalid 
+          signOut({ callbackUrl: "/" });
+        }
       } finally {
         setLoadingCampaign(false);
       }
@@ -278,6 +282,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       return response;
     } catch (error) {
       console.error("Error creating campaign:", error);
+      console.error("err?.response?.status:", error?.response?.status);
+      if (error?.response?.status === 401) {
+        // Logout the user if credentials are invalid 
+        signOut({ callbackUrl: "/" });
+      }
       throw error;
     } finally {
       setLoading(false);
@@ -310,6 +319,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       return response;
     } catch (error) {
       console.error("Error fetching profile:", error);
+      if (error?.response?.status === 401) {
+        // Logout the user if credentials are invalid 
+        signOut({ callbackUrl: "/" });
+      }
       throw error;
     } finally {
       setLoading(false);
@@ -334,6 +347,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       return response;
     } catch (error) {
       console.error("Error fetching profile:", error);
+      console.error("err?.response?.status:", error?.response?.status);
+      if (error?.response?.status === 401) {
+        // Logout the user if credentials are invalid 
+        signOut({ callbackUrl: "/" });
+      }
       throw error;
     } finally {
       setLoading(false);
@@ -434,6 +452,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setBuyObj(res?.data?.data);
     } catch (err) {
       console.error("Error fetching buy objectives:", err);
+      if (err?.response?.status === 401) {
+        // Logout the user if credentials are invalid 
+        signOut({ callbackUrl: "/" });
+      }
     } finally {
       setLoadingObj(false);
     }
@@ -453,6 +475,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setBuyType(res?.data?.data);
     } catch (err) {
       console.error("Error fetching buy types:", err);
+      if (err?.response?.status === 401) {
+        // Logout the user if credentials are invalid 
+        signOut({ callbackUrl: "/" });
+      }
     } finally {
       setLoadingObj(false);
     }
@@ -479,6 +505,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setUser(users);
     } catch (error) {
       console.error("Error fetching users by user_type:", error);
+      if (error?.response?.status === 401) {
+        // Logout the user if credentials are invalid 
+        signOut({ callbackUrl: "/" });
+      }
     } finally {
       setgetLoading(false);
     }
@@ -550,6 +580,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setPlatformList(organizedPlatforms);
     } catch (err) {
       console.error("Error fetching platform lists:", err);
+      if (err?.response?.status === 401) {
+        // Logout the user if credentials are invalid 
+        signOut({ callbackUrl: "/" });
+      }
     } finally {
       setLoadingObj(false);
     }

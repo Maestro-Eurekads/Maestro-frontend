@@ -20,6 +20,7 @@ import {
 } from "app/creation/components/EstablishedGoals/table-view/data-processor";
 import axios from "axios";
 import { updateUsersWithCampaign } from "app/homepage/functions/clients";
+import { signOut } from "next-auth/react";
 
 interface BottomProps {
   setIsOpen: (isOpen: boolean) => void;
@@ -270,9 +271,9 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       return;
     }
     if (active === 7) {
-      if(subStep > 0){
+      if (subStep > 0) {
         setSubStep((prev) => prev - 1);
-      }else {
+      } else {
         setActive(5)
       }
     } else {
@@ -543,6 +544,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         });
         await getActiveCampaign(data);
       } catch (error) {
+        if (error?.response?.status === 401) {
+          // Logout the user if credentials are invalid 
+          signOut({ callbackUrl: "/" });
+        }
         setAlert({
           variant: "error",
           message: "Failed to update campaign data",
@@ -672,6 +677,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           message: error.response?.data?.message || "Something went wrong. Please try again.",
           position: "bottom-right",
         });
+        if (error?.response?.status === 401) {
+          // Logout the user if credentials are invalid 
+          signOut({ callbackUrl: "/" });
+        }
       } finally {
         setLoading(false);
       }
@@ -841,6 +850,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         setActive((prev) => prev + 1);
       }
     } catch (error) {
+      if (error?.response?.status === 401) {
+        // Logout the user if credentials are invalid 
+        signOut({ callbackUrl: "/" });
+      }
       console.error("Error in handleContinue:", error);
     } finally {
       setLoading(false);
