@@ -396,6 +396,80 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
       Number(campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)?.stage_budget?.fixed_value) ||
       0
 
+    // --- PATCH: If user clears the phase budget, also clear all channel/platform/adset budgets for this phase ---
+    // We'll do this before any other logic, and short-circuit the update if value is empty or zero.
+    // This ensures that when the phase budget is cleared, all sub-budgets are also cleared.
+
+    // Only trigger this logic if user is editing the budget amount (not percentage)
+    if (!isPercentage && (value === "" || value === "0" || value.replace(/,/g, "") === "" || Number(value.replace(/,/g, "")) === 0)) {
+      // Clear all channel/platform/adset budgets for this phase
+      const updatedChannelMix = campaignFormData.channel_mix.map((ch) => {
+        if (ch.funnel_stage === stageName) {
+          // Clear stage budget
+          const clearedCh = {
+            ...ch,
+            stage_budget: {
+              ...ch.stage_budget,
+              fixed_value: "",
+              percentage_value: "",
+            },
+          }
+          // Clear all channel/platform/adset budgets
+          mediaTypes.forEach((type) => {
+            if (clearedCh[type]) {
+              clearedCh[type] = clearedCh[type].map((p) => ({
+                ...p,
+                budget: {
+                  ...p.budget,
+                  fixed_value: "",
+                  percentage_value: "",
+                },
+                ad_sets: Array.isArray(p.ad_sets)
+                  ? p.ad_sets.map((adSet) => ({
+                      ...adSet,
+                      budget: {
+                        fixed_value: "",
+                        percentage_value: "",
+                      },
+                      extra_audiences: Array.isArray(adSet.extra_audiences)
+                        ? adSet.extra_audiences.map((extra) => ({
+                            ...extra,
+                            budget: {
+                              fixed_value: "",
+                              percentage_value: "",
+                            },
+                          }))
+                        : [],
+                    }))
+                  : [],
+              }))
+            }
+          })
+          return clearedCh
+        }
+        return ch
+      })
+
+      // For bottom-up, also clear campaign_budget.amount if all stages are empty
+      let newCampaignBudget = { ...campaignFormData.campaign_budget }
+      if (
+        campaignFormData?.campaign_budget?.budget_type === "bottom_up" &&
+        updatedChannelMix.every((stage) => !stage.stage_budget?.fixed_value || Number(stage.stage_budget.fixed_value) === 0)
+      ) {
+        newCampaignBudget.amount = ""
+      }
+
+      setCampaignFormData({
+        ...campaignFormData,
+        channel_mix: updatedChannelMix,
+        ...(campaignFormData?.campaign_budget?.budget_type === "bottom_up" && {
+          campaign_budget: newCampaignBudget,
+        }),
+      })
+      return
+    }
+    // --- END PATCH ---
+
     if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
       // Bottom-up logic: Calculate total dynamically
       const otherStagesTotal =
