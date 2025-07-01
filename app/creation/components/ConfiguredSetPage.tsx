@@ -447,7 +447,8 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
     // Update the campaign data
     const updatedChannelMix = campaignFormData.channel_mix.map((ch) => {
       if (ch.funnel_stage === stageName) {
-        return {
+        // If the new stage budget is less than the sum of channel budgets, reduce channel budgets proportionally
+        let updatedCh = {
           ...ch,
           stage_budget: {
             ...ch.stage_budget,
@@ -455,6 +456,52 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
             percentage_value: newPercentage.toFixed(1),
           },
         }
+
+        // Only adjust if reducing the stage budget
+        const prevStageBudget = Number(ch.stage_budget?.fixed_value) || 0
+        if (newBudget < prevStageBudget && newBudget > 0) {
+          // Calculate total of all channel budgets
+          let totalChannelBudget = 0
+          mediaTypes.forEach((type) => {
+            if (ch[type]) {
+              totalChannelBudget += ch[type].reduce((acc, p) => acc + (Number(p?.budget?.fixed_value) || 0), 0)
+            }
+          })
+          if (totalChannelBudget > 0) {
+            // If total channel budgets exceed new stage budget, reduce proportionally
+            let remainingStageBudget = newBudget
+            const newChannels = {}
+            mediaTypes.forEach((type) => {
+              if (ch[type]) {
+                newChannels[type] = ch[type].map((p, idx, arr) => {
+                  const oldBudget = Number(p?.budget?.fixed_value) || 0
+                  // Proportional reduction
+                  let newChannelBudget = 0
+                  if (idx === arr.length - 1) {
+                    // Last channel: assign remaining to avoid rounding issues
+                    newChannelBudget = Math.max(0, remainingStageBudget)
+                  } else {
+                    newChannelBudget = Math.round((oldBudget / totalChannelBudget) * newBudget * 100) / 100
+                    remainingStageBudget -= newChannelBudget
+                  }
+                  return {
+                    ...p,
+                    budget: {
+                      ...p.budget,
+                      fixed_value: newChannelBudget.toString(),
+                      percentage_value: newBudget > 0 ? ((newChannelBudget / newBudget) * 100).toFixed(1) : "0",
+                    },
+                  }
+                })
+              }
+            })
+            updatedCh = {
+              ...updatedCh,
+              ...newChannels,
+            }
+          }
+        }
+        return updatedCh
       }
       return ch
     })
@@ -509,20 +556,11 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
       const budgetValue = Number(value.replace(/,/g, "")) || 0
       newBudget = budgetValue
       newPercentage = stageBudget ? (newBudget / stageBudget) * 100 : 0
-
-      // Limit to stage budget
-      if (newBudget > stageBudget) {
-        newBudget = stageBudget
-        newPercentage = 100
-        toast("Channel budget cannot exceed stage budget", {
-          position: "bottom-right",
-          type: "error",
-          theme: "colored",
-        })
-      }
+      // Allow decreasing channel budget even if sum is less than stage budget
+      // Only block if sum of all channel budgets exceeds stage budget
     }
 
-    // Validate against total platform budgets
+    // Validate against total platform budgets (only block if sum exceeds stage budget)
     if (campaignFormData?.campaign_budget?.budget_type !== "bottom_up") {
       const channelTypes = mediaTypes
       let totalPlatformBudget = 0
@@ -546,6 +584,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
         })
         return
       }
+      // If totalPlatformBudget < stageBudget, allow (do not block decreasing)
     }
 
     // Update the campaign data
