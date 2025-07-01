@@ -951,19 +951,40 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         )}
 
         {active === 10 ? (
-          isFinancialApprover || isAgencyApprover || isAdmin ? (
-            <button
-              className="bottom_black_next_btn hover:bg-blue-500"
-              onClick={() =>
-                campaignFormData?.isApprove
-                  ? toast.error("This Plan has already been approved!")
-                  : setIsOpen(true)
+          (isFinancialApprover || isAgencyApprover || isAdmin) ? (
+            (() => {
+              const internalApproverEmails = campaignFormData?.internal_approver?.map(
+                (approver) => approver?.email
+              ) || [];
+
+              if (!isAdmin && !internalApproverEmails.includes(loggedInUser.email)) {
+                return (
+                  <button
+                    className="bottom_black_next_btn hover:bg-blue-500"
+                    onClick={() =>
+                      toast.error("Not authorized to approve this plan.")
+                    }
+                  >
+                    <p>Confirm</p>
+                    <Image src={Continue} alt="Continue" />
+                  </button>
+                );
               }
-            // onClick={() => setIsOpen(true)}
-            >
-              <p>Confirm</p>
-              <Image src={Continue} alt="Continue" />
-            </button>
+
+              return (
+                <button
+                  className="bottom_black_next_btn hover:bg-blue-500"
+                  onClick={() =>
+                    campaignFormData?.isApprove
+                      ? toast.error("This plan has already been approved!")
+                      : setIsOpen(true)
+                  }
+                >
+                  <p>Confirm</p>
+                  <Image src={Continue} alt="Continue" />
+                </button>
+              );
+            })()
           ) : (
             <button
               className="bottom_black_next_btn hover:bg-blue-500"
