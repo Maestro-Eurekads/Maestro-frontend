@@ -15,7 +15,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { statusOption } from "components/data";
 import { getCreateClient } from "features/Client/clientSlice";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useUserPrivileges } from "utils/userPrivileges";
 import { selectCurrency } from "components/Options";
 
@@ -161,6 +161,11 @@ const AddFinanceModal = ({
         setUsers(newOpt);
       } catch (err) {
         console.log(err);
+        console.error("err?.response?.status:", err?.response?.status);
+        if (err?.response?.status === 401) {
+          // Logout the user if credentials are invalid 
+          signOut({ callbackUrl: "/" });
+        }
       } finally {
         setLoadingUser(false);
       }
@@ -183,6 +188,10 @@ const AddFinanceModal = ({
         setFinancialUsers(newOpt);
       } catch (err) {
         console.log(err);
+        if (err?.response?.status === 401) {
+          // Logout the user if credentials are invalid 
+          signOut({ callbackUrl: "/" });
+        }
       } finally {
         setLoadingUser(false);
       }

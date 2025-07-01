@@ -75,7 +75,7 @@ const OverviewofyourCampaign = () => {
     campaignData,
     isLoading: isLoadingCampaign,
     campaignFormData,
-    // jwt,
+    jwt,
     loadingCampaign,
     getActiveCampaign,
   } = useCampaigns();
@@ -86,8 +86,7 @@ const OverviewofyourCampaign = () => {
   const campaignId = query.get("campaignId");
   const [finalCategoryOrder, setFinalCategoryOrder] = useState(categoryOrder);
   const { data: session } = useSession();
-  const jwt =
-    (session?.user as { data?: { jwt: string } })?.data?.jwt
+
 
   const {
     getKpis,
@@ -325,6 +324,7 @@ const OverviewofyourCampaign = () => {
             aggregatedStats={aggregatedStats}
             loading={isLoadingKpis}
             isLoadingCampaign={loadingCampaign}
+            campaign={campaignData}
           />
           <MessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} />
           <div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
