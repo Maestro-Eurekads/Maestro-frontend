@@ -429,8 +429,10 @@ const AdSet = memo(function AdSet({
 
   // COMPLETE SEPARATION: Channel level shows only channel fields, no ad set numbers or extra audiences
   if (granularity === "channel") {
+    // Reduce the space between the audience field and the next channel
+    // Remove px-4 and margin-top/margin-bottom, and use tighter vertical spacing
     return (
-      <div className="flex gap-2 items-start w-full px-4">
+      <div className="flex gap-2 items-start w-full" style={{ marginTop: 4, marginBottom: 4, paddingLeft: 0, paddingRight: 0 }}>
         <div className="w-[200px]">
           <AudienceDropdownWithCallback
             onSelect={(val) => handleChannelAudienceChange("audience_type", val)}
@@ -1263,8 +1265,14 @@ const AdsetSettings = memo(function AdsetSettings({
     return <NonFacebookOutlet outlet={outlet} setSelected={setSelectedPlatforms} onInteraction={onInteraction} />
   }
 
+  // Reduce vertical space between channels for channel granularity
   return (
-    <div className="flex flex-col gap-2 w-full max-w-[1024px]">
+    <div
+      className={`flex flex-col w-full max-w-[1024px] ${
+        granularity === "channel" ? "gap-1" : "gap-2"
+      }`}
+      style={granularity === "channel" ? { marginTop: 4, marginBottom: 4, paddingTop: 4, paddingBottom: 4 } : {}}
+    >
       <div className="flex items-center gap-8">
         <div className="relative flex items-center gap-4">
           <button
@@ -1281,17 +1289,28 @@ const AdsetSettings = memo(function AdsetSettings({
 
       {!isCollapsed && (
         <DropdownContext.Provider value={{ openDropdownId, setOpenDropdownId }}>
-          <div className="relative w-full" style={{ minHeight: `${Math.max(194, (adsets.length + 1) * 80)}px` }}>
+          <div
+            className="relative w-full"
+            style={
+              granularity === "channel"
+                ? { minHeight: "0px", marginTop: 4, marginBottom: 4, paddingTop: 4, paddingBottom: 4 }
+                : { minHeight: `${Math.max(194, (adsets.length + 1) * 80)}px` }
+            }
+          >
             {adsets.length > 0 && (
               <>
                 {adsets.map((adset, index) => (
                   <div
                     key={adset.id}
                     className="relative"
-                    style={{
-                      marginTop: index === 0 ? "20px" : "0px",
-                      marginBottom: "20px",
-                    }}
+                    style={
+                      granularity === "channel"
+                        ? { marginTop: 4, marginBottom: 4, paddingTop: 0, paddingBottom: 0 }
+                        : {
+                            marginTop: index === 0 ? "20px" : "0px",
+                            marginBottom: "20px",
+                          }
+                    }
                   >
                     <AdSet
                       key={adset.id}
@@ -1646,7 +1665,10 @@ const AdSetFlow = memo(function AdSetFlow({
         addCustomAudienceType,
       }}
     >
-      <div className="w-full space-y-4 p-4">
+      <div
+        className={`w-full p-4 ${granularity === "channel" ? "space-y-4" : "space-y-4"}`}
+        style={granularity === "channel" ? { marginTop: 12, marginBottom: 4, paddingTop: 4, paddingBottom: 4 } : {}}
+      >
         {platformName
           ? platforms[stageName]
               ?.filter((outlet) =>

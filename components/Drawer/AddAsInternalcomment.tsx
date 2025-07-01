@@ -5,14 +5,13 @@ import closecircle from "../../public/close-circle.svg";
 import Image from "next/image";
 import { useComments } from 'app/utils/CommentProvider';
 import CommentHeaderwithClose from './CommentHeaderwithClose';
-import InternalDropdowns from 'components/InternalDropdowns';
 import { useCampaigns } from 'app/utils/CampaignsContext';
 import { SVGLoader } from 'components/SVGLoader';
 import AlertMain from 'components/Alert/AlertMain';
 import { useSession } from "next-auth/react";
 import { useSearchParams } from 'next/navigation';
 import { useAppSelector } from 'store/useStore';
-
+import InternalVisibilityToggle from 'components/InternalDropdowns';
 
 
 
@@ -22,8 +21,8 @@ const AddAsInternalcomment = ({ position, setShow }) => {
 	const { addComment, isLoading, createCommentsError, comment, setComment } = useComments();
 	const { isLoading: loading } = useAppSelector((state) => state.comment);
 	const [alert, setAlert] = useState(null);
-	const [selectedOption, setSelectedOption] = useState("Add as Internal");
-	const addcomment_as = selectedOption === "Add as Internal" ? "Internal" : "Client";
+	const [selectedOption, setSelectedOption] = useState(false);
+	const addcomment_as = selectedOption ? "Client" : "Internal";
 	const query = useSearchParams();
 	const commentId = query.get("campaignId");
 	const creator = {
@@ -64,7 +63,11 @@ const AddAsInternalcomment = ({ position, setShow }) => {
 				/>
 
 				<div className="flex items-center w-full justify-between mt-1">
-					<InternalDropdowns setSelectedOption={setSelectedOption} selectedOption={selectedOption} />
+					<InternalVisibilityToggle
+						selectedOption={selectedOption}
+						setSelectedOption={setSelectedOption}
+					/>
+					{/* <InternalDropdowns setSelectedOption={setSelectedOption} selectedOption={selectedOption} /> */}
 					<div>
 						<button
 							disabled={loading}
