@@ -86,6 +86,7 @@ const Header = ({ setIsOpen, setIsView }) => {
     }
   }, [dispatch, session, profile, agencyId, userType]);
 
+
   //  LocalStorage prioritized
   useEffect(() => {
     if (!userType) return;
