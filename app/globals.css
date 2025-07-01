@@ -34,6 +34,54 @@
   animation: slide-down 0.5s ease-out forwards;
 }
 
+
+/* CSS for the L-shaped connector lines */
+.l-shape-container-cb {
+  position: relative;
+}
+
+.l-vertical-cb {
+  position: absolute;
+  left: -8px;
+  top: 20px;
+  width: 2px;
+  height: 50px;
+  background-color: #d1d5db;
+  z-index: 1;
+}
+
+.l-horizontal-cb {
+  position: absolute;
+  left: -8px;
+  bottom: -71px;
+  width: 16px;
+  height: 2px;
+  background-color: #d1d5db;
+  z-index: 1;
+}
+
+.l-vertical-cb-long {
+  position: absolute;
+  left: -8px;
+  top: 20px;
+  width: 2px;
+  background-color: #d1d5db;
+  z-index: 1;
+}
+
+.l-horizontal-cb-long {
+  position: absolute;
+  left: -8px;
+  width: 16px;
+  height: 2px;
+  background-color: #d1d5db;
+  z-index: 1;
+}
+
+
+
+
+
 *,
 ::before,
 ::after {
