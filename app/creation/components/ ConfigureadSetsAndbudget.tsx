@@ -34,7 +34,6 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
     }
   }, [campaignFormData])
 
-  // Map Tailwind bg- classes to hex colors for charts
   const tailwindToHex = (tailwindClass: string): string => {
     const colorMap = {
       "bg-blue-500": "#3B82F6",
@@ -46,7 +45,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
       "bg-pink-500 border border-pink-500": "#EC4899",
       "bg-indigo-500": "#6366F1",
     }
-    return colorMap[tailwindClass] || "#6B7280" // Default to gray if not found
+    return colorMap[tailwindClass] || "#6B7280"
   }
 
   function extractPlatforms(data) {
@@ -57,7 +56,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
       const stageName = stage.funnel_stage
       const stageBudget = Number.parseFloat(stage.stage_budget?.fixed_value) || 0
 
-      if (stageBudget === 0) return // Skip stages with no budget
+      if (stageBudget === 0) return
 
       mediaTypes.forEach((channelType) => {
         if (stage[channelType] && Array.isArray(stage[channelType])) {
@@ -65,9 +64,10 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
             const platformName = platform.platform_name
             const platformBudget = Number.parseFloat(platform.budget?.fixed_value) || 0
 
-            if (platformBudget === 0) return // Skip platforms with no budget
+            if (platformBudget === 0) return
 
             const percentage = stageBudget > 0 ? (platformBudget / stageBudget) * 100 : 0
+
             const existingPlatform = platforms.find((p) => p.platform_name === platformName)
 
             if (existingPlatform) {
@@ -94,23 +94,21 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
         }
       })
     })
+
     setChannelData(platforms)
   }
 
-  // Get colors from custom_funnels
   const getFunnelColor = (funnelStage: string): string => {
     const funnel = campaignFormData?.custom_funnels?.find((f: any) => f.name === funnelStage)
-    return funnel ? tailwindToHex(funnel.color) : "#6B7280" // Default gray if not found
+    return funnel ? tailwindToHex(funnel.color) : "#6B7280"
   }
 
-  // Always extract platforms when campaignFormData changes
   useEffect(() => {
     if (campaignFormData) {
       extractPlatforms(campaignFormData)
     }
   }, [campaignFormData])
 
-  // Calculate total fees amount, defaulting to 0 if not present or invalid
   const totalFeesAmount = useMemo(() => {
     const feesArr = campaignFormData?.campaign_budget?.budget_fees
     if (!Array.isArray(feesArr) || feesArr.length === 0) {
@@ -120,7 +118,6 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
     return isNaN(sum) ? 0 : sum
   }, [campaignFormData])
 
-  // Calculate allocated budget (sum of all stage budgets)
   const allocatedBudget = useMemo(() => {
     return (
       campaignFormData?.channel_mix?.reduce((acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0), 0) ||
@@ -128,8 +125,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
     )
   }, [campaignFormData?.channel_mix])
 
-
-
+  // FIXED: Calculate total budget correctly for both gross and net media budget
   const calculateTotalBudget = () => {
     if (!campaignFormData?.campaign_budget) return 0
 
@@ -139,24 +135,27 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
     const subBudgetType = campaignFormData?.campaign_budget?.sub_budget_type // "gross" or "net"
 
     if (budgetType === "bottom_up") {
-      // Always sum stage budgets, add fees if gross
+      // For bottom-up: sum all stage budgets first
       const stageBudgetsSum =
         campaignFormData?.channel_mix?.reduce(
           (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
           0,
         ) || 0
-      if (subBudgetType === "gross") {
-        return stageBudgetsSum + totalFees
-      } else {
-        return stageBudgetsSum
-      }
+
+      // For both gross and net, the total campaign budget includes fees on top of media spend
+      return stageBudgetsSum + totalFees
     } else {
-      // top_down: entered amount is the total campaign budget (gross or net)
-      return budgetAmount
+      // For top-down: the logic depends on whether the entered amount is gross or net
+      if (subBudgetType === "gross") {
+        // If gross is selected, the entered amount already includes fees
+        return budgetAmount
+      } else {
+        // If net is selected, the entered amount is net media spend, so add fees for total campaign budget
+        return budgetAmount + totalFees
+      }
     }
   }
 
-  // Calculate net available budget
   const calculateNetAvailableBudget = () => {
     if (!campaignFormData?.campaign_budget) return 0
 
@@ -165,7 +164,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
     const subBudgetType = campaignFormData?.campaign_budget?.sub_budget_type
 
     if (budgetType === "bottom_up") {
-      // Net available is just the sum of stage budgets
+      // Net available is just the sum of stage budgets (the media spend)
       return (
         campaignFormData?.channel_mix?.reduce(
           (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
@@ -173,17 +172,18 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
         ) || 0
       )
     } else {
-      // top_down
-      // If gross, net available is entered amount minus fees; if net, it's just the entered amount
+      // For top-down:
+      // If gross, net available is entered amount minus fees
+      // If net, net available is the entered amount (it's already net)
       return subBudgetType === "gross" ? Math.max(0, budgetAmount - totalFeesAmount) : budgetAmount
     }
   }
 
-  // Calculate remaining budget
   const remainingBudget = useMemo(() => {
     if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
       return 0
     }
+
     const netAvailable = calculateNetAvailableBudget()
     return Math.max(0, netAvailable - allocatedBudget)
   }, [
@@ -195,13 +195,11 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
 
   const totalBudget = calculateTotalBudget()
 
-  // Prepare insideText for DoughnutChat
   const insideText = useMemo(() => {
     const currency = getCurrencySymbol(campaignFormData?.campaign_budget?.currency)
     return `${totalBudget.toLocaleString()} ${currency}`
   }, [totalBudget, campaignFormData?.campaign_budget?.currency])
 
-  // Calculate campaign phases with accurate percentages
   const campaignPhases = useMemo(() => {
     if (!campaignFormData?.channel_mix) return []
 
@@ -233,19 +231,17 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
           t2={""}
         />
       </div>
-
       <ConfiguredSetPage netAmount={netAmount} />
     </div>
   )
 }
 
-// New component for just the budget overview section
+// FIXED: Budget overview section with correct total budget calculation
 export const BudgetOverviewSection = () => {
   const [showBudgetOverview, setShowBudgetOverview] = useState(false)
   const [channelData, setChannelData] = useState(null)
   const { campaignFormData } = useCampaigns()
 
-  // Map Tailwind bg- classes to hex colors for charts
   const tailwindToHex = (tailwindClass: string): string => {
     const colorMap = {
       "bg-blue-500": "#3B82F6",
@@ -257,7 +253,7 @@ export const BudgetOverviewSection = () => {
       "bg-pink-500 border border-pink-500": "#EC4899",
       "bg-indigo-500": "#6366F1",
     }
-    return colorMap[tailwindClass] || "#6B7280" // Default to gray if not found
+    return colorMap[tailwindClass] || "#6B7280"
   }
 
   function extractPlatforms(data) {
@@ -265,12 +261,15 @@ export const BudgetOverviewSection = () => {
     data?.channel_mix?.forEach((stage) => {
       const stageName = stage?.funnel_stage
       const stageBudget = Number.parseFloat(stage?.stage_budget?.fixed_value)
+
       mediaTypes?.forEach((channelType) => {
         stage[channelType]?.forEach((platform) => {
           const platformName = platform?.platform_name
           const platformBudget = Number.parseFloat(platform?.budget?.fixed_value)
           const percentage = (platformBudget / stageBudget) * 100
+
           const existingPlatform = platforms?.find((p) => p?.platform_name === platformName)
+
           if (existingPlatform) {
             existingPlatform?.stages_it_was_found?.push({
               stage_name: stageName,
@@ -291,24 +290,21 @@ export const BudgetOverviewSection = () => {
         })
       })
     })
+
     setChannelData(platforms)
   }
 
-  // Get colors from custom_funnels
   const getFunnelColor = (funnelStage: string): string => {
     const funnel = campaignFormData?.custom_funnels?.find((f: any) => f.name === funnelStage)
-    return funnel ? tailwindToHex(funnel.color) : "#6B7280" // Default gray if not found
+    return funnel ? tailwindToHex(funnel.color) : "#6B7280"
   }
 
-  // Always extract platforms when campaignFormData changes
   useEffect(() => {
     if (campaignFormData) {
       extractPlatforms(campaignFormData)
-      // console.log("Channel data updated:", channelData)
     }
   }, [campaignFormData])
 
-  // Calculate total fees amount, defaulting to 0 if not present or invalid
   const totalFeesAmount = useMemo(() => {
     const feesArr = campaignFormData?.campaign_budget?.budget_fees
     if (!Array.isArray(feesArr) || feesArr.length === 0) {
@@ -318,7 +314,6 @@ export const BudgetOverviewSection = () => {
     return isNaN(sum) ? 0 : sum
   }, [campaignFormData])
 
-  // Calculate allocated budget (sum of all stage budgets)
   const allocatedBudget = useMemo(() => {
     return (
       campaignFormData?.channel_mix?.reduce((acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0), 0) ||
@@ -326,7 +321,7 @@ export const BudgetOverviewSection = () => {
     )
   }, [campaignFormData?.channel_mix])
 
-  // --- FIXED: Calculate total budget correctly for top-down selection ---
+  // FIXED: Calculate total budget correctly for both gross and net media budget
   const calculateTotalBudget = () => {
     if (!campaignFormData?.campaign_budget) return 0
 
@@ -336,30 +331,27 @@ export const BudgetOverviewSection = () => {
     const subBudgetType = campaignFormData?.campaign_budget?.sub_budget_type // "gross" or "net"
 
     if (budgetType === "bottom_up") {
-      // Always sum stage budgets, add fees if gross
+      // For bottom-up: sum all stage budgets first
       const stageBudgetsSum =
         campaignFormData?.channel_mix?.reduce(
           (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
           0,
         ) || 0
-      if (subBudgetType === "gross") {
-        return stageBudgetsSum + totalFees
-      } else {
-        return stageBudgetsSum
-      }
+
+      // For both gross and net, the total campaign budget includes fees on top of media spend
+      return stageBudgetsSum + totalFees
     } else {
-      // top_down: entered amount is the net or gross campaign budget
-      // If gross, total campaign budget is amount + total fees
-      // If net, total campaign budget is just the entered amount
+      // For top-down: the logic depends on whether the entered amount is gross or net
       if (subBudgetType === "gross") {
-        return budgetAmount + totalFees
-      } else {
+        // If gross is selected, the entered amount already includes fees
         return budgetAmount
+      } else {
+        // If net is selected, the entered amount is net media spend, so add fees for total campaign budget
+        return budgetAmount + totalFees
       }
     }
   }
 
-  // Calculate net available budget
   const calculateNetAvailableBudget = () => {
     if (!campaignFormData?.campaign_budget) return 0
 
@@ -368,7 +360,7 @@ export const BudgetOverviewSection = () => {
     const subBudgetType = campaignFormData?.campaign_budget?.sub_budget_type
 
     if (budgetType === "bottom_up") {
-      // Net available is just the sum of stage budgets
+      // Net available is just the sum of stage budgets (the media spend)
       return (
         campaignFormData?.channel_mix?.reduce(
           (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
@@ -376,18 +368,18 @@ export const BudgetOverviewSection = () => {
         ) || 0
       )
     } else {
-      // top_down
-      // If gross, net available is entered amount; if net, it's just the entered amount
-      // (Assume entered amount is always the net available for allocation)
-      return budgetAmount
+      // For top-down:
+      // If gross, net available is entered amount minus fees
+      // If net, net available is the entered amount (it's already net)
+      return subBudgetType === "gross" ? Math.max(0, budgetAmount - totalFeesAmount) : budgetAmount
     }
   }
 
-  // Calculate remaining budget
   const remainingBudget = useMemo(() => {
     if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
       return 0
     }
+
     const netAvailable = calculateNetAvailableBudget()
     return Math.max(0, netAvailable - allocatedBudget)
   }, [
@@ -399,13 +391,11 @@ export const BudgetOverviewSection = () => {
 
   const totalBudget = calculateTotalBudget()
 
-  // Prepare insideText for DoughnutChat
   const insideText = useMemo(() => {
     const currency = getCurrencySymbol(campaignFormData?.campaign_budget?.currency)
     return `${totalBudget.toLocaleString()} ${currency}`
   }, [totalBudget, campaignFormData?.campaign_budget?.currency])
 
-  // Calculate campaign phases with accurate percentages
   const campaignPhases = useMemo(() => {
     if (!campaignFormData?.channel_mix) return []
 
@@ -446,22 +436,26 @@ export const BudgetOverviewSection = () => {
               ): {totalBudget.toLocaleString()}
               {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
             </p>
+
             {totalFeesAmount > 0 && campaignFormData?.campaign_budget?.sub_budget_type === "gross" && (
               <p>
                 Net Available Budget: {calculateNetAvailableBudget().toLocaleString()}
                 {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
               </p>
             )}
+
             <p>
               Allocated Budget: {allocatedBudget.toLocaleString()}
               {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
             </p>
+
             {campaignFormData?.campaign_budget?.budget_type !== "bottom_up" && (
               <p className={`${remainingBudget > 0 ? "text-orange-600" : "text-green-600"}`}>
                 Remaining Budget: {remainingBudget.toLocaleString()}
                 {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
               </p>
             )}
+
             {totalFeesAmount > 0 && (
               <p className="text-red-600">
                 Total Fees: {totalFeesAmount.toLocaleString()}
@@ -478,6 +472,7 @@ export const BudgetOverviewSection = () => {
               <p className="font-medium text-[15px] leading-[175%] text-[rgba(0,0,0,0.9)] order-1 self-stretch flex-none">
                 Here is a breakdown of the budget allocated to each campaign phase.
               </p>
+
               <div className="flex items-center gap-5 mt-[16px]">
                 <div>
                   <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
@@ -489,6 +484,7 @@ export const BudgetOverviewSection = () => {
                     {allocatedBudget?.toLocaleString()} {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
                   </h3>
                 </div>
+
                 <div>
                   <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
                     Campaign phases
@@ -497,6 +493,7 @@ export const BudgetOverviewSection = () => {
                     {campaignPhases.length} phases
                   </h3>
                 </div>
+
                 {campaignFormData?.campaign_budget?.budget_type !== "bottom_up" && remainingBudget > 0 && (
                   <div>
                     <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
@@ -509,6 +506,7 @@ export const BudgetOverviewSection = () => {
                   </div>
                 )}
               </div>
+
               <>
                 <div className="campaign_phases_container mt-[24px] space-x-4">
                   <div className="campaign_phases_container_one">
@@ -519,6 +517,7 @@ export const BudgetOverviewSection = () => {
                 <PhasedistributionProgress insideText={insideText} />
               </>
             </div>
+
             <div className="allocate_budget_phase_two">
               <h3 className="font-semibold text-[22px] leading-[24px] flex items-center text-[#061237]">
                 Channel distribution
@@ -526,6 +525,7 @@ export const BudgetOverviewSection = () => {
               <p className="font-medium text-[15px] leading-[175%] text-[rgba(0,0,0,0.9)] order-1 self-stretch flex-none">
                 Graph showing the total budget spent and its breakdown across the channels.
               </p>
+
               <div className="mt-[16px]">
                 <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
                   Channels
