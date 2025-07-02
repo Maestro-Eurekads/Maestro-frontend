@@ -160,12 +160,11 @@ const AddFinanceModal = ({
         }));
         setUsers(newOpt);
       } catch (err) {
-        console.log(err);
-        console.error("err?.response?.status:", err?.response?.status);
-        if (err?.response?.status === 401) {
-          // Logout the user if credentials are invalid 
-          signOut({ callbackUrl: "/" });
+        if (true) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
         }
+
       } finally {
         setLoadingUser(false);
       }
@@ -188,9 +187,9 @@ const AddFinanceModal = ({
         setFinancialUsers(newOpt);
       } catch (err) {
         console.log(err);
-        if (err?.response?.status === 401) {
-          // Logout the user if credentials are invalid 
-          signOut({ callbackUrl: "/" });
+        if (true) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
         }
       } finally {
         setLoadingUser(false);

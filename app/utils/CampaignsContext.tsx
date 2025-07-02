@@ -230,11 +230,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         }));
         setLoadingCampaign(false);
       } catch (error) {
-        console.error("Error fetching active campaign:", error);
         if (error?.response?.status === 401) {
-          // Logout the user if credentials are invalid 
-          signOut({ callbackUrl: "/" });
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
         }
+
       } finally {
         setLoadingCampaign(false);
       }
@@ -281,12 +281,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       );
       return response;
     } catch (error) {
-      console.error("Error creating campaign:", error);
-      console.error("err?.response?.status:", error?.response?.status);
       if (error?.response?.status === 401) {
-        // Logout the user if credentials are invalid 
-        signOut({ callbackUrl: "/" });
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
       }
+
       throw error;
     } finally {
       setLoading(false);
@@ -318,11 +317,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       setAgencyId(aId);
       return response;
     } catch (error) {
-      console.error("Error fetching profile:", error);
       if (error?.response?.status === 401) {
-        // Logout the user if credentials are invalid 
-        signOut({ callbackUrl: "/" });
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
       }
+
       throw error;
     } finally {
       setLoading(false);
@@ -346,12 +345,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
 
       return response;
     } catch (error) {
-      console.error("Error fetching profile:", error);
-      console.error("err?.response?.status:", error?.response?.status);
       if (error?.response?.status === 401) {
-        // Logout the user if credentials are invalid 
-        signOut({ callbackUrl: "/" });
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
       }
+
       throw error;
     } finally {
       setLoading(false);
@@ -504,11 +502,11 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       const users = response.data;
       setUser(users);
     } catch (error) {
-      console.error("Error fetching users by user_type:", error);
       if (error?.response?.status === 401) {
-        // Logout the user if credentials are invalid 
-        signOut({ callbackUrl: "/" });
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
       }
+
     } finally {
       setgetLoading(false);
     }

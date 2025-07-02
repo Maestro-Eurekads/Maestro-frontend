@@ -295,6 +295,7 @@ const Header = ({ setIsOpen, setIsView }) => {
               {getFirstLetters(session?.user?.name)}
             </p>
 
+
             {show && (
               <div className="absolute right-0 top-[60px] w-[200px] bg-white border border-gray-200   shadow-lg z-50 !rounded-[5px]">
                 <div className="absolute top-[-4px] right-5 w-3 h-3 bg-white rotate-45 border-t border-l border-gray-200"></div>

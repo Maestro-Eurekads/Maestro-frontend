@@ -4,39 +4,12 @@ import Image from "next/image";
 import info from "../../../public/info-circle.svg";
 import Skeleton from "react-loading-skeleton";
 import { MdOutlineErrorOutline } from "react-icons/md";
-import { kpiFormatMap } from "components/Options";
+import { formatKPIValue, kpiFormatMap } from "components/Options";
 import { getCurrencySymbol } from "components/data";
 
 
 
-const formatKPIValue = (value, kpiName, currencySymbol = "€") => {
-	const format = kpiFormatMap[kpiName];
-	if (!format || value === undefined || value === null) {
-		if (format?.type === "Currency") return `${currencySymbol} 0,00`;
-		if (format?.type === "Percentage") return "0,0%";
-		if (format?.type === "Seconds") return "0,0 Sec";
-		return "0";
-	}
 
-	const formatNumber = (val, decimals) =>
-		val.toFixed(decimals);
-
-	const withSeparators = (str) =>
-		str.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-
-	switch (format.type) {
-		case "Currency":
-			return `${currencySymbol} ${withSeparators(formatNumber(value, format.decimals))}`;
-		case "Percentage":
-			return `${formatNumber(value, format.decimals)}%`;
-		case "Seconds":
-			return `${formatNumber(value, format.decimals)} Sec`;
-		case "Number":
-			return withSeparators(Math.round(value));
-		default:
-			return value.toString();
-	}
-};
 
 
 const BusinessBrandAwareness = ({ statsData = [], aggregatedStats = {}, loading, isLoadingCampaign, campaign }) => {

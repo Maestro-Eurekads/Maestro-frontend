@@ -233,49 +233,7 @@ function mapKPIStatsToStatsDataDynamic(aggregatedStats, kpiCategories, icons, fi
   };
 
 
-  // const formatKPIValue = (value, kpiName) => {
-  //   if (value === undefined || value === null) {
-  //     // Currency defaults
-  //     const currencyKPIs = ["Budget", "CPM", "CPV", "CPCV", "CPE", "CPC", "Cost/bounce", "Cost/lead"];
-  //     if (currencyKPIs.includes(kpiName)) return "€ 0,00";
 
-  //     // Percentage defaults
-  //     const percentageKPIs = [
-  //       "VTR", "Comp. rate", "Eng rate", "CTR", "Click to land rate", "Bounce rate", "lead rate",
-  //       "CVR lead", "CVR", "Off-funnel rate", "ATC rate", "PI rate", "Purchase rate", "App open rate", "Install rate", "CVR app"
-  //     ];
-  //     if (percentageKPIs.includes(kpiName)) return "0,0%";
-
-  //     // Time default
-  //     if (kpiName === "Avg visit time") return "0,0 Sec";
-
-  //     // Number default
-  //     return "0";
-  //   }
-
-  //   // Format Currency
-  //   const currencyKPIs = ["Budget", "CPM", "CPV", "CPCV", "CPE", "CPC", "Cost/bounce", "Cost/lead"];
-  //   if (currencyKPIs.includes(kpiName)) {
-  //     return `€ ${value.toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, " ")}`;
-  //   }
-
-  //   // Format Percentage
-  //   const percentageKPIs = [
-  //     "VTR", "Comp. rate", "Eng rate", "CTR", "Click to land rate", "Bounce rate", "lead rate",
-  //     "CVR lead", "CVR", "Off-funnel rate", "ATC rate", "PI rate", "Purchase rate", "App open rate", "Install rate", "CVR app"
-  //   ];
-  //   if (percentageKPIs.includes(kpiName)) {
-  //     return `${value.toFixed(1).replace(".", ",")}%`;
-  //   }
-
-  //   // Format Time
-  //   if (kpiName === "Avg visit time") {
-  //     return `${value.toFixed(1).replace(".", ",")} Sec`;
-  //   }
-
-  //   // Format Number (Volume or Count)
-  //   return Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-  // };
   const formatKPIValue = (value, kpiName) => {
     const format = kpiFormatMap[kpiName];
 
@@ -574,6 +532,7 @@ const months = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ];
+
 const selectCurrency = [
   { value: "AED", label: "AED", sign: "د.إ" },
   { value: "AFN", label: "AFN", sign: "؋" },
@@ -938,6 +897,35 @@ const agencyRoles = [
 ];
 
 
+const formatKPIValue = (value, kpiName, currencySymbol = "€") => {
+  const format = kpiFormatMap[kpiName];
+  if (!format || value === undefined || value === null) {
+    if (format?.type === "Currency") return `${currencySymbol} 0,00`;
+    if (format?.type === "Percentage") return "0,0%";
+    if (format?.type === "Seconds") return "0,0 Sec";
+    return "0";
+  }
+
+  const formatNumber = (val, decimals) =>
+    val.toFixed(decimals);
+
+  const withSeparators = (str) =>
+    str.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+  switch (format.type) {
+    case "Currency":
+      return `${currencySymbol} ${withSeparators(formatNumber(value, format.decimals))}`;
+    case "Percentage":
+      return `${formatNumber(value, format.decimals)}%`;
+    case "Seconds":
+      return `${formatNumber(value, format.decimals)} Sec`;
+    case "Number":
+      return withSeparators(Math.round(value));
+    default:
+      return value.toString();
+  }
+};
+
 
 
 export {
@@ -962,5 +950,6 @@ export {
   extractKPIByFunnelStage,
   aggregateKPIStatsFromExtracted,
   cleanName,
-  cleanNames
+  cleanNames,
+  formatKPIValue
 };

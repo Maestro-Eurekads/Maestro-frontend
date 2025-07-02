@@ -22,6 +22,7 @@ import { KpiProvider } from "./utils/KpiProvider";
 import { DashboardDateRangeProvider } from "src/date-context";
 import { VersionApprovalProvider } from "./utils/VersionApprovalContext";
 import { Toaster } from "sonner";
+import UnauthorizedModal from "components/UnauthorizedModal";
 
 // Load fonts
 const roboto = Roboto({
@@ -91,6 +92,7 @@ export default async function RootLayout({
                                       <FunnelProvider>
                                         <ToastContainer />
                                         {children}
+                                        <UnauthorizedModal />
                                       </FunnelProvider>
                                     </ObjectivesProvider>
                                   </EditingProvider>

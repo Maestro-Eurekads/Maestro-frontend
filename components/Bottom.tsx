@@ -262,7 +262,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     );
   };
 
-  console.log('campaignFormData-campaignFormData', campaignFormData)
+
 
   // --- Custom back handler for active === 5 to persist step 4 if user had format selected and continued ---
   const handleBack = () => {
@@ -545,9 +545,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         await getActiveCampaign(data);
       } catch (error) {
         if (error?.response?.status === 401) {
-          // Logout the user if credentials are invalid 
-          signOut({ callbackUrl: "/" });
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
         }
+
         setAlert({
           variant: "error",
           message: "Failed to update campaign data",
@@ -678,9 +679,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           position: "bottom-right",
         });
         if (error?.response?.status === 401) {
-          // Logout the user if credentials are invalid 
-          signOut({ callbackUrl: "/" });
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
         }
+
       } finally {
         setLoading(false);
       }
@@ -851,10 +853,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     } catch (error) {
       if (error?.response?.status === 401) {
-        // Logout the user if credentials are invalid 
-        signOut({ callbackUrl: "/" });
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
       }
-      console.error("Error in handleContinue:", error);
+
     } finally {
       setLoading(false);
     }
