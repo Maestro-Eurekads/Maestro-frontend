@@ -758,30 +758,28 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
       newPercentage = stageBudget ? (newBudget / stageBudget) * 100 : 0
     }
 
-    // Validate against total platform budgets (only block if sum exceeds stage budget)
-    if (campaignFormData?.campaign_budget?.budget_type !== "bottom_up") {
-      const channelTypes = mediaTypes
-      let totalPlatformBudget = 0
+    // --- PATCH: Fix for bottom-up: always enforce sum of platform budgets <= stage budget and % <= 100 ---
+    const channelTypes = mediaTypes
+    let totalPlatformBudget = 0
 
-      for (const channelType of channelTypes) {
-        if (stageData[channelType]) {
-          totalPlatformBudget += stageData[channelType].reduce((acc, p) => {
-            if (p.platform_name === platformOutlet) {
-              return acc + newBudget
-            }
-            return acc + (Number(p?.budget?.fixed_value) || 0)
-          }, 0)
-        }
+    for (const channelType of channelTypes) {
+      if (stageData[channelType]) {
+        totalPlatformBudget += stageData[channelType].reduce((acc, p) => {
+          if (p.platform_name === platformOutlet) {
+            return acc + newBudget
+          }
+          return acc + (Number(p?.budget?.fixed_value) || 0)
+        }, 0)
       }
+    }
 
-      if (totalPlatformBudget > stageBudget) {
-        toast("The sum of all channels budgets cannot exceed the stage budget.", {
-          position: "bottom-right",
-          type: "error",
-          theme: "colored",
-        })
-        return
-      }
+    if (totalPlatformBudget > stageBudget) {
+      toast("The sum of all channels budgets cannot exceed the stage budget.", {
+        position: "bottom-right",
+        type: "error",
+        theme: "colored",
+      })
+      return
     }
 
     // If the new platform budget is greater than the stage budget, clear the platform budget
@@ -790,12 +788,21 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
       newPercentage = 0
     }
 
+    // Always cap percentage at 100 for both bottom-up and top-down
+    if (newPercentage > 100) {
+      newPercentage = 100
+      newBudget = stageBudget
+      toast("Percentage cannot exceed 100%", {
+        position: "bottom-right",
+        type: "error",
+        theme: "colored",
+      })
+    }
+
     // Update the campaign data
     setCampaignFormData((prevData) => {
       const updatedChannelMix = prevData.channel_mix.map((ch) => {
         if (ch.funnel_stage === stageName) {
-          const channelTypes = mediaTypes
-
           const updatedChannelType = channelTypes.find((type) =>
             ch[type]?.some((p) => p.platform_name === platformOutlet),
           )
@@ -810,29 +817,11 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                       budget: {
                         ...p.budget,
                         fixed_value: newBudget ? newBudget.toString() : "",
-                        // PATCH: recalculate channel percentage as a percentage of the *total campaign budget* (gross or net)
+                        // PATCH: recalculate channel percentage as a percentage of the *stage budget* (not total campaign budget)
                         percentage_value:
                           newBudget === 0
                             ? ""
-                            : campaignFormData?.campaign_budget?.budget_type === "bottom_up"
-                            ? (
-                                (newBudget /
-                                  (Number(
-                                    campaignFormData?.campaign_budget?.amount ||
-                                      campaignFormData?.channel_mix?.reduce(
-                                        (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
-                                        0,
-                                      ) ||
-                                      0,
-                                  ) || 1)) * 100
-                              ).toFixed(1)
-                            : (
-                                (newBudget /
-                                  (campaignBudgetType === "gross"
-                                    ? calculateNetFromGross(netAmount, fees)
-                                    : netAmount || 1)) *
-                                100
-                              ).toFixed(1),
+                            : ((newBudget / (stageBudget || 1)) * 100).toFixed(1),
                       },
                       // If the platform budget is cleared, also clear ad_sets budgets
                       ad_sets:
@@ -1248,18 +1237,12 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
 
                           if (foundPlatform) {
                             platformBudget = foundPlatform?.budget?.fixed_value || ""
-                            // PATCH: recalculate channel percentage as a percentage of the *total campaign budget* (gross or net)
+                            // PATCH: recalculate channel percentage as a percentage of the *stage budget* (not total campaign budget) for bottom-up
                             if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
-                              const totalBudget =
-                                Number(campaignFormData?.campaign_budget?.amount) ||
-                                campaignFormData?.channel_mix?.reduce(
-                                  (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
-                                  0,
-                                ) ||
-                                0
+                              const stageBudgetVal = Number(stageObj?.stage_budget?.fixed_value) || 0
                               platformPercentage =
-                                totalBudget > 0
-                                  ? ((Number(platformBudget) || 0) / totalBudget) * 100
+                                stageBudgetVal > 0
+                                  ? ((Number(platformBudget) || 0) / stageBudgetVal) * 100
                                   : 0
                             } else {
                               const totalBudget =
@@ -1393,7 +1376,11 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                     </div>
                                   </div>
 
-                                  <p className="whitespace-nowrap tracking-tight text-xs">of total budget</p>
+                                  <p className="whitespace-nowrap tracking-tight text-xs">
+                                    of {campaignFormData?.campaign_budget?.budget_type === "bottom_up"
+                                      ? "phase"
+                                      : "total"} budget
+                                  </p>
 
                                   {platform?.ad_sets?.length > 1 &&
                                     campaignFormData?.campaign_budget?.level === "Adset level" && (
@@ -1565,60 +1552,48 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                               const updatedAdSets = p.ad_sets?.map(
                                                                 (adSet, adSetIdx2) => {
                                                                   if (adSetIdx2 === adSetIdx) {
-                                                                    return {
-                                                                      ...adSet,
-                                                                      budget: {
-                                                                        fixed_value: newBudget,
-                                                                        percentage_value: p.budget?.fixed_value
-                                                                          ? (
-                                                                              (Number(newBudget) /
-                                                                                Number(p.budget.fixed_value)) *
-                                                                              100
-                                                                            ).toFixed(2)
-                                                                          : "0",
-                                                                      },
+                                                                    // PATCH: Enforce sum of ad set budgets <= platform budget for both bottom-up and top-down
+                                                                    let totalAdSetBudget = 0
+                                                                    const tempAdSets = p.ad_sets?.map((a, idx) => {
+                                                                      if (idx === adSetIdx2) {
+                                                                        totalAdSetBudget += Number(newBudget) || 0
+                                                                        return {
+                                                                          ...a,
+                                                                          budget: {
+                                                                            fixed_value: newBudget,
+                                                                            percentage_value: p.budget?.fixed_value
+                                                                              ? (
+                                                                                  (Number(newBudget) /
+                                                                                    Number(p.budget.fixed_value)) *
+                                                                                  100
+                                                                                ).toFixed(2)
+                                                                              : "0",
+                                                                          },
+                                                                        }
+                                                                      } else {
+                                                                        totalAdSetBudget += Number(a.budget?.fixed_value) || 0
+                                                                        return a
+                                                                      }
+                                                                    })
+
+                                                                    if (totalAdSetBudget > Number(p.budget?.fixed_value)) {
+                                                                      toast(
+                                                                        "The sum of all ad set budgets cannot exceed the platform budget.",
+                                                                        {
+                                                                          position: "bottom-right",
+                                                                          type: "error",
+                                                                          theme: "colored",
+                                                                          toastId: "sum",
+                                                                        },
+                                                                      )
+                                                                      return adSet
                                                                     }
+
+                                                                    return tempAdSets[adSetIdx2]
                                                                   }
                                                                   return adSet
                                                                 },
                                                               )
-
-                                                              if (
-                                                                campaignFormData?.campaign_budget?.budget_type !==
-                                                                "bottom_up"
-                                                              ) {
-                                                                const totalAdSetBudget =
-                                                                  updatedAdSets?.reduce((sum, adSet) => {
-                                                                    const extraAudiencesTotal =
-                                                                      adSet.extra_audiences?.reduce(
-                                                                        (extraSum, extraAudience) =>
-                                                                          extraSum +
-                                                                          Number(
-                                                                            extraAudience.budget?.fixed_value || 0,
-                                                                          ),
-                                                                        0,
-                                                                      ) || 0
-
-                                                                    return (
-                                                                      sum +
-                                                                      Number(adSet.budget?.fixed_value || 0) +
-                                                                      extraAudiencesTotal
-                                                                    )
-                                                                  }, 0) || 0
-
-                                                                if (totalAdSetBudget > Number(p.budget?.fixed_value)) {
-                                                                  toast(
-                                                                    "The sum of all ad set budgets cannot exceed the platform budget.",
-                                                                    {
-                                                                      position: "bottom-right",
-                                                                      type: "error",
-                                                                      theme: "colored",
-                                                                      toastId: "sum",
-                                                                    },
-                                                                  )
-                                                                  return p
-                                                                }
-                                                              }
 
                                                               return {
                                                                 ...p,
@@ -1731,84 +1706,53 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                                         const updatedExtraAudiences =
                                                                           adSet.extra_audiences?.map((extra, exIdx) => {
                                                                             if (exIdx === extraIdx) {
-                                                                              return {
-                                                                                ...extra,
-                                                                                budget: {
-                                                                                  fixed_value: newBudget,
-                                                                                  percentage_value: p.budget
-                                                                                    ?.fixed_value
-                                                                                    ? (
-                                                                                        (Number(newBudget) /
-                                                                                          Number(
-                                                                                            p.budget.fixed_value,
-                                                                                          )) *
-                                                                                        100
-                                                                                      ).toFixed(2)
-                                                                                    : "0",
-                                                                                },
+                                                                              // PATCH: Enforce sum of ad set + extra budgets <= platform budget for both bottom-up and top-down
+                                                                              let totalAdSetBudget = 0
+                                                                              const tempExtraAudiences = adSet.extra_audiences?.map((ea, idx) => {
+                                                                                if (idx === exIdx) {
+                                                                                  totalAdSetBudget += Number(newBudget) || 0
+                                                                                  return {
+                                                                                    ...ea,
+                                                                                    budget: {
+                                                                                      fixed_value: newBudget,
+                                                                                      percentage_value: p.budget
+                                                                                        ?.fixed_value
+                                                                                        ? (
+                                                                                            (Number(newBudget) /
+                                                                                              Number(
+                                                                                                p.budget.fixed_value,
+                                                                                              )) *
+                                                                                            100
+                                                                                          ).toFixed(2)
+                                                                                        : "0",
+                                                                                    },
+                                                                                  }
+                                                                                } else {
+                                                                                  totalAdSetBudget += Number(ea.budget?.fixed_value) || 0
+                                                                                  return ea
+                                                                                }
+                                                                              }) || []
+
+                                                                              // Add ad set's own budget
+                                                                              totalAdSetBudget += Number(adSet.budget?.fixed_value) || 0
+
+                                                                              if (totalAdSetBudget > Number(p.budget?.fixed_value)) {
+                                                                                toast(
+                                                                                  "Total budget (ad sets + extras) cannot exceed platform budget",
+                                                                                  {
+                                                                                    toastId: "extraToast",
+                                                                                    position: "bottom-right",
+                                                                                    type: "error",
+                                                                                    theme: "colored",
+                                                                                  },
+                                                                                )
+                                                                                return extra
                                                                               }
+
+                                                                              return tempExtraAudiences[exIdx]
                                                                             }
                                                                             return extra
                                                                           }) || []
-
-                                                                        if (
-                                                                          campaignFormData?.campaign_budget
-                                                                            ?.budget_type !== "bottom_up"
-                                                                        ) {
-                                                                          const totalAdSetBudget =
-                                                                            p.ad_sets.reduce(
-                                                                              (sum, a, currentAdSetIdx) => {
-                                                                                const extraAudiencesTotal =
-                                                                                  a.extra_audiences?.reduce(
-                                                                                    (
-                                                                                      extraSum,
-                                                                                      ea,
-                                                                                      currentExtraAudienceIdx,
-                                                                                    ) => {
-                                                                                      if (
-                                                                                        currentAdSetIdx === adSetIdx &&
-                                                                                        currentExtraAudienceIdx ===
-                                                                                          extraIdx
-                                                                                      ) {
-                                                                                        return (
-                                                                                          extraSum + Number(newBudget)
-                                                                                        )
-                                                                                      }
-                                                                                      return (
-                                                                                        extraSum +
-                                                                                        Number(
-                                                                                          ea.budget?.fixed_value || 0,
-                                                                                        )
-                                                                                      )
-                                                                                    },
-                                                                                    0,
-                                                                                  ) || 0
-
-                                                                                return (
-                                                                                  sum +
-                                                                                  Number(a.budget?.fixed_value || 0) +
-                                                                                  extraAudiencesTotal
-                                                                                )
-                                                                              },
-                                                                              0,
-                                                                            ) || 0
-
-                                                                          if (
-                                                                            totalAdSetBudget >
-                                                                            Number(p.budget?.fixed_value)
-                                                                          ) {
-                                                                            toast(
-                                                                              "Total budget (ad sets + extras) cannot exceed platform budget",
-                                                                              {
-                                                                                toastId: "extraToast",
-                                                                                position: "bottom-right",
-                                                                                type: "error",
-                                                                                theme: "colored",
-                                                                              },
-                                                                            )
-                                                                            return adSet
-                                                                          }
-                                                                        }
 
                                                                         return {
                                                                           ...adSet,
