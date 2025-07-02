@@ -747,7 +747,7 @@ const MapFunnelStages = () => {
     newColor: string
   ) => {
     const error = validateFunnelName(newName, true, oldId);
-
+console.log({oldId, newName, newColor})
     if (error) {
       toast.error(error, {
         style: { background: "red", color: "white", textAlign: "center" },
@@ -773,11 +773,11 @@ const MapFunnelStages = () => {
       custom_funnels: updatedFunnels,
 
       funnel_stages: (prev.funnel_stages || []).map((stage: string) =>
-        stage === oldId ? newName : stage
+        (stage === oldId && oldId !== newName) ? newName : stage
       ),
 
       channel_mix: (prev.channel_mix || []).map((ch: any) =>
-        ch.funnel_stage === oldId ? { funnel_stage: newName } : ch
+        (ch.funnel_stage === oldId  && oldId !== newName )? { funnel_stage: newName } : ch
       ),
 
       selected_config_idx: null,
