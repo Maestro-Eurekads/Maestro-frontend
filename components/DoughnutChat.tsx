@@ -1,4 +1,5 @@
 "use client"
+
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from "chart.js"
 import { Doughnut } from "react-chartjs-2"
 import { useRef } from "react"
@@ -161,12 +162,71 @@ const DoughnutChart = ({
       assignedColors.push(color)
       usedColors.add(color)
     }
+
     return assignedColors
   }
 
   const colors = getUniqueColors(selectedFunnels)
 
-  console.log("insideText-insideText", insideText)
+  // FIXED: Calculate total spending including budget + fees properly
+  const calculateTotalSpending = () => {
+    if (!campaignFormData?.campaign_budget) return 0
+
+    // Calculate total fees first
+    const totalFees =
+      campaignFormData?.campaign_budget?.budget_fees?.reduce((total, fee) => total + Number(fee.value || 0), 0) || 0
+
+    const budgetType = campaignFormData?.campaign_budget?.budget_type // "top_down" or "bottom_up"
+
+    if (budgetType === "bottom_up") {
+      // For bottom-up: Total spending = sum of all stage budgets + fees
+      const stageBudgetsSum =
+        campaignFormData?.channel_mix?.reduce(
+          (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
+          0,
+        ) || 0
+
+      console.log("Bottom-up calculation:", {
+        stageBudgetsSum,
+        totalFees,
+        total: stageBudgetsSum + totalFees,
+      })
+
+      return stageBudgetsSum + totalFees
+    } else {
+      // For top-down: depends on gross vs net
+      const budgetAmount = Number(campaignFormData?.campaign_budget?.amount) || 0
+      const subBudgetType = campaignFormData?.campaign_budget?.sub_budget_type
+
+      if (subBudgetType === "gross") {
+        // For gross budget, the entered amount is the total (already includes fees conceptually)
+        // But we should still add actual fees to show real total spending
+        console.log("Top-down gross calculation:", {
+          budgetAmount,
+          totalFees,
+          total: budgetAmount + totalFees,
+        })
+        return budgetAmount + totalFees
+      } else {
+        // For net budget, add fees to get total spending
+        console.log("Top-down net calculation:", {
+          budgetAmount,
+          totalFees,
+          total: budgetAmount + totalFees,
+        })
+        return budgetAmount + totalFees
+      }
+    }
+  }
+
+  // Calculate the display text for total spending
+  const totalSpending = calculateTotalSpending()
+  const currency = campaignFormData?.campaign_budget?.currency || "EUR"
+  const totalSpendingText = `${getCurrencySymbol(currency)}${totalSpending.toLocaleString()}`
+
+  console.log("Final total spending:", totalSpendingText)
+  console.log("Campaign budget data:", campaignFormData?.campaign_budget)
+  console.log("Budget fees:", campaignFormData?.campaign_budget?.budget_fees)
 
   // Generate data values for the chart with proper percentage calculations
   const dataValues = (() => {
@@ -181,14 +241,13 @@ const DoughnutChart = ({
       }
     })
 
-    // Calculate total budget for percentage calculation
+    // Calculate total budget for percentage calculation (media budget only, not including fees)
     let totalBudget = 0
-
     if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
       // In bottom-up mode, use the sum of all stage budgets as the total
       totalBudget = stageBudgets.reduce((sum, stage) => sum + stage.amount, 0)
     } else {
-      // In top-down mode, use the net available budget
+      // In top-down mode, use the net available budget for media spend
       const budgetAmount = Number(campaignFormData?.campaign_budget?.amount) || 0
       const totalFees =
         campaignFormData?.campaign_budget?.budget_fees?.reduce((total, fee) => total + Number(fee.value || 0), 0) || 0
@@ -220,7 +279,7 @@ const DoughnutChart = ({
       ctx.restore()
 
       const textTop = "Total spending"
-      const textBottom = insideText
+      const textBottom = totalSpendingText // Use calculated total spending including fees
 
       const centerX = width / 2
       const centerY = height / 2
@@ -234,7 +293,6 @@ const DoughnutChart = ({
       ctx.fillStyle = "#061237"
       ctx.font = `bold ${height / 20}px Arial`
       ctx.fillText(textBottom, centerX, centerY + 15)
-
       ctx.save()
     },
   }
@@ -277,9 +335,6 @@ const DoughnutChart = ({
             const stageData = campaignFormData?.channel_mix?.find((st: any) => st?.funnel_stage === label)
             const amount = Number(stageData?.stage_budget?.fixed_value) || 0
             const currency = campaignFormData?.campaign_budget?.currency || "EUR"
-
-
-
 
             return `${label}: ${percentage.toFixed(1)}% (${getCurrencySymbol(currency)}${amount.toLocaleString()})`
           },
