@@ -245,8 +245,6 @@ export const BudgetOverviewSection = () => {
   const [channelData, setChannelData] = useState(null)
   const { campaignFormData } = useCampaigns()
 
-
-
   // Map Tailwind bg- classes to hex colors for charts
   const tailwindToHex = (tailwindClass: string): string => {
     const colorMap = {
@@ -306,7 +304,7 @@ export const BudgetOverviewSection = () => {
   useEffect(() => {
     if (campaignFormData) {
       extractPlatforms(campaignFormData)
-      console.log("Channel data updated:", channelData)
+      // console.log("Channel data updated:", channelData)
     }
   }, [campaignFormData])
 
@@ -328,7 +326,7 @@ export const BudgetOverviewSection = () => {
     )
   }, [campaignFormData?.channel_mix])
 
-  // --- FIXED: Calculate total budget correctly ---
+  // --- FIXED: Calculate total budget correctly for top-down selection ---
   const calculateTotalBudget = () => {
     if (!campaignFormData?.campaign_budget) return 0
 
@@ -350,8 +348,14 @@ export const BudgetOverviewSection = () => {
         return stageBudgetsSum
       }
     } else {
-      // top_down: entered amount is the total campaign budget (gross or net)
-      return budgetAmount
+      // top_down: entered amount is the net or gross campaign budget
+      // If gross, total campaign budget is amount + total fees
+      // If net, total campaign budget is just the entered amount
+      if (subBudgetType === "gross") {
+        return budgetAmount + totalFees
+      } else {
+        return budgetAmount
+      }
     }
   }
 
@@ -373,8 +377,9 @@ export const BudgetOverviewSection = () => {
       )
     } else {
       // top_down
-      // If gross, net available is entered amount minus fees; if net, it's just the entered amount
-      return subBudgetType === "gross" ? Math.max(0, budgetAmount - totalFeesAmount) : budgetAmount
+      // If gross, net available is entered amount; if net, it's just the entered amount
+      // (Assume entered amount is always the net available for allocation)
+      return budgetAmount
     }
   }
 
