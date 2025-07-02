@@ -286,7 +286,11 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
 
   const handleAutoSplitBudget = (stage, channel, platform) => {
     const stageData = campaignFormData.channel_mix.find((ch) => ch.funnel_stage === stage.funnel_stage)
-    const findPlatform = stageData[channel]?.find((ch) => ch?.platform_name === platform)
+    const findPlatform = Array.isArray(stageData?.[channel])
+      ? stageData[channel].find((ch) => ch?.platform_name === platform)
+      : undefined
+
+    
 
     if (stageData && findPlatform) {
       const totalPlatformBudget = Number(findPlatform?.budget?.fixed_value)
