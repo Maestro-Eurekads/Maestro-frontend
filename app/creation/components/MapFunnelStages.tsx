@@ -685,7 +685,7 @@ const MapFunnelStages = () => {
       funnel_stages: (prev.funnel_stages || []).map((stage: string) => (stage === oldId ? newName : stage)),
 
       channel_mix: (prev.channel_mix || []).map((ch: any) =>
-        ch.funnel_stage === oldId ? { ...ch, funnel_stage: newName } : ch,
+        ch.funnel_stage === oldId ? {  funnel_stage: newName } : ch,
       ),
 
       selected_config_idx: null,
@@ -922,6 +922,7 @@ const MapFunnelStages = () => {
   // Handle saved config selection
 
   const handleConfigSelect = (configIdx: number) => {
+    console.log("here")
     setSelectedConfigIdx(configIdx)
 
     setSelectedPreset(null)
