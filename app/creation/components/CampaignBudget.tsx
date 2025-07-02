@@ -44,6 +44,7 @@ const CampaignBudget = () => {
 
   const [feeType, setFeeType] = useState(null)
   const [feeAmount, setFeeAmount] = useState("")
+
   const { campaignFormData, setCampaignFormData, campaignData, getActiveCampaign } = useCampaigns()
 
   useEffect(() => {
@@ -66,43 +67,24 @@ const CampaignBudget = () => {
     { value: "CAD", label: "CAD" },
   ]
 
-  // FIXED: Calculate total budget correctly for both gross and net media budget
+  // FIXED: Calculate total campaign budget - this should be the gross media budget amount only (NO FEES)
   const calculateTotalBudget = () => {
     if (!campaignFormData?.campaign_budget) return 0
 
     const budgetAmount = Number(campaignFormData?.campaign_budget?.amount) || 0
     const budgetType = campaignFormData?.campaign_budget?.budget_type // "top_down" or "bottom_up"
-    const subBudgetType = campaignFormData?.campaign_budget?.sub_budget_type // "gross" or "net"
-
-    // Calculate total fees
-    const totalFeesAmount =
-      campaignFormData?.campaign_budget?.budget_fees?.reduce((total, fee) => total + Number(fee.value || 0), 0) || 0
 
     if (budgetType === "bottom_up") {
-      // For bottom-up: sum all stage budgets first
+      // For bottom-up: Total campaign budget is the sum of all stage budgets (media spend only)
       const stageBudgetsSum =
         campaignFormData?.channel_mix?.reduce(
           (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
           0,
         ) || 0
-
-      // For gross: add fees to stage budgets sum
-      // For net: stage budgets sum is the total (fees are additional)
-      if (subBudgetType === "gross") {
-        return stageBudgetsSum + totalFeesAmount
-      } else {
-        // For net budget type, the total campaign budget includes fees on top of the net media spend
-        return stageBudgetsSum + totalFeesAmount
-      }
+      return stageBudgetsSum
     } else {
-      // For top-down: the logic depends on whether the entered amount is gross or net
-      if (subBudgetType === "gross") {
-        // If gross is selected, the entered amount already includes fees
-        return budgetAmount
-      } else {
-        // If net is selected, the entered amount is net media spend, so add fees for total campaign budget
-        return budgetAmount + totalFeesAmount
-      }
+      // For top-down: Total campaign budget is the entered amount (gross media budget)
+      return budgetAmount
     }
   }
 
@@ -302,6 +284,7 @@ const CampaignBudget = () => {
               </p>
             </div>
           </div>
+
           {budgetStyle === "top_down" && (
             <div className="absolute right-2 top-2">
               <Image src={Selectstatus || "/placeholder.svg"} alt="Selectstatus" />
@@ -340,6 +323,7 @@ const CampaignBudget = () => {
               </p>
             </div>
           </div>
+
           {budgetStyle === "bottom_up" && (
             <div className="absolute right-2 top-2">
               <Image src={Selectstatus || "/placeholder.svg"} alt="Selectstatus" />
@@ -395,6 +379,7 @@ const CampaignBudget = () => {
       {budgetStyle !== "" && budgetStyle === "top_down" && step > 1 && (
         <>
           <PageHeaderWrapper t4="Choose granularity level" span={feeStepValidated ? 3 : 4} />
+
           {showLevelCards ? (
             <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
               <form method="dialog" className="flex justify-center p-2 !pb-0">
@@ -540,6 +525,7 @@ const CampaignBudget = () => {
         <>
           {/* Step 1: Choose granularity level first */}
           <PageHeaderWrapper t4="Choose granularity level" span={1} />
+
           {showLevelCards ? (
             <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
               <form method="dialog" className="flex justify-center p-2 !pb-0">
@@ -722,6 +708,7 @@ const CampaignBudget = () => {
             <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
               <h2 className="text-[18px] font-semibold mb-2">Overall Campaign Budget</h2>
               <p className="text-[15px] mb-4">The total campaign budget is calculated from your sub-budgets.</p>
+
               <div className="flex items-center gap-2">
                 <span className="font-bold text-[20px] text-[#3175FF]">
                   {getCurrencySymbol(campaignFormData?.campaign_budget?.currency || "EUR")}

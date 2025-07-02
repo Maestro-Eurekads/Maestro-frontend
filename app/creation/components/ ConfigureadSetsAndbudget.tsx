@@ -125,31 +125,19 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
     )
   }, [campaignFormData?.channel_mix])
 
-  // FIXED: Calculate total budget correctly for both gross and net media budget
-  // For top-down + gross, use the same logic as bottom-up: sum all stage budgets and add fees
-  const calculateTotalBudget = () => {
+  // FIXED: Calculate total campaign budget correctly - this should be the media budget amount only
+  const calculateTotalCampaignBudget = () => {
     if (!campaignFormData?.campaign_budget) return 0
 
     const budgetAmount = Number(campaignFormData?.campaign_budget?.amount) || 0
-    const totalFees = totalFeesAmount
     const budgetType = campaignFormData?.campaign_budget?.budget_type // "top_down" or "bottom_up"
-    const subBudgetType = campaignFormData?.campaign_budget?.sub_budget_type // "gross" or "net"
 
-    // Always sum stage budgets and add fees for both bottom-up and top-down+gross
-    if (
-      budgetType === "bottom_up" ||
-      (budgetType === "top_down" && subBudgetType === "gross")
-    ) {
-      const stageBudgetsSum =
-        campaignFormData?.channel_mix?.reduce(
-          (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
-          0,
-        ) || 0
-
-      return stageBudgetsSum + totalFees
+    if (budgetType === "bottom_up") {
+      // For bottom-up: Total campaign budget is the sum of all stage budgets (allocated media spend)
+      return allocatedBudget
     } else {
-      // For top-down + net, the entered amount is net media spend, so add fees for total campaign budget
-      return budgetAmount + totalFees
+      // For top-down: Total campaign budget is the entered amount (media budget)
+      return budgetAmount
     }
   }
 
@@ -162,23 +150,13 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
 
     if (budgetType === "bottom_up") {
       // Net available is just the sum of stage budgets (the media spend)
-      return (
-        campaignFormData?.channel_mix?.reduce(
-          (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
-          0,
-        ) || 0
-      )
+      return allocatedBudget
     } else {
       // For top-down:
-      // If gross, net available is sum of stage budgets (media spend)
+      // If gross, net available is gross amount minus fees
       // If net, net available is the entered amount (it's already net)
       if (subBudgetType === "gross") {
-        return (
-          campaignFormData?.channel_mix?.reduce(
-            (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
-            0,
-          ) || 0
-        )
+        return budgetAmount - totalFeesAmount
       } else {
         return budgetAmount
       }
@@ -199,12 +177,12 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
     campaignFormData?.campaign_budget,
   ])
 
-  const totalBudget = calculateTotalBudget()
+  const totalCampaignBudget = calculateTotalCampaignBudget()
 
   const insideText = useMemo(() => {
     const currency = getCurrencySymbol(campaignFormData?.campaign_budget?.currency)
-    return `${totalBudget.toLocaleString()} ${currency}`
-  }, [totalBudget, campaignFormData?.campaign_budget?.currency])
+    return `${totalCampaignBudget.toLocaleString()} ${currency}`
+  }, [totalCampaignBudget, campaignFormData?.campaign_budget?.currency])
 
   const campaignPhases = useMemo(() => {
     if (!campaignFormData?.channel_mix) return []
@@ -242,7 +220,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
   )
 }
 
-// FIXED: Budget overview section with correct total budget calculation
+// FIXED: Budget overview section with correct total campaign budget calculation
 export const BudgetOverviewSection = () => {
   const [showBudgetOverview, setShowBudgetOverview] = useState(false)
   const [channelData, setChannelData] = useState(null)
@@ -327,31 +305,19 @@ export const BudgetOverviewSection = () => {
     )
   }, [campaignFormData?.channel_mix])
 
-  // FIXED: Calculate total budget correctly for both gross and net media budget
-  // For top-down + gross, use the same logic as bottom-up: sum all stage budgets and add fees
-  const calculateTotalBudget = () => {
+  // FIXED: Calculate total campaign budget correctly - this should be the media budget amount only
+  const calculateTotalCampaignBudget = () => {
     if (!campaignFormData?.campaign_budget) return 0
 
     const budgetAmount = Number(campaignFormData?.campaign_budget?.amount) || 0
-    const totalFees = totalFeesAmount
     const budgetType = campaignFormData?.campaign_budget?.budget_type // "top_down" or "bottom_up"
-    const subBudgetType = campaignFormData?.campaign_budget?.sub_budget_type // "gross" or "net"
 
-    // Always sum stage budgets and add fees for both bottom-up and top-down+gross
-    if (
-      budgetType === "bottom_up" ||
-      (budgetType === "top_down" && subBudgetType === "gross")
-    ) {
-      const stageBudgetsSum =
-        campaignFormData?.channel_mix?.reduce(
-          (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
-          0,
-        ) || 0
-
-      return stageBudgetsSum + totalFees
+    if (budgetType === "bottom_up") {
+      // For bottom-up: Total campaign budget is the sum of all stage budgets (allocated media spend)
+      return allocatedBudget
     } else {
-      // For top-down + net, the entered amount is net media spend, so add fees for total campaign budget
-      return budgetAmount + totalFees
+      // For top-down: Total campaign budget is the entered amount (media budget)
+      return budgetAmount
     }
   }
 
@@ -364,23 +330,13 @@ export const BudgetOverviewSection = () => {
 
     if (budgetType === "bottom_up") {
       // Net available is just the sum of stage budgets (the media spend)
-      return (
-        campaignFormData?.channel_mix?.reduce(
-          (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
-          0,
-        ) || 0
-      )
+      return allocatedBudget
     } else {
       // For top-down:
-      // If gross, net available is sum of stage budgets (media spend)
+      // If gross, net available is gross amount minus fees
       // If net, net available is the entered amount (it's already net)
       if (subBudgetType === "gross") {
-        return (
-          campaignFormData?.channel_mix?.reduce(
-            (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
-            0,
-          ) || 0
-        )
+        return budgetAmount - totalFeesAmount
       } else {
         return budgetAmount
       }
@@ -401,12 +357,12 @@ export const BudgetOverviewSection = () => {
     campaignFormData?.campaign_budget,
   ])
 
-  const totalBudget = calculateTotalBudget()
+  const totalCampaignBudget = calculateTotalCampaignBudget()
 
   const insideText = useMemo(() => {
     const currency = getCurrencySymbol(campaignFormData?.campaign_budget?.currency)
-    return `${totalBudget.toLocaleString()} ${currency}`
-  }, [totalBudget, campaignFormData?.campaign_budget?.currency])
+    return `${totalCampaignBudget.toLocaleString()} ${currency}`
+  }, [totalCampaignBudget, campaignFormData?.campaign_budget?.currency])
 
   const campaignPhases = useMemo(() => {
     if (!campaignFormData?.channel_mix) return []
@@ -444,10 +400,16 @@ export const BudgetOverviewSection = () => {
         <div className="w-[100%] items-start p-[24px] gap-[10px] bg-white border border-[rgba(6,18,55,0.1)] rounded-[8px] box-border mt-[20px]">
           <div className="flex items-center gap-[30px] mb-4">
             <p>
-              Total Campaign Budget ({campaignFormData?.campaign_budget?.sub_budget_type === "gross" ? "Gross" : "Net"}
-              ): {totalBudget.toLocaleString()}
+              Total Campaign Budget: {totalCampaignBudget.toLocaleString()}
               {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
             </p>
+
+            {totalFeesAmount > 0 && (
+              <p className="text-red-600">
+                Total Fees: {totalFeesAmount.toLocaleString()}
+                {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
+              </p>
+            )}
 
             {totalFeesAmount > 0 && campaignFormData?.campaign_budget?.sub_budget_type === "gross" && (
               <p>
@@ -464,13 +426,6 @@ export const BudgetOverviewSection = () => {
             {campaignFormData?.campaign_budget?.budget_type !== "bottom_up" && (
               <p className={`${remainingBudget > 0 ? "text-orange-600" : "text-green-600"}`}>
                 Remaining Budget: {remainingBudget.toLocaleString()}
-                {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
-              </p>
-            )}
-
-            {totalFeesAmount > 0 && (
-              <p className="text-red-600">
-                Total Fees: {totalFeesAmount.toLocaleString()}
                 {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
               </p>
             )}
@@ -526,6 +481,7 @@ export const BudgetOverviewSection = () => {
                   </div>
                   <CampaignPhases campaignPhases={campaignPhases} />
                 </div>
+
                 <PhasedistributionProgress insideText={insideText} />
               </>
             </div>
