@@ -92,7 +92,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     let hasValidFormat = false;
 
     for (const stage of selectedStages) {
-      const stageData = campaignFormData?.channel_mix?.find(
+      const stageData = campaignFormData?.channel_mix && campaignFormData?.channel_mix?.lenght > 0 &&campaignFormData?.channel_mix?.find(
         (mix) => mix.funnel_stage === stage
       );
 
@@ -613,7 +613,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         };
 
         setCampaignFormData(cleanedFormData);
-        localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData));
+        // localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData));
 
         const payload = {
           data: {

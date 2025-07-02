@@ -188,7 +188,7 @@ const SelectChannelMix = ({ selectedStage }: { selectedStage?: string }) => {
   useEffect(() => {
     if (isMounted && campaignFormData?.channel_mix?.length > 0) {
       const initialSelected = {};
-      campaignFormData.channel_mix.forEach((stage) => {
+      campaignFormData?.channel_mix && campaignFormData?.channel_mix?.lenght> 0 &&campaignFormData.channel_mix.forEach((stage) => {
         const stageName = stage.funnel_stage;
         if (!initialSelected[stageName]) {
           initialSelected[stageName] = {};

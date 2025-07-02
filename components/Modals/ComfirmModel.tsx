@@ -138,7 +138,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 			};
 
 			setCampaignFormData(updatedFormData);
-			localStorage.setItem("campaignFormData", JSON.stringify(updatedFormData));
+			// localStorage.setItem("campaignFormData", JSON.stringify(updatedFormData));
 
 			// PUT request to Strapi with only updated fields
 			if (cId) {

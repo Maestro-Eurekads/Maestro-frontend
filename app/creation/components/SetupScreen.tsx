@@ -257,7 +257,7 @@ export const SetupScreen = () => {
       };
 
       setCampaignFormData(initialFormData);
-      localStorage.setItem("campaignFormData", JSON.stringify(initialFormData));
+      // localStorage.setItem("campaignFormData", JSON.stringify(initialFormData));
       setIsInitialized(true);
     } else if (documentId === null && isInitialized) {
       // Only update client_selection if already initialized
@@ -269,7 +269,7 @@ export const SetupScreen = () => {
             value: FC?.client_name || '',
           },
         };
-        localStorage.setItem("campaignFormData", JSON.stringify(updated));
+        // localStorage.setItem("campaignFormData", JSON.stringify(updated));
         return updated;
       });
     }
