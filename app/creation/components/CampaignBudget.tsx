@@ -70,6 +70,7 @@ const CampaignBudget = () => {
  ]
 
  // --- FIXED: Calculate total budget correctly ---
+ // The Total Campaign Budget logic for Gross media should also be applied for Net media budget
  const calculateTotalBudget = () => {
   if (!campaignFormData?.campaign_budget) return 0
 
@@ -89,8 +90,8 @@ const CampaignBudget = () => {
      0,
     ) || 0
 
-   // If gross, add fees to the stage budgets sum; if net, just return stage budgets sum
-   return subBudgetType === "gross" ? stageBudgetsSum + totalFeesAmount : stageBudgetsSum
+   // For both gross and net, add fees to the stage budgets sum
+   return stageBudgetsSum + totalFeesAmount
   } else {
    // For top-down: the entered amount IS the total campaign budget
    return budgetAmount
