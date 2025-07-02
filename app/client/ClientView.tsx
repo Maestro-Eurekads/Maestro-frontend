@@ -175,7 +175,7 @@ const ClientView = () => {
 								isLoadingCampaign={isLoadingCampaign}
 							/>
 
-							<BrandAwareness statsData={statsData} aggregatedStats={aggregatedStats} loading={isLoadingKpis} isLoadingCampaign={isLoadingCampaign} />
+							<BrandAwareness statsData={statsData} aggregatedStats={aggregatedStats} loading={isLoadingKpis} isLoadingCampaign={isLoadingCampaign} campaign={campaignData} />
 							<ClientMessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} campaign={campaign} />
 							<div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
 								<div></div>
