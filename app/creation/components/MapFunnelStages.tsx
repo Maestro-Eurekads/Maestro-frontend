@@ -777,7 +777,7 @@ console.log({oldId, newName, newColor})
       ),
 
       channel_mix: (prev.channel_mix || []).map((ch: any) =>
-        (ch.funnel_stage === oldId  && oldId !== newName )? { funnel_stage: newName } : ch
+        (ch?.funnel_stage === oldId  && oldId !== newName )? { funnel_stage: newName } : ch
       ),
 
       selected_config_idx: null,
