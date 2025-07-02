@@ -207,6 +207,7 @@ const Header = ({ setIsOpen, setIsView }) => {
               placeholder="Search"
               onChange={(value) => {
                 if (value) {
+                  localStorage.removeItem("campaignFormData")
                   localStorage.setItem(userType, value?.value);
                   setSelected(value?.value);
                   setSelectedId(value?.value);

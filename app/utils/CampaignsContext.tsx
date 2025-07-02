@@ -117,17 +117,17 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   const loadingClients = reduxLoadingClients || hookLoadingClients || false;
 
   // Save form data to localStorage with debounce
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const timeout = setTimeout(() => {
-        localStorage.setItem(
-          "campaignFormData",
-          JSON.stringify(campaignFormData)
-        );
-      }, 300);
-      return () => clearTimeout(timeout);
-    }
-  }, [campaignFormData]);
+  // useEffect(() => {
+  //   if (typeof window !== "undefined") {
+  //     const timeout = setTimeout(() => {
+  //       localStorage.setItem(
+  //         "campaignFormData",
+  //         JSON.stringify(campaignFormData)
+  //       );
+  //     }, 300);
+  //     return () => clearTimeout(timeout);
+  //   }
+  // }, [campaignFormData]);
 
   const [businessLevelOptions, setBusinessLevelOptions] = useState({
     level1: [],
