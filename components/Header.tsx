@@ -207,6 +207,7 @@ const Header = ({ setIsOpen, setIsView }) => {
               placeholder="Search"
               onChange={(value) => {
                 if (value) {
+                  localStorage.removeItem("campaignFormData")
                   localStorage.setItem(userType, value?.value);
                   setSelected(value?.value);
                   setSelectedId(value?.value);
@@ -294,6 +295,7 @@ const Header = ({ setIsOpen, setIsView }) => {
 
               {getFirstLetters(session?.user?.name)}
             </p>
+
 
             {show && (
               <div className="absolute right-0 top-[60px] w-[200px] bg-white border border-gray-200   shadow-lg z-50 !rounded-[5px]">

@@ -93,7 +93,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     for (const stage of selectedStages) {
       const stageData = campaignFormData?.channel_mix?.find(
-        (mix) => mix.funnel_stage === stage
+        (mix) => mix?.funnel_stage === stage
       );
 
       if (stageData) {
@@ -262,7 +262,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     );
   };
 
-  console.log('campaignFormData-campaignFormData', campaignFormData)
+
 
   // --- Custom back handler for active === 5 to persist step 4 if user had format selected and continued ---
   const handleBack = () => {
@@ -545,9 +545,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         await getActiveCampaign(data);
       } catch (error) {
         if (error?.response?.status === 401) {
-          // Logout the user if credentials are invalid 
-          signOut({ callbackUrl: "/" });
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
         }
+
         setAlert({
           variant: "error",
           message: "Failed to update campaign data",
@@ -678,9 +679,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           position: "bottom-right",
         });
         if (error?.response?.status === 401) {
-          // Logout the user if credentials are invalid 
-          signOut({ callbackUrl: "/" });
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
         }
+
       } finally {
         setLoading(false);
       }
@@ -851,10 +853,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       }
     } catch (error) {
       if (error?.response?.status === 401) {
-        // Logout the user if credentials are invalid 
-        signOut({ callbackUrl: "/" });
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
       }
-      console.error("Error in handleContinue:", error);
+
     } finally {
       setLoading(false);
     }
@@ -951,19 +953,40 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         )}
 
         {active === 10 ? (
-          isFinancialApprover || isAgencyApprover || isAdmin ? (
-            <button
-              className="bottom_black_next_btn hover:bg-blue-500"
-              onClick={() =>
-                campaignFormData?.isApprove
-                  ? toast.error("This Plan has already been approved!")
-                  : setIsOpen(true)
+          (isFinancialApprover || isAgencyApprover || isAdmin) ? (
+            (() => {
+              const internalApproverEmails = campaignFormData?.internal_approver?.map(
+                (approver) => approver?.email
+              ) || [];
+
+              if (!isAdmin && !internalApproverEmails.includes(loggedInUser.email)) {
+                return (
+                  <button
+                    className="bottom_black_next_btn hover:bg-blue-500"
+                    onClick={() =>
+                      toast.error("Not authorized to approve this plan.")
+                    }
+                  >
+                    <p>Confirm</p>
+                    <Image src={Continue} alt="Continue" />
+                  </button>
+                );
               }
-            // onClick={() => setIsOpen(true)}
-            >
-              <p>Confirm</p>
-              <Image src={Continue} alt="Continue" />
-            </button>
+
+              return (
+                <button
+                  className="bottom_black_next_btn hover:bg-blue-500"
+                  onClick={() =>
+                    campaignFormData?.isApprove
+                      ? toast.error("This plan has already been approved!")
+                      : setIsOpen(true)
+                  }
+                >
+                  <p>Confirm</p>
+                  <Image src={Continue} alt="Continue" />
+                </button>
+              );
+            })()
           ) : (
             <button
               className="bottom_black_next_btn hover:bg-blue-500"
