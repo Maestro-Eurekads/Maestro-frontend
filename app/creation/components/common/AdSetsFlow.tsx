@@ -88,6 +88,7 @@ interface AdSetData {
   size?: string
   description?: string
   extra_audiences?: AudienceData[]
+  format?:any[]
 }
 
 interface Format {
@@ -158,7 +159,9 @@ const findPlatform = (
   const channelTypes = mediaTypes
   for (const channelType of channelTypes) {
     const platform = stage[channelType].find((p) => p.platform_name === platformName)
-    if (platform) return { platform, channelType }
+    if (platform) {
+      return { platform, channelType }
+    }
   }
   return null
 }
@@ -899,7 +902,7 @@ const AdsetSettings = memo(function AdsetSettings({
   onPlatformStateChange?: (stageName: string, platformName: string, isOpen: boolean) => void
 }) {
   const { isEditing } = useEditing()
-  const { campaignFormData, setCampaignFormData, updateCampaign, getActiveCampaign } = useCampaigns()
+  const { campaignFormData, setCampaignFormData, updateCampaign, getActiveCampaign, campaignData } = useCampaigns()
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
   const [adsets, setAdSets] = useState<AdSetType[]>([])
   const [adSetDataMap, setAdSetDataMap] = useState<Record<number, AdSetData>>({})
@@ -969,8 +972,9 @@ const AdsetSettings = memo(function AdsetSettings({
     if (initialized.current) return
     initialized.current = true
 
-    const result = findPlatform(campaignFormData.channel_mix, stageName, outlet.outlet)
+    const result = findPlatform(campaignData.channel_mix, stageName, outlet.outlet)
     const platform = result?.platform
+    console.log("ppp", platform)
 
     if (defaultOpen && !selectedPlatforms.includes(outlet.outlet)) {
       setSelectedPlatforms((prev) => [...prev, outlet.outlet])
@@ -994,6 +998,7 @@ const AdsetSettings = memo(function AdsetSettings({
         }))
         const newAdSetDataMap: Record<number, AdSetData> = {}
         platform.ad_sets.forEach((adSet, index) => {
+          console.log("🚀 ~ platform.ad_sets.forEach ~ adSet:", adSet)
           const id = newAdSets[index].id
           newAdSetDataMap[id] = {
             name: adSet.name || "",
@@ -1001,6 +1006,7 @@ const AdsetSettings = memo(function AdsetSettings({
             size: adSet.size || "",
             description: adSet.description || "",
             extra_audiences: adSet?.extra_audiences,
+            format: adSet?.format
           }
         })
         setAdSets(newAdSets)
@@ -1166,6 +1172,7 @@ const AdsetSettings = memo(function AdsetSettings({
             size: data.size,
             description: data.description,
             extra_audiences: data.extra_audiences || [],
+            format:data.format
           }
         })
         .filter((data) => data.name || data.audience_type)
