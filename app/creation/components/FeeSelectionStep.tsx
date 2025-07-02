@@ -303,10 +303,10 @@ function FeeSelectionStep({
     <>
       <div className="relative">
         {campaignFormData?.campaign_budget?.sub_budget_type && (
-          <div className="fixed top-0 left-0 right-0 bg-white shadow-md p-2 z-50 border-b border-gray-100">
-            <div className="flex items-center justify-between max-w-[1200px] mx-auto">
-              <div className="flex items-center gap-4">
-                <p className="font-semibold text-[15px]">
+          <div className="fixed top-2 text-lg min-h-[56px] left-96 right-10 bg-white shadow-md rounded-md px-6 py-2 z-50 border-b border-gray-100">
+            <div className="flex flex-row items-center justify-between space-x-6 mx-auto max-w-[1200px]">
+              <div className="flex-1 flex items-center">
+                <p className="font-semibold text-[22px]">
                   Total Budget: {getCurrencySymbol(selectedOption.value)}
                   {formatNumberWithCommas(
                     active === 1
@@ -315,15 +315,17 @@ function FeeSelectionStep({
                   )}
                 </p>
               </div>
-              <p
-                className={`font-[600] text-[15px] leading-[20px] ${Number(calculateRemainingBudget()) < 1
-                  ? "text-red-500"
-                  : "text-[#00A36C]"
-                  }`}
-              >
-                Remaining budget: {getCurrencySymbol(selectedOption.value)}
-                {formatNumberWithCommas(calculateRemainingBudget())}
-              </p>
+              <div className="flex-1 flex justify-end">
+                <p
+                  className={`font-[600] text-[22px] leading-[20px] ${Number(calculateRemainingBudget()) < 1
+                    ? "text-red-500"
+                    : "text-[#00A36C]"
+                    }`}
+                >
+                  Remaining budget: {getCurrencySymbol(selectedOption.value)}
+                  {formatNumberWithCommas(calculateRemainingBudget())}
+                </p>
+              </div>
             </div>
           </div>
         )}
