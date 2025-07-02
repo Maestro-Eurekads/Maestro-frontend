@@ -1423,6 +1423,7 @@ const ResizableChannels = ({
           )}
         </div>
       </Modal>
+      {openAdset &&
       <Modal
         isOpen={selectedChannel && openAdset ? true : false}
         onClose={() => setOpenAdset(false)}
@@ -1467,6 +1468,7 @@ const ResizableChannels = ({
           </div>
         </div>
       </Modal>
+      }
     </div>
   );
 };
