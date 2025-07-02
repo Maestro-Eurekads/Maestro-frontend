@@ -126,6 +126,7 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
   }, [campaignFormData?.channel_mix])
 
   // FIXED: Calculate total budget correctly for both gross and net media budget
+  // For top-down + gross, use the same logic as bottom-up: sum all stage budgets and add fees
   const calculateTotalBudget = () => {
     if (!campaignFormData?.campaign_budget) return 0
 
@@ -134,25 +135,21 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
     const budgetType = campaignFormData?.campaign_budget?.budget_type // "top_down" or "bottom_up"
     const subBudgetType = campaignFormData?.campaign_budget?.sub_budget_type // "gross" or "net"
 
-    if (budgetType === "bottom_up") {
-      // For bottom-up: sum all stage budgets first
+    // Always sum stage budgets and add fees for both bottom-up and top-down+gross
+    if (
+      budgetType === "bottom_up" ||
+      (budgetType === "top_down" && subBudgetType === "gross")
+    ) {
       const stageBudgetsSum =
         campaignFormData?.channel_mix?.reduce(
           (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
           0,
         ) || 0
 
-      // For both gross and net, the total campaign budget includes fees on top of media spend
       return stageBudgetsSum + totalFees
     } else {
-      // For top-down: the logic depends on whether the entered amount is gross or net
-      if (subBudgetType === "gross") {
-        // If gross is selected, the entered amount already includes fees
-        return budgetAmount
-      } else {
-        // If net is selected, the entered amount is net media spend, so add fees for total campaign budget
-        return budgetAmount + totalFees
-      }
+      // For top-down + net, the entered amount is net media spend, so add fees for total campaign budget
+      return budgetAmount + totalFees
     }
   }
 
@@ -173,9 +170,18 @@ const ConfigureAdSetsAndBudget = ({ num, netAmount }) => {
       )
     } else {
       // For top-down:
-      // If gross, net available is entered amount minus fees
+      // If gross, net available is sum of stage budgets (media spend)
       // If net, net available is the entered amount (it's already net)
-      return subBudgetType === "gross" ? Math.max(0, budgetAmount - totalFeesAmount) : budgetAmount
+      if (subBudgetType === "gross") {
+        return (
+          campaignFormData?.channel_mix?.reduce(
+            (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
+            0,
+          ) || 0
+        )
+      } else {
+        return budgetAmount
+      }
     }
   }
 
@@ -322,6 +328,7 @@ export const BudgetOverviewSection = () => {
   }, [campaignFormData?.channel_mix])
 
   // FIXED: Calculate total budget correctly for both gross and net media budget
+  // For top-down + gross, use the same logic as bottom-up: sum all stage budgets and add fees
   const calculateTotalBudget = () => {
     if (!campaignFormData?.campaign_budget) return 0
 
@@ -330,25 +337,21 @@ export const BudgetOverviewSection = () => {
     const budgetType = campaignFormData?.campaign_budget?.budget_type // "top_down" or "bottom_up"
     const subBudgetType = campaignFormData?.campaign_budget?.sub_budget_type // "gross" or "net"
 
-    if (budgetType === "bottom_up") {
-      // For bottom-up: sum all stage budgets first
+    // Always sum stage budgets and add fees for both bottom-up and top-down+gross
+    if (
+      budgetType === "bottom_up" ||
+      (budgetType === "top_down" && subBudgetType === "gross")
+    ) {
       const stageBudgetsSum =
         campaignFormData?.channel_mix?.reduce(
           (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
           0,
         ) || 0
 
-      // For both gross and net, the total campaign budget includes fees on top of media spend
       return stageBudgetsSum + totalFees
     } else {
-      // For top-down: the logic depends on whether the entered amount is gross or net
-      if (subBudgetType === "gross") {
-        // If gross is selected, the entered amount already includes fees
-        return budgetAmount
-      } else {
-        // If net is selected, the entered amount is net media spend, so add fees for total campaign budget
-        return budgetAmount + totalFees
-      }
+      // For top-down + net, the entered amount is net media spend, so add fees for total campaign budget
+      return budgetAmount + totalFees
     }
   }
 
@@ -369,9 +372,18 @@ export const BudgetOverviewSection = () => {
       )
     } else {
       // For top-down:
-      // If gross, net available is entered amount minus fees
+      // If gross, net available is sum of stage budgets (media spend)
       // If net, net available is the entered amount (it's already net)
-      return subBudgetType === "gross" ? Math.max(0, budgetAmount - totalFeesAmount) : budgetAmount
+      if (subBudgetType === "gross") {
+        return (
+          campaignFormData?.channel_mix?.reduce(
+            (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
+            0,
+          ) || 0
+        )
+      } else {
+        return budgetAmount
+      }
     }
   }
 
