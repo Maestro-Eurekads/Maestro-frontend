@@ -338,12 +338,12 @@ const MapFunnelStages = () => {
       setCampaignFormData((prev: any) => {
         const orderedFunnelStages = loadedCustomFunnels.map((f) => f.name);
         const orderedChannelMix = loadedCustomFunnels.map((f) => {
-            if (prev?.channel_mix && prev.channel_mix.length > 0) {
+            // if (prev?.channel_mix && prev.channel_mix.length > 0) {
             const existingChannel = prev?.channel_mix?.find(
               (ch: any) => ch?.funnel_stage === f.name
             );
             return existingChannel ? existingChannel : { funnel_stage: f.name };
-          }
+          // }
           });
 
           const updatedFormData = {
