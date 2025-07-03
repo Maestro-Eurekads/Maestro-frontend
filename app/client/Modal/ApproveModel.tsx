@@ -16,7 +16,7 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
 
   const isdocumentId = campaignData?.documentId
 
-  console.log('campaignData-campaignData--', isdocumentId)
+  // console.log('campaignData-campaignData--', isdocumentId)
 
 
   const { data: session }: any = useSession();

@@ -192,9 +192,9 @@ const ResizableChannels = ({
     mouseY: number,
     type: "resize" | "drag"
   ) => {
-    if (!dRange || dRange.length === 0) return;
+    if (!dateList || dateList.length === 0) return;
 
-    const totalDays = dRange.length - 1;
+    const totalDays = dateList.length - 1;
 
     const dayStartIndex = Math.min(
       totalDays,
@@ -205,8 +205,8 @@ const ResizableChannels = ({
       Math.max(0, Math.round((endPixel / parentWidth) * totalDays))
     );
 
-    const startDateValue = dRange[dayStartIndex] || startDate;
-    const endDateValue = dRange[dayEndIndex] || endDate;
+    const startDateValue = dateList[dayStartIndex] || startDate;
+    const endDateValue = dateList[dayEndIndex] || endDate;
 
     const formattedStartDate = format(startDateValue, "MMM dd");
     const formattedEndDate = format(endDateValue, "MMM dd");
@@ -447,7 +447,7 @@ const ResizableChannels = ({
 
   const pixelToDate = (pixel, containerWidth, index, fieldName) => {
     const totalDays =
-      fieldName === "endDate" ? dRange?.length - 1 : dRange?.length;
+      fieldName === "endDate" ? dateList?.length - 1 : dateList?.length;
     const dayIndex = Math.min(
       totalDays,
       Math.max(0, Math.floor((pixel / containerWidth) * totalDays))
@@ -733,7 +733,7 @@ const ResizableChannels = ({
             : stageEndDate;
 
           const startDateIndex = adjustedStageStartDate
-            ? dRange?.findIndex((date) =>
+            ? dateList?.findIndex((date) =>
                 isEqual(date, adjustedStageStartDate)
               ) * dailyWidth
             : 0;
@@ -781,6 +781,8 @@ const ResizableChannels = ({
               left = parentLeft;
             }
           }
+
+          console.log("left position here, and data", {left, width, parentLeft, parentWidth, startDateIndex, stageStartDate, adjustedStageStartDate, dateList})
           //@ts-ignore
           const existingState = prev.find((state) => state.id === ch.id);
 
@@ -895,7 +897,7 @@ const ResizableChannels = ({
     <div
       className={`open_channel_btn_container relative`}
       style={{
-        gridTemplateColumns: `repeat(${dRange?.length}, 1fr)`,
+        gridTemplateColumns: `repeat(${dateList?.length}, 1fr)`,
       }}
     >
       {!disableDrag && parentWidth < 350 && (
@@ -915,7 +917,7 @@ const ResizableChannels = ({
       )}
       {channels?.map((channel, index) => {
         const getColumnIndex = (date) =>
-          dRange?.findIndex((d) => d.toISOString().split("T")[0] === date);
+          dateList?.findIndex((d) => d.toISOString().split("T")[0] === date);
 
         const updatedCampaignFormData = { ...campaignFormData };
         const channelMix = updatedCampaignFormData.channel_mix.find(

@@ -40,7 +40,11 @@ export const getComment: any = createAsyncThunk(
     try {
       const response = await commentService.getComment(commentId, jwt);
       return response;
-    } catch (error: unknown) {
+    } catch (error: any) {
+      if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
       if (typeof error === "object" && error !== null && "response" in error) {
         const axiosError = error as {
           response?: {
@@ -73,7 +77,11 @@ export const getSignedApproval: any = createAsyncThunk(
     try {
       const response = await commentService.getSignedApproval( isdocumentId, jwt);
       return response;
-    } catch (error: unknown) {
+    } catch (error: any) {
+      if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
       if (typeof error === "object" && error !== null && "response" in error) {
         const axiosError = error as {
           response?: {
@@ -101,7 +109,11 @@ export const getGeneralComment: any = createAsyncThunk(
     try {
       const response = await commentService.getGeneralComment(commentId, jwt);
       return response;
-    } catch (error: unknown) {
+    } catch (error: any) {
+      if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
       if (typeof error === "object" && error !== null && "response" in error) {
         const axiosError = error as {
           response?: {
@@ -139,7 +151,11 @@ export const getCampaignById: any = createAsyncThunk(
         jwt
       );
       return response;
-    } catch (error: unknown) {
+    } catch (error: any) {
+      if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
       if (typeof error === "object" && error !== null && "response" in error) {
         const axiosError = error as {
           response?: {
