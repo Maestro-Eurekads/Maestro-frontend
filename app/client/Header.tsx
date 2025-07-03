@@ -49,7 +49,7 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   // Check if user has any assigned campaigns
   const hasCampaigns = campaigns && `campaigns`?.length > 0;
 
-  console.log('dataApprove-dataApprove', dataApprove)
+  // console.log('dataApprove-dataApprove', dataApprove)
 
 
   const isApproverForSelectedCampaign = campaigns?.find((cam) => cam?.documentId === selected)?.media_plan_details?.client_approver?.map((approver) => approver?.id)?.filter((aId) => aId === id)?.length > 0

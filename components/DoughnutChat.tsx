@@ -186,11 +186,11 @@ const DoughnutChart = ({
           0,
         ) || 0
 
-      console.log("Bottom-up calculation:", {
-        stageBudgetsSum,
-        totalFees,
-        total: stageBudgetsSum + totalFees,
-      })
+      // console.log("Bottom-up calculation:", {
+      //   stageBudgetsSum,
+      //   totalFees,
+      //   total: stageBudgetsSum + totalFees,
+      // })
 
       return stageBudgetsSum + totalFees
     } else {
@@ -201,19 +201,19 @@ const DoughnutChart = ({
       if (subBudgetType === "gross") {
         // For gross budget, the entered amount is the total (already includes fees conceptually)
         // But we should still add actual fees to show real total spending
-        console.log("Top-down gross calculation:", {
-          budgetAmount,
-          totalFees,
-          total: budgetAmount + totalFees,
-        })
+        // console.log("Top-down gross calculation:", {
+        //   budgetAmount,
+        //   totalFees,
+        //   total: budgetAmount + totalFees,
+        // })
         return budgetAmount + totalFees
       } else {
         // For net budget, add fees to get total spending
-        console.log("Top-down net calculation:", {
-          budgetAmount,
-          totalFees,
-          total: budgetAmount + totalFees,
-        })
+        // console.log("Top-down net calculation:", {
+        //   budgetAmount,
+        //   totalFees,
+        //   total: budgetAmount + totalFees,
+        // })
         return budgetAmount + totalFees
       }
     }
@@ -224,9 +224,9 @@ const DoughnutChart = ({
   const currency = campaignFormData?.campaign_budget?.currency || "EUR"
   const totalSpendingText = `${getCurrencySymbol(currency)}${totalSpending.toLocaleString()}`
 
-  console.log("Final total spending:", totalSpendingText)
-  console.log("Campaign budget data:", campaignFormData?.campaign_budget)
-  console.log("Budget fees:", campaignFormData?.campaign_budget?.budget_fees)
+  // console.log("Final total spending:", totalSpendingText)
+  // console.log("Campaign budget data:", campaignFormData?.campaign_budget)
+  // console.log("Budget fees:", campaignFormData?.campaign_budget?.budget_fees)
 
   // Generate data values for the chart with proper percentage calculations
   const dataValues = (() => {
