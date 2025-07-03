@@ -672,7 +672,10 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
           setAlert({ variant: "success", message: "Campaign created successfully!", position: "bottom-right" });
         }
       } catch (error) {
-        console.error("API Error:", error.response?.data || error.message);
+        if (error?.response?.status === 401) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
+        }
         setAlert({
           variant: "error",
           message: error.response?.data?.message || "Something went wrong. Please try again.",

@@ -77,7 +77,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
           updatedCampaignFormData = {
             ...updatedCampaignFormData,
             table_headers: obj || {},
-            selected_metrics: sMetrics||{}
+            selected_metrics: sMetrics || {}
           };
           break;
         case "Your funnel stages":
@@ -133,7 +133,10 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
         closeEditStep();
       }, 200); // Short delay for UI smoothness
     } catch (error) {
-      console.error("Error updating campaign:", error);
+      if (error?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
       setHideButtons(false);
     } finally {
       setLoading(false);

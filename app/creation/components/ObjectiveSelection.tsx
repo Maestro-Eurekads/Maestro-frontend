@@ -61,11 +61,11 @@ const ObjectiveSelection = () => {
     return savedPlatforms
       ? JSON.parse(savedPlatforms, (key, value) => (value.dataType === "Set" ? new Set(value.value) : value))
       : {
-          Awareness: new Set(),
-          Consideration: new Set(),
-          Conversion: new Set(),
-          Loyalty: new Set(),
-        }
+        Awareness: new Set(),
+        Consideration: new Set(),
+        Conversion: new Set(),
+        Loyalty: new Set(),
+      }
   })
   const [dropdownOpen, setDropdownOpen] = useState("")
   const [showInput, setShowInput] = useState("")
@@ -195,34 +195,34 @@ const ObjectiveSelection = () => {
     const channelMix = Array.isArray(campaignFormData?.channel_mix) ? campaignFormData.channel_mix : []
     channelMix?.forEach((stage) => {
       const stageName = stage.funnel_stage
-      ;[
-        "social_media",
-        "display_networks",
-        "search_engines",
-        "streaming",
-        "ooh",
-        "print",
-        "in_game",
-        "e_commerce",
-        "broadcast",
-        "messaging",
-        "mobile",
-      ].forEach((category) => {
-        const platforms = Array.isArray(stage[category]) ? stage[category] : []
-        platforms.forEach((platform) => {
-          const platformName = platform.platform_name
+        ;[
+          "social_media",
+          "display_networks",
+          "search_engines",
+          "streaming",
+          "ooh",
+          "print",
+          "in_game",
+          "e_commerce",
+          "broadcast",
+          "messaging",
+          "mobile",
+        ].forEach((category) => {
+          const platforms = Array.isArray(stage[category]) ? stage[category] : []
+          platforms.forEach((platform) => {
+            const platformName = platform.platform_name
 
-          // Handle channel level selections
-          const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`
-          const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`
-          if (platform.buy_type && !initialSelectedOptions[buyTypeKey]) {
-            initialSelectedOptions[buyTypeKey] = platform.buy_type
-          }
-          if (platform.objective_type && !initialSelectedOptions[buyObjectiveKey]) {
-            initialSelectedOptions[buyObjectiveKey] = platform.objective_type
-          }
+            // Handle channel level selections
+            const buyTypeKey = `${stageName}-${category}-${platformName}-buy_type`
+            const buyObjectiveKey = `${stageName}-${category}-${platformName}-objective_type`
+            if (platform.buy_type && !initialSelectedOptions[buyTypeKey]) {
+              initialSelectedOptions[buyTypeKey] = platform.buy_type
+            }
+            if (platform.objective_type && !initialSelectedOptions[buyObjectiveKey]) {
+              initialSelectedOptions[buyObjectiveKey] = platform.objective_type
+            }
+          })
         })
-      })
     })
     setSelectedOptions(initialSelectedOptions)
     setPreviousSelectedOptions(initialSelectedOptions)
@@ -559,7 +559,10 @@ const ObjectiveSelection = () => {
       setCustomValue("")
       setShowInput("")
     } catch (error) {
-      console.error("Error saving custom value:", error)
+      if (error?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
       toast.error("Failed to save custom value")
     } finally {
       setLoading(false)
@@ -897,8 +900,8 @@ const ObjectiveSelection = () => {
                     const normalizedCategory = category.toLowerCase().replaceAll(" ", "_")
                     const platforms = Array.isArray(campaignFormData?.channel_mix)
                       ? campaignFormData.channel_mix.find((ch) => ch.funnel_stage === stageName)?.[
-                          normalizedCategory
-                        ] || []
+                      normalizedCategory
+                      ] || []
                       : []
 
                     if (platforms.length === 0) return null

@@ -127,13 +127,11 @@ const fetchClientCampaign = useCallback(
       );
 
       return res;
-    } catch (err: any) {
-      console.error("Error fetching client campaigns:", err); 
-      console.error("err?.response?.status:", err?.response?.status); 
-      if (err?.response?.status === 401) {
-        // Logout the user if credentials are invalid 
-        signOut({ callbackUrl: "/" });
-      }
+    } catch (err: any) { 
+      if (error?.response?.status === 401) {
+                     const event = new Event("unauthorizedEvent");
+                     window.dispatchEvent(event);
+                  }
 
       throw err;
     }

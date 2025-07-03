@@ -116,6 +116,10 @@ const ViewClientModal = ({ isView, setIsView }) => {
    );
    setUsers({ agencyAccess, clientAccess });
   } catch (error) {
+   if (error?.response?.status === 401) {
+    const event = new Event("unauthorizedEvent");
+    window.dispatchEvent(event);
+   }
    toast.error(`Failed to fetch users: ${error.message}`);
   } finally {
    setLoading(false);
@@ -212,6 +216,10 @@ const ViewClientModal = ({ isView, setIsView }) => {
    await fetchUsers();
    resetInput(section);
   } catch (error) {
+   if (error?.response?.status === 401) {
+    const event = new Event("unauthorizedEvent");
+    window.dispatchEvent(event);
+   }
    toast.error(`Failed to add user: ${error.message || 'Unknown error'}`);
   } finally {
    setLoadingUpdate(false);
@@ -276,7 +284,10 @@ const ViewClientModal = ({ isView, setIsView }) => {
    resetInput(section);
    setShowConfirmPopup(false);
   } catch (error) {
-   console.error('Update user error:', error);
+   if (error?.response?.status === 401) {
+    const event = new Event("unauthorizedEvent");
+    window.dispatchEvent(event);
+   }
    toast.error(`Failed to update user: ${error.message || 'Unknown error'}`);
   } finally {
    setLoadingUpdate(false);

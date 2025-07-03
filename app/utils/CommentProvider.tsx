@@ -96,6 +96,10 @@ export const CommentProvider = ({ children }) => {
 			setIsLoadingGeneral(false);
 			setGeneralcommentsSuccess(true);
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setGeneralError(error);
 			setIsLoadingGeneral(false);
 		}
@@ -121,6 +125,10 @@ export const CommentProvider = ({ children }) => {
 			setIsLoadingGeneral(false);
 			setGeneralcommentsUpdateSuccess(true);
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setGeneralError(error);
 			setIsLoadingGeneral(false);
 		}
@@ -156,6 +164,10 @@ export const CommentProvider = ({ children }) => {
 			setCreateCommentsSuccess(true);
 			setViewcommentsId('')
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setCreateCommentsError(error);
 			setIsLoading(false);
 		}
@@ -184,6 +196,10 @@ export const CommentProvider = ({ children }) => {
 			setCreateApprovalSuccess(true);
 			setIsOpen(false)
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setCreateCommentsError(error);
 			setIsLoadingApproval(false);
 		}
@@ -226,6 +242,10 @@ export const CommentProvider = ({ children }) => {
 			setIsLoadingReply(false);
 			dispatch(getComment({ commentId, jwt }));
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setIsLoadingReply(false);
 			setReplyError(error);
 		}
@@ -257,6 +277,10 @@ export const CommentProvider = ({ children }) => {
 			setapprovedIsLoading(false);
 			dispatch(getComment({ commentId, jwt }));
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setapprovedIsLoading(false);
 			setApprovedError(error);
 		}
@@ -287,6 +311,10 @@ export const CommentProvider = ({ children }) => {
 			setPositionIsLoading(false);
 			// dispatch(getComment(commentId));
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setPositionIsLoading(false);
 			setApprovedError(error);
 		}

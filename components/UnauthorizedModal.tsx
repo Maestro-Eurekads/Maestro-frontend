@@ -17,6 +17,9 @@ const UnauthorizedModal = () => {
 
 	const handleOk = () => {
 		signOut({ callbackUrl: "/" });
+		localStorage.removeItem("campaignFormData");
+		localStorage.removeItem("selectedClient");
+		localStorage.removeItem("profileclients");
 	};
 
 	if (!showModal) return null;

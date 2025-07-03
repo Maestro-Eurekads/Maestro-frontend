@@ -64,7 +64,10 @@ export function useCampaignFilters(clientID: string) {
       setCampaigns(response.data.data);
       setFilteredCampaigns(response.data.data);
     } catch (error) {
-      console.error("Error fetching campaigns:", error);
+      if (error?.response?.status === 401) {
+                     const event = new Event("unauthorizedEvent");
+                     window.dispatchEvent(event);
+                  }
     } finally {
       setLoading(false);
     }
@@ -166,7 +169,10 @@ export function useCampaignFilters(clientID: string) {
       );
       return response.data.data;
     } catch (error) {
-      console.error("Error fetching filtered campaigns:", error);
+      if (error?.response?.status === 401) {
+                     const event = new Event("unauthorizedEvent");
+                     window.dispatchEvent(event);
+                  }
       return [];
     } finally {
       setLoading(false);
