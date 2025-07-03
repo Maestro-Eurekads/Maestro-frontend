@@ -102,6 +102,12 @@ const ViewClientModal = ({ isView, setIsView }) => {
      Authorization: `Bearer ${jwt}`,
     },
    });
+   if (response.status === 401) {
+    const event = new Event("unauthorizedEvent");
+    window.dispatchEvent(event);
+    return;
+   }
+
    if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.error?.message || `HTTP ${response.status}`);
@@ -116,10 +122,6 @@ const ViewClientModal = ({ isView, setIsView }) => {
    );
    setUsers({ agencyAccess, clientAccess });
   } catch (error) {
-   if (error?.response?.status === 401) {
-    const event = new Event("unauthorizedEvent");
-    window.dispatchEvent(event);
-   }
    toast.error(`Failed to fetch users: ${error.message}`);
   } finally {
    setLoading(false);
@@ -219,8 +221,10 @@ const ViewClientModal = ({ isView, setIsView }) => {
    if (error?.response?.status === 401) {
     const event = new Event("unauthorizedEvent");
     window.dispatchEvent(event);
+   } else {
+    toast.error(`Failed to add user: ${error.message || 'Unknown error'}`);
    }
-   toast.error(`Failed to add user: ${error.message || 'Unknown error'}`);
+
   } finally {
    setLoadingUpdate(false);
   }
@@ -287,8 +291,10 @@ const ViewClientModal = ({ isView, setIsView }) => {
    if (error?.response?.status === 401) {
     const event = new Event("unauthorizedEvent");
     window.dispatchEvent(event);
+   } else {
+    toast.error(`Failed to update user: ${error.message || 'Unknown error'}`);
    }
-   toast.error(`Failed to update user: ${error.message || 'Unknown error'}`);
+
   } finally {
    setLoadingUpdate(false);
   }
@@ -311,6 +317,11 @@ const ViewClientModal = ({ isView, setIsView }) => {
      },
     }
    );
+   if (response.status === 401) {
+    const event = new Event("unauthorizedEvent");
+    window.dispatchEvent(event);
+    return;
+   }
    if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.error?.message || `HTTP ${response.status}`);
@@ -320,7 +331,13 @@ const ViewClientModal = ({ isView, setIsView }) => {
    setShowDeletePopup(false);
    setDeletingUserId(null);
   } catch (error) {
-   toast.error(`Failed to delete user: ${error.message}`);
+   if (error?.response?.status === 401) {
+    const event = new Event("unauthorizedEvent");
+    window.dispatchEvent(event);
+   } else {
+    toast.error(`Failed to delete user: ${error.message}`);
+   }
+
   } finally {
    setLoadingDelete(false);
   }
@@ -378,10 +395,16 @@ const ViewClientModal = ({ isView, setIsView }) => {
    toast.success("Client levels updated successfully!");
    setLevelUpdateLoading(false);
   } catch (error: any) {
+
    setLevelUpdateLoading(false);
    const message =
     error.response?.data?.error?.message || error.message || "Unknown error";
-   toast.error(`Failed to update client: ${message}`);
+   if (error?.response?.status === 401) {
+    const event = new Event("unauthorizedEvent");
+    window.dispatchEvent(event);
+   } else {
+    toast.error(`Failed to update client: ${message}`);
+   }
   }
  };
 
