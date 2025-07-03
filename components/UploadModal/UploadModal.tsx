@@ -497,6 +497,12 @@ const UploadModal: React.FC<UploadModalProps> = ({
 
         clearTimeout(timeoutId)
 
+        if (response.status === 401) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
+          return;
+        }
+
         if (!response.ok) {
           // If method not allowed, show a clear error
           if (response.status === 405) {
