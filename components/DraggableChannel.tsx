@@ -103,24 +103,17 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     if (range === "Year") {
       const totalMonths = 12
       const clampedPixel = Math.max(0, Math.min(pixel, containerWidth))
-
-      // More precise month calculation
       const monthFraction = clampedPixel / containerWidth
-      let monthIndex = Math.floor(monthFraction * totalMonths)
-
-      // Handle edge case where we're exactly at the end (December)
-      if (clampedPixel >= containerWidth - 1) {
-        monthIndex = 11 // December
-      }
+      const monthIndex = Math.floor(monthFraction * totalMonths)
 
       const year = startDate.getFullYear()
 
       if (fieldName === "endDate") {
-        // For end date, get the last day of the month
-        return new Date(year, monthIndex + 1, 0)
+        // For end date, use the last day of the calculated month
+        return new Date(year, Math.min(12, monthIndex + 1), 0)
       } else {
-        // For start date, use the first day of the month
-        return new Date(year, monthIndex, 1)
+        // For start date, use the first day of the calculated month
+        return new Date(year, Math.min(12, monthIndex), 1)
       }
     }
 
@@ -131,16 +124,39 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     const calculatedDate = new Date(startDate)
     calculatedDate.setDate(startDate.getDate() + dayIndex)
 
+    // if (fieldName === "endDate") {
+    //   calculatedDate.setDate(calculatedDate.getDate()); // Add 1 day to fix the issue
+    // }
     console.log("called", calculatedDate, fieldName)
     return calculatedDate
   }
+
+  // const snapToTimeline = (currentPosition: number, containerWidth: number) => {
+  //   const baseStep = range === "Year" ? containerWidth / 12 : dailyWidth;
+  //   const snapPoints = [];
+
+  //   for (let i = 0; i <= containerWidth; i += baseStep) {
+  //     snapPoints.push(i);
+  //   }
+
+  //   if (snapPoints[snapPoints.length - 1] !== containerWidth) {
+  //     snapPoints.push(containerWidth);
+  //   }
+
+  //   const closestSnap = snapPoints.reduce((prev, curr) =>
+  //     Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition)
+  //       ? curr
+  //       : prev
+  //   );
+
+  //   return closestSnap;
+  // };
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     if (range === "Year") {
       const monthWidth = containerWidth / 12
       const monthIndex = Math.round(currentPosition / monthWidth)
-      const clampedMonthIndex = Math.max(0, Math.min(11, monthIndex))
-      return clampedMonthIndex * monthWidth
+      return Math.min(monthIndex * monthWidth, containerWidth)
     }
 
     const baseStep = dailyWidth
