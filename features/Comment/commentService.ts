@@ -1,8 +1,5 @@
 import axios from 'axios'  
  
- 
-  
-   
 
  
  //  Create Comment
@@ -30,17 +27,24 @@ const getComment = async (commentId: any, jwt: any, client_commentId?: any) => {
 };
 
  //  Cet Signed Approval
-const getSignedApproval = async (id: any, jwt:any) => {  
-  const response = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/client-signature-approvals`,{
+const getSignedApproval = async ( isdocumentId: any, jwt: any) => {
+  const response = await axios.get(
+    `${process.env.NEXT_PUBLIC_STRAPI_URL}/client-signature-approvals`,
+    {
       params: {
-        "filters[clientId][$eq]": id, // Filtering by commentId
+        // "filters[clientId][$eq]": clientId,
+        "filters[isdocumentId][$eq]": isdocumentId,
       },
       headers: {
         Authorization: `Bearer ${jwt}`,
       },
-    })    
-  return response.data
-}
+    }
+  );
+
+
+  return response.data;
+};
+
  
  //  get General Comment
 const getGeneralComment = async (commentId

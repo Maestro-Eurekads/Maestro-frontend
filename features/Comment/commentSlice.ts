@@ -60,12 +60,18 @@ export const getComment: any = createAsyncThunk(
   }
 );
 
-// Create Comment
+// Get Signed Approval
 export const getSignedApproval: any = createAsyncThunk(
   "comment/getSignedApproval",
-  async ({ id, jwt }: { id: string | number; jwt: string }, thunkAPI) => {
+  async (
+    { 
+      isdocumentId,
+      jwt,
+    }: {  isdocumentId: string; jwt: string },
+    thunkAPI
+  ) => {
     try {
-      const response = await commentService.getSignedApproval(id, jwt);
+      const response = await commentService.getSignedApproval( isdocumentId, jwt);
       return response;
     } catch (error: unknown) {
       if (typeof error === "object" && error !== null && "response" in error) {
@@ -82,10 +88,12 @@ export const getSignedApproval: any = createAsyncThunk(
           [];
         return thunkAPI.rejectWithValue(errors);
       }
+
+      return thunkAPI.rejectWithValue(["An unknown error occurred"]);
     }
-    return thunkAPI.rejectWithValue(["An unknown error occurred"]);
   }
 );
+
 
 export const getGeneralComment: any = createAsyncThunk(
   "comment/getGeneralComment",
