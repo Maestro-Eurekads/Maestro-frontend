@@ -320,7 +320,7 @@ const DoughnutChart = ({
         position: "bottom",
         labels: {
           font: {
-            size: 0.8, // Adjusted to a reasonable size for visibility
+            size: 0.8, 
           },
           padding: 0.8,
         },
