@@ -785,29 +785,24 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
     const handleDateStep = async () => {
       if (!campaignData) return;
       const currentYear = new Date().getFullYear();
-      const campaign_timeline_start_date =
-        dayjs(
-          new Date(
-            currentYear,
-            selectedDates?.from?.month,
-            selectedDates.from?.day
-          )
-        ).format("YYYY-MM-DD") ||
-        campaignFormData?.campaign_timeline_start_date;
+      // const campaign_timeline_start_date =
+      //   dayjs(
+      //     new Date(
+      //       currentYear,
+      //       selectedDates?.from?.month,
+      //       selectedDates.from?.day
+      //     )
+      //   ).format("YYYY-MM-DD") ||
+      //   campaignFormData?.campaign_timeline_start_date;
 
-      const campaign_timeline_end_date =
-        dayjs(
-          new Date(currentYear, selectedDates?.to?.month, selectedDates.to?.day)
-        ).format("YYYY-MM-DD") || campaignFormData?.campaign_timeline_end_date;
+      // const campaign_timeline_end_date =
+      //   dayjs(
+      //     new Date(currentYear, selectedDates?.to?.month, selectedDates.to?.day)
+      //   ).format("YYYY-MM-DD") || campaignFormData?.campaign_timeline_end_date;
       await updateCampaignData({
         campaign_timeline_start_date:
-          campaign_timeline_start_date === "Invalid Date"
-            ? campaignFormData?.campaign_timeline_start_date
-            : campaign_timeline_start_date,
-        campaign_timeline_end_date:
-          campaign_timeline_end_date === "Invalid Date"
-            ? campaignFormData?.campaign_timeline_end_date
-            : campaign_timeline_end_date,
+        campaignFormData?.campaign_timeline_start_date,
+        campaign_timeline_end_date:campaignFormData?.campaign_timeline_end_date,
         funnel_stages: campaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
