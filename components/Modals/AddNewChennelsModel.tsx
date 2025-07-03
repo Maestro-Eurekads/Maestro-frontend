@@ -375,6 +375,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
               </button>
             </div>
           </div>
+          </div>
         </Modal>
       }
     </div>
