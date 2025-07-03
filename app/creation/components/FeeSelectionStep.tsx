@@ -56,7 +56,6 @@ function FeeSelectionStep({
     if (!campaignFormData?.campaign_budget?.amount) return "0.00"
 
     const budgetAmount = Number.parseFloat(campaignFormData?.campaign_budget?.amount || "0")
-
     const totalFees = fees.reduce((total, fee) => total + Number.parseFloat(fee.amount || 0), 0)
 
     if (active === 1) {
@@ -74,7 +73,6 @@ function FeeSelectionStep({
     if (!campaignFormData?.campaign_budget?.amount) return "0.00"
 
     const budgetAmount = Number.parseFloat(campaignFormData?.campaign_budget?.amount || "0")
-
     const totalFees = fees.reduce((total, fee) => total + Number.parseFloat(fee.amount || 0), 0)
 
     if (active === 1) {
@@ -122,7 +120,6 @@ function FeeSelectionStep({
     }
 
     const budgetAmount = Number.parseFloat(campaignFormData?.campaign_budget?.amount || "0")
-
     const feeValue = Number.parseFloat(feeAmount)
 
     if (feeType.type === "percent" && feeValue > 100) {
@@ -239,7 +236,6 @@ function FeeSelectionStep({
     }
   }, [campaignFormData?.campaign_budget?.amount, active])
 
-  // FIXED: Calculate remaining budget correctly - this should be for media spend allocation
   const calculateRemainingBudget = () => {
     const budgetAmount = Number.parseFloat(campaignFormData?.campaign_budget?.amount || "0")
     const totalFees = fees.reduce((total, fee) => total + Number(fee.amount || 0), 0)
@@ -280,9 +276,7 @@ function FeeSelectionStep({
               <div className="flex-1 flex items-center">
                 <p className="font-semibold text-[22px]">
                   Total Budget: {getCurrencySymbol(selectedOption.value)}
-                  {formatNumberWithCommas(
-                    Number.parseFloat(campaignFormData?.campaign_budget?.amount || "0").toFixed(2),
-                  )}
+                  {formatNumberWithCommas(calculateGrossAmount())}
                 </p>
               </div>
               <div className="flex-1 flex justify-end">
