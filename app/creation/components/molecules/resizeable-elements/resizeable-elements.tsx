@@ -442,7 +442,7 @@ const ResizeableElements = ({
 
   useEffect(() => {
     if (!campaignFormData?.funnel_stages || !containerWidth) return
-    console.log("here")
+    // console.log("here")
     const initialWidths: Record<string, number> = {}
     const initialPositions: Record<string, number> = {}
     const getViewportWidth = () => {

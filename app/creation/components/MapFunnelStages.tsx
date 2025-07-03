@@ -302,7 +302,7 @@ const MapFunnelStages = () => {
         configs = campaignData.client.custom_funnel_configs;
       }
 
-      console.log("configs", configs)
+      // console.log("configs", configs)
 
       setFunnelConfigs(configs);
 
@@ -749,7 +749,7 @@ const MapFunnelStages = () => {
     newColor: string
   ) => {
     const error = validateFunnelName(newName, true, oldId);
-console.log({oldId, newName, newColor})
+// console.log({oldId, newName, newColor})
     if (error) {
       toast.error(error, {
         style: { background: "red", color: "white", textAlign: "center" },
@@ -1032,7 +1032,7 @@ console.log({oldId, newName, newColor})
   // Handle saved config selection
 
   const handleConfigSelect = (configIdx: number) => {
-    console.log("here");
+    // console.log("here");
     setSelectedConfigIdx(configIdx);
 
     setSelectedPreset(null);

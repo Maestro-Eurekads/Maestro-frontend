@@ -117,7 +117,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       }
     }
 
-    console.log("called2")
     // Convert pixel to date index
     const dayIndex = Math.min(totalDays, Math.max(0, Math.round((pixel / containerWidth) * totalDays)))
 
@@ -127,7 +126,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     // if (fieldName === "endDate") {
     //   calculatedDate.setDate(calculatedDate.getDate()); // Add 1 day to fix the issue
     // }
-    console.log("called", calculatedDate, fieldName)
+    // console.log("called", calculatedDate, fieldName)
     return calculatedDate
   }
 
@@ -325,9 +324,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       .filter((date) => date) // Filter out null or undefined dates
 
     const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD")
-    console.log("🚀 ~ handleMouseMoveResize ~ minStartDate:", minStartDate)
+    // console.log("🚀 ~ handleMouseMoveResize ~ minStartDate:", minStartDate)
     const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD")
-    console.log("🚀 ~ handleMouseMoveResize ~ maxEndDate:", maxEndDate)
+    // console.log("🚀 ~ handleMouseMoveResize ~ maxEndDate:", maxEndDate)
 
     // 💡 Only buffer the data here; flush on mouseup
     draftCampaignFormRef.current = {
@@ -391,9 +390,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     // Convert pixel positions to dates
     const startDate = pixelToDate(startPixel, containerRect.width)
     const endDate = pixelToDate(endPixel, containerRect.width, "endDate")
-    console.log("🚀 ~ handleMouseMoveDrag ~ endDate:", endDate)
-
-    console.log({ startDate, endDate }, "here on mouse move")
 
     const updatedChannelMix = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === description)
 
@@ -405,9 +401,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       const allEndDates = campaignFormData?.channel_mix?.map((ch) => moment(ch.funnel_stage_timeline_end_date))
 
       const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD")
-      console.log("🚀 ~ handleMouseMoveDrag ~ minStartDate:", minStartDate)
+      // console.log("🚀 ~ handleMouseMoveDrag ~ minStartDate:", minStartDate)
       const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD")
-      console.log("🚀 ~ handleMouseMoveDrag ~ maxEndDate:", maxEndDate)
+      // console.log("🚀 ~ handleMouseMoveDrag ~ maxEndDate:", maxEndDate)
 
       draftCampaignFormRef.current = {
         ...campaignFormData,

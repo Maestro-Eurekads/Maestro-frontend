@@ -975,7 +975,7 @@ const AdsetSettings = memo(function AdsetSettings({
 
     const result = findPlatform(campaignData.channel_mix, stageName, outlet.outlet)
     const platform = result?.platform
-    console.log("ppp", platform)
+    // console.log("ppp", platform)
 
     if (defaultOpen && !selectedPlatforms.includes(outlet.outlet)) {
       setSelectedPlatforms((prev) => [...prev, outlet.outlet])
@@ -999,7 +999,7 @@ const AdsetSettings = memo(function AdsetSettings({
         }))
         const newAdSetDataMap: Record<number, AdSetData> = {}
         platform.ad_sets.forEach((adSet, index) => {
-          console.log("🚀 ~ platform.ad_sets.forEach ~ adSet:", adSet)
+          // console.log("🚀 ~ platform.ad_sets.forEach ~ adSet:", adSet)
           const id = newAdSets[index].id
           newAdSetDataMap[id] = {
             name: adSet.name || "",
@@ -1651,7 +1651,7 @@ const AdSetFlow = memo(function AdSetFlow({
 
   useEffect(() => {
     if (modalOpen) {
-      console.log("here")
+      // console.log("here")
       setIsEditing(true)
     }
   }, [modalOpen])
