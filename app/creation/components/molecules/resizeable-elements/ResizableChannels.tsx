@@ -88,7 +88,6 @@ const ResizableChannels = ({
   endWeek,
   dailyWidth,
 }: ResizableChannelsProps) => {
-  // console.log("this is the initial channels", initialChannels)
   const {
     campaignFormData,
     setCampaignFormData,
@@ -113,11 +112,9 @@ const ResizableChannels = ({
   const [selectedChannel, setSelectedChannel] = useState("");
   const [openView, setOpenView] = useState<"channel" | "adset">("channel");
 
-  // Store the initial start date in a ref
   const initialStartDateRef = useRef(null);
   const initialEndDateRef = useRef(null);
 
-  // Add refs to preserve selection state during recalculation
   const selectionStateRef = useRef({
     openItems: null,
     selectedChannel: "",
@@ -126,10 +123,8 @@ const ResizableChannels = ({
     openAdset: false,
   });
 
-  // Add flag to track if we're in the middle of a width adjustment
   const isAdjustingWidthRef = useRef(false);
 
-  // Initialize child width based on available parent space and position
   const [channelState, setChannelState] = useState(
     channels?.map((ch) => ({
       left: parentLeft,
@@ -140,7 +135,6 @@ const ResizableChannels = ({
   const [dragging, setDragging] = useState(null);
   const [draggingPosition, setDraggingPosition] = useState(null);
 
-  // Add tooltip state
   const [tooltip, setTooltip] = useState<TooltipState>({
     visible: false,
     x: 0,
@@ -168,7 +162,6 @@ const ResizableChannels = ({
   } | null>(null);
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-    //console.log(" ~ dailyWidth:", dailyWidth)
     const baseStep = dailyWidth;
     const adjustmentPerStep = 0;
     const snapPoints = [];
@@ -191,7 +184,6 @@ const ResizableChannels = ({
     return closestSnap;
   };
 
-  // Function to update tooltip with date information
   const updateTooltipWithDates = (
     startPixel: number,
     endPixel: number,
@@ -206,11 +198,11 @@ const ResizableChannels = ({
 
     const dayStartIndex = Math.min(
       totalDays,
-      Math.max(0, Math.floor((startPixel / parentWidth) * totalDays))
+      Math.max(0, Math.round((startPixel / parentWidth) * totalDays))
     );
     const dayEndIndex = Math.min(
       totalDays,
-      Math.max(0, Math.floor((endPixel / parentWidth) * totalDays))
+      Math.max(0, Math.round((endPixel / parentWidth) * totalDays))
     );
 
     const startDateValue = dRange[dayStartIndex] || startDate;
@@ -229,8 +221,8 @@ const ResizableChannels = ({
       )
       ?.getBoundingClientRect();
 
-    let tooltipX = mouseX - containerRect.left;
-    const tooltipY = containerRect.top - 50; // Offset to position above the mouse
+    const tooltipX = mouseX - containerRect.left;
+    const tooltipY = containerRect.top - 50;
 
     setTooltip({
       visible: true,
@@ -249,7 +241,7 @@ const ResizableChannels = ({
   ) => {
     if (disableDrag) return;
     e.preventDefault();
-    // e.stopPropagation();
+
     isResizing.current = {
       startX: e.clientX,
       startWidth: channelState[index].width,
@@ -275,11 +267,13 @@ const ResizableChannels = ({
 
   const handleMouseMoveResize = (e: MouseEvent) => {
     if (!isResizing.current) return;
+
     const { startX, startWidth, startPos, direction, index } =
       isResizing.current;
-    console.log({ startX, startWidth, startPos, direction, index });
+    const deltaX = e.clientX - startX;
+
     let newWidth = startWidth;
-    let newLeft = isNaN(startPos) ? 0 : startPos;
+    let newLeft = isNaN(startPos) ? parentLeft : startPos;
 
     const gridContainer = document.querySelector(
       ".grid-container"
@@ -287,60 +281,58 @@ const ResizableChannels = ({
     if (!gridContainer) return;
 
     const containerRect = gridContainer.getBoundingClientRect();
-    console.log("parentLeft", {parentLeft, parentWidth})
-    const parentRightEdge =  parentWidth;
+    const parentRightEdge = parentLeft + parentWidth;
 
     if (direction === "left") {
-      const deltaX = e.clientX - startX;
-      newLeft = Math.max(parentLeft, (isNaN(startPos) ? 0 : startPos) + deltaX);
-      newWidth = startWidth - (newLeft - (isNaN(startPos) ? 0 : startPos));
+      // Left edge resize - adjust position and width
+      const proposedLeft = Math.max(parentLeft, startPos + deltaX);
+      const proposedWidth = startWidth - (proposedLeft - startPos);
 
-      if (newWidth < 50) {
+      // Ensure minimum width
+      if (proposedWidth < 50) {
         newWidth = 50;
-        newLeft = (isNaN(startPos) ? 0 : startPos) + startWidth - 50;
+        newLeft = startPos + startWidth - 50;
+      } else {
+        newLeft = proposedLeft;
+        newWidth = proposedWidth;
       }
 
-      const snappedPos =
+      // Snap the left edge to timeline
+      const snappedLeft =
         snapToTimeline(newLeft - parentLeft, containerRect.width) + parentLeft;
-      newWidth = startWidth - (snappedPos - (isNaN(startPos) ? 0 : startPos));
-      newLeft = snappedPos;
+      newWidth = startWidth - (snappedLeft - startPos);
+      newLeft = snappedLeft;
 
-      // Ensure the right edge does not exceed the parent's right edge
+      // Ensure we don't exceed parent boundaries
+      if (newLeft < parentLeft) {
+        newLeft = parentLeft;
+        newWidth = startPos + startWidth - parentLeft;
+      }
+
       if (newLeft + newWidth > parentRightEdge) {
         newWidth = parentRightEdge - newLeft;
       }
     } else {
-      const deltaX = e.clientX - startX;
-      newWidth = Math.max(50, startWidth + deltaX);
+      // Right edge resize - only adjust width, keep left position fixed
+      newLeft = startPos; // Keep left position unchanged
+      const proposedWidth = Math.max(50, startWidth + deltaX);
 
-      // Ensure the right edge does not exceed the parent's right edge
-      if (newLeft + newWidth > parentRightEdge) {
-        newWidth = parentRightEdge - newLeft;
-      }
+      // Calculate the right edge position
+      const rightEdgePos = newLeft + proposedWidth;
 
-      const rightEdgePos = 0 + newWidth;
+      // Snap the right edge to timeline
       const snappedRightEdge =
         snapToTimeline(rightEdgePos - parentLeft, containerRect.width) +
         parentLeft;
-console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
-      // Ensure the snapped right edge does not exceed the parent's right edge
-      if (snappedRightEdge > parentRightEdge) {
-        console.log("1");
-        newWidth = parentRightEdge;
-      } else {
-        console.log("2");
-        newWidth = Math.max(50, snappedRightEdge);
-      }
 
-      // Adjust newLeft if snapping causes overlap
-      // if (newLeft + newWidth > parentRightEdge) {
-      //   console.log("3");
-      //   newLeft = parentRightEdge - newWidth;
-      // }
+      // Ensure the snapped right edge doesn't exceed parent boundaries
+      const finalRightEdge = Math.min(snappedRightEdge, parentRightEdge);
+
+      // Calculate final width based on the constrained right edge
+      newWidth = Math.max(50, finalRightEdge - newLeft);
     }
 
-
-
+    // Update tooltip and data
     const startPixel = newLeft - parentLeft;
     const endPixel = startPixel + newWidth;
     const newStartDate = pixelToDate(
@@ -349,9 +341,10 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
       index,
       "startDate"
     );
-    console.log("🚀 ~ handleMouseMoveResize ~ newStartDate:", newStartDate);
     const newEndDate = pixelToDate(endPixel, parentWidth, index, "endDate");
+
     draggingDataRef.current = { index, newStartDate, newEndDate };
+
     setChannels((prev) =>
       prev.map((ch, i) =>
         i === index
@@ -363,6 +356,7 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
           : ch
       )
     );
+
     updateTooltipWithDates(
       startPixel,
       endPixel,
@@ -371,88 +365,25 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
       e.clientY,
       "resize"
     );
-        // Update the channel state
-        setChannelState((prev) =>
-          prev.map((state, i) =>
-            i === index ? { ...state, left: newLeft, width: newWidth } : state
-          )
-        );
+
+    setChannelState((prev) =>
+      prev.map((state, i) =>
+        i === index ? { ...state, left: newLeft, width: newWidth } : state
+      )
+    );
   };
+
   const handleMouseUpResize = () => {
     setTooltip((prev) => ({ ...prev, visible: false }));
     isResizing.current = null;
     document.removeEventListener("mousemove", handleMouseMoveResize);
     document.removeEventListener("mouseup", handleMouseUpResize);
-    console.log("draggingDataRef", draggingDataRef.current);
+
     if (draggingDataRef.current) {
       const { index, newStartDate, newEndDate } = draggingDataRef.current;
-
-      // // Update campaignFormData copy
-      // setCopy((prevData) => {
-      //   const updatedData = JSON.parse(JSON.stringify(prevData));
-
-      //   const channelMix = updatedData.channel_mix.find(
-      //     (ch) => ch.funnel_stage === parentId
-      //   );
-
-      //   if (channelMix) {
-      //     const channelGroup = channelMix[channels[index].channelName];
-      //     if (Array.isArray(channelGroup)) {
-      //       const platform = channelGroup.find(
-      //         (p) => p.platform_name === channels[index].name
-      //       );
-
-      //       if (platform) {
-      //         platform.campaign_start_date = newStartDate;
-      //         platform.campaign_end_date = newEndDate;
-      //       }
-      //     }
-      //   }
-
-      //   return updatedData;
-      // });
-
       draggingDataRef.current = null;
     }
   };
-
-  // console.log("here", isResizing)
-  // Separate effect for parentWidth-only changes
-  // useEffect(() => {
-  //   if (
-  //     parentWidth &&
-  //     channelState.length > 0 &&
-  //     !isAdjustingWidthRef.current
-  //   ) {
-  //     isAdjustingWidthRef.current = true;
-
-  //     // Save selection state before adjusting
-  //     // saveSelectionState();
-
-  //     setChannelState((prev) =>
-  //       prev.map((state) => {
-  //         // Adjust width proportionally without losing position
-  //         const newWidth = Math.min(state.width, parentWidth);
-  //         const newLeft = Math.max(
-  //           parentLeft,
-  //           Math.min(state.left, parentLeft + parentWidth - newWidth)
-  //         );
-
-  //         return {
-  //           ...state,
-  //           left: newLeft,
-  //           width: newWidth,
-  //         };
-  //       })
-  //     );
-
-  //     // Restore selection state after a brief delay
-  //     setTimeout(() => {
-  //       restoreSelectionState();
-  //       isAdjustingWidthRef.current = false;
-  //     }, 0);
-  //   }
-  // }, [parentWidth, parentLeft]);
 
   useEffect(() => {
     if (campaignFormData) {
@@ -487,7 +418,6 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
       }
 
       setEndDate(end);
-      //console.log({ start, end })
 
       setDrange(
         eachDayOfInterval({
@@ -496,7 +426,7 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
         })
       );
     }
-  }, [campaignFormData, parentId]); // Removed parentWidth from dependencies
+  }, [campaignFormData, parentId]);
 
   useEffect(() => {
     if (startDate && initialStartDateRef.current) {
@@ -552,10 +482,6 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
       }
     }
 
-    // if (fieldName === "endDate" && endDate && calculatedDate > endDate) {
-    //   return endDate ? moment(endDate).format("YYYY-MM-DD") : null;
-    // }
-    // console.log("updatedCampaignFormData", updatedCampaignFormData)
     return calculatedDate ? moment(calculatedDate).format("YYYY-MM-DD") : null;
   };
 
@@ -771,12 +697,10 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
     }
   };
 
-  // Modified effect for initialChannels changes - now excludes parentWidth
   useEffect(() => {
     if (initialChannels && initialChannels.length > 0) {
       setChannels(initialChannels);
-      console.log("Called");
-      // Initialize new channels with parent's position
+
       setChannelState((prev) => {
         const findMix = campaignFormData?.channel_mix?.find(
           (chhh) => chhh?.funnel_stage === parentId
@@ -785,31 +709,28 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
           const findChannel = findMix[ch?.channelName]?.find(
             (plt) => plt?.platform_name === ch?.name
           );
-          console.log("🚀 ~ newState ~ findChannel:", findChannel);
+
           const stageStartDate = findChannel?.campaign_start_date
             ? parseISO(findChannel?.campaign_start_date)
             : null;
 
-          // Only adjust start date if it's earlier than parent start date
           const adjustedStageStartDate =
             stageStartDate && stageStartDate < startDate
               ? stageStartDate
               : stageStartDate < startDate
-              ? startDate // Use parent start date if channel start date is earlier
-              : stageStartDate; // Otherwise use the actual channel start date
+              ? startDate
+              : stageStartDate;
 
           const stageEndDate = findChannel?.campaign_end_date
             ? parseISO(findChannel?.campaign_end_date)
             : null;
 
-          // Check if the channel's end date exceeds the parent timeline's end date
           const isEndDateExceeded =
             stageEndDate && endDate && stageEndDate > endDate;
 
-          // Only adjust end date if it exceeds parent end date
           const adjustedStageEndDate = isEndDateExceeded
-            ? endDate // Use parent end date if channel end date exceeds it
-            : stageEndDate; // Otherwise use the actual channel end date
+            ? endDate
+            : stageEndDate;
 
           const startDateIndex = adjustedStageStartDate
             ? dRange?.findIndex((date) =>
@@ -817,7 +738,6 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
               ) * dailyWidth
             : 0;
 
-          // Calculate days between using the adjusted end date
           let daysBetween;
           if (adjustedStageStartDate && adjustedStageEndDate) {
             daysBetween = eachDayOfInterval({
@@ -833,11 +753,9 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
             })?.length;
           }
 
-          // Calculate position and width
           let left =
             parentLeft + Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
 
-          // Calculate width based on days between
           let width =
             rrange === "Day"
               ? daysBetween > 0
@@ -853,22 +771,16 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
                 : parentWidth
               : parentWidth;
 
-          // Ensure width doesn't exceed parent width
           width = Math.min(width, parentWidth);
 
-          // Ensure position + width doesn't exceed parent right edge
           if (left + width > parentLeft + parentWidth) {
-            // If channel would extend beyond parent, adjust position first
             if (width <= parentWidth) {
               left = parentLeft + parentWidth - width;
             } else {
-              // If width is too large, cap it at parent width and set left to parent left
               width = parentWidth;
               left = parentLeft;
             }
           }
-
-          // Check if this channel already exists in prev
           //@ts-ignore
           const existingState = prev.find((state) => state.id === ch.id);
 
@@ -880,7 +792,7 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
               }
             : {
                 left: parentLeft,
-                width: Math.min(width, 50), // Default width for new channels
+                width: Math.min(width, 50),
               };
         });
 
@@ -888,8 +800,6 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
       });
     }
   }, [initialChannels, parentLeft, parentWidth, campaignFormData, isResizing]);
-
-  // console.log("The campaginFormData", campaignFormData);
 
   useEffect(() => {
     if (!dragging) return;
@@ -980,12 +890,6 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
       document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [dragging, parentWidth]);
-
-  console.log("channel state", channels?.map((ch)=>({
-    name: ch.name,
-    startDate: ch.start_date,
-    endDate: ch.end_date,
-  })))
 
   return (
     <div
@@ -1155,7 +1059,6 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
                         }`}
                         style={{
                           left: `0px`,
-                          // backgroundColor: channel.color,
                         }}
                         onMouseDown={(e) =>
                           disableDrag || openItems
@@ -1193,7 +1096,6 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
                         }`}
                         style={{
                           right: "0px",
-                          // backgroundColor: channel.color,
                         }}
                         onMouseDown={(e) => {
                           disableDrag || openItems
@@ -1524,11 +1426,12 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
           )}
         </div>
       </Modal>
+      {openAdset &&
       <Modal
         isOpen={selectedChannel && openAdset ? true : false}
         onClose={() => setOpenAdset(false)}
       >
-        <div className="bg-white w-[900px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
+        <div className="bg-white w-[950px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
           <button
             className="flex justify-end w-fit ml-auto"
             onClick={() => setOpenAdset(false)}
@@ -1568,6 +1471,7 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
           </div>
         </div>
       </Modal>
+      }
     </div>
   );
 };

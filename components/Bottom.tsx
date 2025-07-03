@@ -93,7 +93,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
 
     for (const stage of selectedStages) {
       const stageData = campaignFormData?.channel_mix?.find(
-        (mix) => mix.funnel_stage === stage
+        (mix) => mix?.funnel_stage === stage
       );
 
       if (stageData) {

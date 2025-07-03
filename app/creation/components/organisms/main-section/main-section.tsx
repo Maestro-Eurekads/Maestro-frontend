@@ -156,9 +156,11 @@ const MainSection = ({
     const daysInMonth: Record<string, number> = {};
 
     rrange?.forEach((date) => {
-      const monthYear = format(date, "MMMM");
+      const monthYear = format(date, "MMMM yyyy"); // Include year to differentiate months across years
       daysInMonth[monthYear] = (daysInMonth[monthYear] || 0) + 1;
     });
+
+    // console.log("daysInMonth", daysInMonth);
 
     return daysInMonth;
   }
