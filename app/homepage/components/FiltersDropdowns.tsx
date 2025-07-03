@@ -286,7 +286,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
               }
 
 
-              return label.replace("_", " ");
+              return label.replace("_", "");
             };
 
             const displayLabel = getDisplayLabel();
