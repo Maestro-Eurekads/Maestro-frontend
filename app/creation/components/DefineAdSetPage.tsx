@@ -139,7 +139,7 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
       // Reset the ref for the other view so that switching back will allow update if needed
       goalLevelUpdateRef.current[view] = false
     }
-  // Only depend on campaignFormData?.goal_level and view
+    // Only depend on campaignFormData?.goal_level and view
   }, [campaignFormData?.goal_level, view, setCampaignFormData])
 
   useEffect(() => {
@@ -223,6 +223,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             }
           }
         } catch (error) {
+          if (error?.response?.status === 401) {
+            const event = new Event("unauthorizedEvent");
+            window.dispatchEvent(event);
+          }
           console.error("Error checking stored channel state:", error)
         }
       }
@@ -339,7 +343,10 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
             }
           }
         } catch (error) {
-          console.error("Error loading stored channel state for recap:", error)
+          if (error?.response?.status === 401) {
+            const event = new Event("unauthorizedEvent");
+            window.dispatchEvent(event);
+          }
         }
       }
 

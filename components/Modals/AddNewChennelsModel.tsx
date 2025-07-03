@@ -20,7 +20,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
   const [selected, setSelected] = useState({});
   const [validatedStages, setValidatedStages] = useState({});
   const { campaignFormData, setCampaignFormData, setCopy, cId, campaignData, jwt, getActiveCampaign } =
-      useCampaigns();
+    useCampaigns();
   const [openChannelTypes, setOpenChannelTypes] = useState({});
   const [showMoreMap, setShowMoreMap] = useState({});
   const [stageStatuses, setStageStatuses] = useState({});
@@ -28,10 +28,10 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
   const [newlySelected, setNewlySelected] = useState([]);
   const [openAdset, setOpenAdset] = useState(false);
   const [deleting, setDeleting] = useState(false);
-    const [id, setId] = useState(null);
+  const [id, setId] = useState(null);
 
   const sendUpdatedDataToAPI = async (updatedData) => {
-    const {media_plan_details, user, ...rest} = campaignData
+    const { media_plan_details, user, ...rest } = campaignData
     try {
       setDeleting(true);
       const response = await axios.put(
@@ -63,10 +63,13 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
           },
         }
       );
-await getActiveCampaign()
+      await getActiveCampaign()
       // //console.log("Campaign data updated successfully", response.data);
     } catch (error) {
-      console.error("Error updating campaign data:", error);
+      if (error?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
     } finally {
       setDeleting(false);
       setId(null);
@@ -107,11 +110,11 @@ await getActiveCampaign()
 
                 formDataPlatforms.forEach((platformName) => {
                   // if (campaignDataPlatforms.includes(platformName)) {
-                    newlySelectedPlatforms.push({
-                      stageName: formDataItem.funnel_stage,
-                      category: categoryKey,
-                      platformName,
-                    });
+                  newlySelectedPlatforms.push({
+                    stageName: formDataItem.funnel_stage,
+                    category: categoryKey,
+                    platformName,
+                  });
                   // }
                 });
               }
@@ -303,49 +306,49 @@ await getActiveCampaign()
         </div>
       )}
       {openAdset &&
-      <Modal isOpen={(selectedStage && openAdset) ? true : false} onClose={() => setOpenAdset(false)}>
-        <div className="bg-white w-[900px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
-          <button
-            className="flex justify-end w-fit ml-auto"
-            onClick={() => setOpenAdset(false)}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="25"
-              height="25"
-              viewBox="0 0 25 25"
-              fill="none"
-            >
-              <path
-                d="M18.7266 6.5L6.72656 18.5M6.72656 6.5L18.7266 18.5"
-                stroke="#717680"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          <AdSetsFlow
-            stageName={selectedStage}
-            // onEditStart={() => resetInteraction(stage.name)}
-            platformName={newlySelected?.map((nn) => nn?.platformName)}
-            modalOpen={openAdset}
-          />
-          <div className="w-fit ml-auto">
+        <Modal isOpen={(selectedStage && openAdset) ? true : false} onClose={() => setOpenAdset(false)}>
+          <div className="bg-white w-[900px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
             <button
-              className="bg-blue-500 text-white rounded-md p-2"
-              onClick={async() => {
-                await sendUpdatedDataToAPI(campaignFormData)
-                await setOpenAdset(false);
-                await setIsOpen(false);
-              }}
-              disabled={deleting}
+              className="flex justify-end w-fit ml-auto"
+              onClick={() => setOpenAdset(false)}
             >
-              {deleting ? <FaSpinner className="animate-spin"/> :"Confirm Changes"}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="25"
+                height="25"
+                viewBox="0 0 25 25"
+                fill="none"
+              >
+                <path
+                  d="M18.7266 6.5L6.72656 18.5M6.72656 6.5L18.7266 18.5"
+                  stroke="#717680"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </button>
+            <AdSetsFlow
+              stageName={selectedStage}
+              // onEditStart={() => resetInteraction(stage.name)}
+              platformName={newlySelected?.map((nn) => nn?.platformName)}
+              modalOpen={openAdset}
+            />
+            <div className="w-fit ml-auto">
+              <button
+                className="bg-blue-500 text-white rounded-md p-2"
+                onClick={async () => {
+                  await sendUpdatedDataToAPI(campaignFormData)
+                  await setOpenAdset(false);
+                  await setIsOpen(false);
+                }}
+                disabled={deleting}
+              >
+                {deleting ? <FaSpinner className="animate-spin" /> : "Confirm Changes"}
+              </button>
+            </div>
           </div>
-        </div>
-      </Modal>
+        </Modal>
       }
     </div>
   );

@@ -157,6 +157,10 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 				getActiveCampaign(campaignId);
 			}
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			toast.error(error?.message || "Failed to approve plan");
 		} finally {
 			setLoading(false);

@@ -77,7 +77,10 @@ function FinanceView({ setOpenModal, userRole }) {
         setFetchingPO(false);
       }
     } catch (error) {
-      console.error("Error deleting PO:", error);
+      if (error?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
     } finally {
       setLoading(false);
     }

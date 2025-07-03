@@ -131,6 +131,10 @@ export const SetupScreen = () => {
 
       setUsers({ agencyAccess, clientAccess });
     } catch (error) {
+      if (error?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
       toast.error(`Failed to fetch users: ${error.message}`);
     } finally {
       setLoading(false);

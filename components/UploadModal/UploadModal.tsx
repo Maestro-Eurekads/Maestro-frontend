@@ -99,7 +99,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
         await updateCampaign(cleanData)
         await getActiveCampaign()
       } catch (error) {
-        console.error("Error in uploadUpdatedCampaignToStrapi:", error)
+        if (error?.response?.status === 401) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
+        }
         toast.error("Failed to save campaign data.")
         throw error
       }
@@ -191,7 +194,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
         await updateCampaign(rest)
         await getActiveCampaign()
       } catch (error) {
-        console.error("Error updating campaign in Strapi:", error)
+        if (error?.response?.status === 401) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
+        }
         toast.error("Failed to save campaign data. Changes may not persist.")
         // Revert optimistic update if needed
         await getActiveCampaign()
@@ -274,7 +280,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
           return updated
         })
       } catch (error) {
-        console.error("Error processing file:", error)
+        if (error?.response?.status === 401) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
+        }
         toast.error("Error processing file. Please try again.")
       } finally {
         setUploadingIndex(null)
@@ -385,7 +394,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
               // Don't show error to user since file was already deleted successfully
             })
           } catch (error) {
-            console.error("Error deleting file from database:", error)
+            if (error?.response?.status === 401) {
+              const event = new Event("unauthorizedEvent");
+              window.dispatchEvent(event);
+            }
             toast.error("Failed to delete file from database. Please try again.")
             return
           }
@@ -399,7 +411,10 @@ const UploadModal: React.FC<UploadModalProps> = ({
           toast.success("Slot cleared!")
         }
       } catch (error) {
-        console.error("Error in handleDelete:", error)
+        if (error?.response?.status === 401) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
+        }
         toast.error("Failed to delete file. Please try again.")
       } finally {
         setDeletingIndex(null)
@@ -680,13 +695,12 @@ const UploadModal: React.FC<UploadModalProps> = ({
               {Array.from({ length: quantities }).map((_, index) => (
                 <div key={index} className="flex flex-col gap-2">
                   <div
-                    className={`w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors relative ${
-                      loading ? "cursor-not-allowed" : "cursor-pointer"
-                    }`}
+                    className={`w-[225px] h-[105px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-blue-500 transition-colors relative ${loading ? "cursor-not-allowed" : "cursor-pointer"
+                      }`}
                     onClick={() => !loading && document.getElementById(`upload${index}`)?.click()}
                   >
                     {uploadingIndex === index ||
-                    (loading && uploadProgress[index] > 0 && uploadProgress[index] < 100) ? (
+                      (loading && uploadProgress[index] > 0 && uploadProgress[index] < 100) ? (
                       <div className="flex flex-col items-center justify-center">
                         <FaSpinner className="animate-spin text-blue-500 text-2xl" />
                         <span className="text-sm">{Math.round(uploadProgress[index])}%</span>
@@ -702,9 +716,8 @@ const UploadModal: React.FC<UploadModalProps> = ({
                           {renderUploadedFile(uploadBlobs, format, index)}
                         </Link>
                         <button
-                          className={`absolute right-2 top-2 w-[20px] h-[20px] rounded-full flex justify-center items-center ${
-                            deletingIndex === index ? "bg-gray-400 cursor-not-allowed" : "bg-red-500 cursor-pointer"
-                          } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                          className={`absolute right-2 top-2 w-[20px] h-[20px] rounded-full flex justify-center items-center ${deletingIndex === index ? "bg-gray-400 cursor-not-allowed" : "bg-red-500 cursor-pointer"
+                            } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
                           onClick={(e) => {
                             e.stopPropagation()
                             if (!loading && deletingIndex !== index) handleDelete(index)

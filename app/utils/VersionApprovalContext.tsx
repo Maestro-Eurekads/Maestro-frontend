@@ -45,6 +45,10 @@ export const VersionApprovalProvider = ({ children }) => {
 			setCreatesSuccess(true);
 			setIsLoading(false);
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setIsError(error);
 		} finally {
 			setIsLoading(false);
@@ -95,6 +99,10 @@ export const VersionApprovalProvider = ({ children }) => {
 			setVersion(versions)
 			setgetLoading(false);
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setIsError(error);
 		} finally {
 			setgetLoading(false);
@@ -118,6 +126,10 @@ export const VersionApprovalProvider = ({ children }) => {
 			setVersions(versions)
 			setgetLoading(false);
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setIsError(error);
 		} finally {
 			setgetLoading(false);
@@ -146,6 +158,10 @@ export const VersionApprovalProvider = ({ children }) => {
 			setupdateSuccess(true);
 			setupdateLoading(false);
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setIsError(error);
 		} finally {
 			setupdateLoading(false);

@@ -761,7 +761,10 @@ console.log("snappedRightEdge", {snappedRightEdge, parentRightEdge})
         }
       );
     } catch (error) {
-      console.error("Error updating campaign data:", error);
+      if (error?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
     } finally {
       setDeleting(false);
       setId(null);

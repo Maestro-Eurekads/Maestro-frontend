@@ -371,7 +371,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
         );
         return response;
       } catch (error) {
-        // console.error("Error updating campaign:", error);
+        if (error?.response?.status === 401) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
+        }
         throw error;
       } finally {
         setLoading(false);
@@ -451,8 +454,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       console.error("Error fetching buy objectives:", err);
       if (err?.response?.status === 401) {
-        // Logout the user if credentials are invalid 
-        signOut({ callbackUrl: "/" });
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
       }
     } finally {
       setLoadingObj(false);
@@ -472,10 +475,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       );
       setBuyType(res?.data?.data);
     } catch (err) {
-      console.error("Error fetching buy types:", err);
       if (err?.response?.status === 401) {
-        // Logout the user if credentials are invalid 
-        signOut({ callbackUrl: "/" });
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
       }
     } finally {
       setLoadingObj(false);
@@ -579,8 +581,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       console.error("Error fetching platform lists:", err);
       if (err?.response?.status === 401) {
-        // Logout the user if credentials are invalid 
-        signOut({ callbackUrl: "/" });
+        if (err?.response?.status === 401) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
+        }
       }
     } finally {
       setLoadingObj(false);
@@ -616,7 +620,10 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
           fetchBuyTypes(),
         ]);
       } catch (error) {
-        console.error("Error during initial data fetch:", error);
+        if (error?.response?.status === 401) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
+        }
       }
     };
     if (jwt) {

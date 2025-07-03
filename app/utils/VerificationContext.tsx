@@ -54,7 +54,10 @@ const loadStoredState = () => {
 			const parsedState = storedState ? JSON.parse(storedState) : {};
 			return typeof parsedState === "object" && parsedState !== null ? parsedState : {};
 		} catch (error) {
-			console.error("Error parsing verifybeforeMove from localStorage:", error);
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			return {};
 		}
 	}
