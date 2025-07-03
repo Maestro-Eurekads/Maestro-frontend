@@ -286,9 +286,9 @@ const MapFunnelStages = () => {
   // Initialize funnel data and configurations
 
   useEffect(() => {
-    console.debug(
-      `Initializing with clientId: ${clientId}, mediaPlanId: ${mediaPlanId}`
-    );
+    // console.debug(
+    //   `Initializing with clientId: ${clientId}, mediaPlanId: ${mediaPlanId}`
+    // );
     if (!loadingCampaign) {
       const isNewPlan = !mediaPlanId || mediaPlanId === "";
 
@@ -362,7 +362,7 @@ const MapFunnelStages = () => {
             funnel_configs: configs,
           };
 
-          console.debug("Updated campaignFormData:", updatedFormData);
+          // console.debug("Updated campaignFormData:", updatedFormData);
 
           return updatedFormData;
       });
@@ -472,7 +472,7 @@ const MapFunnelStages = () => {
 
       setPreviousValidationState(isValid);
 
-      console.debug(`Validation status: ${isValid}`);
+      // console.debug(`Validation status: ${isValid}`);
     }
   }, [campaignFormData, cId, verifyStep, previousValidationState]);
 
@@ -689,7 +689,7 @@ const MapFunnelStages = () => {
 
     setHasChanges(true);
 
-    console.debug("Selected funnel:", id, "New stages:", orderedFunnelStages);
+    // console.debug("Selected funnel:", id, "New stages:", orderedFunnelStages);
   };
 
   // Add a new funnel
@@ -738,7 +738,7 @@ const MapFunnelStages = () => {
 
     setIsModalOpen(false);
 
-    console.debug("Added funnel:", newFunnel);
+    // console.debug("Added funnel:", newFunnel);
   };
 
   // Edit an existing funnel
@@ -797,7 +797,7 @@ const MapFunnelStages = () => {
 
     setIsModalOpen(false);
 
-    console.debug("Edited funnel:", { oldId, newName, newColor });
+    // console.debug("Edited funnel:", { oldId, newName, newColor });
   };
 
   // Remove a funnel
@@ -845,7 +845,7 @@ const MapFunnelStages = () => {
 
     toast.success("Funnel removed successfully", { duration: 3000 });
 
-    console.debug("Removed funnel:", id);
+    // console.debug("Removed funnel:", id);
   };
 
   // Handle drag and drop
@@ -920,7 +920,7 @@ const MapFunnelStages = () => {
 
     setDragOverIndex(null);
 
-    console.debug("Reordered funnels:", newFunnels);
+    // console.debug("Reordered funnels:", newFunnels);
   };
 
   const handleDragEnd = () => {
@@ -1026,7 +1026,7 @@ const MapFunnelStages = () => {
 
     setDropdownOpen(false);
 
-    console.debug("Applied preset:", preset.label);
+    // console.debug("Applied preset:", preset.label);
   };
 
   // Handle saved config selection
@@ -1063,7 +1063,7 @@ const MapFunnelStages = () => {
 
     setDropdownOpen(false);
 
-    console.debug("Applied config:", config.name);
+    // console.debug("Applied config:", config.name);
   };
 
   // Save configuration
@@ -1170,7 +1170,7 @@ const MapFunnelStages = () => {
 
     setIsSaveConfigModalOpen(false);
 
-    console.debug("Saved new config:", config);
+    // console.debug("Saved new config:", config);
   };
 
   // Open delete confirmation modal
@@ -1260,7 +1260,7 @@ const MapFunnelStages = () => {
 
     toast.success("Configuration deleted successfully", { duration: 2000 });
 
-    console.debug("Marked config as deleted at index:", configToDelete);
+    // console.debug("Marked config as deleted at index:", configToDelete);
 
     setIsDeleteModalOpen(false);
 
