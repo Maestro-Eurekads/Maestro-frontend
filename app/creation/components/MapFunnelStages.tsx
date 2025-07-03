@@ -296,11 +296,13 @@ const MapFunnelStages = () => {
 
       let configs: FunnelConfig[] = [];
 
-      if (campaignFormData?.funnel_configs?.length) {
-        configs = campaignFormData.funnel_configs;
+      if (campaignData?.funnel_configs?.length) {
+        configs = campaignData.funnel_configs;
       } else if (campaignData?.client?.custom_funnel_configs?.length) {
         configs = campaignData.client.custom_funnel_configs;
       }
+
+      console.log("configs", configs)
 
       setFunnelConfigs(configs);
 
@@ -339,7 +341,7 @@ const MapFunnelStages = () => {
         const orderedFunnelStages = loadedCustomFunnels.map((f) => f.name);
         const orderedChannelMix = loadedCustomFunnels.map((f) => {
             // if (prev?.channel_mix && prev.channel_mix.length > 0) {
-            const existingChannel = prev?.channel_mix?.find(
+            const existingChannel = prev?.channel_mix && prev?.channel_mix?.length > 0 && prev?.channel_mix?.find(
               (ch: any) => ch?.funnel_stage === f.name
             );
             return existingChannel ? existingChannel : { funnel_stage: f.name };

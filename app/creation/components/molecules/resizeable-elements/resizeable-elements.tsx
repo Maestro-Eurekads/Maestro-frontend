@@ -279,7 +279,7 @@ const ResizeableElements = ({
       const endMonth = funnelData?.endMonth || 1
       calculateAndCacheDailyWidth(rrange, contWidth, endMonth, totalDaysInRange)
     })
-  }, [rrange, funnelData?.endMonth, range, calculateAndCacheDailyWidth, generateYearMonths])
+  }, [rrange, funnelData?.endMonth, range, generateYearMonths])
 
   // Enhanced function that returns the number of days in each month using the state range as reference
   const getDaysInEachMonth = useCallback((range: Date[]): Record<string, number> => {
@@ -533,7 +533,7 @@ const ResizeableElements = ({
 
   return (
     <div
-      className={`w-full min-h-[494px] relative pb-5 grid-container overflow-x-hidden`}
+      className={`w-full min-h-[494px] relative pb-5 grid-container `}
       ref={gridRef}
       style={{
         ...(rrange === "Year"
