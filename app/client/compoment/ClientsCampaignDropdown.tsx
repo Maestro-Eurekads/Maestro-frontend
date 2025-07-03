@@ -54,7 +54,7 @@ const ClientsCampaignDropdown = ({
 	const selectedOption = options.find((opt) => opt.documentId === selected);
 
 	return (
-		<div className="relative w-full min-w-[150px]" ref={dropdownRef}>
+		<div className="relative w-full min-w-[180px]" ref={dropdownRef}>
 			<div
 				className="flex items-center px-4 py-2 w-full h-[40px] bg-[#F7F7F7] border border-[#EFEFEF] rounded-[10px] cursor-pointer"
 				onClick={toggleDropdown}

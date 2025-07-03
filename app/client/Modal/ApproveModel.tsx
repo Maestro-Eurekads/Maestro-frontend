@@ -8,9 +8,16 @@ import SignatureInput from "./SignatureInput";
 import DatePickerInput from "components/DatePickerInput";
 import { useComments } from "app/utils/CommentProvider";
 import { useSession } from "next-auth/react";
+import { useCampaigns } from "app/utils/CampaignsContext";
 
 const ApproveModel = ({ isOpen, setIsOpen }) => {
+  const { campaignData } = useCampaigns();
   const { setIsLoadingApproval, isLoadingApproval, createAsignatureapproval, createApprovalSuccess } = useComments();
+
+  const isdocumentId = campaignData?.documentId
+
+  console.log('campaignData-campaignData--', isdocumentId)
+
 
   const { data: session }: any = useSession();
   const [alert, setAlert] = useState(null);
@@ -30,9 +37,6 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
       signature: sign
     }));
   }, [sign]);
-
-
-
 
 
   //  Automatically reset alert after showing
@@ -67,7 +71,7 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
   const handleSubmit = async () => {
     if (Object.values(inputs).some((value) => value.trim() === "")) return;
     try {
-      await createAsignatureapproval(sign, inputs, id); // if createApproval takes arguments
+      await createAsignatureapproval(sign, inputs, id, isdocumentId); // if createApproval takes arguments
       setIsLoadingApproval(false)
       setSign("");
     } catch (error) {
@@ -86,7 +90,6 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
     if (createApprovalSuccess) {
       setAlert({ variant: "success", message: "Aprroval is Successful!", position: "bottom-right" });
     }
-
 
   }, [createApprovalSuccess]);
 

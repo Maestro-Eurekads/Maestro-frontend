@@ -19,6 +19,8 @@ const DayTimeline: React.FC<DayTimelineProps> = ({ daysCount, funnels }) => {
   const [openSections, setOpenSections] = useState({});
 
 
+
+
   // Function to toggle campaign dropdown
   const toggleShow = (index) => {
     setExpanded((prev) => ({ ...prev, [index]: !prev[index] }));
@@ -105,8 +107,9 @@ const DayTimeline: React.FC<DayTimelineProps> = ({ daysCount, funnels }) => {
                   </h3>
                   <p className="text-[#061237] font-medium text-[14px]">
                     {/* 250,000 € */}
-                    {budget === "undefined €" ? 0 : Number(budget.replace(/[^\d.-]/g, "")).toLocaleString() + " €"}
-
+                    {budget?.startsWith("null") || budget?.startsWith("undefined")
+                      ? 0
+                      : `${Number(budget.replace(/[^\d.-]/g, "")).toLocaleString()} ${budget.replace(/[\d\s.,-]/g, "").trim()}`}
                   </p>
                 </div>
                 <button onClick={() => toggleShow(index)}>
@@ -166,7 +169,10 @@ const DayTimeline: React.FC<DayTimelineProps> = ({ daysCount, funnels }) => {
                             </span>
                           </div>
                           <button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
-                            {section?.budget}
+                            {section?.budget?.startsWith("null") || section?.budget?.startsWith("undefined")
+                              ? 0
+                              : `${Number(section?.budget.replace(/[^\d.-]/g, "")).toLocaleString()} ${section?.budget.replace(/[\d\s.,-]/g, "").trim()}`}
+
                           </button>
                         </div>
 

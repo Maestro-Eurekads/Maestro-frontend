@@ -105,7 +105,9 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                   </h3>
                   <p className="text-[#061237] font-medium text-[14px]">
                     {/* 250,000 € */}
-                    {budget === "undefined €" || budget === "null €" ? 0 : Number(budget.replace(/[^\d.-]/g, "")).toLocaleString() + " €"}
+                    {budget?.startsWith("null") || budget?.startsWith("undefined")
+                      ? 0
+                      : `${Number(budget.replace(/[^\d.-]/g, "")).toLocaleString()} ${budget.replace(/[\d\s.,-]/g, "").trim()}`}
                   </p>
                 </div>
                 <button onClick={() => toggleShow(index)}>
@@ -165,7 +167,10 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                             </span>
                           </div>
                           <button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
-                            {section?.budget}
+                            {section?.budget?.startsWith("null") || section?.budget?.startsWith("undefined")
+                              ? 0
+                              : `${Number(section?.budget.replace(/[^\d.-]/g, "")).toLocaleString()} ${section?.budget.replace(/[\d\s.,-]/g, "").trim()}`}
+
                           </button>
                         </div>
 

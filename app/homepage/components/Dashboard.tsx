@@ -84,7 +84,7 @@ const Dashboard = () => {
       label: ch?.media_plan_details?.plan_name,
       stages: ch?.channel_mix?.map((d) => ({
         name: d?.funnel_stage,
-        budget: d?.stage_budget?.fixed_value,
+        budget: `${ch?.campaign_budget?.amount} ${getCurrencySymbol(ch?.campaign_budget?.currency)}`
       })),
       budget: `${ch?.campaign_budget?.amount} ${getCurrencySymbol(ch?.campaign_budget?.currency)}`,
     }

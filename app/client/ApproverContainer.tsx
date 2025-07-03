@@ -9,17 +9,17 @@ import { useAppDispatch, useAppSelector } from "store/useStore";
 
 const ApproverContainer = ({ campaign, loading, isLoadingCampaign }) => {
 	const { data: session }: any = useSession();
-	const { jwt } = useCampaigns()
+	const { jwt, campaignData } = useCampaigns()
 	const dispatch = useAppDispatch();
 	const id = session?.user?.id || null;
-
-	// //console.log("ApproverContainer campaign:", campaign);
+	const isdocumentId = campaignData?.documentId
 
 	useEffect(() => {
-		if (id) {
-			dispatch(getSignedApproval({ id, jwt }));
+
+		if (isdocumentId) {
+			dispatch(getSignedApproval({ isdocumentId, jwt }));
 		}
-	}, [dispatch, id]);
+	}, [dispatch, isdocumentId]);
 
 	const internalApprovers = campaign?.media_plan_details
 		?.internal_approver?.map(a => cleanName(a?.username)) || ["-"];

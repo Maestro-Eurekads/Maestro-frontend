@@ -14,13 +14,14 @@ const BusinessApproverContainer = ({
   campaignFormData
 }) => {
   const { data: session }: any = useSession();
-  const { jwt } = useCampaigns();
+  const { jwt, campaignData } = useCampaigns();
   const dispatch = useAppDispatch();
   const id = session?.user?.id || null;
+  const isdocumentId = campaignData?.documentId
 
   useEffect(() => {
     if (id) {
-      dispatch(getSignedApproval({ id, jwt }));
+      dispatch(getSignedApproval({ isdocumentId, jwt }));
     }
   }, [dispatch, id]);
 

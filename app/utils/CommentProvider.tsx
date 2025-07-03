@@ -161,7 +161,7 @@ export const CommentProvider = ({ children }) => {
 		}
 	};
 
-	const createAsignatureapproval = async (sign, inputs, id) => {
+	const createAsignatureapproval = async (sign, inputs, id, isdocumentId) => {
 		setIsLoadingApproval(true);
 		try {
 			await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/client-signature-approvals`, {
@@ -171,6 +171,7 @@ export const CommentProvider = ({ children }) => {
 					signature: sign,
 					fullname: inputs.name,
 					clientId: id,
+					isdocumentId: isdocumentId,
 					isSignature: true,
 				},
 			}, {
