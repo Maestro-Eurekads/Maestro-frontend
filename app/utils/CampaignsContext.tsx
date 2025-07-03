@@ -579,12 +579,9 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       const organizedPlatforms = organizeAdvertisingPlatforms(data);
       setPlatformList(organizedPlatforms);
     } catch (err) {
-      console.error("Error fetching platform lists:", err);
       if (err?.response?.status === 401) {
-        if (err?.response?.status === 401) {
-          const event = new Event("unauthorizedEvent");
-          window.dispatchEvent(event);
-        }
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
       }
     } finally {
       setLoadingObj(false);

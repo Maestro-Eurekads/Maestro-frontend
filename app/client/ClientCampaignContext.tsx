@@ -20,7 +20,7 @@ interface ClientCampaignContextProps {
 const ClientCampaignContext = createContext<ClientCampaignContextProps>({
   campaigns: [],
   loading: false,
-  fetchCampaignsByClientId: () => {},
+  fetchCampaignsByClientId: () => { },
 });
 
 export const useClientCampaign = () => useContext(ClientCampaignContext);
@@ -32,7 +32,7 @@ export const ClientCampaignProvider = ({
 }) => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(false);
-  const {data:session} = useSession();
+  const { data: session } = useSession();
   const jwt =
     (session?.user as { data?: { jwt: string } })?.data?.jwt
 
@@ -93,7 +93,10 @@ export const ClientCampaignProvider = ({
       );
       setCampaigns(res.data.data);
     } catch (err) {
-      console.error("Failed to fetch campaigns:", err);
+      if (err?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
     } finally {
       setLoading(false);
     }

@@ -10,6 +10,7 @@ import tickcircles from "../../public/solid_circle-check.svg";
 import ClientsCampaignDropdown from "./compoment/ClientsCampaignDropdown";
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { getFirstLetters } from "components/Options";
+import { toast } from "sonner";
 
 const Header = ({ setIsOpen, campaigns, loading }) => {
   const {
@@ -49,11 +50,13 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
   // Check if user has any assigned campaigns
   const hasCampaigns = campaigns && `campaigns`?.length > 0;
 
-  // console.log('dataApprove-dataApprove', dataApprove)
 
 
   const isApproverForSelectedCampaign = campaigns?.find((cam) => cam?.documentId === selected)?.media_plan_details?.client_approver?.map((approver) => approver?.id)?.filter((aId) => aId === id)?.length > 0
 
+  const handleCheckCampaign = () => {
+    toast.error("Please Select a Campaign!");
+  }
 
   return (
     <div
@@ -100,7 +103,15 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
                   <button
                     className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
                     style={{ border: "1px solid #3175FF" }}
-                    onClick={() => setIsOpen(true)}>
+
+                    onClick={() => {
+                      if (campaignData) {
+                        setIsOpen(true);
+                      } else {
+                        handleCheckCampaign();
+                      }
+                    }}
+                  >
                     Approve & Sign Media plan
                   </button>
                 )}
@@ -145,24 +156,6 @@ const Header = ({ setIsOpen, campaigns, loading }) => {
           )}
         </div>
       </div>
-      {/* {isDrawerOpen ? (
-        ""
-      ) : (
-       
-          <div className="text-[18px] absolute right-[30px] top-[20px] cursor-pointer"
-            onClick={async () => {
-              localStorage.removeItem("campaignFormData");
-              localStorage.removeItem("selectedClient");
-              localStorage.removeItem("profileclients");
-              localStorage.removeItem(session?.user?.data?.user?.id?.toString() || "");
-              await signOut({
-                callbackUrl: "/",
-              });
-            }}
-          >
-            Logout
-          </div>
-        )} */}
     </div>
   );
 };
