@@ -1125,7 +1125,10 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                     {getCurrencySymbol(currency)}
                     {formatNumberWithCommas(row.budget)}
                   </span>
-                  <span className="ml-2 text-xs text-gray-600">{formatPercent(row.percent)}% of total budget</span>
+                  {/* PATCH: Add platform name before "of total budget" */}
+                  <span className="ml-2 text-xs text-gray-600">
+                    {row.name} {formatPercent(row.percent)}% of total budget
+                  </span>
                 </div>
               ))}
             </div>
@@ -1478,7 +1481,8 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                     </div>
                                   </div>
                                   <p className="whitespace-nowrap tracking-tight text-xs">
-                                    of{" "}
+                                    {/* PATCH: Add platform name before "of total budget in channel view" */}
+                                    {platform?.outlet} of{" "}
                                     {campaignFormData?.campaign_budget?.budget_type === "bottom_up" ? "phase" : "total"}{" "}
                                     budget
                                   </p>
