@@ -33,29 +33,19 @@ const calculateGrossFromNet = (netAmount, fees) => {
   return Number(netAmount) + totalFees
 }
 
-const calculateRemainingBudget = (netAmount, fees, campaignFormData, campaignBudgetType) => {
-  const totalFees = fees.reduce((total, fee) => total + Number(fee.amount || 0), 0)
-  let totalAvailableBudget
-
-  if (campaignBudgetType === "gross") {
-    totalAvailableBudget = Number(netAmount) || 0
-  } else {
-    totalAvailableBudget = (Number(netAmount) || 0) + totalFees
-  }
-
-  const subBudgets =
-    campaignFormData?.channel_mix?.reduce((acc, stage) => {
-      return acc + (Number(stage?.stage_budget?.fixed_value) || 0)
-    }, 0) || 0
-
-  let remainingBudget
-  if (campaignBudgetType === "gross") {
-    remainingBudget = totalAvailableBudget - totalFees - subBudgets
-  } else {
-    remainingBudget = (Number(netAmount) || 0) - subBudgets
-  }
-
-  return remainingBudget > 0 ? remainingBudget.toFixed(2) : "0.00"
+// Only calculate the remaining budget for a single phase (stage)
+const calculatePhaseRemainingBudget = (stageName, campaignFormData) => {
+  const stage = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
+  if (!stage) return "0.00"
+  const stageBudget = Number(stage?.stage_budget?.fixed_value) || 0
+  let allocated = 0
+  mediaTypes.forEach((type) => {
+    if (stage[type]) {
+      allocated += stage[type].reduce((acc, p) => acc + (Number(p?.budget?.fixed_value) || 0), 0)
+    }
+  })
+  const remaining = stageBudget - allocated
+  return remaining > 0 ? remaining.toFixed(2) : "0.00"
 }
 
 // Helper to format percentage without decimal
@@ -983,8 +973,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
     }
 
     const stagePercentage = totalBudget ? (stageBudget / totalBudget) * 100 : 0
-    const totalFees = fees.reduce((total, fee) => total + Number(fee.amount || 0), 0)
-    const remainingBudget = calculateRemainingBudget(netAmount, fees, campaignFormData, campaignBudgetType)
 
     // Build a vertical list of channels (platforms) with their budget and % of phase (stage) budget
     const channelRows: {
@@ -1018,41 +1006,21 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
     const funnelStageLabel =
       campaignFormData?.custom_funnels?.find((f) => f.name === stageName)?.name || stageName
 
+    // Only show phase remaining budget in the recap
+    const phaseRemainingBudget = calculatePhaseRemainingBudget(stageName, campaignFormData)
+
     return (
       <div className="mb-2 mt-1 text-sm text-gray-700 bg-[#F4F6FA] rounded px-4 py-1 border border-[#E5E7EB]">
         <div className="mb-1 flex flex-col gap-0.5">
           <div className="font-semibold mb-0.5">Recap</div>
           <div>
-            <span className="font-bold">Net Budget: </span>
-            <span className="font-bold">
-              {getCurrencySymbol(currency)}
-              {formatNumberWithCommas(stageBudget)}
-            </span>
-            <span className="ml-2 text-gray-500">({formatPercent(stagePercentage)}% of available net budget)</span>
-          </div>
-          {fees.length > 0 && (
-            <div>
-              <span className="font-bold">Gross Budget: </span>
-              <span className="font-bold">
-                {getCurrencySymbol(currency)}
-                {formatNumberWithCommas(calculateGrossFromNet(stageBudget, fees).toFixed(2))}
-              </span>
-              <span className="ml-2 font-bold">Fees: </span>
-              <span className="font-bold">
-                {getCurrencySymbol(currency)}
-                {formatNumberWithCommas(totalFees.toFixed(2))}
-              </span>
-            </div>
-          )}
-          <div>
             <span className="font-bold">Remaining: </span>
-            <span className={`font-bold ${Number(remainingBudget) < 1 ? "text-red-500" : "text-green-600"}`}>
+            <span className={`font-bold ${Number(phaseRemainingBudget) < 1 ? "text-red-500" : "text-green-600"}`}>
               {getCurrencySymbol(currency)}
-              {formatNumberWithCommas(remainingBudget)}
+              {formatNumberWithCommas(phaseRemainingBudget)}
             </span>
           </div>
         </div>
-
         {channelRows.length > 0 && (
           <div className="mt-2">
             <div className="font-semibold mb-0.5">Channel Allocation</div>
