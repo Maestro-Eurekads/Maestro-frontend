@@ -77,7 +77,7 @@ const Header = ({ setIsOpen, setIsView }) => {
 
  useEffect(() => {
   if (profile && agencyId) {
-   dispatch(getCreateClient({ userId: userType, jwt, agencyId }));
+   dispatch(getCreateClient({ userId: isAdmin ? null : userType, jwt, agencyId }));
 
    const timer = setTimeout(() => {
     setAlert(null);
