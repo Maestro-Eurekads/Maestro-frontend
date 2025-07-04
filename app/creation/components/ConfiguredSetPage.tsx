@@ -323,10 +323,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
         }
       })
 
-      console.log("Debug - Total Audience Size:", totalAudienceSize)
-      console.log("Debug - Audience Items:", audienceItems)
-      console.log("Debug - Total Platform Budget:", totalPlatformBudget)
-
       // If no audience data available, fall back to equal split
       if (totalAudienceSize === 0 || audienceItems.length === 0) {
         toast.warning("No audience size data available, falling back to equal split", {
@@ -393,8 +389,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
         }
       })
 
-      console.log("Debug - Budget Allocations:", budgetAllocations)
-
       // Apply the budget allocations to the campaign data
       const updatedChannelMix = campaignFormData.channel_mix.map((ch) => {
         if (ch.funnel_stage === stageName) {
@@ -450,28 +444,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
         ...campaignFormData,
         channel_mix: updatedChannelMix,
       })
-
-      // Show success message with allocation details
-      const allocationDetails = budgetAllocations
-        .map((item) => {
-          const audienceLabel =
-            item.type === "main"
-              ? `Ad Set ${item.adSetIndex + 1}`
-              : `Ad Set ${item.adSetIndex + 1} Extra ${item.extraIndex + 1}`
-          return `${audienceLabel}: ${item.audienceSize.toLocaleString()} audience → ${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}${formatNumberWithCommas(item.budgetAllocation)} (${item.percentage}%)`
-        })
-        .join(", ")
-
-      // Verify total allocation
-      const totalAllocated = budgetAllocations.reduce((sum, item) => sum + item.budgetAllocation, 0)
-
-      // toast.success(
-      //   `Budget allocated proportionally! Total audience: ${totalAudienceSize.toLocaleString()}, Total allocated: ${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}${formatNumberWithCommas(totalAllocated.toFixed(2))}. Details: ${allocationDetails}`,
-      //   {
-      //     position: "bottom-right",
-      //     autoClose: 8000,
-      //   },
-      // )
     } else {
       toast.error("Could not find platform data for budget allocation", {
         position: "bottom-right",
@@ -810,28 +782,11 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                   budget: {
                     ...p.budget,
                     fixed_value: newChannelBudget.toString(),
-                    // PATCH: recalculate channel percentage as a percentage of the *total campaign budget* (gross or net)
+                    // PATCH: recalculate channel percentage as a percentage of the *stage budget* (not total campaign budget)
                     percentage_value:
-                      campaignFormData?.campaign_budget?.budget_type === "bottom_up"
-                        ? (
-                            (newChannelBudget /
-                              (Number(
-                                campaignFormData?.campaign_budget?.amount ||
-                                  campaignFormData?.channel_mix?.reduce(
-                                    (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
-                                    0,
-                                  ) ||
-                                  0,
-                              ) || 1)) *
-                            100
-                          ).toFixed(1)
-                        : (
-                            (newChannelBudget /
-                              (campaignBudgetType === "gross"
-                                ? calculateNetFromGross(netAmount, fees)
-                                : netAmount || 1)) *
-                            100
-                          ).toFixed(1),
+                      newBudget > 0
+                        ? ((newChannelBudget / newBudget) * 100).toFixed(1)
+                        : "",
                   },
                 }
               })
@@ -1031,7 +986,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
     const totalFees = fees.reduce((total, fee) => total + Number(fee.amount || 0), 0)
     const remainingBudget = calculateRemainingBudget(netAmount, fees, campaignFormData, campaignBudgetType)
 
-    // Build a vertical list of channels (platforms) with their budget and % of total campaign budget
+    // Build a vertical list of channels (platforms) with their budget and % of phase (stage) budget
     const channelRows: {
       icon: StaticImageData | string
       name: string
@@ -1044,18 +999,9 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
         if (stageData[type]) {
           stageData[type].forEach((platform) => {
             const budget = Number(platform?.budget?.fixed_value) || 0
-            // PATCH: percent is now of total campaign budget, not just phase
+            // PATCH: percent is now of phase (stage) budget, not total campaign budget
             let percent = 0
-            if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
-              percent = totalBudget > 0 ? (budget / totalBudget) * 100 : 0
-            } else {
-              percent =
-                (campaignBudgetType === "gross" ? calculateNetFromGross(netAmount, fees) : netAmount || 0) > 0
-                  ? (budget /
-                      (campaignBudgetType === "gross" ? calculateNetFromGross(netAmount, fees) : netAmount || 1)) *
-                    100
-                  : 0
-            }
+            percent = stageBudget > 0 ? (budget / stageBudget) * 100 : 0
 
             channelRows.push({
               icon: getPlatformIcon(platform.platform_name) || "/placeholder.svg",
@@ -1125,9 +1071,9 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                     {getCurrencySymbol(currency)}
                     {formatNumberWithCommas(row.budget)}
                   </span>
-                  {/* PATCH: Add platform name before "of total budget" */}
+                  {/* PATCH: Add platform name before "of phase budget" */}
                   <span className="ml-2 text-xs text-gray-600">
-                    {row.name} {formatPercent(row.percent)}% of total budget
+                    {row.name} {formatPercent(row.percent)}% of phase budget
                   </span>
                 </div>
               ))}
@@ -1356,17 +1302,10 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                           const foundPlatform = stageObj[channelType]?.find((p) => p.platform_name === platform?.outlet)
                           if (foundPlatform) {
                             platformBudget = foundPlatform?.budget?.fixed_value || ""
-                            // PATCH: recalculate channel percentage as a percentage of the *stage budget* (not total campaign budget) for bottom-up
-                            if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
-                              const stageBudgetVal = Number(stageObj?.stage_budget?.fixed_value) || 0
-                              platformPercentage =
-                                stageBudgetVal > 0 ? ((Number(platformBudget) || 0) / stageBudgetVal) * 100 : 0
-                            } else {
-                              const totalBudget =
-                                campaignBudgetType === "gross" ? calculateNetFromGross(netAmount, fees) : netAmount || 0
-                              platformPercentage =
-                                totalBudget > 0 ? ((Number(platformBudget) || 0) / totalBudget) * 100 : 0
-                            }
+                            // PATCH: recalculate channel percentage as a percentage of the *stage budget* (not total campaign budget) for all cases
+                            const stageBudgetVal = Number(stageObj?.stage_budget?.fixed_value) || 0
+                            platformPercentage =
+                              stageBudgetVal > 0 ? ((Number(platformBudget) || 0) / stageBudgetVal) * 100 : 0
                             break
                           }
                         }
@@ -1481,10 +1420,8 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                     </div>
                                   </div>
                                   <p className="whitespace-nowrap tracking-tight text-xs">
-                                    {/* PATCH: Add platform name before "of total budget in channel view" */}
-                                    {platform?.outlet} of{" "}
-                                    {campaignFormData?.campaign_budget?.budget_type === "bottom_up" ? "phase" : "total"}{" "}
-                                    budget
+                                    {/* PATCH: Add platform name before "of phase budget in channel view" */}
+                                    {platform?.outlet} of phase budget
                                   </p>
                                   {platform?.ad_sets?.length > 1 &&
                                     campaignFormData?.campaign_budget?.level === "Adset level" && (
