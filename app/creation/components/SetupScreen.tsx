@@ -148,10 +148,10 @@ export const SetupScreen = () => {
 
 
   useEffect(() => {
-    if (clientId && lastFetchedClientId.current !== clientId) {
-      lastFetchedClientId.current = clientId;
-      fetchUsers();
-    }
+    // if (clientId && lastFetchedClientId.current !== clientId) {
+    //   lastFetchedClientId.current = clientId;
+    fetchUsers();
+    // }
   }, [clientId, selectedClient]);
 
 
