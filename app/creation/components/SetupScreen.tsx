@@ -103,7 +103,7 @@ export const SetupScreen = () => {
     // if (!clientId) return;
 
     const baseUrl = `${process.env.NEXT_PUBLIC_STRAPI_URL}/users`;
-    const filterParams = [`filters[clients][id][$eq]=${encodeURIComponent(9)}`];
+    const filterParams = [`filters[clients][id][$eq]=${encodeURIComponent(clientId || selectedClient)}`];
     const populateParams = ['populate=*'];
 
     setLoading(true);
@@ -148,10 +148,10 @@ export const SetupScreen = () => {
 
 
   useEffect(() => {
-    // if (clientId && lastFetchedClientId.current !== clientId) {
-    //   lastFetchedClientId.current = clientId;
-    fetchUsers();
-    // }
+    if (clientId && lastFetchedClientId.current !== clientId) {
+      lastFetchedClientId.current = clientId;
+      fetchUsers();
+    }
   }, [clientId, selectedClient]);
 
 
