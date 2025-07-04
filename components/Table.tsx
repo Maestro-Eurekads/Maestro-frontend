@@ -150,13 +150,18 @@ const Table = () => {
           },
         }
       );
+
       setClientCampaignData((prev: Campaign[]) => [...prev, res?.data?.data]);
       setOpenModal("");
       setDuplicateName("");
       setSelected(null);
       await updateOrignalCmapignCount(selected?.documentId, (selected?.copyCount || 0) + 1);
     } catch (err) {
-      console.error("Error duplicating campaign:", err);
+
+      if (err?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
     } finally {
       setLoading(false);
     }
@@ -178,7 +183,10 @@ const Table = () => {
         }
       );
     } catch (err) {
-      console.error("Error updating campaign count:", err);
+      if (err?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
     }
   };
 

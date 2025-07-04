@@ -49,7 +49,6 @@ const calculateRemainingBudget = (netAmount, fees, campaignFormData, campaignBud
     }, 0) || 0
 
   let remainingBudget
-
   if (campaignBudgetType === "gross") {
     remainingBudget = totalAvailableBudget - totalFees - subBudgets
   } else {
@@ -67,37 +66,26 @@ const formatPercent = (value) => {
 // Helper function to calculate total height needed for all ad sets and their extra audiences
 const calculateTotalLineHeight = (adSets) => {
   if (!adSets || adSets.length === 0) return 0
-
   let totalHeight = 0
   adSets.forEach((adSet, index) => {
-    // Base height for each ad set
     totalHeight += 110
-
-    // Additional height for extra audiences
     if (adSet.extra_audiences && adSet.extra_audiences.length > 0) {
       totalHeight += adSet.extra_audiences.length * 110
     }
   })
-
   return totalHeight
 }
 
 // Helper function to calculate the position for the horizontal line to reach the last item
 const calculateHorizontalLinePosition = (adSets) => {
   if (!adSets || adSets.length === 0) return 0
-
   let position = 0
   adSets.forEach((adSet, index) => {
-    // Add height for the ad set itself
     position += 110
-
-    // Add height for extra audiences
     if (adSet.extra_audiences && adSet.extra_audiences.length > 0) {
       position += adSet.extra_audiences.length * 110
     }
   })
-
-  // Subtract one unit to align with the last item
   return position - 110
 }
 
@@ -163,7 +151,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
 
       channelMix.forEach((stage: any) => {
         const { funnel_stage } = stage
-
         if (!platformsByStage[funnel_stage]) {
           platformsByStage[funnel_stage] = []
         }
@@ -172,7 +159,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
           if (Array.isArray(stage[channel])) {
             stage[channel].forEach((platform: any) => {
               const icon = getPlatformIcon(platform?.platform_name)
-
               if (icon) {
                 platformsByStage[funnel_stage].push({
                   id: Math.floor(Math.random() * 1000000),
@@ -190,7 +176,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
 
       return platformsByStage
     }
-
     return {}
   }
 
@@ -203,7 +188,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
   useEffect(() => {
     funnelStages.forEach((stageName) => {
       const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
-
       if (stageData?.stage_budget?.fixed_value > 0) {
         setStageStatus((prev) => ({
           ...prev,
@@ -228,7 +212,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
 
   const isButtonEnabled = (stage) => {
     const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stage)
-
     if (stageData?.stage_budget?.fixed_value) return true
 
     const hasPlatformBudget = mediaTypes.some((type) =>
@@ -284,8 +267,12 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
     setResults((prev) => ({ ...prev, [stage]: newResults }))
   }
 
+  // Fixed handleAutoSplitBudget with correct audience size-based allocation
   const handleAutoSplitBudget = (stage, channel, platform) => {
-    const stageData = campaignFormData.channel_mix.find((ch) => ch.funnel_stage === stage.funnel_stage)
+    // Find the correct stage data using stage name
+    const stageName = stage.name // stage comes from custom_funnels, so use .name
+    const stageData = campaignFormData.channel_mix.find((ch) => ch.funnel_stage === stageName)
+
     const findPlatform = Array.isArray(stageData?.[channel])
       ? stageData[channel].find((ch) => ch?.platform_name === platform)
       : undefined
@@ -293,36 +280,159 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
     if (stageData && findPlatform) {
       const totalPlatformBudget = Number(findPlatform?.budget?.fixed_value)
 
-      const totalAdSetCount = findPlatform?.ad_sets?.reduce((acc, ad) => {
-        const extraAudienceCount = ad?.extra_audiences?.length || 0
-        return acc + 1 + extraAudienceCount
-      }, 0)
+      if (!totalPlatformBudget || totalPlatformBudget <= 0) {
+        toast.error("Please set platform budget first before auto-splitting", {
+          position: "bottom-right",
+        })
+        return
+      }
 
-      if (!totalAdSetCount) return
+      // Calculate total audience size and collect all audience items
+      let totalAudienceSize = 0
+      const audienceItems = []
 
-      const splitBudget = (totalPlatformBudget / totalAdSetCount).toFixed(2)
+      findPlatform?.ad_sets?.forEach((adSet, adSetIndex) => {
+        // Main ad set audience size - ensure we parse as number and remove commas
+        const mainAudienceSize = Number(String(adSet?.size || "0").replace(/,/g, "")) || 0
 
+        if (mainAudienceSize > 0) {
+          totalAudienceSize += mainAudienceSize
+          audienceItems.push({
+            type: "main",
+            adSetIndex,
+            audienceSize: mainAudienceSize,
+            extraIndex: null,
+          })
+        }
+
+        // Extra audiences
+        if (Array.isArray(adSet?.extra_audiences)) {
+          adSet.extra_audiences.forEach((extraAudience, extraIndex) => {
+            const extraAudienceSize = Number(String(extraAudience?.size || "0").replace(/,/g, "")) || 0
+
+            if (extraAudienceSize > 0) {
+              totalAudienceSize += extraAudienceSize
+              audienceItems.push({
+                type: "extra",
+                adSetIndex,
+                audienceSize: extraAudienceSize,
+                extraIndex,
+              })
+            }
+          })
+        }
+      })
+
+      console.log("Debug - Total Audience Size:", totalAudienceSize)
+      console.log("Debug - Audience Items:", audienceItems)
+      console.log("Debug - Total Platform Budget:", totalPlatformBudget)
+
+      // If no audience data available, fall back to equal split
+      if (totalAudienceSize === 0 || audienceItems.length === 0) {
+        toast.warning("No audience size data available, falling back to equal split", {
+          position: "bottom-right",
+        })
+
+        const totalAdSetCount = findPlatform?.ad_sets?.reduce((acc, ad) => {
+          const extraAudienceCount = ad?.extra_audiences?.length || 0
+          return acc + 1 + extraAudienceCount
+        }, 0)
+
+        if (!totalAdSetCount) return
+
+        const splitBudget = (totalPlatformBudget / totalAdSetCount).toFixed(2)
+
+        const updatedChannelMix = campaignFormData.channel_mix.map((ch) => {
+          if (ch.funnel_stage === stageName) {
+            if (ch[channel]) {
+              ch[channel] = ch[channel].map((p) => {
+                if (p.platform_name === platform) {
+                  return {
+                    ...p,
+                    ad_sets: p.ad_sets?.map((adSet) => {
+                      const updatedExtraAudiences = adSet.extra_audiences?.map((extraAudience) => ({
+                        ...extraAudience,
+                        budget: {
+                          fixed_value: splitBudget,
+                          percentage_value: ((Number(splitBudget) / totalPlatformBudget) * 100).toFixed(1),
+                        },
+                      }))
+
+                      return {
+                        ...adSet,
+                        budget: {
+                          fixed_value: splitBudget,
+                          percentage_value: ((Number(splitBudget) / totalPlatformBudget) * 100).toFixed(1),
+                        },
+                        extra_audiences: updatedExtraAudiences,
+                      }
+                    }),
+                  }
+                }
+                return p
+              })
+            }
+          }
+          return ch
+        })
+
+        setCampaignFormData({
+          ...campaignFormData,
+          channel_mix: updatedChannelMix,
+        })
+        return
+      }
+
+      // Calculate budget allocations for each audience item
+      const budgetAllocations = audienceItems.map((item) => {
+        const allocation = totalPlatformBudget * (item.audienceSize / totalAudienceSize)
+        return {
+          ...item,
+          budgetAllocation: Number(allocation.toFixed(2)),
+          percentage: Number(((allocation / totalPlatformBudget) * 100).toFixed(1)),
+        }
+      })
+
+      console.log("Debug - Budget Allocations:", budgetAllocations)
+
+      // Apply the budget allocations to the campaign data
       const updatedChannelMix = campaignFormData.channel_mix.map((ch) => {
-        if (ch.funnel_stage === stage.funnel_stage) {
+        if (ch.funnel_stage === stageName) {
           if (ch[channel]) {
             ch[channel] = ch[channel].map((p) => {
               if (p.platform_name === platform) {
                 return {
                   ...p,
-                  ad_sets: p.ad_sets?.map((adSet) => {
-                    const updatedExtraAudiences = adSet.extra_audiences?.map((extraAudience) => ({
-                      ...extraAudience,
-                      budget: {
-                        fixed_value: splitBudget,
-                        percentage_value: ((Number(splitBudget) / totalPlatformBudget) * 100).toFixed(1),
-                      },
-                    }))
+                  ad_sets: p.ad_sets?.map((adSet, adSetIndex) => {
+                    // Find the main ad set allocation
+                    const mainAllocation = budgetAllocations.find(
+                      (item) => item.type === "main" && item.adSetIndex === adSetIndex,
+                    )
+
+                    // Find extra audience allocations for this ad set
+                    const extraAllocations = budgetAllocations.filter(
+                      (item) => item.type === "extra" && item.adSetIndex === adSetIndex,
+                    )
+
+                    // Update extra audiences
+                    const updatedExtraAudiences =
+                      adSet.extra_audiences?.map((extraAudience, extraIndex) => {
+                        const extraAllocation = extraAllocations.find((item) => item.extraIndex === extraIndex)
+
+                        return {
+                          ...extraAudience,
+                          budget: {
+                            fixed_value: extraAllocation ? extraAllocation.budgetAllocation.toString() : "0",
+                            percentage_value: extraAllocation ? extraAllocation.percentage.toString() : "0",
+                          },
+                        }
+                      }) || []
 
                     return {
                       ...adSet,
                       budget: {
-                        fixed_value: splitBudget,
-                        percentage_value: ((Number(splitBudget) / totalPlatformBudget) * 100).toFixed(1),
+                        fixed_value: mainAllocation ? mainAllocation.budgetAllocation.toString() : "0",
+                        percentage_value: mainAllocation ? mainAllocation.percentage.toString() : "0",
                       },
                       extra_audiences: updatedExtraAudiences,
                     }
@@ -339,16 +449,44 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
       setCampaignFormData({
         ...campaignFormData,
         channel_mix: updatedChannelMix,
+      })
+
+      // Show success message with allocation details
+      const allocationDetails = budgetAllocations
+        .map((item) => {
+          const audienceLabel =
+            item.type === "main"
+              ? `Ad Set ${item.adSetIndex + 1}`
+              : `Ad Set ${item.adSetIndex + 1} Extra ${item.extraIndex + 1}`
+          return `${audienceLabel}: ${item.audienceSize.toLocaleString()} audience → ${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}${formatNumberWithCommas(item.budgetAllocation)} (${item.percentage}%)`
+        })
+        .join(", ")
+
+      // Verify total allocation
+      const totalAllocated = budgetAllocations.reduce((sum, item) => sum + item.budgetAllocation, 0)
+
+      // toast.success(
+      //   `Budget allocated proportionally! Total audience: ${totalAudienceSize.toLocaleString()}, Total allocated: ${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}${formatNumberWithCommas(totalAllocated.toFixed(2))}. Details: ${allocationDetails}`,
+      //   {
+      //     position: "bottom-right",
+      //     autoClose: 8000,
+      //   },
+      // )
+    } else {
+      toast.error("Could not find platform data for budget allocation", {
+        position: "bottom-right",
       })
     }
   }
 
   const handleResetBudget = (stage, channel, platform) => {
-    const stageData = campaignFormData.channel_mix.find((ch) => ch.funnel_stage === stage.funnel_stage)
+    // Use stage.name instead of stage.funnel_stage
+    const stageName = stage.name
+    const stageData = campaignFormData.channel_mix.find((ch) => ch.funnel_stage === stageName)
 
     if (stageData) {
       const updatedChannelMix = campaignFormData.channel_mix.map((ch) => {
-        if (ch.funnel_stage === stage.funnel_stage) {
+        if (ch.funnel_stage === stageName) {
           if (ch[channel]) {
             ch[channel] = ch[channel].map((p) => {
               if (p.platform_name === platform) {
@@ -384,6 +522,10 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
       setCampaignFormData({
         ...campaignFormData,
         channel_mix: updatedChannelMix,
+      })
+
+      toast.success("Budget allocation reset successfully", {
+        position: "bottom-right",
       })
     }
   }
@@ -416,6 +558,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
               percentage_value: "",
             },
           }
+
           // Clear all channel/platform/adset budgets
           mediaTypes.forEach((type) => {
             if (clearedCh[type]) {
@@ -447,13 +590,14 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
               }))
             }
           })
+
           return clearedCh
         }
         return ch
       })
 
       // For bottom-up, also clear campaign_budget.amount if all stages are empty
-      let newCampaignBudget = { ...campaignFormData.campaign_budget }
+      const newCampaignBudget = { ...campaignFormData.campaign_budget }
       if (
         campaignFormData?.campaign_budget?.budget_type === "bottom_up" &&
         updatedChannelMix.every(
@@ -470,6 +614,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
           campaign_budget: newCampaignBudget,
         }),
       })
+
       return
     }
 
@@ -534,7 +679,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
         // User entered percentage, calculate budget
         const percentageValue = Math.min(100, Math.max(0, Number(value) || 0))
         newPercentage = percentageValue
-
         if (campaignBudgetType === "gross") {
           const grossBudget = (netAmount * percentageValue) / 100
           newBudget = calculateNetFromGross(grossBudget, fees)
@@ -544,7 +688,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
       } else {
         // User entered budget amount
         const inputValue = Number(value.replace(/,/g, "")) || 0
-
         if (campaignBudgetType === "gross" && fees.length > 0) {
           newBudget = calculateNetFromGross(inputValue, fees)
           newPercentage = netAmount ? (inputValue / netAmount) * 100 : 0
@@ -556,7 +699,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
         // Limit percentage to 100%
         if (newPercentage > 100) {
           newPercentage = 100
-
           if (campaignBudgetType === "gross" && fees.length > 0) {
             const maxGrossBudget = netAmount
             newBudget = calculateNetFromGross(maxGrossBudget, fees)
@@ -645,6 +787,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
               }))
             }
           })
+
           updatedCh = {
             ...updatedCh,
             ...clearedChannels,
@@ -661,6 +804,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                 if (channelBudget > newBudget) {
                   newChannelBudget = newBudget
                 }
+
                 return {
                   ...p,
                   budget: {
@@ -678,7 +822,8 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                     0,
                                   ) ||
                                   0,
-                              ) || 1)) * 100
+                              ) || 1)) *
+                            100
                           ).toFixed(1)
                         : (
                             (newChannelBudget /
@@ -692,6 +837,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
               })
             }
           })
+
           updatedCh = {
             ...updatedCh,
             ...recalculatedChannels,
@@ -700,7 +846,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
 
         return updatedCh
       }
-
       return ch
     })
 
@@ -729,11 +874,9 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
   // New function to handle platform budget updates
   const handlePlatformBudgetUpdate = (stageName, platformOutlet, value, isPercentage = false) => {
     const stageData = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === stageName)
-
     if (!stageData) return
 
     const stageBudget = Number(stageData.stage_budget?.fixed_value) || 0
-
     if (stageBudget === 0) {
       toast("Please set stage budget first", {
         position: "bottom-right",
@@ -792,6 +935,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
     if (newPercentage > 100) {
       newPercentage = 100
       newBudget = stageBudget
+
       toast("Percentage cannot exceed 100%", {
         position: "bottom-right",
         type: "error",
@@ -818,10 +962,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                         ...p.budget,
                         fixed_value: newBudget ? newBudget.toString() : "",
                         // PATCH: recalculate channel percentage as a percentage of the *stage budget* (not total campaign budget)
-                        percentage_value:
-                          newBudget === 0
-                            ? ""
-                            : ((newBudget / (stageBudget || 1)) * 100).toFixed(1),
+                        percentage_value: newBudget === 0 ? "" : ((newBudget / (stageBudget || 1)) * 100).toFixed(1),
                       },
                       // If the platform budget is cleared, also clear ad_sets budgets
                       ad_sets:
@@ -849,7 +990,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
             }
           }
         }
-
         return ch
       })
 
@@ -875,7 +1015,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
     const stageBudget = Number(stageData?.stage_budget?.fixed_value) || 0
 
     let totalBudget
-
     if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
       totalBudget =
         Number(campaignFormData?.campaign_budget?.amount) ||
@@ -908,19 +1047,12 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
             // PATCH: percent is now of total campaign budget, not just phase
             let percent = 0
             if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
-              percent =
-                totalBudget > 0
-                  ? (budget / totalBudget) * 100
-                  : 0
+              percent = totalBudget > 0 ? (budget / totalBudget) * 100 : 0
             } else {
               percent =
-                (campaignBudgetType === "gross"
-                  ? calculateNetFromGross(netAmount, fees)
-                  : netAmount || 0) > 0
+                (campaignBudgetType === "gross" ? calculateNetFromGross(netAmount, fees) : netAmount || 0) > 0
                   ? (budget /
-                      (campaignBudgetType === "gross"
-                        ? calculateNetFromGross(netAmount, fees)
-                        : netAmount || 1)) *
+                      (campaignBudgetType === "gross" ? calculateNetFromGross(netAmount, fees) : netAmount || 1)) *
                     100
                   : 0
             }
@@ -948,7 +1080,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
             </span>
             <span className="ml-2 text-gray-500">({formatPercent(stagePercentage)}% of available net budget)</span>
           </div>
-
           {fees.length > 0 && (
             <div>
               <span className="font-bold">Gross Budget: </span>
@@ -963,7 +1094,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
               </span>
             </div>
           )}
-
           <div>
             <span className="font-bold">Remaining: </span>
             <span className={`font-bold ${Number(remainingBudget) < 1 ? "text-red-500" : "text-green-600"}`}>
@@ -995,7 +1125,10 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                     {getCurrencySymbol(currency)}
                     {formatNumberWithCommas(row.budget)}
                   </span>
-                  <span className="ml-2 text-xs text-gray-600">{formatPercent(row.percent)}% of total budget</span>
+                  {/* PATCH: Add platform name before "of total budget" */}
+                  <span className="ml-2 text-xs text-gray-600">
+                    {row.name} {formatPercent(row.percent)}% of total budget
+                  </span>
                 </div>
               ))}
             </div>
@@ -1004,7 +1137,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
       </div>
     )
   }
-
   // --- RECAP REWRITE ENDS HERE ---
 
   return (
@@ -1014,7 +1146,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
         const stageBudget = Number(stageData?.stage_budget?.fixed_value) || 0
 
         let totalBudget
-
         if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
           totalBudget =
             Number(campaignFormData?.campaign_budget?.amount) ||
@@ -1029,7 +1160,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
 
         const percentage = (() => {
           const storedPercentage = Number(stageData?.stage_budget?.percentage_value)
-
           if (storedPercentage && storedPercentage > 0) {
             return storedPercentage
           }
@@ -1042,7 +1172,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                 (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
                 0,
               ) || 0
-
             if (campaignBudgetType === "gross" && fees.length > 0) {
               const grossTotal = calculateGrossFromNet(totalOfStages, fees)
               const grossStageBudget = calculateGrossFromNet(stageBudget, fees)
@@ -1062,7 +1191,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
         })()
 
         const stage = campaignFormData?.custom_funnels?.find((s) => s.name === stageName)
-
         if (!stage) return null
 
         return (
@@ -1130,7 +1258,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                         </p>
                       </div>
                     )}
-
                     <div className="flex mb-4 justify-center gap-4">
                       <div className="flex flex-col gap-2">
                         <h2 className="text-center font-bold text-sm">
@@ -1141,10 +1268,8 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                             </span>
                           )}
                         </h2>
-
                         <div className="flex items-center justify-between px-3 w-[180px] h-[40px] border border-[#D0D5DD] rounded-[8px] bg-[#FFFFFF]">
                           <p className="font-bold">{getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}</p>
-
                           <input
                             type="text"
                             className="w-full px-2 focus:outline-none text-sm"
@@ -1167,14 +1292,12 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                             }
                             onChange={(e) => handleStageBudgetUpdate(stageName, e.target.value, false)}
                           />
-
                           {campaignFormData?.campaign_budget?.currency}
                         </div>
                       </div>
 
                       <div className="flex items-start flex-col gap-2">
                         <h2 className="text-center font-bold text-sm">Percentage</h2>
-
                         <div className="flex items-center gap-2">
                           <div className="bg-[#FFFFFF] rounded-[8px] min-w-[54px] h-[40px] border border-[#D0D5DD] flex items-center px-2">
                             <div className="flex items-center gap-1">
@@ -1191,7 +1314,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                               <span>%</span>
                             </div>
                           </div>
-
                           <p className="tracking-tight text-xs">of total budget</p>
                         </div>
                       </div>
@@ -1208,7 +1330,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                         style={{ minWidth: 0 }}
                       >
                         <span className="font-semibold text-sm">Channels</span>
-
                         <span>
                           {openChannels[stage.name] ? (
                             <Image src={up || "/placeholder.svg"} alt="collapse" width={18} height={18} />
@@ -1225,7 +1346,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                         const stageObj = campaignFormData?.channel_mix?.find(
                           (stage) => stage.funnel_stage === stageName,
                         )
-
                         if (!stageObj) return null
 
                         const channelTypes = mediaTypes
@@ -1234,25 +1354,18 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
 
                         for (const channelType of channelTypes) {
                           const foundPlatform = stageObj[channelType]?.find((p) => p.platform_name === platform?.outlet)
-
                           if (foundPlatform) {
                             platformBudget = foundPlatform?.budget?.fixed_value || ""
                             // PATCH: recalculate channel percentage as a percentage of the *stage budget* (not total campaign budget) for bottom-up
                             if (campaignFormData?.campaign_budget?.budget_type === "bottom_up") {
                               const stageBudgetVal = Number(stageObj?.stage_budget?.fixed_value) || 0
                               platformPercentage =
-                                stageBudgetVal > 0
-                                  ? ((Number(platformBudget) || 0) / stageBudgetVal) * 100
-                                  : 0
+                                stageBudgetVal > 0 ? ((Number(platformBudget) || 0) / stageBudgetVal) * 100 : 0
                             } else {
                               const totalBudget =
-                                campaignBudgetType === "gross"
-                                  ? calculateNetFromGross(netAmount, fees)
-                                  : netAmount || 0
+                                campaignBudgetType === "gross" ? calculateNetFromGross(netAmount, fees) : netAmount || 0
                               platformPercentage =
-                                totalBudget > 0
-                                  ? ((Number(platformBudget) || 0) / totalBudget) * 100
-                                  : 0
+                                totalBudget > 0 ? ((Number(platformBudget) || 0) / totalBudget) * 100 : 0
                             }
                             break
                           }
@@ -1276,14 +1389,12 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                     </span>
                                   </div>
                                 )}
-
                                 <div className="flex gap-1 indent-[8px]">
                                   {campaignFormData?.campaign_budget?.level === "Adset level" &&
                                     platform?.ad_sets?.length > 0 && (
                                       <div className="l-shape-container-cb">
                                         <div className="l-vertical-cb"></div>
                                         <div className="l-horizontal-cb"></div>
-
                                         {platform?.ad_sets?.length > 1 && (
                                           <>
                                             <div
@@ -1303,7 +1414,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                       </div>
                                     )}
                                 </div>
-
                                 <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[180px] h-[40px] rounded-[8px] items-center gap-1">
                                   <div className="flex justify-between w-full px-3 items-center">
                                     <div className="flex items-center gap-1">
@@ -1314,7 +1424,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                       />
                                       <span className="text-sm">{platform?.outlet}</span>
                                     </div>
-
                                     {campaignFormData?.campaign_budget?.level === "Adset level" &&
                                       platform?.ad_sets?.length > 0 && (
                                         <Image src={down2 || "/placeholder.svg"} className="size-5" alt="arrow down" />
@@ -1325,12 +1434,10 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
 
                               <div className="flex items-start flex-col gap-1">
                                 <h2 className="text-center font-bold text-xs">Budget</h2>
-
                                 <div className="flex items-center justify-between px-3 w-[180px] h-[40px] border border-[#D0D5DD] rounded-[8px] bg-[#FFFFFF]">
                                   <p className="font-bold text-sm">
                                     {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
                                   </p>
-
                                   <input
                                     type="text"
                                     className="w-full px-2 focus:outline-none text-sm"
@@ -1340,14 +1447,12 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                       handlePlatformBudgetUpdate(stageName, platform.outlet, e.target.value, false)
                                     }
                                   />
-
                                   <span className="text-sm">{campaignFormData?.campaign_budget?.currency}</span>
                                 </div>
                               </div>
 
                               <div className="flex items-start flex-col gap-1">
                                 <h2 className="text-center font-bold text-xs">Percentage</h2>
-
                                 <div
                                   className="flex items-center gap-1 flex-wrap w-full"
                                   style={{
@@ -1375,13 +1480,12 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                       <span>%</span>
                                     </div>
                                   </div>
-
                                   <p className="whitespace-nowrap tracking-tight text-xs">
-                                    of {campaignFormData?.campaign_budget?.budget_type === "bottom_up"
-                                      ? "phase"
-                                      : "total"} budget
+                                    {/* PATCH: Add platform name before "of total budget in channel view" */}
+                                    {platform?.outlet} of{" "}
+                                    {campaignFormData?.campaign_budget?.budget_type === "bottom_up" ? "phase" : "total"}{" "}
+                                    budget
                                   </p>
-
                                   {platform?.ad_sets?.length > 1 &&
                                     campaignFormData?.campaign_budget?.level === "Adset level" && (
                                       <div
@@ -1412,7 +1516,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                           />
                                           <span className="absolute inset-y-0 left-0 w-5 h-5 rounded-full bg-white transition-transform duration-200 transform peer-checked:translate-x-5"></span>
                                         </label>
-
                                         <div
                                           className="text-[#061237] text-nowrap text-xs font-semibold tracking-tighter"
                                           style={{
@@ -1423,9 +1526,9 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                             minWidth: 0,
                                             flex: "1 1 0",
                                           }}
-                                          title="Auto-split budget across ad sets"
+                                          title="Auto-split budget based on audience size"
                                         >
-                                          Auto-split budget across ad sets
+                                          Auto-split budget based on audience size
                                         </div>
                                       </div>
                                     )}
@@ -1460,11 +1563,9 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                   const getAdSetExtraBudgetPercentage = (adSet, extraIndex) => {
                                     const extraBudget = adSet?.extra_audiences?.[extraIndex]?.budget?.fixed_value || 0
                                     const platformBudget = platform?.budget?.fixed_value || 0
-
                                     if (Number(platformBudget) > 0) {
                                       return ((Number(extraBudget) / Number(platformBudget)) * 100).toFixed(1)
                                     }
-
                                     return "0"
                                   }
 
@@ -1492,7 +1593,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                           </div>
                                         </div>
                                       )}
-
                                       <div className="flex gap-2 items-end">
                                         <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[40px] rounded-[8px] items-center gap-1">
                                           <div className="flex justify-between w-full px-3 items-center">
@@ -1501,7 +1601,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                             </div>
                                           </div>
                                         </div>
-
                                         <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[140px] h-[40px] rounded-[8px] items-center gap-1">
                                           <div className="flex justify-between w-full px-3 items-center">
                                             <div className="flex items-center gap-1">
@@ -1509,7 +1608,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                             </div>
                                           </div>
                                         </div>
-
                                         <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[40px] rounded-[8px] items-center gap-1">
                                           <div className="flex justify-between w-full px-3 items-center">
                                             <div className="flex items-center gap-1">
@@ -1519,15 +1617,12 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                             </div>
                                           </div>
                                         </div>
-
                                         <div className="flex items-start flex-col gap-1">
                                           <h2 className="text-center font-bold text-xs">Budget</h2>
-
                                           <div className="flex items-center justify-between px-3 w-[140px] h-[40px] border border-[#D0D5DD] rounded-[8px] bg-[#FFFFFF]">
                                             <p className="font-bold text-xs">
                                               {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
                                             </p>
-
                                             <input
                                               type="text"
                                               className="w-full px-2 focus:outline-none text-xs"
@@ -1536,14 +1631,12 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                               onChange={(e) => {
                                                 const inputValue = e.target.value.replace(/,/g, "")
                                                 const newBudget = inputValue
-
                                                 setCampaignFormData((prevData) => {
                                                   const updatedChannelMix = prevData.channel_mix.map((ch) => {
                                                     if (ch.funnel_stage === stageName) {
                                                       const updatedChannelType = channelTypes.find((type) =>
                                                         ch[type]?.some((p) => p.platform_name === platform.outlet),
                                                       )
-
                                                       if (updatedChannelType) {
                                                         return {
                                                           ...ch,
@@ -1571,12 +1664,14 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                                           },
                                                                         }
                                                                       } else {
-                                                                        totalAdSetBudget += Number(a.budget?.fixed_value) || 0
+                                                                        totalAdSetBudget +=
+                                                                          Number(a.budget?.fixed_value) || 0
                                                                         return a
                                                                       }
                                                                     })
-
-                                                                    if (totalAdSetBudget > Number(p.budget?.fixed_value)) {
+                                                                    if (
+                                                                      totalAdSetBudget > Number(p.budget?.fixed_value)
+                                                                    ) {
                                                                       toast(
                                                                         "The sum of all ad set budgets cannot exceed the platform budget.",
                                                                         {
@@ -1588,28 +1683,23 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                                       )
                                                                       return adSet
                                                                     }
-
                                                                     return tempAdSets[adSetIdx2]
                                                                   }
                                                                   return adSet
                                                                 },
                                                               )
-
                                                               return {
                                                                 ...p,
                                                                 ad_sets: updatedAdSets,
                                                               }
                                                             }
-
                                                             return p
                                                           }),
                                                         }
                                                       }
                                                     }
-
                                                     return ch
                                                   })
-
                                                   return {
                                                     ...prevData,
                                                     channel_mix: updatedChannelMix,
@@ -1617,16 +1707,13 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                 })
                                               }}
                                             />
-
                                             <span className="text-xs">
                                               {campaignFormData?.campaign_budget?.currency}
                                             </span>
                                           </div>
                                         </div>
-
                                         <div className="flex items-start flex-col gap-1">
                                           <h2 className="text-center font-bold text-xs">Percentage</h2>
-
                                           <div className="flex items-center gap-1">
                                             <div className=" bg-[#FFFFFF] rounded-[8px] min-w-[54px] h-[40px] border border-[#D0D5DD] flex items-center px-2">
                                               <div className="flex items-center gap-1">
@@ -1634,7 +1721,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                 <span className="text-xs"> %</span>
                                               </div>
                                             </div>
-
                                             <p className="whitespace-nowrap tracking-tight text-xs">
                                               of {platform?.outlet} budget
                                             </p>
@@ -1652,7 +1738,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                 </div>
                                               </div>
                                             </div>
-
                                             <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-[140px] h-[40px] rounded-[8px] items-center gap-1">
                                               <div className="flex justify-between w-full px-3 items-center">
                                                 <div className="flex items-center gap-1">
@@ -1660,7 +1745,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                 </div>
                                               </div>
                                             </div>
-
                                             <div className="flex bg-[#F9FAFB] border border-[#0000001A] text-[#061237] w-fit h-[40px] rounded-[8px] items-center gap-1">
                                               <div className="flex justify-between w-full px-3 items-center">
                                                 <div className="flex items-center gap-1">
@@ -1670,15 +1754,12 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                 </div>
                                               </div>
                                             </div>
-
                                             <div className="flex items-start flex-col gap-1">
                                               <h2 className="text-center font-bold text-xs">Budget</h2>
-
                                               <div className="flex items-center justify-between px-3 w-[140px] h-[40px] border border-[#D0D5DD] rounded-[8px] bg-[#FFFFFF]">
                                                 <p className="font-bold text-xs">
                                                   {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
                                                 </p>
-
                                                 <input
                                                   type="text"
                                                   className="w-full px-2 focus:outline-none text-xs"
@@ -1687,14 +1768,12 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                   onChange={(e) => {
                                                     const inputValue = e.target.value.replace(/,/g, "")
                                                     const newBudget = inputValue
-
                                                     setCampaignFormData((prevData) => {
                                                       const updatedChannelMix = prevData.channel_mix.map((ch) => {
                                                         if (ch.funnel_stage === stageName) {
                                                           const updatedChannelType = channelTypes.find((type) =>
                                                             ch[type]?.some((p) => p.platform_name === platform.outlet),
                                                           )
-
                                                           if (updatedChannelType) {
                                                             return {
                                                               ...ch,
@@ -1708,35 +1787,45 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                                             if (exIdx === extraIdx) {
                                                                               // PATCH: Enforce sum of ad set + extra budgets <= platform budget for both bottom-up and top-down
                                                                               let totalAdSetBudget = 0
-                                                                              const tempExtraAudiences = adSet.extra_audiences?.map((ea, idx) => {
-                                                                                if (idx === exIdx) {
-                                                                                  totalAdSetBudget += Number(newBudget) || 0
-                                                                                  return {
-                                                                                    ...ea,
-                                                                                    budget: {
-                                                                                      fixed_value: newBudget,
-                                                                                      percentage_value: p.budget
-                                                                                        ?.fixed_value
-                                                                                        ? (
-                                                                                            (Number(newBudget) /
-                                                                                              Number(
-                                                                                                p.budget.fixed_value,
-                                                                                              )) *
-                                                                                            100
-                                                                                          ).toFixed(2)
-                                                                                        : "0",
-                                                                                    },
-                                                                                  }
-                                                                                } else {
-                                                                                  totalAdSetBudget += Number(ea.budget?.fixed_value) || 0
-                                                                                  return ea
-                                                                                }
-                                                                              }) || []
-
+                                                                              const tempExtraAudiences =
+                                                                                adSet.extra_audiences?.map(
+                                                                                  (ea, idx) => {
+                                                                                    if (idx === exIdx) {
+                                                                                      totalAdSetBudget +=
+                                                                                        Number(newBudget) || 0
+                                                                                      return {
+                                                                                        ...ea,
+                                                                                        budget: {
+                                                                                          fixed_value: newBudget,
+                                                                                          percentage_value: p.budget
+                                                                                            ?.fixed_value
+                                                                                            ? (
+                                                                                                (Number(newBudget) /
+                                                                                                  Number(
+                                                                                                    p.budget
+                                                                                                      .fixed_value,
+                                                                                                  )) *
+                                                                                                100
+                                                                                              ).toFixed(2)
+                                                                                            : "0",
+                                                                                        },
+                                                                                      }
+                                                                                    } else {
+                                                                                      totalAdSetBudget +=
+                                                                                        Number(
+                                                                                          ea.budget?.fixed_value,
+                                                                                        ) || 0
+                                                                                      return ea
+                                                                                    }
+                                                                                  },
+                                                                                ) || []
                                                                               // Add ad set's own budget
-                                                                              totalAdSetBudget += Number(adSet.budget?.fixed_value) || 0
-
-                                                                              if (totalAdSetBudget > Number(p.budget?.fixed_value)) {
+                                                                              totalAdSetBudget +=
+                                                                                Number(adSet.budget?.fixed_value) || 0
+                                                                              if (
+                                                                                totalAdSetBudget >
+                                                                                Number(p.budget?.fixed_value)
+                                                                              ) {
                                                                                 toast(
                                                                                   "Total budget (ad sets + extras) cannot exceed platform budget",
                                                                                   {
@@ -1748,37 +1837,30 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                                                 )
                                                                                 return extra
                                                                               }
-
                                                                               return tempExtraAudiences[exIdx]
                                                                             }
                                                                             return extra
                                                                           }) || []
-
                                                                         return {
                                                                           ...adSet,
                                                                           extra_audiences: updatedExtraAudiences,
                                                                         }
                                                                       }
-
                                                                       return adSet
                                                                     },
                                                                   )
-
                                                                   return {
                                                                     ...p,
                                                                     ad_sets: updatedAdSets,
                                                                   }
                                                                 }
-
                                                                 return p
                                                               }),
                                                             }
                                                           }
                                                         }
-
                                                         return ch
                                                       })
-
                                                       return {
                                                         ...prevData,
                                                         channel_mix: updatedChannelMix,
@@ -1786,16 +1868,13 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                     })
                                                   }}
                                                 />
-
                                                 <span className="text-xs">
                                                   {campaignFormData?.campaign_budget?.currency}
                                                 </span>
                                               </div>
                                             </div>
-
                                             <div className="flex items-start flex-col gap-1">
                                               <h2 className="text-center font-bold text-xs">Percentage</h2>
-
                                               <div className="flex items-center gap-1">
                                                 <div className=" bg-[#FFFFFF] rounded-[8px] min-w-[54px] h-[40px] border border-[#D0D5DD] flex items-center px-2">
                                                   <div className="flex items-center gap-1">
@@ -1805,7 +1884,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                     <span className="text-xs"> %</span>
                                                   </div>
                                                 </div>
-
                                                 <p className="whitespace-nowrap tracking-tight text-xs">
                                                   of {platform?.outlet} budget
                                                 </p>
@@ -1817,7 +1895,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                   )
                                 })}
                             </div>
-
                             <hr className="text-gray-200 w-full p-0.5" />
                           </div>
                         )

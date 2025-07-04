@@ -136,6 +136,10 @@ const AddFinanceModal = ({
           setClientApprover(data?.media_plan_details.client_approver || []);
           setInternalApprover(data?.media_plan_details?.internal_approver || []);
         } catch (err) {
+          if (err) {
+            const event = new Event("unauthorizedEvent");
+            window.dispatchEvent(event);
+          }
           console.log(err);
         } finally {
           setLoadingCam(false);
@@ -160,7 +164,7 @@ const AddFinanceModal = ({
         }));
         setUsers(newOpt);
       } catch (err) {
-        if (true) {
+        if (err) {
           const event = new Event("unauthorizedEvent");
           window.dispatchEvent(event);
         }
@@ -187,7 +191,7 @@ const AddFinanceModal = ({
         setFinancialUsers(newOpt);
       } catch (err) {
         console.log(err);
-        if (true) {
+        if (err) {
           const event = new Event("unauthorizedEvent");
           window.dispatchEvent(event);
         }
@@ -319,7 +323,10 @@ const AddFinanceModal = ({
       );
       return response.data.data; // An array of POs with the same PO_number
     } catch (err) {
-      console.error("Error checking PO number:", err);
+      if (err?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
       return [];
     }
   };
@@ -394,7 +401,10 @@ const AddFinanceModal = ({
         setClientPOs(res?.data?.data || []);
       });
     } catch (err: any) {
-      console.error("Error creating PO:", err);
+      if (err?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
       const errorMessage =
         err?.response?.data?.error?.message || "An unexpected error occurred";
 

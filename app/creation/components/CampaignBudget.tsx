@@ -67,25 +67,41 @@ const CampaignBudget = () => {
     { value: "CAD", label: "CAD" },
   ]
 
-  // FIXED: Calculate total campaign budget - this should be the gross media budget amount only (NO FEES)
+  // Calculate total campaign budget (gross amount for display)
   const calculateTotalBudget = () => {
     if (!campaignFormData?.campaign_budget) return 0
 
     const budgetAmount = Number(campaignFormData?.campaign_budget?.amount) || 0
     const budgetType = campaignFormData?.campaign_budget?.budget_type // "top_down" or "bottom_up"
+    const subBudgetType = campaignFormData?.campaign_budget?.sub_budget_type // "gross" or "net"
+    const fees = campaignFormData?.campaign_budget?.budget_fees || []
 
     if (budgetType === "bottom_up") {
-      // For bottom-up: Total campaign budget is the sum of all stage budgets (media spend only)
+      // For bottom-up: Total campaign budget is the sum of all stage budgets
       const stageBudgetsSum =
         campaignFormData?.channel_mix?.reduce(
           (acc, stage) => acc + (Number(stage?.stage_budget?.fixed_value) || 0),
           0,
         ) || 0
-      return stageBudgetsSum
+
+      if (subBudgetType === "gross") {
+        // If gross, the stage budgets sum is the gross amount
+        return stageBudgetsSum
+      } else if (subBudgetType === "net") {
+        // If net, gross = net (stage budgets sum) + fees
+        const totalFees = fees.reduce((total, fee) => total + Number(fee.value || 0), 0)
+        return (stageBudgetsSum + totalFees).toFixed(2)
+      }
     } else {
-      // For top-down: Total campaign budget is the entered amount (gross media budget)
-      return budgetAmount
+      // For top-down: Total campaign budget is the entered amount
+      if (subBudgetType === "gross") {
+        return budgetAmount
+      } else if (subBudgetType === "net") {
+        const totalFees = fees.reduce((total, fee) => total + Number(fee.value || 0), 0)
+        return (budgetAmount + totalFees).toFixed(2)
+      }
     }
+    return 0
   }
 
   const handleBudgetEdit = (param, type) => {
@@ -147,7 +163,7 @@ const CampaignBudget = () => {
         !campaignFormData?.campaign_budget?.sub_budget_type ||
         campaignFormData?.campaign_budget?.sub_budget_type?.length === 0
       ) {
-        toast("Please allocate your sub-budgets (ad set/channel) first", {
+        toast("Please select gross or net media budget first", {
           style: { background: "red", color: "white" },
         })
         return false
@@ -520,7 +536,7 @@ const CampaignBudget = () => {
         </>
       )}
 
-      {/* Bottom-up flow: REVERSED LOGIC of top-down */}
+      {/* Bottom-up flow */}
       {budgetStyle !== "" && budgetStyle === "bottom_up" && step > 0 && (
         <>
           {/* Step 1: Choose granularity level first */}
@@ -703,7 +719,7 @@ const CampaignBudget = () => {
             </div>
           )}
 
-          {/* Always show the budget overview after validation for bottom-up */}
+          {/* Show the budget overview after validation for bottom-up */}
           {showBottomUpBudgetOverview && (
             <div className="flex flex-col gap-3 w-[672px] bg-white p-6 rounded-[20px] mt-[20px]">
               <h2 className="text-[18px] font-semibold mb-2">Overall Campaign Budget</h2>

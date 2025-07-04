@@ -340,31 +340,31 @@ const MapFunnelStages = () => {
       setCampaignFormData((prev: any) => {
         const orderedFunnelStages = loadedCustomFunnels.map((f) => f.name);
         const orderedChannelMix = loadedCustomFunnels.map((f) => {
-            // if (prev?.channel_mix && prev.channel_mix.length > 0) {
-            const existingChannel = prev?.channel_mix && prev?.channel_mix?.length > 0 && prev?.channel_mix?.find(
-              (ch: any) => ch?.funnel_stage === f.name
-            );
-            return existingChannel ? existingChannel : { funnel_stage: f.name };
+          // if (prev?.channel_mix && prev.channel_mix.length > 0) {
+          const existingChannel = prev?.channel_mix && prev?.channel_mix?.length > 0 && prev?.channel_mix?.find(
+            (ch: any) => ch?.funnel_stage === f.name
+          );
+          return existingChannel ? existingChannel : { funnel_stage: f.name };
           // }
-          });
+        });
 
-          const updatedFormData = {
-            ...prev,
+        const updatedFormData = {
+          ...prev,
 
-            funnel_type: "custom",
+          funnel_type: "custom",
 
-            funnel_stages: orderedFunnelStages,
+          funnel_stages: orderedFunnelStages,
 
-            channel_mix: orderedChannelMix,
+          channel_mix: orderedChannelMix,
 
-            custom_funnels: loadedCustomFunnels,
+          custom_funnels: loadedCustomFunnels,
 
-            funnel_configs: configs,
-          };
+          funnel_configs: configs,
+        };
 
-          // console.debug("Updated campaignFormData:", updatedFormData);
+        // console.debug("Updated campaignFormData:", updatedFormData);
 
-          return updatedFormData;
+        return updatedFormData;
       });
 
       // Match current funnels to configs or presets to set dropdown selection
@@ -397,7 +397,7 @@ const MapFunnelStages = () => {
         configs.length > savedConfigIdx &&
         !configs[savedConfigIdx]?.deleted &&
         normalizeFunnelStages(configs[savedConfigIdx].stages) ===
-          currentFunnelKey
+        currentFunnelKey
       ) {
         setSelectedConfigIdx(savedConfigIdx);
 
@@ -407,7 +407,7 @@ const MapFunnelStages = () => {
         savedPresetIdx !== null &&
         presetStructures.length > savedPresetIdx &&
         normalizeFunnelStages(presetStructures[savedPresetIdx].stages) ===
-          currentFunnelKey
+        currentFunnelKey
       ) {
         setSelectedPreset(savedPresetIdx);
 
@@ -663,8 +663,8 @@ const MapFunnelStages = () => {
 
     const newChannelMix = campaignFormData?.funnel_stages?.includes(id)
       ? campaignFormData.channel_mix.filter(
-          (ch: any) => ch?.funnel_stage !== id
-        )
+        (ch: any) => ch?.funnel_stage !== id
+      )
       : [...(campaignFormData?.channel_mix || []), { funnel_stage: id }];
 
     const orderedFunnelStages = persistentCustomFunnels
@@ -749,7 +749,7 @@ const MapFunnelStages = () => {
     newColor: string
   ) => {
     const error = validateFunnelName(newName, true, oldId);
-// console.log({oldId, newName, newColor})
+    // console.log({oldId, newName, newColor})
     if (error) {
       toast.error(error, {
         style: { background: "red", color: "white", textAlign: "center" },
@@ -779,7 +779,7 @@ const MapFunnelStages = () => {
       ),
 
       channel_mix: (prev.channel_mix || []).map((ch: any) =>
-        (ch?.funnel_stage === oldId  && oldId !== newName )? { funnel_stage: newName } : ch
+        (ch?.funnel_stage === oldId && oldId !== newName) ? { funnel_stage: newName } : ch
       ),
 
       selected_config_idx: null,
@@ -945,7 +945,7 @@ const MapFunnelStages = () => {
 
           setCustomColor(
             colorClassToHex[currentFunnel.color] ||
-              colorClassToHex[colorPalette[0]]
+            colorClassToHex[colorPalette[0]]
           );
         } else if (isHexColor(currentFunnel.color)) {
           setNewFunnelColor(currentFunnel.color);
@@ -1151,6 +1151,10 @@ const MapFunnelStages = () => {
           duration: 3000,
         });
       } catch (err) {
+        if (err) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
+        }
         console.error("Failed to update funnel configs on Strapi:", err);
 
         toast.error(
@@ -1322,11 +1326,11 @@ const MapFunnelStages = () => {
                   aria-expanded={dropdownOpen}
                 >
                   {selectedConfigIdx !== null &&
-                  !funnelConfigs[selectedConfigIdx]?.deleted
+                    !funnelConfigs[selectedConfigIdx]?.deleted
                     ? funnelConfigs[selectedConfigIdx]?.name
                     : selectedPreset !== null
-                    ? presetStructures[selectedPreset].label
-                    : "Choose a funnel structure"}
+                      ? presetStructures[selectedPreset].label
+                      : "Choose a funnel structure"}
 
                   <ChevronDown className="ml-2" size={18} />
                 </button>
@@ -1351,11 +1355,10 @@ const MapFunnelStages = () => {
                           return (
                             <li
                               key={`config-${config.name}-${originalIdx}`}
-                              className={`px-4 py-3 cursor-pointer hover:bg-blue-50 flex justify-between items-center ${
-                                selectedConfigIdx === originalIdx
+                              className={`px-4 py-3 cursor-pointer hover:bg-blue-50 flex justify-between items-center ${selectedConfigIdx === originalIdx
                                   ? "bg-blue-100"
                                   : ""
-                              }`}
+                                }`}
                               role="option"
                               aria-selected={selectedConfigIdx === originalIdx}
                               onClick={() => handleConfigSelect(originalIdx)}
@@ -1395,11 +1398,10 @@ const MapFunnelStages = () => {
                     {presetStructures.map((preset, idx) => (
                       <li
                         key={`preset-${preset.label}-${idx}`}
-                        className={`px-4 py-3 cursor-pointer hover:bg-blue-50 ${
-                          selectedPreset === idx && selectedConfigIdx === null
+                        className={`px-4 py-3 cursor-pointer hover:bg-blue-50 ${selectedPreset === idx && selectedConfigIdx === null
                             ? "bg-blue-100 font-bold"
                             : ""
-                        }`}
+                          }`}
                         role="option"
                         aria-selected={
                           selectedPreset === idx && selectedConfigIdx === null
@@ -1506,7 +1508,7 @@ const MapFunnelStages = () => {
 
                               setCustomColor(
                                 colorClassToHex[funnel.color] ||
-                                  colorClassToHex[colorPalette[0]]
+                                colorClassToHex[colorPalette[0]]
                               );
                             } else if (isHexColor(funnel.color)) {
                               setNewFunnelColor(funnel.color);

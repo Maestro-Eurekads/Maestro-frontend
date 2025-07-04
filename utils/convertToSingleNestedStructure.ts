@@ -9,13 +9,13 @@ interface NestedStructure {
 }
 
 export function convertToSingleNestedStructure(options: FlatStructure[]): NestedStructure {
-  // Default return for invalid or empty input
   if (!options || !Array.isArray(options) || options.length === 0) {
     return { title: "", parameters: [] };
   }
 
   let title = "";
-  const paramMap: Record<string, string[]> = {};
+  // @ts-ignore-next-line
+  const paramMap: Record<string, Set<string>> = new Map();
 
   options.forEach((flat) => {
     if (!flat || typeof flat !== "object") return;
@@ -23,7 +23,7 @@ export function convertToSingleNestedStructure(options: FlatStructure[]): Nested
     let id: string;
     let values: string[] = [];
 
-    // Handle nested id/value structure
+    // Extract id and values from flat structure
     if (typeof flat.id === "object" && flat.id.id && Array.isArray(flat.id.value)) {
       id = flat.id.id;
       values = flat.id.value;
@@ -34,33 +34,30 @@ export function convertToSingleNestedStructure(options: FlatStructure[]): Nested
       return;
     }
 
-    // Set title from the first valid id
-    if (!title && id) {
-      title = id;
-    }
+    if (!title && id) title = id;
 
-    // Process values and add to paramMap
     values.forEach((entry) => {
-      const [main, sub] = entry.split(/\s*-\s*/); // Split on hyphen with optional whitespace
-      if (!main || !sub) return;
+      if (!entry) return;
 
-      if (!paramMap[main]) {
-        paramMap[main] = [];
-      }
-      // Avoid duplicate sub-parameters
-      if (!paramMap[main].includes(sub)) {
-        paramMap[main].push(sub);
+      if (entry.includes("-")) {
+        // Main - Sub case
+        const [main, sub] = entry.split(/\s*-\s*/);
+        if (!paramMap[main]) paramMap[main] = new Set();
+        paramMap[main].add(sub);
+      } else {
+        // Only main param selected, no sub
+        if (!paramMap[entry]) paramMap[entry] = new Set();
       }
     });
   });
 
-  const parameters = Object.entries(paramMap).map(([name, subParameters]) => ({
+  const parameters = Object.entries(paramMap).map(([name, subSet]) => ({
     name,
-    subParameters,
+    subParameters: Array.from(subSet),
   }));
 
   return {
-    title: title,
+    title,
     parameters,
   };
 }
