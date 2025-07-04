@@ -55,12 +55,12 @@ const SideNav: React.FC = () => {
         state_text: "SideBar_Menu_state",
         sidecircle: "SideBar_Menu_active",
         title: "Map funnel stages",
-        objective:
-          campaignData?.funnel_stages?.length > 0
-            ? campaignData.funnel_stages.length > 3
-              ? campaignData.funnel_stages.slice(0, 3).join(" · ") + " ..."
-              : campaignData.funnel_stages.join(" · ")
-            : "",
+        // objective:
+        //   campaignData?.funnel_stages?.length > 0
+        //     ? campaignData.funnel_stages.length > 3
+        //       ? campaignData.funnel_stages.slice(0, 3).join(" · ") + " ..."
+        //       : campaignData.funnel_stages.join(" · ")
+        //     : "",
         img: <Image src={funnel} alt="funnel" />,
       },
       {
