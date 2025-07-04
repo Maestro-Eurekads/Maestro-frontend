@@ -308,7 +308,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
       {openAdset && 
       <Modal isOpen={(selectedStage && openAdset) ? true : false} onClose={() => setOpenAdset(false)}>
         <div className="bg-white w-[1000px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
-        <div className="w-fit ml-auto">
+        <div className="w-full">
             <button
               className="flex justify-end w-fit ml-auto"
               onClick={() => setOpenAdset(false)}
