@@ -241,9 +241,9 @@ const MainSection = ({
             <ZoomOut className="w-4 h-4" />
           </button>
 
-          <span className="text-sm font-medium min-w-[60px] text-center">
+          {/* <span className="text-sm font-medium min-w-[60px] text-center">
             {Math.round(zoomLevel * 100)}%
-          </span>
+          </span> */}
 
           <button
             onClick={zoomIn}
