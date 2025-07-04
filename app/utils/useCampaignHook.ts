@@ -73,6 +73,7 @@ const fetchClientCampaign = useCallback(
           $eq: agencyId,
         },
       };
+    
 
       if (session?.user?.data?.user?.user_type?.includes("client")) {
         filters.user = {
@@ -129,10 +130,9 @@ const fetchClientCampaign = useCallback(
       return res;
     } catch (err: any) { 
       if (error?.response?.status === 401) {
-                     const event = new Event("unauthorizedEvent");
-                     window.dispatchEvent(event);
-                  }
-
+       const event = new Event("unauthorizedEvent");
+       window.dispatchEvent(event);
+       } 
       throw err;
     }
   },
@@ -157,7 +157,10 @@ const fetchClientCampaign = useCallback(
           }
         );
       } catch (err) {
-        console.error("Error fetching client POs:", err);
+       if (err) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
+        } 
         throw err;
       }
     },
@@ -176,7 +179,10 @@ const fetchClientCampaign = useCallback(
         },
       });
     } catch (err) {
-      console.error("Error fetching users:", err);
+     if (err) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
+        }
       throw err;
     }
   };

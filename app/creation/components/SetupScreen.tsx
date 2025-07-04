@@ -100,10 +100,10 @@ export const SetupScreen = () => {
 
 
   const fetchUsers = async () => {
-    if (!clientId) return;
+    // if (!clientId) return;
 
     const baseUrl = `${process.env.NEXT_PUBLIC_STRAPI_URL}/users`;
-    const filterParams = [`filters[clients][id][$eq]=${encodeURIComponent(clientId)}`];
+    const filterParams = [`filters[clients][id][$eq]=${encodeURIComponent(9)}`];
     const populateParams = ['populate=*'];
 
     setLoading(true);
@@ -144,12 +144,15 @@ export const SetupScreen = () => {
 
 
 
+
+
+
   useEffect(() => {
-    if (clientId && lastFetchedClientId.current !== clientId) {
-      lastFetchedClientId.current = clientId;
-      fetchUsers();
-    }
-  }, [clientId]);
+    // if (clientId && lastFetchedClientId.current !== clientId) {
+    //   lastFetchedClientId.current = clientId;
+    fetchUsers();
+    // }
+  }, [clientId, selectedClient]);
 
 
 
