@@ -231,6 +231,7 @@ const FiltersDropdowns = ({ hideTitle, router }: Props) => {
     const allEmpty = Object.values(selectedFilters).every((val) => !val)
     const fetchData = async () => {
       const clientID = localStorage.getItem(userType.toString()) || allClients[0]?.id;
+
       if (!clientID) return;
 
       setLoading(true);
