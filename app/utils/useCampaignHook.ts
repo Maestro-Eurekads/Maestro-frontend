@@ -51,7 +51,10 @@ const useCampaignHook = () => {
       );
       setAllClients(res?.data?.data || []);
     } catch (err) {
-      console.error("An error occurred while fetching clients:", err);
+       if (error?.response?.status === 401) {
+       const event = new Event("unauthorizedEvent");
+       window.dispatchEvent(event);
+       } 
       setError(err.message || "Failed to fetch clients");
     } finally {
       setLoadingClients(false);
