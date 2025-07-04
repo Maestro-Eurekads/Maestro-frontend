@@ -1428,7 +1428,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                   </div>
                                   <p className="whitespace-nowrap tracking-tight text-xs">
                                     {/* PATCH: Add funnel stage name before "budget" instead of channel name in channel view */}
-                                    {funnelStageLabel} of total budget
+                                    of {funnelStageLabel} budget
                                   </p>
                                   {platform?.ad_sets?.length > 1 &&
                                     campaignFormData?.campaign_budget?.level === "Adset level" && (
@@ -1667,7 +1667,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                             </div>
                                             <p className="whitespace-nowrap tracking-tight text-xs">
                                               {/* PATCH: Add funnel stage name before "budget" instead of channel name for ad set */}
-                                              {funnelStageLabel} budget
+                                              of {platform?.outlet} budget
                                             </p>
                                           </div>
                                         </div>
