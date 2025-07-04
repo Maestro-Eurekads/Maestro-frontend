@@ -323,14 +323,183 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
         }
       })
 
-      // ... rest unchanged ...
-      // (omitted for brevity, see original selection)
-      // No changes needed for this function for the prompt
+      // If no audience data available, fall back to equal split
+      if (totalAudienceSize === 0 || audienceItems.length === 0) {
+        toast.warning("No audience size data available, falling back to equal split", {
+          position: "bottom-right",
+        })
+
+        const totalAdSetCount = findPlatform?.ad_sets?.reduce((acc, ad) => {
+          const extraAudienceCount = ad?.extra_audiences?.length || 0
+          return acc + 1 + extraAudienceCount
+        }, 0)
+
+        if (!totalAdSetCount) return
+
+        const splitBudget = (totalPlatformBudget / totalAdSetCount).toFixed(2)
+
+        const updatedChannelMix = campaignFormData.channel_mix.map((ch) => {
+          if (ch.funnel_stage === stageName) {
+            if (ch[channel]) {
+              ch[channel] = ch[channel].map((p) => {
+                if (p.platform_name === platform) {
+                  return {
+                    ...p,
+                    ad_sets: p.ad_sets?.map((adSet) => {
+                      const updatedExtraAudiences = adSet.extra_audiences?.map((extraAudience) => ({
+                        ...extraAudience,
+                        budget: {
+                          fixed_value: splitBudget,
+                          percentage_value: ((Number(splitBudget) / totalPlatformBudget) * 100).toFixed(1),
+                        },
+                      }))
+
+                      return {
+                        ...adSet,
+                        budget: {
+                          fixed_value: splitBudget,
+                          percentage_value: ((Number(splitBudget) / totalPlatformBudget) * 100).toFixed(1),
+                        },
+                        extra_audiences: updatedExtraAudiences,
+                      }
+                    }),
+                  }
+                }
+                return p
+              })
+            }
+          }
+          return ch
+        })
+
+        setCampaignFormData({
+          ...campaignFormData,
+          channel_mix: updatedChannelMix,
+        })
+        return
+      }
+
+      // Calculate budget allocations for each audience item
+      const budgetAllocations = audienceItems.map((item) => {
+        const allocation = totalPlatformBudget * (item.audienceSize / totalAudienceSize)
+        return {
+          ...item,
+          budgetAllocation: Number(allocation.toFixed(2)),
+          percentage: Number(((allocation / totalPlatformBudget) * 100).toFixed(1)),
+        }
+      })
+
+      // Apply the budget allocations to the campaign data
+      const updatedChannelMix = campaignFormData.channel_mix.map((ch) => {
+        if (ch.funnel_stage === stageName) {
+          if (ch[channel]) {
+            ch[channel] = ch[channel].map((p) => {
+              if (p.platform_name === platform) {
+                return {
+                  ...p,
+                  ad_sets: p.ad_sets?.map((adSet, adSetIndex) => {
+                    // Find the main ad set allocation
+                    const mainAllocation = budgetAllocations.find(
+                      (item) => item.type === "main" && item.adSetIndex === adSetIndex,
+                    )
+
+                    // Find extra audience allocations for this ad set
+                    const extraAllocations = budgetAllocations.filter(
+                      (item) => item.type === "extra" && item.adSetIndex === adSetIndex,
+                    )
+
+                    // Update extra audiences
+                    const updatedExtraAudiences =
+                      adSet.extra_audiences?.map((extraAudience, extraIndex) => {
+                        const extraAllocation = extraAllocations.find((item) => item.extraIndex === extraIndex)
+
+                        return {
+                          ...extraAudience,
+                          budget: {
+                            fixed_value: extraAllocation ? extraAllocation.budgetAllocation.toString() : "0",
+                            percentage_value: extraAllocation ? extraAllocation.percentage.toString() : "0",
+                          },
+                        }
+                      }) || []
+
+                    return {
+                      ...adSet,
+                      budget: {
+                        fixed_value: mainAllocation ? mainAllocation.budgetAllocation.toString() : "0",
+                        percentage_value: mainAllocation ? mainAllocation.percentage.toString() : "0",
+                      },
+                      extra_audiences: updatedExtraAudiences,
+                    }
+                  }),
+                }
+              }
+              return p
+            })
+          }
+        }
+        return ch
+      })
+
+      setCampaignFormData({
+        ...campaignFormData,
+        channel_mix: updatedChannelMix,
+      })
+    } else {
+      toast.error("Could not find platform data for budget allocation", {
+        position: "bottom-right",
+      })
     }
   }
 
   const handleResetBudget = (stage, channel, platform) => {
-    
+    // Use stage.name instead of stage.funnel_stage
+    const stageName = stage.name
+    const stageData = campaignFormData.channel_mix.find((ch) => ch.funnel_stage === stageName)
+
+    if (stageData) {
+      const updatedChannelMix = campaignFormData.channel_mix.map((ch) => {
+        if (ch.funnel_stage === stageName) {
+          if (ch[channel]) {
+            ch[channel] = ch[channel].map((p) => {
+              if (p.platform_name === platform) {
+                return {
+                  ...p,
+                  ad_sets: p.ad_sets?.map((adSet) => {
+                    const updatedExtraAudiences = adSet.extra_audiences?.map((extraAudience) => ({
+                      ...extraAudience,
+                      budget: {
+                        fixed_value: "",
+                        percentage_value: "",
+                      },
+                    }))
+
+                    return {
+                      ...adSet,
+                      budget: {
+                        fixed_value: "",
+                        percentage_value: "",
+                      },
+                      extra_audiences: updatedExtraAudiences,
+                    }
+                  }),
+                }
+              }
+              return p
+            })
+          }
+        }
+        return ch
+      })
+
+      setCampaignFormData({
+        ...campaignFormData,
+        channel_mix: updatedChannelMix,
+      })
+
+      toast.success("Budget allocation reset successfully", {
+        position: "bottom-right",
+      })
+    }
   }
 
   // PATCH: handleStageBudgetUpdate now also recalculates channel percentages when gross/net budget is reduced
@@ -439,7 +608,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
         // For bottom-up, we need to determine what total budget this percentage should be based on
         // Use a reasonable minimum total if no existing total
         const existingTotal = otherStagesTotal + currentStageBudget
-        const minimumTotal = Math.max(existingTotal, 10000)
+        const minimumTotal = Math.max(existingTotal, 10000) // Use existing or minimum 10k
         newBudget = (minimumTotal * percentageValue) / 100
 
         // Validate that percentage doesn't exceed 100%
