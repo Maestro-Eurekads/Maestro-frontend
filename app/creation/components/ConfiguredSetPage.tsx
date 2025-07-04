@@ -1014,6 +1014,10 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
       })
     }
 
+    // Get the funnel stage label (e.g. "Awareness") for this stageName
+    const funnelStageLabel =
+      campaignFormData?.custom_funnels?.find((f) => f.name === stageName)?.name || stageName
+
     return (
       <div className="mb-2 mt-1 text-sm text-gray-700 bg-[#F4F6FA] rounded px-4 py-1 border border-[#E5E7EB]">
         <div className="mb-1 flex flex-col gap-0.5">
@@ -1071,9 +1075,9 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                     {getCurrencySymbol(currency)}
                     {formatNumberWithCommas(row.budget)}
                   </span>
-                  {/* PATCH: Add platform name before "of phase budget" */}
+                  {/* PATCH: Add funnel stage name before "budget" instead of channel name */}
                   <span className="ml-2 text-xs text-gray-600">
-                    {row.name} {formatPercent(row.percent)}% of phase budget
+                    {funnelStageLabel} {formatPercent(row.percent)}% of budget
                   </span>
                 </div>
               ))}
@@ -1138,6 +1142,9 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
 
         const stage = campaignFormData?.custom_funnels?.find((s) => s.name === stageName)
         if (!stage) return null
+
+        // Get the funnel stage label (e.g. "Awareness") for this stageName
+        const funnelStageLabel = stage?.name || stageName
 
         return (
           <div key={index} className="w-full">
@@ -1420,8 +1427,8 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                     </div>
                                   </div>
                                   <p className="whitespace-nowrap tracking-tight text-xs">
-                                    {/* PATCH: Add platform name before "of phase budget in channel view" */}
-                                    {platform?.outlet} of phase budget
+                                    {/* PATCH: Add funnel stage name before "budget" instead of channel name in channel view */}
+                                    {funnelStageLabel} of total budget
                                   </p>
                                   {platform?.ad_sets?.length > 1 &&
                                     campaignFormData?.campaign_budget?.level === "Adset level" && (
@@ -1659,7 +1666,8 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                               </div>
                                             </div>
                                             <p className="whitespace-nowrap tracking-tight text-xs">
-                                              of {platform?.outlet} budget
+                                              {/* PATCH: Add funnel stage name before "budget" instead of channel name for ad set */}
+                                              {funnelStageLabel} budget
                                             </p>
                                           </div>
                                         </div>
@@ -1822,7 +1830,8 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                                   </div>
                                                 </div>
                                                 <p className="whitespace-nowrap tracking-tight text-xs">
-                                                  of {platform?.outlet} budget
+                                                  {/* PATCH: Add funnel stage name before "budget" instead of channel name for ad set extra audiences */}
+                                                  {funnelStageLabel} budget
                                                 </p>
                                               </div>
                                             </div>
