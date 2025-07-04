@@ -1077,7 +1077,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                   </span>
                   {/* PATCH: Add funnel stage name before "budget" instead of channel name */}
                   <span className="ml-2 text-xs text-gray-600">
-                    {funnelStageLabel} {formatPercent(row.percent)}% of budget
+                    {formatPercent(row.percent)}% of {funnelStageLabel} budget
                   </span>
                 </div>
               ))}
