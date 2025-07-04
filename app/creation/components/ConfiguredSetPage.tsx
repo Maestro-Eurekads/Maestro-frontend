@@ -330,9 +330,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
   }
 
   const handleResetBudget = (stage, channel, platform) => {
-    // ... unchanged ...
-    // No changes needed for this function for the prompt
-    // (omitted for brevity)
+    
   }
 
   // PATCH: handleStageBudgetUpdate now also recalculates channel percentages when gross/net budget is reduced
@@ -441,7 +439,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
         // For bottom-up, we need to determine what total budget this percentage should be based on
         // Use a reasonable minimum total if no existing total
         const existingTotal = otherStagesTotal + currentStageBudget
-        const minimumTotal = Math.max(existingTotal, 10000) // Use existing or minimum 10k
+        const minimumTotal = Math.max(existingTotal, 10000)
         newBudget = (minimumTotal * percentageValue) / 100
 
         // Validate that percentage doesn't exceed 100%
