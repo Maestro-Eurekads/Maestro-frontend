@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState } from "react"
@@ -1009,10 +1010,12 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
     // Only show phase remaining budget in the recap
     const phaseRemainingBudget = calculatePhaseRemainingBudget(stageName, campaignFormData)
 
+    // --- PATCH: Add a line above the remaining budget in recap ---
     return (
       <div className="mb-2 mt-1 text-sm text-gray-700 bg-[#F4F6FA] rounded px-4 py-1 border border-[#E5E7EB]">
         <div className="mb-1 flex flex-col gap-0.5">
           <div className="font-semibold mb-0.5">Recap</div>
+          <hr className="my-1 border-gray-200" />
           <div>
             <span className="font-bold">Remaining: </span>
             <span className={`font-bold ${Number(phaseRemainingBudget) < 1 ? "text-red-500" : "text-green-600"}`}>
