@@ -1823,7 +1823,6 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
                                   )
                                 })}
                             </div>
-                            <hr className="text-gray-200 w-full p-0.5" />
                           </div>
                         )
                       })}
