@@ -58,9 +58,9 @@ const calculateTotalLineHeight = (adSets) => {
   if (!adSets || adSets.length === 0) return 0
   let totalHeight = 0
   adSets.forEach((adSet) => {
-    totalHeight += 110
+    totalHeight += 77
     if (adSet.extra_audiences && adSet.extra_audiences.length > 0) {
-      totalHeight += adSet.extra_audiences.length * 110
+      totalHeight += adSet.extra_audiences.length * 77
     }
   })
   return totalHeight
