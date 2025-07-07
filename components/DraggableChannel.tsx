@@ -347,6 +347,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   }
 
   const handleMouseDownDrag = (e: React.MouseEvent<HTMLDivElement>) => {
+    // setOpenChannel(false)
     if (disableDrag) return
     e.preventDefault()
 
@@ -361,6 +362,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   }
 
   const handleMouseMoveDrag = (e: MouseEvent) => {
+    // setOpenChannel(false)
     if (!isDragging.current) return
     const { startX, startPos } = isDragging.current
 
@@ -440,7 +442,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
   return (
     <div
-      className={`relative w-full h-14 flex select-none rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
+      className={`relative px-[1p w-full h-14 flex select-none rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
       style={{
         transform: `translateX(${position + (range === "Month" ? 4 : 0)}px)`,
       }}
@@ -466,10 +468,11 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           disableDrag ? "cursor-default relative" : "cursor-move"
         } rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
         style={{
-          width: disableDrag ? `${parentWidth + (range === "Month" ? 0 : 0)}px` : parentWidth,
+          width: disableDrag ? `${parentWidth + (range === "Month" ? 0 : -10)}px` : parentWidth,
           backgroundColor: color,
           transition: "transform 0.2s ease-out",
         }}
+        onClick={()=>setOpenChannel?.(!openChannel)}
         onMouseDown={disableDrag || openItems ? undefined : handleMouseDownDrag}
       >
         {/* Left Resize Handle */}
@@ -493,7 +496,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           </div>
         )}
         <div />
-        <button className="flex items-center gap-3 w-fit" onClick={() => setOpenChannel?.(!openChannel)}>
+        <button className="flex items-center gap-3 w-fit" 
+        // onClick={() => setOpenChannel?.(!openChannel)}
+        >
           {Icon?.src ? <Image src={Icon?.src || "/placeholder.svg"} alt="" width={20} height={20} /> : Icon}
           <span className="font-medium">{description}</span>
           <MdOutlineKeyboardArrowDown />

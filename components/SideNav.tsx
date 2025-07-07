@@ -25,7 +25,7 @@ import Skeleton from "react-loading-skeleton";
 const SideNav: React.FC = () => {
   const { setClose, close, setViewcommentsId, setOpportunities } = useComments();
   const router = useRouter();
-  const { setActive, setSubStep, active } = useActive();
+  const { setActive, setSubStep, active, subStep } = useActive();
   const dispatch = useAppDispatch();
   const { campaignData, setCampaignData, loadingCampaign } = useCampaigns();
 
@@ -153,7 +153,13 @@ const SideNav: React.FC = () => {
     <div id={close ? "side-nav-active" : "side-nav"} className="!flex !flex-col !h-full">
       <div className="flex flex-col">
         <div className={`flex ${close ? "justify-center mb-[30px]" : "justify-end"} w-full`}>
-          <button onClick={() => setClose(!close)}>
+          <button onClick={() => {
+            if(active === 7 && subStep === 1){
+              setClose(true)
+            } else{
+              setClose(!close)
+            }
+            }}>
             <Image src={closeicon} alt="closeicon" />
           </button>
         </div>

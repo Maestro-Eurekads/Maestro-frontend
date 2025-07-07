@@ -268,7 +268,7 @@ const MainSection = ({
         {/* <div className="text-xs text-gray-500">Use Ctrl + / Ctrl - to zoom, or Ctrl + 0 to reset</div> */}
       </div>
 
-      <div className="box-border w-full min-h-[519px] bg-white border-b-2 relative mt-4">
+      <div className="box-border w-full min-h-auto bg-white border-b-2 relative mt-4">
         <div className={`${zoomLevel < 1 ? "overflow-hidden" : "overflow-auto"} w-full h-full`}>
           <div
             className={`min-w-max transition-transform duration-200 ease-out origin-top-left`}
@@ -284,10 +284,11 @@ const MainSection = ({
               <div className="bg-white">
                 {/* <DateInterval /> */}
                 {renderTimeline()}
-                <div className="absolute right-[2px] top-18 w-1 bg-orange-500 min-h-screen"></div>
-                <div className="absolute left-0 top-18 w-1 bg-orange-500 min-h-screen"></div>
+                
               </div>
             </div>
+            <div className="absolute right-[2px] top-18 w-1 bg-orange-500" style={{ height: "85%" }}></div>
+                <div className="absolute left-0 top-18 w-1 bg-orange-500" style={{ height: "85%" }}></div>
             <ResizeableElements
               funnelData={funnelsData}
               disableDrag={disableDrag}

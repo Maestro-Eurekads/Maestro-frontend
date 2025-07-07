@@ -533,7 +533,7 @@ const ResizeableElements = ({
 
   return (
     <div
-      className={`w-full min-h-[494px] relative pb-5 grid-container `}
+      className={`w-full min-h-auto relative pb-5 grid-container `}
       ref={gridRef}
       style={{
         ...(rrange === "Year"
@@ -686,7 +686,7 @@ const ResizeableElements = ({
               }}
             >
               <div
-                className="flex flex-col mt-6 rounded-[10px] p-4 px-0 justify-between w-fit"
+                className={`flex flex-col mt-6 rounded-[10px] p-4 ${disableDrag ? "px-[4px]" : "px-0"} justify-between w-fit`}
                 style={{
                   gridColumnStart: 1,
                   gridColumnEnd: getGridColumnEnd() + 1,

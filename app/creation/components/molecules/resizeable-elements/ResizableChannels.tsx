@@ -315,21 +315,28 @@ const ResizableChannels = ({
     } else {
       // Right edge resize - only adjust width, keep left position fixed
       newLeft = startPos; // Keep left position unchanged
+      console.log("🚀 ~ handleMouseMoveResize ~ newLeft:", newLeft)
       const proposedWidth = Math.max(50, startWidth + deltaX);
+      console.log("🚀 ~ handleMouseMoveResize ~ proposedWidth:", proposedWidth)
 
       // Calculate the right edge position
       const rightEdgePos = newLeft + proposedWidth;
+      console.log("🚀 ~ handleMouseMoveResize ~ rightEdgePos:", rightEdgePos)
 
       // Snap the right edge to timeline
       const snappedRightEdge =
         snapToTimeline(rightEdgePos - parentLeft, containerRect.width) +
         parentLeft;
 
+        console.log("herere", snappedRightEdge)
+
       // Ensure the snapped right edge doesn't exceed parent boundaries
       const finalRightEdge = Math.min(snappedRightEdge, parentRightEdge);
+      console.log("🚀 ~ handleMouseMoveResize ~ finalRightEdge:", finalRightEdge)
 
       // Calculate final width based on the constrained right edge
       newWidth = Math.max(50, finalRightEdge - newLeft);
+      console.log("🚀 ~ handleMouseMoveResize ~ newWidth:", newWidth)
     }
 
     // Update tooltip and data
@@ -366,6 +373,7 @@ const ResizableChannels = ({
       "resize"
     );
 
+    console.log("second left info", newLeft)
     setChannelState((prev) =>
       prev.map((state, i) =>
         i === index ? { ...state, left: newLeft, width: newWidth } : state
@@ -700,7 +708,7 @@ const ResizableChannels = ({
   useEffect(() => {
     if (initialChannels && initialChannels.length > 0) {
       setChannels(initialChannels);
-
+      console.log("triggered")
       setChannelState((prev) => {
         const findMix = campaignFormData?.channel_mix?.find(
           (chhh) => chhh?.funnel_stage === parentId
@@ -754,7 +762,7 @@ const ResizableChannels = ({
           }
 
           let left =
-            parentLeft + Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
+             Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
 
           let width =
             rrange === "Day"
@@ -777,6 +785,7 @@ const ResizableChannels = ({
             if (width <= parentWidth) {
               left = parentLeft + parentWidth - width;
             } else {
+              console.log("here")
               width = parentWidth;
               left = parentLeft;
             }
@@ -812,7 +821,7 @@ const ResizableChannels = ({
       event.preventDefault();
       const { index, direction, startX } = dragging;
       const deltaX = event.clientX - startX;
-
+      console.log("triggered")
       setChannelState((prev) =>
         prev.map((state, i) => {
           if (i !== index) return state;
@@ -987,7 +996,7 @@ const ResizableChannels = ({
                   left: `${channelState[index]?.left || parentLeft}px`,
                   width: `${
                     channelState[index]?.width +
-                    (disableDrag ? 0 : rrange === "Month" ? 0 : 0)
+                    (disableDrag ? -12 : rrange === "Month" ? 0 : 0)
                   }px`,
                   backgroundColor: channel.bg,
                   color: channel.color,

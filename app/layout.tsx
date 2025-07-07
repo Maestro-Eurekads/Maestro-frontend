@@ -79,6 +79,7 @@ export default async function RootLayout({
             <CampaignProvider>
               <ClientCampaignProvider>
                 <VersionApprovalProvider>
+                  <ActiveProvider>
                   <CommentProvider>
                     <KpiProvider>
                       <VerificationProvider>
@@ -86,7 +87,7 @@ export default async function RootLayout({
                           <DashboardDateRangeProvider>
                             <DateRangeProvider>
                               <SelectedDatesProvider>
-                                <ActiveProvider>
+                                {/* <ActiveProvider> */}
                                   <EditingProvider>
                                     <ObjectivesProvider>
                                       <FunnelProvider>
@@ -96,7 +97,7 @@ export default async function RootLayout({
                                       </FunnelProvider>
                                     </ObjectivesProvider>
                                   </EditingProvider>
-                                </ActiveProvider>
+                                {/* </ActiveProvider> */}
                               </SelectedDatesProvider>
                             </DateRangeProvider>
                           </DashboardDateRangeProvider>
@@ -104,6 +105,7 @@ export default async function RootLayout({
                       </VerificationProvider>
                     </KpiProvider>
                   </CommentProvider>
+                  </ActiveProvider>
                 </VersionApprovalProvider>
               </ClientCampaignProvider>
             </CampaignProvider>

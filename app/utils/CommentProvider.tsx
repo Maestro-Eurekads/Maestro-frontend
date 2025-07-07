@@ -5,6 +5,7 @@ import { getComment, getGeneralComment } from "features/Comment/commentSlice";
 import { useAppDispatch, useAppSelector } from "store/useStore";
 import { client } from '../../types/types';
 import { useSession } from "next-auth/react";
+import { useActive } from "./ActiveContext";
 const CommentContext = createContext(null);
 
 export const useComments = () => {
@@ -48,6 +49,8 @@ export const CommentProvider = ({ children }) => {
 	const jwt =
 		(session?.user as { data?: { jwt: string } })?.data?.jwt
 
+	const {active, subStep} = useActive()
+
 
 
 	// Load comments from local storage on mount
@@ -56,7 +59,12 @@ export const CommentProvider = ({ children }) => {
 		const storedOpportunities = JSON.parse(localStorage.getItem("opportunities")) || [];
 		setComments(storedComments);
 		setOpportunities(storedOpportunities);
-	}, []);
+		if(active === 7){
+			if (subStep === 1){
+				setClose(true)
+			}
+		}
+	}, [active, subStep]);
 
 	// Save comments & opportunities to local storage whenever they change
 	useEffect(() => {
