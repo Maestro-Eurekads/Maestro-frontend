@@ -280,8 +280,8 @@ const MainSection = ({
                 {renderTimeline()}
               </div>
             </div>
-            <div className="absolute right-[4px] top-18 w-1 bg-orange-500 z-20" style={{ height: "85%" }}></div>
-            <div className="absolute left-[8px] top-18 w-1 bg-orange-500 z-20" style={{ height: "85%" }}></div>
+            <div className="absolute right-[4px] top-18 w-1 bg-orange-500 z-20" style={{ height: "94%" }}></div>
+            <div className="absolute left-[8px] top-18 w-1 bg-orange-500 z-20" style={{ height: "94%" }}></div>
             <ResizeableElements
               funnelData={funnelsData}
               disableDrag={disableDrag}
