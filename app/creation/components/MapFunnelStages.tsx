@@ -26,6 +26,7 @@ import toast from "react-hot-toast";
 
 import axios from "axios";
 import Skeleton from "react-loading-skeleton";
+import { colorClassToHex, colorPalette } from "components/Options";
 
 // Define type for funnel objects
 
@@ -47,89 +48,11 @@ interface FunnelConfig {
 
 // Color palette for quick selection (tailwind classes)
 
-const colorPalette = [
-  "bg-blue-500",
 
-  "bg-green-500",
-
-  "bg-orange-500",
-
-  "bg-red-500",
-
-  "bg-purple-500",
-
-  "bg-teal-500",
-
-  "bg-pink-500",
-
-  "bg-indigo-500",
-
-  "bg-yellow-500",
-
-  "bg-cyan-500",
-
-  "bg-lime-500",
-
-  "bg-amber-500",
-
-  "bg-fuchsia-500",
-
-  "bg-emerald-500",
-
-  "bg-violet-600",
-
-  "bg-rose-600",
-
-  "bg-sky-500",
-
-  "bg-gray-800",
-
-  "bg-blue-800",
-
-  "bg-green-800",
-];
 
 // For color picker, map tailwind class to color value for <input type="color">
 
-const colorClassToHex: Record<string, string> = {
-  "bg-blue-500": "#3B82F6",
 
-  "bg-green-500": "#22C55E",
-
-  "bg-orange-500": "#F59E42",
-
-  "bg-red-500": "#EF4444",
-
-  "bg-purple-500": "#A855F7",
-
-  "bg-teal-500": "#14B8A6",
-
-  "bg-pink-500": "#EC4899",
-
-  "bg-indigo-500": "#6366F1",
-
-  "bg-yellow-500": "#FACC15",
-
-  "bg-cyan-500": "#06B6D4",
-
-  "bg-lime-500": "#84CC16",
-
-  "bg-amber-500": "#F59E42",
-
-  "bg-fuchsia-500": "#D946EF",
-
-  "bg-emerald-500": "#10B981",
-
-  "bg-violet-600": "#7C3AED",
-
-  "bg-rose-600": "#F43F5E",
-
-  "bg-sky-500": "#0EA5E9",
-
-  "bg-gray-800": "#1F2937",
-
-  "bg-blue-800": "#166534",
-};
 
 const hexToColorClass = (hex: string): string | null => {
   for (const [cls, val] of Object.entries(colorClassToHex)) {
@@ -1356,8 +1279,8 @@ const MapFunnelStages = () => {
                             <li
                               key={`config-${config.name}-${originalIdx}`}
                               className={`px-4 py-3 cursor-pointer hover:bg-blue-50 flex justify-between items-center ${selectedConfigIdx === originalIdx
-                                  ? "bg-blue-100"
-                                  : ""
+                                ? "bg-blue-100"
+                                : ""
                                 }`}
                               role="option"
                               aria-selected={selectedConfigIdx === originalIdx}
@@ -1399,8 +1322,8 @@ const MapFunnelStages = () => {
                       <li
                         key={`preset-${preset.label}-${idx}`}
                         className={`px-4 py-3 cursor-pointer hover:bg-blue-50 ${selectedPreset === idx && selectedConfigIdx === null
-                            ? "bg-blue-100 font-bold"
-                            : ""
+                          ? "bg-blue-100 font-bold"
+                          : ""
                           }`}
                         role="option"
                         aria-selected={

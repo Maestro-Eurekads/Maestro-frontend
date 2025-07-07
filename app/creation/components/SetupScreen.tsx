@@ -362,7 +362,7 @@ export const SetupScreen = () => {
     if (approverIds.length && internalapproverOptions.length) {
       const mapped = approverIds
         .map((id) => {
-          const found = internalapproverOptions.find((opt) => String(opt.value) === String(id));
+          const found = internalapproverOptions?.find((opt) => String(opt?.value) === String(id));
           if (!found) return null;
           return {
             value: found.value,

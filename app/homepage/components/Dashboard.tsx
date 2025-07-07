@@ -152,6 +152,9 @@ const Dashboard = () => {
       Number(ch?.stage_budget?.percentage_value || 0)
     ) || []
   }
+  // const dataValues = funnelStages.length > 0
+  //   ? campaignFormData?.channel_mix?.map((st: any) => st?.stage_budget?.percentage_value || 0)
+  //   : [100];
 
   return (
     <div className="mt-[24px] ">
@@ -171,13 +174,17 @@ const Dashboard = () => {
       />
       {processedCampaigns?.map((campaign, index) => {
         const channelD = extractPlatforms(campaign)
+
         // Prepare insideText for DoughnutChat
         const insideText = `${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency ? getCurrencySymbol(campaign?.campaign_budget?.currency) : ""}`
         // Prepare activeFunnels for DoughnutChat
         const activeFunnels = getActiveFunnels(campaign)
+
         // Prepare data values for DoughnutChat
         const dataValues = getStagePercentages(campaign)
-
+        console.log("dataValues---:", campaign)
+        console.log("campaignFormData---:", campaignFormData)
+        // console.log("clientCampaignData---:", clientCampaignData)
         return (
           // <div key={index}
           //   className="grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-12 mt-[100px] w-full px-6 md:px-20 xl:px-40"
@@ -292,13 +299,10 @@ const Dashboard = () => {
                 {/* Doughnut Chart */}
                 <DashboradDoughnutChat
                   campaign={campaign}
-                  insideText={`${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency
-                    ? getCurrencySymbol(campaign?.campaign_budget?.currency)
-                    : ""
-                    }`}
+                  insideText={insideText}
+                  dataValues={dataValues}
                 />
-
-                {/* Campaign Phases List */}
+                {/* Campaign Phases */}
                 <CampaignPhases
                   campaignPhases={campaign?.channel_mix?.map((ch) => ({
                     name: ch?.funnel_stage,
