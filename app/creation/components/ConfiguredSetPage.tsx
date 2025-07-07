@@ -234,7 +234,7 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
             newResults.push({
               platform: `${platform.platform_name} - ${adSet.name}`,
               budget: adSet.budget.fixed_value,
-              currency: campaignFormData?.campaign_budget?.currency,
+              currencysgn: campaignFormData?.campaign_budget?.currency,
             })
           }
         })
@@ -996,12 +996,19 @@ const ConfiguredSetPage = ({ netAmount, fees = [], campaignBudgetType = "gross" 
     // Only show phase remaining budget in the recap
     const phaseRemainingBudget = calculatePhaseRemainingBudget(stageName, campaignFormData)
 
-    // --- PATCH: Add a line above the remaining budget in recap ---
+    // --- PATCH: Add net budget and remaining budget in recap ---
     return (
       <div className="mb-2 mt-1 text-sm text-gray-700 bg-[#F4F6FA] rounded px-4 py-1 border border-[#E5E7EB]">
         <div className="mb-1 flex flex-col gap-0.5">
           <div className="font-semibold mb-0.5">Recap</div>
           <hr className="my-1 border-gray-200" />
+          <div>
+            <span className="font-bold">Net Budget: </span>
+            <span className="font-bold">
+              {getCurrencySymbol(currency)}
+              {formatNumberWithCommas(stageBudget.toFixed(2))}
+            </span>
+          </div>
           <div>
             <span className="font-bold">Remaining: </span>
             <span className={`font-bold ${Number(phaseRemainingBudget) < 1 ? "text-red-500" : "text-green-600"}`}>
