@@ -718,6 +718,7 @@ const CampaignBudget = () => {
               </button>
             </div>
           )}
+          
 
           {/* Show the budget overview after validation for bottom-up */}
           {showBottomUpBudgetOverview && (
@@ -734,7 +735,6 @@ const CampaignBudget = () => {
               </div>
             </div>
           )}
-
           {showBottomUpBudgetOverview && <BudgetOverviewSection />}
         </>
       )}
