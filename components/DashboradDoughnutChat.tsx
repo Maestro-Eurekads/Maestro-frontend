@@ -12,6 +12,7 @@ import {
 import { Doughnut } from "react-chartjs-2";
 import { useRef } from "react";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import { distinctColorPalette, tailwindToHex } from "./Options";
 
 ChartJS.register(
   CategoryScale,
@@ -24,131 +25,33 @@ ChartJS.register(
 );
 
 // Tailwind to hex mapping for converting Tailwind classes to hex colors for Chart.js
-const tailwindToHex: { [key: string]: string } = {
-  "bg-blue-500": "#3B82F6",
-  "bg-green-500": "#22C55E",
-  "bg-orange-500": "#F97316",
-  "bg-red-500": "#EF4444",
-  "bg-purple-500": "#A855F7",
-  "bg-teal-500": "#14B8A6",
-  "bg-pink-500": "#EC4899",
-  "bg-indigo-500": "#6366F1",
-  "bg-yellow-500": "#FACC15",
-  "bg-cyan-500": "#06B6D4",
-  "bg-lime-500": "#84CC16",
-  "bg-amber-500": "#F59E0B",
-  "bg-fuchsia-500": "#D946EF",
-  "bg-emerald-500": "#10B981",
-  "bg-violet-600": "#7C3AED",
-  "bg-rose-600": "#F43F5E",
-  "bg-sky-500": "#0EA5E9",
-  "bg-gray-800": "#1F2937",
-  "bg-blue-800": "#1E40AF",
-  "bg-green-800": "#166534",
-  "bg-purple-300": "#D8B4FE",
-  "bg-darkBlue-700": "#1E3A8A",
-  "bg-deepPurple-600": "#5B2C86",
-  "bg-lightGreen-400": "#7EE787",
-  "bg-deepOrange-300": "#FF9E66",
-  "bg-brown-500": "#A18072",
-  "bg-heliotrope-500": "#A855F7",
-  "bg-mauve-400": "#C084FC",
-  "bg-lavender-300": "#BDB2FF",
-  "bg-periwinkle-600": "#4F46E5",
-  "bg-mint-500": "#06D6A0",
-  "bg-olive-400": "#A3B34D",
-  "bg-maroon-700": "#7F2B2B",
-  "bg-peach-300": "#FFC4A3",
-  "bg-rust-500": "#B45309",
-  "bg-salmon-600": "#D45D5D",
-  "bg-tangerine-500": "#FF8C42",
-  "bg-mustard-300": "#FFDB58",
-  "bg-gold-700": "#B8860B",
-  "bg-platinum-400": "#E5E4E2",
-  "bg-silver-300": "#C0C0C0",
-  "bg-gunmetal-800": "#2C3539",
-  "bg-cement-700": "#7D8475",
-  "bg-storm-300": "#B5BAB6",
-  "bg-mist-500": "#C4D0D0",
-  "bg-frost-600": "#92B3B5",
-  "bg-dusk-400": "#897F98",
-  "bg-twilight-700": "#4E5180",
-  "bg-midnight-900": "#191970",
-};
+
 
 // Fallback palette for assigning unique colors when duplicates occur
-const distinctColorPalette = [
-  "#3B82F6",
-  "#22C55E",
-  "#F97316",
-  "#EF4444",
-  "#A855F7",
-  "#14B8A6",
-  "#EC4899",
-  "#6366F1",
-  "#FACC15",
-  "#06B6D4",
-  "#84CC16",
-  "#F59E0B",
-  "#D946EF",
-  "#10B981",
-  "#7C3AED",
-  "#F43F5E",
-  "#0EA5E9",
-  "#1F2937",
-  "#1E40AF",
-  "#166534",
-  "#D8B4FE",
-  "#1E3A8A",
-  "#5B2C86",
-  "#7EE787",
-  "#FF9E66",
-  "#A18072",
-  "#C084FC",
-  "#BDB2FF",
-  "#4F46E5",
-  "#06D6A0",
-  "#A3B34D",
-  "#7F2B2B",
-  "#FFC4A3",
-  "#B45309",
-  "#D45D5D",
-  "#FF8C42",
-  "#FFDB58",
-  "#B8860B",
-  "#E5E4E2",
-  "#C0C0C0",
-  "#2C3539",
-  "#7D8475",
-  "#B5BAB6",
-  "#C4D0D0",
-  "#92B3B5",
-  "#897F98",
-  "#4E5180",
-  "#191970",
-];
+
 
 // Helper to check if a string is a valid hex color
 const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color);
 
-const DoughnutChart = ({
+const DashboradDoughnutChat = ({
   insideText = "0 €",
-  campaign
+  campaign,
+  dataValues,
 }: {
   insideText?: string;
-  campaign?: {
-    funnel_stages?: any[]; // Can be strings or objects with nameettamente
-    custom_funnels?: { id: string; name: string; color: string }[];
-    channel_mix?: { stage_budget?: { percentage_value?: number } }[];
-  };
+  campaign: any
+  dataValues: number[];
 }) => {
   const chartRef = useRef(null);
 
   const { campaignFormData } = useCampaigns();
 
   // Handle funnel_stages as either strings or objects
-  const funnelStages = campaignFormData?.funnel_stages || [];
-  const customFunnels = campaignFormData?.custom_funnels || [];
+  // const funnelStages = campaignFormData?.funnel_stages || [];
+  // const customFunnels = campaignFormData?.custom_funnels || [];
+  // Handle funnel_stages as either strings or objects
+  const funnelStages = campaign?.funnel_stages || [];
+  const customFunnels = campaign?.custom_funnels || [];
 
   // Map selected funnel stages to their funnel objects, maintaining order
   const selectedFunnels = funnelStages
@@ -193,12 +96,12 @@ const DoughnutChart = ({
   }
 
   const colors = getUniqueColors(selectedFunnels, funnelStages);
- 
+
 
   // Generate data values for the chart
-  const dataValues = funnelStages.length > 0
-    ? campaignFormData?.channel_mix?.map((st: any) => st?.stage_budget?.percentage_value || 0)
-    : [100];
+  // const dataValues = funnelStages.length > 0
+  //   ? campaignFormData?.channel_mix?.map((st: any) => st?.stage_budget?.percentage_value || 0)
+  //   : [100];
 
   // Custom plugin to add text in the center of the doughnut chart
   const centerTextPlugin = {
@@ -286,4 +189,4 @@ const DoughnutChart = ({
   );
 };
 
-export default DoughnutChart;
+export default DashboradDoughnutChat;

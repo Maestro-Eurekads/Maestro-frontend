@@ -95,7 +95,7 @@ const fetchClientCampaign = useCallback(
         print: { populate: "*" },
         e_commerce: { populate: "*" },
         in_game: { populate: "*" },
-        mobile: { populate: "*" },
+        mobile: { populate: "*" }, 
       };
 
       const res = await axios.get(
@@ -119,9 +119,9 @@ const fetchClientCampaign = useCallback(
                   },
                 },
               },
-              channel_mix: {
-                populate: channelMixPopulate,
-              },
+             channel_mix: {
+           populate: { ...channelMixPopulate, stage_budget: "*" },
+           },
             },
           },
           headers: {

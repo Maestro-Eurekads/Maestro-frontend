@@ -26,6 +26,7 @@ interface Campaign {
   internal_approver: string;
   campaign_builder: string;
   documentId: string;
+  isStatus: string;
   media_plan_details: {
     plan_name: string;
     client_approver: string;
@@ -221,7 +222,7 @@ const Table = () => {
             ) : campaignArray?.length === 0 ? (
               <NoRecordFound colSpan={9}>No Client campaigns!</NoRecordFound>
             ) : (
-              currentItems?.map((data: Campaign) => {
+              currentItems?.map((data: Campaign | any) => {
                 const POs = clientPOs?.reduce((acc: any[], po: ClientPO) => {
                   const matchedPlan = po?.assigned_media_plans?.find(
                     (plan) => plan?.campaign?.id === data?.id
@@ -264,11 +265,45 @@ const Table = () => {
                       <ProgressBar progress={data?.progress_percent || 0} />
                     </td>
                     <td className="py-[12px] px-[16px]">
-                      <div className={"Not_Approved"}>
-                        {/* <div className={data?.isApprove ? "approved" : "Not_Approved"}> */}
-                        {"In Progress"}
-                        {/* {data?.isApprove ? "Approved" : "Not Approved"} */}
+
+                      <div className={`px-3 py-1 text-sm font-semibold rounded-full w-fit whitespace-nowrap ${{
+                        draft: "bg-gray-100 text-gray-700",
+                        in_internal_review: "bg-purple-100 text-purple-700",
+                        changes_needed: "bg-red-100 text-red-700",
+                        client_changes_needed: "bg-red-100 text-red-700",
+                        shared_with_client: "bg-blue-100 text-blue-700",
+                        approved: "bg-[#00A36C] text-white",
+
+                      }[data?.isStatus?.slice(-1)?.[0]?.stage] || "bg-[#dfa908] text-white"
+                        }`}
+                      >
+                        {(() => {
+                          {/* @ts-ignore */ }
+                          const stage = data?.isStatus?.slice(-1)?.[0]?.stage;
+
+                          switch (stage) {
+                            case 'draft':
+                              return 'Draft';
+                            case 'in_internal_review':
+                              return 'In Internal Review';
+                            case 'changes_needed':
+                              return 'Changes Needed';
+                            case 'client_changes_needed':
+                              return 'Client Changes Needed';
+                            case 'shared_with_client':
+                              return 'Shared with Client';
+                            case 'approved':
+                              return 'Approved';
+                            default:
+                              return 'In Progress';
+                          }
+                        })()}
                       </div>
+
+                      {/* <div className={"Not_Approved"}>
+
+                        {"In Progress"}
+                      </div> */}
                     </td>
                     <td className="py-[12px] px-[16px]">
                       <div className="flex felx-row  gap-1">

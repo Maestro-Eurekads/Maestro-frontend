@@ -18,6 +18,7 @@ import { signOut, useSession } from "next-auth/react";
 import { updateUsersWithCampaign } from "app/homepage/functions/clients";
 import { extractObjectives, getFilteredMetrics } from "app/creation/components/EstablishedGoals/table-view/data-processor";
 import { useUserPrivileges } from "utils/userPrivileges";
+import { toast } from "sonner";
 
 // Get initial state from localStorage if available
 const getInitialState = () => {
@@ -601,7 +602,47 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
   // }, [selectedClient, fetchBusinessLevelOptions]);
 
   // Initial data fetching
+  const updateStatus = async (stage: string, label: string, cId: string | number, jwt: string, user: any, getActiveCampaign: (id: string | number) => void) => {
+    try {
+      const newStatus = [
+        {
+          id: Date.now(),
+          stage,
+          label,
+          actor: {
+            id: user?.id,
+            name: user?.username,
+            role: user?.user_type,
+          },
+          date: new Date().toISOString(),
+        },
+      ];
 
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`,
+        {
+          data: {
+            isStatus: newStatus, // ← overwrite old status
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
+
+      getActiveCampaign(cId);
+      toast.success(`Media plan marked as '${label}'`);
+    } catch (error) {
+      if (error?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
+      toast.error("Failed to update status");
+      throw error;
+    }
+  };
 
 
   useEffect(() => {
@@ -703,7 +744,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       FC,
       setFC,
       agencyData,
-      setAgencyData
+      setAgencyData,
+      updateStatus
     }),
     [
       getUserByUserType,
@@ -748,7 +790,8 @@ export const CampaignProvider = ({ children }: { children: ReactNode }) => {
       FC,
       setFC,
       agencyData,
-      setAgencyData
+      setAgencyData,
+      updateStatus
     ]
   );
 

@@ -1,29 +1,8 @@
 import { useCampaigns } from "app/utils/CampaignsContext";
 import ThreeValuesProgress from "../ThreeValuesProgress";
+import { colorClassToHex } from "components/Options";
 
-// Map Tailwind classes to hex for consistency in components that need hex values
-const colorClassToHex: Record<string, string> = {
-  "bg-blue-500": "#3B82F6",
-  "bg-green-500": "#22C55E",
-  "bg-orange-500": "#F59E42",
-  "bg-red-500": "#EF4444",
-  "bg-purple-500": "#A855F7",
-  "bg-teal-500": "#14B8A6",
-  "bg-pink-500": "#EC4899",
-  "bg-indigo-500": "#6366F1",
-  "bg-yellow-500": "#FACC15",
-  "bg-cyan-500": "#06B6D4",
-  "bg-lime-500": "#84CC16",
-  "bg-amber-500": "#F59E42",
-  "bg-fuchsia-500": "#D946EF",
-  "bg-emerald-500": "#10B981",
-  "bg-violet-600": "#7C3AED",
-  "bg-rose-600": "#F43F5E",
-  "bg-sky-500": "#0EA5E9",
-  "bg-gray-800": "#1F2937",
-  "bg-blue-800": "#1E40AF",
-  "bg-green-800": "#166534",
-};
+
 
 const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color);
 
@@ -37,7 +16,7 @@ const ChannelDistributionChatTwo = ({ channelData, currency }) => {
     );
     const color = funnel?.color || "bg-gray-500"; // Fallback color
     // Return hex color for components that need it, otherwise return original color
-    return isHexColor(color) ? color : colorClassToHex[color] || "#6B7280"; // Fallback to gray-500 hex
+    return isHexColor(color) ? color : colorClassToHex[color] || "#c3c3c4"; // Fallback to gray-500 hex
   };
 
   return (

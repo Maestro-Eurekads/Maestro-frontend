@@ -801,8 +801,8 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
       //   ).format("YYYY-MM-DD") || campaignFormData?.campaign_timeline_end_date;
       await updateCampaignData({
         campaign_timeline_start_date:
-        campaignFormData?.campaign_timeline_start_date,
-        campaign_timeline_end_date:campaignFormData?.campaign_timeline_end_date,
+          campaignFormData?.campaign_timeline_start_date,
+        campaign_timeline_end_date: campaignFormData?.campaign_timeline_end_date,
         funnel_stages: campaignFormData?.funnel_stages,
         channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
           "id",
