@@ -39,7 +39,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
     if (monthCount > 2) {
       // When more than 2 months, each month takes 30% of container
       return Object.keys(daysInMonth || {})
-        .map(() => "20%")
+        .map(() => "250px")
         .join(" ")
     } else {
       // Original proportional logic for 1-2 months
@@ -82,7 +82,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
 
     if (monthCount > 2) {
       // When more than 2 months, each month takes 30% of container
-      const monthWidth = contWidth * 0.2
+      const monthWidth = 250
       const avgDaysPerMonth = totalDays / monthCount
       dailyWidth = monthWidth / avgDaysPerMonth
     } else {
@@ -104,7 +104,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
     if (monthCount > 2) {
       // For multiple months with 30% each, create appropriate grid lines
       const monthWidth = 20 // 30% per month
-      return `${monthWidth}% 100%`
+      return `250px 100%`
     } else {
       // Original background sizing for 1-2 months
       return `100% 100%`
@@ -127,7 +127,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
             className="flex flex-col items-center relative py-3 border-r border-blue-200 last:border-r-0"
             style={{
               // Ensure consistent spacing within each month column
-              minWidth: monthCount > 2 ? "20%" : "auto",
+              minWidth: monthCount > 2 ? "250px" : "auto",
             }}
           >
             <div className="flex flex-row gap-2 items-center">
