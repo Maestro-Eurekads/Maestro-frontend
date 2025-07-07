@@ -270,7 +270,7 @@ function FeeSelectionStep({
   return (
     <>
       <div className="relative">
-        {campaignFormData?.campaign_budget?.sub_budget_type && (
+        {/* {campaignFormData?.campaign_budget?.sub_budget_type && (
           <div className="fixed top-2 text-lg min-h-[56px] left-96 right-10 bg-white shadow-md rounded-md px-6 py-2 z-50 border-b border-gray-100">
             <div className="flex flex-row items-center justify-between space-x-6 mx-auto max-w-[1200px]">
               <div className="flex-1 flex items-center">
@@ -291,7 +291,7 @@ function FeeSelectionStep({
               </div>
             </div>
           </div>
-        )}
+        )} */}
 
         <div className="pt-[72px]">
           <PageHeaderWrapper t4="Choose the type of budget you have" span={num1} />
