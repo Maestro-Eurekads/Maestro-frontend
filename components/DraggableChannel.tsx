@@ -465,7 +465,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       {/* Draggable Content */}
       <div
         className={`relative ${color} h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
-          disableDrag ? "cursor-default relative" : "cursor-move"
+          disableDrag ? "cursor-default relative" : "cursor-pointer"
         } rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
         style={{
           width: disableDrag ? `${parentWidth + (range === "Month" ? 0 : 0)}px` : parentWidth,
