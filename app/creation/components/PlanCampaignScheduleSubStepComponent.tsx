@@ -37,8 +37,8 @@ const PlanCampaignScheduleSubStepComponent = () => {
 					span={2}
 				/>
 			</div>
-			{/* <MainSection /> */}
-			<EnhancedMainSection/>
+			<MainSection />
+			{/* <EnhancedMainSection/> */}
 		</div>
 	)
 }
