@@ -71,16 +71,17 @@ function FinanceView({ setOpenModal, userRole }) {
         setClientPOs(Array.isArray(res?.data?.data) ? res.data.data : []);
         setCurrentPage(1); // Reset to page 1 after deletion
       } catch (fetchError) {
+        if (fetchError?.response?.status === 401) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
+        }
         console.error("Error fetching POs:", fetchError);
         setClientPOs([]);
       } finally {
         setFetchingPO(false);
       }
     } catch (error) {
-      if (error?.response?.status === 401) {
-        const event = new Event("unauthorizedEvent");
-        window.dispatchEvent(event);
-      }
+
     } finally {
       setLoading(false);
     }

@@ -17,9 +17,7 @@ import { useSession } from "next-auth/react";
 import { getCreateClient } from "features/Client/clientSlice";
 import { toast } from "sonner";
 import Skeleton from "react-loading-skeleton";
-import ClientSelectionInputbudget from "components/ClientSelectionInputbudget";
 import ClientSelection from "components/ClientSelection";
-import ClientApproverDropdownssub from "components/ClientApproverDropdownssub";
 
 
 interface DropdownOption {
@@ -153,7 +151,7 @@ export const SetupScreen = () => {
     //   lastFetchedClientId.current = clientId;
     fetchUsers();
     // }
-  }, [clientId, selectedClient]);
+  }, [clientId, selectedClient, campaignFormData?.client_selection?.id]);
 
 
 
