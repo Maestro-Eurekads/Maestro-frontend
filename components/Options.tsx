@@ -1111,6 +1111,9 @@ const tailwindToHex: { [key: string]: string } = {
   "bg-twilight-700": "#4E5180",
   "bg-midnight-900": "#191970",
 };
+
+const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color);
+
 export {
   months,
   kpiCategories,
@@ -1138,5 +1141,6 @@ export {
   aggregateKPIStatsFromExtracted,
   cleanName,
   cleanNames,
-  formatKPIValue
+  formatKPIValue,
+  isHexColor
 };
