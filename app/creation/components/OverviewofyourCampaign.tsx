@@ -291,7 +291,7 @@ const OverviewofyourCampaign = () => {
     }
   }, [showalert]);
 
-
+  console.log('campaignFormData----', campaignFormData)
 
 
   return (

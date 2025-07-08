@@ -11,8 +11,7 @@ import {
 } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 import { useRef } from "react";
-import { useCampaigns } from "app/utils/CampaignsContext";
-import { distinctColorPalette, tailwindToHex } from "./Options";
+import { distinctColorPalette, isHexColor, tailwindToHex } from "./Options";
 
 ChartJS.register(
   CategoryScale,
@@ -24,14 +23,8 @@ ChartJS.register(
   Legend
 );
 
-// Tailwind to hex mapping for converting Tailwind classes to hex colors for Chart.js
 
 
-// Fallback palette for assigning unique colors when duplicates occur
-
-
-// Helper to check if a string is a valid hex color
-const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color);
 
 const DashboradDoughnutChat = ({
   insideText = "0 €",
@@ -44,11 +37,7 @@ const DashboradDoughnutChat = ({
 }) => {
   const chartRef = useRef(null);
 
-  const { campaignFormData } = useCampaigns();
 
-  // Handle funnel_stages as either strings or objects
-  // const funnelStages = campaignFormData?.funnel_stages || [];
-  // const customFunnels = campaignFormData?.custom_funnels || [];
   // Handle funnel_stages as either strings or objects
   const funnelStages = campaign?.funnel_stages || [];
   const customFunnels = campaign?.custom_funnels || [];
@@ -56,31 +45,32 @@ const DashboradDoughnutChat = ({
   // Map selected funnel stages to their funnel objects, maintaining order
   const selectedFunnels = funnelStages
     .map((stage: any) => {
-      const stageName = typeof stage === 'string' ? stage : stage?.name;
-      return customFunnels.find((funnel: any) => funnel.name === stageName);
-    })
-    .filter((funnel): funnel is { id: string; name: string; color: string } => funnel !== undefined);
+      const stageName = typeof stage === "string" ? stage : stage?.name;
+      return {
+        name: stageName,
+        color: customFunnels.find((f) => f.name === stageName)?.color || "#6B7280", // fallback to gray
+      };
+    });
 
-  // Map labels for the chart
-  const labels = selectedFunnels.map((funnel) => funnel.name);
-
-  // Assign colors from funnel_stages or custom_funnels, ensuring uniqueness
-  function getUniqueColors(funnels: { id: string; name: string; color: string }[], stages: any[]) {
+  // Assign unique colors, converting Tailwind to HEX when needed
+  function getUniqueColors(funnels: { name: string; color: string }[]) {
     const usedColors = new Set<string>();
     const assignedColors: string[] = [];
     let paletteIndex = 0;
 
     for (let i = 0; i < funnels.length; i++) {
       const funnel = funnels[i];
-      const stage = stages[i];
-      let color = stage?.color || funnel.color || "#6B7280"; // Prioritize stage color
+      let color = funnel.color;
 
-      // Convert Tailwind class to hex if necessary, or use hex directly
+      // Convert Tailwind class (e.g. bg-blue-500) to hex
       const colorHex = isHexColor(color) ? color : tailwindToHex[color] || "#6B7280";
 
-      // Ensure uniqueness by checking against used colors
+      // Ensure color uniqueness
       if (usedColors.has(colorHex)) {
-        while (paletteIndex < distinctColorPalette.length && usedColors.has(distinctColorPalette[paletteIndex])) {
+        while (
+          paletteIndex < distinctColorPalette.length &&
+          usedColors.has(distinctColorPalette[paletteIndex])
+        ) {
           paletteIndex++;
         }
         color = distinctColorPalette[paletteIndex] || "#6B7280";
@@ -92,16 +82,15 @@ const DashboradDoughnutChat = ({
       assignedColors.push(color);
       usedColors.add(color);
     }
+
     return assignedColors;
   }
 
-  const colors = getUniqueColors(selectedFunnels, funnelStages);
+  const labels = selectedFunnels.map((f) => f.name);
+  const colors = getUniqueColors(selectedFunnels);
 
+  // Handle funnel_stages as either strings or objects
 
-  // Generate data values for the chart
-  // const dataValues = funnelStages.length > 0
-  //   ? campaignFormData?.channel_mix?.map((st: any) => st?.stage_budget?.percentage_value || 0)
-  //   : [100];
 
   // Custom plugin to add text in the center of the doughnut chart
   const centerTextPlugin = {
