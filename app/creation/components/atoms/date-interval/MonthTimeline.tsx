@@ -71,15 +71,12 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
     return platforms;
   }
 
-
-
-
   return (
     <div
       className="w-full min-h-[494px] relative pb-5"
       style={{
         backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-        backgroundSize: `calc(100% / ${monthsCount}) 100%`,
+        backgroundSize: `calc(250px) 100%`,
       }}
     >
 
@@ -90,7 +87,7 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
             key={index}
             style={{
               display: "grid",
-              gridTemplateColumns: `repeat(${monthsCount}, 1fr)`,
+              gridTemplateColumns: `repeat(${monthsCount}, 250px)`,
             }}
           >
             <div

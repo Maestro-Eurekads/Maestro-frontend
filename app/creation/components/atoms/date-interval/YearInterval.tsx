@@ -111,7 +111,7 @@ const YearInterval: React.FC<YearIntervalProps> = ({
   const dailyWidth = calculateDailyWidth();
 
   return (
-    <div className="w-full border-y">
+    <div className="w-full border-y border-r">
       <div
         style={{
           display: "grid",

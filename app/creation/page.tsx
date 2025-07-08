@@ -17,11 +17,14 @@ import DefineAdSet from "./components/DefineAdSet";
 import { FormatSelection } from "./components/FormatSelection";
 import FeeSelectionStep from "./components/FeeSelectionStep";
 import { useComments } from "app/utils/CommentProvider";
+import { EnhancedDateProvider } from "app/utils/enhanced-date-context";
+import { useCampaigns } from "app/utils/CampaignsContext";
 
 const Creation = () => {
   const { active, subStep } = useActive();
+  const {campaignFormData} = useCampaigns()
   return (
-    <div>
+    <EnhancedDateProvider campaignFormData={campaignFormData}>
       <div className="creation_continer">
         {active === 0 && <SetupScreen />}
         {/* {active === 1 && <DefineCampaignObjective />} */}
@@ -46,7 +49,7 @@ const Creation = () => {
         ))}
       {active === 9 && <EstablishedGoals />}
       {active === 10 && <OverviewofyourCampaign />}
-    </div>
+    </EnhancedDateProvider>
   );
 };
 

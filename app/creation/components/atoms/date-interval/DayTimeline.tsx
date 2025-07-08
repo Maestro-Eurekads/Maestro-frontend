@@ -76,15 +76,16 @@ const DayTimeline: React.FC<DayTimelineProps> = ({ daysCount, funnels }) => {
   return (
     <div className="w-full min-h-[519px] pb-10" style={{
       backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-      backgroundSize: `calc(100% / ${daysCount + 1}) 100%`,
+      backgroundSize: `calc(50px) 100%`,
     }}>
       {funnels?.map(({ startDay, endDay, label, budget, stages }, index) => {
+        console.log({endDay, startDay, label})
         return (
           <div
             key={index}
             style={{
               display: "grid",
-              gridTemplateColumns: `repeat(${daysCount + 1}, 100px)`,
+              gridTemplateColumns: `repeat(${daysCount}, 50px)`,
 
             }}
           >

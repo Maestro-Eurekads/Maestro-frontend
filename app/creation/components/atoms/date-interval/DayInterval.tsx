@@ -5,10 +5,12 @@ import { useDateRange } from "src/date-range-context";
 interface DayIntervalProps {
   daysCount: number;
   src?: string;
+  range?: any
 }
 
-const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src }) => {
-  const { range } = useDateRange();
+const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src , range}) => {
+  const { range:ddRange } = useDateRange();
+  console.log(range)
   return (
     <div className="w-full border-y py-3">
       <div
@@ -17,13 +19,13 @@ const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src }) => {
           gridTemplateColumns: `repeat(${daysCount},1fr )`,
         }}
       >
-        {Array.from({ length: daysCount + 1 }, (_, i) => {
-          const isEdge = i === 0 || i === range?.length - 1;
-          const date = range[i]
+        {Array.from({ length: daysCount }, (_, i) => {
+          const isEdge = i === 0 || i === (src==="dashboard" ? range.length : ddRange?.length - 1);
+          const date = src==="dashboard" ? range[i] :ddRange[i]
           return (
             <div key={i} className="flex flex-col items-center relative">
               {/* Week Label */}
-              {src && src === "campaign" ? (
+              { (
                 <div
                   key={i}
                   className={`relative min-w-[50px] text-center text-sm font-medium px-1 py-1 rounded-md
@@ -31,7 +33,7 @@ const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src }) => {
                         `}
                   style={{
                     display: "grid",
-                    gridTemplateColumns: `repeat(100px, 1fr)`,
+                    gridTemplateColumns: `repeat(50px, 1fr)`,
                   }}
                 >
                   <span className={`${isEdge ? "text-white" : "text-black"}`}>
@@ -50,16 +52,7 @@ const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src }) => {
                     </div>
                   )}
                 </div>
-              ) : (
-                <div className="flex flex-row gap-1 items-center mx-2">
-                  <span className="font-[500] text-[13px] text-[rgba(0,0,0,0.5)]">
-                    Day
-                  </span>
-                  <p className="font-[500] text-[13px] text-blue-500">
-                    {i + 1}
-                  </p>
-                </div>
-              )}
+              ) }
             </div>
           );
         })}

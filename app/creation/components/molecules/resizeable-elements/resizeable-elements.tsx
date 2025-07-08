@@ -3,7 +3,7 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import type { StaticImageData } from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
-import DraggableChannel from "../../../../../components/DraggableChannel";
+// import DraggableChannel from "../../../../../components/DraggableChannel";
 import ResizableChannels from "./ResizableChannels";
 import { useFunnelContext } from "../../../../utils/FunnelContextType";
 import {
@@ -26,6 +26,7 @@ import {
   endOfYear,
 } from "date-fns";
 import { useComments } from "app/utils/CommentProvider";
+import EnhancedDraggableChannel from "components/enhanced-draggable-channel";
 
 interface OutletType {
   name: string;
@@ -766,7 +767,7 @@ console.log("here")
                   gridColumnEnd: getGridColumnEnd() + 1,
                 }}
               >
-                <DraggableChannel
+                <EnhancedDraggableChannel
                   id={stage?.name}
                   openChannel={isOpen}
                   bg={stage?.color?.split("-")[1]}

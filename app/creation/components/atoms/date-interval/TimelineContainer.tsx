@@ -1,21 +1,27 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useRef, useState, useEffect } from "react"
-import { ChevronRight } from "lucide-react"
-import DayInterval from "./DayInterval"
-import DayTimeline from "./DayTimeline"
-import WeekInterval from "./WeekInterval"
-import WeekTimeline from "./WeekTimeline"
-import MonthInterval from "./MonthInterval"
-import MonthTimeline from "./MonthTimeline"
+import type React from "react";
+import { useRef, useState, useEffect } from "react";
+import { ChevronRight } from "lucide-react";
+import DayInterval from "./DayInterval";
+import DayTimeline from "./DayTimeline";
+import WeekInterval from "./WeekInterval";
+import WeekTimeline from "./WeekTimeline";
+import MonthInterval from "./MonthInterval";
+import MonthTimeline from "./MonthTimeline";
+import { addDays, differenceInDays, eachDayOfInterval, format } from "date-fns";
+import YearInterval from "./YearInterval";
+import YearTimeline from "./YearTimeline";
 
 interface TimelineContainerProps {
-  range: string
-  dayDifference: number
-  weekDifference: number
-  monthDifference: number
-  funnelsData: any[]
+  range: string;
+  dayDifference: number;
+  weekDifference: number;
+  monthDifference: number;
+  funnelsData: any[];
+  startDate?: any;
+  endDate?: any;
+  yearDifference?:any
 }
 
 const TimelineContainer: React.FC<TimelineContainerProps> = ({
@@ -24,58 +30,114 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
   weekDifference,
   monthDifference,
   funnelsData,
+  startDate,
+  endDate,
+  yearDifference,
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [showScrollIndicator, setShowScrollIndicator] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
 
   // Check if we need to show the scroll indicator
   useEffect(() => {
-    if (!containerRef.current) return
+    if (!containerRef.current) return;
 
     const checkScroll = () => {
-      const container = containerRef.current
-      if (!container) return
-      setShowScrollIndicator(container.scrollWidth > container.clientWidth)
-    }
+      const container = containerRef.current;
+      if (!container) return;
+      setShowScrollIndicator(container.scrollWidth > container.clientWidth);
+    };
 
-    checkScroll()
-    window.addEventListener("resize", checkScroll)
-    return () => window.removeEventListener("resize", checkScroll)
-  }, [range, dayDifference, weekDifference, monthDifference])
+    checkScroll();
+    window.addEventListener("resize", checkScroll);
+    return () => window.removeEventListener("resize", checkScroll);
+  }, [range, dayDifference, weekDifference, monthDifference]);
 
+  const differenceInDays = Math.ceil(
+    (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
 
+  const dateList = eachDayOfInterval({
+    start: startDate,
+    end: addDays(endDate, 0),
+  });
 
+  function getDaysInEachMonth(): Record<string, number> {
+    const daysInMonth: Record<string, number> = {};
 
+    dateList?.forEach((date) => {
+      const monthYear = format(date, "MMMM yyyy"); // Include year to differentiate months across years
+      daysInMonth[monthYear] = (daysInMonth[monthYear] || 0) + 1;
+    });
 
+    // console.log("daysInMonth", daysInMonth);
+
+    return daysInMonth;
+  }
+  function getDaysInEachYear(): Record<string, number> {
+    const daysInYear: Record<string, number> = {};
+
+    dateList?.forEach((date) => {
+      const year = format(date, "yyyy");
+      daysInYear[year] = (daysInYear[year] || 0) + 1;
+    });
+
+    return daysInYear;
+  }
   // Render the appropriate timeline components based on the range
   const renderTimeline = () => {
     switch (range) {
       case "Day":
         return (
           <>
-            <DayInterval daysCount={dayDifference} />
+            <DayInterval
+              daysCount={dayDifference}
+              src="dashboard"
+              range={dateList}
+            />
             <DayTimeline daysCount={dayDifference} funnels={funnelsData} />
           </>
-        )
+        );
       case "Month":
         return (
           <>
-            <MonthInterval monthsCount={monthDifference} />
-            <MonthTimeline monthsCount={monthDifference} funnels={funnelsData} />
+            <MonthInterval
+              monthsCount={monthDifference}
+              getDaysInEachMonth={getDaysInEachMonth}
+            />
+            <MonthTimeline
+              monthsCount={monthDifference}
+              funnels={funnelsData}
+            />
           </>
-        )
+        );
+      case "Year":
+        return (
+          <>
+            <YearInterval
+              yearsCount={yearDifference === 0 ? 1 : yearDifference + 1}
+              // view={view}
+              getDaysInEachYear={getDaysInEachYear}
+              funnelData={funnelsData}
+            />
+            <YearTimeline range={dateList} funnels={funnelsData}/>
+          </>
+        );
       default: // Week is default
         return (
           <>
-            <WeekInterval weeksCount={weekDifference} />
-            <WeekTimeline weeksCount={weekDifference} funnels={funnelsData} />
+            <WeekInterval
+              weeksCount={weekDifference}
+              range={dateList}
+              src="dashboard"
+            />
+            <DayTimeline daysCount={dayDifference} funnels={funnelsData} />
           </>
-        )
+        );
     }
-  }
+  };
 
   return (
-    <div className="box-border w-full min-h-[519px] bg-white border-b-2 relative">
+    <div className="box-border w-full min-h-[519px] bg-white border-b-2 relative px-2">
       <div className="overflow-x-auto" ref={containerRef}>
         <div className="min-w-max">{renderTimeline()}</div>
       </div>
@@ -85,7 +147,7 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default TimelineContainer
+export default TimelineContainer;
