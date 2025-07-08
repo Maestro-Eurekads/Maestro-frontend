@@ -60,6 +60,7 @@ export const CommentProvider = ({ children }) => {
 		setComments(storedComments);
 		setOpportunities(storedOpportunities);
 		if(active === 7){
+			console.log("active", active)
 			if (subStep === 1){
 				setClose(true)
 			}

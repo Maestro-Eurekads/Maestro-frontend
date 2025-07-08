@@ -21,6 +21,8 @@ import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react"
 import AddNewChennelsModel from "components/Modals/AddNewChennelsModel"
 import { useDateRange as useRange } from "src/date-range-context"
 import YearInterval from "../../atoms/date-interval/YearInterval"
+import { useActive } from "app/utils/ActiveContext"
+import { useComments } from "app/utils/CommentProvider"
 
 const MainSection = ({
   hideDate,
@@ -37,6 +39,8 @@ const MainSection = ({
   const { range } = useDateRange()
   const [isOpen, setIsOpen] = useState(false)
   const [selectedStage, setSelectedStage] = useState("")
+  const {active, subStep} = useActive()
+  const {setClose} = useComments()
 
   // Zoom state management
   const [zoomLevel, setZoomLevel] = useState(1)
@@ -160,6 +164,16 @@ const MainSection = ({
 
     return daysInMonth
   }
+
+  useEffect(()=>{
+    if(active === 7){
+			console.log("active", active)
+			if (subStep === 1){
+        console.log(subStep)
+				setClose(true)
+			}
+		}
+  }, [active, subStep, close])
 
   function getDaysInEachYear(): Record<string, number> {
     const daysInYear: Record<string, number> = {}

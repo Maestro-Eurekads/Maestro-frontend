@@ -18,7 +18,7 @@ const PlanCampaignScheduleSubStepComponent = () => {
 	} = useCampaigns();
 	useEffect(() => {
 		setIsDrawerOpen(false);
-		setClose(false);
+		// setClose(false);
 		setIsEditing(true)
 	}, []);
 

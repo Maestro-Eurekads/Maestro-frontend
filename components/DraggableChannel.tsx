@@ -472,7 +472,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           backgroundColor: color,
           transition: "transform 0.2s ease-out",
         }}
-        onClick={()=>setOpenChannel?.(!openChannel)}
+        // onClick={()=>setOpenChannel?.(!openChannel)}
         onMouseDown={disableDrag || openItems ? undefined : handleMouseDownDrag}
       >
         {/* Left Resize Handle */}
@@ -497,7 +497,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
         )}
         <div />
         <button className="flex items-center gap-3 w-fit" 
-        // onClick={() => setOpenChannel?.(!openChannel)}
+        onClick={() => setOpenChannel?.(!openChannel)}
         >
           {Icon?.src ? <Image src={Icon?.src || "/placeholder.svg"} alt="" width={20} height={20} /> : Icon}
           <span className="font-medium">{description}</span>
