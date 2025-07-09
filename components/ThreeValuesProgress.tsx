@@ -15,7 +15,7 @@ const ThreeValuesProgress = ({
   // Fallback hex colors aligned with colorClassToHex from other components
   const fallbackColors = ["#3B82F6", "#22C55E", "#F59E42"]; // blue-500, green-500, orange-500
 
-  console.log('color==color--fallbackColors', color)
+
 
   // Function to format percentage: remove `.0` if it's a whole number
   const formatPercentage = (value: number) =>
