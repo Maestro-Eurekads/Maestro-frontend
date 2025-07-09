@@ -1,6 +1,6 @@
 "use client"
 import type React from "react"
-import { memo, useState, useCallback, useEffect, createContext, useContext } from "react"
+import { memo, useState, useCallback, useEffect, createContext, useContext, useRef } from "react"
 import Image, { type StaticImageData } from "next/image"
 import { FaAngleRight, FaSpinner } from "react-icons/fa"
 import { MdDelete, MdAdd } from "react-icons/md"
@@ -1064,6 +1064,14 @@ const AdsetSettings = memo(function AdsetSettings({
     onPlatformStateChange?.(stageName, outlet.outlet, isOpen)
   }, [selectedPlatforms, isCollapsed, stageName, outlet.outlet, onPlatformStateChange])
 
+  // --- BEGIN PATCH: Ensure platform closes when last ad set is deleted ---
+  // We need to inform the parent (AdSetFlow) to collapse the outlet when the last ad set is deleted.
+  // We'll use a ref to avoid stale closure in deleteAdSet.
+  const setCollapsedRef = useRef(setCollapsed)
+  useEffect(() => {
+    setCollapsedRef.current = setCollapsed
+  }, [setCollapsed])
+
   // GRANULARITY SEPARATION: Only allow adding ad sets in adset granularity
   const addNewAddset = useCallback(() => {
     if (granularity !== "adset") return // Prevent adding ad sets in channel granularity
@@ -1142,17 +1150,17 @@ const AdsetSettings = memo(function AdsetSettings({
       if (granularity !== "adset") return
 
       try {
+        // We'll need to know if this is the last ad set before updating state
+        let isLastAdSet = false
         setAdSets((prev) => {
           const newAdSets = prev.filter((adset) => adset.id !== id)
-          if (newAdSets.length === 0) {
+          isLastAdSet = newAdSets.length === 0
+          // PATCH: If last ad set, close the platform (collapse and deselect)
+          if (isLastAdSet) {
             setSelectedPlatforms((prevPlatforms) => prevPlatforms.filter((p) => p !== outlet.outlet))
-            const newAdSetId = Date.now()
-            setTimeout(() => {
-              setAdSets([{ id: newAdSetId, addsetNumber: 1 }])
-              setAdSetDataMap({
-                [newAdSetId]: { name: "", audience_type: "", size: "", description: "" },
-              })
-            }, 0)
+            // Collapse the outlet in parent
+            setCollapsedRef.current(true)
+            // Do NOT create a new dummy ad set here!
           }
           return newAdSets
         })
@@ -1162,6 +1170,7 @@ const AdsetSettings = memo(function AdsetSettings({
           return newMap
         })
 
+        // Only persist ad sets if there are any left
         const adSetsToSave = adsets
           .filter((adset) => adset.id !== id)
           .map((adset) => {
@@ -1229,6 +1238,7 @@ const AdsetSettings = memo(function AdsetSettings({
       granularity,
     ],
   )
+  // --- END PATCH ---
 
   const updateAdSetData = useCallback(
     (id: number, data: Partial<AdSetData>) => {
@@ -1434,6 +1444,15 @@ const AdsetSettings = memo(function AdsetSettings({
   }
 
   if (!selectedPlatforms.includes(outlet.outlet)) {
+    return <NonFacebookOutlet outlet={outlet} setSelected={setSelectedPlatforms} onInteraction={onInteraction} />
+  }
+
+  // PATCH: If there are no ad sets left, immediately collapse the outlet and show only the channel selection
+  if (granularity === "adset" && adsets.length === 0) {
+    // Defensive: ensure collapsed state is set
+    if (!isCollapsed) {
+      setCollapsed(true)
+    }
     return <NonFacebookOutlet outlet={outlet} setSelected={setSelectedPlatforms} onInteraction={onInteraction} />
   }
 
@@ -1866,7 +1885,12 @@ const AdSetFlow = memo(function AdSetFlow({
                   onInteraction={handleInteraction}
                   defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
                   isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
-                  setCollapsed={(collapsed) => handleToggleCollapsed(outlet.outlet)}
+                  setCollapsed={(collapsed) =>
+                    setCollapsedOutlets((prev) => ({
+                      ...prev,
+                      [outlet.outlet]: collapsed,
+                    }))
+                  }
                   granularity={granularity}
                   onPlatformStateChange={onPlatformStateChange}
                 />
@@ -1879,7 +1903,12 @@ const AdSetFlow = memo(function AdSetFlow({
                 onInteraction={handleInteraction}
                 defaultOpen={autoOpen[stageName]?.includes(outlet.outlet)}
                 isCollapsed={collapsedOutlets[outlet.outlet] ?? false}
-                setCollapsed={(collapsed) => handleToggleCollapsed(outlet.outlet)}
+                setCollapsed={(collapsed) =>
+                  setCollapsedOutlets((prev) => ({
+                    ...prev,
+                    [outlet.outlet]: collapsed,
+                  }))
+                }
                 granularity={granularity}
                 onPlatformStateChange={onPlatformStateChange}
               />
