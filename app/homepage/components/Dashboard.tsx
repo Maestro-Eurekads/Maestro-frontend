@@ -89,10 +89,29 @@ const Dashboard = () => {
       startMonth,
       endMonth,
       label: ch?.media_plan_details?.plan_name,
-      stages: ch?.channel_mix?.map((d) => ({
-        name: d?.funnel_stage,
-        budget: `${ch?.campaign_budget?.amount} ${getCurrencySymbol(ch?.campaign_budget?.currency)}`
-      })),
+      stages: ch?.channel_mix?.map((d) => {
+        const start = d?.funnel_stage_timeline_start_date ? parseISO(d.funnel_stage_timeline_start_date) : null
+        const end = d?.funnel_stage_timeline_end_date ? parseISO(d.funnel_stage_timeline_end_date) : null
+        const startDay = differenceInCalendarDays(start, earliestStartDate) + 1
+        const endDay = differenceInCalendarDays(end, earliestStartDate) + 1
+
+        const startWeek = differenceInCalendarWeeks(start, earliestStartDate) + 1
+        const endWeek = differenceInCalendarWeeks(end, earliestStartDate) + 1
+
+        const startMonth = differenceInCalendarMonths(start, earliestStartDate) + 1
+        const endMonth = differenceInCalendarMonths(end, earliestStartDate) + 1
+        return {
+
+          name: d?.funnel_stage,
+          budget: `${ch?.campaign_budget?.amount} ${getCurrencySymbol(ch?.campaign_budget?.currency)}`,
+          startDay,
+          endDay,
+          startWeek,
+          endWeek,
+          startMonth,
+          endMonth
+        }
+      }),
       budget: `${ch?.campaign_budget?.amount} ${getCurrencySymbol(ch?.campaign_budget?.currency)}`,
     }
   })

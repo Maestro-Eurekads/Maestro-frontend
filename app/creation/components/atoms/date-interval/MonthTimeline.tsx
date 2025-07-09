@@ -39,34 +39,32 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
       data.channel_mix.forEach((stage) => {
         const stageName = stage.funnel_stage;
         const stageBudget = parseFloat(stage.stage_budget?.fixed_value);
-        mediaTypes.forEach(
-          (channelType) => {
-            stage[channelType].forEach((platform) => {
-              const platformName = platform.platform_name;
-              const platformBudget = parseFloat(
-                platform.budget?.fixed_value || 0
-              );
-              const percentage = (platformBudget / stageBudget) * 100 || 0;
-              const existingPlatform = platforms.find(
-                (p) => p.platform_name === platformName
-              );
-              if (!existingPlatform) {
-                const style =
-                  platformStyles.find((style) => style.name === platformName) ||
-                  platformStyles[
+        mediaTypes.forEach((channelType) => {
+          stage[channelType].forEach((platform) => {
+            const platformName = platform.platform_name;
+            const platformBudget = parseFloat(
+              platform.budget?.fixed_value || 0
+            );
+            const percentage = (platformBudget / stageBudget) * 100 || 0;
+            const existingPlatform = platforms.find(
+              (p) => p.platform_name === platformName
+            );
+            if (!existingPlatform) {
+              const style =
+                platformStyles.find((style) => style.name === platformName) ||
+                platformStyles[
                   Math.floor(Math.random() * platformStyles.length)
-                  ];
-                platforms.push({
-                  platform_name: platformName,
-                  amount: platformBudget,
-                  stageName,
-                  icon: getPlatformIcon(platformName),
-                  bg: style?.bg,
-                });
-              }
-            });
-          }
-        );
+                ];
+              platforms.push({
+                platform_name: platformName,
+                amount: platformBudget,
+                stageName,
+                icon: getPlatformIcon(platformName),
+                bg: style?.bg,
+              });
+            }
+          });
+        });
       });
     return platforms;
   }
@@ -79,166 +77,183 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
         backgroundSize: `calc(250px) 100%`,
       }}
     >
-
-      {funnels?.map(({ startWeek, endWeek, label, budget, stages, endMonth, startMonth
-      }, index) => {
-        return (
-          <div
-            key={index}
-            style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(${monthsCount}, 250px)`,
-            }}
-          >
+      {funnels?.map(
+        (
+          { startWeek, endWeek, label, budget, stages, endMonth, startMonth },
+          index
+        ) => {
+          return (
             <div
-              className="flex flex-col min-h-[69px] bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px]  justify-between"
+              key={index}
               style={{
-                gridColumnStart: startMonth,
-                gridColumnEnd: endMonth + 1,
+                display: "grid",
+                gridTemplateColumns: `repeat(${monthsCount}, 250px)`,
               }}
             >
               <div
-                className={`${expanded[index]
-                  ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4    h-[77px] bg-[#F9FAFB]  "'
-                  : "flex justify-between items-center p-4"
-                  } `}
+                className="flex flex-col min-h-[69px] bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px]  justify-between"
+                style={{
+                  gridColumnStart: startMonth,
+                  gridColumnEnd: endMonth + 1,
+                }}
               >
-                <div>
-                  <h3 className="text-[#061237] font-semibold text-[16px] leading-[22px]  ">
-                    {label}
-                  </h3>
-                  <p className="text-[#061237] font-medium text-[14px]">
-                    {/* 250,000 € */}
-                    {budget?.startsWith("null") || budget?.startsWith("undefined")
-                      ? 0
-                      : `${Number(budget.replace(/[^\d.-]/g, "")).toLocaleString()} ${budget.replace(/[\d\s.,-]/g, "").trim()}`}
-                  </p>
+                <div
+                  className={`${
+                    expanded[index]
+                      ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4    h-[77px] bg-[#F9FAFB]  "'
+                      : "flex justify-between items-center p-4"
+                  } `}
+                >
+                  <div>
+                    <h3 className="text-[#061237] font-semibold text-[16px] leading-[22px]  ">
+                      {label}
+                    </h3>
+                    <p className="text-[#061237] font-medium text-[14px]">
+                      {/* 250,000 € */}
+                      {budget?.startsWith("null") ||
+                      budget?.startsWith("undefined")
+                        ? 0
+                        : `${Number(
+                            budget.replace(/[^\d.-]/g, "")
+                          ).toLocaleString()} ${budget
+                            .replace(/[\d\s.,-]/g, "")
+                            .trim()}`}
+                    </p>
+                  </div>
+                  <button onClick={() => toggleShow(index)}>
+                    {expanded[index] ? (
+                      <FiChevronUp size={20} />
+                    ) : (
+                      <FiChevronDown size={20} />
+                    )}
+                  </button>
                 </div>
-                <button onClick={() => toggleShow(index)}>
-                  {expanded[index] ? (
-                    <FiChevronUp size={20} />
-                  ) : (
-                    <FiChevronDown size={20} />
-                  )}
-                </button>
-              </div>
 
-              {/* Expanded section */}
-              {expanded[index] && (
-                <div className="p-4">
-                  {stages?.map((section, zIndex) => {
-                    const channels = extractPlatforms(
-                      clientCampaignData[index]
-                    );
+                {/* Expanded section */}
+                {expanded[index] && (
+                  <div className="py-2" style={{
+                    backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+                    backgroundSize: `calc(250px) 100%`,
+                  }}>
+                    {stages?.map(({name, startDay, endDay, startWeek, endWeek, startMonth:start, endMonth:end, budget}, zIndex) => {
+                      const channels = extractPlatforms(
+                        clientCampaignData[index]
+                      );
 
-                    return (
-                      <div
-                        key={section?.name}
-                      // style={{
-                      // 	display: 'grid',
-                      // 	gridTemplateColumns: `repeat(${(endWeek + 1) - startWeek}, 1fr)`
-                      // }}
-                      >
+                      return (
                         <div
-                          onClick={() => toggleOpen(index, section?.name)}
-                          className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${section?.name === "Awareness"
-                            ? "bg-[#3175FF]"
-                            : section?.name === "Consideration"
-                              ? "bg-[#34A853]"
-                              : section?.name === "Conversion"
+                          key={name}
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: `repeat(${monthsCount}, 250px)`,
+                          }}
+                        >
+                          <div
+                            onClick={() => toggleOpen(index, name)}
+                            className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${
+                              name === "Awareness"
+                                ? "bg-[#3175FF]"
+                                : name === "Consideration"
+                                ? "bg-[#34A853]"
+                                : name === "Conversion"
                                 ? "bg-[#ff9037]"
                                 : "bg-[#F05406]"
                             } text-white`}
-                          style={{
-                            gridColumnStart: startWeek,
-                            gridColumnEnd: endWeek + 1 - startWeek + 1,
-                          }}
-                        >
-                          <div className="flex items-center justify-center gap-3 flex-1">
-                            <span>
-                              {section?.name === "Awareness" ? (
-                                <BsFillMegaphoneFill />
-                              ) : section?.name === "Consideration" ? (
-                                <TbZoomFilled />
-                              ) : (
-                                <TbCreditCardFilled />
-                              )}
-                            </span>
-                            <span>{section?.name}</span>
-                            <span>
-                              <FiChevronDown size={15} />
-                            </span>
-                          </div>
-                          <button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
-                            {section?.budget?.startsWith("null") || section?.budget?.startsWith("undefined")
-                              ? 0
-                              : `${Number(section?.budget.replace(/[^\d.-]/g, "")).toLocaleString()} ${section?.budget.replace(/[\d\s.,-]/g, "").trim()}`}
-
-                          </button>
-                        </div>
-
-                        {openSections[`${index}-${section?.name}`] && (
-                          <div
                             style={{
-                              gridColumnStart: 1,
-                              gridColumnEnd: endWeek + 1 - startWeek + 1,
+                              gridColumnStart: start,
+                              gridColumnEnd: end + 1,
                             }}
                           >
-                            {channels
-                              ?.filter(
-                                (ch) => ch?.stageName === section?.name
-                              )
-                              ?.map(({ platform_name, icon, amount, bg }) => (
-                                <div
-                                  key={platform_name}
-                                  style={{
-                                    display: "grid",
-                                    gridTemplateColumns: `repeat(${endWeek + 1 - startWeek + 1 - 2
-                                      }, 1fr)`,
-                                  }}
-                                >
+                            <div className="flex items-center justify-center gap-3 flex-1">
+                              {/* <span>
+                                {name === "Awareness" ? (
+                                  <BsFillMegaphoneFill />
+                                ) : name === "Consideration" ? (
+                                  <TbZoomFilled />
+                                ) : (
+                                  <TbCreditCardFilled />
+                                )}
+                              </span> */}
+                              <span>{name}</span>
+                              <span>
+                                <FiChevronDown size={15} />
+                              </span>
+                            </div>
+                            <button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
+                              {budget?.startsWith("null") ||
+                              budget?.startsWith("undefined")
+                                ? 0
+                                : `${Number(
+                                    budget.replace(/[^\d.-]/g, "")
+                                  ).toLocaleString()} ${budget
+                                    .replace(/[\d\s.,-]/g, "")
+                                    .trim()}`}
+                            </button>
+                          </div>
+
+                          {openSections[`${index}-${name}`] && (
+                            <div
+                              style={{
+                                gridColumnStart: startMonth,
+                                gridColumnEnd: endMonth + 1 - startMonth + 1,
+                              }}
+                            >
+                              {channels
+                                ?.filter(
+                                  (ch) => ch?.stageName === name
+                                )
+                                ?.map(({ platform_name, icon, amount, bg }) => (
                                   <div
-                                    className={`py-1 text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between`}
+                                    key={platform_name}
                                     style={{
-                                      gridColumnStart: 1,
-                                      gridColumnEnd:
-                                        endWeek +
-                                        1 -
-                                        startWeek +
-                                        1 -
-                                        1 +
-                                        1 -
-                                        1,
-                                      backgroundColor: bg,
+                                      display: "grid",
+                                      gridTemplateColumns: `repeat(${
+                                        endMonth + 1 - startMonth + 1 - 2
+                                      }, 1fr)`,
                                     }}
                                   >
-                                    <div />
-                                    <span className="flex items-center gap-3 pl-3 ml-14">
-                                      <Image
-                                        src={icon}
-                                        alt={platform_name}
-                                        width={20}
-                                      />
-                                      <span>{platform_name}</span>
-                                    </span>
-                                    <button className="bg-[#0866FF33]/5 py-2 px-[10px] rounded-[5px] mr-3">
-                                      {amount}
-                                    </button>
+                                    <div
+                                      className={`py-1 text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between`}
+                                      style={{
+                                        gridColumnStart: start ? start : 1,
+                                        gridColumnEnd:
+                                          endMonth +
+                                          1 -
+                                          startMonth +
+                                          1 -
+                                          1 +
+                                          1 -
+                                          1,
+                                        backgroundColor: bg,
+                                      }}
+                                    >
+                                      <div />
+                                      <span className="flex items-center gap-3 pl-3 ml-14">
+                                        <Image
+                                          src={icon}
+                                          alt={platform_name}
+                                          width={20}
+                                        />
+                                        <span>{platform_name}</span>
+                                      </span>
+                                      <button className="bg-[#0866FF33]/5 py-2 px-[10px] rounded-[5px] mr-3">
+                                        {amount}
+                                      </button>
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                                ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        );
-      })}
-
+          );
+        }
+      )}
     </div>
   );
 };

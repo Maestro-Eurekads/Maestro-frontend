@@ -1,25 +1,22 @@
-import { useCampaigns } from "app/utils/CampaignsContext"
-import { getPlatformIcon, mediaTypes, platformStyles } from "components/data"
-import Image from "next/image"
-import type React from "react"
-import { useState } from "react"
-import { BsFillMegaphoneFill } from "react-icons/bs"
-import { FiChevronDown, FiChevronUp } from "react-icons/fi"
-import { TbCreditCardFilled, TbZoomFilled } from "react-icons/tb"
+import { useCampaigns } from "app/utils/CampaignsContext";
+import { getPlatformIcon, mediaTypes, platformStyles } from "components/data";
+import Image from "next/image";
+import type React from "react";
+import { useState } from "react";
+import { BsFillMegaphoneFill } from "react-icons/bs";
+import { FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { TbCreditCardFilled, TbZoomFilled } from "react-icons/tb";
 
 interface DayTimelineProps {
-  daysCount: number
-  funnels: any[]
+  daysCount: number;
+  funnels: any[];
 }
 
 const DayTimeline: React.FC<DayTimelineProps> = ({ daysCount, funnels }) => {
-  const dayWidth = 80 // Fixed width for each day in pixels
+  const dayWidth = 80; // Fixed width for each day in pixels
   const [expanded, setExpanded] = useState({});
   const { campaignFormData, clientCampaignData } = useCampaigns();
   const [openSections, setOpenSections] = useState({});
-
-
-
 
   // Function to toggle campaign dropdown
   const toggleShow = (index) => {
@@ -55,7 +52,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({ daysCount, funnels }) => {
                 const style =
                   platformStyles.find((style) => style.name === platformName) ||
                   platformStyles[
-                  Math.floor(Math.random() * platformStyles.length)
+                    Math.floor(Math.random() * platformStyles.length)
                   ];
                 platforms.push({
                   platform_name: platformName,
@@ -72,21 +69,22 @@ const DayTimeline: React.FC<DayTimelineProps> = ({ daysCount, funnels }) => {
     return platforms;
   }
 
-
   return (
-    <div className="w-full min-h-[519px] pb-10" style={{
-      backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-      backgroundSize: `calc(50px) 100%`,
-    }}>
+    <div
+      className="w-full min-h-[519px] pb-10"
+      style={{
+        backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+        backgroundSize: `calc(50px) 100%`,
+      }}
+    >
       {funnels?.map(({ startDay, endDay, label, budget, stages }, index) => {
-        console.log({endDay, startDay, label})
+        console.log({ endDay, startDay, label });
         return (
           <div
             key={index}
             style={{
               display: "grid",
               gridTemplateColumns: `repeat(${daysCount}, 50px)`,
-
             }}
           >
             <div
@@ -97,10 +95,11 @@ const DayTimeline: React.FC<DayTimelineProps> = ({ daysCount, funnels }) => {
               }}
             >
               <div
-                className={`${expanded[index]
-                  ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4    h-[77px] bg-[#F9FAFB]  "'
-                  : "flex justify-between items-center p-4"
-                  } `}
+                className={`${
+                  expanded[index]
+                    ? 'border-b border-b-[rgba(0,0,0,0.1)] !rounded-t-[10px] flex justify-between items-center p-4    h-[77px] bg-[#F9FAFB]  "'
+                    : "flex justify-between items-center p-4"
+                } `}
               >
                 <div>
                   <h3 className="text-[#061237] font-semibold text-[16px] leading-[22px]  ">
@@ -108,9 +107,14 @@ const DayTimeline: React.FC<DayTimelineProps> = ({ daysCount, funnels }) => {
                   </h3>
                   <p className="text-[#061237] font-medium text-[14px]">
                     {/* 250,000 € */}
-                    {budget?.startsWith("null") || budget?.startsWith("undefined")
+                    {budget?.startsWith("null") ||
+                    budget?.startsWith("undefined")
                       ? 0
-                      : `${Number(budget.replace(/[^\d.-]/g, "")).toLocaleString()} ${budget.replace(/[\d\s.,-]/g, "").trim()}`}
+                      : `${Number(
+                          budget.replace(/[^\d.-]/g, "")
+                        ).toLocaleString()} ${budget
+                          .replace(/[\d\s.,-]/g, "")
+                          .trim()}`}
                   </p>
                 </div>
                 <button onClick={() => toggleShow(index)}>
@@ -124,81 +128,90 @@ const DayTimeline: React.FC<DayTimelineProps> = ({ daysCount, funnels }) => {
 
               {/* Expanded section */}
               {expanded[index] && (
-                <div className="p-4">
-                  {stages?.map((section, zIndex) => {
-
+                <div className="py-2" style={{
+                  backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+                  backgroundSize: `calc(50px) 100%`,
+                }}>
+                  {stages?.map(({name, startDay:start, endDay:end, startWeek, endWeek, startMonth, endMonth, budget}, zIndex) => {
+                    console.log({start, end})
                     const channels = extractPlatforms(
                       clientCampaignData[index]
                     );
 
                     return (
                       <div
-                        key={section?.name}
-                      // style={{
-                      // 	display: 'grid',
-                      // 	gridTemplateColumns: `repeat(${(endDay + 1) - startDay}, 1fr)`
-                      // }}
+                        key={name}
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: `repeat(${daysCount}, 50px)`,
+                        }}
                       >
                         <div
-                          onClick={() => toggleOpen(index, section?.name)}
-                          className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${section?.name === "Awareness"
-                            ? "bg-[#3175FF]"
-                            : section?.name === "Consideration"
+                          onClick={() => toggleOpen(index, name)}
+                          className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${
+                            name === "Awareness"
+                              ? "bg-[#3175FF]"
+                              : name === "Consideration"
                               ? "bg-[#34A853]"
-                              : section?.name === "Conversion"
-                                ? "bg-[#ff9037]"
-                                : "bg-[#F05406]"
-                            } text-white`}
+                              : name === "Conversion"
+                              ? "bg-[#ff9037]"
+                              : "bg-[#F05406]"
+                          } text-white`}
                           style={{
-                            gridColumnStart: startDay,
-                            gridColumnEnd: endDay + 1 - startDay + 1,
+                            gridColumnStart: start ? start : 1,
+                            gridColumnEnd: end + 1,
                           }}
                         >
                           <div className="flex items-center justify-center gap-3 flex-1">
-                            <span>
-                              {section?.name === "Awareness" ? (
+                            {/* <span>
+                              {name === "Awareness" ? (
                                 <BsFillMegaphoneFill />
-                              ) : section?.name === "Consideration" ? (
+                              ) : name === "Consideration" ? (
                                 <TbZoomFilled />
                               ) : (
                                 <TbCreditCardFilled />
                               )}
-                            </span>
-                            <span>{section?.name}</span>
+                            </span> */}
+                            <span>{name}</span>
                             <span>
                               <FiChevronDown size={15} />
                             </span>
                           </div>
                           <button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
-                            {section?.budget?.startsWith("null") || section?.budget?.startsWith("undefined")
+                            {budget?.startsWith("null") ||
+                            budget?.startsWith("undefined")
                               ? 0
-                              : `${Number(section?.budget.replace(/[^\d.-]/g, "")).toLocaleString()} ${section?.budget.replace(/[\d\s.,-]/g, "").trim()}`}
-
+                              : `${Number(
+                                  budget.replace(/[^\d.-]/g, "")
+                                ).toLocaleString()} ${budget
+                                  .replace(/[\d\s.,-]/g, "")
+                                  .trim()}`}
                           </button>
                         </div>
 
-                        {openSections[`${index}-${section?.name}`] && (
+                        {openSections[`${index}-${name}`] && (
                           <div
                             style={{
-                              gridColumnStart: 1,
-                              gridColumnEnd: endDay + 1 - startDay + 1,
+                              gridColumnStart: startDay,
+                            gridColumnEnd: endDay + 1 - startDay + 1,
                             }}
                           >
                             {channels
-                              ?.filter((ch) => ch?.stageName === section?.name)
+                              ?.filter((ch) => ch?.stageName === name)
                               ?.map(({ platform_name, icon, amount, bg }) => (
                                 <div
                                   key={platform_name}
                                   style={{
                                     display: "grid",
-                                    gridTemplateColumns: `repeat(${endDay + 1 - startDay + 1 - 2
-                                      }, 1fr)`,
+                                    gridTemplateColumns: `repeat(${
+                                      endDay + 1 - startDay + 1 - 2
+                                    }, 1fr)`,
                                   }}
                                 >
                                   <div
                                     className={`py-1 text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between`}
                                     style={{
-                                      gridColumnStart: 1,
+                                      gridColumnStart: start ? start : 1,
                                       gridColumnEnd:
                                         endDay + 1 - startDay + 1 - 1 + 1 - 1,
                                       backgroundColor: bg,
@@ -231,7 +244,7 @@ const DayTimeline: React.FC<DayTimelineProps> = ({ daysCount, funnels }) => {
         );
       })}
     </div>
-  )
-}
+  );
+};
 
-export default DayTimeline
+export default DayTimeline;
