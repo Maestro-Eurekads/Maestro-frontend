@@ -976,15 +976,22 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
        return (
         <button
          className="bottom_black_next_btn hover:bg-blue-500"
-         onClick={() =>
-          campaignFormData?.isApprove
-           ? toast.error("This plan has already been approved!")
-           : setIsOpen(true)
-         }
+         onClick={() => setIsOpen(true)}
         >
          <p>Confirm</p>
          <Image src={Continue} alt="Continue" />
         </button>
+        // <button
+        //  className="bottom_black_next_btn hover:bg-blue-500"
+        //  onClick={() =>
+        //   campaignFormData?.isApprove
+        //    ? toast.error("This plan has already been approved!")
+        //    : setIsOpen(true)
+        //  }
+        // >
+        //  <p>Confirm</p>
+        //  <Image src={Continue} alt="Continue" />
+        // </button>
        );
       })()
      ) : (
