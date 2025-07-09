@@ -10,11 +10,23 @@ import { SVGLoader } from 'components/SVGLoader';
 import AlertMain from 'components/Alert/AlertMain';
 import { useSession } from "next-auth/react";
 import { cleanName } from 'components/Options';
+import { useUserPrivileges } from 'utils/userPrivileges';
+import { toast } from 'sonner';
+import axios from 'axios';
 
 const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
 	const { data: session }: any = useSession();
 	const { addComment, isLoading, createCommentsError, comment, setComment, updatePosition } = useComments();
+	const {
+		campaignData,
+		campaignFormData,
+		setCampaignFormData,
+		cId,
+		getActiveCampaign,
+		jwt
+	} = useCampaigns();
 	const [alert, setAlert] = useState(null);
+	const { isClient, loggedInUser } = useUserPrivileges();
 	const addcomment_as = ""
 	const client_commentID = session?.user?.id.toString()
 	const commentId = campaign?.campaign?.documentId
@@ -24,14 +36,106 @@ const ClientAddAsInternalcomment = ({ position, setShow, campaign }) => {
 	}
 
 
-	const handleAddComment = async () => {
-		if (comment.trim() === "") return;
+	// const updateStatus = async (stage: string, label: string) => {
+	// 	if (!cId) return;
+	// 	try {
+	// 		const newStatus = {
+	// 			stage,
+	// 			label,
+	// 			actor: {
+	// 				id: loggedInUser?.id,
+	// 				name: loggedInUser?.username,
+	// 				role: loggedInUser?.user_type,
+	// 			},
+	// 			date: new Date().toISOString(),
+	// 		};
+
+	// 		const patchData = {
+	// 			isStatus: newStatus
+	// 		};
+
+	// 		await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`, {
+	// 			data: patchData,
+	// 		}, {
+	// 			headers: {
+	// 				Authorization: `Bearer ${jwt}`,
+	// 			},
+	// 		});
+
+
+	// 		setShow(false);
+	// 		toast.success(`Media plan marked as '${label}'`);
+	// 	} catch (error) {
+	// 		if (error?.response?.status === 401) {
+	// 			const event = new Event("unauthorizedEvent");
+	// 			window.dispatchEvent(event);
+	// 		}
+	// 		toast.error(error?.message || "Failed to update status");
+	// 	} finally {
+	// 	}
+	// };
+
+	const updateStatus = async (stage: string, label: string) => {
+		if (!client_commentID) {
+			console.warn("No campaign ID found — cannot update status");
+			return;
+		}
+
+
+
 		try {
-			await addComment(commentId, comment, position, addcomment_as, creator, client_commentID);
-			await updatePosition(commentId, position);
+			const newStatus = {
+				stage,
+				label,
+				actor: {
+					id: loggedInUser?.id,
+					name: loggedInUser?.username,
+					role: loggedInUser?.user_type,
+				},
+				date: new Date().toISOString(),
+			};
+
+			const patchData = { isStatus: newStatus };
+
+			await axios.put(
+				`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignData?.documentId}`,
+				{ data: patchData },
+				{ headers: { Authorization: `Bearer ${jwt}` } }
+			);
+
+			console.log("✅ Status updated to", stage);
+			setShow(false);
+			toast.success(`Media plan marked as '${label}'`);
 		} catch (error) {
+			console.error("❌ Failed to update status:", error);
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
+			toast.error(error?.message || "Failed to update status");
 		}
 	};
+
+
+	// After comment is added, change the campaign status to "Changes Needed"
+	const stage = isClient ? 'client_changes_needed' : 'changes_needed';
+	const label = isClient ? 'Client Changes Needed' : 'Changes Needed';
+	const handleAddComment = async () => {
+		if (comment.trim() === "") return;
+
+		try {
+			await addComment(commentId, comment, position, addcomment_as, creator, client_commentID);
+			await updateStatus(stage, label);
+			await updatePosition(commentId, position);
+
+
+
+
+		} catch (error) {
+			console.error("Error adding comment or updating status:", error);
+		}
+	};
+
 
 
 

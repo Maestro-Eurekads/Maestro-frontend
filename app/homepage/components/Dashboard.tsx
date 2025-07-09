@@ -169,6 +169,8 @@ const Dashboard = () => {
    {processedCampaigns?.map((campaign, index) => {
     const channelD = extractPlatforms(campaign)
 
+
+
     // Prepare insideText for DoughnutChat
     const insideText = `${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency ? getCurrencySymbol(campaign?.campaign_budget?.currency) : ""}`
 
@@ -239,6 +241,11 @@ const Dashboard = () => {
         campaign={campaign}
         channelData={channelD}
         currency={getCurrencySymbol(campaign?.campaign_budget?.currency)}
+        campaignPhases={campaign?.channel_mix?.map((ch) => ({
+         name: ch?.funnel_stage,
+         percentage: Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0),
+         color: getFunnelColor(ch.funnel_stage, campaign),
+        }))}
        />
       </div>
      </div>
