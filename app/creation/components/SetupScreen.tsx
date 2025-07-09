@@ -17,9 +17,7 @@ import { useSession } from "next-auth/react";
 import { getCreateClient } from "features/Client/clientSlice";
 import { toast } from "sonner";
 import Skeleton from "react-loading-skeleton";
-import ClientSelectionInputbudget from "components/ClientSelectionInputbudget";
 import ClientSelection from "components/ClientSelection";
-import ClientApproverDropdownssub from "components/ClientApproverDropdownssub";
 
 
 interface DropdownOption {
@@ -79,9 +77,6 @@ export const SetupScreen = () => {
   const [clientId, setClientId] = useState(null);
 
 
-
-
-
   useEffect(() => {
     const cached = localStorage.getItem("filteredClient");
     const storedClientId = localStorage.getItem(userID);
@@ -101,10 +96,12 @@ export const SetupScreen = () => {
 
 
   const fetchUsers = async () => {
-    if (!clientId) return;
+    // Pick the first available ID
+    const effectiveClientId = clientId || selectedClient || FC?.id;
+    if (!effectiveClientId) return;
 
     const baseUrl = `${process.env.NEXT_PUBLIC_STRAPI_URL}/users`;
-    const filterParams = [`filters[clients][id][$eq]=${encodeURIComponent(clientId || selectedClient)}`];
+    const filterParams = [`filters[clients][id][$eq]=${encodeURIComponent(effectiveClientId)}`];
     const populateParams = ['populate=*'];
 
     setLoading(true);
@@ -115,11 +112,13 @@ export const SetupScreen = () => {
           Authorization: `Bearer ${jwt}`,
         },
       });
+
       if (response.status === 401) {
         const event = new Event("unauthorizedEvent");
         window.dispatchEvent(event);
         return;
       }
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error?.message || `HTTP ${response.status}`);
@@ -144,16 +143,10 @@ export const SetupScreen = () => {
 
 
 
-
-
-
-
   useEffect(() => {
-    // if (clientId && lastFetchedClientId.current !== clientId) {
-    //   lastFetchedClientId.current = clientId;
     fetchUsers();
-    // }
-  }, [clientId, selectedClient]);
+  }, [clientId, selectedClient, FC?.id, campaignFormData?.client_selection?.id]);
+
 
 
 

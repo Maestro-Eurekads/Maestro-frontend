@@ -266,39 +266,30 @@ const Table = () => {
                     </td>
                     <td className="py-[12px] px-[16px]">
 
-                      <div className={`px-3 py-1 text-sm font-semibold rounded-full w-fit whitespace-nowrap ${{
-                        draft: "bg-gray-100 text-gray-700",
-                        in_internal_review: "bg-purple-100 text-purple-700",
-                        changes_needed: "bg-red-100 text-red-700",
-                        client_changes_needed: "bg-red-100 text-red-700",
-                        shared_with_client: "bg-blue-100 text-blue-700",
-                        approved: "bg-[#00A36C] text-white",
-
-                      }[data?.isStatus?.slice(-1)?.[0]?.stage] || "bg-[#dfa908] text-white"
-                        }`}
+                      <div
+                        className={`px-3 py-1 text-sm font-semibold rounded-full w-fit whitespace-nowrap ${{
+                          draft: "bg-gray-100 text-gray-700",
+                          in_internal_review: "bg-purple-100 text-purple-700",
+                          internally_approved: "bg-emerald-100 text-emerald-700",
+                          changes_needed: "bg-red-100 text-red-700",
+                          client_changes_needed: "bg-red-100 text-red-700",
+                          shared_with_client: "bg-blue-100 text-blue-700",
+                          approved: "bg-[#00A36C] text-white",
+                        }[data?.isStatus?.stage] || "bg-[#dfa908] text-white"
+                          }`}
                       >
-                        {(() => {
-                          {/* @ts-ignore */ }
-                          const stage = data?.isStatus?.slice(-1)?.[0]?.stage;
-
-                          switch (stage) {
-                            case 'draft':
-                              return 'Draft';
-                            case 'in_internal_review':
-                              return 'In Internal Review';
-                            case 'changes_needed':
-                              return 'Changes Needed';
-                            case 'client_changes_needed':
-                              return 'Client Changes Needed';
-                            case 'shared_with_client':
-                              return 'Shared with Client';
-                            case 'approved':
-                              return 'Approved';
-                            default:
-                              return 'In Progress';
-                          }
-                        })()}
+                        {{
+                          draft: "Draft",
+                          in_internal_review: "In Internal Review",
+                          internally_approved: "Internally Approved",
+                          changes_needed: "Changes Needed",
+                          client_changes_needed: "Client Changes Needed",
+                          shared_with_client: "Shared with Client",
+                          approved: "Approved",
+                        }[data?.isStatus?.stage] || "In Progress"}
                       </div>
+
+
 
                       {/* <div className={"Not_Approved"}>
 

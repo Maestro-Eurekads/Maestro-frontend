@@ -392,6 +392,7 @@ export const fetchFilteredCampaigns = async (
           client_approver: { populate: "user" },
         },
       },
+      
       channel_mix: { populate: channelMixPopulate },
     },
   };

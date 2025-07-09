@@ -31,8 +31,9 @@ const SideNav: React.FC = () => {
 
   useEffect(() => {
     const shouldClose = active === 9 || active === 10 || (active === 7 && subStep === 1);
+    console.log("🚀 ~ useEffect ~ shouldClose:", shouldClose, close !== shouldClose ? shouldClose : close)
     setClose((prev) => (prev !== shouldClose ? shouldClose : prev));
-  }, [active, setClose]);
+  }, [active, setClose, subStep]);
 
   const handleBackClick = (e: React.MouseEvent) => {
     e.preventDefault();
