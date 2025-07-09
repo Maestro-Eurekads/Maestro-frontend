@@ -6,7 +6,7 @@ import { colorClassToHex, isHexColor } from "components/Options";
 
 
 
-const DashBoardChannelDistributionChat = ({ channelData, currency, campaign }) => {
+const DashBoardChannelDistributionChat = ({ channelData, currency, campaign, campaignPhases }) => {
 
 
   // Map funnel names to their colors from campaign.custom_funnels
