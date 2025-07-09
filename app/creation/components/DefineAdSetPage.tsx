@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import Image from "next/image"
 import up from "../../../public/arrow-down.svg"
 import down2 from "../../../public/arrow-down-2.svg"
@@ -75,27 +75,31 @@ const DefineAdSetPage = ({ view, onToggleChange }: DefineAdSetPageProps) => {
     }
   }
 
-  const handlePlatformStateChange = (stageName: string, platformName: string, isOpen: boolean) => {
-    setOpenPlatforms((prev) => {
-      const stageOpenPlatforms = prev[stageName] || []
-      if (isOpen) {
-        // Add platform if not already in the list
-        if (!stageOpenPlatforms.includes(platformName)) {
+  // Memoize the handler to avoid unnecessary re-renders and infinite update loops
+  const handlePlatformStateChange = useCallback(
+    (stageName: string, platformName: string, isOpen: boolean) => {
+      setOpenPlatforms((prev) => {
+        const stageOpenPlatforms = prev[stageName] || []
+        if (isOpen) {
+          // Add platform if not already in the list
+          if (!stageOpenPlatforms.includes(platformName)) {
+            return {
+              ...prev,
+              [stageName]: [...stageOpenPlatforms, platformName],
+            }
+          }
+        } else {
+          // Remove platform from the list
           return {
             ...prev,
-            [stageName]: [...stageOpenPlatforms, platformName],
+            [stageName]: stageOpenPlatforms.filter((p) => p !== platformName),
           }
         }
-      } else {
-        // Remove platform from the list
-        return {
-          ...prev,
-          [stageName]: stageOpenPlatforms.filter((p) => p !== platformName),
-        }
-      }
-      return prev
-    })
-  }
+        return prev
+      })
+    },
+    []
+  )
 
   // --- FIX: Prevent infinite update loop for goal_level ---
   // Only update goal_level if it is not set, or if it is set to a different value, but only once per view change.
