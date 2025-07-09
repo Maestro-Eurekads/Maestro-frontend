@@ -1,6 +1,6 @@
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { getPlatformIcon, mediaTypes, platformStyles } from "components/data";
-import { eachMonthOfInterval, endOfYear, format, startOfYear } from "date-fns";
+import { differenceInMonths, eachMonthOfInterval, endOfYear, format, startOfYear } from "date-fns";
 import Image from "next/image";
 import React, { useCallback, useState } from "react";
 import { BsFillMegaphoneFill } from "react-icons/bs";
@@ -23,6 +23,24 @@ function YearTimeline({ range, funnels }) {
       ...prev,
       [`${index}-${section}`]: !prev[`${index}-${section}`],
     }));
+  };
+
+  const calculateGridColumns = (start: Date, end: Date) => {
+    const formattedStart = new Date(start)
+    const formattedEnd = new Date(end)
+    console.log({start, end})
+    const startOfTimeline = startOfYear(formattedStart);
+    const endOfTimeline = endOfYear(formattedEnd);
+
+    const totalMonths = differenceInMonths(endOfTimeline, startOfTimeline) + 1;
+
+    const startMonthIndex = formattedStart.getMonth(); // 0-based index for the start month
+    const endMonthIndex = formattedEnd.getMonth(); // 0-based index for the end month
+
+    const gridStartColumn = startMonthIndex + 1; // Convert to 1-based index
+    const gridEndColumn = endMonthIndex + 2; // Convert to 1-based index (inclusive)
+
+    return { gridStartColumn, gridEndColumn, totalMonths };
   };
 
   function extractPlatforms(data) {
@@ -121,27 +139,29 @@ function YearTimeline({ range, funnels }) {
         className="w-full min-h-auto relative pb-5"
         style={{
           backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-          backgroundSize: `calc(250px) 100%`,
+          backgroundSize: `calc(${calcDailyWidth()}px) 100%`,
         }}
       >
         {funnels?.map(
-          (
-            { startWeek, endWeek, label, budget, stages, endMonth, startMonth },
-            index
-          ) => {
+          ({ label, budget, stages, endMonth, startMonth, startDate, endDate }, index) => {
+            const { gridStartColumn, gridEndColumn } = calculateGridColumns(
+              startDate,
+              endDate
+            );
+            console.log({gridStartColumn, gridEndColumn})
             return (
               <div
                 key={index}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: generateGridColumns(),
+                  gridTemplateColumns: `repeat(${generateYearMonths()?.length}, ${calcDailyWidth()}px)`,
                 }}
               >
                 <div
-                  className="flex flex-col min-h-[69px] bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px]  justify-between"
+                  className="flex flex-col min-h-[69px] bg-transparent border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px]  justify-between"
                   style={{
-                    gridColumnStart: 1,
-                    gridColumnEnd: getGridColumnEnd() + 1,
+                    gridColumnStart: gridStartColumn,
+                    gridColumnEnd: gridEndColumn,
                   }}
                 >
                   <div
@@ -178,7 +198,7 @@ function YearTimeline({ range, funnels }) {
 
                   {/* Expanded section */}
                   {expanded[index] && (
-                    <div className="p-4">
+                    <div className="py-4">
                       {stages?.map((section, zIndex) => {
                         const channels = extractPlatforms(
                           clientCampaignData[index]
@@ -187,10 +207,12 @@ function YearTimeline({ range, funnels }) {
                         return (
                           <div
                             key={section?.name}
-                            // style={{
-                            // 	display: 'grid',
-                            // 	gridTemplateColumns: `repeat(${(endWeek + 1) - startWeek}, 1fr)`
-                            // }}
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns: `repeat(${
+                                endMonth + 1 - startMonth
+                              }, ${calcDailyWidth()})`,
+                            }}
                           >
                             <div
                               onClick={() => toggleOpen(index, section?.name)}
@@ -204,8 +226,8 @@ function YearTimeline({ range, funnels }) {
                                   : "bg-[#F05406]"
                               } text-white`}
                               style={{
-                                gridColumnStart: startWeek,
-                                gridColumnEnd: endWeek + 1 - startWeek + 1,
+                                gridColumnStart: startMonth,
+                                gridColumnEnd: endMonth,
                               }}
                             >
                               <div className="flex items-center justify-center gap-3 flex-1">
@@ -214,7 +236,7 @@ function YearTimeline({ range, funnels }) {
                                   <FiChevronDown size={15} />
                                 </span>
                               </div>
-                              <button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
+                              <button className="justify-self-end py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
                                 {section?.budget?.startsWith("null") ||
                                 section?.budget?.startsWith("undefined")
                                   ? 0
@@ -230,7 +252,7 @@ function YearTimeline({ range, funnels }) {
                               <div
                                 style={{
                                   gridColumnStart: 1,
-                                  gridColumnEnd: endWeek + 1 - startWeek + 1,
+                                  gridColumnEnd: endMonth + 1 - startMonth + 1,
                                 }}
                               >
                                 {channels
@@ -244,8 +266,8 @@ function YearTimeline({ range, funnels }) {
                                         style={{
                                           display: "grid",
                                           gridTemplateColumns: `repeat(${
-                                            endWeek + 1 - startWeek + 1 - 2
-                                          }, 1fr)`,
+                                            endMonth + 1 - startMonth + 1 - 2
+                                          }, ${calcDailyWidth()})`,
                                         }}
                                       >
                                         <div
@@ -253,9 +275,9 @@ function YearTimeline({ range, funnels }) {
                                           style={{
                                             gridColumnStart: 1,
                                             gridColumnEnd:
-                                              endWeek +
+                                              endMonth +
                                               1 -
-                                              startWeek +
+                                              startMonth +
                                               1 -
                                               1 +
                                               1 -

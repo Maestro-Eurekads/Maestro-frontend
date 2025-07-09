@@ -27,6 +27,7 @@ import {
 } from "date-fns";
 import { useComments } from "app/utils/CommentProvider";
 import EnhancedDraggableChannel from "components/enhanced-draggable-channel";
+import DraggableChannel from "components/DraggableChannel";
 
 interface OutletType {
   name: string;
@@ -767,7 +768,7 @@ console.log("here")
                   gridColumnEnd: getGridColumnEnd() + 1,
                 }}
               >
-                <EnhancedDraggableChannel
+                <DraggableChannel
                   id={stage?.name}
                   openChannel={isOpen}
                   bg={stage?.color?.split("-")[1]}

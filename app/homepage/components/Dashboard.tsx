@@ -88,6 +88,8 @@ const Dashboard = () => {
       endWeek,
       startMonth,
       endMonth,
+      startDate: ch?.campaign_timeline_start_date,
+      endDate: ch?.campaign_timeline_end_date,
       label: ch?.media_plan_details?.plan_name,
       stages: ch?.channel_mix?.map((d) => {
         const start = d?.funnel_stage_timeline_start_date ? parseISO(d.funnel_stage_timeline_start_date) : null
@@ -101,7 +103,8 @@ const Dashboard = () => {
         const startMonth = differenceInCalendarMonths(start, earliestStartDate) + 1
         const endMonth = differenceInCalendarMonths(end, earliestStartDate) + 1
         return {
-
+          startDate: start,
+          endDate: end,
           name: d?.funnel_stage,
           budget: `${ch?.campaign_budget?.amount} ${getCurrencySymbol(ch?.campaign_budget?.currency)}`,
           startDay,

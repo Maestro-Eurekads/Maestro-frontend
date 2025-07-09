@@ -10,7 +10,7 @@ interface DayIntervalProps {
 
 const DayInterval: React.FC<DayIntervalProps> = ({ daysCount, src , range}) => {
   const { range:ddRange } = useDateRange();
-  console.log(range)
+  // console.log(range)
   return (
     <div className="w-full border-y py-3">
       <div

@@ -80,7 +80,7 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
       const year = format(date, "yyyy");
       daysInYear[year] = (daysInYear[year] || 0) + 1;
     });
-
+console.log(daysInYear, "daysInYear");
     return daysInYear;
   }
   // Render the appropriate timeline components based on the range
@@ -94,7 +94,7 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
               src="dashboard"
               range={dateList}
             />
-            <DayTimeline daysCount={dayDifference} funnels={funnelsData} />
+            <DayTimeline daysCount={dayDifference} funnels={funnelsData} range={dateList} />
           </>
         );
       case "Month":
@@ -107,6 +107,7 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
             <MonthTimeline
               monthsCount={monthDifference}
               funnels={funnelsData}
+              range={dateList}
             />
           </>
         );
@@ -130,7 +131,7 @@ const TimelineContainer: React.FC<TimelineContainerProps> = ({
               range={dateList}
               src="dashboard"
             />
-            <DayTimeline daysCount={dayDifference} funnels={funnelsData} />
+           <DayTimeline daysCount={dayDifference} funnels={funnelsData} range={dateList} />
           </>
         );
     }

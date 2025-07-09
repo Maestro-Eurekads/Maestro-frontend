@@ -1,5 +1,6 @@
 import { useCampaigns } from "app/utils/CampaignsContext";
 import { getPlatformIcon, mediaTypes, platformStyles } from "components/data";
+import { differenceInMonths, endOfYear, startOfYear } from "date-fns";
 import Image from "next/image";
 import type React from "react";
 import { useState } from "react";
@@ -10,11 +11,13 @@ import { TbCreditCardFilled, TbZoomFilled } from "react-icons/tb";
 interface MonthTimelineProps {
   monthsCount: number;
   funnels: any[];
+  range;
 }
 
 const MonthTimeline: React.FC<MonthTimelineProps> = ({
   monthsCount,
   funnels,
+  range,
 }) => {
   const [expanded, setExpanded] = useState({});
   const [openSections, setOpenSections] = useState({});
@@ -61,6 +64,8 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                 stageName,
                 icon: getPlatformIcon(platformName),
                 bg: style?.bg,
+                startDate: platform.campaign_start_date,
+                endDate: platform.campaign_end_date,
               });
             }
           });
@@ -68,6 +73,21 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
       });
     return platforms;
   }
+
+  const calculateGridColumns = (start: Date, end: Date) => {
+    const allMonths = range.map((date) => new Date(date).getMonth() + 1);
+    const uniqueMonths = Array.from(new Set(allMonths));
+    const startMonth = new Date(start).getMonth() + 1; // Extract start month (1-based index)
+    const endMonth = new Date(end).getMonth() + 1; // Extract end month (1-based index)
+
+    // console.log("🚀 ~ calculateGridColumns ~ uniqueMonths:", uniqueMonths);
+    // console.log({ startMonth, endMonth });
+
+    const startIndex = uniqueMonths.indexOf(startMonth); // Find the index of the start month
+    const endIndex = uniqueMonths.indexOf(endMonth); // Find the index of the end month
+    // console.log({allMonths, startMonth, endMonth, startIndex, endIndex})
+    return { allMonths, startMonth, endMonth, startIndex, endIndex };
+  };
 
   return (
     <div
@@ -131,41 +151,57 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
 
                 {/* Expanded section */}
                 {expanded[index] && (
-                  <div className="py-2" style={{
-                    backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-                    backgroundSize: `calc(250px) 100%`,
-                  }}>
-                    {stages?.map(({name, startDay, endDay, startWeek, endWeek, startMonth:start, endMonth:end, budget}, zIndex) => {
-                      const channels = extractPlatforms(
-                        clientCampaignData[index]
-                      );
+                  <div
+                    className="py-2"
+                    style={{
+                      backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
+                      backgroundSize: `calc(250px) 100%`,
+                    }}
+                  >
+                    {stages?.map(
+                      (
+                        {
+                          name,
+                          startDay,
+                          endDay,
+                          startWeek,
+                          endWeek,
+                          startMonth: start,
+                          endMonth: end,
+                          budget,
+                        },
+                        zIndex
+                      ) => {
+                        const channels = extractPlatforms(
+                          clientCampaignData[index]
+                        );
 
-                      return (
-                        <div
-                          key={name}
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: `repeat(${monthsCount}, 250px)`,
-                          }}
-                        >
+                        return (
                           <div
-                            onClick={() => toggleOpen(index, name)}
-                            className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${
-                              name === "Awareness"
-                                ? "bg-[#3175FF]"
-                                : name === "Consideration"
-                                ? "bg-[#34A853]"
-                                : name === "Conversion"
-                                ? "bg-[#ff9037]"
-                                : "bg-[#F05406]"
-                            } text-white`}
+                            key={name}
                             style={{
-                              gridColumnStart: start,
-                              gridColumnEnd: end + 1,
+                              display: "grid",
+                              gridTemplateColumns: `repeat(${monthsCount}, 250px)`,
                             }}
                           >
-                            <div className="flex items-center justify-center gap-3 flex-1">
-                              {/* <span>
+                            <div
+                              onClick={() => toggleOpen(index, name)}
+                              className={`mt-5 w-full flex items-center rounded-[10px] text-[17px] font-[500] p-3 text-center ${
+                                name === "Awareness"
+                                  ? "bg-[#3175FF]"
+                                  : name === "Consideration"
+                                  ? "bg-[#34A853]"
+                                  : name === "Conversion"
+                                  ? "bg-[#ff9037]"
+                                  : "bg-[#F05406]"
+                              } text-white`}
+                              style={{
+                                gridColumnStart: start,
+                                gridColumnEnd: end + 1,
+                              }}
+                            >
+                              <div className="flex items-center justify-center gap-3 flex-1">
+                                {/* <span>
                                 {name === "Awareness" ? (
                                   <BsFillMegaphoneFill />
                                 ) : name === "Consideration" ? (
@@ -174,79 +210,96 @@ const MonthTimeline: React.FC<MonthTimelineProps> = ({
                                   <TbCreditCardFilled />
                                 )}
                               </span> */}
-                              <span>{name}</span>
-                              <span>
-                                <FiChevronDown size={15} />
-                              </span>
+                                <span>{name}</span>
+                                <span>
+                                  <FiChevronDown size={15} />
+                                </span>
+                              </div>
+                              <button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
+                                {budget?.startsWith("null") ||
+                                budget?.startsWith("undefined")
+                                  ? 0
+                                  : `${Number(
+                                      budget.replace(/[^\d.-]/g, "")
+                                    ).toLocaleString()} ${budget
+                                      .replace(/[\d\s.,-]/g, "")
+                                      .trim()}`}
+                              </button>
                             </div>
-                            <button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
-                              {budget?.startsWith("null") ||
-                              budget?.startsWith("undefined")
-                                ? 0
-                                : `${Number(
-                                    budget.replace(/[^\d.-]/g, "")
-                                  ).toLocaleString()} ${budget
-                                    .replace(/[\d\s.,-]/g, "")
-                                    .trim()}`}
-                            </button>
-                          </div>
 
-                          {openSections[`${index}-${name}`] && (
-                            <div
-                              style={{
-                                gridColumnStart: startMonth,
-                                gridColumnEnd: endMonth + 1 - startMonth + 1,
-                              }}
-                            >
-                              {channels
-                                ?.filter(
-                                  (ch) => ch?.stageName === name
-                                )
-                                ?.map(({ platform_name, icon, amount, bg }) => (
-                                  <div
-                                    key={platform_name}
-                                    style={{
-                                      display: "grid",
-                                      gridTemplateColumns: `repeat(${
-                                        endMonth + 1 - startMonth + 1 - 2
-                                      }, 1fr)`,
-                                    }}
-                                  >
-                                    <div
-                                      className={`py-1 text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between`}
-                                      style={{
-                                        gridColumnStart: start ? start : 1,
-                                        gridColumnEnd:
-                                          endMonth +
-                                          1 -
-                                          startMonth +
-                                          1 -
-                                          1 +
-                                          1 -
-                                          1,
-                                        backgroundColor: bg,
-                                      }}
-                                    >
-                                      <div />
-                                      <span className="flex items-center gap-3 pl-3 ml-14">
-                                        <Image
-                                          src={icon}
-                                          alt={platform_name}
-                                          width={20}
-                                        />
-                                        <span>{platform_name}</span>
-                                      </span>
-                                      <button className="bg-[#0866FF33]/5 py-2 px-[10px] rounded-[5px] mr-3">
-                                        {amount}
-                                      </button>
-                                    </div>
-                                  </div>
-                                ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                            {openSections[`${index}-${name}`] && (
+                              <div
+                                style={{
+                                  gridColumnStart: startMonth,
+                                  gridColumnEnd: endMonth + 1 - startMonth + 1,
+                                }}
+                              >
+                                {channels
+                                  ?.filter((ch) => ch?.stageName === name)
+                                  ?.map(
+                                    ({
+                                      platform_name,
+                                      icon,
+                                      amount,
+                                      bg,
+                                      startDate,
+                                      endDate,
+                                    }) => {
+                                      const { startIndex, endIndex, endMonth:endOfMonth } =
+                                        calculateGridColumns(
+                                          startDate,
+                                          endDate,
+                                        );
+                                      console.log(
+                                        {
+                                          startIndex,
+                                          endIndex,
+                                          startDate,
+                                          endDate,
+                                        },
+                                        "hererere"
+                                      );
+                                      return (
+                                        <div
+                                          key={platform_name}
+                                          style={{
+                                            display: "grid",
+                                            gridTemplateColumns: `repeat(${endOfMonth}, 250px)`,
+                                          }}
+                                        >
+                                          <div
+                                            className={`py-1 text-[15px] font-[500] border my-5 w-full rounded-[10px] flex items-center justify-between`}
+                                            style={{
+                                              gridColumnStart: startIndex
+                                                ? startIndex + 1
+                                                : 1,
+                                              gridColumnEnd: endIndex + 2,
+                                              backgroundColor: bg,
+                                            }}
+                                          >
+                                            <div />
+                                            <span className="flex items-center gap-3 pl-3 ml-14">
+                                              <Image
+                                                src={icon}
+                                                alt={platform_name}
+                                                width={20}
+                                              />
+                                              <span>{platform_name}</span>
+                                            </span>
+                                            <button className="bg-[#0866FF33]/5 py-2 px-[10px] rounded-[5px] mr-3">
+                                              {amount}
+                                            </button>
+                                          </div>
+                                        </div>
+                                      );
+                                    }
+                                  )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+                    )}
                   </div>
                 )}
               </div>
