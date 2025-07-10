@@ -370,10 +370,10 @@ export const ChannelRow = ({
       {tableBody?.map((body, bodyIndex) => (
         <td
           key={bodyIndex}
-          className={`py-4 px-3 text-[15px] ${nrColumns?.includes(body) ? "text-gray-400" : ""
+          className={`py-4 px-3 text-[15px] w-fit ${nrColumns?.includes(body) ? "text-gray-400" : ""
             }`}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-fit">
             <CellRenderer
               body={body}
               channel={channel}

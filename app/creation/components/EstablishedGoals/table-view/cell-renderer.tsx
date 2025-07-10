@@ -323,7 +323,7 @@ export const CellRenderer = ({
   // Channel cell rendering
   if (body === "channel") {
     return (
-      <div className="flex items-center gap-5 w-[150px] pr-6">
+      <div className="flex items-center gap-5 w-fit max-w-[150px] pr-6">
         <span
           className={`flex items-center gap-2 cursor-pointer ${nrColumns?.includes(body) ? "text-gray-400" : ""}`}
           onClick={() =>
@@ -369,7 +369,7 @@ export const CellRenderer = ({
   if (calculatedFields.includes(body)) {
     return (
       <div
-        className="flex justify- items-center gap-5 w-[150px] group"
+        className="flex justify- items-center gap-5 w-fit max-w-[150px] group"
         onClick={() => toggleNRCell(stage.name, channel?.name, body)}
       >
         {isNR ? (
