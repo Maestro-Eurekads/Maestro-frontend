@@ -26,6 +26,7 @@ interface Campaign {
   internal_approver: string;
   campaign_builder: string;
   documentId: string;
+  isStatus: string;
   media_plan_details: {
     plan_name: string;
     client_approver: string;
@@ -150,13 +151,18 @@ const Table = () => {
           },
         }
       );
+
       setClientCampaignData((prev: Campaign[]) => [...prev, res?.data?.data]);
       setOpenModal("");
       setDuplicateName("");
       setSelected(null);
       await updateOrignalCmapignCount(selected?.documentId, (selected?.copyCount || 0) + 1);
     } catch (err) {
-      console.error("Error duplicating campaign:", err);
+
+      if (err?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
     } finally {
       setLoading(false);
     }
@@ -178,7 +184,10 @@ const Table = () => {
         }
       );
     } catch (err) {
-      console.error("Error updating campaign count:", err);
+      if (err?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
     }
   };
 
@@ -213,7 +222,7 @@ const Table = () => {
             ) : campaignArray?.length === 0 ? (
               <NoRecordFound colSpan={9}>No Client campaigns!</NoRecordFound>
             ) : (
-              currentItems?.map((data: Campaign) => {
+              currentItems?.map((data: Campaign | any) => {
                 const POs = clientPOs?.reduce((acc: any[], po: ClientPO) => {
                   const matchedPlan = po?.assigned_media_plans?.find(
                     (plan) => plan?.campaign?.id === data?.id
@@ -256,11 +265,36 @@ const Table = () => {
                       <ProgressBar progress={data?.progress_percent || 0} />
                     </td>
                     <td className="py-[12px] px-[16px]">
-                      <div className={"Not_Approved"}>
-                        {/* <div className={data?.isApprove ? "approved" : "Not_Approved"}> */}
-                        {"In Progress"}
-                        {/* {data?.isApprove ? "Approved" : "Not Approved"} */}
+
+                      <div
+                        className={`px-3 py-1 text-sm font-semibold rounded-full w-fit whitespace-nowrap ${{
+                          draft: "bg-gray-100 text-gray-700",
+                          in_internal_review: "bg-purple-100 text-purple-700",
+                          internally_approved: "bg-emerald-100 text-emerald-700",
+                          changes_needed: "bg-red-100 text-red-700",
+                          client_changes_needed: "bg-red-100 text-red-700",
+                          shared_with_client: "bg-blue-100 text-blue-700",
+                          approved: "bg-[#00A36C] text-white",
+                        }[data?.isStatus?.stage] || "bg-[#dfa908] text-white"
+                          }`}
+                      >
+                        {{
+                          draft: "Draft",
+                          in_internal_review: "In Internal Review",
+                          internally_approved: "Internally Approved",
+                          changes_needed: "Changes Needed",
+                          client_changes_needed: "Client Changes Needed",
+                          shared_with_client: "Shared with Client",
+                          approved: "Approved",
+                        }[data?.isStatus?.stage] || "In Progress"}
                       </div>
+
+
+
+                      {/* <div className={"Not_Approved"}>
+
+                        {"In Progress"}
+                      </div> */}
                     </td>
                     <td className="py-[12px] px-[16px]">
                       <div className="flex felx-row  gap-1">

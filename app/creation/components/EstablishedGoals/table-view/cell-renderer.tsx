@@ -133,7 +133,7 @@ export const CellRenderer = ({
 
   const getCalculatedValue = (key: string): string => {
     const value = calculatedValues[key]
-    return isNaN(value) || !isFinite(value) ? "-" : Number.parseFloat(value).toFixed(2)
+    return isNaN(value) || !isFinite(value) ? "-" : (cellType !== "number") ? Number.parseFloat(value).toFixed(2) : Number.parseFloat(value).toFixed(0)
   }
 
   const getRawValue = (): string => {
@@ -162,6 +162,7 @@ export const CellRenderer = ({
       case "seconds":
         return `${numValue.toFixed(2)}s`
       case "number":
+        return numValue.toFixed(0)
       default:
         return numValue.toFixed(0) // No decimal places for other types
     }
@@ -197,11 +198,13 @@ export const CellRenderer = ({
       // For CPM, preserve decimal places (2 max)
       return formatNumber(Number.parseFloat(numericValue.toFixed(2)))
     } else {
-      // For other fields, round to whole numbers
-      return formatNumber(Math.round(numericValue))
+      if(body !== "reach"  && body !== "video_views") {
+        // For other fields, round to whole numbers
+        return formatNumber(Math.round(numericValue))
+      }
     }
 
-    return value
+    return formatNumber(Math.round(numericValue))
   }
 
   // Validate input based on cell type
@@ -320,7 +323,7 @@ export const CellRenderer = ({
   // Channel cell rendering
   if (body === "channel") {
     return (
-      <div className="flex items-center gap-5 w-fit pr-6">
+      <div className="flex items-center gap-5 w-fit max-w-[150px] pr-6">
         <span
           className={`flex items-center gap-2 cursor-pointer ${nrColumns?.includes(body) ? "text-gray-400" : ""}`}
           onClick={() =>
@@ -366,7 +369,7 @@ export const CellRenderer = ({
   if (calculatedFields.includes(body)) {
     return (
       <div
-        className="flex justify-center items-center gap-5 w-fit group"
+        className="flex justify- items-center gap-5 w-fit max-w-[150px] group"
         onClick={() => toggleNRCell(stage.name, channel?.name, body)}
       >
         {isNR ? (
@@ -383,7 +386,7 @@ export const CellRenderer = ({
                       : isSecondsType
                         ? "secs"
                         : ""
-                  }${formatNumber(Number(value))}`
+                  }${(body == "reach" ||  body == "video_views" || body == "impressions") ? value : formatNumber(Number(value))}`
                 : "-"
             })()}
           </p>

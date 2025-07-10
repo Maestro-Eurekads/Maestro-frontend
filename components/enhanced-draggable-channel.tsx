@@ -10,6 +10,8 @@ import { useCampaigns } from "app/utils/CampaignsContext"
 import moment from "moment"
 import { useDateRange } from "src/date-context"
 import { getCurrencySymbol } from "./data"
+import { useEnhancedDateRange } from "app/utils/enhanced-date-context"
+import { useAutoExpand } from "app/utils/use-auto-expand"
 
 interface DraggableChannelProps {
   id?: string
@@ -45,7 +47,7 @@ interface TooltipState {
   type: "resize" | "drag" | null
 }
 
-const DraggableChannel: React.FC<DraggableChannelProps> = ({
+const EnhancedDraggableChannel: React.FC<DraggableChannelProps> = ({
   id,
   bg,
   description,
@@ -59,7 +61,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   setParentWidth,
   parentLeft,
   setParentLeft,
-  disableDrag = false, // Default to false
+  disableDrag = false,
   budget,
   setSelectedStage,
   openItems,
@@ -82,6 +84,16 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   const draftCampaignFormRef = useRef<any>(null)
   const { campaignFormData, setCampaignFormData } = useCampaigns()
   const { range } = useDateRange()
+  const { expandedRange, expandRange, isExpanded } = useEnhancedDateRange()
+
+  // Use auto-expand hook
+  const { checkAndExpandTimeline } = useAutoExpand({
+    campaignFormData,
+    setCampaignFormData,
+    onTimelineExpanded: (newStartDate, newEndDate) => {
+      expandRange(newStartDate, newEndDate)
+    },
+  })
 
   // Add tooltip state
   const [tooltip, setTooltip] = useState<TooltipState>({
@@ -92,13 +104,16 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     type: null,
   })
 
+  // Use expanded range for calculations
+  const currentDateList = isExpanded ? expandedRange : dateList
+
   useEffect(() => {
     setPosition(parentLeft)
   }, [parentLeft])
 
   const pixelToDate = (pixel: number, containerWidth: number, fieldName?: string) => {
-    const startDate = dateList[0] // First date in the range
-    const totalDays = dateList.length - 1 // Use totalDays - 1 to match grid intervals
+    const startDate = currentDateList[0]
+    const totalDays = currentDateList.length - 1
 
     if (range === "Year") {
       const totalMonths = 12
@@ -109,47 +124,18 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       const year = startDate.getFullYear()
 
       if (fieldName === "endDate") {
-        // For end date, use the last day of the calculated month
         return new Date(year, Math.min(12, monthIndex + 1), 0)
       } else {
-        // For start date, use the first day of the calculated month
         return new Date(year, Math.min(12, monthIndex), 1)
       }
     }
 
-    // Convert pixel to date index
     const dayIndex = Math.min(totalDays, Math.max(0, Math.round((pixel / containerWidth) * totalDays)))
-
     const calculatedDate = new Date(startDate)
     calculatedDate.setDate(startDate.getDate() + dayIndex)
 
-    // if (fieldName === "endDate") {
-    //   calculatedDate.setDate(calculatedDate.getDate()); // Add 1 day to fix the issue
-    // }
-    // console.log("called", calculatedDate, fieldName)
     return calculatedDate
   }
-
-  // const snapToTimeline = (currentPosition: number, containerWidth: number) => {
-  //   const baseStep = range === "Year" ? containerWidth / 12 : dailyWidth;
-  //   const snapPoints = [];
-
-  //   for (let i = 0; i <= containerWidth; i += baseStep) {
-  //     snapPoints.push(i);
-  //   }
-
-  //   if (snapPoints[snapPoints.length - 1] !== containerWidth) {
-  //     snapPoints.push(containerWidth);
-  //   }
-
-  //   const closestSnap = snapPoints.reduce((prev, curr) =>
-  //     Math.abs(curr - currentPosition) < Math.abs(prev - currentPosition)
-  //       ? curr
-  //       : prev
-  //   );
-
-  //   return closestSnap;
-  // };
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     if (range === "Year") {
@@ -171,7 +157,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     return closestSnap
   }
 
-  // Function to update tooltip with date information
   const updateTooltipWithDates = (
     startPixel: number,
     endPixel: number,
@@ -179,15 +164,15 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     mouseY: number,
     type: "resize" | "drag",
   ) => {
-    if (!dateList || dateList.length === 0) return
+    if (!currentDateList || currentDateList.length === 0) return
 
-    const totalDays = dateList.length - 1
+    const totalDays = currentDateList.length - 1
 
     const dayStartIndex = Math.min(totalDays, Math.max(0, Math.round((startPixel / (parentWidth || 100)) * totalDays)))
     const dayEndIndex = Math.min(totalDays, Math.max(0, Math.round((endPixel / (parentWidth || 100)) * totalDays)))
 
-    const startDateValue = dateList[dayStartIndex]
-    const endDateValue = dateList[dayEndIndex]
+    const startDateValue = currentDateList[dayStartIndex]
+    const endDateValue = currentDateList[dayEndIndex]
 
     if (!startDateValue || !endDateValue) return
 
@@ -207,21 +192,18 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
             day: "2-digit",
           })
 
-    // Get the container's dimensions
     const container = document.querySelector(`.cont-${id?.replaceAll(" ", "_")}`) as HTMLElement
     if (!container) return
 
     const containerRect = container.getBoundingClientRect()
-
-    // Calculate the tooltip's position relative to the container
     const tooltipX = mouseX - containerRect.left
-    const tooltipY = mouseY - containerRect.top - 50 // Offset to position above the mouse
+    const tooltipY = mouseY - containerRect.top - 50
 
     setTooltip({
       visible: true,
       x: tooltipX,
       y: tooltipY,
-      content: `${description}: ${formattedStartDate} - ${formattedEndDate}`,
+      content: `${description}: ${formattedStartDate} - ${formattedEndDate}${isExpanded ? " (Expanded)" : ""}`,
       type,
     })
   }
@@ -231,7 +213,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     e.preventDefault()
     e.stopPropagation()
 
-    // Add tooltip on resize start
     const startPixel = position
     const endPixel = startPixel + parentWidth
     updateTooltipWithDates(startPixel, endPixel, e.clientX, e.clientY, "resize")
@@ -245,6 +226,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
     document.addEventListener("mousemove", handleMouseMoveResize)
     document.addEventListener("mouseup", handleMouseUp)
   }
+
   const handleMouseMoveResize = (e: MouseEvent) => {
     if (!isResizing.current) return
     const { startX, startWidth, startPos, direction } = isResizing.current
@@ -268,7 +250,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       newWidth = startWidth - (snappedPos - startPos)
       newPos = snappedPos
     } else {
-      // 👉 Right resize: lock position, grow width only
       const deltaX = e.clientX - startX
       const rawNewWidth = startWidth + deltaX
 
@@ -276,14 +257,22 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       const snappedRightEdge = snapToTimeline(rightEdgePos, containerRect.width)
 
       newWidth = Math.max(50, snappedRightEdge - startPos)
-      newPos = startPos // ⚠️ lock left edge
+      newPos = startPos
     }
 
     // Convert pixel positions to dates
     const startDate = pixelToDate(newPos, containerRect.width)
     const endDate = pixelToDate(newPos + newWidth, containerRect.width, "endDate")
 
-    // Prepare updated channel mix
+    // Check if we need to expand the timeline
+    const expansionResult = checkAndExpandTimeline(startDate, endDate)
+
+    if (expansionResult.expanded) {
+      // Timeline was expanded, we'll get updated date list from context
+      console.log("Timeline expanded:", expansionResult)
+    }
+
+    // Update channel mix with new dates
     const updatedChannelMix = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === description)
 
     if (updatedChannelMix) {
@@ -315,20 +304,18 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       })
     }
 
+    // Calculate overall timeline bounds
     const allStartDates = campaignFormData?.channel_mix
       ?.map((ch) => ch?.funnel_stage_timeline_start_date && moment(ch.funnel_stage_timeline_start_date))
-      .filter((date) => date) // Filter out null or undefined dates
+      .filter((date) => date)
 
     const allEndDates = campaignFormData?.channel_mix
       ?.map((ch) => ch?.funnel_stage_timeline_end_date && moment(ch.funnel_stage_timeline_end_date))
-      .filter((date) => date) // Filter out null or undefined dates
+      .filter((date) => date)
 
     const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD")
-    // console.log("🚀 ~ handleMouseMoveResize ~ minStartDate:", minStartDate)
     const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD")
-    // console.log("🚀 ~ handleMouseMoveResize ~ maxEndDate:", maxEndDate)
 
-    // 💡 Only buffer the data here; flush on mouseup
     draftCampaignFormRef.current = {
       ...campaignFormData,
       channel_mix: campaignFormData.channel_mix.map((ch) => (ch.funnel_stage === description ? updatedChannelMix : ch)),
@@ -347,11 +334,9 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   }
 
   const handleMouseDownDrag = (e: React.MouseEvent<HTMLDivElement>) => {
-    // setOpenChannel(false)
     if (disableDrag) return
     e.preventDefault()
 
-    // Add tooltip on drag start
     const startPixel = position
     const endPixel = startPixel + parentWidth
     updateTooltipWithDates(startPixel, endPixel, e.clientX, e.clientY, "drag")
@@ -362,7 +347,6 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   }
 
   const handleMouseMoveDrag = (e: MouseEvent) => {
-    // setOpenChannel(false)
     if (!isDragging.current) return
     const { startX, startPos } = isDragging.current
 
@@ -375,23 +359,25 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
     let newPosition = startPos + (e.clientX - startX)
     newPosition = Math.max(minX, Math.min(newPosition, maxX))
-
-    // Snap to the nearest grid position
     newPosition = snapToTimeline(newPosition, containerRect.width)
 
-    // Smoothly update the position using requestAnimationFrame
     requestAnimationFrame(() => {
       setParentLeft(newPosition)
       setPosition(newPosition)
     })
 
-    // Calculate start and end pixel positions
     const startPixel = newPosition
     const endPixel = startPixel + parentWidth
 
-    // Convert pixel positions to dates
     const startDate = pixelToDate(startPixel, containerRect.width)
     const endDate = pixelToDate(endPixel, containerRect.width, "endDate")
+
+    // Check if we need to expand the timeline
+    const expansionResult = checkAndExpandTimeline(startDate, endDate)
+
+    if (expansionResult.expanded) {
+      console.log("Timeline expanded during drag:", expansionResult)
+    }
 
     const updatedChannelMix = campaignFormData?.channel_mix?.find((ch) => ch?.funnel_stage === description)
 
@@ -403,9 +389,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       const allEndDates = campaignFormData?.channel_mix?.map((ch) => moment(ch.funnel_stage_timeline_end_date))
 
       const minStartDate = moment.min(allStartDates).format("YYYY-MM-DD")
-      // console.log("🚀 ~ handleMouseMoveDrag ~ minStartDate:", minStartDate)
       const maxEndDate = moment.max(allEndDates).format("YYYY-MM-DD")
-      // console.log("🚀 ~ handleMouseMoveDrag ~ maxEndDate:", maxEndDate)
 
       draftCampaignFormRef.current = {
         ...campaignFormData,
@@ -419,18 +403,17 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
       }
     }
 
-    // Update tooltip during drag
     updateTooltipWithDates(newPosition, newPosition + parentWidth, e.clientX, e.clientY, "drag")
   }
 
   const handleMouseUp = () => {
-    // Hide tooltip on mouse up
     setTooltip((prev) => ({ ...prev, visible: false }))
-    console.log(draftCampaignFormRef.current, "herehereher")
+
     if (draftCampaignFormRef.current) {
       setCampaignFormData(draftCampaignFormRef.current)
       draftCampaignFormRef.current = null
     }
+
     isResizing.current = null
     isDragging.current = null
     document.removeEventListener("mousemove", handleMouseMoveResize)
@@ -442,11 +425,18 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
 
   return (
     <div
-      className={`relative px-[1p w-full h-14 flex select-none rounded-[10px] cont-${id?.replaceAll(" ", "_")}`}
+      className={`relative px-[1p w-full h-14 flex select-none rounded-[10px] cont-${id?.replaceAll(" ", "_")} ${
+        isExpanded ? "ring-2 ring-blue-400 ring-opacity-50" : ""
+      }`}
       style={{
         transform: `translateX(${position + (range === "Month" ? 4 : 0)}px)`,
       }}
     >
+      {/* Expansion indicator */}
+      {isExpanded && (
+        <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-2 py-1 rounded">Timeline Expanded</div>
+      )}
+
       {/* Tooltip */}
       {tooltip.visible && (
         <div
@@ -462,6 +452,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           {tooltip.content}
         </div>
       )}
+
       {/* Draggable Content */}
       <div
         className={`relative ${color} h-full flex justify-between items-center text-white px-4 py-[10px] gap-2 border shadow-md min-w-[50px] ${
@@ -472,7 +463,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
           backgroundColor: color,
           transition: "transform 0.2s ease-out",
         }}
-        onClick={()=>setOpenChannel?.(!openChannel)}
+        onClick={() => setOpenChannel?.(!openChannel)}
         onMouseDown={disableDrag || openItems ? undefined : handleMouseDownDrag}
       >
         {/* Left Resize Handle */}
@@ -495,10 +486,10 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
             <MdDragHandle className="rotate-90" />
           </div>
         )}
+
         <div />
-        <button className="flex items-center gap-3 w-fit" 
-        // onClick={() => setOpenChannel?.(!openChannel)}
-        >
+
+        <button className="flex items-center gap-3 w-fit">
           {Icon?.src ? <Image src={Icon?.src || "/placeholder.svg"} alt="" width={20} height={20} /> : Icon}
           <span className="font-medium">{description}</span>
           <MdOutlineKeyboardArrowDown />
@@ -525,6 +516,7 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
             {getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}
           </div>
         )}
+
         {/* Right Resize Handle */}
         {range === "Month" ? (
           <div
@@ -550,4 +542,4 @@ const DraggableChannel: React.FC<DraggableChannelProps> = ({
   )
 }
 
-export default DraggableChannel
+export default EnhancedDraggableChannel

@@ -926,7 +926,193 @@ const formatKPIValue = (value, kpiName, currencySymbol = "€") => {
   }
 };
 
+const colorClassToHex: Record<string, string> = {
+  "bg-blue-500": "#3B82F6",
 
+  "bg-green-500": "#22C55E",
+
+  "bg-orange-500": "#F59E42",
+
+  "bg-red-500": "#EF4444",
+
+  "bg-purple-500": "#A855F7",
+
+  "bg-teal-500": "#14B8A6",
+
+  "bg-pink-500": "#EC4899",
+
+  "bg-indigo-500": "#6366F1",
+
+  "bg-yellow-500": "#FACC15",
+
+  "bg-cyan-500": "#06B6D4",
+
+  "bg-lime-500": "#84CC16",
+
+  "bg-amber-500": "#F59E42",
+
+  "bg-fuchsia-500": "#D946EF",
+
+  "bg-emerald-500": "#10B981",
+
+  "bg-violet-600": "#7C3AED",
+
+  "bg-rose-600": "#F43F5E",
+
+  "bg-sky-500": "#0EA5E9",
+
+  "bg-gray-800": "#1F2937",
+
+  "bg-blue-800": "#166534",
+};
+
+
+const colorPalette = [
+  "bg-blue-500",
+
+  "bg-green-500",
+
+  "bg-orange-500",
+
+  "bg-red-500",
+
+  "bg-purple-500",
+
+  "bg-teal-500",
+
+  "bg-pink-500",
+
+  "bg-indigo-500",
+
+  "bg-yellow-500",
+
+  "bg-cyan-500",
+
+  "bg-lime-500",
+
+  "bg-amber-500",
+
+  "bg-fuchsia-500",
+
+  "bg-emerald-500",
+
+  "bg-violet-600",
+
+  "bg-rose-600",
+
+  "bg-sky-500",
+
+  "bg-gray-800",
+
+  "bg-blue-800",
+
+  "bg-green-800",
+];
+
+const distinctColorPalette = [
+  "#3B82F6",
+  "#22C55E",
+  "#F97316",
+  "#EF4444",
+  "#A855F7",
+  "#14B8A6",
+  "#EC4899",
+  "#6366F1",
+  "#FACC15",
+  "#06B6D4",
+  "#84CC16",
+  "#F59E0B",
+  "#D946EF",
+  "#10B981",
+  "#7C3AED",
+  "#F43F5E",
+  "#0EA5E9",
+  "#1F2937",
+  "#1E40AF",
+  "#166534",
+  "#D8B4FE",
+  "#1E3A8A",
+  "#5B2C86",
+  "#7EE787",
+  "#FF9E66",
+  "#A18072",
+  "#C084FC",
+  "#BDB2FF",
+  "#4F46E5",
+  "#06D6A0",
+  "#A3B34D",
+  "#7F2B2B",
+  "#FFC4A3",
+  "#B45309",
+  "#D45D5D",
+  "#FF8C42",
+  "#FFDB58",
+  "#B8860B",
+  "#E5E4E2",
+  "#C0C0C0",
+  "#2C3539",
+  "#7D8475",
+  "#B5BAB6",
+  "#C4D0D0",
+  "#92B3B5",
+  "#897F98",
+  "#4E5180",
+  "#191970",
+];
+
+const tailwindToHex: { [key: string]: string } = {
+  "bg-blue-500": "#3B82F6",
+  "bg-green-500": "#22C55E",
+  "bg-orange-500": "#F97316",
+  "bg-red-500": "#EF4444",
+  "bg-purple-500": "#A855F7",
+  "bg-teal-500": "#14B8A6",
+  "bg-pink-500": "#EC4899",
+  "bg-indigo-500": "#6366F1",
+  "bg-yellow-500": "#FACC15",
+  "bg-cyan-500": "#06B6D4",
+  "bg-lime-500": "#84CC16",
+  "bg-amber-500": "#F59E0B",
+  "bg-fuchsia-500": "#D946EF",
+  "bg-emerald-500": "#10B981",
+  "bg-violet-600": "#7C3AED",
+  "bg-rose-600": "#F43F5E",
+  "bg-sky-500": "#0EA5E9",
+  "bg-gray-800": "#1F2937",
+  "bg-blue-800": "#1E40AF",
+  "bg-green-800": "#166534",
+  "bg-purple-300": "#D8B4FE",
+  "bg-darkBlue-700": "#1E3A8A",
+  "bg-deepPurple-600": "#5B2C86",
+  "bg-lightGreen-400": "#7EE787",
+  "bg-deepOrange-300": "#FF9E66",
+  "bg-brown-500": "#A18072",
+  "bg-heliotrope-500": "#A855F7",
+  "bg-mauve-400": "#C084FC",
+  "bg-lavender-300": "#BDB2FF",
+  "bg-periwinkle-600": "#4F46E5",
+  "bg-mint-500": "#06D6A0",
+  "bg-olive-400": "#A3B34D",
+  "bg-maroon-700": "#7F2B2B",
+  "bg-peach-300": "#FFC4A3",
+  "bg-rust-500": "#B45309",
+  "bg-salmon-600": "#D45D5D",
+  "bg-tangerine-500": "#FF8C42",
+  "bg-mustard-300": "#FFDB58",
+  "bg-gold-700": "#B8860B",
+  "bg-platinum-400": "#E5E4E2",
+  "bg-silver-300": "#C0C0C0",
+  "bg-gunmetal-800": "#2C3539",
+  "bg-cement-700": "#7D8475",
+  "bg-storm-300": "#B5BAB6",
+  "bg-mist-500": "#C4D0D0",
+  "bg-frost-600": "#92B3B5",
+  "bg-dusk-400": "#897F98",
+  "bg-twilight-700": "#4E5180",
+  "bg-midnight-900": "#191970",
+};
+
+const isHexColor = (color: string) => /^#[0-9A-Fa-f]{6}$/.test(color);
 
 export {
   months,
@@ -936,6 +1122,10 @@ export {
   agencyRoles,
   clientRoles,
   selectCountry,
+  colorClassToHex,
+  colorPalette,
+  distinctColorPalette,
+  tailwindToHex,
   getFirstLetters,
   extractPlatforms,
   NoRecordFound,
@@ -951,5 +1141,6 @@ export {
   aggregateKPIStatsFromExtracted,
   cleanName,
   cleanNames,
-  formatKPIValue
+  formatKPIValue,
+  isHexColor
 };

@@ -13,6 +13,7 @@ import {
   differenceInCalendarDays,
   differenceInCalendarMonths,
   differenceInCalendarWeeks,
+  differenceInCalendarYears,
   differenceInDays,
   max,
   min,
@@ -52,16 +53,22 @@ const Dashboard = () => {
   // Find the earliest startDate and latest endDate
   const earliestStartDate = min(startDates)
   const latestEndDate = max(endDates)
+
+  console.log({earliestStartDate, latestEndDate})
   // Calculate the week difference
   const dayDifference = differenceInCalendarDays(latestEndDate, earliestStartDate)
+  console.log("🚀 ~ Dashboard ~ dayDifference:", dayDifference)
   const weekDifference = differenceInCalendarWeeks(latestEndDate, earliestStartDate)
   // const monthDifference = differenceInCalendarMonths(latestEndDate, earliestStartDate)
   const daysDiff = differenceInDays(latestEndDate, earliestStartDate);
-  const monthDifference = daysDiff / 30.44;
+  const monthDifference = differenceInCalendarMonths(latestEndDate, earliestStartDate);
+  const yearDifference =  differenceInCalendarYears(latestEndDate, earliestStartDate);
 
-  const funnelsData = clientCampaignData?.map((ch) => {
+  const funnelsData = clientCampaignData?.filter((cc)=>cc?.campaign_timeline_start_date && cc?.campaign_timeline_end_date)?.map((ch) => {
     const start = ch?.campaign_timeline_start_date ? parseISO(ch.campaign_timeline_start_date) : null
     const end = ch?.campaign_timeline_end_date ? parseISO(ch.campaign_timeline_end_date) : null
+
+    console.log({start, end})
 
     // Calculate positions for different time ranges
     const startDay = differenceInCalendarDays(start, earliestStartDate) + 1
@@ -81,11 +88,33 @@ const Dashboard = () => {
       endWeek,
       startMonth,
       endMonth,
+      startDate: ch?.campaign_timeline_start_date,
+      endDate: ch?.campaign_timeline_end_date,
       label: ch?.media_plan_details?.plan_name,
-      stages: ch?.channel_mix?.map((d) => ({
-        name: d?.funnel_stage,
-        budget: `${ch?.campaign_budget?.amount} ${getCurrencySymbol(ch?.campaign_budget?.currency)}`
-      })),
+      stages: ch?.channel_mix?.map((d) => {
+        const start = d?.funnel_stage_timeline_start_date ? parseISO(d.funnel_stage_timeline_start_date) : null
+        const end = d?.funnel_stage_timeline_end_date ? parseISO(d.funnel_stage_timeline_end_date) : null
+        const startDay = differenceInCalendarDays(start, earliestStartDate) + 1
+        const endDay = differenceInCalendarDays(end, earliestStartDate) + 1
+
+        const startWeek = differenceInCalendarWeeks(start, earliestStartDate) + 1
+        const endWeek = differenceInCalendarWeeks(end, earliestStartDate) + 1
+
+        const startMonth = differenceInCalendarMonths(start, earliestStartDate) + 1
+        const endMonth = differenceInCalendarMonths(end, earliestStartDate) + 1
+        return {
+          startDate: start,
+          endDate: end,
+          name: d?.funnel_stage,
+          budget: `${ch?.campaign_budget?.amount} ${getCurrencySymbol(ch?.campaign_budget?.currency)}`,
+          startDay,
+          endDay,
+          startWeek,
+          endWeek,
+          startMonth,
+          endMonth
+        }
+      }),
       budget: `${ch?.campaign_budget?.amount} ${getCurrencySymbol(ch?.campaign_budget?.currency)}`,
     }
   })
@@ -152,6 +181,9 @@ const Dashboard = () => {
       Number(ch?.stage_budget?.percentage_value || 0)
     ) || []
   }
+  // const dataValues = funnelStages.length > 0
+  //   ? campaignFormData?.channel_mix?.map((st: any) => st?.stage_budget?.percentage_value || 0)
+  //   : [100];
 
   return (
     <div className="mt-[24px] ">
@@ -168,101 +200,24 @@ const Dashboard = () => {
         weekDifference={weekDifference}
         monthDifference={Math.round(monthDifference)}
         funnelsData={funnelsData}
+        startDate={earliestStartDate}
+        endDate={latestEndDate}
+        yearDifference={yearDifference}
       />
       {processedCampaigns?.map((campaign, index) => {
         const channelD = extractPlatforms(campaign)
+
         // Prepare insideText for DoughnutChat
         const insideText = `${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency ? getCurrencySymbol(campaign?.campaign_budget?.currency) : ""}`
         // Prepare activeFunnels for DoughnutChat
         const activeFunnels = getActiveFunnels(campaign)
+
         // Prepare data values for DoughnutChat
         const dataValues = getStagePercentages(campaign)
-
+        // console.log("dataValues---:", campaign)
+        // console.log("campaignFormData---:", campaignFormData)
+        // console.log("clientCampaignData---:", clientCampaignData)
         return (
-          // <div key={index}
-          //   className="grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-12 mt-[100px] w-full px-6 md:px-20 xl:px-40"
-          // >
-          //   <div className="box-border flex flex-row items-start p-6 gap-[72px]   h-[500px] bg-[#F9FAFB] rounded-lg">
-          //     <div className="flex flex-col">
-          //       <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
-          //         Your budget by phase for {campaign?.media_plan_details?.plan_name}
-          //       </h3>
-          //       <div className="flex items-center gap-5">
-          //         <div className="mt-[16px]">
-          //           <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-          //             Total budget
-          //           </p>
-
-          //           <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-          //             {campaign?.campaign_budget?.amount} {campaign?.campaign_budget?.currency}
-          //           </h3>
-          //         </div>
-          //         <div className="mt-[16px]">
-          //           <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-          //             Campaign phases
-          //           </p>
-
-          //           <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-          //             {campaign?.channel_mix?.length} phases
-          //           </h3>
-          //         </div>
-          //       </div>
-
-          //       <div className="flex items-center gap-6 mt-[24px] w-full">
-          //         {/* Doughnut Chat */}
-          //         <DashboradDoughnutChat
-          //           campaign={campaign}
-          //           // data={campaign?.channel_mix?.map((ch) =>
-          //           //   Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0),
-          //           // )}
-          //           // color={campaign?.channel_mix?.map((ch) =>
-          //           //   ch?.funnel_stage === "Awareness"
-          //           //     ? "#3175FF"
-          //           //     : ch?.funnel_stage === "Consideration"
-          //           //       ? "#00A36C"
-          //           //       : ch?.funnel_stage === "Conversion"
-          //           //         ? "#FF9037"
-          //           //         : "#F05406",
-          //           // )}
-          //           insideText={`${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency ? getCurrencySymbol(campaign?.campaign_budget?.currency) : ""
-          //             }`}
-          //         // insideText={`${parseInt(campaignFormData?.campaign_budget?.amount && campaignFormData?.campaign_budget?.amount).toLocaleString() ?? 0} ${getCurrencySymbol(campaignFormData?.campaign_budget?.currency ?? '')}`}
-          //         />
-          //         {/* Campaign Phases */}
-          //         <CampaignPhases
-          //           campaignPhases={campaign?.channel_mix?.map((ch) => ({
-          //             name: ch?.funnel_stage,
-          //             percentage: Number(ch?.stage_budget?.percentage_value || 0)?.toFixed(0),
-          //             color: getFunnelColor(ch?.funnel_stage),
-          //           }))}
-          //         />
-          //       </div>
-          //     </div>
-          //   </div>
-
-          //   <div className="flex flex-col w-[100%]  ">
-          //     <div
-          //       key={index}
-          //       className="box-border flex flex-col items-start p-6 gap-[5px]  min-h-[545px] bg-[#F9FAFB] rounded-lg w-full"
-          //     >
-          //       <h3 className="font-semibold text-[18px] leading-[24px] flex items-center text-[#061237]">
-          //         Your budget by channel
-          //       </h3>
-          //       <div className="mt-[16px]">
-          //         <p className="font-medium text-[15px] leading-[20px] flex items-center text-[rgba(6,18,55,0.8)]">
-          //           Channels
-          //         </p>
-          //         <h3 className="font-semibold text-[20px] leading-[27px] flex items-center text-[#061237]">
-          //           {channelD?.length} channels
-          //         </h3>
-          //       </div>
-          //       <ChannelDistributionChatTwo
-          //         channelData={channelD}
-          //         currency={getCurrencySymbol(campaign?.campaign_budget?.currency)}
-          //       />
-          //     </div>
-          //   </div>
-          // </div>
           <div
             key={index}
             className="grid grid-cols-1 lg:grid-cols-2 gap-6 xl:gap-12 mt-[60px] w-full px-4 md:px-10 xl:px-20"
@@ -292,13 +247,10 @@ const Dashboard = () => {
                 {/* Doughnut Chart */}
                 <DashboradDoughnutChat
                   campaign={campaign}
-                  insideText={`${campaign?.campaign_budget?.amount || 0} ${campaign?.campaign_budget?.currency
-                    ? getCurrencySymbol(campaign?.campaign_budget?.currency)
-                    : ""
-                    }`}
+                  insideText={insideText}
+                  dataValues={dataValues}
                 />
-
-                {/* Campaign Phases List */}
+                {/* Campaign Phases */}
                 <CampaignPhases
                   campaignPhases={campaign?.channel_mix?.map((ch) => ({
                     name: ch?.funnel_stage,

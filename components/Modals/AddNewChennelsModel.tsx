@@ -307,34 +307,8 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
       )}
       {openAdset && 
       <Modal isOpen={(selectedStage && openAdset) ? true : false} onClose={() => setOpenAdset(false)}>
-        <div className="bg-white w-[950px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
-          <button
-            className="flex justify-end w-fit ml-auto"
-            onClick={() => setOpenAdset(false)}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="25"
-              height="25"
-              viewBox="0 0 25 25"
-              fill="none"
-            >
-              <path
-                d="M18.7266 6.5L6.72656 18.5M6.72656 6.5L18.7266 18.5"
-                stroke="#717680"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          <AdSetsFlow
-            stageName={selectedStage}
-            // onEditStart={() => resetInteraction(stage.name)}
-            platformName={newlySelected?.map((nn) => nn?.platformName)}
-            modalOpen={openAdset}
-          />
-          <div className="w-fit ml-auto">
+        <div className="bg-white w-[1000px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
+        <div className="w-full">
             <button
               className="flex justify-end w-fit ml-auto"
               onClick={() => setOpenAdset(false)}
@@ -375,6 +349,7 @@ const AddNewChennelsModel = ({ isOpen, setIsOpen, selectedStage }) => {
               </button>
             </div>
           </div>
+          
           </div>
         </Modal>
       }

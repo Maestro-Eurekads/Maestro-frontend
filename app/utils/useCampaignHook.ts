@@ -51,7 +51,10 @@ const useCampaignHook = () => {
       );
       setAllClients(res?.data?.data || []);
     } catch (err) {
-      console.error("An error occurred while fetching clients:", err);
+       if (error?.response?.status === 401) {
+       const event = new Event("unauthorizedEvent");
+       window.dispatchEvent(event);
+       } 
       setError(err.message || "Failed to fetch clients");
     } finally {
       setLoadingClients(false);
@@ -73,6 +76,7 @@ const fetchClientCampaign = useCallback(
           $eq: agencyId,
         },
       };
+    
 
       if (session?.user?.data?.user?.user_type?.includes("client")) {
         filters.user = {
@@ -91,7 +95,7 @@ const fetchClientCampaign = useCallback(
         print: { populate: "*" },
         e_commerce: { populate: "*" },
         in_game: { populate: "*" },
-        mobile: { populate: "*" },
+        mobile: { populate: "*" }, 
       };
 
       const res = await axios.get(
@@ -115,9 +119,9 @@ const fetchClientCampaign = useCallback(
                   },
                 },
               },
-              channel_mix: {
-                populate: channelMixPopulate,
-              },
+             channel_mix: {
+           populate: { ...channelMixPopulate, stage_budget: "*" },
+           },
             },
           },
           headers: {
@@ -129,10 +133,9 @@ const fetchClientCampaign = useCallback(
       return res;
     } catch (err: any) { 
       if (error?.response?.status === 401) {
-                     const event = new Event("unauthorizedEvent");
-                     window.dispatchEvent(event);
-                  }
-
+       const event = new Event("unauthorizedEvent");
+       window.dispatchEvent(event);
+       } 
       throw err;
     }
   },
@@ -157,7 +160,10 @@ const fetchClientCampaign = useCallback(
           }
         );
       } catch (err) {
-        console.error("Error fetching client POs:", err);
+       if (err) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
+        } 
         throw err;
       }
     },
@@ -176,7 +182,10 @@ const fetchClientCampaign = useCallback(
         },
       });
     } catch (err) {
-      console.error("Error fetching users:", err);
+     if (err) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
+        }
       throw err;
     }
   };

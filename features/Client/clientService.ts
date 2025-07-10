@@ -24,9 +24,9 @@ const createClient = async (inputs: any) => {
 //  Get Created Client
 const getCreateClient = async (userId, jwt, agencyId) => {
   const filters = {
-    // users: {
-    //   $eq: userId,
-    // },
+    users: {
+      $eq: userId,
+    },
     agency: {
       $eq: agencyId,
     }

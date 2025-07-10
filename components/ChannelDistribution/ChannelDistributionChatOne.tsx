@@ -1,50 +1,7 @@
-import Google from "../../public/Google.svg";
-import facebook from "../../public/facebook.svg";
-import ig from "../../public/ig.svg";
-import quantcast from "../../public/quantcast.svg";
-import youtube from "../../public/youtube.svg";
-import tradedesk from "../../public/tradedesk.svg";
-import Image from "next/image";
+
 import ThreeValuesProgress from "../ThreeValuesProgress";
 
-const platforms = [
-  {
-    img: <Image src={facebook} alt="facebook" />,
-    name: "Facebook",
-    amount: "4,200 €",
-    values: [37, 23, 40],
-  },
-  {
-    img: <Image src={ig} alt="facebook" />,
-    name: "Instagram",
-    amount: "3,500 €",
-    values: [40, 30, 30],
-  },
-  {
-    img: <Image src={youtube} alt="quantcast" />,
-    name: "YouTube",
-    amount: "1,200 €",
-    values: [100, 0, 0],
-  },
-  {
-    img: <Image src={tradedesk} alt="quantcast" />,
-    name: "TheTradeDesk",
-    amount: "1,400 €",
-    values: [0, 35, 30],
-  },
-  {
-    img: <Image src={quantcast} alt="quantcast" />,
-    name: "Quantcast",
-    amount: "1,700 €",
-    values: [0, 28, 34],
-  },
-  {
-    img: <Image src={Google} alt="Google" />,
-    name: "Google",
-    amount: "450 €",
-    values: [0, 0, 100],
-  },
-];
+
 
 const ChannelDistributionChatOne = ({ channelData, currency }) => {
   return (

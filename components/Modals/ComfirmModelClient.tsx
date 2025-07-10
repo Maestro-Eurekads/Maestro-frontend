@@ -1,5 +1,6 @@
 
 
+
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -13,13 +14,14 @@ import { toast } from 'sonner';
 import axios from 'axios';
 import { useUserPrivileges } from 'utils/userPrivileges';
 
-const ComfirmModel = ({ isOpen, setIsOpen }) => {
+const ComfirmModelClient = () => {
 	const router = useRouter();
 	const { setActive, setSubStep } = useActive();
 	const [loading, setLoading] = useState(false);
 	const [step, setStep] = useState<'creator' | 'internal_approver' | 'client'>('creator');
 	const [statusMessage, setStatusMessage] = useState('');
 	const [title, setTitle] = useState('');
+	const [show, setShow] = useState(false);
 	const [showSharePrompt, setShowSharePrompt] = useState(false);
 
 	const query = useSearchParams();
@@ -48,60 +50,17 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	const isInternalApprover = isAdmin || isAgencyApprover || isFinancialApprover;
 	const isCreator = isAgencyCreator;
 
-
-	console.log('campaignData-campaignData', campaignData?.isStatus?.stage)
-
 	const stage = campaignData?.isStatus?.stage;
-
-
-
-	// useEffect(() => {
-	// 	if (!campaignData) return;
-
-
-
-	// 	if (!stage || stage === 'draft') {
-	// 		setStep('creator');
-	// 		setTitle('Media plan completed, well done!');
-	// 		setStatusMessage('Ready to ask for approval?');
-	// 	} else if (stage === 'in_internal_review' && (isInternalApprover || isClient)) {
-	// 		setStep('internal_approver');
-	// 		setTitle('Internal Approval Required');
-	// 		setStatusMessage('Do you want to approve internally and share to client?');
-	// 	} else if (stage === 'shared_with_client' && isClient) {
-	// 		setStep('client');
-	// 		setTitle('Client Approval Needed');
-	// 		setStatusMessage('Please approve the media plan or request changes.');
-	// 	}
-	// }, [campaignData?.isStatus?.stage, stage]);
 
 	useEffect(() => {
 		if (!campaignData) return;
-
-		if (!stage || stage === 'draft') {
-			setStep('creator');
-			setTitle('Media plan completed, well done!');
-			setStatusMessage('Ready to ask for approval?');
-		} else if (stage === 'in_internal_review' && (isInternalApprover || isClient)) {
-			setStep('internal_approver');
-			setTitle('Internal Approval Required');
-			setStatusMessage('Do you want to approve internally and share to client?');
-		} else if (stage === 'internally_approved') {
-			setStep("internal_approver");
-			setTitle('Approved Internally!');
-			setStatusMessage('Do you want to share with the client now?');
-			setShowSharePrompt(true); // Show Share with Client modal
-		} else if (stage === 'shared_with_client' && isClient) {
-			setStep('client');
-			setTitle('Client Approval Needed');
-			setStatusMessage('Please approve the media plan or request changes.');
-		}
+		setStep('client');
+		setTitle('Client Approval Needed');
+		setStatusMessage('Please approve the media plan or request changes.');
 	}, [campaignData?.isStatus?.stage, stage]);
 
-
-
 	const updateStatus = async (stage, label) => {
-		if (!cId) return;
+		if (!campaignData?.documentId) return;
 		setLoading(true);
 		try {
 			const newStatus = {
@@ -116,11 +75,10 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 			};
 
 			const patchData = {
-				isStatus: newStatus,
-				...(stage === 'shared_with_client' && { isApprove: true }),
+				isStatus: newStatus
 			};
 
-			await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`, {
+			await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignData?.documentId}`, {
 				data: patchData,
 			}, {
 				headers: {
@@ -129,7 +87,7 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 			});
 
 			getActiveCampaign(campaignId);
-			setIsOpen(false);
+			setShow(false);
 			toast.success(`Media plan marked as '${label}'`);
 		} catch (error) {
 			if (error?.response?.status === 401) {
@@ -142,16 +100,13 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 		}
 	};
 
-
-
-
 	const handleAction = async () => {
 		if (step === 'creator') {
 			await updateStatus('in_internal_review', 'In Internal Review');
 		} else if (step === 'internal_approver') {
 			if (isInternalApprover) {
 				await updateStatus('internally_approved', 'Internally Approved');
-				setIsOpen(false);
+				setShow(false);
 				setShowSharePrompt(true);
 			} else {
 				await updateStatus('shared_with_client', 'Shared with Client');
@@ -167,49 +122,50 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 		await updateStatus(changeStage, label);
 	};
 
-	if (!isOpen) return null;
 
 	return (
 		<>
-			<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-				<div className="relative bg-white rounded-lg w-[440px] max-w-full p-6 shadow-xl text-center">
-					<button onClick={() => setIsOpen(false)} className="absolute top-4 right-4">
-						<X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
-					</button>
+			<button
+				className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
+				style={{ border: "1px solid #3175FF" }}
+				onClick={() => setShow(!show)}
+			>
+				{!show ? "See" : "Hide"} Plan approval
+			</button>
 
-					<div className="w-full flex justify-center pt-2">
-						<div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-							<CheckCircle className="text-green-600 w-7 h-7" />
+			{show && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+					<div className="relative bg-white rounded-lg w-[440px] max-w-full p-6 shadow-xl text-center">
+						<button onClick={() => setShow(false)} className="absolute top-4 right-4">
+							<X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+						</button>
+
+						<div className="w-full flex justify-center pt-2">
+							<div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+								<CheckCircle className="text-green-600 w-7 h-7" />
+							</div>
+						</div>
+
+						<h2 className="text-xl font-semibold text-[#181D27] mb-2">{title}</h2>
+						<p className="text-sm text-[#535862] mb-4">{statusMessage}</p>
+
+						<div className="flex flex-col gap-4">
+							<button className="btn_model_active w-full" onClick={handleAction}>
+								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : (
+									<span className="font-medium">
+										{step === 'creator' && 'Ask for Approval'}
+										{step === 'internal_approver' &&
+											(isInternalApprover ? 'Approve Internally' : 'Share with Client')}
+										{step === 'client' && 'Approve'}
+									</span>
+								)}
+							</button>
+
 						</div>
 					</div>
-
-					<h2 className="text-xl font-semibold text-[#181D27] mb-2">
-						{!title ? "Ask for Approval" : title}
-					</h2>
-					<p className="text-sm text-[#535862] mb-4">
-						{!statusMessage ? "You’ve successfully completed the setup of your media plan. Ready to move forward?" : statusMessage}
-					</p>
-
-					<div className="flex flex-col gap-4">
-						<button className="btn_model_active w-full" onClick={handleAction}>
-							{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> :
-								<span className="font-medium">
-									{step === 'creator' && 'Ask for Approval'}
-									{step === 'internal_approver' &&
-										(isInternalApprover ? 'Approve Internally' : 'Share with Client')}
-									{step === 'client' && 'Approve'}
-								</span>}
-						</button>
-						{step !== 'creator' && (
-							<button className="btn_model_outline w-full" onClick={handleRequestChanges}>
-								{loading ? <SVGLoader width="30px" height="30px" color="#000" /> : 'Request Changes'}
-							</button>
-						)}
-					</div>
 				</div>
-			</div>
+			)}
 
-			{/* SECOND MODAL - SHARE WITH CLIENT */}
 			{showSharePrompt && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
 					<div className="relative bg-white rounded-lg w-[440px] max-w-full p-6 shadow-xl text-center">
@@ -237,10 +193,9 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : 'Share with Client'}
 							</button>
 							<button className="btn_model_outline w-full" onClick={handleAction}>
-								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> :
-									<span className="font-medium">
-										Approve Internally
-									</span>}
+								{loading ? <SVGLoader width="30px" height="30px" color="#fff" /> : (
+									<span className="font-medium">Approve Internally</span>
+								)}
 							</button>
 						</div>
 					</div>
@@ -250,6 +205,4 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	);
 };
 
-export default ComfirmModel;
-
-
+export default ComfirmModelClient;

@@ -15,6 +15,8 @@ const ThreeValuesProgress = ({
   // Fallback hex colors aligned with colorClassToHex from other components
   const fallbackColors = ["#3B82F6", "#22C55E", "#F59E42"]; // blue-500, green-500, orange-500
 
+
+
   // Function to format percentage: remove `.0` if it's a whole number
   const formatPercentage = (value: number) =>
     value % 1 === 0 ? value.toFixed(0) : value.toFixed(1);
@@ -23,7 +25,7 @@ const ThreeValuesProgress = ({
     <div className="w-full h-[24px] flex overflow-hidden rounded-[4px] bg-gray-200">
       {percentages?.map((percent, index) => {
         const borderRadiusStyles = ["4px 0 0 4px", "0px", "0px 4px 4px 0px"];
-        const segmentColor = color && color[index] ? color[index] : fallbackColors[index] || "#6B7280";
+        const segmentColor = color && color[index] ? color[index] : "#6B7280";
 
         return (
           <div
