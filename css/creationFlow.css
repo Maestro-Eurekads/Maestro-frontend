@@ -249,6 +249,7 @@ cursor: pointer;
 
 .creation_continer{
 	padding: 0px 32px;
+	height: 100% !important;
 }
 
 .SideBar_state_text{ 
@@ -620,6 +621,7 @@ border-radius: 8px;
 @media screen and (max-width: 768px) {
 .creation_continer{
 	padding: 0px 20px;
+	height: 100% !important;
 }
 }
 
