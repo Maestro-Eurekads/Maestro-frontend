@@ -863,7 +863,7 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
  //  }
  // };
 
- console.log('active=active', active)
+
  const handleContinue = () => {
   // Handle subStep logic first (for step 7)
   if (active === 7) {
@@ -1007,13 +1007,19 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
         return (
          <button
           className="bottom_black_next_btn hover:bg-blue-500"
-          onClick={() =>
-           toast.error("Not authorized to approve this plan.")
-          }
-         >
+          onClick={() => setIsOpen(true)} >
           <p>Confirm</p>
           <Image src={Continue} alt="Continue" />
          </button>
+         // <button
+         //  className="bottom_black_next_btn hover:bg-blue-500"
+         //  onClick={() =>
+         //   toast.error("Not authorized to approve this plan.")
+         //  }
+         // >
+         //  <p>Confirm</p>
+         //  <Image src={Continue} alt="Continue" />
+         // </button>
         );
        }
 
@@ -1039,9 +1045,14 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
        );
       })()
      ) : (
+      // <button
+      //  className="bottom_black_next_btn hover:bg-blue-500"
+      //  onClick={() => toast.error("Role doesn't have permission!")}>
+      //  <p>Confirm</p>
+      //  <Image src={Continue} alt="Continue" />
+      // </button>
       <button
        className="bottom_black_next_btn hover:bg-blue-500"
-       onClick={() => toast.error("Role doesn't have permission!")}
       >
        <p>Confirm</p>
        <Image src={Continue} alt="Continue" />
