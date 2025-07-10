@@ -248,8 +248,7 @@ const CreativesModal = ({
           const hasFormats = platforms.some((platform) =>
             view === "channel"
               ? platform.format?.length > 0
-              : platform.ad_sets?.some((adset) => adset.format?.length > 0),
-          )
+              : platform.ad_sets?.some((adset) => adset.format?.length > 0),          )
 
           if (!hasFormats) return null
 
