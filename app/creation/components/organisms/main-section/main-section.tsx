@@ -276,7 +276,7 @@ const MainSection = ({
 
       <div className="box-border w-full min-h-auto bg-white border-b-2 relative mt-4">
         <div className={`
-          overflow-auto w-full h-full`}>
+          overflow-auto w-full h-full hide-vertical-scrollbar`}>
           <div
             className={`relative min-w-max transition-transform duration-200 ease-out origin-top-left px-2`}
             style={{

@@ -576,7 +576,7 @@ console.log("here")
 
   return (
     <div
-      className={`w-full min-h-[494px] relative pb-5 grid-container overflow-x-hidden `}
+      className={`w-full min-h-[494px] relative pb-5 grid-container overflow-x-hidden`}
       ref={gridRef}
       style={{
         ...(rrange === "Year"
