@@ -914,7 +914,7 @@ const NonFacebookOutlet = memo(function NonFacebookOutlet({
   )
 })
 
-// AdsetSettings Component - FIXED: Removed initialized ref and improved state management
+// AdsetSettings Component - PATCH: Fix channel granularity recap to not show previous plan's channel audience
 const AdsetSettings = memo(function AdsetSettings({
   outlet,
   stageName,
@@ -1378,6 +1378,31 @@ const AdsetSettings = memo(function AdsetSettings({
     setCollapsed(!isCollapsed)
   }, [isCollapsed, setCollapsed])
 
+  // PATCH: Only show channel-level recap if the user has interacted with the channel audience fields in this session
+  // This prevents previous plan's channel audience from showing in recap for new plans
+  const [hasChannelAudienceInteraction, setHasChannelAudienceInteraction] = useState(false)
+  // Track interaction with channel audience fields
+  useEffect(() => {
+    if (granularity === "channel") {
+      // If any field is filled, mark as interacted
+      if (
+        channelAudienceState.audience_type ||
+        channelAudienceState.name ||
+        channelAudienceState.size ||
+        channelAudienceState.description
+      ) {
+        setHasChannelAudienceInteraction(true)
+      }
+    }
+    // eslint-disable-next-line
+  }, [
+    channelAudienceState.audience_type,
+    channelAudienceState.name,
+    channelAudienceState.size,
+    channelAudienceState.description,
+    granularity,
+  ])
+
   // Updated recap rows to handle granularity properly with complete separation
   const recapRows: {
     type: string
@@ -1389,12 +1414,13 @@ const AdsetSettings = memo(function AdsetSettings({
   }[] = []
 
   if (granularity === "channel") {
-    // Channel level: ONLY use channel-level state for this platform
+    // Only show recap if user has interacted with channel audience fields in this session
     if (
-      channelAudienceState.audience_type ||
-      channelAudienceState.name ||
-      channelAudienceState.size ||
-      channelAudienceState.description
+      hasChannelAudienceInteraction &&
+      (channelAudienceState.audience_type ||
+        channelAudienceState.name ||
+        channelAudienceState.size ||
+        channelAudienceState.description)
     ) {
       recapRows.push({
         type: channelAudienceState.audience_type,
