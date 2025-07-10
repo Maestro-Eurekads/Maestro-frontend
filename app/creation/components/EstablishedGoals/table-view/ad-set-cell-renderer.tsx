@@ -21,6 +21,7 @@ export const AdSetCellRenderer = ({
   hasOfflineChannel,
 }) => {
   const { campaignFormData } = useCampaigns();
+  type CellType = "percent" | "currency" | "seconds" | "number"
 
   const exemptFields = [
     "channel",
@@ -41,7 +42,7 @@ export const AdSetCellRenderer = ({
     const [isFocused, setIsFocused] = useState(false)
 
   const isNR = nrAdCells[`${channel?.name}-${adSetIndex}`]?.[body];
-
+  const cellType = tableHeaders[bodyIndex]?.type as CellType
   const isPercentType = tableHeaders[bodyIndex]?.type === "percent";
   const isCurrencyType = tableHeaders[bodyIndex]?.type === "currency";
   const isSecondsType = tableHeaders[bodyIndex]?.type === "seconds";
@@ -213,7 +214,7 @@ export const AdSetCellRenderer = ({
   
     const getCalculatedValue = (key: string): string => {
       const value = calculatedValues[key]
-      return isNaN(value) || !isFinite(value) ? "-" : Number.parseFloat(value).toFixed(2)
+      return isNaN(value) || !isFinite(value) ? "-" : (cellType !== "number") ? Number.parseFloat(value).toFixed(2) : Number.parseFloat(value).toFixed(0)
     }
   
     const getRawValue = (): string => {
@@ -252,6 +253,7 @@ export const AdSetCellRenderer = ({
         case "seconds":
           return `${numValue.toFixed(2)}s`
         case "number":
+          return numValue.toFixed(0)
         default:
           return numValue.toFixed(0) // No decimal places for other types
       }
@@ -288,7 +290,12 @@ export const AdSetCellRenderer = ({
         return formatNumber(Number.parseFloat(numericValue.toFixed(2)))
       } else {
         // For other fields, round to whole numbers
+        if(body !== "reach"  && body !== "video_views") {
+          // For other fields, round to whole numbers
+          return formatNumber(Math.round(numericValue))
+        }
         return formatNumber(Math.round(numericValue))
+
       }
   
       return value
@@ -432,7 +439,7 @@ export const AdSetCellRenderer = ({
                       : isSecondsType
                       ? "secs"
                       : ""
-                  }${formatNumber(Number(value))}`
+                  }${(body == "reach" ||  body !== "video_views" || body !== "impressions") ? value : formatNumber(Number(value))}`
                 : "-";
             })()}
           </p>

@@ -576,9 +576,7 @@ console.log("here")
 
   return (
     <div
-      className={`w-full min-h-[494px] relative pb-5 grid-container overflow-x-hidden ${
-        rrange === "Month" && "max-w-[100%]"
-      }`}
+      className={`w-full min-h-[494px] relative pb-5 grid-container overflow-x-hidden `}
       ref={gridRef}
       style={{
         ...(rrange === "Year"
@@ -597,7 +595,7 @@ console.log("here")
                   const regularGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
                   const monthBoundaryGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
 
-                  return `${regularGrid}, ${monthBoundaryGrid}`;
+                  return `${monthBoundaryGrid}`;
                 }
               })(),
               backgroundSize: (() => {
@@ -652,10 +650,10 @@ console.log("here")
                     });
 
                     const boundaryBackgrounds = boundaryPositions
-                      .map((position) => `${position}px 100%`)
+                      .map((position) => `20% 100%`)
                       .join(", ");
                     return boundaryBackgrounds
-                      ? `${regularGridSize}, ${boundaryBackgrounds}`
+                      ? ` ${boundaryBackgrounds}`
                       : regularGridSize;
                   }
 
@@ -680,11 +678,11 @@ console.log("here")
 
                   const regularGridSize = `${dailyWidth}px 100%`;
                   const monthBoundaryBackgrounds = monthEndPositions
-                    .map((position) => `${position}px 100%`)
+                    .map((position) => `20% 100%`)
                     .join(", ");
 
                   return monthBoundaryBackgrounds
-                    ? `${regularGridSize}, ${monthBoundaryBackgrounds}`
+                    ? ` ${monthBoundaryBackgrounds}`
                     : regularGridSize;
                 }
               })(),
