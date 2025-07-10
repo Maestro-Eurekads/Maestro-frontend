@@ -5,6 +5,7 @@ import { useCampaigns } from '../../utils/CampaignsContext';
 import { useSearchParams } from 'next/navigation';
 import { useComments } from 'app/utils/CommentProvider';
 import { useEditing } from 'app/utils/EditingContext';
+import EnhancedMainSection from './organisms/main-section/enhanced-main-section';
 
 const PlanCampaignScheduleSubStepComponent = () => {
 	const searchParams = useSearchParams();
@@ -18,7 +19,7 @@ const PlanCampaignScheduleSubStepComponent = () => {
 	} = useCampaigns();
 	useEffect(() => {
 		setIsDrawerOpen(false);
-		setClose(false);
+		// setClose(false);
 		setIsEditing(true)
 	}, []);
 
@@ -37,6 +38,7 @@ const PlanCampaignScheduleSubStepComponent = () => {
 				/>
 			</div>
 			<MainSection />
+			{/* <EnhancedMainSection/> */}
 		</div>
 	)
 }

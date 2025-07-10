@@ -30,9 +30,10 @@ const SideNav: React.FC = () => {
   const { campaignData, setCampaignData, loadingCampaign } = useCampaigns();
 
   useEffect(() => {
-    const shouldClose = active === 9 || active === 10;
+    const shouldClose = active === 9 || active === 10 || (active === 7 && subStep === 1);
+    console.log("🚀 ~ useEffect ~ shouldClose:", shouldClose, close !== shouldClose ? shouldClose : close)
     setClose((prev) => (prev !== shouldClose ? shouldClose : prev));
-  }, [active, setClose]);
+  }, [active, setClose, subStep]);
 
   const handleBackClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -154,11 +155,11 @@ const SideNav: React.FC = () => {
       <div className="flex flex-col">
         <div className={`flex ${close ? "justify-center mb-[30px]" : "justify-end"} w-full`}>
           <button onClick={() => {
-            if(active === 7 && subStep === 1){
-              setClose(true)
-            } else{
-              setClose(!close)
-            }
+            // if(active === 7 && subStep === 1){
+            //   setClose(true)
+            // } else{
+            // }
+            setClose(!close)
             }}>
             <Image src={closeicon} alt="closeicon" />
           </button>

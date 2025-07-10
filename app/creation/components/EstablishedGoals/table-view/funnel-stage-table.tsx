@@ -49,7 +49,7 @@ export const FunnelStageTable = ({
           <h1 className={`text-[18px] font-[600] ${stageColor}`} >
             {stage?.name}
           </h1>
-          <p>Phase Budget: {`${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}${Number(stageBudget?.fixed_value).toLocaleString() || 0}`}</p>
+          <p>Phase Budget: {`${getCurrencySymbol(campaignFormData?.campaign_budget?.currency)}${Number(stageBudget?.fixed_value || 0).toLocaleString() || 0}`}</p>
         </div>
         <div
           className="p-3 bg-[#3175FF] rounded-[10px] text-white w-fit font-medium cursor-pointer"
@@ -79,7 +79,7 @@ export const FunnelStageTable = ({
                       )
                         ? "text-gray-400"
                         : ""
-                    } w-[150px]`}
+                    } w-fit`}
                     // onClick={() => toggleNRColumn(stage.name, header.name)}
                   >
                     {header?.name === "Audience"
