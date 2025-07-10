@@ -9,18 +9,29 @@ import DatePickerInput from "components/DatePickerInput";
 import { useComments } from "app/utils/CommentProvider";
 import { useSession } from "next-auth/react";
 import { useCampaigns } from "app/utils/CampaignsContext";
+import { toast } from "sonner";
+import axios from "axios";
+import { useUserPrivileges } from "utils/userPrivileges";
 
 const ApproveModel = ({ isOpen, setIsOpen }) => {
-  const { campaignData } = useCampaigns();
+  const { campaignData, jwt } = useCampaigns();
   const { setIsLoadingApproval, isLoadingApproval, createAsignatureapproval, createApprovalSuccess } = useComments();
 
   const isdocumentId = campaignData?.documentId
 
-  // console.log('campaignData-campaignData--', isdocumentId)
+  const {
+    loggedInUser,
+    isAdmin,
+    isAgencyCreator,
+    isAgencyApprover,
+    isFinancialApprover,
+    isClientApprover,
+    isClient,
+    userID
+  } = useUserPrivileges();
 
 
   const { data: session }: any = useSession();
-  const [alert, setAlert] = useState(null);
   const [sign, setSign] = useState('');
   const id = session?.user?.id
   const [inputs, setInputs] = useState({
@@ -38,14 +49,21 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
     }));
   }, [sign]);
 
+  // const isInternalApprover = isAdmin || isAgencyApprover || isFinancialApprover;
+  // const isCreator = isAgencyCreator;
+
+  // const stage = campaignData?.isStatus?.stage;
+
+  // useEffect(() => {
+  //   if (!campaignData) return;
+  // setStep('client');
+  // setTitle('Client Approval Needed');
+  // setStatusMessage('Please approve the media plan or request changes.');
+  // }, [campaignData?.isStatus?.stage, stage]);
+
 
   //  Automatically reset alert after showing
-  useEffect(() => {
-    if (alert) {
-      const timer = setTimeout(() => setAlert(null), 3000); // Reset after 3 seconds
-      return () => clearTimeout(timer);
-    }
-  }, [alert]);
+
 
 
 
@@ -66,12 +84,48 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
     return () => document.body.classList.remove("overflow-hidden");
   }, [isOpen]);
 
+  const updateStatus = async (stage, label) => {
+    if (!campaignData?.documentId) return;
+    try {
+      const newStatus = {
+        stage,
+        label,
+        actor: {
+          id: loggedInUser?.id,
+          name: loggedInUser?.username,
+          role: loggedInUser?.user_type,
+        },
+        date: new Date().toISOString(),
+      };
 
+      const patchData = {
+        isStatus: newStatus
+      };
+
+      await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${campaignData?.documentId}`, {
+        data: patchData,
+      }, {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      });
+
+      toast.success(`Media plan marked as '${label}'`);
+    } catch (error) {
+      if (error?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
+      toast.error(error?.message || "Failed to update status");
+    } finally {
+    }
+  };
 
   const handleSubmit = async () => {
     if (Object.values(inputs).some((value) => value.trim() === "")) return;
     try {
-      await createAsignatureapproval(sign, inputs, id, isdocumentId); // if createApproval takes arguments
+      await createAsignatureapproval(sign, inputs, id, isdocumentId);
+      await updateStatus('approved', 'Approved');
       setIsLoadingApproval(false)
       setSign("");
     } catch (error) {
@@ -79,17 +133,26 @@ const ApproveModel = ({ isOpen, setIsOpen }) => {
   };
 
 
-  useEffect(() => {
-    if (alert) {
-      const timer = setTimeout(() => setAlert(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [alert]);
+
+
+
+
+
+
+
+
+
 
   useEffect(() => {
     if (createApprovalSuccess) {
-      setAlert({ variant: "success", message: "Aprroval is Successful!", position: "bottom-right" });
+      toast.success("Aprroval is Successful!")
     }
+    setInputs({
+      name: "",
+      date: "",
+      signature: "",
+      initials: ""
+    })
 
   }, [createApprovalSuccess]);
 

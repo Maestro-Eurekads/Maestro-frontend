@@ -48,17 +48,73 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	const isInternalApprover = isAdmin || isAgencyApprover || isFinancialApprover;
 	const isCreator = isAgencyCreator;
 
-
-	console.log('campaignData-campaignData', campaignData?.isStatus?.stage)
-
 	const stage = campaignData?.isStatus?.stage;
+	useEffect(() => {
+		if (!campaignData) return;
 
+		switch (stage) {
+			case 'draft':
+				if (isCreator) {
+					setStep('creator');
+					setTitle('Media plan completed, well done!');
+					setStatusMessage('Ready to ask for approval?');
+				}
+				break;
 
+			case 'in_internal_review':
+				if (isInternalApprover) {
+					setStep('internal_approver');
+					setTitle('Internal Approval Required');
+					setStatusMessage('Do you want to approve internally or request changes?');
+				}
+				break;
+
+			case 'internally_approved':
+				if (isInternalApprover) {
+					setStep('internal_approver');
+					setTitle('Approved Internally!');
+					setStatusMessage('Do you want to share with the client now?');
+					setShowSharePrompt(true); // Open modal to share
+				}
+				break;
+
+			case 'shared_with_client':
+				if (isClient) {
+					setStep('client');
+					setTitle('Client Approval Needed');
+					setStatusMessage('Please approve the media plan or request changes.');
+				}
+				break;
+
+			case 'changes_needed':
+				if (isInternalApprover) {
+					setStep('internal_approver');
+					setTitle('Changes Requested');
+					setStatusMessage('Changes have been requested. Please review and update.');
+				}
+				break;
+
+			case 'client_changes_needed':
+				if (isClient) {
+					setStep('client');
+					setTitle('Client Requested Changes');
+					setStatusMessage('Please review the requested changes from the client.');
+				}
+				break;
+
+			case 'approved':
+				// Final stage, no further action
+				setStep(null);
+				break;
+
+			default:
+				setStep(null);
+				break;
+		}
+	}, [campaignData?.isStatus?.stage, stage]);
 
 	// useEffect(() => {
 	// 	if (!campaignData) return;
-
-
 
 	// 	if (!stage || stage === 'draft') {
 	// 		setStep('creator');
@@ -68,6 +124,11 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	// 		setStep('internal_approver');
 	// 		setTitle('Internal Approval Required');
 	// 		setStatusMessage('Do you want to approve internally and share to client?');
+	// 	} else if (stage === 'internally_approved') {
+	// 		setStep("internal_approver");
+	// 		setTitle('Approved Internally!');
+	// 		setStatusMessage('Do you want to share with the client now?');
+	// 		setShowSharePrompt(true); // Show Share with Client modal
 	// 	} else if (stage === 'shared_with_client' && isClient) {
 	// 		setStep('client');
 	// 		setTitle('Client Approval Needed');
@@ -75,28 +136,10 @@ const ComfirmModel = ({ isOpen, setIsOpen }) => {
 	// 	}
 	// }, [campaignData?.isStatus?.stage, stage]);
 
-	useEffect(() => {
-		if (!campaignData) return;
 
-		if (!stage || stage === 'draft') {
-			setStep('creator');
-			setTitle('Media plan completed, well done!');
-			setStatusMessage('Ready to ask for approval?');
-		} else if (stage === 'in_internal_review' && (isInternalApprover || isClient)) {
-			setStep('internal_approver');
-			setTitle('Internal Approval Required');
-			setStatusMessage('Do you want to approve internally and share to client?');
-		} else if (stage === 'internally_approved') {
-			setStep("internal_approver");
-			setTitle('Approved Internally!');
-			setStatusMessage('Do you want to share with the client now?');
-			setShowSharePrompt(true); // Show Share with Client modal
-		} else if (stage === 'shared_with_client' && isClient) {
-			setStep('client');
-			setTitle('Client Approval Needed');
-			setStatusMessage('Please approve the media plan or request changes.');
-		}
-	}, [campaignData?.isStatus?.stage, stage]);
+
+
+
 
 
 

@@ -21,6 +21,7 @@ import {
 import axios from "axios";
 import { updateUsersWithCampaign } from "app/homepage/functions/clients";
 import { signOut } from "next-auth/react";
+import SaveProgressButton from "app/utils/SaveProgressButton";
 
 interface BottomProps {
  setIsOpen: (isOpen: boolean) => void;
@@ -291,583 +292,626 @@ const Bottom = ({ setIsOpen }: BottomProps) => {
   setIsStepZeroValid(requiredFields.every(Boolean));
  }, [requiredFields, setIsStepZeroValid]);
 
- const handleContinue = async () => {
-  if (active === 6) {
-   if (midcapEditing.isEditing) {
-    let errorMessage = "";
-    switch (midcapEditing.step) {
-     case "Your channel mix":
-      errorMessage =
-       "Please confirm or cancel your channel mix changes before proceeding";
-      break;
-     case "Your funnel stages":
-      errorMessage =
-       "Please confirm or cancel your funnel changes before proceeding";
-      break;
-     case "Your format selections":
-      errorMessage =
-       "Please confirm or cancel your format selection changes before proceeding";
-      break;
-     case "Your Adset and Audiences":
-      errorMessage =
-       "Please confirm or cancel your Adset and Audiences changes before proceeding";
-      break;
-    }
-    if (errorMessage) {
-     setIsEditingError(true);
-     setAlert({
-      variant: "error",
-      message: errorMessage,
-      position: "bottom-right",
-     });
-     setLoading(false);
-     return;
-    }
-   }
+ // const handleContinue = async () => {
+ //  if (active === 6) {
+ //   if (midcapEditing.isEditing) {
+ //    let errorMessage = "";
+ //    switch (midcapEditing.step) {
+ //     case "Your channel mix":
+ //      errorMessage =
+ //       "Please confirm or cancel your channel mix changes before proceeding";
+ //      break;
+ //     case "Your funnel stages":
+ //      errorMessage =
+ //       "Please confirm or cancel your funnel changes before proceeding";
+ //      break;
+ //     case "Your format selections":
+ //      errorMessage =
+ //       "Please confirm or cancel your format selection changes before proceeding";
+ //      break;
+ //     case "Your Adset and Audiences":
+ //      errorMessage =
+ //       "Please confirm or cancel your Adset and Audiences changes before proceeding";
+ //      break;
+ //    }
+ //    if (errorMessage) {
+ //     setIsEditingError(true);
+ //     setAlert({
+ //      variant: "error",
+ //      message: errorMessage,
+ //      position: "bottom-right",
+ //     });
+ //     setLoading(false);
+ //     return;
+ //    }
+ //   }
 
-   if (isEditingBuyingObjective) {
-    setIsBuyingObjectiveError(true);
-    setAlert({
-     variant: "error",
-     message:
-      "Please confirm or cancel your buying objective changes before proceeding",
-     position: "bottom-right",
-    });
-    setLoading(false);
-    return;
-   }
-  }
+ //   if (isEditingBuyingObjective) {
+ //    setIsBuyingObjectiveError(true);
+ //    setAlert({
+ //     variant: "error",
+ //     message:
+ //      "Please confirm or cancel your buying objective changes before proceeding",
+ //     position: "bottom-right",
+ //    });
+ //    setLoading(false);
+ //    return;
+ //   }
+ //  }
 
-  setLoading(true);
-  let hasError = false;
+ //  setLoading(true);
+ //  let hasError = false;
 
-  if (active === 1) {
-   if (
-    !campaignFormData?.funnel_stages ||
-    campaignFormData.funnel_stages.length === 0
-   ) {
-    setTriggerFunnelError(true);
-    setAlert({
-     variant: "error",
-     message: "Please select at least one stage!",
-     position: "bottom-right",
-    });
-    hasError = true;
-   }
-  }
+ //  if (active === 1) {
+ //   if (
+ //    !campaignFormData?.funnel_stages ||
+ //    campaignFormData.funnel_stages.length === 0
+ //   ) {
+ //    setTriggerFunnelError(true);
+ //    setAlert({
+ //     variant: "error",
+ //     message: "Please select at least one stage!",
+ //     position: "bottom-right",
+ //    });
+ //    hasError = true;
+ //   }
+ //  }
 
-  if (active === 2) {
-   const hasChannelSelected = validateChannelSelection();
+ //  if (active === 2) {
+ //   const hasChannelSelected = validateChannelSelection();
 
-   if (!hasChannelSelected) {
-    setTriggerChannelMixError(true);
-    setAlert({
-     variant: "error",
-     message: "Please select at least one channel before proceeding!",
-     position: "bottom-right",
-    });
-    hasError = true;
-   } else {
-    setTriggerChannelMixError(false);
-    setAlert(null);
-   }
-  }
+ //   if (!hasChannelSelected) {
+ //    setTriggerChannelMixError(true);
+ //    setAlert({
+ //     variant: "error",
+ //     message: "Please select at least one channel before proceeding!",
+ //     position: "bottom-right",
+ //    });
+ //    hasError = true;
+ //   } else {
+ //    setTriggerChannelMixError(false);
+ //    setAlert(null);
+ //   }
+ //  }
 
-  if (active === 8) {
-   // Check if budget type is selected
-   if (!campaignFormData?.campaign_budget?.budget_type) {
-    toast("Please select how to set your budget", {
-     style: {
-      background: "#FFEBEE",
-      color: "#F87171",
-      marginBottom: "70px",
-      padding: "16px",
-      borderRadius: "8px",
-      width: "320px",
-      border: "1px solid red",
-      borderLeft: "4px solid red",
-     },
-    });
-    setLoading(false);
-    return;
-   }
+ //  if (active === 8) {
+ //   // Check if budget type is selected
+ //   if (!campaignFormData?.campaign_budget?.budget_type) {
+ //    toast("Please select how to set your budget", {
+ //     style: {
+ //      background: "#FFEBEE",
+ //      color: "#F87171",
+ //      marginBottom: "70px",
+ //      padding: "16px",
+ //      borderRadius: "8px",
+ //      width: "320px",
+ //      border: "1px solid red",
+ //      borderLeft: "4px solid red",
+ //     },
+ //    });
+ //    setLoading(false);
+ //    return;
+ //   }
 
-   // Check if budget amount is provided
-   if (!campaignFormData?.campaign_budget?.amount) {
-    toast("Please input a budget amount", {
-     style: {
-      background: "#FFEBEE",
-      color: "red",
-      marginBottom: "70px",
-      padding: "16px",
-      borderRadius: "8px",
-      width: "320px",
-      border: "1px solid red",
-      borderLeft: "4px solid red",
-     },
-    });
-    setLoading(false);
-    return;
-   }
+ //   // Check if budget amount is provided
+ //   if (!campaignFormData?.campaign_budget?.amount) {
+ //    toast("Please input a budget amount", {
+ //     style: {
+ //      background: "#FFEBEE",
+ //      color: "red",
+ //      marginBottom: "70px",
+ //      padding: "16px",
+ //      borderRadius: "8px",
+ //      width: "320px",
+ //      border: "1px solid red",
+ //      borderLeft: "4px solid red",
+ //     },
+ //    });
+ //    setLoading(false);
+ //    return;
+ //   }
 
-   // For top-down approach, check if sub_budget_type is selected when in substep
-   if (
-    campaignFormData?.campaign_budget?.budget_type === "top_down" &&
-    subStep > 0 &&
-    !campaignFormData?.campaign_budget?.sub_budget_type
-   ) {
-    toast("Please select what type of budget you want", {
-     style: {
-      background: "#FFEBEE",
-      color: "red",
-      marginBottom: "70px",
-      padding: "16px",
-      borderRadius: "8px",
-      width: "320px",
-      border: "1px solid red",
-      borderLeft: "4px solid red",
-     },
-    });
-    setLoading(false);
-    return;
-   }
+ //   // For top-down approach, check if sub_budget_type is selected when in substep
+ //   if (
+ //    campaignFormData?.campaign_budget?.budget_type === "top_down" &&
+ //    subStep > 0 &&
+ //    !campaignFormData?.campaign_budget?.sub_budget_type
+ //   ) {
+ //    toast("Please select what type of budget you want", {
+ //     style: {
+ //      background: "#FFEBEE",
+ //      color: "red",
+ //      marginBottom: "70px",
+ //      padding: "16px",
+ //      borderRadius: "8px",
+ //      width: "320px",
+ //      border: "1px solid red",
+ //      borderLeft: "4px solid red",
+ //     },
+ //    });
+ //    setLoading(false);
+ //    return;
+ //   }
 
-   // Check if granularity level is selected
-   if (!campaignFormData?.campaign_budget?.level) {
-    toast(
-     "Please select a granularity level (Channel level or Adset level)",
-     {
-      style: {
-       background: "#FFEBEE",
-       color: "red",
-       marginBottom: "70px",
-       padding: "16px",
-       borderRadius: "8px",
-       width: "320px",
-       border: "1px solid red",
-       borderLeft: "4px solid red",
-      },
-     }
-    );
-    setLoading(false);
-    return;
-   }
+ //   // Check if granularity level is selected
+ //   if (!campaignFormData?.campaign_budget?.level) {
+ //    toast(
+ //     "Please select a granularity level (Channel level or Adset level)",
+ //     {
+ //      style: {
+ //       background: "#FFEBEE",
+ //       color: "red",
+ //       marginBottom: "70px",
+ //       padding: "16px",
+ //       borderRadius: "8px",
+ //       width: "320px",
+ //       border: "1px solid red",
+ //       borderLeft: "4px solid red",
+ //      },
+ //     }
+ //    );
+ //    setLoading(false);
+ //    return;
+ //   }
 
-   // For top-down with fees, validate fee configuration
-   // --- CHANGED: Fee is NOT compulsory, so skip this validation ---
-   // if (
-   //   campaignFormData?.campaign_budget?.budget_type === "top_down" &&
-   //   campaignFormData?.campaign_budget?.sub_budget_type &&
-   //   !campaignFormData?.campaign_budget?.budget_fees?.length
-   // ) {
-   //   toast("Please validate your fee configuration before proceeding", {
-   //     style: {
-   //       background: "#FFEBEE",
-   //       color: "red",
-   //       marginBottom: "70px",
-   //       padding: "16px",
-   //       borderRadius: "8px",
-   //       width: "320px",
-   //       border: "1px solid red",
-   //       borderLeft: "4px solid red",
-   //     },
-   //   })
-   //   setLoading(false)
-   //   return
-   // }
-  }
+ //   // For top-down with fees, validate fee configuration
+ //   // --- CHANGED: Fee is NOT compulsory, so skip this validation ---
+ //   // if (
+ //   //   campaignFormData?.campaign_budget?.budget_type === "top_down" &&
+ //   //   campaignFormData?.campaign_budget?.sub_budget_type &&
+ //   //   !campaignFormData?.campaign_budget?.budget_fees?.length
+ //   // ) {
+ //   //   toast("Please validate your fee configuration before proceeding", {
+ //   //     style: {
+ //   //       background: "#FFEBEE",
+ //   //       color: "red",
+ //   //       marginBottom: "70px",
+ //   //       padding: "16px",
+ //   //       borderRadius: "8px",
+ //   //       width: "320px",
+ //   //       border: "1px solid red",
+ //   //       borderLeft: "4px solid red",
+ //   //     },
+ //   //   })
+ //   //   setLoading(false)
+ //   //   return
+ //   // }
+ //  }
 
-  if (active === 4) {
-   const isValidFormat = validateFormatSelection();
-   if (!isValidFormat) {
-    setTriggerFormatError(true);
-    setTriggerFormatErrorCount((prev) => prev + 1);
-    hasError = true;
-   } else {
-    setTriggerFormatError(false);
-    setTriggerFormatErrorCount(0);
-    hasProceededFromFormatStep.current = true;
-   }
-  }
+ //  if (active === 4) {
+ //   const isValidFormat = validateFormatSelection();
+ //   if (!isValidFormat) {
+ //    setTriggerFormatError(true);
+ //    setTriggerFormatErrorCount((prev) => prev + 1);
+ //    hasError = true;
+ //   } else {
+ //    setTriggerFormatError(false);
+ //    setTriggerFormatErrorCount(0);
+ //    hasProceededFromFormatStep.current = true;
+ //   }
+ //  }
 
-  if (active === 5) {
-   // const isValidBuyObjective = validateBuyObjectiveSelection()
-   // if (!isValidBuyObjective) {
-   //   setTriggerBuyObjectiveError(true)
-   //   setAlert({
-   //     variant: "error",
-   //     message: "Please select and validate at least one channel with buy type and objective before proceeding!",
-   //     position: "bottom-right",
-   //   })
-   //   hasError = true
-   // } else {
-   //   setTriggerBuyObjectiveError(false)
-   //   setAlert(null)
-   // }
-  }
+ //  if (active === 5) {
+ //   // const isValidBuyObjective = validateBuyObjectiveSelection()
+ //   // if (!isValidBuyObjective) {
+ //   //   setTriggerBuyObjectiveError(true)
+ //   //   setAlert({
+ //   //     variant: "error",
+ //   //     message: "Please select and validate at least one channel with buy type and objective before proceeding!",
+ //   //     position: "bottom-right",
+ //   //   })
+ //   //   hasError = true
+ //   // } else {
+ //   //   setTriggerBuyObjectiveError(false)
+ //   //   setAlert(null)
+ //   // }
+ //  }
 
+ //  if (active === 7) {
+ //   if (
+ //    campaignFormData?.campaign_timeline_start_date &&
+ //    campaignFormData?.campaign_timeline_end_date
+ //   ) {
+ //    setSelectedDatesError(false);
+ //   } else {
+ //    if (
+ //     (!selectedDates?.to?.day || !selectedDates?.from?.day) &&
+ //     subStep < 1
+ //    ) {
+ //     setSelectedDatesError(true);
+ //     setAlert({
+ //      variant: "error",
+ //      message: "Choose your start and end date!",
+ //      position: "bottom-right",
+ //     });
+ //     hasError = true;
+ //    }
+ //   }
+ //  }
+
+ //  if (hasError) {
+ //   setLoading(false);
+ //   return;
+ //  }
+
+ //  const updateCampaignData = async (data) => {
+ //   const calcPercent = Math.ceil((active / 10) * 100);
+ //   try {
+ //    await updateCampaign({
+ //     ...data,
+ //     progress_percent:
+ //      campaignFormData?.progress_percent > calcPercent
+ //       ? campaignFormData?.progress_percent
+ //       : calcPercent,
+ //    });
+ //    await getActiveCampaign(data);
+ //   } catch (error) {
+ //    if (error?.response?.status === 401) {
+ //     const event = new Event("unauthorizedEvent");
+ //     window.dispatchEvent(event);
+ //    }
+
+ //    setAlert({
+ //     variant: "error",
+ //     message: "Failed to update campaign data",
+ //     position: "bottom-right",
+ //    });
+ //    throw error;
+ //   }
+ //  };
+
+
+
+
+ //  const handleStepZero = async () => {
+ //   setLoading(true);
+
+ //   try {
+ //    let hasError = false;
+
+ //    // Validation function
+ //    const getFieldValue = (field: any): boolean => {
+ //     if (Array.isArray(field)) return field.length > 0;
+ //     if (typeof field === "object" && field !== null)
+ //      return Object.keys(field).length > 0;
+ //     return Boolean(field);
+ //    };
+
+ //    // Error collector
+ //    const errors: string[] = [];
+
+ //    // Check each field, and if invalid, set flag and trigger alert
+ //    if (!getFieldValue(campaignFormData?.media_plan)) {
+ //     errors.push("Media plan name is required.");
+ //     hasError = true;
+ //    }
+
+ //    if (!getFieldValue(campaignFormData?.budget_details_currency?.id)) {
+ //     errors.push("Currency is required.");
+ //     hasError = true;
+ //    }
+
+ //    if (!isStepZeroValid) {
+ //     errors.push("Please complete all required fields before proceeding.");
+ //     hasError = true;
+ //    }
+
+ //    if (hasError) {
+ //     setAlert({
+ //      variant: "error",
+ //      message: errors.join(" "),
+ //      position: "bottom-right",
+ //     });
+ //     setValidateStep(true);
+ //     setLoading(false);
+ //     return;
+ //    }
+
+ //    // Clean and store form
+ //    const cleanedFormData = {
+ //     ...campaignFormData,
+ //     internal_approver: (campaignFormData?.internal_approver || []),
+ //     client_approver: (campaignFormData?.client_approver || []),
+ //    };
+
+
+ //    setCampaignFormData(cleanedFormData);
+ //    localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData));
+
+ //    const payload = {
+ //     data: {
+ //      campaign_builder: loggedInUser?.id,
+ //      client: campaignFormData?.client_selection?.id,
+ //      client_selection: {
+ //       client: campaignFormData?.client_selection?.value,
+ //       level_1: campaignFormData?.level_1,
+ //      },
+ //      media_plan_details: {
+ //       plan_name: campaignFormData?.media_plan,
+ //       internal_approver: (campaignFormData?.internal_approver || []).map((item: any) => Number(item.id)),
+ //       client_approver: (campaignFormData?.client_approver || []).map((item: any) => Number(item.id)),
+ //      },
+ //      budget_details: {
+ //       currency: campaignFormData?.budget_details_currency?.id || "EUR",
+ //       value: campaignFormData?.country_details?.id,
+ //      },
+ //      campaign_budget: {
+ //       currency: campaignFormData?.budget_details_currency?.id || "EUR",
+ //      },
+ //      agency_profile: agencyId,
+ //     },
+ //    };
+
+ //    const config = {
+ //     headers: {
+ //      Authorization: `Bearer ${jwt}`,
+ //     },
+ //    };
+
+ //    // Update or Create
+ //    if (cId && campaignData) {
+ //     await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`, payload, config);
+ //     setActive((prev) => prev + 1);
+ //     setAlert({ variant: "success", message: "Campaign updated successfully!", position: "bottom-right" });
+ //    } else {
+ //     const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config);
+
+ //     const url = new URL(window.location.href);
+ //     url.searchParams.set("campaignId", `${response?.data?.data.documentId}`);
+ //     window.history.pushState({}, "", url.toString());
+
+ //     await updateUsersWithCampaign(
+ //      [
+ //       ...(Array.isArray(loggedInUser?.id) ? loggedInUser?.id : [loggedInUser?.id]),
+ //       ...(campaignFormData?.internal_approver || []).map((item: any) => String(item.id)),
+ //       ...(campaignFormData?.client_approver || []).map((item: any) => Number(item.id)),
+ //      ],
+ //      response?.data?.data?.id,
+ //      jwt
+ //     );
+
+ //     await getActiveCampaign(response?.data?.data.documentId);
+ //     setActive((prev) => prev + 1);
+ //     setAlert({ variant: "success", message: "Campaign created successfully!", position: "bottom-right" });
+ //    }
+ //   } catch (error) {
+ //    if (error?.response?.status === 401) {
+ //     const event = new Event("unauthorizedEvent");
+ //     window.dispatchEvent(event);
+ //    }
+ //    setAlert({
+ //     variant: "error",
+ //     message: error.response?.data?.message || "Something went wrong. Please try again.",
+ //     position: "bottom-right",
+ //    });
+ //    if (error?.response?.status === 401) {
+ //     const event = new Event("unauthorizedEvent");
+ //     window.dispatchEvent(event);
+ //    }
+
+ //   } finally {
+ //    setLoading(false);
+ //   }
+ //  };
+
+
+ //  const handleStepTwo = async () => {
+ //   if (!campaignData || !cId) return;
+ //   await updateCampaignData({
+ //    // ...cleanData,
+ //    funnel_stages: campaignFormData?.funnel_stages,
+ //    channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+ //     "id",
+ //     "isValidated",
+ //     "formatValidated",
+ //     "validatedStages",
+ //     "documentId",
+ //     "_aggregated",
+ //    ]),
+ //    custom_funnels: campaignFormData?.custom_funnels,
+ //    funnel_type: campaignFormData?.funnel_type,
+ //   });
+ //  };
+
+ //  const handleStepThree = async () => {
+ //   if (!campaignData || !cId) return;
+ //   await updateCampaignData({
+ //    // ...cleanData,
+ //    channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+ //     "id",
+ //     "isValidated",
+ //     "validatedStages",
+ //     "documentId",
+ //     "_aggregated",
+ //    ]),
+ //   });
+ //  };
+
+ //  const handleStepFour = async () => {
+ //   if (!campaignData || !cId) return;
+ //   let updatedCampaignFormData = campaignFormData;
+
+ //   if (active === 5) {
+ //    const obj = await extractObjectives(campaignFormData);
+ //    const sMetrics = await getFilteredMetrics(obj);
+ //    updatedCampaignFormData = {
+ //     ...campaignFormData,
+ //     table_headers: obj || {},
+ //     selected_metrics: sMetrics || {},
+ //    };
+ //    setCampaignFormData(updatedCampaignFormData);
+ //   }
+
+ //   await updateCampaignData({
+ //    channel_mix: removeKeysRecursively(
+ //     updatedCampaignFormData?.channel_mix,
+ //     [
+ //      "id",
+ //      "isValidated",
+ //      "formatValidated",
+ //      "validatedStages",
+ //      "documentId",
+ //      "_aggregated",
+ //     ]
+ //    ),
+ //    table_headers: updatedCampaignFormData?.table_headers,
+ //    selected_metrics: updatedCampaignFormData?.selected_metrics,
+ //   });
+ //  };
+
+ //  const handleStepSeven = async () => {
+ //   if (!campaignData) return;
+ //   let updatedCampaignFormData = campaignFormData;
+
+ //   const obj = extractObjectives(campaignFormData);
+ //   updatedCampaignFormData = {
+ //    ...campaignFormData,
+ //    table_headers: obj || {},
+ //   };
+ //   setCampaignFormData(updatedCampaignFormData);
+
+ //   await updateCampaignData({
+ //    funnel_stages: updatedCampaignFormData?.funnel_stages,
+ //    channel_mix: removeKeysRecursively(
+ //     updatedCampaignFormData?.channel_mix,
+ //     ["id", "isValidated", "documentId", "_aggregated"]
+ //    ),
+ //    campaign_budget: removeKeysRecursively(
+ //     updatedCampaignFormData?.campaign_budget,
+ //     ["id"]
+ //    ),
+ //    goal_level: updatedCampaignFormData?.goal_level,
+ //    table_headers: updatedCampaignFormData?.table_headers,
+ //   });
+ //  };
+
+ //  const handleDateStep = async () => {
+ //   if (!campaignData) return;
+ //   const currentYear = new Date().getFullYear();
+ //   // const campaign_timeline_start_date =
+ //   //   dayjs(
+ //   //     new Date(
+ //   //       currentYear,
+ //   //       selectedDates?.from?.month,
+ //   //       selectedDates.from?.day
+ //   //     )
+ //   //   ).format("YYYY-MM-DD") ||
+ //   //   campaignFormData?.campaign_timeline_start_date;
+
+ //   // const campaign_timeline_end_date =
+ //   //   dayjs(
+ //   //     new Date(currentYear, selectedDates?.to?.month, selectedDates.to?.day)
+ //   //   ).format("YYYY-MM-DD") || campaignFormData?.campaign_timeline_end_date;
+ //   await updateCampaignData({
+ //    campaign_timeline_start_date:
+ //     campaignFormData?.campaign_timeline_start_date,
+ //    campaign_timeline_end_date: campaignFormData?.campaign_timeline_end_date,
+ //    funnel_stages: campaignFormData?.funnel_stages,
+ //    channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
+ //     "id",
+ //     "isValidated",
+ //     "documentId",
+ //     "_aggregated",
+ //    ]),
+ //    campaign_budget: removeKeysRecursively(
+ //     campaignFormData?.campaign_budget,
+ //     ["id"]
+ //    ),
+ //    goal_level: campaignFormData?.goal_level,
+ //   });
+ //  };
+
+ //  try {
+ //   if (active === 0) {
+ //    await handleStepZero();
+ //   } else if (active === 1) {
+ //    await handleStepTwo();
+ //   } else if (active === 2) {
+ //    await handleStepThree();
+ //   } else if (active === 3) {
+ //    await handleStepThree();
+ //   } else if (active === 8) {
+ //    await handleStepSeven();
+ //   } else if (active === 6) {
+ //    await handleStepSeven();
+ //   } else if (active === 7) {
+ //    await handleDateStep();
+ //   } else if (active > 3 && subStep < 2) {
+ //    await handleStepFour();
+ //   }
+
+ //   if (active === 7) {
+ //    if (subStep < 1) {
+ //     setSubStep((prev) => prev + 1);
+ //    } else {
+ //     setActive((prev) => prev + 1);
+ //     setSubStep(0);
+ //    }
+ //   } else if (active === 5) {
+ //    setActive(7)
+ //   } else if (active !== 0) {
+ //    setActive((prev) => prev + 1);
+ //   }
+ //  } catch (error) {
+ //   if (error?.response?.status === 401) {
+ //    const event = new Event("unauthorizedEvent");
+ //    window.dispatchEvent(event);
+ //   }
+
+ //  } finally {
+ //   setLoading(false);
+ //  }
+ // };
+
+ console.log('active=active', active)
+ const handleContinue = () => {
+  // Handle subStep logic first (for step 7)
   if (active === 7) {
-   if (
-    campaignFormData?.campaign_timeline_start_date &&
-    campaignFormData?.campaign_timeline_end_date
-   ) {
-    setSelectedDatesError(false);
+   if (subStep < 1) {
+    setSubStep((prev) => prev + 1);
+    return; // Stop here so we don't advance the main step yet
    } else {
-    if (
-     (!selectedDates?.to?.day || !selectedDates?.from?.day) &&
-     subStep < 1
-    ) {
-     setSelectedDatesError(true);
-     setAlert({
-      variant: "error",
-      message: "Choose your start and end date!",
-      position: "bottom-right",
-     });
-     hasError = true;
-    }
+    setSubStep(0);
+    setActive(8);
+    return;
    }
   }
 
-  if (hasError) {
-   setLoading(false);
-   return;
-  }
-
-  const updateCampaignData = async (data) => {
-   const calcPercent = Math.ceil((active / 10) * 100);
-   try {
-    await updateCampaign({
-     ...data,
-     progress_percent:
-      campaignFormData?.progress_percent > calcPercent
-       ? campaignFormData?.progress_percent
-       : calcPercent,
-    });
-    await getActiveCampaign(data);
-   } catch (error) {
-    if (error?.response?.status === 401) {
-     const event = new Event("unauthorizedEvent");
-     window.dispatchEvent(event);
-    }
-
-    setAlert({
-     variant: "error",
-     message: "Failed to update campaign data",
-     position: "bottom-right",
-    });
-    throw error;
-   }
-  };
-
-
-
-
-  const handleStepZero = async () => {
-   setLoading(true);
-
-   try {
-    let hasError = false;
-
-    // Validation function
-    const getFieldValue = (field: any): boolean => {
-     if (Array.isArray(field)) return field.length > 0;
-     if (typeof field === "object" && field !== null)
-      return Object.keys(field).length > 0;
-     return Boolean(field);
-    };
-
-    // Error collector
-    const errors: string[] = [];
-
-    // Check each field, and if invalid, set flag and trigger alert
-    if (!getFieldValue(campaignFormData?.media_plan)) {
-     errors.push("Media plan name is required.");
-     hasError = true;
-    }
-
-    if (!getFieldValue(campaignFormData?.budget_details_currency?.id)) {
-     errors.push("Currency is required.");
-     hasError = true;
-    }
-
-    if (!isStepZeroValid) {
-     errors.push("Please complete all required fields before proceeding.");
-     hasError = true;
-    }
-
-    if (hasError) {
-     setAlert({
-      variant: "error",
-      message: errors.join(" "),
-      position: "bottom-right",
-     });
-     setValidateStep(true);
-     setLoading(false);
-     return;
-    }
-
-    // Clean and store form
-    const cleanedFormData = {
-     ...campaignFormData,
-     internal_approver: (campaignFormData?.internal_approver || []),
-     client_approver: (campaignFormData?.client_approver || []),
-    };
-
-
-    setCampaignFormData(cleanedFormData);
-    localStorage.setItem("campaignFormData", JSON.stringify(cleanedFormData));
-
-    const payload = {
-     data: {
-      campaign_builder: loggedInUser?.id,
-      client: campaignFormData?.client_selection?.id,
-      client_selection: {
-       client: campaignFormData?.client_selection?.value,
-       level_1: campaignFormData?.level_1,
-      },
-      media_plan_details: {
-       plan_name: campaignFormData?.media_plan,
-       internal_approver: (campaignFormData?.internal_approver || []).map((item: any) => Number(item.id)),
-       client_approver: (campaignFormData?.client_approver || []).map((item: any) => Number(item.id)),
-      },
-      budget_details: {
-       currency: campaignFormData?.budget_details_currency?.id || "EUR",
-       value: campaignFormData?.country_details?.id,
-      },
-      campaign_budget: {
-       currency: campaignFormData?.budget_details_currency?.id || "EUR",
-      },
-      agency_profile: agencyId,
-     },
-    };
-
-    const config = {
-     headers: {
-      Authorization: `Bearer ${jwt}`,
-     },
-    };
-
-    // Update or Create
-    if (cId && campaignData) {
-     await axios.put(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns/${cId}`, payload, config);
-     setActive((prev) => prev + 1);
-     setAlert({ variant: "success", message: "Campaign updated successfully!", position: "bottom-right" });
-    } else {
-     const response = await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns`, payload, config);
-
-     const url = new URL(window.location.href);
-     url.searchParams.set("campaignId", `${response?.data?.data.documentId}`);
-     window.history.pushState({}, "", url.toString());
-
-     await updateUsersWithCampaign(
-      [
-       ...(Array.isArray(loggedInUser?.id) ? loggedInUser?.id : [loggedInUser?.id]),
-       ...(campaignFormData?.internal_approver || []).map((item: any) => String(item.id)),
-       ...(campaignFormData?.client_approver || []).map((item: any) => Number(item.id)),
-      ],
-      response?.data?.data?.id,
-      jwt
-     );
-
-     await getActiveCampaign(response?.data?.data.documentId);
-     setActive((prev) => prev + 1);
-     setAlert({ variant: "success", message: "Campaign created successfully!", position: "bottom-right" });
-    }
-   } catch (error) {
-    if (error?.response?.status === 401) {
-     const event = new Event("unauthorizedEvent");
-     window.dispatchEvent(event);
-    }
-    setAlert({
-     variant: "error",
-     message: error.response?.data?.message || "Something went wrong. Please try again.",
-     position: "bottom-right",
-    });
-    if (error?.response?.status === 401) {
-     const event = new Event("unauthorizedEvent");
-     window.dispatchEvent(event);
-    }
-
-   } finally {
-    setLoading(false);
-   }
-  };
-
-
-  const handleStepTwo = async () => {
-   if (!campaignData || !cId) return;
-   await updateCampaignData({
-    // ...cleanData,
-    funnel_stages: campaignFormData?.funnel_stages,
-    channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
-     "id",
-     "isValidated",
-     "formatValidated",
-     "validatedStages",
-     "documentId",
-     "_aggregated",
-    ]),
-    custom_funnels: campaignFormData?.custom_funnels,
-    funnel_type: campaignFormData?.funnel_type,
-   });
-  };
-
-  const handleStepThree = async () => {
-   if (!campaignData || !cId) return;
-   await updateCampaignData({
-    // ...cleanData,
-    channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
-     "id",
-     "isValidated",
-     "validatedStages",
-     "documentId",
-     "_aggregated",
-    ]),
-   });
-  };
-
-  const handleStepFour = async () => {
-   if (!campaignData || !cId) return;
-   let updatedCampaignFormData = campaignFormData;
-
-   if (active === 5) {
-    const obj = await extractObjectives(campaignFormData);
-    const sMetrics = await getFilteredMetrics(obj);
-    updatedCampaignFormData = {
-     ...campaignFormData,
-     table_headers: obj || {},
-     selected_metrics: sMetrics || {},
-    };
-    setCampaignFormData(updatedCampaignFormData);
-   }
-
-   await updateCampaignData({
-    channel_mix: removeKeysRecursively(
-     updatedCampaignFormData?.channel_mix,
-     [
-      "id",
-      "isValidated",
-      "formatValidated",
-      "validatedStages",
-      "documentId",
-      "_aggregated",
-     ]
-    ),
-    table_headers: updatedCampaignFormData?.table_headers,
-    selected_metrics: updatedCampaignFormData?.selected_metrics,
-   });
-  };
-
-  const handleStepSeven = async () => {
-   if (!campaignData) return;
-   let updatedCampaignFormData = campaignFormData;
-
-   const obj = extractObjectives(campaignFormData);
-   updatedCampaignFormData = {
-    ...campaignFormData,
-    table_headers: obj || {},
-   };
-   setCampaignFormData(updatedCampaignFormData);
-
-   await updateCampaignData({
-    funnel_stages: updatedCampaignFormData?.funnel_stages,
-    channel_mix: removeKeysRecursively(
-     updatedCampaignFormData?.channel_mix,
-     ["id", "isValidated", "documentId", "_aggregated"]
-    ),
-    campaign_budget: removeKeysRecursively(
-     updatedCampaignFormData?.campaign_budget,
-     ["id"]
-    ),
-    goal_level: updatedCampaignFormData?.goal_level,
-    table_headers: updatedCampaignFormData?.table_headers,
-   });
-  };
-
-  const handleDateStep = async () => {
-   if (!campaignData) return;
-   const currentYear = new Date().getFullYear();
-   // const campaign_timeline_start_date =
-   //   dayjs(
-   //     new Date(
-   //       currentYear,
-   //       selectedDates?.from?.month,
-   //       selectedDates.from?.day
-   //     )
-   //   ).format("YYYY-MM-DD") ||
-   //   campaignFormData?.campaign_timeline_start_date;
-
-   // const campaign_timeline_end_date =
-   //   dayjs(
-   //     new Date(currentYear, selectedDates?.to?.month, selectedDates.to?.day)
-   //   ).format("YYYY-MM-DD") || campaignFormData?.campaign_timeline_end_date;
-   await updateCampaignData({
-    campaign_timeline_start_date:
-     campaignFormData?.campaign_timeline_start_date,
-    campaign_timeline_end_date: campaignFormData?.campaign_timeline_end_date,
-    funnel_stages: campaignFormData?.funnel_stages,
-    channel_mix: removeKeysRecursively(campaignFormData?.channel_mix, [
-     "id",
-     "isValidated",
-     "documentId",
-     "_aggregated",
-    ]),
-    campaign_budget: removeKeysRecursively(
-     campaignFormData?.campaign_budget,
-     ["id"]
-    ),
-    goal_level: campaignFormData?.goal_level,
-   });
-  };
-
-  try {
-   if (active === 0) {
-    await handleStepZero();
-   } else if (active === 1) {
-    await handleStepTwo();
-   } else if (active === 2) {
-    await handleStepThree();
-   } else if (active === 3) {
-    await handleStepThree();
-   } else if (active === 8) {
-    await handleStepSeven();
-   } else if (active === 6) {
-    await handleStepSeven();
-   } else if (active === 7) {
-    await handleDateStep();
-   } else if (active > 3 && subStep < 2) {
-    await handleStepFour();
-   }
-
-   if (active === 7) {
-    if (subStep < 1) {
-     setSubStep((prev) => prev + 1);
-    } else {
-     setActive((prev) => prev + 1);
-     setSubStep(0);
-    }
-   } else if (active === 5) {
-    setActive(7)
-   } else if (active !== 0) {
-    setActive((prev) => prev + 1);
-   }
-  } catch (error) {
-   if (error?.response?.status === 401) {
-    const event = new Event("unauthorizedEvent");
-    window.dispatchEvent(event);
-   }
-
-  } finally {
-   setLoading(false);
+  // Handle specific jumps
+  if (active === 0) {
+   setActive(1);
+  } else if (active === 1) {
+   setActive(2);
+  } else if (active === 2 || active === 3) {
+   setActive(4);
+  } else if (active === 4) {
+   setActive(5);
+  } else if (active === 5) {
+   setActive(7); // Skip to step 7
+  } else if (active === 6 || active === 8) {
+   setActive(9);
+  } else if (active === 9) {
+   setActive(10);
+  } else {
+   // Default next step
+   setActive((prev) => prev + 1);
   }
  };
+
+
 
  const handleSkip = () => {
   setActive((prev) => Math.min(9, prev + 1));
  };
 
  return (
-  <footer id="footer" className="w-full">
+  <footer id="footer" className="w-full relative">
+
+   <div className="absolute right-[10px] bottom-[100px]">
+    <SaveProgressButton setIsOpen={setIsOpen} />
+   </div>
+
+   {/* <Bottom setIsOpen={setIsOpen} /> */}
    <Toaster position="bottom-right" />
    {alert && <AlertMain alert={alert} />}
    {setupyournewcampaignError && (

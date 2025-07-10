@@ -23,6 +23,7 @@ import { DashboardDateRangeProvider } from "src/date-context";
 import { VersionApprovalProvider } from "./utils/VersionApprovalContext";
 import { Toaster } from "sonner";
 import UnauthorizedModal from "components/UnauthorizedModal";
+import { SaveProgressProvider } from "./utils/SaveProgressContext";
 
 // Load fonts
 const roboto = Roboto({
@@ -78,35 +79,37 @@ export default async function RootLayout({
           <Suspense>
             <CampaignProvider>
               <ClientCampaignProvider>
-                <VersionApprovalProvider>
-                  <ActiveProvider>
-                  <CommentProvider>
-                    <KpiProvider>
-                      <VerificationProvider>
-                        <CampaignSelectionProvider>
-                          <DashboardDateRangeProvider>
-                            <DateRangeProvider>
-                              <SelectedDatesProvider>
-                                {/* <ActiveProvider> */}
-                                  <EditingProvider>
-                                    <ObjectivesProvider>
-                                      <FunnelProvider>
-                                        <ToastContainer />
-                                        {children}
-                                        <UnauthorizedModal />
-                                      </FunnelProvider>
-                                    </ObjectivesProvider>
-                                  </EditingProvider>
-                                {/* </ActiveProvider> */}
-                              </SelectedDatesProvider>
-                            </DateRangeProvider>
-                          </DashboardDateRangeProvider>
-                        </CampaignSelectionProvider>
-                      </VerificationProvider>
-                    </KpiProvider>
-                  </CommentProvider>
-                  </ActiveProvider>
-                </VersionApprovalProvider>
+                <SaveProgressProvider>
+                  <VersionApprovalProvider>
+                    <ActiveProvider>
+                      <CommentProvider>
+                        <KpiProvider>
+                          <VerificationProvider>
+                            <CampaignSelectionProvider>
+                              <DashboardDateRangeProvider>
+                                <DateRangeProvider>
+                                  <SelectedDatesProvider>
+                                    {/* <ActiveProvider> */}
+                                    <EditingProvider>
+                                      <ObjectivesProvider>
+                                        <FunnelProvider>
+                                          <ToastContainer />
+                                          {children}
+                                          <UnauthorizedModal />
+                                        </FunnelProvider>
+                                      </ObjectivesProvider>
+                                    </EditingProvider>
+                                    {/* </ActiveProvider> */}
+                                  </SelectedDatesProvider>
+                                </DateRangeProvider>
+                              </DashboardDateRangeProvider>
+                            </CampaignSelectionProvider>
+                          </VerificationProvider>
+                        </KpiProvider>
+                      </CommentProvider>
+                    </ActiveProvider>
+                  </VersionApprovalProvider>
+                </SaveProgressProvider>
               </ClientCampaignProvider>
             </CampaignProvider>
           </Suspense>

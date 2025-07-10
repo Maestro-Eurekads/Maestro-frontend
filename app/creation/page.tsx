@@ -22,7 +22,7 @@ import { useCampaigns } from "app/utils/CampaignsContext";
 
 const Creation = () => {
   const { active, subStep } = useActive();
-  const {campaignFormData} = useCampaigns()
+  const { campaignFormData } = useCampaigns()
   return (
     <EnhancedDateProvider campaignFormData={campaignFormData}>
       <div className="creation_continer">
