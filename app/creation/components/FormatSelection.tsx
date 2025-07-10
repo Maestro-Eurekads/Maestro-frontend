@@ -1179,7 +1179,7 @@ export const Platforms = ({
           response: error.response?.data,
           status: error.response?.status,
         })
-        debouncedToast(`Failed to save campaign data: ${error.message}`, "error")
+        // debouncedToast(`Failed to save campaign data: ${error.message}`, "error")
         throw error
       } finally {
         setIsUpdatingStrapi(false)
@@ -1304,7 +1304,7 @@ export const Platforms = ({
       })
 
       if (!deleteResponse.ok) {
-        throw new Error(`Failed to delete file from Strapi: ${deleteResponse.statusText}`)
+          // throw new Error(`Failed to delete file from Strapi: ${deleteResponse.statusText}`)
       }
 
       const updatedChannelMix = JSON.parse(JSON.stringify(campaignFormData.channel_mix))
@@ -1368,10 +1368,10 @@ export const Platforms = ({
       setDeleteQueue((prev) => prev.slice(1))
       setCompletedDeletions((prev) => new Set(prev).add(previewId))
     } catch (error: any) {
-      console.error("Error processing delete queue:", error)
-      debouncedToast(`Failed to delete preview: ${error.message}`, "error")
-      setCompletedDeletions((prev) => new Set(prev).add(previewId))
-      setDeleteQueue((prev) => prev.slice(1))
+        console.error("Error processing delete queue:", error)
+        // debouncedToast(`Failed to delete preview: ${error.message}`, "error")
+        setCompletedDeletions((prev) => new Set(prev).add(previewId))
+        setDeleteQueue((prev) => prev.slice(1))
     } finally {
       setIsProcessingQueue(false)
     }
