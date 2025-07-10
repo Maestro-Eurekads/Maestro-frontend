@@ -133,7 +133,7 @@ export const CellRenderer = ({
 
   const getCalculatedValue = (key: string): string => {
     const value = calculatedValues[key]
-    return isNaN(value) || !isFinite(value) ? "-" : (body !== "reach" && body !== "impressions" && body !== "video_views") ? Number.parseFloat(value).toFixed(2) : value
+    return isNaN(value) || !isFinite(value) ? "-" : (cellType !== "number") ? Number.parseFloat(value).toFixed(2) : Number.parseFloat(value).toFixed(0)
   }
 
   const getRawValue = (): string => {
@@ -162,6 +162,7 @@ export const CellRenderer = ({
       case "seconds":
         return `${numValue.toFixed(2)}s`
       case "number":
+        return numValue.toFixed(0)
       default:
         return numValue.toFixed(0) // No decimal places for other types
     }
@@ -197,13 +198,13 @@ export const CellRenderer = ({
       // For CPM, preserve decimal places (2 max)
       return formatNumber(Number.parseFloat(numericValue.toFixed(2)))
     } else {
-      if(body !== "reach" && body !== "impressions" && body !== "video_views") {
+      if(body !== "reach"  && body !== "video_views") {
         // For other fields, round to whole numbers
         return formatNumber(Math.round(numericValue))
       }
     }
 
-    return value
+    return formatNumber(Math.round(numericValue))
   }
 
   // Validate input based on cell type
@@ -385,7 +386,7 @@ export const CellRenderer = ({
                       : isSecondsType
                         ? "secs"
                         : ""
-                  }${(body == "reach" || body == "impressions" || body !== "video_views") ? value : formatNumber(Number(value))}`
+                  }${(body == "reach" ||  body !== "video_views") ? value : formatNumber(Number(value))}`
                 : "-"
             })()}
           </p>

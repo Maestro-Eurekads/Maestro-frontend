@@ -23,6 +23,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
   const [monthNames, setSetMonthName] = useState([])
   const [daysInMonth, setDaysInEachMonth] = useState([])
   const { campaignFormData } = useCampaigns()
+  const [containerWidth, setContainerWidth] = useState(0)
 
   useEffect(() => {
     if (getDaysInEachMonth) {
@@ -39,7 +40,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
     if (monthCount > 2) {
       // When more than 2 months, each month takes 30% of container
       return Object.keys(daysInMonth || {})
-        .map(() => "250px")
+        .map(() => `20%`)
         .join(" ")
     } else {
       // Original proportional logic for 1-2 months
@@ -70,6 +71,16 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
     }
   }, [campaignFormData])
 
+  useEffect(()=>{
+    const getViewportWidth = () => {
+      return window.innerWidth || document.documentElement.clientWidth || 0
+    }
+
+    const screenWidth = getViewportWidth()
+    const contWidth = screenWidth - (disableDrag ? 80 : 367)
+    setContainerWidth(contWidth)
+  }, [])
+
   const calculateDailyWidth = useCallback(() => {
     const getViewportWidth = () => {
       return window.innerWidth || document.documentElement.clientWidth || 0
@@ -82,7 +93,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
 
     if (monthCount > 2) {
       // When more than 2 months, each month takes 30% of container
-      const monthWidth = 250
+      const monthWidth = contWidth
       const avgDaysPerMonth = totalDays / monthCount
       dailyWidth = monthWidth / avgDaysPerMonth
     } else {
@@ -101,10 +112,17 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
 
   // Calculate background size based on month count
   const getBackgroundSize = useCallback(() => {
+    const getViewportWidth = () => {
+      return window.innerWidth || document.documentElement.clientWidth || 0
+    }
+
+    const screenWidth = getViewportWidth()
+    const contWidth = screenWidth - (disableDrag ? 80 : 367)
+    
     if (monthCount > 2) {
       // For multiple months with 30% each, create appropriate grid lines
       const monthWidth = 20 // 30% per month
-      return `250px 100%`
+      return `20% 100%`
     } else {
       // Original background sizing for 1-2 months
       return `100% 100%`
@@ -127,7 +145,7 @@ const MonthInterval: React.FC<MonthIntervalProps> = ({
             className="flex flex-col items-center relative py-3 border-r border-blue-200 last:border-r-0"
             style={{
               // Ensure consistent spacing within each month column
-              minWidth: monthCount > 2 ? "250px" : "auto",
+              minWidth: monthCount > 2 ?`20%` : "auto",
             }}
           >
             <div className="flex flex-row gap-2 items-center">
