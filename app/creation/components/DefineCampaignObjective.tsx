@@ -159,8 +159,13 @@ const DefineCampaignObjective = () => {
       }
 
     } catch (error) {
+      if (error?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
       const errors: any = error.response?.data?.error?.details?.errors || error.response?.data?.error?.message || error.message || [];
       setAlert({ variant: "error", message: errors, position: "bottom-right" });
+
     }
 
     setHasChanges(false);

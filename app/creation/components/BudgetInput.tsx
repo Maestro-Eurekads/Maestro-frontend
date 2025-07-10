@@ -14,6 +14,8 @@ function BudgetInput({
   const { campaignFormData } = useCampaigns();
   const [inputValue, setInputValue] = useState("");
 
+
+
   // Sync input value with campaign form data
   useEffect(() => {
     if (campaignFormData?.campaign_budget?.amount) {

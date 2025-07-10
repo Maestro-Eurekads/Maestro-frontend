@@ -40,7 +40,11 @@ export const getComment: any = createAsyncThunk(
     try {
       const response = await commentService.getComment(commentId, jwt);
       return response;
-    } catch (error: unknown) {
+    } catch (error: any) {
+      if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
       if (typeof error === "object" && error !== null && "response" in error) {
         const axiosError = error as {
           response?: {
@@ -60,14 +64,24 @@ export const getComment: any = createAsyncThunk(
   }
 );
 
-// Create Comment
+// Get Signed Approval
 export const getSignedApproval: any = createAsyncThunk(
   "comment/getSignedApproval",
-  async ({ id, jwt }: { id: string | number; jwt: string }, thunkAPI) => {
+  async (
+    { 
+      isdocumentId,
+      jwt,
+    }: {  isdocumentId: string; jwt: string },
+    thunkAPI
+  ) => {
     try {
-      const response = await commentService.getSignedApproval(id, jwt);
+      const response = await commentService.getSignedApproval( isdocumentId, jwt);
       return response;
-    } catch (error: unknown) {
+    } catch (error: any) {
+      if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
       if (typeof error === "object" && error !== null && "response" in error) {
         const axiosError = error as {
           response?: {
@@ -82,10 +96,12 @@ export const getSignedApproval: any = createAsyncThunk(
           [];
         return thunkAPI.rejectWithValue(errors);
       }
+
+      return thunkAPI.rejectWithValue(["An unknown error occurred"]);
     }
-    return thunkAPI.rejectWithValue(["An unknown error occurred"]);
   }
 );
+
 
 export const getGeneralComment: any = createAsyncThunk(
   "comment/getGeneralComment",
@@ -93,7 +109,11 @@ export const getGeneralComment: any = createAsyncThunk(
     try {
       const response = await commentService.getGeneralComment(commentId, jwt);
       return response;
-    } catch (error: unknown) {
+    } catch (error: any) {
+      if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
       if (typeof error === "object" && error !== null && "response" in error) {
         const axiosError = error as {
           response?: {
@@ -131,7 +151,11 @@ export const getCampaignById: any = createAsyncThunk(
         jwt
       );
       return response;
-    } catch (error: unknown) {
+    } catch (error: any) {
+      if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
       if (typeof error === "object" && error !== null && "response" in error) {
         const axiosError = error as {
           response?: {

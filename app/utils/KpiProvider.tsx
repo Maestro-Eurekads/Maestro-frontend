@@ -16,9 +16,9 @@ export const KpiProvider = ({ children }) => {
 	const [kpiCategory, setkpiCategory] = useState<any>([]);
 	const [refresh, setRefresh] = useState(false);
 	const [showModal, setShowModal] = useState(false);
-	const {data:session} = useSession()
+	const { data: session } = useSession()
 	const jwt =
-    (session?.user as { data?: { jwt: string } })?.data?.jwt
+		(session?.user as { data?: { jwt: string } })?.data?.jwt
 	const headers = {
 		"Content-Type": "application/json",
 		Authorization: `Bearer ${jwt ?? ""}`,
@@ -43,6 +43,10 @@ export const KpiProvider = ({ children }) => {
 			setRefresh(true);
 			setShowModal(false);
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setAddKpisError(error);
 		} finally {
 			setIsLoading(false);
@@ -61,6 +65,10 @@ export const KpiProvider = ({ children }) => {
 			setKpisData(kpis);
 			return kpis;
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setGetKpisError(error);
 			setIsLoadingKpis(false);
 			console.error("Error fetching KPIs:", error);
@@ -87,6 +95,10 @@ export const KpiProvider = ({ children }) => {
 			setIsLoading(false);
 			setShowModal(false);
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setUpdateKpisError(error);
 			console.error("Error updating KPIs:", error);
 		} finally {

@@ -3,7 +3,7 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import type { StaticImageData } from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
-import DraggableChannel from "../../../../../components/DraggableChannel";
+// import DraggableChannel from "../../../../../components/DraggableChannel";
 import ResizableChannels from "./ResizableChannels";
 import { useFunnelContext } from "../../../../utils/FunnelContextType";
 import {
@@ -26,6 +26,8 @@ import {
   endOfYear,
 } from "date-fns";
 import { useComments } from "app/utils/CommentProvider";
+import EnhancedDraggableChannel from "components/enhanced-draggable-channel";
+import DraggableChannel from "components/DraggableChannel";
 
 interface OutletType {
   name: string;
@@ -337,9 +339,9 @@ const ResizeableElements = ({
           monthsByYear[year] = {};
         }
 
-        monthsByYear[year][month] = monthsByYear[year][month] || 0;
+        monthsByYear[year][month] = (monthsByYear[year][month] || 0) + 1;
       });
-
+console.log(monthsByYear, "herit")
       return monthsByYear;
     },
     []
@@ -574,9 +576,7 @@ console.log("here")
 
   return (
     <div
-      className={`w-full min-h-[494px] relative pb-5 grid-container overflow-x-hidden ${
-        rrange === "Month" && "max-w-[100%]"
-      }`}
+      className={`w-full min-h-[494px] relative pb-5 grid-container overflow-x-hidden `}
       ref={gridRef}
       style={{
         ...(rrange === "Year"
@@ -595,7 +595,7 @@ console.log("here")
                   const regularGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
                   const monthBoundaryGrid = `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`;
 
-                  return `${regularGrid}, ${monthBoundaryGrid}`;
+                  return `${monthBoundaryGrid}`;
                 }
               })(),
               backgroundSize: (() => {
@@ -650,10 +650,10 @@ console.log("here")
                     });
 
                     const boundaryBackgrounds = boundaryPositions
-                      .map((position) => `${position}px 100%`)
+                      .map((position) => `20% 100%`)
                       .join(", ");
                     return boundaryBackgrounds
-                      ? `${regularGridSize}, ${boundaryBackgrounds}`
+                      ? ` ${boundaryBackgrounds}`
                       : regularGridSize;
                   }
 
@@ -678,11 +678,11 @@ console.log("here")
 
                   const regularGridSize = `${dailyWidth}px 100%`;
                   const monthBoundaryBackgrounds = monthEndPositions
-                    .map((position) => `${position}px 100%`)
+                    .map((position) => `20% 100%`)
                     .join(", ");
 
                   return monthBoundaryBackgrounds
-                    ? `${regularGridSize}, ${monthBoundaryBackgrounds}`
+                    ? ` ${monthBoundaryBackgrounds}`
                     : regularGridSize;
                 }
               })(),

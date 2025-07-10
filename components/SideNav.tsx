@@ -25,14 +25,15 @@ import Skeleton from "react-loading-skeleton";
 const SideNav: React.FC = () => {
   const { setClose, close, setViewcommentsId, setOpportunities } = useComments();
   const router = useRouter();
-  const { setActive, setSubStep, active } = useActive();
+  const { setActive, setSubStep, active, subStep } = useActive();
   const dispatch = useAppDispatch();
   const { campaignData, setCampaignData, loadingCampaign } = useCampaigns();
 
   useEffect(() => {
-    const shouldClose = active === 9 || active === 10;
+    const shouldClose = active === 9 || active === 10 || (active === 7 && subStep === 1);
+    console.log("🚀 ~ useEffect ~ shouldClose:", shouldClose, close !== shouldClose ? shouldClose : close)
     setClose((prev) => (prev !== shouldClose ? shouldClose : prev));
-  }, [active, setClose]);
+  }, [active, setClose, subStep]);
 
   const handleBackClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -55,12 +56,12 @@ const SideNav: React.FC = () => {
         state_text: "SideBar_Menu_state",
         sidecircle: "SideBar_Menu_active",
         title: "Map funnel stages",
-        objective:
-          campaignData?.funnel_stages?.length > 0
-            ? campaignData.funnel_stages.length > 3
-              ? campaignData.funnel_stages.slice(0, 3).join(" · ") + " ..."
-              : campaignData.funnel_stages.join(" · ")
-            : "",
+        // objective:
+        //   campaignData?.funnel_stages?.length > 0
+        //     ? campaignData.funnel_stages.length > 3
+        //       ? campaignData.funnel_stages.slice(0, 3).join(" · ") + " ..."
+        //       : campaignData.funnel_stages.join(" · ")
+        //     : "",
         img: <Image src={funnel} alt="funnel" />,
       },
       {
@@ -153,7 +154,13 @@ const SideNav: React.FC = () => {
     <div id={close ? "side-nav-active" : "side-nav"} className="!flex !flex-col !h-full">
       <div className="flex flex-col">
         <div className={`flex ${close ? "justify-center mb-[30px]" : "justify-end"} w-full`}>
-          <button onClick={() => setClose(!close)}>
+          <button onClick={() => {
+            // if(active === 7 && subStep === 1){
+            //   setClose(true)
+            // } else{
+            // }
+            setClose(!close)
+            }}>
             <Image src={closeicon} alt="closeicon" />
           </button>
         </div>

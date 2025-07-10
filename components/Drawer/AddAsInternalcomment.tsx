@@ -34,7 +34,12 @@ const AddAsInternalcomment = ({ position, setShow }) => {
 		if (comment.trim() === "") return;
 		try {
 			await addComment(commentId, comment, position, addcomment_as, creator);
-		} catch (error) { }
+		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
+		}
 	};
 
 	return (

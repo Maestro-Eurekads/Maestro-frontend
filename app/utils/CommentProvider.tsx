@@ -5,6 +5,7 @@ import { getComment, getGeneralComment } from "features/Comment/commentSlice";
 import { useAppDispatch, useAppSelector } from "store/useStore";
 import { client } from '../../types/types';
 import { useSession } from "next-auth/react";
+import { useActive } from "./ActiveContext";
 const CommentContext = createContext(null);
 
 export const useComments = () => {
@@ -48,6 +49,8 @@ export const CommentProvider = ({ children }) => {
 	const jwt =
 		(session?.user as { data?: { jwt: string } })?.data?.jwt
 
+	const {active, subStep} = useActive()
+
 
 
 	// Load comments from local storage on mount
@@ -56,7 +59,13 @@ export const CommentProvider = ({ children }) => {
 		const storedOpportunities = JSON.parse(localStorage.getItem("opportunities")) || [];
 		setComments(storedComments);
 		setOpportunities(storedOpportunities);
-	}, []);
+		if(active === 7){
+			console.log("active", active)
+			if (subStep === 1){
+				setClose(true)
+			}
+		}
+	}, [active, subStep]);
 
 	// Save comments & opportunities to local storage whenever they change
 	useEffect(() => {
@@ -96,6 +105,10 @@ export const CommentProvider = ({ children }) => {
 			setIsLoadingGeneral(false);
 			setGeneralcommentsSuccess(true);
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setGeneralError(error);
 			setIsLoadingGeneral(false);
 		}
@@ -121,6 +134,10 @@ export const CommentProvider = ({ children }) => {
 			setIsLoadingGeneral(false);
 			setGeneralcommentsUpdateSuccess(true);
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setGeneralError(error);
 			setIsLoadingGeneral(false);
 		}
@@ -156,12 +173,16 @@ export const CommentProvider = ({ children }) => {
 			setCreateCommentsSuccess(true);
 			setViewcommentsId('')
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setCreateCommentsError(error);
 			setIsLoading(false);
 		}
 	};
 
-	const createAsignatureapproval = async (sign, inputs, id) => {
+	const createAsignatureapproval = async (sign, inputs, id, isdocumentId) => {
 		setIsLoadingApproval(true);
 		try {
 			await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/client-signature-approvals`, {
@@ -171,6 +192,7 @@ export const CommentProvider = ({ children }) => {
 					signature: sign,
 					fullname: inputs.name,
 					clientId: id,
+					isdocumentId: isdocumentId,
 					isSignature: true,
 				},
 			}, {
@@ -183,6 +205,10 @@ export const CommentProvider = ({ children }) => {
 			setCreateApprovalSuccess(true);
 			setIsOpen(false)
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setCreateCommentsError(error);
 			setIsLoadingApproval(false);
 		}
@@ -225,6 +251,10 @@ export const CommentProvider = ({ children }) => {
 			setIsLoadingReply(false);
 			dispatch(getComment({ commentId, jwt }));
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setIsLoadingReply(false);
 			setReplyError(error);
 		}
@@ -256,6 +286,10 @@ export const CommentProvider = ({ children }) => {
 			setapprovedIsLoading(false);
 			dispatch(getComment({ commentId, jwt }));
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setapprovedIsLoading(false);
 			setApprovedError(error);
 		}
@@ -286,6 +320,10 @@ export const CommentProvider = ({ children }) => {
 			setPositionIsLoading(false);
 			// dispatch(getComment(commentId));
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 			setPositionIsLoading(false);
 			setApprovedError(error);
 		}

@@ -105,6 +105,10 @@ const PlanCampaignSchedule: React.FC = () => {
         position: "bottom-right",
       });
     } catch (error) {
+      if (error?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
       setAlert({
         variant: "error",
         message: "Failed to update date.",

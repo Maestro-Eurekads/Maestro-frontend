@@ -329,20 +329,26 @@ export function extractLevelNameFilters(client: any) {
   };
 }
 
-export const fetchFilteredCampaigns = async (clientID: string, filters: FilterState | null = {
-  year: undefined,
-  quarter: "",
-  month: "",
-  made_by: "",
-  approved_by: "",
-  channel: "",
-  phase: "",
-  searchQuery: "",
-  level_1: [],
-}, jwt: any) => {
+ 
+
+export const fetchFilteredCampaigns = async (
+  clientID: string,
+  filters: FilterState | null = {
+    year: undefined,
+    quarter: "",
+    month: "",
+    made_by: "",
+    approved_by: "",
+    channel: "",
+    phase: "",
+    searchQuery: "",
+    level_1: [],
+  },
+  jwt: string
+) => {
   if (!clientID) return [];
 
-  filters = filters || {
+  const defaultFilters: FilterState = {
     year: undefined,
     quarter: "",
     month: "",
@@ -353,6 +359,8 @@ export const fetchFilteredCampaigns = async (clientID: string, filters: FilterSt
     searchQuery: "",
     level_1: [],
   };
+
+  filters = filters || defaultFilters;
 
   const channelMixPopulate = {
     social_media: { populate: "*" },
@@ -370,9 +378,7 @@ export const fetchFilteredCampaigns = async (clientID: string, filters: FilterSt
 
   const query: any = {
     filters: {
-      $and: [
-        { client: { $eq: clientID } },
-      ],
+      $and: [{ client: { $eq: clientID } }],
     },
     populate: {
       budget_details: "*",
@@ -386,55 +392,47 @@ export const fetchFilteredCampaigns = async (clientID: string, filters: FilterSt
           client_approver: { populate: "user" },
         },
       },
+      
       channel_mix: { populate: channelMixPopulate },
     },
   };
 
   const year = filters?.year || new Date().getFullYear().toString();
 
-  if (filters.year || filters.quarter || filters.month) {
-    if (filters.month) {
-      const monthOrder: Record<string, number> = {
-        January: 0, February: 1, March: 2, April: 3, May: 4, June: 5,
-        July: 6, August: 7, September: 8, October: 9, November: 10, December: 11,
-      };
+  // Date filters
+  if (filters.month || filters.quarter || filters.year) {
+    const monthOrder: Record<string, number> = {
+      January: 0, February: 1, March: 2, April: 3, May: 4, June: 5,
+      July: 6, August: 7, September: 8, October: 9, November: 10, December: 11,
+    };
+
+    let start: string | null = null;
+    let end: string | null = null;
+
+    if (filters.month && monthOrder[filters.month] !== undefined) {
       const monthIndex = monthOrder[filters.month];
-      if (monthIndex !== undefined) {
-        const start = new Date(Number(year), monthIndex, 1).toISOString().slice(0, 10);
-        const end = new Date(Number(year), monthIndex + 1, 0).toISOString().slice(0, 10);
-        query.filters.$and.push({
-          $or: [
-            {
-              $and: [
-                { campaign_timeline_start_date: { $notNull: true } },
-                { campaign_timeline_start_date: { $lte: end } },
-                { campaign_timeline_end_date: { $gte: start } },
-              ],
-            },
-            {
-              $and: [
-                { campaign_timeline_start_date: { $null: true } },
-                { createdAt: { $gte: start } },
-                { createdAt: { $lte: end } },
-              ],
-            },
-          ],
-        });
-      }
+      start = new Date(Number(year), monthIndex, 1).toISOString().slice(0, 10);
+      end = new Date(Number(year), monthIndex + 1, 0).toISOString().slice(0, 10);
     } else if (filters.quarter) {
       const quarterMap: Record<string, [number, number]> = {
         Q1: [0, 2], Q2: [3, 5], Q3: [6, 8], Q4: [9, 11],
       };
       const [startMonth, endMonth] = quarterMap[filters.quarter] || [0, 2];
-      const start = new Date(Number(year), startMonth, 1).toISOString().slice(0, 10);
-      const end = new Date(Number(year), endMonth + 1, 0).toISOString().slice(0, 10);
+      start = new Date(Number(year), startMonth, 1).toISOString().slice(0, 10);
+      end = new Date(Number(year), endMonth + 1, 0).toISOString().slice(0, 10);
+    } else if (filters.year) {
+      start = `${year}-01-01`;
+      end = `${year}-12-31`;
+    }
+
+    if (start && end) {
       query.filters.$and.push({
         $or: [
           {
             $and: [
               { campaign_timeline_start_date: { $notNull: true } },
-              { campaign_timeline_start_date: { $gte: start } },
               { campaign_timeline_start_date: { $lte: end } },
+              { campaign_timeline_end_date: { $gte: start } },
             ],
           },
           {
@@ -446,28 +444,10 @@ export const fetchFilteredCampaigns = async (clientID: string, filters: FilterSt
           },
         ],
       });
-    } else if (filters.year) {
-      query.filters.$and.push({
-        $or: [
-          {
-            $and: [
-              { campaign_timeline_start_date: { $notNull: true } },
-              { campaign_timeline_start_date: { $gte: `${year}-01-01` } },
-              { campaign_timeline_start_date: { $lte: `${year}-12-31` } },
-            ],
-          },
-          {
-            $and: [
-              { campaign_timeline_start_date: { $null: true } },
-              { createdAt: { $gte: `${year}-01-01` } },
-              { createdAt: { $lte: `${year}-12-31` } },
-            ],
-          },
-        ],
-      });
     }
   }
 
+  // Other filters
   if (filters.category) {
     query.filters.$and.push({ category: { $eq: filters.category } });
   }
@@ -475,35 +455,34 @@ export const fetchFilteredCampaigns = async (clientID: string, filters: FilterSt
     query.filters.$and.push({ product: { $eq: filters.product } });
   }
   if (filters.made_by) {
-    query.filters.$and.push({ campaign_builder: { username: { $eq: filters.made_by } } });
+    query.filters.$and.push({
+      campaign_builder: { username: { $eq: filters.made_by } },
+    });
   }
   if (filters.approved_by) {
-    query.filters.$and.push({ media_plan_details: { approved_by: { username: { $eq: filters.approved_by } } } });
+    query.filters.$and.push({
+      media_plan_details: {
+        approved_by: { username: { $eq: filters.approved_by } },
+      },
+    });
   }
   if (filters.channel) {
-    query.filters.$and.push({ [`channel_mix.${filters.channel}`]: { $notNull: true } });
+    query.filters.$and.push({
+      [`channel_mix.${filters.channel}`]: { $notNull: true },
+    });
   }
   if (filters.phase) {
-    query.filters.$and.push({ funnel_stages: { $containsi: filters.phase } });
+    query.filters.$and.push({
+      funnel_stages: { $containsi: filters.phase },
+    });
   }
-  
-
-if (filters.level_1 && Array.isArray(filters.level_1) && filters.level_1.length > 0) {
-  query.filters.$or = filters.level_1.map((val: string) => ({
-    client_selection: { level_1: { $containsi: val } }
-  }));
-}
-
-
-  const orFilters: any[] = [];
-
-
-
-  if (orFilters.length > 0) {
-    query.filters.$or = [...(query.filters.$or || []), ...orFilters];
+  if (Array.isArray(filters.level_1) && filters.level_1.length > 0) {
+    query.filters.$or = filters.level_1.map((val: string) => ({
+      client_selection: { level_1: { $containsi: val } },
+    }));
   }
 
-  const queryString = qs.stringify(query, { encodeValuesOnly: true }); 
+  const queryString = qs.stringify(query, { encodeValuesOnly: true });
   const fullUrl = `${process.env.NEXT_PUBLIC_STRAPI_URL}/campaigns?${queryString}`;
 
   try {
@@ -514,8 +493,11 @@ if (filters.level_1 && Array.isArray(filters.level_1) && filters.level_1.length 
     });
 
     return response?.data?.data ?? [];
-  } catch (error) {
-    console.error("Error fetching filtered campaigns:", error);
+  } catch (error: any) {
+    if (error?.response?.status === 401) {
+      const event = new Event("unauthorizedEvent");
+      window.dispatchEvent(event);
+    }
     return [];
   }
 };

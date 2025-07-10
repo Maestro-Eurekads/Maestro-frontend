@@ -17,7 +17,6 @@ import { useSession } from "next-auth/react";
 import { getCreateClient } from "features/Client/clientSlice";
 import { toast } from "sonner";
 import Skeleton from "react-loading-skeleton";
-import ClientSelectionInputbudget from "components/ClientSelectionInputbudget";
 import ClientSelection from "components/ClientSelection";
 
 
@@ -74,11 +73,8 @@ export const SetupScreen = () => {
   const [internalapproverOptions, setInternalApproverOptions] = useState<DropdownOption[]>([]);
   const [clientapprovalOptions, setClientApprovalOptions] = useState<DropdownOption[]>([]);
   const [level1Options, setlevel1Options] = useState<DropdownOption[]>([]);
-  const [clientApprovers, setClientApprovers] = useState<SelectedItem[]>([]);
-  const [internalApprovers, setInternalApprovers] = useState<SelectedItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [clientId, setClientId] = useState(null);
-
 
 
   useEffect(() => {
@@ -100,10 +96,12 @@ export const SetupScreen = () => {
 
 
   const fetchUsers = async () => {
-    if (!clientId) return;
+    // Pick the first available ID
+    const effectiveClientId = clientId || selectedClient || FC?.id;
+    if (!effectiveClientId) return;
 
     const baseUrl = `${process.env.NEXT_PUBLIC_STRAPI_URL}/users`;
-    const filterParams = [`filters[clients][id][$eq]=${encodeURIComponent(clientId)}`];
+    const filterParams = [`filters[clients][id][$eq]=${encodeURIComponent(effectiveClientId)}`];
     const populateParams = ['populate=*'];
 
     setLoading(true);
@@ -114,6 +112,12 @@ export const SetupScreen = () => {
           Authorization: `Bearer ${jwt}`,
         },
       });
+
+      if (response.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+        return;
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -139,13 +143,10 @@ export const SetupScreen = () => {
 
 
 
-
   useEffect(() => {
-    if (clientId && lastFetchedClientId.current !== clientId) {
-      lastFetchedClientId.current = clientId;
-      fetchUsers();
-    }
-  }, [clientId]);
+    fetchUsers();
+  }, [clientId, selectedClient, FC?.id, campaignFormData?.client_selection?.id]);
+
 
 
 
@@ -347,62 +348,9 @@ export const SetupScreen = () => {
 
 
 
-  useEffect(() => {
-    const approverIds = campaignFormData?.internal_approver_ids || [];
-    const campaignId = campaignFormData?.campaign_id;
-    const clientId = campaignFormData?.client_selection?.id;
-
-    if (approverIds.length && internalapproverOptions.length) {
-      const mapped = approverIds
-        .map((id) => {
-          const found = internalapproverOptions.find((opt) => String(opt.value) === String(id));
-          if (!found) return null;
-          return {
-            value: found.value,
-            label: found.label,
-            id: campaignId,
-            clientId,
-          };
-        })
-        .filter(Boolean) as SelectedItem[];
-
-      setInternalApprovers(mapped);
-    }
-  }, [
-    campaignFormData?.internal_approver_ids,
-    internalapproverOptions,
-    campaignFormData?.campaign_id,
-    campaignFormData?.client_selection?.id,
-  ]);
 
 
-  useEffect(() => {
-    const { client_approver_ids = [], campaign_id, client_selection } = campaignFormData || {};
-    const clientId = client_selection?.id;
 
-    if (client_approver_ids.length && clientapprovalOptions.length && campaign_id && clientId) {
-      const mapped = client_approver_ids
-        .map((id) => {
-          const match = clientapprovalOptions.find((opt) => String(opt.value) === String(id));
-          return match
-            ? {
-              value: match.value,
-              label: match.label,
-              id: campaign_id,
-              clientId,
-            }
-            : null;
-        })
-        .filter(Boolean) as SelectedItem[];
-
-      setClientApprovers(mapped);
-    }
-  }, [
-    campaignFormData?.client_approver_ids,
-    campaignFormData?.campaign_id,
-    campaignFormData?.client_selection?.id,
-    clientapprovalOptions,
-  ]);
 
 
 
@@ -470,17 +418,9 @@ export const SetupScreen = () => {
                   Internal Approver
                 </label>
                 <InternalApproverDropdowns
+                  label="Client Approver"
+                  formId={"internal_approver"}
                   options={internalapproverOptions}
-                  //@ts-ignore
-                  value={{ internal_approver: internalApprovers }}
-                  onChange={(field, selected) => {
-                    setInternalApprovers(selected);
-                    setCampaignFormData((prev) => ({
-                      ...prev,
-                      [`${field}_ids`]: selected.map((item) => item.value),
-                      [field]: selected,
-                    }));
-                  }}
                 />
               </div>
 
@@ -489,20 +429,13 @@ export const SetupScreen = () => {
                 <label className="block text-sm font-medium text-gray-700 ">
                   Client Approver
                 </label>
-                <ClientApproverDropdowns
-                  options={clientapprovalOptions}
-                  //@ts-ignore
-                  value={{ client_approver: clientApprovers }}
-                  onChange={(field, selected) => {
-                    setClientApprovers(selected);
-                    setCampaignFormData((prev) => ({
-                      ...prev,
-                      [`${field}_ids`]: selected.map((item) => item.value),
-                      [field]: selected,
-                    }));
-                  }}
-                />
 
+                <ClientApproverDropdowns
+                  label="Client Approver"
+                  formId={"client_approver"}
+                  options={clientapprovalOptions}
+
+                />
               </div>
             </div>
           </div>

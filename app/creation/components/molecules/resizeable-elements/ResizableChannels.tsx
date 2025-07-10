@@ -64,6 +64,13 @@ interface TooltipState {
   index?: number;
 }
 
+interface ChannelState {
+  left: number
+  width: number
+  startDate?: string
+  endDate?: string
+}
+
 const DEFAULT_MEDIA_OPTIONS = [
   { name: "Carousel", icon: "/carousel.svg" },
   { name: "Image", icon: "/Image_format.svg" },
@@ -125,12 +132,14 @@ const ResizableChannels = ({
 
   const isAdjustingWidthRef = useRef(false);
 
-  const [channelState, setChannelState] = useState(
+  const [channelState, setChannelState] = useState<ChannelState[]>(
     channels?.map((ch) => ({
       left: parentLeft,
       width: Math.min(10, parentWidth),
-    }))
-  );
+      startDate: ch.start_date,
+      endDate: ch.end_date,
+    })),
+  )
 
   const [dragging, setDragging] = useState(null);
   const [draggingPosition, setDraggingPosition] = useState(null);
@@ -154,12 +163,11 @@ const ResizableChannels = ({
   const [endDateOffset, setEndDateOffset] = useState(0);
 
   const isResizing = useRef<{
-    startX: number;
-    startWidth: number;
-    startPos: number;
-    direction: "left" | "right";
-    index: number;
-  } | null>(null);
+    startX: number
+    initialState: ChannelState
+    direction: "left" | "right"
+    index: number
+  } | null>(null)
 
   const snapToTimeline = (currentPosition: number, containerWidth: number) => {
     const baseStep = dailyWidth;
@@ -192,9 +200,9 @@ const ResizableChannels = ({
     mouseY: number,
     type: "resize" | "drag"
   ) => {
-    if (!dRange || dRange.length === 0) return;
+    if (!dateList || dateList.length === 0) return;
 
-    const totalDays = dRange.length - 1;
+    const totalDays = dateList.length - 1;
 
     const dayStartIndex = Math.min(
       totalDays,
@@ -205,8 +213,8 @@ const ResizableChannels = ({
       Math.max(0, Math.round((endPixel / parentWidth) * totalDays))
     );
 
-    const startDateValue = dRange[dayStartIndex] || startDate;
-    const endDateValue = dRange[dayEndIndex] || endDate;
+    const startDateValue = dateList[dayStartIndex] || startDate;
+    const endDateValue = dateList[dayEndIndex] || endDate;
 
     const formattedStartDate = format(startDateValue, "MMM dd");
     const formattedEndDate = format(endDateValue, "MMM dd");
@@ -234,117 +242,112 @@ const ResizableChannels = ({
     });
   };
 
-  const handleMouseDownResize = (
-    e: React.MouseEvent<HTMLDivElement>,
-    direction: "left" | "right",
-    index: number
-  ) => {
-    if (disableDrag) return;
-    e.preventDefault();
+  const handleMouseDownResize = (e: React.MouseEvent<HTMLDivElement>, direction: "left" | "right", index: number) => {
+    if (disableDrag) return
+    e.preventDefault()
+    e.stopPropagation()
 
+    // Store the initial state for this resize operation
     isResizing.current = {
       startX: e.clientX,
-      startWidth: channelState[index].width,
-      startPos: channelState[index].left || 0,
+      initialState: { ...channelState[index] },
       direction,
       index,
-    };
+    }
 
-    const startPixel = channelState[index].left - parentLeft;
-    const endPixel = startPixel + channelState[index].width;
-    updateTooltipWithDates(
-      startPixel,
-      endPixel,
-      index,
-      e.clientX,
-      e.clientY,
-      "resize"
-    );
+    const startPixel = channelState[index].left - parentLeft
+    const endPixel = startPixel + channelState[index].width
+    updateTooltipWithDates(startPixel, endPixel, index, e.clientX, e.clientY, "resize")
 
-    document.addEventListener("mousemove", handleMouseMoveResize);
-    document.addEventListener("mouseup", handleMouseUpResize);
-  };
+    document.addEventListener("mousemove", handleMouseMoveResize)
+    document.addEventListener("mouseup", handleMouseUpResize)
+  }
 
   const handleMouseMoveResize = (e: MouseEvent) => {
-    if (!isResizing.current) return;
+    if (!isResizing.current) return
 
-    const { startX, startWidth, startPos, direction, index } =
-      isResizing.current;
-    const deltaX = e.clientX - startX;
+    const { startX, initialState, direction, index } = isResizing.current
+    const deltaX = e.clientX - startX
 
-    let newWidth = startWidth;
-    let newLeft = isNaN(startPos) ? parentLeft : startPos;
+    const gridContainer = document.querySelector(".grid-container") as HTMLElement
+    if (!gridContainer) return
 
-    const gridContainer = document.querySelector(
-      ".grid-container"
-    ) as HTMLElement;
-    if (!gridContainer) return;
+    const containerRect = gridContainer.getBoundingClientRect()
+    const parentRightEdge = parentLeft + parentWidth
 
-    const containerRect = gridContainer.getBoundingClientRect();
-    const parentRightEdge = parentLeft + parentWidth;
+    let newWidth = initialState.width
+    let newLeft = initialState.left
 
     if (direction === "left") {
       // Left edge resize - adjust position and width
-      const proposedLeft = Math.max(parentLeft, startPos + deltaX);
-      const proposedWidth = startWidth - (proposedLeft - startPos);
+      const proposedLeft = Math.max(parentLeft, initialState.left + deltaX)
+      const proposedWidth = initialState.width - (proposedLeft - initialState.left)
 
       // Ensure minimum width
       if (proposedWidth < 50) {
-        newWidth = 50;
-        newLeft = startPos + startWidth - 50;
+        newWidth = 50
+        newLeft = initialState.left + initialState.width - 50
       } else {
-        newLeft = proposedLeft;
-        newWidth = proposedWidth;
+        newLeft = proposedLeft
+        newWidth = proposedWidth
       }
 
       // Snap the left edge to timeline
-      const snappedLeft =
-        snapToTimeline(newLeft - parentLeft, containerRect.width) + parentLeft;
-      newWidth = startWidth - (snappedLeft - startPos);
-      newLeft = snappedLeft;
+      const snappedLeft = snapToTimeline(newLeft - parentLeft, containerRect.width) + parentLeft
+      newWidth = initialState.left + initialState.width - snappedLeft
+      newLeft = snappedLeft
 
       // Ensure we don't exceed parent boundaries
       if (newLeft < parentLeft) {
-        newLeft = parentLeft;
-        newWidth = startPos + startWidth - parentLeft;
+        newLeft = parentLeft
+        newWidth = initialState.left + initialState.width - parentLeft
       }
 
       if (newLeft + newWidth > parentRightEdge) {
-        newWidth = parentRightEdge - newLeft;
+        newWidth = parentRightEdge - newLeft
       }
     } else {
-      // Right edge resize - only adjust width, keep left position fixed
-      newLeft = startPos; // Keep left position unchanged
-      const proposedWidth = Math.max(50, startWidth + deltaX);
+      // Right edge resize - keep left position fixed, adjust width only
+      newLeft = initialState.left // Always use initial left position
+      const proposedWidth = Math.max(50, initialState.width + deltaX)
 
       // Calculate the right edge position
-      const rightEdgePos = newLeft + proposedWidth;
+      const rightEdgePos = newLeft + proposedWidth
 
       // Snap the right edge to timeline
-      const snappedRightEdge =
-        snapToTimeline(rightEdgePos - parentLeft, containerRect.width) +
-        parentLeft;
+      const snappedRightEdge = snapToTimeline(rightEdgePos - parentLeft, containerRect.width) + parentLeft
 
       // Ensure the snapped right edge doesn't exceed parent boundaries
-      const finalRightEdge = Math.min(snappedRightEdge, parentRightEdge);
+      const finalRightEdge = Math.min(snappedRightEdge, parentRightEdge)
 
       // Calculate final width based on the constrained right edge
-      newWidth = Math.max(50, finalRightEdge - newLeft);
+      newWidth = Math.max(50, finalRightEdge - newLeft)
     }
 
-    // Update tooltip and data
-    const startPixel = newLeft - parentLeft;
-    const endPixel = startPixel + newWidth;
-    const newStartDate = pixelToDate(
-      startPixel,
-      parentWidth,
-      index,
-      "startDate"
-    );
-    const newEndDate = pixelToDate(endPixel, parentWidth, index, "endDate");
+    // Convert pixels to dates
+    const startPixel = newLeft - parentLeft
+    const endPixel = startPixel + newWidth
+    console.log({startPixel, endPixel})
+    const newStartDate = pixelToDate(startPixel, parentWidth, index, "startDate")
+    const newEndDate = pixelToDate(endPixel, parentWidth, index, "endDate")
+    console.log({newStartDate, newEndDate})
 
-    draggingDataRef.current = { index, newStartDate, newEndDate };
+    // Update the channel state
+    setChannelState((prev) =>
+      prev.map((state, i) =>
+        i === index
+          ? {
+              ...state,
+              left: newLeft,
+              width: newWidth,
+              startDate: newStartDate,
+              endDate: newEndDate,
+            }
+          : state,
+      ),
+    )
 
+    // Update channels data
     setChannels((prev) =>
       prev.map((ch, i) =>
         i === index
@@ -353,37 +356,51 @@ const ResizableChannels = ({
               start_date: newStartDate,
               end_date: newEndDate,
             }
-          : ch
-      )
-    );
+          : ch,
+      ),
+    )
 
-    updateTooltipWithDates(
-      startPixel,
-      endPixel,
-      index,
-      e.clientX,
-      e.clientY,
-      "resize"
-    );
+    updateTooltipWithDates(startPixel, endPixel, index, e.clientX, e.clientY, "resize")
 
-    setChannelState((prev) =>
-      prev.map((state, i) =>
-        i === index ? { ...state, left: newLeft, width: newWidth } : state
-      )
-    );
-  };
+    // Store data for final update
+    draggingDataRef.current = { index, newStartDate, newEndDate }
+  }
 
   const handleMouseUpResize = () => {
-    setTooltip((prev) => ({ ...prev, visible: false }));
-    isResizing.current = null;
-    document.removeEventListener("mousemove", handleMouseMoveResize);
-    document.removeEventListener("mouseup", handleMouseUpResize);
+    console.log("Resize ended")
+    console.log(isResizing.current, "isResizing state on mouse up")
+    setTooltip((prev) => ({ ...prev, visible: false }))
 
     if (draggingDataRef.current) {
-      const { index, newStartDate, newEndDate } = draggingDataRef.current;
-      draggingDataRef.current = null;
+      const { index, newStartDate, newEndDate } = draggingDataRef.current
+      console.log({index, newStartDate, newEndDate})
+      // Final update to campaign data
+      // setCopy(() => {
+      //   const updatedData = JSON.parse(JSON.stringify(campaignFormData))
+      //   const channelMix = updatedData.channel_mix.find((ch) => ch.funnel_stage === parentId)
+
+      //   if (channelMix) {
+      //     const channelGroup = channelMix[channels[index].channelName]
+      //     if (Array.isArray(channelGroup)) {
+      //       const platform = channelGroup.find((platform) => platform.platform_name === channels[index].name)
+
+      //       if (platform) {
+      //         platform.campaign_start_date = newStartDate
+      //         platform.campaign_end_date = newEndDate
+      //       }
+      //     }
+      //   }
+
+      //   return updatedData
+      // })
+
+      draggingDataRef.current = null
     }
-  };
+
+    isResizing.current = null
+    document.removeEventListener("mousemove", handleMouseMoveResize)
+    document.removeEventListener("mouseup", handleMouseUpResize)
+  }
 
   useEffect(() => {
     if (campaignFormData) {
@@ -452,6 +469,8 @@ const ResizableChannels = ({
       totalDays,
       Math.max(0, Math.floor((pixel / containerWidth) * totalDays))
     );
+
+    console.log(dayIndex)
 
     const calculatedDate = new Date(startDate);
     calculatedDate.setDate(startDate?.getDate() + dayIndex);
@@ -687,7 +706,10 @@ const ResizableChannels = ({
         }
       );
     } catch (error) {
-      console.error("Error updating campaign data:", error);
+      if (error?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
     } finally {
       setDeleting(false);
       setId(null);
@@ -697,7 +719,7 @@ const ResizableChannels = ({
   useEffect(() => {
     if (initialChannels && initialChannels.length > 0) {
       setChannels(initialChannels);
-
+      console.log("triggered")
       setChannelState((prev) => {
         const findMix = campaignFormData?.channel_mix?.find(
           (chhh) => chhh?.funnel_stage === parentId
@@ -730,7 +752,7 @@ const ResizableChannels = ({
             : stageEndDate;
 
           const startDateIndex = adjustedStageStartDate
-            ? dRange?.findIndex((date) =>
+            ? dateList?.findIndex((date) =>
                 isEqual(date, adjustedStageStartDate)
               ) * dailyWidth
             : 0;
@@ -751,7 +773,7 @@ const ResizableChannels = ({
           }
 
           let left =
-            parentLeft + Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
+             Math.abs(startDateIndex < 0 ? 0 : startDateIndex);
 
           let width =
             rrange === "Day"
@@ -774,10 +796,13 @@ const ResizableChannels = ({
             if (width <= parentWidth) {
               left = parentLeft + parentWidth - width;
             } else {
+              console.log("here")
               width = parentWidth;
               left = parentLeft;
             }
           }
+
+          console.log("left position here, and data", {left, width, parentLeft, parentWidth, startDateIndex, stageStartDate, adjustedStageStartDate, dateList})
           //@ts-ignore
           const existingState = prev.find((state) => state.id === ch.id);
 
@@ -807,7 +832,7 @@ const ResizableChannels = ({
       event.preventDefault();
       const { index, direction, startX } = dragging;
       const deltaX = event.clientX - startX;
-
+      console.log("triggered")
       setChannelState((prev) =>
         prev.map((state, i) => {
           if (i !== index) return state;
@@ -888,11 +913,13 @@ const ResizableChannels = ({
     };
   }, [dragging, parentWidth]);
 
+  // console.log(isResizing, "isResizing state")
+
   return (
     <div
       className={`open_channel_btn_container relative`}
       style={{
-        gridTemplateColumns: `repeat(${dRange?.length}, 1fr)`,
+        gridTemplateColumns: `repeat(${dateList?.length}, 1fr)`,
       }}
     >
       {!disableDrag && parentWidth < 350 && (
@@ -912,7 +939,7 @@ const ResizableChannels = ({
       )}
       {channels?.map((channel, index) => {
         const getColumnIndex = (date) =>
-          dRange?.findIndex((d) => d.toISOString().split("T")[0] === date);
+          dateList?.findIndex((d) => d.toISOString().split("T")[0] === date);
 
         const updatedCampaignFormData = { ...campaignFormData };
         const channelMix = updatedCampaignFormData.channel_mix.find(
@@ -1423,11 +1450,12 @@ const ResizableChannels = ({
           )}
         </div>
       </Modal>
+      {openAdset &&
       <Modal
         isOpen={selectedChannel && openAdset ? true : false}
         onClose={() => setOpenAdset(false)}
       >
-        <div className="bg-white w-[900px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
+        <div className="bg-white w-[950px] p-2 rounded-lg max-h-[600px] overflow-y-scroll">
           <button
             className="flex justify-end w-fit ml-auto"
             onClick={() => setOpenAdset(false)}
@@ -1467,6 +1495,7 @@ const ResizableChannels = ({
           </div>
         </div>
       </Modal>
+      }
     </div>
   );
 };

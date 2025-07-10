@@ -73,24 +73,24 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
       className="w-full min-h-[494px] relative pb-5"
       style={{
         backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-        backgroundSize: `calc(100% / ${weeksCount}) 100%`,
+        backgroundSize: `calc(50px) 100%`,
       }}
     >
       {/* Loop through funnels */}
-      {funnels.map(({ startWeek, endWeek, label, budget, stages }, index) => {
+      {funnels.map(({ startDay, endDay, label, budget, stages }, index) => {
         return (
           <div
             key={index}
             style={{
               display: "grid",
-              gridTemplateColumns: `repeat(${weeksCount}, 1fr)`,
+              gridTemplateColumns: `repeat(${weeksCount}, 50px)`,
             }}
           >
             <div
               className="flex flex-col min-h-[69px] bg-white border border-[rgba(0,0,0,0.1)] mt-6 shadow-sm rounded-[10px]  justify-between"
               style={{
-                gridColumnStart: startWeek,
-                gridColumnEnd: endWeek + 1,
+                gridColumnStart: startDay,
+                gridColumnEnd: endDay + 1,
               }}
             >
               <div
@@ -105,7 +105,9 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                   </h3>
                   <p className="text-[#061237] font-medium text-[14px]">
                     {/* 250,000 € */}
-                    {budget === "undefined €" || budget === "null €" ? 0 : Number(budget.replace(/[^\d.-]/g, "")).toLocaleString() + " €"}
+                    {budget?.startsWith("null") || budget?.startsWith("undefined")
+                      ? 0
+                      : `${Number(budget.replace(/[^\d.-]/g, "")).toLocaleString()} ${budget.replace(/[\d\s.,-]/g, "").trim()}`}
                   </p>
                 </div>
                 <button onClick={() => toggleShow(index)}>
@@ -131,7 +133,7 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                         key={section?.name}
                       // style={{
                       // 	display: 'grid',
-                      // 	gridTemplateColumns: `repeat(${(endWeek + 1) - startWeek}, 1fr)`
+                      // 	gridTemplateColumns: `repeat(${(endDay + 1) - startDay}, 1fr)`
                       // }}
                       >
                         <div
@@ -145,8 +147,8 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                                 : "bg-[#F05406]"
                             } text-white`}
                           style={{
-                            gridColumnStart: startWeek,
-                            gridColumnEnd: endWeek + 1 - startWeek + 1,
+                            gridColumnStart: startDay,
+                            gridColumnEnd: endDay + 1 - startDay + 1,
                           }}
                         >
                           <div className="flex items-center justify-center gap-3 flex-1">
@@ -165,7 +167,10 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                             </span>
                           </div>
                           <button className="justify-self-end px-3 py-[10px] text-[16px] font-[500] bg-white/25 rounded-[5px]">
-                            {section?.budget}
+                            {section?.budget?.startsWith("null") || section?.budget?.startsWith("undefined")
+                              ? 0
+                              : `${Number(section?.budget.replace(/[^\d.-]/g, "")).toLocaleString()} ${section?.budget.replace(/[\d\s.,-]/g, "").trim()}`}
+
                           </button>
                         </div>
 
@@ -173,7 +178,7 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                           <div
                             style={{
                               gridColumnStart: 1,
-                              gridColumnEnd: endWeek + 1 - startWeek + 1,
+                              gridColumnEnd: endDay + 1 - startDay + 1,
                             }}
                           >
                             {channels
@@ -183,7 +188,7 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                                   key={platform_name}
                                   style={{
                                     display: "grid",
-                                    gridTemplateColumns: `repeat(${endWeek + 1 - startWeek + 1 - 2
+                                    gridTemplateColumns: `repeat(${endDay + 1 - startDay + 1 - 2
                                       }, 1fr)`,
                                   }}
                                 >
@@ -192,7 +197,7 @@ const WeekTimeline = ({ weeksCount, funnels }) => {
                                     style={{
                                       gridColumnStart: 1,
                                       gridColumnEnd:
-                                        endWeek + 1 - startWeek + 1 - 1 + 1 - 1,
+                                        endDay + 1 - startDay + 1 - 1 + 1 - 1,
                                       backgroundColor: bg,
                                     }}
                                   >

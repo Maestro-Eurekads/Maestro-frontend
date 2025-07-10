@@ -9,13 +9,17 @@ const WeekInterval = ({
   weeksCount,
   funnelData,
   disableDrag,
+  range,
+  src
 }: {
   weeksCount: any;
   funnelData?: any;
   disableDrag?: any;
+  range?:any;
+  src?:any
 }) => {
   const { campaignFormData } = useCampaigns();
-  const { range } = useDateRange();
+  const { range:ddRange } = useDateRange();
   const {close} = useComments()
 
   const groupDatesByWeek = (dates: Date[]) => {
@@ -38,7 +42,7 @@ const WeekInterval = ({
     return weeks;
   };
 
-  const datesByWeek = range ? groupDatesByWeek(range) : [];
+  const datesByWeek = src=== "dashboard" ? range ? groupDatesByWeek(range) : [] : ddRange ? groupDatesByWeek(ddRange) : [];
 
   const calculateDailyWidth = useCallback(() => {
     const getViewportWidth = () => {

@@ -173,12 +173,20 @@ const KPIEditorModal = ({ aggregatedStats, campaign_id, finalCategoryOrder }) =>
 		try {
 			await addKpis(campaign_id, categories);
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 		}
 	};
 	const handleUpdateKpis = async () => {
 		try {
 			await updateKpis(kpisData?.documentId, categories);
 		} catch (error) {
+			if (error?.response?.status === 401) {
+				const event = new Event("unauthorizedEvent");
+				window.dispatchEvent(event);
+			}
 		}
 	};
 

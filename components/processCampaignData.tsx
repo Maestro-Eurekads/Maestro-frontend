@@ -6,6 +6,8 @@ export const processCampaignData = (campaigns, platformIcons) => {
 		Loyalty: "#EF5407",
 	};
 
+
+
 	// const platformIcons = {
 	// 	Facebook: facebook,
 	// 	Instagram: ig,

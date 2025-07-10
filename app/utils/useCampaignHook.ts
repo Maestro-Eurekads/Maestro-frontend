@@ -51,7 +51,10 @@ const useCampaignHook = () => {
       );
       setAllClients(res?.data?.data || []);
     } catch (err) {
-      console.error("An error occurred while fetching clients:", err);
+       if (error?.response?.status === 401) {
+       const event = new Event("unauthorizedEvent");
+       window.dispatchEvent(event);
+       } 
       setError(err.message || "Failed to fetch clients");
     } finally {
       setLoadingClients(false);
@@ -60,19 +63,21 @@ const useCampaignHook = () => {
 
   
 
-  // Fetch client campaigns
-  const fetchClientCampaign = useCallback(async (clientID:string, agencyId:string|number) => {
+ 
+
+const fetchClientCampaign = useCallback(
+  async (clientID: string, agencyId: string | number) => {
     try {
-      const filters = {
+      const filters: any = {
         client: {
           $eq: clientID,
         },
         agency_profile: {
-          $eq: agencyId
-        }
+          $eq: agencyId,
+        },
       };
+    
 
-      // Add user filter only if user_type includes 'client'
       if (session?.user?.data?.user?.user_type?.includes("client")) {
         filters.user = {
           $eq: session?.user?.id,
@@ -90,7 +95,7 @@ const useCampaignHook = () => {
         print: { populate: "*" },
         e_commerce: { populate: "*" },
         in_game: { populate: "*" },
-        mobile: { populate: "*" },
+        mobile: { populate: "*" }, 
       };
 
       const res = await axios.get(
@@ -114,9 +119,9 @@ const useCampaignHook = () => {
                   },
                 },
               },
-              channel_mix: {
-                populate: channelMixPopulate,
-              },
+             channel_mix: {
+           populate: { ...channelMixPopulate, stage_budget: "*" },
+           },
             },
           },
           headers: {
@@ -126,11 +131,17 @@ const useCampaignHook = () => {
       );
 
       return res;
-    } catch (err) {
-      console.error("Error fetching client campaigns:", err);
+    } catch (err: any) { 
+      if (error?.response?.status === 401) {
+       const event = new Event("unauthorizedEvent");
+       window.dispatchEvent(event);
+       } 
       throw err;
     }
-  }, [jwt]);
+  },
+  [jwt, session]
+);
+
 
   // Fetch client purchase orders
   const fetchClientPOS = useCallback(
@@ -149,7 +160,10 @@ const useCampaignHook = () => {
           }
         );
       } catch (err) {
-        console.error("Error fetching client POs:", err);
+       if (err) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
+        } 
         throw err;
       }
     },
@@ -168,7 +182,10 @@ const useCampaignHook = () => {
         },
       });
     } catch (err) {
-      console.error("Error fetching users:", err);
+     if (err) {
+          const event = new Event("unauthorizedEvent");
+          window.dispatchEvent(event);
+        }
       throw err;
     }
   };

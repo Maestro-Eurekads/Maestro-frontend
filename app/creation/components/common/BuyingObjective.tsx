@@ -54,7 +54,7 @@ const BuyingObjective = () => {
 
   const getFilteredChannelMix = (channelMix, funnelStages) => {
     if (!Array.isArray(channelMix)) return [];
-    
+
     // Ensure all funnel stages are represented, even if channel_mix is incomplete
     const stageMap = funnelStages.map((stageName) => {
       const stage = channelMix.find((s) => s.funnel_stage === stageName) || {
@@ -113,24 +113,24 @@ const BuyingObjective = () => {
     setSelectedStage(stageName);
     const updatedFunnels = updatedData?.funnel_stages?.includes(stageName)
       ? {
-          ...updatedData,
-          funnel_stages: updatedData.funnel_stages.filter(
-            (name: string) => name !== stageName
-          ),
-        }
+        ...updatedData,
+        funnel_stages: updatedData.funnel_stages.filter(
+          (name: string) => name !== stageName
+        ),
+      }
       : {
-          ...updatedData,
-          funnel_stages: [...(updatedData?.funnel_stages || []), stageName],
-          channel_mix: [
-            ...(updatedData?.channel_mix || []),
-            {
-              funnel_stage: stageName,
-              social_media: [],
-              display_networks: [],
-              search_engines: [],
-            },
-          ],
-        };
+        ...updatedData,
+        funnel_stages: [...(updatedData?.funnel_stages || []), stageName],
+        channel_mix: [
+          ...(updatedData?.channel_mix || []),
+          {
+            funnel_stage: stageName,
+            social_media: [],
+            display_networks: [],
+            search_engines: [],
+          },
+        ],
+      };
     setUpdatedData(updatedFunnels);
   };
 
@@ -196,18 +196,18 @@ const BuyingObjective = () => {
 
   const cleanData = campaignData
     ? removeKeysRecursively(campaignData, [
-        "id",
-        "documentId",
-        "createdAt",
-        "publishedAt",
-        "updatedAt",
-        "_aggregated"
-      ])
+      "id",
+      "documentId",
+      "createdAt",
+      "publishedAt",
+      "updatedAt",
+      "_aggregated"
+    ])
     : {};
 
   const handleConfirmStep = async () => {
     setLoading(true);
-    
+
     try {
       // Set a timeout to ensure minimum loading time of 2 seconds
       const updatePromise = updateCampaign({
@@ -217,7 +217,7 @@ const BuyingObjective = () => {
           updatedData?.channel_mix,
           [
             "id",
-            "isValidated", 
+            "isValidated",
             "formatValidated",
             "validatedStages",
             "documentId",
@@ -234,9 +234,12 @@ const BuyingObjective = () => {
       // Wait for both the update and the minimum timeout
       await Promise.all([updatePromise, timeoutPromise]);
       await getActiveCampaign();
-      
+
     } catch (error) {
-      console.error('Error updating campaign:', error);
+      if (error?.response?.status === 401) {
+        const event = new Event("unauthorizedEvent");
+        window.dispatchEvent(event);
+      }
     } finally {
       setLoading(false);
       closeEditStep();
@@ -260,7 +263,7 @@ const BuyingObjective = () => {
               text="Edit"
               variant="primary"
               className="!w-[85px] !h-[40px]"
-              onClick={() => {}}
+              onClick={() => { }}
               disabled
             />
           </div>
@@ -351,19 +354,18 @@ const BuyingObjective = () => {
               >
                 <div>
                   <div
-                    className={`${
-                      stageName?.name === "Conversion"
+                    className={`${stageName?.name === "Conversion"
                         ? "bg-[#FF9037] cursor-pointer"
                         : stageName?.name === "Loyalty"
-                        ? "bg-[#EF5407] cursor-pointer"
-                        : stageName?.name === "Awareness"
-                        ? "bg-[#0866FF]"
-                        : stageName?.name === "Consideration"
-                        ? "bg-[#00A36C]"
-                        : stageName?.name === "Targeting and Retargeting"
-                        ? "bg-[#6B7280]"
-                        : "bg-[#FFF] text-[#000]"
-                    } rounded-[10px] cursor-pointer`}
+                          ? "bg-[#EF5407] cursor-pointer"
+                          : stageName?.name === "Awareness"
+                            ? "bg-[#0866FF]"
+                            : stageName?.name === "Consideration"
+                              ? "bg-[#00A36C]"
+                              : stageName?.name === "Targeting and Retargeting"
+                                ? "bg-[#6B7280]"
+                                : "bg-[#FFF] text-[#000]"
+                      } rounded-[10px] cursor-pointer`}
                     onClick={() => handleLoyaltyButtonClick(stageName?.name)}
                   >
                     <div className="w-full flex items-center justify-center gap-[16px] p-[24px]">

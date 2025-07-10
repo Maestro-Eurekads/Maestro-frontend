@@ -1,7 +1,3 @@
-
-
-
-import { useComments } from "app/utils/CommentProvider";
 import { useEffect, useState } from "react";
 import { useAppSelector } from "store/useStore";
 

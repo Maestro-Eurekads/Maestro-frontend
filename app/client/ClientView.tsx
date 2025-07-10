@@ -29,6 +29,7 @@ import ConfigureBudgetComponet from 'app/creation/components/ConfigureAdSetsAndB
 import Skeleton from 'react-loading-skeleton';
 import MainSection from 'app/creation/components/organisms/main-section/main-section';
 import { toast } from 'sonner';
+import ComfirmModelClient from 'components/Modals/ComfirmModelClient';
 
 
 
@@ -71,7 +72,7 @@ const ClientView = () => {
 	const campaignId = campaign?.documentId
 	const { getKpis, isLoadingKpis, kpiCategory, setkpiCategory } = useKpis();
 
-
+	console.log('campaignData', campaignData)
 
 
 
@@ -175,12 +176,13 @@ const ClientView = () => {
 								isLoadingCampaign={isLoadingCampaign}
 							/>
 
-							<BrandAwareness statsData={statsData} aggregatedStats={aggregatedStats} loading={isLoadingKpis} isLoadingCampaign={isLoadingCampaign} />
+							<BrandAwareness statsData={statsData} aggregatedStats={aggregatedStats} loading={isLoadingKpis} isLoadingCampaign={isLoadingCampaign} campaign={campaignData} />
 							<ClientMessageContainer isOpen={isDrawerOpen} isCreateOpen={isCreateOpen} campaign={campaign} />
 							<div className="mt-[50px] flex flex-col justify-between gap-4 md:flex-row">
 								<div></div>
 
 								<div className="flex gap-[12px] md:flex-row">
+									<ComfirmModelClient />
 									<button
 										className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
 										style={{ border: "1px solid #3175FF" }} onClick={() => setShow(!show)}>{!show ? "See" : "Hide"} budget overview

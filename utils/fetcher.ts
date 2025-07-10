@@ -15,7 +15,12 @@ export const fetcher = async (url: any, options = {}) => {
       return;
     }
     return data;
-  } catch (error) {}
+  } catch (error) {
+     if (error?.response?.status === 401) {
+                     const event = new Event("unauthorizedEvent");
+                     window.dispatchEvent(event);
+                  }
+  }
 };
 
 const channelKeys = [
