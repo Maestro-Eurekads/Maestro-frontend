@@ -79,7 +79,7 @@ export const FunnelStageTable = ({
                       )
                         ? "text-gray-400"
                         : ""
-                    } w-fit max-w-[150px]`}
+                    } w-fit`}
                     // onClick={() => toggleNRColumn(stage.name, header.name)}
                   >
                     {header?.name === "Audience"

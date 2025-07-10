@@ -386,7 +386,7 @@ export const CellRenderer = ({
                       : isSecondsType
                         ? "secs"
                         : ""
-                  }${(body == "reach" ||  body == "video_views") ? value : formatNumber(Number(value))}`
+                  }${(body == "reach" ||  body == "video_views" || body == "impressions") ? value : formatNumber(Number(value))}`
                 : "-"
             })()}
           </p>
