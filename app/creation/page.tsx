@@ -21,7 +21,7 @@ import { useComments } from "app/utils/CommentProvider";
 const Creation = () => {
   const { active, subStep } = useActive();
   return (
-    <div>
+    <div className="!h-100%">
       <div className="creation_continer">
         {active === 0 && <SetupScreen />}
         {/* {active === 1 && <DefineCampaignObjective />} */}

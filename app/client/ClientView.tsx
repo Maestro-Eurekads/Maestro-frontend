@@ -182,7 +182,7 @@ const ClientView = () => {
 								<div></div>
 
 								<div className="flex gap-[12px] md:flex-row">
-									<ComfirmModelClient />
+									{/* <ComfirmModelClient /> */}
 									<button
 										className="bg-[#FAFDFF] text-[16px] font-[600] text-[#3175FF] rounded-[10px] py-[14px] px-6 self-start"
 										style={{ border: "1px solid #3175FF" }} onClick={() => setShow(!show)}>{!show ? "See" : "Hide"} budget overview
